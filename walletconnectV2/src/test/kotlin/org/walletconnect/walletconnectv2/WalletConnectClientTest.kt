@@ -1,3 +1,0 @@
-package org.walletconnect.walletconnectv2
-
-internal class WalletConnectClientTest

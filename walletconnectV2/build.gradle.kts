@@ -16,6 +16,7 @@ kotlin {
             sourceCompatibility = JavaVersion.VERSION_11.toString()
             targetCompatibility = JavaVersion.VERSION_11.toString()
             jvmTarget = JavaVersion.VERSION_11.toString()
+            freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.time.ExperimentalTime"
         }
     }
 }
@@ -25,7 +26,6 @@ tasks.test {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
 
     implementation("com.tinder.scarlet:scarlet:0.1.12")
