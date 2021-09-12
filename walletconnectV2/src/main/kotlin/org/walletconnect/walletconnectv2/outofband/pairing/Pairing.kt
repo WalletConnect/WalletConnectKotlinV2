@@ -1,4 +1,4 @@
-package org.walletconnect.walletconnectv2.outofband.model.pairing
+package org.walletconnect.walletconnectv2.outofband.pairing
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -6,11 +6,11 @@ import org.json.JSONObject
 import org.walletconnect.walletconnectv2.common.Expiry
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.Ttl
-import org.walletconnect.walletconnectv2.outofband.model.pairing.proposal.PairingProposedPermissions
-import org.walletconnect.walletconnectv2.outofband.model.pairing.proposal.PairingProposer
-import org.walletconnect.walletconnectv2.outofband.model.pairing.proposal.PairingSignal
-import org.walletconnect.walletconnectv2.outofband.model.pairing.success.PairingParticipant
-import org.walletconnect.walletconnectv2.outofband.model.pairing.success.PairingState
+import org.walletconnect.walletconnectv2.outofband.pairing.proposal.PairingProposedPermissions
+import org.walletconnect.walletconnectv2.outofband.pairing.proposal.PairingProposer
+import org.walletconnect.walletconnectv2.outofband.pairing.proposal.PairingSignal
+import org.walletconnect.walletconnectv2.outofband.pairing.success.PairingParticipant
+import org.walletconnect.walletconnectv2.outofband.pairing.success.PairingState
 
 sealed class Pairing {
 

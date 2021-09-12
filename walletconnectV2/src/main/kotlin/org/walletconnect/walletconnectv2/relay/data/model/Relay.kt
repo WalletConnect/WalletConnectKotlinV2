@@ -7,15 +7,17 @@ import org.walletconnect.walletconnectv2.common.Ttl
 
 // TODO: Maybe look into separating children into different files
 sealed class Relay {
+    abstract val id: Int
+    abstract val jsonrpc: String
 
     sealed class Publish: Relay() {
 
         @JsonClass(generateAdapter = true)
         data class Request(
             @Json(name = "id")
-            val id: Int,
+            override val id: Int,
             @Json(name = "jsonrpc")
-            val jsonrpc: String = "2.0",
+            override val jsonrpc: String = "2.0",
             @Json(name = "method")
             val method: String = "waku_publish",
             @Json(name = "params")
@@ -33,27 +35,74 @@ sealed class Relay {
             )
         }
 
-        class Response(): Publish()
+        class Response(
+            @Json(name = "id")
+            override val id: Int,
+            @Json(name = "jsonrpc")
+            override val jsonrpc: String = "2.0",
+        ): Publish()
     }
 
     sealed class Subscribe: Relay() {
 
-        class Request: Subscribe()
+        @JsonClass(generateAdapter = true)
+        data class Request(
+            @Json(name = "id")
+            override val id: Int,
+            @Json(name = "jsonrpc")
+            override val jsonrpc: String = "2.0",
+            @Json(name = "method")
+            val method: String = "waku_subscribe",
+            @Json(name = "params")
+            val params: Params
+        ): Subscribe() {
 
-        class Response: Subscribe()
+            @JsonClass(generateAdapter = true)
+            data class Params(
+                @Json(name = "topic")
+                val topic: Topic,
+            )
+        }
+
+        data class Response(
+            @Json(name = "id")
+            override val id: Int,
+            @Json(name = "jsonrpc")
+            override val jsonrpc: String = "2.0",
+        ): Subscribe()
     }
 
     sealed class Subscription: Relay() {
 
-        class Response(): Subscription()
+        data class Response(
+            @Json(name = "id")
+            override val id: Int,
+            @Json(name = "jsonrpc")
+            override val jsonrpc: String = "2.0",
+        ): Subscription()
 
-        class Request(): Subscription()
+        data class Request(
+            @Json(name = "id")
+            override val id: Int,
+            @Json(name = "jsonrpc")
+            override val jsonrpc: String = "2.0",
+        ): Subscription()
     }
 
     sealed class Unsubscribe: Relay() {
 
-        class Request(): Unsubscribe()
+        data class Request(
+            @Json(name = "id")
+            override val id: Int,
+            @Json(name = "jsonrpc")
+            override val jsonrpc: String = "2.0",
+        ): Unsubscribe()
 
-        class Response(): Unsubscribe()
+        data class Response(
+            @Json(name = "id")
+            override val id: Int,
+            @Json(name = "jsonrpc")
+            override val jsonrpc: String = "2.0",
+        ): Unsubscribe()
     }
 }
