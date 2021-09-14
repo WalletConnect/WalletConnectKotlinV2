@@ -15,6 +15,8 @@ object ExpiryAdapter {
 
     @ToJson
     fun toJson(writer: JsonWriter, value: Expiry?) {
+        writer.isLenient = true
+
         if (value != null) {
             writer.value(value.seconds)
         } else {

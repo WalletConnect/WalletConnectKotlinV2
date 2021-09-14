@@ -15,10 +15,6 @@ internal class TopicAdapterTest {
         .build()
 
     @Test
-    fun fromJson() {
-    }
-
-    @Test
     fun toJson() {
         val topic = Topic(getRandom64ByteString())
         val expected = """"${topic.topicValue}""""

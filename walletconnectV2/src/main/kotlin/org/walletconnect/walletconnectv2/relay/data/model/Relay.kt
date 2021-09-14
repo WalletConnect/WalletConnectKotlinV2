@@ -74,12 +74,35 @@ sealed class Relay {
 
     sealed class Subscription: Relay() {
 
+        @JsonClass(generateAdapter = true)
         data class Response(
             @Json(name = "id")
             override val id: Int,
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
-        ): Subscription()
+            @Json(name = "method")
+            val method: String = "waku_subscription",
+            @Json(name = "params")
+            val params: Params
+        ): Subscription() {
+
+            @JsonClass(generateAdapter = true)
+            data class Params(
+                @Json(name = "id")
+                val subscriptionId: Int,
+                @Json(name = "data")
+                val data: SubscriptionData
+            ) {
+
+                @JsonClass(generateAdapter = true)
+                data class SubscriptionData(
+                    @Json(name = "topic")
+                    val topic: Topic,
+                    @Json(name = "message")
+                    val message: String
+                )
+            }
+        }
 
         data class Request(
             @Json(name = "id")
