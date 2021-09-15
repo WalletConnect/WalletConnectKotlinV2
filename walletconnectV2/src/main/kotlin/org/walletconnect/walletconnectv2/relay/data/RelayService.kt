@@ -20,4 +20,7 @@ interface RelayService {
 
     @Receive
     fun observeSubscriptionResponse(): ReceiveChannel<Relay.Subscription.Response>
+
+    @Send
+    fun unsubscribeRequest(unsubscribeRequest: Relay.Unsubscribe.Request)
 }
