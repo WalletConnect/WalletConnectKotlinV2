@@ -5,10 +5,10 @@ package org.walletconnect.walletconnectv2.common
 import com.squareup.moshi.Moshi
 import org.json.JSONObject
 import org.walletconnect.walletconnectv2.clientsync.PreSettlementPairing
-import org.walletconnect.walletconnectv2.outofband.model.pairing.Pairing
-import org.walletconnect.walletconnectv2.outofband.model.pairing.proposal.PairingProposer
-import org.walletconnect.walletconnectv2.outofband.model.pairing.success.PairingParticipant
-import org.walletconnect.walletconnectv2.outofband.model.pairing.success.PairingState
+import org.walletconnect.walletconnectv2.outofband.pairing.Pairing
+import org.walletconnect.walletconnectv2.outofband.pairing.proposal.PairingProposer
+import org.walletconnect.walletconnectv2.outofband.pairing.success.PairingParticipant
+import org.walletconnect.walletconnectv2.outofband.pairing.success.PairingState
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import java.net.URI
 import java.util.*

@@ -1,4 +1,4 @@
-package org.walletconnect.walletconnectv2.outofband
+package org.walletconnect.walletconnectv2.outofband.client
 
 sealed class ClientTypes {
 

@@ -1,6 +1,6 @@
 package org.walletconnect.walletconnectv2
 
-import org.walletconnect.walletconnectv2.outofband.ClientTypes
+import org.walletconnect.walletconnectv2.outofband.client.ClientTypes
 import org.walletconnect.walletconnectv2.relay.DefaultRelayClient
 
 object WalletConnectClient {

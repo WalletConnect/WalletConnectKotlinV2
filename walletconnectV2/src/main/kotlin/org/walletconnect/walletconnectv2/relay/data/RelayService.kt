@@ -11,10 +11,9 @@ interface RelayService {
     @Receive
     fun observeEvents(): Stream<WebSocket.Event>
 
-//    @Send
-//    fun publishRequest(publishRequest: Relay.Publish.Request)
+    @Send
+    fun publishRequest(publishRequest: Relay.Publish.Request)
 
     @Send
-    fun sendText(message: String)
-
+    fun subscribeRequest(subscribeRequest: Relay.Subscribe.Request)
 }
