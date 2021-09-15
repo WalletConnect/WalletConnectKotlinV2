@@ -1,26 +1,26 @@
 package org.walletconnect.walletconnectv2.common.network.adapters
 
-import com.squareup.moshi.*
+import com.squareup.moshi.FromJson
+import com.squareup.moshi.JsonReader
+import com.squareup.moshi.JsonWriter
+import com.squareup.moshi.ToJson
 import org.walletconnect.walletconnectv2.common.Ttl
 
-object TtlAdapter: JsonAdapter<Ttl>() {
+object TtlAdapter {
 
     @FromJson
-    @Qualifier
-    override fun fromJson(reader: JsonReader): Ttl? {
+    fun fromJson(reader: JsonReader): Ttl? {
         return null
     }
 
     @ToJson
-    override fun toJson(writer: JsonWriter, @Qualifier value: Ttl?) {
+    fun toJson(writer: JsonWriter, value: Ttl?) {
+        writer.isLenient = true
+
         if (value != null) {
             writer.value(value.seconds)
         } else {
             writer.value(0)
         }
     }
-
-    @Retention(AnnotationRetention.RUNTIME)
-    @JsonQualifier
-    annotation class Qualifier
 }

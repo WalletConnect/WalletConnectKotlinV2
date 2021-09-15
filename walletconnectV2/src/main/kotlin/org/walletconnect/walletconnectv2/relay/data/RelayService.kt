@@ -15,24 +15,12 @@ interface RelayService {
     @Send
     fun publishRequest(publishRequest: Relay.Publish.Request)
 
-    @Receive
-    fun observePublishResponse(): ReceiveChannel<Relay.Publish.Response>
-
     @Send
     fun subscribeRequest(subscribeRequest: Relay.Subscribe.Request)
 
     @Receive
-    fun observeSubscribeResponse(): ReceiveChannel<Relay.Subscribe.Response>
-
-    @Receive
-    fun observeSubscriptionRequest(): ReceiveChannel<Relay.Subscription.Request>
-
-    @Send
-    fun subscriptionResponse(subscriptionResponse: Relay.Subscription.Response)
+    fun observeSubscriptionResponse(): ReceiveChannel<Relay.Subscription.Response>
 
     @Send
     fun unsubscribeRequest(unsubscribeRequest: Relay.Unsubscribe.Request)
-
-    @Receive
-    fun observeUnsubscribeResponse(): ReceiveChannel<Relay.Unsubscribe.Response>
 }
