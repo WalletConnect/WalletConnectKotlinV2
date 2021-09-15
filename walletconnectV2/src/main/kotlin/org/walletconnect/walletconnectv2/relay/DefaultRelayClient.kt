@@ -9,6 +9,7 @@ import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.tinder.streamadapter.coroutines.CoroutinesStreamAdapterFactory
+import kotlinx.coroutines.channels.BroadcastChannel
 import okhttp3.OkHttpClient
 import org.walletconnect.walletconnectv2.common.network.adapters.ExpiryAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.JSONObjectAdapter
@@ -31,6 +32,9 @@ class DefaultRelayClient internal constructor(private val useTLs: Boolean, inter
         .add(JSONObjectAdapter)
         .add(KotlinJsonAdapterFactory())
         .build()
+    // TODO: Look into adding either a Flow adapter
+    //  https://github.com/Tinder/Scarlet/issues/114#issuecomment-600256650 - sample Flow adapter
+    //  https://github.com/kizok/tinder_scarlet_with_coroutine_adapter/blob/master/app/src/main/java/tech/kizok/sockettest/ScarletAdapter/ReceiveChannelStreamAdapter.kt - another flow adapter
     internal val scarlet = Scarlet.Builder()
         .webSocketFactory(webSocketFactory)
         .lifecycle(lifecycleRegistry)
