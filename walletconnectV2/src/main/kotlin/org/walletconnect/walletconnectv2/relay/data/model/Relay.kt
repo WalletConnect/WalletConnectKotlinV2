@@ -119,7 +119,19 @@ sealed class Relay {
             override val id: Int,
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
-        ): Unsubscribe()
+            @Json(name = "method")
+            val method: String = "waku_unsubscribe",
+            @Json(name = "params")
+            val params: Params
+        ): Unsubscribe() {
+
+            data class Params(
+                @Json(name = "topic")
+                val topic: Topic,
+                @Json(name = "id")
+                val subscriptionId: Int
+            )
+        }
 
         data class Response(
             @Json(name = "id")

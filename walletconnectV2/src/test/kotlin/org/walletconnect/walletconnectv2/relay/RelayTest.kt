@@ -138,6 +138,35 @@ internal class RelayTest {
         }
     }
 
+    @Nested
+    inner class Unsubscribe {
+
+        @Test
+        fun sendRelaySubscribeRequest_shouldBeReceivedByTheServer() {
+            // Given
+            val relayUnsubscribeRequest = Relay.Unsubscribe.Request(
+                id = 1,
+                params = Relay.Unsubscribe.Request.Params(
+                    topic = Topic(getRandom64ByteString()),
+                    subscriptionId = 2
+                )
+            )
+            val serverRelayPublishObserver = server.observeUnsubscribePublish().test()
+
+            // When
+            client.unsubscribeRequest(relayUnsubscribeRequest)
+
+            // Then
+            serverEventObserver.awaitValues(
+                any<WebSocket.Event.OnConnectionOpened<*>>(),
+                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relayUnsubscribeRequest)
+            )
+            serverRelayPublishObserver.awaitValues(
+                any<Relay.Unsubscribe.Request> { assertThat(this).isEqualTo(relayUnsubscribeRequest) }
+            )
+        }
+    }
+
     private fun givenConnectionIsEstablished() {
         createClientAndServer()
         blockUntilConnectionIsEstablish()
@@ -193,6 +222,9 @@ internal class RelayTest {
 
         @Send
         fun sendSubscriptionResponse(serverResponse: Relay.Subscription.Response)
+
+        @Receive
+        fun observeUnsubscribePublish(): Stream<Relay.Unsubscribe.Request>
     }
 
     private inline fun <reified T: Relay> ValueAssert<WebSocket.Event.OnMessageReceived>.containingRelayObject(relayObj: T) = assert {
