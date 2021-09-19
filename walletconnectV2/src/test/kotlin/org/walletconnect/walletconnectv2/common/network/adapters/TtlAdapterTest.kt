@@ -5,7 +5,6 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.walletconnect.walletconnectv2.common.Ttl
-import kotlin.random.Random
 
 class TtlAdapterTest {
     private val moshi = Moshi.Builder()
@@ -14,12 +13,8 @@ class TtlAdapterTest {
         .build()
 
     @Test
-    fun fromJson() {
-    }
-
-    @Test
     fun toJson() {
-        val ttl = Ttl(Random.nextLong())
+        val ttl = Ttl(100L)
         val expected = """"${ttl.seconds}""""
 
         val ttlJson = moshi.adapter(Ttl::class.java).toJson(ttl)

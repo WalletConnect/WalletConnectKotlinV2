@@ -15,6 +15,8 @@ object TtlAdapter {
 
     @ToJson
     fun toJson(writer: JsonWriter, value: Ttl?) {
+        writer.isLenient = true
+
         if (value != null) {
             writer.value(value.seconds)
         } else {

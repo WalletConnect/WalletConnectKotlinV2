@@ -14,7 +14,6 @@ import org.walletconnect.walletconnectv2.outofband.pairing.Pairing
 import org.walletconnect.walletconnectv2.outofband.pairing.proposal.PairingProposer
 import org.walletconnect.walletconnectv2.outofband.pairing.success.PairingParticipant
 import org.walletconnect.walletconnectv2.outofband.pairing.success.PairingState
-import kotlin.random.Random
 import kotlin.test.assertEquals
 
 internal class MappingFunctionsTest {
@@ -37,7 +36,7 @@ internal class MappingFunctionsTest {
         val pairingProposal = mockk<Pairing.Proposal>() {
             every { topic } returns Topic(getRandom64ByteString())
             every { relay } returns mockk()
-            every { pairingProposer } returns PairingProposer(getRandom64ByteString(), Random.nextBoolean())
+            every { pairingProposer } returns PairingProposer(getRandom64ByteString(), false)
             every { ttl } returns mockk()
         }
 
@@ -52,11 +51,11 @@ internal class MappingFunctionsTest {
 
     @Test
     fun `PairingSuccess mapped to PreSettlementPairing_Approve`() {
-        val randomId = Random.nextInt()
+        val randomId = 1
         val pairingProposal = mockk<Pairing.Proposal>() {
             every { topic } returns Topic(getRandom64ByteString())
             every { relay } returns mockk()
-            every { pairingProposer } returns PairingProposer(getRandom64ByteString(), Random.nextBoolean())
+            every { pairingProposer } returns PairingProposer(getRandom64ByteString(), false)
             every { ttl } returns mockk()
         }
 
@@ -70,13 +69,13 @@ internal class MappingFunctionsTest {
     fun `PreSettlementPairing_Approve to RelayPublish_Request`() {
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val preSettlementPairingApprove = mockk<PreSettlementPairing.Approve>() {
-            every { id } returns Random.nextInt()
+            every { id } returns 1
             every { jsonrpc } returns "2.0"
             every { method } returns "wc_pairingApprove"
-            every { params } returns Pairing.Success(Topic(getRandom64ByteString()) /*settle topic*/, JSONObject(), PairingParticipant(getRandom64ByteString()), Expiry(Random.nextLong()), PairingState(null))
+            every { params } returns Pairing.Success(Topic(getRandom64ByteString()) /*settle topic*/, JSONObject(), PairingParticipant(getRandom64ByteString()), Expiry(100L), PairingState(null))
         }
 
-        val relayPublishRequest = preSettlementPairingApprove.toRelayPublishRequest(Random.nextInt(), Topic(getRandom64ByteString()), moshi)
+        val relayPublishRequest = preSettlementPairingApprove.toRelayPublishRequest(1, Topic(getRandom64ByteString()), moshi)
 
         assert(relayPublishRequest.params.message.isNotBlank())
         assertFalse(relayPublishRequest.params.message.contains(" "))

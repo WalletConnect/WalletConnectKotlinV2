@@ -7,14 +7,13 @@ internal object TopicAdapter {
 
     @FromJson
     fun fromJson(reader: JsonReader): Topic? {
-        return when (val json = reader.readJsonValue()) {
-            is String -> Topic(json)
-            else -> null
-        }
+        return null
     }
 
     @ToJson
     fun toJson(writer: JsonWriter, value: Topic?) {
+        writer.isLenient = true
+
         if (value != null) {
             writer.value(value.topicValue)
         } else {
