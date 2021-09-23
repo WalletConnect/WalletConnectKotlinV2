@@ -17,11 +17,11 @@ import java.nio.charset.StandardCharsets
 class LazySodiumCryptoManager(private val keyChain: KeyChain): CryptoManager {
     private val lazySodium = LazySodiumJava(SodiumJava(LibraryLoader.Mode.PREFER_BUNDLED), StandardCharsets.UTF_8)
 
-    fun hasKeys(tag: String): Boolean {
+    override fun hasKeys(tag: String): Boolean {
         return keyChain.getKey(tag).isNotBlank()
     }
 
-    fun generateKeyPair(): PublicKey {
+    override fun generateKeyPair(): PublicKey {
         val lsKeyPair = lazySodium.cryptoSignKeypair()
         val curve25519KeyPair = lazySodium.convertKeyPairEd25519ToCurve25519(lsKeyPair)
         val (publicKey, privateKey) = curve25519KeyPair.let { keyPair ->
@@ -33,7 +33,7 @@ class LazySodiumCryptoManager(private val keyChain: KeyChain): CryptoManager {
         return publicKey
     }
 
-    fun generateSharedKey(self: PublicKey, peer: PublicKey, overrideTopic: String?): Topic {
+    override fun generateSharedKey(self: PublicKey, peer: PublicKey, overrideTopic: String?): Topic {
         val (publicKey, privateKey) = getKeyPair(self)
         val keyPair = KeyPair(privateKey.toKey(), peer.toKey())
         val sharedKey = lazySodium.cryptoBoxBeforeNm(keyPair)
