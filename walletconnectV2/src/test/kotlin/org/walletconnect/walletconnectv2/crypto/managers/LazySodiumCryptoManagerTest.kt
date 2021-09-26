@@ -39,17 +39,17 @@ internal class LazySodiumCryptoManagerTest {
     @Test
     fun `Verify that the generated public key is a valid key`() {
         val publicKey = sut.generateKeyPair()
-        val expectedKey = Key.fromHexString(publicKey.key)
+        val expectedKey = Key.fromHexString(publicKey.keyAsHex)
 
-        assert(publicKey.key.length == 64)
-        assertContentEquals(expectedKey.asBytes, publicKey.key.hexStringToByteArray())
+        assert(publicKey.keyAsHex.length == 64)
+        assertContentEquals(expectedKey.asBytes, publicKey.keyAsHex.hexStringToByteArray())
     }
 
     @Test
     fun `Generate a shared key and return a Topic object`() {
         val peerKey = PublicKey("D083CDBBD08B93BD9AD10E95712DC0D4BD880401B04D587D8D3782FEA0CD31A9")
 
-        val topic = sut.generateSharedKey(publicKey, peerKey, null)
+        val topic = sut.generateSharedKey(publicKey, peerKey)
 
         assert(topic.topicValue.isNotBlank())
         assert(topic.topicValue.length == 64)
@@ -59,7 +59,7 @@ internal class LazySodiumCryptoManagerTest {
     fun `Generate a Topic with a sharedKey and a public key and no existing topic`() {
         val sharedKeyString = "D083CDBBD08B93BD9AD10E95712DC0D4BD880401B04D587D8D3782FEA0CD31A9"
         val sharedKey = object: org.walletconnect.walletconnectv2.crypto.data.Key {
-            override val key: String = sharedKeyString
+            override val keyAsHex: String = sharedKeyString
         }
         val topic = sut.setEncryptionKeys(sharedKeyString, publicKey, null)
 
@@ -100,8 +100,8 @@ internal class LazySodiumCryptoManagerTest {
 
         val (splitPublicKey, splitPrivateKey) = sut.splitKeys(concatKeys)
 
-        assertEquals(publicKeyString, splitPublicKey.key)
-        assertEquals(privateKeyString, splitPrivateKey.key)
+        assertEquals(publicKeyString, splitPublicKey.keyAsHex)
+        assertEquals(privateKeyString, splitPrivateKey.keyAsHex)
     }
 
     private fun String.hexStringToByteArray(): ByteArray {

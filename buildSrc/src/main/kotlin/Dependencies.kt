@@ -1,6 +1,6 @@
 import org.gradle.kotlin.dsl.DependencyHandlerScope
 
-const val kotlinVersion = "1.5.30"
+const val kotlinVersion = "1.5.31"
 
 fun DependencyHandlerScope.coroutines() {
     val coroutinesVersion = "1.5.1"

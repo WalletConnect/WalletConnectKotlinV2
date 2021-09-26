@@ -1,4 +1,4 @@
-package org.walletconnect.walletconnectv2.relay;
+package org.walletconnect.walletconnectv2.relay.model;
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -57,18 +57,18 @@ internal class RelayTest {
     inner class Publish {
 
         @Test
-        fun sendRelayPublishRequest_shouldBeReceivedByTheServer() {
-            // Given
+        fun `Client sends Relay_Publish_Request, should be received by the server`() {
+            // Arrange
             val pairingParams = ClientTypes.PairParams("wc:0b1a3d6c0336662dddb6278ee0aa25380569b79e7e86cfe39fb20b4b189096a0@2?controller=false&publicKey=66db1bd5fad65392d1d5a4856d0d549d2fca9194327138b41c289b961d147860&relay=%7B%22protocol%22%3A%22waku%22%7D")
             val pairingProposal = pairingParams.uri.toPairProposal()
             val preSettlementPairingApprove = pairingProposal.toApprove(1)
             val relayPublishRequest = preSettlementPairingApprove.toRelayPublishRequest(2, Topic(getRandom64ByteHexString()), createMoshi())
             val serverRelayPublishObserver = server.observeRelayPublish().test()
 
-            // When
+            // Act
             client.publishRequest(relayPublishRequest)
 
-            // Then
+            // Assert
             serverEventObserver.awaitValues(
                 any<WebSocket.Event.OnConnectionOpened<*>>(),
                 any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relayPublishRequest)
