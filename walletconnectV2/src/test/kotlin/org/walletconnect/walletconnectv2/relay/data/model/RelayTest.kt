@@ -1,4 +1,4 @@
-package org.walletconnect.walletconnectv2.relay.model;
+package org.walletconnect.walletconnectv2.relay.data.model
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -11,6 +11,7 @@ import com.tinder.scarlet.testutils.TestStreamObserver
 import com.tinder.scarlet.testutils.ValueAssert
 import com.tinder.scarlet.testutils.any
 import com.tinder.scarlet.testutils.test
+import com.tinder.scarlet.utils.getRawType
 import com.tinder.scarlet.websocket.mockwebserver.newWebSocketFactory
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.tinder.scarlet.ws.Receive
@@ -20,18 +21,17 @@ import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
+import org.json.JSONObject
 import org.junit.Rule
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.walletconnect.walletconnectv2.common.Topic
-import org.walletconnect.walletconnectv2.common.toApprove
-import org.walletconnect.walletconnectv2.common.toPairProposal
-import org.walletconnect.walletconnectv2.common.toRelayPublishRequest
-import org.walletconnect.walletconnectv2.util.getRandom64ByteHexString
+import org.walletconnect.walletconnectv2.common.*
+import org.walletconnect.walletconnectv2.common.network.adapters.*
 import org.walletconnect.walletconnectv2.outofband.client.ClientTypes
 import org.walletconnect.walletconnectv2.relay.data.RelayService
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
+import org.walletconnect.walletconnectv2.util.getRandom64ByteHexString
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -59,7 +59,8 @@ internal class RelayTest {
         @Test
         fun `Client sends Relay_Publish_Request, should be received by the server`() {
             // Arrange
-            val pairingParams = ClientTypes.PairParams("wc:0b1a3d6c0336662dddb6278ee0aa25380569b79e7e86cfe39fb20b4b189096a0@2?controller=false&publicKey=66db1bd5fad65392d1d5a4856d0d549d2fca9194327138b41c289b961d147860&relay=%7B%22protocol%22%3A%22waku%22%7D")
+            val pairingParams =
+                ClientTypes.PairParams("wc:0b1a3d6c0336662dddb6278ee0aa25380569b79e7e86cfe39fb20b4b189096a0@2?controller=false&publicKey=66db1bd5fad65392d1d5a4856d0d549d2fca9194327138b41c289b961d147860&relay=%7B%22protocol%22%3A%22waku%22%7D")
             val pairingProposal = pairingParams.uri.toPairProposal()
             val preSettlementPairingApprove = pairingProposal.toApprove(1)
             val relayPublishRequest = preSettlementPairingApprove.toRelayPublishRequest(2, Topic(getRandom64ByteHexString()), createMoshi())
@@ -77,24 +78,50 @@ internal class RelayTest {
                 any<Relay.Publish.Request> { assertThat(this).isEqualTo(relayPublishRequest) }
             )
         }
+
+        @Test
+        fun `Server sends Relay_Publish_Response, should be received by the client`() {
+            // Arrange
+            val relayPublishResponse = Relay.Publish.Response(
+                id = 1,
+                result = true
+            )
+            val clientRelayPublishObserver = client.observePublishResponse()
+
+            // Act
+            server.sendPublishResponse(relayPublishResponse)
+
+            // Assert
+            clientEventObserver.awaitValues(
+                any<WebSocket.Event.OnConnectionOpened<*>>(),
+                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relayPublishResponse)
+            )
+
+            runBlocking {
+                val actualPublishResponse = clientRelayPublishObserver.receiveCatching().getOrNull()
+                assertEquals(relayPublishResponse.id, actualPublishResponse?.id)
+                assertEquals(relayPublishResponse.jsonrpc, actualPublishResponse?.jsonrpc)
+                assertEquals(relayPublishResponse.result, actualPublishResponse?.result)
+            }
+        }
     }
 
     @Nested
     inner class Subscribe {
 
         @Test
-        fun sendRelaySubscribeRequest_shouldBeReceivedByTheServer() {
-            // Given
+        fun `Client sends Relay_Subscribe_Request, should be received by the server`() {
+            // Arrange
             val relaySubscribeRequest = Relay.Subscribe.Request(
                 id = 1,
                 params = Relay.Subscribe.Request.Params(Topic(getRandom64ByteHexString()))
             )
             val serverRelayPublishObserver = server.observeSubscribePublish().test()
 
-            // When
+            // Act
             client.subscribeRequest(relaySubscribeRequest)
 
-            // Then
+            // Assert
             serverEventObserver.awaitValues(
                 any<WebSocket.Event.OnConnectionOpened<*>>(),
                 any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relaySubscribeRequest)
@@ -103,38 +130,84 @@ internal class RelayTest {
                 any<Relay.Subscribe.Request> { assertThat(this).isEqualTo(relaySubscribeRequest) }
             )
         }
+
+        @Test
+        fun `Server sends Relay_Subscribe_Response, should be received by the client`() {
+            // Arrange
+            val relaySubscribeResponse = Relay.Subscribe.Response(
+                id = 1,
+                result = SubscriptionId("SubscriptionId 1")
+            )
+            val clientRelaySubscribeObserver = client.observeSubscribeResponse()
+
+            // Act
+            server.sendSubscribeResponse(relaySubscribeResponse)
+
+            // Assert
+            clientEventObserver.awaitValues(
+                any<WebSocket.Event.OnConnectionOpened<*>>(),
+                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relaySubscribeResponse)
+            )
+
+            runBlocking {
+                val actualSubscribeResponse = clientRelaySubscribeObserver.receiveCatching().getOrNull()
+                assertEquals(relaySubscribeResponse, actualSubscribeResponse)
+            }
+        }
     }
 
     @Nested
     inner class Subscription {
 
         @Test
-        fun sendRelaySubscriptionResponse_shouldBeReceivedByTheClient() {
-            // Given
-            val relaySubscriptionResponse = Relay.Subscription.Response(
+        fun `Server sends Relay_Subscription_Request, should be received by the client`() {
+            // Arrange
+            val relaySubscriptionRequest = Relay.Subscription.Request(
                 id = 1,
-                params = Relay.Subscription.Response.Params(
-                    subscriptionId = 2,
-                    data = Relay.Subscription.Response.Params.SubscriptionData(
+                params = Relay.Subscription.Request.Params(
+                    subscriptionId = SubscriptionId("subscriptionId"),
+                    data = Relay.Subscription.Request.Params.SubscriptionData(
                         topic = Topic(getRandom64ByteHexString()),
                         message = "This is a test"
                     )
                 )
             )
-            val clientRelaySubscriptionObserver = client.observeSubscriptionResponse()
+            val clientRelaySubscriptionObserver = client.observeSubscriptionRequest()
 
-            // When
-            server.sendSubscriptionResponse(relaySubscriptionResponse)
+            // Act
+            server.sendSubscriptionRequest(relaySubscriptionRequest)
 
-            // Then
+            // Assert
             clientEventObserver.awaitValues(
                 any<WebSocket.Event.OnConnectionOpened<*>>(),
-                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relaySubscriptionResponse)
+                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relaySubscriptionRequest)
             )
 
             runBlocking {
-                assertEquals(relaySubscriptionResponse, clientRelaySubscriptionObserver.receiveCatching().getOrNull())
+                assertEquals(relaySubscriptionRequest, clientRelaySubscriptionObserver.receiveCatching().getOrNull())
             }
+        }
+
+        @Test
+        fun `Client sends Relay_Subscription_Response, should be received by the server`() {
+            // Arrange
+            val relaySubscriptionResponse = Relay.Subscription.Response(
+                id = 1,
+                result = true
+            )
+            val serverRelaySubscriptionObserver = server.observeSubscriptionResponse().test()
+
+            // Act
+            client.subscriptionResponse(relaySubscriptionResponse)
+
+            // Assert
+            serverEventObserver.awaitValues(
+                any<WebSocket.Event.OnConnectionOpened<*>>(),
+                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relaySubscriptionResponse)
+            )
+            serverRelaySubscriptionObserver.awaitValues(
+                any<Relay.Subscription.Response> { assertThat(this).isEqualTo(relaySubscriptionResponse) }
+            )
         }
     }
 
@@ -142,21 +215,21 @@ internal class RelayTest {
     inner class Unsubscribe {
 
         @Test
-        fun sendRelaySubscribeRequest_shouldBeReceivedByTheServer() {
-            // Given
+        fun `Client sends Relay_Subscribe_Request, should be received by the server`() {
+            // Arrange
             val relayUnsubscribeRequest = Relay.Unsubscribe.Request(
                 id = 1,
                 params = Relay.Unsubscribe.Request.Params(
                     topic = Topic(getRandom64ByteHexString()),
-                    subscriptionId = 2
+                    subscriptionId = SubscriptionId("subscriptionId")
                 )
             )
             val serverRelayPublishObserver = server.observeUnsubscribePublish().test()
 
-            // When
+            // Act
             client.unsubscribeRequest(relayUnsubscribeRequest)
 
-            // Then
+            // Assert
             serverEventObserver.awaitValues(
                 any<WebSocket.Event.OnConnectionOpened<*>>(),
                 any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relayUnsubscribeRequest)
@@ -164,6 +237,30 @@ internal class RelayTest {
             serverRelayPublishObserver.awaitValues(
                 any<Relay.Unsubscribe.Request> { assertThat(this).isEqualTo(relayUnsubscribeRequest) }
             )
+        }
+
+        @Test
+        fun `Server sends Relay_Unsubscribe_Response, should be received by the client`() {
+            // Arrange
+            val relayUnsubscribeResponse = Relay.Unsubscribe.Response(
+                id = 1,
+                result = true
+            )
+            val clientRelayUnsubscribeObserver = client.observeUnsubscribeResponse()
+
+            // Act
+            server.sendUnsubscribeResponse(relayUnsubscribeResponse)
+
+            // Assert
+            clientEventObserver.awaitValues(
+                any<WebSocket.Event.OnConnectionOpened<*>>(),
+                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relayUnsubscribeResponse)
+            )
+
+            runBlocking {
+                val actualSubscribeResponse = clientRelayUnsubscribeObserver.receiveCatching().getOrNull()
+                assertEquals(relayUnsubscribeResponse, actualSubscribeResponse)
+            }
         }
     }
 
@@ -180,6 +277,16 @@ internal class RelayTest {
     }
 
     private fun createMoshi(): Moshi = Moshi.Builder()
+        .addLast { type, _, _ ->
+            when (type.getRawType().name) {
+                Expiry::class.qualifiedName -> ExpiryAdapter
+                JSONObject::class.qualifiedName -> JSONObjectAdapter
+                SubscriptionId::class.qualifiedName -> SubscriptionIdAdapter
+                Topic::class.qualifiedName -> TopicAdapter
+                Ttl::class.qualifiedName -> TtlAdapter
+                else -> null
+            }
+        }
         .add(KotlinJsonAdapterFactory())
         .build()
 
@@ -217,17 +324,29 @@ internal class RelayTest {
         @Receive
         fun observeRelayPublish(): Stream<Relay.Publish.Request>
 
+        @Send
+        fun sendPublishResponse(serverResponse: Relay.Publish.Response)
+
         @Receive
         fun observeSubscribePublish(): Stream<Relay.Subscribe.Request>
 
         @Send
-        fun sendSubscriptionResponse(serverResponse: Relay.Subscription.Response)
+        fun sendSubscribeResponse(serverResponse: Relay.Subscribe.Response)
+
+        @Send
+        fun sendSubscriptionRequest(serverRequest: Relay.Subscription.Request)
+
+        @Receive
+        fun observeSubscriptionResponse(): Stream<Relay.Subscription.Response>
 
         @Receive
         fun observeUnsubscribePublish(): Stream<Relay.Unsubscribe.Request>
+
+        @Send
+        fun sendUnsubscribeResponse(serverResponse: Relay.Unsubscribe.Response)
     }
 
-    private inline fun <reified T: Relay> ValueAssert<WebSocket.Event.OnMessageReceived>.containingRelayObject(relayObj: T) = assert {
+    private inline fun <reified T : Relay> ValueAssert<WebSocket.Event.OnMessageReceived>.containingRelayObject(relayObj: T) = assert {
         assertIs<Message.Text>(message)
         val text = message as Message.Text
         val expectedText = Message.Text(createMoshi().adapter(T::class.java).toJson(relayObj))

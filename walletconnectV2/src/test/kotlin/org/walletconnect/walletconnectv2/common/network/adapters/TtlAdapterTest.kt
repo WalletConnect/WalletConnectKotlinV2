@@ -8,7 +8,9 @@ import org.walletconnect.walletconnectv2.common.Ttl
 
 class TtlAdapterTest {
     private val moshi = Moshi.Builder()
-        .add(TtlAdapter)
+        .add { _, _, _ ->
+            TtlAdapter
+        }
         .add(KotlinJsonAdapterFactory())
         .build()
 

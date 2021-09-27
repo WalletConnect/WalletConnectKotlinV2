@@ -1,5 +1,6 @@
 package org.walletconnect.walletconnectv2.common
 
+import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import io.mockk.every
@@ -9,6 +10,8 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.walletconnect.walletconnectv2.clientsync.PreSettlementPairing
+import org.walletconnect.walletconnectv2.common.network.adapters.ExpiryAdapter
+import org.walletconnect.walletconnectv2.common.network.adapters.TopicAdapter
 import org.walletconnect.walletconnectv2.outofband.pairing.Pairing
 import org.walletconnect.walletconnectv2.outofband.pairing.proposal.PairingProposer
 import org.walletconnect.walletconnectv2.outofband.pairing.success.PairingParticipant
@@ -67,7 +70,11 @@ internal class MappingFunctionsTest {
 
     @Test
     fun `PreSettlementPairing_Approve to RelayPublish_Request`() {
-        val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+        val moshi = Moshi.Builder()
+            .addLast(ExpiryAdapter as JsonAdapter<Expiry>)
+            .addLast(TopicAdapter as JsonAdapter<Topic>)
+            .addLast(KotlinJsonAdapterFactory())
+            .build()
         val preSettlementPairingApprove = mockk<PreSettlementPairing.Approve>() {
             every { id } returns 1
             every { jsonrpc } returns "2.0"
