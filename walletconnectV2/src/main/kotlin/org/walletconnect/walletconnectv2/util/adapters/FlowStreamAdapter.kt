@@ -1,4 +1,4 @@
-package org.walletconnect.walletconnectv2.relay.data.adapters
+package org.walletconnect.walletconnectv2.util.adapters
 
 import com.tinder.scarlet.Stream
 import com.tinder.scarlet.StreamAdapter

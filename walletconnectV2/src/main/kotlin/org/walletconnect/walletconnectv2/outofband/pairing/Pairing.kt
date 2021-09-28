@@ -30,7 +30,7 @@ sealed class Pairing {
     data class Success(
         @Json(name = "topic")
         @field:TopicAdapter.Qualifier
-        val topic: Topic,
+        val settledTopic: Topic,
         @Json(name = "relay")
         @field:JSONObjectAdapter.Qualifier
         val relay: JSONObject,

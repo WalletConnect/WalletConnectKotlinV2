@@ -41,7 +41,7 @@ sealed class Relay {
             )
         }
 
-        class Response(
+        data class Response(
             @Json(name = "id")
             override val id: Int,
             @Json(name = "jsonrpc")

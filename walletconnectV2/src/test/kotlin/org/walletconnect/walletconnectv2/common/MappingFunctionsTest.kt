@@ -43,9 +43,9 @@ internal class MappingFunctionsTest {
             every { ttl } returns mockk()
         }
 
-        val pairingSuccess = pairingProposal.toPairingSuccess()
+        val pairingSuccess = pairingProposal.toPairingSuccess(Topic(getRandom64ByteHexString()), Expiry(1))
 
-        assertEquals(pairingProposal.topic, pairingSuccess.topic)
+        assertEquals(pairingProposal.topic, pairingSuccess.settledTopic)
         assertEquals(pairingProposal.relay, pairingSuccess.relay)
         assertEquals(pairingProposal.pairingProposer.publicKey, pairingSuccess.responder.publicKey)
         assert((pairingSuccess.expiry.seconds - pairingProposal.ttl.seconds) > 0)
@@ -55,6 +55,8 @@ internal class MappingFunctionsTest {
     @Test
     fun `PairingSuccess mapped to PreSettlementPairing_Approve`() {
         val randomId = 1
+        val settledTopic = Topic(getRandom64ByteHexString())
+        val expiry = Expiry(1)
         val pairingProposal = mockk<Pairing.Proposal>() {
             every { topic } returns Topic(getRandom64ByteHexString())
             every { relay } returns mockk()
@@ -62,10 +64,10 @@ internal class MappingFunctionsTest {
             every { ttl } returns mockk()
         }
 
-        val wcPairingApprove = pairingProposal.toApprove(randomId)
+        val wcPairingApprove = pairingProposal.toApprove(randomId, settledTopic, expiry)
 
         assertEquals(randomId, wcPairingApprove.id)
-        assertEquals(pairingProposal.toPairingSuccess(), wcPairingApprove.params)
+        assertEquals(pairingProposal.toPairingSuccess(settledTopic, expiry), wcPairingApprove.params)
     }
 
     @Test
