@@ -28,7 +28,7 @@ import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.toApprove
 import org.walletconnect.walletconnectv2.common.toPairProposal
 import org.walletconnect.walletconnectv2.common.toRelayPublishRequest
-import org.walletconnect.walletconnectv2.getRandom64ByteString
+import org.walletconnect.walletconnectv2.util.getRandom64ByteHexString
 import org.walletconnect.walletconnectv2.outofband.client.ClientTypes
 import org.walletconnect.walletconnectv2.relay.data.RelayService
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
@@ -62,7 +62,7 @@ internal class RelayTest {
             val pairingParams = ClientTypes.PairParams("wc:0b1a3d6c0336662dddb6278ee0aa25380569b79e7e86cfe39fb20b4b189096a0@2?controller=false&publicKey=66db1bd5fad65392d1d5a4856d0d549d2fca9194327138b41c289b961d147860&relay=%7B%22protocol%22%3A%22waku%22%7D")
             val pairingProposal = pairingParams.uri.toPairProposal()
             val preSettlementPairingApprove = pairingProposal.toApprove(1)
-            val relayPublishRequest = preSettlementPairingApprove.toRelayPublishRequest(2, Topic(getRandom64ByteString()), createMoshi())
+            val relayPublishRequest = preSettlementPairingApprove.toRelayPublishRequest(2, Topic(getRandom64ByteHexString()), createMoshi())
             val serverRelayPublishObserver = server.observeRelayPublish().test()
 
             // When
@@ -87,7 +87,7 @@ internal class RelayTest {
             // Given
             val relaySubscribeRequest = Relay.Subscribe.Request(
                 id = 1,
-                params = Relay.Subscribe.Request.Params(Topic(getRandom64ByteString()))
+                params = Relay.Subscribe.Request.Params(Topic(getRandom64ByteHexString()))
             )
             val serverRelayPublishObserver = server.observeSubscribePublish().test()
 
@@ -116,7 +116,7 @@ internal class RelayTest {
                 params = Relay.Subscription.Response.Params(
                     subscriptionId = 2,
                     data = Relay.Subscription.Response.Params.SubscriptionData(
-                        topic = Topic(getRandom64ByteString()),
+                        topic = Topic(getRandom64ByteHexString()),
                         message = "This is a test"
                     )
                 )
@@ -147,7 +147,7 @@ internal class RelayTest {
             val relayUnsubscribeRequest = Relay.Unsubscribe.Request(
                 id = 1,
                 params = Relay.Unsubscribe.Request.Params(
-                    topic = Topic(getRandom64ByteString()),
+                    topic = Topic(getRandom64ByteHexString()),
                     subscriptionId = 2
                 )
             )

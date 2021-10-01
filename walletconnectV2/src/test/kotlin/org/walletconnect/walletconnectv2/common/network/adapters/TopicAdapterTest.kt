@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Assertions.*
 
 import org.junit.jupiter.api.Test
 import org.walletconnect.walletconnectv2.common.Topic
-import org.walletconnect.walletconnectv2.getRandom64ByteString
+import org.walletconnect.walletconnectv2.util.getRandom64ByteHexString
 
 internal class TopicAdapterTest {
     private val moshi = Moshi.Builder()
@@ -16,7 +16,7 @@ internal class TopicAdapterTest {
 
     @Test
     fun toJson() {
-        val topic = Topic(getRandom64ByteString())
+        val topic = Topic(getRandom64ByteHexString())
         val expected = """"${topic.topicValue}""""
 
         val topicJson = moshi.adapter(Topic::class.java).toJson(topic)

@@ -1,11 +1,11 @@
-package org.walletconnect.walletconnectv2
+package org.walletconnect.walletconnectv2.util
 
 import org.walletconnect.walletconnectv2.relay.DefaultRelayClient
 
 private const val STRING_LENGTH = 64
-private val CHAR_POOL: List<Char> = ('a'..'z') + ('0'..'9')
+private val CHAR_POOL: List<Char> = ('A'..'F') + ('0'..'9')
 
-internal fun getRandom64ByteString() =
+internal fun getRandom64ByteHexString() =
     (1..STRING_LENGTH)
         .map { CHAR_POOL.random() }
         .joinToString("")
