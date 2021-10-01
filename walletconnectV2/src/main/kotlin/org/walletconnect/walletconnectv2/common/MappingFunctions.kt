@@ -11,7 +11,6 @@ import org.walletconnect.walletconnectv2.outofband.pairing.success.PairingPartic
 import org.walletconnect.walletconnectv2.outofband.pairing.success.PairingState
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import java.net.URI
-import java.util.*
 import kotlin.time.Duration
 
 internal fun String.toPairProposal(): Pairing.Proposal {
@@ -33,20 +32,20 @@ internal fun String.toPairProposal(): Pairing.Proposal {
     )
 }
 
-internal fun Pairing.Proposal.toPairingSuccess(): Pairing.Success {
+internal fun Pairing.Proposal.toPairingSuccess(settleTopic: Topic, expiry: Expiry): Pairing.Success {
     return Pairing.Success(
-        topic = topic,
+        settledTopic = settleTopic,
         relay = relay,
         responder = PairingParticipant(publicKey = pairingProposer.publicKey),
-        expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + ttl.seconds),
+        expiry = expiry,
         state = PairingState(null)
     )
 }
 
-internal fun Pairing.Proposal.toApprove(id: Int): PreSettlementPairing.Approve {
+internal fun Pairing.Proposal.toApprove(id: Int, settleTopic: Topic, expiry: Expiry): PreSettlementPairing.Approve {
     return PreSettlementPairing.Approve(
         id = id,
-        params = this.toPairingSuccess()
+        params = this.toPairingSuccess(settleTopic, expiry)
     )
 }
 
