@@ -9,16 +9,17 @@ import kotlinx.coroutines.launch
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import org.walletconnect.walletconnectv2.outofband.client.ClientTypes
 
-object WalletConnectClient {
+abstract class WalletConnectClient {
     private val job = SupervisorJob()
     private val scope = CoroutineScope(job + Dispatchers.IO)
+    // Inject
     private lateinit var pairingEngine: EngineInteractor
 
     val publishResponse = pairingEngine.pairingResponse.shareIn(scope, SharingStarted.Lazily)
 
-    fun initialize(useTls: Boolean, hostName: String, port: Int) {
+    fun initialize(initialParams: ClientTypes.InitialParams) {
         // TODO: pass properties to DI framework
-        pairingEngine = EngineInteractor()
+        pairingEngine = EngineInteractor("")
     }
 
     fun pair(pairingParams: ClientTypes.PairParams) {
