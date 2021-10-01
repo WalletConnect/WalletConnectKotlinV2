@@ -1,22 +1,20 @@
 package org.walletconnect.walletconnectv2
 
+import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.outofband.client.ClientTypes
-import org.walletconnect.walletconnectv2.relay.DefaultRelayClient
+import org.walletconnect.walletconnectv2.relay.DefaultRelayRepository
 
 object WalletConnectClient {
-    private lateinit var relayClient: DefaultRelayClient
-
-    init {
-        initialize(false, "", 0)
-    }
+    private lateinit var relayRepository: DefaultRelayRepository
 
     fun initialize(useTls: Boolean, hostName: String, port: Int) {
-        relayClient = DefaultRelayClient.initRemote(hostName = "127.0.0.1")    // replace with remote once starting integration tests
+        relayRepository = DefaultRelayRepository.initRemote(hostName = "127.0.0.1")    // replace with remote once starting integration tests
     }
 
-    fun pair(pairParams: ClientTypes.PairParams) {
-//        val proposal: Pairing.Proposal = pairParams.uri.toPairProposal()
-//        val proposalApproved = proposal.toPairingSuccess()
-//        val wcPairingApprove = proposalApproved.toApprove(1)
+    fun pair(pairingParams: ClientTypes.PairParams) {
+        val pairingProposal = pairingParams.uri.toPairProposal()
+        val preSettlementPairingApprove = pairingProposal.toApprove(1)
+
+        relayRepository.sendPairingRequest(preSettlementPairingApprove)
     }
 }
