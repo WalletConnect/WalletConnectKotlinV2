@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import org.walletconnect.walletconnectv2.outofband.client.ClientTypes
 
-abstract class WalletConnectClient {
+object WalletConnectClient {
     private val job = SupervisorJob()
     private val scope = CoroutineScope(job + Dispatchers.IO)
     // Inject
@@ -22,7 +22,7 @@ abstract class WalletConnectClient {
         pairingEngine = EngineInteractor("")
     }
 
-    fun pair(pairingParams: ClientTypes.PairParams) {
+    fun pair(pairingParams: ClientTypes.PairParams, response: ClientListeners.Pairing) {
         require(this::pairingEngine.isInitialized) {
             "Initialize must be called prior to pairing"
         }
