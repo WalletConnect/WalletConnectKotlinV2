@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import org.walletconnect.walletconnectv2.outofband.client.ClientTypes
 
-abstract class WalletConnectClient {
+object WalletConnectClient {
     private val job = SupervisorJob()
     private val scope = CoroutineScope(job + Dispatchers.IO)
     // Inject
@@ -19,16 +19,11 @@ abstract class WalletConnectClient {
 
     fun initialize(initialParams: ClientTypes.InitialParams) {
         // TODO: pass properties to DI framework
-        pairingEngine = EngineInteractor("")
     }
 
     fun pair(pairingParams: ClientTypes.PairParams) {
         require(this::pairingEngine.isInitialized) {
             "Initialize must be called prior to pairing"
-        }
-
-        scope.launch {
-            pairingEngine.pair(pairingParams.uri)
         }
     }
 }
