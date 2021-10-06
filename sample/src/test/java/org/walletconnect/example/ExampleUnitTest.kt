@@ -1,4 +1,4 @@
-package org.walletconnect.sdk
+package org.walletconnect.example
 
 /**
  * Example local unit test, which will execute on the development machine (host).
