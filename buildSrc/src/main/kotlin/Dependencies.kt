@@ -7,6 +7,7 @@ fun DependencyHandlerScope.coroutines() {
     "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
 
     "testImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
+    "intTestImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
 }
 
 fun DependencyHandlerScope.scarlet() {
@@ -18,6 +19,8 @@ fun DependencyHandlerScope.scarlet() {
 
     "testImplementation"("com.tinder.scarlet:websocket-mockwebserver:$scarletVersion")
     "testImplementation"("com.tinder.scarlet:test-utils:$scarletVersion")
+    "intTestImplementation"("com.tinder.scarlet:websocket-mockwebserver:$scarletVersion")
+    "intTestImplementation"("com.tinder.scarlet:test-utils:$scarletVersion")
 }
 
 fun DependencyHandlerScope.moshi() {
@@ -39,6 +42,7 @@ fun DependencyHandlerScope.lazySodium() {
     "implementation"("net.java.dev.jna:jna:$jnaVersion")
 
     "testImplementation"("org.slf4j:slf4j-nop:$slf4jVersion")
+    "intTestImplementation"("org.slf4j:slf4j-nop:$slf4jVersion")
 }
 
 fun DependencyHandlerScope.jUnit5() {
@@ -48,10 +52,16 @@ fun DependencyHandlerScope.jUnit5() {
     "testImplementation"("org.junit.jupiter:junit-jupiter-api:$jUnit5Version")
     "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine:$jUnit5Version")
     "testImplementation"("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
+
+    "intTestImplementation"(platform("org.junit:junit-bom:$jUnit5Version"))
+    "intTestImplementation"("org.junit.jupiter:junit-jupiter-api:$jUnit5Version")
+    "intTestRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine:$jUnit5Version")
+    "intTestImplementation"("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
 }
 
 fun DependencyHandlerScope.mockk() {
     val mockkVersion = "1.12.0"
 
     "testImplementation"("io.mockk:mockk:$mockkVersion")
+    "intTestImplementation"("io.mockk:mockk:$mockkVersion")
 }

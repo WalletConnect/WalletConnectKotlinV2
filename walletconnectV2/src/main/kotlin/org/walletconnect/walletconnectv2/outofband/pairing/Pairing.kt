@@ -29,15 +29,15 @@ sealed class Pairing {
     @JsonClass(generateAdapter = true)
     data class Success(
         @Json(name = "topic")
-        @field:TopicAdapter.Qualifier
+        @TopicAdapter.Qualifier
         val settledTopic: Topic,
         @Json(name = "relay")
-        @field:JSONObjectAdapter.Qualifier
+        @JSONObjectAdapter.Qualifier
         val relay: JSONObject,
         @Json(name = "responder")
         val responder: PairingParticipant,
         @Json(name = "expiry")
-        @field:ExpiryAdapter.Qualifier
+        @ExpiryAdapter.Qualifier
         val expiry: Expiry,
         @Json(name = "state")
         val state: PairingState

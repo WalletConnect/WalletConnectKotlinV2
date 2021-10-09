@@ -1,11 +1,7 @@
 package org.walletconnect.walletconnectv2.engine
 
+import com.tinder.scarlet.Stream
 import com.tinder.scarlet.WebSocket
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filter
 import org.json.JSONObject
 import org.walletconnect.walletconnectv2.common.Expiry
 import org.walletconnect.walletconnectv2.common.Topic
@@ -19,10 +15,10 @@ import org.walletconnect.walletconnectv2.outofband.pairing.proposal.PairingPropo
 import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
 import java.util.*
 
-class EngineInteractor {
+class EngineInteractor(hostName: String) {
     //region provide with DI
     // TODO: add logic to check hostName for ws/wss scheme with and without ://
-    private val relayRepository: WakuRelayRepository = WakuRelayRepository.initRemote(hostName = "127.0.0.1")
+    private val relayRepository: WakuRelayRepository = WakuRelayRepository.initRemote(useTLs = true, hostName = hostName)
     private val keyChain = object : KeyChain {
         val mapOfKeys = mutableMapOf<String, String>()
 
@@ -41,7 +37,7 @@ class EngineInteractor {
 
     val pairingResponse = relayRepository.publishResponse
 
-    suspend fun pair(uri: String) {
+    fun pair(uri: String) {
         val pairingProposal = uri.toPairProposal()
         val approved = pairingProposal.pairingProposer.controller != controller
         val selfPublicKey = crypto.generateKeyPair()
@@ -56,11 +52,17 @@ class EngineInteractor {
         val settledSequence = settle(pairingProposal.relay, selfPublicKey, peerPublicKey, pairingProposal.permissions, controllerPublicKey, expiry)
         val preSettlementPairingApprove = pairingProposal.toApprove(1, settledSequence.settledTopic, expiry)
 
-        relayRepository.events
-            .filter { it is WebSocket.Event.OnConnectionOpened<*> }
-            .collect {
-                relayRepository.publish(pairingProposal.topic, preSettlementPairingApprove)
+        relayRepository.eventsStream.start(object : Stream.Observer<WebSocket.Event> {
+            override fun onComplete() {}
+
+            override fun onError(throwable: Throwable) {}
+
+            override fun onNext(data: WebSocket.Event) {
+                if (data is WebSocket.Event.OnConnectionOpened<*>) {
+                    relayRepository.publish(pairingProposal.topic, preSettlementPairingApprove)
+                }
             }
+        })
     }
 
     private fun settle(
