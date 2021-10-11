@@ -12,18 +12,30 @@ import org.walletconnect.walletconnectv2.outofband.client.ClientTypes
 object WalletConnectClient {
     private val job = SupervisorJob()
     private val scope = CoroutineScope(job + Dispatchers.IO)
-    // Inject
     private lateinit var pairingEngine: EngineInteractor
 
     val publishResponse = pairingEngine.pairingResponse.shareIn(scope, SharingStarted.Lazily)
 
     fun initialize(initialParams: ClientTypes.InitialParams) {
         // TODO: pass properties to DI framework
+        pairingEngine = EngineInteractor(initialParams.hostName)
     }
 
-    fun pair(pairingParams: ClientTypes.PairParams) {
+    fun pair(
+        pairingParams: ClientTypes.PairParams,
+        clientListeners: WalletConnectClientListeners.Session
+    ) {
+
         require(this::pairingEngine.isInitialized) {
             "Initialize must be called prior to pairing"
         }
+
+        scope.launch {
+            pairingEngine.pair(pairingParams.uri)
+        }
+    }
+
+    fun approve() {
+        //todo add logic for approving session proposal
     }
 }

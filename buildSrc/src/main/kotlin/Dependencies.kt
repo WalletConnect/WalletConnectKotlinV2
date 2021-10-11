@@ -2,12 +2,35 @@ import org.gradle.kotlin.dsl.DependencyHandlerScope
 
 const val kotlinVersion = "1.5.31"
 
+fun DependencyHandlerScope.scanner() {
+    val mlKitBarcode = "16.0.1"
+    "implementation"("com.google.mlkit:barcode-scanning:$mlKitBarcode")
+    "implementation"("androidx.camera:camera-camera2:1.1.0-alpha01")
+    "implementation"("androidx.camera:camera-lifecycle:1.1.0-alpha01")
+    "implementation"("androidx.camera:camera-view:1.0.0-alpha21")
+}
+
+fun DependencyHandlerScope.ktxCore() {
+    val ktxCoreVersion = "1.6.0"
+    "implementation"("androidx.core:core-ktx:$ktxCoreVersion")
+}
+
+fun DependencyHandlerScope.lifecycle() {
+    val lifecycleVersion = "2.3.1"
+    "implementation"("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion")
+    "implementation"("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
+}
+
+fun DependencyHandlerScope.navigationComponent() {
+    val navVersion = "2.3.5"
+    "implementation"("androidx.navigation:navigation-fragment-ktx:$navVersion")
+    "implementation"("androidx.navigation:navigation-ui-ktx:$navVersion")
+}
+
 fun DependencyHandlerScope.coroutines() {
     val coroutinesVersion = "1.5.1"
     "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-
     "testImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
-    "intTestImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
 }
 
 fun DependencyHandlerScope.scarlet() {

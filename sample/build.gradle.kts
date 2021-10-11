@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    compileSdk = 30
+    compileSdk = 31
 
     defaultConfig {
         applicationId = "org.walletconnect.sdk"
@@ -16,10 +16,17 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
     compileOptions {
@@ -32,9 +39,14 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:$kotlinVersion")
+    coroutines()
+    navigationComponent()
+    ktxCore()
+    lifecycle()
+    scanner()
     implementation("androidx.appcompat:appcompat:1.3.1")
     implementation("com.google.android.material:material:1.4.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.1")
     implementation(project(":walletconnectV2"))
+    implementation("androidx.legacy:legacy-support-v4:1.0.0")
 }

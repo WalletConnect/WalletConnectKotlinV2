@@ -13,7 +13,7 @@ fun main() {
     val engine = EngineInteractor("staging.walletconnect.org?apiKey=c4f79cc821944d9680842e34466bfbd")
     val publishResponse = engine.pairingResponse
     val uri =
-        "wc:3b96370416cb1a17d13f322498f949e9f6d6277674d069b97875a5812af9cc62@2?controller=false&publicKey=685fbc524d9aa33d203919c96dcac2295b5145616dca26d839bbc13b1bf95d77&relay=%7B%22protocol%22%3A%22waku%22%7D"
+        "wc:943af663b856bc90f07fd24d13c43460fe3cb48b7d1d992c5bbf3cae5989277a@2?controller=false&publicKey=e578b4aec0862606c1c3a72b5d3b636a2b52017fa6db65ac738e7f6b842b406f&relay=%7B%22protocol%22%3A%22waku%22%7D"
 
     scope.launch {
         engine.pair(uri)

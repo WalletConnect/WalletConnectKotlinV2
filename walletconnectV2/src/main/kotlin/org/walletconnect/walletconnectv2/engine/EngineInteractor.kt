@@ -11,6 +11,7 @@ import org.walletconnect.walletconnectv2.crypto.CryptoManager
 import org.walletconnect.walletconnectv2.crypto.KeyChain
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
+import org.walletconnect.walletconnectv2.outofband.client.ClientTypes
 import org.walletconnect.walletconnectv2.outofband.pairing.proposal.PairingProposedPermissions
 import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
 import java.util.*
@@ -18,7 +19,7 @@ import java.util.*
 class EngineInteractor(hostName: String) {
     //region provide with DI
     // TODO: add logic to check hostName for ws/wss scheme with and without ://
-    private val relayRepository: WakuRelayRepository = WakuRelayRepository.initRemote(useTLs = true, hostName = hostName)
+    private val relayRepository: WakuRelayRepository = WakuRelayRepository.initRemote(hostName = hostName)
     private val keyChain = object : KeyChain {
         val mapOfKeys = mutableMapOf<String, String>()
 
