@@ -41,7 +41,7 @@ class LazySodiumCryptoManager(private val keyChain: KeyChain): CryptoManager {
     }
 
     internal fun setEncryptionKeys(sharedKey: String, selfPublicKey: PublicKey, overrideTopic: String?): Topic {
-        val topic = Topic(overrideTopic ?: lazySodium.cryptoHashSha256(selfPublicKey.keyAsHex))
+        val topic = Topic(overrideTopic ?: lazySodium.cryptoHashSha256(sharedKey))
         val sharedKeyObject = object: WCKey {
             override val keyAsHex: String = sharedKey
         }
