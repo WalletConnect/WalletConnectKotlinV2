@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/walletFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_wallet"
+        android:title="@string/wallet"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/dappFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_dapp"
+        android:title="@string/dapp"
+        app:showAsAction="ifRoom" />
+</menu>
