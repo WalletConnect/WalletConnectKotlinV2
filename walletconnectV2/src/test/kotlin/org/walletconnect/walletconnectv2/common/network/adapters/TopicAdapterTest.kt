@@ -4,8 +4,10 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.util.getRandom64ByteHexString
+import kotlin.test.assertNotNull
 
 internal class TopicAdapterTest {
     private val moshi = Moshi.Builder()
@@ -14,6 +16,17 @@ internal class TopicAdapterTest {
         }
         .add(KotlinJsonAdapterFactory())
         .build()
+
+    @Test
+    fun fromJson() {
+        val expectedTopicValue = "AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPPQQRRSSTTUUVVWWXXYYZZAABBCCDDEEFF"
+        val expected = Topic(expectedTopicValue)
+
+        val resultTopic = moshi.adapter(Topic::class.java).fromJson(expectedTopicValue)
+
+        assertNotNull(resultTopic)
+        kotlin.test.assertEquals(expected, resultTopic)
+    }
 
     @Test
     fun toJson() {

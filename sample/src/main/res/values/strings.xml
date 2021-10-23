@@ -9,4 +9,6 @@
     <string name="methods">Methods</string>
     <string name="reject">Reject</string>
     <string name="approve">Approve</string>
+    <string name="paste">Paste Uri</string>
+    <string name="paste_uri_hint">Paste Uri...</string>
 </resources>

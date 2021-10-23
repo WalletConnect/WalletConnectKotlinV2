@@ -1,41 +1,61 @@
 package org.walletconnect.walletconnectv2
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import org.walletconnect.walletconnectv2.WalletConnectScope.scope
+import org.walletconnect.walletconnectv2.client.ClientTypes
+import org.walletconnect.walletconnectv2.client.SessionProposal
+import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
+import org.walletconnect.walletconnectv2.clientcomm.session.Session
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
-import org.walletconnect.walletconnectv2.outofband.client.ClientTypes
+import java.net.URI
 
 object WalletConnectClient {
-    private val job = SupervisorJob()
-    private val scope = CoroutineScope(job + Dispatchers.IO)
-    private lateinit var pairingEngine: EngineInteractor
+    private val engineInteractor = EngineInteractor()
+    private var pairingListener: WalletConnectClientListeners.Pairing? = null
 
-    val publishResponse = pairingEngine.pairingResponse.shareIn(scope, SharingStarted.Lazily)
+    init {
+        scope.launch {
+            engineInteractor.sessionProposal.collect {
+                it?.toSessionProposal()
+                    ?.let { sessionProposal -> pairingListener?.onSessionProposal(sessionProposal) }
+            }
+        }
+    }
 
     fun initialize(initialParams: ClientTypes.InitialParams) {
         // TODO: pass properties to DI framework
-        pairingEngine = EngineInteractor(initialParams.hostName)
+        val engineFactory = EngineInteractor.EngineFactory(
+            useTLs = initialParams.useTls,
+            hostName = initialParams.hostName,
+            application = initialParams.application
+        )
+        engineInteractor.initialize(engineFactory)
     }
 
     fun pair(
         pairingParams: ClientTypes.PairParams,
-        clientListeners: WalletConnectClientListeners.Session
+        clientListeners: WalletConnectClientListeners.Pairing
     ) {
-
-        require(this::pairingEngine.isInitialized) {
-            "Initialize must be called prior to pairing"
-        }
-
-        scope.launch {
-            pairingEngine.pair(pairingParams.uri)
-        }
+        pairingListener = clientListeners
+        scope.launch { engineInteractor.pair(pairingParams.uri) }
     }
 
-    fun approve() {
-        //todo add logic for approving session proposal
+    fun approve(proposal: SessionProposal) {
+        engineInteractor.approve(proposal)
+    }
+
+    private fun Session.Proposal.toSessionProposal(): SessionProposal {
+        return SessionProposal(
+            name = this.proposer.metadata?.name!!,
+            description = this.proposer.metadata.description,
+            dappUrl = this.proposer.metadata.url,
+            icon = this.proposer.metadata.icons.map { URI(it) },
+            chains = this.permissions.blockchain.chains,
+            methods = this.permissions.jsonRpc.methods,
+            topic = this.topic.topicValue,
+            proposerPublicKey = this.proposer.publicKey,
+            ttl = this.ttl.seconds
+        )
     }
 }

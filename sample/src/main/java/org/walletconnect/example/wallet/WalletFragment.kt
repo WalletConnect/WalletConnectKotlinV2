@@ -19,19 +19,16 @@ class WalletFragment : Fragment(R.layout.wallet_fragment) {
         binding = WalletFragmentBinding.bind(view)
         setupToolbar()
         binding.sessions.adapter = sessionAdapter
-
-        if (viewModel.activeSessions.isEmpty()) {
-            sessionAdapter.updateList(DEFAULT_SESSION_LIST)
-        } else {
-            sessionAdapter.updateList(viewModel.activeSessions)
-        }
-
+        sessionAdapter.updateList(viewModel.activeSessions)
         viewModel.eventFlow.observe(viewLifecycleOwner, { event ->
             when (event) {
                 is ShowSessionProposalDialog -> {
-                    SessionProposalDialog(requireContext(), { viewModel.approve() }, { viewModel.reject() }, event.proposal).run {
-                        show()
-                    }
+                    SessionProposalDialog(
+                        requireContext(),
+                        { viewModel.approve() },
+                        { viewModel.reject() },
+                        event.proposal
+                    ).show()
                 }
                 is UpdateActiveSessions -> {
                     sessionAdapter.updateList(event.sessions)
@@ -46,29 +43,12 @@ class WalletFragment : Fragment(R.layout.wallet_fragment) {
             if (item.itemId == R.id.qrCodeScanner) {
                 findNavController().navigate(R.id.action_walletFragment_to_scannerFragment)
                 true
+            } else if (item.itemId == R.id.pasteUri) {
+                UrlDialog(requireContext(), approve = { url -> viewModel.pair(url) }).run { show() }
+                true
             } else {
                 false
             }
         }
-    }
-
-    private companion object {
-        val DEFAULT_SESSION_LIST = listOf(
-            Session(
-                name = "UniSwap",
-                uri = "app.uniswap.org",
-                icon = R.drawable.ic_uniswap
-            ),
-            Session(
-                name = "PancakeSwap",
-                uri = "app.pancake.org",
-                icon = R.drawable.ic_pancakeswap
-            ),
-            Session(
-                name = "SushiSwap",
-                uri = "app.sushiswap.org",
-                icon = R.drawable.ic_sushiswap
-            )
-        )
     }
 }

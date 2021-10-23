@@ -1,6 +1,7 @@
 package org.walletconnect.walletconnectv2.common.network.adapters
 
 import com.squareup.moshi.*
+import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
 
 object TopicAdapter: JsonAdapter<Topic>() {
@@ -8,7 +9,18 @@ object TopicAdapter: JsonAdapter<Topic>() {
     @FromJson
     @Qualifier
     override fun fromJson(reader: JsonReader): Topic? {
-        return null
+        reader.isLenient = true
+        var topicValue: String? = null
+
+        if (reader.hasNext() && reader.peek() == JsonReader.Token.STRING) {
+            topicValue = reader.nextString()
+        }
+
+        return if (topicValue != null) {
+            Topic(topicValue)
+        } else {
+            null
+        }
     }
 
     @ToJson

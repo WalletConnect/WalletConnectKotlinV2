@@ -9,24 +9,18 @@ import kotlin.test.assertNotNull
 
 internal class SubscriptionIdAdapterTest {
     private val moshi = Moshi.Builder()
-        .add { _, _, _ ->
+        .addLast { _, _, _ ->
             SubscriptionIdAdapter
         }
-        .add(KotlinJsonAdapterFactory())
+        .addLast(KotlinJsonAdapterFactory())
         .build()
 
     @Test
     fun fromJson() {
-        val exampleJson = """
-            {
-              "id":1,
-              "jsonrpc":"2.0",
-              "result":"subscriptionId1"
-            }
-        """.trimIndent()
-        val expected = SubscriptionId("subscriptionId1")
+        val expectedSubscriptionId = "subscriptionId1"
+        val expected = SubscriptionId(expectedSubscriptionId)
 
-        val resultSubscriptionId = moshi.adapter(SubscriptionId::class.java).fromJson(exampleJson)
+        val resultSubscriptionId = moshi.adapter(SubscriptionId::class.java).fromJson(expectedSubscriptionId)
 
         assertNotNull(resultSubscriptionId)
         assertEquals(expected, resultSubscriptionId)

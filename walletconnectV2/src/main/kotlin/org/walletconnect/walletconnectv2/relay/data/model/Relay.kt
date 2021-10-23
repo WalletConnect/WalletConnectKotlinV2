@@ -11,7 +11,7 @@ import org.walletconnect.walletconnectv2.common.network.adapters.TtlAdapter
 
 // TODO: Maybe look into separating children into different files
 sealed class Relay {
-    abstract val id: Int
+    abstract val id: Long
     abstract val jsonrpc: String
 
     sealed class Publish: Relay() {
@@ -19,7 +19,7 @@ sealed class Relay {
         @JsonClass(generateAdapter = true)
         data class Request(
             @Json(name = "id")
-            override val id: Int,
+            override val id: Long,
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
@@ -41,9 +41,9 @@ sealed class Relay {
             )
         }
 
-        data class Response(
+        data class Acknowledgement(
             @Json(name = "id")
-            override val id: Int,
+            override val id: Long,
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "result")
@@ -56,7 +56,7 @@ sealed class Relay {
         @JsonClass(generateAdapter = true)
         data class Request(
             @Json(name = "id")
-            override val id: Int,
+            override val id: Long,
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
@@ -73,9 +73,9 @@ sealed class Relay {
             )
         }
 
-        data class Response(
+        data class Acknowledgement(
             @Json(name = "id")
-            override val id: Int,
+            override val id: Long,
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "result")
@@ -89,7 +89,7 @@ sealed class Relay {
         @JsonClass(generateAdapter = true)
         data class Request(
             @Json(name = "id")
-            override val id: Int,
+            override val id: Long,
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
@@ -104,7 +104,7 @@ sealed class Relay {
                 @field:SubscriptionIdAdapter.Qualifier
                 val subscriptionId: SubscriptionId,
                 @Json(name = "data")
-                val data: SubscriptionData
+                val subscriptionData: SubscriptionData
             ) {
 
                 @JsonClass(generateAdapter = true)
@@ -118,9 +118,9 @@ sealed class Relay {
             }
         }
 
-        data class Response(
+        data class Acknowledgement(
             @Json(name = "id")
-            override val id: Int,
+            override val id: Long,
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "result")
@@ -132,7 +132,7 @@ sealed class Relay {
 
         data class Request(
             @Json(name = "id")
-            override val id: Int,
+            override val id: Long,
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
@@ -151,9 +151,9 @@ sealed class Relay {
             )
         }
 
-        data class Response(
+        data class Acknowledgement(
             @Json(name = "id")
-            override val id: Int,
+            override val id: Long,
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "result")

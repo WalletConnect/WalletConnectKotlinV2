@@ -30,7 +30,7 @@ The controller client will always be the "wallet" which is exposing blockchain a
 #### Pair Clients
 ```kotlin
 val pairParams = ClientTypes.PairParams("wc:...")
-val pairListener = ClientListeners.Pairing { topic -> /* handle topic */ }
+val pairListener = WalletConnectClientListeners.Pairing { sessionProposal -> /* handle session proposal */ }
 WalletConnectClient.pair(pairParams, pairListener)
 ```
 

@@ -9,5 +9,7 @@ interface CryptoManager {
 
     fun generateKeyPair(): PublicKey
 
-    fun generateSharedKey(self: PublicKey, peer: PublicKey, overrideTopic: String? = null): Topic
+    fun generateTopicAndSharedKey(self: PublicKey, peer: PublicKey, overrideTopic: String? = null): Pair<String, Topic>
+
+    fun getSharedKey(self: PublicKey, peer: PublicKey): String
 }

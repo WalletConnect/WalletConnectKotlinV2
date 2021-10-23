@@ -2,21 +2,18 @@ package org.walletconnect.walletconnectv2.relay
 
 import io.mockk.coEvery
 import io.mockk.spyk
-import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
 import org.json.JSONObject
 import org.junit.Rule
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.walletconnect.walletconnectv2.clientsync.PreSettlementPairing
+import org.walletconnect.walletconnectv2.clientcomm.PreSettlementPairing
+import org.walletconnect.walletconnectv2.clientcomm.pairing.Pairing
+import org.walletconnect.walletconnectv2.clientcomm.pairing.success.PairingParticipant
+import org.walletconnect.walletconnectv2.clientcomm.pairing.success.PairingState
 import org.walletconnect.walletconnectv2.common.Expiry
 import org.walletconnect.walletconnectv2.common.Topic
-import org.walletconnect.walletconnectv2.outofband.pairing.Pairing
-import org.walletconnect.walletconnectv2.outofband.pairing.success.PairingParticipant
-import org.walletconnect.walletconnectv2.outofband.pairing.success.PairingState
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import org.walletconnect.walletconnectv2.util.CoroutineTestRule
 import org.walletconnect.walletconnectv2.util.getRandom64ByteHexString
@@ -32,12 +29,12 @@ internal class WakuRelayRepositoryTest {
     private val sut = spyk(WakuRelayRepository.initRemote(hostName = "127.0.0.1"))
 
     @Test
-    fun `Publish a pairing request, expect a successful response`() {
+    fun `Publish a pairing request, expect a successful acknowledgement`() {
         // Arrange
         val topic = Topic(getRandom64ByteHexString())
         val settledTopic = Topic(getRandom64ByteHexString())
         val preSettlementPairing = PreSettlementPairing.Approve(
-            id = 1,
+            id = 1L,
             params = Pairing.Success(
                 settledTopic = settledTopic,
                 relay = JSONObject(),
@@ -46,14 +43,14 @@ internal class WakuRelayRepositoryTest {
                 state = PairingState()
             )
         )
-        coEvery { sut.publishResponse } returns flowOf(Relay.Publish.Response(id = preSettlementPairing.id, result = true))
+        coEvery { sut.publishAcknowledgement } returns flowOf(Relay.Publish.Acknowledgement(id = preSettlementPairing.id, result = true))
 
         // Act
-        sut.publish(topic, preSettlementPairing)
+        sut.publishPairingApproval(topic, preSettlementPairing)
 
         // Assert
         coroutineTestRule.runTest {
-            sut.publishResponse.collect {
+            sut.publishAcknowledgement.collect {
                 assertEquals(preSettlementPairing.id, it.id)
                 assertEquals(true, it.result)
             }

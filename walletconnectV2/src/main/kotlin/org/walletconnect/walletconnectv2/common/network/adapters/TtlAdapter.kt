@@ -3,12 +3,23 @@ package org.walletconnect.walletconnectv2.common.network.adapters
 import com.squareup.moshi.*
 import org.walletconnect.walletconnectv2.common.Ttl
 
-object TtlAdapter: JsonAdapter<Ttl>() {
+object TtlAdapter : JsonAdapter<Ttl>() {
 
     @FromJson
     @Qualifier
     override fun fromJson(reader: JsonReader): Ttl? {
-        return null
+        reader.isLenient = true
+        var seconds: Long? = null
+
+        if (reader.hasNext() && reader.peek() == JsonReader.Token.NUMBER) {
+            seconds = reader.nextLong()
+        }
+
+        return if (seconds != null) {
+            Ttl(seconds)
+        } else {
+            null
+        }
     }
 
     @ToJson
