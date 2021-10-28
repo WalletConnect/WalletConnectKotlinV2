@@ -84,6 +84,12 @@ fun DependencyHandlerScope.jUnit5() {
     "testImplementation"("org.junit.jupiter:junit-jupiter-api:$jUnit5Version")
     "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine:$jUnit5Version")
     "testImplementation"("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
+
+    "testImplementation" ("org.robolectric:robolectric:4.6")
+
+    "androidTestImplementation"("androidx.test:runner:1.4.0")
+    "androidTestImplementation"("androidx.test:rules:1.4.0")
+    "implementation"("androidx.test.ext:junit-ktx:1.1.3")
 }
 
 fun DependencyHandlerScope.mockk() {

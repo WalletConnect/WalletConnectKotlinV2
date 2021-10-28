@@ -1,5 +1,6 @@
 package org.walletconnect.walletconnectv2.relay
 
+import android.app.Application
 import io.mockk.coEvery
 import io.mockk.spyk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,7 +27,7 @@ internal class WakuRelayRepositoryTest {
     @get:Rule
     val coroutineTestRule = CoroutineTestRule()
 
-    private val sut = spyk(WakuRelayRepository.initRemote(hostName = "127.0.0.1"))
+    private val sut = spyk(WakuRelayRepository.initRemote(hostName = "127.0.0.1", application = Application()))
 
     @Test
     fun `Publish a pairing request, expect a successful acknowledgement`() {

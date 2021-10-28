@@ -36,6 +36,12 @@ android {
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
     }
+
+    testOptions {
+        unitTests {
+            unitTests.isIncludeAndroidResources = true
+        }
+    }
 }
 
 kotlin {

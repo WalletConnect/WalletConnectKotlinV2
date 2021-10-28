@@ -9,6 +9,7 @@ import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.utils.getRawType
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
+import kotlinx.coroutines.flow.Flow
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.json.JSONObject
@@ -65,8 +66,10 @@ class WakuRelayRepository internal constructor(
     //endregion
 
     internal val eventsStream = relay.observeEvents()
-    internal val publishAcknowledgement = relay.observePublishAcknowledgement()
-    internal val subscribeAcknowledgement = relay.observeSubscribeAcknowledgement()
+    internal val publishAcknowledgement: Flow<Relay.Publish.Acknowledgement> =
+        relay.observePublishAcknowledgement()
+    internal val subscribeAcknowledgement: Flow<Relay.Subscribe.Acknowledgement> =
+        relay.observeSubscribeAcknowledgement()
     internal val subscriptionRequest = relay.observeSubscriptionRequest()
     internal val unsubscribeAcknowledgement = relay.observeUnsubscribeAcknowledgement()
 

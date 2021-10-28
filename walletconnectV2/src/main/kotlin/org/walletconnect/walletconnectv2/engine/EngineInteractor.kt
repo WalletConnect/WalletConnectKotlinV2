@@ -1,6 +1,8 @@
 package org.walletconnect.walletconnectv2.engine
 
 import android.app.Application
+import android.util.Log
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
@@ -29,11 +31,12 @@ import org.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
 import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
+import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import org.walletconnect.walletconnectv2.util.generateId
 import org.walletconnect.walletconnectv2.util.toEncryptionPayload
 import java.util.*
 
-class EngineInteractor {
+internal class EngineInteractor {
     //region provide with DI
     // TODO: add logic to check hostName for ws/wss scheme with and without ://
     private lateinit var relayRepository: WakuRelayRepository
@@ -55,6 +58,11 @@ class EngineInteractor {
     private val _sessionProposal: MutableStateFlow<Session.Proposal?> = MutableStateFlow(null)
     val sessionProposal: StateFlow<Session.Proposal?> = _sessionProposal
 
+
+    internal lateinit var subscribeAcknowledgement: Flow<Relay.Subscribe.Acknowledgement>
+    internal lateinit var publishAcknowledgement: Flow<Relay.Publish.Acknowledgement>
+    internal lateinit var subscriptionRequest: Flow<Relay.Subscription.Request>
+
     //todo create topic -> keys map
     private var pairingPublicKey = PublicKey("")
     private var peerPublicKey = PublicKey("")
@@ -68,11 +76,14 @@ class EngineInteractor {
             engineFactory.application
         )
 
+        subscribeAcknowledgement = relayRepository.subscribeAcknowledgement
+        publishAcknowledgement = relayRepository.publishAcknowledgement
+        subscriptionRequest = relayRepository.subscriptionRequest
+
         scope.launch {
             relayRepository.subscriptionRequest.collect {
 
                 supervisorScope {
-                    println("PUBLISH")
                     relayRepository.publishSessionProposalAcknowledgment(it.id)
                 }
 
@@ -192,8 +203,10 @@ class EngineInteractor {
         expiry: Expiry,
         sessionState: SessionState
     ): SettledSessionSequence {
-        val (sharedKey, settledTopic) =
-            crypto.generateTopicAndSharedKey(selfPublicKey, peerPublicKey)
+        val (sharedKey, settledTopic) = crypto.generateTopicAndSharedKey(
+            selfPublicKey,
+            peerPublicKey
+        )
         return SettledSessionSequence(
             settledTopic,
             relay,
