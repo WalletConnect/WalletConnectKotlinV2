@@ -10,11 +10,10 @@ import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.utils.getRawType
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import org.json.JSONObject
-import org.walletconnect.walletconnectv2.clientcomm.PreSettlementPairing
-import org.walletconnect.walletconnectv2.clientcomm.PreSettlementSession
-import org.walletconnect.walletconnectv2.clientcomm.pairing.PairingPayload
+import org.walletconnect.walletconnectv2.clientsync.PreSettlementPairing
+import org.walletconnect.walletconnectv2.clientsync.PreSettlementSession
+import org.walletconnect.walletconnectv2.clientsync.pairing.PairingPayload
 import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.common.network.adapters.*
 import org.walletconnect.walletconnectv2.relay.data.RelayService
@@ -26,17 +25,16 @@ import java.util.concurrent.TimeUnit
 class WakuRelayRepository internal constructor(
     private val useTLs: Boolean,
     private val hostName: String,
-    private val port: Int,
+    private val apiKey: String,
     private val application: Application
 ) {
     //region Move to DI module
     private val okHttpClient = OkHttpClient.Builder()
-        .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
         .writeTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
         .readTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
         .callTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
         .connectTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
-        .pingInterval(2, TimeUnit.SECONDS)
+        .pingInterval(5, TimeUnit.SECONDS)
         .build()
 
     private val moshi: Moshi = Moshi.Builder()
@@ -64,7 +62,7 @@ class WakuRelayRepository internal constructor(
     private val relay: RelayService by lazy { scarlet.create(RelayService::class.java) }
     //endregion
 
-    internal val eventsStream = relay.observeEvents()
+    internal val eventsFlow = relay.eventsFlow()
     internal val publishAcknowledgement = relay.observePublishAcknowledgement()
     internal val subscribeAcknowledgement = relay.observeSubscribeAcknowledgement()
     internal val subscriptionRequest = relay.observeSubscriptionRequest()
@@ -119,7 +117,7 @@ class WakuRelayRepository internal constructor(
         moshi.adapter(PairingPayload::class.java).fromJson(json)
 
     private fun getServerUrl(): String {
-        return (if (useTLs) "wss" else "ws") + "://$hostName" + if (port > 0) ":$port" else ""
+        return ((if (useTLs) "wss" else "ws") + "://$hostName/?apiKey=$apiKey").trim()
     }
 
     companion object {
@@ -129,8 +127,8 @@ class WakuRelayRepository internal constructor(
         fun initRemote(
             useTLs: Boolean = false,
             hostName: String,
-            port: Int = 0,
+            apiKey: String,
             application: Application
-        ) = WakuRelayRepository(useTLs, hostName, port, application)
+        ) = WakuRelayRepository(useTLs, hostName, apiKey, application)
     }
 }

@@ -1,7 +1,7 @@
-package org.walletconnect.walletconnectv2.clientcomm.pairing
+package org.walletconnect.walletconnectv2.clientsync.pairing
 
 import org.json.JSONObject
-import org.walletconnect.walletconnectv2.clientcomm.pairing.proposal.PairingProposedPermissions
+import org.walletconnect.walletconnectv2.clientsync.pairing.proposal.PairingProposedPermissions
 import org.walletconnect.walletconnectv2.common.Expiry
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey

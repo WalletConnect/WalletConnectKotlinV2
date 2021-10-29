@@ -4,11 +4,11 @@ package org.walletconnect.walletconnectv2.common
 
 import com.squareup.moshi.Moshi
 import org.json.JSONObject
-import org.walletconnect.walletconnectv2.clientcomm.PreSettlementPairing
-import org.walletconnect.walletconnectv2.clientcomm.pairing.Pairing
-import org.walletconnect.walletconnectv2.clientcomm.pairing.proposal.PairingProposer
-import org.walletconnect.walletconnectv2.clientcomm.pairing.success.PairingParticipant
-import org.walletconnect.walletconnectv2.clientcomm.pairing.success.PairingState
+import org.walletconnect.walletconnectv2.clientsync.PreSettlementPairing
+import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
+import org.walletconnect.walletconnectv2.clientsync.pairing.proposal.PairingProposer
+import org.walletconnect.walletconnectv2.clientsync.pairing.success.PairingParticipant
+import org.walletconnect.walletconnectv2.clientsync.pairing.success.PairingState
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import java.net.URI

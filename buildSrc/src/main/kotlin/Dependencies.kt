@@ -91,3 +91,9 @@ fun DependencyHandlerScope.mockk() {
 
     "testImplementation"("io.mockk:mockk:$mockkVersion")
 }
+
+fun DependencyHandlerScope.timber() {
+    val timberVersion = "5.0.1"
+
+    "implementation"("com.jakewharton.timber:timber:$timberVersion")
+}

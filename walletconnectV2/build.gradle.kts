@@ -57,4 +57,5 @@ dependencies {
     scarlet()
     jUnit5()
     mockk()
+    timber()
 }
