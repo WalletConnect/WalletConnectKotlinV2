@@ -77,22 +77,7 @@ class WakuRelayRepository internal constructor(
         relay.publishRequest(publishRequest)
     }
 
-    fun publishSessionApproval(
-        topic: Topic,
-        encryptedJson: String
-    ) {
-        val publishRequest =
-            Relay.Publish.Request(
-                id = generateId(),
-                params = Relay.Publish.Request.Params(topic = topic, message = encryptedJson)
-            )
-        relay.publishRequest(publishRequest)
-    }
-
-    fun publishSessionRejection(
-        topic: Topic,
-        encryptedJson: String
-    ) {
+    fun publish(topic: Topic, encryptedJson: String) {
         val publishRequest =
             Relay.Publish.Request(
                 id = generateId(),

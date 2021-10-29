@@ -53,6 +53,7 @@ class EngineInteractor {
     }
     private val crypto: CryptoManager = LazySodiumCryptoManager(keyChain)
     private val codec: AuthenticatedEncryptionCodec = AuthenticatedEncryptionCodec()
+
     //endregion
     private var metaData: AppMetaData? = null
     private val _sessionProposal: MutableStateFlow<Session.Proposal?> = MutableStateFlow(null)
@@ -81,13 +82,13 @@ class EngineInteractor {
         }
 
         scope.launch {
-            relayRepository.subscriptionRequest.collect {
+            relayRepository.subscriptionRequest.collect { request ->
                 supervisorScope {
-                    relayRepository.publishSessionProposalAcknowledgment(it.id)
+                    relayRepository.publishSessionProposalAcknowledgment(request.id)
                 }
 
                 val pairingPayloadJson = codec.decrypt(
-                    it.params.subscriptionData.message.toEncryptionPayload(),
+                    request.params.subscriptionData.message.toEncryptionPayload(),
                     crypto.getSharedKey(pairingPublicKey, peerPublicKey)
                 )
                 val pairingPayload = relayRepository.parseToPairingPayload(pairingPayloadJson)
@@ -170,7 +171,8 @@ class EngineInteractor {
 
         val encryptedString =
             encryptedJson.iv + encryptedJson.publicKey + encryptedJson.mac + encryptedJson.cipherText
-        relayRepository.publishSessionApproval(Topic(proposal.topic), encryptedString)
+
+        relayRepository.publish(Topic(proposal.topic), encryptedString)
     }
 
     fun reject(reason: String, proposal: SessionProposal) {
@@ -184,11 +186,10 @@ class EngineInteractor {
             pairingSharedKey,
             pairingPublicKey
         )
-
         val encryptedString =
             encryptedJson.iv + encryptedJson.publicKey + encryptedJson.mac + encryptedJson.cipherText
 
-        relayRepository.publishSessionRejection(Topic(proposal.topic), encryptedString)
+        relayRepository.publish(Topic(proposal.topic), encryptedString)
     }
 
     private fun settlePairingSequence(
