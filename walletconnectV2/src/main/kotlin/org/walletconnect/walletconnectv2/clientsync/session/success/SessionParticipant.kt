@@ -1,8 +1,8 @@
-package org.walletconnect.walletconnectv2.clientcomm.session.success
+package org.walletconnect.walletconnectv2.clientsync.session.success
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import org.walletconnect.walletconnectv2.clientcomm.session.proposal.AppMetaData
+import org.walletconnect.walletconnectv2.common.AppMetaData
 
 @JsonClass(generateAdapter = true)
 data class SessionParticipant(

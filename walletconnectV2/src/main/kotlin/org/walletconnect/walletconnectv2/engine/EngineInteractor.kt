@@ -1,23 +1,25 @@
 package org.walletconnect.walletconnectv2.engine
 
 import android.app.Application
+import com.tinder.scarlet.WebSocket
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.flow.filterIsInstance
 import org.json.JSONObject
+import org.walletconnect.walletconnectv2.WalletConnectScope.exceptionHandler
 import org.walletconnect.walletconnectv2.WalletConnectScope.scope
 import org.walletconnect.walletconnectv2.client.SessionProposal
-import org.walletconnect.walletconnectv2.clientcomm.PreSettlementSession
-import org.walletconnect.walletconnectv2.clientcomm.pairing.SettledPairingSequence
-import org.walletconnect.walletconnectv2.clientcomm.pairing.proposal.PairingProposedPermissions
-import org.walletconnect.walletconnectv2.clientcomm.session.RelayProtocolOptions
-import org.walletconnect.walletconnectv2.clientcomm.session.Session
-import org.walletconnect.walletconnectv2.clientcomm.session.SettledSessionSequence
-import org.walletconnect.walletconnectv2.clientcomm.session.proposal.AppMetaData
-import org.walletconnect.walletconnectv2.clientcomm.session.success.SessionParticipant
-import org.walletconnect.walletconnectv2.clientcomm.session.success.SessionState
+import org.walletconnect.walletconnectv2.clientsync.PreSettlementSession
+import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
+import org.walletconnect.walletconnectv2.clientsync.pairing.proposal.PairingProposedPermissions
+import org.walletconnect.walletconnectv2.clientsync.session.proposal.RelayProtocolOptions
+import org.walletconnect.walletconnectv2.clientsync.session.Session
+import org.walletconnect.walletconnectv2.clientsync.session.SettledSessionSequence
+import org.walletconnect.walletconnectv2.common.AppMetaData
+import org.walletconnect.walletconnectv2.clientsync.session.success.SessionParticipant
+import org.walletconnect.walletconnectv2.clientsync.session.success.SessionState
 import org.walletconnect.walletconnectv2.common.Expiry
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.toApprove
@@ -28,6 +30,7 @@ import org.walletconnect.walletconnectv2.crypto.codec.AuthenticatedEncryptionCod
 import org.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
+import org.walletconnect.walletconnectv2.errors.exception
 import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
 import org.walletconnect.walletconnectv2.util.generateId
 import org.walletconnect.walletconnectv2.util.toEncryptionPayload
@@ -51,22 +54,31 @@ class EngineInteractor {
     private val crypto: CryptoManager = LazySodiumCryptoManager(keyChain)
     private val codec: AuthenticatedEncryptionCodec = AuthenticatedEncryptionCodec()
     //endregion
-
+    private var metaData: AppMetaData? = null
     private val _sessionProposal: MutableStateFlow<Session.Proposal?> = MutableStateFlow(null)
     val sessionProposal: StateFlow<Session.Proposal?> = _sessionProposal
 
     //todo create topic -> keys map
     private var pairingPublicKey = PublicKey("")
     private var peerPublicKey = PublicKey("")
-    var pairingSharedKey: String = ""
+    private var pairingSharedKey: String = ""
 
     fun initialize(engineFactory: EngineFactory) {
+        this.metaData = engineFactory.metaData
         relayRepository = WakuRelayRepository.initRemote(
             engineFactory.useTLs,
             engineFactory.hostName,
-            engineFactory.port,
+            engineFactory.apiKey,
             engineFactory.application
         )
+
+        scope.launch(exceptionHandler) {
+            relayRepository.eventsFlow
+                .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
+                .collect { event ->
+                    throw event.throwable.exception
+                }
+        }
 
         scope.launch {
             relayRepository.subscriptionRequest.collect {
@@ -142,7 +154,7 @@ class EngineInteractor {
                 expiry = expiry,
                 responder = SessionParticipant(
                     selfPublicKey.keyAsHex,
-                    metadata = AppMetaData(name = "Kotlin Wallet")
+                    metadata = this.metaData
                 )
             )
         )
@@ -224,7 +236,9 @@ class EngineInteractor {
     data class EngineFactory(
         val useTLs: Boolean = false,
         val hostName: String,
-        val port: Int = 0,
-        val application: Application
+        val apiKey: String,
+        val isController: Boolean,
+        val application: Application,
+        val metaData: AppMetaData
     )
 }

@@ -4,14 +4,13 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
 import org.junit.jupiter.api.Test
-import org.walletconnect.walletconnectv2.clientcomm.pairing.PairingPayload
+import org.walletconnect.walletconnectv2.clientsync.pairing.PairingPayload
 import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.Ttl
 import org.walletconnect.walletconnectv2.common.network.adapters.SubscriptionIdAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TopicAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TtlAdapter
-import org.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.util.bytesToHex
 import org.walletconnect.walletconnectv2.util.toEncryptionPayload

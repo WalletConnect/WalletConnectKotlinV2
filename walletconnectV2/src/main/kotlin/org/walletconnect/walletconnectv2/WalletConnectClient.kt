@@ -6,8 +6,9 @@ import org.walletconnect.walletconnectv2.WalletConnectScope.scope
 import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.SessionProposal
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
-import org.walletconnect.walletconnectv2.clientcomm.session.Session
+import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
+import timber.log.Timber
 import java.net.URI
 
 object WalletConnectClient {
@@ -15,10 +16,13 @@ object WalletConnectClient {
     private var pairingListener: WalletConnectClientListeners.Pairing? = null
 
     init {
+        Timber.plant(Timber.DebugTree())
+
         scope.launch {
             engineInteractor.sessionProposal.collect {
-                it?.toSessionProposal()
-                    ?.let { sessionProposal -> pairingListener?.onSessionProposal(sessionProposal) }
+                it?.toSessionProposal()?.let { sessionProposal ->
+                    pairingListener?.onSessionProposal(sessionProposal)
+                }
             }
         }
     }
@@ -28,7 +32,10 @@ object WalletConnectClient {
         val engineFactory = EngineInteractor.EngineFactory(
             useTLs = initialParams.useTls,
             hostName = initialParams.hostName,
-            application = initialParams.application
+            apiKey = initialParams.apiKey,
+            isController = initialParams.isController,
+            application = initialParams.application,
+            metaData = initialParams.metadata
         )
         engineInteractor.initialize(engineFactory)
     }

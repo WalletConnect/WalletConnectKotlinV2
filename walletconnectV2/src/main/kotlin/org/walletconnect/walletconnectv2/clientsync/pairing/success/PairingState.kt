@@ -1,7 +1,8 @@
-package org.walletconnect.walletconnectv2.clientcomm.pairing.success
+package org.walletconnect.walletconnectv2.clientsync.pairing.success
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import org.walletconnect.walletconnectv2.common.AppMetaData
 
 @JsonClass(generateAdapter = true)
 data class PairingState(

@@ -1,11 +1,10 @@
-package org.walletconnect.walletconnectv2.clientcomm
+package org.walletconnect.walletconnectv2.clientsync
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import org.walletconnect.walletconnectv2.clientcomm.session.Session
+import org.walletconnect.walletconnectv2.clientsync.session.Session
 
 sealed class PreSettlementSession {
-
     abstract val id: Long
     abstract val jsonrpc: String
     abstract val method: String

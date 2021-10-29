@@ -1,4 +1,4 @@
-package org.walletconnect.walletconnectv2.clientcomm.pairing.success
+package org.walletconnect.walletconnectv2.common
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -6,11 +6,11 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class AppMetaData(
     @Json(name = "name")
-    val name: String,
+    val name: String = "Peer",
     @Json(name = "description")
-    val description: String,
+    val description: String = "",
     @Json(name = "url")
-    val url: String,
+    val url: String = "",
     @Json(name = "icons")
-    val icons: List<String>
+    val icons: List<String> = emptyList()
 )
