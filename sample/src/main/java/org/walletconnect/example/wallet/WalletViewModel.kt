@@ -44,7 +44,7 @@ class WalletViewModel : ViewModel() {
             "$chainId:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716"
         }
 
-        WalletConnectClient.approve(sessionProposal.copy(accounts = accounts))
+        WalletConnectClient.approve(accounts, sessionProposal)
 
         viewModelScope.launch {
             _eventFlow.emit(UpdateActiveSessions(activeSessions))
@@ -52,6 +52,6 @@ class WalletViewModel : ViewModel() {
     }
 
     fun reject() {
-        //call reject() session method from SDK
+        WalletConnectClient.reject("Reason", sessionProposal)
     }
 }

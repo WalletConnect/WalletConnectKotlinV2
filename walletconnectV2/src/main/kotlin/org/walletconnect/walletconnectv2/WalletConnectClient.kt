@@ -41,8 +41,12 @@ object WalletConnectClient {
         scope.launch { engineInteractor.pair(pairingParams.uri) }
     }
 
-    fun approve(proposal: SessionProposal) {
-        engineInteractor.approve(proposal)
+    fun approve(accounts: List<String>, proposal: SessionProposal) {
+        engineInteractor.approve(accounts, proposal)
+    }
+
+    fun reject(reason: String, proposal: SessionProposal) {
+        engineInteractor.reject(reason, proposal)
     }
 
     private fun Session.Proposal.toSessionProposal(): SessionProposal {
