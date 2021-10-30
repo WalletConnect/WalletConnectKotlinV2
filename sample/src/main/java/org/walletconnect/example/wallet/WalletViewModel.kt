@@ -5,10 +5,7 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import org.walletconnect.example.wallet.ui.Session
-import org.walletconnect.example.wallet.ui.ShowSessionProposalDialog
-import org.walletconnect.example.wallet.ui.UpdateActiveSessions
-import org.walletconnect.example.wallet.ui.WalletUiEvent
+import org.walletconnect.example.wallet.ui.*
 import org.walletconnect.walletconnectv2.WalletConnectClient
 import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.SessionProposal
@@ -45,13 +42,15 @@ class WalletViewModel : ViewModel() {
         }
 
         WalletConnectClient.approve(accounts, sessionProposal)
-
         viewModelScope.launch {
             _eventFlow.emit(UpdateActiveSessions(activeSessions))
         }
     }
 
-    fun reject() {
-        WalletConnectClient.reject("Reason", sessionProposal)
+    fun reject(reason: String = "Reject") {
+        WalletConnectClient.reject(reason, sessionProposal)
+        viewModelScope.launch {
+            _eventFlow.emit(RejectSession)
+        }
     }
 }

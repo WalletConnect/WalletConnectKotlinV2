@@ -19,8 +19,8 @@ object WalletConnectClient {
         Timber.plant(Timber.DebugTree())
 
         scope.launch {
-            engineInteractor.sessionProposal.collect {
-                it?.toSessionProposal()?.let { sessionProposal ->
+            engineInteractor.sessionProposal.collect { proposal ->
+                proposal?.toSessionProposal()?.let { sessionProposal ->
                     pairingListener?.onSessionProposal(sessionProposal)
                 }
             }

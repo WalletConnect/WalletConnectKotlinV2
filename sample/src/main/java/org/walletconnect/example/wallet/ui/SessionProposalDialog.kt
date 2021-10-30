@@ -45,12 +45,10 @@ class SessionProposalDialog(
 
         approve.setOnClickListener {
             approve()
-            dismiss()
         }
 
         reject.setOnClickListener {
             reject()
-            dismiss()
         }
     }
 }

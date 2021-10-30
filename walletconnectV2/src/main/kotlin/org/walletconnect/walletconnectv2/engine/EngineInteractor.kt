@@ -2,11 +2,12 @@ package org.walletconnect.walletconnectv2.engine
 
 import android.app.Application
 import com.tinder.scarlet.WebSocket
-import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import org.json.JSONObject
 import org.walletconnect.walletconnectv2.WalletConnectScope.exceptionHandler
 import org.walletconnect.walletconnectv2.WalletConnectScope.scope
@@ -14,16 +15,12 @@ import org.walletconnect.walletconnectv2.client.SessionProposal
 import org.walletconnect.walletconnectv2.clientsync.PreSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
 import org.walletconnect.walletconnectv2.clientsync.pairing.proposal.PairingProposedPermissions
-import org.walletconnect.walletconnectv2.clientsync.session.proposal.RelayProtocolOptions
 import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.clientsync.session.SettledSessionSequence
-import org.walletconnect.walletconnectv2.common.AppMetaData
+import org.walletconnect.walletconnectv2.clientsync.session.proposal.RelayProtocolOptions
 import org.walletconnect.walletconnectv2.clientsync.session.success.SessionParticipant
 import org.walletconnect.walletconnectv2.clientsync.session.success.SessionState
-import org.walletconnect.walletconnectv2.common.Expiry
-import org.walletconnect.walletconnectv2.common.Topic
-import org.walletconnect.walletconnectv2.common.toApprove
-import org.walletconnect.walletconnectv2.common.toPairProposal
+import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.crypto.CryptoManager
 import org.walletconnect.walletconnectv2.crypto.KeyChain
 import org.walletconnect.walletconnectv2.crypto.codec.AuthenticatedEncryptionCodec
