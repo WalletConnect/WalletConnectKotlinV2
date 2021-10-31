@@ -2,7 +2,6 @@ package org.walletconnect.walletconnectv2
 
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import org.walletconnect.walletconnectv2.WalletConnectScope.scope
 import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.SessionProposal
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
@@ -45,15 +44,17 @@ object WalletConnectClient {
         clientListeners: WalletConnectClientListeners.Pairing
     ) {
         pairingListener = clientListeners
-        scope.launch { engineInteractor.pair(pairingParams.uri) }
+        scope.launch {
+            engineInteractor.pair(pairingParams.uri)
+        }
     }
 
-    fun approve(accounts: List<String>, proposal: SessionProposal) {
-        engineInteractor.approve(accounts, proposal)
+    fun approve(approveParams: ClientTypes.ApproveParams) {
+        engineInteractor.approve(approveParams.accounts, approveParams.proposerPublicKey, approveParams.proposalTtl, approveParams.proposalTopic)
     }
 
-    fun reject(reason: String, proposal: SessionProposal) {
-        engineInteractor.reject(reason, proposal)
+    fun reject(rejectParams: ClientTypes.RejectParams) {
+        engineInteractor.reject(rejectParams.rejectionReason, rejectParams.proposalTopic)
     }
 
     private fun Session.Proposal.toSessionProposal(): SessionProposal {

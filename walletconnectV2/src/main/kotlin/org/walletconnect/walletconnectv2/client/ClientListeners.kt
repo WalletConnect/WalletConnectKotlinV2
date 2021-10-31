@@ -3,6 +3,7 @@ package org.walletconnect.walletconnectv2.client
 import java.net.URI
 
 sealed interface WalletConnectClientListeners {
+
     fun interface Pairing : WalletConnectClientListeners {
         fun onSessionProposal(proposal: SessionProposal)
     }
