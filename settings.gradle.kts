@@ -1,2 +1,2 @@
 rootProject.name = "WalletConnect"
-include( ":sample", ":walletconnectV2")
+include( ":sample", ":walletconnectv2")

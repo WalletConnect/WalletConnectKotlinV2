@@ -4,6 +4,7 @@ plugins {
     id("com.android.library")
     kotlin("android")
     kotlin("kapt")
+    `maven-publish`
 }
 
 tasks.withType<Test> {
@@ -58,4 +59,20 @@ dependencies {
     jUnit5()
     mockk()
     timber()
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            create("release", MavenPublication::class) {
+                // Applies the component for the release build variant.
+                from(components.getByName("release"))
+                // You can then customize attributes of the publication as shown below.
+                groupId = "com.walletconnect"
+                artifactId = "walletconnectv2"
+                version = "1.0.0-alpha01"
+            }
+        }
+    }
 }
