@@ -1,6 +1,7 @@
 ![WalletConnect V2](docs/walletconnect-banner.svg)
 <br>
 <br>
+
 # **WalletConnect V2 - Kotlin**
 
 Kotlin implementation of WalletConnect v2 protocol for Android applications.
@@ -14,13 +15,27 @@ Kotlin implementation of WalletConnect v2 protocol for Android applications.
 <br>
 
 ## Installation
+root/build.gradle:
 
-To get started, add the WalletConnect library as a module to your project
-
-#### Project build.gradle.kts
 ```gradle
-implementation(project(":walletconnectV2"))
+allprojects {
+ repositories {
+    maven { url "https://jitpack.io" }
+ }
+}
 ```
+
+<br>
+
+app/build.gradle(.kts)
+
+```gradle
+groovy - implementation 'com.walletconnect:walletconnectv2:1.0.0-alpha01'
+
+kotlin - implementation("com.walletconnect:walletconnectv2:1.0.0-alpha01")
+
+```
+
 <br>
 
 ## **Usage**
