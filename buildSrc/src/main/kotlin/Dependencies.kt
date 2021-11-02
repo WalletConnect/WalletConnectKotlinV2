@@ -1,6 +1,8 @@
+import org.gradle.api.JavaVersion
 import org.gradle.kotlin.dsl.DependencyHandlerScope
 
 const val kotlinVersion = "1.5.31"
+val jvmVersion = JavaVersion.VERSION_11
 
 fun DependencyHandlerScope.scanner() {
     val mlKitBarcode = "16.0.1"
@@ -39,16 +41,17 @@ fun DependencyHandlerScope.scarlet() {
     "implementation"("com.tinder.scarlet:websocket-okhttp:$scarletVersion")
     "implementation"("com.tinder.scarlet:stream-adapter-coroutines:$scarletVersion")
     "implementation"("com.tinder.scarlet:message-adapter-moshi:$scarletVersion")
+    "implementation"("com.tinder.scarlet:lifecycle-android:$scarletVersion")
 
     "testImplementation"("com.tinder.scarlet:websocket-mockwebserver:$scarletVersion")
     "testImplementation"("com.tinder.scarlet:test-utils:$scarletVersion")
-    "intTestImplementation"("com.tinder.scarlet:websocket-mockwebserver:$scarletVersion")
-    "intTestImplementation"("com.tinder.scarlet:test-utils:$scarletVersion")
 }
 
 fun DependencyHandlerScope.moshi() {
     val moshiVersion = "1.12.0"
     "implementation"("com.squareup.moshi:moshi-adapters:$moshiVersion")
+    "implementation"("com.squareup.moshi:moshi-kotlin:$moshiVersion")
+    "kapt"("com.squareup.moshi:moshi-kotlin-codegen:$moshiVersion")
 }
 
 fun DependencyHandlerScope.json() {
@@ -56,16 +59,22 @@ fun DependencyHandlerScope.json() {
     "implementation"("org.json:json:$jsonVersion")
 }
 
+fun DependencyHandlerScope.okhttp() {
+    val okhttpVersion = "4.9.0"
+
+    "implementation"(platform("com.squareup.okhttp3:okhttp-bom:$okhttpVersion"))
+    "implementation"("com.squareup.okhttp3:okhttp")
+    "implementation"("com.squareup.okhttp3:logging-interceptor")
+}
+
 fun DependencyHandlerScope.lazySodium() {
-    val lazySodiumVersion = "5.1.1"
-    val jnaVersion = "5.9.0"
+    val lazySodiumVersion = "5.0.2@aar"
+    val jnaVersion = "5.8.0@aar"
     val slf4jVersion = "1.7.32"
 
-    "implementation"("com.goterl:lazysodium-java:$lazySodiumVersion")
+    "implementation"("com.goterl:lazysodium-android:$lazySodiumVersion")
     "implementation"("net.java.dev.jna:jna:$jnaVersion")
-
     "testImplementation"("org.slf4j:slf4j-nop:$slf4jVersion")
-    "intTestImplementation"("org.slf4j:slf4j-nop:$slf4jVersion")
 }
 
 fun DependencyHandlerScope.jUnit5() {
@@ -75,16 +84,16 @@ fun DependencyHandlerScope.jUnit5() {
     "testImplementation"("org.junit.jupiter:junit-jupiter-api:$jUnit5Version")
     "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine:$jUnit5Version")
     "testImplementation"("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
-
-    "intTestImplementation"(platform("org.junit:junit-bom:$jUnit5Version"))
-    "intTestImplementation"("org.junit.jupiter:junit-jupiter-api:$jUnit5Version")
-    "intTestRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine:$jUnit5Version")
-    "intTestImplementation"("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
 }
 
 fun DependencyHandlerScope.mockk() {
     val mockkVersion = "1.12.0"
 
     "testImplementation"("io.mockk:mockk:$mockkVersion")
-    "intTestImplementation"("io.mockk:mockk:$mockkVersion")
+}
+
+fun DependencyHandlerScope.timber() {
+    val timberVersion = "5.0.1"
+
+    "implementation"("com.jakewharton.timber:timber:$timberVersion")
 }

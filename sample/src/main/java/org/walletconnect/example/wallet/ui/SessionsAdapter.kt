@@ -1,10 +1,13 @@
 package org.walletconnect.example.wallet.ui
 
+import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import org.walletconnect.example.R
 import org.walletconnect.example.databinding.SessionItemBinding
 
@@ -33,7 +36,9 @@ class SessionViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
     private val binding = SessionItemBinding.bind(view)
 
     fun bind(session: Session) = with(binding) {
-        icon.setImageDrawable(ContextCompat.getDrawable(view.context, session.icon))
+        Glide.with(view.context)
+            .load(Uri.parse(session.icon))
+            .into(icon)
         name.text = session.name
         uri.text = session.uri
     }
