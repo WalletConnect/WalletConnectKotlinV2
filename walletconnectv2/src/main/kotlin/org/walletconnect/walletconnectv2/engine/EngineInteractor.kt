@@ -166,8 +166,7 @@ class EngineInteractor {
             pairingPublicKey
         )
 
-        val encryptedString =
-            encryptedJson.iv + encryptedJson.publicKey + encryptedJson.mac + encryptedJson.cipherText
+        val encryptedString = encryptedJson.iv + encryptedJson.publicKey + encryptedJson.mac + encryptedJson.cipherText
 
         relayRepository.publish(Topic(proposalTopic), encryptedString)
     }
