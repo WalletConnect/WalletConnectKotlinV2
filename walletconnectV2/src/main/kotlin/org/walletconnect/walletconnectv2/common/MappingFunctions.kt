@@ -18,7 +18,8 @@ internal fun String.toPairProposal(): Pairing.Proposal {
     val properUriString = if (contains("wc://")) this else replace("wc:", "wc://")
     val pairUri = URI(properUriString)
     val mapOfQueryParameters: Map<String, String> =
-        pairUri.query.split("&").associate { it.substringBefore("=") to it.substringAfter("=") }
+        pairUri.query.split("&")
+            .associate { query -> query.substringBefore("=") to query.substringAfter("=") }
     val relay = JSONObject(mapOfQueryParameters["relay"] ?: "{}")
     val publicKey = mapOfQueryParameters["publicKey"] ?: ""
     val controller: Boolean = mapOfQueryParameters["controller"].toBoolean()
