@@ -16,6 +16,7 @@ import org.walletconnect.walletconnectv2.common.network.adapters.TopicAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TtlAdapter
 
 sealed class Session {
+
     @JsonClass(generateAdapter = true)
     data class Proposal(
         @Json(name = "topic")

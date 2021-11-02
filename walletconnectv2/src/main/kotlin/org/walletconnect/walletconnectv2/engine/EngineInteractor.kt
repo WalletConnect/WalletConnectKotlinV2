@@ -9,8 +9,6 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.json.JSONObject
-import org.walletconnect.walletconnectv2.WalletConnectScope.exceptionHandler
-import org.walletconnect.walletconnectv2.WalletConnectScope.scope
 import org.walletconnect.walletconnectv2.client.SessionProposal
 import org.walletconnect.walletconnectv2.clientsync.PreSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
@@ -28,7 +26,9 @@ import org.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
 import org.walletconnect.walletconnectv2.errors.exception
+import org.walletconnect.walletconnectv2.exceptionHandler
 import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
+import org.walletconnect.walletconnectv2.scope
 import org.walletconnect.walletconnectv2.util.generateId
 import org.walletconnect.walletconnectv2.util.toEncryptionPayload
 import java.util.*
@@ -129,12 +129,12 @@ class EngineInteractor {
         relayRepository.publishPairingApproval(pairingProposal.topic, preSettlementPairingApprove)
     }
 
-    fun approve(accounts: List<String>, proposal: SessionProposal) {
+    fun approve(accounts: List<String>, proposerPublicKey: String, proposalTtl: Long, proposalTopic: String) {
         require(::relayRepository.isInitialized)
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
-        val peerPublicKey = PublicKey(proposal.proposerPublicKey)
+        val peerPublicKey = PublicKey(proposerPublicKey)
         val sessionState = SessionState(accounts)
-        val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + proposal.ttl)
+        val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + proposalTtl)
 
         val settledSession: SettledSessionSequence = settleSessionSequence(
             RelayProtocolOptions(),
@@ -166,13 +166,13 @@ class EngineInteractor {
             pairingPublicKey
         )
 
-        val encryptedString =
-            encryptedJson.iv + encryptedJson.publicKey + encryptedJson.mac + encryptedJson.cipherText
+        val encryptedString = encryptedJson.iv + encryptedJson.publicKey + encryptedJson.mac + encryptedJson.cipherText
 
-        relayRepository.publish(Topic(proposal.topic), encryptedString)
+        relayRepository.publish(Topic(proposalTopic), encryptedString)
     }
 
-    fun reject(reason: String, proposal: SessionProposal) {
+
+    fun reject(reason: String, proposalTopic: String) {
         val preSettlementSession =
             PreSettlementSession.Reject(id = generateId(), params = Session.Failure(reason))
         val sessionRejectionJson: String =
@@ -186,7 +186,7 @@ class EngineInteractor {
         val encryptedString =
             encryptedJson.iv + encryptedJson.publicKey + encryptedJson.mac + encryptedJson.cipherText
 
-        relayRepository.publish(Topic(proposal.topic), encryptedString)
+        relayRepository.publish(Topic(proposalTopic), encryptedString)
     }
 
     private fun settlePairingSequence(
