@@ -2,11 +2,12 @@ package org.walletconnect.walletconnectv2.engine
 
 import android.app.Application
 import com.tinder.scarlet.WebSocket
-import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import org.json.JSONObject
 import org.walletconnect.walletconnectv2.WalletConnectScope.exceptionHandler
 import org.walletconnect.walletconnectv2.WalletConnectScope.scope
@@ -14,16 +15,12 @@ import org.walletconnect.walletconnectv2.client.SessionProposal
 import org.walletconnect.walletconnectv2.clientsync.PreSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
 import org.walletconnect.walletconnectv2.clientsync.pairing.proposal.PairingProposedPermissions
-import org.walletconnect.walletconnectv2.clientsync.session.proposal.RelayProtocolOptions
 import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.clientsync.session.SettledSessionSequence
-import org.walletconnect.walletconnectv2.common.AppMetaData
+import org.walletconnect.walletconnectv2.clientsync.session.proposal.RelayProtocolOptions
 import org.walletconnect.walletconnectv2.clientsync.session.success.SessionParticipant
 import org.walletconnect.walletconnectv2.clientsync.session.success.SessionState
-import org.walletconnect.walletconnectv2.common.Expiry
-import org.walletconnect.walletconnectv2.common.Topic
-import org.walletconnect.walletconnectv2.common.toApprove
-import org.walletconnect.walletconnectv2.common.toPairProposal
+import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.crypto.CryptoManager
 import org.walletconnect.walletconnectv2.crypto.KeyChain
 import org.walletconnect.walletconnectv2.crypto.codec.AuthenticatedEncryptionCodec
@@ -53,6 +50,7 @@ class EngineInteractor {
     }
     private val crypto: CryptoManager = LazySodiumCryptoManager(keyChain)
     private val codec: AuthenticatedEncryptionCodec = AuthenticatedEncryptionCodec()
+
     //endregion
     private var metaData: AppMetaData? = null
     private val _sessionProposal: MutableStateFlow<Session.Proposal?> = MutableStateFlow(null)
@@ -81,13 +79,13 @@ class EngineInteractor {
         }
 
         scope.launch {
-            relayRepository.subscriptionRequest.collect {
+            relayRepository.subscriptionRequest.collect { request ->
                 supervisorScope {
-                    relayRepository.publishSessionProposalAcknowledgment(it.id)
+                    relayRepository.publishSessionProposalAcknowledgment(request.id)
                 }
 
                 val pairingPayloadJson = codec.decrypt(
-                    it.params.subscriptionData.message.toEncryptionPayload(),
+                    request.params.subscriptionData.message.toEncryptionPayload(),
                     crypto.getSharedKey(pairingPublicKey, peerPublicKey)
                 )
                 val pairingPayload = relayRepository.parseToPairingPayload(pairingPayloadJson)
@@ -131,33 +129,11 @@ class EngineInteractor {
         relayRepository.publishPairingApproval(pairingProposal.topic, preSettlementPairingApprove)
     }
 
-    private fun settlePairingSequence(
-        relay: JSONObject,
-        selfPublicKey: PublicKey,
-        peerPublicKey: PublicKey,
-        permissions: PairingProposedPermissions?,
-        controllerPublicKey: PublicKey,
-        expiry: Expiry
-    ): SettledPairingSequence {
-        require(::relayRepository.isInitialized)
-        val (sharedKey, settledTopic) =
-            crypto.generateTopicAndSharedKey(selfPublicKey, peerPublicKey)
-        pairingSharedKey = sharedKey
-        return SettledPairingSequence(
-            settledTopic,
-            relay,
-            selfPublicKey,
-            peerPublicKey,
-            permissions to controllerPublicKey,
-            expiry
-        )
-    }
-
-    fun approve(proposal: SessionProposal) {
+    fun approve(accounts: List<String>, proposal: SessionProposal) {
         require(::relayRepository.isInitialized)
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val peerPublicKey = PublicKey(proposal.proposerPublicKey)
-        val sessionState = SessionState(proposal.accounts)
+        val sessionState = SessionState(accounts)
         val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + proposal.ttl)
 
         val settledSession: SettledSessionSequence = settleSessionSequence(
@@ -192,7 +168,47 @@ class EngineInteractor {
 
         val encryptedString =
             encryptedJson.iv + encryptedJson.publicKey + encryptedJson.mac + encryptedJson.cipherText
-        relayRepository.publishSessionApproval(Topic(proposal.topic), encryptedString)
+
+        relayRepository.publish(Topic(proposal.topic), encryptedString)
+    }
+
+    fun reject(reason: String, proposal: SessionProposal) {
+        val preSettlementSession =
+            PreSettlementSession.Reject(id = generateId(), params = Session.Failure(reason))
+        val sessionRejectionJson: String =
+            relayRepository.getSessionRejectionJson(preSettlementSession)
+
+        val encryptedJson: EncryptionPayload = codec.encrypt(
+            sessionRejectionJson,
+            pairingSharedKey,
+            pairingPublicKey
+        )
+        val encryptedString =
+            encryptedJson.iv + encryptedJson.publicKey + encryptedJson.mac + encryptedJson.cipherText
+
+        relayRepository.publish(Topic(proposal.topic), encryptedString)
+    }
+
+    private fun settlePairingSequence(
+        relay: JSONObject,
+        selfPublicKey: PublicKey,
+        peerPublicKey: PublicKey,
+        permissions: PairingProposedPermissions?,
+        controllerPublicKey: PublicKey,
+        expiry: Expiry
+    ): SettledPairingSequence {
+        require(::relayRepository.isInitialized)
+        val (sharedKey, settledTopic) =
+            crypto.generateTopicAndSharedKey(selfPublicKey, peerPublicKey)
+        pairingSharedKey = sharedKey
+        return SettledPairingSequence(
+            settledTopic,
+            relay,
+            selfPublicKey,
+            peerPublicKey,
+            permissions to controllerPublicKey,
+            expiry
+        )
     }
 
     private fun settleSessionSequence(

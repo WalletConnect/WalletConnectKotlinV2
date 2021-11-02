@@ -13,6 +13,7 @@ class WalletFragment : Fragment(R.layout.wallet_fragment) {
     private val viewModel: WalletViewModel by activityViewModels()
     private lateinit var binding: WalletFragmentBinding
     private val sessionAdapter = SessionsAdapter()
+    private var proposalDialog: SessionProposalDialog? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -23,16 +24,16 @@ class WalletFragment : Fragment(R.layout.wallet_fragment) {
         viewModel.eventFlow.observe(viewLifecycleOwner, { event ->
             when (event) {
                 is ShowSessionProposalDialog -> {
-                    SessionProposalDialog(
-                        requireContext(),
-                        { viewModel.approve() },
-                        { viewModel.reject() },
-                        event.proposal
-                    ).show()
+                    proposalDialog = SessionProposalDialog(
+                        requireContext(), viewModel::approve, viewModel::reject, event.proposal
+                    )
+                        .apply { show() }
                 }
                 is UpdateActiveSessions -> {
+                    proposalDialog?.dismiss()
                     sessionAdapter.updateList(event.sessions)
                 }
+                is RejectSession -> proposalDialog?.dismiss()
             }
         })
     }
@@ -40,14 +41,16 @@ class WalletFragment : Fragment(R.layout.wallet_fragment) {
     private fun setupToolbar() {
         binding.walletToolbar.title = getString(R.string.app_name)
         binding.walletToolbar.setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.qrCodeScanner) {
-                findNavController().navigate(R.id.action_walletFragment_to_scannerFragment)
-                true
-            } else if (item.itemId == R.id.pasteUri) {
-                UrlDialog(requireContext(), approve = { url -> viewModel.pair(url) }).run { show() }
-                true
-            } else {
-                false
+            when (item.itemId) {
+                R.id.qrCodeScanner -> {
+                    findNavController().navigate(R.id.action_walletFragment_to_scannerFragment)
+                    true
+                }
+                R.id.pasteUri -> {
+                    UrlDialog(requireContext(), viewModel::pair).show()
+                    true
+                }
+                else -> false
             }
         }
     }

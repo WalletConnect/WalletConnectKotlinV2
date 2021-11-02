@@ -77,15 +77,7 @@ class WakuRelayRepository internal constructor(
         relay.publishRequest(publishRequest)
     }
 
-    fun getSessionApprovalJson(preSettlementSessionApproval: PreSettlementSession.Approve): String {
-        return moshi.adapter(PreSettlementSession.Approve::class.java)
-            .toJson(preSettlementSessionApproval)
-    }
-
-    fun publishSessionApproval(
-        topic: Topic,
-        encryptedJson: String
-    ) {
+    fun publish(topic: Topic, encryptedJson: String) {
         val publishRequest =
             Relay.Publish.Request(
                 id = generateId(),
@@ -103,7 +95,6 @@ class WakuRelayRepository internal constructor(
         relay.publishSubscriptionAcknowledgment(publishRequest)
     }
 
-
     fun subscribe(topic: Topic) {
         val subscribeRequest =
             Relay.Subscribe.Request(
@@ -112,6 +103,12 @@ class WakuRelayRepository internal constructor(
             )
         relay.subscribeRequest(subscribeRequest)
     }
+
+    fun getSessionApprovalJson(preSettlementSessionApproval: PreSettlementSession.Approve): String =
+        moshi.adapter(PreSettlementSession.Approve::class.java).toJson(preSettlementSessionApproval)
+
+    fun getSessionRejectionJson(preSettlementSessionRejection: PreSettlementSession.Reject): String =
+        moshi.adapter(PreSettlementSession.Reject::class.java).toJson(preSettlementSessionRejection)
 
     fun parseToPairingPayload(json: String): PairingPayload? =
         moshi.adapter(PairingPayload::class.java).fromJson(json)

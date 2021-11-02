@@ -19,8 +19,8 @@ object WalletConnectClient {
         Timber.plant(Timber.DebugTree())
 
         scope.launch {
-            engineInteractor.sessionProposal.collect {
-                it?.toSessionProposal()?.let { sessionProposal ->
+            engineInteractor.sessionProposal.collect { proposal ->
+                proposal?.toSessionProposal()?.let { sessionProposal ->
                     pairingListener?.onSessionProposal(sessionProposal)
                 }
             }
@@ -48,8 +48,12 @@ object WalletConnectClient {
         scope.launch { engineInteractor.pair(pairingParams.uri) }
     }
 
-    fun approve(proposal: SessionProposal) {
-        engineInteractor.approve(proposal)
+    fun approve(accounts: List<String>, proposal: SessionProposal) {
+        engineInteractor.approve(accounts, proposal)
+    }
+
+    fun reject(reason: String, proposal: SessionProposal) {
+        engineInteractor.reject(reason, proposal)
     }
 
     private fun Session.Proposal.toSessionProposal(): SessionProposal {
