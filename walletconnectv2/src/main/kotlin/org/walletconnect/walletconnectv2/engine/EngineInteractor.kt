@@ -2,14 +2,10 @@ package org.walletconnect.walletconnectv2.engine
 
 import android.app.Application
 import com.tinder.scarlet.WebSocket
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.json.JSONObject
-import org.walletconnect.walletconnectv2.client.SessionProposal
 import org.walletconnect.walletconnectv2.clientsync.PreSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
 import org.walletconnect.walletconnectv2.clientsync.pairing.proposal.PairingProposedPermissions
@@ -28,12 +24,13 @@ import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
 import org.walletconnect.walletconnectv2.errors.exception
 import org.walletconnect.walletconnectv2.exceptionHandler
 import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
+import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import org.walletconnect.walletconnectv2.scope
 import org.walletconnect.walletconnectv2.util.generateId
 import org.walletconnect.walletconnectv2.util.toEncryptionPayload
 import java.util.*
 
-class EngineInteractor {
+internal class EngineInteractor {
     //region provide with DI
     // TODO: add logic to check hostName for ws/wss scheme with and without ://
     private lateinit var relayRepository: WakuRelayRepository
@@ -55,6 +52,11 @@ class EngineInteractor {
     private var metaData: AppMetaData? = null
     private val _sessionProposal: MutableStateFlow<Session.Proposal?> = MutableStateFlow(null)
     val sessionProposal: StateFlow<Session.Proposal?> = _sessionProposal
+
+
+    internal lateinit var subscribeAcknowledgement: Flow<Relay.Subscribe.Acknowledgement>
+    internal lateinit var publishAcknowledgement: Flow<Relay.Publish.Acknowledgement>
+    internal lateinit var subscriptionRequest: Flow<Relay.Subscription.Request>
 
     //todo create topic -> keys map
     private var pairingPublicKey = PublicKey("")
@@ -218,8 +220,10 @@ class EngineInteractor {
         expiry: Expiry,
         sessionState: SessionState
     ): SettledSessionSequence {
-        val (sharedKey, settledTopic) =
-            crypto.generateTopicAndSharedKey(selfPublicKey, peerPublicKey)
+        val (sharedKey, settledTopic) = crypto.generateTopicAndSharedKey(
+            selfPublicKey,
+            peerPublicKey
+        )
         return SettledSessionSequence(
             settledTopic,
             relay,

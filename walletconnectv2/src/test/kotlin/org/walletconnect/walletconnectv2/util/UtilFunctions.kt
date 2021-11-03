@@ -11,5 +11,3 @@ internal fun getRandom64ByteHexString() =
         .joinToString("")
 
 internal const val defaultLocalPort = 1025
-internal fun initLocal(useTLs: Boolean = false, port: Int = defaultLocalPort) =
-    WakuRelayRepository(useTLs, "127.0.0.1", port)

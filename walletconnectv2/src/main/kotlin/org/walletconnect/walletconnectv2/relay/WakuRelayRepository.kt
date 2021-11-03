@@ -9,6 +9,7 @@ import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.utils.getRawType
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
+import kotlinx.coroutines.flow.Flow
 import okhttp3.OkHttpClient
 import org.json.JSONObject
 import org.walletconnect.walletconnectv2.clientsync.PreSettlementPairing
