@@ -60,6 +60,7 @@ ClientTypes.Params is where the Dapp Uri will be passed.
 WalletConnectClientListeners.Pairing is the callback that will be asynchronously called once there a pairing has been made with the Dapp. A SessionProposal object is returned once a pairing is made.
 
 ### **Session Approval**
+NOTE: addresses provided in `accounts` array should follow [CAPI10](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-10.md) semantics.
 ```kotlin
 val accounts: List<String> = /*list of accounts on chains*/
 val proposerPublicKey: String = /*proposerPublicKey from the Session Proposal*/
