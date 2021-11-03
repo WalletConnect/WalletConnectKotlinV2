@@ -4,6 +4,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
 import org.junit.jupiter.api.Test
+import org.walletconnect.walletconnectv2.clientsync.pairing.after.PostSettlementPairing
 import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.Ttl
@@ -83,8 +84,8 @@ class AuthenticatedEncryptionCodecTest {
                 }
             }.addLast(KotlinJsonAdapterFactory()).build()
 
-        val request: PairingPayload? =
-            moshi.adapter(PairingPayload::class.java).fromJson(json)
+        val request: PostSettlementPairing.PairingPayload? =
+            moshi.adapter(PostSettlementPairing.PairingPayload::class.java).fromJson(json)
 
         assertEquals(request?.params?.request?.params?.proposer?.publicKey, "37d8c448a2241f21550329f451e8c1901e7dad5135ade604f1e106437843037f")
     }
