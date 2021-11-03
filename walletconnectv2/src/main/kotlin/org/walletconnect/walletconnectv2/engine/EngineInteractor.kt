@@ -2,18 +2,15 @@ package org.walletconnect.walletconnectv2.engine
 
 import android.app.Application
 import com.tinder.scarlet.WebSocket
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.json.JSONObject
-import org.walletconnect.walletconnectv2.clientsync.pairing.after.SettledPairingSequence
+import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposedPermissions
-import org.walletconnect.walletconnectv2.clientsync.session.after.SettledSessionSequence
+import org.walletconnect.walletconnectv2.clientsync.session.Session
+import org.walletconnect.walletconnectv2.clientsync.session.SettledSessionSequence
 import org.walletconnect.walletconnectv2.clientsync.session.before.PreSettlementSession
-import org.walletconnect.walletconnectv2.clientsync.session.before.Session
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.RelayProtocolOptions
 import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionParticipant
 import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionState
@@ -68,6 +65,9 @@ class EngineInteractor {
 
         scope.launch(exceptionHandler) {
             relayRepository.eventsFlow
+                .map {
+                    Timber.tag("kobe").d("Event: $it")
+                }
                 .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
                 .collect { event -> throw event.throwable.exception }
         }
@@ -75,12 +75,14 @@ class EngineInteractor {
         scope.launch {
             relayRepository.subscriptionRequest.collect { request ->
 
-                supervisorScope { relayRepository.publishSessionProposalAcknowledgment(request.id) }
+                supervisorScope { relayRepository.publishSubscriptionAcknowledgment(request.id) }
+
                 val (sharedKey, selfPublic) = crypto.getKeyAgreement(request.subscriptionTopic)
                 val pairingPayloadJson: String = codec.decrypt(request.encryptionPayload, sharedKey)
 
-                //TODO add parsing
                 Timber.tag("kobe").d("Payload: $pairingPayloadJson")
+
+                //TODO handle differently all pairing payloads and all session payloads
 
                 val pairingPayload = relayRepository.parseToPairingPayload(pairingPayloadJson)
                 val sessionProposal: Session.Proposal =

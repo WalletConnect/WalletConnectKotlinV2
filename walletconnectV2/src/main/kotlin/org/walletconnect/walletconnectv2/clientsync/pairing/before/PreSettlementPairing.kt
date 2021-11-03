@@ -1,8 +1,8 @@
-package org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal
+package org.walletconnect.walletconnectv2.clientsync.pairing.before
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import org.walletconnect.walletconnectv2.clientsync.pairing.before.Pairing
+import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
 
 sealed class PreSettlementPairing {
     abstract val id: Long

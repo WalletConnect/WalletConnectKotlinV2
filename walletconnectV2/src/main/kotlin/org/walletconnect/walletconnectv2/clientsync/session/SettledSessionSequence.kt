@@ -1,4 +1,4 @@
-package org.walletconnect.walletconnectv2.clientsync.session.after
+package org.walletconnect.walletconnectv2.clientsync.session
 
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.RelayProtocolOptions
 import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionState

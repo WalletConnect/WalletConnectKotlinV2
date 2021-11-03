@@ -4,7 +4,6 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
 import org.junit.jupiter.api.Test
-import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingPayload
 import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.Ttl

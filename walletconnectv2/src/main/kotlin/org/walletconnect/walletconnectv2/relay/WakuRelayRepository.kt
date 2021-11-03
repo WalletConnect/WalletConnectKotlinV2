@@ -11,8 +11,8 @@ import com.tinder.scarlet.utils.getRawType
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import okhttp3.OkHttpClient
 import org.json.JSONObject
-import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingPayload
-import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PreSettlementPairing
+import org.walletconnect.walletconnectv2.clientsync.pairing.after.PostSettlementPairing
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing
 import org.walletconnect.walletconnectv2.clientsync.session.before.PreSettlementSession
 import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.common.network.adapters.*
@@ -86,12 +86,9 @@ class WakuRelayRepository internal constructor(
         relay.publishRequest(publishRequest)
     }
 
-    fun publishSessionProposalAcknowledgment(id: Long) {
+    fun publishSubscriptionAcknowledgment(id: Long) {
         val publishRequest =
-            Relay.Subscription.Acknowledgement(
-                id = id,
-                result = true
-            )
+            Relay.Subscription.Acknowledgement(id = id, result = true)
         relay.publishSubscriptionAcknowledgment(publishRequest)
     }
 
@@ -110,8 +107,8 @@ class WakuRelayRepository internal constructor(
     fun getSessionRejectionJson(preSettlementSessionRejection: PreSettlementSession.Reject): String =
         moshi.adapter(PreSettlementSession.Reject::class.java).toJson(preSettlementSessionRejection)
 
-    fun parseToPairingPayload(json: String): PairingPayload? =
-        moshi.adapter(PairingPayload::class.java).fromJson(json)
+    fun parseToPairingPayload(json: String): PostSettlementPairing.PairingPayload? =
+        moshi.adapter(PostSettlementPairing.PairingPayload::class.java).fromJson(json)
 
     private fun getServerUrl(): String {
         return ((if (useTLs) "wss" else "ws") + "://$hostName/?apiKey=$apiKey").trim()

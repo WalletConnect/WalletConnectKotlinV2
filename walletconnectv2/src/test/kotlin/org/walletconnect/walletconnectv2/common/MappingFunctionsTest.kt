@@ -9,9 +9,10 @@ import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import org.walletconnect.walletconnectv2.clientsync.PreSettlementPairing
-import org.walletconnect.walletconnectv2.clientsync.pairing.before.Pairing
+import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposer
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingParticipant
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingState
 import org.walletconnect.walletconnectv2.common.network.adapters.ExpiryAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.JSONObjectAdapter

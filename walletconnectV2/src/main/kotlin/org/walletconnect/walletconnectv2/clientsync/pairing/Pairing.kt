@@ -1,8 +1,9 @@
-package org.walletconnect.walletconnectv2.clientsync.pairing.before
+package org.walletconnect.walletconnectv2.clientsync.pairing
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import org.json.JSONObject
+import org.walletconnect.walletconnectv2.clientsync.pairing.after.payload.Request
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposedPermissions
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposer
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingSignal
@@ -44,4 +45,10 @@ sealed class Pairing {
     ): Pairing()
 
     class Failure(val reason: String): Pairing()
+
+    @JsonClass(generateAdapter = true)
+    data class RequestParams(
+        @Json(name = "request")
+        val request: Request
+    ): Pairing()
 }

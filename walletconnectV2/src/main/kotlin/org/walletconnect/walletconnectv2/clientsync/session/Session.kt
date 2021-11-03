@@ -1,4 +1,4 @@
-package org.walletconnect.walletconnectv2.clientsync.session.before
+package org.walletconnect.walletconnectv2.clientsync.session
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

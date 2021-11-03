@@ -1,4 +1,4 @@
-package org.walletconnect.walletconnectv2.clientsync.pairing.after
+package org.walletconnect.walletconnectv2.clientsync.pairing
 
 import org.json.JSONObject
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposedPermissions
