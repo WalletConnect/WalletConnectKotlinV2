@@ -2,10 +2,7 @@ package org.walletconnect.example.wallet.ui
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
-import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.walletconnect.example.databinding.SessionProposalDialogBinding
 import org.walletconnect.walletconnectv2.client.SessionProposal
