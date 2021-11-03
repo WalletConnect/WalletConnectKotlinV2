@@ -161,8 +161,8 @@ class EngineInteractor {
         val encryptedString =
             encryptedJson.iv + encryptedJson.publicKey + encryptedJson.mac + encryptedJson.cipherText
 
-        //TODO subscribe on topic D and set keys on topic D
         relayRepository.publish(Topic(topic), encryptedString)
+        //TODO subscribe on topic D and set keys on topic D
     }
 
     fun reject(reason: String, topic: String) {
