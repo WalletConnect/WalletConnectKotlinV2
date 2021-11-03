@@ -68,9 +68,7 @@ class EngineInteractor {
         scope.launch(exceptionHandler) {
             relayRepository.eventsFlow
                 .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
-                .collect { event ->
-                    throw event.throwable.exception
-                }
+                .collect { event -> throw event.throwable.exception }
         }
 
         scope.launch {
