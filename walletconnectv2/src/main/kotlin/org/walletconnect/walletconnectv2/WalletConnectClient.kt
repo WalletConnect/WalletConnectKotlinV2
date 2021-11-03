@@ -1,5 +1,6 @@
 package org.walletconnect.walletconnectv2
 
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.SessionProposal
@@ -49,7 +50,12 @@ object WalletConnectClient {
     }
 
     fun approve(approveParams: ClientTypes.ApproveParams) {
-        engineInteractor.approve(approveParams.accounts, approveParams.proposerPublicKey, approveParams.proposalTtl, approveParams.proposalTopic)
+        engineInteractor.approve(
+            approveParams.accounts,
+            approveParams.proposerPublicKey,
+            approveParams.proposalTtl,
+            approveParams.proposalTopic
+        )
     }
 
     fun reject(rejectParams: ClientTypes.RejectParams) {
