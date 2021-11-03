@@ -1,0 +1,3 @@
+package org.walletconnect.walletconnectv2.clientsync.pairing.after
+
+sealed class PostSettlementPairing

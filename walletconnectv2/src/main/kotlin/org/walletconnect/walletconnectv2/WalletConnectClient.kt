@@ -5,7 +5,7 @@ import kotlinx.coroutines.launch
 import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.SessionProposal
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
-import org.walletconnect.walletconnectv2.clientsync.session.Session
+import org.walletconnect.walletconnectv2.clientsync.session.before.Session
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import timber.log.Timber
 import java.net.URI

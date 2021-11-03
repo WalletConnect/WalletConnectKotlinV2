@@ -9,14 +9,14 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.json.JSONObject
-import org.walletconnect.walletconnectv2.clientsync.PreSettlementSession
-import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
-import org.walletconnect.walletconnectv2.clientsync.pairing.proposal.PairingProposedPermissions
-import org.walletconnect.walletconnectv2.clientsync.session.Session
-import org.walletconnect.walletconnectv2.clientsync.session.SettledSessionSequence
-import org.walletconnect.walletconnectv2.clientsync.session.proposal.RelayProtocolOptions
-import org.walletconnect.walletconnectv2.clientsync.session.success.SessionParticipant
-import org.walletconnect.walletconnectv2.clientsync.session.success.SessionState
+import org.walletconnect.walletconnectv2.clientsync.pairing.after.SettledPairingSequence
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposedPermissions
+import org.walletconnect.walletconnectv2.clientsync.session.after.SettledSessionSequence
+import org.walletconnect.walletconnectv2.clientsync.session.before.PreSettlementSession
+import org.walletconnect.walletconnectv2.clientsync.session.before.Session
+import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.RelayProtocolOptions
+import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionParticipant
+import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionState
 import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.crypto.CryptoManager
 import org.walletconnect.walletconnectv2.crypto.KeyChain
@@ -30,6 +30,7 @@ import org.walletconnect.walletconnectv2.exceptionHandler
 import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
 import org.walletconnect.walletconnectv2.scope
 import org.walletconnect.walletconnectv2.util.generateId
+import timber.log.Timber
 import java.util.*
 
 class EngineInteractor {
@@ -68,23 +69,24 @@ class EngineInteractor {
         scope.launch(exceptionHandler) {
             relayRepository.eventsFlow
                 .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
-                .collect { event ->
-                    throw event.throwable.exception
-                }
+                .collect { event -> throw event.throwable.exception }
         }
 
         scope.launch {
             relayRepository.subscriptionRequest.collect { request ->
-                supervisorScope {
-                    relayRepository.publishSessionProposalAcknowledgment(request.id)
-                }
 
+                supervisorScope { relayRepository.publishSessionProposalAcknowledgment(request.id) }
                 val (sharedKey, selfPublic) = crypto.getKeyAgreement(request.subscriptionTopic)
-                val pairingPayloadJson = codec.decrypt(request.encryptionPayload, sharedKey)
+                val pairingPayloadJson: String = codec.decrypt(request.encryptionPayload, sharedKey)
+
+                //TODO add parsing
+                Timber.tag("kobe").d("Payload: $pairingPayloadJson")
+
                 val pairingPayload = relayRepository.parseToPairingPayload(pairingPayloadJson)
                 val sessionProposal: Session.Proposal =
                     pairingPayload?.params?.request?.params ?: throw NoSessionProposalException()
                 crypto.setEncryptionKeys(sharedKey, selfPublic, sessionProposal.topic)
+
                 _sessionProposal.value = sessionProposal
             }
         }
@@ -124,7 +126,12 @@ class EngineInteractor {
         relayRepository.publishPairingApproval(pairingProposal.topic, preSettlementPairingApprove)
     }
 
-    fun approve(accounts: List<String>, proposerPublicKey: String, proposalTtl: Long, proposalTopic: String) {
+    fun approve(
+        accounts: List<String>,
+        proposerPublicKey: String,
+        proposalTtl: Long,
+        proposalTopic: String
+    ) {
         require(::relayRepository.isInitialized)
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -161,8 +168,8 @@ class EngineInteractor {
         val encryptedString =
             encryptedJson.iv + encryptedJson.publicKey + encryptedJson.mac + encryptedJson.cipherText
 
+        relayRepository.subscribe(settledSession.settledTopic)
         relayRepository.publish(Topic(proposalTopic), encryptedString)
-        //TODO subscribe on topic D and set keys on topic D
     }
 
     fun reject(reason: String, proposalTopic: String) {

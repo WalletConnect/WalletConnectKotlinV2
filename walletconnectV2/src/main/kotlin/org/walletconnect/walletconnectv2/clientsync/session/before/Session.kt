@@ -1,13 +1,13 @@
-package org.walletconnect.walletconnectv2.clientsync.session
+package org.walletconnect.walletconnectv2.clientsync.session.before
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import org.walletconnect.walletconnectv2.clientsync.session.proposal.RelayProtocolOptions
-import org.walletconnect.walletconnectv2.clientsync.session.proposal.SessionProposedPermissions
-import org.walletconnect.walletconnectv2.clientsync.session.proposal.SessionProposer
-import org.walletconnect.walletconnectv2.clientsync.session.proposal.SessionSignal
-import org.walletconnect.walletconnectv2.clientsync.session.success.SessionParticipant
-import org.walletconnect.walletconnectv2.clientsync.session.success.SessionState
+import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.RelayProtocolOptions
+import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionProposedPermissions
+import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionProposer
+import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionSignal
+import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionParticipant
+import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionState
 import org.walletconnect.walletconnectv2.common.Expiry
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.Ttl
