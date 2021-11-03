@@ -1,18 +1,12 @@
 ![WalletConnect V2](docs/walletconnect-banner.svg)
-<br>
-<br>
 
 # **WalletConnect V2 - Kotlin**
 
 Kotlin implementation of WalletConnect v2 protocol for Android applications.
 
-<br>
-
 ## Requirements
 * Android min SDK 21
 * Java 11
-
-<br>
 
 ## Installation
 root/build.gradle:
@@ -36,8 +30,6 @@ kotlin - implementation("com.walletconnect:walletconnectv2:1.0.0-alpha01")
 
 ```
 
-<br>
-
 ## **Usage**
 
 ### **Initialize WalletConnect Client**
@@ -46,7 +38,7 @@ val initializeParams = ClientTypes.InitialParams(useTls = true, hostName = "rela
 WalletConnectClient.initalize(initalizeParams)
 ```
 The controller client will always be the "wallet" which is exposing blockchain accounts to a "Dapp" and therefore is also in charge of signing.
-To initialize the WalletConnect client, create a ClientTypes.InitialParams object in the Android Application class. The InitialParams object will need at least the API key and the Application. The InitialParams object will then ben passed to the WalletConnect.initialize function. 
+To initialize the WalletConnect client, create a ClientTypes.InitialParams object in the Android Application class. The InitialParams object will need at least the API key and the Application. The InitialParams object will then be passed to the WalletConnect.initialize function. 
 
 ### **Pair Clients**
 ```kotlin
@@ -81,14 +73,8 @@ WalletConnectClient.reject(rejectParams)
 ```
 To send a rejection for the Session Proposal, pass a rejection reason and the Session Proposal public key to the WalletConnectClient.approve function.
 
-<br>
-
 ### **Contributing**
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-<br>
 
 ## **License**
 [LGPL-3.0](https://www.gnu.org/licenses/lgpl-3.0.html)
