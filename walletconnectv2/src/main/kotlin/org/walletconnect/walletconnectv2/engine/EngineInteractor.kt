@@ -68,7 +68,9 @@ class EngineInteractor {
         scope.launch(exceptionHandler) {
             relayRepository.eventsFlow
                 .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
-                .collect { event -> throw event.throwable.exception }
+                .collect { event ->
+                    throw event.throwable.exception
+                }
         }
 
         scope.launch {
@@ -122,13 +124,13 @@ class EngineInteractor {
         relayRepository.publishPairingApproval(pairingProposal.topic, preSettlementPairingApprove)
     }
 
-    fun approve(accounts: List<String>, proposerPublicKey: String, ttl: Long, topic: String) {
+    fun approve(accounts: List<String>, proposerPublicKey: String, proposalTtl: Long, proposalTopic: String) {
         require(::relayRepository.isInitialized)
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val peerPublicKey = PublicKey(proposerPublicKey)
         val sessionState = SessionState(accounts)
-        val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + ttl)
+        val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + proposalTtl)
 
         val settledSession: SettledSessionSequence = settleSessionSequence(
             RelayProtocolOptions(),
@@ -153,28 +155,28 @@ class EngineInteractor {
 
         val sessionApprovalJson: String =
             relayRepository.getSessionApprovalJson(preSettlementSession)
-        val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
+        val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(proposalTopic))
         val encryptedJson: EncryptionPayload =
             codec.encrypt(sessionApprovalJson, sharedKey, selfPublic)
         val encryptedString =
             encryptedJson.iv + encryptedJson.publicKey + encryptedJson.mac + encryptedJson.cipherText
 
-        relayRepository.publish(Topic(topic), encryptedString)
+        relayRepository.publish(Topic(proposalTopic), encryptedString)
         //TODO subscribe on topic D and set keys on topic D
     }
 
-    fun reject(reason: String, topic: String) {
+    fun reject(reason: String, proposalTopic: String) {
         val preSettlementSession =
             PreSettlementSession.Reject(id = generateId(), params = Session.Failure(reason))
         val sessionRejectionJson: String =
             relayRepository.getSessionRejectionJson(preSettlementSession)
-        val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
+        val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(proposalTopic))
         val encryptedJson: EncryptionPayload =
             codec.encrypt(sessionRejectionJson, sharedKey, selfPublic)
         val encryptedString =
             encryptedJson.iv + encryptedJson.publicKey + encryptedJson.mac + encryptedJson.cipherText
 
-        relayRepository.publish(Topic(topic), encryptedString)
+        relayRepository.publish(Topic(proposalTopic), encryptedString)
     }
 
     private fun settlePairingSequence(
