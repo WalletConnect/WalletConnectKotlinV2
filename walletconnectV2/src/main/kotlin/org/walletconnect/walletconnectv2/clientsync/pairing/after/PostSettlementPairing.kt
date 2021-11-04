@@ -3,6 +3,7 @@ package org.walletconnect.walletconnectv2.clientsync.pairing.after
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
+import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod
 
 sealed class PostSettlementPairing {
     abstract val id: Long
@@ -17,8 +18,10 @@ sealed class PostSettlementPairing {
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
-        override val method: String = "wc_pairingPayload",
+        override val method: String = JsonRpcMethod.wcPairingPayload,
         @Json(name = "params")
-        override val params: Pairing.RequestParams
-    ) : PostSettlementPairing()
+        override val params: Pairing.PairingPayloadParams
+    ) : PostSettlementPairing() {
+        val payloadParams = params.request.params
+    }
 }

@@ -2,7 +2,7 @@ package org.walletconnect.walletconnectv2.clientsync.session
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import org.walletconnect.walletconnectv2.clientsync.session.after.params.Request
+import org.walletconnect.walletconnectv2.clientsync.session.after.params.SessionRequest
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.RelayProtocolOptions
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionProposedPermissions
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionProposer
@@ -51,9 +51,9 @@ sealed class Session {
 
     class Failure(val reason: String) : Session()
 
-    data class RequestParams(
+    data class SessionPayloadParams(
         @Json(name = "request")
-        val request: Request,
+        val request: SessionRequest,
         @Json(name = "chainId")
         val chainId: String?
     ) : Session()

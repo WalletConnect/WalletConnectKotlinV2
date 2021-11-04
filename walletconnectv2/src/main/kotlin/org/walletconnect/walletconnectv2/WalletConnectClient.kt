@@ -4,21 +4,26 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
-import org.walletconnect.walletconnectv2.common.toSessionProposal
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
+import org.walletconnect.walletconnectv2.engine.jsonrpc.OnSessionProposal
+import org.walletconnect.walletconnectv2.engine.jsonrpc.OnSessionRequest
+import org.walletconnect.walletconnectv2.engine.jsonrpc.Unsupported
 import timber.log.Timber
 
 object WalletConnectClient {
     private val engineInteractor = EngineInteractor()
     private var pairingListener: WalletConnectClientListeners.Pairing? = null
+    private var sessionListener: WalletConnectClientListeners.Session? = null
 
     init {
         Timber.plant(Timber.DebugTree())
 
         scope.launch {
-            engineInteractor.sessionProposal.collect { proposal ->
-                proposal?.toSessionProposal()?.let { sessionProposal ->
-                    pairingListener?.onSessionProposal(sessionProposal)
+            engineInteractor.jsonRpcEvents.collect { event ->
+                when (event) {
+                    is OnSessionProposal -> pairingListener?.onSessionProposal(event.proposal)
+                    is OnSessionRequest -> sessionListener?.onSessionRequest(event.payload)
+                    else -> Unsupported
                 }
             }
         }
@@ -27,9 +32,8 @@ object WalletConnectClient {
     fun initialize(initialParams: ClientTypes.InitialParams) = with(initialParams) {
         // TODO: pass properties to DI framework
         val engineFactory =
-            EngineInteractor.EngineFactory(
-                useTls, hostName, apiKey, isController, application, metadata
-            )
+            EngineInteractor
+                .EngineFactory(useTls, hostName, apiKey, isController, application, metadata)
         engineInteractor.initialize(engineFactory)
     }
 
@@ -41,7 +45,11 @@ object WalletConnectClient {
         scope.launch { engineInteractor.pair(pairingParams.uri) }
     }
 
-    fun approve(approveParams: ClientTypes.ApproveParams) = with(approveParams) {
+    fun approve(
+        approveParams: ClientTypes.ApproveParams,
+        sessionRequestListener: WalletConnectClientListeners.Session
+    ) = with(approveParams) {
+        sessionListener = sessionRequestListener
         engineInteractor.approve(accounts, proposerPublicKey, proposalTtl, proposalTopic)
     }
 
