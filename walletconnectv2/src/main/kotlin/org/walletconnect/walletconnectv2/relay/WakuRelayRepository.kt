@@ -166,9 +166,8 @@ class WakuRelayRepository internal constructor(
     private fun parseToParamsRequest(json: String): Request? =
         moshi.adapter(Request::class.java).fromJson(json)
 
-    private fun getServerUrl(): String {
-        return ((if (useTLs) "wss" else "ws") + "://$hostName/?apiKey=$apiKey").trim()
-    }
+    private fun getServerUrl(): String =
+        ((if (useTLs) "wss" else "ws") + "://$hostName/?apiKey=$apiKey").trim()
 
     companion object {
         private const val TIMEOUT_TIME = 5000L

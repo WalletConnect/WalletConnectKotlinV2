@@ -12,6 +12,8 @@ import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.Pairi
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingState
 import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
+import org.walletconnect.walletconnectv2.engine.EngineInteractor
+import org.walletconnect.walletconnectv2.relay.data.init.RelayInitParams
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import java.net.URI
 import kotlin.time.Duration
@@ -92,3 +94,6 @@ internal fun Session.Proposal.toSessionProposal(): SessionProposal {
         ttl = this.ttl.seconds
     )
 }
+
+internal fun EngineInteractor.EngineFactory.toRelayInitParams(): RelayInitParams =
+    RelayInitParams(useTLs, hostName, apiKey, application)

@@ -7,6 +7,10 @@ sealed interface WalletConnectClientListeners {
     fun interface Pairing : WalletConnectClientListeners {
         fun onSessionProposal(proposal: SessionProposal)
     }
+
+    fun interface Session : WalletConnectClientListeners {
+        fun onSessionRequest(payload: Any)
+    }
 }
 
 data class SessionProposal(

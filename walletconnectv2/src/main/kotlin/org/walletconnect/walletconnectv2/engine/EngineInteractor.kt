@@ -64,7 +64,7 @@ class EngineInteractor : JsonRpcHandler {
     override var onSessionRequest: (payload: Any) -> Unit = { payload ->
         /*TODO add unmarshaling of generic session request payload to the usable generic object
         * then update state flow to return it to the wallet*/
-        _jsonRpcEvents.value = OnSessionRequest("HEHE")
+        _jsonRpcEvents.value = OnSessionRequest(payload)
     }
 
     override var onSessionDelete: () -> Unit = {
@@ -88,7 +88,6 @@ class EngineInteractor : JsonRpcHandler {
         } else {
             selfPublicKey
         }
-
         val settledSequence = settlePairingSequence(
             pairingProposal.relay,
             selfPublicKey,
@@ -97,6 +96,7 @@ class EngineInteractor : JsonRpcHandler {
             controllerPublicKey,
             expiry
         )
+
         val preSettlementPairingApprove =
             pairingProposal.toApprove(
                 generateId(),

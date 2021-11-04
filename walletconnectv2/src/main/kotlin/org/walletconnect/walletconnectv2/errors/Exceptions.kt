@@ -4,3 +4,4 @@ class ApiKeyDoesNotExistException(override val message: String?) : Exception(mes
 class InvalidApiKeyException(override val message: String?) : Exception(message)
 class ServerException(override val message: String?) : Exception(message)
 class NoSessionProposalException : Exception()
+class NoSessionRequestPayloadException : Exception()
