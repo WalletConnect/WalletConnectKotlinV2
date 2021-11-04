@@ -1,3 +1,24 @@
 package org.walletconnect.walletconnectv2.clientsync.session.after
 
-sealed class PostSettlementSession
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
+import org.walletconnect.walletconnectv2.clientsync.session.Session
+
+sealed class PostSettlementSession {
+    abstract val id: Long
+    abstract val jsonrpc: String
+    abstract val method: String
+    abstract val params: Session
+
+    @JsonClass(generateAdapter = true)
+    data class PairingPayload(
+        @Json(name = "id")
+        override val id: Long,
+        @Json(name = "jsonrpc")
+        override val jsonrpc: String = "2.0",
+        @Json(name = "method")
+        override val method: String = "wc_sessionPayload",
+        @Json(name = "params")
+        override val params: Session.RequestParams
+    ) : PostSettlementSession()
+}

@@ -2,7 +2,10 @@ package org.walletconnect.walletconnectv2.engine
 
 import android.app.Application
 import com.tinder.scarlet.WebSocket
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.json.JSONObject
@@ -56,18 +59,12 @@ class EngineInteractor {
 
     fun initialize(engine: EngineFactory) {
         this.metaData = engine.metaData
-        relayRepository = WakuRelayRepository.initRemote(
-            engine.useTLs,
-            engine.hostName,
-            engine.apiKey,
-            engine.application
-        )
+        with(engine) {
+            relayRepository = WakuRelayRepository.initRemote(useTLs, hostName, apiKey, application)
+        }
 
         scope.launch(exceptionHandler) {
             relayRepository.eventsFlow
-                .map {
-                    Timber.tag("kobe").d("Event: $it")
-                }
                 .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
                 .collect { event -> throw event.throwable.exception }
         }
@@ -135,7 +132,6 @@ class EngineInteractor {
         proposalTopic: String
     ) {
         require(::relayRepository.isInitialized)
-
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val peerPublicKey = PublicKey(proposerPublicKey)
         val sessionState = SessionState(accounts)
@@ -175,8 +171,9 @@ class EngineInteractor {
     }
 
     fun reject(reason: String, proposalTopic: String) {
+        require(::relayRepository.isInitialized)
         val preSettlementSession =
-            PreSettlementSession.Reject(id = generateId(), params = Session.Failure(reason))
+            PreSettlementSession.Reject(id = generateId(), params = Session.Failure(reason = reason))
         val sessionRejectionJson: String =
             relayRepository.getSessionRejectionJson(preSettlementSession)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(proposalTopic))
