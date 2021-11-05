@@ -18,7 +18,7 @@ sealed class PostSettlementSession {
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
-        override val method: String = JsonRpcMethod.wcSessionPayload,
+        override val method: String = JsonRpcMethod.WC_SESSION_PAYLOAD,
         @Json(name = "params")
         override val params: Session.SessionPayloadParams
     ) : PostSettlementSession() {

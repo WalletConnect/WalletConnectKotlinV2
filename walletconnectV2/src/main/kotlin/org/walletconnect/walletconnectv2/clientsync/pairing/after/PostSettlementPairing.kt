@@ -18,7 +18,7 @@ sealed class PostSettlementPairing {
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
-        override val method: String = JsonRpcMethod.wcPairingPayload,
+        override val method: String = JsonRpcMethod.WC_PAIRING_PAYLOAD,
         @Json(name = "params")
         override val params: Pairing.PairingPayloadParams
     ) : PostSettlementPairing() {

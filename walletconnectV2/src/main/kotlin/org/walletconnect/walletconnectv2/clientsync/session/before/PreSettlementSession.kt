@@ -18,7 +18,7 @@ sealed class PreSettlementSession {
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
-        override val method: String = JsonRpcMethod.wcSessionPropose,
+        override val method: String = JsonRpcMethod.WC_SESSION_PROPOSE,
         @Json(name = "params")
         override val params: Session.Proposal
     ) : PreSettlementSession()
@@ -30,7 +30,7 @@ sealed class PreSettlementSession {
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
-        override val method: String = JsonRpcMethod.wcSessionApprove,
+        override val method: String = JsonRpcMethod.WC_SESSION_APPROVE,
         @Json(name = "params")
         override val params: Session.Success
     ) : PreSettlementSession()
@@ -38,7 +38,7 @@ sealed class PreSettlementSession {
     data class Reject(
         override val id: Long,
         override val jsonrpc: String = "2.0",
-        override val method: String = JsonRpcMethod.wcSessionReject,
+        override val method: String = JsonRpcMethod.WC_SESSION_REJECT,
         override val params: Session.Failure
     ) : PreSettlementSession()
 

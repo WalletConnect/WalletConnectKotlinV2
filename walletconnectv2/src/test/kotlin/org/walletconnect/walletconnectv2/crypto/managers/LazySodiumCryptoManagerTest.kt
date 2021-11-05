@@ -6,6 +6,7 @@ import io.mockk.spyk
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.crypto.KeyChain
 import org.walletconnect.walletconnectv2.crypto.data.PrivateKey
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
@@ -62,9 +63,12 @@ internal class LazySodiumCryptoManagerTest {
         val sharedKey = object : org.walletconnect.walletconnectv2.crypto.data.Key {
             override val keyAsHex: String = sharedKeyString
         }
-        val topic = sut.setEncryptionKeys(sharedKeyString, publicKey, null)
+        sut.setEncryptionKeys(sharedKeyString, publicKey, Topic("topic"))
 
-        assertEquals(sut.concatKeys(sharedKey, publicKey), keyChain.getKey(topic.topicValue))
+        assertEquals(
+            sut.concatKeys(sharedKey, publicKey),
+            keyChain.getKey(Topic("topic").topicValue)
+        )
     }
 
     @Test
@@ -104,8 +108,8 @@ internal class LazySodiumCryptoManagerTest {
 
         val (splitPublicKey, splitPrivateKey) = sut.splitKeys(concatKeys)
 
-        assertEquals(publicKeyString, splitPublicKey.keyAsHex)
-        assertEquals(privateKeyString, splitPrivateKey.keyAsHex)
+        assertEquals(publicKeyString, splitPublicKey)
+        assertEquals(privateKeyString, splitPrivateKey)
     }
 
     @Test
@@ -115,7 +119,10 @@ internal class LazySodiumCryptoManagerTest {
             PublicKey("590c2c627be7af08597091ff80dd41f7fa28acd10ef7191d7e830e116d3a186a")
         )
 
-        assertEquals("9c87e48e69b33a613907515bcd5b1b4cc10bbaf15167b19804b00f0a9217e607", result.lowercase())
+        assertEquals(
+            "9c87e48e69b33a613907515bcd5b1b4cc10bbaf15167b19804b00f0a9217e607",
+            result.lowercase()
+        )
     }
 
     private fun String.hexStringToByteArray(): ByteArray {

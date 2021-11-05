@@ -25,9 +25,10 @@ class AuthenticatedEncryptionCodecTest {
         val sharedKey = "94BA14D48AAF8E0D3FA13E94A73C8745136EB7C3D7BA6232E6512A78D6624A04"
         val message = "WalletConnect"
 
-        val encryptedPayload = codec.encrypt(message, sharedKey, PublicKey("12"))
-        assertEquals(encryptedPayload.publicKey, "12")
-        val text = codec.decrypt(encryptedPayload, sharedKey)
+        val encryptedMessage = codec.encrypt(message, sharedKey, PublicKey("12"))
+        val payload = encryptedMessage.toEncryptionPayload()
+        assertEquals(payload.publicKey, "12")
+        val text = codec.decrypt(payload, sharedKey)
         assertEquals(text, message)
     }
 
@@ -37,11 +38,12 @@ class AuthenticatedEncryptionCodecTest {
         val sharedKey2 = "95BA14D48AAF8E0D3FA13E94A73C8745136EB7C3D7BA6232E6512A78D6624A04"
         val message = "WalletConnect"
 
-        val encryptedPayload = codec.encrypt(message, sharedKey1, PublicKey("12"))
-        assertEquals(encryptedPayload.publicKey, "12")
+        val encryptedMessage = codec.encrypt(message, sharedKey1, PublicKey("12"))
+        val payload = encryptedMessage.toEncryptionPayload()
+        assertEquals(payload.publicKey, "12")
 
         try {
-            codec.decrypt(encryptedPayload, sharedKey2)
+            codec.decrypt(payload, sharedKey2)
         } catch (e: Exception) {
             assertEquals("Invalid Hmac", e.message)
         }

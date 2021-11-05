@@ -20,20 +20,8 @@ import org.walletconnect.walletconnectv2.clientsync.session.after.PostSettlement
 import org.walletconnect.walletconnectv2.clientsync.session.before.PreSettlementSession
 import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.common.network.adapters.*
-import org.walletconnect.walletconnectv2.crypto.CryptoManager
-import org.walletconnect.walletconnectv2.crypto.codec.AuthenticatedEncryptionCodec
-import org.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
-import org.walletconnect.walletconnectv2.crypto.data.PublicKey
-import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
-import org.walletconnect.walletconnectv2.engine.jsonrpc.JsonRpcHandler
-import org.walletconnect.walletconnectv2.errors.NoSessionProposalException
-import org.walletconnect.walletconnectv2.errors.NoSessionRequestPayloadException
-import org.walletconnect.walletconnectv2.keyChain
 import org.walletconnect.walletconnectv2.relay.data.RelayService
 import org.walletconnect.walletconnectv2.relay.data.init.RelayInitParams
-import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.wcPairingPayload
-import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.wcSessionDelete
-import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.wcSessionPayload
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import org.walletconnect.walletconnectv2.relay.data.model.Request
 import org.walletconnect.walletconnectv2.util.adapters.FlowStreamAdapter
@@ -44,8 +32,7 @@ class WakuRelayRepository internal constructor(
     private val useTLs: Boolean,
     private val hostName: String,
     private val apiKey: String,
-    private val application: Application,
-    private val jsonRpcHandler: JsonRpcHandler
+    private val application: Application
 ) {
     //region Move to DI module
     private val okHttpClient = OkHttpClient.Builder()
@@ -79,8 +66,6 @@ class WakuRelayRepository internal constructor(
             .build()
     }
     private val relay: RelayService by lazy { scarlet.create(RelayService::class.java) }
-    private val crypto: CryptoManager = LazySodiumCryptoManager(keyChain)
-    private val codec: AuthenticatedEncryptionCodec = AuthenticatedEncryptionCodec()
     //endregion
 
     internal val eventsFlow = relay.eventsFlow()
@@ -88,31 +73,12 @@ class WakuRelayRepository internal constructor(
     internal val subscribeAcknowledgement = relay.observeSubscribeAcknowledgement()
     internal val unsubscribeAcknowledgement = relay.observeUnsubscribeAcknowledgement()
 
-    internal fun subscriptionRequest(): Flow<Unit> = relay.observeSubscriptionRequest()
-        .map { relayRequest ->
-            supervisorScope { publishSubscriptionAcknowledgment(relayRequest.id) }
-            val (sharedKey, selfPublic) = crypto.getKeyAgreement(relayRequest.subscriptionTopic)
-            val json: String = codec.decrypt(relayRequest.encryptionPayload, sharedKey)
-            when (val rpc = parseToParamsRequest(json)?.method) {
-                wcPairingPayload -> handlePairingPayload(json, sharedKey, selfPublic)
-                wcSessionPayload -> handleSessionPayload(json)
-                wcSessionDelete -> jsonRpcHandler.onSessionDelete
-                else -> jsonRpcHandler.onUnsupported(rpc)
+    internal fun subscriptionRequest(): Flow<Relay.Subscription.Request> =
+        relay.observeSubscriptionRequest()
+            .map { relayRequest ->
+                supervisorScope { publishSubscriptionAcknowledgment(relayRequest.id) }
+                relayRequest
             }
-        }
-
-    private fun handleSessionPayload(json: String) {
-        val sessionPayload = parseToSessionPayload(json)
-        val params = sessionPayload?.sessionParams ?: throw NoSessionRequestPayloadException()
-        jsonRpcHandler.onSessionRequest(params)
-    }
-
-    private fun handlePairingPayload(json: String, sharedKey: String, selfPublic: PublicKey) {
-        val pairingPayload = parseToPairingPayload(json)
-        val sessionProposal = pairingPayload?.payloadParams ?: throw NoSessionProposalException()
-        crypto.setEncryptionKeys(sharedKey, selfPublic, sessionProposal.topic)
-        jsonRpcHandler.onSessionPropose(sessionProposal)
-    }
 
     fun publishPairingApproval(
         topic: Topic,
@@ -124,14 +90,10 @@ class WakuRelayRepository internal constructor(
     }
 
     fun publish(topic: Topic, message: String) {
-        val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
-        val encryptedJson: EncryptionPayload = codec.encrypt(message, sharedKey, selfPublic)
-        val encryptedString =
-            encryptedJson.iv + encryptedJson.publicKey + encryptedJson.mac + encryptedJson.cipherText
         val publishRequest =
             Relay.Publish.Request(
                 id = generateId(),
-                params = Relay.Publish.Request.Params(topic = topic, message = encryptedString)
+                params = Relay.Publish.Request.Params(topic = topic, message = message)
             )
         relay.publishRequest(publishRequest)
     }
@@ -157,13 +119,13 @@ class WakuRelayRepository internal constructor(
     fun getSessionRejectionJson(preSettlementSessionRejection: PreSettlementSession.Reject): String =
         moshi.adapter(PreSettlementSession.Reject::class.java).toJson(preSettlementSessionRejection)
 
-    private fun parseToPairingPayload(json: String): PostSettlementPairing.PairingPayload? =
+    fun parseToPairingPayload(json: String): PostSettlementPairing.PairingPayload? =
         moshi.adapter(PostSettlementPairing.PairingPayload::class.java).fromJson(json)
 
-    private fun parseToSessionPayload(json: String): PostSettlementSession.SessionPayload? =
+    fun parseToSessionPayload(json: String): PostSettlementSession.SessionPayload? =
         moshi.adapter(PostSettlementSession.SessionPayload::class.java).fromJson(json)
 
-    private fun parseToParamsRequest(json: String): Request? =
+    fun parseToParamsRequest(json: String): Request? =
         moshi.adapter(Request::class.java).fromJson(json)
 
     private fun getServerUrl(): String =
@@ -173,9 +135,8 @@ class WakuRelayRepository internal constructor(
         private const val TIMEOUT_TIME = 5000L
         private const val DEFAULT_BACKOFF_MINUTES = 5L
 
-        fun initRemote(relayInitParams: RelayInitParams, jsonRpcHandler: JsonRpcHandler) =
-            with(relayInitParams) {
-                WakuRelayRepository(useTls, hostName, apiKey, application, jsonRpcHandler)
-            }
+        fun initRemote(relayInitParams: RelayInitParams) = with(relayInitParams) {
+            WakuRelayRepository(useTls, hostName, apiKey, application)
+        }
     }
 }

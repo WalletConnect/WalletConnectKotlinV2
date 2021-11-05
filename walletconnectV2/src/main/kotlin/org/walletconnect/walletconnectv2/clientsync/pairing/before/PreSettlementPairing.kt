@@ -18,7 +18,7 @@ sealed class PreSettlementPairing {
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
-        override val method: String = JsonRpcMethod.wcPairingApprove,
+        override val method: String = JsonRpcMethod.WC_PAIRING_APPROVE,
         @Json(name = "params")
         override val params: Pairing.Success
     ) : PreSettlementPairing()
@@ -26,7 +26,7 @@ sealed class PreSettlementPairing {
     data class Reject(
         override val id: Long,
         override val jsonrpc: String = "2.0",
-        override val method: String = JsonRpcMethod.wcPairingReject,
+        override val method: String = JsonRpcMethod.WC_PAIRING_REJECT,
         override val params: Pairing.Failure
     ) : PreSettlementPairing()
 }
