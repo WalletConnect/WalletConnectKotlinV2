@@ -1,24 +1,6 @@
 package org.walletconnect.walletconnectv2.relay
 
-import io.mockk.coEvery
-import io.mockk.spyk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOf
-import org.json.JSONObject
-import org.junit.Rule
-import org.junit.jupiter.api.Test
-import org.walletconnect.walletconnectv2.clientsync.PreSettlementPairing
-import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
-import org.walletconnect.walletconnectv2.clientsync.pairing.success.PairingParticipant
-import org.walletconnect.walletconnectv2.clientsync.pairing.success.PairingState
-import org.walletconnect.walletconnectv2.common.Expiry
-import org.walletconnect.walletconnectv2.common.Topic
-import org.walletconnect.walletconnectv2.relay.data.model.Relay
-import org.walletconnect.walletconnectv2.util.CoroutineTestRule
-import org.walletconnect.walletconnectv2.util.getRandom64ByteHexString
-import org.walletconnect.walletconnectv2.util.runTest
-import kotlin.test.assertEquals
 
 @ExperimentalCoroutinesApi
 internal class WakuRelayRepositoryTest {

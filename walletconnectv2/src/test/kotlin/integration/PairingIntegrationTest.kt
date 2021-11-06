@@ -1,11 +1,5 @@
 package integration
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import org.walletconnect.walletconnectv2.engine.EngineInteractor
-import java.time.Duration
-import kotlin.system.exitProcess
-
 //TODO fix integration test
 fun main() {
 //    pairTest()

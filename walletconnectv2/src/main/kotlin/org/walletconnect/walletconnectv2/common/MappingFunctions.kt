@@ -4,12 +4,16 @@ package org.walletconnect.walletconnectv2.common
 
 import com.squareup.moshi.Moshi
 import org.json.JSONObject
-import org.walletconnect.walletconnectv2.clientsync.PreSettlementPairing
+import org.walletconnect.walletconnectv2.client.SessionProposal
 import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
-import org.walletconnect.walletconnectv2.clientsync.pairing.proposal.PairingProposer
-import org.walletconnect.walletconnectv2.clientsync.pairing.success.PairingParticipant
-import org.walletconnect.walletconnectv2.clientsync.pairing.success.PairingState
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposer
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingParticipant
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingState
+import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
+import org.walletconnect.walletconnectv2.engine.EngineInteractor
+import org.walletconnect.walletconnectv2.relay.data.init.RelayInitParams
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import java.net.URI
 import kotlin.time.Duration
@@ -18,7 +22,8 @@ internal fun String.toPairProposal(): Pairing.Proposal {
     val properUriString = if (contains("wc://")) this else replace("wc:", "wc://")
     val pairUri = URI(properUriString)
     val mapOfQueryParameters: Map<String, String> =
-        pairUri.query.split("&").associate { it.substringBefore("=") to it.substringAfter("=") }
+        pairUri.query.split("&")
+            .associate { query -> query.substringBefore("=") to query.substringAfter("=") }
     val relay = JSONObject(mapOfQueryParameters["relay"] ?: "{}")
     val publicKey = mapOfQueryParameters["publicKey"] ?: ""
     val controller: Boolean = mapOfQueryParameters["controller"].toBoolean()
@@ -75,3 +80,20 @@ internal fun PreSettlementPairing.Approve.toRelayPublishRequest(
         params = Relay.Publish.Request.Params(topic = topic, message = hexEncodedJson.lowercase())
     )
 }
+
+internal fun Session.Proposal.toSessionProposal(): SessionProposal {
+    return SessionProposal(
+        name = this.proposer.metadata?.name!!,
+        description = this.proposer.metadata.description,
+        dappUrl = this.proposer.metadata.url,
+        icon = this.proposer.metadata.icons.map { URI(it) },
+        chains = this.permissions.blockchain.chains,
+        methods = this.permissions.jsonRpc.methods,
+        topic = this.topic.topicValue,
+        proposerPublicKey = this.proposer.publicKey,
+        ttl = this.ttl.seconds
+    )
+}
+
+internal fun EngineInteractor.EngineFactory.toRelayInitParams(): RelayInitParams =
+    RelayInitParams(useTLs, hostName, apiKey, application)

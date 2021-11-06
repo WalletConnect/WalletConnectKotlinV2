@@ -8,13 +8,15 @@ import org.walletconnect.walletconnectv2.common.Ttl
 import org.walletconnect.walletconnectv2.common.network.adapters.SubscriptionIdAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TopicAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TtlAdapter
+import org.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
+import org.walletconnect.walletconnectv2.util.toEncryptionPayload
 
 // TODO: Maybe look into separating children into different files
 sealed class Relay {
     abstract val id: Long
     abstract val jsonrpc: String
 
-    sealed class Publish: Relay() {
+    sealed class Publish : Relay() {
 
         @JsonClass(generateAdapter = true)
         data class Request(
@@ -26,7 +28,7 @@ sealed class Relay {
             val method: String = "waku_publish",
             @Json(name = "params")
             val params: Params
-        ): Publish() {
+        ) : Publish() {
 
             @JsonClass(generateAdapter = true)
             data class Params(
@@ -48,10 +50,10 @@ sealed class Relay {
             override val jsonrpc: String = "2.0",
             @Json(name = "result")
             val result: Boolean
-        ): Publish()
+        ) : Publish()
     }
 
-    sealed class Subscribe: Relay() {
+    sealed class Subscribe : Relay() {
 
         @JsonClass(generateAdapter = true)
         data class Request(
@@ -63,7 +65,7 @@ sealed class Relay {
             val method: String = "waku_subscribe",
             @Json(name = "params")
             val params: Params
-        ): Subscribe() {
+        ) : Subscribe() {
 
             @JsonClass(generateAdapter = true)
             data class Params(
@@ -81,10 +83,10 @@ sealed class Relay {
             @Json(name = "result")
             @field:SubscriptionIdAdapter.Qualifier
             val result: SubscriptionId
-        ): Subscribe()
+        ) : Subscribe()
     }
 
-    sealed class Subscription: Relay() {
+    sealed class Subscription : Relay() {
 
         @JsonClass(generateAdapter = true)
         data class Request(
@@ -96,7 +98,11 @@ sealed class Relay {
             val method: String = "waku_subscription",
             @Json(name = "params")
             val params: Params
-        ): Subscription() {
+        ) : Subscription() {
+
+            val subscriptionTopic: Topic = params.subscriptionData.topic
+            val encryptionPayload: EncryptionPayload =
+                params.subscriptionData.message.toEncryptionPayload()
 
             @JsonClass(generateAdapter = true)
             data class Params(
@@ -125,10 +131,10 @@ sealed class Relay {
             override val jsonrpc: String = "2.0",
             @Json(name = "result")
             val result: Boolean
-        ): Subscription()
+        ) : Subscription()
     }
 
-    sealed class Unsubscribe: Relay() {
+    sealed class Unsubscribe : Relay() {
 
         data class Request(
             @Json(name = "id")
@@ -139,7 +145,7 @@ sealed class Relay {
             val method: String = "waku_unsubscribe",
             @Json(name = "params")
             val params: Params
-        ): Unsubscribe() {
+        ) : Unsubscribe() {
 
             data class Params(
                 @Json(name = "topic")
@@ -158,6 +164,6 @@ sealed class Relay {
             override val jsonrpc: String = "2.0",
             @Json(name = "result")
             val result: Boolean
-        ): Unsubscribe()
+        ) : Unsubscribe()
     }
 }

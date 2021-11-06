@@ -42,7 +42,7 @@ kotlin - implementation("com.walletconnect:walletconnectv2:1.0.0-alpha01")
 
 ### **Initialize WalletConnect Client**
 ```kotlin
-val initializeParams = ClientTypes.InitialParams(useTls = true, hostName = "relay.walletconnect.org", apiKey = "sample key", isController = true)
+val initializeParams = ClientTypes.InitialParams(useTls = true, hostName = "relay.walletconnect.com", apiKey = "sample key", isController = true)
 WalletConnectClient.initalize(initalizeParams)
 ```
 The controller client will always be the "wallet" which is exposing blockchain accounts to a "Dapp" and therefore is also in charge of signing.
@@ -60,6 +60,7 @@ ClientTypes.Params is where the Dapp Uri will be passed.
 WalletConnectClientListeners.Pairing is the callback that will be asynchronously called once there a pairing has been made with the Dapp. A SessionProposal object is returned once a pairing is made.
 
 ### **Session Approval**
+NOTE: addresses provided in `accounts` array should follow [CAPI10](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-10.md) semantics.
 ```kotlin
 val accounts: List<String> = /*list of accounts on chains*/
 val proposerPublicKey: String = /*proposerPublicKey from the Session Proposal*/
@@ -79,14 +80,12 @@ val rejectParams: ClientTypes.RejectParams = ClientTypes.RejectParams(rejectionR
 
 WalletConnectClient.reject(rejectParams)
 ```
-To send a rejection for the Session Proposal, pass a rejection reason and the Session Proposal public key to the WalletConnectClient.approve function.
+To send a rejection for the Session Proposal, pass a rejection reason and the Session Proposal topic to the WalletConnectClient.reject function.
 
 <br>
 
 ### **Contributing**
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
 
 <br>
 

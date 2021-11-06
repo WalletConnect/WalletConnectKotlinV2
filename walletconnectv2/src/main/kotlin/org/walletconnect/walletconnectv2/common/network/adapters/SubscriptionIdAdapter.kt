@@ -2,7 +2,6 @@ package org.walletconnect.walletconnectv2.common.network.adapters
 
 import com.squareup.moshi.*
 import org.walletconnect.walletconnectv2.common.SubscriptionId
-import org.walletconnect.walletconnectv2.util.jsonObject
 
 object SubscriptionIdAdapter: JsonAdapter<SubscriptionId>() {
 
