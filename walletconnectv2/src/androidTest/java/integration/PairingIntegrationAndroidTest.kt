@@ -1,81 +1,82 @@
 package integration
 
 import android.app.Application
+import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterNotNull
+import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.walletconnect.walletconnectv2.common.AppMetaData
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import java.time.Duration
-import kotlin.system.exitProcess
 
-@RunWith(AndroidJUnit4::class)
-class PairingIntegrationTest {
+//@RunWith(AndroidJUnit4::class)
+class PairingIntegrationAndroidTest {
 
     @Test
     fun pairTest() {
-        val job = SupervisorJob()
-        val scope = CoroutineScope(job + Dispatchers.IO)
-        val engine = EngineInteractor()
-        val app: Application = ApplicationProvider.getApplicationContext()
-        val metaData = AppMetaData()
-        engine.initialize(EngineInteractor.EngineFactory(true, "relay.walletconnect.org", "", true, app, metaData))
+        Log.e("Talha", "Starting")
+        runBlocking {
+            val engine = EngineInteractor()
+            val app: Application = ApplicationProvider.getApplicationContext()
+            val metaData = AppMetaData()
+            engine.initialize(EngineInteractor.EngineFactory(true, "relay.walletconnect.org", "", true, app, metaData))
 
-        val uri =
-            "wc:ae6ce2015b86fcfe030a63e77bef47586107ef3ff628f4452cd05b4c33b6646f@2?controller=false&publicKey=24c953bd2ed1254f9f4316b299d35f4281e1a01f3b0faea1904b6ef344586e40&relay=%7B%22protocol%22%3A%22waku%22%7D"
-        engine.pair(uri)
+            val uri =
+                "wc:dbb27984971dede7a67f60a6e2cd7fdb0a81eb830c760bc067bdfaa14b32d5d0@2?controller=false&publicKey=d2cba98de92fc8d392d9034035e81086690c8d8dab773c22da86bda1048ce042&relay=%7B%22protocol%22%3A%22waku%22%7D"
+            engine.pair(uri)
 
-        scope.launch {
-            try {
-                withTimeout(Duration.ofMinutes(20).toMillis()) {
-                    val pairDeferred = async(Dispatchers.IO) {
-                        engine.publishAcknowledgement.collect {
-                            println("Publish Acknowledgement: $it")
-                            require(it.result) {
-                                "Acknowledgement from Relay returned false"
+            launch {
+                try {
+                    withTimeout(Duration.ofMinutes(1).toMillis()) {
+                        val subscribeDeferred = async(Dispatchers.IO) {
+//                            engine.subscribeAcknowledgement.filterNotNull().collect {
+//                                println("Subscribe Acknowledgement $it")
+//                                assert(it.result.id.isNotBlank())
+//                            }
+                            supervisorScope {
+//                                Log.e("Talha", "inside")
+//                                assert()
                             }
                         }
-                    }
 
-                    val subscribeDeferred = async(Dispatchers.IO) {
-                        engine.subscribeAcknowledgement.collect {
-                            println("Subscribe Acknowledgement $it")
-                            require(it.result.id.isNotBlank()) {
-                                "Acknowledgement from Relay returned false"
+                        val pairDeferred = async(Dispatchers.IO) {
+                            engine.publishAcknowledgement.filterNotNull().collect {
+                                Log.e("Talha", "Publish Acknowledgement: $it")
+                                assert(it.result)
                             }
                         }
-                    }
 
-                    val subscriptionDeferred = async(Dispatchers.IO) {
-                        engine.subscriptionRequest.collect {
-                            println("Subscription Request $it")
+                        val subscriptionDeferred = async(Dispatchers.IO) {
+                            engine.subscriptionRequest.collect {
+                                println("Subscription Request $it")
+                            }
                         }
-                    }
 
-                    val sessionProposalDeferred = async(Dispatchers.IO) {
-                        engine.sessionProposal.collect {
-                            println("Session Proposal: $it")
+                        val sessionProposalDeferred = async(Dispatchers.IO) {
+                            engine.sessionProposal.collect {
+                                println("Session Proposal: $it")
+                            }
                         }
-                    }
 
-                    listOf(
-                        pairDeferred,
-                        subscribeDeferred,
-                        subscriptionDeferred,
-                        sessionProposalDeferred
-                    ).awaitAll()
+                        listOf(
+                            pairDeferred,
+                            subscribeDeferred,
+                            subscriptionDeferred,
+                            sessionProposalDeferred
+                        ).awaitAll()
+                    }
+                } catch (timeoutException: TimeoutCancellationException) {
+                    Assert.fail("timed out")
                 }
-            } catch (timeoutException: TimeoutCancellationException) {
-                println("timed out")
-                exitProcess(0)
             }
         }
     }
 //    approveSessionTest()
-//    }
 }
 
 

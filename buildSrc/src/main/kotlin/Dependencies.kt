@@ -80,16 +80,24 @@ fun DependencyHandlerScope.lazySodium() {
 fun DependencyHandlerScope.jUnit5() {
     val jUnit5Version = "5.7.2"
 
+    "implementation"("androidx.test.ext:junit-ktx:1.1.3")
+
     "testImplementation"(platform("org.junit:junit-bom:$jUnit5Version"))
     "testImplementation"("org.junit.jupiter:junit-jupiter-api:$jUnit5Version")
     "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine:$jUnit5Version")
     "testImplementation"("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
 
-    "testImplementation" ("org.robolectric:robolectric:4.6")
-
     "androidTestImplementation"("androidx.test:runner:1.4.0")
     "androidTestImplementation"("androidx.test:rules:1.4.0")
-    "implementation"("androidx.test.ext:junit-ktx:1.1.3")
+    "androidTestImplementation"("org.junit.jupiter:junit-jupiter-api:$jUnit5Version")
+    "androidTestImplementation"("de.mannodermaus.junit5:android-test-core:1.3.0")
+    "androidTestRuntimeOnly"("de.mannodermaus.junit5:android-test-runner:1.3.0")
+}
+
+fun DependencyHandlerScope.robolectric() {
+    val robolectricVersion = "4.6"
+
+    "testImplementation" ("org.robolectric:robolectric:$robolectricVersion")
 }
 
 fun DependencyHandlerScope.mockk() {

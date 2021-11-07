@@ -19,6 +19,7 @@ android {
         targetSdk = 30
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")
     }
 
     buildTypes {
@@ -34,6 +35,7 @@ android {
         sourceCompatibility = jvmVersion
         targetCompatibility = jvmVersion
     }
+
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
     }
@@ -42,6 +44,13 @@ android {
         unitTests {
             unitTests.isIncludeAndroidResources = true
         }
+    }
+
+    packagingOptions {
+        resources.excludes += setOf(
+            "META-INF/LICENSE.md",
+            "META-INF/LICENSE-notice.md"
+        )
     }
 }
 
@@ -62,7 +71,9 @@ dependencies {
     coroutines()
     moshi()
     scarlet()
+
     jUnit5()
+    robolectric()
     mockk()
     timber()
 }

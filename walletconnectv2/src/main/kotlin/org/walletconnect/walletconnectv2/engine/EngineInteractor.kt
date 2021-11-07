@@ -53,10 +53,9 @@ internal class EngineInteractor {
     private val _sessionProposal: MutableStateFlow<Session.Proposal?> = MutableStateFlow(null)
     val sessionProposal: StateFlow<Session.Proposal?> = _sessionProposal
 
-
-    internal lateinit var subscribeAcknowledgement: Flow<Relay.Subscribe.Acknowledgement>
-    internal lateinit var publishAcknowledgement: Flow<Relay.Publish.Acknowledgement>
-    internal lateinit var subscriptionRequest: Flow<Relay.Subscription.Request>
+    internal val publishAcknowledgement: MutableStateFlow<Relay.Publish.Acknowledgement?> = MutableStateFlow(null)
+    internal val subscribeAcknowledgement: MutableStateFlow<Relay.Subscribe.Acknowledgement?> = MutableStateFlow(null)
+    internal val subscriptionRequest: MutableStateFlow<Relay.Subscription.Request?> = MutableStateFlow(null)
 
     //todo create topic -> keys map
     private var pairingPublicKey = PublicKey("")
@@ -64,7 +63,7 @@ internal class EngineInteractor {
     private var pairingSharedKey: String = ""
 
     fun initialize(engineFactory: EngineFactory) {
-        this.metaData = engineFactory.metaData
+        metaData = engineFactory.metaData
         relayRepository = WakuRelayRepository.initRemote(
             engineFactory.useTLs,
             engineFactory.hostName,
@@ -93,6 +92,14 @@ internal class EngineInteractor {
                 val pairingPayload = relayRepository.parseToPairingPayload(pairingPayloadJson)
                 val sessionProposal = pairingPayload?.params?.request?.params
                 _sessionProposal.value = sessionProposal
+            }
+
+            relayRepository.subscribeAcknowledgement.collect {
+                println("TalhaSubscribe_$it")
+            }
+
+            relayRepository.publishAcknowledgement.collect {
+                println("TalhaPublish_$it")
             }
         }
     }
