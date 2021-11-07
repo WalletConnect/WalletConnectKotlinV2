@@ -4,7 +4,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
 import org.junit.jupiter.api.Test
-import org.walletconnect.walletconnectv2.clientsync.pairing.PairingPayload
+import org.walletconnect.walletconnectv2.clientsync.pairing.after.PostSettlementPairing
 import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.Ttl
@@ -25,9 +25,10 @@ class AuthenticatedEncryptionCodecTest {
         val sharedKey = "94BA14D48AAF8E0D3FA13E94A73C8745136EB7C3D7BA6232E6512A78D6624A04"
         val message = "WalletConnect"
 
-        val encryptedPayload = codec.encrypt(message, sharedKey, PublicKey("12"))
-        assertEquals(encryptedPayload.publicKey, "12")
-        val text = codec.decrypt(encryptedPayload, sharedKey)
+        val encryptedMessage = codec.encrypt(message, sharedKey, PublicKey("12"))
+        val payload = encryptedMessage.toEncryptionPayload()
+        assertEquals(payload.publicKey, "12")
+        val text = codec.decrypt(payload, sharedKey)
         assertEquals(text, message)
     }
 
@@ -37,11 +38,12 @@ class AuthenticatedEncryptionCodecTest {
         val sharedKey2 = "95BA14D48AAF8E0D3FA13E94A73C8745136EB7C3D7BA6232E6512A78D6624A04"
         val message = "WalletConnect"
 
-        val encryptedPayload = codec.encrypt(message, sharedKey1, PublicKey("12"))
-        assertEquals(encryptedPayload.publicKey, "12")
+        val encryptedMessage = codec.encrypt(message, sharedKey1, PublicKey("12"))
+        val payload = encryptedMessage.toEncryptionPayload()
+        assertEquals(payload.publicKey, "12")
 
         try {
-            codec.decrypt(encryptedPayload, sharedKey2)
+            codec.decrypt(payload, sharedKey2)
         } catch (e: Exception) {
             assertEquals("Invalid Hmac", e.message)
         }
@@ -84,8 +86,8 @@ class AuthenticatedEncryptionCodecTest {
                 }
             }.addLast(KotlinJsonAdapterFactory()).build()
 
-        val request: PairingPayload? =
-            moshi.adapter(PairingPayload::class.java).fromJson(json)
+        val request: PostSettlementPairing.PairingPayload? =
+            moshi.adapter(PostSettlementPairing.PairingPayload::class.java).fromJson(json)
 
         assertEquals(request?.params?.request?.params?.proposer?.publicKey, "37d8c448a2241f21550329f451e8c1901e7dad5135ade604f1e106437843037f")
     }

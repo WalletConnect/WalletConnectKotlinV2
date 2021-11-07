@@ -9,11 +9,11 @@ import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import org.walletconnect.walletconnectv2.clientsync.PreSettlementPairing
 import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
-import org.walletconnect.walletconnectv2.clientsync.pairing.proposal.PairingProposer
-import org.walletconnect.walletconnectv2.clientsync.pairing.success.PairingParticipant
-import org.walletconnect.walletconnectv2.clientsync.pairing.success.PairingState
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposer
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingParticipant
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingState
 import org.walletconnect.walletconnectv2.common.network.adapters.ExpiryAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.JSONObjectAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TopicAdapter
@@ -38,7 +38,7 @@ internal class MappingFunctionsTest {
 
     @Test
     fun `PairingProposal mapped to PairingSuccess`() {
-        val pairingProposal = mockk<Pairing.Proposal>() {
+        val pairingProposal = mockk<Pairing.Proposal> {
             every { topic } returns Topic("0x111")
             every { relay } returns mockk()
             every { pairingProposer } returns PairingProposer("0x123", false)
@@ -63,7 +63,7 @@ internal class MappingFunctionsTest {
         val randomId = 1L
         val settledTopic = Topic(getRandom64ByteHexString())
         val expiry = Expiry(1)
-        val pairingProposal = mockk<Pairing.Proposal>() {
+        val pairingProposal = mockk<Pairing.Proposal> {
             every { topic } returns Topic(getRandom64ByteHexString())
             every { relay } returns mockk()
             every { pairingProposer } returns PairingProposer("0x123", false)
@@ -89,7 +89,7 @@ internal class MappingFunctionsTest {
             .addLast(JSONObjectAdapter as JsonAdapter<JSONObject>)
             .addLast(KotlinJsonAdapterFactory())
             .build()
-        val preSettlementPairingApprove = mockk<PreSettlementPairing.Approve>() {
+        val preSettlementPairingApprove = mockk<PreSettlementPairing.Approve> {
             every { id } returns 1
             every { jsonrpc } returns "2.0"
             every { method } returns "wc_pairingApprove"

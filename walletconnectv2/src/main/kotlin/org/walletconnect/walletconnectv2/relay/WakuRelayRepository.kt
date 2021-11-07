@@ -10,15 +10,20 @@ import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.utils.getRawType
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.supervisorScope
 import okhttp3.OkHttpClient
 import org.json.JSONObject
-import org.walletconnect.walletconnectv2.clientsync.PreSettlementPairing
-import org.walletconnect.walletconnectv2.clientsync.PreSettlementSession
-import org.walletconnect.walletconnectv2.clientsync.pairing.PairingPayload
+import org.walletconnect.walletconnectv2.clientsync.pairing.after.PostSettlementPairing
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing
+import org.walletconnect.walletconnectv2.clientsync.session.after.PostSettlementSession
+import org.walletconnect.walletconnectv2.clientsync.session.before.PreSettlementSession
 import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.common.network.adapters.*
 import org.walletconnect.walletconnectv2.relay.data.RelayService
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
+import org.walletconnect.walletconnectv2.relay.data.model.Request
 import org.walletconnect.walletconnectv2.util.adapters.FlowStreamAdapter
 import org.walletconnect.walletconnectv2.util.generateId
 import java.util.concurrent.TimeUnit
@@ -66,8 +71,13 @@ class WakuRelayRepository internal constructor(
     internal val eventsFlow = relay.eventsFlow()
     internal val publishAcknowledgement = relay.observePublishAcknowledgement()
     internal val subscribeAcknowledgement = relay.observeSubscribeAcknowledgement()
-    internal val subscriptionRequest = relay.observeSubscriptionRequest()
     internal val unsubscribeAcknowledgement = relay.observeUnsubscribeAcknowledgement()
+
+    internal fun subscriptionRequest(): Flow<Relay.Subscription.Request> =
+        relay.observeSubscriptionRequest()
+            .onEach { relayRequest ->
+                supervisorScope { publishSubscriptionAcknowledgment(relayRequest.id) }
+            }
 
     fun publishPairingApproval(
         topic: Topic,
@@ -78,21 +88,18 @@ class WakuRelayRepository internal constructor(
         relay.publishRequest(publishRequest)
     }
 
-    fun publish(topic: Topic, encryptedJson: String) {
+    fun publish(topic: Topic, message: String) {
         val publishRequest =
             Relay.Publish.Request(
                 id = generateId(),
-                params = Relay.Publish.Request.Params(topic = topic, message = encryptedJson)
+                params = Relay.Publish.Request.Params(topic = topic, message = message)
             )
         relay.publishRequest(publishRequest)
     }
 
-    fun publishSessionProposalAcknowledgment(id: Long) {
+    private fun publishSubscriptionAcknowledgment(id: Long) {
         val publishRequest =
-            Relay.Subscription.Acknowledgement(
-                id = id,
-                result = true
-            )
+            Relay.Subscription.Acknowledgement(id = id, result = true)
         relay.publishSubscriptionAcknowledgment(publishRequest)
     }
 
@@ -105,28 +112,39 @@ class WakuRelayRepository internal constructor(
         relay.subscribeRequest(subscribeRequest)
     }
 
+    //region Refactor out of RelayRepository. These are outside the responsibility
     fun getSessionApprovalJson(preSettlementSessionApproval: PreSettlementSession.Approve): String =
         moshi.adapter(PreSettlementSession.Approve::class.java).toJson(preSettlementSessionApproval)
 
     fun getSessionRejectionJson(preSettlementSessionRejection: PreSettlementSession.Reject): String =
         moshi.adapter(PreSettlementSession.Reject::class.java).toJson(preSettlementSessionRejection)
 
-    fun parseToPairingPayload(json: String): PairingPayload? =
-        moshi.adapter(PairingPayload::class.java).fromJson(json)
+    fun parseToPairingPayload(json: String): PostSettlementPairing.PairingPayload? =
+        moshi.adapter(PostSettlementPairing.PairingPayload::class.java).fromJson(json)
 
-    private fun getServerUrl(): String {
-        return ((if (useTLs) "wss" else "ws") + "://$hostName/?apiKey=$apiKey").trim()
-    }
+    fun parseToSessionPayload(json: String): PostSettlementSession.SessionPayload? =
+        moshi.adapter(PostSettlementSession.SessionPayload::class.java).fromJson(json)
+
+    fun parseToParamsRequest(json: String): Request? =
+        moshi.adapter(Request::class.java).fromJson(json)
+    //endregion
+
+    private fun getServerUrl(): String =
+        ((if (useTLs) "wss" else "ws") + "://$hostName/?apiKey=$apiKey").trim()
+
+    class RelayFactory(
+        val useTls: Boolean,
+        val hostName: String,
+        val apiKey: String,
+        val application: Application
+    )
 
     companion object {
         private const val TIMEOUT_TIME = 5000L
         private const val DEFAULT_BACKOFF_MINUTES = 5L
 
-        fun initRemote(
-            useTLs: Boolean = false,
-            hostName: String,
-            apiKey: String,
-            application: Application
-        ) = WakuRelayRepository(useTLs, hostName, apiKey, application)
+        fun initRemote(relayFactory: RelayFactory) = with(relayFactory) {
+            WakuRelayRepository(useTls, hostName, apiKey, application)
+        }
     }
 }

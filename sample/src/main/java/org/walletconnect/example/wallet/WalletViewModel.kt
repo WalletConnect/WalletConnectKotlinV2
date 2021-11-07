@@ -9,8 +9,9 @@ import org.walletconnect.example.wallet.ui.*
 import org.walletconnect.walletconnectv2.WalletConnectClient
 import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.SessionProposal
+import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
 
-class WalletViewModel : ViewModel() {
+class WalletViewModel : ViewModel(), WalletConnectClientListeners.Session {
     private var _eventFlow = MutableSharedFlow<WalletUiEvent>()
     val eventFlow = _eventFlow.asLiveData()
 
@@ -43,9 +44,10 @@ class WalletViewModel : ViewModel() {
         val accounts = sessionProposal.chains.map { chainId ->
             "$chainId:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716"
         }
-        val approveParams: ClientTypes.ApproveParams = ClientTypes.ApproveParams(accounts, proposerPublicKey, proposalTtl, proposalTopic)
+        val approveParams: ClientTypes.ApproveParams =
+            ClientTypes.ApproveParams(accounts, proposerPublicKey, proposalTtl, proposalTopic)
 
-        WalletConnectClient.approve(approveParams)
+        WalletConnectClient.approve(approveParams, this)
 
         viewModelScope.launch {
             _eventFlow.emit(UpdateActiveSessions(activeSessions))
@@ -55,12 +57,17 @@ class WalletViewModel : ViewModel() {
     fun reject() {
         val rejectionReason = "Reject Session"
         val proposalTopic: String = sessionProposal.topic
-        val rejectParams: ClientTypes.RejectParams = ClientTypes.RejectParams(rejectionReason, proposalTopic)
+        val rejectParams: ClientTypes.RejectParams =
+            ClientTypes.RejectParams(rejectionReason, proposalTopic)
 
         WalletConnectClient.reject(rejectParams)
 
         viewModelScope.launch {
             _eventFlow.emit(RejectSession)
         }
+    }
+
+    override fun onSessionRequest(payload: Any) {
+        //TODO handle session request generic object
     }
 }

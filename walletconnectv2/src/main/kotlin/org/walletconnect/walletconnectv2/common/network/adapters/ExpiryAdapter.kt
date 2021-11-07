@@ -1,7 +1,6 @@
 package org.walletconnect.walletconnectv2.common.network.adapters
 
 import com.squareup.moshi.*
-import okio.Buffer
 import org.walletconnect.walletconnectv2.common.Expiry
 
 object ExpiryAdapter: JsonAdapter<Expiry>() {

@@ -3,13 +3,9 @@ package integration
 import android.app.Application
 import android.util.Log
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filterNotNull
 import org.junit.Assert
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.walletconnect.walletconnectv2.common.AppMetaData
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import java.time.Duration
@@ -19,15 +15,17 @@ class PairingIntegrationAndroidTest {
 
     @Test
     fun pairTest() {
-        Log.e("Talha", "Starting")
-        runBlocking {
-            val engine = EngineInteractor()
-            val app: Application = ApplicationProvider.getApplicationContext()
-            val metaData = AppMetaData()
-            engine.initialize(EngineInteractor.EngineFactory(true, "relay.walletconnect.org", "", true, app, metaData))
+        println("Talha Starting")
+        val app: Application = ApplicationProvider.getApplicationContext()
+        val metaData = AppMetaData()
+        val engine = EngineInteractor().apply {
+            initialize(EngineInteractor.EngineFactory(true, "relay.walletconnect.org", "", true, app, metaData))
+        }
 
-            val uri =
-                "wc:dbb27984971dede7a67f60a6e2cd7fdb0a81eb830c760bc067bdfaa14b32d5d0@2?controller=false&publicKey=d2cba98de92fc8d392d9034035e81086690c8d8dab773c22da86bda1048ce042&relay=%7B%22protocol%22%3A%22waku%22%7D"
+        val uri =
+            "wc:dbb27984971dede7a67f60a6e2cd7fdb0a81eb830c760bc067bdfaa14b32d5d0@2?controller=false&publicKey=d2cba98de92fc8d392d9034035e81086690c8d8dab773c22da86bda1048ce042&relay=%7B%22protocol%22%3A%22waku%22%7D"
+
+        runBlocking {
             engine.pair(uri)
 
             launch {
@@ -42,25 +40,29 @@ class PairingIntegrationAndroidTest {
 //                                Log.e("Talha", "inside")
 //                                assert()
                             }
+
+                            println(System.currentTimeMillis())
+                            delay(2000)
+                            println(System.currentTimeMillis())
                         }
 
                         val pairDeferred = async(Dispatchers.IO) {
-                            engine.publishAcknowledgement.filterNotNull().collect {
-                                Log.e("Talha", "Publish Acknowledgement: $it")
-                                assert(it.result)
-                            }
+//                            engine.publishAcknowledgement.filterNotNull().collect {
+//                                Log.e("Talha", "Publish Acknowledgement: $it")
+//                                assert(it.result)
+//                            }
                         }
 
                         val subscriptionDeferred = async(Dispatchers.IO) {
-                            engine.subscriptionRequest.collect {
-                                println("Subscription Request $it")
-                            }
+//                            engine.subscriptionRequest.collect {
+//                                println("Subscription Request $it")
+//                            }
                         }
 
                         val sessionProposalDeferred = async(Dispatchers.IO) {
-                            engine.sessionProposal.collect {
-                                println("Session Proposal: $it")
-                            }
+//                            engine.sessionProposal.collect {
+//                                println("Session Proposal: $it")
+//                            }
                         }
 
                         listOf(
