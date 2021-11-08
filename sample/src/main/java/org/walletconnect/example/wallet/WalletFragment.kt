@@ -12,7 +12,9 @@ import org.walletconnect.example.wallet.ui.*
 class WalletFragment : Fragment(R.layout.wallet_fragment) {
     private val viewModel: WalletViewModel by activityViewModels()
     private lateinit var binding: WalletFragmentBinding
-    private val sessionAdapter = SessionsAdapter()
+    private val sessionAdapter = SessionsAdapter { session ->
+        viewModel.disconnect(session.topic)
+    }
     private var proposalDialog: SessionProposalDialog? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -20,11 +22,16 @@ class WalletFragment : Fragment(R.layout.wallet_fragment) {
         binding = WalletFragmentBinding.bind(view)
         setupToolbar()
         binding.sessions.adapter = sessionAdapter
-        sessionAdapter.updateList(viewModel.activeSessions)
+        sessionAdapter.updateList(viewModel.settledSessions)
         viewModel.eventFlow.observe(viewLifecycleOwner, { event ->
             when (event) {
                 is ShowSessionProposalDialog -> {
-                    proposalDialog = SessionProposalDialog(requireContext(), viewModel::approve, viewModel::reject, event.proposal)
+                    proposalDialog = SessionProposalDialog(
+                        requireContext(),
+                        viewModel::approve,
+                        viewModel::reject,
+                        event.proposal
+                    )
                     proposalDialog?.show()
                 }
                 is UpdateActiveSessions -> {

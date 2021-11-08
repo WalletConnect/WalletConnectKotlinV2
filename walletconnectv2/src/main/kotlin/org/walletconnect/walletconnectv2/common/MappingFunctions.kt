@@ -85,8 +85,8 @@ internal fun Session.Proposal.toSessionProposal(): SessionProposal {
     return SessionProposal(
         name = this.proposer.metadata?.name!!,
         description = this.proposer.metadata.description,
-        dappUrl = this.proposer.metadata.url,
-        icon = this.proposer.metadata.icons.map { URI(it) },
+        url = this.proposer.metadata.url,
+        icons = this.proposer.metadata.icons.map { URI(it) },
         chains = this.permissions.blockchain.chains,
         methods = this.permissions.jsonRpc.methods,
         topic = this.topic.topicValue,

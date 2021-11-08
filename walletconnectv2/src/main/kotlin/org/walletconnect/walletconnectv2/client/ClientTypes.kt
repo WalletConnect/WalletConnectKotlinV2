@@ -16,9 +16,11 @@ sealed class ClientTypes {
 
     data class PairParams(val uri: String) : ClientTypes()
 
-    data class ApproveParams(val accounts: List<String>, val proposerPublicKey: String, val proposalTtl: Long, val proposalTopic: String)
+    data class ApproveParams(val proposal: SessionProposal, val accounts: List<String>)
 
     data class RejectParams(val rejectionReason: String, val proposalTopic: String)
+
+    data class DisconnectParams(val topic: String, val reason: String) : ClientTypes()
 
     companion object {
         private const val WALLET_CONNECT_URL = "relay.walletconnect.com"

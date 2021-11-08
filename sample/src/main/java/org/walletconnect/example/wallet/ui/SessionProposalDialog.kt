@@ -23,10 +23,10 @@ class SessionProposalDialog(
 
     private fun setContent() = with(binding) {
         Glide.with(context)
-            .load(Uri.parse(proposal.icon.first().toString()))
+            .load(Uri.parse(proposal.icons.first().toString()))
             .into(icon)
         name.text = proposal.name
-        uri.text = proposal.dappUrl
+        uri.text = proposal.url
         description.text = proposal.description
         var chainsString = ""
         proposal.chains.forEach {

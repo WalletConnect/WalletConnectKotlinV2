@@ -2,6 +2,7 @@ package org.walletconnect.walletconnectv2.clientsync.session
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import org.walletconnect.walletconnectv2.clientsync.session.after.params.Reason
 import org.walletconnect.walletconnectv2.clientsync.session.after.params.SessionRequest
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.RelayProtocolOptions
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionProposedPermissions
@@ -56,5 +57,10 @@ sealed class Session {
         val request: SessionRequest,
         @Json(name = "chainId")
         val chainId: String?
+    ) : Session()
+
+    class DeleteParams(
+        @Json(name = "reason")
+        val reason: Reason
     ) : Session()
 }
