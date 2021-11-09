@@ -10,7 +10,9 @@ import org.walletconnect.walletconnectv2.client.SessionRequest
 import org.walletconnect.walletconnectv2.client.SettledSession
 import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposedPermissions
+import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.clientsync.session.SettledSessionSequence
+import org.walletconnect.walletconnectv2.clientsync.session.after.PostSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.session.after.params.Reason
 import org.walletconnect.walletconnectv2.clientsync.session.before.PreSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.RelayProtocolOptions
