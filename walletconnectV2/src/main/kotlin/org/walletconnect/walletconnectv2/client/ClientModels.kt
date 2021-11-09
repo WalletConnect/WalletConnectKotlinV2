@@ -16,6 +16,13 @@ data class SessionProposal(
     val icon: String = icons.first().toString()
 }
 
+data class SessionRequest(
+    val topic: String,
+    val request: Any,
+    val chainId: String?,
+    val method: String
+)
+
 data class SettledSession(
     var icon: String? = "",
     var name: String = "",
