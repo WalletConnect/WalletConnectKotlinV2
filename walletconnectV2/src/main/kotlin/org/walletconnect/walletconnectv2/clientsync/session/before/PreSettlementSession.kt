@@ -2,7 +2,6 @@ package org.walletconnect.walletconnectv2.clientsync.session.before
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod
 
 sealed class PreSettlementSession {

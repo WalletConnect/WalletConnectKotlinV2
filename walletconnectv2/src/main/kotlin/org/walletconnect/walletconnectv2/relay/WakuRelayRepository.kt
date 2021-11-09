@@ -16,7 +16,6 @@ import okhttp3.OkHttpClient
 import org.json.JSONObject
 import org.walletconnect.walletconnectv2.clientsync.pairing.after.PostSettlementPairing
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing
-import org.walletconnect.walletconnectv2.clientsync.session.after.PostSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.session.before.PreSettlementSession
 import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.common.network.adapters.*
