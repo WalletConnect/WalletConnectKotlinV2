@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import org.walletconnect.walletconnectv2.client.SessionProposal
+import org.walletconnect.walletconnectv2.client.SessionRequest
 import org.walletconnect.walletconnectv2.client.SettledSession
 import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposedPermissions
@@ -62,12 +63,13 @@ class EngineInteractor {
 
         scope.launch(exceptionHandler) {
             relayRepository.subscriptionRequest().collect { relayRequest ->
-                val (sharedKey, selfPublic) = crypto.getKeyAgreement(relayRequest.subscriptionTopic)
+                val topic: Topic = relayRequest.subscriptionTopic
+                val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
                 val json: String = codec.decrypt(relayRequest.encryptionPayload, sharedKey)
                 when (val rpc = relayRepository.parseToParamsRequest(json)?.method) {
                     WC_PAIRING_PAYLOAD -> onPairingPayload(json, sharedKey, selfPublic)
-                    WC_SESSION_PAYLOAD -> onSessionPayload(json)
-                    WC_SESSION_DELETE -> onSessionDelete(json, relayRequest.subscriptionTopic)
+                    WC_SESSION_PAYLOAD -> onSessionPayload(json, topic)
+                    WC_SESSION_DELETE -> onSessionDelete(json, topic)
                     else -> onUnsupported(rpc)
                 }
             }
@@ -82,6 +84,7 @@ class EngineInteractor {
             Expiry((Calendar.getInstance().timeInMillis / 1000) + pairingProposal.ttl.seconds)
         val peerPublicKey =
             PublicKey(pairingProposal.pairingProposer.publicKey)
+
         val controllerPublicKey = if (pairingProposal.pairingProposer.controller) {
             peerPublicKey
         } else {
@@ -104,7 +107,13 @@ class EngineInteractor {
                 selfPublicKey
             )
 
+//        relayRepository.publishAcknowledgement.collect {
+//
+//        }
+
         relayRepository.subscribe(settledSequence.settledTopic)
+
+        //todo success and error
         relayRepository.publishPairingApproval(pairingProposal.topic, preSettlementPairingApprove)
     }
 
@@ -114,7 +123,6 @@ class EngineInteractor {
         val peerPublicKey = PublicKey(proposal.proposerPublicKey)
         val sessionState = SessionState(accounts)
         val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + proposal.ttl)
-
         val settledSession: SettledSessionSequence = settleSessionSequence(
             RelayProtocolOptions(),
             selfPublicKey,
@@ -141,22 +149,14 @@ class EngineInteractor {
         val encryptedMessage: String = codec.encrypt(approvalJson, sharedKey, selfPublic)
 
         relayRepository.subscribe(settledSession.topic)
+
+        //todo success and error
         relayRepository.publish(Topic(proposal.topic), encryptedMessage)
+
         with(proposal) {
             _sequenceEvent.value =
                 OnSessionSettled(SettledSession(icon, name, url, settledSession.topic.topicValue))
         }
-
-        //        scope.launch {
-//            relayRepository.publishAcknowledgement.collect { acknowledgement ->
-//                Timber.tag("kobe").d("Approve ACKOW: $acknowledgement")
-//                if (acknowledgement.result) {
-//                    _sequenceLifecycleEvent.value = OnSessionSettled(SettledSession()
-//                    )
-//                }
-//                this.cancel()
-//            }
-//        }
     }
 
     fun reject(reason: String, topic: String) {
@@ -168,6 +168,8 @@ class EngineInteractor {
         val json: String = relayRepository.getSessionRejectionJson(sessionReject)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey, selfPublic)
+
+        //todo success and error
         relayRepository.publish(Topic(topic), encryptedMessage)
     }
 
@@ -184,46 +186,36 @@ class EngineInteractor {
         //TODO Add subscriptionId from local storage
         //TODO Delete all data from local storage coupled with given session
         relayRepository.unsubscribe(Topic(topic), SubscriptionId("1"))
+
+        //todo success and error
         relayRepository.publish(Topic(topic), encryptedMessage)
-
-
-//        Timber.tag("kobe").d("DISCONNECT REQUEST: $json")
-//        scope.launch {
-//            relayRepository.publishAcknowledgement.collect {
-//                //TODO Once I've got delete session acknowledgement, then unsubscribe from topic D
-//                Timber.tag("kobe").d("DISCONNECT ACKOW: $it")
-//                this.cancel()
-//            }
-//        }
     }
 
     private fun onPairingPayload(json: String, sharedKey: String, selfPublic: PublicKey) {
         val pairingPayload = relayRepository.parseToPairingPayload(json)
         val proposal = pairingPayload?.payloadParams ?: throw NoSessionProposalException()
         //TODO validate session proposal
-        Timber.tag("kobe").d("On Session Proposal: $json")
-
         crypto.setEncryptionKeys(sharedKey, selfPublic, proposal.topic)
         val sessionProposal = proposal.toSessionProposal()
         _sequenceEvent.value = OnSessionProposal(sessionProposal)
     }
 
-    private fun onSessionPayload(json: String) {
+    private fun onSessionPayload(json: String, topic: Topic) {
         val sessionPayload = relayRepository.parseToSessionPayload(json)
-        val params = sessionPayload?.sessionParams ?: throw NoSessionRequestPayloadException()
+        val request = sessionPayload?.sessionParams ?: throw NoSessionRequestPayloadException()
+        val chainId = sessionPayload.params.chainId
+        val method = sessionPayload.params.request.method
+
 
         Timber.tag("kobe").d("On Session Request: $json")
 
-        //TODO validate session request
-        //TODO add unmarshaling of generic session request payload to the usable generic object
-        _sequenceEvent.value = OnSessionRequest(params)
+        //TODO Validate session request + add unmarshaling of generic session request payload to the usable generic object
+        _sequenceEvent.value =
+            OnSessionRequest(SessionRequest(topic.topicValue, request, chainId, method))
     }
-
 
     private fun onSessionDelete(json: String, topic: Topic) {
         //TODO Delete all data from local storage coupled with given session
-        Timber.tag("kobe").d("On Session Delete: $json")
-
         val sessionDelete = relayRepository.parseToSessionDelete(json)
         val reason = sessionDelete?.message ?: ""
         _sequenceEvent.value = OnSessionDeleted(topic.topicValue, reason)

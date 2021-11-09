@@ -20,13 +20,14 @@ object WalletConnectClient {
                 when (event) {
                     is OnSessionProposal -> listener?.onSessionProposal(event.proposal)
                     is OnSessionSettled -> listener?.onSettledSession(event.session)
-                    is OnSessionRequest -> listener?.onSessionRequest(event.payload)
+                    is OnSessionRequest -> listener?.onSessionRequest(event.request)
                     is OnSessionDeleted -> listener?.onSessionDelete(event.topic, event.reason)
                     else -> Unsupported
                 }
             }
         }
     }
+
 
     fun initialize(initialParams: ClientTypes.InitialParams) = with(initialParams) {
         // TODO: pass properties to DI framework
@@ -38,7 +39,7 @@ object WalletConnectClient {
 
     fun pair(pairingParams: ClientTypes.PairParams, listener: WalletConnectClientListener) {
         this.listener = listener
-        scope.launch { engineInteractor.pair(pairingParams.uri) }
+        scope.launch { engineInteractor.pair(pairingParams.uri, ) }
     }
 
     fun approve(approveParams: ClientTypes.ApproveParams) = with(approveParams) {
