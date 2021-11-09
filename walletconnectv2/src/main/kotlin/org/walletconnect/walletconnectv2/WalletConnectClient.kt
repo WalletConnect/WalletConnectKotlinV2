@@ -5,7 +5,7 @@ import kotlinx.coroutines.launch
 import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
-import org.walletconnect.walletconnectv2.engine.jsonrpc.*
+import org.walletconnect.walletconnectv2.engine.sequence.*
 import timber.log.Timber
 
 object WalletConnectClient {
