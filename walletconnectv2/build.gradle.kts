@@ -18,7 +18,7 @@ android {
         minSdk = 21
         targetSdk = 30
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "org.walletconnect.walletconnectv2.WCTestRunner"
         testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")
     }
 
@@ -40,11 +40,7 @@ android {
         jvmTarget = jvmVersion.toString()
     }
 
-    testOptions {
-        unitTests {
-            unitTests.isIncludeAndroidResources = true
-        }
-    }
+    testOptions.unitTests.isIncludeAndroidResources = true
 
     packagingOptions {
         resources.excludes += setOf(

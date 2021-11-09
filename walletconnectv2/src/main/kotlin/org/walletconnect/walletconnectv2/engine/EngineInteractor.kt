@@ -2,8 +2,10 @@ package org.walletconnect.walletconnectv2.engine
 
 import android.app.Application
 import com.tinder.scarlet.WebSocket
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import org.json.JSONObject
 import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposedPermissions
@@ -29,8 +31,8 @@ import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_PAI
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_SESSION_DELETE
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_SESSION_PAYLOAD
 import org.walletconnect.walletconnectv2.scope
+import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.util.generateId
-import timber.log.Timber
 import java.util.*
 
 internal class EngineInteractor {
@@ -52,13 +54,13 @@ internal class EngineInteractor {
 
         scope.launch(exceptionHandler) {
             relayRepository.eventsFlow
-                .onEach { Timber.tag("WalletConnect connection event").d("$it") }
+                .onEach { Logger.log("$it") }
                 .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
                 .collect { event -> throw event.throwable.exception }
         }
 
         scope.launch(exceptionHandler) {
-            relayRepository.subscriptionRequest().collect { relayRequest ->
+            relayRepository.subscriptionRequest.collect { relayRequest ->
                 val (sharedKey, selfPublic) = crypto.getKeyAgreement(relayRequest.subscriptionTopic)
                 val extractedDecodedJson: String = codec.decrypt(relayRequest.encryptionPayload, sharedKey)
                 // TODO: Refactor below function to return JsonRPCEvent
@@ -101,8 +103,16 @@ internal class EngineInteractor {
                 selfPublicKey
             )
 
-        relayRepository.subscribe(settledSequence.settledTopic)
-        relayRepository.publishPairingApproval(pairingProposal.topic, preSettlementPairingApprove)
+        relayRepository.eventsFlow
+            .filterIsInstance<WebSocket.Event.OnConnectionOpened<*>>()
+            .onEach {
+                supervisorScope {
+                    relayRepository.subscribe(settledSequence.settledTopic)
+                    relayRepository.publishPairingApproval(pairingProposal.topic, preSettlementPairingApprove)
+                    cancel()
+                }
+            }
+            .launchIn(scope)
     }
 
     fun approve(accounts: List<String>, proposerPublicKey: String, ttl: Long, topic: String) {
@@ -136,6 +146,7 @@ internal class EngineInteractor {
         val approvalJson: String = relayRepository.getSessionApprovalJson(preSettlementSession)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(approvalJson, sharedKey, selfPublic)
+
         relayRepository.subscribe(settledSession.settledTopic)
         relayRepository.publish(Topic(topic), encryptedMessage)
     }
@@ -177,7 +188,7 @@ internal class EngineInteractor {
     }
 
     private fun onUnsupported(rpc: String?) {
-        Timber.tag("WalletConnect unsupported RPC").e(rpc)
+        Logger.error(rpc)
     }
 
     private fun settlePairingSequence(

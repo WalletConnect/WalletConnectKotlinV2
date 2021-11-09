@@ -87,8 +87,10 @@ fun DependencyHandlerScope.jUnit5() {
     "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine:$jUnit5Version")
     "testImplementation"("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
 
+    "androidTestImplementation"("androidx.test:core-ktx:1.4.0")
     "androidTestImplementation"("androidx.test:runner:1.4.0")
     "androidTestImplementation"("androidx.test:rules:1.4.0")
+
     "androidTestImplementation"("org.junit.jupiter:junit-jupiter-api:$jUnit5Version")
     "androidTestImplementation"("de.mannodermaus.junit5:android-test-core:1.3.0")
     "androidTestRuntimeOnly"("de.mannodermaus.junit5:android-test-runner:1.3.0")

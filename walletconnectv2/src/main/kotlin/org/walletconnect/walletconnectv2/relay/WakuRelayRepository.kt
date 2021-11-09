@@ -10,8 +10,9 @@ import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.utils.getRawType
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.supervisorScope
 import okhttp3.OkHttpClient
 import org.json.JSONObject
@@ -24,6 +25,8 @@ import org.walletconnect.walletconnectv2.common.network.adapters.*
 import org.walletconnect.walletconnectv2.relay.data.RelayService
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import org.walletconnect.walletconnectv2.relay.data.model.Request
+import org.walletconnect.walletconnectv2.scope
+import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.util.adapters.FlowStreamAdapter
 import org.walletconnect.walletconnectv2.util.generateId
 import java.util.concurrent.TimeUnit
@@ -60,7 +63,7 @@ class WakuRelayRepository internal constructor(
         Scarlet.Builder()
             .backoffStrategy(LinearBackoffStrategy(TimeUnit.MINUTES.toMillis(DEFAULT_BACKOFF_MINUTES)))
             .webSocketFactory(okHttpClient.newWebSocketFactory(getServerUrl()))
-            .lifecycle(AndroidLifecycle.ofApplicationForeground(application))
+//            .lifecycle(AndroidLifecycle.ofApplicationForeground(application)) // Maybe have debug version of scarlet w/o application and release version of scarlet w/ application once DI is setup
             .addMessageAdapterFactory(MoshiMessageAdapter.Factory(moshi))
             .addStreamAdapterFactory(FlowStreamAdapter.Factory())
             .build()
@@ -68,16 +71,13 @@ class WakuRelayRepository internal constructor(
     private val relay: RelayService by lazy { scarlet.create(RelayService::class.java) }
     //endregion
 
-    internal val eventsFlow = relay.eventsFlow()
+    internal val eventsFlow = relay.eventsFlow().shareIn(scope, SharingStarted.Lazily, 1)
     internal val publishAcknowledgement = relay.observePublishAcknowledgement()
     internal val subscribeAcknowledgement = relay.observeSubscribeAcknowledgement()
     internal val unsubscribeAcknowledgement = relay.observeUnsubscribeAcknowledgement()
-
-    internal fun subscriptionRequest(): Flow<Relay.Subscription.Request> =
-        relay.observeSubscriptionRequest()
-            .onEach { relayRequest ->
-                supervisorScope { publishSubscriptionAcknowledgment(relayRequest.id) }
-            }
+    internal val subscriptionRequest: Flow<Relay.Subscription.Request> = relay.observeSubscriptionRequest().onEach { relayRequest ->
+        supervisorScope { publishSubscriptionAcknowledgment(relayRequest.id) }
+    }
 
     fun publishPairingApproval(
         topic: Topic,
