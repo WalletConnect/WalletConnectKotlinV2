@@ -28,7 +28,6 @@ object WalletConnectClient {
         }
     }
 
-
     fun initialize(initialParams: ClientTypes.InitialParams) = with(initialParams) {
         // TODO: pass properties to DI framework
         val engineFactory =
@@ -39,18 +38,22 @@ object WalletConnectClient {
 
     fun pair(pairingParams: ClientTypes.PairParams, listener: WalletConnectClientListener) {
         this.listener = listener
-        scope.launch { engineInteractor.pair(pairingParams.uri, ) }
+        //todo handle JsonRpc response
+        scope.launch { engineInteractor.pair(pairingParams.uri) }
     }
 
     fun approve(approveParams: ClientTypes.ApproveParams) = with(approveParams) {
+        //todo handle JsonRpc response
         engineInteractor.approve(proposal, accounts)
     }
 
     fun reject(rejectParams: ClientTypes.RejectParams) = with(rejectParams) {
+        //todo handle JsonRpc response
         engineInteractor.reject(rejectionReason, proposalTopic)
     }
 
     fun disconnect(disconnectParams: ClientTypes.DisconnectParams) = with(disconnectParams) {
+        //todo handle JsonRpc response
         engineInteractor.disconnect(topic, reason)
     }
 }

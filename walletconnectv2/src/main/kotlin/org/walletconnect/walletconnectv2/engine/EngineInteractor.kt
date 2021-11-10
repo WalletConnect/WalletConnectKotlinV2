@@ -107,13 +107,7 @@ class EngineInteractor {
                 selfPublicKey
             )
 
-//        relayRepository.publishAcknowledgement.collect {
-//
-//        }
-
         relayRepository.subscribe(settledSequence.settledTopic)
-
-        //todo success and error
         relayRepository.publishPairingApproval(pairingProposal.topic, preSettlementPairingApprove)
     }
 
@@ -149,8 +143,6 @@ class EngineInteractor {
         val encryptedMessage: String = codec.encrypt(approvalJson, sharedKey, selfPublic)
 
         relayRepository.subscribe(settledSession.topic)
-
-        //todo success and error
         relayRepository.publish(Topic(proposal.topic), encryptedMessage)
 
         with(proposal) {
@@ -168,8 +160,6 @@ class EngineInteractor {
         val json: String = relayRepository.getSessionRejectionJson(sessionReject)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey, selfPublic)
-
-        //todo success and error
         relayRepository.publish(Topic(topic), encryptedMessage)
     }
 
@@ -186,8 +176,6 @@ class EngineInteractor {
         //TODO Add subscriptionId from local storage
         //TODO Delete all data from local storage coupled with given session
         relayRepository.unsubscribe(Topic(topic), SubscriptionId("1"))
-
-        //todo success and error
         relayRepository.publish(Topic(topic), encryptedMessage)
     }
 
@@ -205,13 +193,8 @@ class EngineInteractor {
         val request = sessionPayload?.sessionParams ?: throw NoSessionRequestPayloadException()
         val chainId = sessionPayload.params.chainId
         val method = sessionPayload.params.request.method
-
-
-        Timber.tag("kobe").d("On Session Request: $json")
-
         //TODO Validate session request + add unmarshaling of generic session request payload to the usable generic object
-        _sequenceEvent.value =
-            OnSessionRequest(SessionRequest(topic.topicValue, request, chainId, method))
+        _sequenceEvent.value = OnSessionRequest(SessionRequest(topic.topicValue, request, chainId, method))
     }
 
     private fun onSessionDelete(json: String, topic: Topic) {
