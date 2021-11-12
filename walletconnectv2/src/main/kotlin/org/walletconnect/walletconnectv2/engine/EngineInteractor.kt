@@ -5,9 +5,6 @@ import com.tinder.scarlet.WebSocket
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import org.walletconnect.walletconnectv2.client.SessionProposal
-import org.walletconnect.walletconnectv2.client.SessionRequest
-import org.walletconnect.walletconnectv2.client.SettledSession
 import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposedPermissions
 import org.walletconnect.walletconnectv2.clientsync.session.Session
@@ -23,6 +20,7 @@ import org.walletconnect.walletconnectv2.crypto.CryptoManager
 import org.walletconnect.walletconnectv2.crypto.codec.AuthenticatedEncryptionCodec
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
+import org.walletconnect.walletconnectv2.engine.model.EngineData
 import org.walletconnect.walletconnectv2.engine.sequence.*
 import org.walletconnect.walletconnectv2.errors.NoSessionProposalException
 import org.walletconnect.walletconnectv2.errors.NoSessionRequestPayloadException
@@ -47,7 +45,7 @@ class EngineInteractor {
     //endregion
 
     private var metaData: AppMetaData? = null
-    private val _sequenceEvent: MutableStateFlow<SequenceLifecycleEvent> = MutableStateFlow(Default)
+    private val _sequenceEvent: MutableStateFlow<SequenceLifecycleEvent> = MutableStateFlow(SequenceLifecycleEvent.Default)
     val sequenceEvent: StateFlow<SequenceLifecycleEvent> = _sequenceEvent
 
     fun initialize(engine: EngineFactory) {
@@ -111,7 +109,7 @@ class EngineInteractor {
         relayRepository.publishPairingApproval(pairingProposal.topic, preSettlementPairingApprove)
     }
 
-    fun approve(proposal: SessionProposal, accounts: List<String>) {
+    internal fun approve(proposal: EngineData.SessionProposal, accounts: List<String>) {
         require(::relayRepository.isInitialized)
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val peerPublicKey = PublicKey(proposal.proposerPublicKey)
@@ -147,7 +145,7 @@ class EngineInteractor {
 
         with(proposal) {
             _sequenceEvent.value =
-                OnSessionSettled(SettledSession(icon, name, url, settledSession.topic.topicValue))
+                SequenceLifecycleEvent.OnSessionSettled(EngineData.SettledSession(icon, name, url, settledSession.topic.topicValue))
         }
     }
 
@@ -165,11 +163,7 @@ class EngineInteractor {
 
     fun disconnect(topic: String, reason: String) {
         require(::relayRepository.isInitialized)
-        val sessionDelete =
-            PostSettlementSession.SessionDelete(
-                id = generateId(),
-                params = Session.DeleteParams(Reason(message = reason))
-            )
+        val sessionDelete = PostSettlementSession.SessionDelete(id = generateId(), params = Session.DeleteParams(Reason(message = reason)))
         val json = relayRepository.getSessionDeleteJson(sessionDelete)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey, selfPublic)
@@ -185,7 +179,7 @@ class EngineInteractor {
         //TODO validate session proposal
         crypto.setEncryptionKeys(sharedKey, selfPublic, proposal.topic)
         val sessionProposal = proposal.toSessionProposal()
-        _sequenceEvent.value = OnSessionProposal(sessionProposal)
+        _sequenceEvent.value = SequenceLifecycleEvent.OnSessionProposal(sessionProposal)
     }
 
     private fun onSessionPayload(json: String, topic: Topic) {
@@ -194,14 +188,15 @@ class EngineInteractor {
         val chainId = sessionPayload.params.chainId
         val method = sessionPayload.params.request.method
         //TODO Validate session request + add unmarshaling of generic session request payload to the usable generic object
-        _sequenceEvent.value = OnSessionRequest(SessionRequest(topic.topicValue, request, chainId, method))
+        _sequenceEvent.value =
+            SequenceLifecycleEvent.OnSessionRequest(EngineData.SessionRequest(topic.topicValue, request, chainId, method))
     }
 
     private fun onSessionDelete(json: String, topic: Topic) {
         //TODO Delete all data from local storage coupled with given session
         val sessionDelete = relayRepository.parseToSessionDelete(json)
         val reason = sessionDelete?.message ?: ""
-        _sequenceEvent.value = OnSessionDeleted(topic.topicValue, reason)
+        _sequenceEvent.value = SequenceLifecycleEvent.OnSessionDeleted(topic.topicValue, reason)
     }
 
     private fun onUnsupported(rpc: String?) {

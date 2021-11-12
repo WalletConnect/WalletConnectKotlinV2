@@ -1,7 +1,5 @@
 package org.walletconnect.example.wallet
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
@@ -15,8 +13,8 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
     private var _eventFlow = MutableSharedFlow<WalletUiEvent>()
     val eventFlow = _eventFlow.asLiveData()
 
-    val settledSessions: MutableList<SettledSession> = mutableListOf()
-    lateinit var proposal: SessionProposal
+    val settledSessions: MutableList<WalletConnectClientData.SettledSession> = mutableListOf()
+    lateinit var proposal: WalletConnectClientData.SessionProposal
 
     fun pair(uri: String) {
         val pairParams = ClientTypes.PairParams(uri.trim())
@@ -41,40 +39,42 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
     fun disconnect(topic: String, reason: String = "Reason") {
         val disconnectParams = ClientTypes.DisconnectParams(topic, reason)
         WalletConnectClient.disconnect(disconnectParams)
+        removeSession(topic)
 
-        settledSessions.removeIf {  session -> session.topic == topic }
         viewModelScope.launch {
             _eventFlow.emit(UpdateActiveSessions(settledSessions))
         }
     }
 
-    override fun onSessionProposal(proposal: SessionProposal) {
+    override fun onSessionProposal(proposal: WalletConnectClientData.SessionProposal) {
         viewModelScope.launch {
             this@WalletViewModel.proposal = proposal
             _eventFlow.emit(ShowSessionProposalDialog(this@WalletViewModel.proposal))
         }
     }
 
-    override fun onSettledSession(session: SettledSession) {
+    override fun onSettledSession(session: WalletConnectClientData.SettledSession) {
         settledSessions += session
         viewModelScope.launch {
             _eventFlow.emit(UpdateActiveSessions(settledSessions))
         }
     }
 
-    override fun onSessionRequest(request: SessionRequest) {
+    override fun onSessionRequest(request: WalletConnectClientData.SessionRequest) {
         //TODO handle session request generic object
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
     override fun onSessionDelete(topic: String, reason: String) {
-        settledSessions.removeIf {  session -> session.topic == topic }
+        removeSession(topic)
         viewModelScope.launch {
             _eventFlow.emit(UpdateActiveSessions(settledSessions))
         }
+    }
+
+    private fun removeSession(topic: String) {
+        settledSessions.find { session -> session.topic == topic }?.also { session -> settledSessions.remove(session) }
     }
 }

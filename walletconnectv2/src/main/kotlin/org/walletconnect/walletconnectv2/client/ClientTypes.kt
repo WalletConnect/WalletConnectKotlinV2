@@ -16,7 +16,7 @@ sealed class ClientTypes {
 
     data class PairParams(val uri: String) : ClientTypes()
 
-    data class ApproveParams(val proposal: SessionProposal, val accounts: List<String>)
+    data class ApproveParams(val proposal: WalletConnectClientData.SessionProposal, val accounts: List<String>)
 
     data class RejectParams(val rejectionReason: String, val proposalTopic: String)
 

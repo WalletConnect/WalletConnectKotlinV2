@@ -4,6 +4,10 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
+import org.walletconnect.walletconnectv2.common.toClientSessionProposal
+import org.walletconnect.walletconnectv2.common.toClientSessionRequest
+import org.walletconnect.walletconnectv2.common.toClientSettledSession
+import org.walletconnect.walletconnectv2.common.toEngineSessionProposal
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import org.walletconnect.walletconnectv2.engine.sequence.*
 import timber.log.Timber
@@ -18,11 +22,11 @@ object WalletConnectClient {
         scope.launch {
             engineInteractor.sequenceEvent.collect { event ->
                 when (event) {
-                    is OnSessionProposal -> listener?.onSessionProposal(event.proposal)
-                    is OnSessionSettled -> listener?.onSettledSession(event.session)
-                    is OnSessionRequest -> listener?.onSessionRequest(event.request)
-                    is OnSessionDeleted -> listener?.onSessionDelete(event.topic, event.reason)
-                    else -> Unsupported
+                    is SequenceLifecycleEvent.OnSessionProposal -> listener?.onSessionProposal(event.proposal.toClientSessionProposal())
+                    is SequenceLifecycleEvent.OnSessionSettled -> listener?.onSettledSession(event.session.toClientSettledSession())
+                    is SequenceLifecycleEvent.OnSessionRequest -> listener?.onSessionRequest(event.request.toClientSessionRequest())
+                    is SequenceLifecycleEvent.OnSessionDeleted -> listener?.onSessionDelete(event.topic, event.reason)
+                    else -> SequenceLifecycleEvent.Unsupported
                 }
             }
         }
@@ -44,7 +48,7 @@ object WalletConnectClient {
 
     fun approve(approveParams: ClientTypes.ApproveParams) = with(approveParams) {
         //todo handle JsonRpc response
-        engineInteractor.approve(proposal, accounts)
+        engineInteractor.approve(proposal.toEngineSessionProposal(), accounts)
     }
 
     fun reject(rejectParams: ClientTypes.RejectParams) = with(rejectParams) {
