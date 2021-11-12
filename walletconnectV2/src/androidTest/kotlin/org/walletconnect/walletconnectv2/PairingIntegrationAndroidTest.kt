@@ -1,44 +1,37 @@
 package org.walletconnect.walletconnectv2
 
-import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.rules.ActivityScenarioRule
-import androidx.test.ext.junit.rules.activityScenarioRule
-import org.junit.*
+import org.junit.After
+import org.junit.Rule
+import org.junit.Test
 import org.walletconnect.walletconnectv2.client.ClientTypes
-import org.walletconnect.walletconnectv2.util.Logger
-import java.util.concurrent.CountDownLatch
 
 class PairingIntegrationAndroidTest {
     @get:Rule
-    val activityRule = activityScenarioRule<IntegrationTestActivity>()
-    private val app = ApplicationProvider.getApplicationContext<IntegrationTestApplication>()
+    val activityScenarioRule = wcActivityScenarioRule()
 
-    @After
-    fun tearDown() {
-        activityRule.scenario.close()
-    }
+    private val app = ApplicationProvider.getApplicationContext<IntegrationTestApplication>()
 
     @Test
     fun pairing() {
-        runWCClientTest { latch ->
+        activityScenarioRule.launch {
             val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org")
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:91c2bd9849642c5d0d2c4ff7aeca11d072761789cd8ef5d5fedc224d1ecc6698@2?controller=false&publicKey=6fca13196ca58d630cb66396be63b29e8d284218a0feef505cf3cb0061ff6105&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:619591c3794efd14e6d0a6dd123bde50fb89259230fe45c9f460a692aa39e003@2?controller=false&publicKey=e9b4dc1c620ae5042629675f726d3edf83d0588f83128bea85b9f6170a0a276b&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
 
             WalletConnectClient.pair(pairingParams) {
                 assert(true)
-                latch.countDown()
+                activityScenarioRule.close()
             }
         }
     }
 
     @Test
     fun approve() {
-        runWCClientTest { latch ->
+        activityScenarioRule.launch {
             val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org")
             WalletConnectClient.initialize(initParams)
 
@@ -60,25 +53,8 @@ class PairingIntegrationAndroidTest {
 
                 WalletConnectClient.approve(approveParams) {
                     assert(true)
-                    latch.countDown()
+                    activityScenarioRule.close()
                 }
-            }
-        }
-    }
-
-    private fun runWCClientTest(block: (CountDownLatch) -> Unit) {
-        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
-        assert(activityRule.scenario.state.isAtLeast(Lifecycle.State.RESUMED))
-
-        activityRule.scenario.onActivity {
-            val latch = CountDownLatch(1)
-
-            block(latch)
-
-            try {
-                latch.await()
-            } catch (exception: InterruptedException) {
-                Assert.fail()
             }
         }
     }
