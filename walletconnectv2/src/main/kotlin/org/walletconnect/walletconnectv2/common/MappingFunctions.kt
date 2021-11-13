@@ -4,7 +4,7 @@ package org.walletconnect.walletconnectv2.common
 
 import com.squareup.moshi.Moshi
 import org.json.JSONObject
-import org.walletconnect.walletconnectv2.client.SessionProposal
+import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposer
@@ -13,6 +13,7 @@ import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.Pairi
 import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
+import org.walletconnect.walletconnectv2.engine.model.EngineData
 import org.walletconnect.walletconnectv2.relay.data.init.RelayInitParams
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import java.net.URI
@@ -39,14 +40,9 @@ internal fun String.toPairProposal(): Pairing.Proposal {
     )
 }
 
-internal fun Pairing.Proposal.toPairingSuccess(
-    settleTopic: Topic,
-    expiry: Expiry,
-    selfPublicKey: PublicKey
-): Pairing.Success {
+internal fun Pairing.Proposal.toPairingSuccess(settleTopic: Topic, expiry: Expiry, selfPublicKey: PublicKey): Pairing.Success {
     return Pairing.Success(
-        settledTopic = settleTopic,
-        relay = relay,
+        settledTopic = settleTopic, relay = relay,
         responder = PairingParticipant(publicKey = selfPublicKey.keyAsHex),
         expiry = expiry,
         state = PairingState(null)
@@ -58,12 +54,7 @@ internal fun Pairing.Proposal.toApprove(
     settleTopic: Topic,
     expiry: Expiry,
     selfPublicKey: PublicKey
-): PreSettlementPairing.Approve {
-    return PreSettlementPairing.Approve(
-        id = id,
-        params = this.toPairingSuccess(settleTopic, expiry, selfPublicKey)
-    )
-}
+): PreSettlementPairing.Approve = PreSettlementPairing.Approve(id = id, params = this.toPairingSuccess(settleTopic, expiry, selfPublicKey))
 
 internal fun PreSettlementPairing.Approve.toRelayPublishRequest(
     id: Long,
@@ -71,22 +62,17 @@ internal fun PreSettlementPairing.Approve.toRelayPublishRequest(
     moshi: Moshi
 ): Relay.Publish.Request {
     val pairingApproveJson = moshi.adapter(PreSettlementPairing.Approve::class.java).toJson(this)
-    val hexEncodedJson = pairingApproveJson.encodeToByteArray().joinToString(separator = "") {
-        String.format("%02X", it)
-    }
+    val hexEncodedJson = pairingApproveJson.encodeToByteArray().joinToString(separator = "") { String.format("%02X", it) }
 
-    return Relay.Publish.Request(
-        id = id,
-        params = Relay.Publish.Request.Params(topic = topic, message = hexEncodedJson.lowercase())
-    )
+    return Relay.Publish.Request(id = id, params = Relay.Publish.Request.Params(topic = topic, message = hexEncodedJson.lowercase()))
 }
 
-internal fun Session.Proposal.toSessionProposal(): SessionProposal {
-    return SessionProposal(
+internal fun Session.Proposal.toSessionProposal(): EngineData.SessionProposal {
+    return EngineData.SessionProposal(
         name = this.proposer.metadata?.name!!,
         description = this.proposer.metadata.description,
-        dappUrl = this.proposer.metadata.url,
-        icon = this.proposer.metadata.icons.map { URI(it) },
+        url = this.proposer.metadata.url,
+        icons = this.proposer.metadata.icons.map { URI(it) },
         chains = this.permissions.blockchain.chains,
         methods = this.permissions.jsonRpc.methods,
         topic = this.topic.topicValue,
@@ -97,3 +83,15 @@ internal fun Session.Proposal.toSessionProposal(): SessionProposal {
 
 internal fun EngineInteractor.EngineFactory.toRelayInitParams(): RelayInitParams =
     RelayInitParams(useTLs, hostName, apiKey, application)
+
+internal fun EngineData.SessionProposal.toClientSessionProposal(): WalletConnectClientData.SessionProposal =
+    WalletConnectClientData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl)
+
+internal fun WalletConnectClientData.SessionProposal.toEngineSessionProposal(): EngineData.SessionProposal =
+    EngineData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl)
+
+internal fun EngineData.SettledSession.toClientSettledSession(): WalletConnectClientData.SettledSession =
+    WalletConnectClientData.SettledSession(icon, name, uri, topic)
+
+internal fun EngineData.SessionRequest.toClientSessionRequest(): WalletConnectClientData.SessionRequest =
+    WalletConnectClientData.SessionRequest(topic, request, chainId, method)
