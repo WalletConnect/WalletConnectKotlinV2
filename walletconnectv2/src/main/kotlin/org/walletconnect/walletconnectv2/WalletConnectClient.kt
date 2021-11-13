@@ -3,22 +3,28 @@ package org.walletconnect.walletconnectv2
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.walletconnect.walletconnectv2.client.ClientTypes
-import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
+import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
+import org.walletconnect.walletconnectv2.common.toClientSessionProposal
+import org.walletconnect.walletconnectv2.common.toClientSessionRequest
+import org.walletconnect.walletconnectv2.common.toClientSettledSession
+import org.walletconnect.walletconnectv2.common.toEngineSessionProposal
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
-import org.walletconnect.walletconnectv2.engine.jsonrpc.JsonRpcEvent
+import org.walletconnect.walletconnectv2.engine.sequence.*
+import timber.log.Timber
 
 object WalletConnectClient {
     private val engineInteractor = EngineInteractor()
-    private var pairingListener: WalletConnectClientListeners.Pairing? = null
-    private var sessionListener: WalletConnectClientListeners.Session? = null
+    private var listener: WalletConnectClientListener? = null
 
     init {
         scope.launch {
-            engineInteractor.jsonRpcEvents.collect { event ->
+            engineInteractor.sequenceEvent.collect { event ->
                 when (event) {
-                    is JsonRpcEvent.OnSessionProposal -> pairingListener?.onSessionProposal(event.proposal)
-                    is JsonRpcEvent.OnSessionRequest -> sessionListener?.onSessionRequest(event.payload)
-                    else -> JsonRpcEvent.Unsupported
+                    is SequenceLifecycleEvent.OnSessionProposal -> listener?.onSessionProposal(event.proposal.toClientSessionProposal())
+                    is SequenceLifecycleEvent.OnSessionSettled -> listener?.onSettledSession(event.session.toClientSettledSession())
+                    is SequenceLifecycleEvent.OnSessionRequest -> listener?.onSessionRequest(event.request.toClientSessionRequest())
+                    is SequenceLifecycleEvent.OnSessionDeleted -> listener?.onSessionDelete(event.topic, event.reason)
+                    else -> SequenceLifecycleEvent.Unsupported
                 }
             }
         }
@@ -30,25 +36,25 @@ object WalletConnectClient {
         engineInteractor.initialize(engineFactory)
     }
 
-    fun pair(
-        pairingParams: ClientTypes.PairParams,
-        clientListeners: WalletConnectClientListeners.Pairing
-    ) {
-        pairingListener = clientListeners
-        engineInteractor.pair(pairingParams.uri)
+
+    fun pair(pairingParams: ClientTypes.PairParams, listener: WalletConnectClientListener) {
+        this.listener = listener
+        //todo handle JsonRpc response
+        scope.launch { engineInteractor.pair(pairingParams.uri) }
     }
 
-    fun approve(
-        approveParams: ClientTypes.ApproveParams,
-        sessionRequestListener: WalletConnectClientListeners.Session
-    ) = with(approveParams) {
-        sessionListener = sessionRequestListener
-        engineInteractor.approve(accounts, proposerPublicKey, proposalTtl, proposalTopic)
+    fun approve(approveParams: ClientTypes.ApproveParams) = with(approveParams) {
+        //todo handle JsonRpc response
+        engineInteractor.approve(proposal.toEngineSessionProposal(), accounts)
     }
 
     fun reject(rejectParams: ClientTypes.RejectParams) = with(rejectParams) {
+        //todo handle JsonRpc response
         engineInteractor.reject(rejectionReason, proposalTopic)
     }
 
-    // TODO: Add close method to cancel coroutine scope
+    fun disconnect(disconnectParams: ClientTypes.DisconnectParams) = with(disconnectParams) {
+        //todo handle JsonRpc response
+        engineInteractor.disconnect(topic, reason)
+    }
 }

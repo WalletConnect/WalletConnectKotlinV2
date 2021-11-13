@@ -7,7 +7,7 @@ import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 
 data class SettledSessionSequence(
-    val settledTopic: Topic,
+    val topic: Topic,
     val relay: RelayProtocolOptions,
     val selfPublicKey: PublicKey,
     val peerPublicKey: PublicKey,

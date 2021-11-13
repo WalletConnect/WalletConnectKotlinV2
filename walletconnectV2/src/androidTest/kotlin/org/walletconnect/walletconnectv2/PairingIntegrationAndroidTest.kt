@@ -6,6 +6,8 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.rules.activityScenarioRule
 import org.junit.*
 import org.walletconnect.walletconnectv2.client.ClientTypes
+import org.walletconnect.walletconnectv2.client.WalletConnectClientData
+import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
 import org.walletconnect.walletconnectv2.util.Logger
 import java.util.concurrent.CountDownLatch
 
@@ -26,13 +28,22 @@ class PairingIntegrationAndroidTest {
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:91c2bd9849642c5d0d2c4ff7aeca11d072761789cd8ef5d5fedc224d1ecc6698@2?controller=false&publicKey=6fca13196ca58d630cb66396be63b29e8d284218a0feef505cf3cb0061ff6105&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:6fbac9a32042957b0791128874655ac5c2db64016c293b29e77484fe5d868d6a@2?controller=false&publicKey=23010bc280c5fadada0fd93f012e2c1aa0797bcf348b15a74d56b56d3ddec700&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
+            val listener = object: WalletConnectClientListener {
+                override fun onSessionProposal(proposal: WalletConnectClientData.SessionProposal) {
+                    assert(true)
+                    latch.countDown()
+                }
 
-            WalletConnectClient.pair(pairingParams) {
-                assert(true)
-                latch.countDown()
+                override fun onSettledSession(session: WalletConnectClientData.SettledSession) {}
+
+                override fun onSessionRequest(request: WalletConnectClientData.SessionRequest) {}
+
+                override fun onSessionDelete(topic: String, reason: String) {}
             }
+
+            WalletConnectClient.pair(pairingParams, listener)
         }
     }
 
@@ -43,26 +54,29 @@ class PairingIntegrationAndroidTest {
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:4b8fcbd3e675829878001823d04f12546ee05735f60eb164efb4366fc8dce097@2?controller=false&publicKey=2043224e78135de033df55579b8e65fa2e37d55564912d09e9aaaa043f28ef50&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:6fbac9a32042957b0791128874655ac5c2db64016c293b29e77484fe5d868d6a@2?controller=false&publicKey=23010bc280c5fadada0fd93f012e2c1aa0797bcf348b15a74d56b56d3ddec700&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
+            val listener = object: WalletConnectClientListener {
+                override fun onSessionProposal(proposal: WalletConnectClientData.SessionProposal) {
+                    assert(true)
 
-            WalletConnectClient.pair(pairingParams) { sessionProposal ->
-                assert(true)
+                    val accounts = proposal.chains.map { chainId -> "$chainId:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716" }
+                    val approveParams: ClientTypes.ApproveParams = ClientTypes.ApproveParams(proposal, accounts)
 
-                val proposerPublicKey: String = sessionProposal.proposerPublicKey
-                val proposalTtl: Long = sessionProposal.ttl
-                val proposalTopic: String = sessionProposal.topic
-                val accounts = sessionProposal.chains.map { chainId ->
-                    "$chainId:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716"
+                    WalletConnectClient.approve(approveParams)
                 }
-                val approveParams: ClientTypes.ApproveParams =
-                    ClientTypes.ApproveParams(accounts, proposerPublicKey, proposalTtl, proposalTopic)
 
-                WalletConnectClient.approve(approveParams) {
+                override fun onSettledSession(session: WalletConnectClientData.SettledSession) {
                     assert(true)
                     latch.countDown()
                 }
+
+                override fun onSessionRequest(request: WalletConnectClientData.SessionRequest) {}
+
+                override fun onSessionDelete(topic: String, reason: String) {}
             }
+
+            WalletConnectClient.pair(pairingParams, listener)
         }
     }
 

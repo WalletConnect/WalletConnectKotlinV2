@@ -97,12 +97,6 @@ class WakuRelayRepository internal constructor(
         relay.publishRequest(publishRequest)
     }
 
-    private fun publishSubscriptionAcknowledgment(id: Long) {
-        val publishRequest =
-            Relay.Subscription.Acknowledgement(id = id, result = true)
-        relay.publishSubscriptionAcknowledgment(publishRequest)
-    }
-
     fun subscribe(topic: Topic) {
         val subscribeRequest =
             Relay.Subscribe.Request(
@@ -112,12 +106,24 @@ class WakuRelayRepository internal constructor(
         relay.subscribeRequest(subscribeRequest)
     }
 
-    //region Refactor out of RelayRepository. These are outside the responsibility
-    fun getSessionApprovalJson(preSettlementSessionApproval: PreSettlementSession.Approve): String =
-        moshi.adapter(PreSettlementSession.Approve::class.java).toJson(preSettlementSessionApproval)
+    fun unsubscribe(topic: Topic, subscriptionId: SubscriptionId) {
+        val unsubscribeRequest =
+            Relay.Unsubscribe.Request(
+                id = generateId(),
+                params = Relay.Unsubscribe.Request.Params(topic, subscriptionId)
+            )
+        relay.unsubscribeRequest(unsubscribeRequest)
+    }
 
-    fun getSessionRejectionJson(preSettlementSessionRejection: PreSettlementSession.Reject): String =
-        moshi.adapter(PreSettlementSession.Reject::class.java).toJson(preSettlementSessionRejection)
+    //region Refactor out of RelayRepository. These are outside the responsibility
+    fun getSessionApprovalJson(approveSession: PreSettlementSession.Approve): String =
+        moshi.adapter(PreSettlementSession.Approve::class.java).toJson(approveSession)
+
+    fun getSessionRejectionJson(rejectSession: PreSettlementSession.Reject): String =
+        moshi.adapter(PreSettlementSession.Reject::class.java).toJson(rejectSession)
+
+    fun getSessionDeleteJson(sessionDelete: PostSettlementSession.SessionDelete): String =
+        moshi.adapter(PostSettlementSession.SessionDelete::class.java).toJson(sessionDelete)
 
     fun parseToPairingPayload(json: String): PostSettlementPairing.PairingPayload? =
         moshi.adapter(PostSettlementPairing.PairingPayload::class.java).fromJson(json)
@@ -125,9 +131,17 @@ class WakuRelayRepository internal constructor(
     fun parseToSessionPayload(json: String): PostSettlementSession.SessionPayload? =
         moshi.adapter(PostSettlementSession.SessionPayload::class.java).fromJson(json)
 
+    fun parseToSessionDelete(json: String): PostSettlementSession.SessionDelete? =
+        moshi.adapter(PostSettlementSession.SessionDelete::class.java).fromJson(json)
+
     fun parseToParamsRequest(json: String): Request? =
         moshi.adapter(Request::class.java).fromJson(json)
     //endregion
+
+    private fun publishSubscriptionAcknowledgment(id: Long) {
+        val publishRequest = Relay.Subscription.Acknowledgement(id = id, result = true)
+        relay.publishSubscriptionAcknowledgment(publishRequest)
+    }
 
     private fun getServerUrl(): String =
         ((if (useTLs) "wss" else "ws") + "://$hostName/?apiKey=$apiKey").trim()
