@@ -1,27 +1,12 @@
 package org.walletconnect.walletconnectv2.client
 
-import java.net.URI
+interface WalletConnectClientListener {
 
-sealed interface WalletConnectClientListeners {
+    fun onSessionProposal(proposal: WalletConnectClientData.SessionProposal)
 
-    fun interface Pairing : WalletConnectClientListeners {
-        fun onSessionProposal(proposal: SessionProposal)
-    }
+    fun onSettledSession(session: WalletConnectClientData.SettledSession)
 
-    fun interface Session : WalletConnectClientListeners {
-        fun onSessionRequest(payload: Any)
-    }
+    fun onSessionRequest(request: WalletConnectClientData.SessionRequest)
+
+    fun onSessionDelete(topic: String, reason: String)
 }
-
-data class SessionProposal(
-    val name: String,
-    val description: String,
-    val dappUrl: String,
-    val icon: List<URI>,
-    val chains: List<String>,
-    var methods: List<String>,
-    val topic: String,
-    val proposerPublicKey: String,
-    val ttl: Long,
-    val accounts: List<String> = listOf()
-)

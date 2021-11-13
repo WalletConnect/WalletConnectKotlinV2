@@ -11,6 +11,8 @@ import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequen
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposedPermissions
 import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.clientsync.session.SettledSessionSequence
+import org.walletconnect.walletconnectv2.clientsync.session.after.PostSettlementSession
+import org.walletconnect.walletconnectv2.clientsync.session.after.params.Reason
 import org.walletconnect.walletconnectv2.clientsync.session.before.PreSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.RelayProtocolOptions
 import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionParticipant
@@ -20,7 +22,8 @@ import org.walletconnect.walletconnectv2.crypto.CryptoManager
 import org.walletconnect.walletconnectv2.crypto.codec.AuthenticatedEncryptionCodec
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
-import org.walletconnect.walletconnectv2.engine.jsonrpc.JsonRpcEvent
+import org.walletconnect.walletconnectv2.engine.model.EngineData
+import org.walletconnect.walletconnectv2.engine.sequence.*
 import org.walletconnect.walletconnectv2.errors.NoSessionProposalException
 import org.walletconnect.walletconnectv2.errors.NoSessionRequestPayloadException
 import org.walletconnect.walletconnectv2.errors.exception
@@ -44,9 +47,8 @@ internal class EngineInteractor {
     //endregion
 
     private var metaData: AppMetaData? = null
-
-    private val _jsonRpcEvents: MutableStateFlow<JsonRpcEvent> = MutableStateFlow(JsonRpcEvent.Default)
-    val jsonRpcEvents: StateFlow<JsonRpcEvent> = _jsonRpcEvents
+    private val _sequenceEvent: MutableStateFlow<SequenceLifecycleEvent> = MutableStateFlow(SequenceLifecycleEvent.Default)
+    val sequenceEvent: StateFlow<SequenceLifecycleEvent> = _sequenceEvent
 
     fun initialize(engine: EngineFactory) {
         this.metaData = engine.metaData
@@ -61,13 +63,13 @@ internal class EngineInteractor {
 
         scope.launch(exceptionHandler) {
             relayRepository.subscriptionRequest.collect { relayRequest ->
-                val (sharedKey, selfPublic) = crypto.getKeyAgreement(relayRequest.subscriptionTopic)
-                val extractedDecodedJson: String = codec.decrypt(relayRequest.encryptionPayload, sharedKey)
-                // TODO: Refactor below function to return JsonRPCEvent
-                when (val rpc = relayRepository.parseToParamsRequest(extractedDecodedJson)?.method) {
-                    WC_PAIRING_PAYLOAD -> onPairingPayload(extractedDecodedJson, sharedKey, selfPublic)
-                    WC_SESSION_PAYLOAD -> onSessionRequest(extractedDecodedJson)
-                    WC_SESSION_DELETE -> onSessionDelete()
+                val topic: Topic = relayRequest.subscriptionTopic
+                val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
+                val json: String = codec.decrypt(relayRequest.encryptionPayload, sharedKey)
+                when (val rpc = relayRepository.parseToParamsRequest(json)?.method) {
+                    WC_PAIRING_PAYLOAD -> onPairingPayload(json, sharedKey, selfPublic)
+                    WC_SESSION_PAYLOAD -> onSessionPayload(json, topic)
+                    WC_SESSION_DELETE -> onSessionDelete(json, topic)
                     else -> onUnsupported(rpc)
                 }
             }
@@ -81,6 +83,7 @@ internal class EngineInteractor {
         val selfPublicKey = crypto.generateKeyPair()
         val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + pairingProposal.ttl.seconds)
         val peerPublicKey = PublicKey(pairingProposal.pairingProposer.publicKey)
+
         val controllerPublicKey = if (pairingProposal.pairingProposer.controller) {
             peerPublicKey
         } else {
@@ -115,13 +118,12 @@ internal class EngineInteractor {
             .launchIn(scope)
     }
 
-    fun approve(accounts: List<String>, proposerPublicKey: String, ttl: Long, topic: String) {
+    internal fun approve(proposal: EngineData.SessionProposal, accounts: List<String>) {
         require(::relayRepository.isInitialized)
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
-        val peerPublicKey = PublicKey(proposerPublicKey)
+        val peerPublicKey = PublicKey(proposal.proposerPublicKey)
         val sessionState = SessionState(accounts)
-        val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + ttl)
-
+        val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + proposal.ttl)
         val settledSession: SettledSessionSequence = settleSessionSequence(
             RelayProtocolOptions(),
             selfPublicKey,
@@ -130,7 +132,7 @@ internal class EngineInteractor {
             sessionState
         )
 
-        val preSettlementSession = PreSettlementSession.Approve(
+        val sessionApprove = PreSettlementSession.Approve(
             id = generateId(),
             params = Session.Success(
                 relay = RelayProtocolOptions(),
@@ -143,48 +145,67 @@ internal class EngineInteractor {
             )
         )
 
-        val approvalJson: String = relayRepository.getSessionApprovalJson(preSettlementSession)
-        val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
+        val approvalJson: String = relayRepository.getSessionApprovalJson(sessionApprove)
+        val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(proposal.topic))
         val encryptedMessage: String = codec.encrypt(approvalJson, sharedKey, selfPublic)
 
-        relayRepository.subscribe(settledSession.settledTopic)
-        relayRepository.publish(Topic(topic), encryptedMessage)
+        relayRepository.subscribe(settledSession.topic)
+        relayRepository.publish(Topic(proposal.topic), encryptedMessage)
+
+        with(proposal) {
+            _sequenceEvent.value =
+                SequenceLifecycleEvent.OnSessionSettled(EngineData.SettledSession(icon, name, url, settledSession.topic.topicValue))
+        }
     }
 
     fun reject(reason: String, topic: String) {
         require(::relayRepository.isInitialized)
-        val preSettlementSession =
-            PreSettlementSession.Reject(
-                id = generateId(),
-                params = Session.Failure(reason = reason)
-            )
-        val json: String = relayRepository.getSessionRejectionJson(preSettlementSession)
+        val sessionReject = PreSettlementSession.Reject(
+            id = generateId(),
+            params = Session.Failure(reason = reason)
+        )
+        val json: String = relayRepository.getSessionRejectionJson(sessionReject)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey, selfPublic)
+        relayRepository.publish(Topic(topic), encryptedMessage)
+    }
+
+    fun disconnect(topic: String, reason: String) {
+        require(::relayRepository.isInitialized)
+        val sessionDelete = PostSettlementSession.SessionDelete(id = generateId(), params = Session.DeleteParams(Reason(message = reason)))
+        val json = relayRepository.getSessionDeleteJson(sessionDelete)
+        val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
+        val encryptedMessage: String = codec.encrypt(json, sharedKey, selfPublic)
+        //TODO Add subscriptionId from local storage
+        //TODO Delete all data from local storage coupled with given session
+        relayRepository.unsubscribe(Topic(topic), SubscriptionId("1"))
         relayRepository.publish(Topic(topic), encryptedMessage)
     }
 
     private fun onPairingPayload(json: String, sharedKey: String, selfPublic: PublicKey) {
         val pairingPayload = relayRepository.parseToPairingPayload(json)
         val proposal = pairingPayload?.payloadParams ?: throw NoSessionProposalException()
-        crypto.setEncryptionKeys(sharedKey, selfPublic, proposal.topic)
         //TODO validate session proposal
+        crypto.setEncryptionKeys(sharedKey, selfPublic, proposal.topic)
         val sessionProposal = proposal.toSessionProposal()
-        _jsonRpcEvents.value = JsonRpcEvent.OnSessionProposal(sessionProposal)
+        _sequenceEvent.value = SequenceLifecycleEvent.OnSessionProposal(sessionProposal)
     }
 
-    private fun onSessionRequest(json: String) {
+    private fun onSessionPayload(json: String, topic: Topic) {
         val sessionPayload = relayRepository.parseToSessionPayload(json)
-        val params = sessionPayload?.sessionParams ?: throw NoSessionRequestPayloadException()
-        //TODO validate session request
-        /*TODO add unmarshaling of generic session request payload to the usable generic object
-        * then update state flow to return it to the wallet*/
-
-        _jsonRpcEvents.value = JsonRpcEvent.OnSessionRequest(params)
+        val request = sessionPayload?.sessionParams ?: throw NoSessionRequestPayloadException()
+        val chainId = sessionPayload.params.chainId
+        val method = sessionPayload.params.request.method
+        //TODO Validate session request + add unmarshaling of generic session request payload to the usable generic object
+        _sequenceEvent.value =
+            SequenceLifecycleEvent.OnSessionRequest(EngineData.SessionRequest(topic.topicValue, request, chainId, method))
     }
 
-    private fun onSessionDelete() {
-        //TODO implement me, delete all data coupled with given session
+    private fun onSessionDelete(json: String, topic: Topic) {
+        //TODO Delete all data from local storage coupled with given session
+        val sessionDelete = relayRepository.parseToSessionDelete(json)
+        val reason = sessionDelete?.message ?: ""
+        _sequenceEvent.value = SequenceLifecycleEvent.OnSessionDeleted(topic.topicValue, reason)
     }
 
     private fun onUnsupported(rpc: String?) {
@@ -217,12 +238,10 @@ internal class EngineInteractor {
         expiry: Expiry,
         sessionState: SessionState
     ): SettledSessionSequence {
-        val (sharedKey, settledTopic) = crypto.generateTopicAndSharedKey(
-            selfPublicKey,
-            peerPublicKey
-        )
+        val (sharedKey, topic) = crypto.generateTopicAndSharedKey(selfPublicKey, peerPublicKey)
+
         return SettledSessionSequence(
-            settledTopic,
+            topic,
             relay,
             selfPublicKey,
             peerPublicKey,

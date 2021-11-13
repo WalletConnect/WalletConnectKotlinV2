@@ -1,61 +1,73 @@
 package org.walletconnect.walletconnectv2
 
 import androidx.test.core.app.ApplicationProvider
-import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.walletconnect.walletconnectv2.client.ClientTypes
+import org.walletconnect.walletconnectv2.client.WalletConnectClientData
+import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
 
 class PairingIntegrationAndroidTest {
     @get:Rule
-    val activityScenarioRule = wcActivityScenarioRule()
-
+    val activityRule = wcActivityScenarioRule()
     private val app = ApplicationProvider.getApplicationContext<IntegrationTestApplication>()
 
     @Test
     fun pairing() {
-        activityScenarioRule.launch {
+        activityRule.launch {
             val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org")
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:619591c3794efd14e6d0a6dd123bde50fb89259230fe45c9f460a692aa39e003@2?controller=false&publicKey=e9b4dc1c620ae5042629675f726d3edf83d0588f83128bea85b9f6170a0a276b&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:6fbac9a32042957b0791128874655ac5c2db64016c293b29e77484fe5d868d6a@2?controller=false&publicKey=23010bc280c5fadada0fd93f012e2c1aa0797bcf348b15a74d56b56d3ddec700&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
+            val listener = object : WalletConnectClientListener {
+                override fun onSessionProposal(proposal: WalletConnectClientData.SessionProposal) {
+                    assert(true)
+                    activityRule.close()
+                }
 
-            WalletConnectClient.pair(pairingParams) {
-                assert(true)
-                activityScenarioRule.close()
+                override fun onSettledSession(session: WalletConnectClientData.SettledSession) {}
+
+                override fun onSessionRequest(request: WalletConnectClientData.SessionRequest) {}
+
+                override fun onSessionDelete(topic: String, reason: String) {}
             }
+
+            WalletConnectClient.pair(pairingParams, listener)
         }
     }
 
     @Test
     fun approve() {
-        activityScenarioRule.launch {
+        activityRule.launch {
             val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org")
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:4b8fcbd3e675829878001823d04f12546ee05735f60eb164efb4366fc8dce097@2?controller=false&publicKey=2043224e78135de033df55579b8e65fa2e37d55564912d09e9aaaa043f28ef50&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:970b0fa8367670e0411a95b27c8bd30a13b26f7f9173fb8111d581d53f03fd45@2?controller=false&publicKey=2130cf44d346b571615284ffae0c97195ca45464b18d8ff459105d84fe3aa70e&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
-
-            WalletConnectClient.pair(pairingParams) { sessionProposal ->
-                assert(true)
-
-                val proposerPublicKey: String = sessionProposal.proposerPublicKey
-                val proposalTtl: Long = sessionProposal.ttl
-                val proposalTopic: String = sessionProposal.topic
-                val accounts = sessionProposal.chains.map { chainId ->
-                    "$chainId:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716"
-                }
-                val approveParams: ClientTypes.ApproveParams =
-                    ClientTypes.ApproveParams(accounts, proposerPublicKey, proposalTtl, proposalTopic)
-
-                WalletConnectClient.approve(approveParams) {
+            val listener = object : WalletConnectClientListener {
+                override fun onSessionProposal(proposal: WalletConnectClientData.SessionProposal) {
                     assert(true)
-                    activityScenarioRule.close()
+
+                    val accounts = proposal.chains.map { chainId -> "$chainId:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716" }
+                    val approveParams: ClientTypes.ApproveParams = ClientTypes.ApproveParams(proposal, accounts)
+
+                    WalletConnectClient.approve(approveParams)
                 }
+
+                override fun onSettledSession(session: WalletConnectClientData.SettledSession) {
+                    assert(true)
+                    activityRule.close()
+                }
+
+                override fun onSessionRequest(request: WalletConnectClientData.SessionRequest) {}
+
+                override fun onSessionDelete(topic: String, reason: String) {}
             }
+
+            WalletConnectClient.pair(pairingParams, listener)
         }
     }
 }
