@@ -9,12 +9,12 @@ import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
 
 class PairingIntegrationAndroidTest {
     @get:Rule
-    val activityRule = wcActivityScenarioRule()
+    val activityRule = WCIntegrationActivityScenarioRule()
     private val app = ApplicationProvider.getApplicationContext<IntegrationTestApplication>()
 
     @Test
     fun pairing() {
-        activityRule.launch {
+        activityRule.launch() {
             val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org")
             WalletConnectClient.initialize(initParams)
 
@@ -40,7 +40,7 @@ class PairingIntegrationAndroidTest {
 
     @Test
     fun approve() {
-        activityRule.launch {
+        activityRule.launch() {
             val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org")
             WalletConnectClient.initialize(initParams)
 
