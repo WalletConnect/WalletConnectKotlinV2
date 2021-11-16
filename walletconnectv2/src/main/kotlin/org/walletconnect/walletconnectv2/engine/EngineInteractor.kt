@@ -120,6 +120,7 @@ internal class EngineInteractor {
 
     internal fun approve(proposal: EngineData.SessionProposal, accounts: List<String>) {
         require(::relayRepository.isInitialized)
+
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val peerPublicKey = PublicKey(proposal.proposerPublicKey)
         val sessionState = SessionState(accounts)

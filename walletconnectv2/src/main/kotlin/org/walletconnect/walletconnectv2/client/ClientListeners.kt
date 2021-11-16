@@ -1,7 +1,6 @@
 package org.walletconnect.walletconnectv2.client
 
 interface WalletConnectClientListener {
-
     fun onSessionProposal(proposal: WalletConnectClientData.SessionProposal)
 
     fun onSettledSession(session: WalletConnectClientData.SettledSession)

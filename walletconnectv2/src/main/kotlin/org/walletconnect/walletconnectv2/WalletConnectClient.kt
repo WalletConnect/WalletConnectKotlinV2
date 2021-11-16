@@ -10,7 +10,6 @@ import org.walletconnect.walletconnectv2.common.toClientSettledSession
 import org.walletconnect.walletconnectv2.common.toEngineSessionProposal
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import org.walletconnect.walletconnectv2.engine.sequence.*
-import timber.log.Timber
 
 object WalletConnectClient {
     private val engineInteractor = EngineInteractor()
@@ -35,7 +34,6 @@ object WalletConnectClient {
         val engineFactory = EngineInteractor.EngineFactory(useTls, hostName, apiKey, isController, application, metadata)
         engineInteractor.initialize(engineFactory)
     }
-
 
     fun pair(pairingParams: ClientTypes.PairParams, listener: WalletConnectClientListener) {
         this.listener = listener
