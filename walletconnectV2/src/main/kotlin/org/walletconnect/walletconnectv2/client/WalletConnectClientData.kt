@@ -1,5 +1,8 @@
 package org.walletconnect.walletconnectv2.client
 
+import com.squareup.moshi.JsonDataException
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import java.net.URI
 
 sealed class WalletConnectClientData {
@@ -20,10 +23,23 @@ sealed class WalletConnectClientData {
 
     data class SessionRequest(
         val topic: String,
-        val request: Any,
+        val request: String,
         val chainId: String?,
         val method: String
-    )
+    ) {
+        inline fun <reified T> decode(): T? {
+            return Moshi.Builder()
+                .add(KotlinJsonAdapterFactory())
+                .build()
+                .adapter(T::class.java)
+                .lenient()
+                .fromJson(request)
+        //try {
+//            } catch (exception: JsonDataException) {
+//                null
+//            }
+        }
+    }
 
     data class SettledSession(
         var icon: String? = "",

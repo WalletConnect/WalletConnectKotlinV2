@@ -196,7 +196,7 @@ internal class EngineInteractor {
         val request = sessionPayload?.sessionParams ?: throw NoSessionRequestPayloadException()
         val chainId = sessionPayload.params.chainId
         val method = sessionPayload.params.request.method
-        //TODO Validate session request + add unmarshaling of generic session request payload to the usable generic object
+        //TODO Validate session request + add unmarshalling of generic session request payload to the usable generic object
         _sequenceEvent.value =
             SequenceLifecycleEvent.OnSessionRequest(EngineData.SessionRequest(topic.topicValue, request, chainId, method))
     }

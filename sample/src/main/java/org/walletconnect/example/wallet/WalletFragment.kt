@@ -52,7 +52,7 @@ class WalletFragment : Fragment(R.layout.wallet_fragment) {
                     true
                 }
                 R.id.pasteUri -> {
-                    UrlDialog(requireContext(), approve = viewModel::pair).show()
+                    UrlDialog(requireContext(), pair = viewModel::pair).show()
                     true
                 }
                 else -> false

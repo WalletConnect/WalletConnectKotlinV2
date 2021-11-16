@@ -20,7 +20,7 @@ sealed class EngineData {
 
     data class SessionRequest(
         val topic: String,
-        val request: Any,
+        val request: String,
         val chainId: String?,
         val method: String
     ) : EngineData()
