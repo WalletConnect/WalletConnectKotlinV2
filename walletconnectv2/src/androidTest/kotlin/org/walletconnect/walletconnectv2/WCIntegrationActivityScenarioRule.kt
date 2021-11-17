@@ -1,6 +1,5 @@
 package org.walletconnect.walletconnectv2
 
-import android.content.Intent
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import org.junit.Assert
@@ -9,23 +8,10 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 // Source: https://gist.github.com/zawadz88/f057c70d3061454207ccd56e0add81c6#file-lazyactivityscenariorule-kt
-class WCIntegrationActivityScenarioRule : ExternalResource {
-    private var scenarioSupplier: () -> ActivityScenario<IntegrationTestActivity>
+class WCIntegrationActivityScenarioRule : ExternalResource() {
     private var scenario: ActivityScenario<IntegrationTestActivity>? = null
     private var scenarioLaunched: Boolean = false
     private val latch = CountDownLatch(1)
-
-    constructor(startActivityIntentSupplier: () -> Intent) {
-        scenarioSupplier = { ActivityScenario.launch(startActivityIntentSupplier()) }
-    }
-
-    constructor(startActivityIntent: Intent) {
-        scenarioSupplier = { ActivityScenario.launch(startActivityIntent) }
-    }
-
-    constructor() {
-        scenarioSupplier = { ActivityScenario.launch(IntegrationTestActivity::class.java) }
-    }
 
     override fun before() {
     }
@@ -34,12 +20,10 @@ class WCIntegrationActivityScenarioRule : ExternalResource {
         scenario?.close()
     }
 
-    fun launch(newIntent: Intent? = null, timeoutMinutes: Long = 1, testCodeBlock: () -> Unit) {
+    fun launch(timeoutMinutes: Long = 1, testCodeBlock: () -> Unit) {
         require(!scenarioLaunched) { "Scenario has already been launched!" }
 
-        newIntent?.let { scenarioSupplier = { ActivityScenario.launch(it) } }
-
-        scenario = scenarioSupplier()
+        scenario = ActivityScenario.launch(IntegrationTestActivity::class.java)
         scenarioLaunched = true
 
         scenario?.moveToState(Lifecycle.State.RESUMED)
@@ -59,13 +43,4 @@ class WCIntegrationActivityScenarioRule : ExternalResource {
     fun close() {
         latch.countDown()
     }
-}
-
-fun wcActivityScenarioRule(intentSupplier: () -> Intent): WCIntegrationActivityScenarioRule =
-    WCIntegrationActivityScenarioRule(intentSupplier)
-
-fun wcActivityScenarioRule(intent: Intent? = null): WCIntegrationActivityScenarioRule = if (intent == null) {
-    WCIntegrationActivityScenarioRule()
-} else {
-    WCIntegrationActivityScenarioRule(intent)
 }

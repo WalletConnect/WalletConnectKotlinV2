@@ -8,7 +8,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.walletconnect.walletconnectv2.crypto.KeyChain
 import org.walletconnect.walletconnectv2.util.Logger
-import timber.log.Timber
 
 //TODO add job cancellation to avoid memory leaks
 private val job = SupervisorJob()
