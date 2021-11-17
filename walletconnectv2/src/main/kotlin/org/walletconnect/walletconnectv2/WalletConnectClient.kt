@@ -10,15 +10,12 @@ import org.walletconnect.walletconnectv2.common.toClientSettledSession
 import org.walletconnect.walletconnectv2.common.toEngineSessionProposal
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import org.walletconnect.walletconnectv2.engine.sequence.*
-import timber.log.Timber
 
 object WalletConnectClient {
     private val engineInteractor = EngineInteractor()
     private var listener: WalletConnectClientListener? = null
 
     init {
-        Timber.plant(Timber.DebugTree())
-
         scope.launch {
             engineInteractor.sequenceEvent.collect { event ->
                 when (event) {
@@ -34,9 +31,7 @@ object WalletConnectClient {
 
     fun initialize(initialParams: ClientTypes.InitialParams) = with(initialParams) {
         // TODO: pass properties to DI framework
-        val engineFactory =
-            EngineInteractor
-                .EngineFactory(useTls, hostName, apiKey, isController, application, metadata)
+        val engineFactory = EngineInteractor.EngineFactory(useTls, hostName, apiKey, isController, application, metadata)
         engineInteractor.initialize(engineFactory)
     }
 

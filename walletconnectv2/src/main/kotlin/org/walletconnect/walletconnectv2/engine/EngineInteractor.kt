@@ -2,8 +2,10 @@ package org.walletconnect.walletconnectv2.engine
 
 import android.app.Application
 import com.tinder.scarlet.WebSocket
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import org.json.JSONObject
 import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposedPermissions
@@ -21,7 +23,7 @@ import org.walletconnect.walletconnectv2.crypto.codec.AuthenticatedEncryptionCod
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
 import org.walletconnect.walletconnectv2.engine.model.EngineData
-import org.walletconnect.walletconnectv2.engine.sequence.*
+import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycleEvent
 import org.walletconnect.walletconnectv2.errors.NoSessionProposalException
 import org.walletconnect.walletconnectv2.errors.NoSessionRequestPayloadException
 import org.walletconnect.walletconnectv2.errors.exception
@@ -32,11 +34,11 @@ import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_PAI
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_SESSION_DELETE
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_SESSION_PAYLOAD
 import org.walletconnect.walletconnectv2.scope
+import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.util.generateId
-import timber.log.Timber
 import java.util.*
 
-class EngineInteractor {
+internal class EngineInteractor {
     //region provide with DI
     // TODO: add logic to check hostName for ws/wss scheme with and without ://
     private lateinit var relayRepository: WakuRelayRepository
@@ -48,19 +50,27 @@ class EngineInteractor {
     private val _sequenceEvent: MutableStateFlow<SequenceLifecycleEvent> = MutableStateFlow(SequenceLifecycleEvent.Default)
     val sequenceEvent: StateFlow<SequenceLifecycleEvent> = _sequenceEvent
 
+    private var isConnected = MutableStateFlow(false) // TODO: Maybe replace with an enum
+
     fun initialize(engine: EngineFactory) {
         this.metaData = engine.metaData
         relayRepository = WakuRelayRepository.initRemote(engine.toRelayInitParams())
 
         scope.launch(exceptionHandler) {
             relayRepository.eventsFlow
-                .onEach { Timber.tag("WalletConnect connection event").d("$it") }
+                .onEach { websocketEvent: WebSocket.Event ->
+                    Logger.log("$websocketEvent")
+
+                    if (websocketEvent is WebSocket.Event.OnConnectionOpened<*>) {
+                        isConnected.compareAndSet(expect = false, update = true)
+                    }
+                }
                 .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
                 .collect { event -> throw event.throwable.exception }
         }
 
         scope.launch(exceptionHandler) {
-            relayRepository.subscriptionRequest().collect { relayRequest ->
+            relayRepository.subscriptionRequest.collect { relayRequest ->
                 val topic: Topic = relayRequest.subscriptionTopic
                 val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
                 val json: String = codec.decrypt(relayRequest.encryptionPayload, sharedKey)
@@ -76,12 +86,11 @@ class EngineInteractor {
 
     fun pair(uri: String) {
         require(::relayRepository.isInitialized)
+
         val pairingProposal = uri.toPairProposal()
         val selfPublicKey = crypto.generateKeyPair()
-        val expiry =
-            Expiry((Calendar.getInstance().timeInMillis / 1000) + pairingProposal.ttl.seconds)
-        val peerPublicKey =
-            PublicKey(pairingProposal.pairingProposer.publicKey)
+        val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + pairingProposal.ttl.seconds)
+        val peerPublicKey = PublicKey(pairingProposal.pairingProposer.publicKey)
 
         val controllerPublicKey = if (pairingProposal.pairingProposer.controller) {
             peerPublicKey
@@ -105,12 +114,21 @@ class EngineInteractor {
                 selfPublicKey
             )
 
-        relayRepository.subscribe(settledSequence.settledTopic)
-        relayRepository.publishPairingApproval(pairingProposal.topic, preSettlementPairingApprove)
+        isConnected
+            .filter { it }  // TODO: Update once enum is in place
+            .onEach {
+                supervisorScope {
+                    relayRepository.subscribe(settledSequence.settledTopic)
+                    relayRepository.publishPairingApproval(pairingProposal.topic, preSettlementPairingApprove)
+                    cancel()
+                }
+            }
+            .launchIn(scope)
     }
 
     internal fun approve(proposal: EngineData.SessionProposal, accounts: List<String>) {
         require(::relayRepository.isInitialized)
+
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val peerPublicKey = PublicKey(proposal.proposerPublicKey)
         val sessionState = SessionState(accounts)
@@ -151,6 +169,7 @@ class EngineInteractor {
 
     fun reject(reason: String, topic: String) {
         require(::relayRepository.isInitialized)
+
         val sessionReject = PreSettlementSession.Reject(
             id = generateId(),
             params = Session.Failure(reason = reason)
@@ -158,11 +177,13 @@ class EngineInteractor {
         val json: String = relayRepository.getSessionRejectionJson(sessionReject)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey, selfPublic)
+
         relayRepository.publish(Topic(topic), encryptedMessage)
     }
 
     fun disconnect(topic: String, reason: String) {
         require(::relayRepository.isInitialized)
+
         val sessionDelete = PostSettlementSession.SessionDelete(id = generateId(), params = Session.DeleteParams(Reason(message = reason)))
         val json = relayRepository.getSessionDeleteJson(sessionDelete)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
@@ -200,7 +221,7 @@ class EngineInteractor {
     }
 
     private fun onUnsupported(rpc: String?) {
-        Timber.tag("WalletConnect unsupported RPC").e(rpc)
+        Logger.error(rpc)
     }
 
     private fun settlePairingSequence(
@@ -230,6 +251,7 @@ class EngineInteractor {
         sessionState: SessionState
     ): SettledSessionSequence {
         val (sharedKey, topic) = crypto.generateTopicAndSharedKey(selfPublicKey, peerPublicKey)
+
         return SettledSessionSequence(
             topic,
             relay,
@@ -241,7 +263,7 @@ class EngineInteractor {
         )
     }
 
-    data class EngineFactory(
+    class EngineFactory(
         val useTLs: Boolean = false,
         val hostName: String,
         val apiKey: String,

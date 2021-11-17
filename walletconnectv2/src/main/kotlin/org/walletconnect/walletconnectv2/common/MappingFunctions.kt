@@ -14,7 +14,7 @@ import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import org.walletconnect.walletconnectv2.engine.model.EngineData
-import org.walletconnect.walletconnectv2.relay.data.init.RelayInitParams
+import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import java.net.URI
 import kotlin.time.Duration
@@ -42,7 +42,8 @@ internal fun String.toPairProposal(): Pairing.Proposal {
 
 internal fun Pairing.Proposal.toPairingSuccess(settleTopic: Topic, expiry: Expiry, selfPublicKey: PublicKey): Pairing.Success {
     return Pairing.Success(
-        settledTopic = settleTopic, relay = relay,
+        settledTopic = settleTopic,
+        relay = relay,
         responder = PairingParticipant(publicKey = selfPublicKey.keyAsHex),
         expiry = expiry,
         state = PairingState(null)
@@ -81,8 +82,8 @@ internal fun Session.Proposal.toSessionProposal(): EngineData.SessionProposal {
     )
 }
 
-internal fun EngineInteractor.EngineFactory.toRelayInitParams(): RelayInitParams =
-    RelayInitParams(useTLs, hostName, apiKey, application)
+internal fun EngineInteractor.EngineFactory.toRelayInitParams(): WakuRelayRepository.RelayFactory =
+    WakuRelayRepository.RelayFactory(useTLs, hostName, apiKey, application)
 
 internal fun EngineData.SessionProposal.toClientSessionProposal(): WalletConnectClientData.SessionProposal =
     WalletConnectClientData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl)

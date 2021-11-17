@@ -57,7 +57,7 @@ internal class RelayTest {
     private lateinit var serverEventObserver: TestStreamObserver<WebSocket.Event>
 
     private lateinit var client: RelayService
-    private lateinit var clientEventObserver: TestStreamObserver<WebSocket.Event>
+//    private lateinit var clientEventObserver: TestStreamObserver<WebSocket.Event>
 
     @BeforeEach
     fun setUp() {
@@ -104,10 +104,10 @@ internal class RelayTest {
             server.sendPublishAcknowledgement(relayPublishAcknowledgement)
 
             // Assert
-            clientEventObserver.awaitValues(
-                any<WebSocket.Event.OnConnectionOpened<*>>(),
-                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relayPublishAcknowledgement)
-            )
+//            clientEventObserver.awaitValues(
+//                any<WebSocket.Event.OnConnectionOpened<*>>(),
+//                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relayPublishAcknowledgement)
+//            )
 
             coroutineRule.runTest {
                 val actualPublishAcknowledgement = clientRelayPublishObserver.singleOrNull()
@@ -155,10 +155,10 @@ internal class RelayTest {
             server.sendSubscribeAcknowledgement(relaySubscribeAcknowledgement)
 
             // Assert
-            clientEventObserver.awaitValues(
-                any<WebSocket.Event.OnConnectionOpened<*>>(),
-                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relaySubscribeAcknowledgement)
-            )
+//            clientEventObserver.awaitValues(
+//                any<WebSocket.Event.OnConnectionOpened<*>>(),
+//                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relaySubscribeAcknowledgement)
+//            )
 
             coroutineRule.runTest {
                 val actualSubscribeAcknowledgement = clientRelaySubscribeObserver.singleOrNull()
@@ -214,10 +214,10 @@ internal class RelayTest {
             server.sendSubscriptionRequest(relaySubscriptionRequest)
 
             // Assert
-            clientEventObserver.awaitValues(
-                any<WebSocket.Event.OnConnectionOpened<*>>(),
-                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relaySubscriptionRequest)
-            )
+//            clientEventObserver.awaitValues(
+//                any<WebSocket.Event.OnConnectionOpened<*>>(),
+//                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relaySubscriptionRequest)
+//            )
 
             coroutineRule.runTest {
                 val actualRelaySubscriptionRequest = clientRelaySubscriptionObserver.singleOrNull()
@@ -288,10 +288,10 @@ internal class RelayTest {
             server.sendUnsubscribeAcknowledgement(relayUnsubscribeAcknowledgement)
 
             // Assert
-            clientEventObserver.awaitValues(
-                any<WebSocket.Event.OnConnectionOpened<*>>(),
-                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relayUnsubscribeAcknowledgement)
-            )
+//            clientEventObserver.awaitValues(
+//                any<WebSocket.Event.OnConnectionOpened<*>>(),
+//                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relayUnsubscribeAcknowledgement)
+//            )
 
             coroutineRule.runTest {
                 val actualSubscribeAcknowledgement = clientRelayUnsubscribeObserver.singleOrNull()
@@ -323,7 +323,7 @@ internal class RelayTest {
         server = createServer()
         serverEventObserver = server.observeEvents().test()
         client = createClient()
-        clientEventObserver = client.observeEvents().test()
+//        clientEventObserver = client.observeEvents().test()
     }
 
     private fun createServer(): MockServerService = Scarlet.Builder()
@@ -350,9 +350,9 @@ internal class RelayTest {
         serverEventObserver.awaitValues(
             any<WebSocket.Event.OnConnectionOpened<*>>()
         )
-        clientEventObserver.awaitValues(
-            any<WebSocket.Event.OnConnectionOpened<*>>()
-        )
+//        clientEventObserver.awaitValues(
+//            any<WebSocket.Event.OnConnectionOpened<*>>()
+//        )
     }
 
     internal interface MockServerService {

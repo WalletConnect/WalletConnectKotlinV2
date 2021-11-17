@@ -7,14 +7,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.walletconnect.walletconnectv2.crypto.KeyChain
-import timber.log.Timber
+import org.walletconnect.walletconnectv2.util.Logger
 
 //TODO add job cancellation to avoid memory leaks
 private val job = SupervisorJob()
 internal val scope = CoroutineScope(job + Dispatchers.IO)
 
 internal val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-    Timber.tag("WalletConnect exception").e(exception)
+    Logger.error(exception)
 }
 
 //TODO provide with DI
