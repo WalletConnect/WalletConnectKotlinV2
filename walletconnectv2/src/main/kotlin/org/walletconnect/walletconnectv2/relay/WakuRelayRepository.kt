@@ -4,6 +4,7 @@ import android.app.Application
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tinder.scarlet.Scarlet
+import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.utils.getRawType
@@ -61,7 +62,7 @@ class WakuRelayRepository internal constructor(
         Scarlet.Builder()
             .backoffStrategy(LinearBackoffStrategy(TimeUnit.MINUTES.toMillis(DEFAULT_BACKOFF_MINUTES)))
             .webSocketFactory(okHttpClient.newWebSocketFactory(getServerUrl()))
-//            .lifecycle(AndroidLifecycle.ofApplicationForeground(application)) // TODO: Maybe have debug version of scarlet w/o application and release version of scarlet w/ application once DI is setup
+            .lifecycle(AndroidLifecycle.ofApplicationForeground(application)) // TODO: Maybe have debug version of scarlet w/o application and release version of scarlet w/ application once DI is setup
             .addMessageAdapterFactory(MoshiMessageAdapter.Factory(moshi))
             .addStreamAdapterFactory(FlowStreamAdapter.Factory())
             .build()

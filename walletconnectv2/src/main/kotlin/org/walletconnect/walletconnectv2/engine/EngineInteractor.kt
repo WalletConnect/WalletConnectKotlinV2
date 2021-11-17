@@ -58,10 +58,10 @@ internal class EngineInteractor {
 
         scope.launch(exceptionHandler) {
             relayRepository.eventsFlow
-                .onEach {
-                    Logger.log("$it")
+                .onEach { websocketEvent: WebSocket.Event ->
+                    Logger.log("$websocketEvent")
 
-                    if (it is WebSocket.Event.OnConnectionOpened<*>) {
+                    if (websocketEvent is WebSocket.Event.OnConnectionOpened<*>) {
                         isConnected.compareAndSet(expect = false, update = true)
                     }
                 }
