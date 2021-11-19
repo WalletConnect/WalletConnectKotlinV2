@@ -17,6 +17,9 @@ interface RelayService {
     @Receive
     fun observePublishAcknowledgement(): Flow<Relay.Publish.Acknowledgement>
 
+    @Receive
+    fun observePublishError(): Flow<Relay.Publish.JsonRpcError>
+
     @Send
     fun subscribeRequest(subscribeRequest: Relay.Subscribe.Request)
 
@@ -24,17 +27,20 @@ interface RelayService {
     fun observeSubscribeAcknowledgement(): Flow<Relay.Subscribe.Acknowledgement>
 
     @Receive
+    fun observeSubscribeError(): Flow<Relay.Subscribe.JsonRpcError>
+
+    @Receive
     fun observeSubscriptionRequest(): Flow<Relay.Subscription.Request>
 
     @Send
-    fun publishSubscriptionAcknowledgment(publishRequest: Relay.Subscription.Acknowledgement)
-
-    @Send
-    fun subscriptionAcknowledgement(subscriptionAcknowledgement: Relay.Subscription.Acknowledgement)
+    fun publishSubscriptionAcknowledgement(publishRequest: Relay.Subscription.Acknowledgement)
 
     @Send
     fun unsubscribeRequest(unsubscribeRequest: Relay.Unsubscribe.Request)
 
     @Receive
     fun observeUnsubscribeAcknowledgement(): Flow<Relay.Unsubscribe.Acknowledgement>
+
+    @Receive
+    fun observeUnsubscribeError(): Flow<Relay.Unsubscribe.JsonRpcError>
 }
