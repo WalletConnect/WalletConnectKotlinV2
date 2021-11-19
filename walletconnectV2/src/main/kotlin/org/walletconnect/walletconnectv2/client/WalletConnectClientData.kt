@@ -1,9 +1,9 @@
 package org.walletconnect.walletconnectv2.client
 
-import com.squareup.moshi.JsonDataException
-import com.squareup.moshi.Moshi
+import com.squareup.moshi.*
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import java.net.URI
+import kotlin.reflect.typeOf
 
 sealed class WalletConnectClientData {
 
@@ -23,22 +23,29 @@ sealed class WalletConnectClientData {
 
     data class SessionRequest(
         val topic: String,
-        val request: String,
+        val requestStringified: String,
         val chainId: String?,
         val method: String
     ) {
-        inline fun <reified T> decode(): T? {
-            return Moshi.Builder()
-                .add(KotlinJsonAdapterFactory())
-                .build()
-                .adapter(T::class.java)
-                .lenient()
-                .fromJson(request)
-        //try {
-//            } catch (exception: JsonDataException) {
-//                null
+//        @ExperimentalStdlibApi
+//        inline fun <reified T> decode(): T? {
+//            val test = listOf<Any>()
+//            val tes2 = listOf<Object>()
+//
+//            if (typeOf<T>().classifier == List::class) {
+//                return Moshi.Builder()
+//                    .add(KotlinJsonAdapterFactory())
+//                    .build()
+//                    .adapter<T>(Types.newParameterizedType(List::class.java, subtypeOf<T>().rawType))
+//                    .fromJson(requestStringified)
 //            }
-        }
+//            return Moshi.Builder()
+//                .add(KotlinJsonAdapterFactory())
+//                .build()
+//                .adapter(T::class.java)
+//                .lenient()
+//                .fromJson(requestStringified)
+//        }
     }
 
     data class SettledSession(

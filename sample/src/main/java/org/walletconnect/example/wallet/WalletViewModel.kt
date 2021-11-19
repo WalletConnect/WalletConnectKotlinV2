@@ -1,13 +1,10 @@
 package org.walletconnect.example.wallet
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import org.walletconnect.example.payloads.EthSendTransaction
-import org.walletconnect.example.payloads.EthSign
 import org.walletconnect.example.wallet.ui.*
 import org.walletconnect.walletconnectv2.WalletConnectClient
 import org.walletconnect.walletconnectv2.client.*
@@ -67,14 +64,7 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
     }
 
     override fun onSessionRequest(request: WalletConnectClientData.SessionRequest) {
-        Log.e("Talha", request.toString())
-        Log.e("Talha", request.decode<EthSign>().toString())
-
-        val decoded = when(request.method) {
-            "eth_sign" -> request.decode<EthSign>()
-            "eth_sendTransaction" -> request.decode<EthSendTransaction>()
-            else -> null
-        }
+        request.requestStringified
         //TODO handle session request generic object
     }
 
