@@ -19,7 +19,7 @@ class PairingIntegrationAndroidTest {
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:6fbac9a32042957b0791128874655ac5c2db64016c293b29e77484fe5d868d6a@2?controller=false&publicKey=23010bc280c5fadada0fd93f012e2c1aa0797bcf348b15a74d56b56d3ddec700&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:1420bdd67db1c9da97e976a85dcca60cbc2cc2f7566c3851fbd2fa07d2f4587e@2?controller=false&publicKey=3e21974849ebf1f95274679e7f5a3ab5fc607ae921a0dffd756ce634d9b65b5b&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
             val listener = object : WalletConnectClientListener {
                 override fun onSessionProposal(proposal: WalletConnectClientData.SessionProposal) {
