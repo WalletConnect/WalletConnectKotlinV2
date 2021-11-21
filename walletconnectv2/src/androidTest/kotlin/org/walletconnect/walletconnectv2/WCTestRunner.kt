@@ -3,6 +3,7 @@ package org.walletconnect.walletconnectv2
 import android.app.Application
 import android.content.Context
 import androidx.test.runner.AndroidJUnitRunner
+import org.walletconnect.walletconnectv2.utils.IntegrationTestApplication
 
 class WCTestRunner: AndroidJUnitRunner() {
 

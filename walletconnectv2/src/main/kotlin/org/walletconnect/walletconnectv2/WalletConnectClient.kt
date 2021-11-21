@@ -3,7 +3,9 @@ package org.walletconnect.walletconnectv2
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.walletconnect.walletconnectv2.client.ClientTypes
+import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
+import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
 import org.walletconnect.walletconnectv2.common.toClientSessionProposal
 import org.walletconnect.walletconnectv2.common.toClientSessionRequest
 import org.walletconnect.walletconnectv2.common.toClientSettledSession
@@ -13,21 +15,6 @@ import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycleEvent
 
 object WalletConnectClient {
     private val engineInteractor = EngineInteractor()
-    private var listener: WalletConnectClientListener? = null
-
-    init {
-        scope.launch {
-            engineInteractor.sequenceEvent.collect { event ->
-                when (event) {
-                    is SequenceLifecycleEvent.OnSessionProposal -> listener?.onSessionProposal(event.proposal.toClientSessionProposal())
-                    is SequenceLifecycleEvent.OnSessionSettled -> listener?.onSettledSession(event.session.toClientSettledSession())
-                    is SequenceLifecycleEvent.OnSessionRequest -> listener?.onSessionRequest(event.request.toClientSessionRequest())
-                    is SequenceLifecycleEvent.OnSessionDeleted -> listener?.onSessionDelete(event.topic, event.reason)
-                    else -> SequenceLifecycleEvent.Unsupported
-                }
-            }
-        }
-    }
 
     fun initialize(initialParams: ClientTypes.InitialParams) = with(initialParams) {
         // TODO: pass properties to DI framework
@@ -35,24 +22,63 @@ object WalletConnectClient {
         engineInteractor.initialize(engineFactory)
     }
 
-    fun pair(pairingParams: ClientTypes.PairParams, listener: WalletConnectClientListener) {
-        this.listener = listener
-        //todo handle JsonRpc response
-        scope.launch { engineInteractor.pair(pairingParams.uri) }
+    fun setWalletConnectListener(walletConnectListener: WalletConnectClientListener) {
+        scope.launch {
+            engineInteractor.sequenceEvent.collect { event ->
+                when (event) {
+                    is SequenceLifecycleEvent.OnSessionProposal -> walletConnectListener.onSessionProposal(event.proposal.toClientSessionProposal())
+                    is SequenceLifecycleEvent.OnSessionRequest -> walletConnectListener.onSessionRequest(event.request.toClientSessionRequest())
+                    is SequenceLifecycleEvent.OnSessionDeleted -> walletConnectListener.onSessionDelete(event.topic, event.reason)
+                }
+            }
+        }
     }
 
-    fun approve(approveParams: ClientTypes.ApproveParams) = with(approveParams) {
-        //todo handle JsonRpc response
-        engineInteractor.approve(proposal.toEngineSessionProposal(), accounts)
+    fun pair(
+        pairingParams: ClientTypes.PairParams,
+        listener: WalletConnectClientListeners.Pairing
+    ) {
+        engineInteractor.pair(pairingParams.uri) { result ->
+            result.fold(
+                onSuccess = { topic -> listener.onSuccess(WalletConnectClientData.SettledPairing(topic)) },
+                onFailure = { error -> listener.onError(error) }
+            )
+        }
     }
 
-    fun reject(rejectParams: ClientTypes.RejectParams) = with(rejectParams) {
-        //todo handle JsonRpc response
-        engineInteractor.reject(rejectionReason, proposalTopic)
+    fun approve(
+        approveParams: ClientTypes.ApproveParams,
+        listener: WalletConnectClientListeners.SessionApprove
+    ) = with(approveParams) {
+        engineInteractor.approve(proposal.toEngineSessionProposal(), accounts) { result ->
+            result.fold(
+                onSuccess = { settledSession -> listener.onSuccess(settledSession.toClientSettledSession()) },
+                onFailure = { error -> listener.onError(error) }
+            )
+        }
     }
 
-    fun disconnect(disconnectParams: ClientTypes.DisconnectParams) = with(disconnectParams) {
-        //todo handle JsonRpc response
-        engineInteractor.disconnect(topic, reason)
+    fun reject(
+        rejectParams: ClientTypes.RejectParams,
+        listener: WalletConnectClientListeners.SessionReject
+    ) = with(rejectParams) {
+        engineInteractor.reject(rejectionReason, proposalTopic) { result ->
+            result.fold(
+                onSuccess = { topic -> listener.onSuccess(WalletConnectClientData.RejectedSession(topic)) },
+                onFailure = { error -> listener.onError(error) }
+            )
+        }
+    }
+
+    fun disconnect(
+        disconnectParams: ClientTypes.DisconnectParams,
+        listener: WalletConnectClientListeners.SessionDelete
+    ) = with(disconnectParams) {
+        engineInteractor.disconnect(topic, reason) { result ->
+            result.fold(
+                onSuccess = { topic -> listener.onSuccess(WalletConnectClientData.DeletedSession(topic)) },
+                onFailure = { error -> listener.onError(error) }
+            )
+        }
     }
 }

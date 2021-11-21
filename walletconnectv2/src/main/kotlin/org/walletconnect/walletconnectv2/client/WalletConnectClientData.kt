@@ -14,7 +14,7 @@ sealed class WalletConnectClientData {
         val topic: String,
         val proposerPublicKey: String,
         val ttl: Long
-    ) {
+    ) : WalletConnectClientData() {
         val icon: String = icons.first().toString()
     }
 
@@ -23,12 +23,16 @@ sealed class WalletConnectClientData {
         val requestStringified: String,
         val chainId: String?,
         val method: String
-    )
+    ) : WalletConnectClientData()
 
     data class SettledSession(
         var icon: String? = "",
         var name: String = "",
         var uri: String = "",
         val topic: String
-    )
+    ) : WalletConnectClientData()
+
+    data class SettledPairing(val topic: String) : WalletConnectClientData()
+    data class RejectedSession(val topic: String) : WalletConnectClientData()
+    data class DeletedSession(val topic: String) : WalletConnectClientData()
 }

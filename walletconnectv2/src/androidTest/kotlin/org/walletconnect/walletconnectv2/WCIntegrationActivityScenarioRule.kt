@@ -4,6 +4,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import org.junit.Assert
 import org.junit.rules.ExternalResource
+import org.walletconnect.walletconnectv2.utils.IntegrationTestActivity
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 

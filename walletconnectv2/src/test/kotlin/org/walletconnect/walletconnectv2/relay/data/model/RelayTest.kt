@@ -236,7 +236,7 @@ internal class RelayTest {
             val serverRelaySubscriptionObserver = server.observeSubscriptionAcknowledgement().test()
 
             // Act
-            client.subscriptionAcknowledgement(relaySubscriptionAcknowledgement)
+            client.publishSubscriptionAcknowledgement(relaySubscriptionAcknowledgement)
 
             // Assert
             serverEventObserver.awaitValues(
