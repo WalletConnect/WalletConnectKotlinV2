@@ -234,4 +234,72 @@ class WalletConnectClientIntegrationAndroidTest {
             })
         }
     }
+
+    @Test
+    fun responderSessionUpdateTest() {
+        activityRule.launch {
+            val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org")
+            WalletConnectClient.initialize(initParams)
+
+            val uri =
+                "wc:84b417ed874f6b051296353a1dfae682f55c9c88ed260c6cea24d6812f522f55@2?controller=false&publicKey=09030c99774eaf7da77e195e92ff19e917c0731db4c3cd91bc685d6dd539541c&relay=%7B%22protocol%22%3A%22waku%22%7D"
+            val pairingParams = ClientTypes.PairParams(uri)
+
+
+            val listener = object : WalletConnectClientListener {
+                override fun onSessionProposal(sessionProposal: WalletConnectClientData.SessionProposal) {
+                    assert(true)
+                    val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
+                    val approveParams: ClientTypes.ApproveParams = ClientTypes.ApproveParams(sessionProposal, accounts)
+
+                    WalletConnectClient.approve(approveParams, object : WalletConnectClientListeners.SessionApprove {
+                        override fun onSuccess(settledSession: WalletConnectClientData.SettledSession) {
+
+                            val updateParams = ClientTypes.UpdateParams(
+                                settledSession.topic,
+                                WalletConnectClientData.SessionState(accounts = listOf("eip155:8001:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716"))
+                            )
+
+                            WalletConnectClient.update(updateParams, object : WalletConnectClientListeners.SessionUpdate {
+                                override fun onSuccess(updatedSession: WalletConnectClientData.UpdatedSession) {
+                                    Logger.error("Session Update Success: $updatedSession")
+                                    assert(true)
+                                    activityRule.close()
+                                }
+
+                                override fun onError(error: Throwable) {
+                                    Logger.error("Session Update Error")
+
+                                    assert(false)
+                                    activityRule.close()
+                                }
+
+                            })
+                        }
+
+                        override fun onError(error: Throwable) {
+                            assert(false)
+                            activityRule.close()
+                        }
+                    })
+                }
+
+                override fun onSessionRequest(sessionRequest: WalletConnectClientData.SessionRequest) {}
+                override fun onSessionDelete(topic: String, reason: String) {}
+            }
+
+            WalletConnectClient.setWalletConnectListener(listener)
+            WalletConnectClient.pair(pairingParams, object : WalletConnectClientListeners.Pairing {
+                override fun onSuccess(settledPairing: WalletConnectClientData.SettledPairing) {
+                    assert(true)
+                }
+
+                override fun onError(error: Throwable) {
+                    assert(false)
+                    activityRule.close()
+                }
+
+            })
+        }
+    }
 }

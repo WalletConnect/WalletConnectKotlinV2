@@ -84,6 +84,8 @@ internal class EngineInteractor {
                 val encryptionPayload = relayRequest.message.toEncryptionPayload()
                 val decryptedMessage: String = codec.decrypt(encryptionPayload, sharedKey as SharedKey)
 
+                Logger.error("Peer message: $decryptedMessage")
+
                 tryDeserialize<JsonRpcRequest>(decryptedMessage)?.let { request ->
                     when (val rpc = request.method) {
                         WC_PAIRING_PAYLOAD -> onPairingPayload(decryptedMessage, sharedKey, selfPublic as PublicKey)
@@ -227,11 +229,15 @@ internal class EngineInteractor {
     ) {
         require(::relayRepository.isInitialized)
 
-        val json = trySerialize(sessionState)
+        val sessionUpdate: PostSettlementSession.SessionUpdate =
+            PostSettlementSession.SessionUpdate(id = generateId(), params = Session.UpdateParams(SessionState(sessionState.accounts)))
+        val json = trySerialize(sessionUpdate)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
         observePublishAcknowledgement(onResult, Pair(topic, sessionState.accounts))
         observePublishError(onResult)
+
+        //TODO update the session in local storage
         relayRepository.publish(Topic(topic), encryptedMessage)
     }
 
