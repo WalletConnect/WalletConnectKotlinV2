@@ -7,6 +7,7 @@ import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
+import org.walletconnect.walletconnectv2.common.AppMetaData
 import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.utils.IntegrationTestApplication
 
@@ -238,11 +239,17 @@ class WalletConnectClientIntegrationAndroidTest {
     @Test
     fun responderSessionUpdateTest() {
         activityRule.launch {
-            val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org")
+            val metadata = AppMetaData(
+                name = "Kotlin Wallet",
+                description = "Wallet description",
+                url = "example.wallet",
+                icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media")
+            )
+            val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org", metadata = metadata)
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:84b417ed874f6b051296353a1dfae682f55c9c88ed260c6cea24d6812f522f55@2?controller=false&publicKey=09030c99774eaf7da77e195e92ff19e917c0731db4c3cd91bc685d6dd539541c&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:22e937acd12c01137205364eaf728e1d22145e00a940be897a9001016e8a2993@2?controller=false&publicKey=39ece35fea57363a1e00017d8336ecd1d9a1f28517ea041853aea2084a9ce730&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
 
 

@@ -2,7 +2,6 @@
 
 package org.walletconnect.walletconnectv2.common
 
-import com.squareup.moshi.Moshi
 import org.json.JSONObject
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
@@ -15,10 +14,8 @@ import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import org.walletconnect.walletconnectv2.engine.model.EngineData
 import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
-import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import java.net.URI
 import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
 
 internal fun String.toPairProposal(): Pairing.Proposal {
     val properUriString = if (contains("wc://")) this else replace("wc:", "wc://")
@@ -41,36 +38,24 @@ internal fun String.toPairProposal(): Pairing.Proposal {
     )
 }
 
-internal fun Pairing.Proposal.toPairingSuccess(settleTopic: Topic, expiry: Expiry, selfPublicKey: PublicKey): Pairing.Success {
-    return Pairing.Success(
+internal fun Pairing.Proposal.toPairingSuccess(settleTopic: Topic, expiry: Expiry, selfPublicKey: PublicKey): Pairing.Success =
+    Pairing.Success(
         settledTopic = settleTopic,
         relay = relay,
         responder = PairingParticipant(publicKey = selfPublicKey.keyAsHex),
         expiry = expiry,
         state = PairingState(null)
     )
-}
 
 internal fun Pairing.Proposal.toApprove(
     id: Long,
     settleTopic: Topic,
     expiry: Expiry,
-    selfPublicKey: PublicKey
+    selfPublicKey: PublicKey,
 ): PreSettlementPairing.Approve = PreSettlementPairing.Approve(id = id, params = this.toPairingSuccess(settleTopic, expiry, selfPublicKey))
 
-internal fun PreSettlementPairing.Approve.toRelayPublishRequest(
-    id: Long,
-    topic: Topic,
-    moshi: Moshi
-): Relay.Publish.Request {
-    val pairingApproveJson = moshi.adapter(PreSettlementPairing.Approve::class.java).toJson(this)
-    val hexEncodedJson = pairingApproveJson.encodeToByteArray().joinToString(separator = "") { String.format("%02X", it) }
-
-    return Relay.Publish.Request(id = id, params = Relay.Publish.Request.Params(topic = topic, message = hexEncodedJson.lowercase()))
-}
-
-internal fun Session.Proposal.toSessionProposal(): EngineData.SessionProposal {
-    return EngineData.SessionProposal(
+internal fun Session.Proposal.toSessionProposal(): EngineData.SessionProposal =
+    EngineData.SessionProposal(
         name = this.proposer.metadata?.name!!,
         description = this.proposer.metadata.description,
         url = this.proposer.metadata.url,
@@ -81,7 +66,6 @@ internal fun Session.Proposal.toSessionProposal(): EngineData.SessionProposal {
         proposerPublicKey = this.proposer.publicKey,
         ttl = this.ttl.seconds
     )
-}
 
 internal fun EngineInteractor.EngineFactory.toRelayInitParams(): WakuRelayRepository.RelayFactory =
     WakuRelayRepository.RelayFactory(useTLs, hostName, apiKey, application)

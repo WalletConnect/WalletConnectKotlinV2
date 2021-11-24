@@ -1,22 +1,12 @@
 package org.walletconnect.walletconnectv2.common
 
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import io.mockk.every
 import io.mockk.mockk
-import org.json.JSONObject
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
-import org.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposer
-import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingParticipant
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingState
-import org.walletconnect.walletconnectv2.common.network.adapters.ExpiryAdapter
-import org.walletconnect.walletconnectv2.common.network.adapters.JSONObjectAdapter
-import org.walletconnect.walletconnectv2.common.network.adapters.TopicAdapter
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.util.getRandom64ByteHexString
 import kotlin.test.assertEquals
@@ -73,28 +63,5 @@ internal class MappingFunctionsTest {
         val wcPairingApprove = pairingProposal.toApprove(randomId, settledTopic, expiry, PublicKey("0x123"))
         assertEquals(randomId, wcPairingApprove.id)
         assertEquals(pairingProposal.toPairingSuccess(settledTopic, expiry, PublicKey("0x123")), wcPairingApprove.params)
-    }
-
-    @Test
-    fun `PreSettlementPairing_Approve to RelayPublish_Request`() {
-        val moshi = Moshi.Builder()
-            .addLast(ExpiryAdapter as JsonAdapter<Expiry>)
-            .addLast(TopicAdapter as JsonAdapter<Topic>)
-            .addLast(JSONObjectAdapter as JsonAdapter<JSONObject>)
-            .addLast(KotlinJsonAdapterFactory())
-            .build()
-        val preSettlementPairingApprove = mockk<PreSettlementPairing.Approve> {
-            every { id } returns 1
-            every { jsonrpc } returns "2.0"
-            every { method } returns "wc_pairingApprove"
-            every { params } returns Pairing.Success(Topic(getRandom64ByteHexString()) /*settle topic*/, mockk(), PairingParticipant(getRandom64ByteHexString()), Expiry(100L), PairingState(null))
-        }
-
-        //TODO test failing, review
-        val relayPublishRequest = preSettlementPairingApprove.toRelayPublishRequest(1, Topic(getRandom64ByteHexString()), moshi)
-
-        assert(relayPublishRequest.params.message.isNotBlank())
-        assertFalse(relayPublishRequest.params.message.contains(" "))
-        assertFalse(relayPublishRequest.params.message.contains(","))
     }
 }

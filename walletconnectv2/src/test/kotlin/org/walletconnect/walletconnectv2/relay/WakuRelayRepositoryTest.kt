@@ -53,7 +53,7 @@ internal class WakuRelayRepositoryTest {
         )
 
         // Act
-        sut.publishPairingApproval(topic, preSettlementPairing)
+        sut.publish(topic, preSettlementPairing.toString())
 
         // Assert
         coroutineTestRule.runTest {

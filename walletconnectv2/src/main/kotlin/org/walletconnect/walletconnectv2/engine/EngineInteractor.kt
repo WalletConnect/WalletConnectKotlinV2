@@ -11,6 +11,7 @@ import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
 import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
 import org.walletconnect.walletconnectv2.clientsync.pairing.after.PostSettlementPairing
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposedPermissions
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingState
 import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.clientsync.session.SettledSessionSequence
 import org.walletconnect.walletconnectv2.clientsync.session.after.PostSettlementSession
@@ -84,7 +85,7 @@ internal class EngineInteractor {
                 val encryptionPayload = relayRequest.message.toEncryptionPayload()
                 val decryptedMessage: String = codec.decrypt(encryptionPayload, sharedKey as SharedKey)
 
-                Logger.error("Peer message: $decryptedMessage")
+                Logger.error("Kobe; Peer message: $decryptedMessage")
 
                 tryDeserialize<JsonRpcRequest>(decryptedMessage)?.let { request ->
                     when (val rpc = request.method) {
@@ -123,21 +124,41 @@ internal class EngineInteractor {
             controllerPublicKey,
             expiry
         )
-        val preSettlementPairingApprove = pairingProposal.toApprove(generateId(), settledSequence.settledTopic, expiry, selfPublicKey)
+
+        //Call when success from relay
+//        pairingUpdate(settledSequence)
 
         observePublishAcknowledgement(onResult, settledSequence.settledTopic.topicValue)
         observePublishError(onResult)
 
+
+        val preSettlementPairingApprove = pairingProposal.toApprove(generateId(), settledSequence.settledTopic, expiry, selfPublicKey)
+        //move to codec
+        val encodedMessage =
+            trySerialize(preSettlementPairingApprove)
+                .encodeToByteArray()
+                .joinToString(separator = "") { bytes -> String.format("%02X", bytes) }
+
         isConnected
-            .filter { it }  // TODO: Update once enum is in place
+            .filter { isOnline -> isOnline }  // TODO: Update once enum is in place
             .onEach {
                 supervisorScope {
                     relayRepository.subscribe(settledSequence.settledTopic)
-                    relayRepository.publishPairingApproval(pairingProposal.topic, preSettlementPairingApprove)
+                    relayRepository.publish(pairingProposal.topic, encodedMessage)
                     cancel()
                 }
             }
             .launchIn(scope)
+    }
+
+    private fun pairingUpdate(settledSequence: SettledPairingSequence) {
+        val pairingUpdate: PostSettlementPairing.PairingUpdate =
+            PostSettlementPairing.PairingUpdate(id = generateId(), params = Pairing.UpdateParams(state = PairingState(metaData)))
+
+        val json: String = trySerialize(pairingUpdate)
+        val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(settledSequence.settledTopic.topicValue))
+        val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
+        relayRepository.publish(settledSequence.settledTopic, encryptedMessage)
     }
 
     internal fun approve(

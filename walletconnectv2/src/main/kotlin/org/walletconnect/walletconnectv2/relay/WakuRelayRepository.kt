@@ -3,27 +3,18 @@ package org.walletconnect.walletconnectv2.relay
 import android.app.Application
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.WebSocket
-import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.supervisorScope
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import org.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing
 import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
-import org.walletconnect.walletconnectv2.common.toRelayPublishRequest
 import org.walletconnect.walletconnectv2.moshi
 import org.walletconnect.walletconnectv2.relay.data.RelayService
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import org.walletconnect.walletconnectv2.scope
-import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.util.adapters.FlowStreamAdapter
 import org.walletconnect.walletconnectv2.util.generateId
 import java.util.concurrent.TimeUnit
@@ -63,11 +54,6 @@ class WakuRelayRepository internal constructor(
     internal val subscriptionRequest: Flow<Relay.Subscription.Request> =
         relay.observeSubscriptionRequest()
             .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
-
-    fun publishPairingApproval(topic: Topic, preSettlementPairingApproval: PreSettlementPairing.Approve) {
-        val publishRequest = preSettlementPairingApproval.toRelayPublishRequest(generateId(), topic, moshi)
-        relay.publishRequest(publishRequest)
-    }
 
     fun publish(topic: Topic, message: String) {
         val publishRequest =
