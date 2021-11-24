@@ -7,6 +7,7 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -19,6 +20,7 @@ import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.Ttl
 import org.walletconnect.walletconnectv2.common.network.adapters.*
+import org.walletconnect.walletconnectv2.engine.model.EngineData
 import org.walletconnect.walletconnectv2.util.Logger
 
 //TODO add job cancellation to avoid memory leaks
@@ -29,6 +31,11 @@ internal val scope = CoroutineScope(job + Dispatchers.IO)
 internal val exceptionHandler = CoroutineExceptionHandler { _, exception ->
     Logger.error(exception)
 }
+
+private val polymorphicJsonAdapterFactory: PolymorphicJsonAdapterFactory<EngineData.JsonRpcResponse> =
+    PolymorphicJsonAdapterFactory.of(EngineData.JsonRpcResponse::class.java, "type")
+        .withSubtype(EngineData.JsonRpcResponse.JsonRpcResult::class.java, "result")
+        .withSubtype(EngineData.JsonRpcResponse.JsonRpcError::class.java, "error")
 
 //TODO move to the DI framework
 val moshi: Moshi = Moshi.Builder()
@@ -43,6 +50,7 @@ val moshi: Moshi = Moshi.Builder()
         }
     }
     .addLast(KotlinJsonAdapterFactory())
+    .add(polymorphicJsonAdapterFactory)
     .build()
 
 //TODO move to the DI framework

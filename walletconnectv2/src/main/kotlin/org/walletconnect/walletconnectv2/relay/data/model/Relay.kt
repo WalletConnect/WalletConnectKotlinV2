@@ -8,8 +8,6 @@ import org.walletconnect.walletconnectv2.common.Ttl
 import org.walletconnect.walletconnectv2.common.network.adapters.SubscriptionIdAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TopicAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TtlAdapter
-import org.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
-import org.walletconnect.walletconnectv2.util.toEncryptionPayload
 
 sealed class Relay {
     abstract val id: Long

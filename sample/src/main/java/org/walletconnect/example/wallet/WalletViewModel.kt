@@ -14,6 +14,7 @@ import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
+import org.walletconnect.walletconnectv2.util.Logger
 
 class WalletViewModel : ViewModel(), WalletConnectClientListener {
     private var _eventFlow = MutableSharedFlow<WalletUiEvent>()
@@ -87,14 +88,14 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
         })
     }
 
-    override fun onSessionProposal(proposal: WalletConnectClientData.SessionProposal) {
+    override fun onSessionProposal(sessionProposal: WalletConnectClientData.SessionProposal) {
         viewModelScope.launch {
-            this@WalletViewModel.proposal = proposal
+            this@WalletViewModel.proposal = sessionProposal
             _eventFlow.emit(ShowSessionProposalDialog(this@WalletViewModel.proposal))
         }
     }
 
-    override fun onSessionRequest(request: WalletConnectClientData.SessionRequest) {
+    override fun onSessionRequest(sessionRequest: WalletConnectClientData.SessionRequest) {
         //TODO handle session request generic object
     }
 

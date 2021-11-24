@@ -26,7 +26,7 @@ import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.crypto.data.SharedKey
 import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
 import org.walletconnect.walletconnectv2.engine.model.EngineData
-import org.walletconnect.walletconnectv2.engine.sequence.*
+import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycleEvent
 import org.walletconnect.walletconnectv2.engine.serailising.tryDeserialize
 import org.walletconnect.walletconnectv2.engine.serailising.trySerialize
 import org.walletconnect.walletconnectv2.errors.NoSessionDeletePayloadException
@@ -38,8 +38,8 @@ import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_PAIRING_PAYLOAD
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_SESSION_DELETE
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_SESSION_PAYLOAD
-import org.walletconnect.walletconnectv2.relay.data.model.JsonRpcRequest
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
+import org.walletconnect.walletconnectv2.relay.data.model.jsonrpc.JsonRpcRequest
 import org.walletconnect.walletconnectv2.scope
 import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.util.generateId
@@ -205,6 +205,17 @@ internal class EngineInteractor {
         relayRepository.publish(Topic(topic), encryptedMessage)
     }
 
+    internal fun respondSessionPayload(topic: String, jsonRpcResponse: EngineData.JsonRpcResponse, onResult: (Result<String>) -> Unit) {
+        require(::relayRepository.isInitialized)
+
+        val json = trySerialize(jsonRpcResponse)
+        val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
+        val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
+        observePublishAcknowledgement(onResult, topic)
+        observePublishError(onResult)
+        relayRepository.publish(Topic(topic), encryptedMessage)
+    }
+
     private fun <T> observePublishError(onResult: (Result<T>) -> Unit) {
         scope.launch {
             relayRepository.observePublishResponseError
@@ -244,12 +255,19 @@ internal class EngineInteractor {
 
     private fun onSessionPayload(json: String, topic: Topic) {
         tryDeserialize<PostSettlementSession.SessionPayload>(json)?.let { sessionPayload ->
-            val request = sessionPayload.sessionParams
+            //TODO Validate session request + add unmarshaling of generic session request payload to the usable generic object
+            val params = sessionPayload.sessionParams
             val chainId = sessionPayload.params.chainId
             val method = sessionPayload.params.request.method
-            //TODO Validate session request + add unmarshaling of generic session request payload to the usable generic object
             _sequenceEvent.value =
-                SequenceLifecycleEvent.OnSessionRequest(EngineData.SessionRequest(topic.topicValue, request, chainId, method))
+                SequenceLifecycleEvent.OnSessionRequest(
+                    EngineData.SessionRequest(
+                        topic.topicValue,
+                        chainId,
+                        EngineData.JSONRPCRequest(sessionPayload.id, method, params)
+                    )
+                )
+
         } ?: throw NoSessionRequestPayloadException()
     }
 

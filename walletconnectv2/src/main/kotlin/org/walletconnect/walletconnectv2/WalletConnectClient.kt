@@ -6,15 +6,13 @@ import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
-import org.walletconnect.walletconnectv2.common.toClientSessionProposal
-import org.walletconnect.walletconnectv2.common.toClientSessionRequest
-import org.walletconnect.walletconnectv2.common.toClientSettledSession
-import org.walletconnect.walletconnectv2.common.toEngineSessionProposal
+import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycleEvent
 
 object WalletConnectClient {
     private val engineInteractor = EngineInteractor()
+
 
     fun initialize(initialParams: ClientTypes.InitialParams) = with(initialParams) {
         // TODO: pass properties to DI framework
@@ -75,9 +73,25 @@ object WalletConnectClient {
         disconnectParams: ClientTypes.DisconnectParams,
         listener: WalletConnectClientListeners.SessionDelete
     ) = with(disconnectParams) {
-        engineInteractor.disconnect(topic, reason) { result ->
+        engineInteractor.disconnect(sessionTopic, reason) { result ->
             result.fold(
                 onSuccess = { topic -> listener.onSuccess(WalletConnectClientData.DeletedSession(topic)) },
+                onFailure = { error -> listener.onError(error) }
+            )
+        }
+    }
+
+    fun respond(
+        responseParams: ClientTypes.ResponseParams,
+        listener: WalletConnectClientListeners.SessionPayload
+    ) = with(responseParams) {
+        val jsonRpcEngineResponse = when (jsonRpcResponse) {
+            is WalletConnectClientData.JsonRpcResponse.JsonRpcResult<*> -> jsonRpcResponse.toEngineRpcResult()
+            is WalletConnectClientData.JsonRpcResponse.JsonRpcError -> jsonRpcResponse.toEngineRpcError()
+        }
+        engineInteractor.respondSessionPayload(sessionTopic, jsonRpcEngineResponse) { result ->
+            result.fold(
+                onSuccess = { topic -> listener.onSuccess(WalletConnectClientData.Response(topic)) },
                 onFailure = { error -> listener.onError(error) }
             )
         }

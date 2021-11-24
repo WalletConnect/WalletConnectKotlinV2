@@ -1,5 +1,7 @@
 package org.walletconnect.walletconnectv2.engine.model
 
+import com.squareup.moshi.JsonClass
+import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import java.net.URI
 
 sealed class EngineData {
@@ -20,9 +22,14 @@ sealed class EngineData {
 
     internal data class SessionRequest(
         val topic: String,
-        val request: Any,
         val chainId: String?,
-        val method: String
+        val request: JSONRPCRequest
+    ) : EngineData()
+
+    data class JSONRPCRequest(
+        val id: Long,
+        val method: String,
+        val params: String
     ) : EngineData()
 
     internal data class SettledSession(
@@ -31,4 +38,28 @@ sealed class EngineData {
         var uri: String,
         val topic: String
     ) : EngineData()
+
+
+    sealed class JsonRpcResponse : EngineData() {
+        abstract val id: Long
+        val jsonrpc: String = "2.0"
+
+        @JsonClass(generateAdapter = true)
+        data class JsonRpcResult(
+            override val id: Long,
+            val result: String,
+        ) : JsonRpcResponse()
+
+        @JsonClass(generateAdapter = true)
+        data class JsonRpcError(
+            override val id: Long,
+            val error: Error,
+        ) : JsonRpcResponse()
+
+        @JsonClass(generateAdapter = true)
+        data class Error(
+            val code: Long,
+            val message: String,
+        )
+    }
 }

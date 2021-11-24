@@ -96,4 +96,14 @@ internal fun EngineData.SettledSession.toClientSettledSession(): WalletConnectCl
     WalletConnectClientData.SettledSession(icon, name, uri, topic)
 
 internal fun EngineData.SessionRequest.toClientSessionRequest(): WalletConnectClientData.SessionRequest =
-    WalletConnectClientData.SessionRequest(topic, request, chainId, method)
+    WalletConnectClientData.SessionRequest(
+        topic,
+        chainId,
+        WalletConnectClientData.JSONRPCRequest(request.id, request.method, request.params)
+    )
+
+internal fun <T> WalletConnectClientData.JsonRpcResponse.JsonRpcResult<T>.toEngineRpcResult(): EngineData.JsonRpcResponse.JsonRpcResult =
+    EngineData.JsonRpcResponse.JsonRpcResult(id, result.toString())
+
+internal fun WalletConnectClientData.JsonRpcResponse.JsonRpcError.toEngineRpcError(): EngineData.JsonRpcResponse.JsonRpcError =
+    EngineData.JsonRpcResponse.JsonRpcError(id, EngineData.JsonRpcResponse.Error(error.code, error.message))

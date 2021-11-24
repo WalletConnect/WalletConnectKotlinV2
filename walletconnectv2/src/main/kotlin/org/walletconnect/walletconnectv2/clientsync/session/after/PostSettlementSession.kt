@@ -22,7 +22,7 @@ sealed class PostSettlementSession {
         @Json(name = "params")
         override val params: Session.SessionPayloadParams
     ) : PostSettlementSession() {
-        val sessionParams = params.request.params
+        val sessionParams: String = params.request.params.toString()
     }
 
     @JsonClass(generateAdapter = true)

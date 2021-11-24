@@ -16,11 +16,13 @@ sealed class ClientTypes {
 
     data class PairParams(val uri: String) : ClientTypes()
 
-    data class ApproveParams(val proposal: WalletConnectClientData.SessionProposal, val accounts: List<String>)
+    data class ApproveParams(val proposal: WalletConnectClientData.SessionProposal, val accounts: List<String>) : ClientTypes()
 
-    data class RejectParams(val rejectionReason: String, val proposalTopic: String)
+    data class RejectParams(val rejectionReason: String, val proposalTopic: String) : ClientTypes()
 
-    data class DisconnectParams(val topic: String, val reason: String) : ClientTypes()
+    data class DisconnectParams(val sessionTopic: String, val reason: String) : ClientTypes()
+
+    data class ResponseParams(val sessionTopic: String, val jsonRpcResponse: WalletConnectClientData.JsonRpcResponse) : ClientTypes()
 
     companion object {
         private const val WALLET_CONNECT_URL = "relay.walletconnect.com"
