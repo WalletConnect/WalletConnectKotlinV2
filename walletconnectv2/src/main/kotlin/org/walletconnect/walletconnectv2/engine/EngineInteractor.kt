@@ -18,7 +18,7 @@ import org.walletconnect.walletconnectv2.clientsync.session.after.params.Reason
 import org.walletconnect.walletconnectv2.clientsync.session.before.PreSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.RelayProtocolOptions
 import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionParticipant
-import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionState
+import org.walletconnect.walletconnectv2.clientsync.session.common.SessionState
 import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.crypto.CryptoManager
 import org.walletconnect.walletconnectv2.crypto.codec.AuthenticatedEncryptionCodec
@@ -138,7 +138,11 @@ internal class EngineInteractor {
             .launchIn(scope)
     }
 
-    internal fun approve(proposal: EngineData.SessionProposal, accounts: List<String>, onResult: (Result<EngineData.SettledSession>) -> Unit) {
+    internal fun approve(
+        proposal: EngineData.SessionProposal,
+        accounts: List<String>,
+        onResult: (Result<EngineData.SettledSession>) -> Unit
+    ) {
         require(::relayRepository.isInitialized)
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -174,7 +178,7 @@ internal class EngineInteractor {
         relayRepository.publish(Topic(proposal.topic), encryptedMessage)
     }
 
-  internal  fun reject(reason: String, topic: String, onResult: (Result<String>) -> Unit) {
+    internal fun reject(reason: String, topic: String, onResult: (Result<String>) -> Unit) {
         require(::relayRepository.isInitialized)
 
         val sessionReject = PreSettlementSession.Reject(id = generateId(), params = Session.Failure(reason = reason))
@@ -212,6 +216,21 @@ internal class EngineInteractor {
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
         observePublishAcknowledgement(onResult, topic)
+        observePublishError(onResult)
+        relayRepository.publish(Topic(topic), encryptedMessage)
+    }
+
+    internal fun sessionUpdate(
+        topic: String,
+        sessionState: EngineData.SessionState,
+        onResult: (Result<Pair<String, List<String>>>) -> Unit
+    ) {
+        require(::relayRepository.isInitialized)
+
+        val json = trySerialize(sessionState)
+        val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
+        val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
+        observePublishAcknowledgement(onResult, Pair(topic, sessionState.accounts))
         observePublishError(onResult)
         relayRepository.publish(Topic(topic), encryptedMessage)
     }

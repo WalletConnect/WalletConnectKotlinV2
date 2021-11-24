@@ -24,6 +24,8 @@ sealed class ClientTypes {
 
     data class ResponseParams(val sessionTopic: String, val jsonRpcResponse: WalletConnectClientData.JsonRpcResponse) : ClientTypes()
 
+    data class UpdateParams(val sessionTopic: String, val sessionState: WalletConnectClientData.SessionState) : ClientTypes()
+
     companion object {
         private const val WALLET_CONNECT_URL = "relay.walletconnect.com"
     }

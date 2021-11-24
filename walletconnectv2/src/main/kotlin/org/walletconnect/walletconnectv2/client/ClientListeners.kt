@@ -30,4 +30,8 @@ sealed interface WalletConnectClientListeners {
     interface SessionPayload : WalletConnectClientListeners {
         fun onSuccess(sessionPayloadResponse: WalletConnectClientData.Response)
     }
+
+    interface SessionUpdate : WalletConnectClientListeners {
+        fun onSuccess(updatedSession: WalletConnectClientData.UpdatedSession)
+    }
 }

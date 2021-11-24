@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.supervisorScope
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing
 import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
@@ -35,6 +36,7 @@ class WakuRelayRepository internal constructor(
 ) {
     //region Move to DI module
     private val okHttpClient = OkHttpClient.Builder()
+        .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
         .writeTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
         .readTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
         .callTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)

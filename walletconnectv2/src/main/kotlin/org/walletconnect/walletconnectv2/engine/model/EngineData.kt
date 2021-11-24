@@ -39,6 +39,7 @@ sealed class EngineData {
         val topic: String
     ) : EngineData()
 
+    data class SessionState(val accounts: List<String>) : EngineData()
 
     sealed class JsonRpcResponse : EngineData() {
         abstract val id: Long

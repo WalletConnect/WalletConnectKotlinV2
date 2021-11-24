@@ -37,6 +37,8 @@ sealed class WalletConnectClientData {
         val topic: String
     ) : WalletConnectClientData()
 
+    data class SessionState(val accounts: List<String>) : WalletConnectClientData()
+
     data class SettledPairing(val topic: String) : WalletConnectClientData()
 
     data class RejectedSession(val topic: String) : WalletConnectClientData()
@@ -45,6 +47,7 @@ sealed class WalletConnectClientData {
 
     data class Response(val topic: String) : WalletConnectClientData()
 
+    data class UpdatedSession(val topic: String, val accounts: List<String>) : WalletConnectClientData()
 
     sealed class JsonRpcResponse : WalletConnectClientData() {
         abstract val id: Long

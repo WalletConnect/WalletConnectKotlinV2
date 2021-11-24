@@ -107,3 +107,5 @@ internal fun <T> WalletConnectClientData.JsonRpcResponse.JsonRpcResult<T>.toEngi
 
 internal fun WalletConnectClientData.JsonRpcResponse.JsonRpcError.toEngineRpcError(): EngineData.JsonRpcResponse.JsonRpcError =
     EngineData.JsonRpcResponse.JsonRpcError(id, EngineData.JsonRpcResponse.Error(error.code, error.message))
+
+internal fun WalletConnectClientData.SessionState.toEngineSessionState(): EngineData.SessionState = EngineData.SessionState(accounts)

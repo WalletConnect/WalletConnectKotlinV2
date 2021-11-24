@@ -9,7 +9,7 @@ import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.Sess
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionProposer
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionSignal
 import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionParticipant
-import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionState
+import org.walletconnect.walletconnectv2.clientsync.session.common.SessionState
 import org.walletconnect.walletconnectv2.common.Expiry
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.Ttl
@@ -62,5 +62,10 @@ sealed class Session {
     class DeleteParams(
         @Json(name = "reason")
         val reason: Reason
+    ) : Session()
+
+    class UpdateParams(
+        @Json(name = "state")
+        val state: SessionState
     ) : Session()
 }

@@ -96,4 +96,16 @@ object WalletConnectClient {
             )
         }
     }
+
+    fun update(
+        updateParams: ClientTypes.UpdateParams,
+        listener: WalletConnectClientListeners.SessionUpdate
+    ) = with(updateParams) {
+        engineInteractor.sessionUpdate(sessionTopic, sessionState.toEngineSessionState()) { result ->
+            result.fold(
+                onSuccess = { (topic, accounts) -> listener.onSuccess(WalletConnectClientData.UpdatedSession(topic, accounts)) },
+                onFailure = { error -> listener.onError(error) }
+            )
+        }
+    }
 }
