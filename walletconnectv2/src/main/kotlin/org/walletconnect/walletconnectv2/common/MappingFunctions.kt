@@ -18,6 +18,7 @@ import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import java.net.URI
 import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 
 internal fun String.toPairProposal(): Pairing.Proposal {
     val properUriString = if (contains("wc://")) this else replace("wc:", "wc://")

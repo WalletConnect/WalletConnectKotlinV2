@@ -11,13 +11,14 @@ import org.walletconnect.walletconnectv2.common.toClientSessionRequest
 import org.walletconnect.walletconnectv2.common.toClientSettledSession
 import org.walletconnect.walletconnectv2.common.toEngineSessionProposal
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
-import org.walletconnect.walletconnectv2.engine.sequence.*
+import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycleEvent
 
 object WalletConnectClient {
     private val engineInteractor = EngineInteractor()
 
     fun initialize(initialParams: ClientTypes.InitialParams) = with(initialParams) {
         // TODO: pass properties to DI framework
+        app = application
         val engineFactory = EngineInteractor.EngineFactory(useTls, hostName, apiKey, isController, application, metadata)
         engineInteractor.initialize(engineFactory)
     }

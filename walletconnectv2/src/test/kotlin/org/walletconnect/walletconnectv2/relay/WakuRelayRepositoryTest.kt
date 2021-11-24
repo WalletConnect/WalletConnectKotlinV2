@@ -45,14 +45,19 @@ internal class WakuRelayRepositoryTest {
                 state = PairingState()
             )
         )
-        coEvery { sut.publishAcknowledgement } returns flowOf(Relay.Publish.Acknowledgement(id = preSettlementPairing.id, result = true))
+        coEvery { sut.observePublishAcknowledgement } returns flowOf(
+            Relay.Publish.Acknowledgement(
+                id = preSettlementPairing.id,
+                result = true
+            )
+        )
 
         // Act
         sut.publishPairingApproval(topic, preSettlementPairing)
 
         // Assert
         coroutineTestRule.runTest {
-            sut.publishAcknowledgement.collect {
+            sut.observePublishAcknowledgement.collect {
                 assertEquals(preSettlementPairing.id, it.id)
                 assertEquals(true, it.result)
             }

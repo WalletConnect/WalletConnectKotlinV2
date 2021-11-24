@@ -113,3 +113,8 @@ fun DependencyHandlerScope.timber() {
 
     "implementation"("com.jakewharton.timber:timber:$timberVersion")
 }
+
+fun DependencyHandlerScope.security() {
+    val androidSecurityVersion = "1.0.0"
+    "implementation"("androidx.security:security-crypto:$androidSecurityVersion")
+}

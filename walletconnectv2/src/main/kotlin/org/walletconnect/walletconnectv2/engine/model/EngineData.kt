@@ -4,7 +4,7 @@ import java.net.URI
 
 sealed class EngineData {
 
-    data class SessionProposal(
+    internal data class SessionProposal(
         val name: String,
         val description: String,
         val url: String,
@@ -18,14 +18,14 @@ sealed class EngineData {
         val icon: String = icons.first().toString()
     }
 
-    data class SessionRequest(
+    internal data class SessionRequest(
         val topic: String,
         val request: Any,
         val chainId: String?,
         val method: String
     ) : EngineData()
 
-    data class SettledSession(
+    internal data class SettledSession(
         var icon: String?,
         var name: String,
         var uri: String,

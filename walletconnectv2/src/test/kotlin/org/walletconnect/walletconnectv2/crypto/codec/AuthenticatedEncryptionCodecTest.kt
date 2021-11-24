@@ -12,6 +12,7 @@ import org.walletconnect.walletconnectv2.common.network.adapters.SubscriptionIdA
 import org.walletconnect.walletconnectv2.common.network.adapters.TopicAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TtlAdapter
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
+import org.walletconnect.walletconnectv2.crypto.data.SharedKey
 import org.walletconnect.walletconnectv2.util.bytesToHex
 import org.walletconnect.walletconnectv2.util.toEncryptionPayload
 import kotlin.test.assertEquals
@@ -22,25 +23,27 @@ class AuthenticatedEncryptionCodecTest {
 
     @Test
     fun `Codec AES_256_CBC and Hmac_SHA256 authentication test`() {
-        val sharedKey = "94BA14D48AAF8E0D3FA13E94A73C8745136EB7C3D7BA6232E6512A78D6624A04"
+        val sharedKey = SharedKey("94BA14D48AAF8E0D3FA13E94A73C8745136EB7C3D7BA6232E6512A78D6624A04")
         val message = "WalletConnect"
 
-        val encryptedMessage = codec.encrypt(message, sharedKey, PublicKey("12"))
+        val encryptedMessage =
+            codec.encrypt(message, sharedKey, PublicKey("355957413b1693eea042918f8f346618bfdc29e9d00f2e6bbd702bc29c3e2e4d"))
         val payload = encryptedMessage.toEncryptionPayload()
-        assertEquals(payload.publicKey, "12")
+        assertEquals(payload.publicKey, "355957413b1693eea042918f8f346618bfdc29e9d00f2e6bbd702bc29c3e2e4d")
         val text = codec.decrypt(payload, sharedKey)
         assertEquals(text, message)
     }
 
     @Test
     fun `Codec AES_256_CBC and Hmac_SHA256 invalid HMAC test`() {
-        val sharedKey1 = "94BA14D48AAF8E0D3FA13E94A73C8745136EB7C3D7BA6232E6512A78D6624A04"
-        val sharedKey2 = "95BA14D48AAF8E0D3FA13E94A73C8745136EB7C3D7BA6232E6512A78D6624A04"
+        val sharedKey1 = SharedKey("94BA14D48AAF8E0D3FA13E94A73C8745136EB7C3D7BA6232E6512A78D6624A04")
+        val sharedKey2 = SharedKey("95BA14D48AAF8E0D3FA13E94A73C8745136EB7C3D7BA6232E6512A78D6624A04")
         val message = "WalletConnect"
 
-        val encryptedMessage = codec.encrypt(message, sharedKey1, PublicKey("12"))
+        val encryptedMessage =
+            codec.encrypt(message, sharedKey1, PublicKey("355957413b1693eea042918f8f346618bfdc29e9d00f2e6bbd702bc29c3e2e4d"))
         val payload = encryptedMessage.toEncryptionPayload()
-        assertEquals(payload.publicKey, "12")
+        assertEquals(payload.publicKey, "355957413b1693eea042918f8f346618bfdc29e9d00f2e6bbd702bc29c3e2e4d")
 
         try {
             codec.decrypt(payload, sharedKey2)
@@ -53,11 +56,11 @@ class AuthenticatedEncryptionCodecTest {
     fun `get auth and hmac keys test`() {
         val sharedKey = "4b21b43b2e04dbe0105d250f5d72d5d9c28d8de202f240863e268e4ded9e9a6a"
 
-        val decryptioKey = "c237bae5d78d52a6a718202fabfaae1cdfb83dd8a54b575c2e2f3e11fb67fa8b"
+        val decryptionKey = "c237bae5d78d52a6a718202fabfaae1cdfb83dd8a54b575c2e2f3e11fb67fa8b"
         val hmac = "50e98dc7a1013c3c38f76aaa80dd7ca6c4230a866298415f308c59d4285a6f48"
-        val (decryp, auth) = codec.getKeys(sharedKey)
+        val (decrypt, auth) = codec.getKeys(sharedKey)
 
-        assertEquals(decryp.bytesToHex(), decryptioKey)
+        assertEquals(decrypt.bytesToHex(), decryptionKey)
         assertEquals(auth.bytesToHex(), hmac)
     }
 
@@ -72,7 +75,7 @@ class AuthenticatedEncryptionCodecTest {
         assertEquals(payload.publicKey.length, 64)
         assertEquals(payload.mac.length, 64)
 
-        val sharedKey = "b426d6b8b7a57930cae8870179864849d6e89f1e8e801f7ca9a50bc2384ee043"
+        val sharedKey = SharedKey("b426d6b8b7a57930cae8870179864849d6e89f1e8e801f7ca9a50bc2384ee043")
         val json = codec.decrypt(payload, sharedKey)
 
 
@@ -89,6 +92,9 @@ class AuthenticatedEncryptionCodecTest {
         val request: PostSettlementPairing.PairingPayload? =
             moshi.adapter(PostSettlementPairing.PairingPayload::class.java).fromJson(json)
 
-        assertEquals(request?.params?.request?.params?.proposer?.publicKey, "37d8c448a2241f21550329f451e8c1901e7dad5135ade604f1e106437843037f")
+        assertEquals(
+            request?.params?.request?.params?.proposer?.publicKey,
+            "37d8c448a2241f21550329f451e8c1901e7dad5135ade604f1e106437843037f"
+        )
     }
 }

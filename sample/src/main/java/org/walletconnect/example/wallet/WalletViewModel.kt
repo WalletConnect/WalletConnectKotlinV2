@@ -19,7 +19,7 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
     private var _eventFlow = MutableSharedFlow<WalletUiEvent>()
     val eventFlow = _eventFlow.asLiveData()
 
-    val settledSessions: MutableList<WalletConnectClientData.SettledSession> = mutableListOf()
+    val listOfSettledSessions: MutableList<WalletConnectClientData.SettledSession> = mutableListOf()
     private lateinit var proposal: WalletConnectClientData.SessionProposal
 
     init {
@@ -46,8 +46,8 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
 
         WalletConnectClient.approve(approveParams, object : WalletConnectClientListeners.SessionApprove {
             override fun onSuccess(settledSession: WalletConnectClientData.SettledSession) {
-                settledSessions += settledSession
-                viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(settledSessions)) }
+                listOfSettledSessions += settledSession
+                viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(listOfSettledSessions)) }
             }
 
             override fun onError(error: Throwable) {
@@ -78,7 +78,7 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
         WalletConnectClient.disconnect(disconnectParams, object : WalletConnectClientListeners.SessionDelete {
             override fun onSuccess(deletedSession: WalletConnectClientData.DeletedSession) {
                 removeSession(deletedSession.topic)
-                viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(settledSessions)) }
+                viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(listOfSettledSessions)) }
             }
 
             override fun onError(error: Throwable) {
@@ -100,10 +100,10 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
 
     override fun onSessionDelete(topic: String, reason: String) {
         removeSession(topic)
-        viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(settledSessions)) }
+        viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(listOfSettledSessions)) }
     }
 
     private fun removeSession(topic: String) {
-        settledSessions.find { session -> session.topic == topic }?.also { session -> settledSessions.remove(session) }
+        listOfSettledSessions.find { session -> session.topic == topic }?.also { session -> listOfSettledSessions.remove(session) }
     }
 }

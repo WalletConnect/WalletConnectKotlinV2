@@ -5,13 +5,14 @@ import org.walletconnect.walletconnectv2.clientsync.session.before.success.Sessi
 import org.walletconnect.walletconnectv2.common.Expiry
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
+import org.walletconnect.walletconnectv2.crypto.data.SharedKey
 
 data class SettledSessionSequence(
     val topic: Topic,
     val relay: RelayProtocolOptions,
     val selfPublicKey: PublicKey,
     val peerPublicKey: PublicKey,
-    val sharedKey: String,
+    val sharedKey: SharedKey,
     val expiry: Expiry,
     val state: SessionState
 )
