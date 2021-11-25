@@ -85,12 +85,8 @@ internal class EngineInteractor {
             relayRepository.subscriptionRequest.collect { relayRequest ->
                 val topic: Topic = relayRequest.subscriptionTopic
                 val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
-
                 val encryptionPayload = relayRequest.message.toEncryptionPayload()
                 val decryptedMessage: String = codec.decrypt(encryptionPayload, sharedKey as SharedKey)
-
-                Logger.error("Kobe; Peer message: $decryptedMessage")
-
                 //TODO get given Sequence(Pairing or Session) from local storage and validate permissions
                 tryDeserialize<JsonRpcRequest>(decryptedMessage)?.let { request ->
                     when (val rpc = request.method) {
