@@ -2,6 +2,7 @@ package org.walletconnect.walletconnectv2.engine.serailising
 
 import org.walletconnect.walletconnectv2.moshi
 
+
 inline fun <reified T> trySerialize(type: T): String =
     moshi.adapter(T::class.java).toJson(type)
 

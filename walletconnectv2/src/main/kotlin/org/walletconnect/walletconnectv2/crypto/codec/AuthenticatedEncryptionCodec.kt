@@ -3,6 +3,7 @@ package org.walletconnect.walletconnectv2.crypto.codec
 import org.walletconnect.walletconnectv2.crypto.Codec
 import org.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
+import org.walletconnect.walletconnectv2.crypto.data.SharedKey
 import org.walletconnect.walletconnectv2.util.bytesToHex
 import org.walletconnect.walletconnectv2.util.hexToBytes
 import java.security.MessageDigest
@@ -14,31 +15,24 @@ import javax.crypto.spec.SecretKeySpec
 
 class AuthenticatedEncryptionCodec : Codec {
 
-    override fun encrypt(message: String, sharedKey: String, key: PublicKey): String {
-        val (encryptionKey, authenticationKey) = getKeys(sharedKey)
+    override fun encrypt(message: String, sharedKey: SharedKey, key: PublicKey): String {
+        val (encryptionKey, authenticationKey) = getKeys(sharedKey.keyAsHex)
 
         val data = message.toByteArray(Charsets.UTF_8)
         val iv: ByteArray = randomBytes(16)
 
         val cipher: Cipher = Cipher.getInstance(CIPHER_ALGORITHM)
-        cipher.init(
-            Cipher.ENCRYPT_MODE,
-            SecretKeySpec(encryptionKey, AES_ALGORITHM),
-            IvParameterSpec(iv)
-        )
+        cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(encryptionKey, AES_ALGORITHM), IvParameterSpec(iv))
         val cipherText: ByteArray = cipher.doFinal(data)
-
-        val computedMac: String =
-            computeHmac(cipherText, iv, authenticationKey, key.keyAsHex.hexToBytes())
+        val computedMac: String = computeHmac(cipherText, iv, authenticationKey, key.keyAsHex.hexToBytes())
 
         return iv.bytesToHex() + key.keyAsHex + computedMac + cipherText.bytesToHex()
     }
 
-    override fun decrypt(payload: EncryptionPayload, sharedKey: String): String {
-        val (encryptionKey, authenticationKey) = getKeys(sharedKey)
+    override fun decrypt(payload: EncryptionPayload, sharedKey: SharedKey): String {
+        val (encryptionKey, authenticationKey) = getKeys(sharedKey.keyAsHex)
         val data = payload.cipherText.hexToBytes()
         val iv = payload.iv.hexToBytes()
-
         val computedHmac = computeHmac(data, iv, authenticationKey, payload.publicKey.hexToBytes())
 
         if (computedHmac != payload.mac.lowercase()) {
@@ -46,12 +40,7 @@ class AuthenticatedEncryptionCodec : Codec {
         }
 
         val cipher = Cipher.getInstance(CIPHER_ALGORITHM)
-        cipher.init(
-            Cipher.DECRYPT_MODE,
-            SecretKeySpec(encryptionKey, AES_ALGORITHM),
-            IvParameterSpec(iv)
-        )
-
+        cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(encryptionKey, AES_ALGORITHM), IvParameterSpec(iv))
         return String(cipher.doFinal(data), Charsets.UTF_8)
     }
 

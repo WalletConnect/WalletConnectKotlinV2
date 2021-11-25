@@ -20,11 +20,18 @@ sealed class WalletConnectClientData {
 
     data class SessionRequest(
         val topic: String,
-        val requestStringified: String,
         val chainId: String?,
-        val method: String
-    ) : WalletConnectClientData()
+        val request: JSONRPCRequest
+    ) : WalletConnectClientData() {
 
+        data class JSONRPCRequest(
+            val id: Long,
+            val method: String,
+            val params: String
+        ) : WalletConnectClientData()
+    }
+
+    // Review if we need defaults
     data class SettledSession(
         var icon: String? = "",
         var name: String = "",
@@ -33,6 +40,30 @@ sealed class WalletConnectClientData {
     ) : WalletConnectClientData()
 
     data class SettledPairing(val topic: String) : WalletConnectClientData()
+
     data class RejectedSession(val topic: String) : WalletConnectClientData()
+
     data class DeletedSession(val topic: String) : WalletConnectClientData()
+
+    data class Response(val topic: String) : WalletConnectClientData()
+
+    sealed class JsonRpcResponse : WalletConnectClientData() {
+        abstract val id: Long
+        val jsonrpc: String = "2.0"
+
+        data class JsonRpcResult<T>(
+            override val id: Long,
+            val result: T,
+        ) : JsonRpcResponse()
+
+        data class JsonRpcError(
+            override val id: Long,
+            val error: Error,
+        ) : JsonRpcResponse()
+
+        data class Error(
+            val code: Long,
+            val message: String,
+        )
+    }
 }

@@ -22,8 +22,8 @@ class WalletFragment : Fragment(R.layout.wallet_fragment) {
         binding = WalletFragmentBinding.bind(view)
         setupToolbar()
         binding.sessions.adapter = sessionAdapter
-        sessionAdapter.updateList(viewModel.settledSessions)
-        viewModel.eventFlow.observe(viewLifecycleOwner, { event ->
+        sessionAdapter.updateList(viewModel.listOfSettledSessions)
+        viewModel.eventFlow.observe(viewLifecycleOwner) { event ->
             when (event) {
                 is ShowSessionProposalDialog -> {
                     proposalDialog = SessionProposalDialog(
@@ -40,7 +40,7 @@ class WalletFragment : Fragment(R.layout.wallet_fragment) {
                 }
                 is RejectSession -> proposalDialog?.dismiss()
             }
-        })
+        }
     }
 
     private fun setupToolbar() {

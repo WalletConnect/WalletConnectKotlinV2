@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "org.walletconnect.sdk"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 30
         versionCode = 1
         versionName = "1.0"
