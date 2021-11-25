@@ -13,7 +13,6 @@ import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycleEvent
 object WalletConnectClient {
     private val engineInteractor = EngineInteractor()
 
-
     fun initialize(initialParams: ClientTypes.InitialParams) = with(initialParams) {
         // TODO: pass properties to DI framework
         app = application
@@ -37,48 +36,40 @@ object WalletConnectClient {
         pairingParams: ClientTypes.PairParams,
         listener: WalletConnectClientListeners.Pairing
     ) {
-        engineInteractor.pair(pairingParams.uri) { result ->
-            result.fold(
-                onSuccess = { topic -> listener.onSuccess(WalletConnectClientData.SettledPairing(topic)) },
-                onFailure = { error -> listener.onError(error) }
-            )
-        }
+        engineInteractor.pair(
+            pairingParams.uri,
+            { topic -> listener.onSuccess(WalletConnectClientData.SettledPairing(topic)) },
+            { error -> listener.onError(error) })
     }
 
     fun approve(
         approveParams: ClientTypes.ApproveParams,
         listener: WalletConnectClientListeners.SessionApprove
     ) = with(approveParams) {
-        engineInteractor.approve(proposal.toEngineSessionProposal(), accounts) { result ->
-            result.fold(
-                onSuccess = { settledSession -> listener.onSuccess(settledSession.toClientSettledSession()) },
-                onFailure = { error -> listener.onError(error) }
-            )
-        }
+        engineInteractor.approve(
+            proposal.toEngineSessionProposal().copy(accounts = accounts),
+            { settledSession -> listener.onSuccess(settledSession.toClientSettledSession()) },
+            { error -> listener.onError(error) })
     }
 
     fun reject(
         rejectParams: ClientTypes.RejectParams,
         listener: WalletConnectClientListeners.SessionReject
     ) = with(rejectParams) {
-        engineInteractor.reject(rejectionReason, proposalTopic) { result ->
-            result.fold(
-                onSuccess = { topic -> listener.onSuccess(WalletConnectClientData.RejectedSession(topic)) },
-                onFailure = { error -> listener.onError(error) }
-            )
-        }
+        engineInteractor.reject(
+            rejectionReason, proposalTopic,
+            { topic -> listener.onSuccess(WalletConnectClientData.RejectedSession(topic)) },
+            { error -> listener.onError(error) })
     }
 
     fun disconnect(
         disconnectParams: ClientTypes.DisconnectParams,
         listener: WalletConnectClientListeners.SessionDelete
     ) = with(disconnectParams) {
-        engineInteractor.disconnect(sessionTopic, reason) { result ->
-            result.fold(
-                onSuccess = { topic -> listener.onSuccess(WalletConnectClientData.DeletedSession(topic)) },
-                onFailure = { error -> listener.onError(error) }
-            )
-        }
+        engineInteractor.disconnect(
+            sessionTopic, reason,
+            { topic -> listener.onSuccess(WalletConnectClientData.DeletedSession(topic)) },
+            { error -> listener.onError(error) })
     }
 
     fun respond(
@@ -89,23 +80,19 @@ object WalletConnectClient {
             is WalletConnectClientData.JsonRpcResponse.JsonRpcResult<*> -> jsonRpcResponse.toEngineRpcResult()
             is WalletConnectClientData.JsonRpcResponse.JsonRpcError -> jsonRpcResponse.toEngineRpcError()
         }
-        engineInteractor.respondSessionPayload(sessionTopic, jsonRpcEngineResponse) { result ->
-            result.fold(
-                onSuccess = { topic -> listener.onSuccess(WalletConnectClientData.Response(topic)) },
-                onFailure = { error -> listener.onError(error) }
-            )
-        }
+        engineInteractor.respondSessionPayload(
+            sessionTopic, jsonRpcEngineResponse,
+            { topic -> listener.onSuccess(WalletConnectClientData.Response(topic)) },
+            { error -> listener.onError(error) })
     }
 
     fun update(
         updateParams: ClientTypes.UpdateParams,
         listener: WalletConnectClientListeners.SessionUpdate
     ) = with(updateParams) {
-        engineInteractor.sessionUpdate(sessionTopic, sessionState.toEngineSessionState()) { result ->
-            result.fold(
-                onSuccess = { (topic, accounts) -> listener.onSuccess(WalletConnectClientData.UpdatedSession(topic, accounts)) },
-                onFailure = { error -> listener.onError(error) }
-            )
-        }
+        engineInteractor.sessionUpdate(
+            sessionTopic, sessionState.toEngineSessionState(),
+            { (topic, accounts) -> listener.onSuccess(WalletConnectClientData.UpdatedSession(topic, accounts)) },
+            { error -> listener.onError(error) })
     }
 }

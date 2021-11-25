@@ -64,17 +64,18 @@ internal fun Session.Proposal.toSessionProposal(): EngineData.SessionProposal =
         methods = this.permissions.jsonRpc.methods,
         topic = this.topic.topicValue,
         proposerPublicKey = this.proposer.publicKey,
-        ttl = this.ttl.seconds
+        ttl = this.ttl.seconds,
+        accounts = listOf()
     )
 
 internal fun EngineInteractor.EngineFactory.toRelayInitParams(): WakuRelayRepository.RelayFactory =
     WakuRelayRepository.RelayFactory(useTLs, hostName, apiKey, application)
 
 internal fun EngineData.SessionProposal.toClientSessionProposal(): WalletConnectClientData.SessionProposal =
-    WalletConnectClientData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl)
+    WalletConnectClientData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl, accounts)
 
 internal fun WalletConnectClientData.SessionProposal.toEngineSessionProposal(): EngineData.SessionProposal =
-    EngineData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl)
+    EngineData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl, accounts)
 
 internal fun EngineData.SettledSession.toClientSettledSession(): WalletConnectClientData.SettledSession =
     WalletConnectClientData.SettledSession(icon, name, uri, topic)

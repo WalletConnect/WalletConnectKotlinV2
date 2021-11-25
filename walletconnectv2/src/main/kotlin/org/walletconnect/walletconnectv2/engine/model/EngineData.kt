@@ -15,7 +15,8 @@ sealed class EngineData {
         var methods: List<String>,
         val topic: String,
         val proposerPublicKey: String,
-        val ttl: Long
+        val ttl: Long,
+        val accounts: List<String>
     ) : EngineData() {
         val icon: String = icons.first().toString()
     }

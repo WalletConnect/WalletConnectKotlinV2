@@ -103,7 +103,7 @@ internal class EngineInteractor {
         }
     }
 
-    internal fun pair(uri: String, onResult: (Result<String>) -> Unit) {
+    internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         require(::relayRepository.isInitialized)
 
         val pairingProposal: Pairing.Proposal = uri.toPairProposal()
@@ -124,27 +124,28 @@ internal class EngineInteractor {
             controllerPublicKey,
             expiry
         )
-
-        //Call when success from relay
-//        pairingUpdate(settledSequence)
-
-        observePublishAcknowledgement(onResult, settledSequence.settledTopic.topicValue)
-        observePublishError(onResult)
-
-
         val preSettlementPairingApprove = pairingProposal.toApprove(generateId(), settledSequence.settledTopic, expiry, selfPublicKey)
         //move to codec
         val encodedMessage =
-            trySerialize(preSettlementPairingApprove)
-                .encodeToByteArray()
+            trySerialize(preSettlementPairingApprove).encodeToByteArray()
                 .joinToString(separator = "") { bytes -> String.format("%02X", bytes) }
+
+        val settledTopic = settledSequence.settledTopic.topicValue
 
         isConnected
             .filter { isOnline -> isOnline }  // TODO: Update once enum is in place
             .onEach {
                 supervisorScope {
                     relayRepository.subscribe(settledSequence.settledTopic)
-                    relayRepository.publish(pairingProposal.topic, encodedMessage)
+                    relayRepository.publish(pairingProposal.topic, encodedMessage) { result ->
+                        result.fold(
+                            onSuccess = {
+                                onSuccess(settledTopic)
+                                pairingUpdate(settledSequence)
+                            },
+                            onFailure = { error -> onFailure(error) }
+                        )
+                    }
                     cancel()
                 }
             }
@@ -154,27 +155,30 @@ internal class EngineInteractor {
     private fun pairingUpdate(settledSequence: SettledPairingSequence) {
         val pairingUpdate: PostSettlementPairing.PairingUpdate =
             PostSettlementPairing.PairingUpdate(id = generateId(), params = Pairing.UpdateParams(state = PairingState(metaData)))
-
         val json: String = trySerialize(pairingUpdate)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(settledSequence.settledTopic.topicValue))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
-        relayRepository.publish(settledSequence.settledTopic, encryptedMessage)
+        relayRepository.publish(settledSequence.settledTopic, encryptedMessage) { result ->
+            result.fold(
+                onSuccess = {  /*TODO update Pairing's metadata in local storage*/ },
+                onFailure = { error -> Logger.error("Pairing update error: $error") }
+            )
+        }
     }
 
     internal fun approve(
         proposal: EngineData.SessionProposal,
-        accounts: List<String>,
-        onResult: (Result<EngineData.SettledSession>) -> Unit
+        onSuccess: (EngineData.SettledSession) -> Unit,
+        onFailure: (Throwable) -> Unit
     ) {
         require(::relayRepository.isInitialized)
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val peerPublicKey = PublicKey(proposal.proposerPublicKey)
-        val sessionState = SessionState(accounts)
+        val sessionState = SessionState(proposal.accounts)
         val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + proposal.ttl)
         val settledSession: SettledSessionSequence =
             settleSessionSequence(RelayProtocolOptions(), selfPublicKey, peerPublicKey, expiry, sessionState)
-
         val sessionApprove = PreSettlementSession.Approve(
             id = generateId(),
             params = Session.Success(
@@ -191,31 +195,31 @@ internal class EngineInteractor {
         val approvalJson: String = trySerialize(sessionApprove)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(proposal.topic))
         val encryptedMessage: String = codec.encrypt(approvalJson, sharedKey as SharedKey, selfPublic as PublicKey)
-
-        with(proposal) {
-            observePublishAcknowledgement(onResult, EngineData.SettledSession(icon, name, url, settledSession.topic.topicValue))
-        }
-        observePublishError(onResult)
-
         relayRepository.subscribe(settledSession.topic)
-        relayRepository.publish(Topic(proposal.topic), encryptedMessage)
+        relayRepository.publish(Topic(proposal.topic), encryptedMessage) { result ->
+            result.fold(
+                onSuccess = { with(proposal) { onSuccess(EngineData.SettledSession(icon, name, url, settledSession.topic.topicValue)) } },
+                onFailure = { error -> onFailure(error) }
+            )
+        }
     }
 
-    internal fun reject(reason: String, topic: String, onResult: (Result<String>) -> Unit) {
+    internal fun reject(reason: String, topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         require(::relayRepository.isInitialized)
 
         val sessionReject = PreSettlementSession.Reject(id = generateId(), params = Session.Failure(reason = reason))
         val json: String = trySerialize(sessionReject)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
-
-        observePublishAcknowledgement(onResult, topic)
-        observePublishError(onResult)
-
-        relayRepository.publish(Topic(topic), encryptedMessage)
+        relayRepository.publish(Topic(topic), encryptedMessage) { result ->
+            result.fold(
+                onSuccess = { onSuccess(topic) },
+                onFailure = { error -> onFailure(error) }
+            )
+        }
     }
 
-    internal fun disconnect(topic: String, reason: String, onResult: (Result<String>) -> Unit) {
+    internal fun disconnect(topic: String, reason: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         require(::relayRepository.isInitialized)
 
         val sessionDelete = PostSettlementSession.SessionDelete(id = generateId(), params = Session.DeleteParams(Reason(message = reason)))
@@ -223,30 +227,39 @@ internal class EngineInteractor {
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
 
-        observePublishAcknowledgement(onResult, topic)
-        observePublishError(onResult)
-
         //TODO Add subscriptionId from local storage + Delete all data from local storage coupled with given session
         crypto.removeKeys(topic)
         relayRepository.unsubscribe(Topic(topic), SubscriptionId("1"))
-        relayRepository.publish(Topic(topic), encryptedMessage)
+        relayRepository.publish(Topic(topic), encryptedMessage) { result ->
+            result.fold(
+                onSuccess = { onSuccess(topic) },
+                onFailure = { error -> onFailure(error) })
+        }
     }
 
-    internal fun respondSessionPayload(topic: String, jsonRpcResponse: EngineData.JsonRpcResponse, onResult: (Result<String>) -> Unit) {
+    internal fun respondSessionPayload(
+        topic: String,
+        jsonRpcResponse: EngineData.JsonRpcResponse,
+        onSuccess: (String) -> Unit,
+        onFailure: (Throwable) -> Unit
+    ) {
         require(::relayRepository.isInitialized)
 
         val json = trySerialize(jsonRpcResponse)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
-        observePublishAcknowledgement(onResult, topic)
-        observePublishError(onResult)
-        relayRepository.publish(Topic(topic), encryptedMessage)
+        relayRepository.publish(Topic(topic), encryptedMessage) { result ->
+            result.fold(
+                onSuccess = { onSuccess(topic) },
+                onFailure = { error -> onFailure(error) })
+        }
     }
 
     internal fun sessionUpdate(
         topic: String,
         sessionState: EngineData.SessionState,
-        onResult: (Result<Pair<String, List<String>>>) -> Unit
+        onSuccess: (Pair<String, List<String>>) -> Unit,
+        onFailure: (Throwable) -> Unit
     ) {
         require(::relayRepository.isInitialized)
 
@@ -255,37 +268,13 @@ internal class EngineInteractor {
         val json = trySerialize(sessionUpdate)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
-        observePublishAcknowledgement(onResult, Pair(topic, sessionState.accounts))
-        observePublishError(onResult)
 
         //TODO update the session in local storage
-        relayRepository.publish(Topic(topic), encryptedMessage)
-    }
+        relayRepository.publish(Topic(topic), encryptedMessage) { result ->
+            result.fold(
+                onSuccess = { onSuccess(Pair(topic, sessionState.accounts)) },
+                onFailure = { error -> onFailure(error) })
 
-    private fun <T> observePublishError(onResult: (Result<T>) -> Unit) {
-        scope.launch {
-            relayRepository.observePublishResponseError
-                .onEach { jsonRpcError -> Logger.error(Throwable(jsonRpcError.error.errorMessage)) }
-                .catch { exception -> Logger.error(exception) }
-                .collect { errorResponse ->
-                    supervisorScope {
-                        onResult(Result.failure(Throwable(errorResponse.error.errorMessage)))
-                        cancel()
-                    }
-                }
-        }
-    }
-
-    private fun <T> observePublishAcknowledgement(onResult: (Result<T>) -> Unit, result: T) {
-        scope.launch {
-            relayRepository.observePublishAcknowledgement
-                .catch { exception -> Logger.error(exception) }
-                .collect {
-                    supervisorScope {
-                        onResult(Result.success(result))
-                        cancel()
-                    }
-                }
         }
     }
 

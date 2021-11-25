@@ -249,7 +249,7 @@ class WalletConnectClientIntegrationAndroidTest {
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:22e937acd12c01137205364eaf728e1d22145e00a940be897a9001016e8a2993@2?controller=false&publicKey=39ece35fea57363a1e00017d8336ecd1d9a1f28517ea041853aea2084a9ce730&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:2fd99c98fa35fc6b5e1b144346eb96951ec2cb57e59eb478bceb44d5e3fe4f23@2?controller=false&publicKey=e003046e256f010b668c12ee8e08348efe6ef6cc145d450e31ea9ce0bc6b2702&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
 
 
