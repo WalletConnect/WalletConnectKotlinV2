@@ -1,10 +1,9 @@
 package org.walletconnect.walletconnectv2.client
 
-//Note: we should keep a global listener because when resubscribing the communication on topics should be ready just from the initialization, without any public method call
 interface WalletConnectClientListener {
     fun onSessionProposal(sessionProposal: WalletConnectClientData.SessionProposal)
     fun onSessionRequest(sessionRequest: WalletConnectClientData.SessionRequest)
-    fun onSessionDelete(topic: String, reason: String)
+    fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession)
 }
 
 sealed interface WalletConnectClientListeners {
@@ -29,5 +28,9 @@ sealed interface WalletConnectClientListeners {
 
     interface SessionPayload : WalletConnectClientListeners {
         fun onSuccess(sessionPayloadResponse: WalletConnectClientData.Response)
+    }
+
+    interface SessionUpgrade : WalletConnectClientListeners {
+        fun onSuccess(upgradedSession: WalletConnectClientData.UpgradedSession)
     }
 }

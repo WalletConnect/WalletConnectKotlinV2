@@ -32,6 +32,12 @@ sealed class EngineData {
         )
     }
 
+    internal data class DeletedSession(
+        val topic: String,
+        val reason: String
+    ) : EngineData()
+
+
     internal data class SettledSession(
         var icon: String?,
         var name: String,
@@ -40,7 +46,7 @@ sealed class EngineData {
     ) : EngineData()
 
 
-    sealed class JsonRpcResponse : EngineData() {
+    internal sealed class JsonRpcResponse : EngineData() {
         abstract val id: Long
         val jsonrpc: String = "2.0"
 

@@ -40,10 +40,13 @@ sealed class WalletConnectClientData {
     ) : WalletConnectClientData()
 
     data class SettledPairing(val topic: String) : WalletConnectClientData()
+    data class RejectedSession(val topic: String, val reason: String) : WalletConnectClientData()
+    data class DeletedSession(val topic: String, val reason: String) : WalletConnectClientData()
+    data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : WalletConnectClientData()
 
-    data class RejectedSession(val topic: String) : WalletConnectClientData()
-
-    data class DeletedSession(val topic: String) : WalletConnectClientData()
+    data class SessionPermissions(val blockchain: Blockchain? = null, val jsonRpc: Jsonrpc? = null) : WalletConnectClientData()
+    data class Blockchain(val chains: List<String>) : WalletConnectClientData()
+    data class Jsonrpc(val methods: List<String>) : WalletConnectClientData()
 
     data class Response(val topic: String) : WalletConnectClientData()
 

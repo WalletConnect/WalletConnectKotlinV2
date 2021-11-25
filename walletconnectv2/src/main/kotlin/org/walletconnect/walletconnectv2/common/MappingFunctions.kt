@@ -7,14 +7,17 @@ import org.json.JSONObject
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing
-import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposer
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.*
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingParticipant
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingState
 import org.walletconnect.walletconnectv2.clientsync.session.Session
+import org.walletconnect.walletconnectv2.clientsync.session.after.params.SessionPermissions
+import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionProposedPermissions
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import org.walletconnect.walletconnectv2.engine.model.EngineData
 import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
+import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import java.net.URI
 import kotlin.time.Duration
@@ -34,8 +37,8 @@ internal fun String.toPairProposal(): Pairing.Proposal {
         topic = Topic(pairUri.userInfo),
         relay = relay,
         pairingProposer = PairingProposer(publicKey, controller),
-        pairingSignal = null,
-        permissions = null,
+        pairingSignal = PairingSignal("uri", PairingSignalParams(properUriString)),
+        permissions = PairingProposedPermissions(JsonRPC(listOf(JsonRpcMethod.WC_SESSION_PROPOSE))),
         ttl = Ttl(ttl)
     )
 }
@@ -46,7 +49,7 @@ internal fun Pairing.Proposal.toPairingSuccess(settleTopic: Topic, expiry: Expir
         relay = relay,
         responder = PairingParticipant(publicKey = selfPublicKey.keyAsHex),
         expiry = expiry,
-        state = PairingState(null)
+        state = PairingState(null) //TODO add AppMeta data
     )
 }
 
@@ -106,3 +109,12 @@ internal fun <T> WalletConnectClientData.JsonRpcResponse.JsonRpcResult<T>.toEngi
 
 internal fun WalletConnectClientData.JsonRpcResponse.JsonRpcError.toEngineRpcError(): EngineData.JsonRpcResponse.JsonRpcError =
     EngineData.JsonRpcResponse.JsonRpcError(id, EngineData.JsonRpcResponse.Error(error.code, error.message))
+
+internal fun EngineData.DeletedSession.toClientDeletedSession(): WalletConnectClientData.DeletedSession =
+    WalletConnectClientData.DeletedSession(topic, reason)
+
+internal fun WalletConnectClientData.SessionPermissions.toEngineSessionPermissions(): SessionPermissions =
+    SessionPermissions(
+        blockchain?.chains?.let { chains -> SessionProposedPermissions.Blockchain(chains) },
+        jsonRpc?.methods?.let { methods -> SessionProposedPermissions.JsonRpc(methods) }
+    )

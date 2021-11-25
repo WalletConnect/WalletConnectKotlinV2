@@ -12,7 +12,16 @@ data class SettledSessionSequence(
     val relay: RelayProtocolOptions,
     val selfPublicKey: PublicKey,
     val peerPublicKey: PublicKey,
+    val permissions: SettledSessionPermissions,
     val sharedKey: SharedKey,
     val expiry: Expiry,
     val state: SessionState
+)
+
+data class SettledSessionPermissions(
+    val controller: Controller
+)
+
+data class Controller(
+    val publicKey: String
 )
