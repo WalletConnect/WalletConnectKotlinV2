@@ -174,7 +174,7 @@ internal class EngineInteractor {
         relayRepository.publish(Topic(proposal.topic), encryptedMessage)
     }
 
-  internal  fun reject(reason: String, topic: String, onResult: (Result<String>) -> Unit) {
+    internal fun reject(reason: String, topic: String, onResult: (Result<String>) -> Unit) {
         require(::relayRepository.isInitialized)
 
         val sessionReject = PreSettlementSession.Reject(id = generateId(), params = Session.Failure(reason = reason))
@@ -264,7 +264,7 @@ internal class EngineInteractor {
                     EngineData.SessionRequest(
                         topic.topicValue,
                         chainId,
-                        EngineData.JSONRPCRequest(sessionPayload.id, method, params)
+                        EngineData.SessionRequest.JSONRPCRequest(sessionPayload.id, method, params)
                     )
                 )
 

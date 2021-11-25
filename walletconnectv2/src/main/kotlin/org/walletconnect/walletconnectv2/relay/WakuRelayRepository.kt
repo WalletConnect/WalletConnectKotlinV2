@@ -8,10 +8,6 @@ import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.supervisorScope
 import okhttp3.OkHttpClient
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing
@@ -22,7 +18,6 @@ import org.walletconnect.walletconnectv2.moshi
 import org.walletconnect.walletconnectv2.relay.data.RelayService
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import org.walletconnect.walletconnectv2.scope
-import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.util.adapters.FlowStreamAdapter
 import org.walletconnect.walletconnectv2.util.generateId
 import java.util.concurrent.TimeUnit

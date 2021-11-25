@@ -1,7 +1,6 @@
 package org.walletconnect.walletconnectv2.engine.model
 
 import com.squareup.moshi.JsonClass
-import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import java.net.URI
 
 sealed class EngineData {
@@ -24,13 +23,14 @@ sealed class EngineData {
         val topic: String,
         val chainId: String?,
         val request: JSONRPCRequest
-    ) : EngineData()
+    ) : EngineData() {
 
-    data class JSONRPCRequest(
-        val id: Long,
-        val method: String,
-        val params: String
-    ) : EngineData()
+        data class JSONRPCRequest(
+            val id: Long,
+            val method: String,
+            val params: String
+        )
+    }
 
     internal data class SettledSession(
         var icon: String?,

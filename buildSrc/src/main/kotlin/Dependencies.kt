@@ -82,6 +82,7 @@ fun DependencyHandlerScope.jUnit5() {
 
     "implementation"("androidx.test.ext:junit-ktx:1.1.3")
 
+    "testImplementation"("androidx.test:core-ktx:1.4.0")
     "testImplementation"(platform("org.junit:junit-bom:$jUnit5Version"))
     "testImplementation"("org.junit.jupiter:junit-jupiter-api:$jUnit5Version")
     "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine:$jUnit5Version")

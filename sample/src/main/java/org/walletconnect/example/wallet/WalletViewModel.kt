@@ -14,7 +14,6 @@ import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
-import org.walletconnect.walletconnectv2.util.Logger
 
 class WalletViewModel : ViewModel(), WalletConnectClientListener {
     private var _eventFlow = MutableSharedFlow<WalletUiEvent>()

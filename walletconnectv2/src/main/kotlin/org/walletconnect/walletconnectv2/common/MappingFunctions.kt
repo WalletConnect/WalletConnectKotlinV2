@@ -18,7 +18,6 @@ import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import java.net.URI
 import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
 
 internal fun String.toPairProposal(): Pairing.Proposal {
     val properUriString = if (contains("wc://")) this else replace("wc:", "wc://")
@@ -99,7 +98,7 @@ internal fun EngineData.SessionRequest.toClientSessionRequest(): WalletConnectCl
     WalletConnectClientData.SessionRequest(
         topic,
         chainId,
-        WalletConnectClientData.JSONRPCRequest(request.id, request.method, request.params)
+        WalletConnectClientData.SessionRequest.JSONRPCRequest(request.id, request.method, request.params)
     )
 
 internal fun <T> WalletConnectClientData.JsonRpcResponse.JsonRpcResult<T>.toEngineRpcResult(): EngineData.JsonRpcResponse.JsonRpcResult =
