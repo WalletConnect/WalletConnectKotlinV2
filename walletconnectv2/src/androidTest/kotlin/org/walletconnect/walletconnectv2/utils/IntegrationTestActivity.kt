@@ -1,4 +1,4 @@
-package org.walletconnect.walletconnectv2
+package org.walletconnect.walletconnectv2.utils
 
 import android.os.Bundle
 import android.widget.LinearLayout

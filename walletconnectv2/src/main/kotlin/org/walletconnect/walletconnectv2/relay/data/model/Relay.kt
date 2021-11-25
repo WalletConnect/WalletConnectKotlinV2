@@ -8,10 +8,7 @@ import org.walletconnect.walletconnectv2.common.Ttl
 import org.walletconnect.walletconnectv2.common.network.adapters.SubscriptionIdAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TopicAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TtlAdapter
-import org.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
-import org.walletconnect.walletconnectv2.util.toEncryptionPayload
 
-// TODO: Maybe look into separating children into different files
 sealed class Relay {
     abstract val id: Long
     abstract val jsonrpc: String
@@ -51,6 +48,15 @@ sealed class Relay {
             @Json(name = "result")
             val result: Boolean
         ) : Publish()
+
+        data class JsonRpcError(
+            @Json(name = "jsonrpc")
+            override val jsonrpc: String = "2.0",
+            @Json(name = "error")
+            val error: Error,
+            @Json(name = "id")
+            override val id: Long
+        ) : Publish()
     }
 
     sealed class Subscribe : Relay() {
@@ -84,6 +90,15 @@ sealed class Relay {
             @field:SubscriptionIdAdapter.Qualifier
             val result: SubscriptionId
         ) : Subscribe()
+
+        data class JsonRpcError(
+            @Json(name = "jsonrpc")
+            override val jsonrpc: String = "2.0",
+            @Json(name = "error")
+            val error: Error,
+            @Json(name = "id")
+            override val id: Long
+        ) : Subscribe()
     }
 
     sealed class Subscription : Relay() {
@@ -101,8 +116,7 @@ sealed class Relay {
         ) : Subscription() {
 
             val subscriptionTopic: Topic = params.subscriptionData.topic
-            val encryptionPayload: EncryptionPayload =
-                params.subscriptionData.message.toEncryptionPayload()
+            val message: String = params.subscriptionData.message
 
             @JsonClass(generateAdapter = true)
             data class Params(
@@ -131,6 +145,15 @@ sealed class Relay {
             override val jsonrpc: String = "2.0",
             @Json(name = "result")
             val result: Boolean
+        ) : Subscription()
+
+        data class JsonRpcError(
+            @Json(name = "jsonrpc")
+            override val jsonrpc: String = "2.0",
+            @Json(name = "error")
+            val error: Error,
+            @Json(name = "id")
+            override val id: Long
         ) : Subscription()
     }
 
@@ -165,5 +188,23 @@ sealed class Relay {
             @Json(name = "result")
             val result: Boolean
         ) : Unsubscribe()
+
+        data class JsonRpcError(
+            @Json(name = "jsonrpc")
+            override val jsonrpc: String = "2.0",
+            @Json(name = "error")
+            val error: Error,
+            @Json(name = "id")
+            override val id: Long
+        ) : Unsubscribe()
+    }
+
+    data class Error(
+        @Json(name = "code")
+        val code: Long,
+        @Json(name = "message")
+        val message: String,
+    ) {
+        val errorMessage: String = "Error code: $code; Error message: $message"
     }
 }

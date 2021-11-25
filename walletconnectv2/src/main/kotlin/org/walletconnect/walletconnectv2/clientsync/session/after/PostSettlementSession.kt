@@ -22,7 +22,7 @@ sealed class PostSettlementSession {
         @Json(name = "params")
         override val params: Session.SessionPayloadParams
     ) : PostSettlementSession() {
-        val sessionParams = params.request.params
+        val sessionParams: String = params.request.params.toString()
     }
 
     @JsonClass(generateAdapter = true)
@@ -38,4 +38,16 @@ sealed class PostSettlementSession {
     ) : PostSettlementSession() {
         val message = params.reason.message
     }
+
+    @JsonClass(generateAdapter = true)
+    data class SessionUpgrade(
+        @Json(name = "id")
+        override val id: Long,
+        @Json(name = "jsonrpc")
+        override val jsonrpc: String = "2.0",
+        @Json(name = "method")
+        override val method: String = JsonRpcMethod.WC_SESSION_UPGRADE,
+        @Json(name = "params")
+        override val params: Session.SessionPermissionsParams
+    ) : PostSettlementSession()
 }

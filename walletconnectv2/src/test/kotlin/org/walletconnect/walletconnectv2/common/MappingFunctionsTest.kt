@@ -70,13 +70,7 @@ internal class MappingFunctionsTest {
             every { ttl } returns mockk()
         }
 
-        val wcPairingApprove = pairingProposal.toApprove(
-            randomId,
-            settledTopic,
-            expiry,
-            PublicKey("0x123")
-        )
-
+        val wcPairingApprove = pairingProposal.toApprove(randomId, settledTopic, expiry, PublicKey("0x123"))
         assertEquals(randomId, wcPairingApprove.id)
         assertEquals(pairingProposal.toPairingSuccess(settledTopic, expiry, PublicKey("0x123")), wcPairingApprove.params)
     }
@@ -93,7 +87,7 @@ internal class MappingFunctionsTest {
             every { id } returns 1
             every { jsonrpc } returns "2.0"
             every { method } returns "wc_pairingApprove"
-            every { params } returns Pairing.Success(Topic(getRandom64ByteHexString()) /*settle topic*/, JSONObject(), PairingParticipant(getRandom64ByteHexString()), Expiry(100L), PairingState(null))
+            every { params } returns Pairing.Success(Topic(getRandom64ByteHexString()) /*settle topic*/, mockk(), PairingParticipant(getRandom64ByteHexString()), Expiry(100L), PairingState(null))
         }
 
         //TODO test failing, review

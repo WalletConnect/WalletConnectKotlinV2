@@ -16,7 +16,7 @@ android {
     compileSdk = 30
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 23
         targetSdk = 30
 
         testInstrumentationRunner = "org.walletconnect.walletconnectv2.WCTestRunner"
@@ -71,6 +71,7 @@ dependencies {
     moshi()
     scarlet()
     sqlDelight()
+    security()
 
     jUnit5()
     robolectric()
