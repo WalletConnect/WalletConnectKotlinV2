@@ -10,17 +10,15 @@ import org.json.JSONObject
 import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
 import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
 import org.walletconnect.walletconnectv2.clientsync.pairing.after.PostSettlementPairing
-import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposedPermissions
-import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingState
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingPermissions
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingParticipant
+import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingState
 import org.walletconnect.walletconnectv2.clientsync.session.Controller
 import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.clientsync.session.SettledSessionPermissions
 import org.walletconnect.walletconnectv2.clientsync.session.SettledSessionSequence
 import org.walletconnect.walletconnectv2.clientsync.session.after.PostSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.session.after.params.Reason
-import org.walletconnect.walletconnectv2.clientsync.session.after.params.SessionPermissions
 import org.walletconnect.walletconnectv2.clientsync.session.before.PreSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.RelayProtocolOptions
 import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionParticipant
@@ -33,6 +31,8 @@ import org.walletconnect.walletconnectv2.crypto.data.SharedKey
 import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
 import org.walletconnect.walletconnectv2.engine.model.EngineData
 import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycleEvent
+import org.walletconnect.walletconnectv2.engine.serailising.encode
+import org.walletconnect.walletconnectv2.engine.serailising.toEncryptionPayload
 import org.walletconnect.walletconnectv2.engine.serailising.tryDeserialize
 import org.walletconnect.walletconnectv2.engine.serailising.trySerialize
 import org.walletconnect.walletconnectv2.errors.NoSessionDeletePayloadException
@@ -49,7 +49,6 @@ import org.walletconnect.walletconnectv2.relay.data.model.jsonrpc.JsonRpcRequest
 import org.walletconnect.walletconnectv2.scope
 import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.util.generateId
-import org.walletconnect.walletconnectv2.util.toEncryptionPayload
 import java.util.*
 
 internal class EngineInteractor {
@@ -86,6 +85,7 @@ internal class EngineInteractor {
             relayRepository.subscriptionRequest.collect { relayRequest ->
                 val topic: Topic = relayRequest.subscriptionTopic
                 val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
+
                 val encryptionPayload = relayRequest.message.toEncryptionPayload()
                 val decryptedMessage: String = codec.decrypt(encryptionPayload, sharedKey as SharedKey)
 
@@ -130,11 +130,7 @@ internal class EngineInteractor {
             expiry
         )
         val preSettlementPairingApprove = pairingProposal.toApprove(generateId(), settledSequence.settledTopic, expiry, selfPublicKey)
-        //move to codec
-        val encodedMessage =
-            trySerialize(preSettlementPairingApprove).encodeToByteArray()
-                .joinToString(separator = "") { bytes -> String.format("%02X", bytes) }
-
+        val encodedMessage = trySerialize(preSettlementPairingApprove).encode()
         val settledTopic = settledSequence.settledTopic.topicValue
 
         isConnected
@@ -209,7 +205,11 @@ internal class EngineInteractor {
         }
     }
 
-    internal fun reject(reason: String, topic: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
+    internal fun reject(
+        reason: String, topic: String,
+        onSuccess: (Pair<String, String>) -> Unit,
+        onFailure: (Throwable) -> Unit
+    ) {
         require(::relayRepository.isInitialized)
 
         val sessionReject = PreSettlementSession.Reject(id = generateId(), params = Session.Failure(reason = reason))
@@ -224,14 +224,17 @@ internal class EngineInteractor {
         }
     }
 
-    internal fun disconnect(topic: String, reason: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
+    internal fun disconnect(
+        topic: String, reason: String,
+        onSuccess: (Pair<String, String>) -> Unit,
+        onFailure: (Throwable) -> Unit
+    ) {
         require(::relayRepository.isInitialized)
 
         val sessionDelete = PostSettlementSession.SessionDelete(id = generateId(), params = Session.DeleteParams(Reason(message = reason)))
         val json = trySerialize(sessionDelete)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
-
         //TODO Add subscriptionId from local storage + Delete all data from local storage coupled with given session
         crypto.removeKeys(topic)
         relayRepository.unsubscribe(Topic(topic), SubscriptionId("1"))
@@ -243,8 +246,7 @@ internal class EngineInteractor {
     }
 
     internal fun respondSessionPayload(
-        topic: String,
-        jsonRpcResponse: EngineData.JsonRpcResponse,
+        topic: String, jsonRpcResponse: EngineData.JsonRpcResponse,
         onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
@@ -261,8 +263,7 @@ internal class EngineInteractor {
     }
 
     internal fun update(
-        topic: String,
-        sessionState: EngineData.SessionState,
+        topic: String, sessionState: EngineData.SessionState,
         onSuccess: (Pair<String, List<String>>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {

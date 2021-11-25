@@ -2,7 +2,6 @@
 
 package org.walletconnect.walletconnectv2.util
 
-import org.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
 import java.lang.System.currentTimeMillis
 
 fun generateId(): Long = (currentTimeMillis() + (0..100).random())
@@ -29,17 +28,4 @@ fun String.hexToBytes(): ByteArray {
         i += 2
     }
     return data
-}
-
-fun String.toEncryptionPayload(): EncryptionPayload {
-    val pubKeyStartIndex = EncryptionPayload.ivLength
-    val macStartIndex = pubKeyStartIndex + EncryptionPayload.publicKeyLength
-    val cipherTextStartIndex = macStartIndex + EncryptionPayload.macLength
-
-    val iv = this.substring(0, pubKeyStartIndex)
-    val publicKey = this.substring(pubKeyStartIndex, macStartIndex)
-    val mac = this.substring(macStartIndex, cipherTextStartIndex)
-    val cipherText = this.substring(cipherTextStartIndex, this.length)
-
-    return EncryptionPayload(iv, publicKey, mac, cipherText)
 }
