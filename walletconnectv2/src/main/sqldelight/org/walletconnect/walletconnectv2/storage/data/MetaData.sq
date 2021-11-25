@@ -1,0 +1,21 @@
+import kotlin.collections.List;
+
+CREATE TABLE MetaDataDao(
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  	_name TEXT UNIQUE NOT NULL,
+  	description TEXT NOT NULL,
+  	url TEXT NOT NULL,
+  	icon TEXT AS List<String> NOT NULL
+);
+
+insertOrIgnoreMetaData:
+INSERT OR IGNORE INTO MetaDataDao(_name, description, url, icon)
+VALUES (?, ?, ?, ?);
+
+lastInsertedRowId:
+SELECT last_insert_rowid();
+
+selectMetadataDao:
+SELECT _name, description, url, icon
+FROM MetaDataDao
+LIMIT 1;

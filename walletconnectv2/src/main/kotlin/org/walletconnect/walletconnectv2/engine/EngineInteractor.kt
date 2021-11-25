@@ -34,6 +34,7 @@ import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_PAI
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_SESSION_DELETE
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_SESSION_PAYLOAD
 import org.walletconnect.walletconnectv2.scope
+import org.walletconnect.walletconnectv2.storage.StorageRepository
 import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.util.generateId
 import java.util.*
@@ -42,6 +43,7 @@ internal class EngineInteractor {
     //region provide with DI
     // TODO: add logic to check hostName for ws/wss scheme with and without ://
     private lateinit var relayRepository: WakuRelayRepository
+    private lateinit var storageRepository: StorageRepository
     private val codec: AuthenticatedEncryptionCodec = AuthenticatedEncryptionCodec()
     private val crypto: CryptoManager = LazySodiumCryptoManager(keyChain)
     //endregion
@@ -55,6 +57,7 @@ internal class EngineInteractor {
     fun initialize(engine: EngineFactory) {
         this.metaData = engine.metaData
         relayRepository = WakuRelayRepository.initRemote(engine.toRelayInitParams())
+        storageRepository = StorageRepository(null, engine.application)
 
         scope.launch(exceptionHandler) {
             relayRepository.eventsFlow
@@ -208,7 +211,7 @@ internal class EngineInteractor {
         val request = sessionPayload?.sessionParams ?: throw NoSessionRequestPayloadException()
         val chainId = sessionPayload.params.chainId
         val method = sessionPayload.params.request.method
-        //TODO Validate session request + add unmarshaling of generic session request payload to the usable generic object
+        //TODO Validate session request + add unmarshalling of generic session request payload to the usable generic object
         _sequenceEvent.value =
             SequenceLifecycleEvent.OnSessionRequest(EngineData.SessionRequest(topic.topicValue, request, chainId, method))
     }

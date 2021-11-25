@@ -1,0 +1,31 @@
+import kotlin.collections.List;
+import org.walletconnect.walletconnectv2.storage.SequenceStatus;
+
+CREATE TABLE SessionDao(
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  topic TEXT NOT NULL,
+  relay_protocol_option TEXT NOT NULL,
+  -- SessionProposer
+  proposer_public_key TEXT NOT NULL,
+  proposer_is_controller INTEGER AS Boolean DEFAULT 0 NOT NULL,
+  metadata_id INTEGER NOT NULL,
+  -- SessionSignal
+  signal_method TEXT NOT NULL,
+  signal_topic TEXT NOT NULL,
+  -- SessionPermissions
+  permissions_chain TEXT AS List<String> NOT NULL,
+  permissions_methods TEXT AS List<String> NOT NULL,
+  permissions_types TEXT AS List<String> NOT NULL,
+  ttl_seconds INTEGER NOT NULL,
+  accounts_id INTEGER DEFAULT(NULL),
+  expiry INTEGER DEFAULT(NULL),
+  status TEXT AS SequenceStatus NOT NULL
+);
+
+insertSession:
+INSERT INTO SessionDao(topic, relay_protocol_option, proposer_public_key, proposer_is_controller, metadata_id, signal_method, signal_topic, permissions_chain, permissions_methods, permissions_types, ttl_seconds, status)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+getSessionDao:
+SELECT *
+FROM SessionDao;

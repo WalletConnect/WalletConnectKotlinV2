@@ -12,10 +12,14 @@ import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import org.walletconnect.walletconnectv2.engine.sequence.*
 
 object WalletConnectClient {
-    private val engineInteractor = EngineInteractor()
+    private val engineInteractor by lazy { EngineInteractor() }
     private var listener: WalletConnectClientListener? = null
 
-    init {
+    fun initialize(initialParams: ClientTypes.InitialParams) = with(initialParams) {
+        // TODO: pass properties to DI framework
+        val engineFactory = EngineInteractor.EngineFactory(useTls, hostName, apiKey, isController, application, metadata)
+        engineInteractor.initialize(engineFactory)
+
         scope.launch {
             engineInteractor.sequenceEvent.collect { event ->
                 when (event) {
@@ -27,12 +31,6 @@ object WalletConnectClient {
                 }
             }
         }
-    }
-
-    fun initialize(initialParams: ClientTypes.InitialParams) = with(initialParams) {
-        // TODO: pass properties to DI framework
-        val engineFactory = EngineInteractor.EngineFactory(useTls, hostName, apiKey, isController, application, metadata)
-        engineInteractor.initialize(engineFactory)
     }
 
     fun pair(pairingParams: ClientTypes.PairParams, listener: WalletConnectClientListener) {
