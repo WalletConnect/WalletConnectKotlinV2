@@ -14,7 +14,6 @@ import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
-import org.walletconnect.walletconnectv2.util.Logger
 
 class WalletViewModel : ViewModel(), WalletConnectClientListener {
     private var _eventFlow = MutableSharedFlow<WalletUiEvent>()
@@ -99,8 +98,8 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
         //TODO handle session request generic object
     }
 
-    override fun onSessionDelete(topic: String, reason: String) {
-        removeSession(topic)
+    override fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession) {
+        removeSession(deletedSession.topic)
         viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(listOfSettledSessions)) }
     }
 

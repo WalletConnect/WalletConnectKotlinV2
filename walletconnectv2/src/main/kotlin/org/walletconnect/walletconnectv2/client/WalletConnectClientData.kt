@@ -23,14 +23,16 @@ sealed class WalletConnectClientData {
         val topic: String,
         val chainId: String?,
         val request: JSONRPCRequest
-    ) : WalletConnectClientData()
+    ) : WalletConnectClientData() {
 
-    data class JSONRPCRequest(
-        val id: Long,
-        val method: String,
-        val params: String
-    ) : WalletConnectClientData()
+        data class JSONRPCRequest(
+            val id: Long,
+            val method: String,
+            val params: String
+        ) : WalletConnectClientData()
+    }
 
+    // Review if we need defaults
     data class SettledSession(
         var icon: String? = "",
         var name: String = "",
@@ -41,13 +43,13 @@ sealed class WalletConnectClientData {
     data class SessionState(val accounts: List<String>) : WalletConnectClientData()
 
     data class SettledPairing(val topic: String) : WalletConnectClientData()
-
-    data class RejectedSession(val topic: String) : WalletConnectClientData()
-
-    data class DeletedSession(val topic: String) : WalletConnectClientData()
-
+    data class RejectedSession(val topic: String, val reason: String) : WalletConnectClientData()
+    data class DeletedSession(val topic: String, val reason: String) : WalletConnectClientData()
+    data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : WalletConnectClientData()
+    data class SessionPermissions(val blockchain: Blockchain? = null, val jsonRpc: Jsonrpc? = null) : WalletConnectClientData()
+    data class Blockchain(val chains: List<String>) : WalletConnectClientData()
+    data class Jsonrpc(val methods: List<String>) : WalletConnectClientData()
     data class Response(val topic: String) : WalletConnectClientData()
-
     data class UpdatedSession(val topic: String, val accounts: List<String>) : WalletConnectClientData()
 
     sealed class JsonRpcResponse : WalletConnectClientData() {

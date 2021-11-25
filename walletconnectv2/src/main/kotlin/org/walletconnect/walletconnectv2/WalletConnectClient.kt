@@ -26,7 +26,7 @@ object WalletConnectClient {
                 when (event) {
                     is SequenceLifecycleEvent.OnSessionProposal -> walletConnectListener.onSessionProposal(event.proposal.toClientSessionProposal())
                     is SequenceLifecycleEvent.OnSessionRequest -> walletConnectListener.onSessionRequest(event.request.toClientSessionRequest())
-                    is SequenceLifecycleEvent.OnSessionDeleted -> walletConnectListener.onSessionDelete(event.topic, event.reason)
+                    is SequenceLifecycleEvent.OnSessionDeleted -> walletConnectListener.onSessionDelete(event.deletedSession.toClientDeletedSession())
                 }
             }
         }
@@ -58,8 +58,20 @@ object WalletConnectClient {
     ) = with(rejectParams) {
         engineInteractor.reject(
             rejectionReason, proposalTopic,
-            { topic -> listener.onSuccess(WalletConnectClientData.RejectedSession(topic)) },
+            { (topic, reason) -> listener.onSuccess(WalletConnectClientData.RejectedSession(topic, reason)) },
             { error -> listener.onError(error) })
+    }
+
+    fun upgrade(
+        upgradeParams: ClientTypes.UpgradeParams,
+        listener: WalletConnectClientListeners.SessionUpgrade
+    ) = with(upgradeParams) {
+        engineInteractor.upgrade(topic, permissions.toEngineSessionPermissions()) { result ->
+            result.fold(
+                onSuccess = { topic -> listener.onSuccess(WalletConnectClientData.UpgradedSession(topic, permissions)) },
+                onFailure = { error -> listener.onError(error) }
+            )
+        }
     }
 
     fun disconnect(
@@ -68,7 +80,7 @@ object WalletConnectClient {
     ) = with(disconnectParams) {
         engineInteractor.disconnect(
             sessionTopic, reason,
-            { topic -> listener.onSuccess(WalletConnectClientData.DeletedSession(topic)) },
+            { (topic, reason) -> listener.onSuccess(WalletConnectClientData.DeletedSession(topic, reason)) },
             { error -> listener.onError(error) })
     }
 
