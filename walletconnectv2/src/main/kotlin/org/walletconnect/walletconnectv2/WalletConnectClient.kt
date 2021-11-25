@@ -62,28 +62,6 @@ object WalletConnectClient {
             { error -> listener.onError(error) })
     }
 
-    fun upgrade(
-        upgradeParams: ClientTypes.UpgradeParams,
-        listener: WalletConnectClientListeners.SessionUpgrade
-    ) = with(upgradeParams) {
-        engineInteractor.upgrade(topic, permissions.toEngineSessionPermissions()) { result ->
-            result.fold(
-                onSuccess = { topic -> listener.onSuccess(WalletConnectClientData.UpgradedSession(topic, permissions)) },
-                onFailure = { error -> listener.onError(error) }
-            )
-        }
-    }
-
-    fun disconnect(
-        disconnectParams: ClientTypes.DisconnectParams,
-        listener: WalletConnectClientListeners.SessionDelete
-    ) = with(disconnectParams) {
-        engineInteractor.disconnect(
-            sessionTopic, reason,
-            { (topic, reason) -> listener.onSuccess(WalletConnectClientData.DeletedSession(topic, reason)) },
-            { error -> listener.onError(error) })
-    }
-
     fun respond(
         responseParams: ClientTypes.ResponseParams,
         listener: WalletConnectClientListeners.SessionPayload
@@ -98,13 +76,33 @@ object WalletConnectClient {
             { error -> listener.onError(error) })
     }
 
+    fun upgrade(
+        upgradeParams: ClientTypes.UpgradeParams,
+        listener: WalletConnectClientListeners.SessionUpgrade
+    ) = with(upgradeParams) {
+        engineInteractor.upgrade(
+            topic, permissions.toEngineSessionPermissions(),
+            { (topic, permissions) -> listener.onSuccess(WalletConnectClientData.UpgradedSession(topic, permissions.toClientPerms())) },
+            { error -> listener.onError(error) })
+    }
+
     fun update(
         updateParams: ClientTypes.UpdateParams,
         listener: WalletConnectClientListeners.SessionUpdate
     ) = with(updateParams) {
-        engineInteractor.sessionUpdate(
+        engineInteractor.update(
             sessionTopic, sessionState.toEngineSessionState(),
             { (topic, accounts) -> listener.onSuccess(WalletConnectClientData.UpdatedSession(topic, accounts)) },
+            { error -> listener.onError(error) })
+    }
+
+    fun disconnect(
+        disconnectParams: ClientTypes.DisconnectParams,
+        listener: WalletConnectClientListeners.SessionDelete
+    ) = with(disconnectParams) {
+        engineInteractor.disconnect(
+            sessionTopic, reason,
+            { (topic, reason) -> listener.onSuccess(WalletConnectClientData.DeletedSession(topic, reason)) },
             { error -> listener.onError(error) })
     }
 }

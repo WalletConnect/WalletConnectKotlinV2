@@ -1,6 +1,7 @@
 package org.walletconnect.walletconnectv2.engine.model
 
 import com.squareup.moshi.JsonClass
+import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import java.net.URI
 
 sealed class EngineData {
@@ -30,7 +31,7 @@ sealed class EngineData {
             val id: Long,
             val method: String,
             val params: String
-        )
+        ) : EngineData()
     }
 
     internal data class DeletedSession(
@@ -47,6 +48,12 @@ sealed class EngineData {
     ) : EngineData()
 
     data class SessionState(val accounts: List<String>) : EngineData()
+
+    data class SessionPermissions(val blockchain: Blockchain? = null, val jsonRpc: Jsonrpc? = null) : EngineData()
+
+    data class Blockchain(val chains: List<String>) : EngineData()
+
+    data class Jsonrpc(val methods: List<String>) : EngineData()
 
     internal sealed class JsonRpcResponse : EngineData() {
         abstract val id: Long

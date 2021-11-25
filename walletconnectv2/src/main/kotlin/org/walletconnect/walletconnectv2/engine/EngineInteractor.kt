@@ -241,22 +241,6 @@ internal class EngineInteractor {
                 onFailure = { error -> onFailure(error) })
         }
     }
-//todo change for monad
-    internal fun upgrade(topic: String, permissions: SessionPermissions, onResult: (Result<String>) -> Unit) {
-        require(::relayRepository.isInitialized)
-
-        val sessionUpgrade =
-            PostSettlementSession.SessionUpgrade(id = generateId(), params = Session.SessionPermissionsParams(permissions = permissions))
-        val json = trySerialize(sessionUpgrade)
-        val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
-        val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
-
-        observePublishAcknowledgement(onResult, topic)
-        observePublishError(onResult)
-
-        //TODO update session in local storage
-        relayRepository.publish(Topic(topic), encryptedMessage)
-    }
 
     internal fun respondSessionPayload(
         topic: String,
@@ -276,7 +260,7 @@ internal class EngineInteractor {
         }
     }
 
-    internal fun sessionUpdate(
+    internal fun update(
         topic: String,
         sessionState: EngineData.SessionState,
         onSuccess: (Pair<String, List<String>>) -> Unit,
@@ -296,6 +280,31 @@ internal class EngineInteractor {
                 onSuccess = { onSuccess(Pair(topic, sessionState.accounts)) },
                 onFailure = { error -> onFailure(error) })
 
+        }
+    }
+
+    internal fun upgrade(
+        topic: String, permissions: EngineData.SessionPermissions,
+        onSuccess: (Pair<String, EngineData.SessionPermissions>) -> Unit,
+        onFailure: (Throwable) -> Unit
+    ) {
+        require(::relayRepository.isInitialized)
+
+        val sessionUpgrade =
+            PostSettlementSession.SessionUpgrade(
+                id = generateId(),
+                params = Session.SessionPermissionsParams(permissions = permissions.toSessionsPermissions())
+            )
+        val json = trySerialize(sessionUpgrade)
+        val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
+        val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
+
+        //TODO update session in local storage
+        relayRepository.publish(Topic(topic), encryptedMessage) { result ->
+            result.fold(
+                onSuccess = { onSuccess(Pair(topic, permissions)) },
+                onFailure = { error -> onFailure(error) }
+            )
         }
     }
 

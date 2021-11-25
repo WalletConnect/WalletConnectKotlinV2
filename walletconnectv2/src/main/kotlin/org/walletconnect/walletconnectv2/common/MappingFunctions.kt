@@ -17,7 +17,6 @@ import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import org.walletconnect.walletconnectv2.engine.model.EngineData
 import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod
-import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import java.net.URI
 import kotlin.time.Duration
 
@@ -102,7 +101,19 @@ internal fun WalletConnectClientData.SessionState.toEngineSessionState(): Engine
 internal fun EngineData.DeletedSession.toClientDeletedSession(): WalletConnectClientData.DeletedSession =
     WalletConnectClientData.DeletedSession(topic, reason)
 
-internal fun WalletConnectClientData.SessionPermissions.toEngineSessionPermissions(): SessionPermissions =
+internal fun WalletConnectClientData.SessionPermissions.toEngineSessionPermissions(): EngineData.SessionPermissions =
+    EngineData.SessionPermissions(
+        blockchain?.chains?.let { chains -> EngineData.Blockchain(chains) },
+        jsonRpc?.methods?.let { methods -> EngineData.Jsonrpc(methods) }
+    )
+
+internal fun EngineData.SessionPermissions.toClientPerms(): WalletConnectClientData.SessionPermissions =
+    WalletConnectClientData.SessionPermissions(
+        blockchain?.chains?.let { chains -> WalletConnectClientData.Blockchain(chains) },
+        jsonRpc?.methods?.let { methods -> WalletConnectClientData.Jsonrpc(methods) }
+    )
+
+internal fun EngineData.SessionPermissions.toSessionsPermissions(): SessionPermissions =
     SessionPermissions(
         blockchain?.chains?.let { chains -> SessionProposedPermissions.Blockchain(chains) },
         jsonRpc?.methods?.let { methods -> SessionProposedPermissions.JsonRpc(methods) }
