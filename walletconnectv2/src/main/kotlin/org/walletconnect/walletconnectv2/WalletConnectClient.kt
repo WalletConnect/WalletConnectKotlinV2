@@ -96,6 +96,15 @@ object WalletConnectClient {
             { error -> listener.onError(error) })
     }
 
+    fun ping(
+        pingParams: ClientTypes.PingParams,
+        listener: WalletConnectClientListeners.SessionPing
+    ) {
+        engineInteractor.ping(pingParams.topic,
+            { topic -> listener.onSuccess(topic) },
+            { error -> listener.onError(error) })
+    }
+
     fun disconnect(
         disconnectParams: ClientTypes.DisconnectParams,
         listener: WalletConnectClientListeners.SessionDelete

@@ -34,12 +34,12 @@ class LazySodiumCryptoManager(private val keyChain: KeyStore = KeyChain()) : Cry
         val sharedKeyHex = lazySodium.cryptoScalarMult(privateKey.toKey(), peer.toKey()).asHexString.lowercase()
         val sharedKey = SharedKey(sharedKeyHex)
         val topic = generateTopic(sharedKey.keyAsHex)
-        setEncryptionKeys(sharedKey, publicKey, Topic(topic.topicValue.lowercase()))
+        setEncryptionKeys(sharedKey, publicKey, Topic(topic.value.lowercase()))
         return Pair(sharedKey, topic)
     }
 
     override fun setEncryptionKeys(sharedKey: SharedKey, publicKey: PublicKey, topic: Topic) {
-        keyChain.setKey(topic.topicValue, sharedKey, publicKey)
+        keyChain.setKey(topic.value, sharedKey, publicKey)
     }
 
     override fun removeKeys(tag: String) {
@@ -51,7 +51,7 @@ class LazySodiumCryptoManager(private val keyChain: KeyStore = KeyChain()) : Cry
     }
 
     override fun getKeyAgreement(topic: Topic): Pair<SharedKey, PublicKey> {
-        val (sharedKey, peerPublic) = keyChain.getKeys(topic.topicValue)
+        val (sharedKey, peerPublic) = keyChain.getKeys(topic.value)
         return Pair(SharedKey(sharedKey), PublicKey(peerPublic))
     }
 

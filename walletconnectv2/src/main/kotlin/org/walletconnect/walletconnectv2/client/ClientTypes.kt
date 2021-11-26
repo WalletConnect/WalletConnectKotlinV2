@@ -28,6 +28,8 @@ sealed class ClientTypes {
 
     data class UpgradeParams(val topic: String, val permissions: WalletConnectClientData.SessionPermissions) : ClientTypes()
 
+    data class PingParams(val topic: String) : ClientTypes()
+
     companion object {
         private const val WALLET_CONNECT_URL = "relay.walletconnect.com"
     }

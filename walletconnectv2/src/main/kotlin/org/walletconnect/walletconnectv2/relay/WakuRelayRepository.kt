@@ -42,7 +42,7 @@ class WakuRelayRepository internal constructor(
         Scarlet.Builder()
             .backoffStrategy(LinearBackoffStrategy(TimeUnit.MINUTES.toMillis(DEFAULT_BACKOFF_MINUTES)))
             .webSocketFactory(okHttpClient.newWebSocketFactory(getServerUrl()))
-            .lifecycle(AndroidLifecycle.ofApplicationForeground(application)) // TODO: Maybe have debug version of scarlet w/o application and release version of scarlet w/ application once DI is setup
+//            .lifecycle(AndroidLifecycle.ofApplicationForeground(application)) // TODO: Maybe have debug version of scarlet w/o application and release version of scarlet w/ application once DI is setup
             .addMessageAdapterFactory(MoshiMessageAdapter.Factory(moshi))
             .addStreamAdapterFactory(FlowStreamAdapter.Factory())
             .build()
@@ -57,9 +57,12 @@ class WakuRelayRepository internal constructor(
     internal val observeUnsubscribeResponse = relay.observeUnsubscribeAcknowledgement()
     internal val subscriptionRequest: Flow<Relay.Subscription.Request> =
         relay.observeSubscriptionRequest()
-            .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
+            .onEach { relayRequest ->
+                //TODO handle request duplication
+                supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) }
+            }
 
-    fun publish(topic: Topic, message: String, onResult: (Result<Any>) -> Unit) {
+    fun publish(topic: Topic, message: String, onResult: (Result<Any>) -> Unit = {}) {
         val publishRequest =
             Relay.Publish.Request(id = generateId(), params = Relay.Publish.Request.Params(topic = topic, message = message))
         observePublishAcknowledgement(onResult)

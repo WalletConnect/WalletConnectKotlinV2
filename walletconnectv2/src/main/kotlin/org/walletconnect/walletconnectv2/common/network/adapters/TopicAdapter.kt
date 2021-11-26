@@ -25,7 +25,7 @@ object TopicAdapter: JsonAdapter<Topic>() {
     @ToJson
     override fun toJson(writer: JsonWriter, @Qualifier value: Topic?) {
         if (value != null) {
-            writer.value(value.topicValue)
+            writer.value(value.value)
         } else {
             writer.value("")
         }

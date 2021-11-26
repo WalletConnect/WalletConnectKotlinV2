@@ -77,4 +77,6 @@ sealed class Session {
         @Json(name = "permissions")
         val permissions: SessionPermissions
     ) : Session()
+
+    class PingParams : Session()
 }

@@ -37,4 +37,8 @@ sealed interface WalletConnectClientListeners {
     interface SessionUpgrade : WalletConnectClientListeners {
         fun onSuccess(upgradedSession: WalletConnectClientData.UpgradedSession)
     }
+
+    interface SessionPing : WalletConnectClientListeners {
+        fun onSuccess(topic: String)
+    }
 }
