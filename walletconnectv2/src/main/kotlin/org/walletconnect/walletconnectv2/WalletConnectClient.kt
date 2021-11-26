@@ -2,13 +2,14 @@ package org.walletconnect.walletconnectv2
 
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import okhttp3.internal.notify
 import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
 import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
-import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycleEvent
+import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycle
 
 object WalletConnectClient {
     private val engineInteractor = EngineInteractor()
@@ -24,9 +25,10 @@ object WalletConnectClient {
         scope.launch {
             engineInteractor.sequenceEvent.collect { event ->
                 when (event) {
-                    is SequenceLifecycleEvent.OnSessionProposal -> walletConnectListener.onSessionProposal(event.proposal.toClientSessionProposal())
-                    is SequenceLifecycleEvent.OnSessionRequest -> walletConnectListener.onSessionRequest(event.request.toClientSessionRequest())
-                    is SequenceLifecycleEvent.OnSessionDeleted -> walletConnectListener.onSessionDelete(event.deletedSession.toClientDeletedSession())
+                    is SequenceLifecycle.OnSessionProposal -> walletConnectListener.onSessionProposal(event.proposal.toClientSessionProposal())
+                    is SequenceLifecycle.OnSessionRequest -> walletConnectListener.onSessionRequest(event.request.toClientSessionRequest())
+                    is SequenceLifecycle.OnSessionDeleted -> walletConnectListener.onSessionDelete(event.deletedSession.toClientDeletedSession())
+                    is SequenceLifecycle.OnSessionNotification -> walletConnectListener.onSessionNotification(event.notification.toClientSessionNotification())
                 }
             }
         }
@@ -102,6 +104,15 @@ object WalletConnectClient {
     ) {
         engineInteractor.ping(pingParams.topic,
             { topic -> listener.onSuccess(topic) },
+            { error -> listener.onError(error) })
+    }
+
+    fun notify(
+        notificationParams: ClientTypes.NotificationParams,
+        listener: WalletConnectClientListeners.Notification
+    ) = with(notificationParams) {
+        engineInteractor.notify(topic, notification.toEngineNotification(),
+            { (topic, notification) -> listener.onSuccess(topic, notification.toClientNotification()) },
             { error -> listener.onError(error) })
     }
 

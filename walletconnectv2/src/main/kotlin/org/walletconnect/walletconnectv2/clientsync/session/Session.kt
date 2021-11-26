@@ -79,4 +79,11 @@ sealed class Session {
     ) : Session()
 
     class PingParams : Session()
+
+    data class NotificationParams(
+        @Json(name = "type")
+        val type: String,
+        @Json(name = "data")
+        val data: Any
+    ) : Session()
 }

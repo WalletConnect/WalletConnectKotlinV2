@@ -98,8 +98,16 @@ internal fun WalletConnectClientData.JsonRpcResponse.JsonRpcError.toEngineRpcErr
 
 internal fun WalletConnectClientData.SessionState.toEngineSessionState(): EngineData.SessionState = EngineData.SessionState(accounts)
 
+internal fun WalletConnectClientData.Notification.toEngineNotification(): EngineData.Notification = EngineData.Notification(type, data)
+
+internal fun EngineData.Notification.toClientNotification(): WalletConnectClientData.Notification =
+    WalletConnectClientData.Notification(type, data)
+
 internal fun EngineData.DeletedSession.toClientDeletedSession(): WalletConnectClientData.DeletedSession =
     WalletConnectClientData.DeletedSession(topic, reason)
+
+internal fun EngineData.SessionNotification.toClientSessionNotification(): WalletConnectClientData.SessionNotification =
+    WalletConnectClientData.SessionNotification(topic, WalletConnectClientData.Notification(notification.type, notification.data))
 
 internal fun WalletConnectClientData.SessionPermissions.toEngineSessionPermissions(): EngineData.SessionPermissions =
     EngineData.SessionPermissions(

@@ -40,10 +40,10 @@ class WalletConnectClientIntegrationAndroidTest {
 
                 override fun onSessionRequest(sessionRequest: WalletConnectClientData.SessionRequest) {}
                 override fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession) {}
-
+                override fun onSessionNotification(sessionNotification: WalletConnectClientData.SessionNotification) {}
             }
-            WalletConnectClient.setWalletConnectListener(listener)
 
+            WalletConnectClient.setWalletConnectListener(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnectClientListeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnectClientData.SettledPairing) {
                     assert(true)
@@ -87,6 +87,7 @@ class WalletConnectClientIntegrationAndroidTest {
 
                 override fun onSessionRequest(sessionRequest: WalletConnectClientData.SessionRequest) {}
                 override fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession) {}
+                override fun onSessionNotification(sessionNotification: WalletConnectClientData.SessionNotification) {}
             }
 
             WalletConnectClient.setWalletConnectListener(listener)
@@ -152,7 +153,7 @@ class WalletConnectClientIntegrationAndroidTest {
 
                 override fun onSessionRequest(sessionRequest: WalletConnectClientData.SessionRequest) {}
                 override fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession) {}
-
+                override fun onSessionNotification(sessionNotification: WalletConnectClientData.SessionNotification) {}
             }
 
             WalletConnectClient.setWalletConnectListener(listener)
@@ -222,6 +223,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 }
 
                 override fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession) {}
+                override fun onSessionNotification(sessionNotification: WalletConnectClientData.SessionNotification) {}
             }
 
             WalletConnectClient.setWalletConnectListener(listener)
@@ -292,6 +294,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 }
 
                 override fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession) {}
+                override fun onSessionNotification(sessionNotification: WalletConnectClientData.SessionNotification) {}
             }
 
             WalletConnectClient.setWalletConnectListener(listener)
@@ -357,6 +360,7 @@ class WalletConnectClientIntegrationAndroidTest {
 
                 override fun onSessionRequest(sessionRequest: WalletConnectClientData.SessionRequest) {}
                 override fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession) {}
+                override fun onSessionNotification(sessionNotification: WalletConnectClientData.SessionNotification) {}
             }
 
             WalletConnectClient.setWalletConnectListener(listener)
@@ -419,6 +423,84 @@ class WalletConnectClientIntegrationAndroidTest {
 
                 override fun onSessionRequest(sessionRequest: WalletConnectClientData.SessionRequest) {}
                 override fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession) {}
+                override fun onSessionNotification(sessionNotification: WalletConnectClientData.SessionNotification) {}
+            }
+
+            WalletConnectClient.setWalletConnectListener(listener)
+            WalletConnectClient.pair(pairingParams, object : WalletConnectClientListeners.Pairing {
+                override fun onSuccess(settledPairing: WalletConnectClientData.SettledPairing) {
+                    assert(true)
+                }
+
+                override fun onError(error: Throwable) {
+                    assert(false)
+                    activityRule.close()
+                }
+
+            })
+        }
+    }
+
+    data class NotifyTest(
+        val message: String,
+        val code: Int
+    )
+
+    @Test
+    fun responderSendNotificationTest() {
+        activityRule.launch {
+            val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org", metadata = metadata)
+            WalletConnectClient.initialize(initParams)
+
+            val uri =
+                "wc:fd8ebbeee55ce8ef9a26b55a41a58118c8e946438857b9c6c2ffafbe7cf4737a@2?controller=false&publicKey=ca7973c3d90860c19425f5e027c70904b2a22a807aa5f69ec5ed8d3b82097e32&relay=%7B%22protocol%22%3A%22waku%22%7D"
+            val pairingParams = ClientTypes.PairParams(uri)
+
+
+            val listener = object : WalletConnectClientListener {
+                override fun onSessionProposal(sessionProposal: WalletConnectClientData.SessionProposal) {
+                    assert(true)
+                    val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
+                    val approveParams: ClientTypes.ApproveParams = ClientTypes.ApproveParams(sessionProposal, accounts)
+
+                    WalletConnectClient.approve(approveParams, object : WalletConnectClientListeners.SessionApprove {
+                        override fun onSuccess(settledSession: WalletConnectClientData.SettledSession) {
+
+                            val notificationParams =
+                                ClientTypes.NotificationParams(
+                                    settledSession.topic,
+                                    WalletConnectClientData.Notification("type", "TEST DATA")
+                                )
+
+                            WalletConnectClient.notify(notificationParams, object : WalletConnectClientListeners.Notification {
+                                override fun onSuccess(topic: String, notification: WalletConnectClientData.Notification) {
+
+                                    Logger.error("Kobe; Notify Success: $topic")
+
+                                    assert(true)
+                                    activityRule.close()
+                                }
+
+                                override fun onError(error: Throwable) {
+
+                                    Logger.error("Kobe; Notify Error: $error")
+
+                                    assert(false)
+                                    activityRule.close()
+                                }
+                            })
+                        }
+
+                        override fun onError(error: Throwable) {
+                            assert(false)
+                            activityRule.close()
+                        }
+                    })
+                }
+
+                override fun onSessionRequest(sessionRequest: WalletConnectClientData.SessionRequest) {}
+                override fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession) {}
+                override fun onSessionNotification(sessionNotification: WalletConnectClientData.SessionNotification) {}
             }
 
             WalletConnectClient.setWalletConnectListener(listener)

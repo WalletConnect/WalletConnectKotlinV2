@@ -60,4 +60,11 @@ sealed class Pairing {
     ) : Pairing()
 
     class PingParams : Pairing()
+
+    data class NotificationParams(
+        @Json(name = "type")
+        val type: String,
+        @Json(name = "data")
+        val data: Any
+    ) : Pairing()
 }

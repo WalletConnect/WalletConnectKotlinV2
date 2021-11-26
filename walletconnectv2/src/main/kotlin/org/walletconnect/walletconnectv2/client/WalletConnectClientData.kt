@@ -60,6 +60,16 @@ sealed class WalletConnectClientData {
 
     data class UpdatedSession(val topic: String, val accounts: List<String>) : WalletConnectClientData()
 
+    data class SessionNotification(
+        val topic: String,
+        val notification: Notification
+    ) : WalletConnectClientData()
+
+    data class Notification(
+        val type: String,
+        val data: Any
+    ) : WalletConnectClientData()
+
     sealed class JsonRpcResponse : WalletConnectClientData() {
         abstract val id: Long
         val jsonrpc: String = "2.0"

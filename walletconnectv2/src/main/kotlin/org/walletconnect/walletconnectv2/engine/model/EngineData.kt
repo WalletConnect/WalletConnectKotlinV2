@@ -39,12 +39,21 @@ sealed class EngineData {
         val reason: String
     ) : EngineData()
 
-
     internal data class SettledSession(
         var icon: String?,
         var name: String,
         var uri: String,
         val topic: String
+    ) : EngineData()
+
+    internal data class SessionNotification(
+        val topic: String,
+        val notification: Notification
+    ) : EngineData()
+
+    internal data class Notification(
+        val type: String,
+        val data: Any
     ) : EngineData()
 
     data class SessionState(val accounts: List<String>) : EngineData()

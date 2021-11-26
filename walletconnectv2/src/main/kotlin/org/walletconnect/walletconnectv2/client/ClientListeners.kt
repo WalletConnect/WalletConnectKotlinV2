@@ -4,6 +4,7 @@ interface WalletConnectClientListener {
     fun onSessionProposal(sessionProposal: WalletConnectClientData.SessionProposal)
     fun onSessionRequest(sessionRequest: WalletConnectClientData.SessionRequest)
     fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession)
+    fun onSessionNotification(sessionNotification: WalletConnectClientData.SessionNotification)
 }
 
 sealed interface WalletConnectClientListeners {
@@ -40,5 +41,9 @@ sealed interface WalletConnectClientListeners {
 
     interface SessionPing : WalletConnectClientListeners {
         fun onSuccess(topic: String)
+    }
+
+    interface Notification : WalletConnectClientListeners {
+        fun onSuccess(topic: String, notification: WalletConnectClientData.Notification)
     }
 }
