@@ -6,6 +6,7 @@ object JsonRpcMethod {
     const val WC_PAIRING_REJECT: String = "wc_pairingReject"
     const val WC_PAIRING_UPDATE: String = "wc_pairingUpdate"
     const val WC_PAIRING_PING: String = "wc_pairingPing"
+    const val WC_PAIRING_DELETE: String = "wc_pairingDelete"
 
     const val WC_SESSION_PAYLOAD: String = "wc_sessionPayload"
     const val WC_SESSION_PROPOSE: String = "wc_sessionPropose"

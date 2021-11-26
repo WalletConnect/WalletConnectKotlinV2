@@ -41,6 +41,7 @@ import org.walletconnect.walletconnectv2.errors.NoSessionRequestPayloadException
 import org.walletconnect.walletconnectv2.errors.exception
 import org.walletconnect.walletconnectv2.exceptionHandler
 import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
+import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_PAIRING_DELETE
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_PAIRING_PAYLOAD
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_PAIRING_PING
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_SESSION_DELETE
@@ -85,21 +86,17 @@ internal class EngineInteractor {
 
         scope.launch(exceptionHandler) {
             relayRepository.subscriptionRequest.collect { relayRequest ->
-
                 val topic: Topic = relayRequest.subscriptionTopic
                 val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
                 val encryptionPayload = relayRequest.message.toEncryptionPayload()
                 val decryptedMessage: String = codec.decrypt(encryptionPayload, sharedKey as SharedKey)
 
-                Logger.error("Kobe; Peer message: $decryptedMessage")
-
-                //TODO get given Sequence(Pairing or Session) from local storage and validate permissions
                 tryDeserialize<JsonRpcRequest>(decryptedMessage)?.let { request ->
                     when (val rpc = request.method) {
                         WC_PAIRING_PAYLOAD -> onPairingPayload(decryptedMessage, sharedKey, selfPublic as PublicKey)
+                        WC_PAIRING_DELETE -> onPairingDelete(decryptedMessage, topic)
                         WC_SESSION_PAYLOAD -> onSessionPayload(decryptedMessage, topic)
                         WC_SESSION_DELETE -> onSessionDelete(decryptedMessage, topic)
-                        //TODO add Pairing Delete
                         WC_SESSION_PING, WC_PAIRING_PING -> onPing(topic, request.id)
                         else -> onUnsupported(rpc)
                     }
@@ -321,8 +318,8 @@ internal class EngineInteractor {
         }
     }
 
-    private fun onPairingPayload(json: String, sharedKey: SharedKey, selfPublic: PublicKey) {
-        tryDeserialize<PostSettlementPairing.PairingPayload>(json)?.let { pairingPayload ->
+    private fun onPairingPayload(decryptedMessage: String, sharedKey: SharedKey, selfPublic: PublicKey) {
+        tryDeserialize<PostSettlementPairing.PairingPayload>(decryptedMessage)?.let { pairingPayload ->
             val proposal = pairingPayload.payloadParams
             //TODO validate session proposal
             crypto.setEncryptionKeys(sharedKey, selfPublic, proposal.topic)
@@ -331,8 +328,8 @@ internal class EngineInteractor {
         } ?: throw NoSessionProposalException()
     }
 
-    private fun onSessionPayload(json: String, topic: Topic) {
-        tryDeserialize<PostSettlementSession.SessionPayload>(json)?.let { sessionPayload ->
+    private fun onSessionPayload(decryptedMessage: String, topic: Topic) {
+        tryDeserialize<PostSettlementSession.SessionPayload>(decryptedMessage)?.let { sessionPayload ->
             //TODO Validate session request + add unmarshaling of generic session request payload to the usable generic object
             val params = sessionPayload.sessionParams
             val chainId = sessionPayload.params.chainId
@@ -343,14 +340,20 @@ internal class EngineInteractor {
         } ?: throw NoSessionRequestPayloadException()
     }
 
-    private fun onSessionDelete(json: String, topic: Topic) {
-        tryDeserialize<PostSettlementSession.SessionDelete>(json)?.let { sessionDelete ->
+    private fun onSessionDelete(decryptedMessage: String, topic: Topic) {
+        tryDeserialize<PostSettlementSession.SessionDelete>(decryptedMessage)?.let { sessionDelete ->
             //TODO Add subscriptionId from local storage + Delete all data from local storage coupled with given session
             crypto.removeKeys(topic.value)
             relayRepository.unsubscribe(topic, SubscriptionId("1"))
             val reason = sessionDelete.message
             _sequenceEvent.value = SequenceLifecycleEvent.OnSessionDeleted(EngineData.DeletedSession(topic.value, reason))
         } ?: throw NoSessionDeletePayloadException()
+    }
+
+    private fun onPairingDelete(json: String, topic: Topic) {
+        //TODO Add subscriptionId from local storage + Delete all data from local storage coupled with given Pairing
+        crypto.removeKeys(topic.value)
+        relayRepository.unsubscribe(topic, SubscriptionId("1"))
     }
 
     private fun onPing(topic: Topic, requestId: Long) {
