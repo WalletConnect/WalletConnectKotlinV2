@@ -9,6 +9,7 @@ import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.Pair
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingSignal
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingParticipant
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingState
+import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.common.Expiry
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.Ttl
@@ -25,7 +26,7 @@ sealed class Pairing {
         val pairingSignal: PairingSignal?,
         val permissions: PairingProposedPermissions?,
         val ttl: Ttl
-    ): Pairing()
+    ) : Pairing()
 
     @JsonClass(generateAdapter = true)
     data class Success(
@@ -42,13 +43,21 @@ sealed class Pairing {
         val expiry: Expiry,
         @Json(name = "state")
         val state: PairingState
-    ): Pairing()
+    ) : Pairing()
 
-    class Failure(val reason: String): Pairing()
+    class Failure(val reason: String) : Pairing()
 
     @JsonClass(generateAdapter = true)
-    data class PairingPayloadParams(
+    data class PayloadParams(
         @Json(name = "request")
         val request: ProposalRequest
-    ): Pairing()
+    ) : Pairing()
+
+    @JsonClass(generateAdapter = true)
+    data class UpdateParams(
+        @Json(name = "state")
+        val state: PairingState
+    ) : Pairing()
+
+    class PingParams : Pairing()
 }

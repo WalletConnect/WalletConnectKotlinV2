@@ -30,7 +30,7 @@ internal class TopicAdapterTest {
     @Test
     fun toJson() {
         val topic = Topic(getRandom64ByteHexString())
-        val expected = """"${topic.topicValue}""""
+        val expected = """"${topic.value}""""
 
         val topicJson = moshi.adapter(Topic::class.java).toJson(topic)
 

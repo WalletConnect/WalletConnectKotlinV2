@@ -2,7 +2,6 @@
 
 package org.walletconnect.walletconnectv2.common
 
-import com.squareup.moshi.Moshi
 import org.json.JSONObject
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
@@ -18,7 +17,6 @@ import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import org.walletconnect.walletconnectv2.engine.model.EngineData
 import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod
-import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import java.net.URI
 import kotlin.time.Duration
 
@@ -43,15 +41,14 @@ internal fun String.toPairProposal(): Pairing.Proposal {
     )
 }
 
-internal fun Pairing.Proposal.toPairingSuccess(settleTopic: Topic, expiry: Expiry, selfPublicKey: PublicKey): Pairing.Success {
-    return Pairing.Success(
+internal fun Pairing.Proposal.toPairingSuccess(settleTopic: Topic, expiry: Expiry, selfPublicKey: PublicKey): Pairing.Success =
+    Pairing.Success(
         settledTopic = settleTopic,
         relay = relay,
         responder = PairingParticipant(publicKey = selfPublicKey.keyAsHex),
         expiry = expiry,
-        state = PairingState(null) //TODO add AppMeta data
+        state = PairingState(null)
     )
-}
 
 internal fun Pairing.Proposal.toApprove(
     id: Long,
@@ -60,39 +57,28 @@ internal fun Pairing.Proposal.toApprove(
     selfPublicKey: PublicKey
 ): PreSettlementPairing.Approve = PreSettlementPairing.Approve(id = id, params = this.toPairingSuccess(settleTopic, expiry, selfPublicKey))
 
-internal fun PreSettlementPairing.Approve.toRelayPublishRequest(
-    id: Long,
-    topic: Topic,
-    moshi: Moshi
-): Relay.Publish.Request {
-    val pairingApproveJson = moshi.adapter(PreSettlementPairing.Approve::class.java).toJson(this)
-    val hexEncodedJson = pairingApproveJson.encodeToByteArray().joinToString(separator = "") { String.format("%02X", it) }
-
-    return Relay.Publish.Request(id = id, params = Relay.Publish.Request.Params(topic = topic, message = hexEncodedJson.lowercase()))
-}
-
-internal fun Session.Proposal.toSessionProposal(): EngineData.SessionProposal {
-    return EngineData.SessionProposal(
+internal fun Session.Proposal.toSessionProposal(): EngineData.SessionProposal =
+    EngineData.SessionProposal(
         name = this.proposer.metadata?.name!!,
         description = this.proposer.metadata.description,
         url = this.proposer.metadata.url,
         icons = this.proposer.metadata.icons.map { URI(it) },
         chains = this.permissions.blockchain.chains,
         methods = this.permissions.jsonRpc.methods,
-        topic = this.topic.topicValue,
+        topic = this.topic.value,
         proposerPublicKey = this.proposer.publicKey,
-        ttl = this.ttl.seconds
+        ttl = this.ttl.seconds,
+        accounts = listOf()
     )
-}
 
 internal fun EngineInteractor.EngineFactory.toRelayInitParams(): WakuRelayRepository.RelayFactory =
     WakuRelayRepository.RelayFactory(useTLs, hostName, apiKey, application)
 
 internal fun EngineData.SessionProposal.toClientSessionProposal(): WalletConnectClientData.SessionProposal =
-    WalletConnectClientData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl)
+    WalletConnectClientData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl, accounts)
 
 internal fun WalletConnectClientData.SessionProposal.toEngineSessionProposal(): EngineData.SessionProposal =
-    EngineData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl)
+    EngineData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl, accounts)
 
 internal fun EngineData.SettledSession.toClientSettledSession(): WalletConnectClientData.SettledSession =
     WalletConnectClientData.SettledSession(icon, name, uri, topic)
@@ -110,10 +96,24 @@ internal fun <T> WalletConnectClientData.JsonRpcResponse.JsonRpcResult<T>.toEngi
 internal fun WalletConnectClientData.JsonRpcResponse.JsonRpcError.toEngineRpcError(): EngineData.JsonRpcResponse.JsonRpcError =
     EngineData.JsonRpcResponse.JsonRpcError(id, EngineData.JsonRpcResponse.Error(error.code, error.message))
 
+internal fun WalletConnectClientData.SessionState.toEngineSessionState(): EngineData.SessionState = EngineData.SessionState(accounts)
+
 internal fun EngineData.DeletedSession.toClientDeletedSession(): WalletConnectClientData.DeletedSession =
     WalletConnectClientData.DeletedSession(topic, reason)
 
-internal fun WalletConnectClientData.SessionPermissions.toEngineSessionPermissions(): SessionPermissions =
+internal fun WalletConnectClientData.SessionPermissions.toEngineSessionPermissions(): EngineData.SessionPermissions =
+    EngineData.SessionPermissions(
+        blockchain?.chains?.let { chains -> EngineData.Blockchain(chains) },
+        jsonRpc?.methods?.let { methods -> EngineData.Jsonrpc(methods) }
+    )
+
+internal fun EngineData.SessionPermissions.toClientPerms(): WalletConnectClientData.SessionPermissions =
+    WalletConnectClientData.SessionPermissions(
+        blockchain?.chains?.let { chains -> WalletConnectClientData.Blockchain(chains) },
+        jsonRpc?.methods?.let { methods -> WalletConnectClientData.Jsonrpc(methods) }
+    )
+
+internal fun EngineData.SessionPermissions.toSessionsPermissions(): SessionPermissions =
     SessionPermissions(
         blockchain?.chains?.let { chains -> SessionProposedPermissions.Blockchain(chains) },
         jsonRpc?.methods?.let { methods -> SessionProposedPermissions.JsonRpc(methods) }
