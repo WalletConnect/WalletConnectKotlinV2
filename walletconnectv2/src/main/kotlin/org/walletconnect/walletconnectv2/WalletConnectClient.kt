@@ -71,6 +71,7 @@ object WalletConnectClient {
                 onFailure = { error -> listener.onError(error) }
             )
         }
+    }
 
     fun upgrade(
         upgradeParams: ClientTypes.UpgradeParams,
