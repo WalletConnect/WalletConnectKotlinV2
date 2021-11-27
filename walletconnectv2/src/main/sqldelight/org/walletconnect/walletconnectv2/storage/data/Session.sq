@@ -13,19 +13,30 @@ CREATE TABLE SessionDao(
   signal_method TEXT NOT NULL,
   signal_topic TEXT NOT NULL,
   -- SessionPermissions
-  permissions_chain TEXT AS List<String> NOT NULL,
+  permissions_chains TEXT AS List<String> NOT NULL,
   permissions_methods TEXT AS List<String> NOT NULL,
   permissions_types TEXT AS List<String> NOT NULL,
   ttl_seconds INTEGER NOT NULL,
-  accounts_id INTEGER DEFAULT(NULL),
+  self_public_key TEXT DEFAULT (NULL),
+  accounts TEXT AS List<String> DEFAULT(NULL),
   expiry INTEGER DEFAULT(NULL),
   status TEXT AS SequenceStatus NOT NULL
 );
 
 insertSession:
-INSERT INTO SessionDao(topic, relay_protocol_option, proposer_public_key, proposer_is_controller, metadata_id, signal_method, signal_topic, permissions_chain, permissions_methods, permissions_types, ttl_seconds, status)
+INSERT INTO SessionDao(topic, relay_protocol_option, proposer_public_key, proposer_is_controller, metadata_id, signal_method, signal_topic, permissions_chains, permissions_methods, permissions_types, ttl_seconds, status)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
-getSessionDao:
-SELECT *
-FROM SessionDao;
+getSessionDaoWithMetadata:
+SELECT sd.topic, sd.relay_protocol_option, sd.proposer_public_key, sd.proposer_is_controller, mdd._name, mdd.description, mdd.url, mdd.icons, sd.signal_method, sd.signal_topic, sd.permissions_chains, sd.permissions_methods, sd.permissions_types, sd.ttl_seconds, sd.self_public_key, sd.accounts, sd.expiry, sd.status
+FROM SessionDao sd
+    LEFT JOIN MetaDataDao mdd ON sd.metadata_id = mdd.id;
+
+updateSession:
+UPDATE OR ABORT SessionDao
+SET self_public_key = ?, topic = ?, accounts = ?, expiry = ?, status = ?
+WHERE proposer_public_key = ?;
+
+deleteSession:
+DELETE FROM SessionDao
+WHERE LOWER(?) IN (LOWER(proposer_public_key), LOWER(self_public_key));

@@ -3,17 +3,13 @@ package org.walletconnect.walletconnectv2.storage
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.squareup.sqldelight.sqlite.driver.JdbcSqliteDriver
-import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Rule
 import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.walletconnect.walletconnectv2.Database
-import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionProposer
-import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionSignal
 import org.walletconnect.walletconnectv2.common.AppMetaData
-import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.util.CoroutineTestRule
 
 @ExperimentalCoroutinesApi
@@ -31,14 +27,14 @@ internal class StorageRepositoryTest {
 
     @Test
     fun `Insert first instance of metadata and get row id`() {
-        val rowId = storageRepository.insertMetaData(AppMetaData())
+        val rowId = storageRepository.insertOrGetMetaData(AppMetaData())
 
         assert(rowId > 0)
     }
 
     @Test
     fun `Try to insert null metadata and return invalid row id`() {
-        val rowId = storageRepository.insertMetaData(null)
+        val rowId = storageRepository.insertOrGetMetaData(null)
 
         assert(rowId < 0)
     }
@@ -47,8 +43,8 @@ internal class StorageRepositoryTest {
     fun `Trying to insert metadata with same name returns id of first instance instead`() {
         val metaData = AppMetaData()
 
-        val rowIdFirst = storageRepository.insertMetaData(metaData)
-        val rowIdSecond = storageRepository.insertMetaData(metaData)
+        val rowIdFirst = storageRepository.insertOrGetMetaData(metaData)
+        val rowIdSecond = storageRepository.insertOrGetMetaData(metaData)
 
         assert(rowIdFirst > 0)
         assert(rowIdSecond > 0)
@@ -60,9 +56,9 @@ internal class StorageRepositoryTest {
         val metaDataFirst = AppMetaData(name = "First Peer")
         val metaDataSecond = AppMetaData(name = "Second Peer")
 
-        val rowIdFirst = storageRepository.insertMetaData(metaDataFirst)
+        val rowIdFirst = storageRepository.insertOrGetMetaData(metaDataFirst)
 
-        val rowIdSecond = storageRepository.insertMetaData(metaDataSecond)
+        val rowIdSecond = storageRepository.insertOrGetMetaData(metaDataSecond)
 
         assert(rowIdFirst > 0)
         assert(rowIdSecond > 0 && rowIdSecond > rowIdFirst)

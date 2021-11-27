@@ -111,6 +111,12 @@ internal class EngineInteractor {
                 }
             }
         }
+
+        storageRepository.sessions
+            .onEach {
+                Logger.log(it.joinToString(separator = "\n\n\n", postfix = "\n\n\n"))
+            }
+            .launchIn(scope)
     }
 
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
@@ -184,14 +190,19 @@ internal class EngineInteractor {
         val settledSession: SettledSessionSequence =
             settleSessionSequence(RelayProtocolOptions(), selfPublicKey, peerPublicKey, expiry, sessionState)
         val sessionApprove = PreSettlementSession.Approve(
-            id = generateId(), params = Session.Success(
-                relay = RelayProtocolOptions(), state = settledSession.state, expiry = expiry,
+            id = generateId(),
+            params = Session.Success(
+                relay = RelayProtocolOptions(),
+                state = settledSession.state,
+                expiry = expiry,
                 responder = SessionParticipant(selfPublicKey.keyAsHex, metadata = this.metaData)
             )
         )
         val approvalJson: String = trySerialize(sessionApprove)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(proposal.topic))
         val encryptedMessage: String = codec.encrypt(approvalJson, sharedKey as SharedKey, selfPublic as PublicKey)
+
+        storageRepository.updateStatusToSessionApproval(peerPublicKey.keyAsHex, selfPublicKey.keyAsHex, settledSession.topic.value, proposal.accounts, expiry.seconds)
         relayRepository.subscribe(settledSession.topic)
         relayRepository.publish(Topic(proposal.topic), encryptedMessage) { result ->
             result.fold(
@@ -221,7 +232,8 @@ internal class EngineInteractor {
     }
 
     internal fun disconnect(
-        topic: String, reason: String,
+        topic: String,
+        reason: String,
         onSuccess: (Pair<String, String>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
@@ -233,6 +245,7 @@ internal class EngineInteractor {
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
         //TODO Add subscriptionId from local storage + Delete all data from local storage coupled with given session
         crypto.removeKeys(topic)
+        storageRepository.delete(selfPublic.keyAsHex)
         relayRepository.unsubscribe(Topic(topic), SubscriptionId("1"))
         relayRepository.publish(Topic(topic), encryptedMessage) { result ->
             result.fold(
@@ -308,7 +321,7 @@ internal class EngineInteractor {
 
         /*TODO check whether under given topic there is a pairing or session stored and crated proper Ping class*/
         //val pairingParams = PostSettlementPairing.PairingPing(id = generateId(), params = Pairing.PingParams())
-        val sessionPing = PostSettlementSession.SessionPing(id = generateId(), params = Session.PingParams())
+        val sessionPing = PostSettlementSession.SessionPing(id = generateId(), params = Session.PingParams)
 
         val json = trySerialize(sessionPing)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
@@ -324,6 +337,7 @@ internal class EngineInteractor {
     private fun onPairingPayload(decryptedMessage: String, sharedKey: SharedKey, selfPublic: PublicKey) {
         tryDeserialize<PostSettlementPairing.PairingPayload>(decryptedMessage)?.let { pairingPayload ->
             val proposal = pairingPayload.payloadParams
+            storageRepository.insertSessionProposal(proposal)
             //TODO validate session proposal
             crypto.setEncryptionKeys(sharedKey, selfPublic, proposal.topic)
             val sessionProposal = proposal.toSessionProposal()
@@ -346,6 +360,8 @@ internal class EngineInteractor {
     private fun onSessionDelete(decryptedMessage: String, topic: Topic) {
         tryDeserialize<PostSettlementSession.SessionDelete>(decryptedMessage)?.let { sessionDelete ->
             //TODO Add subscriptionId from local storage + Delete all data from local storage coupled with given session
+            val (_, selfPublic) = crypto.getKeyAgreement(topic)
+            storageRepository.delete(selfPublic.keyAsHex)
             crypto.removeKeys(topic.value)
             relayRepository.unsubscribe(topic, SubscriptionId("1"))
             val reason = sessionDelete.message

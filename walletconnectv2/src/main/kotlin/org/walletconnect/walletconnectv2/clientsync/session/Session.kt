@@ -78,5 +78,5 @@ sealed class Session {
         val permissions: SessionPermissions
     ) : Session()
 
-    class PingParams : Session()
+    object PingParams : Session()
 }
