@@ -14,10 +14,7 @@ import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.Sess
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionSignal
 import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionParticipant
 import org.walletconnect.walletconnectv2.clientsync.session.common.SessionState
-import org.walletconnect.walletconnectv2.common.AppMetaData
-import org.walletconnect.walletconnectv2.common.Expiry
-import org.walletconnect.walletconnectv2.common.Topic
-import org.walletconnect.walletconnectv2.common.Ttl
+import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.scope
 import org.walletconnect.walletconnectv2.storage.data.MetaDataDao
 import org.walletconnect.walletconnectv2.storage.data.SessionDao
@@ -38,7 +35,8 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
             permissions_methodsAdapter = listOfStringsAdapter,
             permissions_typesAdapter = listOfStringsAdapter,
             accountsAdapter = listOfStringsAdapter,
-            statusAdapter = EnumColumnAdapter()
+            statusAdapter = EnumColumnAdapter(),
+            controller_typeAdapter = EnumColumnAdapter()
         )
     )
     //endregion
@@ -52,7 +50,7 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
         sessionDatabase.sessionQueries.updateSession(selfPublicKey, updateTopic, listOfAccounts, expiry, SequenceStatus.SETTLED, keyToSearch)
     }
 
-    fun insertSessionProposal(proposal: Session.Proposal) {
+    fun insertSessionProposal(proposal: Session.Proposal, controllerType: ControllerType) {
         val metaDataRowId = insertOrGetMetaData(proposal.proposer.metadata)
 
         sessionDatabase.sessionQueries.insertSession(
@@ -67,7 +65,8 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
             permissions_methods = proposal.permissions.jsonRpc.methods,
             permissions_types = proposal.permissions.notifications.types,
             ttl_seconds = proposal.ttl.seconds,
-            status = SequenceStatus.PENDING
+            status = SequenceStatus.PENDING,
+            controller_type = controllerType
         )
     }
 
@@ -102,7 +101,8 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
         self_public_key: String?,
         accounts: List<String>?,
         expiry: Long?,
-        status: SequenceStatus
+        status: SequenceStatus,
+        controller_type: ControllerType // TODO: Figure out how to handle proposer and responder once proposer is implemented
     ): Session {
         val metadata = if (metadata_name != null && metadata_desc != null && metadata_url != null && metadata_icons != null) {
             AppMetaData(metadata_name, metadata_desc, metadata_url, metadata_icons)

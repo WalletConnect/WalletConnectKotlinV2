@@ -1,6 +1,7 @@
 package org.walletconnect.walletconnectv2.engine
 
 import android.app.Application
+import android.service.controls.Control
 import com.tinder.scarlet.WebSocket
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
@@ -65,6 +66,7 @@ internal class EngineInteractor {
     //endregion
 
     private var metaData: AppMetaData? = null
+    private var controllerType = ControllerType.CONTROLLER
     private val _sequenceEvent: MutableStateFlow<SequenceLifecycleEvent> = MutableStateFlow(SequenceLifecycleEvent.Default)
     val sequenceEvent: StateFlow<SequenceLifecycleEvent> = _sequenceEvent
 
@@ -72,6 +74,7 @@ internal class EngineInteractor {
 
     internal fun initialize(engine: EngineFactory) {
         this.metaData = engine.metaData
+        this.controllerType = if (engine.isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
         relayRepository = WakuRelayRepository.initRemote(engine.toRelayInitParams())
         storageRepository = StorageRepository(null, engine.application)
 
@@ -337,7 +340,7 @@ internal class EngineInteractor {
     private fun onPairingPayload(decryptedMessage: String, sharedKey: SharedKey, selfPublic: PublicKey) {
         tryDeserialize<PostSettlementPairing.PairingPayload>(decryptedMessage)?.let { pairingPayload ->
             val proposal = pairingPayload.payloadParams
-            storageRepository.insertSessionProposal(proposal)
+            storageRepository.insertSessionProposal(proposal, controllerType)
             //TODO validate session proposal
             crypto.setEncryptionKeys(sharedKey, selfPublic, proposal.topic)
             val sessionProposal = proposal.toSessionProposal()

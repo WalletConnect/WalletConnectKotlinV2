@@ -1,5 +1,6 @@
 import kotlin.collections.List;
 import org.walletconnect.walletconnectv2.storage.SequenceStatus;
+import org.walletconnect.walletconnectv2.common.ControllerType;
 
 CREATE TABLE SessionDao(
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -20,15 +21,16 @@ CREATE TABLE SessionDao(
   self_public_key TEXT DEFAULT (NULL),
   accounts TEXT AS List<String> DEFAULT(NULL),
   expiry INTEGER DEFAULT(NULL),
-  status TEXT AS SequenceStatus NOT NULL
+  status TEXT AS SequenceStatus NOT NULL,
+  controller_type TEXT AS ControllerType NOT NULL
 );
 
 insertSession:
-INSERT INTO SessionDao(topic, relay_protocol_option, proposer_public_key, proposer_is_controller, metadata_id, signal_method, signal_topic, permissions_chains, permissions_methods, permissions_types, ttl_seconds, status)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO SessionDao(topic, relay_protocol_option, proposer_public_key, proposer_is_controller, metadata_id, signal_method, signal_topic, permissions_chains, permissions_methods, permissions_types, ttl_seconds, status, controller_type)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getSessionDaoWithMetadata:
-SELECT sd.topic, sd.relay_protocol_option, sd.proposer_public_key, sd.proposer_is_controller, mdd._name, mdd.description, mdd.url, mdd.icons, sd.signal_method, sd.signal_topic, sd.permissions_chains, sd.permissions_methods, sd.permissions_types, sd.ttl_seconds, sd.self_public_key, sd.accounts, sd.expiry, sd.status
+SELECT sd.topic, sd.relay_protocol_option, sd.proposer_public_key, sd.proposer_is_controller, mdd._name, mdd.description, mdd.url, mdd.icons, sd.signal_method, sd.signal_topic, sd.permissions_chains, sd.permissions_methods, sd.permissions_types, sd.ttl_seconds, sd.self_public_key, sd.accounts, sd.expiry, sd.status, sd.controller_type
 FROM SessionDao sd
     LEFT JOIN MetaDataDao mdd ON sd.metadata_id = mdd.id;
 
