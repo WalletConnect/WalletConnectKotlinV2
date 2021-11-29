@@ -1,8 +1,6 @@
 package org.walletconnect.walletconnectv2.engine
 
 import android.app.Application
-import android.service.controls.Control
-import android.util.Log
 import com.tinder.scarlet.WebSocket
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
@@ -114,18 +112,19 @@ internal class EngineInteractor {
                     Logger.error("Peer Error: ${exception.error.errorMessage}")
                 }
             }
-        }
 
-        // Automatically resubscribe to any pending session in the DB
-        storageRepository.sessions
-            .onEach { listOfSessions ->
-                listOfSessions
-                    .filterIsInstance<Session.Proposal>()
-                    .onEach {
-                        relayRepository.subscribe(it.topic)
-                    }
+            // Automatically resubscribe to any approved sessions in the DB
+            supervisorScope {
+                storageRepository.sessions.collect { listOfSessions ->
+                    listOfSessions
+                        .filterIsInstance<Session.Success>()
+                        .filter { session -> session.topic != null }
+                        .onEach {
+                            relayRepository.subscribe(it.topic!!)
+                        }
+                }
             }
-            .launchIn(scope)
+        }
     }
 
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {

@@ -49,7 +49,9 @@ sealed class Session {
         val expiry: Expiry,
         @Json(name = "state")
         val state: SessionState
-    ) : Session()
+    ) : Session() {
+        var topic: Topic? = null
+    }
 
     @JsonClass(generateAdapter = true)
     class Failure(val reason: String) : Session()

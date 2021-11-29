@@ -133,7 +133,9 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
                 responder = SessionParticipant(publicKey = self_public_key, metadata = metadata),
                 expiry = Expiry(expiry),
                 state = SessionState(accounts = accounts)
-            )
+            ).apply {
+                this.topic = Topic(topic)
+            }
         }
     }
 
