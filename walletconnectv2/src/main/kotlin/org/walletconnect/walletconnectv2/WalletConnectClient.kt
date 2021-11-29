@@ -107,12 +107,12 @@ object WalletConnectClient {
             { error -> listener.onError(error) })
     }
 
-    fun notify(
-        notificationParams: ClientTypes.NotificationParams,
+    fun <T> notify(
+        notificationParams: ClientTypes.NotificationParams<T>,
         listener: WalletConnectClientListeners.Notification
     ) = with(notificationParams) {
         engineInteractor.notify(topic, notification.toEngineNotification(),
-            { (topic, notification) -> listener.onSuccess(topic, notification.toClientNotification()) },
+            { topic -> listener.onSuccess(topic) },
             { error -> listener.onError(error) })
     }
 

@@ -177,7 +177,7 @@ class WalletConnectClientIntegrationAndroidTest {
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:e660bf452fa59d0f48076158e5d5385c7fd60ad4a1f3598bd5b109ab173f553f@2?controller=false&publicKey=3ed1ab47eba882d6d9956075cf28e326b26940376cee2b384345a70c6afb8c29&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:b8637ddf87ccb715fa894c7630c9d57bcc055bc8adc866c649bb3e7b99a48be5@2?controller=false&publicKey=cc47a6046a47026d6590bfe212d3b108b5480dccdf1106026aaaade05a93187c&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
 
 
@@ -441,6 +441,11 @@ class WalletConnectClientIntegrationAndroidTest {
         }
     }
 
+    data class NotifyTest(
+        val code: Int,
+        val message: String
+    )
+
     @Test
     fun responderSendNotificationTest() {
         activityRule.launch {
@@ -448,7 +453,7 @@ class WalletConnectClientIntegrationAndroidTest {
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:dd8372bea22108237b4b443938bd27c1efa7889d8f00c4b416987bf33a514b8b@2?controller=false&publicKey=30c27531678c2a4d6afc349d58eb9976853cf21c3da56fc931b99117632b8a27&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:8d45a8b64d4b921ee8608053ebbbea7a52d8c59ded79f379a868f524c868789f@2?controller=false&publicKey=8d18b02dbbd8c29133255a847061af36a7673ebdcdbf0a05aaac3a3ef7391703&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
 
 
@@ -464,11 +469,11 @@ class WalletConnectClientIntegrationAndroidTest {
                             val notificationParams =
                                 ClientTypes.NotificationParams(
                                     settledSession.topic,
-                                    WalletConnectClientData.Notification("type", "TEST DATA")
+                                    WalletConnectClientData.Notification("type", NotifyTest(1, "test"))
                                 )
 
                             WalletConnectClient.notify(notificationParams, object : WalletConnectClientListeners.Notification {
-                                override fun onSuccess(topic: String, notification: WalletConnectClientData.Notification) {
+                                override fun onSuccess(topic: String) {
                                     assert(true)
                                     activityRule.close()
                                 }

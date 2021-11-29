@@ -62,12 +62,13 @@ sealed class WalletConnectClientData {
 
     data class SessionNotification(
         val topic: String,
-        val notification: Notification
+        val type: String,
+        val data: String
     ) : WalletConnectClientData()
 
-    data class Notification(
+    data class Notification<T>(
         val type: String,
-        val data: Any
+        val data: T
     ) : WalletConnectClientData()
 
     sealed class JsonRpcResponse : WalletConnectClientData() {

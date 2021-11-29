@@ -44,6 +44,6 @@ sealed interface WalletConnectClientListeners {
     }
 
     interface Notification : WalletConnectClientListeners {
-        fun onSuccess(topic: String, notification: WalletConnectClientData.Notification)
+        fun onSuccess(topic: String)
     }
 }

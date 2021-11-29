@@ -85,5 +85,7 @@ sealed class PostSettlementSession {
         override val method: String = JsonRpcMethod.WC_SESSION_NOTIFICATION,
         @Json(name = "params")
         override val params: Session.NotificationParams
-    ) : PostSettlementSession()
+    ) : PostSettlementSession() {
+        val notificationParams = params.data.toString()
+    }
 }

@@ -302,7 +302,7 @@ internal class EngineInteractor {
 
     internal fun notify(
         topic: String, notification: EngineData.Notification,
-        onSuccess: (Pair<String, EngineData.Notification>) -> Unit,
+        onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
         require(::relayRepository.isInitialized)
@@ -317,7 +317,7 @@ internal class EngineInteractor {
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
         relayRepository.publish(Topic(topic), encryptedMessage) { result ->
             result.fold(
-                onSuccess = { onSuccess(Pair(topic, notification)) },
+                onSuccess = { onSuccess(topic) },
                 onFailure = { error -> onFailure(error) }
             )
         }
@@ -381,9 +381,9 @@ internal class EngineInteractor {
     private fun onSessionNotification(decryptedMessage: String, topic: Topic) {
         tryDeserialize<PostSettlementSession.SessionNotification>(decryptedMessage)?.let { sessionNotification ->
             val type = sessionNotification.params.type
-            val data = sessionNotification.params.data
+            val data = sessionNotification.notificationParams
             _sequenceEvent.value =
-                SequenceLifecycle.OnSessionNotification(EngineData.SessionNotification(topic.value, EngineData.Notification(type, data)))
+                SequenceLifecycle.OnSessionNotification(EngineData.SessionNotification(topic.value, type, data))
         } ?: throw NoSessionNotificationPayloadException()
     }
 

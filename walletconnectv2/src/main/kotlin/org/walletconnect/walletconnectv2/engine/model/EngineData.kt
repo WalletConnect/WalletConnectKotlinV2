@@ -48,12 +48,13 @@ sealed class EngineData {
 
     internal data class SessionNotification(
         val topic: String,
-        val notification: Notification
+        val type: String,
+        val data: String
     ) : EngineData()
 
     internal data class Notification(
         val type: String,
-        val data: Any
+        val data: String
     ) : EngineData()
 
     data class SessionState(val accounts: List<String>) : EngineData()
