@@ -2,6 +2,7 @@ package org.walletconnect.walletconnectv2.engine
 
 import android.app.Application
 import android.service.controls.Control
+import android.util.Log
 import com.tinder.scarlet.WebSocket
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
@@ -115,9 +116,14 @@ internal class EngineInteractor {
             }
         }
 
+        // Automatically resubscribe to any pending session in the DB
         storageRepository.sessions
-            .onEach {
-                Logger.log(it.joinToString(separator = "\n\n\n", postfix = "\n\n\n"))
+            .onEach { listOfSessions ->
+                listOfSessions
+                    .filterIsInstance<Session.Proposal>()
+                    .onEach {
+                        relayRepository.subscribe(it.topic)
+                    }
             }
             .launchIn(scope)
     }
