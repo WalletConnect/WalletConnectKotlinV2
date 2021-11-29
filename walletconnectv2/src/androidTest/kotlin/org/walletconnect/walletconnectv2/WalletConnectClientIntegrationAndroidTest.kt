@@ -111,7 +111,7 @@ class WalletConnectClientIntegrationAndroidTest {
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:f53c78cb1a47830c136b106559f190d2d81260963dea33719d17482817aba3e7@2?controller=false&publicKey=91dcb7a88f88347f6cb8b90d1691d631513684521f05d7c299d1a7928e667a61&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:94a1d482bafeb75d77178c06d2438b7ca84475c518fc6c12c1cbeb43031f73a8@2?controller=false&publicKey=f7d9a60033f881ebd137e7e80ba3b96e127c39e112ae539e4fe0a4b74c837c2f&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
 
             val listener = object : WalletConnectClientListener {
@@ -441,11 +441,6 @@ class WalletConnectClientIntegrationAndroidTest {
         }
     }
 
-    data class NotifyTest(
-        val message: String,
-        val code: Int
-    )
-
     @Test
     fun responderSendNotificationTest() {
         activityRule.launch {
@@ -453,7 +448,7 @@ class WalletConnectClientIntegrationAndroidTest {
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:fd8ebbeee55ce8ef9a26b55a41a58118c8e946438857b9c6c2ffafbe7cf4737a@2?controller=false&publicKey=ca7973c3d90860c19425f5e027c70904b2a22a807aa5f69ec5ed8d3b82097e32&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:dd8372bea22108237b4b443938bd27c1efa7889d8f00c4b416987bf33a514b8b@2?controller=false&publicKey=30c27531678c2a4d6afc349d58eb9976853cf21c3da56fc931b99117632b8a27&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
 
 
@@ -474,17 +469,11 @@ class WalletConnectClientIntegrationAndroidTest {
 
                             WalletConnectClient.notify(notificationParams, object : WalletConnectClientListeners.Notification {
                                 override fun onSuccess(topic: String, notification: WalletConnectClientData.Notification) {
-
-                                    Logger.error("Kobe; Notify Success: $topic")
-
                                     assert(true)
                                     activityRule.close()
                                 }
 
                                 override fun onError(error: Throwable) {
-
-                                    Logger.error("Kobe; Notify Error: $error")
-
                                     assert(false)
                                     activityRule.close()
                                 }

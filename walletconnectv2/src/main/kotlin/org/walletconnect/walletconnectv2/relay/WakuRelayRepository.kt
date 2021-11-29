@@ -67,9 +67,6 @@ class WakuRelayRepository internal constructor(
             Relay.Publish.Request(id = generateId(), params = Relay.Publish.Request.Params(topic = topic, message = message))
         observePublishAcknowledgement(onResult)
         observePublishError(onResult)
-
-        Logger.error("Kobe; Relay publish: $publishRequest")
-
         relay.publishRequest(publishRequest)
     }
 
@@ -94,9 +91,6 @@ class WakuRelayRepository internal constructor(
             relay.observePublishAcknowledgement()
                 .catch { exception -> Logger.error(exception) }
                 .collect {
-
-                    Logger.error("Kobe; Relay success: $it")
-
                     supervisorScope {
                         onResult(Result.success(Unit))
                         cancel()

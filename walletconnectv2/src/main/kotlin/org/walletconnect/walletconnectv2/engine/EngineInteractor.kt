@@ -89,8 +89,6 @@ internal class EngineInteractor {
                 val encryptionPayload = relayRequest.message.toEncryptionPayload()
                 val decryptedMessage: String = codec.decrypt(encryptionPayload, sharedKey as SharedKey)
 
-                Logger.error("Kobe; Peer Message: $decryptedMessage")
-
                 tryDeserialize<JsonRpcRequest>(decryptedMessage)?.let { request ->
                     when (val rpc = request.method) {
                         WC_PAIRING_PAYLOAD -> onPairingPayload(decryptedMessage, sharedKey, selfPublic as PublicKey)
@@ -189,6 +187,7 @@ internal class EngineInteractor {
         )
         val approvalJson: String = trySerialize(sessionApprove)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(proposal.topic))
+
         val encryptedMessage: String = codec.encrypt(approvalJson, sharedKey as SharedKey, selfPublic as PublicKey)
         relayRepository.subscribe(settledSession.topic)
         relayRepository.publish(Topic(proposal.topic), encryptedMessage) { result ->
@@ -314,12 +313,8 @@ internal class EngineInteractor {
             PostSettlementSession
                 .SessionNotification(id = generateId(), params = Session.NotificationParams(notification.type, notification.data))
         val json = trySerialize(sessionNotification)
-
-        Logger.error("Kobe; Notification request: $json")
-
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
-
         relayRepository.publish(Topic(topic), encryptedMessage) { result ->
             result.fold(
                 onSuccess = { onSuccess(Pair(topic, notification)) },
