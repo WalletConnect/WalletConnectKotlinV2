@@ -25,7 +25,7 @@ sealed class Pairing {
         val pairingSignal: PairingSignal?,
         val permissions: PairingProposedPermissions?,
         val ttl: Ttl
-    ): Pairing()
+    ) : Pairing()
 
     @JsonClass(generateAdapter = true)
     data class Success(
@@ -42,13 +42,19 @@ sealed class Pairing {
         val expiry: Expiry,
         @Json(name = "state")
         val state: PairingState
-    ): Pairing()
+    ) : Pairing()
 
-    class Failure(val reason: String): Pairing()
+    class Failure(val reason: String) : Pairing()
 
     @JsonClass(generateAdapter = true)
-    data class PairingPayloadParams(
+    data class PayloadParams(
         @Json(name = "request")
         val request: ProposalRequest
-    ): Pairing()
+    ) : Pairing()
+
+    @JsonClass(generateAdapter = true)
+    data class UpdateParams(
+        @Json(name = "state")
+        val state: PairingState
+    ) : Pairing()
 }

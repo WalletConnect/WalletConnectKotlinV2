@@ -1,7 +1,7 @@
 package org.walletconnect.walletconnectv2.clientsync.session
 
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.RelayProtocolOptions
-import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionState
+import org.walletconnect.walletconnectv2.clientsync.session.common.SessionState
 import org.walletconnect.walletconnectv2.common.Expiry
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey

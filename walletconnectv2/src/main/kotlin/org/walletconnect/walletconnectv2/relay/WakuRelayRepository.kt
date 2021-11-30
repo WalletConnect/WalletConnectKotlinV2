@@ -7,17 +7,18 @@ import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import okhttp3.OkHttpClient
-import org.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing
 import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
-import org.walletconnect.walletconnectv2.common.toRelayPublishRequest
 import org.walletconnect.walletconnectv2.moshi
 import org.walletconnect.walletconnectv2.relay.data.RelayService
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import org.walletconnect.walletconnectv2.scope
+import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.util.adapters.FlowStreamAdapter
 import org.walletconnect.walletconnectv2.util.generateId
 import java.util.concurrent.TimeUnit
@@ -58,14 +59,11 @@ class WakuRelayRepository internal constructor(
         relay.observeSubscriptionRequest()
             .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
 
-    fun publishPairingApproval(topic: Topic, preSettlementPairingApproval: PreSettlementPairing.Approve) {
-        val publishRequest = preSettlementPairingApproval.toRelayPublishRequest(generateId(), topic, moshi)
-        relay.publishRequest(publishRequest)
-    }
-
-    fun publish(topic: Topic, message: String) {
+    fun publish(topic: Topic, message: String, onResult: (Result<Any>) -> Unit) {
         val publishRequest =
             Relay.Publish.Request(id = generateId(), params = Relay.Publish.Request.Params(topic = topic, message = message))
+        observePublishAcknowledgement(onResult)
+        observePublishError(onResult)
         relay.publishRequest(publishRequest)
     }
 
@@ -83,6 +81,33 @@ class WakuRelayRepository internal constructor(
     private fun publishSubscriptionAcknowledgement(id: Long) {
         val publishRequest = Relay.Subscription.Acknowledgement(id = id, result = true)
         relay.publishSubscriptionAcknowledgement(publishRequest)
+    }
+
+    private fun observePublishAcknowledgement(onResult: (Result<Any>) -> Unit) {
+        scope.launch {
+            relay.observePublishAcknowledgement()
+                .catch { exception -> Logger.error(exception) }
+                .collect {
+                    supervisorScope {
+                        onResult(Result.success(Unit))
+                        cancel()
+                    }
+                }
+        }
+    }
+
+    private fun observePublishError(onResult: (Result<Throwable>) -> Unit) {
+        scope.launch {
+            relay.observePublishError()
+                .onEach { jsonRpcError -> Logger.error(Throwable(jsonRpcError.error.errorMessage)) }
+                .catch { exception -> Logger.error(exception) }
+                .collect { errorResponse ->
+                    supervisorScope {
+                        onResult(Result.failure(Throwable(errorResponse.error.errorMessage)))
+                        cancel()
+                    }
+                }
+        }
     }
 
     private fun getServerUrl(): String =

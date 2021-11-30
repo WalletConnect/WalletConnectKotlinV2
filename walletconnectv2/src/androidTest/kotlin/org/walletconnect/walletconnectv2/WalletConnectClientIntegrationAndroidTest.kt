@@ -7,6 +7,8 @@ import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
+import org.walletconnect.walletconnectv2.common.AppMetaData
+import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.utils.IntegrationTestApplication
 
 class WalletConnectClientIntegrationAndroidTest {
@@ -14,10 +16,17 @@ class WalletConnectClientIntegrationAndroidTest {
     val activityRule = WCIntegrationActivityScenarioRule()
     private val app = ApplicationProvider.getApplicationContext<IntegrationTestApplication>()
 
+    private val metadata = AppMetaData(
+        name = "Kotlin Wallet",
+        description = "Wallet description",
+        url = "example.wallet",
+        icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media")
+    )
+
     @Test
     fun responderApprovePairingAndGetSessionProposalTest() {
         activityRule.launch {
-            val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org")
+            val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org", metadata = metadata)
             WalletConnectClient.initialize(initParams)
             val uri =
                 "wc:1420bdd67db1c9da97e976a85dcca60cbc2cc2f7566c3851fbd2fa07d2f4587e@2?controller=false&publicKey=3e21974849ebf1f95274679e7f5a3ab5fc607ae921a0dffd756ce634d9b65b5b&relay=%7B%22protocol%22%3A%22waku%22%7D"
@@ -51,7 +60,7 @@ class WalletConnectClientIntegrationAndroidTest {
     @Test
     fun responderSessionApproveTest() {
         activityRule.launch {
-            val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org")
+            val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org", metadata = metadata)
             WalletConnectClient.initialize(initParams)
 
             val uri =
@@ -97,11 +106,11 @@ class WalletConnectClientIntegrationAndroidTest {
     @Test
     fun responderUpgradeSessionPermissionsTest() {
         activityRule.launch {
-            val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org")
+            val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org", metadata = metadata)
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:baeab320d7dc7c388b8700bb96c1a7e3d7398e2e104979bdcbbba3844afb2034@2?controller=false&publicKey=9178ee116da13f06dfb85c7fb4af425468359dec4f420a465ad8527cfe0c2528&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:f53c78cb1a47830c136b106559f190d2d81260963dea33719d17482817aba3e7@2?controller=false&publicKey=91dcb7a88f88347f6cb8b90d1691d631513684521f05d7c299d1a7928e667a61&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
 
             val listener = object : WalletConnectClientListener {
@@ -163,7 +172,7 @@ class WalletConnectClientIntegrationAndroidTest {
     @Test
     fun responderAcceptRequestAndSendResponseTest() {
         activityRule.launch {
-            val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org")
+            val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org", metadata = metadata)
             WalletConnectClient.initialize(initParams)
 
             val uri =
@@ -233,7 +242,7 @@ class WalletConnectClientIntegrationAndroidTest {
     @Test
     fun responderAcceptRequestAndSendErrorTest() {
         activityRule.launch {
-            val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org")
+            val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org", metadata = metadata)
             WalletConnectClient.initialize(initParams)
 
             val uri =
@@ -282,6 +291,74 @@ class WalletConnectClientIntegrationAndroidTest {
 
                 }
 
+                override fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession) {}
+            }
+
+            WalletConnectClient.setWalletConnectListener(listener)
+            WalletConnectClient.pair(pairingParams, object : WalletConnectClientListeners.Pairing {
+                override fun onSuccess(settledPairing: WalletConnectClientData.SettledPairing) {
+                    assert(true)
+                }
+
+                override fun onError(error: Throwable) {
+                    assert(false)
+                    activityRule.close()
+                }
+
+            })
+        }
+    }
+
+    @Test
+    fun responderSessionUpdateTest() {
+        activityRule.launch {
+            val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org", metadata = metadata)
+            WalletConnectClient.initialize(initParams)
+
+            val uri =
+                "wc:bd14079da63344a1f5bb80c9035d5fd43d3807ab618805135b9dbc8c47f0c130@2?controller=false&publicKey=a89553879b7f4db59bcf25d61df3d2eb549e80de53bd2ac4f186de20081aa956&relay=%7B%22protocol%22%3A%22waku%22%7D"
+            val pairingParams = ClientTypes.PairParams(uri)
+
+
+            val listener = object : WalletConnectClientListener {
+                override fun onSessionProposal(sessionProposal: WalletConnectClientData.SessionProposal) {
+                    assert(true)
+                    val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
+                    val approveParams: ClientTypes.ApproveParams = ClientTypes.ApproveParams(sessionProposal, accounts)
+
+                    WalletConnectClient.approve(approveParams, object : WalletConnectClientListeners.SessionApprove {
+                        override fun onSuccess(settledSession: WalletConnectClientData.SettledSession) {
+
+                            val updateParams = ClientTypes.UpdateParams(
+                                settledSession.topic,
+                                WalletConnectClientData.SessionState(accounts = listOf("eip155:8001:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716"))
+                            )
+
+                            WalletConnectClient.update(updateParams, object : WalletConnectClientListeners.SessionUpdate {
+                                override fun onSuccess(updatedSession: WalletConnectClientData.UpdatedSession) {
+                                    Logger.error("Session Update Success: $updatedSession")
+                                    assert(true)
+                                    activityRule.close()
+                                }
+
+                                override fun onError(error: Throwable) {
+                                    Logger.error("Session Update Error")
+
+                                    assert(false)
+                                    activityRule.close()
+                                }
+
+                            })
+                        }
+
+                        override fun onError(error: Throwable) {
+                            assert(false)
+                            activityRule.close()
+                        }
+                    })
+                }
+
+                override fun onSessionRequest(sessionRequest: WalletConnectClientData.SessionRequest) {}
                 override fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession) {}
             }
 
