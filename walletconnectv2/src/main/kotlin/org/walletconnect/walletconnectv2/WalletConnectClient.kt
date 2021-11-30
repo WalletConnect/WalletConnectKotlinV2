@@ -49,7 +49,7 @@ object WalletConnectClient {
         listener: WalletConnectClientListeners.SessionApprove
     ) = with(approveParams) {
         engineInteractor.approve(
-            proposal.toEngineSessionProposal().copy(accounts = accounts),
+            proposal.toEngineSessionProposal(accounts),
             { settledSession -> listener.onSuccess(settledSession.toClientSettledSession()) },
             { error -> listener.onError(error) })
     }
