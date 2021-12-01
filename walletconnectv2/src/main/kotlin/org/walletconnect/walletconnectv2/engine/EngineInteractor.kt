@@ -2,7 +2,6 @@ package org.walletconnect.walletconnectv2.engine
 
 import android.app.Application
 import com.tinder.scarlet.WebSocket
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -51,6 +50,7 @@ import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_SES
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import org.walletconnect.walletconnectv2.relay.data.model.jsonrpc.JsonRpcRequest
 import org.walletconnect.walletconnectv2.scope
+import org.walletconnect.walletconnectv2.storage.SequenceStatus
 import org.walletconnect.walletconnectv2.storage.StorageRepository
 import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.util.generateId
@@ -117,14 +117,7 @@ internal class EngineInteractor {
             }
         }
 
-        // Automatically resubscribe to any approved sessions in the DB
-        storageRepository.listOfSessionVO.onEach { listOfSessions ->
-            listOfSessions
-                .onEach {
-                    relayRepository.subscribe(it.topic)
-                }
-        }
-        .launchIn(scope)
+        resubscribeToSettledSession()
     }
 
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
@@ -212,11 +205,15 @@ internal class EngineInteractor {
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(proposal.topic))
         val encryptedMessage: String = codec.encrypt(approvalJson, sharedKey as SharedKey, selfPublic as PublicKey)
 
-        storageRepository.updateStatusToSessionApproval(proposal.topic, sessionApprove.id, settledSession.topic.value, sessionApprove.params.state.accounts, sessionApprove.params.expiry.seconds)
         relayRepository.subscribe(settledSession.topic)
         relayRepository.publish(Topic(proposal.topic), encryptedMessage) { result ->
             result.fold(
-                onSuccess = { with(proposal) { onSuccess(EngineData.SettledSession(icon, name, url, settledSession.topic.value)) } },
+                onSuccess = {
+                    with(proposal) {
+                        storageRepository.updateStatusToSessionApproval(proposal.topic, sessionApprove.id, settledSession.topic.value, sessionApprove.params.state.accounts, sessionApprove.params.expiry.seconds)
+                        onSuccess(EngineData.SettledSession(icon, name, url, settledSession.topic.value))
+                    }
+                },
                 onFailure = { error -> onFailure(error) }
             )
         }
@@ -403,6 +400,18 @@ internal class EngineInteractor {
                 onSuccess = {},
                 onFailure = { error -> Logger.error("Ping Error: $error") })
         }
+    }
+
+    private fun resubscribeToSettledSession() {
+        // Flow will automatically resubscribe to any settled sessions in the DB
+        storageRepository.listOfSessionVO.onEach { listOfSessions ->
+            listOfSessions
+                .filter { it.status == SequenceStatus.SETTLED }
+                .onEach { session ->
+                    relayRepository.subscribe(session.topic)
+                }
+        }
+            .launchIn(scope)
     }
 
     private fun onUnsupported(rpc: String?) {
