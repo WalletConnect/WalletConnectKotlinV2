@@ -21,7 +21,7 @@ internal class MappingFunctionsTest {
         val pairingProposal = testUri.toPairProposal()
 
         assertNotNull(pairingProposal)
-        assert(pairingProposal.topic.topicValue.isNotBlank())
+        assert(pairingProposal.topic.value.isNotBlank())
         assert(pairingProposal.pairingProposer.publicKey.isNotBlank())
         assert(pairingProposal.ttl.seconds > 0)
     }

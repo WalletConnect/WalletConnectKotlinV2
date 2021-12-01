@@ -65,7 +65,7 @@ internal fun Session.Proposal.toSessionProposal(): EngineData.SessionProposal =
         icons = this.proposer.metadata.icons.map { URI(it) },
         chains = this.permissions.blockchain.chains,
         methods = this.permissions.jsonRpc.methods,
-        topic = this.topic.topicValue,
+        topic = this.topic.value,
         proposerPublicKey = this.proposer.publicKey,
         ttl = this.ttl.seconds,
         accounts = listOf()
@@ -77,6 +77,8 @@ internal fun EngineInteractor.EngineFactory.toRelayInitParams(): WakuRelayReposi
 internal fun EngineData.SessionProposal.toClientSessionProposal(): WalletConnectClientData.SessionProposal =
     WalletConnectClientData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl, accounts)
 
+internal fun WalletConnectClientData.SessionProposal.toEngineSessionProposal(): EngineData.SessionProposal =
+    EngineData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl, accounts)
 internal fun WalletConnectClientData.SessionProposal.toEngineSessionProposal(accountList: List<String>): EngineData.SessionProposal =
     EngineData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl, accountList)
 

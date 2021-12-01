@@ -46,8 +46,8 @@ internal class LazySodiumCryptoManagerTest {
         val peerKey = PublicKey("D083CDBBD08B93BD9AD10E95712DC0D4BD880401B04D587D8D3782FEA0CD31A9")
         val (_, topic) = sut.generateTopicAndSharedKey(publicKey, peerKey)
 
-        assert(topic.topicValue.isNotBlank())
-        assert(topic.topicValue.length == 64)
+        assert(topic.value.isNotBlank())
+        assert(topic.value.length == 64)
     }
 
     @Test
@@ -58,8 +58,8 @@ internal class LazySodiumCryptoManagerTest {
         }
         sut.setEncryptionKeys(sharedKeyString, publicKey, Topic("topic"))
 
-        assertEquals(sharedKey.keyAsHex, keyChain.getKeys(Topic("topic").topicValue).first)
-        assertEquals(publicKey.keyAsHex, keyChain.getKeys(Topic("topic").topicValue).second)
+        assertEquals(sharedKey.keyAsHex, keyChain.getKeys(Topic("topic").value).first)
+        assertEquals(publicKey.keyAsHex, keyChain.getKeys(Topic("topic").value).second)
     }
 
     @Test
