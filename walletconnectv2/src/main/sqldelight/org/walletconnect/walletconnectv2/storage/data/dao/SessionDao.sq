@@ -1,0 +1,43 @@
+import kotlin.collections.List;
+import org.walletconnect.walletconnectv2.storage.SequenceStatus;
+import org.walletconnect.walletconnectv2.common.ControllerType;
+
+CREATE TABLE SessionDao(
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  topic TEXT NOT NULL,
+  permissions_chains TEXT AS List<String> NOT NULL,
+  permissions_methods TEXT AS List<String> NOT NULL,
+  permissions_types TEXT AS List<String> NOT NULL,
+  ttl_seconds INTEGER NOT NULL,
+  accounts TEXT AS List<String> DEFAULT(NULL),
+  expiry INTEGER DEFAULT(NULL),
+  status TEXT AS SequenceStatus NOT NULL,
+  controller_type TEXT AS ControllerType NOT NULL
+);
+
+insertSession:
+INSERT INTO SessionDao(topic, permissions_chains, permissions_methods, permissions_types, ttl_seconds, status, controller_type)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+getSessionDao:
+SELECT topic, permissions_chains, permissions_methods, permissions_types, ttl_seconds, accounts, expiry, status, controller_type
+FROM SessionDao;
+
+updateSessionWithSessionApproval:
+UPDATE OR ABORT SessionDao
+SET id = ?, topic = ?, accounts = ?, expiry = ?, status = ?
+WHERE topic = ?;
+
+updateSessionWithPermissions:
+UPDATE OR ABORT SessionDao
+SET permissions_chains = ?, permissions_methods = ?
+WHERE topic = ?;
+
+updateSessionWithAccounts:
+UPDATE OR ABORT SessionDao
+SET accounts = ?
+WHERE topic = ?;
+
+deleteSession:
+DELETE FROM SessionDao
+WHERE topic = ?;

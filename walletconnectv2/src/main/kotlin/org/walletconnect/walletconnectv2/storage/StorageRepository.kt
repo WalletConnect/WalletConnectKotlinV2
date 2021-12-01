@@ -8,16 +8,12 @@ import com.squareup.sqldelight.db.SqlDriver
 import com.squareup.sqldelight.runtime.coroutines.*
 import org.walletconnect.walletconnectv2.Database
 import org.walletconnect.walletconnectv2.clientsync.session.Session
-import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.RelayProtocolOptions
-import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionProposedPermissions
-import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionProposer
-import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionSignal
-import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionParticipant
-import org.walletconnect.walletconnectv2.clientsync.session.common.SessionState
 import org.walletconnect.walletconnectv2.common.*
+import org.walletconnect.walletconnectv2.engine.model.EngineData
 import org.walletconnect.walletconnectv2.scope
-import org.walletconnect.walletconnectv2.storage.data.MetaDataDao
-import org.walletconnect.walletconnectv2.storage.data.SessionDao
+import org.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
+import org.walletconnect.walletconnectv2.storage.data.dao.SessionDao
+import org.walletconnect.walletconnectv2.storage.data.vo.SessionVO
 
 internal class StorageRepository constructor(sqliteDriver: SqlDriver?, application: Application) {
     //region provide with DI
@@ -41,26 +37,13 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
     )
     //endregion
 
-    val sessions = sessionDatabase.sessionQueries.getSessionDaoWithMetadata(mapper = this@StorageRepository::mapSessionsDaoWithMetadataToSession)
+    val listOfSessionVO = sessionDatabase.sessionDaoQueries.getSessionDao(mapper = this@StorageRepository::mapSessionDaoToSessionVO)
         .asFlow()
         .mapToList(scope.coroutineContext)
 
-
-    fun updateStatusToSessionApproval(keyToSearch: String, selfPublicKey: String, updateTopic: String, listOfAccounts: List<String>, expiry: Long) {
-        sessionDatabase.sessionQueries.updateSession(selfPublicKey, updateTopic, listOfAccounts, expiry, SequenceStatus.SETTLED, keyToSearch)
-    }
-
     fun insertSessionProposal(proposal: Session.Proposal, controllerType: ControllerType) {
-        val metaDataRowId = insertOrGetMetaData(proposal.proposer.metadata)
-
-        sessionDatabase.sessionQueries.insertSession(
+        sessionDatabase.sessionDaoQueries.insertSession(
             topic = proposal.topic.value,
-            relay_protocol_option = proposal.relay.protocol,
-            proposer_public_key = proposal.proposer.publicKey,
-            proposer_is_controller = proposal.proposer.controller,
-            metadata_id = metaDataRowId,
-            signal_method = proposal.signal.method,
-            signal_topic = proposal.signal.params.topic.value,
             permissions_chains = proposal.permissions.blockchain.chains,
             permissions_methods = proposal.permissions.jsonRpc.methods,
             permissions_types = proposal.permissions.notifications.types,
@@ -70,73 +53,56 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
         )
     }
 
-    fun insertOrGetMetaData(appMetaData: AppMetaData?): Long = with(sessionDatabase.metaDataQueries) {
-        val insertedItemRowId = appMetaData?.let { metaData ->
-            insertOrIgnoreMetaData(metaData.name, metaData.description, metaData.url, metaData.icons)
-            lastInsertedRowId().executeAsOne()
-        } ?: FAILED_INSERT_ID
+    fun insertMetaData(appMetaData: AppMetaData) {
+        sessionDatabase.metaDataDaoQueries.insertOrIgnoreMetaData(appMetaData.name, appMetaData.description, appMetaData.url, appMetaData.icons)
+    }
 
-        return insertedItemRowId
+    fun getMetaData(): AppMetaData {
+        return sessionDatabase.metaDataDaoQueries.getMetaData(mapper = { _, name, description, url, listOfIcons ->
+            AppMetaData(name, description, url, listOfIcons)
+        }).executeAsOne()
+    }
+
+    fun updateStatusToSessionApproval(topicKey: String, subscriptionId: Long, settledTopic: String, accounts: List<String>, expirySeconds: Long) {
+        sessionDatabase.sessionDaoQueries.updateSessionWithSessionApproval(subscriptionId, settledTopic, accounts, expirySeconds, SequenceStatus.SETTLED, topicKey)
+    }
+
+    fun updateSessionWithAccounts(topic: String, accounts: List<String>) {
+        sessionDatabase.sessionDaoQueries.updateSessionWithAccounts(accounts, topic)
     }
 
     fun delete(selfPublicKeyString: String) {
-        sessionDatabase.sessionQueries.deleteSession(selfPublicKeyString)
+        sessionDatabase.sessionDaoQueries.deleteSession(selfPublicKeyString)
     }
 
-    private fun mapSessionsDaoWithMetadataToSession(
+    private fun mapSessionDaoToSessionVO(
         topic: String,
-        relay_protocol_option: String,
-        proposer_public_key: String,
-        proposer_is_controller: Boolean,
-        metadata_name: String?,
-        metadata_desc: String?,
-        metadata_url: String?,
-        metadata_icons: List<String>?,
-        signal_method: String,
-        signal_topic: String,
         permission_chains: List<String>,
         permissions_methods: List<String>,
         permissions_types: List<String>,
         ttl_seconds: Long,
-        self_public_key: String?,
         accounts: List<String>?,
         expiry: Long?,
         status: SequenceStatus,
         controller_type: ControllerType // TODO: Figure out how to handle proposer and responder once proposer is implemented
-    ): Session {
-        val metadata = if (metadata_name != null && metadata_desc != null && metadata_url != null && metadata_icons != null) {
-            AppMetaData(metadata_name, metadata_desc, metadata_url, metadata_icons)
-        } else {
-            null
-        }
+    ): SessionVO {
+        return SessionVO(
+            topic = Topic(topic),
+            chains = permission_chains,
+            methods = permissions_methods,
+            types = permissions_types,
+            ttl = Ttl(ttl_seconds),
+            accounts = accounts ?: emptyList(),
+            expiry = if (expiry != null) Expiry(expiry) else null,
+            status = status
+        )
+    }
 
-        return if (status == SequenceStatus.PENDING) {
-            Session.Proposal(
-                topic = Topic(topic),
-                relay = RelayProtocolOptions(protocol = relay_protocol_option),
-                proposer = SessionProposer(publicKey = proposer_public_key, controller = proposer_is_controller, metadata = metadata),
-                signal = SessionSignal(method = signal_method, params = SessionSignal.Params(topic = Topic(signal_topic))),
-                permissions = SessionProposedPermissions(
-                    blockchain = SessionProposedPermissions.Blockchain(chains = permission_chains),
-                    jsonRpc = SessionProposedPermissions.JsonRpc(methods = permissions_methods),
-                    notifications = SessionProposedPermissions.Notifications(types = permissions_types)
-                ),
-                ttl = Ttl(seconds = ttl_seconds)
-            )
-        } else {
-            requireNotNull(self_public_key)
-            requireNotNull(expiry)
-            requireNotNull(accounts)
+    fun updateSessionWithPermissions(topic: String, blockChains: List<String>?, jsonRpcMethods: List<String>?) {
+        val chains = blockChains ?: emptyList()
+        val methods = jsonRpcMethods ?: emptyList()
 
-            Session.Success(
-                relay = RelayProtocolOptions(protocol = relay_protocol_option),
-                responder = SessionParticipant(publicKey = self_public_key, metadata = metadata),
-                expiry = Expiry(expiry),
-                state = SessionState(accounts = accounts)
-            ).apply {
-                this.topic = Topic(topic)
-            }
-        }
+        sessionDatabase.sessionDaoQueries.updateSessionWithPermissions(chains, methods, topic)
     }
 
     companion object {

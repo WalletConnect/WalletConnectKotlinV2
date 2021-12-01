@@ -10,8 +10,13 @@ CREATE TABLE MetaDataDao(
 
 -- TODO: change INSERT OR REPLACE and add logic to retrieve id instead
 insertOrIgnoreMetaData:
-INSERT OR REPLACE INTO MetaDataDao(_name, description, url, icons)
+INSERT OR IGNORE INTO MetaDataDao(_name, description, url, icons)
 VALUES (?, ?, ?, ?);
 
 lastInsertedRowId:
 SELECT last_insert_rowid();
+
+getMetaData:
+SELECT id, _name, description, url, icons
+FROM MetaDataDao
+LIMIT 1;
