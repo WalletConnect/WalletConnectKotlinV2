@@ -15,6 +15,8 @@ interface RelayService {
     @Receive
     fun eventsFlow(): Flow<WebSocket.Event>
 
+
+    //PUBLISH
     @Send
     fun publishRequest(publishRequest: Relay.Publish.Request)
 
@@ -24,6 +26,8 @@ interface RelayService {
     @Receive
     fun observePublishError(): Flow<Relay.Publish.JsonRpcError>
 
+
+    //SUBSCRIBE
     @Send
     fun subscribeRequest(subscribeRequest: Relay.Subscribe.Request)
 
@@ -33,12 +37,15 @@ interface RelayService {
     @Receive
     fun observeSubscribeError(): Flow<Relay.Subscribe.JsonRpcError>
 
+
+    //SUBSCRIPTION
     @Receive
     fun observeSubscriptionRequest(): Flow<Relay.Subscription.Request>
 
     @Send
     fun publishSubscriptionAcknowledgement(publishRequest: Relay.Subscription.Acknowledgement)
 
+    //UN-SUBSCRIBE
     @Send
     fun unsubscribeRequest(unsubscribeRequest: Relay.Unsubscribe.Request)
 

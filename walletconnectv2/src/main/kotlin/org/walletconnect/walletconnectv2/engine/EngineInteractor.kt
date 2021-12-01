@@ -50,6 +50,7 @@ import org.walletconnect.walletconnectv2.relay.data.model.jsonrpc.JsonRpcRequest
 import org.walletconnect.walletconnectv2.scope
 import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.util.generateId
+import org.walletconnect.walletconnectv2.util.hexToUtf8
 import java.util.*
 
 internal class EngineInteractor {
@@ -61,8 +62,14 @@ internal class EngineInteractor {
     //endregion
 
     private var metaData: AppMetaData? = null
+
     private val _sequenceEvent: MutableStateFlow<SequenceLifecycle> = MutableStateFlow(SequenceLifecycle.Default)
     val sequenceEvent: StateFlow<SequenceLifecycle> = _sequenceEvent
+
+
+    //Move to the Relayer
+    private val _peerResponse: MutableStateFlow<Pair<Topic, EngineData.JsonRpcResponse?>> = MutableStateFlow(Pair(Topic(""), null))
+    val peerResponse: StateFlow<Pair<Topic, EngineData.JsonRpcResponse?>> = _peerResponse
 
     private var isConnected = MutableStateFlow(false) // TODO: Maybe replace with an enum
 
@@ -83,15 +90,22 @@ internal class EngineInteractor {
         }
 
         scope.launch(exceptionHandler) {
-            relayRepository.subscriptionRequest.collect { relayRequest ->
-                val topic: Topic = relayRequest.subscriptionTopic
+            relayRepository.subscriptionRequest.collect { peerRequest ->
+
+                val topic: Topic = peerRequest.subscriptionTopic
                 val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
-                val encryptionPayload = relayRequest.message.toEncryptionPayload()
-                val decryptedMessage: String = codec.decrypt(encryptionPayload, sharedKey as SharedKey)
+
+                //Move to JSONRpcSelializer
+                val decryptedMessage: String = if (sharedKey.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
+                    peerRequest.message.hexToUtf8
+                } else {
+                    val encryptionPayload = peerRequest.message.toEncryptionPayload()
+                    codec.decrypt(encryptionPayload, sharedKey as SharedKey)
+                }
 
                 tryDeserialize<JsonRpcRequest>(decryptedMessage)?.let { request ->
                     when (val rpc = request.method) {
-                        WC_PAIRING_PAYLOAD -> onPairingPayload(decryptedMessage, sharedKey, selfPublic as PublicKey)
+                        WC_PAIRING_PAYLOAD -> onPairingPayload(decryptedMessage, sharedKey as SharedKey, selfPublic as PublicKey)
                         WC_PAIRING_DELETE -> onPairingDelete(decryptedMessage, topic)
                         WC_SESSION_PAYLOAD -> onSessionPayload(decryptedMessage, topic)
                         WC_SESSION_DELETE -> onSessionDelete(decryptedMessage, topic)
@@ -101,9 +115,19 @@ internal class EngineInteractor {
                     }
                 }
 
-                //TODO deserialize the peer acknowledgement
+                tryDeserialize<Relay.Subscription.Acknowledgement>(decryptedMessage)?.let { acknowledgement ->
+                    _peerResponse.value =
+                        Pair(topic, EngineData.JsonRpcResponse.JsonRpcResult(acknowledgement.id, acknowledgement.result.toString()))
+                }
+
                 tryDeserialize<Relay.Subscription.JsonRpcError>(decryptedMessage)?.let { exception ->
-                    Logger.error("Peer Error: ${exception.error.errorMessage}")
+                    _peerResponse.value = Pair(
+                        topic,
+                        EngineData.JsonRpcResponse.JsonRpcError(
+                            exception.id,
+                            EngineData.JsonRpcResponse.Error(exception.error.code, exception.error.message)
+                        )
+                    )
                 }
             }
         }
@@ -128,24 +152,57 @@ internal class EngineInteractor {
             controllerPublicKey,
             expiry
         )
-        val preSettlementPairingApprove = pairingProposal.toApprove(generateId(), settledSequence.settledTopic, expiry, selfPublicKey)
+
+        relayRepository.subscribe(pairingProposal.topic)
+
+        val publishId: Long = generateId()
+        val preSettlementPairingApprove = pairingProposal.toApprove(publishId, settledSequence.settledTopic, expiry, selfPublicKey)
+
+        Logger.error("Kobe; Pairing Approve: $preSettlementPairingApprove")
+
         val encodedMessage = trySerialize(preSettlementPairingApprove).encode()
         val settledTopic = settledSequence.settledTopic.value
+
+        scope.launch {
+            supervisorScope {
+                peerResponse
+                    .filter { (topic, response) -> topic.value == pairingProposal.topic.value && response?.id == publishId }
+                    .collect { (topic, response) ->
+
+                        Logger.error("Kobe: Peer Response: $response")
+
+                        when (response) {
+                            is EngineData.JsonRpcResponse.JsonRpcResult -> {
+
+                                Logger.error("Kobe: Peer Pairing Approve Acknowledgement: $response")
+
+                                relayRepository.unsubscribe(pairingProposal.topic, SubscriptionId(response.id.toString()))
+                                relayRepository.subscribe(settledSequence.settledTopic)
+
+                                onSuccess(settledTopic)
+                                pairingUpdate(settledSequence)
+                            }
+                            is EngineData.JsonRpcResponse.JsonRpcError -> {
+
+                                Logger.error("Kobe: Peer Pairing Approve Error: $response")
+
+                                onFailure(Throwable(response.error.message))
+                            }
+                            else -> {
+                                Logger.error("Unknown object")
+                            }
+                        }
+                    }
+                cancel()
+            }
+        }
 
         isConnected
             .filter { isOnline -> isOnline }  // TODO: Update once enum is in place
             .onEach {
                 supervisorScope {
-                    relayRepository.subscribe(settledSequence.settledTopic)
-                    relayRepository.publish(pairingProposal.topic, encodedMessage) { result ->
-                        result.fold(
-                            onSuccess = {
-                                onSuccess(settledTopic)
-                                pairingUpdate(settledSequence)
-                            },
-                            onFailure = { error -> onFailure(error) }
-                        )
-                    }
+                    //Check Response on Topic A
+                    relayRepository.publish(pairingProposal.topic, encodedMessage) { error -> onFailure(error) }
                     cancel()
                 }
             }
@@ -158,12 +215,11 @@ internal class EngineInteractor {
         val json: String = trySerialize(pairingUpdate)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(settledSequence.settledTopic.value))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
-        relayRepository.publish(settledSequence.settledTopic, encryptedMessage) { result ->
-            result.fold(
-                onSuccess = {  /*TODO update Pairing's metadata in local storage*/ },
-                onFailure = { error -> Logger.error("Pairing update error: $error") }
-            )
-        }
+
+        //TODO add Peer Responses
+        /*TODO update Pairing's metadata in local storage*/
+
+        relayRepository.publish(settledSequence.settledTopic, encryptedMessage) { error -> Logger.error("Pairing update error: $error") }
     }
 
     internal fun approve(
@@ -190,12 +246,11 @@ internal class EngineInteractor {
 
         val encryptedMessage: String = codec.encrypt(approvalJson, sharedKey as SharedKey, selfPublic as PublicKey)
         relayRepository.subscribe(settledSession.topic)
-        relayRepository.publish(Topic(proposal.topic), encryptedMessage) { result ->
-            result.fold(
-                onSuccess = { with(proposal) { onSuccess(EngineData.SettledSession(icon, name, url, settledSession.topic.value)) } },
-                onFailure = { error -> onFailure(error) }
-            )
-        }
+
+        //TODO add the Peer Responses
+//        with(proposal) { onSuccess(EngineData.SettledSession(icon, name, url, settledSession.topic.value))
+        relayRepository.publish(Topic(proposal.topic), encryptedMessage)
+        { error -> onFailure(error) }
     }
 
     internal fun reject(
@@ -209,12 +264,10 @@ internal class EngineInteractor {
         val json: String = trySerialize(sessionReject)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
-        relayRepository.publish(Topic(topic), encryptedMessage) { result ->
-            result.fold(
-                onSuccess = { onSuccess(Pair(topic, reason)) },
-                onFailure = { error -> onFailure(error) }
-            )
-        }
+
+        //TODO add the Peer Responses
+//        onSuccess(Pair(topic, reason))
+        relayRepository.publish(Topic(topic), encryptedMessage) { error -> onFailure(error) }
     }
 
     internal fun disconnect(
@@ -230,12 +283,11 @@ internal class EngineInteractor {
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
         //TODO Add subscriptionId from local storage + Delete all data from local storage coupled with given session
         crypto.removeKeys(topic)
+
         relayRepository.unsubscribe(Topic(topic), SubscriptionId("1"))
-        relayRepository.publish(Topic(topic), encryptedMessage) { result ->
-            result.fold(
-                onSuccess = { onSuccess(Pair(topic, reason)) },
-                onFailure = { error -> onFailure(error) })
-        }
+
+        //TODO add Peer Responses onSuccess(Pair(topic, reason))
+        relayRepository.publish(Topic(topic), encryptedMessage) { error -> onFailure(error) }
     }
 
     internal fun respondSessionPayload(
@@ -248,11 +300,10 @@ internal class EngineInteractor {
         val json = trySerialize(jsonRpcResponse)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
-        relayRepository.publish(Topic(topic), encryptedMessage) { result ->
-            result.fold(
-                onSuccess = { onSuccess(topic) },
-                onFailure = { error -> onFailure(error) })
-        }
+
+        //TODO add Peer Responses
+//         onSuccess(topic)
+        relayRepository.publish(Topic(topic), encryptedMessage) { error -> onFailure(error) }
     }
 
     internal fun update(
@@ -268,12 +319,10 @@ internal class EngineInteractor {
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
         //TODO update the session in local storage
-        relayRepository.publish(Topic(topic), encryptedMessage) { result ->
-            result.fold(
-                onSuccess = { onSuccess(Pair(topic, sessionState.accounts)) },
-                onFailure = { error -> onFailure(error) })
 
-        }
+
+//TODO handle Peer responses onSuccess(Pair(topic, sessionState.accounts))
+        relayRepository.publish(Topic(topic), encryptedMessage) { error -> onFailure(error) }
     }
 
     internal fun upgrade(
@@ -292,12 +341,9 @@ internal class EngineInteractor {
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
         //TODO update session in local storage
-        relayRepository.publish(Topic(topic), encryptedMessage) { result ->
-            result.fold(
-                onSuccess = { onSuccess(Pair(topic, permissions)) },
-                onFailure = { error -> onFailure(error) }
-            )
-        }
+
+        //TODO add Peer responses  onSuccess(Pair(topic, permissions))
+        relayRepository.publish(Topic(topic), encryptedMessage) { error -> onFailure(error) }
     }
 
     internal fun notify(
@@ -315,12 +361,9 @@ internal class EngineInteractor {
         val json = trySerialize(sessionNotification)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
-        relayRepository.publish(Topic(topic), encryptedMessage) { result ->
-            result.fold(
-                onSuccess = { onSuccess(topic) },
-                onFailure = { error -> onFailure(error) }
-            )
-        }
+
+        //TODO handle peer reponses onSuccess(topic)
+        relayRepository.publish(Topic(topic), encryptedMessage) { error -> onFailure(error) }
     }
 
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
@@ -332,12 +375,9 @@ internal class EngineInteractor {
         val json = trySerialize(sessionPing)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
-        relayRepository.publish(Topic(topic), encryptedMessage) { result ->
-            result.fold(
-                onSuccess = { onSuccess(topic) },
-                onFailure = { error -> onFailure(error) }
-            )
-        }
+
+        //TODO handle peer responses, onSuccess = { onSuccess(topic) }
+        relayRepository.publish(Topic(topic), encryptedMessage) { error -> onFailure(error) }
     }
 
     private fun onPairingPayload(decryptedMessage: String, sharedKey: SharedKey, selfPublic: PublicKey) {
@@ -392,11 +432,9 @@ internal class EngineInteractor {
         val json = trySerialize(jsonRpcResult)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
-        relayRepository.publish(topic, encryptedMessage) { result ->
-            result.fold(
-                onSuccess = {},
-                onFailure = { error -> Logger.error("Ping Error: $error") })
-        }
+
+        //TODO DO the Peer Responses
+        relayRepository.publish(topic, encryptedMessage) { error -> Logger.error("Ping Error: $error") }
     }
 
     private fun onUnsupported(rpc: String?) {

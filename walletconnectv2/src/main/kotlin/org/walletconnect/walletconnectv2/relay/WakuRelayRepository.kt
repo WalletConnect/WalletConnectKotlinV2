@@ -55,6 +55,7 @@ class WakuRelayRepository internal constructor(
     internal val observePublishResponseError: Flow<Relay.Publish.JsonRpcError> = relay.observePublishError()
     internal val observeSubscribeResponse = relay.observeSubscribeAcknowledgement()
     internal val observeUnsubscribeResponse = relay.observeUnsubscribeAcknowledgement()
+
     internal val subscriptionRequest: Flow<Relay.Subscription.Request> =
         relay.observeSubscriptionRequest()
             .onEach { relayRequest ->
@@ -62,14 +63,19 @@ class WakuRelayRepository internal constructor(
                 supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) }
             }
 
-    fun publish(topic: Topic, message: String, onResult: (Result<Any>) -> Unit = {}) {
+    fun publish(topic: Topic, message: String, onFailure: (Throwable) -> Unit) {
         val publishRequest =
             Relay.Publish.Request(id = generateId(), params = Relay.Publish.Request.Params(topic = topic, message = message))
-        observePublishAcknowledgement(onResult)
-        observePublishError(onResult)
+
+//        Logger.error("Kobe; Relay publish: $publishRequest")
+
+//        observePublishAcknowledgement(onResult)
+        observePublishError(onFailure)
         relay.publishRequest(publishRequest)
     }
 
+
+    //move to subscriber
     fun subscribe(topic: Topic) {
         val subscribeRequest = Relay.Subscribe.Request(id = generateId(), params = Relay.Subscribe.Request.Params(topic))
         relay.subscribeRequest(subscribeRequest)
@@ -80,6 +86,7 @@ class WakuRelayRepository internal constructor(
             Relay.Unsubscribe.Request(id = generateId(), params = Relay.Unsubscribe.Request.Params(topic, subscriptionId))
         relay.unsubscribeRequest(unsubscribeRequest)
     }
+    //end
 
     private fun publishSubscriptionAcknowledgement(id: Long) {
         val publishRequest = Relay.Subscription.Acknowledgement(id = id, result = true)
@@ -91,6 +98,9 @@ class WakuRelayRepository internal constructor(
             relay.observePublishAcknowledgement()
                 .catch { exception -> Logger.error(exception) }
                 .collect {
+
+//                    Logger.error("Kobe; Relay Acknowledgement: $it")
+
                     supervisorScope {
                         onResult(Result.success(Unit))
                         cancel()
@@ -99,14 +109,14 @@ class WakuRelayRepository internal constructor(
         }
     }
 
-    private fun observePublishError(onResult: (Result<Throwable>) -> Unit) {
+    private fun observePublishError(onFailure: (Throwable) -> Unit) {
         scope.launch {
             relay.observePublishError()
                 .onEach { jsonRpcError -> Logger.error(Throwable(jsonRpcError.error.errorMessage)) }
                 .catch { exception -> Logger.error(exception) }
                 .collect { errorResponse ->
                     supervisorScope {
-                        onResult(Result.failure(Throwable(errorResponse.error.errorMessage)))
+                        onFailure(Throwable(errorResponse.error.errorMessage))
                         cancel()
                     }
                 }

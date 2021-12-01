@@ -70,16 +70,10 @@ sealed class EngineData {
         val jsonrpc: String = "2.0"
 
         @JsonClass(generateAdapter = true)
-        data class JsonRpcResult(
-            override val id: Long,
-            val result: String,
-        ) : JsonRpcResponse()
+        data class JsonRpcResult(override val id: Long, val result: String) : JsonRpcResponse()
 
         @JsonClass(generateAdapter = true)
-        data class JsonRpcError(
-            override val id: Long,
-            val error: Error,
-        ) : JsonRpcResponse()
+        data class JsonRpcError(override val id: Long, val error: Error) : JsonRpcResponse()
 
         @JsonClass(generateAdapter = true)
         data class Error(
