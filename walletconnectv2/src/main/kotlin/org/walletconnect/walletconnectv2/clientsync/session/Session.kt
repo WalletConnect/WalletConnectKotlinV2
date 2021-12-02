@@ -49,9 +49,7 @@ sealed class Session {
         val expiry: Expiry,
         @Json(name = "state")
         val state: SessionState
-    ) : Session() {
-        var topic: Topic? = null
-    }
+    ) : Session()
 
     @JsonClass(generateAdapter = true)
     class Failure(val reason: String) : Session()
@@ -81,4 +79,11 @@ sealed class Session {
     ) : Session()
 
     object PingParams : Session()
+
+    data class NotificationParams(
+        @Json(name = "type")
+        val type: String,
+        @Json(name = "data")
+        val data: Any
+    ) : Session()
 }

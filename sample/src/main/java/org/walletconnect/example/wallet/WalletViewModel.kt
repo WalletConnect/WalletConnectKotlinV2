@@ -95,12 +95,16 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
     }
 
     override fun onSessionRequest(sessionRequest: WalletConnectClientData.SessionRequest) {
-        //TODO handle session request generic object
+        //TODO handle session request
     }
 
     override fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession) {
         removeSession(deletedSession.topic)
         viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(listOfSettledSessions)) }
+    }
+
+    override fun onSessionNotification(sessionNotification: WalletConnectClientData.SessionNotification) {
+        //TODO handle session notification
     }
 
     private fun removeSession(topic: String) {

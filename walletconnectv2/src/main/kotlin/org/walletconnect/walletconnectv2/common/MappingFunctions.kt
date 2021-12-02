@@ -15,6 +15,7 @@ import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.Sess
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import org.walletconnect.walletconnectv2.engine.model.EngineData
+import org.walletconnect.walletconnectv2.engine.serailising.trySerialize
 import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod
 import java.net.URI
@@ -80,6 +81,9 @@ internal fun EngineData.SessionProposal.toClientSessionProposal(): WalletConnect
 internal fun WalletConnectClientData.SessionProposal.toEngineSessionProposal(): EngineData.SessionProposal =
     EngineData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl, accounts)
 
+internal fun WalletConnectClientData.SessionProposal.toEngineSessionProposal(accountList: List<String>): EngineData.SessionProposal =
+    EngineData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl, accountList)
+
 internal fun EngineData.SettledSession.toClientSettledSession(): WalletConnectClientData.SettledSession =
     WalletConnectClientData.SettledSession(icon, name, uri, topic)
 
@@ -98,8 +102,14 @@ internal fun WalletConnectClientData.JsonRpcResponse.JsonRpcError.toEngineRpcErr
 
 internal fun WalletConnectClientData.SessionState.toEngineSessionState(): EngineData.SessionState = EngineData.SessionState(accounts)
 
+internal fun <T> WalletConnectClientData.Notification<T>.toEngineNotification(): EngineData.Notification =
+    EngineData.Notification(type, data.toString())
+
 internal fun EngineData.DeletedSession.toClientDeletedSession(): WalletConnectClientData.DeletedSession =
     WalletConnectClientData.DeletedSession(topic, reason)
+
+internal fun EngineData.SessionNotification.toClientSessionNotification(): WalletConnectClientData.SessionNotification =
+    WalletConnectClientData.SessionNotification(topic, type, data)
 
 internal fun WalletConnectClientData.SessionPermissions.toEngineSessionPermissions(): EngineData.SessionPermissions =
     EngineData.SessionPermissions(

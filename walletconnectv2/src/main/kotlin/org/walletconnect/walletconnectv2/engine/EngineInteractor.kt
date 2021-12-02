@@ -19,6 +19,7 @@ import org.walletconnect.walletconnectv2.clientsync.session.SettledSessionPermis
 import org.walletconnect.walletconnectv2.clientsync.session.SettledSessionSequence
 import org.walletconnect.walletconnectv2.clientsync.session.after.PostSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.session.after.params.Reason
+import org.walletconnect.walletconnectv2.clientsync.session.after.params.SessionPermissions
 import org.walletconnect.walletconnectv2.clientsync.session.before.PreSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.RelayProtocolOptions
 import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionParticipant
@@ -33,18 +34,19 @@ import org.walletconnect.walletconnectv2.engine.model.EngineData
 import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycleEvent
 import org.walletconnect.walletconnectv2.engine.serailising.encode
 import org.walletconnect.walletconnectv2.engine.serailising.toEncryptionPayload
+import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycle
+import org.walletconnect.walletconnectv2.engine.serailising.encode
+import org.walletconnect.walletconnectv2.engine.serailising.toEncryptionPayload
 import org.walletconnect.walletconnectv2.engine.serailising.tryDeserialize
 import org.walletconnect.walletconnectv2.engine.serailising.trySerialize
-import org.walletconnect.walletconnectv2.errors.NoSessionDeletePayloadException
-import org.walletconnect.walletconnectv2.errors.NoSessionProposalException
-import org.walletconnect.walletconnectv2.errors.NoSessionRequestPayloadException
-import org.walletconnect.walletconnectv2.errors.exception
+import org.walletconnect.walletconnectv2.errors.*
 import org.walletconnect.walletconnectv2.exceptionHandler
 import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_PAIRING_DELETE
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_PAIRING_PAYLOAD
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_PAIRING_PING
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_SESSION_DELETE
+import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_SESSION_NOTIFICATION
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_SESSION_PAYLOAD
 import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_SESSION_PING
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
@@ -67,13 +69,12 @@ internal class EngineInteractor {
 
     private var metaData: AppMetaData? = null
     private var controllerType = ControllerType.CONTROLLER
-    private val _sequenceEvent: MutableStateFlow<SequenceLifecycleEvent> = MutableStateFlow(SequenceLifecycleEvent.Default)
-    val sequenceEvent: StateFlow<SequenceLifecycleEvent> = _sequenceEvent
+    private val _sequenceEvent: MutableStateFlow<SequenceLifecycle> = MutableStateFlow(SequenceLifecycle.Default)
+    val sequenceEvent: StateFlow<SequenceLifecycle> = _sequenceEvent
 
     private var isConnected = MutableStateFlow(false)
 
     internal fun initialize(engine: EngineFactory) {
-        // TODO: Insert Metadata into DB
         this.metaData = engine.metaData
         this.controllerType = if (engine.isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
         relayRepository = WakuRelayRepository.initRemote(engine.toRelayInitParams())
@@ -105,6 +106,7 @@ internal class EngineInteractor {
                         WC_PAIRING_DELETE -> onPairingDelete(decryptedMessage, topic)
                         WC_SESSION_PAYLOAD -> onSessionPayload(decryptedMessage, topic)
                         WC_SESSION_DELETE -> onSessionDelete(decryptedMessage, topic)
+                        WC_SESSION_NOTIFICATION -> onSessionNotification(decryptedMessage, topic)
                         WC_SESSION_PING, WC_PAIRING_PING -> onPing(topic, request.id)
                         else -> onUnsupported(rpc)
                     }
@@ -144,7 +146,7 @@ internal class EngineInteractor {
         val settledTopic = settledSequence.settledTopic.value
 
         isConnected
-            .filter { isOnline -> isOnline }
+            .filter { isOnline -> isOnline }  // TODO: Update once enum is in place
             .onEach {
                 supervisorScope {
                     relayRepository.subscribe(settledSequence.settledTopic)
@@ -198,7 +200,7 @@ internal class EngineInteractor {
                 relay = RelayProtocolOptions(),
                 state = settledSession.state,
                 expiry = expiry,
-                responder = SessionParticipant(selfPublicKey.keyAsHex, metadata = metaData)
+                responder = SessionParticipant(selfPublicKey.keyAsHex, metadata = this.metaData)
             )
         )
         val approvalJson: String = trySerialize(sessionApprove)
@@ -220,8 +222,7 @@ internal class EngineInteractor {
     }
 
     internal fun reject(
-        reason: String,
-        topic: String,
+        reason: String, topic: String,
         onSuccess: (Pair<String, String>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
@@ -302,6 +303,7 @@ internal class EngineInteractor {
             result.fold(
                 onSuccess = { onSuccess(Pair(topic, sessionState.accounts)) },
                 onFailure = { error -> onFailure(error) })
+
         }
     }
 
@@ -330,13 +332,35 @@ internal class EngineInteractor {
         }
     }
 
+    internal fun notify(
+        topic: String, notification: EngineData.Notification,
+        onSuccess: (String) -> Unit,
+        onFailure: (Throwable) -> Unit
+    ) {
+        require(::relayRepository.isInitialized)
+
+        /*TODO check whether under given topic there is a pairing or session stored and create proper Notification class*/
+        //val pairingNotification = PostSettlementPairing.PairingNotification(id = generateId(), params = Pairing.NotificationParams(notification.type, notification.data))
+        val sessionNotification =
+            PostSettlementSession
+                .SessionNotification(id = generateId(), params = Session.NotificationParams(notification.type, notification.data))
+        val json = trySerialize(sessionNotification)
+        val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
+        val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
+        relayRepository.publish(Topic(topic), encryptedMessage) { result ->
+            result.fold(
+                onSuccess = { onSuccess(topic) },
+                onFailure = { error -> onFailure(error) }
+            )
+        }
+    }
+
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         require(::relayRepository.isInitialized)
 
-        /*TODO check whether under given topic there is a pairing or session stored and crated proper Ping class*/
+        /*TODO check whether under given topic there is a pairing or session stored and create proper Ping class*/
         //val pairingParams = PostSettlementPairing.PairingPing(id = generateId(), params = Pairing.PingParams())
         val sessionPing = PostSettlementSession.SessionPing(id = generateId(), params = Session.PingParams)
-
         val json = trySerialize(sessionPing)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
@@ -356,7 +380,7 @@ internal class EngineInteractor {
             //TODO validate session proposal
             crypto.setEncryptionKeys(sharedKey, selfPublic, proposal.topic)
             val sessionProposal = proposal.toSessionProposal()
-            _sequenceEvent.value = SequenceLifecycleEvent.OnSessionProposal(sessionProposal)
+            _sequenceEvent.value = SequenceLifecycle.OnSessionProposal(sessionProposal)
         } ?: throw NoSessionProposalException()
     }
 
@@ -367,7 +391,7 @@ internal class EngineInteractor {
             val chainId = sessionPayload.params.chainId
             val method = sessionPayload.params.request.method
 
-            _sequenceEvent.value = SequenceLifecycleEvent.OnSessionRequest(
+            _sequenceEvent.value = SequenceLifecycle.OnSessionRequest(
                 EngineData.SessionRequest(topic.value, chainId, EngineData.SessionRequest.JSONRPCRequest(sessionPayload.id, method, params))
             )
         } ?: throw NoSessionRequestPayloadException()
@@ -375,19 +399,27 @@ internal class EngineInteractor {
 
     private fun onSessionDelete(decryptedMessage: String, topic: Topic) {
         tryDeserialize<PostSettlementSession.SessionDelete>(decryptedMessage)?.let { sessionDelete ->
-            //TODO Add subscriptionId from local storage
+            //TODO Add subscriptionId from local storage + Delete all data from local storage coupled with given session
             storageRepository.delete(topic.value)
             crypto.removeKeys(topic.value)
             relayRepository.unsubscribe(topic, SubscriptionId("1"))
             val reason = sessionDelete.message
-            _sequenceEvent.value = SequenceLifecycleEvent.OnSessionDeleted(EngineData.DeletedSession(topic.value, reason))
+            _sequenceEvent.value = SequenceLifecycle.OnSessionDeleted(EngineData.DeletedSession(topic.value, reason))
         } ?: throw NoSessionDeletePayloadException()
     }
 
-    private fun onPairingDelete(json: String, topic: Topic) {
+    private fun onPairingDelete(decryptedMessage: String, topic: Topic) {
         //TODO Add subscriptionId from local storage + Delete all data from local storage coupled with given Pairing
         crypto.removeKeys(topic.value)
         relayRepository.unsubscribe(topic, SubscriptionId("1"))
+    }
+
+    private fun onSessionNotification(decryptedMessage: String, topic: Topic) {
+        tryDeserialize<PostSettlementSession.SessionNotification>(decryptedMessage)?.let { sessionNotification ->
+            val type = sessionNotification.params.type
+            val data = sessionNotification.notificationParams
+            _sequenceEvent.value = SequenceLifecycle.OnSessionNotification(EngineData.SessionNotification(topic.value, type, data))
+        } ?: throw NoSessionNotificationPayloadException()
     }
 
     private fun onPing(topic: Topic, requestId: Long) {

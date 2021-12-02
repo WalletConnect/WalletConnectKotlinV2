@@ -8,10 +8,10 @@ import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
 import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
-import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycleEvent
+import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycle
 
 object WalletConnectClient {
-    private val engineInteractor by lazy { EngineInteractor() }
+    private val engineInteractor = EngineInteractor()
 
     fun initialize(initialParams: ClientTypes.InitialParams) = with(initialParams) {
         // TODO: pass properties to DI framework
@@ -24,9 +24,10 @@ object WalletConnectClient {
         scope.launch {
             engineInteractor.sequenceEvent.collect { event ->
                 when (event) {
-                    is SequenceLifecycleEvent.OnSessionProposal -> walletConnectListener.onSessionProposal(event.proposal.toClientSessionProposal())
-                    is SequenceLifecycleEvent.OnSessionRequest -> walletConnectListener.onSessionRequest(event.request.toClientSessionRequest())
-                    is SequenceLifecycleEvent.OnSessionDeleted -> walletConnectListener.onSessionDelete(event.deletedSession.toClientDeletedSession())
+                    is SequenceLifecycle.OnSessionProposal -> walletConnectListener.onSessionProposal(event.proposal.toClientSessionProposal())
+                    is SequenceLifecycle.OnSessionRequest -> walletConnectListener.onSessionRequest(event.request.toClientSessionRequest())
+                    is SequenceLifecycle.OnSessionDeleted -> walletConnectListener.onSessionDelete(event.deletedSession.toClientDeletedSession())
+                    is SequenceLifecycle.OnSessionNotification -> walletConnectListener.onSessionNotification(event.notification.toClientSessionNotification())
                 }
             }
         }
@@ -47,7 +48,7 @@ object WalletConnectClient {
         listener: WalletConnectClientListeners.SessionApprove
     ) = with(approveParams) {
         engineInteractor.approve(
-            proposal.toEngineSessionProposal().copy(accounts = accounts),
+            proposal.toEngineSessionProposal(accounts),
             { settledSession -> listener.onSuccess(settledSession.toClientSettledSession()) },
             { error -> listener.onError(error) })
     }
@@ -101,6 +102,15 @@ object WalletConnectClient {
         listener: WalletConnectClientListeners.SessionPing
     ) {
         engineInteractor.ping(pingParams.topic,
+            { topic -> listener.onSuccess(topic) },
+            { error -> listener.onError(error) })
+    }
+
+    fun <T> notify(
+        notificationParams: ClientTypes.NotificationParams<T>,
+        listener: WalletConnectClientListeners.Notification
+    ) = with(notificationParams) {
+        engineInteractor.notify(topic, notification.toEngineNotification(),
             { topic -> listener.onSuccess(topic) },
             { error -> listener.onError(error) })
     }

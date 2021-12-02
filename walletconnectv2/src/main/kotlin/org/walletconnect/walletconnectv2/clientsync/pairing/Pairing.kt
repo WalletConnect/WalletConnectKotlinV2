@@ -53,11 +53,18 @@ sealed class Pairing {
         val request: ProposalRequest
     ) : Pairing()
 
+    object PingParams : Pairing()
+
+    data class NotificationParams(
+        @Json(name = "type")
+        val type: String,
+        @Json(name = "data")
+        val data: Any
+    ) : Pairing()
+
     @JsonClass(generateAdapter = true)
     data class UpdateParams(
         @Json(name = "state")
         val state: PairingState
     ) : Pairing()
-
-    class PingParams : Pairing()
 }
