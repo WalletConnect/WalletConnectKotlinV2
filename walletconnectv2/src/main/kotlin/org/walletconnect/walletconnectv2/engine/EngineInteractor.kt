@@ -19,7 +19,6 @@ import org.walletconnect.walletconnectv2.clientsync.session.SettledSessionPermis
 import org.walletconnect.walletconnectv2.clientsync.session.SettledSessionSequence
 import org.walletconnect.walletconnectv2.clientsync.session.after.PostSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.session.after.params.Reason
-import org.walletconnect.walletconnectv2.clientsync.session.after.params.SessionPermissions
 import org.walletconnect.walletconnectv2.clientsync.session.before.PreSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.RelayProtocolOptions
 import org.walletconnect.walletconnectv2.clientsync.session.before.success.SessionParticipant
@@ -31,9 +30,6 @@ import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.crypto.data.SharedKey
 import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
 import org.walletconnect.walletconnectv2.engine.model.EngineData
-import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycleEvent
-import org.walletconnect.walletconnectv2.engine.serailising.encode
-import org.walletconnect.walletconnectv2.engine.serailising.toEncryptionPayload
 import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycle
 import org.walletconnect.walletconnectv2.engine.serailising.encode
 import org.walletconnect.walletconnectv2.engine.serailising.toEncryptionPayload
@@ -212,7 +208,13 @@ internal class EngineInteractor {
             result.fold(
                 onSuccess = {
                     with(proposal) {
-                        storageRepository.updateStatusToSessionApproval(proposal.topic, sessionApprove.id, settledSession.topic.value, sessionApprove.params.state.accounts, sessionApprove.params.expiry.seconds)
+                        storageRepository.updateStatusToSessionApproval(
+                            proposal.topic,
+                            sessionApprove.id,
+                            settledSession.topic.value,
+                            sessionApprove.params.state.accounts,
+                            sessionApprove.params.expiry.seconds
+                        )
                         onSuccess(EngineData.SettledSession(icon, name, url, settledSession.topic.value))
                     }
                 },
