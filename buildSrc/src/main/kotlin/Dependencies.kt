@@ -3,6 +3,7 @@ import org.gradle.kotlin.dsl.DependencyHandlerScope
 
 const val kotlinVersion = "1.5.31"
 val jvmVersion = JavaVersion.VERSION_11
+const val sqlDelightVersion = "1.5.2"
 
 fun DependencyHandlerScope.scanner() {
     val mlKitBarcode = "16.0.1"
@@ -75,6 +76,17 @@ fun DependencyHandlerScope.lazySodium() {
     "implementation"("com.goterl:lazysodium-android:$lazySodiumVersion")
     "implementation"("net.java.dev.jna:jna:$jnaVersion")
     "testImplementation"("org.slf4j:slf4j-nop:$slf4jVersion")
+}
+
+fun DependencyHandlerScope.sqlDelight() {
+    "implementation"("com.squareup.sqldelight:android-driver:$sqlDelightVersion")
+    "implementation"("com.squareup.sqldelight:coroutines-extensions-jvm:$sqlDelightVersion")
+
+    "testImplementation"("com.squareup.sqldelight:sqlite-driver:$sqlDelightVersion")
+    "testImplementation"("org.xerial:sqlite-jdbc:3.8.10.2") {
+        // Override the version of sqlite used by sqlite-driver to match Android API 23
+        isForce = true
+    }
 }
 
 fun DependencyHandlerScope.jUnit5() {

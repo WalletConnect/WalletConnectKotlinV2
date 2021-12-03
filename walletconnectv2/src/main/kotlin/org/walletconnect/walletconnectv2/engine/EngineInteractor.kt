@@ -48,6 +48,8 @@ import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod.WC_SES
 import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import org.walletconnect.walletconnectv2.relay.data.model.jsonrpc.JsonRpcRequest
 import org.walletconnect.walletconnectv2.scope
+import org.walletconnect.walletconnectv2.storage.SequenceStatus
+import org.walletconnect.walletconnectv2.storage.StorageRepository
 import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.util.generateId
 import java.util.*
@@ -56,19 +58,23 @@ internal class EngineInteractor {
     //region provide with DI
     // TODO: add logic to check hostName for ws/wss scheme with and without ://
     private lateinit var relayRepository: WakuRelayRepository
+    private lateinit var storageRepository: StorageRepository
     private val codec: AuthenticatedEncryptionCodec = AuthenticatedEncryptionCodec()
     private val crypto: CryptoManager = LazySodiumCryptoManager()
     //endregion
 
     private var metaData: AppMetaData? = null
+    private var controllerType = ControllerType.CONTROLLER
     private val _sequenceEvent: MutableStateFlow<SequenceLifecycle> = MutableStateFlow(SequenceLifecycle.Default)
     val sequenceEvent: StateFlow<SequenceLifecycle> = _sequenceEvent
 
-    private var isConnected = MutableStateFlow(false) // TODO: Maybe replace with an enum
+    private var isConnected = MutableStateFlow(false)
 
     internal fun initialize(engine: EngineFactory) {
         this.metaData = engine.metaData
+        this.controllerType = if (engine.isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
         relayRepository = WakuRelayRepository.initRemote(engine.toRelayInitParams())
+        storageRepository = StorageRepository(null, engine.application)
 
         scope.launch(exceptionHandler) {
             relayRepository.eventsFlow
@@ -107,6 +113,8 @@ internal class EngineInteractor {
                 }
             }
         }
+
+        resubscribeToSettledSession()
     }
 
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
@@ -153,6 +161,7 @@ internal class EngineInteractor {
     }
 
     private fun pairingUpdate(settledSequence: SettledPairingSequence) {
+        val metaData = storageRepository.getMetaData()
         val pairingUpdate: PostSettlementPairing.PairingUpdate =
             PostSettlementPairing.PairingUpdate(id = generateId(), params = Pairing.UpdateParams(state = PairingState(metaData)))
         val json: String = trySerialize(pairingUpdate)
@@ -173,6 +182,7 @@ internal class EngineInteractor {
     ) {
         require(::relayRepository.isInitialized)
 
+        val metaData = storageRepository.getMetaData()
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val peerPublicKey = PublicKey(proposal.proposerPublicKey)
         val sessionState = SessionState(proposal.accounts)
@@ -180,18 +190,33 @@ internal class EngineInteractor {
         val settledSession: SettledSessionSequence =
             settleSessionSequence(RelayProtocolOptions(), selfPublicKey, peerPublicKey, expiry, sessionState)
         val sessionApprove = PreSettlementSession.Approve(
-            id = generateId(), params = Session.Success(
-                relay = RelayProtocolOptions(), state = settledSession.state, expiry = expiry,
+            id = generateId(),
+            params = Session.Success(
+                relay = RelayProtocolOptions(),
+                state = settledSession.state,
+                expiry = expiry,
                 responder = SessionParticipant(selfPublicKey.keyAsHex, metadata = this.metaData)
             )
         )
         val approvalJson: String = trySerialize(sessionApprove)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(proposal.topic))
         val encryptedMessage: String = codec.encrypt(approvalJson, sharedKey as SharedKey, selfPublic as PublicKey)
+
         relayRepository.subscribe(settledSession.topic)
         relayRepository.publish(Topic(proposal.topic), encryptedMessage) { result ->
             result.fold(
-                onSuccess = { with(proposal) { onSuccess(EngineData.SettledSession(icon, name, url, settledSession.topic.value)) } },
+                onSuccess = {
+                    with(proposal) {
+                        storageRepository.updateStatusToSessionApproval(
+                            proposal.topic,
+                            sessionApprove.id,
+                            settledSession.topic.value,
+                            sessionApprove.params.state.accounts,
+                            sessionApprove.params.expiry.seconds
+                        )
+                        onSuccess(EngineData.SettledSession(icon, name, url, settledSession.topic.value))
+                    }
+                },
                 onFailure = { error -> onFailure(error) }
             )
         }
@@ -208,6 +233,8 @@ internal class EngineInteractor {
         val json: String = trySerialize(sessionReject)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
+
+        storageRepository.delete(topic)
         relayRepository.publish(Topic(topic), encryptedMessage) { result ->
             result.fold(
                 onSuccess = { onSuccess(Pair(topic, reason)) },
@@ -217,7 +244,8 @@ internal class EngineInteractor {
     }
 
     internal fun disconnect(
-        topic: String, reason: String,
+        topic: String,
+        reason: String,
         onSuccess: (Pair<String, String>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
@@ -229,6 +257,7 @@ internal class EngineInteractor {
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
         //TODO Add subscriptionId from local storage + Delete all data from local storage coupled with given session
         crypto.removeKeys(topic)
+        storageRepository.delete(topic)
         relayRepository.unsubscribe(Topic(topic), SubscriptionId("1"))
         relayRepository.publish(Topic(topic), encryptedMessage) { result ->
             result.fold(
@@ -238,7 +267,8 @@ internal class EngineInteractor {
     }
 
     internal fun respondSessionPayload(
-        topic: String, jsonRpcResponse: EngineData.JsonRpcResponse,
+        topic: String,
+        jsonRpcResponse: EngineData.JsonRpcResponse,
         onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
@@ -247,6 +277,7 @@ internal class EngineInteractor {
         val json = trySerialize(jsonRpcResponse)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
+
         relayRepository.publish(Topic(topic), encryptedMessage) { result ->
             result.fold(
                 onSuccess = { onSuccess(topic) },
@@ -255,7 +286,8 @@ internal class EngineInteractor {
     }
 
     internal fun update(
-        topic: String, sessionState: EngineData.SessionState,
+        topic: String,
+        sessionState: EngineData.SessionState,
         onSuccess: (Pair<String, List<String>>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
@@ -266,7 +298,8 @@ internal class EngineInteractor {
         val json = trySerialize(sessionUpdate)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
-        //TODO update the session in local storage
+
+        storageRepository.updateSessionWithAccounts(topic, sessionState.accounts)
         relayRepository.publish(Topic(topic), encryptedMessage) { result ->
             result.fold(
                 onSuccess = { onSuccess(Pair(topic, sessionState.accounts)) },
@@ -290,7 +323,8 @@ internal class EngineInteractor {
         val json = trySerialize(sessionUpgrade)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(Topic(topic))
         val encryptedMessage: String = codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
-        //TODO update session in local storage
+
+        storageRepository.updateSessionWithPermissions(topic, permissions.blockchain?.chains, permissions.jsonRpc?.methods)
         relayRepository.publish(Topic(topic), encryptedMessage) { result ->
             result.fold(
                 onSuccess = { onSuccess(Pair(topic, permissions)) },
@@ -342,6 +376,8 @@ internal class EngineInteractor {
     private fun onPairingPayload(decryptedMessage: String, sharedKey: SharedKey, selfPublic: PublicKey) {
         tryDeserialize<PostSettlementPairing.PairingPayload>(decryptedMessage)?.let { pairingPayload ->
             val proposal = pairingPayload.payloadParams
+
+            storageRepository.insertSessionProposal(proposal, proposal.proposer.metadata, controllerType)
             //TODO validate session proposal
             crypto.setEncryptionKeys(sharedKey, selfPublic, proposal.topic)
             val sessionProposal = proposal.toSessionProposal()
@@ -355,6 +391,7 @@ internal class EngineInteractor {
             val params = sessionPayload.sessionParams
             val chainId = sessionPayload.params.chainId
             val method = sessionPayload.params.request.method
+
             _sequenceEvent.value = SequenceLifecycle.OnSessionRequest(
                 EngineData.SessionRequest(topic.value, chainId, EngineData.SessionRequest.JSONRPCRequest(sessionPayload.id, method, params))
             )
@@ -364,6 +401,7 @@ internal class EngineInteractor {
     private fun onSessionDelete(decryptedMessage: String, topic: Topic) {
         tryDeserialize<PostSettlementSession.SessionDelete>(decryptedMessage)?.let { sessionDelete ->
             //TODO Add subscriptionId from local storage + Delete all data from local storage coupled with given session
+            storageRepository.delete(topic.value)
             crypto.removeKeys(topic.value)
             relayRepository.unsubscribe(topic, SubscriptionId("1"))
             val reason = sessionDelete.message
@@ -395,6 +433,18 @@ internal class EngineInteractor {
                 onSuccess = {},
                 onFailure = { error -> Logger.error("Ping Error: $error") })
         }
+    }
+
+    private fun resubscribeToSettledSession() {
+        // Flow will automatically resubscribe to any settled sessions in the DB
+        storageRepository.listOfSessionVO.onEach { listOfSessions ->
+            listOfSessions
+                .filter { it.status == SequenceStatus.SETTLED }
+                .onEach { session ->
+                    relayRepository.subscribe(session.topic)
+                }
+        }
+        .launchIn(scope)
     }
 
     private fun onUnsupported(rpc: String?) {

@@ -16,7 +16,6 @@ import java.security.MessageDigest
 import org.walletconnect.walletconnectv2.crypto.data.Key as WCKey
 
 class LazySodiumCryptoManager(private val keyChain: KeyStore = KeyChain()) : CryptoManager {
-
     private val lazySodium: LazySodiumAndroid = LazySodiumAndroid(SodiumAndroid())
 
     override fun generateKeyPair(): PublicKey {
