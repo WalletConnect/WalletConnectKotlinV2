@@ -2,7 +2,7 @@ import kotlin.collections.List;
 
 CREATE TABLE MetaDataDao(
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-  	_name TEXT UNIQUE NOT NULL,
+  	_name TEXT NOT NULL,
   	description TEXT NOT NULL,
   	url TEXT NOT NULL,
   	icons TEXT AS List<String> NOT NULL

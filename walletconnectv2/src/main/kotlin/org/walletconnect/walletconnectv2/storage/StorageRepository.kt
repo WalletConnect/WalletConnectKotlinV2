@@ -9,10 +9,10 @@ import com.squareup.sqldelight.runtime.coroutines.*
 import org.walletconnect.walletconnectv2.Database
 import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.common.*
-import org.walletconnect.walletconnectv2.engine.model.EngineData
 import org.walletconnect.walletconnectv2.scope
 import org.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
 import org.walletconnect.walletconnectv2.storage.data.dao.SessionDao
+import org.walletconnect.walletconnectv2.storage.data.vo.AppMetaDataVO
 import org.walletconnect.walletconnectv2.storage.data.vo.SessionVO
 
 internal class StorageRepository constructor(sqliteDriver: SqlDriver?, application: Application) {
@@ -41,7 +41,9 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
         .asFlow()
         .mapToList(scope.coroutineContext)
 
-    fun insertSessionProposal(proposal: Session.Proposal, controllerType: ControllerType) {
+    fun insertSessionProposal(proposal: Session.Proposal, appMetaData: AppMetaData?, controllerType: ControllerType) {
+        val metadataId = insertMetaData(appMetaData)
+
         sessionDatabase.sessionDaoQueries.insertSession(
             topic = proposal.topic.value,
             permissions_chains = proposal.permissions.blockchain.chains,
@@ -49,12 +51,17 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
             permissions_types = proposal.permissions.notifications.types,
             ttl_seconds = proposal.ttl.seconds,
             status = SequenceStatus.PENDING,
-            controller_type = controllerType
+            controller_type = controllerType,
+            metadata_id = metadataId
         )
     }
 
-    fun insertMetaData(appMetaData: AppMetaData) {
-        sessionDatabase.metaDataDaoQueries.insertOrIgnoreMetaData(appMetaData.name, appMetaData.description, appMetaData.url, appMetaData.icons)
+    private fun insertMetaData(appMetaData: AppMetaData?): Long {
+        return appMetaData?.let {
+            sessionDatabase.metaDataDaoQueries.insertOrIgnoreMetaData(appMetaData.name, appMetaData.description, appMetaData.url, appMetaData.icons)
+
+            sessionDatabase.metaDataDaoQueries.lastInsertedRowId().executeAsOne()
+        } ?: FAILED_INSERT_ID
     }
 
     fun getMetaData(): AppMetaData {
@@ -71,8 +78,8 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
         sessionDatabase.sessionDaoQueries.updateSessionWithAccounts(accounts, topic)
     }
 
-    fun delete(selfPublicKeyString: String) {
-        sessionDatabase.sessionDaoQueries.deleteSession(selfPublicKeyString)
+    fun delete(topic: String) {
+        sessionDatabase.sessionDaoQueries.deleteSession(topic)
     }
 
     private fun mapSessionDaoToSessionVO(
@@ -84,8 +91,18 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
         accounts: List<String>?,
         expiry: Long?,
         status: SequenceStatus,
-        controller_type: ControllerType // TODO: Figure out how to handle proposer and responder once proposer is implemented
+        controller_type: ControllerType, // TODO: Figure out how to handle proposer and responder once proposer is implemented
+        metadataName: String?,
+        metadataDesc: String?,
+        metadataUrl: String?,
+        metadataIcons: List<String>?
     ): SessionVO {
+        val appMetaData = if (metadataName != null && metadataDesc != null && metadataUrl != null && metadataIcons != null) {
+            AppMetaDataVO(metadataName, metadataDesc, metadataUrl, metadataIcons)
+        } else {
+            null
+        }
+
         return SessionVO(
             topic = Topic(topic),
             chains = permission_chains,
@@ -94,7 +111,8 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
             ttl = Ttl(ttl_seconds),
             accounts = accounts ?: emptyList(),
             expiry = if (expiry != null) Expiry(expiry) else null,
-            status = status
+            status = status,
+            appMetaData = appMetaData
         )
     }
 

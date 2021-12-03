@@ -13,13 +13,13 @@ class CoroutineTestRule(val testDispatcher: TestCoroutineDispatcher = TestCorout
 
     override fun finished(description: Description?) {
         super.finished(description)
-        Dispatchers.setMain(testDispatcher)
+        Dispatchers.resetMain()
+        testDispatcher.cleanupTestCoroutines()
     }
 
     override fun starting(description: Description?) {
         super.starting(description)
-        Dispatchers.resetMain()
-        testDispatcher.cleanupTestCoroutines()
+        Dispatchers.setMain(testDispatcher)
     }
 }
 

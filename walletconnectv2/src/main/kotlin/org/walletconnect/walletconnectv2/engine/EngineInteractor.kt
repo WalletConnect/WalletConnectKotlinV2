@@ -75,7 +75,6 @@ internal class EngineInteractor {
         this.controllerType = if (engine.isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
         relayRepository = WakuRelayRepository.initRemote(engine.toRelayInitParams())
         storageRepository = StorageRepository(null, engine.application)
-        storageRepository.insertMetaData(engine.metaData)
 
         scope.launch(exceptionHandler) {
             relayRepository.eventsFlow
@@ -378,7 +377,7 @@ internal class EngineInteractor {
         tryDeserialize<PostSettlementPairing.PairingPayload>(decryptedMessage)?.let { pairingPayload ->
             val proposal = pairingPayload.payloadParams
 
-            storageRepository.insertSessionProposal(proposal, controllerType)
+            storageRepository.insertSessionProposal(proposal, proposal.proposer.metadata, controllerType)
             //TODO validate session proposal
             crypto.setEncryptionKeys(sharedKey, selfPublic, proposal.topic)
             val sessionProposal = proposal.toSessionProposal()
@@ -445,7 +444,7 @@ internal class EngineInteractor {
                     relayRepository.subscribe(session.topic)
                 }
         }
-            .launchIn(scope)
+        .launchIn(scope)
     }
 
     private fun onUnsupported(rpc: String?) {
