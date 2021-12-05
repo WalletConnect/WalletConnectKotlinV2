@@ -53,7 +53,7 @@ internal class EngineInteractor {
 
     internal fun initialize(engine: EngineFactory) = with(engine) {
         this@EngineInteractor.metaData = metaData
-        this.controllerType = if (engine.isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
+        this@EngineInteractor.controllerType = if (engine.isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
         WalletConnectRelay.RelayFactory(useTLs, hostName, apiKey, application).apply { relayer.initialize(this) }
         storageRepository = StorageRepository(null, engine.application)
         collectClientSyncJsonRpc()
