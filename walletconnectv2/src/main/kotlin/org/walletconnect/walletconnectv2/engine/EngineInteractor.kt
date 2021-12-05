@@ -32,6 +32,8 @@ import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycle
 import org.walletconnect.walletconnectv2.jsonrpc.model.JsonRpcResponse
 import org.walletconnect.walletconnectv2.relay.walletconnect.WalletConnectRelay
 import org.walletconnect.walletconnectv2.scope
+import org.walletconnect.walletconnectv2.storage.SequenceStatus
+import org.walletconnect.walletconnectv2.storage.StorageRepository
 import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.util.generateId
 import java.util.*
@@ -40,16 +42,20 @@ internal class EngineInteractor {
     //region provide with DI
     // TODO: add logic to check hostName for ws/wss scheme with and without ://
     private var relayer: WalletConnectRelay = WalletConnectRelay()
+    private lateinit var storageRepository: StorageRepository
     private val crypto: CryptoManager = LazySodiumCryptoManager()
     //endregion
 
     private var metaData: AppMetaData? = null
+    private var controllerType = ControllerType.CONTROLLER
     private val _sequenceEvent: MutableStateFlow<SequenceLifecycle> = MutableStateFlow(SequenceLifecycle.Default)
     val sequenceEvent: StateFlow<SequenceLifecycle> = _sequenceEvent
 
     internal fun initialize(engine: EngineFactory) = with(engine) {
         this@EngineInteractor.metaData = metaData
+        this.controllerType = if (engine.isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
         WalletConnectRelay.RelayFactory(useTLs, hostName, apiKey, application).apply { relayer.initialize(this) }
+        storageRepository = StorageRepository(null, engine.application)
         collectClientSyncJsonRpc()
     }
 
@@ -89,6 +95,7 @@ internal class EngineInteractor {
     }
 
     private fun pairingUpdate(settledSequence: SettledPairingSequence) {
+        val metaData = storageRepository.getMetaData()
         val pairingUpdate: PostSettlementPairing.PairingUpdate =
             PostSettlementPairing.PairingUpdate(id = generateId(), params = Pairing.UpdateParams(state = PairingState(metaData)))
         relayer.request(settledSequence.settledTopic, pairingUpdate) { result ->
@@ -104,6 +111,7 @@ internal class EngineInteractor {
         onSuccess: (EngineData.SettledSession) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
+        val metaData = storageRepository.getMetaData()
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val peerPublicKey = PublicKey(proposal.proposerPublicKey)
         val sessionState = SessionState(proposal.accounts)
@@ -122,7 +130,16 @@ internal class EngineInteractor {
                 onSuccess = {
                     relayer.unsubscribe(Topic(proposal.topic))
                     relayer.subscribe(settledSession.topic)
-                    with(proposal) { onSuccess(EngineData.SettledSession(icon, name, url, settledSession.topic.value)) }
+                    with(proposal) {
+                        storageRepository.updateStatusToSessionApproval(
+                            proposal.topic,
+                            sessionApprove.id,
+                            settledSession.topic.value,
+                            sessionApprove.params.state.accounts,
+                            sessionApprove.params.expiry.seconds
+                        )
+                        onSuccess(EngineData.SettledSession(icon, name, url, settledSession.topic.value))
+                    }
                 },
                 onFailure = { error -> onFailure(error) }
             )
@@ -132,6 +149,7 @@ internal class EngineInteractor {
     internal fun reject(reason: String, topic: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
         val sessionReject = PreSettlementSession.Reject(id = generateId(), params = Session.Failure(reason = reason))
         onSuccess(Pair(topic, reason))
+        storageRepository.delete(topic)
         relayer.request(Topic(topic), sessionReject) { result ->
             result.fold(
                 onSuccess = {},
@@ -143,6 +161,9 @@ internal class EngineInteractor {
     internal fun disconnect(topic: String, reason: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
         val sessionDelete = PostSettlementSession.SessionDelete(id = generateId(), params = Session.DeleteParams(Reason(message = reason)))
         //TODO delete from local storage
+//        crypto.removeKeys(topic)  TODO CHECK IT
+        storageRepository.delete(topic)
+
         relayer.unsubscribe(Topic(topic))
         onSuccess(Pair(topic, reason))
         relayer.request(Topic(topic), sessionDelete) { result ->
@@ -168,6 +189,8 @@ internal class EngineInteractor {
     ) {
         val sessionUpdate: PostSettlementSession.SessionUpdate =
             PostSettlementSession.SessionUpdate(id = generateId(), params = Session.UpdateParams(SessionState(sessionState.accounts)))
+
+        storageRepository.updateSessionWithAccounts(topic, sessionState.accounts)
         relayer.request(Topic(topic), sessionUpdate) { result ->
             result.fold(
                 onSuccess = { onSuccess(Pair(topic, sessionState.accounts)) },
@@ -185,6 +208,7 @@ internal class EngineInteractor {
             id = generateId(),
             params = Session.SessionPermissionsParams(permissions = permissions.toSessionsPermissions())
         )
+        storageRepository.updateSessionWithPermissions(topic, permissions.blockchain?.chains, permissions.jsonRpc?.methods)
         relayer.request(Topic(topic), sessionUpgrade) { result ->
             result.fold(
                 onSuccess = { onSuccess(Pair(topic, permissions)) },
@@ -262,6 +286,7 @@ internal class EngineInteractor {
 
     private fun onSessionDelete(params: Session.DeleteParams, topic: Topic) {
         crypto.removeKeys(topic.value)
+        storageRepository.delete(topic.value) //TODO check IT
         //TODO delete from local storage
         relayer.unsubscribe(topic)
         _sequenceEvent.value = SequenceLifecycle.OnSessionDeleted(EngineData.DeletedSession(topic.value, params.reason.message))

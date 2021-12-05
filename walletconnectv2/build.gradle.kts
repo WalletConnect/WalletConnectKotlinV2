@@ -4,6 +4,7 @@ plugins {
     id("com.android.library")
     kotlin("android")
     kotlin("kapt")
+    id("com.squareup.sqldelight")
     `maven-publish`
 }
 
@@ -69,6 +70,7 @@ dependencies {
     coroutines()
     moshi()
     scarlet()
+    sqlDelight()
     security()
 
     jUnit5()

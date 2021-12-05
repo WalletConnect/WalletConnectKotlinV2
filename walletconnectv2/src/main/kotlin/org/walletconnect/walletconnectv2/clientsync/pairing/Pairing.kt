@@ -10,7 +10,6 @@ import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.Pair
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingSignal
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingParticipant
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingState
-import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.clientsync.session.after.params.Reason
 import org.walletconnect.walletconnectv2.common.Expiry
 import org.walletconnect.walletconnectv2.common.Topic
