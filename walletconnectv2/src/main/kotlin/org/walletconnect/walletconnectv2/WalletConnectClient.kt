@@ -72,10 +72,7 @@ object WalletConnectClient {
             is WalletConnectClientData.JsonRpcResponse.JsonRpcResult<*> -> jsonRpcResponse.toEngineRpcResult()
             is WalletConnectClientData.JsonRpcResponse.JsonRpcError -> jsonRpcResponse.toEngineRpcError()
         }
-        engineInteractor.respondSessionPayload(
-            sessionTopic, jsonRpcEngineResponse,
-            { topic -> listener.onSuccess(WalletConnectClientData.Response(topic)) },
-            { error -> listener.onError(error) })
+        engineInteractor.respondSessionPayload(sessionTopic, jsonRpcEngineResponse) { error -> listener.onError(error) }
     }
 
     fun upgrade(

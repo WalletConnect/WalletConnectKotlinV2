@@ -2,13 +2,14 @@ package org.walletconnect.walletconnectv2.clientsync.session.after
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import org.walletconnect.walletconnectv2.clientsync.ClientSyncJsonRpc
 import org.walletconnect.walletconnectv2.clientsync.session.Session
-import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod
+import org.walletconnect.walletconnectv2.jsonrpc.utils.JsonRpcMethod
 
-sealed class PostSettlementSession {
-    abstract val id: Long
+sealed class PostSettlementSession : ClientSyncJsonRpc {
+    abstract override val id: Long
+    abstract override val method: String
     abstract val jsonrpc: String
-    abstract val method: String
     abstract val params: Session
 
     @JsonClass(generateAdapter = true)
@@ -21,9 +22,7 @@ sealed class PostSettlementSession {
         override val method: String = JsonRpcMethod.WC_SESSION_PAYLOAD,
         @Json(name = "params")
         override val params: Session.SessionPayloadParams
-    ) : PostSettlementSession() {
-        val sessionParams: String = params.request.params.toString()
-    }
+    ) : PostSettlementSession()
 
     @JsonClass(generateAdapter = true)
     data class SessionDelete(
@@ -35,9 +34,7 @@ sealed class PostSettlementSession {
         override val method: String = JsonRpcMethod.WC_SESSION_DELETE,
         @Json(name = "params")
         override val params: Session.DeleteParams
-    ) : PostSettlementSession() {
-        val message = params.reason.message
-    }
+    ) : PostSettlementSession()
 
     @JsonClass(generateAdapter = true)
     data class SessionUpdate(
@@ -85,7 +82,5 @@ sealed class PostSettlementSession {
         override val method: String = JsonRpcMethod.WC_SESSION_NOTIFICATION,
         @Json(name = "params")
         override val params: Session.NotificationParams
-    ) : PostSettlementSession() {
-        val notificationParams = params.data.toString()
-    }
+    ) : PostSettlementSession()
 }

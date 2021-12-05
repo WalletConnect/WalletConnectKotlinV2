@@ -37,7 +37,7 @@ sealed class WalletConnectClientData {
         var icon: String? = "",
         var name: String = "",
         var uri: String = "",
-        val topic: String
+        val topic: String,
     ) : WalletConnectClientData()
 
     data class SessionState(val accounts: List<String>) : WalletConnectClientData()

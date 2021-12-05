@@ -13,11 +13,11 @@ import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.clientsync.session.after.params.SessionPermissions
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionProposedPermissions
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
-import org.walletconnect.walletconnectv2.engine.EngineInteractor
 import org.walletconnect.walletconnectv2.engine.model.EngineData
-import org.walletconnect.walletconnectv2.engine.serailising.trySerialize
-import org.walletconnect.walletconnectv2.relay.WakuRelayRepository
-import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod
+import org.walletconnect.walletconnectv2.relay.waku.WakuNetworkRepository
+import org.walletconnect.walletconnectv2.jsonrpc.utils.JsonRpcMethod
+import org.walletconnect.walletconnectv2.jsonrpc.model.JsonRpcResponse
+import org.walletconnect.walletconnectv2.relay.walletconnect.WalletConnectRelay
 import java.net.URI
 import kotlin.time.Duration
 
@@ -72,14 +72,12 @@ internal fun Session.Proposal.toSessionProposal(): EngineData.SessionProposal =
         accounts = listOf()
     )
 
-internal fun EngineInteractor.EngineFactory.toRelayInitParams(): WakuRelayRepository.RelayFactory =
-    WakuRelayRepository.RelayFactory(useTLs, hostName, apiKey, application)
+internal fun WalletConnectRelay.RelayFactory.toWakuNetworkInitParams(): WakuNetworkRepository.WakuNetworkFactory =
+    WakuNetworkRepository.WakuNetworkFactory(useTls, hostName, apiKey, application)
 
 internal fun EngineData.SessionProposal.toClientSessionProposal(): WalletConnectClientData.SessionProposal =
     WalletConnectClientData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl, accounts)
 
-internal fun WalletConnectClientData.SessionProposal.toEngineSessionProposal(): EngineData.SessionProposal =
-    EngineData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl, accounts)
 internal fun WalletConnectClientData.SessionProposal.toEngineSessionProposal(accountList: List<String>): EngineData.SessionProposal =
     EngineData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl, accountList)
 
@@ -93,11 +91,11 @@ internal fun EngineData.SessionRequest.toClientSessionRequest(): WalletConnectCl
         WalletConnectClientData.SessionRequest.JSONRPCRequest(request.id, request.method, request.params)
     )
 
-internal fun <T> WalletConnectClientData.JsonRpcResponse.JsonRpcResult<T>.toEngineRpcResult(): EngineData.JsonRpcResponse.JsonRpcResult =
-    EngineData.JsonRpcResponse.JsonRpcResult(id, result.toString())
+internal fun <T> WalletConnectClientData.JsonRpcResponse.JsonRpcResult<T>.toEngineRpcResult(): JsonRpcResponse.JsonRpcResult =
+    JsonRpcResponse.JsonRpcResult(id, result.toString())
 
-internal fun WalletConnectClientData.JsonRpcResponse.JsonRpcError.toEngineRpcError(): EngineData.JsonRpcResponse.JsonRpcError =
-    EngineData.JsonRpcResponse.JsonRpcError(id, EngineData.JsonRpcResponse.Error(error.code, error.message))
+internal fun WalletConnectClientData.JsonRpcResponse.JsonRpcError.toEngineRpcError(): JsonRpcResponse.JsonRpcError =
+    JsonRpcResponse.JsonRpcError(id, JsonRpcResponse.Error(error.code, error.message))
 
 internal fun WalletConnectClientData.SessionState.toEngineSessionState(): EngineData.SessionState = EngineData.SessionState(accounts)
 

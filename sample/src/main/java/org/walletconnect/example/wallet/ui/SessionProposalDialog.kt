@@ -41,10 +41,12 @@ class SessionProposalDialog(
         methods.text = methodsString
 
         approve.setOnClickListener {
+            dismiss()
             approve()
         }
 
         reject.setOnClickListener {
+            dismiss()
             reject()
         }
     }

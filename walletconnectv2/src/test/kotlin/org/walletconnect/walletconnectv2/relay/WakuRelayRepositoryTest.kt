@@ -15,7 +15,8 @@ import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.Pairi
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingState
 import org.walletconnect.walletconnectv2.common.Expiry
 import org.walletconnect.walletconnectv2.common.Topic
-import org.walletconnect.walletconnectv2.relay.data.model.Relay
+import org.walletconnect.walletconnectv2.relay.waku.Relay
+import org.walletconnect.walletconnectv2.relay.waku.WakuNetworkRepository
 import org.walletconnect.walletconnectv2.util.CoroutineTestRule
 import org.walletconnect.walletconnectv2.util.getRandom64ByteHexString
 import org.walletconnect.walletconnectv2.util.runTest
@@ -27,8 +28,8 @@ internal class WakuRelayRepositoryTest {
     @get:Rule
     val coroutineTestRule = CoroutineTestRule()
 
-    private val relayFactory = WakuRelayRepository.RelayFactory(true, "127.0.0.1", "", Application())
-    private val sut = spyk(WakuRelayRepository.initRemote(relayFactory))
+    private val relayFactory = WakuNetworkRepository.WakuNetworkFactory(true, "127.0.0.1", "", Application())
+    private val sut = spyk(WakuNetworkRepository.init(relayFactory))
 
     @Test
     fun `Publish a pairing request, expect a successful acknowledgement`() {

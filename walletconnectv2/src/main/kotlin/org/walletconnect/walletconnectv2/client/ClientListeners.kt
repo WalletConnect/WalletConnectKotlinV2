@@ -27,9 +27,7 @@ sealed interface WalletConnectClientListeners {
         fun onSuccess(settledSession: WalletConnectClientData.SettledSession)
     }
 
-    interface SessionPayload : WalletConnectClientListeners {
-        fun onSuccess(sessionPayloadResponse: WalletConnectClientData.Response)
-    }
+    interface SessionPayload : WalletConnectClientListeners
 
     interface SessionUpdate : WalletConnectClientListeners {
         fun onSuccess(updatedSession: WalletConnectClientData.UpdatedSession)

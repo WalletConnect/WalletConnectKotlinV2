@@ -10,7 +10,6 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -20,22 +19,17 @@ import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.Ttl
 import org.walletconnect.walletconnectv2.common.network.adapters.*
-import org.walletconnect.walletconnectv2.engine.model.EngineData
-import org.walletconnect.walletconnectv2.util.Logger
+import org.walletconnect.walletconnectv2.jsonrpc.model.JsonRpcResponse
 
 //TODO add job cancellation to avoid memory leaks
 internal lateinit var app: Application
 private val job = SupervisorJob()
 internal val scope = CoroutineScope(job + Dispatchers.IO)
 
-internal val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-    Logger.error(exception)
-}
-
-private val polymorphicJsonAdapterFactory: PolymorphicJsonAdapterFactory<EngineData.JsonRpcResponse> =
-    PolymorphicJsonAdapterFactory.of(EngineData.JsonRpcResponse::class.java, "type")
-        .withSubtype(EngineData.JsonRpcResponse.JsonRpcResult::class.java, "result")
-        .withSubtype(EngineData.JsonRpcResponse.JsonRpcError::class.java, "error")
+private val polymorphicJsonAdapterFactory: PolymorphicJsonAdapterFactory<JsonRpcResponse> =
+    PolymorphicJsonAdapterFactory.of(JsonRpcResponse::class.java, "type")
+        .withSubtype(JsonRpcResponse.JsonRpcResult::class.java, "result")
+        .withSubtype(JsonRpcResponse.JsonRpcError::class.java, "error")
 
 //TODO move to the DI framework
 val moshi: Moshi = Moshi.Builder()
