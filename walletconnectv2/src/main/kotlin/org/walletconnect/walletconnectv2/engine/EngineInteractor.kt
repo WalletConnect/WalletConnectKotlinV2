@@ -142,6 +142,7 @@ internal class EngineInteractor {
 
     internal fun disconnect(topic: String, reason: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
         val sessionDelete = PostSettlementSession.SessionDelete(id = generateId(), params = Session.DeleteParams(Reason(message = reason)))
+        //TODO delete from local storage
         relayer.unsubscribe(Topic(topic))
         onSuccess(Pair(topic, reason))
         relayer.request(Topic(topic), sessionDelete) { result ->
@@ -261,6 +262,7 @@ internal class EngineInteractor {
 
     private fun onSessionDelete(params: Session.DeleteParams, topic: Topic) {
         crypto.removeKeys(topic.value)
+        //TODO delete from local storage
         relayer.unsubscribe(topic)
         _sequenceEvent.value = SequenceLifecycle.OnSessionDeleted(EngineData.DeletedSession(topic.value, params.reason.message))
     }
@@ -274,7 +276,7 @@ internal class EngineInteractor {
     private fun onPairingDelete(params: Pairing.DeleteParams, topic: Topic) {
         crypto.removeKeys(topic.value)
         relayer.unsubscribe(topic)
-        //TODO
+        //TODO delete from local storage
     }
 
     private fun settlePairingSequence(

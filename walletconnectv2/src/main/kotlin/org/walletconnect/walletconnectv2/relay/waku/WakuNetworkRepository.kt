@@ -50,9 +50,6 @@ class WakuNetworkRepository internal constructor(
 
     internal val eventsFlow: SharedFlow<WebSocket.Event> = relay.eventsFlow().shareIn(scope, SharingStarted.Lazily, REPLAY)
     internal val observePublishAcknowledgement: Flow<Relay.Publish.Acknowledgement> = relay.observePublishAcknowledgement()
-    internal val observePublishResponseError: Flow<Relay.Publish.JsonRpcError> = relay.observePublishError()
-    internal val observeSubscribeResponse = relay.observeSubscribeAcknowledgement()
-    internal val observeUnsubscribeResponse = relay.observeUnsubscribeAcknowledgement()
 
     internal val subscriptionRequest: Flow<Relay.Subscription.Request> =
         relay.observeSubscriptionRequest()
@@ -69,14 +66,16 @@ class WakuNetworkRepository internal constructor(
         relay.publishRequest(publishRequest)
     }
 
-    fun subscribe(topic: Topic) {
+    fun subscribe(topic: Topic, onFailure: (Throwable) -> Unit) {
         val subscribeRequest = Relay.Subscribe.Request(id = generateId(), params = Relay.Subscribe.Request.Params(topic))
+        observeSubscribeError { error -> onFailure(error) }
         relay.subscribeRequest(subscribeRequest)
     }
 
-    fun unsubscribe(topic: Topic, subscriptionId: SubscriptionId) {
+    fun unsubscribe(topic: Topic, subscriptionId: SubscriptionId, onFailure: (Throwable) -> Unit) {
         val unsubscribeRequest =
             Relay.Unsubscribe.Request(id = generateId(), params = Relay.Unsubscribe.Request.Params(topic, subscriptionId))
+        observeUnSubscribeError { error -> onFailure(error) }
         relay.unsubscribeRequest(unsubscribeRequest)
     }
 
@@ -92,6 +91,34 @@ class WakuNetworkRepository internal constructor(
                 .collect {
                     supervisorScope {
                         onResult(Result.success(Unit))
+                        cancel()
+                    }
+                }
+        }
+    }
+
+    private fun observeUnSubscribeError(onFailure: (Throwable) -> Unit) {
+        scope.launch {
+            relay.observeUnsubscribeError()
+                .onEach { jsonRpcError -> Logger.error(Throwable(jsonRpcError.error.errorMessage)) }
+                .catch { exception -> Logger.error(exception) }
+                .collect { errorResponse ->
+                    supervisorScope {
+                        onFailure(Throwable(errorResponse.error.errorMessage))
+                        cancel()
+                    }
+                }
+        }
+    }
+
+    private fun observeSubscribeError(onFailure: (Throwable) -> Unit) {
+        scope.launch {
+            relay.observeSubscribeError()
+                .onEach { jsonRpcError -> Logger.error(Throwable(jsonRpcError.error.errorMessage)) }
+                .catch { exception -> Logger.error(exception) }
+                .collect { errorResponse ->
+                    supervisorScope {
+                        onFailure(Throwable(errorResponse.error.errorMessage))
                         cancel()
                     }
                 }

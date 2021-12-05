@@ -25,7 +25,6 @@ import org.walletconnect.walletconnectv2.serailising.trySerialize
 import org.walletconnect.walletconnectv2.util.Logger
 
 class WalletConnectRelay {
-
     //Region: Move to DI
     private lateinit var networkRepository: WakuNetworkRepository
     private val converter: JsonRpcConverter = JsonRpcConverter()
@@ -86,20 +85,19 @@ class WalletConnectRelay {
         }
     }
 
-
-    //todo relay error, return error to enging
     fun subscribe(topic: Topic) {
         require(::networkRepository.isInitialized)
-        networkRepository.subscribe(topic)
+        networkRepository.subscribe(topic) { error ->
+            Logger.error("Subscribe to topic: $topic error: $error")
+        }
     }
 
-    //TODO get subscription based on the topic
-    //todo relay error, return error to enging
     fun unsubscribe(topic: Topic) {
         require(::networkRepository.isInitialized)
-        //TODO Add subscriptionId from local storage + Delete all data from local storage coupled with given session
-
-        networkRepository.unsubscribe(topic, SubscriptionId("1"))
+        //TODO Add subscriptionId from local storage, based on topic
+        networkRepository.unsubscribe(topic, SubscriptionId("1")) { error ->
+            Logger.error("Unsubscribe to topic: $topic error: $error")
+        }
     }
 
     private fun handleInitialisationErrors() {
