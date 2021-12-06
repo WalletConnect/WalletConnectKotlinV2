@@ -11,6 +11,7 @@ import org.walletconnect.walletconnectv2.clientsync.ClientSyncJsonRpc
 import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.toWakuNetworkInitParams
+import org.walletconnect.walletconnectv2.errors.CannotFindSubscriptionException
 import org.walletconnect.walletconnectv2.errors.exception
 import org.walletconnect.walletconnectv2.jsonrpc.JsonRpcSerializer
 import org.walletconnect.walletconnectv2.jsonrpc.model.ClientJsonRpc
@@ -35,6 +36,7 @@ class WalletConnectRelay {
     private val _peerResponse: MutableSharedFlow<JsonRpcResponse> = MutableSharedFlow()
     private val peerResponse: SharedFlow<JsonRpcResponse> = _peerResponse
 
+    private val subscriptions: MutableMap<String, String> = mutableMapOf()
     var isConnectionOpened = MutableStateFlow(false)
 
     internal fun initialize(relay: RelayFactory) {
@@ -45,8 +47,6 @@ class WalletConnectRelay {
 
     fun request(topic: Topic, payload: ClientSyncJsonRpc, onResult: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit) {
         require(::networkRepository.isInitialized)
-
-        //JsonRpcHistory - setRequest *
         scope.launch {
             supervisorScope {
                 peerResponse
@@ -72,8 +72,6 @@ class WalletConnectRelay {
 
     fun respond(topic: Topic, response: JsonRpcResponse, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         require(::networkRepository.isInitialized)
-
-        //JsonRpcHistory - setResponse for given session request **
         val encryptedMessage: String = serializer.serialize(response, topic)
         networkRepository.publish(topic, encryptedMessage) { result ->
             result.fold(
@@ -85,15 +83,25 @@ class WalletConnectRelay {
 
     fun subscribe(topic: Topic) {
         require(::networkRepository.isInitialized)
-
-        networkRepository.subscribe(topic) { error -> Logger.error("Subscribe to topic: $topic error: $error") }
+        networkRepository.subscribe(topic) { result ->
+            result.fold(
+                onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result.id },
+                onFailure = { error -> Logger.error("Subscribe to topic: $topic error: $error") }
+            )
+        }
     }
 
     fun unsubscribe(topic: Topic) {
         require(::networkRepository.isInitialized)
-
-        //JsonRpcHistory - delete all history for given topic
-        networkRepository.unsubscribe(topic) { error -> Logger.error("Unsubscribe to topic: $topic error: $error") }
+        if (subscriptions.contains(topic.value)) {
+            val subscriptionId = SubscriptionId(subscriptions[topic.value].toString())
+            networkRepository.unsubscribe(topic, subscriptionId) { result ->
+                result.fold(
+                    onSuccess = { subscriptions.remove(topic.value) },
+                    onFailure = { error -> Logger.error("Unsubscribe to topic: $topic error: $error") }
+                )
+            }
+        }
     }
 
     private fun handleInitialisationErrors() {
@@ -130,8 +138,6 @@ class WalletConnectRelay {
     private suspend fun handleSessionRequest(decryptedMessage: String, topic: Topic) {
         val clientJsonRpc = tryDeserialize<ClientJsonRpc>(decryptedMessage)
         if (clientJsonRpc != null) {
-
-            //JsonRpcHistory - setRequest **
             ClientJsonRpcSerializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(WCRequestSubscriptionPayload(clientJsonRpc.id, topic, clientJsonRpc.method, params))
             }
@@ -141,15 +147,11 @@ class WalletConnectRelay {
     private suspend fun handleJsonRpcResponse(decryptedMessage: String) {
         val acknowledgement = tryDeserialize<Relay.Subscription.Acknowledgement>(decryptedMessage)
         if (acknowledgement != null) {
-
-            //JsonRpcHistory - setResponse for given request *
             _peerResponse.emit(JsonRpcResponse.JsonRpcResult(acknowledgement.id, acknowledgement.result.toString()))
         }
 
         val error = tryDeserialize<Relay.Subscription.JsonRpcError>(decryptedMessage)
         if (error != null) {
-
-            //JsonRpcHistory - setResponse for given request *
             _peerResponse.emit(JsonRpcResponse.JsonRpcError(error.id, JsonRpcResponse.Error(error.error.code, error.error.message)))
         }
     }

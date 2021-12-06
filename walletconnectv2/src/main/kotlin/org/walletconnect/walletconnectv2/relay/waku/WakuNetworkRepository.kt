@@ -49,7 +49,6 @@ class WakuNetworkRepository internal constructor(
     private val relay: RelayService by lazy { scarlet.create(RelayService::class.java) }
     //endregion
 
-    private val subscriptions: MutableMap<String, String> = mutableMapOf()
     internal val eventsFlow: SharedFlow<WebSocket.Event> = relay.eventsFlow().shareIn(scope, SharingStarted.Lazily, REPLAY)
     internal val observePublishAcknowledgement: Flow<Relay.Publish.Acknowledgement> = relay.observePublishAcknowledgement()
 
@@ -57,31 +56,26 @@ class WakuNetworkRepository internal constructor(
         relay.observeSubscriptionRequest()
             .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
 
-    fun publish(topic: Topic, message: String, onResult: (Result<Any>) -> Unit = {}) {
+    fun publish(topic: Topic, message: String, onResult: (Result<Relay.Publish.Acknowledgement>) -> Unit = {}) {
         val publishRequest =
             Relay.Publish.Request(id = generateId(), params = Relay.Publish.Request.Params(topic = topic, message = message))
-        observePublishAcknowledgement(onResult)
-        observePublishError(onResult)
+        observePublishAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
+        observePublishError { error -> onResult(Result.failure(error)) }
         relay.publishRequest(publishRequest)
     }
 
-    fun subscribe(topic: Topic, onFailure: (Throwable) -> Unit) {
+    fun subscribe(topic: Topic, onResult: (Result<Relay.Subscribe.Acknowledgement>) -> Unit) {
         val subscribeRequest = Relay.Subscribe.Request(id = generateId(), params = Relay.Subscribe.Request.Params(topic))
-        observeSubscribeAcknowledgement { acknowledgement -> subscriptions[topic.value] = acknowledgement.result.id }
-        observeSubscribeError { error -> onFailure(error) }
+        observeSubscribeAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
+        observeSubscribeError { error -> onResult(Result.failure(error)) }
         relay.subscribeRequest(subscribeRequest)
     }
 
-    fun unsubscribe(topic: Topic, onFailure: (Throwable) -> Unit) {
-        if (!subscriptions.contains(topic.value)) {
-            throw CannotFindSubscriptionException("There is no subscription under given topic: ${topic.value}")
-        }
-
-        val subscriptionId = SubscriptionId(subscriptions[topic.value].toString())
+    fun unsubscribe(topic: Topic, subscriptionId: SubscriptionId, onResult: (Result<Relay.Unsubscribe.Acknowledgement>) -> Unit) {
         val unsubscribeRequest =
             Relay.Unsubscribe.Request(id = generateId(), params = Relay.Unsubscribe.Request.Params(topic, subscriptionId))
-        observeUnSubscribeAcknowledgement { subscriptions.remove(topic.value) }
-        observeUnSubscribeError { error -> onFailure(error) }
+        observeUnSubscribeAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
+        observeUnSubscribeError { error -> onResult(Result.failure(error)) }
         relay.unsubscribeRequest(unsubscribeRequest)
     }
 
@@ -90,27 +84,27 @@ class WakuNetworkRepository internal constructor(
         relay.publishSubscriptionAcknowledgement(publishRequest)
     }
 
-    private fun observePublishAcknowledgement(onResult: (Result<Any>) -> Unit) {
+    private fun observePublishAcknowledgement(onResult: (Relay.Publish.Acknowledgement) -> Unit) {
         scope.launch {
             relay.observePublishAcknowledgement()
                 .catch { exception -> Logger.error(exception) }
-                .collect {
+                .collect { acknowledgement ->
                     supervisorScope {
-                        onResult(Result.success(Unit))
+                        onResult(acknowledgement)
                         cancel()
                     }
                 }
         }
     }
 
-    private fun observePublishError(onFailure: (Result<Throwable>) -> Unit) {
+    private fun observePublishError(onFailure: (Throwable) -> Unit) {
         scope.launch {
             relay.observePublishError()
                 .onEach { jsonRpcError -> Logger.error(Throwable(jsonRpcError.error.errorMessage)) }
                 .catch { exception -> Logger.error(exception) }
                 .collect { errorResponse ->
                     supervisorScope {
-                        onFailure(Result.failure(Throwable(errorResponse.error.errorMessage)))
+                        onFailure(Throwable(errorResponse.error.errorMessage))
                         cancel()
                     }
                 }
@@ -144,7 +138,7 @@ class WakuNetworkRepository internal constructor(
         }
     }
 
-    private fun observeUnSubscribeAcknowledgement(onSuccess: (Any) -> Unit) {
+    private fun observeUnSubscribeAcknowledgement(onSuccess: (Relay.Unsubscribe.Acknowledgement) -> Unit) {
         scope.launch {
             relay.observeUnsubscribeAcknowledgement()
                 .catch { exception -> Logger.error(exception) }
