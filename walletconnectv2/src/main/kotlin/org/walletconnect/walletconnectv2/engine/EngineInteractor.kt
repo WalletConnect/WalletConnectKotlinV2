@@ -73,7 +73,6 @@ internal class EngineInteractor {
         }
         val settledSequence = settlePairingSequence(pairingProposal.relay, selfPublicKey, peerPublicKey, controllerPublicKey, expiry)
         val preSettlementPairingApprove = pairingProposal.toApprove(generateId(), settledSequence.settledTopic, expiry, selfPublicKey)
-
         relayer.isConnectionOpened
             .filter { isOnline -> isOnline }
             .onEach {
