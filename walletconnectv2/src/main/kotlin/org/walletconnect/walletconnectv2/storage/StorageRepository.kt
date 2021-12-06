@@ -37,8 +37,8 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
     )
     //endregion
 
-    val listOfSessionVO =
-        sessionDatabase.sessionDaoQueries.getSessionDao(mapper = this@StorageRepository::mapSessionDaoToSessionVO).executeAsList()
+    val listOfSessionVO
+        get() = sessionDatabase.sessionDaoQueries.getSessionDao(mapper = this@StorageRepository::mapSessionDaoToSessionVO).executeAsList()
 
     fun insertSessionProposal(proposal: Session.Proposal, appMetaData: AppMetaData?, controllerType: ControllerType) {
         val metadataId = insertMetaData(appMetaData)

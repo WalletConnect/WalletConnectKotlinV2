@@ -101,6 +101,8 @@ class WalletConnectRelay {
                 .onEach { event: WebSocket.Event ->
                     if (event is WebSocket.Event.OnConnectionOpened<*>) {
                         isConnectionOpened.compareAndSet(expect = false, update = true)
+                    } else if (event is WebSocket.Event.OnConnectionClosed) {
+                        isConnectionOpened.compareAndSet(expect = true, update = false)
                     }
                 }
                 .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
