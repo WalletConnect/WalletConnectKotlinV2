@@ -12,7 +12,7 @@ import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.toWakuNetworkInitParams
 import org.walletconnect.walletconnectv2.errors.exception
-import org.walletconnect.walletconnectv2.jsonrpc.JsonRpcConverter
+import org.walletconnect.walletconnectv2.jsonrpc.JsonRpcSerializer
 import org.walletconnect.walletconnectv2.jsonrpc.model.ClientJsonRpc
 import org.walletconnect.walletconnectv2.jsonrpc.model.JsonRpcResponse
 import org.walletconnect.walletconnectv2.jsonrpc.model.WCRequestSubscriptionPayload
@@ -21,13 +21,12 @@ import org.walletconnect.walletconnectv2.relay.waku.Relay
 import org.walletconnect.walletconnectv2.relay.waku.WakuNetworkRepository
 import org.walletconnect.walletconnectv2.scope
 import org.walletconnect.walletconnectv2.serailising.tryDeserialize
-import org.walletconnect.walletconnectv2.serailising.trySerialize
 import org.walletconnect.walletconnectv2.util.Logger
 
 class WalletConnectRelay {
     //Region: Move to DI
     private lateinit var networkRepository: WakuNetworkRepository
-    private val converter: JsonRpcConverter = JsonRpcConverter()
+    private val serializer: JsonRpcSerializer = JsonRpcSerializer()
     //end
 
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequestSubscriptionPayload> = MutableSharedFlow()
@@ -46,9 +45,6 @@ class WalletConnectRelay {
 
     fun request(topic: Topic, payload: ClientSyncJsonRpc, onResult: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit) {
         require(::networkRepository.isInitialized)
-        val json = ClientJsonRpcSerializer.serialize(payload)
-        val encryptedMessage = converter.encode(json, topic)
-
         scope.launch {
             supervisorScope {
                 peerResponse
@@ -62,7 +58,7 @@ class WalletConnectRelay {
                 cancel()
             }
         }
-
+        val encryptedMessage: String = serializer.serialize(payload, topic)
         networkRepository.publish(topic, encryptedMessage) { result ->
             result.fold(
                 onSuccess = {},
@@ -74,9 +70,7 @@ class WalletConnectRelay {
 
     fun respond(topic: Topic, response: JsonRpcResponse, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         require(::networkRepository.isInitialized)
-        val json = trySerialize(response)
-        val encryptedMessage = converter.encode(json, topic)
-
+        val encryptedMessage: String = serializer.serialize(response, topic)
         networkRepository.publish(topic, encryptedMessage) { result ->
             result.fold(
                 onSuccess = { onSuccess() },
@@ -118,9 +112,9 @@ class WalletConnectRelay {
         scope.launch(exceptionHandler) {
             networkRepository.subscriptionRequest
                 .map { peerRequest ->
-                    val decryptedMessage = converter.decode(peerRequest.message, peerRequest.subscriptionTopic)
+                    val decodedMessage = serializer.decode(peerRequest.message, peerRequest.subscriptionTopic)
                     val topic = peerRequest.subscriptionTopic
-                    Pair(decryptedMessage, topic)
+                    Pair(decodedMessage, topic)
                 }
                 .collect { (decryptedMessage, topic) ->
                     handleSessionRequest(decryptedMessage, topic)

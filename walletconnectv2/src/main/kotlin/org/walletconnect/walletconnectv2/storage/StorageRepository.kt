@@ -37,9 +37,8 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
     )
     //endregion
 
-    val listOfSessionVO = sessionDatabase.sessionDaoQueries.getSessionDao(mapper = this@StorageRepository::mapSessionDaoToSessionVO)
-        .asFlow()
-        .mapToList(scope.coroutineContext)
+    val listOfSessionVO =
+        sessionDatabase.sessionDaoQueries.getSessionDao(mapper = this@StorageRepository::mapSessionDaoToSessionVO).executeAsList()
 
     fun insertSessionProposal(proposal: Session.Proposal, appMetaData: AppMetaData?, controllerType: ControllerType) {
         val metadataId = insertMetaData(appMetaData)
@@ -58,7 +57,12 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
 
     private fun insertMetaData(appMetaData: AppMetaData?): Long {
         return appMetaData?.let {
-            sessionDatabase.metaDataDaoQueries.insertOrIgnoreMetaData(appMetaData.name, appMetaData.description, appMetaData.url, appMetaData.icons)
+            sessionDatabase.metaDataDaoQueries.insertOrIgnoreMetaData(
+                appMetaData.name,
+                appMetaData.description,
+                appMetaData.url,
+                appMetaData.icons
+            )
 
             sessionDatabase.metaDataDaoQueries.lastInsertedRowId().executeAsOne()
         } ?: FAILED_INSERT_ID
@@ -70,8 +74,21 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
         }).executeAsOne()
     }
 
-    fun updateStatusToSessionApproval(topicKey: String, subscriptionId: Long, settledTopic: String, accounts: List<String>, expirySeconds: Long) {
-        sessionDatabase.sessionDaoQueries.updateSessionWithSessionApproval(subscriptionId, settledTopic, accounts, expirySeconds, SequenceStatus.SETTLED, topicKey)
+    fun updateStatusToSessionApproval(
+        topicKey: String,
+        subscriptionId: Long,
+        settledTopic: String,
+        accounts: List<String>,
+        expirySeconds: Long
+    ) {
+        sessionDatabase.sessionDaoQueries.updateSessionWithSessionApproval(
+            subscriptionId,
+            settledTopic,
+            accounts,
+            expirySeconds,
+            SequenceStatus.SETTLED,
+            topicKey
+        )
     }
 
     fun updateSessionWithAccounts(topic: String, accounts: List<String>) {

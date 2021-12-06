@@ -54,7 +54,6 @@ class WakuNetworkRepository internal constructor(
     internal val subscriptionRequest: Flow<Relay.Subscription.Request> =
         relay.observeSubscriptionRequest()
             .onEach { relayRequest ->
-                //TODO handle request duplication
                 supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) }
             }
 

@@ -96,7 +96,6 @@ internal class EngineInteractor {
     }
 
     private fun pairingUpdate(settledSequence: SettledPairingSequence) {
-        val metaData = storageRepository.getMetaData()
         val pairingUpdate: PostSettlementPairing.PairingUpdate =
             PostSettlementPairing.PairingUpdate(id = generateId(), params = Pairing.UpdateParams(state = PairingState(metaData)))
         relayer.request(settledSequence.settledTopic, pairingUpdate) { result ->
@@ -112,7 +111,6 @@ internal class EngineInteractor {
         onSuccess: (EngineData.SettledSession) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
-        val metaData = storageRepository.getMetaData()
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val peerPublicKey = PublicKey(proposal.proposerPublicKey)
         val sessionState = SessionState(proposal.accounts)
@@ -123,7 +121,7 @@ internal class EngineInteractor {
         val sessionApprove = PreSettlementSession.Approve(
             id = generateId(), params = Session.Success(
                 relay = RelayProtocolOptions(), state = settledSession.state, expiry = expiry,
-                responder = SessionParticipant(selfPublicKey.keyAsHex, metadata = this.metaData)
+                responder = SessionParticipant(selfPublicKey.keyAsHex, metadata = metaData)
             )
         )
         relayer.request(Topic(proposal.topic), sessionApprove) { result ->
@@ -161,15 +159,12 @@ internal class EngineInteractor {
 
     internal fun disconnect(topic: String, reason: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
         val sessionDelete = PostSettlementSession.SessionDelete(id = generateId(), params = Session.DeleteParams(Reason(message = reason)))
-        //TODO delete from local storage
-//        crypto.removeKeys(topic)  TODO CHECK IT
         storageRepository.delete(topic)
-
         relayer.unsubscribe(Topic(topic))
         onSuccess(Pair(topic, reason))
         relayer.request(Topic(topic), sessionDelete) { result ->
             result.fold(
-                onSuccess = {/*TODO: Should wait for acknowledgement?*/ },
+                onSuccess = {/*TODO: Should wait for acknowledgement and delete keys?*/ },
                 onFailure = { error -> onFailure(error) }
             )
         }
@@ -190,7 +185,6 @@ internal class EngineInteractor {
     ) {
         val sessionUpdate: PostSettlementSession.SessionUpdate =
             PostSettlementSession.SessionUpdate(id = generateId(), params = Session.UpdateParams(SessionState(sessionState.accounts)))
-
         storageRepository.updateSessionWithAccounts(topic, sessionState.accounts)
         relayer.request(Topic(topic), sessionUpdate) { result ->
             result.fold(
@@ -288,8 +282,7 @@ internal class EngineInteractor {
 
     private fun onSessionDelete(params: Session.DeleteParams, topic: Topic) {
         crypto.removeKeys(topic.value)
-        storageRepository.delete(topic.value) //TODO check IT
-        //TODO delete from local storage
+        storageRepository.delete(topic.value)
         relayer.unsubscribe(topic)
         _sequenceEvent.value = SequenceLifecycle.OnSessionDeleted(EngineData.DeletedSession(topic.value, params.reason.message))
     }
@@ -307,15 +300,13 @@ internal class EngineInteractor {
     }
 
     private fun resubscribeToSettledSession() {
-        // Flow will automatically resubscribe to any settled sessions in the DB
-        storageRepository.listOfSessionVO.onEach { listOfSessions ->
-            listOfSessions
-                .filter { it.status == SequenceStatus.SETTLED }
-                .onEach { session ->
-                    relayer.subscribe(session.topic)
-                }
-        }
-            .launchIn(scope)
+        relayer.isConnectionOpened
+            .filter { isOnline -> isOnline }
+            .onEach {
+                storageRepository.listOfSessionVO
+                    .filter { session -> session.status == SequenceStatus.SETTLED }
+                    .onEach { session -> relayer.subscribe(session.topic) }
+            }.launchIn(scope)
     }
 
     private fun settlePairingSequence(

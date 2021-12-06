@@ -6,6 +6,7 @@ import org.walletconnect.walletconnectv2.clientsync.pairing.after.PostSettlement
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing
 import org.walletconnect.walletconnectv2.clientsync.session.after.PostSettlementSession
 import org.walletconnect.walletconnectv2.clientsync.session.before.PreSettlementSession
+import org.walletconnect.walletconnectv2.jsonrpc.model.JsonRpcResponse
 import org.walletconnect.walletconnectv2.serailising.tryDeserialize
 import org.walletconnect.walletconnectv2.serailising.trySerialize
 import org.walletconnect.walletconnectv2.util.empty
@@ -49,6 +50,7 @@ object ClientJsonRpcSerializer {
             is PostSettlementSession.SessionUpgrade -> trySerialize(payload)
             is PostSettlementSession.SessionPayload -> trySerialize(payload)
             is PostSettlementSession.SessionDelete -> trySerialize(payload)
+            is JsonRpcResponse -> trySerialize(payload)
             else -> String.empty
         }
 }

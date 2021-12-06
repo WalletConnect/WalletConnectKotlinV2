@@ -1,10 +1,11 @@
 package org.walletconnect.walletconnectv2.jsonrpc.model
 
 import com.squareup.moshi.JsonClass
+import org.walletconnect.walletconnectv2.clientsync.ClientSyncJsonRpc
 
-sealed class JsonRpcResponse {
+sealed class JsonRpcResponse : ClientSyncJsonRpc{
 
-    abstract val id: Long
+    abstract override val id: Long
     val jsonrpc: String = "2.0"
 
     @JsonClass(generateAdapter = true)

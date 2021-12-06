@@ -10,7 +10,9 @@ import org.walletconnect.walletconnectv2.jsonrpc.utils.JsonRpcMethod
 
 sealed class PostSettlementPairing : ClientSyncJsonRpc {
     abstract override val id: Long
-    abstract override val method: String
+
+    //    abstract
+    abstract val method: String
     abstract val jsonrpc: String
     abstract val params: Pairing
 
