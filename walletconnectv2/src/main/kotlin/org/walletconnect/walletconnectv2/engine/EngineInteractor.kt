@@ -52,11 +52,12 @@ internal class EngineInteractor {
     val sequenceEvent: StateFlow<SequenceLifecycle> = _sequenceEvent
 
     internal fun initialize(engine: EngineFactory) = with(engine) {
-        this@EngineInteractor.metaData = metaData
+        this@EngineInteractor.metaData = engine.metaData
         this@EngineInteractor.controllerType = if (engine.isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
         WalletConnectRelay.RelayFactory(useTLs, hostName, apiKey, application).apply { relayer.initialize(this) }
         storageRepository = StorageRepository(null, engine.application)
         collectClientSyncJsonRpc()
+        resubscribeToSettledSession()
     }
 
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
@@ -269,6 +270,7 @@ internal class EngineInteractor {
 
     private fun onPairingPayload(payload: Pairing.PayloadParams) {
         val proposal = payload.request.params
+        storageRepository.insertSessionProposal(proposal, proposal.proposer.metadata, controllerType)
         val (sharedKey, publicKey) = crypto.getKeyAgreement(proposal.signal.params.topic)
         crypto.setEncryptionKeys(sharedKey as SharedKey, publicKey as PublicKey, proposal.topic)
         _sequenceEvent.value = SequenceLifecycle.OnSessionProposal(proposal.toSessionProposal())
@@ -302,6 +304,18 @@ internal class EngineInteractor {
         crypto.removeKeys(topic.value)
         relayer.unsubscribe(topic)
         //TODO delete from local storage
+    }
+
+    private fun resubscribeToSettledSession() {
+        // Flow will automatically resubscribe to any settled sessions in the DB
+        storageRepository.listOfSessionVO.onEach { listOfSessions ->
+            listOfSessions
+                .filter { it.status == SequenceStatus.SETTLED }
+                .onEach { session ->
+                    relayer.subscribe(session.topic)
+                }
+        }
+            .launchIn(scope)
     }
 
     private fun settlePairingSequence(
