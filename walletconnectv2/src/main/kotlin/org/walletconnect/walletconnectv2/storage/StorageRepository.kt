@@ -11,9 +11,12 @@ import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.scope
 import org.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
+import org.walletconnect.walletconnectv2.storage.data.dao.PairingDao
 import org.walletconnect.walletconnectv2.storage.data.dao.SessionDao
 import org.walletconnect.walletconnectv2.storage.data.vo.AppMetaDataVO
+import org.walletconnect.walletconnectv2.storage.data.vo.PairingVO
 import org.walletconnect.walletconnectv2.storage.data.vo.SessionVO
+import kotlin.math.exp
 
 internal class StorageRepository constructor(sqliteDriver: SqlDriver?, application: Application) {
     //region provide with DI
@@ -25,7 +28,10 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
     )
     private val sessionDatabase: Database = Database(
         driver,
-        MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = listOfStringsAdapter),
+        PairingDaoAdapter = PairingDao.Adapter(
+            statusAdapter = EnumColumnAdapter(),
+            controller_typeAdapter = EnumColumnAdapter()
+        ),
         SessionDaoAdapter = SessionDao.Adapter(
             permissions_chainsAdapter = listOfStringsAdapter,
             permissions_methodsAdapter = listOfStringsAdapter,
@@ -33,13 +39,26 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
             accountsAdapter = listOfStringsAdapter,
             statusAdapter = EnumColumnAdapter(),
             controller_typeAdapter = EnumColumnAdapter()
-        )
+        ),
+        MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = listOfStringsAdapter)
     )
     //endregion
 
-    val listOfSessionVO = sessionDatabase.sessionDaoQueries.getSessionDao(mapper = this@StorageRepository::mapSessionDaoToSessionVO)
+    val listOfPairingVOs = sessionDatabase.pairingDaoQueries.getListOfPairingDaos(mapper = this@StorageRepository::mapPairingDaoToPairingVO)
         .asFlow()
         .mapToList(scope.coroutineContext)
+
+    val listOfSessionVO = sessionDatabase.sessionDaoQueries.getListOfSessionDaos(mapper = this@StorageRepository::mapSessionDaoToSessionVO)
+        .asFlow()
+        .mapToList(scope.coroutineContext)
+
+    fun insertPairingProposal(topic: String, uri: String, sequenceStatus: SequenceStatus, controllerType: ControllerType) {
+        sessionDatabase.pairingDaoQueries.insertPairing(topic, uri, sequenceStatus, controllerType)
+    }
+
+    fun updatePendingPairingToSettled(proposalTopic: String, settledTopic: String, expirySeconds: Long, sequenceStatus: SequenceStatus) {
+        sessionDatabase.pairingDaoQueries.updatePendingPairingToSettled(settledTopic, expirySeconds, sequenceStatus, proposalTopic)
+    }
 
     fun insertSessionProposal(proposal: Session.Proposal, appMetaData: AppMetaData?, controllerType: ControllerType) {
         val metadataId = insertMetaData(appMetaData)
@@ -78,8 +97,26 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
         sessionDatabase.sessionDaoQueries.updateSessionWithAccounts(accounts, topic)
     }
 
+    fun updateSessionWithPermissions(topic: String, blockChains: List<String>?, jsonRpcMethods: List<String>?) {
+        val chains = blockChains ?: emptyList()
+        val methods = jsonRpcMethods ?: emptyList()
+
+        sessionDatabase.sessionDaoQueries.updateSessionWithPermissions(chains, methods, topic)
+    }
+
     fun delete(topic: String) {
         sessionDatabase.sessionDaoQueries.deleteSession(topic)
+    }
+
+    private fun mapPairingDaoToPairingVO(
+        topic: String,
+        expirySeconds: Long?,
+        uri: String,
+        status: SequenceStatus,
+        controller_type: ControllerType
+    ): PairingVO {
+        val expiry = if (expirySeconds != null) Expiry(expirySeconds) else null
+        return PairingVO(Topic(topic), expiry, uri, status)
     }
 
     private fun mapSessionDaoToSessionVO(
@@ -114,13 +151,6 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
             status = status,
             appMetaData = appMetaData
         )
-    }
-
-    fun updateSessionWithPermissions(topic: String, blockChains: List<String>?, jsonRpcMethods: List<String>?) {
-        val chains = blockChains ?: emptyList()
-        val methods = jsonRpcMethods ?: emptyList()
-
-        sessionDatabase.sessionDaoQueries.updateSessionWithPermissions(chains, methods, topic)
     }
 
     companion object {

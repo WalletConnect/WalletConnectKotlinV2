@@ -114,13 +114,44 @@ internal class EngineInteractor {
             }
         }
 
-        resubscribeToSettledSession()
+        resubscribeToSettledPairings()
+//        resubscribeToSettledSession()
+    }
+
+    private fun resubscribeToSettledPairings() {
+        scope.launch {
+            supervisorScope {
+                storageRepository.listOfPairingVOs.collect { listOfPairings ->
+                    listOfPairings.onEach { pairing ->
+                        when (pairing.status) {
+                            SequenceStatus.PENDING -> {}
+                            SequenceStatus.SETTLED -> relayRepository.subscribe(pairing.topic)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun resubscribeToSettledSession() {
+        // Flow will automatically resubscribe to any settled sessions in the DB
+        storageRepository.listOfSessionVO
+            .distinctUntilChanged()
+            .onEach { listOfSessions ->
+                listOfSessions
+                    .filter { it.status == SequenceStatus.SETTLED }
+                    .onEach { session ->
+                        relayRepository.subscribe(session.topic)
+                    }
+            }
+            .launchIn(scope)
     }
 
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         require(::relayRepository.isInitialized)
 
         val pairingProposal: Pairing.Proposal = uri.toPairProposal()
+        storageRepository.insertPairingProposal(pairingProposal.topic.value, uri, SequenceStatus.PENDING, controllerType)
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + pairingProposal.ttl.seconds)
         val peerPublicKey = PublicKey(pairingProposal.pairingProposer.publicKey)
@@ -148,6 +179,7 @@ internal class EngineInteractor {
                     relayRepository.publish(pairingProposal.topic, encodedMessage) { result ->
                         result.fold(
                             onSuccess = {
+                                storageRepository.updatePendingPairingToSettled(pairingProposal.topic.value, settledSequence.settledTopic.value, settledSequence.expiry.seconds, SequenceStatus.SETTLED)
                                 onSuccess(settledTopic)
                                 pairingUpdate(settledSequence)
                             },
@@ -161,7 +193,6 @@ internal class EngineInteractor {
     }
 
     private fun pairingUpdate(settledSequence: SettledPairingSequence) {
-        val metaData = storageRepository.getMetaData()
         val pairingUpdate: PostSettlementPairing.PairingUpdate =
             PostSettlementPairing.PairingUpdate(id = generateId(), params = Pairing.UpdateParams(state = PairingState(metaData)))
         val json: String = trySerialize(pairingUpdate)
@@ -433,18 +464,6 @@ internal class EngineInteractor {
                 onSuccess = {},
                 onFailure = { error -> Logger.error("Ping Error: $error") })
         }
-    }
-
-    private fun resubscribeToSettledSession() {
-        // Flow will automatically resubscribe to any settled sessions in the DB
-        storageRepository.listOfSessionVO.onEach { listOfSessions ->
-            listOfSessions
-                .filter { it.status == SequenceStatus.SETTLED }
-                .onEach { session ->
-                    relayRepository.subscribe(session.topic)
-                }
-        }
-        .launchIn(scope)
     }
 
     private fun onUnsupported(rpc: String?) {
