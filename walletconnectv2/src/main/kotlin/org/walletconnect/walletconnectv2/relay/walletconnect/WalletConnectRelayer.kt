@@ -11,20 +11,17 @@ import org.walletconnect.walletconnectv2.clientsync.ClientSyncJsonRpc
 import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.toWakuNetworkInitParams
-import org.walletconnect.walletconnectv2.errors.CannotFindSubscriptionException
 import org.walletconnect.walletconnectv2.errors.exception
 import org.walletconnect.walletconnectv2.jsonrpc.JsonRpcSerializer
 import org.walletconnect.walletconnectv2.jsonrpc.model.ClientJsonRpc
 import org.walletconnect.walletconnectv2.jsonrpc.model.JsonRpcResponse
 import org.walletconnect.walletconnectv2.jsonrpc.model.WCRequestSubscriptionPayload
-import org.walletconnect.walletconnectv2.jsonrpc.utils.ClientJsonRpcSerializer
 import org.walletconnect.walletconnectv2.relay.waku.Relay
 import org.walletconnect.walletconnectv2.relay.waku.WakuNetworkRepository
 import org.walletconnect.walletconnectv2.scope
-import org.walletconnect.walletconnectv2.serailising.tryDeserialize
 import org.walletconnect.walletconnectv2.util.Logger
 
-class WalletConnectRelay {
+class WalletConnectRelayer {
     //Region: Move to DI
     private lateinit var networkRepository: WakuNetworkRepository
     private val serializer: JsonRpcSerializer = JsonRpcSerializer()
@@ -136,21 +133,21 @@ class WalletConnectRelay {
     }
 
     private suspend fun handleSessionRequest(decryptedMessage: String, topic: Topic) {
-        val clientJsonRpc = tryDeserialize<ClientJsonRpc>(decryptedMessage)
+        val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessage)
         if (clientJsonRpc != null) {
-            ClientJsonRpcSerializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
+            serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(WCRequestSubscriptionPayload(clientJsonRpc.id, topic, clientJsonRpc.method, params))
             }
         }
     }
 
     private suspend fun handleJsonRpcResponse(decryptedMessage: String) {
-        val acknowledgement = tryDeserialize<Relay.Subscription.Acknowledgement>(decryptedMessage)
+        val acknowledgement = serializer.tryDeserialize<Relay.Subscription.Acknowledgement>(decryptedMessage)
         if (acknowledgement != null) {
             _peerResponse.emit(JsonRpcResponse.JsonRpcResult(acknowledgement.id, acknowledgement.result.toString()))
         }
 
-        val error = tryDeserialize<Relay.Subscription.JsonRpcError>(decryptedMessage)
+        val error = serializer.tryDeserialize<Relay.Subscription.JsonRpcError>(decryptedMessage)
         if (error != null) {
             _peerResponse.emit(JsonRpcResponse.JsonRpcError(error.id, JsonRpcResponse.Error(error.error.code, error.error.message)))
         }

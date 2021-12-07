@@ -14,7 +14,6 @@ import kotlinx.coroutines.supervisorScope
 import okhttp3.OkHttpClient
 import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
-import org.walletconnect.walletconnectv2.errors.CannotFindSubscriptionException
 import org.walletconnect.walletconnectv2.moshi
 import org.walletconnect.walletconnectv2.scope
 import org.walletconnect.walletconnectv2.util.Logger

@@ -30,7 +30,7 @@ import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
 import org.walletconnect.walletconnectv2.engine.model.EngineData
 import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycle
 import org.walletconnect.walletconnectv2.jsonrpc.model.JsonRpcResponse
-import org.walletconnect.walletconnectv2.relay.walletconnect.WalletConnectRelay
+import org.walletconnect.walletconnectv2.relay.walletconnect.WalletConnectRelayer
 import org.walletconnect.walletconnectv2.scope
 import org.walletconnect.walletconnectv2.storage.SequenceStatus
 import org.walletconnect.walletconnectv2.storage.StorageRepository
@@ -41,7 +41,7 @@ import java.util.*
 internal class EngineInteractor {
     //region provide with DI
     // TODO: add logic to check hostName for ws/wss scheme with and without ://
-    private var relayer: WalletConnectRelay = WalletConnectRelay()
+    private var relayer: WalletConnectRelayer = WalletConnectRelayer()
     private lateinit var storageRepository: StorageRepository
     private val crypto: CryptoManager = LazySodiumCryptoManager()
     //endregion
@@ -54,7 +54,7 @@ internal class EngineInteractor {
     internal fun initialize(engine: EngineFactory) = with(engine) {
         this@EngineInteractor.metaData = engine.metaData
         this@EngineInteractor.controllerType = if (engine.isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
-        WalletConnectRelay.RelayFactory(useTLs, hostName, apiKey, application).apply { relayer.initialize(this) }
+        WalletConnectRelayer.RelayFactory(useTLs, hostName, apiKey, application).apply { relayer.initialize(this) }
         storageRepository = StorageRepository(null, engine.application)
         collectClientSyncJsonRpc()
         resubscribeToSettledSession()

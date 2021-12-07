@@ -2,7 +2,6 @@ package org.walletconnect.walletconnectv2
 
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import okhttp3.internal.notify
 import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListener

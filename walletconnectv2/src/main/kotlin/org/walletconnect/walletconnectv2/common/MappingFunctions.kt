@@ -17,7 +17,7 @@ import org.walletconnect.walletconnectv2.engine.model.EngineData
 import org.walletconnect.walletconnectv2.relay.waku.WakuNetworkRepository
 import org.walletconnect.walletconnectv2.jsonrpc.utils.JsonRpcMethod
 import org.walletconnect.walletconnectv2.jsonrpc.model.JsonRpcResponse
-import org.walletconnect.walletconnectv2.relay.walletconnect.WalletConnectRelay
+import org.walletconnect.walletconnectv2.relay.walletconnect.WalletConnectRelayer
 import java.net.URI
 import kotlin.time.Duration
 
@@ -72,7 +72,7 @@ internal fun Session.Proposal.toSessionProposal(): EngineData.SessionProposal =
         accounts = listOf()
     )
 
-internal fun WalletConnectRelay.RelayFactory.toWakuNetworkInitParams(): WakuNetworkRepository.WakuNetworkFactory =
+internal fun WalletConnectRelayer.RelayFactory.toWakuNetworkInitParams(): WakuNetworkRepository.WakuNetworkFactory =
     WakuNetworkRepository.WakuNetworkFactory(useTls, hostName, apiKey, application)
 
 internal fun EngineData.SessionProposal.toClientSessionProposal(): WalletConnectClientData.SessionProposal =

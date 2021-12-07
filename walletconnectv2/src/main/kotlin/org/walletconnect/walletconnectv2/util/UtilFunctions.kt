@@ -35,7 +35,7 @@ fun String.hexToBytes(): ByteArray {
 val String.hexToUtf8: String
     get() {
         var hex = this
-        hex = cleanHexPrefix(hex)
+        hex = getHexPrefix(hex)
         val buff = ByteBuffer.allocate(hex.length / 2)
         var i = 0
         while (i < hex.length) {
@@ -47,11 +47,11 @@ val String.hexToUtf8: String
         return cb.toString()
     }
 
-private fun cleanHexPrefix(input: String): String =
+private fun getHexPrefix(input: String): String =
     if (containsHexPrefix(input)) {
         input.substring(2)
     } else {
         input
     }
 
-fun containsHexPrefix(input: String): Boolean = input.startsWith("0x")
+private fun containsHexPrefix(input: String): Boolean = input.startsWith("0x")

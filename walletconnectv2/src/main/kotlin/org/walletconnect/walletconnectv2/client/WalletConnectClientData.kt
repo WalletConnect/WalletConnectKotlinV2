@@ -56,8 +56,6 @@ sealed class WalletConnectClientData {
 
     data class Jsonrpc(val methods: List<String>) : WalletConnectClientData()
 
-    data class Response(val topic: String) : WalletConnectClientData()
-
     data class UpdatedSession(val topic: String, val accounts: List<String>) : WalletConnectClientData()
 
     data class SessionNotification(
@@ -77,17 +75,17 @@ sealed class WalletConnectClientData {
 
         data class JsonRpcResult<T>(
             override val id: Long,
-            val result: T,
+            val result: T
         ) : JsonRpcResponse()
 
         data class JsonRpcError(
             override val id: Long,
-            val error: Error,
+            val error: Error
         ) : JsonRpcResponse()
 
         data class Error(
             val code: Long,
-            val message: String,
+            val message: String
         )
     }
 }
