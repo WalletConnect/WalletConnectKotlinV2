@@ -37,7 +37,7 @@ sealed class WalletConnectClientData {
         var icon: String? = "",
         var name: String = "",
         var uri: String = "",
-        val topic: String
+        val topic: String,
     ) : WalletConnectClientData()
 
     data class SessionState(val accounts: List<String>) : WalletConnectClientData()
@@ -55,8 +55,6 @@ sealed class WalletConnectClientData {
     data class Blockchain(val chains: List<String>) : WalletConnectClientData()
 
     data class Jsonrpc(val methods: List<String>) : WalletConnectClientData()
-
-    data class Response(val topic: String) : WalletConnectClientData()
 
     data class UpdatedSession(val topic: String, val accounts: List<String>) : WalletConnectClientData()
 
@@ -77,17 +75,17 @@ sealed class WalletConnectClientData {
 
         data class JsonRpcResult<T>(
             override val id: Long,
-            val result: T,
+            val result: T
         ) : JsonRpcResponse()
 
         data class JsonRpcError(
             override val id: Long,
-            val error: Error,
+            val error: Error
         ) : JsonRpcResponse()
 
         data class Error(
             val code: Long,
-            val message: String,
+            val message: String
         )
     }
 }

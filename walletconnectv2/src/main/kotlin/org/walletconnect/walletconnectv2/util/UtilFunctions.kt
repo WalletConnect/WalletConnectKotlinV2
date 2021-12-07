@@ -3,6 +3,8 @@
 package org.walletconnect.walletconnectv2.util
 
 import java.lang.System.currentTimeMillis
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
 fun generateId(): Long = (currentTimeMillis() + (0..100).random())
 
@@ -29,3 +31,27 @@ fun String.hexToBytes(): ByteArray {
     }
     return data
 }
+
+val String.hexToUtf8: String
+    get() {
+        var hex = this
+        hex = getHexPrefix(hex)
+        val buff = ByteBuffer.allocate(hex.length / 2)
+        var i = 0
+        while (i < hex.length) {
+            buff.put(hex.substring(i, i + 2).toInt(16).toByte())
+            i += 2
+        }
+        buff.rewind()
+        val cb = StandardCharsets.UTF_8.decode(buff)
+        return cb.toString()
+    }
+
+private fun getHexPrefix(input: String): String =
+    if (containsHexPrefix(input)) {
+        input.substring(2)
+    } else {
+        input
+    }
+
+private fun containsHexPrefix(input: String): Boolean = input.startsWith("0x")

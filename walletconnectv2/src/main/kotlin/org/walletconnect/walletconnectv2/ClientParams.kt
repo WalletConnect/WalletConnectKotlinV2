@@ -1,0 +1,3 @@
+package org.walletconnect.walletconnectv2
+
+interface ClientParams

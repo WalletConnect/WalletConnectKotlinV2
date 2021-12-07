@@ -32,7 +32,8 @@ import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.Ttl
 import org.walletconnect.walletconnectv2.common.network.adapters.*
-import org.walletconnect.walletconnectv2.relay.data.RelayService
+import org.walletconnect.walletconnectv2.relay.waku.Relay
+import org.walletconnect.walletconnectv2.relay.waku.RelayService
 import org.walletconnect.walletconnectv2.util.CoroutineTestRule
 import org.walletconnect.walletconnectv2.util.adapters.FlowStreamAdapter
 import org.walletconnect.walletconnectv2.util.getRandom64ByteHexString

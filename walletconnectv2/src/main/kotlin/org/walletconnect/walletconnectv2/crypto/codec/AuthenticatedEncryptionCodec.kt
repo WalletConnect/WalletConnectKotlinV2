@@ -15,7 +15,7 @@ import javax.crypto.spec.SecretKeySpec
 
 class AuthenticatedEncryptionCodec : Codec {
 
-    override fun encrypt(message: String, sharedKey: SharedKey, key: PublicKey): String {
+    override fun encrypt(message: String, sharedKey: SharedKey, publicKey: PublicKey): String {
         val (encryptionKey, authenticationKey) = getKeys(sharedKey.keyAsHex)
 
         val data = message.toByteArray(Charsets.UTF_8)
@@ -24,9 +24,9 @@ class AuthenticatedEncryptionCodec : Codec {
         val cipher: Cipher = Cipher.getInstance(CIPHER_ALGORITHM)
         cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(encryptionKey, AES_ALGORITHM), IvParameterSpec(iv))
         val cipherText: ByteArray = cipher.doFinal(data)
-        val computedMac: String = computeHmac(cipherText, iv, authenticationKey, key.keyAsHex.hexToBytes())
+        val computedMac: String = computeHmac(cipherText, iv, authenticationKey, publicKey.keyAsHex.hexToBytes())
 
-        return iv.bytesToHex() + key.keyAsHex + computedMac + cipherText.bytesToHex()
+        return iv.bytesToHex() + publicKey.keyAsHex + computedMac + cipherText.bytesToHex()
     }
 
     override fun decrypt(payload: EncryptionPayload, sharedKey: SharedKey): String {

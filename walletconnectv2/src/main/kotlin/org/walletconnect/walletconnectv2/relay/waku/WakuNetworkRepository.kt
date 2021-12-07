@@ -1,4 +1,4 @@
-package org.walletconnect.walletconnectv2.relay
+package org.walletconnect.walletconnectv2.relay.waku
 
 import android.app.Application
 import com.tinder.scarlet.Scarlet
@@ -15,15 +15,13 @@ import okhttp3.OkHttpClient
 import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.moshi
-import org.walletconnect.walletconnectv2.relay.data.RelayService
-import org.walletconnect.walletconnectv2.relay.data.model.Relay
 import org.walletconnect.walletconnectv2.scope
 import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.util.adapters.FlowStreamAdapter
 import org.walletconnect.walletconnectv2.util.generateId
 import java.util.concurrent.TimeUnit
 
-class WakuRelayRepository internal constructor(
+class WakuNetworkRepository internal constructor(
     private val useTLs: Boolean,
     private val hostName: String,
     private val apiKey: String,
@@ -42,7 +40,7 @@ class WakuRelayRepository internal constructor(
         Scarlet.Builder()
             .backoffStrategy(LinearBackoffStrategy(TimeUnit.MINUTES.toMillis(DEFAULT_BACKOFF_MINUTES)))
             .webSocketFactory(okHttpClient.newWebSocketFactory(getServerUrl()))
-//            .lifecycle(AndroidLifecycle.ofApplicationForeground(application)) // TODO: Maybe have debug version of scarlet w/o application and release version of scarlet w/ application once DI is setup
+            .lifecycle(AndroidLifecycle.ofApplicationForeground(application)) // TODO: Maybe have debug version of scarlet w/o application and release version of scarlet w/ application once DI is setup
             .addMessageAdapterFactory(MoshiMessageAdapter.Factory(moshi))
             .addStreamAdapterFactory(FlowStreamAdapter.Factory())
             .build()
@@ -52,32 +50,31 @@ class WakuRelayRepository internal constructor(
 
     internal val eventsFlow: SharedFlow<WebSocket.Event> = relay.eventsFlow().shareIn(scope, SharingStarted.Lazily, REPLAY)
     internal val observePublishAcknowledgement: Flow<Relay.Publish.Acknowledgement> = relay.observePublishAcknowledgement()
-    internal val observePublishResponseError: Flow<Relay.Publish.JsonRpcError> = relay.observePublishError()
-    internal val observeSubscribeResponse = relay.observeSubscribeAcknowledgement()
-    internal val observeUnsubscribeResponse = relay.observeUnsubscribeAcknowledgement()
+
     internal val subscriptionRequest: Flow<Relay.Subscription.Request> =
         relay.observeSubscriptionRequest()
-            .onEach { relayRequest ->
-                //TODO handle request duplication
-                supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) }
-            }
+            .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
 
-    fun publish(topic: Topic, message: String, onResult: (Result<Any>) -> Unit = {}) {
+    fun publish(topic: Topic, message: String, onResult: (Result<Relay.Publish.Acknowledgement>) -> Unit = {}) {
         val publishRequest =
             Relay.Publish.Request(id = generateId(), params = Relay.Publish.Request.Params(topic = topic, message = message))
-        observePublishAcknowledgement(onResult)
-        observePublishError(onResult)
+        observePublishAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
+        observePublishError { error -> onResult(Result.failure(error)) }
         relay.publishRequest(publishRequest)
     }
 
-    fun subscribe(topic: Topic) {
+    fun subscribe(topic: Topic, onResult: (Result<Relay.Subscribe.Acknowledgement>) -> Unit) {
         val subscribeRequest = Relay.Subscribe.Request(id = generateId(), params = Relay.Subscribe.Request.Params(topic))
+        observeSubscribeAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
+        observeSubscribeError { error -> onResult(Result.failure(error)) }
         relay.subscribeRequest(subscribeRequest)
     }
 
-    fun unsubscribe(topic: Topic, subscriptionId: SubscriptionId) {
+    fun unsubscribe(topic: Topic, subscriptionId: SubscriptionId, onResult: (Result<Relay.Unsubscribe.Acknowledgement>) -> Unit) {
         val unsubscribeRequest =
             Relay.Unsubscribe.Request(id = generateId(), params = Relay.Unsubscribe.Request.Params(topic, subscriptionId))
+        observeUnSubscribeAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
+        observeUnSubscribeError { error -> onResult(Result.failure(error)) }
         relay.unsubscribeRequest(unsubscribeRequest)
     }
 
@@ -86,27 +83,81 @@ class WakuRelayRepository internal constructor(
         relay.publishSubscriptionAcknowledgement(publishRequest)
     }
 
-    private fun observePublishAcknowledgement(onResult: (Result<Any>) -> Unit) {
+    private fun observePublishAcknowledgement(onResult: (Relay.Publish.Acknowledgement) -> Unit) {
         scope.launch {
             relay.observePublishAcknowledgement()
                 .catch { exception -> Logger.error(exception) }
-                .collect {
+                .collect { acknowledgement ->
                     supervisorScope {
-                        onResult(Result.success(Unit))
+                        onResult(acknowledgement)
                         cancel()
                     }
                 }
         }
     }
 
-    private fun observePublishError(onResult: (Result<Throwable>) -> Unit) {
+    private fun observePublishError(onFailure: (Throwable) -> Unit) {
         scope.launch {
             relay.observePublishError()
                 .onEach { jsonRpcError -> Logger.error(Throwable(jsonRpcError.error.errorMessage)) }
                 .catch { exception -> Logger.error(exception) }
                 .collect { errorResponse ->
                     supervisorScope {
-                        onResult(Result.failure(Throwable(errorResponse.error.errorMessage)))
+                        onFailure(Throwable(errorResponse.error.errorMessage))
+                        cancel()
+                    }
+                }
+        }
+    }
+
+    private fun observeSubscribeAcknowledgement(onResult: (Relay.Subscribe.Acknowledgement) -> Unit) {
+        scope.launch {
+            relay.observeSubscribeAcknowledgement()
+                .catch { exception -> Logger.error(exception) }
+                .collect { acknowledgement ->
+                    supervisorScope {
+                        onResult(acknowledgement)
+                        cancel()
+                    }
+                }
+        }
+    }
+
+    private fun observeSubscribeError(onFailure: (Throwable) -> Unit) {
+        scope.launch {
+            relay.observeSubscribeError()
+                .onEach { jsonRpcError -> Logger.error(Throwable(jsonRpcError.error.errorMessage)) }
+                .catch { exception -> Logger.error(exception) }
+                .collect { errorResponse ->
+                    supervisorScope {
+                        onFailure(Throwable(errorResponse.error.errorMessage))
+                        cancel()
+                    }
+                }
+        }
+    }
+
+    private fun observeUnSubscribeAcknowledgement(onSuccess: (Relay.Unsubscribe.Acknowledgement) -> Unit) {
+        scope.launch {
+            relay.observeUnsubscribeAcknowledgement()
+                .catch { exception -> Logger.error(exception) }
+                .collect { acknowledgement ->
+                    supervisorScope {
+                        onSuccess(acknowledgement)
+                        cancel()
+                    }
+                }
+        }
+    }
+
+    private fun observeUnSubscribeError(onFailure: (Throwable) -> Unit) {
+        scope.launch {
+            relay.observeUnsubscribeError()
+                .onEach { jsonRpcError -> Logger.error(Throwable(jsonRpcError.error.errorMessage)) }
+                .catch { exception -> Logger.error(exception) }
+                .collect { errorResponse ->
+                    supervisorScope {
+                        onFailure(Throwable(errorResponse.error.errorMessage))
                         cancel()
                     }
                 }
@@ -116,7 +167,7 @@ class WakuRelayRepository internal constructor(
     private fun getServerUrl(): String =
         ((if (useTLs) "wss" else "ws") + "://$hostName/?apiKey=$apiKey").trim()
 
-    class RelayFactory(
+    class WakuNetworkFactory(
         val useTls: Boolean,
         val hostName: String,
         val apiKey: String,
@@ -128,8 +179,8 @@ class WakuRelayRepository internal constructor(
         private const val DEFAULT_BACKOFF_MINUTES: Long = 5L
         private const val REPLAY: Int = 1
 
-        fun initRemote(relayFactory: RelayFactory) = with(relayFactory) {
-            WakuRelayRepository(useTls, hostName, apiKey, application)
+        fun init(wakuNetworkFactory: WakuNetworkFactory) = with(wakuNetworkFactory) {
+            WakuNetworkRepository(useTls, hostName, apiKey, application)
         }
     }
 }

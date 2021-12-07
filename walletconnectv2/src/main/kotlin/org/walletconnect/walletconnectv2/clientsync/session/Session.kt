@@ -2,6 +2,7 @@ package org.walletconnect.walletconnectv2.clientsync.session
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import org.walletconnect.walletconnectv2.ClientParams
 import org.walletconnect.walletconnectv2.clientsync.session.after.params.Reason
 import org.walletconnect.walletconnectv2.clientsync.session.after.params.SessionPermissions
 import org.walletconnect.walletconnectv2.clientsync.session.after.params.SessionRequest
@@ -18,7 +19,7 @@ import org.walletconnect.walletconnectv2.common.network.adapters.ExpiryAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TopicAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TtlAdapter
 
-sealed class Session {
+sealed class Session: ClientParams {
 
     @JsonClass(generateAdapter = true)
     data class Proposal(
@@ -78,7 +79,7 @@ sealed class Session {
         val permissions: SessionPermissions
     ) : Session()
 
-    object PingParams : Session()
+    class PingParams : Session()
 
     data class NotificationParams(
         @Json(name = "type")
