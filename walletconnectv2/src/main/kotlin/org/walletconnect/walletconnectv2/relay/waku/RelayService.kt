@@ -1,16 +1,11 @@
-package org.walletconnect.walletconnectv2.relay.data
+package org.walletconnect.walletconnectv2.relay.waku
 
-import com.tinder.scarlet.Stream
 import com.tinder.scarlet.WebSocket
 import com.tinder.scarlet.ws.Receive
 import com.tinder.scarlet.ws.Send
 import kotlinx.coroutines.flow.Flow
-import org.walletconnect.walletconnectv2.relay.data.model.Relay
 
 interface RelayService {
-
-    @Receive
-    fun observeEvents(): Stream<WebSocket.Event>
 
     @Receive
     fun eventsFlow(): Flow<WebSocket.Event>

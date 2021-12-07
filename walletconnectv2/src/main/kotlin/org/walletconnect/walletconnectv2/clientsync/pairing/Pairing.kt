@@ -3,13 +3,14 @@ package org.walletconnect.walletconnectv2.clientsync.pairing
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import org.json.JSONObject
+import org.walletconnect.walletconnectv2.ClientParams
 import org.walletconnect.walletconnectv2.clientsync.pairing.after.payload.ProposalRequest
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposedPermissions
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposer
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingSignal
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingParticipant
 import org.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingState
-import org.walletconnect.walletconnectv2.clientsync.session.Session
+import org.walletconnect.walletconnectv2.clientsync.session.after.params.Reason
 import org.walletconnect.walletconnectv2.common.Expiry
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.Ttl
@@ -17,7 +18,7 @@ import org.walletconnect.walletconnectv2.common.network.adapters.ExpiryAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.JSONObjectAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TopicAdapter
 
-sealed class Pairing {
+sealed class Pairing : ClientParams {
 
     data class Proposal(
         val topic: Topic,
@@ -53,7 +54,13 @@ sealed class Pairing {
         val request: ProposalRequest
     ) : Pairing()
 
-    object PingParams : Pairing()
+    @JsonClass(generateAdapter = true)
+    class DeleteParams(
+        @Json(name = "reason")
+        val reason: Reason
+    ) : Pairing()
+
+    class PingParams : Pairing()
 
     data class NotificationParams(
         @Json(name = "type")

@@ -64,7 +64,7 @@ class WalletConnectClientIntegrationAndroidTest {
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:e198451f91ee660d6b7aa109a5102d697948257dd065eff819f4dc8a83c9866a@2?controller=false&publicKey=3bc0fb5d92c551ef31c4e9608d67162db226bc125b6dcd87f8b7425644f1f51f&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:76a4fd7ab4015aa22ad77bfa0cd0bc563047fd3d92ad5285db71e80cea68f9ca@2?controller=false&publicKey=7a6875ec8512a8d77be1ddd23797a08d078627c0f85887bf0452be97b7390e34&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
             val listener = object : WalletConnectClientListener {
                 override fun onSessionProposal(sessionProposal: WalletConnectClientData.SessionProposal) {
@@ -177,7 +177,7 @@ class WalletConnectClientIntegrationAndroidTest {
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:b8637ddf87ccb715fa894c7630c9d57bcc055bc8adc866c649bb3e7b99a48be5@2?controller=false&publicKey=cc47a6046a47026d6590bfe212d3b108b5480dccdf1106026aaaade05a93187c&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:a436606363ab68232f14d46899397d2d765488a1d5b599922a5e11f3826b44eb@2?controller=false&publicKey=6868953b0b4fdbf203902dd2ea2c982a106c5656879b18df815343fe5e609a6d&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
 
 
@@ -209,11 +209,6 @@ class WalletConnectClientIntegrationAndroidTest {
                     )
 
                     WalletConnectClient.respond(result, object : WalletConnectClientListeners.SessionPayload {
-                        override fun onSuccess(sessionPayloadResponse: WalletConnectClientData.Response) {
-                            assert(true)
-                            activityRule.close()
-                        }
-
                         override fun onError(error: Throwable) {
                             assert(false)
                             activityRule.close()
@@ -248,7 +243,7 @@ class WalletConnectClientIntegrationAndroidTest {
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:e36fd9bf661d036ceec2fd9e0c8d83423cbef918b3b89651b97c20b68953e53e@2?controller=false&publicKey=cbdde97fda16e407b9afceb0dd1bc923ecd52ef9a66948731e644748fe13c179&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:5435739a2365dd46bbbb2543abbad1964bb702f622428f63d0d4257ddd7df7b7@2?controller=false&publicKey=76464aa17766b58a335e8ee6a96d8be7e1bbfcd81307c57e81b0b6cd54639765&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
 
 
@@ -280,17 +275,11 @@ class WalletConnectClientIntegrationAndroidTest {
                     )
 
                     WalletConnectClient.respond(result, object : WalletConnectClientListeners.SessionPayload {
-                        override fun onSuccess(sessionPayloadResponse: WalletConnectClientData.Response) {
-                            assert(true)
-                            activityRule.close()
-                        }
-
                         override fun onError(error: Throwable) {
                             assert(false)
                             activityRule.close()
                         }
                     })
-
                 }
 
                 override fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession) {}
@@ -319,7 +308,7 @@ class WalletConnectClientIntegrationAndroidTest {
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:bd14079da63344a1f5bb80c9035d5fd43d3807ab618805135b9dbc8c47f0c130@2?controller=false&publicKey=a89553879b7f4db59bcf25d61df3d2eb549e80de53bd2ac4f186de20081aa956&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:7518ca65d85b3084d3b5f5fb223a7cd902c8bb5faca80fbe3e4f74f936eecd20@2?controller=false&publicKey=55fa723c020e8b3d3f7cc01c0d7f7eaf246fce2203e8f2f32580f2d947312a09&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
 
 

@@ -1,4 +1,4 @@
-package org.walletconnect.walletconnectv2.relay.data.model
+package org.walletconnect.walletconnectv2.relay.waku
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

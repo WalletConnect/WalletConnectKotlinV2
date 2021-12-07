@@ -2,13 +2,16 @@ package org.walletconnect.walletconnectv2.clientsync.pairing.after
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import org.walletconnect.walletconnectv2.clientsync.ClientSyncJsonRpc
 import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
-import org.walletconnect.walletconnectv2.relay.data.jsonrpc.JsonRpcMethod
+import org.walletconnect.walletconnectv2.clientsync.session.Session
+import org.walletconnect.walletconnectv2.clientsync.session.after.PostSettlementSession
+import org.walletconnect.walletconnectv2.jsonrpc.utils.JsonRpcMethod
 
-sealed class PostSettlementPairing {
-    abstract val id: Long
-    abstract val jsonrpc: String
+sealed class PostSettlementPairing : ClientSyncJsonRpc {
+    abstract override val id: Long
     abstract val method: String
+    abstract val jsonrpc: String
     abstract val params: Pairing
 
     @JsonClass(generateAdapter = true)
@@ -21,9 +24,19 @@ sealed class PostSettlementPairing {
         override val method: String = JsonRpcMethod.WC_PAIRING_PAYLOAD,
         @Json(name = "params")
         override val params: Pairing.PayloadParams
-    ) : PostSettlementPairing() {
-        val payloadParams = params.request.params
-    }
+    ) : PostSettlementPairing()
+
+    @JsonClass(generateAdapter = true)
+    data class SessionDelete(
+        @Json(name = "id")
+        override val id: Long,
+        @Json(name = "jsonrpc")
+        override val jsonrpc: String = "2.0",
+        @Json(name = "method")
+        override val method: String = JsonRpcMethod.WC_PAIRING_DELETE,
+        @Json(name = "params")
+        override val params: Pairing.DeleteParams
+    ) : PostSettlementPairing()
 
     @JsonClass(generateAdapter = true)
     data class PairingUpdate(
