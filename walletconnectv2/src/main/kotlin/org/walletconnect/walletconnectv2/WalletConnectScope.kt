@@ -46,17 +46,3 @@ val moshi: Moshi = Moshi.Builder()
     .addLast(KotlinJsonAdapterFactory())
     .add(polymorphicJsonAdapterFactory)
     .build()
-
-//TODO move to the DI framework
-private val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
-private val mainKeyAlias = MasterKeys.getOrCreate(keyGenParameterSpec)
-private const val sharedPrefsFile: String = "wc_key_store"
-
-internal val sharedPreferences: SharedPreferences
-    get() = EncryptedSharedPreferences.create(
-        sharedPrefsFile,
-        mainKeyAlias,
-        app.applicationContext,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )

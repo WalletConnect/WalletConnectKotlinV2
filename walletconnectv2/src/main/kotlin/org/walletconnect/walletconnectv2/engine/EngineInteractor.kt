@@ -163,7 +163,7 @@ internal class EngineInteractor {
         onSuccess(Pair(topic, reason))
         relayer.request(Topic(topic), sessionDelete) { result ->
             result.fold(
-                onSuccess = {/*TODO: Should wait for acknowledgement and delete keys?*/ },
+                onSuccess = {},
                 onFailure = { error -> onFailure(error) }
             )
         }

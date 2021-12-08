@@ -1,4 +1,4 @@
 package org.walletconnect.walletconnectv2.util
 
-val String.Companion.empty get() = ""
-val Int.Companion.defaultId get() = -1
+val String.Companion.Empty get() = ""
+val Int.Companion.DefaultId get() = -1

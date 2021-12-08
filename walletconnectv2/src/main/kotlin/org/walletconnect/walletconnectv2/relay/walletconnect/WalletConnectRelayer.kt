@@ -11,8 +11,10 @@ import org.walletconnect.walletconnectv2.clientsync.ClientSyncJsonRpc
 import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.toWakuNetworkInitParams
+import org.walletconnect.walletconnectv2.errors.WalletConnectExceptions
 import org.walletconnect.walletconnectv2.errors.exception
 import org.walletconnect.walletconnectv2.jsonrpc.JsonRpcSerializer
+import org.walletconnect.walletconnectv2.jsonrpc.history.JsonRpcHistory
 import org.walletconnect.walletconnectv2.jsonrpc.model.ClientJsonRpc
 import org.walletconnect.walletconnectv2.jsonrpc.model.JsonRpcResponse
 import org.walletconnect.walletconnectv2.jsonrpc.model.WCRequestSubscriptionPayload
@@ -34,6 +36,7 @@ class WalletConnectRelayer {
     private val peerResponse: SharedFlow<JsonRpcResponse> = _peerResponse
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
+    private val jsonRpcHistory: JsonRpcHistory = JsonRpcHistory()
     var isConnectionOpened = MutableStateFlow(false)
 
     internal fun initialize(relay: RelayFactory) {
@@ -44,33 +47,38 @@ class WalletConnectRelayer {
 
     fun request(topic: Topic, payload: ClientSyncJsonRpc, onResult: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit) {
         require(::networkRepository.isInitialized)
-        scope.launch {
-            supervisorScope {
-                peerResponse
-                    .filter { response -> response.id == payload.id }
-                    .collect { response ->
-                        when (response) {
-                            is JsonRpcResponse.JsonRpcResult -> onResult(Result.success(response))
-                            is JsonRpcResponse.JsonRpcError -> onResult(Result.failure(Throwable(response.error.message)))
+
+        try {
+            jsonRpcHistory.setRequest(payload.id, topic)
+            scope.launch {
+                supervisorScope {
+                    peerResponse
+                        .filter { response -> response.id == payload.id }
+                        .collect { response ->
+                            when (response) {
+                                is JsonRpcResponse.JsonRpcResult -> onResult(Result.success(response))
+                                is JsonRpcResponse.JsonRpcError -> onResult(Result.failure(Throwable(response.error.message)))
+                            }
+                            cancel()
                         }
-                    }
-                cancel()
+                }
             }
-        }
-        val encryptedMessage: String = serializer.serialize(payload, topic)
-        networkRepository.publish(topic, encryptedMessage) { result ->
-            result.fold(
-                onSuccess = {},
-                onFailure = { error -> onResult(Result.failure(error)) }
-            )
+
+            networkRepository.publish(topic, serializer.serialize(payload, topic)) { result ->
+                result.fold(
+                    onSuccess = {},
+                    onFailure = { error -> onResult(Result.failure(error)) }
+                )
+            }
+        } catch (exception: WalletConnectExceptions.DuplicatedJsonRpcException) {
+            Logger.log(exception)
         }
     }
 
-
     fun respond(topic: Topic, response: JsonRpcResponse, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         require(::networkRepository.isInitialized)
-        val encryptedMessage: String = serializer.serialize(response, topic)
-        networkRepository.publish(topic, encryptedMessage) { result ->
+
+        networkRepository.publish(topic, serializer.serialize(response, topic)) { result ->
             result.fold(
                 onSuccess = { onSuccess() },
                 onFailure = { error -> onFailure(error) }
@@ -80,6 +88,7 @@ class WalletConnectRelayer {
 
     fun subscribe(topic: Topic) {
         require(::networkRepository.isInitialized)
+
         networkRepository.subscribe(topic) { result ->
             result.fold(
                 onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result.id },
@@ -90,11 +99,15 @@ class WalletConnectRelayer {
 
     fun unsubscribe(topic: Topic) {
         require(::networkRepository.isInitialized)
+
         if (subscriptions.contains(topic.value)) {
             val subscriptionId = SubscriptionId(subscriptions[topic.value].toString())
             networkRepository.unsubscribe(topic, subscriptionId) { result ->
                 result.fold(
-                    onSuccess = { subscriptions.remove(topic.value) },
+                    onSuccess = {
+                        jsonRpcHistory.deleteRequests(topic)
+                        subscriptions.remove(topic.value)
+                    },
                     onFailure = { error -> Logger.error("Unsubscribe to topic: $topic error: $error") }
                 )
             }
@@ -120,9 +133,9 @@ class WalletConnectRelayer {
     private fun manageSubscriptions() {
         scope.launch(exceptionHandler) {
             networkRepository.subscriptionRequest
-                .map { peerRequest ->
-                    val decodedMessage = serializer.decode(peerRequest.message, peerRequest.subscriptionTopic)
-                    val topic = peerRequest.subscriptionTopic
+                .map { relayRequest ->
+                    val decodedMessage = serializer.decode(relayRequest.message, relayRequest.subscriptionTopic)
+                    val topic = relayRequest.subscriptionTopic
                     Pair(decodedMessage, topic)
                 }
                 .collect { (decryptedMessage, topic) ->
@@ -135,8 +148,13 @@ class WalletConnectRelayer {
     private suspend fun handleSessionRequest(decryptedMessage: String, topic: Topic) {
         val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessage)
         if (clientJsonRpc != null) {
-            serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
-                _clientSyncJsonRpc.emit(WCRequestSubscriptionPayload(clientJsonRpc.id, topic, clientJsonRpc.method, params))
+            try {
+                jsonRpcHistory.setRequest(clientJsonRpc.id, topic)
+                serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
+                    _clientSyncJsonRpc.emit(WCRequestSubscriptionPayload(clientJsonRpc.id, topic, clientJsonRpc.method, params))
+                }
+            } catch (exception: WalletConnectExceptions.DuplicatedJsonRpcException) {
+                Logger.log(exception)
             }
         }
     }
