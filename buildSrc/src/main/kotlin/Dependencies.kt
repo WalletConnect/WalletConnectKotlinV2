@@ -92,8 +92,7 @@ fun DependencyHandlerScope.sqlDelight() {
 fun DependencyHandlerScope.jUnit5() {
     val jUnit5Version = "5.7.2"
 
-    "implementation"("androidx.test.ext:junit-ktx:1.1.3")
-
+    "testImplementation"("androidx.test.ext:junit-ktx:1.1.3")
     "testImplementation"("androidx.test:core-ktx:1.4.0")
     "testImplementation"(platform("org.junit:junit-bom:$jUnit5Version"))
     "testImplementation"("org.junit.jupiter:junit-jupiter-api:$jUnit5Version")

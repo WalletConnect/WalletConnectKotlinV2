@@ -1,11 +1,8 @@
 package org.walletconnect.walletconnectv2.engine
 
 import android.app.Application
-import com.tinder.scarlet.WebSocket
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import org.json.JSONObject
 import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
 import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
@@ -25,7 +22,6 @@ import org.walletconnect.walletconnectv2.clientsync.session.before.success.Sessi
 import org.walletconnect.walletconnectv2.clientsync.session.common.SessionState
 import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.crypto.CryptoManager
-import org.walletconnect.walletconnectv2.crypto.codec.AuthenticatedEncryptionCodec
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.crypto.data.SharedKey
 import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
@@ -56,39 +52,38 @@ internal class EngineInteractor {
     internal fun initialize(engine: EngineFactory) = with(engine) {
         this@EngineInteractor.metaData = engine.metaData
         this@EngineInteractor.controllerType = if (engine.isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
-        WalletConnectRelayer.RelayFactory(useTLs, hostName, apiKey, application).apply { relayer.initialize(this) }
+        WalletConnectRelayer.RelayFactory(useTLs, hostName, apiKey, application).run {
+            relayer.initialize(this)
+        }
         storageRepository = StorageRepository(null, engine.application)
         collectClientSyncJsonRpc()
-        resubscribeToSettledSession()
+
+        relayer.isConnectionOpened
+            .filter { isConnected: Boolean -> isConnected }
+            .onEach {
+                coroutineScope {
+                    launch(Dispatchers.IO) { resubscribeToSettledPairings() }
+                    launch(Dispatchers.IO) { resubscribeToSettledSession() }
+                }
+            }
+            .launchIn(scope)
     }
 
     private fun resubscribeToSettledPairings() {
-        scope.launch {
-            supervisorScope {
-                storageRepository.listOfPairingVOs.collect { listOfPairings ->
-                    listOfPairings.onEach { pairing ->
-                        when (pairing.status) {
-                            SequenceStatus.PENDING -> {}
-                            SequenceStatus.SETTLED -> relayRepository.subscribe(pairing.topic)
-                        }
-                    }
-                }
+        storageRepository.getListOfPairingVOs()
+            .filter { it.status == SequenceStatus.SETTLED }
+            .onEach { pairing ->
+                relayer.subscribe(pairing.topic)
             }
-        }
     }
 
     private fun resubscribeToSettledSession() {
         // Flow will automatically resubscribe to any settled sessions in the DB
-        storageRepository.listOfSessionVO
-            .distinctUntilChanged()
-            .onEach { listOfSessions ->
-                listOfSessions
-                    .filter { it.status == SequenceStatus.SETTLED }
-                    .onEach { session ->
-                        relayRepository.subscribe(session.topic)
-                    }
+        storageRepository.getListOfSessionVO()
+            .filter { it.status == SequenceStatus.SETTLED }
+            .onEach { session ->
+                relayer.subscribe(session.topic)
             }
-            .launchIn(scope)
     }
 
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
@@ -105,6 +100,7 @@ internal class EngineInteractor {
         }
         val settledSequence = settlePairingSequence(pairingProposal.relay, selfPublicKey, peerPublicKey, controllerPublicKey, expiry)
         val preSettlementPairingApprove = pairingProposal.toApprove(generateId(), settledSequence.settledTopic, expiry, selfPublicKey)
+
         relayer.isConnectionOpened
             .filter { isOnline -> isOnline }
             .onEach {
@@ -112,7 +108,10 @@ internal class EngineInteractor {
                     relayer.request(pairingProposal.topic, preSettlementPairingApprove) { result ->
                         result.fold(
                             onSuccess = {
-                                onSuccess(settledTopic)
+                                relayer.unsubscribe(pairingProposal.topic)
+                                relayer.subscribe(settledSequence.settledTopic)
+                                storageRepository.updatePendingPairingToSettled(pairingProposal.topic.value, settledSequence.settledTopic.value, expiry.seconds, SequenceStatus.SETTLED)
+                                onSuccess(settledSequence.settledTopic.value)
                                 pairingUpdate(settledSequence)
                             },
                             onFailure = { throwable -> onFailure(throwable) }
@@ -129,7 +128,10 @@ internal class EngineInteractor {
             PostSettlementPairing.PairingUpdate(id = generateId(), params = Pairing.UpdateParams(state = PairingState(metaData)))
         relayer.request(settledSequence.settledTopic, pairingUpdate) { result ->
             result.fold(
-                onSuccess = {/*TODO update Pairing's metadata in local storage*/ },
+                onSuccess = {
+                    /*TODO update Pairing's metadata in local storage
+                    *  Might not need to store pairing metadata because metadata is a global variable*/
+                },
                 onFailure = { error -> Logger.error("Pairing update error: $error") }
             )
         }
@@ -180,7 +182,7 @@ internal class EngineInteractor {
         storageRepository.delete(topic)
         relayer.request(Topic(topic), sessionReject) { result ->
             result.fold(
-                onSuccess = {},
+                onSuccess = {/*TODO: Should we unsubscribe from topic?*/ },
                 onFailure = { error -> onFailure(error) }
             )
         }

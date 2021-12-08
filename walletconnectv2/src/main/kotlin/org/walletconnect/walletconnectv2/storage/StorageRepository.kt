@@ -44,7 +44,9 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
     )
     //endregion
 
-    val listOfSessionVO = sessionDatabase.sessionDaoQueries.getSessionDao(mapper = this@StorageRepository::mapSessionDaoToSessionVO).executeAsList()
+    fun getListOfPairingVOs() = sessionDatabase.pairingDaoQueries.getListOfPairingDaos(mapper = this@StorageRepository::mapPairingDaoToPairingVO).executeAsList()
+
+    fun getListOfSessionVO() = sessionDatabase.sessionDaoQueries.getListOfSessionDaos(mapper = this@StorageRepository::mapSessionDaoToSessionVO).executeAsList()
 
     fun insertPairingProposal(topic: String, uri: String, sequenceStatus: SequenceStatus, controllerType: ControllerType) {
         sessionDatabase.pairingDaoQueries.insertPairing(topic, uri, sequenceStatus, controllerType)
@@ -82,12 +84,6 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
         } ?: FAILED_INSERT_ID
     }
 
-    fun getMetaData(): AppMetaData {
-        return sessionDatabase.metaDataDaoQueries.getMetaData(mapper = { _, name, description, url, listOfIcons ->
-            AppMetaData(name, description, url, listOfIcons)
-        }).executeAsOne()
-    }
-
     fun updateStatusToSessionApproval(
         topicKey: String,
         subscriptionId: Long,
@@ -117,6 +113,7 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
     }
 
     fun delete(topic: String) {
+        sessionDatabase.metaDataDaoQueries.deleteMetaDataFromTopic(topic)
         sessionDatabase.sessionDaoQueries.deleteSession(topic)
     }
 
