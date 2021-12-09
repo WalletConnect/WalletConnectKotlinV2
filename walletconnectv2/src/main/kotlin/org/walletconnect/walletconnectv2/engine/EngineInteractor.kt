@@ -333,7 +333,7 @@ internal class EngineInteractor {
 
     private fun resubscribeToSettledPairings() {
         storageRepository.getListOfPairingVOs()
-            .filter { it.status == SequenceStatus.SETTLED }
+            .filter { pairing -> pairing.status == SequenceStatus.SETTLED }
             .onEach { pairing ->
                 relayer.subscribe(pairing.topic)
             }
@@ -341,7 +341,7 @@ internal class EngineInteractor {
 
     private fun resubscribeToSettledSession() {
         storageRepository.getListOfSessionVO()
-            .filter { it.status == SequenceStatus.SETTLED }
+            .filter { session -> session.status == SequenceStatus.SETTLED }
             .onEach { session ->
                 relayer.subscribe(session.topic)
             }
