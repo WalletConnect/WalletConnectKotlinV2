@@ -1,5 +1,6 @@
 package org.walletconnect.walletconnectv2.engine.model
 
+import org.walletconnect.walletconnectv2.common.AppMetaData
 import java.net.URI
 
 sealed class EngineData {
@@ -10,7 +11,8 @@ sealed class EngineData {
         val url: String,
         val icons: List<URI>,
         val chains: List<String>,
-        var methods: List<String>,
+        val methods: List<String>,
+        val types: List<String>,
         val topic: String,
         val proposerPublicKey: String,
         val ttl: Long,
@@ -38,11 +40,23 @@ sealed class EngineData {
     ) : EngineData()
 
     internal data class SettledSession(
-        var icon: String?,
-        var name: String,
-        var uri: String,
-        val topic: String
-    ) : EngineData()
+        val topic: String,
+        val peerAppMetaData: AppMetaData?,
+        val permissions: Permissions
+    ) : EngineData() {
+
+        data class Permissions(
+            val blockchain: Blockchain,
+            val jsonRpc: JsonRpc,
+            val notifications: Notifications
+        ) {
+            data class Blockchain(val chains: List<String>)
+
+            data class JsonRpc(val methods: List<String>)
+
+            data class Notifications(val types: List<String>)
+        }
+    }
 
     internal data class SessionNotification(
         val topic: String,

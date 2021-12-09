@@ -8,6 +8,7 @@ import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
 import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.engine.EngineInteractor
+import org.walletconnect.walletconnectv2.engine.model.EngineData
 import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycle
 
 object WalletConnectClient {
@@ -121,5 +122,13 @@ object WalletConnectClient {
             sessionTopic, reason,
             { (topic, reason) -> listener.onSuccess(WalletConnectClientData.DeletedSession(topic, reason)) },
             { error -> listener.onError(error) })
+    }
+
+    fun getListOfSettledSessions(): List<WalletConnectClientData.SettledSession> {
+        return engineInteractor.getListOfSettledSessions().map(EngineData.SettledSession::toClientSettledSession)
+    }
+
+    fun getListOfPendingSession(): List<WalletConnectClientData.SessionProposal> {
+        return engineInteractor.getListOfPendingSessions().map(EngineData.SessionProposal::toClientSessionProposal)
     }
 }

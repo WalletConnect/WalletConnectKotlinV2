@@ -37,11 +37,11 @@ class SessionsAdapter(
 
         fun bind(session: WalletConnectClientData.SettledSession) = with(binding) {
             Glide.with(view.context)
-                .load(Uri.parse(session.icon))
+                .load(Uri.parse(session.peerAppMetaData?.icons?.first()))
                 .into(icon)
 
-            name.text = session.name
-            uri.text = session.uri
+            name.text = session.peerAppMetaData?.name
+            uri.text = session.peerAppMetaData?.url
 
             menu.setOnClickListener {
                 with(PopupMenu(view.context, menu)) {
