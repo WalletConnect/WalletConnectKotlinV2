@@ -111,7 +111,7 @@ class WalletConnectClientIntegrationAndroidTest {
             WalletConnectClient.initialize(initParams)
 
             val uri =
-                "wc:94a1d482bafeb75d77178c06d2438b7ca84475c518fc6c12c1cbeb43031f73a8@2?controller=false&publicKey=f7d9a60033f881ebd137e7e80ba3b96e127c39e112ae539e4fe0a4b74c837c2f&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:a26b323e1ad907d7c68264dbf9d5ccbd2077adae3195d23d7b052116ffcd4736@2?controller=false&publicKey=b9577a879cb2fea465ff945e409790b5996cc21dab10db48ceda23cfa3baab37&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
 
             val listener = object : WalletConnectClientListener {
@@ -123,6 +123,7 @@ class WalletConnectClientIntegrationAndroidTest {
 
                     WalletConnectClient.approve(approveParams, object : WalletConnectClientListeners.SessionApprove {
                         override fun onSuccess(settledSession: WalletConnectClientData.SettledSession) {
+
                             val permissions =
                                 WalletConnectClientData.SessionPermissions(
                                     blockchain = WalletConnectClientData.Blockchain(chains = listOf("eip155:80001")),

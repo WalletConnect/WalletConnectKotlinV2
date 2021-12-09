@@ -16,7 +16,7 @@ import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
 import org.walletconnect.walletconnectv2.jsonrpc.model.JsonRpcResponse
 import org.walletconnect.walletconnectv2.jsonrpc.utils.JsonRpcMethod
 import org.walletconnect.walletconnectv2.moshi
-import org.walletconnect.walletconnectv2.util.empty
+import org.walletconnect.walletconnectv2.util.Empty
 import org.walletconnect.walletconnectv2.util.hexToUtf8
 
 class JsonRpcSerializer {
@@ -86,7 +86,7 @@ class JsonRpcSerializer {
             is PostSettlementSession.SessionPayload -> trySerialize(payload)
             is PostSettlementSession.SessionDelete -> trySerialize(payload)
             is JsonRpcResponse -> trySerialize(payload)
-            else -> String.empty
+            else -> String.Empty
         }
 
     private fun toEncryptionPayload(message: String): EncryptionPayload {

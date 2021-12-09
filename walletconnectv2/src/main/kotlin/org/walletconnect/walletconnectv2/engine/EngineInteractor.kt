@@ -69,23 +69,6 @@ internal class EngineInteractor {
             .launchIn(scope)
     }
 
-    private fun resubscribeToSettledPairings() {
-        storageRepository.getListOfPairingVOs()
-            .filter { it.status == SequenceStatus.SETTLED }
-            .onEach { pairing ->
-                relayer.subscribe(pairing.topic)
-            }
-    }
-
-    private fun resubscribeToSettledSession() {
-        // Flow will automatically resubscribe to any settled sessions in the DB
-        storageRepository.getListOfSessionVO()
-            .filter { it.status == SequenceStatus.SETTLED }
-            .onEach { session ->
-                relayer.subscribe(session.topic)
-            }
-    }
-
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         val pairingProposal: Pairing.Proposal = uri.toPairProposal()
         storageRepository.insertPairingProposal(pairingProposal.topic.value, uri, SequenceStatus.PENDING, controllerType)
@@ -182,7 +165,7 @@ internal class EngineInteractor {
         storageRepository.delete(topic)
         relayer.request(Topic(topic), sessionReject) { result ->
             result.fold(
-                onSuccess = {/*TODO: Should we unsubscribe from topic?*/ },
+                onSuccess = {}, //TODO: Should we unsubscribe from topic?
                 onFailure = { error -> onFailure(error) }
             )
         }
@@ -346,6 +329,22 @@ internal class EngineInteractor {
             PairingPermissions(PairingParticipant(controllerPublicKey.keyAsHex)),
             expiry
         )
+    }
+
+    private fun resubscribeToSettledPairings() {
+        storageRepository.getListOfPairingVOs()
+            .filter { it.status == SequenceStatus.SETTLED }
+            .onEach { pairing ->
+                relayer.subscribe(pairing.topic)
+            }
+    }
+
+    private fun resubscribeToSettledSession() {
+        storageRepository.getListOfSessionVO()
+            .filter { it.status == SequenceStatus.SETTLED }
+            .onEach { session ->
+                relayer.subscribe(session.topic)
+            }
     }
 
     private fun settleSessionSequence(
