@@ -32,12 +32,11 @@ class WalletConnectRelayer {
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequestSubscriptionPayload> = MutableSharedFlow()
     val clientSyncJsonRpc: SharedFlow<WCRequestSubscriptionPayload> = _clientSyncJsonRpc
 
-    private val _peerResponse: MutableSharedFlow<JsonRpcResponse> = MutableSharedFlow()
-    private val peerResponse: SharedFlow<JsonRpcResponse> = _peerResponse
+    private val peerResponse: MutableSharedFlow<JsonRpcResponse> = MutableSharedFlow()
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
     private val jsonRpcHistory: JsonRpcHistory = JsonRpcHistory()
-    var isConnectionOpened = MutableStateFlow(false)
+    val isConnectionOpened = MutableStateFlow(false)
 
     internal fun initialize(relay: RelayFactory) {
         networkRepository = WakuNetworkRepository.init(relay.toWakuNetworkInitParams())
@@ -126,7 +125,10 @@ class WalletConnectRelayer {
                     }
                 }
                 .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
-                .collect { event -> throw event.throwable.exception }
+                .collect { event ->
+                    Logger.error(event.throwable.stackTraceToString())
+                    throw event.throwable.exception
+                }
         }
     }
 
@@ -162,12 +164,12 @@ class WalletConnectRelayer {
     private suspend fun handleJsonRpcResponse(decryptedMessage: String) {
         val acknowledgement = serializer.tryDeserialize<Relay.Subscription.Acknowledgement>(decryptedMessage)
         if (acknowledgement != null) {
-            _peerResponse.emit(JsonRpcResponse.JsonRpcResult(acknowledgement.id, acknowledgement.result.toString()))
+            peerResponse.emit(JsonRpcResponse.JsonRpcResult(acknowledgement.id, acknowledgement.result.toString()))
         }
 
         val error = serializer.tryDeserialize<Relay.Subscription.JsonRpcError>(decryptedMessage)
         if (error != null) {
-            _peerResponse.emit(JsonRpcResponse.JsonRpcError(error.id, JsonRpcResponse.Error(error.error.code, error.error.message)))
+            peerResponse.emit(JsonRpcResponse.JsonRpcError(error.id, JsonRpcResponse.Error(error.error.code, error.error.message)))
         }
     }
 

@@ -20,3 +20,11 @@ getMetaData:
 SELECT id, _name, description, url, icons
 FROM MetaDataDao
 LIMIT 1;
+
+deleteMetaDataFromTopic:
+DELETE FROM MetaDataDao
+WHERE id = (
+   SELECT metadata_id
+   FROM SessionDao
+   WHERE topic = ?
+);

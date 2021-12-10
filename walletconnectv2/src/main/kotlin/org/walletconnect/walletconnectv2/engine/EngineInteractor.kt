@@ -1,10 +1,8 @@
 package org.walletconnect.walletconnectv2.engine
 
 import android.app.Application
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import org.json.JSONObject
 import org.walletconnect.walletconnectv2.clientsync.pairing.Pairing
 import org.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
@@ -54,14 +52,26 @@ internal class EngineInteractor {
     internal fun initialize(engine: EngineFactory) = with(engine) {
         this@EngineInteractor.metaData = engine.metaData
         this@EngineInteractor.controllerType = if (engine.isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
-        WalletConnectRelayer.RelayFactory(useTLs, hostName, apiKey, application).apply { relayer.initialize(this) }
+        WalletConnectRelayer.RelayFactory(useTLs, hostName, apiKey, application).run {
+            relayer.initialize(this)
+        }
         storageRepository = StorageRepository(null, engine.application)
         collectClientSyncJsonRpc()
-        resubscribeToSettledSession()
+
+        relayer.isConnectionOpened
+            .filter { isConnected: Boolean -> isConnected }
+            .onEach {
+                coroutineScope {
+                    launch(Dispatchers.IO) { resubscribeToSettledPairings() }
+                    launch(Dispatchers.IO) { resubscribeToSettledSession() }
+                }
+            }
+            .launchIn(scope)
     }
 
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         val pairingProposal: Pairing.Proposal = uri.toPairProposal()
+        storageRepository.insertPairingProposal(pairingProposal.topic.value, uri, SequenceStatus.PENDING, controllerType)
         relayer.subscribe(pairingProposal.topic)
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + pairingProposal.ttl.seconds)
@@ -73,6 +83,7 @@ internal class EngineInteractor {
         }
         val settledSequence = settlePairingSequence(pairingProposal.relay, selfPublicKey, peerPublicKey, controllerPublicKey, expiry)
         val preSettlementPairingApprove = pairingProposal.toApprove(generateId(), settledSequence.settledTopic, expiry, selfPublicKey)
+
         relayer.isConnectionOpened
             .filter { isOnline -> isOnline }
             .onEach {
@@ -82,6 +93,7 @@ internal class EngineInteractor {
                             onSuccess = {
                                 relayer.unsubscribe(pairingProposal.topic)
                                 relayer.subscribe(settledSequence.settledTopic)
+                                storageRepository.updatePendingPairingToSettled(pairingProposal.topic.value, settledSequence.settledTopic.value, expiry.seconds, SequenceStatus.SETTLED)
                                 onSuccess(settledSequence.settledTopic.value)
                                 pairingUpdate(settledSequence)
                             },
@@ -99,7 +111,10 @@ internal class EngineInteractor {
             PostSettlementPairing.PairingUpdate(id = generateId(), params = Pairing.UpdateParams(state = PairingState(metaData)))
         relayer.request(settledSequence.settledTopic, pairingUpdate) { result ->
             result.fold(
-                onSuccess = {/*TODO update Pairing's metadata in local storage*/ },
+                onSuccess = {
+                    /*TODO update Pairing's metadata in local storage
+                    *  Might not need to store pairing metadata because metadata is a global variable*/
+                },
                 onFailure = { error -> Logger.error("Pairing update error: $error") }
             )
         }
@@ -150,7 +165,7 @@ internal class EngineInteractor {
         storageRepository.delete(topic)
         relayer.request(Topic(topic), sessionReject) { result ->
             result.fold(
-                onSuccess = {},
+                onSuccess = {}, //TODO: Should we unsubscribe from topic?
                 onFailure = { error -> onFailure(error) }
             )
         }
@@ -163,7 +178,7 @@ internal class EngineInteractor {
         onSuccess(Pair(topic, reason))
         relayer.request(Topic(topic), sessionDelete) { result ->
             result.fold(
-                onSuccess = {},
+                onSuccess = {/*TODO: Should wait for acknowledgement and delete keys?*/ },
                 onFailure = { error -> onFailure(error) }
             )
         }
@@ -298,16 +313,6 @@ internal class EngineInteractor {
         //TODO delete from local storage
     }
 
-    private fun resubscribeToSettledSession() {
-        relayer.isConnectionOpened
-            .filter { isOnline -> isOnline }
-            .onEach {
-                storageRepository.listOfSessionVO
-                    .filter { session -> session.status == SequenceStatus.SETTLED }
-                    .onEach { session -> relayer.subscribe(session.topic) }
-            }.launchIn(scope)
-    }
-
     private fun settlePairingSequence(
         relay: JSONObject,
         selfPublicKey: PublicKey,
@@ -324,6 +329,22 @@ internal class EngineInteractor {
             PairingPermissions(PairingParticipant(controllerPublicKey.keyAsHex)),
             expiry
         )
+    }
+
+    private fun resubscribeToSettledPairings() {
+        storageRepository.getListOfPairingVOs()
+            .filter { pairing -> pairing.status == SequenceStatus.SETTLED }
+            .onEach { pairing ->
+                relayer.subscribe(pairing.topic)
+            }
+    }
+
+    private fun resubscribeToSettledSession() {
+        storageRepository.getListOfSessionVO()
+            .filter { session -> session.status == SequenceStatus.SETTLED }
+            .onEach { session ->
+                relayer.subscribe(session.topic)
+            }
     }
 
     private fun settleSessionSequence(

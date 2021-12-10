@@ -28,6 +28,7 @@ object WalletConnectClient {
                     is SequenceLifecycle.OnSessionRequest -> walletConnectListener.onSessionRequest(event.request.toClientSessionRequest())
                     is SequenceLifecycle.OnSessionDeleted -> walletConnectListener.onSessionDelete(event.deletedSession.toClientDeletedSession())
                     is SequenceLifecycle.OnSessionNotification -> walletConnectListener.onSessionNotification(event.notification.toClientSessionNotification())
+                    SequenceLifecycle.Default -> Unit
                 }
             }
         }
