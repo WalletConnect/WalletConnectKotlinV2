@@ -14,9 +14,9 @@ import org.walletconnect.walletconnectv2.clientsync.session.after.params.Session
 import org.walletconnect.walletconnectv2.clientsync.session.before.proposal.SessionProposedPermissions
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.engine.model.EngineData
-import org.walletconnect.walletconnectv2.relay.waku.WakuNetworkRepository
-import org.walletconnect.walletconnectv2.jsonrpc.utils.JsonRpcMethod
 import org.walletconnect.walletconnectv2.jsonrpc.model.JsonRpcResponse
+import org.walletconnect.walletconnectv2.jsonrpc.utils.JsonRpcMethod
+import org.walletconnect.walletconnectv2.relay.waku.WakuNetworkRepository
 import org.walletconnect.walletconnectv2.relay.walletconnect.WalletConnectRelayer
 import java.net.URI
 import kotlin.time.Duration
@@ -66,6 +66,7 @@ internal fun Session.Proposal.toSessionProposal(): EngineData.SessionProposal =
         icons = this.proposer.metadata.icons.map { URI(it) },
         chains = this.permissions.blockchain.chains,
         methods = this.permissions.jsonRpc.methods,
+        types = this.permissions.notifications.types,
         topic = this.topic.value,
         proposerPublicKey = this.proposer.publicKey,
         ttl = this.ttl.seconds,
@@ -76,13 +77,25 @@ internal fun WalletConnectRelayer.RelayFactory.toWakuNetworkInitParams(): WakuNe
     WakuNetworkRepository.WakuNetworkFactory(useTls, hostName, apiKey, application)
 
 internal fun EngineData.SessionProposal.toClientSessionProposal(): WalletConnectClientData.SessionProposal =
-    WalletConnectClientData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl, accounts)
+    WalletConnectClientData.SessionProposal(name, description, url, icons, chains, methods, types, topic, proposerPublicKey, ttl, accounts)
 
 internal fun WalletConnectClientData.SessionProposal.toEngineSessionProposal(accountList: List<String>): EngineData.SessionProposal =
-    EngineData.SessionProposal(name, description, url, icons, chains, methods, topic, proposerPublicKey, ttl, accountList)
+    EngineData.SessionProposal(name, description, url, icons, chains, methods, types, topic, proposerPublicKey, ttl, accountList)
 
 internal fun EngineData.SettledSession.toClientSettledSession(): WalletConnectClientData.SettledSession =
-    WalletConnectClientData.SettledSession(icon, name, uri, topic)
+    WalletConnectClientData.SettledSession(topic, peerAppMetaData, permissions.toClientSettledSessionPermissions())
+
+private fun EngineData.SettledSession.Permissions.toClientSettledSessionPermissions(): WalletConnectClientData.SettledSession.Permissions =
+    WalletConnectClientData.SettledSession.Permissions(blockchain.toClientSettledSessionBlockchain(), jsonRpc.toClientSettledSessionJsonRpc(), notifications.toClientSettledSessionNotifications())
+
+private fun EngineData.SettledSession.Permissions.Blockchain.toClientSettledSessionBlockchain(): WalletConnectClientData.SettledSession.Permissions.Blockchain =
+    WalletConnectClientData.SettledSession.Permissions.Blockchain(chains)
+
+private fun EngineData.SettledSession.Permissions.JsonRpc.toClientSettledSessionJsonRpc(): WalletConnectClientData.SettledSession.Permissions.JsonRpc =
+    WalletConnectClientData.SettledSession.Permissions.JsonRpc(methods)
+
+private fun EngineData.SettledSession.Permissions.Notifications.toClientSettledSessionNotifications(): WalletConnectClientData.SettledSession.Permissions.Notifications =
+    WalletConnectClientData.SettledSession.Permissions.Notifications(types)
 
 internal fun EngineData.SessionRequest.toClientSessionRequest(): WalletConnectClientData.SessionRequest =
     WalletConnectClientData.SessionRequest(

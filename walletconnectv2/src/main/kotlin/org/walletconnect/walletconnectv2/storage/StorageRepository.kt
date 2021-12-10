@@ -9,14 +9,12 @@ import com.squareup.sqldelight.runtime.coroutines.*
 import org.walletconnect.walletconnectv2.Database
 import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.common.*
-import org.walletconnect.walletconnectv2.scope
 import org.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
 import org.walletconnect.walletconnectv2.storage.data.dao.PairingDao
 import org.walletconnect.walletconnectv2.storage.data.dao.SessionDao
 import org.walletconnect.walletconnectv2.storage.data.vo.AppMetaDataVO
 import org.walletconnect.walletconnectv2.storage.data.vo.PairingVO
 import org.walletconnect.walletconnectv2.storage.data.vo.SessionVO
-import kotlin.math.exp
 
 internal class StorageRepository constructor(sqliteDriver: SqlDriver?, application: Application) {
     //region provide with DI
@@ -46,7 +44,7 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
 
     fun getListOfPairingVOs() = sessionDatabase.pairingDaoQueries.getListOfPairingDaos(mapper = this@StorageRepository::mapPairingDaoToPairingVO).executeAsList()
 
-    fun getListOfSessionVO() = sessionDatabase.sessionDaoQueries.getListOfSessionDaos(mapper = this@StorageRepository::mapSessionDaoToSessionVO).executeAsList()
+    fun getListOfSessionVOs() = sessionDatabase.sessionDaoQueries.getListOfSessionDaos(mapper = this@StorageRepository::mapSessionDaoToSessionVO).executeAsList()
 
     fun insertPairingProposal(topic: String, uri: String, sequenceStatus: SequenceStatus, controllerType: ControllerType) {
         sessionDatabase.pairingDaoQueries.insertPairing(topic, uri, sequenceStatus, controllerType)

@@ -24,6 +24,7 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
 
     init {
         WalletConnectClient.setWalletConnectListener(this)
+        listOfSettledSessions += WalletConnectClient.getListOfSettledSessions()
     }
 
     fun pair(uri: String) {

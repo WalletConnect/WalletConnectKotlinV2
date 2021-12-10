@@ -1,5 +1,6 @@
 package org.walletconnect.walletconnectv2.client
 
+import org.walletconnect.walletconnectv2.common.AppMetaData
 import java.net.URI
 
 sealed class WalletConnectClientData {
@@ -10,7 +11,8 @@ sealed class WalletConnectClientData {
         val url: String,
         val icons: List<URI>,
         val chains: List<String>,
-        var methods: List<String>,
+        val methods: List<String>,
+        val types: List<String>,
         val topic: String,
         val proposerPublicKey: String,
         val ttl: Long,
@@ -32,13 +34,24 @@ sealed class WalletConnectClientData {
         ) : WalletConnectClientData()
     }
 
-    // Review if we need defaults
     data class SettledSession(
-        var icon: String? = "",
-        var name: String = "",
-        var uri: String = "",
         val topic: String,
-    ) : WalletConnectClientData()
+        val peerAppMetaData: AppMetaData?,
+        val permissions: Permissions
+    ) : WalletConnectClientData() {
+
+        data class Permissions(
+            val blockchain: Blockchain,
+            val jsonRpc: JsonRpc,
+            val notifications: Notifications
+        ) {
+            data class Blockchain(val chains: List<String>)
+
+            data class JsonRpc(val methods: List<String>)
+
+            data class Notifications(val types: List<String>)
+        }
+    }
 
     data class SessionState(val accounts: List<String>) : WalletConnectClientData()
 

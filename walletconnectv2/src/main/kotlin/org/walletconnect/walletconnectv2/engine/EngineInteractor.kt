@@ -32,8 +32,10 @@ import org.walletconnect.walletconnectv2.relay.walletconnect.WalletConnectRelaye
 import org.walletconnect.walletconnectv2.scope
 import org.walletconnect.walletconnectv2.storage.SequenceStatus
 import org.walletconnect.walletconnectv2.storage.StorageRepository
+import org.walletconnect.walletconnectv2.util.Empty
 import org.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.util.generateId
+import java.net.URI
 import java.util.*
 
 internal class EngineInteractor {
@@ -138,20 +140,30 @@ internal class EngineInteractor {
                 responder = SessionParticipant(selfPublicKey.keyAsHex, metadata = metaData)
             )
         )
+
         relayer.request(Topic(proposal.topic), sessionApprove) { result ->
             result.fold(
                 onSuccess = {
                     relayer.unsubscribe(Topic(proposal.topic))
                     relayer.subscribe(settledSession.topic)
+
                     with(proposal) {
                         storageRepository.updateStatusToSessionApproval(
-                            proposal.topic,
+                            topic,
                             sessionApprove.id,
                             settledSession.topic.value,
                             sessionApprove.params.state.accounts,
                             sessionApprove.params.expiry.seconds
                         )
-                        onSuccess(EngineData.SettledSession(icon, name, url, settledSession.topic.value))
+
+                        val engineDataSettledSession = EngineData.SettledSession(settledSession.topic.value, AppMetaData(name, description, url, icons.map { iconUri -> iconUri.toString() }),
+                            EngineData.SettledSession.Permissions(
+                                EngineData.SettledSession.Permissions.Blockchain(chains),
+                                EngineData.SettledSession.Permissions.JsonRpc(methods),
+                                EngineData.SettledSession.Permissions.Notifications(types)
+                            )
+                        )
+                        onSuccess(engineDataSettledSession)
                     }
                 },
                 onFailure = { error -> onFailure(error) }
@@ -256,6 +268,46 @@ internal class EngineInteractor {
         }
     }
 
+    internal fun getListOfPendingSessions(): List<EngineData.SessionProposal> {
+        return storageRepository.getListOfSessionVOs().filter { session ->
+            session.status == SequenceStatus.PENDING
+        }.map { session ->
+            val (_, peerPublicKey) = crypto.getKeyAgreement(session.topic)
+
+            EngineData.SessionProposal(
+                name = session.appMetaData?.name ?: String.Empty,
+                description = session.appMetaData?.description ?: String.Empty,
+                url = session.appMetaData?.url ?: String.Empty,
+                icons = session.appMetaData?.icons?.map { URI(it) } ?: emptyList(),
+                chains = session.chains,
+                methods = session.methods,
+                types = session.types,
+                topic = session.topic.value,
+                proposerPublicKey = peerPublicKey.keyAsHex,
+                ttl = session.ttl.seconds,
+                accounts = session.accounts
+            )
+        }
+    }
+
+    internal fun getListOfSettledSessions(): List<EngineData.SettledSession> = storageRepository.getListOfSessionVOs().filter { session ->
+        session.status == SequenceStatus.SETTLED && session.expiry != null && session.expiry.isSequenceValid()
+    }.map { session ->
+        val metadata: AppMetaData? = session.appMetaData?.let { appMetaData ->
+            AppMetaData(appMetaData.name, appMetaData.description, appMetaData.url, appMetaData.icons)
+        }
+
+        EngineData.SettledSession(
+            session.topic.value,
+            metadata,
+            EngineData.SettledSession.Permissions(
+                EngineData.SettledSession.Permissions.Blockchain(session.chains),
+                EngineData.SettledSession.Permissions.JsonRpc(session.methods),
+                EngineData.SettledSession.Permissions.Notifications(session.types)
+            )
+        )
+    }
+
     private fun collectClientSyncJsonRpc() = scope.launch {
         relayer.clientSyncJsonRpc.collect { payload ->
             when (payload.params) {
@@ -340,11 +392,15 @@ internal class EngineInteractor {
     }
 
     private fun resubscribeToSettledSession() {
-        storageRepository.getListOfSessionVO()
+        storageRepository.getListOfSessionVOs()
             .filter { session -> session.status == SequenceStatus.SETTLED }
             .onEach { session ->
                 relayer.subscribe(session.topic)
             }
+    }
+
+    private fun Expiry.isSequenceValid(): Boolean {
+        return seconds > (System.currentTimeMillis() / 1000)
     }
 
     private fun settleSessionSequence(
