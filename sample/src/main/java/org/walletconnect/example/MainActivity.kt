@@ -7,6 +7,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.NavigationUI
 import org.walletconnect.example.databinding.ActivityMainBinding
+import org.walletconnect.walletconnectv2.WalletConnectClient
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -16,6 +17,12 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setBottomNavigation()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        WalletConnectClient.shutdown()
     }
 
     private fun setBottomNavigation() {

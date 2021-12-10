@@ -1,5 +1,6 @@
 package org.walletconnect.walletconnectv2
 
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.walletconnect.walletconnectv2.client.ClientTypes
@@ -130,5 +131,9 @@ object WalletConnectClient {
 
     fun getListOfPendingSession(): List<WalletConnectClientData.SessionProposal> {
         return engineInteractor.getListOfPendingSessions().map(EngineData.SessionProposal::toClientSessionProposal)
+    }
+
+    fun shutdown() {
+        scope.cancel()
     }
 }
