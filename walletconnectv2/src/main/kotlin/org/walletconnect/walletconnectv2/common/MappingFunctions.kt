@@ -85,16 +85,16 @@ internal fun WalletConnectClientData.SessionProposal.toEngineSessionProposal(acc
 internal fun EngineData.SettledSession.toClientSettledSession(): WalletConnectClientData.SettledSession =
     WalletConnectClientData.SettledSession(topic, peerAppMetaData, permissions.toClientSettledSessionPermissions())
 
-private fun EngineData.SettledSession.Permissions.toClientSettledSessionPermissions() =
+private fun EngineData.SettledSession.Permissions.toClientSettledSessionPermissions(): WalletConnectClientData.SettledSession.Permissions =
     WalletConnectClientData.SettledSession.Permissions(blockchain.toClientSettledSessionBlockchain(), jsonRpc.toClientSettledSessionJsonRpc(), notifications.toClientSettledSessionNotifications())
 
-private fun EngineData.SettledSession.Permissions.Blockchain.toClientSettledSessionBlockchain() =
+private fun EngineData.SettledSession.Permissions.Blockchain.toClientSettledSessionBlockchain(): WalletConnectClientData.SettledSession.Permissions.Blockchain =
     WalletConnectClientData.SettledSession.Permissions.Blockchain(chains)
 
-private fun EngineData.SettledSession.Permissions.JsonRpc.toClientSettledSessionJsonRpc() =
+private fun EngineData.SettledSession.Permissions.JsonRpc.toClientSettledSessionJsonRpc(): WalletConnectClientData.SettledSession.Permissions.JsonRpc =
     WalletConnectClientData.SettledSession.Permissions.JsonRpc(methods)
 
-private fun EngineData.SettledSession.Permissions.Notifications.toClientSettledSessionNotifications() =
+private fun EngineData.SettledSession.Permissions.Notifications.toClientSettledSessionNotifications(): WalletConnectClientData.SettledSession.Permissions.Notifications =
     WalletConnectClientData.SettledSession.Permissions.Notifications(types)
 
 internal fun EngineData.SessionRequest.toClientSessionRequest(): WalletConnectClientData.SessionRequest =
