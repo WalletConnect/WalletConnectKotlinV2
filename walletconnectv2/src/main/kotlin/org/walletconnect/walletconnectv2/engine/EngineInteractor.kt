@@ -140,30 +140,30 @@ internal class EngineInteractor {
                 responder = SessionParticipant(selfPublicKey.keyAsHex, metadata = metaData)
             )
         )
+
         relayer.request(Topic(proposal.topic), sessionApprove) { result ->
             result.fold(
                 onSuccess = {
                     relayer.unsubscribe(Topic(proposal.topic))
                     relayer.subscribe(settledSession.topic)
+
                     with(proposal) {
                         storageRepository.updateStatusToSessionApproval(
-                            proposal.topic,
+                            topic,
                             sessionApprove.id,
                             settledSession.topic.value,
                             sessionApprove.params.state.accounts,
                             sessionApprove.params.expiry.seconds
                         )
-                        onSuccess(
-                            EngineData.SettledSession(
-                                settledSession.topic.value,
-                                AppMetaData(proposal.name, proposal.description, proposal.url, proposal.icons.map { iconUri -> iconUri.toString() }),
-                                EngineData.SettledSession.Permissions(
-                                    EngineData.SettledSession.Permissions.Blockchain(proposal.chains),
-                                    EngineData.SettledSession.Permissions.JsonRpc(proposal.methods),
-                                    EngineData.SettledSession.Permissions.Notifications(proposal.types)
-                                )
+
+                        val engineDataSettledSession = EngineData.SettledSession(settledSession.topic.value, AppMetaData(name, description, url, icons.map { iconUri -> iconUri.toString() }),
+                            EngineData.SettledSession.Permissions(
+                                EngineData.SettledSession.Permissions.Blockchain(chains),
+                                EngineData.SettledSession.Permissions.JsonRpc(methods),
+                                EngineData.SettledSession.Permissions.Notifications(types)
                             )
                         )
+                        onSuccess(engineDataSettledSession)
                     }
                 },
                 onFailure = { error -> onFailure(error) }
