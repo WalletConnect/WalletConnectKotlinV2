@@ -6,7 +6,6 @@ import com.squareup.sqldelight.EnumColumnAdapter
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.squareup.sqldelight.runtime.coroutines.*
-import kotlinx.coroutines.flow.asFlow
 import org.walletconnect.walletconnectv2.Database
 import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.common.*
@@ -42,8 +41,6 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
         MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = listOfStringsAdapter)
     )
     //endregion
-
-    val listOfPairingVOStream = sessionDatabase.pairingDaoQueries.getListOfPairingDaos(mapper = this@StorageRepository::mapPairingDaoToPairingVO).executeAsList().asFlow()
 
     fun getListOfPairingVOs() = sessionDatabase.pairingDaoQueries.getListOfPairingDaos(mapper = this@StorageRepository::mapPairingDaoToPairingVO).executeAsList()
 

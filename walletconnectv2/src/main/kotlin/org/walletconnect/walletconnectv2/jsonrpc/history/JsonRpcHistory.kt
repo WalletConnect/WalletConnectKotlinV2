@@ -9,6 +9,7 @@ import org.walletconnect.walletconnectv2.errors.WalletConnectExceptions
 
 class JsonRpcHistory {
     //Region: Move to DI
+    // TODO: updated based on https://stackoverflow.com/a/63357267
     private val sharedPreferences: SharedPreferences
         get() = EncryptedSharedPreferences.create(
             sharedPrefsFile,

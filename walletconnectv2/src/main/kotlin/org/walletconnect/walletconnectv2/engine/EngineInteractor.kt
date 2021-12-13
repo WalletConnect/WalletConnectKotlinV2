@@ -58,7 +58,6 @@ internal class EngineInteractor {
             relayer.initialize(this)
         }
         storageRepository = StorageRepository(null, engine.application)
-        collectClientSyncJsonRpc()
 
         relayer.isConnectionOpened
             .filter { isConnected: Boolean -> isConnected }
@@ -69,14 +68,6 @@ internal class EngineInteractor {
                 }
             }
             .launchIn(scope)
-
-        scope.launch {
-            storageRepository.listOfPairingVOStream
-                .filter { pairing -> !pairing.expiry.isSequenceValid() }
-                .collect { pairing ->
-                    storageRepository.deletePairing(pairing.topic.value)
-                }
-        }
     }
 
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
@@ -393,24 +384,34 @@ internal class EngineInteractor {
     }
 
     private fun resubscribeToSettledPairings() {
-        val (expiredPairings, validPairings) = storageRepository.getListOfPairingVOs().partition { it.expiry.seconds < (System.currentTimeMillis() / 1000) }
+        val (listOfExpiredPairing, listOfValidPairing) = storageRepository.getListOfPairingVOs().partition { pairing -> !pairing.expiry.isSequenceValid() }
 
-        validPairings
-            .filter { pairing -> pairing.status == SequenceStatus.SETTLED }
-            .onEach { pairing ->
-                relayer.subscribe(pairing.topic)
-            }
-
-        expiredPairings
+        listOfExpiredPairing
             .map { pairing -> pairing.topic }
             .onEach { pairingTopic ->
                 relayer.unsubscribe(pairingTopic)
                 storageRepository.deletePairing(pairingTopic.value)
             }
+
+        listOfValidPairing
+            .filter { pairing -> pairing.status == SequenceStatus.SETTLED }
+            .map { pairing -> pairing.topic }
+            .onEach { pairingTopic ->
+                relayer.subscribe(pairingTopic)
+            }
     }
 
     private fun resubscribeToSettledSession() {
-        storageRepository.getListOfSessionVOs()
+        val (listOfExpiredSession, listOfValidSessions) = storageRepository.getListOfSessionVOs().partition { session -> session.expiry?.isSequenceValid() == false }
+
+        listOfExpiredSession
+            .map { session -> session.topic }
+            .onEach { sessionTopic ->
+                relayer.unsubscribe(sessionTopic)
+                storageRepository.deleteSession(sessionTopic.value)
+            }
+
+        listOfValidSessions
             .filter { session -> session.status == SequenceStatus.SETTLED }
             .onEach { session ->
                 relayer.subscribe(session.topic)
