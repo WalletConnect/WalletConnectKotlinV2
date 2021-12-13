@@ -75,6 +75,3 @@ To send a rejection for the Session Proposal, pass a rejection reason and the Se
 
 ### **Contributing**
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-## **License**
-[LGPL-3.0](https://www.gnu.org/licenses/lgpl-3.0.html)
