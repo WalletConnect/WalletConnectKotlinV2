@@ -6,7 +6,7 @@ import org.walletconnect.walletconnectv2.storage.SequenceStatus
 
 data class PairingVO(
     val topic: Topic,
-    val expiry: Expiry? = null,
+    val expiry: Expiry,
     val uri: String,
     val status: SequenceStatus
 )

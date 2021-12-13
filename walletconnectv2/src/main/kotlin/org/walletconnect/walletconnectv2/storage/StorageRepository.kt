@@ -6,6 +6,7 @@ import com.squareup.sqldelight.EnumColumnAdapter
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.squareup.sqldelight.runtime.coroutines.*
+import kotlinx.coroutines.flow.asFlow
 import org.walletconnect.walletconnectv2.Database
 import org.walletconnect.walletconnectv2.clientsync.session.Session
 import org.walletconnect.walletconnectv2.common.*
@@ -42,16 +43,22 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
     )
     //endregion
 
+    val listOfPairingVOStream = sessionDatabase.pairingDaoQueries.getListOfPairingDaos(mapper = this@StorageRepository::mapPairingDaoToPairingVO).executeAsList().asFlow()
+
     fun getListOfPairingVOs() = sessionDatabase.pairingDaoQueries.getListOfPairingDaos(mapper = this@StorageRepository::mapPairingDaoToPairingVO).executeAsList()
 
     fun getListOfSessionVOs() = sessionDatabase.sessionDaoQueries.getListOfSessionDaos(mapper = this@StorageRepository::mapSessionDaoToSessionVO).executeAsList()
 
-    fun insertPairingProposal(topic: String, uri: String, sequenceStatus: SequenceStatus, controllerType: ControllerType) {
-        sessionDatabase.pairingDaoQueries.insertPairing(topic, uri, sequenceStatus, controllerType)
+    fun insertPairingProposal(topic: String, uri: String, expirySeconds: Long, sequenceStatus: SequenceStatus, controllerType: ControllerType) {
+        sessionDatabase.pairingDaoQueries.insertPairing(topic, uri, expirySeconds, sequenceStatus, controllerType)
     }
 
     fun updatePendingPairingToSettled(proposalTopic: String, settledTopic: String, expirySeconds: Long, sequenceStatus: SequenceStatus) {
         sessionDatabase.pairingDaoQueries.updatePendingPairingToSettled(settledTopic, expirySeconds, sequenceStatus, proposalTopic)
+    }
+
+    fun deletePairing(topic: String) {
+        sessionDatabase.pairingDaoQueries.deletePairing(topic)
     }
 
     fun insertSessionProposal(proposal: Session.Proposal, appMetaData: AppMetaData?, controllerType: ControllerType) {
@@ -110,20 +117,19 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
         sessionDatabase.sessionDaoQueries.updateSessionWithPermissions(chains, methods, topic)
     }
 
-    fun delete(topic: String) {
+    fun deleteSession(topic: String) {
         sessionDatabase.metaDataDaoQueries.deleteMetaDataFromTopic(topic)
         sessionDatabase.sessionDaoQueries.deleteSession(topic)
     }
 
     private fun mapPairingDaoToPairingVO(
         topic: String,
-        expirySeconds: Long?,
+        expirySeconds: Long,
         uri: String,
         status: SequenceStatus,
         controller_type: ControllerType
     ): PairingVO {
-        val expiry = if (expirySeconds != null) Expiry(expirySeconds) else null
-        return PairingVO(Topic(topic), expiry, uri, status)
+        return PairingVO(Topic(topic), Expiry(expirySeconds), uri, status)
     }
 
     private fun mapSessionDaoToSessionVO(
