@@ -18,8 +18,6 @@ class DappFragment : Fragment(R.layout.dapp_fragment) {
 
     private fun setupToolbar() {
         binding.dappToolbar.title = getString(R.string.app_name)
-        binding.dappToolbar.setOnMenuItemClickListener { item ->
-            false
-        }
+        binding.dappToolbar.setOnMenuItemClickListener { false }
     }
 }

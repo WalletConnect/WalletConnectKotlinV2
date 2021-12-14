@@ -55,11 +55,6 @@ fun DependencyHandlerScope.moshi() {
     "kapt"("com.squareup.moshi:moshi-kotlin-codegen:$moshiVersion")
 }
 
-fun DependencyHandlerScope.json() {
-    val jsonVersion = "20210307"
-    "implementation"("org.json:json:$jsonVersion")
-}
-
 fun DependencyHandlerScope.okhttp() {
     val okhttpVersion = "4.9.0"
 
@@ -68,14 +63,9 @@ fun DependencyHandlerScope.okhttp() {
     "implementation"("com.squareup.okhttp3:logging-interceptor")
 }
 
-fun DependencyHandlerScope.lazySodium() {
-    val lazySodiumVersion = "5.0.2@aar"
-    val jnaVersion = "5.8.0@aar"
-    val slf4jVersion = "1.7.32"
-
-    "implementation"("com.goterl:lazysodium-android:$lazySodiumVersion")
-    "implementation"("net.java.dev.jna:jna:$jnaVersion")
-    "testImplementation"("org.slf4j:slf4j-nop:$slf4jVersion")
+fun DependencyHandlerScope.bouncyCastle() {
+    val bouncyCastleVersion = "1.70"
+    "implementation"("org.bouncycastle:bcprov-jdk15on:$bouncyCastleVersion")
 }
 
 fun DependencyHandlerScope.sqlDelight() {
@@ -111,7 +101,7 @@ fun DependencyHandlerScope.jUnit5() {
 fun DependencyHandlerScope.robolectric() {
     val robolectricVersion = "4.6"
 
-    "testImplementation" ("org.robolectric:robolectric:$robolectricVersion")
+    "testImplementation"("org.robolectric:robolectric:$robolectricVersion")
 }
 
 fun DependencyHandlerScope.mockk() {

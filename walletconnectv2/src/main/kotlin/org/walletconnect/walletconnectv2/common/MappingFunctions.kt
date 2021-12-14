@@ -104,16 +104,16 @@ internal fun EngineData.SessionRequest.toClientSessionRequest(): WalletConnectCl
         WalletConnectClientData.SessionRequest.JSONRPCRequest(request.id, request.method, request.params)
     )
 
-internal fun <T> WalletConnectClientData.JsonRpcResponse.JsonRpcResult<T>.toEngineRpcResult(): JsonRpcResponse.JsonRpcResult =
-    JsonRpcResponse.JsonRpcResult(id, result.toString())
+internal fun WalletConnectClientData.JsonRpcResponse.JsonRpcResult.toEngineRpcResult(): JsonRpcResponse.JsonRpcResult =
+    JsonRpcResponse.JsonRpcResult(id, result)
 
 internal fun WalletConnectClientData.JsonRpcResponse.JsonRpcError.toEngineRpcError(): JsonRpcResponse.JsonRpcError =
     JsonRpcResponse.JsonRpcError(id, JsonRpcResponse.Error(error.code, error.message))
 
 internal fun WalletConnectClientData.SessionState.toEngineSessionState(): EngineData.SessionState = EngineData.SessionState(accounts)
 
-internal fun <T> WalletConnectClientData.Notification<T>.toEngineNotification(): EngineData.Notification =
-    EngineData.Notification(type, data.toString())
+internal fun WalletConnectClientData.Notification.toEngineNotification(): EngineData.Notification =
+    EngineData.Notification(type, data)
 
 internal fun EngineData.DeletedSession.toClientDeletedSession(): WalletConnectClientData.DeletedSession =
     WalletConnectClientData.DeletedSession(topic, reason)
