@@ -30,7 +30,7 @@ sealed class ClientTypes {
 
     data class PingParams(val topic: String) : ClientTypes()
 
-    data class NotificationParams<T>(val topic: String, val notification: WalletConnectClientData.Notification<T>) : ClientTypes()
+    data class NotificationParams(val topic: String, val notification: WalletConnectClientData.Notification) : ClientTypes()
 
     companion object {
         private const val WALLET_CONNECT_URL = "relay.walletconnect.com"

@@ -71,7 +71,7 @@ object WalletConnectClient {
         listener: WalletConnectClientListeners.SessionPayload
     ) = with(responseParams) {
         val jsonRpcEngineResponse = when (jsonRpcResponse) {
-            is WalletConnectClientData.JsonRpcResponse.JsonRpcResult<*> -> jsonRpcResponse.toEngineRpcResult()
+            is WalletConnectClientData.JsonRpcResponse.JsonRpcResult -> jsonRpcResponse.toEngineRpcResult()
             is WalletConnectClientData.JsonRpcResponse.JsonRpcError -> jsonRpcResponse.toEngineRpcError()
         }
         engineInteractor.respondSessionPayload(sessionTopic, jsonRpcEngineResponse) { error -> listener.onError(error) }
@@ -106,8 +106,8 @@ object WalletConnectClient {
             { error -> listener.onError(error) })
     }
 
-    fun <T> notify(
-        notificationParams: ClientTypes.NotificationParams<T>,
+    fun notify(
+        notificationParams: ClientTypes.NotificationParams,
         listener: WalletConnectClientListeners.Notification
     ) = with(notificationParams) {
         engineInteractor.notify(topic, notification.toEngineNotification(),

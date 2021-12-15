@@ -77,18 +77,18 @@ sealed class WalletConnectClientData {
         val data: String
     ) : WalletConnectClientData()
 
-    data class Notification<T>(
+    data class Notification(
         val type: String,
-        val data: T
+        val data: String
     ) : WalletConnectClientData()
 
     sealed class JsonRpcResponse : WalletConnectClientData() {
         abstract val id: Long
         val jsonrpc: String = "2.0"
 
-        data class JsonRpcResult<T>(
+        data class JsonRpcResult(
             override val id: Long,
-            val result: T
+            val result: String
         ) : JsonRpcResponse()
 
         data class JsonRpcError(

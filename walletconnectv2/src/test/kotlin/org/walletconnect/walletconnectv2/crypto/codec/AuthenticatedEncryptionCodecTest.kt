@@ -11,10 +11,10 @@ import org.walletconnect.walletconnectv2.common.Ttl
 import org.walletconnect.walletconnectv2.common.network.adapters.SubscriptionIdAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TopicAdapter
 import org.walletconnect.walletconnectv2.common.network.adapters.TtlAdapter
+import org.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.crypto.data.SharedKey
 import org.walletconnect.walletconnectv2.util.bytesToHex
-import org.walletconnect.walletconnectv2.util.toEncryptionPayload
 import kotlin.test.assertEquals
 
 class AuthenticatedEncryptionCodecTest {
@@ -97,4 +97,17 @@ class AuthenticatedEncryptionCodecTest {
             "37d8c448a2241f21550329f451e8c1901e7dad5135ade604f1e106437843037f"
         )
     }
+}
+
+fun String.toEncryptionPayload(): EncryptionPayload {
+    val pubKeyStartIndex = EncryptionPayload.ivLength
+    val macStartIndex = pubKeyStartIndex + EncryptionPayload.publicKeyLength
+    val cipherTextStartIndex = macStartIndex + EncryptionPayload.macLength
+
+    val iv = this.substring(0, pubKeyStartIndex)
+    val publicKey = this.substring(pubKeyStartIndex, macStartIndex)
+    val mac = this.substring(macStartIndex, cipherTextStartIndex)
+    val cipherText = this.substring(cipherTextStartIndex, this.length)
+
+    return EncryptionPayload(iv, publicKey, mac, cipherText)
 }

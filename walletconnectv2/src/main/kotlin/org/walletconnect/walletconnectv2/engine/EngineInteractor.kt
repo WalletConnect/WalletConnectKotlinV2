@@ -24,7 +24,7 @@ import org.walletconnect.walletconnectv2.common.*
 import org.walletconnect.walletconnectv2.crypto.CryptoManager
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.crypto.data.SharedKey
-import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
+import org.walletconnect.walletconnectv2.crypto.managers.BouncyCastleCryptoManager
 import org.walletconnect.walletconnectv2.engine.model.EngineData
 import org.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycle
 import org.walletconnect.walletconnectv2.jsonrpc.model.JsonRpcResponse
@@ -43,7 +43,7 @@ internal class EngineInteractor {
     // TODO: add logic to check hostName for ws/wss scheme with and without ://
     private var relayer: WalletConnectRelayer = WalletConnectRelayer()
     private lateinit var storageRepository: StorageRepository
-    private val crypto: CryptoManager = LazySodiumCryptoManager()
+    private val crypto: CryptoManager = BouncyCastleCryptoManager()
     //endregion
 
     private var metaData: AppMetaData? = null
