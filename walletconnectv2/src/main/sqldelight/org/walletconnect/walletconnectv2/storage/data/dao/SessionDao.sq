@@ -10,15 +10,15 @@ CREATE TABLE SessionDao(
   permissions_types TEXT AS List<String> NOT NULL,
   ttl_seconds INTEGER NOT NULL,
   accounts TEXT AS List<String> DEFAULT(NULL),
-  expiry INTEGER DEFAULT(NULL),
+  expiry INTEGER NOT NULL,
   status TEXT AS SequenceStatus NOT NULL,
   controller_type TEXT AS ControllerType NOT NULL,
   metadata_id INTEGER
 );
 
 insertSession:
-INSERT OR IGNORE INTO SessionDao(topic, permissions_chains, permissions_methods, permissions_types, ttl_seconds, status, controller_type, metadata_id)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR IGNORE INTO SessionDao(topic, permissions_chains, permissions_methods, permissions_types, ttl_seconds, expiry,  status, controller_type, metadata_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getListOfSessionDaos:
 SELECT sd.topic, sd.permissions_chains, sd.permissions_methods, sd.permissions_types, sd.ttl_seconds, sd.accounts, sd.expiry, sd.status, sd.controller_type, mdd._name, mdd.description, mdd.url, mdd.icons

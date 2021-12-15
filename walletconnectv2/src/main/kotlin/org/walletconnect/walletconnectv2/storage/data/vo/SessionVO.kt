@@ -12,7 +12,7 @@ data class SessionVO(
     val types: List<String>,
     val ttl: Ttl,
     val accounts: List<String>,
-    val expiry: Expiry? = null,
+    val expiry: Expiry,
     val status: SequenceStatus,
     val appMetaData: AppMetaDataVO?
 )

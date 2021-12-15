@@ -58,6 +58,7 @@ internal class EngineInteractor {
             relayer.initialize(this)
         }
         storageRepository = StorageRepository(null, engine.application)
+        collectClientSyncJsonRpc()
 
         relayer.isConnectionOpened
             .filter { isConnected: Boolean -> isConnected }
@@ -72,7 +73,7 @@ internal class EngineInteractor {
 
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         val pairingProposal: Pairing.Proposal = uri.toPairProposal()
-        storageRepository.insertPairingProposal(pairingProposal.topic.value, uri, ((System.currentTimeMillis() / 1000) + 86400), SequenceStatus.PENDING, controllerType)
+        storageRepository.insertPairingProposal(pairingProposal.topic.value, uri, defaultSequenceExpirySeconds(), SequenceStatus.PENDING, controllerType)
         relayer.subscribe(pairingProposal.topic)
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + pairingProposal.ttl.seconds)
@@ -330,7 +331,7 @@ internal class EngineInteractor {
 
     private fun onPairingPayload(payload: Pairing.PayloadParams) {
         val proposal = payload.request.params
-        storageRepository.insertSessionProposal(proposal, proposal.proposer.metadata, controllerType)
+        storageRepository.insertSessionProposal(proposal, proposal.proposer.metadata, defaultSequenceExpirySeconds(), controllerType)
         val (sharedKey, publicKey) = crypto.getKeyAgreement(proposal.signal.params.topic)
         crypto.setEncryptionKeys(sharedKey as SharedKey, publicKey as PublicKey, proposal.topic)
         _sequenceEvent.value = SequenceLifecycle.OnSessionProposal(proposal.toSessionProposal())
@@ -362,7 +363,6 @@ internal class EngineInteractor {
     private fun onPairingDelete(params: Pairing.DeleteParams, topic: Topic) {
         crypto.removeKeys(topic.value)
         relayer.unsubscribe(topic)
-        //TODO delete from local storage
     }
 
     private fun settlePairingSequence(
@@ -402,7 +402,7 @@ internal class EngineInteractor {
     }
 
     private fun resubscribeToSettledSession() {
-        val (listOfExpiredSession, listOfValidSessions) = storageRepository.getListOfSessionVOs().partition { session -> session.expiry?.isSequenceValid() == false }
+        val (listOfExpiredSession, listOfValidSessions) = storageRepository.getListOfSessionVOs().partition { session -> !session.expiry.isSequenceValid() }
 
         listOfExpiredSession
             .map { session -> session.topic }
@@ -418,9 +418,11 @@ internal class EngineInteractor {
             }
     }
 
-    private fun Expiry?.isSequenceValid(): Boolean {
-        return this != null && seconds > (System.currentTimeMillis() / 1000)
+    private fun Expiry.isSequenceValid(): Boolean {
+        return seconds > (System.currentTimeMillis() / 1000)
     }
+
+    private fun defaultSequenceExpirySeconds() = ((System.currentTimeMillis() / 1000) + 86400)
 
     private fun settleSessionSequence(
         relay: RelayProtocolOptions,
