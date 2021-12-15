@@ -12,6 +12,7 @@ import org.walletconnect.walletconnectv2.util.hexToBytes
 class KeyChain : KeyStore {
 
     //Region: Move to DI
+    // TODO: updated based on https://stackoverflow.com/a/63357267
     private val sharedPreferences: SharedPreferences
         get() = EncryptedSharedPreferences.create(
             sharedPrefsFile,

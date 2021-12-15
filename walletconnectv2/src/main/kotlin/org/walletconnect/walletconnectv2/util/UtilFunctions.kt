@@ -6,7 +6,7 @@ import java.lang.System.currentTimeMillis
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-fun generateId(): Long = (currentTimeMillis() + (0..100).random())
+fun generateId(): Long = (currentTimeMillis() + (100..999).random())
 
 fun ByteArray.bytesToHex(): String {
     val hexString = StringBuilder(2 * this.size)

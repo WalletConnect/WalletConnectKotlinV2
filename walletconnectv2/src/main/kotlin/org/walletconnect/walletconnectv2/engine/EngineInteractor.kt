@@ -73,7 +73,7 @@ internal class EngineInteractor {
 
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         val pairingProposal: Pairing.Proposal = uri.toPairProposal()
-        storageRepository.insertPairingProposal(pairingProposal.topic.value, uri, SequenceStatus.PENDING, controllerType)
+        storageRepository.insertPairingProposal(pairingProposal.topic.value, uri, defaultSequenceExpirySeconds(), SequenceStatus.PENDING, controllerType)
         relayer.subscribe(pairingProposal.topic)
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + pairingProposal.ttl.seconds)
@@ -156,7 +156,8 @@ internal class EngineInteractor {
                             sessionApprove.params.expiry.seconds
                         )
 
-                        val engineDataSettledSession = EngineData.SettledSession(settledSession.topic.value, AppMetaData(name, description, url, icons.map { iconUri -> iconUri.toString() }),
+                        val engineDataSettledSession = EngineData.SettledSession(
+                            settledSession.topic.value, AppMetaData(name, description, url, icons.map { iconUri -> iconUri.toString() }),
                             EngineData.SettledSession.Permissions(
                                 EngineData.SettledSession.Permissions.Blockchain(chains),
                                 EngineData.SettledSession.Permissions.JsonRpc(methods),
@@ -174,7 +175,7 @@ internal class EngineInteractor {
     internal fun reject(reason: String, topic: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
         val sessionReject = PreSettlementSession.Reject(id = generateId(), params = Session.Failure(reason = reason))
         onSuccess(Pair(topic, reason))
-        storageRepository.delete(topic)
+        storageRepository.deleteSession(topic)
         relayer.request(Topic(topic), sessionReject) { result ->
             result.fold(
                 onSuccess = {}, //TODO: Should we unsubscribe from topic?
@@ -185,7 +186,7 @@ internal class EngineInteractor {
 
     internal fun disconnect(topic: String, reason: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
         val sessionDelete = PostSettlementSession.SessionDelete(id = generateId(), params = Session.DeleteParams(Reason(message = reason)))
-        storageRepository.delete(topic)
+        storageRepository.deleteSession(topic)
         relayer.unsubscribe(Topic(topic))
         onSuccess(Pair(topic, reason))
         relayer.request(Topic(topic), sessionDelete) { result ->
@@ -270,7 +271,7 @@ internal class EngineInteractor {
 
     internal fun getListOfPendingSessions(): List<EngineData.SessionProposal> {
         return storageRepository.getListOfSessionVOs().filter { session ->
-            session.status == SequenceStatus.PENDING
+            session.status == SequenceStatus.PENDING && session.expiry.isSequenceValid()
         }.map { session ->
             val (_, peerPublicKey) = crypto.getKeyAgreement(session.topic)
 
@@ -291,7 +292,7 @@ internal class EngineInteractor {
     }
 
     internal fun getListOfSettledSessions(): List<EngineData.SettledSession> = storageRepository.getListOfSessionVOs().filter { session ->
-        session.status == SequenceStatus.SETTLED && session.expiry != null && session.expiry.isSequenceValid()
+        session.status == SequenceStatus.SETTLED && session.expiry.isSequenceValid()
     }.map { session ->
         val metadata: AppMetaData? = session.appMetaData?.let { appMetaData ->
             AppMetaData(appMetaData.name, appMetaData.description, appMetaData.url, appMetaData.icons)
@@ -330,7 +331,7 @@ internal class EngineInteractor {
 
     private fun onPairingPayload(payload: Pairing.PayloadParams) {
         val proposal = payload.request.params
-        storageRepository.insertSessionProposal(proposal, proposal.proposer.metadata, controllerType)
+        storageRepository.insertSessionProposal(proposal, proposal.proposer.metadata, defaultSequenceExpirySeconds(), controllerType)
         val (sharedKey, publicKey) = crypto.getKeyAgreement(proposal.signal.params.topic)
         crypto.setEncryptionKeys(sharedKey as SharedKey, publicKey as PublicKey, proposal.topic)
         _sequenceEvent.value = SequenceLifecycle.OnSessionProposal(proposal.toSessionProposal())
@@ -348,7 +349,7 @@ internal class EngineInteractor {
 
     private fun onSessionDelete(params: Session.DeleteParams, topic: Topic) {
         crypto.removeKeys(topic.value)
-        storageRepository.delete(topic.value)
+        storageRepository.deleteSession(topic.value)
         relayer.unsubscribe(topic)
         _sequenceEvent.value = SequenceLifecycle.OnSessionDeleted(EngineData.DeletedSession(topic.value, params.reason.message))
     }
@@ -362,7 +363,6 @@ internal class EngineInteractor {
     private fun onPairingDelete(params: Pairing.DeleteParams, topic: Topic) {
         crypto.removeKeys(topic.value)
         relayer.unsubscribe(topic)
-        //TODO delete from local storage
     }
 
     private fun settlePairingSequence(
@@ -384,15 +384,34 @@ internal class EngineInteractor {
     }
 
     private fun resubscribeToSettledPairings() {
-        storageRepository.getListOfPairingVOs()
+        val (listOfExpiredPairing, listOfValidPairing) = storageRepository.getListOfPairingVOs().partition { pairing -> !pairing.expiry.isSequenceValid() }
+
+        listOfExpiredPairing
+            .map { pairing -> pairing.topic }
+            .onEach { pairingTopic ->
+                relayer.unsubscribe(pairingTopic)
+                storageRepository.deletePairing(pairingTopic.value)
+            }
+
+        listOfValidPairing
             .filter { pairing -> pairing.status == SequenceStatus.SETTLED }
-            .onEach { pairing ->
-                relayer.subscribe(pairing.topic)
+            .map { pairing -> pairing.topic }
+            .onEach { pairingTopic ->
+                relayer.subscribe(pairingTopic)
             }
     }
 
     private fun resubscribeToSettledSession() {
-        storageRepository.getListOfSessionVOs()
+        val (listOfExpiredSession, listOfValidSessions) = storageRepository.getListOfSessionVOs().partition { session -> !session.expiry.isSequenceValid() }
+
+        listOfExpiredSession
+            .map { session -> session.topic }
+            .onEach { sessionTopic ->
+                relayer.unsubscribe(sessionTopic)
+                storageRepository.deleteSession(sessionTopic.value)
+            }
+
+        listOfValidSessions
             .filter { session -> session.status == SequenceStatus.SETTLED }
             .onEach { session ->
                 relayer.subscribe(session.topic)
@@ -402,6 +421,8 @@ internal class EngineInteractor {
     private fun Expiry.isSequenceValid(): Boolean {
         return seconds > (System.currentTimeMillis() / 1000)
     }
+
+    private fun defaultSequenceExpirySeconds() = ((System.currentTimeMillis() / 1000) + 86400)
 
     private fun settleSessionSequence(
         relay: RelayProtocolOptions,

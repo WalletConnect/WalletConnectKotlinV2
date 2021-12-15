@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <exclude
+        domain="sharedpref"
+        path="wc_key_store.xml" />
+    <exclude
+        domain="sharedpref"
+        path="wc_rpc_store.xml" />
+    <exclude
+        domain="database"
+        path="WalletConnectV2.db" />
+</full-backup-content>

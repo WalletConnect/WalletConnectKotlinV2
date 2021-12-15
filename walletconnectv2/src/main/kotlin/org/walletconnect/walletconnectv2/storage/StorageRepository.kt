@@ -46,15 +46,19 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
 
     fun getListOfSessionVOs() = sessionDatabase.sessionDaoQueries.getListOfSessionDaos(mapper = this@StorageRepository::mapSessionDaoToSessionVO).executeAsList()
 
-    fun insertPairingProposal(topic: String, uri: String, sequenceStatus: SequenceStatus, controllerType: ControllerType) {
-        sessionDatabase.pairingDaoQueries.insertPairing(topic, uri, sequenceStatus, controllerType)
+    fun insertPairingProposal(topic: String, uri: String, expirySeconds: Long, sequenceStatus: SequenceStatus, controllerType: ControllerType) {
+        sessionDatabase.pairingDaoQueries.insertPairing(topic, uri, expirySeconds, sequenceStatus, controllerType)
     }
 
     fun updatePendingPairingToSettled(proposalTopic: String, settledTopic: String, expirySeconds: Long, sequenceStatus: SequenceStatus) {
         sessionDatabase.pairingDaoQueries.updatePendingPairingToSettled(settledTopic, expirySeconds, sequenceStatus, proposalTopic)
     }
 
-    fun insertSessionProposal(proposal: Session.Proposal, appMetaData: AppMetaData?, controllerType: ControllerType) {
+    fun deletePairing(topic: String) {
+        sessionDatabase.pairingDaoQueries.deletePairing(topic)
+    }
+
+    fun insertSessionProposal(proposal: Session.Proposal, appMetaData: AppMetaData?, defaultExpirySeconds: Long, controllerType: ControllerType) {
         val metadataId = insertMetaData(appMetaData)
 
         sessionDatabase.sessionDaoQueries.insertSession(
@@ -63,6 +67,7 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
             permissions_methods = proposal.permissions.jsonRpc.methods,
             permissions_types = proposal.permissions.notifications.types,
             ttl_seconds = proposal.ttl.seconds,
+            expiry = defaultExpirySeconds,
             status = SequenceStatus.PENDING,
             controller_type = controllerType,
             metadata_id = metadataId
@@ -110,20 +115,19 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
         sessionDatabase.sessionDaoQueries.updateSessionWithPermissions(chains, methods, topic)
     }
 
-    fun delete(topic: String) {
+    fun deleteSession(topic: String) {
         sessionDatabase.metaDataDaoQueries.deleteMetaDataFromTopic(topic)
         sessionDatabase.sessionDaoQueries.deleteSession(topic)
     }
 
     private fun mapPairingDaoToPairingVO(
         topic: String,
-        expirySeconds: Long?,
+        expirySeconds: Long,
         uri: String,
         status: SequenceStatus,
         controller_type: ControllerType
     ): PairingVO {
-        val expiry = if (expirySeconds != null) Expiry(expirySeconds) else null
-        return PairingVO(Topic(topic), expiry, uri, status)
+        return PairingVO(Topic(topic), Expiry(expirySeconds), uri, status)
     }
 
     private fun mapSessionDaoToSessionVO(
@@ -133,7 +137,7 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
         permissions_types: List<String>,
         ttl_seconds: Long,
         accounts: List<String>?,
-        expiry: Long?,
+        expiry: Long,
         status: SequenceStatus,
         controller_type: ControllerType, // TODO: Figure out how to handle proposer and responder once proposer is implemented
         metadataName: String?,
@@ -154,7 +158,7 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
             types = permissions_types,
             ttl = Ttl(ttl_seconds),
             accounts = accounts ?: emptyList(),
-            expiry = if (expiry != null) Expiry(expiry) else null,
+            expiry = Expiry(expiry),
             status = status,
             appMetaData = appMetaData
         )
