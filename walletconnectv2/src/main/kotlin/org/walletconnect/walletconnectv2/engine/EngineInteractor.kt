@@ -271,7 +271,7 @@ internal class EngineInteractor {
 
     internal fun getListOfPendingSessions(): List<EngineData.SessionProposal> {
         return storageRepository.getListOfSessionVOs().filter { session ->
-            session.status == SequenceStatus.PENDING
+            session.status == SequenceStatus.PENDING && session.expiry.isSequenceValid()
         }.map { session ->
             val (_, peerPublicKey) = crypto.getKeyAgreement(session.topic)
 
