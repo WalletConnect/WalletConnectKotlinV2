@@ -43,3 +43,9 @@ WHERE topic = ?;
 deleteSession:
 DELETE FROM SessionDao
 WHERE topic = ?;
+
+getPermissionsByTopic:
+SELECT sd.permissions_chains, sd.permissions_methods
+FROM SessionDao sd
+    LEFT JOIN MetaDataDao mdd ON sd.metadata_id = mdd.id
+WHERE topic = ?;

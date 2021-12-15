@@ -95,7 +95,12 @@ internal class EngineInteractor {
                             onSuccess = {
                                 relayer.unsubscribe(pairingProposal.topic)
                                 relayer.subscribe(settledSequence.settledTopic)
-                                storageRepository.updatePendingPairingToSettled(pairingProposal.topic.value, settledSequence.settledTopic.value, expiry.seconds, SequenceStatus.SETTLED)
+                                storageRepository.updatePendingPairingToSettled(
+                                    pairingProposal.topic.value,
+                                    settledSequence.settledTopic.value,
+                                    expiry.seconds,
+                                    SequenceStatus.SETTLED
+                                )
                                 onSuccess(settledSequence.settledTopic.value)
                                 pairingUpdate(settledSequence)
                             },
@@ -157,7 +162,9 @@ internal class EngineInteractor {
                         )
 
                         val engineDataSettledSession = EngineData.SettledSession(
-                            settledSession.topic.value, AppMetaData(name, description, url, icons.map { iconUri -> iconUri.toString() }),
+                            settledSession.topic.value,
+                            accounts,
+                            AppMetaData(name, description, url, icons.map { iconUri -> iconUri.toString() }),
                             EngineData.SettledSession.Permissions(
                                 EngineData.SettledSession.Permissions.Blockchain(chains),
                                 EngineData.SettledSession.Permissions.JsonRpc(methods),
@@ -300,6 +307,7 @@ internal class EngineInteractor {
 
         EngineData.SettledSession(
             session.topic.value,
+            session.accounts,
             metadata,
             EngineData.SettledSession.Permissions(
                 EngineData.SettledSession.Permissions.Blockchain(session.chains),
@@ -363,6 +371,7 @@ internal class EngineInteractor {
     private fun onPairingDelete(params: Pairing.DeleteParams, topic: Topic) {
         crypto.removeKeys(topic.value)
         relayer.unsubscribe(topic)
+        //TODO delete from DB
     }
 
     private fun settlePairingSequence(

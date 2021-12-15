@@ -42,9 +42,11 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
     )
     //endregion
 
-    fun getListOfPairingVOs() = sessionDatabase.pairingDaoQueries.getListOfPairingDaos(mapper = this@StorageRepository::mapPairingDaoToPairingVO).executeAsList()
+    fun getListOfPairingVOs() =
+        sessionDatabase.pairingDaoQueries.getListOfPairingDaos(mapper = this@StorageRepository::mapPairingDaoToPairingVO).executeAsList()
 
-    fun getListOfSessionVOs() = sessionDatabase.sessionDaoQueries.getListOfSessionDaos(mapper = this@StorageRepository::mapSessionDaoToSessionVO).executeAsList()
+    fun getListOfSessionVOs() =
+        sessionDatabase.sessionDaoQueries.getListOfSessionDaos(mapper = this@StorageRepository::mapSessionDaoToSessionVO).executeAsList()
 
     fun insertPairingProposal(topic: String, uri: String, expirySeconds: Long, sequenceStatus: SequenceStatus, controllerType: ControllerType) {
         sessionDatabase.pairingDaoQueries.insertPairing(topic, uri, expirySeconds, sequenceStatus, controllerType)
@@ -109,10 +111,10 @@ internal class StorageRepository constructor(sqliteDriver: SqlDriver?, applicati
     }
 
     fun updateSessionWithPermissions(topic: String, blockChains: List<String>?, jsonRpcMethods: List<String>?) {
-        val chains = blockChains ?: emptyList()
-        val methods = jsonRpcMethods ?: emptyList()
-
-        sessionDatabase.sessionDaoQueries.updateSessionWithPermissions(chains, methods, topic)
+        val (listOfChains, listOfMethods) = sessionDatabase.sessionDaoQueries.getPermissionsByTopic(topic).executeAsOne()
+        val chainsUnion = listOfChains.union((blockChains ?: emptyList())).toList()
+        val methodsUnion = listOfMethods.union((jsonRpcMethods ?: emptyList())).toList()
+        sessionDatabase.sessionDaoQueries.updateSessionWithPermissions(chainsUnion, methodsUnion, topic)
     }
 
     fun deleteSession(topic: String) {

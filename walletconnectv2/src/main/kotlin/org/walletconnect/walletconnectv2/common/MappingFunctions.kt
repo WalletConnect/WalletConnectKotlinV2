@@ -83,7 +83,7 @@ internal fun WalletConnectClientData.SessionProposal.toEngineSessionProposal(acc
     EngineData.SessionProposal(name, description, url, icons, chains, methods, types, topic, proposerPublicKey, ttl, accountList)
 
 internal fun EngineData.SettledSession.toClientSettledSession(): WalletConnectClientData.SettledSession =
-    WalletConnectClientData.SettledSession(topic, peerAppMetaData, permissions.toClientSettledSessionPermissions())
+    WalletConnectClientData.SettledSession(topic, accounts, peerAppMetaData, permissions.toClientSettledSessionPermissions())
 
 private fun EngineData.SettledSession.Permissions.toClientSettledSessionPermissions(): WalletConnectClientData.SettledSession.Permissions =
     WalletConnectClientData.SettledSession.Permissions(blockchain.toClientSettledSessionBlockchain(), jsonRpc.toClientSettledSessionJsonRpc(), notifications.toClientSettledSessionNotifications())

@@ -1,4 +1,4 @@
-package org.walletconnect.example.wallet.ui
+package org.walletconnect.example.wallet.ui.dialog
 
 import android.content.Context
 import android.net.Uri

@@ -36,6 +36,7 @@ sealed class WalletConnectClientData {
 
     data class SettledSession(
         val topic: String,
+        val accounts: List<String>,
         val peerAppMetaData: AppMetaData?,
         val permissions: Permissions
     ) : WalletConnectClientData() {

@@ -2,43 +2,72 @@ package org.walletconnect.example.wallet
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import org.walletconnect.example.R
 import org.walletconnect.example.databinding.WalletFragmentBinding
 import org.walletconnect.example.wallet.ui.*
+import org.walletconnect.example.wallet.ui.dialog.SessionDetailsDialog
+import org.walletconnect.example.wallet.ui.dialog.SessionProposalDialog
+import org.walletconnect.example.wallet.ui.dialog.SessionRequestDialog
+import org.walletconnect.example.wallet.ui.dialog.UrlDialog
+import org.walletconnect.walletconnectv2.WalletConnectClient
+import org.walletconnect.walletconnectv2.client.WalletConnectClientData
+import org.walletconnect.walletconnectv2.util.Logger
 
-class WalletFragment : Fragment(R.layout.wallet_fragment) {
+class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener {
     private val viewModel: WalletViewModel by activityViewModels()
     private lateinit var binding: WalletFragmentBinding
-    private val sessionAdapter = SessionsAdapter { session ->
-        viewModel.disconnect(session.topic)
-    }
+    private val sessionAdapter = SessionsAdapter(this)
+
     private var proposalDialog: SessionProposalDialog? = null
+    private var requestDialog: SessionRequestDialog? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = WalletFragmentBinding.bind(view)
         setupToolbar()
         binding.sessions.adapter = sessionAdapter
-        sessionAdapter.updateList(viewModel.listOfSettledSessions)
-        viewModel.eventFlow.observe(viewLifecycleOwner) { event ->
-            when (event) {
-                is ShowSessionProposalDialog -> {
-                    proposalDialog = SessionProposalDialog(
-                        requireContext(),
-                        viewModel::approve,
-                        viewModel::reject,
-                        event.proposal
-                    )
-                    proposalDialog?.show()
+
+        lifecycleScope.launch {
+            viewModel.eventFlow.collect { event ->
+                when (event) {
+                    is InitSessionsList -> sessionAdapter.updateList(event.sessions)
+                    is ShowSessionProposalDialog -> {
+                        proposalDialog = SessionProposalDialog(
+                            requireContext(),
+                            viewModel::approve,
+                            viewModel::reject,
+                            event.proposal
+                        )
+                        proposalDialog?.show()
+                    }
+                    is ShowSessionRequestDialog -> {
+                        requestDialog = SessionRequestDialog(
+                            requireContext(),
+                            { sessionRequest -> viewModel.respondRequest(sessionRequest) },
+                            { sessionRequest -> viewModel.rejectRequest(sessionRequest) },
+                            event.sessionRequest,
+                            event.session
+                        )
+                        requestDialog?.show()
+                    }
+                    is UpdateActiveSessions -> {
+                        proposalDialog?.dismiss()
+                        sessionAdapter.updateList(event.sessions)
+                        event.message?.let {
+                            Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    is RejectSession -> proposalDialog?.dismiss()
+                    is PingSuccess -> Toast.makeText(requireContext(), "Successful session ping", Toast.LENGTH_SHORT).show()
                 }
-                is UpdateActiveSessions -> {
-                    proposalDialog?.dismiss()
-                    sessionAdapter.updateList(event.sessions)
-                }
-                is RejectSession -> proposalDialog?.dismiss()
             }
         }
     }
@@ -58,5 +87,26 @@ class WalletFragment : Fragment(R.layout.wallet_fragment) {
                 else -> false
             }
         }
+    }
+
+    override fun onDisconnect(session: WalletConnectClientData.SettledSession) {
+        viewModel.disconnect(session.topic)
+    }
+
+    override fun onUpdate(session: WalletConnectClientData.SettledSession) {
+        viewModel.sessionUpdate(session)
+    }
+
+    override fun onUpgrade(session: WalletConnectClientData.SettledSession) {
+        viewModel.sessionUpgrade(session)
+    }
+
+    override fun onPing(session: WalletConnectClientData.SettledSession) {
+        viewModel.sessionPing(session)
+    }
+
+    override fun onSessionsDetails(session: WalletConnectClientData.SettledSession) {
+
+        SessionDetailsDialog(requireContext(), session).show()
     }
 }

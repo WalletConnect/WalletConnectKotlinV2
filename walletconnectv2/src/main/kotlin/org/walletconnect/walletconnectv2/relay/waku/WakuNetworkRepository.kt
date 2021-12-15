@@ -33,7 +33,6 @@ class WakuNetworkRepository internal constructor(
         .readTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
         .callTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
         .connectTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
-        .pingInterval(5, TimeUnit.SECONDS)
         .build()
 
     private val scarlet by lazy {

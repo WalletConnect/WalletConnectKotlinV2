@@ -22,6 +22,7 @@ fun DependencyHandlerScope.lifecycle() {
     val lifecycleVersion = "2.3.1"
     "implementation"("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion")
     "implementation"("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
+    "implementation"("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-alpha01")
 }
 
 fun DependencyHandlerScope.navigationComponent() {

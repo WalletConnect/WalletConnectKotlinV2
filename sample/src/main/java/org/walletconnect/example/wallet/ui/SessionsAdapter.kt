@@ -9,15 +9,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import org.walletconnect.example.R
 import org.walletconnect.example.databinding.SessionItemBinding
+import org.walletconnect.example.wallet.SessionActionListener
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 
-class SessionsAdapter(
-    private val onDisconnect: (session: WalletConnectClientData.SettledSession) -> Unit
-) : RecyclerView.Adapter<SessionsAdapter.SessionViewHolder>() {
+class SessionsAdapter(private val listener: SessionActionListener) : RecyclerView.Adapter<SessionsAdapter.SessionViewHolder>() {
     private var sessions: List<WalletConnectClientData.SettledSession> = listOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SessionViewHolder =
-        SessionViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.session_item, parent, false))
+        SessionViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.session_item, parent, false), listener)
 
     override fun onBindViewHolder(holder: SessionViewHolder, position: Int) {
         holder.bind(sessions[position])
@@ -31,11 +30,16 @@ class SessionsAdapter(
     }
 
 
-    inner class SessionViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
+    inner class SessionViewHolder(private val view: View, private val listener: SessionActionListener) : RecyclerView.ViewHolder(view) {
 
         private val binding = SessionItemBinding.bind(view)
 
         fun bind(session: WalletConnectClientData.SettledSession) = with(binding) {
+
+            view.setOnClickListener {
+                listener.onSessionsDetails(session)
+            }
+
             Glide.with(view.context)
                 .load(Uri.parse(session.peerAppMetaData?.icons?.first()))
                 .into(icon)
@@ -47,8 +51,11 @@ class SessionsAdapter(
                 with(PopupMenu(view.context, menu)) {
                     menuInflater.inflate(R.menu.session_menu, menu)
                     setOnMenuItemClickListener { item ->
-                        if (item.itemId == R.id.disconnect) {
-                            onDisconnect(session)
+                        when (item.itemId) {
+                            R.id.disconnect -> listener.onDisconnect(session)
+                            R.id.update -> listener.onUpdate(session)
+                            R.id.upgrade -> listener.onUpgrade(session)
+                            R.id.ping -> listener.onPing(session)
                         }
                         true
                     }

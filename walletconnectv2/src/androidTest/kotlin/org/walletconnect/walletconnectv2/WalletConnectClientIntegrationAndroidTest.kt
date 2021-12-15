@@ -23,10 +23,8 @@ class WalletConnectClientIntegrationAndroidTest {
         icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media")
     )
 
-
     @Test
     fun responderApprovePairingAndGetSessionProposalTest() {
-
         activityRule.launch {
             val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org", metadata = metadata)
             WalletConnectClient.initialize(initParams)
