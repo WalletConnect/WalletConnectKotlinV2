@@ -4,5 +4,4 @@ sealed class WalletConnectExceptions(override val message: String?) : Exception(
     class ApiKeyDoesNotExistException(override val message: String?) : WalletConnectExceptions(message)
     class InvalidApiKeyException(override val message: String?) : WalletConnectExceptions(message)
     class ServerException(override val message: String?) : WalletConnectExceptions(message)
-    class DuplicatedJsonRpcException(override val message: String?) : WalletConnectExceptions(message)
 }

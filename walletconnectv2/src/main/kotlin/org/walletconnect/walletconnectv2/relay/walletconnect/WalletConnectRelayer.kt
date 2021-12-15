@@ -11,7 +11,6 @@ import org.walletconnect.walletconnectv2.clientsync.ClientSyncJsonRpc
 import org.walletconnect.walletconnectv2.common.SubscriptionId
 import org.walletconnect.walletconnectv2.common.Topic
 import org.walletconnect.walletconnectv2.common.toWakuNetworkInitParams
-import org.walletconnect.walletconnectv2.errors.WalletConnectExceptions
 import org.walletconnect.walletconnectv2.errors.exception
 import org.walletconnect.walletconnectv2.jsonrpc.JsonRpcSerializer
 import org.walletconnect.walletconnectv2.jsonrpc.history.JsonRpcHistory
@@ -47,8 +46,7 @@ class WalletConnectRelayer {
     fun request(topic: Topic, payload: ClientSyncJsonRpc, onResult: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit) {
         require(::networkRepository.isInitialized)
 
-        try {
-            jsonRpcHistory.setRequest(payload.id, topic)
+        if (jsonRpcHistory.setRequest(payload.id, topic)) {
             scope.launch {
                 supervisorScope {
                     peerResponse
@@ -62,15 +60,13 @@ class WalletConnectRelayer {
                         }
                 }
             }
+        }
 
-            networkRepository.publish(topic, serializer.serialize(payload, topic)) { result ->
-                result.fold(
-                    onSuccess = {},
-                    onFailure = { error -> onResult(Result.failure(error)) }
-                )
-            }
-        } catch (exception: WalletConnectExceptions.DuplicatedJsonRpcException) {
-            Logger.log(exception)
+        networkRepository.publish(topic, serializer.serialize(payload, topic)) { result ->
+            result.fold(
+                onSuccess = {},
+                onFailure = { error -> onResult(Result.failure(error)) }
+            )
         }
     }
 
@@ -149,14 +145,10 @@ class WalletConnectRelayer {
 
     private suspend fun handleSessionRequest(decryptedMessage: String, topic: Topic) {
         val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessage)
-        if (clientJsonRpc != null) {
-            try {
-                jsonRpcHistory.setRequest(clientJsonRpc.id, topic)
-                serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
-                    _clientSyncJsonRpc.emit(WCRequestSubscriptionPayload(clientJsonRpc.id, topic, clientJsonRpc.method, params))
-                }
-            } catch (exception: WalletConnectExceptions.DuplicatedJsonRpcException) {
-                Logger.log(exception)
+
+        if (clientJsonRpc != null && jsonRpcHistory.setRequest(clientJsonRpc.id, topic)) {
+            serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
+                _clientSyncJsonRpc.emit(WCRequestSubscriptionPayload(clientJsonRpc.id, topic, clientJsonRpc.method, params))
             }
         }
     }
