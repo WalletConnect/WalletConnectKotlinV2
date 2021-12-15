@@ -5,10 +5,10 @@ interface Key {
 }
 
 @JvmInline
-value class PublicKey(override val keyAsHex: String): Key
+value class PublicKey(override val keyAsHex: String) : Key
 
 @JvmInline
-value class PrivateKey(override val keyAsHex: String): Key
+value class PrivateKey(override val keyAsHex: String) : Key
 
 @JvmInline
-value class SharedKey(override val keyAsHex: String): Key
+value class SharedKey(override val keyAsHex: String) : Key

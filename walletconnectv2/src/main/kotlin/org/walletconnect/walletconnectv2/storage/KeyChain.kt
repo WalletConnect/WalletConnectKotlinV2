@@ -3,10 +3,11 @@ package org.walletconnect.walletconnectv2.storage
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
-import com.goterl.lazysodium.utils.HexMessageEncoder
 import org.walletconnect.walletconnectv2.app
 import org.walletconnect.walletconnectv2.crypto.data.Key
 import org.walletconnect.walletconnectv2.util.Empty
+import org.walletconnect.walletconnectv2.util.bytesToHex
+import org.walletconnect.walletconnectv2.util.hexToBytes
 
 class KeyChain : KeyStore {
 
@@ -36,15 +37,13 @@ class KeyChain : KeyStore {
         sharedPreferences.edit().remove(tag).apply()
     }
 
-    private fun concatKeys(keyA: Key, keyB: Key): String = with(HexMessageEncoder()) {
-        encode(decode(keyA.keyAsHex) + decode(keyB.keyAsHex))
-    }
+    private fun concatKeys(keyA: Key, keyB: Key): String = (keyA.keyAsHex.hexToBytes() + keyB.keyAsHex.hexToBytes()).bytesToHex()
 
-    private fun splitKeys(concatKeys: String): Pair<String, String> = with(HexMessageEncoder()) {
-        val concatKeysByteArray = decode(concatKeys)
+    private fun splitKeys(concatKeys: String): Pair<String, String> {
+        val concatKeysByteArray = concatKeys.hexToBytes()
         val privateKeyByteArray = concatKeysByteArray.sliceArray(0 until (concatKeysByteArray.size / 2))
         val publicKeyByteArray = concatKeysByteArray.sliceArray((concatKeysByteArray.size / 2) until concatKeysByteArray.size)
-        return encode(privateKeyByteArray) to encode(publicKeyByteArray)
+        return privateKeyByteArray.bytesToHex() to publicKeyByteArray.bytesToHex()
     }
 
     companion object {

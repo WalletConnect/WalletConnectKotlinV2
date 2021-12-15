@@ -12,7 +12,7 @@ import org.walletconnect.walletconnectv2.crypto.codec.AuthenticatedEncryptionCod
 import org.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
 import org.walletconnect.walletconnectv2.crypto.data.PublicKey
 import org.walletconnect.walletconnectv2.crypto.data.SharedKey
-import org.walletconnect.walletconnectv2.crypto.managers.LazySodiumCryptoManager
+import org.walletconnect.walletconnectv2.crypto.managers.BouncyCastleCryptoManager
 import org.walletconnect.walletconnectv2.jsonrpc.model.JsonRpcResponse
 import org.walletconnect.walletconnectv2.jsonrpc.utils.JsonRpcMethod
 import org.walletconnect.walletconnectv2.moshi
@@ -22,7 +22,7 @@ import org.walletconnect.walletconnectv2.util.hexToUtf8
 class JsonRpcSerializer {
 
     private val codec: AuthenticatedEncryptionCodec = AuthenticatedEncryptionCodec()
-    private val crypto: CryptoManager = LazySodiumCryptoManager()
+    private val crypto: CryptoManager = BouncyCastleCryptoManager()
 
     fun serialize(payload: ClientSyncJsonRpc, topic: Topic): String {
         val json = serialize(payload)
@@ -66,7 +66,7 @@ class JsonRpcSerializer {
 
     inline fun <reified T> tryDeserialize(json: String): T? = runCatching { moshi.adapter(T::class.java).fromJson(json) }.getOrNull()
 
-    private inline fun <reified T> trySerialize(type: T): String = moshi.adapter(T::class.java).toJson(type)
+    inline fun <reified T> trySerialize(type: T): String = moshi.adapter(T::class.java).toJson(type)
 
     private fun serialize(payload: ClientSyncJsonRpc): String =
         when (payload) {

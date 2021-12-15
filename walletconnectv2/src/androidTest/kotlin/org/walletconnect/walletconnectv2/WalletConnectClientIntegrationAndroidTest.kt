@@ -8,7 +8,7 @@ import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
 import org.walletconnect.walletconnectv2.common.AppMetaData
-import org.walletconnect.walletconnectv2.util.Logger
+import org.walletconnect.walletconnectv2.jsonrpc.JsonRpcSerializer
 import org.walletconnect.walletconnectv2.utils.IntegrationTestApplication
 
 class WalletConnectClientIntegrationAndroidTest {
@@ -23,13 +23,15 @@ class WalletConnectClientIntegrationAndroidTest {
         icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media")
     )
 
+
     @Test
     fun responderApprovePairingAndGetSessionProposalTest() {
+
         activityRule.launch {
             val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org", metadata = metadata)
             WalletConnectClient.initialize(initParams)
             val uri =
-                "wc:1420bdd67db1c9da97e976a85dcca60cbc2cc2f7566c3851fbd2fa07d2f4587e@2?controller=false&publicKey=3e21974849ebf1f95274679e7f5a3ab5fc607ae921a0dffd756ce634d9b65b5b&relay=%7B%22protocol%22%3A%22waku%22%7D"
+                "wc:4f47abd615d5b56941989e120f108c2f338801ce16ee902237654b8c1970e8a2@2?controller=false&publicKey=2d573da1d2b8dbe3dcdb6ce7de47ce44b18fb8ec5ddc9d3f412ab4a718fff93c&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
 
             val listener = object : WalletConnectClientListener {
@@ -431,20 +433,18 @@ class WalletConnectClientIntegrationAndroidTest {
         }
     }
 
-    data class NotifyTest(
-        val code: Int,
-        val message: String
-    )
-
     @Test
     fun responderSendNotificationTest() {
         activityRule.launch {
             val initParams = ClientTypes.InitialParams(application = app, hostName = "relay.walletconnect.org", metadata = metadata)
             WalletConnectClient.initialize(initParams)
 
+
+
             val uri =
                 "wc:8d45a8b64d4b921ee8608053ebbbea7a52d8c59ded79f379a868f524c868789f@2?controller=false&publicKey=8d18b02dbbd8c29133255a847061af36a7673ebdcdbf0a05aaac3a3ef7391703&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = ClientTypes.PairParams(uri)
+
 
 
             val listener = object : WalletConnectClientListener {
@@ -456,10 +456,11 @@ class WalletConnectClientIntegrationAndroidTest {
                     WalletConnectClient.approve(approveParams, object : WalletConnectClientListeners.SessionApprove {
                         override fun onSuccess(settledSession: WalletConnectClientData.SettledSession) {
 
+
                             val notificationParams =
                                 ClientTypes.NotificationParams(
                                     settledSession.topic,
-                                    WalletConnectClientData.Notification("type", NotifyTest(1, "test"))
+                                    WalletConnectClientData.Notification("type", "test")
                                 )
 
                             WalletConnectClient.notify(notificationParams, object : WalletConnectClientListeners.Notification {

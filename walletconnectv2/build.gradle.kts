@@ -66,7 +66,7 @@ kotlin {
 
 dependencies {
     okhttp()
-    lazySodium()
+    bouncyCastle()
     coroutines()
     moshi()
     scarlet()
