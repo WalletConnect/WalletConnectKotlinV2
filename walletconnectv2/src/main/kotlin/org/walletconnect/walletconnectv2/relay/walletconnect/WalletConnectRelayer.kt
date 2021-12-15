@@ -60,13 +60,13 @@ class WalletConnectRelayer {
                         }
                 }
             }
-        }
 
-        networkRepository.publish(topic, serializer.serialize(payload, topic)) { result ->
-            result.fold(
-                onSuccess = {},
-                onFailure = { error -> onResult(Result.failure(error)) }
-            )
+            networkRepository.publish(topic, serializer.serialize(payload, topic)) { result ->
+                result.fold(
+                    onSuccess = {},
+                    onFailure = { error -> onResult(Result.failure(error)) }
+                )
+            }
         }
     }
 
