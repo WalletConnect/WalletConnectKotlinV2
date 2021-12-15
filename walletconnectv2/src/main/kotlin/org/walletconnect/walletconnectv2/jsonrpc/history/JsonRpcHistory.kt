@@ -1,11 +1,12 @@
 package org.walletconnect.walletconnectv2.jsonrpc.history
 
+import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import org.walletconnect.walletconnectv2.app
 import org.walletconnect.walletconnectv2.common.Topic
-import org.walletconnect.walletconnectv2.errors.WalletConnectExceptions
+import org.walletconnect.walletconnectv2.util.Logger
 
 class JsonRpcHistory {
     //Region: Move to DI
@@ -20,12 +21,15 @@ class JsonRpcHistory {
         )
     //End of region
 
-    @Throws(WalletConnectExceptions.DuplicatedJsonRpcException::class)
-    fun setRequest(requestId: Long, topic: Topic) {
-        if (sharedPreferences.contains(requestId.toString())) {
-            throw WalletConnectExceptions.DuplicatedJsonRpcException("Duplicated JsonRpc")
+    @SuppressLint("ApplySharedPref")
+    fun setRequest(requestId: Long, topic: Topic): Boolean {
+        return if (!sharedPreferences.contains(requestId.toString())) {
+            sharedPreferences.edit().putString(requestId.toString(), topic.value).commit()
+        } else {
+            Logger.log("Duplicated JsonRpc RequestId: $requestId\tTopic: ${topic.value}")
+
+            false
         }
-        sharedPreferences.edit().putString(requestId.toString(), topic.value).apply()
     }
 
     fun deleteRequests(topic: Topic) {
