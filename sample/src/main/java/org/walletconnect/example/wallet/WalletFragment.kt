@@ -5,10 +5,8 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.walletconnect.example.R
 import org.walletconnect.example.databinding.WalletFragmentBinding
@@ -17,9 +15,7 @@ import org.walletconnect.example.wallet.ui.dialog.SessionDetailsDialog
 import org.walletconnect.example.wallet.ui.dialog.SessionProposalDialog
 import org.walletconnect.example.wallet.ui.dialog.SessionRequestDialog
 import org.walletconnect.example.wallet.ui.dialog.UrlDialog
-import org.walletconnect.walletconnectv2.WalletConnectClient
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
-import org.walletconnect.walletconnectv2.util.Logger
 
 class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener {
     private val viewModel: WalletViewModel by activityViewModels()
@@ -36,7 +32,7 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
         binding.sessions.adapter = sessionAdapter
 
         lifecycleScope.launch {
-            viewModel.eventFlow.collect { event ->
+            viewModel.eventFlow.observe(viewLifecycleOwner) { event ->
                 when (event) {
                     is InitSessionsList -> sessionAdapter.updateList(event.sessions)
                     is ShowSessionProposalDialog -> {

@@ -1,9 +1,10 @@
 package org.walletconnect.example.wallet
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.walletconnect.example.wallet.ui.*
 import org.walletconnect.walletconnectv2.WalletConnectClient
@@ -11,11 +12,11 @@ import org.walletconnect.walletconnectv2.client.ClientTypes
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
 import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
-import org.walletconnect.walletconnectv2.util.Logger
 
 class WalletViewModel : ViewModel(), WalletConnectClientListener {
     private var _eventFlow = MutableStateFlow<WalletUiEvent>(InitSessionsList(WalletConnectClient.getListOfSettledSessions()))
-    val eventFlow: StateFlow<WalletUiEvent> = _eventFlow
+    val eventFlow: LiveData<WalletUiEvent> = _eventFlow.asLiveData()
+
     private lateinit var proposal: WalletConnectClientData.SessionProposal
 
     init {

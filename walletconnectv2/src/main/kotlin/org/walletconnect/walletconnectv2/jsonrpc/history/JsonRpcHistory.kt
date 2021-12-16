@@ -27,7 +27,6 @@ class JsonRpcHistory {
             sharedPreferences.edit().putString(requestId.toString(), topic.value).commit()
         } else {
             Logger.log("Duplicated JsonRpc RequestId: $requestId\tTopic: ${topic.value}")
-
             false
         }
     }
