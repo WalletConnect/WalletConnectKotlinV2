@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit
 class WakuNetworkRepository internal constructor(
     private val useTLs: Boolean,
     private val hostName: String,
-    private val apiKey: String,
+    private val projectId: String,
     private val application: Application
 ) {
     //region Move to DI module
@@ -164,12 +164,12 @@ class WakuNetworkRepository internal constructor(
     }
 
     private fun getServerUrl(): String =
-        ((if (useTLs) "wss" else "ws") + "://$hostName/?apiKey=$apiKey").trim()
+        ((if (useTLs) "wss" else "ws") + "://$hostName/?projectId=$projectId").trim()
 
     class WakuNetworkFactory(
         val useTls: Boolean,
         val hostName: String,
-        val apiKey: String,
+        val projectId: String,
         val application: Application
     )
 
@@ -179,7 +179,7 @@ class WakuNetworkRepository internal constructor(
         private const val REPLAY: Int = 1
 
         fun init(wakuNetworkFactory: WakuNetworkFactory) = with(wakuNetworkFactory) {
-            WakuNetworkRepository(useTls, hostName, apiKey, application)
+            WakuNetworkRepository(useTls, hostName, projectId, application)
         }
     }
 }

@@ -18,8 +18,7 @@ object WalletConnectClient {
     fun initialize(initialParams: ClientTypes.InitialParams) = with(initialParams) {
         // TODO: pass properties to DI framework
         app = application
-
-        val engineFactory = EngineInteractor.EngineFactory(useTls, hostName, apiKey, isController, application, metadata)
+        val engineFactory = EngineInteractor.EngineFactory(useTls, hostName, projectId, isController, application, metadata)
         engineInteractor.initialize(engineFactory)
     }
 

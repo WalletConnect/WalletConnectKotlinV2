@@ -6,8 +6,8 @@ val Throwable.exception: Throwable
     get() =
         when {
             this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
-                WalletConnectExceptions.ApiKeyDoesNotExistException(this.message)
+                WalletConnectExceptions.ProjectIdDoesNotExistException(this.message)
             this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
-                WalletConnectExceptions.InvalidApiKeyException(this.message)
+                WalletConnectExceptions.InvalidProjectIdException(this.message)
             else -> WalletConnectExceptions.ServerException(this.message)
         }

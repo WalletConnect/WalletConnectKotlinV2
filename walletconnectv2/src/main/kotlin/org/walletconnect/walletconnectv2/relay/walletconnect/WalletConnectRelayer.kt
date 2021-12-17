@@ -167,5 +167,5 @@ class WalletConnectRelayer {
 
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error(exception) }
 
-    class RelayFactory(val useTls: Boolean, val hostName: String, val apiKey: String, val application: Application)
+    class RelayFactory(val useTls: Boolean, val hostName: String, val projectId: String, val application: Application)
 }

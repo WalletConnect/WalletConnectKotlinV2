@@ -54,7 +54,7 @@ internal class EngineInteractor {
     internal fun initialize(engine: EngineFactory) = with(engine) {
         this@EngineInteractor.metaData = engine.metaData
         this@EngineInteractor.controllerType = if (engine.isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
-        WalletConnectRelayer.RelayFactory(useTLs, hostName, apiKey, application).run {
+        WalletConnectRelayer.RelayFactory(useTLs, hostName, projectId, application).run {
             relayer.initialize(this)
         }
         storageRepository = StorageRepository(null, engine.application)
@@ -456,7 +456,7 @@ internal class EngineInteractor {
     class EngineFactory(
         val useTLs: Boolean = false,
         val hostName: String,
-        val apiKey: String,
+        val projectId: String,
         val isController: Boolean,
         val application: Application,
         val metaData: AppMetaData

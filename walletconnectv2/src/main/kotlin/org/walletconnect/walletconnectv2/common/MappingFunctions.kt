@@ -74,7 +74,7 @@ internal fun Session.Proposal.toSessionProposal(): EngineData.SessionProposal =
     )
 
 internal fun WalletConnectRelayer.RelayFactory.toWakuNetworkInitParams(): WakuNetworkRepository.WakuNetworkFactory =
-    WakuNetworkRepository.WakuNetworkFactory(useTls, hostName, apiKey, application)
+    WakuNetworkRepository.WakuNetworkFactory(useTls, hostName, projectId, application)
 
 internal fun EngineData.SessionProposal.toClientSessionProposal(): WalletConnectClientData.SessionProposal =
     WalletConnectClientData.SessionProposal(name, description, url, icons, chains, methods, types, topic, proposerPublicKey, ttl, accounts)

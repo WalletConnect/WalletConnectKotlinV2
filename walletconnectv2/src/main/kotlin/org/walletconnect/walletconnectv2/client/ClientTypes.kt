@@ -9,7 +9,7 @@ sealed class ClientTypes {
         val application: Application,
         val useTls: Boolean = true,
         val hostName: String = WALLET_CONNECT_URL,
-        val apiKey: String = "",
+        val projectId: String = "",
         val isController: Boolean = true,
         val metadata: AppMetaData = AppMetaData()
     ) : ClientTypes()
