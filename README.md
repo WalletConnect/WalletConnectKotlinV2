@@ -43,8 +43,8 @@ val appMetaData = AppMetaData(name = "Wallet Name", description = "Wallet Descri
 val initializeParams = ClientTypes.InitialParams(application = application, projectId = "project id", appMetaData = appMetaData)
 WalletConnectClient.initalize(initalizeParams)
 ```
-The controller client will always be the "wallet" which is exposing blockchain accounts to a "Dapp" and therefore is also in charge of signing.
-To initialize the WalletConnect client, create a ClientTypes.InitialParams object in the Android Application class. The InitialParams object will need at least the application class, the ProjectID and the wallet's AppMetaData. The InitialParams object will then be passed to the WalletConnect.initialize function. 
+The controller client will always be the wallet which is exposing blockchain accounts to a Dapp and therefore is also in charge of signing.
+To initialize the WalletConnect client, create a `ClientTypes.InitialParams` object in the Android Application class. The InitialParams object will need at least the application class, the ProjectID and the wallet's AppMetaData. The InitialParams object will then be passed to the `WalletConnectClient` initialize function. IntitalParams also allows for custom URLs by passing URL string into the `hostName` property.
 
 ### **WalletConnectClientListeners.Session Listeners**
 ```kotlin
@@ -58,9 +58,11 @@ val listener = object: WalletConnectClientListener {
    }
 
    override fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession) {
+      // Triggered when the session is deleted by the peer
    }
 
    override fun onSessionNotification(sessionNotification: WalletConnectClientData.SessionNotification) {
+      // Triggered when the peer emits events as notifications that match the list of types agreed upon session settlement
    }
 }
 WalletConnectClient.setWalletConnectListener(listener)
@@ -102,7 +104,7 @@ val listener: WalletConnectClientListeners.SessionApprove {
       // Approve session error
    }
 }
-WalletConnectClient.approve(approveParams)
+WalletConnectClient.approve(approveParams, listener)
 ```
 To send a approval, pass a Session Proposal object along with the list of accounts to the `WalletConnectClient.approve` function. Listener will asynchronously expose the settled session if the operation is successful.
 
@@ -128,7 +130,7 @@ To send a rejection for the Session Proposal, pass a rejection reason and the Se
 ```kotlin
 val disconnectionReason: String = /*The reason for disconnecting the Settled Session*/
 val sessionTopic: String = /*Topic from the Settled Session*/
-val disconnectParams = ClientTypes.DisconnectParams(topic, disconnectionReason)
+val disconnectParams = ClientTypes.DisconnectParams(sessionTopic, disconnectionReason)
 val listener = object : WalletConnectClientListeners.SessionDelete {
    override fun onSuccess(deletedSession: WalletConnectClientData.DeletedSession) {
       // DeleteSession object with topic and reason
@@ -229,6 +231,23 @@ WalletConnectClient.ping(pingParams, listener)
 ```
 To ping a Dapp with a settled session, call `WalletConnectClient.ping` with the `ClientTypes.PingParams` with a settle session's topic. If ping is successful, topic is echo'd in listener.
 
+### **Get List of Settled Sessions**
+```kotlin
+WalletConnectClient.getListOfSettledSessions()
+```
+To get a list of the most current setteld sessions, call `WalletConnectClient.getListOfSettledSessions()` which will return a list of type `WalletConnectClientData.SettledSession`.
+
+### **Get List of Pending Sessions**
+```kotlin
+WalletConnectClient.getListOfPendingSession()
+```
+To get a list of the most current pending sessions, call `WalletConnectClient.getListOfPendingSession()` which will return a list of type `WalletConnectClientData.SessionProposal`.
+
+### **Shutdown SDK**
+```kotlin
+WalletConnectClient.shutdown()
+```
+To make sure that the internal coroutines are handled correctly when leaving the application, call `WalletConnectClient.shutdown()` before exiting from the application.
 <br>
 
 ### **Contributing**
