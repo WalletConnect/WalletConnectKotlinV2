@@ -19,7 +19,7 @@ android {
         minSdk = 23
         targetSdk = 30
 
-        testInstrumentationRunner = "org.walletconnect.walletconnectv2.WCTestRunner"
+        testInstrumentationRunner = "com.walletconnect.walletconnectv2.WCTestRunner"
         testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")
     }
 

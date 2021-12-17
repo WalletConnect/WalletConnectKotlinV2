@@ -1,5 +1,5 @@
-import org.walletconnect.walletconnectv2.common.ControllerType;
-import org.walletconnect.walletconnectv2.storage.SequenceStatus;
+import com.walletconnect.walletconnectv2.common.ControllerType;
+import com.walletconnect.walletconnectv2.storage.SequenceStatus;
 
 CREATE TABLE PairingDao (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,

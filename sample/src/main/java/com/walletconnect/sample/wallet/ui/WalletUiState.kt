@@ -1,6 +1,6 @@
 package com.walletconnect.sample.wallet.ui
 
-import org.walletconnect.walletconnectv2.client.WalletConnectClientData
+import com.walletconnect.walletconnectv2.client.WalletConnectClientData
 
 sealed class WalletUiEvent
 data class InitSessionsList(val sessions: List<WalletConnectClientData.SettledSession>) : WalletUiEvent()

@@ -5,7 +5,7 @@ import android.net.Uri
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.walletconnect.sample.databinding.SessionProposalDialogBinding
-import org.walletconnect.walletconnectv2.client.WalletConnectClientData
+import com.walletconnect.walletconnectv2.client.WalletConnectClientData
 
 class SessionProposalDialog(
     context: Context,

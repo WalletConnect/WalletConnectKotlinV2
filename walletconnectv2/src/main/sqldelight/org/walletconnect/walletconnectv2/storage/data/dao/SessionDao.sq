@@ -1,6 +1,6 @@
 import kotlin.collections.List;
-import org.walletconnect.walletconnectv2.storage.SequenceStatus;
-import org.walletconnect.walletconnectv2.common.ControllerType;
+import com.walletconnect.walletconnectv2.storage.SequenceStatus;
+import com.walletconnect.walletconnectv2.common.ControllerType;
 
 CREATE TABLE SessionDao(
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,

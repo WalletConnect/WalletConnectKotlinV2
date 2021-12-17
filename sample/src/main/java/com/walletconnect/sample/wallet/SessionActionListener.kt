@@ -1,6 +1,6 @@
 package com.walletconnect.sample.wallet
 
-import org.walletconnect.walletconnectv2.client.WalletConnectClientData
+import com.walletconnect.walletconnectv2.client.WalletConnectClientData
 
 interface SessionActionListener {
     fun onDisconnect(session: WalletConnectClientData.SettledSession)

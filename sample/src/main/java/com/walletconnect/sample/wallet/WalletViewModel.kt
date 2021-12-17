@@ -7,11 +7,11 @@ import androidx.lifecycle.viewModelScope
 import com.walletconnect.sample.wallet.ui.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import org.walletconnect.walletconnectv2.WalletConnectClient
-import org.walletconnect.walletconnectv2.client.ClientTypes
-import org.walletconnect.walletconnectv2.client.WalletConnectClientData
-import org.walletconnect.walletconnectv2.client.WalletConnectClientListener
-import org.walletconnect.walletconnectv2.client.WalletConnectClientListeners
+import com.walletconnect.walletconnectv2.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.ClientTypes
+import com.walletconnect.walletconnectv2.client.WalletConnectClientData
+import com.walletconnect.walletconnectv2.client.WalletConnectClientListener
+import com.walletconnect.walletconnectv2.client.WalletConnectClientListeners
 
 class WalletViewModel : ViewModel(), WalletConnectClientListener {
     private var _eventFlow = MutableStateFlow<WalletUiEvent>(InitSessionsList(WalletConnectClient.getListOfSettledSessions()))
