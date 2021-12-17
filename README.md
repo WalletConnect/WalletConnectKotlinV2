@@ -61,7 +61,7 @@ val approveParams: ClientTypes.ApproveParams = ClientTypes.ApproveParams(account
 
 WalletConnectClient.approve(approveParams)
 ```
-To send a approval for the Session Proposal, pass the Session Proposal public key, ttl, and topic along with the list of accounts to the  WalletConnectClient.approve function.
+To send an approval for the Session Proposal, pass the Session Proposal public key, ttl, and topic along with the list of accounts to the  WalletConnectClient.approve function.
 
 ### **Session Rejection**
 ```kotlin
