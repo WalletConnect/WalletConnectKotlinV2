@@ -1,12 +1,11 @@
-package org.walletconnect.example.wallet.ui
+package com.walletconnect.sample.wallet.ui
 
 import android.content.Context
 import android.text.method.ScrollingMovementMethod
 import android.util.AttributeSet
-import android.view.Gravity
 import android.widget.LinearLayout
-import org.walletconnect.example.R
-import org.walletconnect.example.databinding.LabeledTextViewBinding
+import com.walletconnect.sample.R
+import com.walletconnect.sample.databinding.LabeledTextViewBinding
 
 class LabeledTextView(context: Context, attrs: AttributeSet? = null) : LinearLayout(context, attrs) {
 

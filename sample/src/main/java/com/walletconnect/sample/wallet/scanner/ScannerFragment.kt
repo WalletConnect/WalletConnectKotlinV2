@@ -1,4 +1,4 @@
-package org.walletconnect.example.wallet.scanner
+package com.walletconnect.sample.wallet.scanner
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -23,9 +23,9 @@ import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
-import org.walletconnect.example.R
-import org.walletconnect.example.databinding.ScannerFragmentBinding
-import org.walletconnect.example.wallet.WalletViewModel
+import com.walletconnect.sample.R
+import com.walletconnect.sample.databinding.ScannerFragmentBinding
+import com.walletconnect.sample.wallet.WalletViewModel
 import java.util.concurrent.Executors
 
 class ScannerFragment : Fragment(R.layout.scanner_fragment) {

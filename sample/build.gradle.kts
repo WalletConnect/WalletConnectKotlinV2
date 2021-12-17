@@ -8,7 +8,7 @@ android {
     compileSdk = 30
 
     defaultConfig {
-        applicationId = "org.walletconnect.sdk"
+        applicationId = "com.walletconnect.sample"
         minSdk = 23
         targetSdk = 30
         versionCode = 1

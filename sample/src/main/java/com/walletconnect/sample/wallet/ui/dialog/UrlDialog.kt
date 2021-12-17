@@ -1,8 +1,8 @@
-package org.walletconnect.example.wallet.ui.dialog
+package com.walletconnect.sample.wallet.ui.dialog
 
 import android.content.Context
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import org.walletconnect.example.databinding.UrlDialogBinding
+import com.walletconnect.sample.databinding.UrlDialogBinding
 
 class UrlDialog(context: Context, val pair: (url: String) -> Unit) : BottomSheetDialog(context) {
 

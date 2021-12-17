@@ -1,4 +1,4 @@
-package org.walletconnect.example.wallet.ui
+package com.walletconnect.sample.wallet.ui
 
 import android.net.Uri
 import android.view.LayoutInflater
@@ -7,9 +7,9 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import org.walletconnect.example.R
-import org.walletconnect.example.databinding.SessionItemBinding
-import org.walletconnect.example.wallet.SessionActionListener
+import com.walletconnect.sample.R
+import com.walletconnect.sample.databinding.SessionItemBinding
+import com.walletconnect.sample.wallet.SessionActionListener
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 
 class SessionsAdapter(private val listener: SessionActionListener) : RecyclerView.Adapter<SessionsAdapter.SessionViewHolder>() {

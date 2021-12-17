@@ -1,4 +1,4 @@
-package org.walletconnect.example.wallet
+package com.walletconnect.sample.wallet
 
 import android.os.Bundle
 import android.view.View
@@ -7,14 +7,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.walletconnect.sample.R
+import com.walletconnect.sample.databinding.WalletFragmentBinding
+import com.walletconnect.sample.wallet.ui.*
 import kotlinx.coroutines.launch
-import org.walletconnect.example.R
-import org.walletconnect.example.databinding.WalletFragmentBinding
-import org.walletconnect.example.wallet.ui.*
-import org.walletconnect.example.wallet.ui.dialog.SessionDetailsDialog
-import org.walletconnect.example.wallet.ui.dialog.SessionProposalDialog
-import org.walletconnect.example.wallet.ui.dialog.SessionRequestDialog
-import org.walletconnect.example.wallet.ui.dialog.UrlDialog
+import com.walletconnect.sample.wallet.ui.dialog.SessionDetailsDialog
+import com.walletconnect.sample.wallet.ui.dialog.SessionProposalDialog
+import com.walletconnect.sample.wallet.ui.dialog.SessionRequestDialog
+import com.walletconnect.sample.wallet.ui.dialog.UrlDialog
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 
 class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener {

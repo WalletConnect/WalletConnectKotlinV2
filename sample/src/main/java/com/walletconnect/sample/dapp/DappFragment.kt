@@ -1,10 +1,10 @@
-package org.walletconnect.example.dapp
+package com.walletconnect.sample.dapp
 
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
-import org.walletconnect.example.R
-import org.walletconnect.example.databinding.DappFragmentBinding
+import com.walletconnect.sample.R
+import com.walletconnect.sample.databinding.DappFragmentBinding
 
 class DappFragment : Fragment(R.layout.dapp_fragment) {
 

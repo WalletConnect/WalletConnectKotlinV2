@@ -1,4 +1,4 @@
-package org.walletconnect.example.wallet
+package com.walletconnect.sample.wallet
 
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 

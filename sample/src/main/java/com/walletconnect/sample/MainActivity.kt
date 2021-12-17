@@ -1,4 +1,4 @@
-package org.walletconnect.example
+package com.walletconnect.sample
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -6,7 +6,7 @@ import androidx.core.view.isGone
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.NavigationUI
-import org.walletconnect.example.databinding.ActivityMainBinding
+import com.walletconnect.sample.databinding.ActivityMainBinding
 import org.walletconnect.walletconnectv2.WalletConnectClient
 
 class MainActivity : AppCompatActivity() {

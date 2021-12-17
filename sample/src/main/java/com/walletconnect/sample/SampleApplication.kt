@@ -1,4 +1,4 @@
-package org.walletconnect.example
+package com.walletconnect.sample
 
 import android.app.Application
 import org.walletconnect.walletconnectv2.WalletConnectClient

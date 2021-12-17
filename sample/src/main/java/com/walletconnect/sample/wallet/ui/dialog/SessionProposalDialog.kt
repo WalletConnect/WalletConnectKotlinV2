@@ -1,10 +1,10 @@
-package org.walletconnect.example.wallet.ui.dialog
+package com.walletconnect.sample.wallet.ui.dialog
 
 import android.content.Context
 import android.net.Uri
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import org.walletconnect.example.databinding.SessionProposalDialogBinding
+import com.walletconnect.sample.databinding.SessionProposalDialogBinding
 import org.walletconnect.walletconnectv2.client.WalletConnectClientData
 
 class SessionProposalDialog(
