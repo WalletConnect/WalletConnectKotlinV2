@@ -2,7 +2,6 @@ package org.walletconnect.example.wallet
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -96,7 +95,6 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
                 //Error
             }
         })
-
     }
 
     fun rejectRequest(sessionRequest: WalletConnectClientData.SessionRequest) {
@@ -117,8 +115,8 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
 
     fun sessionUpdate(session: WalletConnectClientData.SettledSession) {
         val updateParams = ClientTypes.UpdateParams(
-            session.topic,
-            WalletConnectClientData.SessionState(accounts = listOf("eip155:8001:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62"))
+            sessionTopic = session.topic,
+            sessionState = WalletConnectClientData.SessionState(accounts = listOf("eip155:8001:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62"))
         )
 
         WalletConnectClient.update(updateParams, object : WalletConnectClientListeners.SessionUpdate {
@@ -140,7 +138,7 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
                 blockchain = WalletConnectClientData.Blockchain(chains = listOf("eip155:80001")),
                 jsonRpc = WalletConnectClientData.Jsonrpc(listOf("eth_sign"))
             )
-        val upgradeParams = ClientTypes.UpgradeParams(session.topic, permissions)
+        val upgradeParams = ClientTypes.UpgradeParams(topic = session.topic, permissions = permissions)
         WalletConnectClient.upgrade(upgradeParams, object : WalletConnectClientListeners.SessionUpgrade {
             override fun onSuccess(upgradedSession: WalletConnectClientData.UpgradedSession) {
                 viewModelScope.launch {
