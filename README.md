@@ -24,7 +24,7 @@ allprojects {
 app/build.gradle
 
 ```gradle
-implementation("com.walletconnect:walletconnectv2:1.0.0-beta01")
+implementation("com.github.WalletConnect:WalletConnectKotlinV2:1.0.0-beta01")
 ```
 
 ## **Usage**
