@@ -1,0 +1,30 @@
+import kotlin.collections.List;
+
+CREATE TABLE MetaDataDao(
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  	_name TEXT NOT NULL,
+  	description TEXT NOT NULL,
+  	url TEXT NOT NULL,
+  	icons TEXT AS List<String> NOT NULL
+);
+
+-- TODO: change INSERT OR REPLACE and add logic to retrieve id instead
+insertOrIgnoreMetaData:
+INSERT OR IGNORE INTO MetaDataDao(_name, description, url, icons)
+VALUES (?, ?, ?, ?);
+
+lastInsertedRowId:
+SELECT last_insert_rowid();
+
+getMetaData:
+SELECT id, _name, description, url, icons
+FROM MetaDataDao
+LIMIT 1;
+
+deleteMetaDataFromTopic:
+DELETE FROM MetaDataDao
+WHERE id = (
+   SELECT metadata_id
+   FROM SessionDao
+   WHERE topic = ?
+);

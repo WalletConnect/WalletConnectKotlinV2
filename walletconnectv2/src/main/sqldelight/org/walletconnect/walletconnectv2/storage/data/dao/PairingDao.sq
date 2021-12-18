@@ -1,0 +1,28 @@
+import com.walletconnect.walletconnectv2.common.ControllerType;
+import com.walletconnect.walletconnectv2.storage.SequenceStatus;
+
+CREATE TABLE PairingDao (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    topic TEXT UNIQUE NOT NULL,
+    uri TEXT NOT NULL,
+    expiry INTEGER NOT NULL,
+    status TEXT AS SequenceStatus NOT NULL,
+    controller_type TEXT AS ControllerType NOT NULL
+);
+
+insertPairing:
+INSERT OR IGNORE INTO PairingDao(topic, uri, expiry, status, controller_type)
+VALUES (?, ?, ?, ?, ?);
+
+updatePendingPairingToSettled:
+UPDATE PairingDao
+SET topic = ?, expiry = ?, status = ?
+WHERE topic = ?;
+
+getListOfPairingDaos:
+SELECT topic, expiry, uri, status, controller_type
+FROM PairingDao;
+
+deletePairing:
+DELETE FROM PairingDao
+WHERE ? = topic;
