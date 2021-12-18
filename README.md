@@ -1,18 +1,12 @@
 ![WalletConnect V2](docs/walletconnect-banner.svg)
-<br>
-<br>
 
 # **WalletConnect V2 - Kotlin**
 
 Kotlin implementation of WalletConnect v2 protocol for Android applications.
 
-<br>
-
 ## Requirements
 * Android min SDK 21
 * Java 11
-
-<br>
 
 ## Installation
 root/build.gradle.kts:
@@ -33,8 +27,6 @@ app/build.gradle
 implementation("com.walletconnect:walletconnectv2:1.0.0-beta01")
 ```
 
-<br>
-
 ## **Usage**
 
 ### **Initialize WalletConnect Client**
@@ -43,6 +35,7 @@ val appMetaData = AppMetaData(name = "Wallet Name", description = "Wallet Descri
 val initializeParams = ClientTypes.InitialParams(application = application, projectId = "project id", appMetaData = appMetaData)
 WalletConnectClient.initalize(initalizeParams)
 ```
+
 The controller client will always be the wallet which is exposing blockchain accounts to a Dapp and therefore is also in charge of signing.
 To initialize the WalletConnect client, create a `ClientTypes.InitialParams` object in the Android Application class. The InitialParams object will need at least the application class, the ProjectID and the wallet's AppMetaData. The InitialParams object will then be passed to the `WalletConnectClient` initialize function. IntitalParams also allows for custom URLs by passing URL string into the `hostName` property.
 
@@ -106,7 +99,8 @@ val listener: WalletConnectClientListeners.SessionApprove {
 }
 WalletConnectClient.approve(approveParams, listener)
 ```
-To send a approval, pass a Session Proposal object along with the list of accounts to the `WalletConnectClient.approve` function. Listener will asynchronously expose the settled session if the operation is successful.
+
+To send an approval, pass a Session Proposal object along with the list of accounts to the `WalletConnectClient.approve` function. Listener will asynchronously expose the settled session if the operation is successful.
 
 ### **Session Rejection**
 ```kotlin
@@ -252,4 +246,4 @@ To make sure that the internal coroutines are handled correctly when leaving the
 
 ## API Keys
 
-For api keys look at [API Keys](../../api/api-keys.md).
+For api keys look at [API Keys](../../api/api-keys.md)
