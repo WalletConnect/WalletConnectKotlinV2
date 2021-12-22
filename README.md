@@ -5,7 +5,7 @@
 Kotlin implementation of WalletConnect v2 protocol for Android applications.
 
 ## Requirements
-* Android min SDK 21
+* Android min SDK 23
 * Java 11
 
 ## Installation
