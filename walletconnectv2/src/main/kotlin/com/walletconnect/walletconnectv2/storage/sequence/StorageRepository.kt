@@ -1,11 +1,10 @@
-package com.walletconnect.walletconnectv2.storage
+package com.walletconnect.walletconnectv2.storage.sequence
 
 import android.app.Application
 import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.EnumColumnAdapter
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
-import com.squareup.sqldelight.runtime.coroutines.*
 import com.walletconnect.walletconnectv2.Database
 import com.walletconnect.walletconnectv2.clientsync.session.Session
 import com.walletconnect.walletconnectv2.common.*

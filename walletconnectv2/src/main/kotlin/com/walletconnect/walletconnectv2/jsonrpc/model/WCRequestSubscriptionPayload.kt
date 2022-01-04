@@ -1,6 +1,6 @@
 package com.walletconnect.walletconnectv2.jsonrpc.model
 
-import com.walletconnect.walletconnectv2.ClientParams
+import com.walletconnect.walletconnectv2.clientsync.ClientParams
 import com.walletconnect.walletconnectv2.common.Topic
 
 data class WCRequestSubscriptionPayload(

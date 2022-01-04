@@ -1,5 +1,5 @@
 import kotlin.collections.List;
-import com.walletconnect.walletconnectv2.storage.SequenceStatus;
+import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus;
 import com.walletconnect.walletconnectv2.common.ControllerType;
 
 CREATE TABLE SessionDao(

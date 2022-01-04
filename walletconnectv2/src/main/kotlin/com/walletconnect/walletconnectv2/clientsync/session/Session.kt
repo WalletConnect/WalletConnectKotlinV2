@@ -2,7 +2,7 @@ package com.walletconnect.walletconnectv2.clientsync.session
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.walletconnectv2.ClientParams
+import com.walletconnect.walletconnectv2.clientsync.ClientParams
 import com.walletconnect.walletconnectv2.clientsync.session.after.params.Reason
 import com.walletconnect.walletconnectv2.clientsync.session.after.params.SessionPermissions
 import com.walletconnect.walletconnectv2.clientsync.session.after.params.SessionRequest

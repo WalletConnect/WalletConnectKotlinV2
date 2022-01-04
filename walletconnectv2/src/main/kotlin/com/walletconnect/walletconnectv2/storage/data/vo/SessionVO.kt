@@ -3,7 +3,7 @@ package com.walletconnect.walletconnectv2.storage.data.vo
 import com.walletconnect.walletconnectv2.common.Expiry
 import com.walletconnect.walletconnectv2.common.Topic
 import com.walletconnect.walletconnectv2.common.Ttl
-import com.walletconnect.walletconnectv2.storage.SequenceStatus
+import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 
 data class SessionVO(
     val topic: Topic,

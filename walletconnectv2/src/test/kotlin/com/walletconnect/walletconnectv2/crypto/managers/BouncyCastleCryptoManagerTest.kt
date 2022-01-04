@@ -8,7 +8,7 @@ import com.walletconnect.walletconnectv2.crypto.data.Key
 import com.walletconnect.walletconnectv2.crypto.data.PrivateKey
 import com.walletconnect.walletconnectv2.crypto.data.PublicKey
 import com.walletconnect.walletconnectv2.crypto.data.SharedKey
-import com.walletconnect.walletconnectv2.storage.KeyStore
+import com.walletconnect.walletconnectv2.storage.keychain.KeyStore
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 

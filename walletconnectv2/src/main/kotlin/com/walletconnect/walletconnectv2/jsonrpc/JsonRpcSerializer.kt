@@ -1,6 +1,6 @@
 package com.walletconnect.walletconnectv2.jsonrpc
 
-import com.walletconnect.walletconnectv2.ClientParams
+import com.walletconnect.walletconnectv2.clientsync.ClientParams
 import com.walletconnect.walletconnectv2.clientsync.ClientSyncJsonRpc
 import com.walletconnect.walletconnectv2.clientsync.pairing.after.PostSettlementPairing
 import com.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing

@@ -1,4 +1,4 @@
-package com.walletconnect.walletconnectv2.storage
+package com.walletconnect.walletconnectv2.storage.keychain
 
 import com.walletconnect.walletconnectv2.crypto.data.Key
 

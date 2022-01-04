@@ -27,8 +27,8 @@ import com.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycle
 import com.walletconnect.walletconnectv2.jsonrpc.model.JsonRpcResponse
 import com.walletconnect.walletconnectv2.relay.walletconnect.WalletConnectRelayer
 import com.walletconnect.walletconnectv2.scope
-import com.walletconnect.walletconnectv2.storage.SequenceStatus
-import com.walletconnect.walletconnectv2.storage.StorageRepository
+import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
+import com.walletconnect.walletconnectv2.storage.sequence.StorageRepository
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.Logger
 import com.walletconnect.walletconnectv2.util.generateId

@@ -1,0 +1,3 @@
+package com.walletconnect.walletconnectv2.clientsync
+
+interface ClientParams

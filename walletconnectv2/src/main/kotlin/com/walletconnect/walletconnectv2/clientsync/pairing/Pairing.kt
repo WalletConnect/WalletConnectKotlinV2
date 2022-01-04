@@ -3,7 +3,7 @@ package com.walletconnect.walletconnectv2.clientsync.pairing
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import org.json.JSONObject
-import com.walletconnect.walletconnectv2.ClientParams
+import com.walletconnect.walletconnectv2.clientsync.ClientParams
 import com.walletconnect.walletconnectv2.clientsync.pairing.after.payload.ProposalRequest
 import com.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposedPermissions
 import com.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposer

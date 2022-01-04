@@ -1,4 +1,4 @@
-package com.walletconnect.walletconnectv2.storage
+package com.walletconnect.walletconnectv2.storage.keychain
 
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
