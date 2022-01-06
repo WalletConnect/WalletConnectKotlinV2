@@ -1,16 +1,9 @@
 package com.walletconnect.walletconnectv2.relay.walletconnect
 
-import android.app.Application
 import com.tinder.scarlet.WebSocket
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import com.walletconnect.walletconnectv2.clientsync.ClientSyncJsonRpc
 import com.walletconnect.walletconnectv2.common.SubscriptionId
 import com.walletconnect.walletconnectv2.common.Topic
-import com.walletconnect.walletconnectv2.common.toWakuNetworkInitParams
 import com.walletconnect.walletconnectv2.errors.exception
 import com.walletconnect.walletconnectv2.jsonrpc.JsonRpcSerializer
 import com.walletconnect.walletconnectv2.jsonrpc.history.JsonRpcHistory
@@ -21,31 +14,33 @@ import com.walletconnect.walletconnectv2.relay.waku.Relay
 import com.walletconnect.walletconnectv2.relay.waku.WakuNetworkRepository
 import com.walletconnect.walletconnectv2.scope
 import com.walletconnect.walletconnectv2.util.Logger
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
+import javax.inject.Inject
 
-class WalletConnectRelayer {
-    //Region: Move to DI
-    private lateinit var networkRepository: WakuNetworkRepository
-    private val serializer: JsonRpcSerializer = JsonRpcSerializer()
-    //end
+class WalletConnectRelayer @Inject constructor(
+    private val networkRepository: WakuNetworkRepository,
+    private val serializer: JsonRpcSerializer,
+    private val jsonRpcHistory: JsonRpcHistory
+) {
+    val isConnectionOpened = MutableStateFlow(false)
 
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequestSubscriptionPayload> = MutableSharedFlow()
     val clientSyncJsonRpc: SharedFlow<WCRequestSubscriptionPayload> = _clientSyncJsonRpc
 
     private val peerResponse: MutableSharedFlow<JsonRpcResponse> = MutableSharedFlow()
-
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
-    private val jsonRpcHistory: JsonRpcHistory = JsonRpcHistory()
-    val isConnectionOpened = MutableStateFlow(false)
+    private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error(exception) }
 
-    internal fun initialize(relay: RelayFactory) {
-        networkRepository = WakuNetworkRepository.init(relay.toWakuNetworkInitParams())
+    init {
         handleInitialisationErrors()
         manageSubscriptions()
     }
 
     fun request(topic: Topic, payload: ClientSyncJsonRpc, onResult: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit) {
-        require(::networkRepository.isInitialized)
-
         if (jsonRpcHistory.setRequest(payload.id, topic)) {
             scope.launch {
                 supervisorScope {
@@ -71,8 +66,6 @@ class WalletConnectRelayer {
     }
 
     fun respond(topic: Topic, response: JsonRpcResponse, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        require(::networkRepository.isInitialized)
-
         networkRepository.publish(topic, serializer.serialize(response, topic)) { result ->
             result.fold(
                 onSuccess = { onSuccess() },
@@ -82,8 +75,6 @@ class WalletConnectRelayer {
     }
 
     fun subscribe(topic: Topic) {
-        require(::networkRepository.isInitialized)
-
         networkRepository.subscribe(topic) { result ->
             result.fold(
                 onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result.id },
@@ -93,8 +84,6 @@ class WalletConnectRelayer {
     }
 
     fun unsubscribe(topic: Topic) {
-        require(::networkRepository.isInitialized)
-
         if (subscriptions.contains(topic.value)) {
             val subscriptionId = SubscriptionId(subscriptions[topic.value].toString())
             networkRepository.unsubscribe(topic, subscriptionId) { result ->
@@ -164,8 +153,4 @@ class WalletConnectRelayer {
             peerResponse.emit(JsonRpcResponse.JsonRpcError(error.id, JsonRpcResponse.Error(error.error.code, error.error.message)))
         }
     }
-
-    private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error(exception) }
-
-    class RelayFactory(val useTls: Boolean, val hostName: String, val projectId: String, val application: Application)
 }

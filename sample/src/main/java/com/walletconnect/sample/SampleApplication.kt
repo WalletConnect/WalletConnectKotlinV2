@@ -12,7 +12,8 @@ class SampleApplication : Application() {
 
         val initParams = ClientTypes.InitialParams(
             application = this,
-            hostName = "relay.walletconnect.org",
+            hostName = "relay.walletconnect.com",
+            projectId = "52af113ee0c1e1a20f4995730196c13e",
             metadata = AppMetaData(
                 name = "Kotlin Wallet",
                 description = "Wallet description",

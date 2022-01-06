@@ -1,4 +1,4 @@
-package com.walletconnect.walletconnectv2.crypto
+package com.walletconnect.walletconnectv2.crypto.managers
 
 import com.walletconnect.walletconnectv2.common.Topic
 import com.walletconnect.walletconnectv2.crypto.data.Key

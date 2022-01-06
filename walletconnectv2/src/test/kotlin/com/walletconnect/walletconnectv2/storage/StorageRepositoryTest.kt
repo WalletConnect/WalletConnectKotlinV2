@@ -21,5 +21,5 @@ internal class StorageRepositoryTest {
     private val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY).apply {
         Database.Schema.create(this)
     }
-    private val storageRepository = StorageRepository(driver, app)
+    private val storageRepository = StorageRepository(driver)
 }

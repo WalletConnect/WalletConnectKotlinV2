@@ -1,6 +1,5 @@
 package com.walletconnect.walletconnectv2.crypto.codec
 
-import com.walletconnect.walletconnectv2.crypto.Codec
 import com.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
 import com.walletconnect.walletconnectv2.crypto.data.PublicKey
 import com.walletconnect.walletconnectv2.crypto.data.SharedKey
@@ -12,8 +11,9 @@ import javax.crypto.Cipher
 import javax.crypto.Mac
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
+import javax.inject.Inject
 
-class AuthenticatedEncryptionCodec : Codec {
+class AuthenticatedEncryptionCodec @Inject constructor() : Codec {
 
     override fun encrypt(message: String, sharedKey: SharedKey, publicKey: PublicKey): String {
         val (encryptionKey, authenticationKey) = getKeys(sharedKey.keyAsHex)

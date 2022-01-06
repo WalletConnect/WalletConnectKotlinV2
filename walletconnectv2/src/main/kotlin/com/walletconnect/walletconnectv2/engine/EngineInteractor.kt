@@ -1,6 +1,5 @@
 package com.walletconnect.walletconnectv2.engine
 
-import android.app.Application
 import com.walletconnect.walletconnectv2.clientsync.pairing.Pairing
 import com.walletconnect.walletconnectv2.clientsync.pairing.SettledPairingSequence
 import com.walletconnect.walletconnectv2.clientsync.pairing.after.PostSettlementPairing
@@ -18,10 +17,9 @@ import com.walletconnect.walletconnectv2.clientsync.session.before.proposal.Rela
 import com.walletconnect.walletconnectv2.clientsync.session.before.success.SessionParticipant
 import com.walletconnect.walletconnectv2.clientsync.session.common.SessionState
 import com.walletconnect.walletconnectv2.common.*
-import com.walletconnect.walletconnectv2.crypto.CryptoManager
 import com.walletconnect.walletconnectv2.crypto.data.PublicKey
 import com.walletconnect.walletconnectv2.crypto.data.SharedKey
-import com.walletconnect.walletconnectv2.crypto.managers.BouncyCastleCryptoManager
+import com.walletconnect.walletconnectv2.crypto.managers.CryptoManager
 import com.walletconnect.walletconnectv2.engine.model.EngineData
 import com.walletconnect.walletconnectv2.engine.sequence.SequenceLifecycle
 import com.walletconnect.walletconnectv2.jsonrpc.model.JsonRpcResponse
@@ -32,32 +30,26 @@ import com.walletconnect.walletconnectv2.storage.StorageRepository
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.Logger
 import com.walletconnect.walletconnectv2.util.generateId
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.json.JSONObject
 import java.net.URI
 import java.util.*
 
-internal class EngineInteractor {
-    //region provide with DI
-    // TODO: add logic to check hostName for ws/wss scheme with and without ://
-    private var relayer: WalletConnectRelayer = WalletConnectRelayer()
-    private lateinit var storageRepository: StorageRepository
-    private val crypto: CryptoManager = BouncyCastleCryptoManager()
-    //endregion
-
-    private var metaData: AppMetaData? = null
-    private var controllerType = ControllerType.CONTROLLER
+internal class EngineInteractor @AssistedInject constructor(
+    @Assisted val isController: Boolean,
+    @Assisted val metaData: AppMetaData,
+    private val crypto: CryptoManager,
+    private val relayer: WalletConnectRelayer,
+    private val storageRepository: StorageRepository
+) {
+    private val controllerType = if (isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
     private val _sequenceEvent: MutableStateFlow<SequenceLifecycle> = MutableStateFlow(SequenceLifecycle.Default)
     val sequenceEvent: StateFlow<SequenceLifecycle> = _sequenceEvent
 
-    internal fun initialize(engine: EngineFactory) = with(engine) {
-        this@EngineInteractor.metaData = engine.metaData
-        this@EngineInteractor.controllerType = if (engine.isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
-        WalletConnectRelayer.RelayFactory(useTLs, hostName, projectId, application).run {
-            relayer.initialize(this)
-        }
-        storageRepository = StorageRepository(null, engine.application)
+    init {
         collectClientSyncJsonRpc()
 
         relayer.isConnectionOpened
@@ -453,13 +445,4 @@ internal class EngineInteractor {
             sessionState
         )
     }
-
-    class EngineFactory(
-        val useTLs: Boolean = false,
-        val hostName: String,
-        val projectId: String,
-        val isController: Boolean,
-        val application: Application,
-        val metaData: AppMetaData
-    )
 }

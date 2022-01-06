@@ -1,4 +1,4 @@
-package com.walletconnect.walletconnectv2.crypto
+package com.walletconnect.walletconnectv2.crypto.codec
 
 import com.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
 import com.walletconnect.walletconnectv2.crypto.data.PublicKey

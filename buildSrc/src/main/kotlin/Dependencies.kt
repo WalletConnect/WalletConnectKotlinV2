@@ -80,6 +80,15 @@ fun DependencyHandlerScope.sqlDelight() {
     }
 }
 
+fun DependencyHandlerScope.dagger() {
+    val daggerVersion = "2.40.5"
+
+    "implementation"("com.google.dagger:dagger-android:$daggerVersion")
+//    "implementation"("com.google.dagger:dagger-android-support:2.40.5")
+//    "kapt"("com.google.dagger:dagger-android-processor:2.40.5")
+    "kapt"("com.google.dagger:dagger-compiler:$daggerVersion")
+}
+
 fun DependencyHandlerScope.jUnit5() {
     val jUnit5Version = "5.7.2"
 

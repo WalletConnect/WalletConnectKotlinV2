@@ -1,21 +1,19 @@
 package com.walletconnect.walletconnectv2.crypto.managers
 
-
-import org.bouncycastle.math.ec.rfc7748.X25519
 import com.walletconnect.walletconnectv2.common.Topic
-import com.walletconnect.walletconnectv2.crypto.CryptoManager
 import com.walletconnect.walletconnectv2.crypto.data.PrivateKey
 import com.walletconnect.walletconnectv2.crypto.data.PublicKey
 import com.walletconnect.walletconnectv2.crypto.data.SharedKey
-import com.walletconnect.walletconnectv2.storage.KeyChain
 import com.walletconnect.walletconnectv2.storage.KeyStore
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import com.walletconnect.walletconnectv2.util.hexToBytes
+import org.bouncycastle.math.ec.rfc7748.X25519
 import java.security.MessageDigest
 import java.security.SecureRandom
+import javax.inject.Inject
 import com.walletconnect.walletconnectv2.crypto.data.Key as WCKey
 
-class BouncyCastleCryptoManager(private val keyChain: KeyStore = KeyChain()) : CryptoManager {
+class BouncyCastleCryptoManager @Inject constructor(private val keyStore: KeyStore) : CryptoManager {
 
     override fun generateKeyPair(): PublicKey {
         val publicKey = ByteArray(KEY_SIZE)
@@ -43,28 +41,28 @@ class BouncyCastleCryptoManager(private val keyChain: KeyStore = KeyChain()) : C
     }
 
     override fun setEncryptionKeys(sharedKey: SharedKey, publicKey: PublicKey, topic: Topic) {
-        keyChain.setKey(topic.value, sharedKey, publicKey)
+        keyStore.setKey(topic.value, sharedKey, publicKey)
     }
 
     override fun removeKeys(tag: String) {
-        val (_, publicKey) = keyChain.getKeys(tag)
-        with(keyChain) {
+        val (_, publicKey) = keyStore.getKeys(tag)
+        with(keyStore) {
             deleteKeys(publicKey.lowercase())
             deleteKeys(tag)
         }
     }
 
     override fun getKeyAgreement(topic: Topic): Pair<SharedKey, PublicKey> {
-        val (sharedKey, peerPublic) = keyChain.getKeys(topic.value)
+        val (sharedKey, peerPublic) = keyStore.getKeys(topic.value)
         return Pair(SharedKey(sharedKey), PublicKey(peerPublic))
     }
 
     internal fun setKeyPair(publicKey: PublicKey, privateKey: PrivateKey) {
-        keyChain.setKey(publicKey.keyAsHex, publicKey, privateKey)
+        keyStore.setKey(publicKey.keyAsHex, publicKey, privateKey)
     }
 
     internal fun getKeyPair(wcKey: WCKey): Pair<PublicKey, PrivateKey> {
-        val (publicKeyHex, privateKeyHex) = keyChain.getKeys(wcKey.keyAsHex)
+        val (publicKeyHex, privateKeyHex) = keyStore.getKeys(wcKey.keyAsHex)
         return Pair(PublicKey(publicKeyHex), PrivateKey(privateKeyHex))
     }
 
