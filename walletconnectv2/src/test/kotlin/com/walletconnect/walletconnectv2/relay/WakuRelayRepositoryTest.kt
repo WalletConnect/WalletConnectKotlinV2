@@ -15,8 +15,8 @@ import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.s
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.success.PairingState
 import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.network.model.Relay
-import com.walletconnect.walletconnectv2.network.data.WakuNetworkRepository
+import com.walletconnect.walletconnectv2.network.model.RelayDTO
+import com.walletconnect.walletconnectv2.network.data.repository.WakuNetworkRepository
 import com.walletconnect.walletconnectv2.util.CoroutineTestRule
 import com.walletconnect.walletconnectv2.util.getRandom64ByteHexString
 import com.walletconnect.walletconnectv2.util.runTest
@@ -47,7 +47,7 @@ internal class WakuRelayRepositoryTest {
             )
         )
         coEvery { sut.observePublishAcknowledgement } returns flowOf(
-            Relay.Publish.Acknowledgement(
+            RelayDTO.Publish.Acknowledgement(
                 id = preSettlementPairing.id,
                 result = true
             )

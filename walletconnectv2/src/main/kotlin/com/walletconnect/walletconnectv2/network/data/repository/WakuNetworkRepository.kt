@@ -1,4 +1,4 @@
-package com.walletconnect.walletconnectv2.network.data
+package com.walletconnect.walletconnectv2.network.data.repository
 
 import android.app.Application
 import com.tinder.scarlet.Scarlet
@@ -16,7 +16,9 @@ import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.common.moshi
 import com.walletconnect.walletconnectv2.common.scope
-import com.walletconnect.walletconnectv2.network.model.Relay
+import com.walletconnect.walletconnectv2.network.data.adapter.FlowStreamAdapter
+import com.walletconnect.walletconnectv2.network.data.service.RelayService
+import com.walletconnect.walletconnectv2.network.model.RelayDTO
 import com.walletconnect.walletconnectv2.util.Logger
 import com.walletconnect.walletconnectv2.util.generateId
 import java.util.concurrent.TimeUnit
@@ -48,41 +50,41 @@ class WakuNetworkRepository internal constructor(
     //endregion
 
     internal val eventsFlow: SharedFlow<WebSocket.Event> = relay.eventsFlow().shareIn(scope, SharingStarted.Lazily, REPLAY)
-    internal val observePublishAcknowledgement: Flow<Relay.Publish.Acknowledgement> = relay.observePublishAcknowledgement()
+    internal val observePublishAcknowledgement: Flow<RelayDTO.Publish.Acknowledgement> = relay.observePublishAcknowledgement()
 
-    internal val subscriptionRequest: Flow<Relay.Subscription.Request> =
+    internal val subscriptionRequest: Flow<RelayDTO.Subscription.Request> =
         relay.observeSubscriptionRequest()
             .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
 
-    fun publish(topic: TopicVO, message: String, onResult: (Result<Relay.Publish.Acknowledgement>) -> Unit = {}) {
+    fun publish(topic: TopicVO, message: String, onResult: (Result<RelayDTO.Publish.Acknowledgement>) -> Unit = {}) {
         val publishRequest =
-            Relay.Publish.Request(id = generateId(), params = Relay.Publish.Request.Params(topic = topic, message = message))
+            RelayDTO.Publish.Request(id = generateId(), params = RelayDTO.Publish.Request.Params(topic = topic, message = message))
         observePublishAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
         observePublishError { error -> onResult(Result.failure(error)) }
         relay.publishRequest(publishRequest)
     }
 
-    fun subscribe(topic: TopicVO, onResult: (Result<Relay.Subscribe.Acknowledgement>) -> Unit) {
-        val subscribeRequest = Relay.Subscribe.Request(id = generateId(), params = Relay.Subscribe.Request.Params(topic))
+    fun subscribe(topic: TopicVO, onResult: (Result<RelayDTO.Subscribe.Acknowledgement>) -> Unit) {
+        val subscribeRequest = RelayDTO.Subscribe.Request(id = generateId(), params = RelayDTO.Subscribe.Request.Params(topic))
         observeSubscribeAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
         observeSubscribeError { error -> onResult(Result.failure(error)) }
         relay.subscribeRequest(subscribeRequest)
     }
 
-    fun unsubscribe(topic: TopicVO, subscriptionId: SubscriptionIdVO, onResult: (Result<Relay.Unsubscribe.Acknowledgement>) -> Unit) {
+    fun unsubscribe(topic: TopicVO, subscriptionId: SubscriptionIdVO, onResult: (Result<RelayDTO.Unsubscribe.Acknowledgement>) -> Unit) {
         val unsubscribeRequest =
-            Relay.Unsubscribe.Request(id = generateId(), params = Relay.Unsubscribe.Request.Params(topic, subscriptionId))
+            RelayDTO.Unsubscribe.Request(id = generateId(), params = RelayDTO.Unsubscribe.Request.Params(topic, subscriptionId))
         observeUnSubscribeAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
         observeUnSubscribeError { error -> onResult(Result.failure(error)) }
         relay.unsubscribeRequest(unsubscribeRequest)
     }
 
     private fun publishSubscriptionAcknowledgement(id: Long) {
-        val publishRequest = Relay.Subscription.Acknowledgement(id = id, result = true)
+        val publishRequest = RelayDTO.Subscription.Acknowledgement(id = id, result = true)
         relay.publishSubscriptionAcknowledgement(publishRequest)
     }
 
-    private fun observePublishAcknowledgement(onResult: (Relay.Publish.Acknowledgement) -> Unit) {
+    private fun observePublishAcknowledgement(onResult: (RelayDTO.Publish.Acknowledgement) -> Unit) {
         scope.launch {
             relay.observePublishAcknowledgement()
                 .catch { exception -> Logger.error(exception) }
@@ -109,7 +111,7 @@ class WakuNetworkRepository internal constructor(
         }
     }
 
-    private fun observeSubscribeAcknowledgement(onResult: (Relay.Subscribe.Acknowledgement) -> Unit) {
+    private fun observeSubscribeAcknowledgement(onResult: (RelayDTO.Subscribe.Acknowledgement) -> Unit) {
         scope.launch {
             relay.observeSubscribeAcknowledgement()
                 .catch { exception -> Logger.error(exception) }
@@ -136,7 +138,7 @@ class WakuNetworkRepository internal constructor(
         }
     }
 
-    private fun observeUnSubscribeAcknowledgement(onSuccess: (Relay.Unsubscribe.Acknowledgement) -> Unit) {
+    private fun observeUnSubscribeAcknowledgement(onSuccess: (RelayDTO.Unsubscribe.Acknowledgement) -> Unit) {
         scope.launch {
             relay.observeUnsubscribeAcknowledgement()
                 .catch { exception -> Logger.error(exception) }

@@ -8,7 +8,7 @@ import com.walletconnect.sample.wallet.ui.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClient
-import com.walletconnect.walletconnectv2.client.model.ClientTypes
+import com.walletconnect.walletconnectv2.client.model.types.ClientTypes
 import com.walletconnect.walletconnectv2.client.model.WalletConnectClientModel
 import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClientListener
 import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClientListeners

@@ -5,7 +5,7 @@ import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.crypto.model.PublicKey
 import com.walletconnect.walletconnectv2.engine.model.EngineModel
-import com.walletconnect.walletconnectv2.relay.model.JsonRpcMethod
+import com.walletconnect.walletconnectv2.relay.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.Pairing
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.PreSettlementPairing
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.proposal.*

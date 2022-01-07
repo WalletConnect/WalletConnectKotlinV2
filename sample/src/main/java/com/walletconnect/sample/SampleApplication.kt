@@ -1,7 +1,7 @@
 package com.walletconnect.sample
 
 import android.app.Application
-import com.walletconnect.walletconnectv2.client.model.ClientTypes
+import com.walletconnect.walletconnectv2.client.model.types.ClientTypes
 import com.walletconnect.walletconnectv2.client.model.WalletConnectClientModel
 import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClient
 

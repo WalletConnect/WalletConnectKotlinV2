@@ -5,7 +5,7 @@ import com.walletconnect.walletconnectv2.client.*
 import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClient
 import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClientListener
 import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClientListeners
-import com.walletconnect.walletconnectv2.client.model.ClientTypes
+import com.walletconnect.walletconnectv2.client.model.types.ClientTypes
 import com.walletconnect.walletconnectv2.client.model.WalletConnectClientModel
 import org.junit.Rule
 import org.junit.Test

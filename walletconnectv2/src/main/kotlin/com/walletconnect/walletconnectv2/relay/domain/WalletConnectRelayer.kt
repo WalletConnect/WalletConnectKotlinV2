@@ -7,17 +7,17 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import com.walletconnect.walletconnectv2.relay.model.clientsync.ClientSyncJsonRpc
+import com.walletconnect.walletconnectv2.relay.model.clientsync.types.ClientSyncJsonRpc
 import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.common.errors.exception
 import com.walletconnect.walletconnectv2.common.model.vo.JsonRpcResponseVO
-import com.walletconnect.walletconnectv2.network.model.Relay
-import com.walletconnect.walletconnectv2.network.data.WakuNetworkRepository
+import com.walletconnect.walletconnectv2.network.model.RelayDTO
+import com.walletconnect.walletconnectv2.network.data.repository.WakuNetworkRepository
 import com.walletconnect.walletconnectv2.common.scope
-import com.walletconnect.walletconnectv2.relay.data.JsonRpcSerializer
-import com.walletconnect.walletconnectv2.relay.model.ClientJsonRpc
-import com.walletconnect.walletconnectv2.relay.model.WCRequestSubscriptionPayload
+import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
+import com.walletconnect.walletconnectv2.relay.model.jsonrpc.ClientJsonRpcDO
+import com.walletconnect.walletconnectv2.relay.model.jsonrpc.WCRequestSubscriptionPayloadDO
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.util.Logger
 
@@ -27,8 +27,8 @@ class WalletConnectRelayer {
     private val serializer: JsonRpcSerializer = JsonRpcSerializer()
     //end
 
-    private val _clientSyncJsonRpc: MutableSharedFlow<WCRequestSubscriptionPayload> = MutableSharedFlow()
-    internal val clientSyncJsonRpc: SharedFlow<WCRequestSubscriptionPayload> = _clientSyncJsonRpc
+    private val _clientSyncJsonRpc: MutableSharedFlow<WCRequestSubscriptionPayloadDO> = MutableSharedFlow()
+    internal val clientSyncJsonRpc: SharedFlow<WCRequestSubscriptionPayloadDO> = _clientSyncJsonRpc
 
     private val peerResponse: MutableSharedFlow<JsonRpcResponseVO> = MutableSharedFlow()
 
@@ -143,22 +143,22 @@ class WalletConnectRelayer {
     }
 
     private suspend fun handleSessionRequest(decryptedMessage: String, topic: TopicVO) {
-        val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessage)
+        val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpcDO>(decryptedMessage)
 
         if (clientJsonRpc != null && jsonRpcHistory.setRequest(clientJsonRpc.id, topic)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
-                _clientSyncJsonRpc.emit(WCRequestSubscriptionPayload(clientJsonRpc.id, topic, clientJsonRpc.method, params))
+                _clientSyncJsonRpc.emit(WCRequestSubscriptionPayloadDO(clientJsonRpc.id, topic, clientJsonRpc.method, params))
             }
         }
     }
 
     private suspend fun handleJsonRpcResponse(decryptedMessage: String) {
-        val acknowledgement = serializer.tryDeserialize<Relay.Subscription.Acknowledgement>(decryptedMessage)
+        val acknowledgement = serializer.tryDeserialize<RelayDTO.Subscription.Acknowledgement>(decryptedMessage)
         if (acknowledgement != null) {
             peerResponse.emit(JsonRpcResponseVO.JsonRpcResult(acknowledgement.id, acknowledgement.result.toString()))
         }
 
-        val error = serializer.tryDeserialize<Relay.Subscription.JsonRpcError>(decryptedMessage)
+        val error = serializer.tryDeserialize<RelayDTO.Subscription.JsonRpcError>(decryptedMessage)
         if (error != null) {
             peerResponse.emit(JsonRpcResponseVO.JsonRpcError(error.id, JsonRpcResponseVO.Error(error.error.code, error.error.message)))
         }

@@ -1,6 +1,6 @@
-package com.walletconnect.walletconnectv2.crypto.model
+package com.walletconnect.walletconnectv2.crypto.model.vo
 
-data class EncryptionPayload(
+data class EncryptionPayloadVO(
     val iv: String,
     val publicKey: String,
     val mac: String,

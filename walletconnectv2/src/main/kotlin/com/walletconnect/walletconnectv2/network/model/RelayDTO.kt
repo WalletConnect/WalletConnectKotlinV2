@@ -9,11 +9,11 @@ import com.walletconnect.walletconnectv2.common.adapters.SubscriptionIdAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TtlAdapter
 
-sealed class Relay {
+sealed class RelayDTO {
     abstract val id: Long
     abstract val jsonrpc: String
 
-    sealed class Publish : Relay() {
+    sealed class Publish : RelayDTO() {
 
         @JsonClass(generateAdapter = true)
         data class Request(
@@ -59,7 +59,7 @@ sealed class Relay {
         ) : Publish()
     }
 
-    sealed class Subscribe : Relay() {
+    sealed class Subscribe : RelayDTO() {
 
         @JsonClass(generateAdapter = true)
         data class Request(
@@ -101,7 +101,7 @@ sealed class Relay {
         ) : Subscribe()
     }
 
-    sealed class Subscription : Relay() {
+    sealed class Subscription : RelayDTO() {
 
         @JsonClass(generateAdapter = true)
         data class Request(
@@ -157,7 +157,7 @@ sealed class Relay {
         ) : Subscription()
     }
 
-    sealed class Unsubscribe : Relay() {
+    sealed class Unsubscribe : RelayDTO() {
 
         data class Request(
             @Json(name = "id")

@@ -2,9 +2,9 @@ package com.walletconnect.walletconnectv2.relay.model.clientsync.session.before
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.walletconnectv2.relay.model.clientsync.ClientSyncJsonRpc
+import com.walletconnect.walletconnectv2.relay.model.clientsync.types.ClientSyncJsonRpc
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.Session
-import com.walletconnect.walletconnectv2.relay.model.JsonRpcMethod
+import com.walletconnect.walletconnectv2.relay.model.utils.JsonRpcMethod
 
 internal sealed class PreSettlementSession : ClientSyncJsonRpc {
     abstract override val id: Long

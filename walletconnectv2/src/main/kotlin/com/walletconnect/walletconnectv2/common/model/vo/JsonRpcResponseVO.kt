@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.common.model.vo
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.walletconnectv2.relay.model.clientsync.ClientSyncJsonRpc
+import com.walletconnect.walletconnectv2.relay.model.clientsync.types.ClientSyncJsonRpc
 
 sealed class JsonRpcResponseVO : ClientSyncJsonRpc {
 

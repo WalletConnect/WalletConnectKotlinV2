@@ -1,20 +1,21 @@
-package com.walletconnect.walletconnectv2.relay.data
+package com.walletconnect.walletconnectv2.relay.data.serializer
 
-import com.walletconnect.walletconnectv2.relay.model.clientsync.ClientParams
-import com.walletconnect.walletconnectv2.relay.model.clientsync.ClientSyncJsonRpc
+import com.walletconnect.walletconnectv2.relay.model.clientsync.types.ClientParams
+import com.walletconnect.walletconnectv2.relay.model.clientsync.types.ClientSyncJsonRpc
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.after.PostSettlementPairing
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.PreSettlementPairing
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.after.PostSettlementSession
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.PreSettlementSession
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.crypto.data.crypto.CryptoManager
-import com.walletconnect.walletconnectv2.crypto.model.EncryptionPayload
+import com.walletconnect.walletconnectv2.crypto.model.vo.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.crypto.model.PublicKey
 import com.walletconnect.walletconnectv2.crypto.model.SharedKey
 import com.walletconnect.walletconnectv2.crypto.data.crypto.BouncyCastleCryptoManager
 import com.walletconnect.walletconnectv2.common.model.vo.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.common.moshi
-import com.walletconnect.walletconnectv2.relay.model.JsonRpcMethod
+import com.walletconnect.walletconnectv2.relay.data.codec.AuthenticatedEncryptionCodec
+import com.walletconnect.walletconnectv2.relay.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.hexToUtf8
 
@@ -88,17 +89,17 @@ class JsonRpcSerializer {
             else -> String.Empty
         }
 
-    private fun toEncryptionPayload(message: String): EncryptionPayload {
-        val pubKeyStartIndex = EncryptionPayload.ivLength
-        val macStartIndex = pubKeyStartIndex + EncryptionPayload.publicKeyLength
-        val cipherTextStartIndex = macStartIndex + EncryptionPayload.macLength
+    private fun toEncryptionPayload(message: String): EncryptionPayloadVO {
+        val pubKeyStartIndex = EncryptionPayloadVO.ivLength
+        val macStartIndex = pubKeyStartIndex + EncryptionPayloadVO.publicKeyLength
+        val cipherTextStartIndex = macStartIndex + EncryptionPayloadVO.macLength
 
         val iv = message.substring(0, pubKeyStartIndex)
         val publicKey = message.substring(pubKeyStartIndex, macStartIndex)
         val mac = message.substring(macStartIndex, cipherTextStartIndex)
         val cipherText = message.substring(cipherTextStartIndex, message.length)
 
-        return EncryptionPayload(iv, publicKey, mac, cipherText)
+        return EncryptionPayloadVO(iv, publicKey, mac, cipherText)
     }
 
     private fun String.encode(): String = this.encodeToByteArray().joinToString(separator = "") { bytes -> String.format("%02X", bytes) }

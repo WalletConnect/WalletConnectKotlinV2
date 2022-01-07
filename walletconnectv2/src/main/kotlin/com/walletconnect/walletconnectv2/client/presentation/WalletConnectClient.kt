@@ -6,11 +6,12 @@ import com.walletconnect.walletconnectv2.client.model.mapper.toClientSessionProp
 import com.walletconnect.walletconnectv2.client.model.mapper.toClientSessionRequest
 import com.walletconnect.walletconnectv2.client.model.mapper.toClientSettledSession
 import com.walletconnect.walletconnectv2.client.model.mapper.toEngineSessionProposal
+import com.walletconnect.walletconnectv2.client.model.types.ClientTypes
 import com.walletconnect.walletconnectv2.common.app
 import com.walletconnect.walletconnectv2.common.scope
 import com.walletconnect.walletconnectv2.engine.domain.EngineInteractor
 import com.walletconnect.walletconnectv2.engine.model.EngineModel
-import com.walletconnect.walletconnectv2.engine.model.SequenceLifecycle
+import com.walletconnect.walletconnectv2.engine.model.sequence.SequenceLifecycle
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -130,7 +131,7 @@ object WalletConnectClient {
     }
 
     fun getListOfSettledSessions(): List<WalletConnectClientModel.SettledSession> =
-        engineInteractor.getListOfSettledSessions().map(EngineModel.SettledSession::toClientSettledSession)
+        engineInteractor.getListOfSettledSessions().map(EngineModel.SettledSessionDO::toClientSettledSession)
 
     fun getListOfPendingSession(): List<WalletConnectClientModel.SessionProposal> =
         engineInteractor.getListOfPendingSessions().map(EngineModel.SessionProposalDO::toClientSessionProposal)

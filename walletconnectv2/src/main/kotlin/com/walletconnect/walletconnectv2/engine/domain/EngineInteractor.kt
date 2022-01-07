@@ -26,7 +26,7 @@ import com.walletconnect.walletconnectv2.crypto.model.PublicKey
 import com.walletconnect.walletconnectv2.crypto.model.SharedKey
 import com.walletconnect.walletconnectv2.crypto.data.crypto.BouncyCastleCryptoManager
 import com.walletconnect.walletconnectv2.engine.model.EngineModel
-import com.walletconnect.walletconnectv2.engine.model.SequenceLifecycle
+import com.walletconnect.walletconnectv2.engine.model.sequence.SequenceLifecycle
 import com.walletconnect.walletconnectv2.relay.domain.WalletConnectRelayer
 import com.walletconnect.walletconnectv2.common.scope
 import com.walletconnect.walletconnectv2.engine.model.mapper.toApprove
@@ -145,7 +145,7 @@ internal class EngineInteractor {
 
     internal fun approve(
         proposal: EngineModel.SessionProposalDO,
-        onSuccess: (EngineModel.SettledSession) -> Unit,
+        onSuccess: (EngineModel.SettledSessionDO) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -177,14 +177,14 @@ internal class EngineInteractor {
                             sessionApprove.params.expiry.seconds
                         )
 
-                        val engineDataSettledSession = EngineModel.SettledSession(
+                        val engineDataSettledSession = EngineModel.SettledSessionDO(
                             settledSession.topic.value,
                             accounts,
                             EngineModel.AppMetaDataDO(name, description, url, icons.map { iconUri -> iconUri.toString() }),
-                            EngineModel.SettledSession.Permissions(
-                                EngineModel.SettledSession.Permissions.Blockchain(chains),
-                                EngineModel.SettledSession.Permissions.JsonRpc(methods),
-                                EngineModel.SettledSession.Permissions.Notifications(types)
+                            EngineModel.SettledSessionDO.PermissionsDO(
+                                EngineModel.SettledSessionDO.PermissionsDO.BlockchainDO(chains),
+                                EngineModel.SettledSessionDO.PermissionsDO.JsonRpcDO(methods),
+                                EngineModel.SettledSessionDO.PermissionsDO.NotificationsDO(types)
                             )
                         )
                         onSuccess(engineDataSettledSession)
@@ -230,7 +230,7 @@ internal class EngineInteractor {
     }
 
     internal fun update(
-        topic: String, sessionState: EngineModel.SessionState,
+        topic: String, sessionState: EngineModel.SessionStateDO,
         onSuccess: (Pair<String, List<String>>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
@@ -246,8 +246,8 @@ internal class EngineInteractor {
     }
 
     internal fun upgrade(
-        topic: String, permissions: EngineModel.SessionPermissions,
-        onSuccess: (Pair<String, EngineModel.SessionPermissions>) -> Unit,
+        topic: String, permissions: EngineModel.SessionPermissionsDO,
+        onSuccess: (Pair<String, EngineModel.SessionPermissionsDO>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
         val sessionUpgrade = PostSettlementSession.SessionUpgrade(
@@ -264,7 +264,7 @@ internal class EngineInteractor {
     }
 
     internal fun notify(
-        topic: String, notification: EngineModel.Notification,
+        topic: String, notification: EngineModel.NotificationDO,
         onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
@@ -315,7 +315,7 @@ internal class EngineInteractor {
         }
     }
 
-    internal fun getListOfSettledSessions(): List<EngineModel.SettledSession> = storageRepository.getListOfSessionVOs().filter { session ->
+    internal fun getListOfSettledSessions(): List<EngineModel.SettledSessionDO> = storageRepository.getListOfSessionVOs().filter { session ->
         session.status == SequenceStatus.SETTLED && session.expiry.isSequenceValid()
     }.map { session ->
 
@@ -324,14 +324,14 @@ internal class EngineInteractor {
                 EngineModel.AppMetaDataDO(metaData.name, metaData.description, metaData.url, metaData.icons)
             }
 
-        EngineModel.SettledSession(
+        EngineModel.SettledSessionDO(
             session.topic.value,
             session.accounts,
             metadata,
-            EngineModel.SettledSession.Permissions(
-                EngineModel.SettledSession.Permissions.Blockchain(session.chains),
-                EngineModel.SettledSession.Permissions.JsonRpc(session.methods),
-                EngineModel.SettledSession.Permissions.Notifications(session.types)
+            EngineModel.SettledSessionDO.PermissionsDO(
+                EngineModel.SettledSessionDO.PermissionsDO.BlockchainDO(session.chains),
+                EngineModel.SettledSessionDO.PermissionsDO.JsonRpcDO(session.methods),
+                EngineModel.SettledSessionDO.PermissionsDO.NotificationsDO(session.types)
             )
         )
     }
@@ -370,7 +370,7 @@ internal class EngineInteractor {
         val chainId = payload.chainId
         val method = payload.request.method
         _sequenceEvent.value = SequenceLifecycle.OnSessionRequest(
-            EngineModel.SessionRequest(topic.value, chainId, EngineModel.SessionRequest.JSONRPCRequest(requestId, method, params))
+            EngineModel.SessionRequestDO(topic.value, chainId, EngineModel.SessionRequestDO.JSONRPCRequestDO(requestId, method, params))
         )
     }
 
@@ -378,13 +378,13 @@ internal class EngineInteractor {
         crypto.removeKeys(topic.value)
         storageRepository.deleteSession(topic.value)
         relayer.unsubscribe(topic)
-        _sequenceEvent.value = SequenceLifecycle.OnSessionDeleted(EngineModel.DeletedSession(topic.value, params.reason.message))
+        _sequenceEvent.value = SequenceLifecycle.OnSessionDeleted(EngineModel.DeletedSessionDO(topic.value, params.reason.message))
     }
 
     private fun onSessionNotification(params: Session.NotificationParams, topic: TopicVO) {
         val type = params.type
         val data = params.data.toString()
-        _sequenceEvent.value = SequenceLifecycle.OnSessionNotification(EngineModel.SessionNotification(topic.value, type, data))
+        _sequenceEvent.value = SequenceLifecycle.OnSessionNotification(EngineModel.SessionNotificationDO(topic.value, type, data))
     }
 
     private fun onPairingDelete(params: Pairing.DeleteParams, topic: TopicVO) {

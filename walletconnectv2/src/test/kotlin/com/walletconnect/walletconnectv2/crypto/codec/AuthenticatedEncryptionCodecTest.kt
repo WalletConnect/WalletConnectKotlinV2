@@ -11,10 +11,10 @@ import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.common.adapters.SubscriptionIdAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TtlAdapter
-import com.walletconnect.walletconnectv2.crypto.model.EncryptionPayload
+import com.walletconnect.walletconnectv2.crypto.model.vo.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.crypto.model.PublicKey
 import com.walletconnect.walletconnectv2.crypto.model.SharedKey
-import com.walletconnect.walletconnectv2.relay.data.AuthenticatedEncryptionCodec
+import com.walletconnect.walletconnectv2.relay.data.codec.AuthenticatedEncryptionCodec
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import kotlin.test.assertEquals
 
@@ -100,15 +100,15 @@ class AuthenticatedEncryptionCodecTest {
     }
 }
 
-fun String.toEncryptionPayload(): EncryptionPayload {
-    val pubKeyStartIndex = EncryptionPayload.ivLength
-    val macStartIndex = pubKeyStartIndex + EncryptionPayload.publicKeyLength
-    val cipherTextStartIndex = macStartIndex + EncryptionPayload.macLength
+fun String.toEncryptionPayload(): EncryptionPayloadVO {
+    val pubKeyStartIndex = EncryptionPayloadVO.ivLength
+    val macStartIndex = pubKeyStartIndex + EncryptionPayloadVO.publicKeyLength
+    val cipherTextStartIndex = macStartIndex + EncryptionPayloadVO.macLength
 
     val iv = this.substring(0, pubKeyStartIndex)
     val publicKey = this.substring(pubKeyStartIndex, macStartIndex)
     val mac = this.substring(macStartIndex, cipherTextStartIndex)
     val cipherText = this.substring(cipherTextStartIndex, this.length)
 
-    return EncryptionPayload(iv, publicKey, mac, cipherText)
+    return EncryptionPayloadVO(iv, publicKey, mac, cipherText)
 }

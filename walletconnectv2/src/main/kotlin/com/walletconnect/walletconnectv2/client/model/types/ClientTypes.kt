@@ -1,6 +1,7 @@
-package com.walletconnect.walletconnectv2.client.model
+package com.walletconnect.walletconnectv2.client.model.types
 
 import android.app.Application
+import com.walletconnect.walletconnectv2.client.model.WalletConnectClientModel
 
 sealed class ClientTypes {
 

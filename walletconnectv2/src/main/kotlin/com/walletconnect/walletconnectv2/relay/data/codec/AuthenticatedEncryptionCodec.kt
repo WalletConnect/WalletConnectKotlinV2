@@ -1,6 +1,6 @@
-package com.walletconnect.walletconnectv2.relay.data
+package com.walletconnect.walletconnectv2.relay.data.codec
 
-import com.walletconnect.walletconnectv2.crypto.model.EncryptionPayload
+import com.walletconnect.walletconnectv2.crypto.model.vo.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.crypto.model.PublicKey
 import com.walletconnect.walletconnectv2.crypto.model.SharedKey
 import com.walletconnect.walletconnectv2.util.bytesToHex
@@ -28,7 +28,7 @@ class AuthenticatedEncryptionCodec : Codec {
         return iv.bytesToHex() + publicKey.keyAsHex + computedMac + cipherText.bytesToHex()
     }
 
-    override fun decrypt(payload: EncryptionPayload, sharedKey: SharedKey): String {
+    override fun decrypt(payload: EncryptionPayloadVO, sharedKey: SharedKey): String {
         val (encryptionKey, authenticationKey) = getKeys(sharedKey.keyAsHex)
         val data = payload.cipherText.hexToBytes()
         val iv = payload.iv.hexToBytes()
