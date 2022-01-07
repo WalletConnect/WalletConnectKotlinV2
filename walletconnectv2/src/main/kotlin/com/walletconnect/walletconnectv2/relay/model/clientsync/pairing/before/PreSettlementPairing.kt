@@ -6,7 +6,7 @@ import com.walletconnect.walletconnectv2.relay.model.clientsync.ClientSyncJsonRp
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.Pairing
 import com.walletconnect.walletconnectv2.relay.model.JsonRpcMethod
 
-sealed class PreSettlementPairing : ClientSyncJsonRpc {
+internal sealed class PreSettlementPairing : ClientSyncJsonRpc {
     abstract override val id: Long
     abstract val method: String
     abstract val jsonrpc: String

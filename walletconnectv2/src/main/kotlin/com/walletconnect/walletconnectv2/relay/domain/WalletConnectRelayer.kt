@@ -28,7 +28,7 @@ class WalletConnectRelayer {
     //end
 
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequestSubscriptionPayload> = MutableSharedFlow()
-    val clientSyncJsonRpc: SharedFlow<WCRequestSubscriptionPayload> = _clientSyncJsonRpc
+    internal val clientSyncJsonRpc: SharedFlow<WCRequestSubscriptionPayload> = _clientSyncJsonRpc
 
     private val peerResponse: MutableSharedFlow<JsonRpcResponse> = MutableSharedFlow()
 
@@ -42,7 +42,7 @@ class WalletConnectRelayer {
         manageSubscriptions()
     }
 
-    fun request(topic: Topic, payload: ClientSyncJsonRpc, onResult: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit) {
+    internal fun request(topic: Topic, payload: ClientSyncJsonRpc, onResult: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit) {
         require(::networkRepository.isInitialized)
 
         if (jsonRpcHistory.setRequest(payload.id, topic)) {

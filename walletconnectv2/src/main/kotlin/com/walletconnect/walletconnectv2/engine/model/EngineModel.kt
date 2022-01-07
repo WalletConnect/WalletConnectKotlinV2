@@ -46,16 +46,16 @@ sealed class EngineModel {
         val permissions: Permissions
     ) : EngineModel() {
 
-        data class Permissions(
+        internal data class Permissions(
             val blockchain: Blockchain,
             val jsonRpc: JsonRpc,
             val notifications: Notifications
         ) {
-            data class Blockchain(val chains: List<String>)
+            internal data class Blockchain(val chains: List<String>)
 
-            data class JsonRpc(val methods: List<String>)
+            internal data class JsonRpc(val methods: List<String>)
 
-            data class Notifications(val types: List<String>)
+            internal data class Notifications(val types: List<String>)
         }
     }
 
@@ -70,15 +70,15 @@ sealed class EngineModel {
         val data: String
     ) : EngineModel()
 
-    data class SessionState(val accounts: List<String>) : EngineModel()
+    internal data class SessionState(val accounts: List<String>) : EngineModel()
 
-    data class SessionPermissions(val blockchain: Blockchain? = null, val jsonRpc: Jsonrpc? = null) : EngineModel()
+    internal data class SessionPermissions(val blockchain: Blockchain? = null, val jsonRpc: Jsonrpc? = null) : EngineModel()
 
-    data class Blockchain(val chains: List<String>) : EngineModel()
+    internal data class Blockchain(val chains: List<String>) : EngineModel()
 
-    data class Jsonrpc(val methods: List<String>) : EngineModel()
+    internal data class Jsonrpc(val methods: List<String>) : EngineModel()
 
-    data class AppMetaDataDO(
+    internal data class AppMetaDataDO(
         val name: String = "Peer",
         val description: String = String.Empty,
         val url: String = String.Empty,

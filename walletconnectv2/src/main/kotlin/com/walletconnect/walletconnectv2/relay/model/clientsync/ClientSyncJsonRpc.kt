@@ -1,5 +1,5 @@
 package com.walletconnect.walletconnectv2.relay.model.clientsync
 
-interface ClientSyncJsonRpc {
+internal interface ClientSyncJsonRpc {
     val id: Long
 }

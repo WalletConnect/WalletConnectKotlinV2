@@ -7,7 +7,7 @@ import com.walletconnect.walletconnectv2.common.model.Topic
 import com.walletconnect.walletconnectv2.crypto.model.PublicKey
 import com.walletconnect.walletconnectv2.crypto.model.SharedKey
 
-data class SettledSessionSequence(
+internal data class SettledSessionSequence(
     val topic: Topic,
     val relay: RelayProtocolOptions,
     val selfPublicKey: PublicKey,
@@ -18,10 +18,10 @@ data class SettledSessionSequence(
     val state: SessionState
 )
 
-data class SettledSessionPermissions(
+internal data class SettledSessionPermissions(
     val controller: Controller
 )
 
-data class Controller(
+internal data class Controller(
     val publicKey: String
 )

@@ -4,6 +4,6 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.success.PairingParticipant
 
 @JsonClass(generateAdapter = true)
-data class PairingPermissions(
+internal data class PairingPermissions(
     val controller: PairingParticipant
 )

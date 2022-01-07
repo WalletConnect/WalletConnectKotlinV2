@@ -5,7 +5,7 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.proposal.AppMetaData
 
 @JsonClass(generateAdapter = true)
-data class SessionParticipant(
+internal data class SessionParticipant(
     @Json(name = "publicKey")
     val publicKey: String,
     @Json(name = "metadata")

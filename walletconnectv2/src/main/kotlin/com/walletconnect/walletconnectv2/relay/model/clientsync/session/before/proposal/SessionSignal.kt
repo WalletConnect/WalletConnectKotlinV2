@@ -6,7 +6,7 @@ import com.walletconnect.walletconnectv2.common.model.Topic
 import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
 
 @JsonClass(generateAdapter = true)
-data class SessionSignal(
+internal data class SessionSignal(
     @Json(name = "method")
     val method: String = "pairing",
     @Json(name = "params")

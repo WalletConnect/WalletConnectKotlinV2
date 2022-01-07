@@ -23,7 +23,7 @@ class JsonRpcSerializer {
     private val codec: AuthenticatedEncryptionCodec = AuthenticatedEncryptionCodec()
     private val crypto: CryptoManager = BouncyCastleCryptoManager()
 
-    fun serialize(payload: ClientSyncJsonRpc, topic: Topic): String {
+    internal fun serialize(payload: ClientSyncJsonRpc, topic: Topic): String {
         val json = serialize(payload)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
 
@@ -43,7 +43,7 @@ class JsonRpcSerializer {
         }
     }
 
-    fun deserialize(method: String, json: String): ClientParams? =
+    internal fun deserialize(method: String, json: String): ClientParams? =
         when (method) {
             JsonRpcMethod.WC_PAIRING_APPROVE -> tryDeserialize<PreSettlementPairing.Approve>(json)?.params
             JsonRpcMethod.WC_PAIRING_REJECT -> tryDeserialize<PreSettlementPairing.Reject>(json)?.params

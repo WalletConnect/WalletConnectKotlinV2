@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class SessionProposedPermissions(
+internal data class SessionProposedPermissions(
     @Json(name = "blockchain")
     val blockchain: Blockchain,
     @Json(name = "jsonrpc")

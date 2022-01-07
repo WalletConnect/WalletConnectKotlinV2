@@ -1,6 +1,6 @@
 package com.walletconnect.walletconnectv2.relay.model
 
-object JsonRpcMethod {
+internal object JsonRpcMethod {
     const val WC_PAIRING_PAYLOAD: String = "wc_pairingPayload"
     const val WC_PAIRING_APPROVE: String = "wc_pairingApprove"
     const val WC_PAIRING_REJECT: String = "wc_pairingReject"

@@ -3,7 +3,7 @@ package com.walletconnect.walletconnectv2.relay.model.clientsync.session.after.p
 import com.squareup.moshi.Json
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.proposal.SessionProposedPermissions
 
-data class SessionPermissions(
+internal data class SessionPermissions(
     @Json(name = "blockchain")
     val blockchain: SessionProposedPermissions.Blockchain? = null,
     @Json(name = "jsonrpc")

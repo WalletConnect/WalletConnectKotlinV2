@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class SessionRequest(
+internal data class SessionRequest(
     @Json(name = "method")
     val method: String,
     @Json(name = "params")

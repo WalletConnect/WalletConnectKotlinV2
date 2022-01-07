@@ -1,5 +1,5 @@
 package com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.proposal
 
-data class RelayProtocolOptions(
+internal data class RelayProtocolOptions(
     val protocol: String = "waku"
 )

@@ -18,7 +18,7 @@ import com.walletconnect.walletconnectv2.common.adapters.ExpiryAdapter
 import com.walletconnect.walletconnectv2.common.adapters.JSONObjectAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
 
-sealed class Pairing : ClientParams {
+internal sealed class Pairing : ClientParams {
 
     data class Proposal(
         val topic: Topic,

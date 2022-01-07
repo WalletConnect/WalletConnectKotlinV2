@@ -19,7 +19,7 @@ import com.walletconnect.walletconnectv2.common.adapters.ExpiryAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TtlAdapter
 
-sealed class Session: ClientParams {
+internal sealed class Session: ClientParams {
 
     @JsonClass(generateAdapter = true)
     data class Proposal(
