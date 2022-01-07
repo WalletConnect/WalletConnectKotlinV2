@@ -11,9 +11,9 @@ import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.p
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.success.PairingParticipant
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.success.PairingState
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.after.params.Reason
-import com.walletconnect.walletconnectv2.common.model.Expiry
-import com.walletconnect.walletconnectv2.common.model.Topic
-import com.walletconnect.walletconnectv2.common.model.Ttl
+import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.common.adapters.ExpiryAdapter
 import com.walletconnect.walletconnectv2.common.adapters.JSONObjectAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
@@ -21,19 +21,19 @@ import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
 internal sealed class Pairing : ClientParams {
 
     data class Proposal(
-        val topic: Topic,
+        val topic: TopicVO,
         val relay: JSONObject,
         val pairingProposer: PairingProposer,
         val pairingSignal: PairingSignal?,
         val permissions: PairingProposedPermissions?,
-        val ttl: Ttl
+        val ttl: TtlVO
     ) : Pairing()
 
     @JsonClass(generateAdapter = true)
     data class Success(
         @Json(name = "topic")
         @TopicAdapter.Qualifier
-        val settledTopic: Topic,
+        val settledTopic: TopicVO,
         @Json(name = "relay")
         @JSONObjectAdapter.Qualifier
         val relay: JSONObject,
@@ -41,7 +41,7 @@ internal sealed class Pairing : ClientParams {
         val responder: PairingParticipant,
         @Json(name = "expiry")
         @ExpiryAdapter.Qualifier
-        val expiry: Expiry,
+        val expiry: ExpiryVO,
         @Json(name = "state")
         val state: PairingState
     ) : Pairing()

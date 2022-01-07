@@ -12,9 +12,9 @@ import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.p
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.proposal.SessionSignal
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.success.SessionParticipant
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.common.SessionState
-import com.walletconnect.walletconnectv2.common.model.Expiry
-import com.walletconnect.walletconnectv2.common.model.Topic
-import com.walletconnect.walletconnectv2.common.model.Ttl
+import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.common.adapters.ExpiryAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TtlAdapter
@@ -25,7 +25,7 @@ internal sealed class Session: ClientParams {
     data class Proposal(
         @Json(name = "topic")
         @field:TopicAdapter.Qualifier
-        val topic: Topic,
+        val topic: TopicVO,
         @Json(name = "relay")
         val relay: RelayProtocolOptions,
         @Json(name = "proposer")
@@ -36,7 +36,7 @@ internal sealed class Session: ClientParams {
         val permissions: SessionProposedPermissions,
         @Json(name = "ttl")
         @field:TtlAdapter.Qualifier
-        val ttl: Ttl
+        val ttl: TtlVO
     ) : Session()
 
     @JsonClass(generateAdapter = true)
@@ -47,7 +47,7 @@ internal sealed class Session: ClientParams {
         val responder: SessionParticipant,
         @Json(name = "expiry")
         @ExpiryAdapter.Qualifier
-        val expiry: Expiry,
+        val expiry: ExpiryVO,
         @Json(name = "state")
         val state: SessionState
     ) : Session()

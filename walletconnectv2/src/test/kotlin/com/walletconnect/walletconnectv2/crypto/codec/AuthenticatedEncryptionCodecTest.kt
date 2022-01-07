@@ -5,9 +5,9 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
 import org.junit.jupiter.api.Test
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.after.PostSettlementPairing
-import com.walletconnect.walletconnectv2.common.model.SubscriptionId
-import com.walletconnect.walletconnectv2.common.model.Topic
-import com.walletconnect.walletconnectv2.common.model.Ttl
+import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.common.adapters.SubscriptionIdAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TtlAdapter
@@ -83,9 +83,9 @@ class AuthenticatedEncryptionCodecTest {
         val moshi =
             Moshi.Builder().addLast { type, annotations, moshi ->
                 when (type.getRawType().name) {
-                    SubscriptionId::class.qualifiedName -> SubscriptionIdAdapter
-                    Topic::class.qualifiedName -> TopicAdapter
-                    Ttl::class.qualifiedName -> TtlAdapter
+                    SubscriptionIdVO::class.qualifiedName -> SubscriptionIdAdapter
+                    TopicVO::class.qualifiedName -> TopicAdapter
+                    TtlVO::class.qualifiedName -> TtlAdapter
                     else -> null
                 }
             }.addLast(KotlinJsonAdapterFactory()).build()

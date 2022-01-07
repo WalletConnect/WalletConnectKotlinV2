@@ -1,8 +1,8 @@
 package com.walletconnect.walletconnectv2.common
 
-import com.walletconnect.walletconnectv2.common.model.Expiry
-import com.walletconnect.walletconnectv2.common.model.Topic
-import com.walletconnect.walletconnectv2.common.model.Ttl
+import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -32,15 +32,15 @@ internal class MappingFunctionsTest {
     @Test
     fun `PairingProposal mapped to PairingSuccess`() {
         val pairingProposal = mockk<Pairing.Proposal> {
-            every { topic } returns Topic("0x111")
+            every { topic } returns TopicVO("0x111")
             every { relay } returns mockk()
             every { pairingProposer } returns PairingProposer("0x123", false)
-            every { ttl } returns Ttl(2L)
+            every { ttl } returns TtlVO(2L)
         }
 
         val pairingSuccess = pairingProposal.toPairingSuccess(
-            Topic("0x111"),
-            Expiry(10L),
+            TopicVO("0x111"),
+            ExpiryVO(10L),
             PublicKey("0x123")
         )
 
@@ -54,10 +54,10 @@ internal class MappingFunctionsTest {
     @Test
     fun `PairingSuccess mapped to PreSettlementPairing_Approve`() {
         val randomId = 1L
-        val settledTopic = Topic(getRandom64ByteHexString())
-        val expiry = Expiry(1)
+        val settledTopic = TopicVO(getRandom64ByteHexString())
+        val expiry = ExpiryVO(1)
         val pairingProposal = mockk<Pairing.Proposal> {
-            every { topic } returns Topic(getRandom64ByteHexString())
+            every { topic } returns TopicVO(getRandom64ByteHexString())
             every { relay } returns mockk()
             every { pairingProposer } returns PairingProposer("0x123", false)
             every { ttl } returns mockk()

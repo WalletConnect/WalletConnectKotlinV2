@@ -2,9 +2,9 @@ package com.walletconnect.walletconnectv2.network.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.walletconnectv2.common.model.SubscriptionId
-import com.walletconnect.walletconnectv2.common.model.Topic
-import com.walletconnect.walletconnectv2.common.model.Ttl
+import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.common.adapters.SubscriptionIdAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TtlAdapter
@@ -31,12 +31,12 @@ sealed class Relay {
             data class Params(
                 @Json(name = "topic")
                 @field:TopicAdapter.Qualifier
-                val topic: Topic,
+                val topic: TopicVO,
                 @Json(name = "message")
                 val message: String,
                 @Json(name = "ttl")
                 @field:TtlAdapter.Qualifier
-                val ttl: Ttl = Ttl(86400)
+                val ttl: TtlVO = TtlVO(86400)
             )
         }
 
@@ -77,7 +77,7 @@ sealed class Relay {
             data class Params(
                 @Json(name = "topic")
                 @field:TopicAdapter.Qualifier
-                val topic: Topic
+                val topic: TopicVO
             )
         }
 
@@ -88,7 +88,7 @@ sealed class Relay {
             override val jsonrpc: String = "2.0",
             @Json(name = "result")
             @field:SubscriptionIdAdapter.Qualifier
-            val result: SubscriptionId
+            val result: SubscriptionIdVO
         ) : Subscribe()
 
         data class JsonRpcError(
@@ -115,14 +115,14 @@ sealed class Relay {
             val params: Params
         ) : Subscription() {
 
-            val subscriptionTopic: Topic = params.subscriptionData.topic
+            val subscriptionTopic: TopicVO = params.subscriptionData.topic
             val message: String = params.subscriptionData.message
 
             @JsonClass(generateAdapter = true)
             data class Params(
                 @Json(name = "id")
                 @field:SubscriptionIdAdapter.Qualifier
-                val subscriptionId: SubscriptionId,
+                val subscriptionId: SubscriptionIdVO,
                 @Json(name = "data")
                 val subscriptionData: SubscriptionData
             ) {
@@ -131,7 +131,7 @@ sealed class Relay {
                 data class SubscriptionData(
                     @Json(name = "topic")
                     @field:TopicAdapter.Qualifier
-                    val topic: Topic,
+                    val topic: TopicVO,
                     @Json(name = "message")
                     val message: String
                 )
@@ -173,10 +173,10 @@ sealed class Relay {
             data class Params(
                 @Json(name = "topic")
                 @field:TopicAdapter.Qualifier
-                val topic: Topic,
+                val topic: TopicVO,
                 @Json(name = "id")
                 @field:SubscriptionIdAdapter.Qualifier
-                val subscriptionId: SubscriptionId
+                val subscriptionId: SubscriptionIdVO
             )
         }
 

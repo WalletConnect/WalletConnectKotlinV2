@@ -9,9 +9,9 @@ import com.walletconnect.walletconnectv2.Database
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.Session
 import com.walletconnect.walletconnectv2.common.model.ControllerType
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.proposal.AppMetaData
-import com.walletconnect.walletconnectv2.common.model.Expiry
-import com.walletconnect.walletconnectv2.common.model.Topic
-import com.walletconnect.walletconnectv2.common.model.Ttl
+import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.storage.sequence.vo.AppMetaDataVO
 import com.walletconnect.walletconnectv2.storage.sequence.vo.PairingVO
 import com.walletconnect.walletconnectv2.storage.sequence.vo.SessionVO
@@ -132,7 +132,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         status: SequenceStatus,
         controller_type: ControllerType
     ): PairingVO {
-        return PairingVO(Topic(topic), Expiry(expirySeconds), uri, status)
+        return PairingVO(TopicVO(topic), ExpiryVO(expirySeconds), uri, status)
     }
 
     private fun mapSessionDaoToSessionVO(
@@ -157,13 +157,13 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         }
 
         return SessionVO(
-            topic = Topic(topic),
+            topic = TopicVO(topic),
             chains = permission_chains,
             methods = permissions_methods,
             types = permissions_types,
-            ttl = Ttl(ttl_seconds),
+            ttl = TtlVO(ttl_seconds),
             accounts = accounts ?: emptyList(),
-            expiry = Expiry(expiry),
+            expiry = ExpiryVO(expiry),
             status = status,
             appMetaData = appMetaData
         )

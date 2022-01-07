@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.client.model.mapper
 
 import com.walletconnect.walletconnectv2.client.model.WalletConnectClientModel
-import com.walletconnect.walletconnectv2.common.model.JsonRpcResponse
+import com.walletconnect.walletconnectv2.common.model.vo.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.engine.model.EngineModel
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.after.params.SessionPermissions
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.proposal.SessionProposedPermissions
@@ -43,11 +43,11 @@ internal fun EngineModel.SessionRequest.toClientSessionRequest(): WalletConnectC
         WalletConnectClientModel.SessionRequest.JSONRPCRequest(request.id, request.method, request.params)
     )
 
-internal fun WalletConnectClientModel.JsonRpcResponse.JsonRpcResult.toEngineRpcResult(): JsonRpcResponse.JsonRpcResult =
-    JsonRpcResponse.JsonRpcResult(id, result)
+internal fun WalletConnectClientModel.JsonRpcResponse.JsonRpcResult.toEngineRpcResult(): JsonRpcResponseVO.JsonRpcResult =
+    JsonRpcResponseVO.JsonRpcResult(id, result)
 
-internal fun WalletConnectClientModel.JsonRpcResponse.JsonRpcError.toEngineRpcError(): JsonRpcResponse.JsonRpcError =
-    JsonRpcResponse.JsonRpcError(id, JsonRpcResponse.Error(error.code, error.message))
+internal fun WalletConnectClientModel.JsonRpcResponse.JsonRpcError.toEngineRpcError(): JsonRpcResponseVO.JsonRpcError =
+    JsonRpcResponseVO.JsonRpcError(id, JsonRpcResponseVO.Error(error.code, error.message))
 
 internal fun WalletConnectClientModel.SessionState.toEngineSessionState(): EngineModel.SessionState = EngineModel.SessionState(accounts)
 

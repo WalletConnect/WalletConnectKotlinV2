@@ -1,10 +1,9 @@
-package com.walletconnect.walletconnectv2.common.model
+package com.walletconnect.walletconnectv2.common.model.vo
 
 import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.relay.model.clientsync.ClientSyncJsonRpc
 
-//TODO: Create for every layer
-sealed class JsonRpcResponse : ClientSyncJsonRpc {
+sealed class JsonRpcResponseVO : ClientSyncJsonRpc {
 
     abstract override val id: Long
     val jsonrpc: String = "2.0"
@@ -13,13 +12,13 @@ sealed class JsonRpcResponse : ClientSyncJsonRpc {
     data class JsonRpcResult(
         override val id: Long,
         val result: String
-    ) : JsonRpcResponse()
+    ) : JsonRpcResponseVO()
 
     @JsonClass(generateAdapter = true)
     data class JsonRpcError(
         override val id: Long,
         val error: Error,
-    ) : JsonRpcResponse()
+    ) : JsonRpcResponseVO()
 
     data class Error(
         val code: Long,

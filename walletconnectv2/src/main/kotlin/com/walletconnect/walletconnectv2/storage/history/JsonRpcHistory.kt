@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.walletconnect.walletconnectv2.common.app
-import com.walletconnect.walletconnectv2.common.model.Topic
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.util.Logger
 
 class JsonRpcHistory {
@@ -22,7 +22,7 @@ class JsonRpcHistory {
     //End of region
 
     @SuppressLint("ApplySharedPref")
-    fun setRequest(requestId: Long, topic: Topic): Boolean {
+    fun setRequest(requestId: Long, topic: TopicVO): Boolean {
         return if (!sharedPreferences.contains(requestId.toString())) {
             sharedPreferences.edit().putString(requestId.toString(), topic.value).commit()
         } else {
@@ -31,7 +31,7 @@ class JsonRpcHistory {
         }
     }
 
-    fun deleteRequests(topic: Topic) {
+    fun deleteRequests(topic: TopicVO) {
         sharedPreferences.all.entries
             .filter { entry -> entry.value == topic.value }
             .forEach { entry -> sharedPreferences.edit().remove(entry.key).apply() }

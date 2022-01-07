@@ -13,8 +13,8 @@ import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.Pairing
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.PreSettlementPairing
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.success.PairingParticipant
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.success.PairingState
-import com.walletconnect.walletconnectv2.common.model.Expiry
-import com.walletconnect.walletconnectv2.common.model.Topic
+import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.network.model.Relay
 import com.walletconnect.walletconnectv2.network.data.WakuNetworkRepository
 import com.walletconnect.walletconnectv2.util.CoroutineTestRule
@@ -34,15 +34,15 @@ internal class WakuRelayRepositoryTest {
     @Test
     fun `Publish a pairing request, expect a successful acknowledgement`() {
         // Arrange
-        val topic = Topic(getRandom64ByteHexString())
-        val settledTopic = Topic(getRandom64ByteHexString())
+        val topic = TopicVO(getRandom64ByteHexString())
+        val settledTopic = TopicVO(getRandom64ByteHexString())
         val preSettlementPairing = PreSettlementPairing.Approve(
             id = 1L,
             params = Pairing.Success(
                 settledTopic = settledTopic,
                 relay = JSONObject(),
                 responder = PairingParticipant(getRandom64ByteHexString()),
-                expiry = Expiry(1),
+                expiry = ExpiryVO(1),
                 state = PairingState()
             )
         )

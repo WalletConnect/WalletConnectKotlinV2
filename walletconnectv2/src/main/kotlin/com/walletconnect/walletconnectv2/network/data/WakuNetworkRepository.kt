@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import okhttp3.OkHttpClient
-import com.walletconnect.walletconnectv2.common.model.SubscriptionId
-import com.walletconnect.walletconnectv2.common.model.Topic
+import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.common.moshi
 import com.walletconnect.walletconnectv2.common.scope
 import com.walletconnect.walletconnectv2.network.model.Relay
@@ -54,7 +54,7 @@ class WakuNetworkRepository internal constructor(
         relay.observeSubscriptionRequest()
             .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
 
-    fun publish(topic: Topic, message: String, onResult: (Result<Relay.Publish.Acknowledgement>) -> Unit = {}) {
+    fun publish(topic: TopicVO, message: String, onResult: (Result<Relay.Publish.Acknowledgement>) -> Unit = {}) {
         val publishRequest =
             Relay.Publish.Request(id = generateId(), params = Relay.Publish.Request.Params(topic = topic, message = message))
         observePublishAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
@@ -62,14 +62,14 @@ class WakuNetworkRepository internal constructor(
         relay.publishRequest(publishRequest)
     }
 
-    fun subscribe(topic: Topic, onResult: (Result<Relay.Subscribe.Acknowledgement>) -> Unit) {
+    fun subscribe(topic: TopicVO, onResult: (Result<Relay.Subscribe.Acknowledgement>) -> Unit) {
         val subscribeRequest = Relay.Subscribe.Request(id = generateId(), params = Relay.Subscribe.Request.Params(topic))
         observeSubscribeAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
         observeSubscribeError { error -> onResult(Result.failure(error)) }
         relay.subscribeRequest(subscribeRequest)
     }
 
-    fun unsubscribe(topic: Topic, subscriptionId: SubscriptionId, onResult: (Result<Relay.Unsubscribe.Acknowledgement>) -> Unit) {
+    fun unsubscribe(topic: TopicVO, subscriptionId: SubscriptionIdVO, onResult: (Result<Relay.Unsubscribe.Acknowledgement>) -> Unit) {
         val unsubscribeRequest =
             Relay.Unsubscribe.Request(id = generateId(), params = Relay.Unsubscribe.Request.Params(topic, subscriptionId))
         observeUnSubscribeAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }

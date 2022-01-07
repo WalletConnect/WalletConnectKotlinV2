@@ -1,13 +1,13 @@
 package com.walletconnect.walletconnectv2.common.adapters
 
 import com.squareup.moshi.*
-import com.walletconnect.walletconnectv2.common.model.Ttl
+import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 
-object TtlAdapter : JsonAdapter<Ttl>() {
+object TtlAdapter : JsonAdapter<TtlVO>() {
 
     @FromJson
     @Qualifier
-    override fun fromJson(reader: JsonReader): Ttl? {
+    override fun fromJson(reader: JsonReader): TtlVO? {
         reader.isLenient = true
         var seconds: Long? = null
 
@@ -16,14 +16,14 @@ object TtlAdapter : JsonAdapter<Ttl>() {
         }
 
         return if (seconds != null) {
-            Ttl(seconds)
+            TtlVO(seconds)
         } else {
             null
         }
     }
 
     @ToJson
-    override fun toJson(writer: JsonWriter, @Qualifier value: Ttl?) {
+    override fun toJson(writer: JsonWriter, @Qualifier value: TtlVO?) {
         if (value != null) {
             writer.value(value.seconds)
         } else {

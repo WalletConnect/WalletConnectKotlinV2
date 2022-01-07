@@ -1,8 +1,8 @@
 package com.walletconnect.walletconnectv2.engine.model.mapper
 
-import com.walletconnect.walletconnectv2.common.model.Expiry
-import com.walletconnect.walletconnectv2.common.model.Topic
-import com.walletconnect.walletconnectv2.common.model.Ttl
+import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.crypto.model.PublicKey
 import com.walletconnect.walletconnectv2.engine.model.EngineModel
 import com.walletconnect.walletconnectv2.relay.model.JsonRpcMethod
@@ -29,16 +29,16 @@ internal fun String.toPairProposal(): Pairing.Proposal {
     val ttl: Long = Duration.days(30).inWholeSeconds
 
     return Pairing.Proposal(
-        topic = Topic(pairUri.userInfo),
+        topic = TopicVO(pairUri.userInfo),
         relay = relay,
         pairingProposer = PairingProposer(publicKey, controller),
         pairingSignal = PairingSignal("uri", PairingSignalParams(properUriString)),
         permissions = PairingProposedPermissions(JsonRPC(listOf(JsonRpcMethod.WC_SESSION_PROPOSE))),
-        ttl = Ttl(ttl)
+        ttl = TtlVO(ttl)
     )
 }
 
-internal fun Pairing.Proposal.toPairingSuccess(settleTopic: Topic, expiry: Expiry, selfPublicKey: PublicKey): Pairing.Success =
+internal fun Pairing.Proposal.toPairingSuccess(settleTopic: TopicVO, expiry: ExpiryVO, selfPublicKey: PublicKey): Pairing.Success =
     Pairing.Success(
         settledTopic = settleTopic,
         relay = relay,
@@ -49,8 +49,8 @@ internal fun Pairing.Proposal.toPairingSuccess(settleTopic: Topic, expiry: Expir
 
 internal fun Pairing.Proposal.toApprove(
     id: Long,
-    settleTopic: Topic,
-    expiry: Expiry,
+    settleTopic: TopicVO,
+    expiry: ExpiryVO,
     selfPublicKey: PublicKey
 ): PreSettlementPairing.Approve = PreSettlementPairing.Approve(id = id, params = this.toPairingSuccess(settleTopic, expiry, selfPublicKey))
 

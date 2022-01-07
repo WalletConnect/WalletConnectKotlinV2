@@ -6,13 +6,13 @@ import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.after.Po
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.PreSettlementPairing
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.after.PostSettlementSession
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.PreSettlementSession
-import com.walletconnect.walletconnectv2.common.model.Topic
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.crypto.data.crypto.CryptoManager
 import com.walletconnect.walletconnectv2.crypto.model.EncryptionPayload
 import com.walletconnect.walletconnectv2.crypto.model.PublicKey
 import com.walletconnect.walletconnectv2.crypto.model.SharedKey
 import com.walletconnect.walletconnectv2.crypto.data.crypto.BouncyCastleCryptoManager
-import com.walletconnect.walletconnectv2.common.model.JsonRpcResponse
+import com.walletconnect.walletconnectv2.common.model.vo.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.common.moshi
 import com.walletconnect.walletconnectv2.relay.model.JsonRpcMethod
 import com.walletconnect.walletconnectv2.util.Empty
@@ -23,7 +23,7 @@ class JsonRpcSerializer {
     private val codec: AuthenticatedEncryptionCodec = AuthenticatedEncryptionCodec()
     private val crypto: CryptoManager = BouncyCastleCryptoManager()
 
-    internal fun serialize(payload: ClientSyncJsonRpc, topic: Topic): String {
+    internal fun serialize(payload: ClientSyncJsonRpc, topic: TopicVO): String {
         val json = serialize(payload)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
 
@@ -34,7 +34,7 @@ class JsonRpcSerializer {
         }
     }
 
-    fun decode(message: String, topic: Topic): String {
+    fun decode(message: String, topic: TopicVO): String {
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
         return if (sharedKey.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
             message.hexToUtf8
@@ -84,7 +84,7 @@ class JsonRpcSerializer {
             is PostSettlementSession.SessionUpgrade -> trySerialize(payload)
             is PostSettlementSession.SessionPayload -> trySerialize(payload)
             is PostSettlementSession.SessionDelete -> trySerialize(payload)
-            is JsonRpcResponse -> trySerialize(payload)
+            is JsonRpcResponseVO -> trySerialize(payload)
             else -> String.Empty
         }
 

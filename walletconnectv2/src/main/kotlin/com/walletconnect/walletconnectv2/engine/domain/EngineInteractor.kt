@@ -17,7 +17,10 @@ import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.P
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.proposal.RelayProtocolOptions
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.success.SessionParticipant
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.common.SessionState
-import com.walletconnect.walletconnectv2.common.model.*
+import com.walletconnect.walletconnectv2.common.model.ControllerType
+import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.common.model.vo.JsonRpcResponseVO
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.crypto.data.crypto.CryptoManager
 import com.walletconnect.walletconnectv2.crypto.model.PublicKey
 import com.walletconnect.walletconnectv2.crypto.model.SharedKey
@@ -86,7 +89,7 @@ internal class EngineInteractor {
         )
         relayer.subscribe(pairingProposal.topic)
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
-        val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + pairingProposal.ttl.seconds)
+        val expiry = ExpiryVO((Calendar.getInstance().timeInMillis / 1000) + pairingProposal.ttl.seconds)
         val peerPublicKey = PublicKey(pairingProposal.pairingProposer.publicKey)
         val controllerPublicKey = if (pairingProposal.pairingProposer.controller) {
             peerPublicKey
@@ -148,10 +151,10 @@ internal class EngineInteractor {
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val peerPublicKey = PublicKey(proposal.proposerPublicKey)
         val sessionState = SessionState(proposal.accounts)
-        val expiry = Expiry((Calendar.getInstance().timeInMillis / 1000) + proposal.ttl)
+        val expiry = ExpiryVO((Calendar.getInstance().timeInMillis / 1000) + proposal.ttl)
         val settledSession: SettledSessionSequence =
             settleSessionSequence(RelayProtocolOptions(), selfPublicKey, peerPublicKey, expiry, sessionState)
-        relayer.subscribe(Topic(proposal.topic))
+        relayer.subscribe(TopicVO(proposal.topic))
         val sessionApprove = PreSettlementSession.Approve(
             id = generateId(), params = Session.Success(
                 relay = RelayProtocolOptions(), state = settledSession.state, expiry = expiry,
@@ -159,10 +162,10 @@ internal class EngineInteractor {
             )
         )
 
-        relayer.request(Topic(proposal.topic), sessionApprove) { result ->
+        relayer.request(TopicVO(proposal.topic), sessionApprove) { result ->
             result.fold(
                 onSuccess = {
-                    relayer.unsubscribe(Topic(proposal.topic))
+                    relayer.unsubscribe(TopicVO(proposal.topic))
                     relayer.subscribe(settledSession.topic)
 
                     with(proposal) {
@@ -196,7 +199,7 @@ internal class EngineInteractor {
         val sessionReject = PreSettlementSession.Reject(id = generateId(), params = Session.Failure(reason = reason))
         onSuccess(Pair(topic, reason))
         storageRepository.deleteSession(topic)
-        relayer.request(Topic(topic), sessionReject) { result ->
+        relayer.request(TopicVO(topic), sessionReject) { result ->
             result.fold(
                 onSuccess = {}, //TODO: Should we unsubscribe from topic?
                 onFailure = { error -> onFailure(error) }
@@ -207,9 +210,9 @@ internal class EngineInteractor {
     internal fun disconnect(topic: String, reason: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
         val sessionDelete = PostSettlementSession.SessionDelete(id = generateId(), params = Session.DeleteParams(Reason(message = reason)))
         storageRepository.deleteSession(topic)
-        relayer.unsubscribe(Topic(topic))
+        relayer.unsubscribe(TopicVO(topic))
         onSuccess(Pair(topic, reason))
-        relayer.request(Topic(topic), sessionDelete) { result ->
+        relayer.request(TopicVO(topic), sessionDelete) { result ->
             result.fold(
                 onSuccess = {/*TODO: Should wait for acknowledgement and delete keys?*/ },
                 onFailure = { error -> onFailure(error) }
@@ -217,9 +220,9 @@ internal class EngineInteractor {
         }
     }
 
-    internal fun respondSessionPayload(topic: String, jsonRpcResponse: JsonRpcResponse, onFailure: (Throwable) -> Unit) {
+    internal fun respondSessionPayload(topic: String, jsonRpcResponse: JsonRpcResponseVO, onFailure: (Throwable) -> Unit) {
         relayer.respond(
-            Topic(topic), jsonRpcResponse, { Logger.error("Session payload sent successfully") },
+            TopicVO(topic), jsonRpcResponse, { Logger.error("Session payload sent successfully") },
             { error ->
                 onFailure(error)
                 Logger.error("Sending session payload error: $error")
@@ -234,7 +237,7 @@ internal class EngineInteractor {
         val sessionUpdate: PostSettlementSession.SessionUpdate =
             PostSettlementSession.SessionUpdate(id = generateId(), params = Session.UpdateParams(SessionState(sessionState.accounts)))
         storageRepository.updateSessionWithAccounts(topic, sessionState.accounts)
-        relayer.request(Topic(topic), sessionUpdate) { result ->
+        relayer.request(TopicVO(topic), sessionUpdate) { result ->
             result.fold(
                 onSuccess = { onSuccess(Pair(topic, sessionState.accounts)) },
                 onFailure = { error -> onFailure(error) }
@@ -252,7 +255,7 @@ internal class EngineInteractor {
             params = Session.SessionPermissionsParams(permissions = permissions.toSessionsPermissions())
         )
         storageRepository.updateSessionWithPermissions(topic, permissions.blockchain?.chains, permissions.jsonRpc?.methods)
-        relayer.request(Topic(topic), sessionUpgrade) { result ->
+        relayer.request(TopicVO(topic), sessionUpgrade) { result ->
             result.fold(
                 onSuccess = { onSuccess(Pair(topic, permissions)) },
                 onFailure = { error -> onFailure(error) }
@@ -270,7 +273,7 @@ internal class EngineInteractor {
         val sessionNotification =
             PostSettlementSession
                 .SessionNotification(id = generateId(), params = Session.NotificationParams(notification.type, notification.data))
-        relayer.request(Topic(topic), sessionNotification) { result ->
+        relayer.request(TopicVO(topic), sessionNotification) { result ->
             result.fold(
                 onSuccess = { onSuccess(topic) },
                 onFailure = { error -> onFailure(error) }
@@ -282,7 +285,7 @@ internal class EngineInteractor {
         /*TODO check whether under given topic there is a pairing or session stored and create proper Ping class*/
         //val pairingParams = PostSettlementPairing.PairingPing(id = generateId(), params = Pairing.PingParams())
         val sessionPing = PostSettlementSession.SessionPing(id = generateId(), params = Session.PingParams())
-        relayer.request(Topic(topic), sessionPing) { result ->
+        relayer.request(TopicVO(topic), sessionPing) { result ->
             result.fold(
                 onSuccess = { onSuccess(topic) },
                 onFailure = { error -> onFailure(error) }
@@ -346,8 +349,8 @@ internal class EngineInteractor {
         }
     }
 
-    private fun onPing(topic: Topic, requestId: Long) {
-        val jsonRpcResult = JsonRpcResponse.JsonRpcResult(id = requestId, result = "true")
+    private fun onPing(topic: TopicVO, requestId: Long) {
+        val jsonRpcResult = JsonRpcResponseVO.JsonRpcResult(id = requestId, result = "true")
         relayer.respond(topic, jsonRpcResult,
             { Logger.log("Ping send successfully") },
             { error -> Logger.error("Ping Error: $error") })
@@ -361,7 +364,7 @@ internal class EngineInteractor {
         _sequenceEvent.value = SequenceLifecycle.OnSessionProposal(proposal.toSessionProposal())
     }
 
-    private fun onSessionPayload(payload: Session.SessionPayloadParams, topic: Topic, requestId: Long) {
+    private fun onSessionPayload(payload: Session.SessionPayloadParams, topic: TopicVO, requestId: Long) {
         //TODO Validate session request + add unmarshaling of generic session request payload to the usable generic object
         val params = payload.request.params.toString()
         val chainId = payload.chainId
@@ -371,20 +374,20 @@ internal class EngineInteractor {
         )
     }
 
-    private fun onSessionDelete(params: Session.DeleteParams, topic: Topic) {
+    private fun onSessionDelete(params: Session.DeleteParams, topic: TopicVO) {
         crypto.removeKeys(topic.value)
         storageRepository.deleteSession(topic.value)
         relayer.unsubscribe(topic)
         _sequenceEvent.value = SequenceLifecycle.OnSessionDeleted(EngineModel.DeletedSession(topic.value, params.reason.message))
     }
 
-    private fun onSessionNotification(params: Session.NotificationParams, topic: Topic) {
+    private fun onSessionNotification(params: Session.NotificationParams, topic: TopicVO) {
         val type = params.type
         val data = params.data.toString()
         _sequenceEvent.value = SequenceLifecycle.OnSessionNotification(EngineModel.SessionNotification(topic.value, type, data))
     }
 
-    private fun onPairingDelete(params: Pairing.DeleteParams, topic: Topic) {
+    private fun onPairingDelete(params: Pairing.DeleteParams, topic: TopicVO) {
         crypto.removeKeys(topic.value)
         relayer.unsubscribe(topic)
         //TODO delete from DB
@@ -395,7 +398,7 @@ internal class EngineInteractor {
         selfPublicKey: PublicKey,
         peerPublicKey: PublicKey,
         controllerPublicKey: PublicKey,
-        expiry: Expiry
+        expiry: ExpiryVO
     ): SettledPairingSequence {
         val (_, settledTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, peerPublicKey)
         return SettledPairingSequence(
@@ -445,7 +448,7 @@ internal class EngineInteractor {
             }
     }
 
-    private fun Expiry.isSequenceValid(): Boolean {
+    private fun ExpiryVO.isSequenceValid(): Boolean {
         return seconds > (System.currentTimeMillis() / 1000)
     }
 
@@ -455,7 +458,7 @@ internal class EngineInteractor {
         relay: RelayProtocolOptions,
         selfPublicKey: PublicKey,
         peerPublicKey: PublicKey,
-        expiry: Expiry,
+        expiry: ExpiryVO,
         sessionState: SessionState
     ): SettledSessionSequence {
         val (sharedKey, topic) = crypto.generateTopicAndSharedKey(selfPublicKey, peerPublicKey)

@@ -17,10 +17,10 @@ import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.tinder.scarlet.ws.Receive
 import com.tinder.scarlet.ws.Send
 import com.walletconnect.walletconnectv2.common.adapters.*
-import com.walletconnect.walletconnectv2.common.model.Expiry
-import com.walletconnect.walletconnectv2.common.model.SubscriptionId
-import com.walletconnect.walletconnectv2.common.model.Topic
-import com.walletconnect.walletconnectv2.common.model.Ttl
+import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.singleOrNull
 import okhttp3.OkHttpClient
@@ -74,7 +74,7 @@ internal class RelayTest {
             val relayPublishRequest = Relay.Publish.Request(
                 id = 1,
                 params = Relay.Publish.Request.Params(
-                    topic = Topic(getRandom64ByteHexString()),
+                    topic = TopicVO(getRandom64ByteHexString()),
                     message = getRandom64ByteHexString()
                 )
             )
@@ -126,7 +126,7 @@ internal class RelayTest {
             // Arrange
             val relaySubscribeRequest = Relay.Subscribe.Request(
                 id = 1,
-                params = Relay.Subscribe.Request.Params(Topic(getRandom64ByteHexString()))
+                params = Relay.Subscribe.Request.Params(TopicVO(getRandom64ByteHexString()))
             )
             val serverRelayPublishObserver = server.observeSubscribePublish().test()
 
@@ -148,7 +148,7 @@ internal class RelayTest {
             // Arrange
             val relaySubscribeAcknowledgement = Relay.Subscribe.Acknowledgement(
                 id = 1,
-                result = SubscriptionId("SubscriptionId 1")
+                result = SubscriptionIdVO("SubscriptionId 1")
             )
             val clientRelaySubscribeObserver = client.observeSubscribeAcknowledgement()
 
@@ -204,9 +204,9 @@ internal class RelayTest {
             val relaySubscriptionRequest = Relay.Subscription.Request(
                 id = 1,
                 params = Relay.Subscription.Request.Params(
-                    subscriptionId = SubscriptionId("subscriptionId"),
+                    subscriptionId = SubscriptionIdVO("subscriptionId"),
                     subscriptionData = Relay.Subscription.Request.Params.SubscriptionData(
-                        topic = Topic(getRandom64ByteHexString()),
+                        topic = TopicVO(getRandom64ByteHexString()),
                         message = message
                     )
                 )
@@ -259,8 +259,8 @@ internal class RelayTest {
             val relayUnsubscribeRequest = Relay.Unsubscribe.Request(
                 id = 1,
                 params = Relay.Unsubscribe.Request.Params(
-                    topic = Topic(getRandom64ByteHexString()),
-                    subscriptionId = SubscriptionId("subscriptionId")
+                    topic = TopicVO(getRandom64ByteHexString()),
+                    subscriptionId = SubscriptionIdVO("subscriptionId")
                 )
             )
             val serverRelayPublishObserver = server.observeUnsubscribePublish().test()
@@ -306,11 +306,11 @@ internal class RelayTest {
     private fun createMoshi(): Moshi = Moshi.Builder()
         .add { type, _, _ ->
             when (type.getRawType().name) {
-                Expiry::class.qualifiedName -> ExpiryAdapter
+                ExpiryVO::class.qualifiedName -> ExpiryAdapter
                 JSONObject::class.qualifiedName -> JSONObjectAdapter
-                SubscriptionId::class.qualifiedName -> SubscriptionIdAdapter
-                Topic::class.qualifiedName -> TopicAdapter
-                Ttl::class.qualifiedName -> TtlAdapter
+                SubscriptionIdVO::class.qualifiedName -> SubscriptionIdAdapter
+                TopicVO::class.qualifiedName -> TopicAdapter
+                TtlVO::class.qualifiedName -> TtlAdapter
                 else -> null
             }
         }

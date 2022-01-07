@@ -3,7 +3,7 @@ package com.walletconnect.walletconnectv2.crypto.managers
 import io.mockk.spyk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.common.model.Topic
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.crypto.model.Key
 import com.walletconnect.walletconnectv2.crypto.model.PrivateKey
 import com.walletconnect.walletconnectv2.crypto.model.PublicKey
@@ -71,10 +71,10 @@ internal class BouncyCastleCryptoManagerTest {
         val sharedKey = object : Key {
             override val keyAsHex: String = sharedKeyString.keyAsHex
         }
-        sut.setEncryptionKeys(sharedKeyString, publicKey, Topic("topic"))
+        sut.setEncryptionKeys(sharedKeyString, publicKey, TopicVO("topic"))
 
-        assertEquals(sharedKey.keyAsHex, keyChain.getKeys(Topic("topic").value).first)
-        assertEquals(publicKey.keyAsHex, keyChain.getKeys(Topic("topic").value).second)
+        assertEquals(sharedKey.keyAsHex, keyChain.getKeys(TopicVO("topic").value).first)
+        assertEquals(publicKey.keyAsHex, keyChain.getKeys(TopicVO("topic").value).second)
     }
 
     @Test

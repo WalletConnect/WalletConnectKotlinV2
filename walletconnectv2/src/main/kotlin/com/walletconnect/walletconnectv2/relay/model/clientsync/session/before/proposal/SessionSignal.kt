@@ -2,7 +2,7 @@ package com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.walletconnectv2.common.model.Topic
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
 
 @JsonClass(generateAdapter = true)
@@ -15,6 +15,6 @@ internal data class SessionSignal(
 
     data class Params(
         @field:TopicAdapter.Qualifier
-        val topic: Topic
+        val topic: TopicVO
     )
 }

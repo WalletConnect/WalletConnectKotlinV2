@@ -1,18 +1,18 @@
 package com.walletconnect.walletconnectv2.common.adapters
 
 import com.squareup.moshi.*
-import com.walletconnect.walletconnectv2.common.model.Expiry
+import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
 
-object ExpiryAdapter: JsonAdapter<Expiry>() {
+object ExpiryAdapter: JsonAdapter<ExpiryVO>() {
 
     @FromJson
     @Qualifier
-    override fun fromJson(reader: JsonReader): Expiry? {
+    override fun fromJson(reader: JsonReader): ExpiryVO? {
         return null
     }
 
     @ToJson
-    override fun toJson(writer: JsonWriter, @Qualifier value: Expiry?) {
+    override fun toJson(writer: JsonWriter, @Qualifier value: ExpiryVO?) {
         if (value != null) {
             writer.value(value.seconds)
         } else {
