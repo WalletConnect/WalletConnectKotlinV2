@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
 import android.app.Application
-import com.walletconnect.walletconnectv2.client.model.toSessionsPermissions
+import com.walletconnect.walletconnectv2.client.model.mapper.toSessionsPermissions
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.Pairing
 import com.walletconnect.walletconnectv2.engine.model.sequence.SettledPairingSequence
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.after.PostSettlementPairing
@@ -17,21 +17,19 @@ import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.P
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.proposal.RelayProtocolOptions
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.success.SessionParticipant
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.common.SessionState
-import com.walletconnect.walletconnectv2.common.*
 import com.walletconnect.walletconnectv2.common.model.*
 import com.walletconnect.walletconnectv2.crypto.data.crypto.CryptoManager
 import com.walletconnect.walletconnectv2.crypto.model.PublicKey
 import com.walletconnect.walletconnectv2.crypto.model.SharedKey
 import com.walletconnect.walletconnectv2.crypto.data.crypto.BouncyCastleCryptoManager
-import com.walletconnect.walletconnectv2.engine.model.EngineData
+import com.walletconnect.walletconnectv2.engine.model.EngineModel
 import com.walletconnect.walletconnectv2.engine.model.SequenceLifecycle
 import com.walletconnect.walletconnectv2.relay.domain.WalletConnectRelayer
 import com.walletconnect.walletconnectv2.common.scope
 import com.walletconnect.walletconnectv2.engine.model.mapper.toApprove
 import com.walletconnect.walletconnectv2.engine.model.mapper.toPairProposal
+import com.walletconnect.walletconnectv2.engine.model.mapper.toRelayAppMetaData
 import com.walletconnect.walletconnectv2.engine.model.mapper.toSessionProposal
-import com.walletconnect.walletconnectv2.relay.model.JsonRpcMethod
-import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.PreSettlementPairing
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.proposal.*
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
@@ -43,7 +41,6 @@ import kotlinx.coroutines.flow.*
 import org.json.JSONObject
 import java.net.URI
 import java.util.*
-import kotlin.time.Duration
 
 internal class EngineInteractor {
     //region provide with DI
@@ -53,7 +50,7 @@ internal class EngineInteractor {
     private val crypto: CryptoManager = BouncyCastleCryptoManager()
     //endregion
 
-    private var metaData: AppMetaData? = null
+    private var metaData: EngineModel.AppMetaDataDO? = null
     private var controllerType = ControllerType.CONTROLLER
     private val _sequenceEvent: MutableStateFlow<SequenceLifecycle> = MutableStateFlow(SequenceLifecycle.Default)
     val sequenceEvent: StateFlow<SequenceLifecycle> = _sequenceEvent
@@ -128,7 +125,10 @@ internal class EngineInteractor {
 
     private fun pairingUpdate(settledSequence: SettledPairingSequence) {
         val pairingUpdate: PostSettlementPairing.PairingUpdate =
-            PostSettlementPairing.PairingUpdate(id = generateId(), params = Pairing.UpdateParams(state = PairingState(metaData)))
+            PostSettlementPairing.PairingUpdate(
+                id = generateId(),
+                params = Pairing.UpdateParams(state = PairingState(metaData?.toRelayAppMetaData()))
+            )
         relayer.request(settledSequence.settledTopic, pairingUpdate) { result ->
             result.fold(
                 onSuccess = {
@@ -141,8 +141,8 @@ internal class EngineInteractor {
     }
 
     internal fun approve(
-        proposal: EngineData.SessionProposalDO,
-        onSuccess: (EngineData.SettledSession) -> Unit,
+        proposal: EngineModel.SessionProposalDO,
+        onSuccess: (EngineModel.SettledSession) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -155,7 +155,7 @@ internal class EngineInteractor {
         val sessionApprove = PreSettlementSession.Approve(
             id = generateId(), params = Session.Success(
                 relay = RelayProtocolOptions(), state = settledSession.state, expiry = expiry,
-                responder = SessionParticipant(selfPublicKey.keyAsHex, metadata = metaData)
+                responder = SessionParticipant(selfPublicKey.keyAsHex, metadata = metaData?.toRelayAppMetaData())
             )
         )
 
@@ -174,14 +174,14 @@ internal class EngineInteractor {
                             sessionApprove.params.expiry.seconds
                         )
 
-                        val engineDataSettledSession = EngineData.SettledSession(
+                        val engineDataSettledSession = EngineModel.SettledSession(
                             settledSession.topic.value,
                             accounts,
-                            AppMetaData(name, description, url, icons.map { iconUri -> iconUri.toString() }),
-                            EngineData.SettledSession.Permissions(
-                                EngineData.SettledSession.Permissions.Blockchain(chains),
-                                EngineData.SettledSession.Permissions.JsonRpc(methods),
-                                EngineData.SettledSession.Permissions.Notifications(types)
+                            EngineModel.AppMetaDataDO(name, description, url, icons.map { iconUri -> iconUri.toString() }),
+                            EngineModel.SettledSession.Permissions(
+                                EngineModel.SettledSession.Permissions.Blockchain(chains),
+                                EngineModel.SettledSession.Permissions.JsonRpc(methods),
+                                EngineModel.SettledSession.Permissions.Notifications(types)
                             )
                         )
                         onSuccess(engineDataSettledSession)
@@ -227,7 +227,7 @@ internal class EngineInteractor {
     }
 
     internal fun update(
-        topic: String, sessionState: EngineData.SessionState,
+        topic: String, sessionState: EngineModel.SessionState,
         onSuccess: (Pair<String, List<String>>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
@@ -243,8 +243,8 @@ internal class EngineInteractor {
     }
 
     internal fun upgrade(
-        topic: String, permissions: EngineData.SessionPermissions,
-        onSuccess: (Pair<String, EngineData.SessionPermissions>) -> Unit,
+        topic: String, permissions: EngineModel.SessionPermissions,
+        onSuccess: (Pair<String, EngineModel.SessionPermissions>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
         val sessionUpgrade = PostSettlementSession.SessionUpgrade(
@@ -261,7 +261,7 @@ internal class EngineInteractor {
     }
 
     internal fun notify(
-        topic: String, notification: EngineData.Notification,
+        topic: String, notification: EngineModel.Notification,
         onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
@@ -290,13 +290,13 @@ internal class EngineInteractor {
         }
     }
 
-    internal fun getListOfPendingSessions(): List<EngineData.SessionProposalDO> {
+    internal fun getListOfPendingSessions(): List<EngineModel.SessionProposalDO> {
         return storageRepository.getListOfSessionVOs().filter { session ->
             session.status == SequenceStatus.PENDING && session.expiry.isSequenceValid()
         }.map { session ->
             val (_, peerPublicKey) = crypto.getKeyAgreement(session.topic)
 
-            EngineData.SessionProposalDO(
+            EngineModel.SessionProposalDO(
                 name = session.appMetaData?.name ?: String.Empty,
                 description = session.appMetaData?.description ?: String.Empty,
                 url = session.appMetaData?.url ?: String.Empty,
@@ -312,21 +312,23 @@ internal class EngineInteractor {
         }
     }
 
-    internal fun getListOfSettledSessions(): List<EngineData.SettledSession> = storageRepository.getListOfSessionVOs().filter { session ->
+    internal fun getListOfSettledSessions(): List<EngineModel.SettledSession> = storageRepository.getListOfSessionVOs().filter { session ->
         session.status == SequenceStatus.SETTLED && session.expiry.isSequenceValid()
     }.map { session ->
-        val metadata: AppMetaData? = session.appMetaData?.let { appMetaData ->
-            AppMetaData(appMetaData.name, appMetaData.description, appMetaData.url, appMetaData.icons)
-        }
 
-        EngineData.SettledSession(
+        val metadata: EngineModel.AppMetaDataDO? =
+            session.appMetaData?.let { metaData ->
+                EngineModel.AppMetaDataDO(metaData.name, metaData.description, metaData.url, metaData.icons)
+            }
+
+        EngineModel.SettledSession(
             session.topic.value,
             session.accounts,
             metadata,
-            EngineData.SettledSession.Permissions(
-                EngineData.SettledSession.Permissions.Blockchain(session.chains),
-                EngineData.SettledSession.Permissions.JsonRpc(session.methods),
-                EngineData.SettledSession.Permissions.Notifications(session.types)
+            EngineModel.SettledSession.Permissions(
+                EngineModel.SettledSession.Permissions.Blockchain(session.chains),
+                EngineModel.SettledSession.Permissions.JsonRpc(session.methods),
+                EngineModel.SettledSession.Permissions.Notifications(session.types)
             )
         )
     }
@@ -365,7 +367,7 @@ internal class EngineInteractor {
         val chainId = payload.chainId
         val method = payload.request.method
         _sequenceEvent.value = SequenceLifecycle.OnSessionRequest(
-            EngineData.SessionRequest(topic.value, chainId, EngineData.SessionRequest.JSONRPCRequest(requestId, method, params))
+            EngineModel.SessionRequest(topic.value, chainId, EngineModel.SessionRequest.JSONRPCRequest(requestId, method, params))
         )
     }
 
@@ -373,13 +375,13 @@ internal class EngineInteractor {
         crypto.removeKeys(topic.value)
         storageRepository.deleteSession(topic.value)
         relayer.unsubscribe(topic)
-        _sequenceEvent.value = SequenceLifecycle.OnSessionDeleted(EngineData.DeletedSession(topic.value, params.reason.message))
+        _sequenceEvent.value = SequenceLifecycle.OnSessionDeleted(EngineModel.DeletedSession(topic.value, params.reason.message))
     }
 
     private fun onSessionNotification(params: Session.NotificationParams, topic: Topic) {
         val type = params.type
         val data = params.data.toString()
-        _sequenceEvent.value = SequenceLifecycle.OnSessionNotification(EngineData.SessionNotification(topic.value, type, data))
+        _sequenceEvent.value = SequenceLifecycle.OnSessionNotification(EngineModel.SessionNotification(topic.value, type, data))
     }
 
     private fun onPairingDelete(params: Pairing.DeleteParams, topic: Topic) {
@@ -475,6 +477,6 @@ internal class EngineInteractor {
         val projectId: String,
         val isController: Boolean,
         val application: Application,
-        val metaData: AppMetaData
+        val metaData: EngineModel.AppMetaDataDO
     )
 }

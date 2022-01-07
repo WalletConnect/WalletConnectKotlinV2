@@ -1,4 +1,4 @@
-package com.walletconnect.walletconnectv2.common.errors
+package com.walletconnect.walletconnectv2.common.model.errors
 
 sealed class WalletConnectExceptions(override val message: String?) : Exception(message) {
     class ProjectIdDoesNotExistException(override val message: String?) : WalletConnectExceptions(message)

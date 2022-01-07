@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClient
 import com.walletconnect.walletconnectv2.client.model.ClientTypes
-import com.walletconnect.walletconnectv2.client.model.WalletConnectClientData
+import com.walletconnect.walletconnectv2.client.model.WalletConnectClientModel
 import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClientListener
 import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClientListeners
 
@@ -17,7 +17,7 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
     private var _eventFlow = MutableStateFlow<WalletUiEvent>(InitSessionsList(WalletConnectClient.getListOfSettledSessions()))
     val eventFlow: LiveData<WalletUiEvent> = _eventFlow.asLiveData()
 
-    private lateinit var proposal: WalletConnectClientData.SessionProposal
+    private lateinit var proposal: WalletConnectClientModel.SessionProposal
 
     init {
         WalletConnectClient.setWalletConnectListener(this)
@@ -27,7 +27,7 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
         val pairParams = ClientTypes.PairParams(uri.trim())
 
         WalletConnectClient.pair(pairParams, object : WalletConnectClientListeners.Pairing {
-            override fun onSuccess(settledPairing: WalletConnectClientData.SettledPairing) {
+            override fun onSuccess(settledPairing: WalletConnectClientModel.SettledPairing) {
                 //Settled pairing
             }
 
@@ -42,7 +42,7 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
         val approveParams: ClientTypes.ApproveParams = ClientTypes.ApproveParams(proposal, accounts)
 
         WalletConnectClient.approve(approveParams, object : WalletConnectClientListeners.SessionApprove {
-            override fun onSuccess(settledSession: WalletConnectClientData.SettledSession) {
+            override fun onSuccess(settledSession: WalletConnectClientModel.SettledSession) {
                 viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())) }
             }
 
@@ -58,7 +58,7 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
         val rejectParams: ClientTypes.RejectParams = ClientTypes.RejectParams(rejectionReason, proposalTopic)
 
         WalletConnectClient.reject(rejectParams, object : WalletConnectClientListeners.SessionReject {
-            override fun onSuccess(rejectedSession: WalletConnectClientData.RejectedSession) {
+            override fun onSuccess(rejectedSession: WalletConnectClientModel.RejectedSession) {
                 viewModelScope.launch { _eventFlow.emit(RejectSession) }
             }
 
@@ -72,7 +72,7 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
         val disconnectParams = ClientTypes.DisconnectParams(topic, reason)
 
         WalletConnectClient.disconnect(disconnectParams, object : WalletConnectClientListeners.SessionDelete {
-            override fun onSuccess(deletedSession: WalletConnectClientData.DeletedSession) {
+            override fun onSuccess(deletedSession: WalletConnectClientModel.DeletedSession) {
                 viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())) }
             }
 
@@ -82,10 +82,10 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
         })
     }
 
-    fun respondRequest(sessionRequest: WalletConnectClientData.SessionRequest) {
+    fun respondRequest(sessionRequest: WalletConnectClientModel.SessionRequest) {
         val result = ClientTypes.ResponseParams(
             sessionTopic = sessionRequest.topic,
-            jsonRpcResponse = WalletConnectClientData.JsonRpcResponse.JsonRpcResult(
+            jsonRpcResponse = WalletConnectClientModel.JsonRpcResponse.JsonRpcResult(
                 sessionRequest.request.id,
                 "0xa3f20717a250c2b0b729b7e5becbff67fdaef7e0699da4de7ca5895b02a170a12d887fd3b17bfdce3481f10bea41f45ba9f709d39ce8325427b57afcfc994cee1b"
             )
@@ -98,12 +98,12 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
         })
     }
 
-    fun rejectRequest(sessionRequest: WalletConnectClientData.SessionRequest) {
+    fun rejectRequest(sessionRequest: WalletConnectClientModel.SessionRequest) {
         val result = ClientTypes.ResponseParams(
             sessionTopic = sessionRequest.topic,
-            jsonRpcResponse = WalletConnectClientData.JsonRpcResponse.JsonRpcError(
+            jsonRpcResponse = WalletConnectClientModel.JsonRpcResponse.JsonRpcError(
                 sessionRequest.request.id,
-                WalletConnectClientData.JsonRpcResponse.Error(500, "Kotlin Wallet Error")
+                WalletConnectClientModel.JsonRpcResponse.Error(500, "Kotlin Wallet Error")
             )
         )
 
@@ -114,14 +114,14 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
         })
     }
 
-    fun sessionUpdate(session: WalletConnectClientData.SettledSession) {
+    fun sessionUpdate(session: WalletConnectClientModel.SettledSession) {
         val updateParams = ClientTypes.UpdateParams(
             sessionTopic = session.topic,
-            sessionState = WalletConnectClientData.SessionState(accounts = listOf("eip155:8001:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62"))
+            sessionState = WalletConnectClientModel.SessionState(accounts = listOf("eip155:8001:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62"))
         )
 
         WalletConnectClient.update(updateParams, object : WalletConnectClientListeners.SessionUpdate {
-            override fun onSuccess(updatedSession: WalletConnectClientData.UpdatedSession) {
+            override fun onSuccess(updatedSession: WalletConnectClientModel.UpdatedSession) {
                 viewModelScope.launch {
                     _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions(), "Successful session update"))
                 }
@@ -133,15 +133,15 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
         })
     }
 
-    fun sessionUpgrade(session: WalletConnectClientData.SettledSession) {
+    fun sessionUpgrade(session: WalletConnectClientModel.SettledSession) {
         val permissions =
-            WalletConnectClientData.SessionPermissions(
-                blockchain = WalletConnectClientData.Blockchain(chains = listOf("eip155:80001")),
-                jsonRpc = WalletConnectClientData.Jsonrpc(listOf("eth_sign"))
+            WalletConnectClientModel.SessionPermissions(
+                blockchain = WalletConnectClientModel.Blockchain(chains = listOf("eip155:80001")),
+                jsonRpc = WalletConnectClientModel.Jsonrpc(listOf("eth_sign"))
             )
         val upgradeParams = ClientTypes.UpgradeParams(topic = session.topic, permissions = permissions)
         WalletConnectClient.upgrade(upgradeParams, object : WalletConnectClientListeners.SessionUpgrade {
-            override fun onSuccess(upgradedSession: WalletConnectClientData.UpgradedSession) {
+            override fun onSuccess(upgradedSession: WalletConnectClientModel.UpgradedSession) {
                 viewModelScope.launch {
                     _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions(), "Successful session upgrade"))
                 }
@@ -153,7 +153,7 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
         })
     }
 
-    fun sessionPing(session: WalletConnectClientData.SettledSession) {
+    fun sessionPing(session: WalletConnectClientModel.SettledSession) {
         val pingParams = ClientTypes.PingParams(session.topic)
 
         WalletConnectClient.ping(pingParams, object : WalletConnectClientListeners.SessionPing {
@@ -169,25 +169,25 @@ class WalletViewModel : ViewModel(), WalletConnectClientListener {
         })
     }
 
-    override fun onSessionProposal(sessionProposal: WalletConnectClientData.SessionProposal) {
+    override fun onSessionProposal(sessionProposal: WalletConnectClientModel.SessionProposal) {
         viewModelScope.launch {
             this@WalletViewModel.proposal = sessionProposal
             _eventFlow.emit(ShowSessionProposalDialog(this@WalletViewModel.proposal))
         }
     }
 
-    override fun onSessionRequest(sessionRequest: WalletConnectClientData.SessionRequest) {
+    override fun onSessionRequest(sessionRequest: WalletConnectClientModel.SessionRequest) {
         viewModelScope.launch {
             val session = WalletConnectClient.getListOfSettledSessions().find { session -> session.topic == sessionRequest.topic }!!
             _eventFlow.emit(ShowSessionRequestDialog(sessionRequest, session))
         }
     }
 
-    override fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession) {
+    override fun onSessionDelete(deletedSession: WalletConnectClientModel.DeletedSession) {
         viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())) }
     }
 
-    override fun onSessionNotification(sessionNotification: WalletConnectClientData.SessionNotification) {
+    override fun onSessionNotification(sessionNotification: WalletConnectClientModel.SessionNotification) {
         //TODO handle session notification
     }
 }

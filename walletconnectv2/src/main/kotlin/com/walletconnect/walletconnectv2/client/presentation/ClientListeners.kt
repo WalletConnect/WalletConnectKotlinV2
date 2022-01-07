@@ -1,12 +1,12 @@
 package com.walletconnect.walletconnectv2.client.presentation
 
-import com.walletconnect.walletconnectv2.client.model.WalletConnectClientData
+import com.walletconnect.walletconnectv2.client.model.WalletConnectClientModel
 
 interface WalletConnectClientListener {
-    fun onSessionProposal(sessionProposal: WalletConnectClientData.SessionProposal)
-    fun onSessionRequest(sessionRequest: WalletConnectClientData.SessionRequest)
-    fun onSessionDelete(deletedSession: WalletConnectClientData.DeletedSession)
-    fun onSessionNotification(sessionNotification: WalletConnectClientData.SessionNotification)
+    fun onSessionProposal(sessionProposal: WalletConnectClientModel.SessionProposal)
+    fun onSessionRequest(sessionRequest: WalletConnectClientModel.SessionRequest)
+    fun onSessionDelete(deletedSession: WalletConnectClientModel.DeletedSession)
+    fun onSessionNotification(sessionNotification: WalletConnectClientModel.SessionNotification)
 }
 
 sealed interface WalletConnectClientListeners {
@@ -14,29 +14,29 @@ sealed interface WalletConnectClientListeners {
     fun onError(error: Throwable)
 
     interface Pairing : WalletConnectClientListeners {
-        fun onSuccess(settledPairing: WalletConnectClientData.SettledPairing)
+        fun onSuccess(settledPairing: WalletConnectClientModel.SettledPairing)
     }
 
     interface SessionReject : WalletConnectClientListeners {
-        fun onSuccess(rejectedSession: WalletConnectClientData.RejectedSession)
+        fun onSuccess(rejectedSession: WalletConnectClientModel.RejectedSession)
     }
 
     interface SessionDelete : WalletConnectClientListeners {
-        fun onSuccess(deletedSession: WalletConnectClientData.DeletedSession)
+        fun onSuccess(deletedSession: WalletConnectClientModel.DeletedSession)
     }
 
     interface SessionApprove : WalletConnectClientListeners {
-        fun onSuccess(settledSession: WalletConnectClientData.SettledSession)
+        fun onSuccess(settledSession: WalletConnectClientModel.SettledSession)
     }
 
     interface SessionPayload : WalletConnectClientListeners
 
     interface SessionUpdate : WalletConnectClientListeners {
-        fun onSuccess(updatedSession: WalletConnectClientData.UpdatedSession)
+        fun onSuccess(updatedSession: WalletConnectClientModel.UpdatedSession)
     }
 
     interface SessionUpgrade : WalletConnectClientListeners {
-        fun onSuccess(upgradedSession: WalletConnectClientData.UpgradedSession)
+        fun onSuccess(upgradedSession: WalletConnectClientModel.UpgradedSession)
     }
 
     interface SessionPing : WalletConnectClientListeners {

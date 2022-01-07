@@ -5,13 +5,13 @@ import android.net.Uri
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.walletconnect.sample.databinding.SessionProposalDialogBinding
-import com.walletconnect.walletconnectv2.client.model.WalletConnectClientData
+import com.walletconnect.walletconnectv2.client.model.WalletConnectClientModel
 
 class SessionProposalDialog(
     context: Context,
     val approve: () -> Unit,
     val reject: () -> Unit,
-    private val proposal: WalletConnectClientData.SessionProposal
+    private val proposal: WalletConnectClientModel.SessionProposal
 ) : BottomSheetDialog(context) {
 
     private val binding = SessionProposalDialogBinding.inflate(layoutInflater)

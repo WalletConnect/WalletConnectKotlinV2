@@ -1,9 +1,9 @@
 package com.walletconnect.walletconnectv2.engine.model
 
-import com.walletconnect.walletconnectv2.common.model.AppMetaData
+import com.walletconnect.walletconnectv2.util.Empty
 import java.net.URI
 
-sealed class EngineData {
+sealed class EngineModel {
 
     internal data class SessionProposalDO(
         val name: String,
@@ -17,7 +17,7 @@ sealed class EngineData {
         val proposerPublicKey: String,
         val ttl: Long,
         val accounts: List<String>
-    ) : EngineData() {
+    ) : EngineModel() {
         val icon: String = icons.first().toString()
     }
 
@@ -25,26 +25,26 @@ sealed class EngineData {
         val topic: String,
         val chainId: String?,
         val request: JSONRPCRequest
-    ) : EngineData() {
+    ) : EngineModel() {
 
         data class JSONRPCRequest(
             val id: Long,
             val method: String,
             val params: String
-        ) : EngineData()
+        ) : EngineModel()
     }
 
     internal data class DeletedSession(
         val topic: String,
         val reason: String
-    ) : EngineData()
+    ) : EngineModel()
 
     internal data class SettledSession(
         val topic: String,
         val accounts: List<String>,
-        val peerAppMetaData: AppMetaData?,
+        val peerAppMetaData: AppMetaDataDO?,
         val permissions: Permissions
-    ) : EngineData() {
+    ) : EngineModel() {
 
         data class Permissions(
             val blockchain: Blockchain,
@@ -63,18 +63,25 @@ sealed class EngineData {
         val topic: String,
         val type: String,
         val data: String
-    ) : EngineData()
+    ) : EngineModel()
 
     internal data class Notification(
         val type: String,
         val data: String
-    ) : EngineData()
+    ) : EngineModel()
 
-    data class SessionState(val accounts: List<String>) : EngineData()
+    data class SessionState(val accounts: List<String>) : EngineModel()
 
-    data class SessionPermissions(val blockchain: Blockchain? = null, val jsonRpc: Jsonrpc? = null) : EngineData()
+    data class SessionPermissions(val blockchain: Blockchain? = null, val jsonRpc: Jsonrpc? = null) : EngineModel()
 
-    data class Blockchain(val chains: List<String>) : EngineData()
+    data class Blockchain(val chains: List<String>) : EngineModel()
 
-    data class Jsonrpc(val methods: List<String>) : EngineData()
+    data class Jsonrpc(val methods: List<String>) : EngineModel()
+
+    data class AppMetaDataDO(
+        val name: String = "Peer",
+        val description: String = String.Empty,
+        val url: String = String.Empty,
+        val icons: List<String> = emptyList()
+    ) : EngineModel()
 }

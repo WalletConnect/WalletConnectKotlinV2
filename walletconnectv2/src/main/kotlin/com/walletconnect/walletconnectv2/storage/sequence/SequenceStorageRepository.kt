@@ -7,8 +7,8 @@ import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.walletconnectv2.Database
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.Session
-import com.walletconnect.walletconnectv2.common.*
-import com.walletconnect.walletconnectv2.common.model.AppMetaData
+import com.walletconnect.walletconnectv2.common.model.ControllerType
+import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.proposal.AppMetaData
 import com.walletconnect.walletconnectv2.common.model.Expiry
 import com.walletconnect.walletconnectv2.common.model.Topic
 import com.walletconnect.walletconnectv2.common.model.Ttl

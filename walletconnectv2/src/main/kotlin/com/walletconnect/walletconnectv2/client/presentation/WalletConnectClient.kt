@@ -1,10 +1,15 @@
 package com.walletconnect.walletconnectv2.client.presentation
 
 import com.walletconnect.walletconnectv2.client.model.*
+import com.walletconnect.walletconnectv2.client.model.mapper.*
+import com.walletconnect.walletconnectv2.client.model.mapper.toClientSessionProposal
+import com.walletconnect.walletconnectv2.client.model.mapper.toClientSessionRequest
+import com.walletconnect.walletconnectv2.client.model.mapper.toClientSettledSession
+import com.walletconnect.walletconnectv2.client.model.mapper.toEngineSessionProposal
 import com.walletconnect.walletconnectv2.common.app
 import com.walletconnect.walletconnectv2.common.scope
 import com.walletconnect.walletconnectv2.engine.domain.EngineInteractor
-import com.walletconnect.walletconnectv2.engine.model.EngineData
+import com.walletconnect.walletconnectv2.engine.model.EngineModel
 import com.walletconnect.walletconnectv2.engine.model.SequenceLifecycle
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
@@ -16,7 +21,8 @@ object WalletConnectClient {
     fun initialize(initialParams: ClientTypes.InitialParams) = with(initialParams) {
         // TODO: pass properties to DI framework
         app = application
-        val engineFactory = EngineInteractor.EngineFactory(useTls, hostName, projectId, isController, application, metadata)
+        val engineFactory =
+            EngineInteractor.EngineFactory(useTls, hostName, projectId, isController, application, metadata.toEngineAppMetaData())
         engineInteractor.initialize(engineFactory)
     }
 
@@ -40,7 +46,7 @@ object WalletConnectClient {
     ) {
         engineInteractor.pair(
             pairingParams.uri,
-            { topic -> listener.onSuccess(WalletConnectClientData.SettledPairing(topic)) },
+            { topic -> listener.onSuccess(WalletConnectClientModel.SettledPairing(topic)) },
             { error -> listener.onError(error) })
     }
 
@@ -60,7 +66,7 @@ object WalletConnectClient {
     ) = with(rejectParams) {
         engineInteractor.reject(
             rejectionReason, proposalTopic,
-            { (topic, reason) -> listener.onSuccess(WalletConnectClientData.RejectedSession(topic, reason)) },
+            { (topic, reason) -> listener.onSuccess(WalletConnectClientModel.RejectedSession(topic, reason)) },
             { error -> listener.onError(error) })
     }
 
@@ -69,8 +75,8 @@ object WalletConnectClient {
         listener: WalletConnectClientListeners.SessionPayload
     ) = with(responseParams) {
         val jsonRpcEngineResponse = when (jsonRpcResponse) {
-            is WalletConnectClientData.JsonRpcResponse.JsonRpcResult -> jsonRpcResponse.toEngineRpcResult()
-            is WalletConnectClientData.JsonRpcResponse.JsonRpcError -> jsonRpcResponse.toEngineRpcError()
+            is WalletConnectClientModel.JsonRpcResponse.JsonRpcResult -> jsonRpcResponse.toEngineRpcResult()
+            is WalletConnectClientModel.JsonRpcResponse.JsonRpcError -> jsonRpcResponse.toEngineRpcError()
         }
         engineInteractor.respondSessionPayload(sessionTopic, jsonRpcEngineResponse) { error -> listener.onError(error) }
     }
@@ -81,7 +87,7 @@ object WalletConnectClient {
     ) = with(upgradeParams) {
         engineInteractor.upgrade(
             topic, permissions.toEngineSessionPermissions(),
-            { (topic, permissions) -> listener.onSuccess(WalletConnectClientData.UpgradedSession(topic, permissions.toClientPerms())) },
+            { (topic, permissions) -> listener.onSuccess(WalletConnectClientModel.UpgradedSession(topic, permissions.toClientPerms())) },
             { error -> listener.onError(error) })
     }
 
@@ -91,7 +97,7 @@ object WalletConnectClient {
     ) = with(updateParams) {
         engineInteractor.update(
             sessionTopic, sessionState.toEngineSessionState(),
-            { (topic, accounts) -> listener.onSuccess(WalletConnectClientData.UpdatedSession(topic, accounts)) },
+            { (topic, accounts) -> listener.onSuccess(WalletConnectClientModel.UpdatedSession(topic, accounts)) },
             { error -> listener.onError(error) })
     }
 
@@ -119,15 +125,15 @@ object WalletConnectClient {
     ) = with(disconnectParams) {
         engineInteractor.disconnect(
             sessionTopic, reason,
-            { (topic, reason) -> listener.onSuccess(WalletConnectClientData.DeletedSession(topic, reason)) },
+            { (topic, reason) -> listener.onSuccess(WalletConnectClientModel.DeletedSession(topic, reason)) },
             { error -> listener.onError(error) })
     }
 
-    fun getListOfSettledSessions(): List<WalletConnectClientData.SettledSession> =
-        engineInteractor.getListOfSettledSessions().map(EngineData.SettledSession::toClientSettledSession)
+    fun getListOfSettledSessions(): List<WalletConnectClientModel.SettledSession> =
+        engineInteractor.getListOfSettledSessions().map(EngineModel.SettledSession::toClientSettledSession)
 
-    fun getListOfPendingSession(): List<WalletConnectClientData.SessionProposal> =
-        engineInteractor.getListOfPendingSessions().map(EngineData.SessionProposalDO::toClientSessionProposal)
+    fun getListOfPendingSession(): List<WalletConnectClientModel.SessionProposal> =
+        engineInteractor.getListOfPendingSessions().map(EngineModel.SessionProposalDO::toClientSessionProposal)
 
     fun shutdown() {
         scope.cancel()

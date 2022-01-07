@@ -1,9 +1,9 @@
 package com.walletconnect.walletconnectv2.client.model
 
-import com.walletconnect.walletconnectv2.common.model.AppMetaData
+import com.walletconnect.walletconnectv2.util.Empty
 import java.net.URI
 
-sealed class WalletConnectClientData {
+sealed class WalletConnectClientModel {
 
     data class SessionProposal(
         val name: String,
@@ -17,7 +17,7 @@ sealed class WalletConnectClientData {
         val proposerPublicKey: String,
         val ttl: Long,
         val accounts: List<String>
-    ) : WalletConnectClientData() {
+    ) : WalletConnectClientModel() {
         val icon: String = icons.first().toString()
     }
 
@@ -25,13 +25,13 @@ sealed class WalletConnectClientData {
         val topic: String,
         val chainId: String?,
         val request: JSONRPCRequest
-    ) : WalletConnectClientData() {
+    ) : WalletConnectClientModel() {
 
         data class JSONRPCRequest(
             val id: Long,
             val method: String,
             val params: String
-        ) : WalletConnectClientData()
+        ) : WalletConnectClientModel()
     }
 
     data class SettledSession(
@@ -39,7 +39,7 @@ sealed class WalletConnectClientData {
         val accounts: List<String>,
         val peerAppMetaData: AppMetaData?,
         val permissions: Permissions
-    ) : WalletConnectClientData() {
+    ) : WalletConnectClientModel() {
 
         data class Permissions(
             val blockchain: Blockchain,
@@ -54,36 +54,36 @@ sealed class WalletConnectClientData {
         }
     }
 
-    data class SessionState(val accounts: List<String>) : WalletConnectClientData()
+    data class SessionState(val accounts: List<String>) : WalletConnectClientModel()
 
-    data class SettledPairing(val topic: String) : WalletConnectClientData()
+    data class SettledPairing(val topic: String) : WalletConnectClientModel()
 
-    data class RejectedSession(val topic: String, val reason: String) : WalletConnectClientData()
+    data class RejectedSession(val topic: String, val reason: String) : WalletConnectClientModel()
 
-    data class DeletedSession(val topic: String, val reason: String) : WalletConnectClientData()
+    data class DeletedSession(val topic: String, val reason: String) : WalletConnectClientModel()
 
-    data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : WalletConnectClientData()
+    data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : WalletConnectClientModel()
 
-    data class SessionPermissions(val blockchain: Blockchain? = null, val jsonRpc: Jsonrpc? = null) : WalletConnectClientData()
+    data class SessionPermissions(val blockchain: Blockchain? = null, val jsonRpc: Jsonrpc? = null) : WalletConnectClientModel()
 
-    data class Blockchain(val chains: List<String>) : WalletConnectClientData()
+    data class Blockchain(val chains: List<String>) : WalletConnectClientModel()
 
-    data class Jsonrpc(val methods: List<String>) : WalletConnectClientData()
+    data class Jsonrpc(val methods: List<String>) : WalletConnectClientModel()
 
-    data class UpdatedSession(val topic: String, val accounts: List<String>) : WalletConnectClientData()
+    data class UpdatedSession(val topic: String, val accounts: List<String>) : WalletConnectClientModel()
 
     data class SessionNotification(
         val topic: String,
         val type: String,
         val data: String
-    ) : WalletConnectClientData()
+    ) : WalletConnectClientModel()
 
     data class Notification(
         val type: String,
         val data: String
-    ) : WalletConnectClientData()
+    ) : WalletConnectClientModel()
 
-    sealed class JsonRpcResponse : WalletConnectClientData() {
+    sealed class JsonRpcResponse : WalletConnectClientModel() {
         abstract val id: Long
         val jsonrpc: String = "2.0"
 
@@ -102,4 +102,11 @@ sealed class WalletConnectClientData {
             val message: String
         )
     }
+
+    data class AppMetaData(
+        val name: String = "Peer",
+        val description: String = String.Empty,
+        val url: String = String.Empty,
+        val icons: List<String> = emptyList()
+    ) : WalletConnectClientModel()
 }

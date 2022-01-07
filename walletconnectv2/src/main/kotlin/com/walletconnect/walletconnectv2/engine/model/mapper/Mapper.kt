@@ -4,7 +4,7 @@ import com.walletconnect.walletconnectv2.common.model.Expiry
 import com.walletconnect.walletconnectv2.common.model.Topic
 import com.walletconnect.walletconnectv2.common.model.Ttl
 import com.walletconnect.walletconnectv2.crypto.model.PublicKey
-import com.walletconnect.walletconnectv2.engine.model.EngineData
+import com.walletconnect.walletconnectv2.engine.model.EngineModel
 import com.walletconnect.walletconnectv2.relay.model.JsonRpcMethod
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.Pairing
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.PreSettlementPairing
@@ -12,6 +12,7 @@ import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.p
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.success.PairingParticipant
 import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.success.PairingState
 import com.walletconnect.walletconnectv2.relay.model.clientsync.session.Session
+import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.proposal.AppMetaData
 import org.json.JSONObject
 import java.net.URI
 import kotlin.time.Duration
@@ -53,8 +54,8 @@ internal fun Pairing.Proposal.toApprove(
     selfPublicKey: PublicKey
 ): PreSettlementPairing.Approve = PreSettlementPairing.Approve(id = id, params = this.toPairingSuccess(settleTopic, expiry, selfPublicKey))
 
-internal fun Session.Proposal.toSessionProposal(): EngineData.SessionProposalDO =
-    EngineData.SessionProposalDO(
+internal fun Session.Proposal.toSessionProposal(): EngineModel.SessionProposalDO =
+    EngineModel.SessionProposalDO(
         name = this.proposer.metadata?.name!!,
         description = this.proposer.metadata.description,
         url = this.proposer.metadata.url,
@@ -67,3 +68,5 @@ internal fun Session.Proposal.toSessionProposal(): EngineData.SessionProposalDO 
         ttl = this.ttl.seconds,
         accounts = listOf()
     )
+
+internal fun EngineModel.AppMetaDataDO.toRelayAppMetaData() = AppMetaData(name, description, url, icons)

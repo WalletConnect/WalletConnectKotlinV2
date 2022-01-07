@@ -2,7 +2,6 @@ package com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.walletconnectv2.common.model.AppMetaData
 
 @JsonClass(generateAdapter = true)
 data class SessionProposer(

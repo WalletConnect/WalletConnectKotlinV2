@@ -1,4 +1,4 @@
-package com.walletconnect.walletconnectv2.common.errors
+package com.walletconnect.walletconnectv2.common.model.errors
 
 import java.net.HttpURLConnection
 

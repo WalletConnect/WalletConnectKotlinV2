@@ -10,7 +10,7 @@ import kotlinx.coroutines.supervisorScope
 import com.walletconnect.walletconnectv2.relay.model.clientsync.ClientSyncJsonRpc
 import com.walletconnect.walletconnectv2.common.model.SubscriptionId
 import com.walletconnect.walletconnectv2.common.model.Topic
-import com.walletconnect.walletconnectv2.common.errors.exception
+import com.walletconnect.walletconnectv2.common.model.errors.exception
 import com.walletconnect.walletconnectv2.common.model.JsonRpcResponse
 import com.walletconnect.walletconnectv2.network.model.Relay
 import com.walletconnect.walletconnectv2.network.data.WakuNetworkRepository
