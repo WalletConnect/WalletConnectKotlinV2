@@ -7,7 +7,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.NavigationUI
 import com.walletconnect.sample.databinding.ActivityMainBinding
-import com.walletconnect.walletconnectv2.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClient
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding

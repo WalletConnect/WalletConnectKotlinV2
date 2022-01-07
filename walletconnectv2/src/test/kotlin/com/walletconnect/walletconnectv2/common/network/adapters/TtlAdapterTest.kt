@@ -4,7 +4,8 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.common.Ttl
+import com.walletconnect.walletconnectv2.common.model.Ttl
+import com.walletconnect.walletconnectv2.common.adapters.TtlAdapter
 
 class TtlAdapterTest {
     private val moshi = Moshi.Builder()

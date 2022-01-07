@@ -5,7 +5,6 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.walletconnect.sample.R
@@ -16,7 +15,7 @@ import com.walletconnect.sample.wallet.ui.dialog.SessionDetailsDialog
 import com.walletconnect.sample.wallet.ui.dialog.SessionProposalDialog
 import com.walletconnect.sample.wallet.ui.dialog.SessionRequestDialog
 import com.walletconnect.sample.wallet.ui.dialog.UrlDialog
-import com.walletconnect.walletconnectv2.client.WalletConnectClientData
+import com.walletconnect.walletconnectv2.client.model.WalletConnectClientData
 
 class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener {
     private val viewModel: WalletViewModel by activityViewModels()

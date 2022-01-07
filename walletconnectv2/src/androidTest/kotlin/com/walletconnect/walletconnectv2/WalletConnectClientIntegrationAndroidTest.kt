@@ -1,13 +1,15 @@
 package com.walletconnect.walletconnectv2
 
 import androidx.test.core.app.ApplicationProvider
+import com.walletconnect.walletconnectv2.client.*
+import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClientListener
+import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClientListeners
+import com.walletconnect.walletconnectv2.client.model.ClientTypes
+import com.walletconnect.walletconnectv2.client.model.WalletConnectClientData
 import org.junit.Rule
 import org.junit.Test
-import com.walletconnect.walletconnectv2.client.ClientTypes
-import com.walletconnect.walletconnectv2.client.WalletConnectClientData
-import com.walletconnect.walletconnectv2.client.WalletConnectClientListener
-import com.walletconnect.walletconnectv2.client.WalletConnectClientListeners
-import com.walletconnect.walletconnectv2.common.AppMetaData
+import com.walletconnect.walletconnectv2.common.model.AppMetaData
 import com.walletconnect.walletconnectv2.utils.IntegrationTestApplication
 
 class WalletConnectClientIntegrationAndroidTest {

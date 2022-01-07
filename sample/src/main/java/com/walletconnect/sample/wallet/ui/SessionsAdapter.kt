@@ -10,7 +10,7 @@ import com.bumptech.glide.Glide
 import com.walletconnect.sample.R
 import com.walletconnect.sample.databinding.SessionItemBinding
 import com.walletconnect.sample.wallet.SessionActionListener
-import com.walletconnect.walletconnectv2.client.WalletConnectClientData
+import com.walletconnect.walletconnectv2.client.model.WalletConnectClientData
 
 class SessionsAdapter(private val listener: SessionActionListener) : RecyclerView.Adapter<SessionsAdapter.SessionViewHolder>() {
     private var sessions: List<WalletConnectClientData.SettledSession> = listOf()

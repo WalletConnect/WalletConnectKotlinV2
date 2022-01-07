@@ -4,16 +4,17 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
 import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.clientsync.pairing.after.PostSettlementPairing
-import com.walletconnect.walletconnectv2.common.SubscriptionId
-import com.walletconnect.walletconnectv2.common.Topic
-import com.walletconnect.walletconnectv2.common.Ttl
-import com.walletconnect.walletconnectv2.common.network.adapters.SubscriptionIdAdapter
-import com.walletconnect.walletconnectv2.common.network.adapters.TopicAdapter
-import com.walletconnect.walletconnectv2.common.network.adapters.TtlAdapter
-import com.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
-import com.walletconnect.walletconnectv2.crypto.data.PublicKey
-import com.walletconnect.walletconnectv2.crypto.data.SharedKey
+import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.after.PostSettlementPairing
+import com.walletconnect.walletconnectv2.common.model.SubscriptionId
+import com.walletconnect.walletconnectv2.common.model.Topic
+import com.walletconnect.walletconnectv2.common.model.Ttl
+import com.walletconnect.walletconnectv2.common.adapters.SubscriptionIdAdapter
+import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
+import com.walletconnect.walletconnectv2.common.adapters.TtlAdapter
+import com.walletconnect.walletconnectv2.crypto.model.EncryptionPayload
+import com.walletconnect.walletconnectv2.crypto.model.PublicKey
+import com.walletconnect.walletconnectv2.crypto.model.SharedKey
+import com.walletconnect.walletconnectv2.relay.data.AuthenticatedEncryptionCodec
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import kotlin.test.assertEquals
 

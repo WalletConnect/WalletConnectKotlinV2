@@ -1,11 +1,11 @@
 package com.walletconnect.walletconnectv2.engine.model
 
-import com.walletconnect.walletconnectv2.common.AppMetaData
+import com.walletconnect.walletconnectv2.common.model.AppMetaData
 import java.net.URI
 
 sealed class EngineData {
 
-    internal data class SessionProposal(
+    internal data class SessionProposalDO(
         val name: String,
         val description: String,
         val url: String,

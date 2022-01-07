@@ -1,13 +1,16 @@
 package com.walletconnect.walletconnectv2.common
 
+import com.walletconnect.walletconnectv2.common.model.Expiry
+import com.walletconnect.walletconnectv2.common.model.Topic
+import com.walletconnect.walletconnectv2.common.model.Ttl
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.clientsync.pairing.Pairing
-import com.walletconnect.walletconnectv2.clientsync.pairing.before.proposal.PairingProposer
-import com.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingState
-import com.walletconnect.walletconnectv2.crypto.data.PublicKey
+import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.Pairing
+import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.proposal.PairingProposer
+import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.success.PairingState
+import com.walletconnect.walletconnectv2.crypto.model.PublicKey
 import com.walletconnect.walletconnectv2.util.getRandom64ByteHexString
 import kotlin.test.assertEquals
 

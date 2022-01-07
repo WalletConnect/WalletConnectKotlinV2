@@ -1,9 +1,9 @@
 package com.walletconnect.sample
 
 import android.app.Application
-import com.walletconnect.walletconnectv2.WalletConnectClient
-import com.walletconnect.walletconnectv2.client.ClientTypes
-import com.walletconnect.walletconnectv2.common.AppMetaData
+import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.model.ClientTypes
+import com.walletconnect.walletconnectv2.common.model.AppMetaData
 
 class SampleApplication : Application() {
 

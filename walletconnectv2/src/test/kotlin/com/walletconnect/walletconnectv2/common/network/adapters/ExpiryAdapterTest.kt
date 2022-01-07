@@ -4,7 +4,8 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.common.Expiry
+import com.walletconnect.walletconnectv2.common.model.Expiry
+import com.walletconnect.walletconnectv2.common.adapters.ExpiryAdapter
 
 internal class ExpiryAdapterTest {
     private val moshi = Moshi.Builder()
