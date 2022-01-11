@@ -4,16 +4,16 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
 import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.after.PostSettlementPairing
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.after.PostSettlementPairingVO
 import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.common.adapters.SubscriptionIdAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TtlAdapter
-import com.walletconnect.walletconnectv2.crypto.model.vo.EncryptionPayloadVO
-import com.walletconnect.walletconnectv2.crypto.model.PublicKey
-import com.walletconnect.walletconnectv2.crypto.model.SharedKey
+import com.walletconnect.walletconnectv2.common.model.vo.EncryptionPayloadVO
+import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.common.model.vo.SharedKey
 import com.walletconnect.walletconnectv2.relay.data.codec.AuthenticatedEncryptionCodec
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import kotlin.test.assertEquals
@@ -90,8 +90,8 @@ class AuthenticatedEncryptionCodecTest {
                 }
             }.addLast(KotlinJsonAdapterFactory()).build()
 
-        val request: PostSettlementPairing.PairingPayload? =
-            moshi.adapter(PostSettlementPairing.PairingPayload::class.java).fromJson(json)
+        val request: PostSettlementPairingVO.PairingPayload? =
+            moshi.adapter(PostSettlementPairingVO.PairingPayload::class.java).fromJson(json)
 
         assertEquals(
             request?.params?.request?.params?.proposer?.publicKey,

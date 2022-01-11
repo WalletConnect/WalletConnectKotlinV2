@@ -4,12 +4,12 @@ import io.mockk.spyk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.crypto.model.Key
-import com.walletconnect.walletconnectv2.crypto.model.PrivateKey
-import com.walletconnect.walletconnectv2.crypto.model.PublicKey
-import com.walletconnect.walletconnectv2.crypto.model.SharedKey
-import com.walletconnect.walletconnectv2.crypto.data.keystore.KeyStore
-import com.walletconnect.walletconnectv2.crypto.data.crypto.BouncyCastleCryptoManager
+import com.walletconnect.walletconnectv2.common.model.vo.Key
+import com.walletconnect.walletconnectv2.common.model.vo.PrivateKey
+import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.common.model.vo.SharedKey
+import com.walletconnect.walletconnectv2.crypto.KeyStore
+import com.walletconnect.walletconnectv2.crypto.data.repository.BouncyCastleCryptoRepository
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
@@ -19,7 +19,7 @@ internal class BouncyCastleCryptoManagerTest {
     private val privateKey = PrivateKey(privateKeyString)
     private val publicKey = PublicKey(publicKeyString)
     private val keyChain: KeyStore = KeyChainMock()
-    private val sut = spyk(BouncyCastleCryptoManager(keyChain), recordPrivateCalls = true)
+    private val sut = spyk(BouncyCastleCryptoRepository(keyChain), recordPrivateCalls = true)
 
     @BeforeEach
     fun setUp() {

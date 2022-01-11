@@ -14,8 +14,9 @@ import kotlinx.coroutines.supervisorScope
 import okhttp3.OkHttpClient
 import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.moshi
-import com.walletconnect.walletconnectv2.common.scope
+import com.walletconnect.walletconnectv2.common.scope.moshi
+import com.walletconnect.walletconnectv2.common.scope.scope
+import com.walletconnect.walletconnectv2.network.NetworkRepositoryInterface
 import com.walletconnect.walletconnectv2.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.walletconnectv2.network.data.service.RelayService
 import com.walletconnect.walletconnectv2.network.model.RelayDTO
@@ -28,7 +29,7 @@ class WakuNetworkRepository internal constructor(
     private val hostName: String,
     private val projectId: String,
     private val application: Application
-) {
+) : NetworkRepositoryInterface {
     //region Move to DI module
     private val okHttpClient = OkHttpClient.Builder()
         .writeTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)

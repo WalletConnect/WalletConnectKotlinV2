@@ -1,6 +1,6 @@
 @file:JvmName("WalletConnectScope")
 
-package com.walletconnect.walletconnectv2.common
+package com.walletconnect.walletconnectv2.common.scope
 
 import android.app.Application
 import com.squareup.moshi.Moshi

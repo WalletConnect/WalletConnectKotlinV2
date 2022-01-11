@@ -1,19 +1,19 @@
 package com.walletconnect.sample
 
 import android.app.Application
-import com.walletconnect.walletconnectv2.client.model.types.ClientTypes
-import com.walletconnect.walletconnectv2.client.model.WalletConnectClientModel
-import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AppMetaData
+import com.walletconnect.walletconnectv2.client.Init
+import com.walletconnect.walletconnectv2.client.WalletConnectClient
 
 class SampleApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
 
-        val initParams = ClientTypes.InitialParams(
+        val init = Init(
             application = this,
             hostName = "relay.walletconnect.org",
-            metadata = WalletConnectClientModel.AppMetaData(
+            metadata = AppMetaData(
                 name = "Kotlin Wallet",
                 description = "Wallet description",
                 url = "example.wallet",
@@ -21,6 +21,6 @@ class SampleApplication : Application() {
             )
         )
 
-        WalletConnectClient.initialize(initParams)
+        WalletConnectClient.initialize(init)
     }
 }

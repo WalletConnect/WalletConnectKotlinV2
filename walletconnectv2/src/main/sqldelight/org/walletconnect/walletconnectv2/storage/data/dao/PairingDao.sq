@@ -1,4 +1,4 @@
-import com.walletconnect.walletconnectv2.common.model.ControllerType;
+import com.walletconnect.walletconnectv2.common.model.type.ControllerType;
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus;
 
 CREATE TABLE PairingDao (

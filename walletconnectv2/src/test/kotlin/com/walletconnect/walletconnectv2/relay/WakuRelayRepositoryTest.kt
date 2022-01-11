@@ -9,10 +9,10 @@ import kotlinx.coroutines.flow.flowOf
 import org.json.JSONObject
 import org.junit.Rule
 import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.Pairing
-import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.PreSettlementPairing
-import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.success.PairingParticipant
-import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.success.PairingState
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.PairingParamsVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.PreSettlementPairingVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.success.PairingParticipantVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.success.PairingStateVO
 import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.network.model.RelayDTO
@@ -36,14 +36,14 @@ internal class WakuRelayRepositoryTest {
         // Arrange
         val topic = TopicVO(getRandom64ByteHexString())
         val settledTopic = TopicVO(getRandom64ByteHexString())
-        val preSettlementPairing = PreSettlementPairing.Approve(
+        val preSettlementPairing = PreSettlementPairingVO.Approve(
             id = 1L,
-            params = Pairing.Success(
+            params = PairingParamsVO.Success(
                 settledTopic = settledTopic,
                 relay = JSONObject(),
-                responder = PairingParticipant(getRandom64ByteHexString()),
+                responder = PairingParticipantVO(getRandom64ByteHexString()),
                 expiry = ExpiryVO(1),
-                state = PairingState()
+                state = PairingStateVO()
             )
         )
         coEvery { sut.observePublishAcknowledgement } returns flowOf(

@@ -6,19 +6,19 @@ import com.squareup.sqldelight.EnumColumnAdapter
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.walletconnectv2.Database
-import com.walletconnect.walletconnectv2.relay.model.clientsync.session.Session
-import com.walletconnect.walletconnectv2.common.model.ControllerType
-import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.proposal.AppMetaData
+import com.walletconnect.walletconnectv2.common.model.type.ControllerType
 import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
-import com.walletconnect.walletconnectv2.storage.sequence.vo.AppMetaDataVO
-import com.walletconnect.walletconnectv2.storage.sequence.vo.PairingVO
-import com.walletconnect.walletconnectv2.storage.sequence.vo.SessionVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.SessionParamsVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.AppMetaDataVO
+import com.walletconnect.walletconnectv2.common.model.vo.sequence.PairingVO
+import com.walletconnect.walletconnectv2.common.model.vo.sequence.SessionVO
 import org.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
 import org.walletconnect.walletconnectv2.storage.data.dao.PairingDao
 import org.walletconnect.walletconnectv2.storage.data.dao.SessionDao
 
+//TODO: Split into SessionStorageRepository and PairingStorageRepository
 internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, application: Application) {
     //region provide with DI
     // TODO: once DI is setup, replace var with val
@@ -63,7 +63,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         sessionDatabase.pairingDaoQueries.deletePairing(topic)
     }
 
-    fun insertSessionProposal(proposal: Session.Proposal, appMetaData: AppMetaData?, defaultExpirySeconds: Long, controllerType: ControllerType) {
+    fun insertSessionProposal(proposal: SessionParamsVO.Proposal, appMetaData: AppMetaDataVO?, defaultExpirySeconds: Long, controllerType: ControllerType) {
         val metadataId = insertMetaData(appMetaData)
 
         sessionDatabase.sessionDaoQueries.insertSession(
@@ -79,7 +79,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         )
     }
 
-    private fun insertMetaData(appMetaData: AppMetaData?): Long {
+    private fun insertMetaData(appMetaData: AppMetaDataVO?): Long {
         return appMetaData?.let {
             sessionDatabase.metaDataDaoQueries.insertOrIgnoreMetaData(
                 appMetaData.name,

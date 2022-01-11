@@ -1,20 +1,20 @@
 package com.walletconnect.walletconnectv2.relay.data.serializer
 
-import com.walletconnect.walletconnectv2.relay.model.clientsync.types.ClientParams
-import com.walletconnect.walletconnectv2.relay.model.clientsync.types.ClientSyncJsonRpc
-import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.after.PostSettlementPairing
-import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.PreSettlementPairing
-import com.walletconnect.walletconnectv2.relay.model.clientsync.session.after.PostSettlementSession
-import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.PreSettlementSession
+import com.walletconnect.walletconnectv2.common.model.type.ClientParams
+import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.after.PostSettlementPairingVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.PreSettlementPairingVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.PostSettlementSessionVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.PreSettlementSessionVO
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.crypto.data.crypto.CryptoManager
-import com.walletconnect.walletconnectv2.crypto.model.vo.EncryptionPayloadVO
-import com.walletconnect.walletconnectv2.crypto.model.PublicKey
-import com.walletconnect.walletconnectv2.crypto.model.SharedKey
-import com.walletconnect.walletconnectv2.crypto.data.crypto.BouncyCastleCryptoManager
-import com.walletconnect.walletconnectv2.common.model.vo.JsonRpcResponseVO
-import com.walletconnect.walletconnectv2.common.moshi
+import com.walletconnect.walletconnectv2.crypto.CryptoRepository
+import com.walletconnect.walletconnectv2.common.model.vo.EncryptionPayloadVO
+import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.common.model.vo.SharedKey
+import com.walletconnect.walletconnectv2.crypto.data.repository.BouncyCastleCryptoRepository
+import com.walletconnect.walletconnectv2.common.scope.moshi
 import com.walletconnect.walletconnectv2.relay.data.codec.AuthenticatedEncryptionCodec
+import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import com.walletconnect.walletconnectv2.relay.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.hexToUtf8
@@ -22,7 +22,7 @@ import com.walletconnect.walletconnectv2.util.hexToUtf8
 class JsonRpcSerializer {
 
     private val codec: AuthenticatedEncryptionCodec = AuthenticatedEncryptionCodec()
-    private val crypto: CryptoManager = BouncyCastleCryptoManager()
+    private val crypto: CryptoRepository = BouncyCastleCryptoRepository()
 
     internal fun serialize(payload: ClientSyncJsonRpc, topic: TopicVO): String {
         val json = serialize(payload)
@@ -46,46 +46,46 @@ class JsonRpcSerializer {
 
     internal fun deserialize(method: String, json: String): ClientParams? =
         when (method) {
-            JsonRpcMethod.WC_PAIRING_APPROVE -> tryDeserialize<PreSettlementPairing.Approve>(json)?.params
-            JsonRpcMethod.WC_PAIRING_REJECT -> tryDeserialize<PreSettlementPairing.Reject>(json)?.params
-            JsonRpcMethod.WC_PAIRING_PAYLOAD -> tryDeserialize<PostSettlementPairing.PairingPayload>(json)?.params
-            JsonRpcMethod.WC_PAIRING_UPDATE -> tryDeserialize<PostSettlementPairing.PairingUpdate>(json)?.params
-            JsonRpcMethod.WC_PAIRING_PING -> tryDeserialize<PostSettlementPairing.PairingPing>(json)?.params
-            JsonRpcMethod.WC_PAIRING_NOTIFICATION -> tryDeserialize<PostSettlementPairing.PairingPing>(json)?.params
-            JsonRpcMethod.WC_SESSION_APPROVE -> tryDeserialize<PreSettlementSession.Approve>(json)?.params
-            JsonRpcMethod.WC_SESSION_REJECT -> tryDeserialize<PreSettlementSession.Reject>(json)?.params
-            JsonRpcMethod.WC_SESSION_PROPOSE -> tryDeserialize<PreSettlementSession.Proposal>(json)?.params
-            JsonRpcMethod.WC_SESSION_PAYLOAD -> tryDeserialize<PostSettlementSession.SessionPayload>(json)?.params
-            JsonRpcMethod.WC_SESSION_DELETE -> tryDeserialize<PostSettlementSession.SessionDelete>(json)?.params
-            JsonRpcMethod.WC_SESSION_UPDATE -> tryDeserialize<PostSettlementSession.SessionUpdate>(json)?.params
-            JsonRpcMethod.WC_SESSION_UPGRADE -> tryDeserialize<PostSettlementSession.SessionUpgrade>(json)?.params
-            JsonRpcMethod.WC_SESSION_PING -> tryDeserialize<PostSettlementSession.SessionPing>(json)?.params
-            JsonRpcMethod.WC_SESSION_NOTIFICATION -> tryDeserialize<PostSettlementSession.SessionNotification>(json)?.params
+            JsonRpcMethod.WC_PAIRING_APPROVE -> tryDeserialize<PreSettlementPairingVO.Approve>(json)?.params
+            JsonRpcMethod.WC_PAIRING_REJECT -> tryDeserialize<PreSettlementPairingVO.Reject>(json)?.params
+            JsonRpcMethod.WC_PAIRING_PAYLOAD -> tryDeserialize<PostSettlementPairingVO.PairingPayload>(json)?.params
+            JsonRpcMethod.WC_PAIRING_UPDATE -> tryDeserialize<PostSettlementPairingVO.PairingUpdate>(json)?.params
+            JsonRpcMethod.WC_PAIRING_PING -> tryDeserialize<PostSettlementPairingVO.PairingPing>(json)?.params
+            JsonRpcMethod.WC_PAIRING_NOTIFICATION -> tryDeserialize<PostSettlementPairingVO.PairingPing>(json)?.params
+            JsonRpcMethod.WC_SESSION_APPROVE -> tryDeserialize<PreSettlementSessionVO.Approve>(json)?.params
+            JsonRpcMethod.WC_SESSION_REJECT -> tryDeserialize<PreSettlementSessionVO.Reject>(json)?.params
+            JsonRpcMethod.WC_SESSION_PROPOSE -> tryDeserialize<PreSettlementSessionVO.Proposal>(json)?.params
+            JsonRpcMethod.WC_SESSION_PAYLOAD -> tryDeserialize<PostSettlementSessionVO.SessionPayload>(json)?.params
+            JsonRpcMethod.WC_SESSION_DELETE -> tryDeserialize<PostSettlementSessionVO.SessionDelete>(json)?.params
+            JsonRpcMethod.WC_SESSION_UPDATE -> tryDeserialize<PostSettlementSessionVO.SessionUpdate>(json)?.params
+            JsonRpcMethod.WC_SESSION_UPGRADE -> tryDeserialize<PostSettlementSessionVO.SessionUpgrade>(json)?.params
+            JsonRpcMethod.WC_SESSION_PING -> tryDeserialize<PostSettlementSessionVO.SessionPing>(json)?.params
+            JsonRpcMethod.WC_SESSION_NOTIFICATION -> tryDeserialize<PostSettlementSessionVO.SessionNotification>(json)?.params
             else -> null
         }
 
     inline fun <reified T> tryDeserialize(json: String): T? = runCatching { moshi.adapter(T::class.java).fromJson(json) }.getOrNull()
 
-    inline fun <reified T> trySerialize(type: T): String = moshi.adapter(T::class.java).toJson(type)
+    private inline fun <reified T> trySerialize(type: T): String = moshi.adapter(T::class.java).toJson(type)
 
     private fun serialize(payload: ClientSyncJsonRpc): String =
         when (payload) {
-            is PreSettlementPairing.Approve -> trySerialize(payload)
-            is PreSettlementPairing.Reject -> trySerialize(payload)
-            is PostSettlementPairing.PairingPayload -> trySerialize(payload)
-            is PostSettlementPairing.PairingNotification -> trySerialize(payload)
-            is PostSettlementPairing.PairingPing -> trySerialize(payload)
-            is PostSettlementPairing.PairingUpdate -> trySerialize(payload)
-            is PreSettlementSession.Approve -> trySerialize(payload)
-            is PreSettlementSession.Reject -> trySerialize(payload)
-            is PreSettlementSession.Proposal -> trySerialize(payload)
-            is PostSettlementSession.SessionNotification -> trySerialize(payload)
-            is PostSettlementSession.SessionPing -> trySerialize(payload)
-            is PostSettlementSession.SessionUpdate -> trySerialize(payload)
-            is PostSettlementSession.SessionUpgrade -> trySerialize(payload)
-            is PostSettlementSession.SessionPayload -> trySerialize(payload)
-            is PostSettlementSession.SessionDelete -> trySerialize(payload)
-            is JsonRpcResponseVO -> trySerialize(payload)
+            is PreSettlementPairingVO.Approve -> trySerialize(payload)
+            is PreSettlementPairingVO.Reject -> trySerialize(payload)
+            is PostSettlementPairingVO.PairingPayload -> trySerialize(payload)
+            is PostSettlementPairingVO.PairingNotification -> trySerialize(payload)
+            is PostSettlementPairingVO.PairingPing -> trySerialize(payload)
+            is PostSettlementPairingVO.PairingUpdate -> trySerialize(payload)
+            is PreSettlementSessionVO.Approve -> trySerialize(payload)
+            is PreSettlementSessionVO.Reject -> trySerialize(payload)
+            is PreSettlementSessionVO.Proposal -> trySerialize(payload)
+            is PostSettlementSessionVO.SessionNotification -> trySerialize(payload)
+            is PostSettlementSessionVO.SessionPing -> trySerialize(payload)
+            is PostSettlementSessionVO.SessionUpdate -> trySerialize(payload)
+            is PostSettlementSessionVO.SessionUpgrade -> trySerialize(payload)
+            is PostSettlementSessionVO.SessionPayload -> trySerialize(payload)
+            is PostSettlementSessionVO.SessionDelete -> trySerialize(payload)
+            is RelayDO.JsonRpcResponse -> trySerialize(payload)
             else -> String.Empty
         }
 

@@ -1,15 +1,14 @@
 package com.walletconnect.walletconnectv2
 
 import androidx.test.core.app.ApplicationProvider
-import com.walletconnect.walletconnectv2.client.*
-import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClient
-import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClientListener
-import com.walletconnect.walletconnectv2.client.presentation.WalletConnectClientListeners
+import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.WalletConnectClientListener
+import com.walletconnect.walletconnectv2.client.WalletConnectClientListeners
 import com.walletconnect.walletconnectv2.client.model.types.ClientTypes
 import com.walletconnect.walletconnectv2.client.model.WalletConnectClientModel
 import org.junit.Rule
 import org.junit.Test
-import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.proposal.AppMetaData
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.AppMetaDataVO
 import com.walletconnect.walletconnectv2.utils.IntegrationTestApplication
 
 class WalletConnectClientIntegrationAndroidTest {
@@ -17,7 +16,7 @@ class WalletConnectClientIntegrationAndroidTest {
     val activityRule = WCIntegrationActivityScenarioRule()
     private val app = ApplicationProvider.getApplicationContext<IntegrationTestApplication>()
 
-    private val metadata = AppMetaData(
+    private val metadata = AppMetaDataVO(
         name = "Kotlin Wallet",
         description = "Wallet description",
         url = "example.wallet",
@@ -44,7 +43,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnectClientModel.SessionNotification) {}
             }
 
-            WalletConnectClient.setWalletConnectListener(listener)
+            WalletConnectClient.setDelegate(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnectClientListeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnectClientModel.SettledPairing) {
                     assert(true)
@@ -91,7 +90,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnectClientModel.SessionNotification) {}
             }
 
-            WalletConnectClient.setWalletConnectListener(listener)
+            WalletConnectClient.setDelegate(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnectClientListeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnectClientModel.SettledPairing) {
                 }
@@ -158,7 +157,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnectClientModel.SessionNotification) {}
             }
 
-            WalletConnectClient.setWalletConnectListener(listener)
+            WalletConnectClient.setDelegate(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnectClientListeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnectClientModel.SettledPairing) {
                     assert(true)
@@ -223,7 +222,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnectClientModel.SessionNotification) {}
             }
 
-            WalletConnectClient.setWalletConnectListener(listener)
+            WalletConnectClient.setDelegate(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnectClientListeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnectClientModel.SettledPairing) {
                     assert(true)
@@ -288,7 +287,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnectClientModel.SessionNotification) {}
             }
 
-            WalletConnectClient.setWalletConnectListener(listener)
+            WalletConnectClient.setDelegate(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnectClientListeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnectClientModel.SettledPairing) {
                     assert(true)
@@ -354,7 +353,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnectClientModel.SessionNotification) {}
             }
 
-            WalletConnectClient.setWalletConnectListener(listener)
+            WalletConnectClient.setDelegate(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnectClientListeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnectClientModel.SettledPairing) {
                     assert(true)
@@ -417,7 +416,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnectClientModel.SessionNotification) {}
             }
 
-            WalletConnectClient.setWalletConnectListener(listener)
+            WalletConnectClient.setDelegate(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnectClientListeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnectClientModel.SettledPairing) {
                     assert(true)
@@ -487,7 +486,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnectClientModel.SessionNotification) {}
             }
 
-            WalletConnectClient.setWalletConnectListener(listener)
+            WalletConnectClient.setDelegate(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnectClientListeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnectClientModel.SettledPairing) {
                     assert(true)

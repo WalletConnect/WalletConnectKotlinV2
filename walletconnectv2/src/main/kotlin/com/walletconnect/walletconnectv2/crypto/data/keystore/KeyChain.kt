@@ -3,8 +3,9 @@ package com.walletconnect.walletconnectv2.crypto.data.keystore
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
-import com.walletconnect.walletconnectv2.common.app
-import com.walletconnect.walletconnectv2.crypto.model.Key
+import com.walletconnect.walletconnectv2.common.scope.app
+import com.walletconnect.walletconnectv2.common.model.vo.Key
+import com.walletconnect.walletconnectv2.crypto.KeyStore
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import com.walletconnect.walletconnectv2.util.hexToBytes

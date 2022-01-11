@@ -1,23 +1,22 @@
 package com.walletconnect.walletconnectv2.engine.model.mapper
 
-import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
-import com.walletconnect.walletconnectv2.crypto.model.PublicKey
-import com.walletconnect.walletconnectv2.engine.model.EngineModel
+import com.walletconnect.walletconnectv2.common.model.vo.*
+import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.relay.model.utils.JsonRpcMethod
-import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.Pairing
-import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.PreSettlementPairing
-import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.proposal.*
-import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.success.PairingParticipant
-import com.walletconnect.walletconnectv2.relay.model.clientsync.pairing.before.success.PairingState
-import com.walletconnect.walletconnectv2.relay.model.clientsync.session.Session
-import com.walletconnect.walletconnectv2.relay.model.clientsync.session.before.proposal.AppMetaData
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.PairingParamsVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.PreSettlementPairingVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.proposal.*
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.success.PairingParticipantVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.success.PairingStateVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.SessionParamsVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.params.SessionPermissionsVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.AppMetaDataVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.SessionProposedPermissionsVO
 import org.json.JSONObject
 import java.net.URI
 import kotlin.time.Duration
 
-internal fun String.toPairProposal(): Pairing.Proposal {
+internal fun String.toPairProposal(): PairingParamsVO.Proposal {
     val properUriString = if (contains("wc://")) this else replace("wc:", "wc://")
     val pairUri = URI(properUriString)
     val mapOfQueryParameters: Map<String, String> =
@@ -28,34 +27,34 @@ internal fun String.toPairProposal(): Pairing.Proposal {
     val controller: Boolean = mapOfQueryParameters["controller"].toBoolean()
     val ttl: Long = Duration.days(30).inWholeSeconds
 
-    return Pairing.Proposal(
+    return PairingParamsVO.Proposal(
         topic = TopicVO(pairUri.userInfo),
         relay = relay,
-        pairingProposer = PairingProposer(publicKey, controller),
-        pairingSignal = PairingSignal("uri", PairingSignalParams(properUriString)),
-        permissions = PairingProposedPermissions(JsonRPC(listOf(JsonRpcMethod.WC_SESSION_PROPOSE))),
+        pairingProposer = PairingProposerVO(publicKey, controller),
+        pairingSignal = PairingSignalVO("uri", PairingSignalParamsVO(properUriString)),
+        permissions = PairingProposedPermissionsVO(JsonRPCVO(listOf(JsonRpcMethod.WC_SESSION_PROPOSE))),
         ttl = TtlVO(ttl)
     )
 }
 
-internal fun Pairing.Proposal.toPairingSuccess(settleTopic: TopicVO, expiry: ExpiryVO, selfPublicKey: PublicKey): Pairing.Success =
-    Pairing.Success(
+internal fun PairingParamsVO.Proposal.toPairingSuccess(settleTopic: TopicVO, expiry: ExpiryVO, selfPublicKey: PublicKey): PairingParamsVO.Success =
+    PairingParamsVO.Success(
         settledTopic = settleTopic,
         relay = relay,
-        responder = PairingParticipant(publicKey = selfPublicKey.keyAsHex),
+        responder = PairingParticipantVO(publicKey = selfPublicKey.keyAsHex),
         expiry = expiry,
-        state = PairingState(null)
+        state = PairingStateVO(null)
     )
 
-internal fun Pairing.Proposal.toApprove(
+internal fun PairingParamsVO.Proposal.toApprove(
     id: Long,
     settleTopic: TopicVO,
     expiry: ExpiryVO,
     selfPublicKey: PublicKey
-): PreSettlementPairing.Approve = PreSettlementPairing.Approve(id = id, params = this.toPairingSuccess(settleTopic, expiry, selfPublicKey))
+): PreSettlementPairingVO.Approve = PreSettlementPairingVO.Approve(id = id, params = this.toPairingSuccess(settleTopic, expiry, selfPublicKey))
 
-internal fun Session.Proposal.toSessionProposal(): EngineModel.SessionProposalDO =
-    EngineModel.SessionProposalDO(
+internal fun SessionParamsVO.Proposal.toSessionProposal(): EngineDO.SessionProposal =
+    EngineDO.SessionProposal(
         name = this.proposer.metadata?.name!!,
         description = this.proposer.metadata.description,
         url = this.proposer.metadata.url,
@@ -69,4 +68,14 @@ internal fun Session.Proposal.toSessionProposal(): EngineModel.SessionProposalDO
         accounts = listOf()
     )
 
-internal fun EngineModel.AppMetaDataDO.toRelayAppMetaData() = AppMetaData(name, description, url, icons)
+internal fun EngineDO.AppMetaData.toClientSyncAppMetaData() =
+    AppMetaDataVO(name, description, url, icons)
+
+internal fun EngineDO.SessionPermissions.toSessionsPermissions(): SessionPermissionsVO =
+    SessionPermissionsVO(
+        blockchain?.chains?.let { chains -> SessionProposedPermissionsVO.Blockchain(chains) },
+        jsonRpc?.methods?.let { methods -> SessionProposedPermissionsVO.JsonRpc(methods) }
+    )
+
+internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toJsonRpcResponseVO(): JsonRpcResponseVO.JsonRpcResult =
+    JsonRpcResponseVO.JsonRpcResult(id, result)
