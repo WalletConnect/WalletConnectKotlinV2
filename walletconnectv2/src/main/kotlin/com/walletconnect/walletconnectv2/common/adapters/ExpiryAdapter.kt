@@ -3,7 +3,7 @@ package com.walletconnect.walletconnectv2.common.adapters
 import com.squareup.moshi.*
 import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
 
-object ExpiryAdapter: JsonAdapter<ExpiryVO>() {
+internal object ExpiryAdapter: JsonAdapter<ExpiryVO>() {
 
     @FromJson
     @Qualifier

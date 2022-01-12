@@ -15,7 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.json.JSONObject
 
-//TODO add job cancellation to avoid memory leaks
 internal lateinit var app: Application
 private val job = SupervisorJob()
 internal val scope = CoroutineScope(job + Dispatchers.IO)

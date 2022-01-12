@@ -12,7 +12,7 @@ import com.walletconnect.walletconnectv2.util.Empty
 import org.json.JSONObject
 import java.net.URI
 
-sealed class EngineDO {
+internal sealed class EngineDO {
 
     internal data class SessionProposal(
         val name: String,

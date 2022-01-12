@@ -34,7 +34,10 @@ internal sealed class PreSettlementSessionVO : ClientSyncJsonRpc {
         override val method: String = JsonRpcMethod.WC_SESSION_APPROVE,
         @Json(name = "params")
         override val params: SessionParamsVO.Success
-    ) : PreSettlementSessionVO()
+    ) : PreSettlementSessionVO() {
+        val accounts: List<String> = params.state.accounts
+        val expiry: Long = params.expiry.seconds
+    }
 
     data class Reject(
         override val id: Long,

@@ -35,7 +35,7 @@ class JsonRpcSerializer {
         }
     }
 
-    fun decode(message: String, topic: TopicVO): String {
+    internal fun decode(message: String, topic: TopicVO): String {
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
         return if (sharedKey.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
             message.hexToUtf8
