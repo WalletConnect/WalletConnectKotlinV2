@@ -24,7 +24,6 @@ import com.walletconnect.walletconnectv2.engine.model.mapper.*
 import com.walletconnect.walletconnectv2.engine.model.mapper.toApprove
 import com.walletconnect.walletconnectv2.engine.model.mapper.toPairProposal
 import com.walletconnect.walletconnectv2.engine.model.mapper.toClientSyncAppMetaData
-import com.walletconnect.walletconnectv2.engine.model.mapper.toSessionProposal
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.proposal.*
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
@@ -47,15 +46,11 @@ internal class EngineInteractor {
 
     private var metaData: EngineDO.AppMetaData? = null
     private var controllerType = ControllerType.CONTROLLER
-//    private val _sequenceEvent: MutableStateFlow<SequenceLifecycle> = MutableStateFlow(SequenceLifecycle.Default)
-//    private val _sequenceEvent = relayer.clientSyncJsonRpc.map {
-//        //map fro VO to EngineDO
-//    }.stateIn(scope, SharingStarted.Lazily, SequenceLifecycle.Default)
 
-    //TODO: samo to wystarczy
-    val sequenceEvent: StateFlow<SequenceLifecycle> = relayer.clientSyncJsonRpc.map {
-        //map fro VO to EngineDO
-    }.stateIn(scope, SharingStarted.Lazily, SequenceLifecycle.Default)
+    val sequenceEvent: StateFlow<SequenceLifecycle> =
+        relayer.clientSyncJsonRpc
+            .map { payload -> handleClientSyncJsonRpc(payload) }
+            .stateIn(scope, SharingStarted.Lazily, EngineDO.Default)
 
     internal fun initialize(engine: EngineFactory) = with(engine) {
         this@EngineInteractor.metaData = engine.metaData
@@ -64,7 +59,6 @@ internal class EngineInteractor {
             relayer.initialize(this)
         }
         storageRepository = SequenceStorageRepository(null, engine.application)
-        collectClientSyncJsonRpc()
 
         relayer.isConnectionOpened
             .filter { isConnected: Boolean -> isConnected }
@@ -175,6 +169,7 @@ internal class EngineInteractor {
                             sessionApprove.params.expiry.seconds
                         )
 
+                    //TODO: move to mapper
                         val engineDataSettledSession = EngineDO.SettledSession(
                             settledTopic,
                             accounts,
@@ -298,12 +293,65 @@ internal class EngineInteractor {
         }
     }
 
+    private fun handleClientSyncJsonRpc(payload: RequestSubscriptionPayloadVO) =
+        when (payload.params) {
+            is PairingParamsVO.PayloadParams -> onPairingPayload(payload.params)
+            is SessionParamsVO.DeleteParams -> onSessionDelete(payload.params, payload.topic)
+            is SessionParamsVO.SessionPayloadParams -> onSessionPayload(payload.params, payload.topic, payload.requestId)
+            is SessionParamsVO.NotificationParams -> onSessionNotification(payload.params, payload.topic)
+            is PairingParamsVO.DeleteParams -> onPairingDelete(payload.params, payload.topic)
+            is PairingParamsVO.PingParams, is SessionParamsVO.PingParams -> onPing(payload.topic, payload.requestId)
+            else -> EngineDO.Default
+        }
+
+    private fun onPairingPayload(payload: PairingParamsVO.PayloadParams): EngineDO.SessionProposal {
+        val proposal = payload.request.params
+        val metadata = proposal.proposer.metadata
+        storageRepository.insertSessionProposal(proposal, metadata, defaultSequenceExpirySeconds(), controllerType)
+        val (sharedKey, publicKey) = crypto.getKeyAgreement(proposal.signal.params.topic)
+        crypto.setEncryptionKeys(sharedKey as SharedKey, publicKey as PublicKey, proposal.topic)
+        return payload.toEngineDOSessionProposal()
+    }
+
+    private fun onSessionPayload(params: SessionParamsVO.SessionPayloadParams, topic: TopicVO, requestId: Long): EngineDO.SessionRequest {
+        //TODO: validate session request against the permissions set
+        return params.toEngineDOSessionRequest(topic, requestId)
+    }
+
+    private fun onSessionDelete(params: SessionParamsVO.DeleteParams, topic: TopicVO): EngineDO.DeletedSession {
+        crypto.removeKeys(topic.value)
+        storageRepository.deleteSession(topic.value)
+        relayer.unsubscribe(topic)
+        return params.toEngineDoDeleteSession(topic)
+    }
+
+    private fun onSessionNotification(params: SessionParamsVO.NotificationParams, topic: TopicVO): EngineDO.SessionNotification {
+        //TODO: validate notification
+        return params.toEngineDoSessionNotification(topic)
+    }
+
+    private fun onPairingDelete(params: PairingParamsVO.DeleteParams, topic: TopicVO): EngineDO.Default {
+        crypto.removeKeys(topic.value)
+        relayer.unsubscribe(topic)
+        //TODO delete from DB
+        return EngineDO.Default
+    }
+
+    private fun onPing(topic: TopicVO, requestId: Long): EngineDO.Default {
+        val jsonRpcResult = EngineDO.JsonRpcResponse.JsonRpcResult(id = requestId, result = "true")
+        relayer.respond(topic, jsonRpcResult.toJsonRpcResponseVO(),
+            { Logger.log("Ping send successfully") },
+            { error -> Logger.error("Ping Error: $error") })
+        return EngineDO.Default
+    }
+
     internal fun getListOfPendingSessions(): List<EngineDO.SessionProposal> {
         return storageRepository.getListOfSessionVOs().filter { session ->
             session.status == SequenceStatus.PENDING && session.expiry.isSequenceValid()
         }.map { session ->
             val (_, peerPublicKey) = crypto.getKeyAgreement(session.topic)
 
+            //TODO: Add mapper
             EngineDO.SessionProposal(
                 name = session.appMetaData?.name ?: String.Empty,
                 description = session.appMetaData?.description ?: String.Empty,
@@ -330,6 +378,7 @@ internal class EngineInteractor {
                         EngineDO.AppMetaData(metaData.name, metaData.description, metaData.url, metaData.icons)
                     }
 
+                //TODO: add mapper
                 EngineDO.SettledSession(
                     session.topic,
                     session.accounts,
@@ -343,66 +392,6 @@ internal class EngineInteractor {
                     session.status
                 )
             }
-
-    //TODO: move to Relayer, decrypt in the Relayer, RelayDTO which maps SessionProposalVO, then map to EngineDO
-    private fun collectClientSyncJsonRpc() = scope.launch {
-
-        relayer.clientSyncJsonRpc.collect { payload ->
-            when (payload.params) {
-                is PairingParamsVO.PayloadParams -> onPairingPayload(payload.params)
-                is SessionParamsVO.DeleteParams -> onSessionDelete(payload.params, payload.topic)
-                is SessionParamsVO.SessionPayloadParams -> onSessionPayload(payload.params, payload.topic, payload.requestId)
-                is PairingParamsVO.DeleteParams -> onPairingDelete(payload.params, payload.topic)
-                is SessionParamsVO.NotificationParams -> onSessionNotification(payload.params, payload.topic)
-                is PairingParamsVO.PingParams, is SessionParamsVO.PingParams -> onPing(payload.topic, payload.requestId)
-            }
-        }
-    }
-
-    private fun onPing(topic: TopicVO, requestId: Long) {
-        val jsonRpcResult = EngineDO.JsonRpcResponse.JsonRpcResult(id = requestId, result = "true")
-        relayer.respond(topic, jsonRpcResult.toJsonRpcResponseVO(),
-            { Logger.log("Ping send successfully") },
-            { error -> Logger.error("Ping Error: $error") })
-    }
-
-    private fun onPairingPayload(payload: PairingParamsVO.PayloadParams) {
-        val proposal = payload.request.params
-        storageRepository.insertSessionProposal(proposal, proposal.proposer.metadata, defaultSequenceExpirySeconds(), controllerType)
-
-        val (sharedKey, publicKey) = crypto.getKeyAgreement(proposal.signal.params.topic)
-        crypto.setEncryptionKeys(sharedKey as SharedKey, publicKey as PublicKey, proposal.topic)
-        _sequenceEvent.value = EngineDO.SessionProposal(proposal.toSessionProposal())
-    }
-
-    private fun onSessionPayload(payload: SessionParamsVO.SessionPayloadParams, topic: TopicVO, requestId: Long) {
-        //TODO Validate session request + add unmarshaling of generic session request payload to the usable generic object
-        val params = payload.request.params.toString()
-        val chainId = payload.chainId
-        val method = payload.request.method
-        _sequenceEvent.value = SequenceLifecycle.OnSessionRequest(
-            EngineDO.SessionRequest(topic.value, chainId, EngineDO.SessionRequest.JSONRPCRequest(requestId, method, params))
-        )
-    }
-
-    private fun onSessionDelete(params: SessionParamsVO.DeleteParams, topic: TopicVO) {
-        crypto.removeKeys(topic.value)
-        storageRepository.deleteSession(topic.value)
-        relayer.unsubscribe(topic)
-        _sequenceEvent.value = SequenceLifecycle.OnSessionDeleted(EngineDO.DeletedSession(topic.value, params.reason.message))
-    }
-
-    private fun onSessionNotification(params: SessionParamsVO.NotificationParams, topic: TopicVO) {
-        val type = params.type
-        val data = params.data.toString()
-        _sequenceEvent.value = SequenceLifecycle.OnSessionNotification(EngineDO.SessionNotification(topic.value, type, data))
-    }
-
-    private fun onPairingDelete(params: PairingParamsVO.DeleteParams, topic: TopicVO) {
-        crypto.removeKeys(topic.value)
-        relayer.unsubscribe(topic)
-        //TODO delete from DB
-    }
 
     private fun resubscribeToSettledPairings() {
         val (listOfExpiredPairing, listOfValidPairing) = storageRepository.getListOfPairingVOs()

@@ -5,9 +5,9 @@ import android.net.Uri
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.walletconnect.sample.databinding.SessionDetailsDialogBinding
-import com.walletconnect.walletconnectv2.client.model.WalletConnectClientModel
+import com.walletconnect.walletconnectv2.client.SettledSession
 
-class SessionDetailsDialog(context: Context, private val session: WalletConnectClientModel.SettledSession) : BottomSheetDialog(context) {
+class SessionDetailsDialog(context: Context, private val session: SettledSession) : BottomSheetDialog(context) {
 
     private val binding = SessionDetailsDialogBinding.inflate(layoutInflater)
 

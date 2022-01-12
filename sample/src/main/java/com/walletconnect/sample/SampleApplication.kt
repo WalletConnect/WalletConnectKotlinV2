@@ -12,7 +12,7 @@ class SampleApplication : Application() {
 
         val init = Init(
             application = this,
-            hostName = "relay.walletconnect.org",
+            projectId = "2ee94aca5d98e6c05c38bce02bee952a",
             metadata = AppMetaData(
                 name = "Kotlin Wallet",
                 description = "Wallet description",

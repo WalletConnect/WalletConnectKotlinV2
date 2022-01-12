@@ -54,6 +54,8 @@ sealed class EngineDO {
         val data: String
     ) : EngineDO(), SequenceLifecycle
 
+    object Default : SequenceLifecycle
+
     internal data class SettledSession(
         override val topic: TopicVO,
         val accounts: List<String>,

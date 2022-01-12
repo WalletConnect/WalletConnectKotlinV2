@@ -15,7 +15,7 @@ import com.walletconnect.sample.wallet.ui.dialog.SessionDetailsDialog
 import com.walletconnect.sample.wallet.ui.dialog.SessionProposalDialog
 import com.walletconnect.sample.wallet.ui.dialog.SessionRequestDialog
 import com.walletconnect.sample.wallet.ui.dialog.UrlDialog
-import com.walletconnect.walletconnectv2.client.model.WalletConnectClientModel
+import com.walletconnect.walletconnectv2.client.SettledSession
 
 class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener {
     private val viewModel: WalletViewModel by activityViewModels()
@@ -85,23 +85,23 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
         }
     }
 
-    override fun onDisconnect(session: WalletConnectClientModel.SettledSession) {
+    override fun onDisconnect(session: SettledSession) {
         viewModel.disconnect(session.topic)
     }
 
-    override fun onUpdate(session: WalletConnectClientModel.SettledSession) {
+    override fun onUpdate(session: SettledSession) {
         viewModel.sessionUpdate(session)
     }
 
-    override fun onUpgrade(session: WalletConnectClientModel.SettledSession) {
+    override fun onUpgrade(session: SettledSession) {
         viewModel.sessionUpgrade(session)
     }
 
-    override fun onPing(session: WalletConnectClientModel.SettledSession) {
+    override fun onPing(session: SettledSession) {
         viewModel.sessionPing(session)
     }
 
-    override fun onSessionsDetails(session: WalletConnectClientModel.SettledSession) {
+    override fun onSessionsDetails(session: SettledSession) {
 
         SessionDetailsDialog(requireContext(), session).show()
     }

@@ -7,7 +7,7 @@ import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.AppMetaDataVO
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 
-data class SessionVO(
+internal data class SessionVO(
     override val topic: TopicVO,
     val chains: List<String>,
     val methods: List<String>,

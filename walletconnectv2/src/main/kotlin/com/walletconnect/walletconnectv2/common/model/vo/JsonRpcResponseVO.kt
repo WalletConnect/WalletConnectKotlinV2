@@ -2,7 +2,7 @@ package com.walletconnect.walletconnectv2.common.model.vo
 
 import com.squareup.moshi.JsonClass
 
-sealed class JsonRpcResponseVO {
+internal sealed class JsonRpcResponseVO {
     val jsonrpc: String = "2.0"
 
     @JsonClass(generateAdapter = true)

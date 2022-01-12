@@ -44,7 +44,7 @@ class JsonRpcSerializer {
         }
     }
 
-    internal fun deserialize(method: String, json: String): ClientParams? =
+    internal fun deserialize(method: String, json: String, topic: TopicVO): ClientParams? =
         when (method) {
             JsonRpcMethod.WC_PAIRING_APPROVE -> tryDeserialize<PreSettlementPairingVO.Approve>(json)?.params
             JsonRpcMethod.WC_PAIRING_REJECT -> tryDeserialize<PreSettlementPairingVO.Reject>(json)?.params

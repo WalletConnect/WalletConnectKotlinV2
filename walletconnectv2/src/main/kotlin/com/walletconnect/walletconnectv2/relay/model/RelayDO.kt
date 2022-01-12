@@ -21,7 +21,10 @@ sealed class RelayDO {
         data class JsonRpcError(
             override val id: Long,
             val error: Error,
-        ) : JsonRpcResponse()
+        ) : JsonRpcResponse() {
+            val code: Long = error.code
+            val message: String = error.message
+        }
 
         data class Error(
             val code: Long,
@@ -33,13 +36,6 @@ sealed class RelayDO {
         val id: Long,
         val jsonrpc: String,
         val method: String
-    ) : RelayDO()
-
-    internal data class WCRequestSubscriptionPayload(
-        val requestId: Long,
-        val topic: TopicVO,
-        val method: String,
-        val params: ClientParams
     ) : RelayDO()
 
     data class Acknowledgement(

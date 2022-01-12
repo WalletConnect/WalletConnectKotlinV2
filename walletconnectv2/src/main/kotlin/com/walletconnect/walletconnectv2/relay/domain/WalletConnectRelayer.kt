@@ -3,14 +3,15 @@ package com.walletconnect.walletconnectv2.relay.domain
 import android.app.Application
 import com.tinder.scarlet.WebSocket
 import com.walletconnect.walletconnectv2.common.errors.exception
+import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
 import com.walletconnect.walletconnectv2.common.model.vo.JsonRpcResponseVO
+import com.walletconnect.walletconnectv2.common.model.vo.RequestSubscriptionPayloadVO
 import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.common.scope.scope
 import com.walletconnect.walletconnectv2.network.data.repository.WakuNetworkRepository
 import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
-import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
 import com.walletconnect.walletconnectv2.relay.model.mapper.toJsonRpcResultVO
 import com.walletconnect.walletconnectv2.relay.model.mapper.toRelayDOJsonRpcResponse
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
@@ -27,8 +28,8 @@ class WalletConnectRelayer {
     private val serializer: JsonRpcSerializer = JsonRpcSerializer()
     //end
 
-    private val _clientSyncJsonRpc: MutableSharedFlow<RelayDO.WCRequestSubscriptionPayload> = MutableSharedFlow()
-    internal val clientSyncJsonRpc: SharedFlow<RelayDO.WCRequestSubscriptionPayload> = _clientSyncJsonRpc
+    private val _clientSyncJsonRpc: MutableSharedFlow<RequestSubscriptionPayloadVO> = MutableSharedFlow()
+    internal val clientSyncJsonRpc: SharedFlow<RequestSubscriptionPayloadVO> = _clientSyncJsonRpc
 
     private val peerResponse: MutableSharedFlow<RelayDO.JsonRpcResponse> = MutableSharedFlow()
 
@@ -42,7 +43,6 @@ class WalletConnectRelayer {
         manageSubscriptions()
     }
 
-    //TODO: ClientSyncJsonRpc as DO or VO?
     internal fun request(topic: TopicVO, payload: ClientSyncJsonRpc, onResult: (Result<JsonRpcResponseVO.JsonRpcResult>) -> Unit) {
         require(::networkRepository.isInitialized)
 
@@ -70,7 +70,7 @@ class WalletConnectRelayer {
         }
     }
 
-    fun respond(topic: TopicVO, response: JsonRpcResponseVO, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    internal fun respond(topic: TopicVO, response: JsonRpcResponseVO, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         require(::networkRepository.isInitialized)
 
         networkRepository.publish(topic, serializer.serialize(response.toRelayDOJsonRpcResponse(), topic)) { result ->
@@ -81,7 +81,7 @@ class WalletConnectRelayer {
         }
     }
 
-    fun subscribe(topic: TopicVO) {
+    internal fun subscribe(topic: TopicVO) {
         require(::networkRepository.isInitialized)
 
         networkRepository.subscribe(topic) { result ->
@@ -92,7 +92,7 @@ class WalletConnectRelayer {
         }
     }
 
-    fun unsubscribe(topic: TopicVO) {
+    internal fun unsubscribe(topic: TopicVO) {
         require(::networkRepository.isInitialized)
 
         if (subscriptions.contains(topic.value)) {
@@ -145,10 +145,9 @@ class WalletConnectRelayer {
 
     private suspend fun handleSessionRequest(decryptedMessage: String, topic: TopicVO) {
         val clientJsonRpc = serializer.tryDeserialize<RelayDO.ClientJsonRpc>(decryptedMessage)
-
         if (clientJsonRpc != null && jsonRpcHistory.setRequest(clientJsonRpc.id, topic)) {
-            serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
-                _clientSyncJsonRpc.emit(RelayDO.WCRequestSubscriptionPayload(clientJsonRpc.id, topic, clientJsonRpc.method, params))
+            serializer.deserialize(clientJsonRpc.method, decryptedMessage, topic)?.let { params ->
+                _clientSyncJsonRpc.emit(RequestSubscriptionPayloadVO(clientJsonRpc.id, topic, clientJsonRpc.method, params))
             }
         }
     }
@@ -161,12 +160,7 @@ class WalletConnectRelayer {
 
         val error = serializer.tryDeserialize<RelayDO.JsonRpcResponse.JsonRpcError>(decryptedMessage)
         if (error != null) {
-            peerResponse.emit(
-                RelayDO.JsonRpcResponse.JsonRpcError(
-                    error.id,
-                    RelayDO.JsonRpcResponse.Error(error.error.code, error.error.message)
-                )
-            )
+            peerResponse.emit(RelayDO.JsonRpcResponse.JsonRpcError(error.id, RelayDO.JsonRpcResponse.Error(error.code, error.message)))
         }
     }
 

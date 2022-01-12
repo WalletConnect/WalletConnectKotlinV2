@@ -12,6 +12,10 @@ import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.Sess
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.params.SessionPermissionsVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.AppMetaDataVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.SessionProposedPermissionsVO
+import com.walletconnect.walletconnectv2.common.model.vo.sequence.lifecycle.DeletedSessionVO
+import com.walletconnect.walletconnectv2.common.model.vo.sequence.lifecycle.SessionNotificationVO
+import com.walletconnect.walletconnectv2.common.model.vo.sequence.lifecycle.SessionProposalVO
+import com.walletconnect.walletconnectv2.common.model.vo.sequence.lifecycle.SessionRequestVO
 import org.json.JSONObject
 import java.net.URI
 import kotlin.time.Duration
@@ -37,7 +41,11 @@ internal fun String.toPairProposal(): PairingParamsVO.Proposal {
     )
 }
 
-internal fun PairingParamsVO.Proposal.toPairingSuccess(settleTopic: TopicVO, expiry: ExpiryVO, selfPublicKey: PublicKey): PairingParamsVO.Success =
+internal fun PairingParamsVO.Proposal.toPairingSuccess(
+    settleTopic: TopicVO,
+    expiry: ExpiryVO,
+    selfPublicKey: PublicKey
+): PairingParamsVO.Success =
     PairingParamsVO.Success(
         settledTopic = settleTopic,
         relay = relay,
@@ -53,21 +61,6 @@ internal fun PairingParamsVO.Proposal.toApprove(
     selfPublicKey: PublicKey
 ): PreSettlementPairingVO.Approve = PreSettlementPairingVO.Approve(id = id, params = this.toPairingSuccess(settleTopic, expiry, selfPublicKey))
 
-internal fun SessionParamsVO.Proposal.toSessionProposal(): EngineDO.SessionProposal =
-    EngineDO.SessionProposal(
-        name = this.proposer.metadata?.name!!,
-        description = this.proposer.metadata.description,
-        url = this.proposer.metadata.url,
-        icons = this.proposer.metadata.icons.map { URI(it) },
-        chains = this.permissions.blockchain.chains,
-        methods = this.permissions.jsonRpc.methods,
-        types = this.permissions.notifications.types,
-        topic = this.topic.value,
-        proposerPublicKey = this.proposer.publicKey,
-        ttl = this.ttl.seconds,
-        accounts = listOf()
-    )
-
 internal fun EngineDO.AppMetaData.toClientSyncAppMetaData() =
     AppMetaDataVO(name, description, url, icons)
 
@@ -79,3 +72,31 @@ internal fun EngineDO.SessionPermissions.toSessionsPermissions(): SessionPermiss
 
 internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toJsonRpcResponseVO(): JsonRpcResponseVO.JsonRpcResult =
     JsonRpcResponseVO.JsonRpcResult(id, result)
+
+internal fun PairingParamsVO.PayloadParams.toEngineDOSessionProposal(): EngineDO.SessionProposal =
+    EngineDO.SessionProposal(
+        name = this.request.params.proposer.metadata?.name!!,
+        description = this.request.params.proposer.metadata.description,
+        url = this.request.params.proposer.metadata.url,
+        icons = this.request.params.proposer.metadata.icons.map { URI(it) },
+        chains = this.request.params.permissions.blockchain.chains,
+        methods = this.request.params.permissions.jsonRpc.methods,
+        types = this.request.params.permissions.notifications.types,
+        topic = this.request.params.topic.value,
+        proposerPublicKey = this.request.params.proposer.publicKey,
+        ttl = this.request.params.ttl.seconds,
+        accounts = listOf()
+    )
+
+internal fun SessionParamsVO.SessionPayloadParams.toEngineDOSessionRequest(topic: TopicVO, requestId: Long): EngineDO.SessionRequest =
+    EngineDO.SessionRequest(
+        topic.value,
+        chainId,
+        EngineDO.SessionRequest.JSONRPCRequest(requestId, this.request.method, this.request.params.toString())
+    )
+
+internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: TopicVO): EngineDO.DeletedSession =
+    EngineDO.DeletedSession(topic.value, reason.message)
+
+internal fun SessionParamsVO.NotificationParams.toEngineDoSessionNotification(topic: TopicVO): EngineDO.SessionNotification =
+    EngineDO.SessionNotification(topic.value, type, data.toString())
