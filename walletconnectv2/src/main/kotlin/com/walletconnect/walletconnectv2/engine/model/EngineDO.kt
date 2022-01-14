@@ -7,12 +7,22 @@ import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.proposal.PairingPermissionsVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.util.Empty
 import org.json.JSONObject
 import java.net.URI
+import java.net.URLEncoder
 
-internal sealed class EngineDO {
+sealed class EngineDO {
+
+    class WalletConnectUri(
+        val topic: String,
+        val publicKey: String,
+        val isController: Boolean,
+        val relay: RelayProtocolOptionsVO,
+        val version: String = "2"
+    ) : EngineDO()
 
     internal data class SessionProposal(
         val name: String,

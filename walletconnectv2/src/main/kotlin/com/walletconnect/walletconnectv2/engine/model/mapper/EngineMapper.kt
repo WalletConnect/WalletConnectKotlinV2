@@ -9,6 +9,7 @@ import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.befo
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.SessionParamsVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.params.SessionPermissionsVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.AppMetaDataVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.SessionProposedPermissionsVO
 import com.walletconnect.walletconnectv2.common.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
@@ -17,6 +18,7 @@ import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.util.Empty
 import org.json.JSONObject
 import java.net.URI
+import java.net.URLEncoder
 import kotlin.time.Duration
 
 internal fun String.toPairProposal(): PairingParamsVO.Proposal {
@@ -39,6 +41,11 @@ internal fun String.toPairProposal(): PairingParamsVO.Proposal {
         ttl = TtlVO(ttl)
     )
 }
+
+internal fun EngineDO.WalletConnectUri.toAbsoluteString(): String =
+    "wc:$topic@$version?controller=$isController&publicKey=$publicKey&relay=${relay.toUrlEncodedString()}"
+
+internal fun RelayProtocolOptionsVO.toUrlEncodedString(): String = URLEncoder.encode(JSONObject().put("protocol", protocol).toString(), "UTF-8")
 
 internal fun PairingParamsVO.Proposal.toPairingSuccess(
     settleTopic: TopicVO,

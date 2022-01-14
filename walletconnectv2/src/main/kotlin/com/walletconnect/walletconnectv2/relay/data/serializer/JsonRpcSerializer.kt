@@ -66,7 +66,7 @@ class JsonRpcSerializer {
 
     inline fun <reified T> tryDeserialize(json: String): T? = runCatching { moshi.adapter(T::class.java).fromJson(json) }.getOrNull()
 
-    private inline fun <reified T> trySerialize(type: T): String = moshi.adapter(T::class.java).toJson(type)
+    inline fun <reified T> trySerialize(type: T): String = moshi.adapter(T::class.java).toJson(type)
 
     private fun serialize(payload: ClientSyncJsonRpc): String =
         when (payload) {

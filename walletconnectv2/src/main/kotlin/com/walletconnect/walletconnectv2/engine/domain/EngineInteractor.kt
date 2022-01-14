@@ -26,9 +26,11 @@ import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
 import com.walletconnect.walletconnectv2.util.Logger
 import com.walletconnect.walletconnectv2.util.generateId
+import com.walletconnect.walletconnectv2.util.generateTopic
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.json.JSONObject
+import java.net.URLEncoder
 import java.util.*
 
 internal class EngineInteractor {
@@ -41,6 +43,7 @@ internal class EngineInteractor {
 
     private var metaData: EngineDO.AppMetaData? = null
     private var controllerType = ControllerType.CONTROLLER
+    private var isController: Boolean = false
 
     val sequenceEvent: StateFlow<SequenceLifecycle> =
         relayer.clientSyncJsonRpc
@@ -48,11 +51,13 @@ internal class EngineInteractor {
             .stateIn(scope, SharingStarted.Lazily, EngineDO.Default)
 
     internal fun initialize(engine: EngineFactory) = with(engine) {
-        this@EngineInteractor.metaData = engine.metaData
-        this@EngineInteractor.controllerType = if (engine.isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
-        WalletConnectRelayer.RelayFactory(useTLs, hostName, projectId, application)
-            .run { relayer.initialize(this) }
-        storageRepository = SequenceStorageRepository(null, engine.application)
+        this@EngineInteractor.metaData = metaData
+        this@EngineInteractor.controllerType = if (isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
+        this@EngineInteractor.isController = isController
+
+        WalletConnectRelayer.RelayFactory(useTLs, hostName, projectId, application).run { relayer.initialize(this) }
+
+        storageRepository = SequenceStorageRepository(null, application)
 
         relayer.isConnectionOpened
             .filter { isConnected: Boolean -> isConnected }
@@ -65,9 +70,21 @@ internal class EngineInteractor {
             .launchIn(scope)
     }
 
+    internal fun proposeSequence(permissions: EngineDO.SessionPermissions, pairingTopic: String?): String? {
+        //TODO propose session over the existing pairing
+
+        val topic: String = generateTopic()
+        val publicKey: PublicKey = crypto.generateKeyPair()
+        val relay = RelayProtocolOptionsVO()
+        return EngineDO.WalletConnectUri(topic, publicKey.keyAsHex, isController, relay).toAbsoluteString()
+    }
+
+    //wc_pairingApprove
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         val pairingProposal: PairingParamsVO.Proposal = uri.toPairProposal()
         val topic: String = pairingProposal.topic.value
+
+        //TODO insert the PairingProposal with peer type
         storageRepository.insertPairingProposal(topic, uri, defaultSequenceExpirySeconds(), SequenceStatus.PENDING, controllerType)
         relayer.subscribe(pairingProposal.topic)
         val selfPublicKey: PublicKey = crypto.generateKeyPair()

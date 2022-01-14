@@ -5,6 +5,17 @@ package com.walletconnect.walletconnectv2.util
 import java.lang.System.currentTimeMillis
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+import java.security.SecureRandom
+import kotlin.random.Random
+
+fun generateTopic() = randomBytes(32).bytesToHex()
+
+fun randomBytes(size: Int): ByteArray {
+    val secureRandom = SecureRandom()
+    val bytes = ByteArray(size)
+    secureRandom.nextBytes(bytes)
+    return bytes
+}
 
 fun generateId(): Long = (currentTimeMillis() + (100..999).random())
 

@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 object WalletConnectClient {
+
     private val engineInteractor = EngineInteractor()
 
     fun setDelegate(delegate: Delegate) {
@@ -35,6 +36,10 @@ object WalletConnectClient {
         val engineFactory =
             EngineInteractor.EngineFactory(useTls, hostName, projectId, isController, application, metadata.toEngineAppMetaData())
         engineInteractor.initialize(engineFactory)
+    }
+
+    fun connect(permissions: WalletConnect.Model.SessionPermissions, topic: String? = null): String? {
+        return engineInteractor.proposeSequence(permissions.toEngineSessionPermissions(), topic)
     }
 
     fun pair(pair: WalletConnect.Params.Pair, pairing: WalletConnect.Listeners.Pairing) {
@@ -82,7 +87,7 @@ object WalletConnectClient {
             { error -> sessionPing.onError(error) })
     }
 
-    fun notify(notify: WalletConnect.Params.Notify, notificationListener: WalletConnect.Listeners.NotificationListener) = with(notify) {
+    fun notify(notify: WalletConnect.Params.Notify, notificationListener: WalletConnect.Listeners.Notification) = with(notify) {
         engineInteractor.notify(topic, notification.toEngineNotification(),
             { topic -> notificationListener.onSuccess(topic) },
             { error -> notificationListener.onError(error) })

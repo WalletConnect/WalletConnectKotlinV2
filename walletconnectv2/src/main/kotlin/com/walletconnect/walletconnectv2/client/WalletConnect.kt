@@ -39,7 +39,7 @@ object WalletConnect {
             fun onSuccess(topic: String)
         }
 
-        interface NotificationListener : Listeners {
+        interface Notification : Listeners {
             fun onSuccess(topic: String)
         }
     }
