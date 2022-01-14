@@ -1,0 +1,3 @@
+package com.walletconnect.walletconnectv2.network
+
+interface NetworkRepository

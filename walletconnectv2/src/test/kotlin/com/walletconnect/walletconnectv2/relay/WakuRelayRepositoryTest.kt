@@ -9,14 +9,14 @@ import kotlinx.coroutines.flow.flowOf
 import org.json.JSONObject
 import org.junit.Rule
 import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.clientsync.pairing.Pairing
-import com.walletconnect.walletconnectv2.clientsync.pairing.before.PreSettlementPairing
-import com.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingParticipant
-import com.walletconnect.walletconnectv2.clientsync.pairing.before.success.PairingState
-import com.walletconnect.walletconnectv2.common.Expiry
-import com.walletconnect.walletconnectv2.common.Topic
-import com.walletconnect.walletconnectv2.relay.waku.Relay
-import com.walletconnect.walletconnectv2.relay.waku.WakuNetworkRepository
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.PairingParamsVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.PreSettlementPairingVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.success.PairingParticipantVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.success.PairingStateVO
+import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.network.model.RelayDTO
+import com.walletconnect.walletconnectv2.network.data.repository.WakuNetworkRepository
 import com.walletconnect.walletconnectv2.util.CoroutineTestRule
 import com.walletconnect.walletconnectv2.util.getRandom64ByteHexString
 import com.walletconnect.walletconnectv2.util.runTest
@@ -34,20 +34,20 @@ internal class WakuRelayRepositoryTest {
     @Test
     fun `Publish a pairing request, expect a successful acknowledgement`() {
         // Arrange
-        val topic = Topic(getRandom64ByteHexString())
-        val settledTopic = Topic(getRandom64ByteHexString())
-        val preSettlementPairing = PreSettlementPairing.Approve(
+        val topic = TopicVO(getRandom64ByteHexString())
+        val settledTopic = TopicVO(getRandom64ByteHexString())
+        val preSettlementPairing = PreSettlementPairingVO.Approve(
             id = 1L,
-            params = Pairing.Success(
+            params = PairingParamsVO.Success(
                 settledTopic = settledTopic,
                 relay = JSONObject(),
-                responder = PairingParticipant(getRandom64ByteHexString()),
-                expiry = Expiry(1),
-                state = PairingState()
+                responder = PairingParticipantVO(getRandom64ByteHexString()),
+                expiry = ExpiryVO(1),
+                state = PairingStateVO()
             )
         )
         coEvery { sut.observePublishAcknowledgement } returns flowOf(
-            Relay.Publish.Acknowledgement(
+            RelayDTO.Publish.Acknowledgement(
                 id = preSettlementPairing.id,
                 result = true
             )

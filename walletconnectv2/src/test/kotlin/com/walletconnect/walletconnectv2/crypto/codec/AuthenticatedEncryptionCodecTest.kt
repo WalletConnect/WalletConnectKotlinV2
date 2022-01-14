@@ -4,16 +4,17 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
 import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.clientsync.pairing.after.PostSettlementPairing
-import com.walletconnect.walletconnectv2.common.SubscriptionId
-import com.walletconnect.walletconnectv2.common.Topic
-import com.walletconnect.walletconnectv2.common.Ttl
-import com.walletconnect.walletconnectv2.common.network.adapters.SubscriptionIdAdapter
-import com.walletconnect.walletconnectv2.common.network.adapters.TopicAdapter
-import com.walletconnect.walletconnectv2.common.network.adapters.TtlAdapter
-import com.walletconnect.walletconnectv2.crypto.data.EncryptionPayload
-import com.walletconnect.walletconnectv2.crypto.data.PublicKey
-import com.walletconnect.walletconnectv2.crypto.data.SharedKey
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.after.PostSettlementPairingVO
+import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
+import com.walletconnect.walletconnectv2.common.adapters.SubscriptionIdAdapter
+import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
+import com.walletconnect.walletconnectv2.common.adapters.TtlAdapter
+import com.walletconnect.walletconnectv2.common.model.vo.EncryptionPayloadVO
+import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.common.model.vo.SharedKey
+import com.walletconnect.walletconnectv2.relay.data.codec.AuthenticatedEncryptionCodec
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import kotlin.test.assertEquals
 
@@ -82,15 +83,15 @@ class AuthenticatedEncryptionCodecTest {
         val moshi =
             Moshi.Builder().addLast { type, annotations, moshi ->
                 when (type.getRawType().name) {
-                    SubscriptionId::class.qualifiedName -> SubscriptionIdAdapter
-                    Topic::class.qualifiedName -> TopicAdapter
-                    Ttl::class.qualifiedName -> TtlAdapter
+                    SubscriptionIdVO::class.qualifiedName -> SubscriptionIdAdapter
+                    TopicVO::class.qualifiedName -> TopicAdapter
+                    TtlVO::class.qualifiedName -> TtlAdapter
                     else -> null
                 }
             }.addLast(KotlinJsonAdapterFactory()).build()
 
-        val request: PostSettlementPairing.PairingPayload? =
-            moshi.adapter(PostSettlementPairing.PairingPayload::class.java).fromJson(json)
+        val request: PostSettlementPairingVO.PairingPayload? =
+            moshi.adapter(PostSettlementPairingVO.PairingPayload::class.java).fromJson(json)
 
         assertEquals(
             request?.params?.request?.params?.proposer?.publicKey,
@@ -99,15 +100,15 @@ class AuthenticatedEncryptionCodecTest {
     }
 }
 
-fun String.toEncryptionPayload(): EncryptionPayload {
-    val pubKeyStartIndex = EncryptionPayload.ivLength
-    val macStartIndex = pubKeyStartIndex + EncryptionPayload.publicKeyLength
-    val cipherTextStartIndex = macStartIndex + EncryptionPayload.macLength
+fun String.toEncryptionPayload(): EncryptionPayloadVO {
+    val pubKeyStartIndex = EncryptionPayloadVO.ivLength
+    val macStartIndex = pubKeyStartIndex + EncryptionPayloadVO.publicKeyLength
+    val cipherTextStartIndex = macStartIndex + EncryptionPayloadVO.macLength
 
     val iv = this.substring(0, pubKeyStartIndex)
     val publicKey = this.substring(pubKeyStartIndex, macStartIndex)
     val mac = this.substring(macStartIndex, cipherTextStartIndex)
     val cipherText = this.substring(cipherTextStartIndex, this.length)
 
-    return EncryptionPayload(iv, publicKey, mac, cipherText)
+    return EncryptionPayloadVO(iv, publicKey, mac, cipherText)
 }

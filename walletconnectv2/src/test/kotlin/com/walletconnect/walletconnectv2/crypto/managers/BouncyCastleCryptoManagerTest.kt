@@ -3,12 +3,13 @@ package com.walletconnect.walletconnectv2.crypto.managers
 import io.mockk.spyk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.common.Topic
-import com.walletconnect.walletconnectv2.crypto.data.Key
-import com.walletconnect.walletconnectv2.crypto.data.PrivateKey
-import com.walletconnect.walletconnectv2.crypto.data.PublicKey
-import com.walletconnect.walletconnectv2.crypto.data.SharedKey
-import com.walletconnect.walletconnectv2.storage.KeyStore
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.common.model.vo.Key
+import com.walletconnect.walletconnectv2.common.model.vo.PrivateKey
+import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.common.model.vo.SharedKey
+import com.walletconnect.walletconnectv2.crypto.KeyStore
+import com.walletconnect.walletconnectv2.crypto.data.repository.BouncyCastleCryptoRepository
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
@@ -18,7 +19,7 @@ internal class BouncyCastleCryptoManagerTest {
     private val privateKey = PrivateKey(privateKeyString)
     private val publicKey = PublicKey(publicKeyString)
     private val keyChain: KeyStore = KeyChainMock()
-    private val sut = spyk(BouncyCastleCryptoManager(keyChain), recordPrivateCalls = true)
+    private val sut = spyk(BouncyCastleCryptoRepository(keyChain), recordPrivateCalls = true)
 
     @BeforeEach
     fun setUp() {
@@ -70,10 +71,10 @@ internal class BouncyCastleCryptoManagerTest {
         val sharedKey = object : Key {
             override val keyAsHex: String = sharedKeyString.keyAsHex
         }
-        sut.setEncryptionKeys(sharedKeyString, publicKey, Topic("topic"))
+        sut.setEncryptionKeys(sharedKeyString, publicKey, TopicVO("topic"))
 
-        assertEquals(sharedKey.keyAsHex, keyChain.getKeys(Topic("topic").value).first)
-        assertEquals(publicKey.keyAsHex, keyChain.getKeys(Topic("topic").value).second)
+        assertEquals(sharedKey.keyAsHex, keyChain.getKeys(TopicVO("topic").value).first)
+        assertEquals(publicKey.keyAsHex, keyChain.getKeys(TopicVO("topic").value).second)
     }
 
     @Test
