@@ -1,8 +1,7 @@
 package com.walletconnect.sample
 
 import android.app.Application
-import com.walletconnect.walletconnectv2.client.AppMetaData
-import com.walletconnect.walletconnectv2.client.Init
+import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 
 class SampleApplication : Application() {
@@ -10,10 +9,10 @@ class SampleApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        val init = Init(
+        val init = WalletConnect.Params.Init(
             application = this,
             projectId = "2ee94aca5d98e6c05c38bce02bee952a",
-            metadata = AppMetaData(
+            metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Wallet",
                 description = "Wallet description",
                 url = "example.wallet",

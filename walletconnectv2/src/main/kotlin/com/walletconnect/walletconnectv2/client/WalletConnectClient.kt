@@ -29,7 +29,7 @@ object WalletConnectClient {
         }
     }
 
-    fun initialize(initial: Init) = with(initial) {
+    fun initialize(initial: WalletConnect.Params.Init) = with(initial) {
         // TODO: pass properties to DI framework
         app = application
         val engineFactory =
@@ -37,71 +37,71 @@ object WalletConnectClient {
         engineInteractor.initialize(engineFactory)
     }
 
-    fun pair(pair: Pair, pairing: Pairing) {
+    fun pair(pair: WalletConnect.Params.Pair, pairing: WalletConnect.Listeners.Pairing) {
         engineInteractor.pair(pair.uri,
-            { topic -> pairing.onSuccess(SettledPairing(topic)) },
+            { topic -> pairing.onSuccess(WalletConnect.Model.SettledPairing(topic)) },
             { error -> pairing.onError(error) })
     }
 
-    fun approve(approve: Approve, sessionApprove: SessionApprove) = with(approve) {
+    fun approve(approve: WalletConnect.Params.Approve, sessionApprove: WalletConnect.Listeners.SessionApprove) = with(approve) {
         engineInteractor.approve(
             proposal.toEngineSessionProposal(accounts),
             { settledSession -> sessionApprove.onSuccess(settledSession.toClientSettledSession()) },
             { error -> sessionApprove.onError(error) })
     }
 
-    fun reject(reject: Reject, sessionReject: SessionReject) = with(reject) {
+    fun reject(reject: WalletConnect.Params.Reject, sessionReject: WalletConnect.Listeners.SessionReject) = with(reject) {
         engineInteractor.reject(
             rejectionReason, proposalTopic,
-            { (topic, reason) -> sessionReject.onSuccess(RejectedSession(topic, reason)) },
+            { (topic, reason) -> sessionReject.onSuccess(WalletConnect.Model.RejectedSession(topic, reason)) },
             { error -> sessionReject.onError(error) })
     }
 
-    fun respond(response: Response, sessionPayload: SessionPayload) = with(response) {
+    fun respond(response: WalletConnect.Params.Response, sessionPayload: WalletConnect.Listeners.SessionPayload) = with(response) {
         engineInteractor.respondSessionPayload(sessionTopic, response.jsonRpcResponse.toJsonRpcResponseVO())
         { error -> sessionPayload.onError(error) }
     }
 
-    fun upgrade(upgrade: Upgrade, sessionUpgrade: SessionUpgrade) = with(upgrade) {
+    fun upgrade(upgrade: WalletConnect.Params.Upgrade, sessionUpgrade: WalletConnect.Listeners.SessionUpgrade) = with(upgrade) {
         engineInteractor.upgrade(
             topic, permissions.toEngineSessionPermissions(),
-            { (topic, permissions) -> sessionUpgrade.onSuccess(UpgradedSession(topic, permissions.toClientPerms())) },
+            { (topic, permissions) -> sessionUpgrade.onSuccess(WalletConnect.Model.UpgradedSession(topic, permissions.toClientPerms())) },
             { error -> sessionUpgrade.onError(error) })
     }
 
-    fun update(update: Update, sessionUpdate: SessionUpdate) = with(update) {
+    fun update(update: WalletConnect.Params.Update, sessionUpdate: WalletConnect.Listeners.SessionUpdate) = with(update) {
         engineInteractor.update(
             sessionTopic, sessionState.toEngineSessionState(),
-            { (topic, accounts) -> sessionUpdate.onSuccess(UpdatedSession(topic, accounts)) },
+            { (topic, accounts) -> sessionUpdate.onSuccess(WalletConnect.Model.UpdatedSession(topic, accounts)) },
             { error -> sessionUpdate.onError(error) })
     }
 
-    fun ping(ping: Ping, sessionPing: SessionPing) {
+    fun ping(ping: WalletConnect.Params.Ping, sessionPing: WalletConnect.Listeners.SessionPing) {
         engineInteractor.ping(ping.topic,
             { topic -> sessionPing.onSuccess(topic) },
             { error -> sessionPing.onError(error) })
     }
 
-    fun notify(notify: Notify, notificationListener: NotificationListener) = with(notify) {
+    fun notify(notify: WalletConnect.Params.Notify, notificationListener: WalletConnect.Listeners.NotificationListener) = with(notify) {
         engineInteractor.notify(topic, notification.toEngineNotification(),
             { topic -> notificationListener.onSuccess(topic) },
             { error -> notificationListener.onError(error) })
     }
 
     fun disconnect(
-        disconnectParams: Disconnect,
-        listener: SessionDelete
+        disconnectParams: WalletConnect.Params.Disconnect,
+        listener: WalletConnect.Listeners.SessionDelete
     ) = with(disconnectParams) {
         engineInteractor.disconnect(
             sessionTopic, reason,
-            { (topic, reason) -> listener.onSuccess(DeletedSession(topic, reason)) },
+            { (topic, reason) -> listener.onSuccess(WalletConnect.Model.DeletedSession(topic, reason)) },
             { error -> listener.onError(error) })
     }
 
-    fun getListOfSettledSessions(): List<SettledSession> =
+    fun getListOfSettledSessions(): List<WalletConnect.Model.SettledSession> =
         engineInteractor.getListOfSettledSessions().map(EngineDO.SettledSession::toClientSettledSession)
 
-    fun getListOfPendingSession(): List<SessionProposal> =
+    fun getListOfPendingSession(): List<WalletConnect.Model.SessionProposal> =
         engineInteractor.getListOfPendingSessions().map(EngineDO.SessionProposal::toClientSessionProposal)
 
     fun shutdown() {
@@ -109,21 +109,9 @@ object WalletConnectClient {
     }
 
     interface Delegate {
-        fun onSessionProposal(sessionProposal: SessionProposal)
-        fun onSessionRequest(sessionRequest: SessionRequest)
-        fun onSessionDelete(deletedSession: DeletedSession)
-        fun onSessionNotification(sessionNotification: SessionNotification)
-    }
-
-    sealed interface Listeners {
-        fun onError(error: Throwable)
-    }
-
-    sealed class Model
-
-    sealed class Params {
-        companion object {
-            internal const val WALLET_CONNECT_URL = "relay.walletconnect.com"
-        }
+        fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal)
+        fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest)
+        fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
+        fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification)
     }
 }

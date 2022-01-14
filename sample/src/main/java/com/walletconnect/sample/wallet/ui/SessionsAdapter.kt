@@ -10,10 +10,10 @@ import com.bumptech.glide.Glide
 import com.walletconnect.sample.R
 import com.walletconnect.sample.databinding.SessionItemBinding
 import com.walletconnect.sample.wallet.SessionActionListener
-import com.walletconnect.walletconnectv2.client.SettledSession
+import com.walletconnect.walletconnectv2.client.WalletConnect
 
 class SessionsAdapter(private val listener: SessionActionListener) : RecyclerView.Adapter<SessionsAdapter.SessionViewHolder>() {
-    private var sessions: List<SettledSession> = listOf()
+    private var sessions: List<WalletConnect.Model.SettledSession> = listOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SessionViewHolder =
         SessionViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.session_item, parent, false), listener)
@@ -24,7 +24,7 @@ class SessionsAdapter(private val listener: SessionActionListener) : RecyclerVie
 
     override fun getItemCount(): Int = sessions.size
 
-    fun updateList(sessions: List<SettledSession>) {
+    fun updateList(sessions: List<WalletConnect.Model.SettledSession>) {
         this.sessions = sessions
         notifyDataSetChanged()
     }
@@ -34,7 +34,7 @@ class SessionsAdapter(private val listener: SessionActionListener) : RecyclerVie
 
         private val binding = SessionItemBinding.bind(view)
 
-        fun bind(session: SettledSession) = with(binding) {
+        fun bind(session: WalletConnect.Model.SettledSession) = with(binding) {
 
             view.setOnClickListener {
                 listener.onSessionsDetails(session)
