@@ -12,11 +12,10 @@ import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.util.Empty
 import org.json.JSONObject
 import java.net.URI
-import java.net.URLEncoder
 
-sealed class EngineDO {
+internal sealed class EngineDO {
 
-    class WalletConnectUri(
+    internal class WalletConnectUri(
         val topic: String,
         val publicKey: String,
         val isController: Boolean,
