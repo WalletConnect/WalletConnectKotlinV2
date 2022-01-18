@@ -21,7 +21,7 @@ internal sealed class PreSettlementSessionVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_PROPOSE,
         @Json(name = "params")
-        override val params: SessionParamsVO.Proposal
+        override val params: SessionParamsVO.ProposalParams
     ) : PreSettlementSessionVO()
 
     @JsonClass(generateAdapter = true)
@@ -33,7 +33,7 @@ internal sealed class PreSettlementSessionVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_APPROVE,
         @Json(name = "params")
-        override val params: SessionParamsVO.Success
+        override val params: SessionParamsVO.ApprovalParams
     ) : PreSettlementSessionVO() {
         val accounts: List<String> = params.state.accounts
         val expiry: Long = params.expiry.seconds
@@ -43,7 +43,7 @@ internal sealed class PreSettlementSessionVO : ClientSyncJsonRpc {
         override val id: Long,
         override val jsonrpc: String = "2.0",
         override val method: String = JsonRpcMethod.WC_SESSION_REJECT,
-        override val params: SessionParamsVO.Failure
+        override val params: SessionParamsVO.RejectParams
     ) : PreSettlementSessionVO()
 
 }

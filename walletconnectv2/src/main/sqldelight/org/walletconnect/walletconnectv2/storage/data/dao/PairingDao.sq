@@ -7,22 +7,37 @@ CREATE TABLE PairingDao (
     uri TEXT NOT NULL,
     expiry INTEGER NOT NULL,
     status TEXT AS SequenceStatus NOT NULL,
-    controller_type TEXT AS ControllerType NOT NULL
+    controller_type TEXT AS ControllerType NOT NULL,
+    self_participant TEXT NOT NULL,
+    peer_participant TEXT,
+    controller_key TEXT,
+    proposal_uri TEXT NOT NULL,
+    relay TEXT
 );
 
 insertPairing:
-INSERT OR IGNORE INTO PairingDao(topic, uri, expiry, status, controller_type)
-VALUES (?, ?, ?, ?, ?);
+INSERT OR IGNORE INTO PairingDao(topic, uri, expiry, status, controller_type, self_participant, proposal_uri)
+VALUES (?, ?, ?, ?, ?,   ?, ?);
 
-updatePendingPairingToSettled:
+updatePendingPairingToPreSettled:
 UPDATE PairingDao
-SET topic = ?, expiry = ?, status = ?
+SET topic = ?, expiry = ?, status = ?, self_participant = ?, peer_participant = ?, controller_key = ?, relay = ?
+WHERE topic = ?;
+
+updatePreSettledPairingToAcknowledged:
+UPDATE PairingDao
+SET status = ?
 WHERE topic = ?;
 
 getListOfPairingDaos:
-SELECT topic, expiry, uri, status, controller_type
+SELECT topic, expiry, uri, status, controller_type, self_participant, peer_participant, controller_key
 FROM PairingDao;
 
 deletePairing:
 DELETE FROM PairingDao
+WHERE ? = topic;
+
+getPairingByTopic:
+SELECT topic, expiry, uri, status, controller_type, self_participant, peer_participant, controller_key, proposal_uri, relay
+FROM PairingDao
 WHERE ? = topic;

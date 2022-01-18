@@ -8,6 +8,9 @@ CREATE TABLE SessionDao(
   permissions_chains TEXT AS List<String> NOT NULL,
   permissions_methods TEXT AS List<String> NOT NULL,
   permissions_types TEXT AS List<String> NOT NULL,
+  self_participant TEXT NOT NULL,
+  peer_participant TEXT,
+  controller_key TEXT,
   ttl_seconds INTEGER NOT NULL,
   accounts TEXT AS List<String> DEFAULT(NULL),
   expiry INTEGER NOT NULL,
@@ -17,17 +20,27 @@ CREATE TABLE SessionDao(
 );
 
 insertSession:
-INSERT OR IGNORE INTO SessionDao(topic, permissions_chains, permissions_methods, permissions_types, ttl_seconds, expiry,  status, controller_type, metadata_id)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR IGNORE INTO SessionDao(topic, permissions_chains, permissions_methods, permissions_types, self_participant, ttl_seconds, expiry,  status, controller_type, metadata_id)
+VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?);
 
 getListOfSessionDaos:
-SELECT sd.topic, sd.permissions_chains, sd.permissions_methods, sd.permissions_types, sd.ttl_seconds, sd.accounts, sd.expiry, sd.status, sd.controller_type, mdd._name, mdd.description, mdd.url, mdd.icons
+SELECT sd.topic, sd.permissions_chains, sd.permissions_methods, sd.permissions_types, sd.ttl_seconds, sd.accounts, sd.expiry, sd.status, sd.controller_type, mdd._name, mdd.description, mdd.url, mdd.icons, sd.self_participant, sd.peer_participant, sd.controller_key
 FROM SessionDao sd
     LEFT JOIN MetaDataDao mdd ON sd.metadata_id = mdd.id;
 
-updateSessionWithSessionApproval:
+updateProposedSessionToResponded:
 UPDATE OR ABORT SessionDao
-SET id = ?, topic = ?, accounts = ?, expiry = ?, status = ?
+SET status = ?
+WHERE topic = ?;
+
+updateRespondedSessionToPresettled:
+UPDATE OR ABORT SessionDao
+SET topic = ?, accounts = ?, expiry = ?, status = ?, peer_participant = ?, controller_key = ?, peer_participant = ?, permissions_chains = ?, permissions_methods = ?, permissions_types = ?, ttl_seconds = ?
+WHERE topic = ?;
+
+updatePreSettledSessionToAcknowledged:
+UPDATE OR ABORT SessionDao
+SET status = ?
 WHERE topic = ?;
 
 updateSessionWithPermissions:
@@ -46,6 +59,12 @@ WHERE topic = ?;
 
 getPermissionsByTopic:
 SELECT sd.permissions_chains, sd.permissions_methods
+FROM SessionDao sd
+    LEFT JOIN MetaDataDao mdd ON sd.metadata_id = mdd.id
+WHERE topic = ?;
+
+getSessionByTopic:
+SELECT sd.topic, sd.permissions_chains, sd.permissions_methods, sd.permissions_types, sd.ttl_seconds, sd.accounts, sd.expiry, sd.status, sd.controller_type, mdd._name, mdd.description, mdd.url, mdd.icons, sd.self_participant, sd.peer_participant, sd.controller_key
 FROM SessionDao sd
     LEFT JOIN MetaDataDao mdd ON sd.metadata_id = mdd.id
 WHERE topic = ?;

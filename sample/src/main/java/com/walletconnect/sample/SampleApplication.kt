@@ -11,7 +11,7 @@ class SampleApplication : Application() {
 
         val init = WalletConnect.Params.Init(
             application = this,
-            isController = false,
+            isController = true,
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Wallet",
                 description = "Wallet description",

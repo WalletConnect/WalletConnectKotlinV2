@@ -9,5 +9,5 @@ internal data class ProposalRequestVO(
     @Json(name = "method")
     val method: String,
     @Json(name = "params")
-    val params: SessionParamsVO.Proposal
+    val params: SessionParamsVO.ProposalParams
 )

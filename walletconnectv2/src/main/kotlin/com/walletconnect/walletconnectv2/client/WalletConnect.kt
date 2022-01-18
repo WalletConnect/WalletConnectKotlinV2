@@ -56,6 +56,7 @@ object WalletConnect {
             val types: List<String>,
             val topic: String,
             val proposerPublicKey: String,
+            val isController: Boolean,
             val ttl: Long,
             val accounts: List<String>
         ) : Model() {

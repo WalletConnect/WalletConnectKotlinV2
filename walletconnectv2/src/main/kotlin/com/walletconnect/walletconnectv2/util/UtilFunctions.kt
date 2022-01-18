@@ -2,13 +2,14 @@
 
 package com.walletconnect.walletconnectv2.util
 
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import java.lang.System.currentTimeMillis
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import kotlin.random.Random
 
-fun generateTopic() = randomBytes(32).bytesToHex()
+fun generateTopic(): TopicVO = TopicVO(randomBytes(32).bytesToHex())
 
 fun randomBytes(size: Int): ByteArray {
     val secureRandom = SecureRandom()

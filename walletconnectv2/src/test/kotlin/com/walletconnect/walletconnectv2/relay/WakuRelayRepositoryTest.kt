@@ -38,7 +38,7 @@ internal class WakuRelayRepositoryTest {
         val settledTopic = TopicVO(getRandom64ByteHexString())
         val preSettlementPairing = PreSettlementPairingVO.Approve(
             id = 1L,
-            params = PairingParamsVO.Success(
+            params = PairingParamsVO.ApproveParams(
                 settledTopic = settledTopic,
                 relay = JSONObject(),
                 responder = PairingParticipantVO(getRandom64ByteHexString()),

@@ -21,14 +21,14 @@ internal sealed class PreSettlementPairingVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PAIRING_APPROVE,
         @Json(name = "params")
-        override val params: PairingParamsVO.Success
+        override val params: PairingParamsVO.ApproveParams
     ) : PreSettlementPairingVO()
 
     data class Reject(
         override val id: Long,
         override val jsonrpc: String = "2.0",
         override val method: String = JsonRpcMethod.WC_PAIRING_REJECT,
-        override val params: PairingParamsVO.Failure
+        override val params: PairingParamsVO.RejectParams
     ) : PreSettlementPairingVO()
 }
 

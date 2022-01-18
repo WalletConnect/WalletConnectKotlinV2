@@ -10,7 +10,7 @@ internal data class SessionProposedPermissionsVO(
     @Json(name = "jsonrpc")
     val jsonRpc: JsonRpc,
     @Json(name = "notifications")
-    val notifications: Notifications
+    val notifications: Notifications = Notifications(listOf())
 ) {
 
     @JsonClass(generateAdapter = true)

@@ -7,10 +7,23 @@ import com.walletconnect.walletconnectv2.engine.model.EngineDO
 //TODO: Provide VO objects for engine classes. Remove using the EngineDO object in the client layer
 
 internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.Model.SessionProposal =
-    WalletConnect.Model.SessionProposal(name, description, url, icons, chains, methods, types, topic, proposerPublicKey, ttl, accounts)
+    WalletConnect.Model.SessionProposal(
+        name,
+        description,
+        url,
+        icons,
+        chains,
+        methods,
+        types,
+        topic,
+        proposerPublicKey,
+        isController,
+        ttl,
+        accounts
+    )
 
 internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(accountList: List<String>): EngineDO.SessionProposal =
-    EngineDO.SessionProposal(name, description, url, icons, chains, methods, types, topic, proposerPublicKey, ttl, accountList)
+    EngineDO.SessionProposal(name, description, url, icons, chains, methods, types, topic, proposerPublicKey, isController, ttl, accountList)
 
 internal fun EngineDO.SettledSession.toClientSettledSession(): WalletConnect.Model.SettledSession =
     WalletConnect.Model.SettledSession(
