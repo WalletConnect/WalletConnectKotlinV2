@@ -19,11 +19,26 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.M
         proposerPublicKey,
         isController,
         ttl,
-        accounts
+        accounts,
+        relayProtocol
     )
 
 internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(accountList: List<String>): EngineDO.SessionProposal =
-    EngineDO.SessionProposal(name, description, url, icons, chains, methods, types, topic, proposerPublicKey, isController, ttl, accountList)
+    EngineDO.SessionProposal(
+        name,
+        description,
+        url,
+        icons,
+        chains,
+        methods,
+        types,
+        topic,
+        proposerPublicKey,
+        isController,
+        ttl,
+        accountList,
+        relayProtocol
+    )
 
 internal fun EngineDO.SettledSession.toClientSettledSession(): WalletConnect.Model.SettledSession =
     WalletConnect.Model.SettledSession(
@@ -79,6 +94,12 @@ internal fun EngineDO.SettledPairing.toClientSettledPairing(): WalletConnect.Mod
             WalletConnect.Model.Jsonrpc(permissions.jsonRpc?.methods ?: emptyList())
         )
     )
+
+internal fun EngineDO.SessionRejected.toClientSessionRejected(): WalletConnect.Model.RejectedSession =
+    WalletConnect.Model.RejectedSession(topic, reason)
+
+internal fun EngineDO.SessionApproved.toClientSessionApproved(): WalletConnect.Model.ApprovedSession =
+    WalletConnect.Model.ApprovedSession(topic, peerAppMetaData?.toClientAppMetaData(), permissions.toClientPerms())
 
 internal fun WalletConnect.Model.SessionPermissions.toEngineSessionPermissions(): EngineDO.SessionPermissions =
     EngineDO.SessionPermissions(

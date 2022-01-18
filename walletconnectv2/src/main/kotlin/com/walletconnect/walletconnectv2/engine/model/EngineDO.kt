@@ -35,7 +35,8 @@ internal sealed class EngineDO {
         val proposerPublicKey: String,
         val isController: Boolean = false,
         val ttl: Long,
-        val accounts: List<String>
+        val accounts: List<String>,
+        val relayProtocol: String
     ) : EngineDO(), SequenceLifecycle {
         val icon: String = icons.first().toString()
     }
@@ -66,16 +67,27 @@ internal sealed class EngineDO {
 
     internal data class SettledPairing(
         val topic: TopicVO,
-        val relay: JSONObject,
+        val relay: String,
         val permissions: SessionPermissions
     ) : EngineDO(), SequenceLifecycle
+
+    internal data class SessionRejected(
+        val topic: String,
+        val reason: String
+    ) : EngineDO(), SequenceLifecycle
+
+    internal data class SessionApproved(
+        val topic: String,
+        val peerAppMetaData: AppMetaData?,
+        val permissions: SessionPermissions
+    ) : EngineDO(), SequenceLifecycle
+
+    object Default : SequenceLifecycle
 
     internal data class Notification(
         val type: String,
         val data: String
     ) : EngineDO()
-
-    object Default : SequenceLifecycle
 
     internal data class SettledSession(
         override val topic: TopicVO,

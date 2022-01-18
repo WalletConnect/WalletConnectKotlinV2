@@ -63,7 +63,8 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
                     peerParticipant = PublicKey(entity.peer_participant ?: String.Empty),
                     controllerKey = PublicKey(entity.controller_key ?: String.Empty),
                     proposalUri = entity.uri,
-                    permissions = entity.permissions
+                    permissions = entity.permissions,
+                    relayProtocol = entity.relay_protocol
                 )
             }
 
@@ -81,7 +82,9 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
                     methods = entity.permissions_methods,
                     types = entity.permissions_types,
                     accounts = entity.accounts ?: emptyList(),
-                    ttl = TtlVO(entity.ttl_seconds)
+                    ttl = TtlVO(entity.ttl_seconds),
+                    controllerType = entity.controller_type,
+                    relayProtocol = entity.relay_protocol
                 )
             }
 
@@ -94,7 +97,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
                 status,
                 controllerType,
                 selfParticipant.keyAsHex,
-                relay.toString()
+                relayProtocol
             )
         }
     }
@@ -119,7 +122,19 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
     }
 
     fun updateProposedPairingToAcknowledged(pairing: PairingVO, pendingTopic: TopicVO) {
-        sequenceDatabase.pairingDaoQueries.updateProposedPairingToAcknowledged(pairing.topic.value, pairing.status, pendingTopic.value)
+        with(pairing) {
+            sequenceDatabase.pairingDaoQueries.updateProposedPairingToAcknowledged(
+                pairing.topic.value,
+                expiry.seconds,
+                status,
+                selfParticipant.keyAsHex,
+                peerParticipant?.keyAsHex,
+                controllerKey?.keyAsHex,
+                permissions,
+                pendingTopic.value,
+                relayProtocol
+            )
+        }
     }
 
     fun deletePairing(topic: TopicVO) {
@@ -140,7 +155,8 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
                 status = status,
                 controller_type = controllerType,
                 metadata_id = metadataId,
-                self_participant = selfParticipant.keyAsHex
+                self_participant = selfParticipant.keyAsHex,
+                relay_protocol = session.relayProtocol
             )
         }
     }
@@ -169,7 +185,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
                 accounts,
                 expiry.seconds,
                 status,
-                peerParticipant?.keyAsHex,
+                selfParticipant.keyAsHex,
                 controllerKey?.keyAsHex,
                 peerParticipant?.keyAsHex,
                 chains,
@@ -183,6 +199,30 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
 
     fun updatePreSettledSessionToAcknowledged(session: SessionVO) {
         sequenceDatabase.sessionDaoQueries.updatePreSettledSessionToAcknowledged(session.status, session.topic.value)
+    }
+
+    fun updateProposedSessionToAcknowledged(session: SessionVO, pendingTopic: TopicVO) {
+
+        val metadataId = insertMetaData(session.appMetaData)
+
+        with(session) {
+            sequenceDatabase.sessionDaoQueries.updateProposedSessionToAcknowledged(
+                topic.value,
+                accounts,
+                expiry.seconds,
+                status,
+                selfParticipant.keyAsHex,
+                controllerKey?.keyAsHex,
+                peerParticipant?.keyAsHex,
+                chains,
+                methods,
+                types,
+                ttl.seconds,
+                relayProtocol,
+                metadataId,
+                pendingTopic.value
+            )
+        }
     }
 
     fun updateSessionWithAccounts(topic: String, accounts: List<String>) {
@@ -210,7 +250,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         self_participant: String,
         peer_participant: String?,
         controller_key: String?,
-        relay: String,
+        relay_protocol: String,
         permissions: List<String>?
     ): PairingVO =
         PairingVO(
@@ -221,7 +261,8 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
             peerParticipant = PublicKey(peer_participant ?: String.Empty),
             permissions = permissions,
             controllerKey = PublicKey(controller_key ?: String.Empty),
-            proposalUri = uri
+            proposalUri = uri,
+            relayProtocol = relay_protocol
         )
 
     private fun mapSessionDaoToSessionVO(
@@ -240,7 +281,8 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         metadataIcons: List<String>?,
         self_participant: String,
         peer_participant: String?,
-        controller_key: String?
+        controller_key: String?,
+        relay_protocol: String
     ): SessionVO {
 
         val appMetaData = if (metadataName != null && metadataDesc != null && metadataUrl != null && metadataIcons != null) {
@@ -261,7 +303,9 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
             appMetaData = appMetaData,
             selfParticipant = PublicKey(self_participant),
             peerParticipant = PublicKey(peer_participant ?: String.Empty),
-            controllerKey = PublicKey(controller_key ?: String.Empty)
+            controllerKey = PublicKey(controller_key ?: String.Empty),
+            controllerType = controller_type,
+            relayProtocol = relay_protocol
         )
     }
 

@@ -1,10 +1,8 @@
 package com.walletconnect.walletconnectv2.client
 
 import android.app.Application
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.util.Empty
-import org.json.JSONObject
 import java.net.URI
 
 object WalletConnect {
@@ -61,7 +59,8 @@ object WalletConnect {
             val proposerPublicKey: String,
             val isController: Boolean,
             val ttl: Long,
-            val accounts: List<String>
+            val accounts: List<String>,
+            val relayProtocol: String
         ) : Model() {
             val icon: String = icons.first().toString()
         }
@@ -107,6 +106,12 @@ object WalletConnect {
         ) : Model()
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
+
+        data class ApprovedSession(
+            val topic: String,
+            val peerAppMetaData: AppMetaData?,
+            val permissions: SessionPermissions
+        ) : Model()
 
         data class DeletedSession(val topic: String, val reason: String) : Model()
 

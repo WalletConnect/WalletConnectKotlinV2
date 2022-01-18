@@ -35,6 +35,8 @@ object WalletConnectClient {
             engineInteractor.sequenceEvent.collect { event ->
                 when (event) {
                     is EngineDO.SettledPairing -> delegate.onPairingSettled(event.toClientSettledPairing())
+                    is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
+                    is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
                 }
             }
         }
@@ -132,5 +134,7 @@ object WalletConnectClient {
 
     interface DappDelegate {
         fun onPairingSettled(settledPairing: WalletConnect.Model.SettledPairing)
+        fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession)
+        fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession)
     }
 }

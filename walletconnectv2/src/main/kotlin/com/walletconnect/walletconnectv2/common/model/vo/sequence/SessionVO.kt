@@ -1,5 +1,6 @@
 package com.walletconnect.walletconnectv2.common.model.vo.sequence
 
+import com.walletconnect.walletconnectv2.common.model.type.ControllerType
 import com.walletconnect.walletconnectv2.common.model.type.Sequence
 import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
@@ -20,5 +21,7 @@ internal data class SessionVO(
     val types: List<String>,
     val ttl: TtlVO,
     val accounts: List<String> = emptyList(),
-    val appMetaData: AppMetaDataVO? = null
+    val appMetaData: AppMetaDataVO? = null,
+    val controllerType: ControllerType,
+    val relayProtocol: String
 ) : Sequence

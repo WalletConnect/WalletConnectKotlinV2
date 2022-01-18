@@ -17,6 +17,6 @@ internal data class PairingVO(
     val peerParticipant: PublicKey? = null,
     val controllerKey: PublicKey? = null,
     val proposalUri: String,
-    val relay: JSONObject = JSONObject(),
+    val relayProtocol: String,
     val permissions: List<String>? = null
 ) : Sequence

@@ -99,7 +99,8 @@ internal fun PairingParamsVO.PayloadParams.toEngineDOSessionProposal(): EngineDO
         proposerPublicKey = this.request.params.proposer.publicKey,
         isController = this.request.params.proposer.controller,
         ttl = this.request.params.ttl.seconds,
-        accounts = listOf()
+        accounts = listOf(),
+        relayProtocol = request.params.relay.protocol
     )
 
 internal fun SessionParamsVO.SessionPayloadParams.toEngineDOSessionRequest(topic: TopicVO, requestId: Long): EngineDO.SessionRequest =
@@ -141,7 +142,8 @@ internal fun SessionVO.toEngineDOSessionProposal(peerPublicKey: PublicKey): Engi
         topic = topic.value,
         proposerPublicKey = peerPublicKey.keyAsHex,
         ttl = ttl.seconds,
-        accounts = accounts
+        accounts = accounts,
+        relayProtocol = relayProtocol
     )
 
 internal fun SessionVO.toEngineDOSettledSession(): EngineDO.SettledSession =
@@ -159,4 +161,11 @@ private fun AppMetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
     EngineDO.AppMetaData(name, description, url, icons)
 
 internal fun PairingVO.toEngineDOSettledPairing(sessionPermissions: EngineDO.SessionPermissions): EngineDO.SettledPairing =
-    EngineDO.SettledPairing(topic, relay, sessionPermissions)
+    EngineDO.SettledPairing(topic, relayProtocol, sessionPermissions)
+
+internal fun SessionVO.toSessionApproved(metaDataVO: AppMetaDataVO?): EngineDO.SessionApproved =
+    EngineDO.SessionApproved(
+        topic.value,
+        metaDataVO?.toEngineDOAppMetaData(),
+        EngineDO.SessionPermissions(EngineDO.Blockchain(chains), EngineDO.JsonRpc(methods))
+    )
