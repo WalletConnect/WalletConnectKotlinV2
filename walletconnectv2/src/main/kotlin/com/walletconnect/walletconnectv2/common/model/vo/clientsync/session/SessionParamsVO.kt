@@ -22,7 +22,7 @@ import com.walletconnect.walletconnectv2.common.adapters.TtlAdapter
 internal sealed class SessionParamsVO: ClientParams {
 
     @JsonClass(generateAdapter = true)
-    data class Proposal(
+    internal data class Proposal(
         @Json(name = "topic")
         @field:TopicAdapter.Qualifier
         val topic: TopicVO,
@@ -40,7 +40,7 @@ internal sealed class SessionParamsVO: ClientParams {
     ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)
-    data class Success(
+    internal data class Success(
         @Json(name = "relay")
         val relay: RelayProtocolOptionsVO,
         @Json(name = "responder")
@@ -53,10 +53,10 @@ internal sealed class SessionParamsVO: ClientParams {
     ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)
-    class Failure(val reason: String) : SessionParamsVO()
+    internal class Failure(val reason: String) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)
-    data class SessionPayloadParams(
+    internal data class SessionPayloadParams(
         @Json(name = "request")
         val request: SessionRequestVO,
         @Json(name = "chainId")
@@ -64,24 +64,24 @@ internal sealed class SessionParamsVO: ClientParams {
     ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)
-    class DeleteParams(
+    internal class DeleteParams(
         @Json(name = "reason")
         val reason: ReasonVO
     ) : SessionParamsVO()
 
-    class UpdateParams(
+    internal class UpdateParams(
         @Json(name = "state")
         val state: SessionStateVO
     ) : SessionParamsVO()
 
-    data class SessionPermissionsParams(
+    internal data class SessionPermissionsParams(
         @Json(name = "permissions")
         val permissions: SessionPermissionsVO
     ) : SessionParamsVO()
 
-    class PingParams : SessionParamsVO()
+    internal object PingParams : SessionParamsVO()
 
-    data class NotificationParams(
+    internal data class NotificationParams(
         @Json(name = "type")
         val type: String,
         @Json(name = "data")

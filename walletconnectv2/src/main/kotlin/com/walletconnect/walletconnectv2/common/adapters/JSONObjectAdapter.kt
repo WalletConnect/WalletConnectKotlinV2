@@ -5,8 +5,9 @@ import okio.Buffer
 import org.json.JSONException
 import org.json.JSONObject
 
-object JSONObjectAdapter: JsonAdapter<JSONObject>() {
+internal object JSONObjectAdapter: JsonAdapter<JSONObject>() {
 
+    @JvmSynthetic
     @FromJson
     @Qualifier
     override fun fromJson(reader: JsonReader): JSONObject? {
@@ -21,6 +22,7 @@ object JSONObjectAdapter: JsonAdapter<JSONObject>() {
         }
     }
 
+    @JvmSynthetic
     @ToJson
     override fun toJson(writer: JsonWriter, @Qualifier value: JSONObject?) {
         value?.let { writer.value(Buffer().writeUtf8(value.toString())) }

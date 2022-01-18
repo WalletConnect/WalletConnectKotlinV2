@@ -13,7 +13,7 @@ internal sealed class PostSettlementPairingVO : ClientSyncJsonRpc {
     abstract val params: PairingParamsVO
 
     @JsonClass(generateAdapter = true)
-    data class PairingPayload(
+    internal data class PairingPayload(
         @Json(name = "id")
         override val id: Long,
         @Json(name = "jsonrpc")
@@ -25,7 +25,7 @@ internal sealed class PostSettlementPairingVO : ClientSyncJsonRpc {
     ) : PostSettlementPairingVO()
 
     @JsonClass(generateAdapter = true)
-    data class SessionDelete(
+    internal data class SessionDelete(
         @Json(name = "id")
         override val id: Long,
         @Json(name = "jsonrpc")
@@ -37,7 +37,7 @@ internal sealed class PostSettlementPairingVO : ClientSyncJsonRpc {
     ) : PostSettlementPairingVO()
 
     @JsonClass(generateAdapter = true)
-    data class PairingUpdate(
+    internal data class PairingUpdate(
         @Json(name = "id")
         override val id: Long,
         @Json(name = "jsonrpc")
@@ -49,7 +49,7 @@ internal sealed class PostSettlementPairingVO : ClientSyncJsonRpc {
     ) : PostSettlementPairingVO()
 
     @JsonClass(generateAdapter = true)
-    data class PairingPing(
+    internal data class PairingPing(
         @Json(name = "id")
         override val id: Long,
         @Json(name = "jsonrpc")
@@ -61,7 +61,7 @@ internal sealed class PostSettlementPairingVO : ClientSyncJsonRpc {
     ) : PostSettlementPairingVO()
 
     @JsonClass(generateAdapter = true)
-    data class PairingNotification(
+    internal data class PairingNotification(
         @Json(name = "id")
         override val id: Long,
         @Json(name = "jsonrpc")

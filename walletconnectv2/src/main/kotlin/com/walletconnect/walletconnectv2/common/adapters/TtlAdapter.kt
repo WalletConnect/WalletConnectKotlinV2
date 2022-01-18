@@ -3,8 +3,9 @@ package com.walletconnect.walletconnectv2.common.adapters
 import com.squareup.moshi.*
 import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 
-object TtlAdapter : JsonAdapter<TtlVO>() {
+internal object TtlAdapter : JsonAdapter<TtlVO>() {
 
+    @JvmSynthetic
     @FromJson
     @Qualifier
     override fun fromJson(reader: JsonReader): TtlVO? {
@@ -22,6 +23,7 @@ object TtlAdapter : JsonAdapter<TtlVO>() {
         }
     }
 
+    @JvmSynthetic
     @ToJson
     override fun toJson(writer: JsonWriter, @Qualifier value: TtlVO?) {
         if (value != null) {

@@ -5,7 +5,7 @@ import com.walletconnect.walletconnectv2.common.model.vo.Key
 import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.common.model.vo.SharedKey
 
-interface CryptoRepository {
+internal interface CryptoRepository {
     fun generateKeyPair(): PublicKey
     fun generateTopicAndSharedKey(self: PublicKey, peer: PublicKey): Pair<SharedKey, TopicVO>
     fun getKeyAgreement(topic: TopicVO): Pair<Key, Key>

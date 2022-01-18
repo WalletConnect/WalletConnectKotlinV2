@@ -1,4 +1,9 @@
+@file:JvmSynthetic
+
 package com.walletconnect.walletconnectv2.util
 
-val String.Companion.Empty get() = ""
-val Int.Companion.DefaultId get() = -1
+@get:JvmSynthetic
+internal val String.Companion.Empty get() = ""
+
+@get:JvmSynthetic
+internal val Int.Companion.DefaultId get() = -1

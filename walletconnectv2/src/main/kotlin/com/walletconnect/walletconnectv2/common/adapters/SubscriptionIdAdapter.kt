@@ -3,8 +3,9 @@ package com.walletconnect.walletconnectv2.common.adapters
 import com.squareup.moshi.*
 import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
 
-object SubscriptionIdAdapter: JsonAdapter<SubscriptionIdVO>() {
+internal object SubscriptionIdAdapter: JsonAdapter<SubscriptionIdVO>() {
 
+    @JvmSynthetic
     @FromJson
     @Qualifier
     override fun fromJson(reader: JsonReader): SubscriptionIdVO? {
@@ -22,6 +23,7 @@ object SubscriptionIdAdapter: JsonAdapter<SubscriptionIdVO>() {
         }
     }
 
+    @JvmSynthetic
     @ToJson
     override fun toJson(writer: JsonWriter, @Qualifier value: SubscriptionIdVO?) {
         if (value != null) {

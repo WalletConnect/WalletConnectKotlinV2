@@ -36,7 +36,7 @@ internal sealed class EngineDO {
         val request: JSONRPCRequest
     ) : EngineDO(), SequenceLifecycle {
 
-        data class JSONRPCRequest(
+        internal data class JSONRPCRequest(
             val id: Long,
             val method: String,
             val params: String
@@ -54,7 +54,7 @@ internal sealed class EngineDO {
         val data: String
     ) : EngineDO(), SequenceLifecycle
 
-    object Default : SequenceLifecycle
+    internal object Default : SequenceLifecycle
 
     internal data class SettledSession(
         override val topic: TopicVO,
@@ -114,18 +114,18 @@ internal sealed class EngineDO {
         val jsonrpc: String = "2.0"
 
         @JsonClass(generateAdapter = true)
-        data class JsonRpcResult(
+        internal data class JsonRpcResult(
             override val id: Long,
             val result: String
         ) : JsonRpcResponse()
 
         @JsonClass(generateAdapter = true)
-        data class JsonRpcError(
+        internal data class JsonRpcError(
             override val id: Long,
             val error: Error,
         ) : JsonRpcResponse()
 
-        data class Error(
+        internal data class Error(
             val code: Long,
             val message: String,
         )

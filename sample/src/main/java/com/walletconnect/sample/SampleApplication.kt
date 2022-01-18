@@ -21,4 +21,10 @@ class SampleApplication : Application() {
 
         WalletConnectClient.initialize(init)
     }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+
+        WalletConnectClient.shutdown()
+    }
 }

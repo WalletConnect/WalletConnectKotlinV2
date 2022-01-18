@@ -1,6 +1,5 @@
 package com.walletconnect.walletconnectv2.relay.domain
 
-import android.app.Application
 import com.tinder.scarlet.WebSocket
 import com.walletconnect.walletconnectv2.common.errors.exception
 import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
@@ -9,7 +8,7 @@ import com.walletconnect.walletconnectv2.common.model.vo.RequestSubscriptionPayl
 import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.common.scope.scope
-import com.walletconnect.walletconnectv2.network.data.repository.WakuNetworkRepository
+import com.walletconnect.walletconnectv2.network.NetworkRepository
 import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import com.walletconnect.walletconnectv2.relay.model.mapper.toJsonRpcResultVO
@@ -22,30 +21,23 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-class WalletConnectRelayer {
-    //Region: Move to DI
-    private lateinit var networkRepository: WakuNetworkRepository
-    private val serializer: JsonRpcSerializer = JsonRpcSerializer()
-    //end
-
+internal class WalletConnectRelayer(private val networkRepository: NetworkRepository, private val serializer: JsonRpcSerializer, private val jsonRpcHistory: JsonRpcHistory) {
     private val _clientSyncJsonRpc: MutableSharedFlow<RequestSubscriptionPayloadVO> = MutableSharedFlow()
     internal val clientSyncJsonRpc: SharedFlow<RequestSubscriptionPayloadVO> = _clientSyncJsonRpc
 
     private val peerResponse: MutableSharedFlow<RelayDO.JsonRpcResponse> = MutableSharedFlow()
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
-    private val jsonRpcHistory: JsonRpcHistory = JsonRpcHistory()
     val isConnectionOpened = MutableStateFlow(false)
 
-    internal fun initialize(relay: RelayFactory) {
-        networkRepository = WakuNetworkRepository.init(relay.toWakuNetworkInitParams())
+    private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error(exception) }
+
+    init {
         handleInitialisationErrors()
         manageSubscriptions()
     }
 
     internal fun request(topic: TopicVO, payload: ClientSyncJsonRpc, onResult: (Result<JsonRpcResponseVO.JsonRpcResult>) -> Unit) {
-        require(::networkRepository.isInitialized)
-
         if (jsonRpcHistory.setRequest(payload.id, topic)) {
             scope.launch {
                 supervisorScope {
@@ -71,8 +63,6 @@ class WalletConnectRelayer {
     }
 
     internal fun respond(topic: TopicVO, response: JsonRpcResponseVO, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        require(::networkRepository.isInitialized)
-
         networkRepository.publish(topic, serializer.serialize(response.toRelayDOJsonRpcResponse(), topic)) { result ->
             result.fold(
                 onSuccess = { onSuccess() },
@@ -82,8 +72,6 @@ class WalletConnectRelayer {
     }
 
     internal fun subscribe(topic: TopicVO) {
-        require(::networkRepository.isInitialized)
-
         networkRepository.subscribe(topic) { result ->
             result.fold(
                 onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result.id },
@@ -93,8 +81,6 @@ class WalletConnectRelayer {
     }
 
     internal fun unsubscribe(topic: TopicVO) {
-        require(::networkRepository.isInitialized)
-
         if (subscriptions.contains(topic.value)) {
             val subscriptionId = SubscriptionIdVO(subscriptions[topic.value].toString())
             networkRepository.unsubscribe(topic, subscriptionId) { result ->
@@ -163,11 +149,4 @@ class WalletConnectRelayer {
             peerResponse.emit(RelayDO.JsonRpcResponse.JsonRpcError(error.id, RelayDO.JsonRpcResponse.Error(error.code, error.message)))
         }
     }
-
-    private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error(exception) }
-
-    private fun RelayFactory.toWakuNetworkInitParams(): WakuNetworkRepository.WakuNetworkFactory =
-        WakuNetworkRepository.WakuNetworkFactory(useTls, hostName, projectId, application)
-
-    class RelayFactory(val useTls: Boolean, val hostName: String, val projectId: String, val application: Application)
 }

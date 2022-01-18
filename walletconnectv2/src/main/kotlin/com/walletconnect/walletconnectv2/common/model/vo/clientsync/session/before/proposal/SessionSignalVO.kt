@@ -13,7 +13,7 @@ internal data class SessionSignalVO(
     val params: Params
 ) {
 
-    data class Params(
+    internal data class Params(
         @field:TopicAdapter.Qualifier
         val topic: TopicVO
     )
