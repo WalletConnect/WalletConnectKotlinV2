@@ -29,7 +29,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 "wc:4f47abd615d5b56941989e120f108c2f338801ce16ee902237654b8c1970e8a2@2?controller=false&publicKey=2d573da1d2b8dbe3dcdb6ce7de47ce44b18fb8ec5ddc9d3f412ab4a718fff93c&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = WalletConnect.Params.Pair(uri)
 
-            val delegate = object : WalletConnectClient.Delegate {
+            val delegate = object : WalletConnectClient.WalletDelegate {
                 override fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal) {
                     assert(true)
                     activityRule.close()
@@ -40,7 +40,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
             }
 
-            WalletConnectClient.setDelegate(delegate)
+            WalletConnectClient.setWalletDelegate(delegate)
 
             WalletConnectClient.pair(pairingParams, object : WalletConnect.Listeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnect.Model.SettledPairing) {
@@ -64,7 +64,7 @@ class WalletConnectClientIntegrationAndroidTest {
             val uri =
                 "wc:76a4fd7ab4015aa22ad77bfa0cd0bc563047fd3d92ad5285db71e80cea68f9ca@2?controller=false&publicKey=7a6875ec8512a8d77be1ddd23797a08d078627c0f85887bf0452be97b7390e34&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams = WalletConnect.Params.Pair(uri)
-            val listener = object : WalletConnectClient.Delegate {
+            val listener = object : WalletConnectClient.WalletDelegate {
                 override fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal) {
                     assert(true)
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716" }
@@ -88,7 +88,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
             }
 
-            WalletConnectClient.setDelegate(listener)
+            WalletConnectClient.setWalletDelegate(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnect.Listeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnect.Model.SettledPairing) {
                 }
@@ -112,7 +112,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 "wc:a26b323e1ad907d7c68264dbf9d5ccbd2077adae3195d23d7b052116ffcd4736@2?controller=false&publicKey=b9577a879cb2fea465ff945e409790b5996cc21dab10db48ceda23cfa3baab37&relay=%7B%22protocol%22%3A%22waku%22%7D"
             val pairingParams =  WalletConnect.Params.Pair(uri)
 
-            val listener = object : WalletConnectClient.Delegate {
+            val listener = object : WalletConnectClient.WalletDelegate {
                 override fun onSessionProposal(sessionProposal:  WalletConnect.Model.SessionProposal) {
                     assert(true)
 
@@ -155,7 +155,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
             }
 
-            WalletConnectClient.setDelegate(listener)
+            WalletConnectClient.setWalletDelegate(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnect.Listeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnect.Model.SettledPairing) {
                     assert(true)
@@ -180,7 +180,7 @@ class WalletConnectClientIntegrationAndroidTest {
             val pairingParams =  WalletConnect.Params.Pair(uri)
 
 
-            val listener = object : WalletConnectClient.Delegate {
+            val listener = object : WalletConnectClient.WalletDelegate {
                 override fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal) {
                     assert(true)
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
@@ -220,7 +220,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
             }
 
-            WalletConnectClient.setDelegate(listener)
+            WalletConnectClient.setWalletDelegate(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnect.Listeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnect.Model.SettledPairing) {
                     assert(true)
@@ -246,7 +246,7 @@ class WalletConnectClientIntegrationAndroidTest {
             val pairingParams =  WalletConnect.Params.Pair(uri)
 
 
-            val listener = object : WalletConnectClient.Delegate {
+            val listener = object : WalletConnectClient.WalletDelegate {
                 override fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal) {
                     assert(true)
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
@@ -285,7 +285,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
             }
 
-            WalletConnectClient.setDelegate(listener)
+            WalletConnectClient.setWalletDelegate(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnect.Listeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnect.Model.SettledPairing) {
                     assert(true)
@@ -311,7 +311,7 @@ class WalletConnectClientIntegrationAndroidTest {
             val pairingParams =  WalletConnect.Params.Pair(uri)
 
 
-            val listener = object : WalletConnectClient.Delegate {
+            val listener = object : WalletConnectClient.WalletDelegate {
                 override fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal) {
                     assert(true)
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
@@ -351,7 +351,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
             }
 
-            WalletConnectClient.setDelegate(listener)
+            WalletConnectClient.setWalletDelegate(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnect.Listeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnect.Model.SettledPairing) {
                     assert(true)
@@ -377,7 +377,7 @@ class WalletConnectClientIntegrationAndroidTest {
             val pairingParams =  WalletConnect.Params.Pair(uri)
 
 
-            val listener = object : WalletConnectClient.Delegate {
+            val listener = object : WalletConnectClient.WalletDelegate {
                 override fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal) {
                     assert(true)
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
@@ -414,7 +414,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
             }
 
-            WalletConnectClient.setDelegate(listener)
+            WalletConnectClient.setWalletDelegate(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnect.Listeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnect.Model.SettledPairing) {
                     assert(true)
@@ -441,7 +441,7 @@ class WalletConnectClientIntegrationAndroidTest {
             val pairingParams =  WalletConnect.Params.Pair(uri)
 
 
-            val listener = object : WalletConnectClient.Delegate {
+            val listener = object : WalletConnectClient.WalletDelegate {
                 override fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal) {
                     assert(true)
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
@@ -482,7 +482,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
             }
 
-            WalletConnectClient.setDelegate(listener)
+            WalletConnectClient.setWalletDelegate(listener)
             WalletConnectClient.pair(pairingParams, object : WalletConnect.Listeners.Pairing {
                 override fun onSuccess(settledPairing: WalletConnect.Model.SettledPairing) {
                     assert(true)

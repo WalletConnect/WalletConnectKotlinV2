@@ -1,5 +1,6 @@
 import com.walletconnect.walletconnectv2.common.model.type.ControllerType;
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus;
+import kotlin.collections.List;
 
 CREATE TABLE PairingDao (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -11,17 +12,17 @@ CREATE TABLE PairingDao (
     self_participant TEXT NOT NULL,
     peer_participant TEXT,
     controller_key TEXT,
-    proposal_uri TEXT NOT NULL,
-    relay TEXT
+    relay TEXT NOT NULL,
+    permissions TEXT AS List<String>
 );
 
 insertPairing:
-INSERT OR IGNORE INTO PairingDao(topic, uri, expiry, status, controller_type, self_participant, proposal_uri)
-VALUES (?, ?, ?, ?, ?,   ?, ?);
+INSERT OR IGNORE INTO PairingDao(topic, uri, expiry, status, controller_type, self_participant, relay)
+VALUES (?, ?, ?, ?, ?,    ?, ?);
 
 updatePendingPairingToPreSettled:
 UPDATE PairingDao
-SET topic = ?, expiry = ?, status = ?, self_participant = ?, peer_participant = ?, controller_key = ?, relay = ?
+SET topic = ?, expiry = ?, status = ?, self_participant = ?, peer_participant = ?, controller_key = ?, permissions = ?
 WHERE topic = ?;
 
 updatePreSettledPairingToAcknowledged:
@@ -29,8 +30,13 @@ UPDATE PairingDao
 SET status = ?
 WHERE topic = ?;
 
+updateProposedPairingToAcknowledged:
+UPDATE PairingDao
+SET topic = ?, status = ?
+WHERE topic = ?;
+
 getListOfPairingDaos:
-SELECT topic, expiry, uri, status, controller_type, self_participant, peer_participant, controller_key
+SELECT topic, expiry, uri, status, controller_type, self_participant, peer_participant, controller_key, relay, permissions
 FROM PairingDao;
 
 deletePairing:
@@ -38,6 +44,6 @@ DELETE FROM PairingDao
 WHERE ? = topic;
 
 getPairingByTopic:
-SELECT topic, expiry, uri, status, controller_type, self_participant, peer_participant, controller_key, proposal_uri, relay
+SELECT topic, expiry, uri, status, controller_type, self_participant, peer_participant, controller_key, relay, permissions
 FROM PairingDao
 WHERE ? = topic;

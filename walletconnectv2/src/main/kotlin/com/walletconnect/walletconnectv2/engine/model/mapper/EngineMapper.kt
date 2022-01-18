@@ -11,7 +11,8 @@ import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.afte
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.AppMetaDataVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.SessionProposedPermissionsVO
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.SettledSessionVO
+import com.walletconnect.walletconnectv2.common.model.vo.sequence.PairingVO
+import com.walletconnect.walletconnectv2.common.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.relay.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
@@ -128,7 +129,7 @@ internal fun EngineDO.SessionProposal.toAcknowledgedSession(topic: TopicVO, expi
         )
     )
 
-internal fun SettledSessionVO.toEngineDOSessionProposal(peerPublicKey: PublicKey): EngineDO.SessionProposal =
+internal fun SessionVO.toEngineDOSessionProposal(peerPublicKey: PublicKey): EngineDO.SessionProposal =
     EngineDO.SessionProposal(
         name = appMetaData?.name ?: String.Empty,
         description = appMetaData?.description ?: String.Empty,
@@ -143,7 +144,7 @@ internal fun SettledSessionVO.toEngineDOSessionProposal(peerPublicKey: PublicKey
         accounts = accounts
     )
 
-internal fun SettledSessionVO.toEngineDOSettledSession(): EngineDO.SettledSession =
+internal fun SessionVO.toEngineDOSettledSession(): EngineDO.SettledSession =
     EngineDO.SettledSession(
         topic, expiry, status,
         accounts, appMetaData?.toEngineDOAppMetaData(),
@@ -156,3 +157,6 @@ internal fun SettledSessionVO.toEngineDOSettledSession(): EngineDO.SettledSessio
 
 private fun AppMetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
     EngineDO.AppMetaData(name, description, url, icons)
+
+internal fun PairingVO.toEngineDOSettledPairing(sessionPermissions: EngineDO.SessionPermissions): EngineDO.SettledPairing =
+    EngineDO.SettledPairing(topic, relay, sessionPermissions)

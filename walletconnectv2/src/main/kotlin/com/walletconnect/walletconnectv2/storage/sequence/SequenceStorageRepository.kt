@@ -9,12 +9,9 @@ import com.walletconnect.walletconnectv2.Database
 import com.walletconnect.walletconnectv2.common.model.type.ControllerType
 import com.walletconnect.walletconnectv2.common.model.vo.*
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.AppMetaDataVO
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.PendingPairingVO
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.PendingSessionVO
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.SettledSessionVO
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.SettledPairingVO
+import com.walletconnect.walletconnectv2.common.model.vo.sequence.*
+import com.walletconnect.walletconnectv2.common.model.vo.sequence.PairingVO
 import com.walletconnect.walletconnectv2.util.Empty
-import org.json.JSONObject
 import org.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
 import org.walletconnect.walletconnectv2.storage.data.dao.PairingDao
 import org.walletconnect.walletconnectv2.storage.data.dao.SessionDao
@@ -32,7 +29,8 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         driver,
         PairingDaoAdapter = PairingDao.Adapter(
             statusAdapter = EnumColumnAdapter(),
-            controller_typeAdapter = EnumColumnAdapter()
+            controller_typeAdapter = EnumColumnAdapter(),
+            permissionsAdapter = listOfStringsAdapter
         ),
         SessionDaoAdapter = SessionDao.Adapter(
             permissions_chainsAdapter = listOfStringsAdapter,
@@ -54,46 +52,40 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         sequenceDatabase.sessionDaoQueries.getListOfSessionDaos(mapper = this@SequenceStorageRepository::mapSessionDaoToSessionVO)
             .executeAsList()
 
-    fun getSettledPairingByTopic(topic: TopicVO): SettledPairingVO? =
+    fun getPairingByTopic(topic: TopicVO): PairingVO? =
         sequenceDatabase.pairingDaoQueries.getPairingByTopic(topic.value)
             .executeAsOneOrNull()?.let { entity ->
-                if (entity.status == SequenceStatus.ACKNOWLEDGED) {
-                    SettledPairingVO(
-                        topic = TopicVO(entity.topic),
-                        status = entity.status,
-                        expiry = ExpiryVO(entity.expiry),
-                        selfParticipantVO = PublicKey(entity.self_participant),
-                        peerParticipant = PublicKey(entity.peer_participant ?: String.Empty),
-                        controllerKey = PublicKey(entity.controller_key ?: String.Empty)
-                    )
-                } else {
-                    null
-                }
+                PairingVO(
+                    topic = TopicVO(entity.topic),
+                    status = entity.status,
+                    expiry = ExpiryVO(entity.expiry),
+                    selfParticipant = PublicKey(entity.self_participant),
+                    peerParticipant = PublicKey(entity.peer_participant ?: String.Empty),
+                    controllerKey = PublicKey(entity.controller_key ?: String.Empty),
+                    proposalUri = entity.uri,
+                    permissions = entity.permissions
+                )
             }
 
-    fun getSettledSessionByTopic(topic: TopicVO): SettledSessionVO? =
+    fun getSessionByTopic(topic: TopicVO): SessionVO? =
         sequenceDatabase.sessionDaoQueries.getSessionByTopic(topic.value)
             .executeAsOneOrNull()?.let { entity ->
-                if (entity.status == SequenceStatus.ACKNOWLEDGED) {
-                    SettledSessionVO(
-                        topic = TopicVO(entity.topic),
-                        status = entity.status,
-                        expiry = ExpiryVO(entity.expiry),
-                        selfParticipant = PublicKey(entity.self_participant),
-                        peerParticipant = PublicKey(entity.peer_participant ?: String.Empty),
-                        controllerKey = PublicKey(entity.controller_key ?: String.Empty),
-                        chains = entity.permissions_chains,
-                        methods = entity.permissions_methods,
-                        types = entity.permissions_types,
-                        accounts = entity.accounts ?: emptyList(),
-                        ttl = TtlVO(entity.ttl_seconds)
-                    )
-                } else {
-                    null
-                }
+                SessionVO(
+                    topic = TopicVO(entity.topic),
+                    status = entity.status,
+                    expiry = ExpiryVO(entity.expiry),
+                    selfParticipant = PublicKey(entity.self_participant),
+                    peerParticipant = PublicKey(entity.peer_participant ?: String.Empty),
+                    controllerKey = PublicKey(entity.controller_key ?: String.Empty),
+                    chains = entity.permissions_chains,
+                    methods = entity.permissions_methods,
+                    types = entity.permissions_types,
+                    accounts = entity.accounts ?: emptyList(),
+                    ttl = TtlVO(entity.ttl_seconds)
+                )
             }
 
-    fun insertPendingPairing(pairing: PendingPairingVO, controllerType: ControllerType) {
+    fun insertPendingPairing(pairing: PairingVO, controllerType: ControllerType) {
         with(pairing) {
             sequenceDatabase.pairingDaoQueries.insertPairing(
                 topic.value,
@@ -102,35 +94,39 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
                 status,
                 controllerType,
                 selfParticipant.keyAsHex,
-                proposalUri
+                relay.toString()
             )
         }
     }
 
-    fun updateRespondedPairingToPreSettled(proposalTopic: TopicVO, pairing: SettledPairingVO) {
+    fun updateRespondedPairingToPreSettled(proposalTopic: TopicVO, pairing: PairingVO) {
         with(pairing) {
             sequenceDatabase.pairingDaoQueries.updatePendingPairingToPreSettled(
                 topic.value,
                 expiry.seconds,
                 status,
-                selfParticipantVO.keyAsHex,
-                peerParticipant.keyAsHex,
-                controllerKey.keyAsHex,
-                relay.toString(),
+                selfParticipant.keyAsHex,
+                peerParticipant?.keyAsHex,
+                controllerKey?.keyAsHex,
+                permissions,
                 proposalTopic.value
             )
         }
     }
 
-    fun updatePreSettledPairingToAcknowledged(pairing: SettledPairingVO) {
+    fun updatePreSettledPairingToAcknowledged(pairing: PairingVO) {
         sequenceDatabase.pairingDaoQueries.updatePreSettledPairingToAcknowledged(pairing.status, pairing.topic.value)
+    }
+
+    fun updateProposedPairingToAcknowledged(pairing: PairingVO, pendingTopic: TopicVO) {
+        sequenceDatabase.pairingDaoQueries.updateProposedPairingToAcknowledged(pairing.topic.value, pairing.status, pendingTopic.value)
     }
 
     fun deletePairing(topic: TopicVO) {
         sequenceDatabase.pairingDaoQueries.deletePairing(topic.value)
     }
 
-    fun insertSessionProposal(session: PendingSessionVO, appMetaData: AppMetaDataVO?, controllerType: ControllerType) {
+    fun insertSessionProposal(session: SessionVO, appMetaData: AppMetaDataVO?, controllerType: ControllerType) {
         val metadataId = insertMetaData(appMetaData)
 
         with(session) {
@@ -162,20 +158,20 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         } ?: FAILED_INSERT_ID
     }
 
-    fun updateProposedSessionToResponded(session: PendingSessionVO) {
+    fun updateProposedSessionToResponded(session: SessionVO) {
         sequenceDatabase.sessionDaoQueries.updateProposedSessionToResponded(session.status, session.topic.value)
     }
 
-    fun updateRespondedSessionToPreSettled(session: SettledSessionVO, pendingTopic: TopicVO) {
+    fun updateRespondedSessionToPreSettled(session: SessionVO, pendingTopic: TopicVO) {
         with(session) {
             sequenceDatabase.sessionDaoQueries.updateRespondedSessionToPresettled(
                 topic.value,
                 accounts,
                 expiry.seconds,
                 status,
-                peerParticipant.keyAsHex,
-                controllerKey.keyAsHex,
-                peerParticipant.keyAsHex,
+                peerParticipant?.keyAsHex,
+                controllerKey?.keyAsHex,
+                peerParticipant?.keyAsHex,
                 chains,
                 methods,
                 types,
@@ -185,7 +181,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         }
     }
 
-    fun updatePreSettledSessionToAcknowledged(session: SettledSessionVO) {
+    fun updatePreSettledSessionToAcknowledged(session: SessionVO) {
         sequenceDatabase.sessionDaoQueries.updatePreSettledSessionToAcknowledged(session.status, session.topic.value)
     }
 
@@ -213,16 +209,19 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         controller_type: ControllerType,
         self_participant: String,
         peer_participant: String?,
-        controller_key: String?
-    ): SettledPairingVO =
-        SettledPairingVO(
-            TopicVO(topic),
-            ExpiryVO(expirySeconds),
-            status,
-            PublicKey(self_participant),
-            PublicKey(peer_participant ?: String.Empty),
-            JSONObject(),
-            PublicKey(controller_key ?: String.Empty)
+        controller_key: String?,
+        relay: String,
+        permissions: List<String>?
+    ): PairingVO =
+        PairingVO(
+            topic = TopicVO(topic),
+            expiry = ExpiryVO(expirySeconds),
+            status = status,
+            selfParticipant = PublicKey(self_participant),
+            peerParticipant = PublicKey(peer_participant ?: String.Empty),
+            permissions = permissions,
+            controllerKey = PublicKey(controller_key ?: String.Empty),
+            proposalUri = uri
         )
 
     private fun mapSessionDaoToSessionVO(
@@ -242,7 +241,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         self_participant: String,
         peer_participant: String?,
         controller_key: String?
-    ): SettledSessionVO {
+    ): SessionVO {
 
         val appMetaData = if (metadataName != null && metadataDesc != null && metadataUrl != null && metadataIcons != null) {
             AppMetaDataVO(metadataName, metadataDesc, metadataUrl, metadataIcons)
@@ -250,7 +249,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
             null
         }
 
-        return SettledSessionVO(
+        return SessionVO(
             topic = TopicVO(topic),
             chains = permission_chains,
             methods = permissions_methods,

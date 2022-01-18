@@ -72,6 +72,14 @@ internal fun EngineDO.DeletedSession.toClientDeletedSession(): WalletConnect.Mod
 internal fun EngineDO.SessionNotification.toClientSessionNotification(): WalletConnect.Model.SessionNotification =
     WalletConnect.Model.SessionNotification(topic, type, data)
 
+internal fun EngineDO.SettledPairing.toClientSettledPairing(): WalletConnect.Model.SettledPairing =
+    WalletConnect.Model.SettledPairing(
+        topic.value, permissions = WalletConnect.Model.SessionPermissions(
+            WalletConnect.Model.Blockchain(permissions.blockchain?.chains ?: emptyList()),
+            WalletConnect.Model.Jsonrpc(permissions.jsonRpc?.methods ?: emptyList())
+        )
+    )
+
 internal fun WalletConnect.Model.SessionPermissions.toEngineSessionPermissions(): EngineDO.SessionPermissions =
     EngineDO.SessionPermissions(
         blockchain?.chains?.let { chains -> EngineDO.Blockchain(chains) },

@@ -64,29 +64,18 @@ internal sealed class EngineDO {
         val data: String
     ) : EngineDO(), SequenceLifecycle
 
-    object Default : SequenceLifecycle
+    internal data class SettledPairing(
+        val topic: TopicVO,
+        val relay: JSONObject,
+        val permissions: SessionPermissions
+    ) : EngineDO(), SequenceLifecycle
 
-//    internal data class PendingSession(
-//        override val topic: TopicVO,
-//        override val expiry: ExpiryVO,
-//        override val status: SequenceStatus,
-//        val accounts: List<String>,
-//        val peerAppMetaData: AppMetaData?,
-//        val permissions: Permissions
-//    ) : EngineDO(), Sequence {
-//
-//        internal data class Permissions(
-//            val blockchain: Blockchain,
-//            val jsonRpc: JsonRpc,
-//            val notifications: Notifications
-//        ) {
-//            internal data class Blockchain(val chains: List<String>)
-//
-//            internal data class JsonRpc(val methods: List<String>)
-//
-//            internal data class Notifications(val types: List<String>)
-//        }
-//    }
+    internal data class Notification(
+        val type: String,
+        val data: String
+    ) : EngineDO()
+
+    object Default : SequenceLifecycle
 
     internal data class SettledSession(
         override val topic: TopicVO,
@@ -109,31 +98,6 @@ internal sealed class EngineDO {
             internal data class Notifications(val types: List<String>)
         }
     }
-
-//    internal data class PendingPairing(
-//        override val topic: TopicVO,
-//        override val expiry: ExpiryVO,
-//        override val status: SequenceStatus,
-//        val relay: JSONObject,
-//        val selfPublicKey: PublicKey,
-//        val peerPublicKey: PublicKey,
-//        val sequencePermissions: PairingPermissionsVO
-//    ) : EngineDO(), Sequence
-
-    internal data class SettledPairing(
-        override val topic: TopicVO,
-        override val expiry: ExpiryVO,
-        override val status: SequenceStatus,
-        val relay: JSONObject,
-        val selfPublicKey: PublicKey,
-        val peerPublicKey: PublicKey,
-        val sequencePermissions: PairingPermissionsVO
-    ) : EngineDO(), Sequence
-
-    internal data class Notification(
-        val type: String,
-        val data: String
-    ) : EngineDO()
 
     internal data class SessionState(val accounts: List<String>) : EngineDO()
 

@@ -17,7 +17,7 @@ object WalletConnectClient {
 
     private val engineInteractor = EngineInteractor()
 
-    fun setDelegate(delegate: Delegate) {
+    fun setWalletDelegate(delegate: WalletDelegate) {
         scope.launch {
             engineInteractor.sequenceEvent.collect { event ->
                 when (event) {
@@ -25,6 +25,16 @@ object WalletConnectClient {
                     is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
                     is EngineDO.DeletedSession -> delegate.onSessionDelete(event.toClientDeletedSession())
                     is EngineDO.SessionNotification -> delegate.onSessionNotification(event.toClientSessionNotification())
+                }
+            }
+        }
+    }
+
+    fun setDappDelegate(delegate: DappDelegate) {
+        scope.launch {
+            engineInteractor.sequenceEvent.collect { event ->
+                when (event) {
+                    is EngineDO.SettledPairing -> delegate.onPairingSettled(event.toClientSettledPairing())
                 }
             }
         }
@@ -113,10 +123,14 @@ object WalletConnectClient {
         scope.cancel()
     }
 
-    interface Delegate {
+    interface WalletDelegate {
         fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal)
         fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest)
         fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
         fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification)
+    }
+
+    interface DappDelegate {
+        fun onPairingSettled(settledPairing: WalletConnect.Model.SettledPairing)
     }
 }

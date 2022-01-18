@@ -1,7 +1,10 @@
 package com.walletconnect.walletconnectv2.client
 
 import android.app.Application
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.util.Empty
+import org.json.JSONObject
 import java.net.URI
 
 object WalletConnect {
@@ -98,7 +101,10 @@ object WalletConnect {
 
         data class SessionState(val accounts: List<String>) : Model()
 
-        data class SettledPairing(val topic: String) : Model()
+        data class SettledPairing(
+            val topic: String,
+            val permissions: SessionPermissions = SessionPermissions()
+        ) : Model()
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
 
