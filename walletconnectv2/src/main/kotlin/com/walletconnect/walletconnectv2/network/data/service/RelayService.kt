@@ -6,7 +6,7 @@ import com.tinder.scarlet.ws.Send
 import com.walletconnect.walletconnectv2.network.model.RelayDTO
 import kotlinx.coroutines.flow.Flow
 
-interface RelayService {
+internal interface RelayService {
 
     @Receive
     fun eventsFlow(): Flow<WebSocket.Event>

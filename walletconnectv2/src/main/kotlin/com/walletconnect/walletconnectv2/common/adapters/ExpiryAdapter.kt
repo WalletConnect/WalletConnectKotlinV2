@@ -5,12 +5,14 @@ import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
 
 internal object ExpiryAdapter: JsonAdapter<ExpiryVO>() {
 
+    @JvmSynthetic
     @FromJson
     @Qualifier
     override fun fromJson(reader: JsonReader): ExpiryVO? {
         return null
     }
 
+    @JvmSynthetic
     @ToJson
     override fun toJson(writer: JsonWriter, @Qualifier value: ExpiryVO?) {
         if (value != null) {
@@ -22,5 +24,5 @@ internal object ExpiryAdapter: JsonAdapter<ExpiryVO>() {
 
     @Retention(AnnotationRetention.RUNTIME)
     @JsonQualifier
-    annotation class Qualifier
+    internal annotation class Qualifier
 }

@@ -20,7 +20,7 @@ import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
 
 internal sealed class PairingParamsVO : ClientParams {
 
-    data class Proposal(
+    internal data class Proposal(
         val topic: TopicVO,
         val relay: JSONObject,
         val pairingProposer: PairingProposerVO,
@@ -30,7 +30,7 @@ internal sealed class PairingParamsVO : ClientParams {
     ) : PairingParamsVO()
 
     @JsonClass(generateAdapter = true)
-    data class Success(
+    internal data class Success(
         @Json(name = "topic")
         @TopicAdapter.Qualifier
         val settledTopic: TopicVO,
@@ -49,20 +49,21 @@ internal sealed class PairingParamsVO : ClientParams {
     class Failure(val reason: String) : PairingParamsVO()
 
     @JsonClass(generateAdapter = true)
-    data class PayloadParams(
+    internal data class PayloadParams(
         @Json(name = "request")
         val request: ProposalRequestVO
     ) : PairingParamsVO()
 
     @JsonClass(generateAdapter = true)
-    class DeleteParams(
+    internal class DeleteParams(
         @Json(name = "reason")
         val reason: ReasonVO
     ) : PairingParamsVO()
 
-    class PingParams : PairingParamsVO()
+    @Suppress("CanSealedSubClassBeObject")
+    internal class PingParams : PairingParamsVO()
 
-    data class NotificationParams(
+    internal data class NotificationParams(
         @Json(name = "type")
         val type: String,
         @Json(name = "data")
@@ -70,7 +71,7 @@ internal sealed class PairingParamsVO : ClientParams {
     ) : PairingParamsVO()
 
     @JsonClass(generateAdapter = true)
-    data class UpdateParams(
+    internal data class UpdateParams(
         @Json(name = "state")
         val state: PairingStateVO
     ) : PairingParamsVO()

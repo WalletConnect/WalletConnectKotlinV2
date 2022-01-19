@@ -1,7 +1,10 @@
+@file:JvmSynthetic
+
 package com.walletconnect.walletconnectv2.common.errors
 
 import java.net.HttpURLConnection
 
+@get:JvmSynthetic
 val Throwable.exception: Throwable
     get() =
         when {

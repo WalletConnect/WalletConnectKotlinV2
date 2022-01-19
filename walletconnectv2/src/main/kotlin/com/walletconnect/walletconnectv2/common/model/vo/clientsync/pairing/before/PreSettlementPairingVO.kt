@@ -13,7 +13,7 @@ internal sealed class PreSettlementPairingVO : ClientSyncJsonRpc {
     abstract val params: PairingParamsVO
 
     @JsonClass(generateAdapter = true)
-    data class Approve(
+    internal data class Approve(
         @Json(name = "id")
         override val id: Long,
         @Json(name = "jsonrpc")
@@ -24,7 +24,7 @@ internal sealed class PreSettlementPairingVO : ClientSyncJsonRpc {
         override val params: PairingParamsVO.Success
     ) : PreSettlementPairingVO()
 
-    data class Reject(
+    internal data class Reject(
         override val id: Long,
         override val jsonrpc: String = "2.0",
         override val method: String = JsonRpcMethod.WC_PAIRING_REJECT,

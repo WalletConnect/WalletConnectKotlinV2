@@ -6,9 +6,11 @@ import java.lang.System.currentTimeMillis
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-fun generateId(): Long = (currentTimeMillis() + (100..999).random())
+@JvmSynthetic
+internal fun generateId(): Long = (currentTimeMillis() + (100..999).random())
 
-fun ByteArray.bytesToHex(): String {
+@JvmSynthetic
+internal fun ByteArray.bytesToHex(): String {
     val hexString = StringBuilder(2 * this.size)
     for (i in this.indices) {
         val hex = Integer.toHexString(0xff and this[i].toInt())
@@ -20,7 +22,8 @@ fun ByteArray.bytesToHex(): String {
     return hexString.toString()
 }
 
-fun String.hexToBytes(): ByteArray {
+@JvmSynthetic
+internal fun String.hexToBytes(): ByteArray {
     val len = this.length
     val data = ByteArray(len / 2)
     var i = 0
@@ -32,7 +35,8 @@ fun String.hexToBytes(): ByteArray {
     return data
 }
 
-val String.hexToUtf8: String
+@get:JvmSynthetic
+internal val String.hexToUtf8: String
     get() {
         var hex = this
         hex = getHexPrefix(hex)

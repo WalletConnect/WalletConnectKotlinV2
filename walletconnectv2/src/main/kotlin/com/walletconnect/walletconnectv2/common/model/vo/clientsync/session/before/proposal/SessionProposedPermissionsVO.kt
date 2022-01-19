@@ -14,19 +14,19 @@ internal data class SessionProposedPermissionsVO(
 ) {
 
     @JsonClass(generateAdapter = true)
-    data class Blockchain(
+    internal data class Blockchain(
         @Json(name = "chains")
         val chains: List<String>
     )
 
     @JsonClass(generateAdapter = true)
-    data class JsonRpc(
+    internal data class JsonRpc(
         @Json(name = "methods")
         val methods: List<String>
     )
 
     @JsonClass(generateAdapter = true)
-    data class Notifications(
+    internal data class Notifications(
         @Json(name = "types")
         val types: List<String>
     )

@@ -19,6 +19,7 @@ import org.json.JSONObject
 import java.net.URI
 import kotlin.time.Duration
 
+@JvmSynthetic
 internal fun String.toPairProposal(): PairingParamsVO.Proposal {
     val properUriString = if (contains("wc://")) this else replace("wc:", "wc://")
     val pairUri = URI(properUriString)
@@ -40,6 +41,7 @@ internal fun String.toPairProposal(): PairingParamsVO.Proposal {
     )
 }
 
+@JvmSynthetic
 internal fun PairingParamsVO.Proposal.toPairingSuccess(
     settleTopic: TopicVO,
     expiry: ExpiryVO,
@@ -53,6 +55,7 @@ internal fun PairingParamsVO.Proposal.toPairingSuccess(
         state = PairingStateVO(null)
     )
 
+@JvmSynthetic
 internal fun PairingParamsVO.Proposal.toApprove(
     id: Long,
     settleTopic: TopicVO,
@@ -60,18 +63,22 @@ internal fun PairingParamsVO.Proposal.toApprove(
     selfPublicKey: PublicKey
 ): PreSettlementPairingVO.Approve = PreSettlementPairingVO.Approve(id = id, params = this.toPairingSuccess(settleTopic, expiry, selfPublicKey))
 
+@JvmSynthetic
 internal fun EngineDO.AppMetaData.toClientSyncAppMetaData() =
     AppMetaDataVO(name, description, url, icons)
 
+@JvmSynthetic
 internal fun EngineDO.SessionPermissions.toSessionsPermissions(): SessionPermissionsVO =
     SessionPermissionsVO(
         blockchain?.chains?.let { chains -> SessionProposedPermissionsVO.Blockchain(chains) },
         jsonRpc?.methods?.let { methods -> SessionProposedPermissionsVO.JsonRpc(methods) }
     )
 
+@JvmSynthetic
 internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toJsonRpcResponseVO(): JsonRpcResponseVO.JsonRpcResult =
     JsonRpcResponseVO.JsonRpcResult(id, result)
 
+@JvmSynthetic
 internal fun PairingParamsVO.PayloadParams.toEngineDOSessionProposal(): EngineDO.SessionProposal =
     EngineDO.SessionProposal(
         name = this.request.params.proposer.metadata?.name!!,
@@ -87,6 +94,7 @@ internal fun PairingParamsVO.PayloadParams.toEngineDOSessionProposal(): EngineDO
         accounts = listOf()
     )
 
+@JvmSynthetic
 internal fun SessionParamsVO.SessionPayloadParams.toEngineDOSessionRequest(topic: TopicVO, requestId: Long): EngineDO.SessionRequest =
     EngineDO.SessionRequest(
         topic.value,
@@ -94,12 +102,15 @@ internal fun SessionParamsVO.SessionPayloadParams.toEngineDOSessionRequest(topic
         EngineDO.SessionRequest.JSONRPCRequest(requestId, this.request.method, this.request.params.toString())
     )
 
+@JvmSynthetic
 internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: TopicVO): EngineDO.DeletedSession =
     EngineDO.DeletedSession(topic.value, reason.message)
 
+@JvmSynthetic
 internal fun SessionParamsVO.NotificationParams.toEngineDoSessionNotification(topic: TopicVO): EngineDO.SessionNotification =
     EngineDO.SessionNotification(topic.value, type, data.toString())
 
+@JvmSynthetic
 internal fun EngineDO.SessionProposal.toSettledSession(topic: TopicVO, expiry: ExpiryVO): EngineDO.SettledSession =
     EngineDO.SettledSession(
         topic,
@@ -114,6 +125,7 @@ internal fun EngineDO.SessionProposal.toSettledSession(topic: TopicVO, expiry: E
         SequenceStatus.SETTLED
     )
 
+@JvmSynthetic
 internal fun SessionVO.toEngineDOSessionProposal(peerPublicKey: PublicKey): EngineDO.SessionProposal =
     EngineDO.SessionProposal(
         name = appMetaData?.name ?: String.Empty,
@@ -129,6 +141,7 @@ internal fun SessionVO.toEngineDOSessionProposal(peerPublicKey: PublicKey): Engi
         accounts = accounts
     )
 
+@JvmSynthetic
 internal fun SessionVO.toEngineDOSettledSession(): EngineDO.SettledSession =
     EngineDO.SettledSession(
         topic, accounts, appMetaData?.toEngineDOAppMetaData(),
@@ -141,5 +154,6 @@ internal fun SessionVO.toEngineDOSettledSession(): EngineDO.SettledSession =
         status
     )
 
+@JvmSynthetic
 private fun AppMetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
     EngineDO.AppMetaData(name, description, url, icons)
