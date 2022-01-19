@@ -17,14 +17,15 @@ import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.common.adapters.ExpiryAdapter
 import com.walletconnect.walletconnectv2.common.adapters.JSONObjectAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
 
 internal sealed class PairingParamsVO : ClientParams {
 
     data class Proposal(
-        val pendingTopic: TopicVO,
-        val relay: JSONObject,
-        val pairingProposer: PairingProposerVO,
-        val pairingSignal: PairingSignalVO?,
+        val topic: TopicVO,
+        val relay: RelayProtocolOptionsVO,
+        val proposer: PairingProposerVO,
+        val signal: PairingSignalVO?,
         val permissions: PairingProposedPermissionsVO?,
         val ttl: TtlVO
     ) : PairingParamsVO()
@@ -35,8 +36,7 @@ internal sealed class PairingParamsVO : ClientParams {
         @TopicAdapter.Qualifier
         val settledTopic: TopicVO,
         @Json(name = "relay")
-        @JSONObjectAdapter.Qualifier
-        val relay: JSONObject,
+        val relay: RelayProtocolOptionsVO,
         @Json(name = "responder")
         val responder: PairingParticipantVO,
         @Json(name = "expiry")

@@ -11,6 +11,8 @@ import kotlin.random.Random
 
 fun generateTopic(): TopicVO = TopicVO(randomBytes(32).bytesToHex())
 
+fun pendingSequenceExpirySeconds() = ((System.currentTimeMillis() / 1000) + 86400) //24h
+
 fun randomBytes(size: Int): ByteArray {
     val secureRandom = SecureRandom()
     val bytes = ByteArray(size)

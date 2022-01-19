@@ -62,9 +62,10 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
                     selfParticipant = PublicKey(entity.self_participant),
                     peerParticipant = PublicKey(entity.peer_participant ?: String.Empty),
                     controllerKey = PublicKey(entity.controller_key ?: String.Empty),
-                    proposalUri = entity.uri,
+                    uri = entity.uri,
                     permissions = entity.permissions,
-                    relayProtocol = entity.relay_protocol
+                    relay = entity.relay_protocol,
+                    controllerType = entity.controller_type
                 )
             }
 
@@ -92,12 +93,12 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         with(pairing) {
             sequenceDatabase.pairingDaoQueries.insertPairing(
                 topic.value,
-                proposalUri,
+                uri,
                 expiry.seconds,
                 status,
                 controllerType,
                 selfParticipant.keyAsHex,
-                relayProtocol
+                relay
             )
         }
     }
@@ -132,7 +133,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
                 controllerKey?.keyAsHex,
                 permissions,
                 pendingTopic.value,
-                relayProtocol
+                relay
             )
         }
     }
@@ -261,8 +262,9 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
             peerParticipant = PublicKey(peer_participant ?: String.Empty),
             permissions = permissions,
             controllerKey = PublicKey(controller_key ?: String.Empty),
-            proposalUri = uri,
-            relayProtocol = relay_protocol
+            uri = uri,
+            relay = relay_protocol,
+            controllerType = controller_type
         )
 
     private fun mapSessionDaoToSessionVO(

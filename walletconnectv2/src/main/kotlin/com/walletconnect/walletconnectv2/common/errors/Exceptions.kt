@@ -4,4 +4,5 @@ sealed class WalletConnectExceptions(override val message: String?) : Exception(
     class ProjectIdDoesNotExistException(override val message: String?) : WalletConnectExceptions(message)
     class InvalidProjectIdException(override val message: String?) : WalletConnectExceptions(message)
     class ServerException(override val message: String?) : WalletConnectExceptions(message)
+    class NoSequenceForTopicException(override val message: String?) : WalletConnectExceptions(message)
 }

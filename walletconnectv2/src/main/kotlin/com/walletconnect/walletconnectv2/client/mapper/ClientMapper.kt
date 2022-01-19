@@ -16,7 +16,7 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.M
         methods,
         types,
         topic,
-        proposerPublicKey,
+        publicKey,
         isController,
         ttl,
         accounts,

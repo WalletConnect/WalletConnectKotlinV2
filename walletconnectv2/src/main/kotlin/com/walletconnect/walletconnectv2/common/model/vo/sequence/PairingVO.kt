@@ -1,5 +1,6 @@
 package com.walletconnect.walletconnectv2.common.model.vo.sequence
 
+import com.walletconnect.walletconnectv2.common.model.type.ControllerType
 import com.walletconnect.walletconnectv2.common.model.type.Sequence
 import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
@@ -16,7 +17,8 @@ internal data class PairingVO(
     val selfParticipant: PublicKey,
     val peerParticipant: PublicKey? = null,
     val controllerKey: PublicKey? = null,
-    val proposalUri: String,
-    val relayProtocol: String,
-    val permissions: List<String>? = null
+    val uri: String,
+    val relay: String,
+    val permissions: List<String>? = null,
+    val controllerType: ControllerType
 ) : Sequence
