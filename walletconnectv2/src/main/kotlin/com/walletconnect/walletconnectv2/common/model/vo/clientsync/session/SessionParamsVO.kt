@@ -79,7 +79,8 @@ internal sealed class SessionParamsVO: ClientParams {
         val permissions: SessionPermissionsVO
     ) : SessionParamsVO()
 
-    internal object PingParams : SessionParamsVO()
+    @Suppress("CanSealedSubClassBeObject")
+    internal class PingParams : SessionParamsVO()
 
     internal data class NotificationParams(
         @Json(name = "type")

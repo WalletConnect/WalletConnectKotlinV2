@@ -1,5 +1,3 @@
-@file:JvmSynthetic
-
 package com.walletconnect.walletconnectv2.di
 
 import androidx.security.crypto.EncryptedSharedPreferences
@@ -24,7 +22,7 @@ internal fun storageModule() = module {
     val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
     val mainKeyAlias = MasterKeys.getOrCreate(keyGenParameterSpec)
 
-    single(named(DITags.RPCSTORE)) {
+    single(named(DITags.RPC_STORE)) {
         EncryptedSharedPreferences.create(
             sharedPrefsFile,
             mainKeyAlias,
@@ -35,7 +33,7 @@ internal fun storageModule() = module {
     }
 
     single {
-        JsonRpcHistory(get(named(DITags.RPCSTORE)))
+        JsonRpcHistory(get(named(DITags.RPC_STORE)))
     }
 
     single<ColumnAdapter<List<String>, String>> {

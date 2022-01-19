@@ -1,5 +1,6 @@
 package com.walletconnect.walletconnectv2.client
 
+import android.util.Log
 import com.walletconnect.walletconnectv2.client.mapper.*
 import com.walletconnect.walletconnectv2.client.mapper.toClientSessionProposal
 import com.walletconnect.walletconnectv2.client.mapper.toClientSettledSession
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
+import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 
 object WalletConnectClient {

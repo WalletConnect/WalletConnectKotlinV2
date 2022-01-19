@@ -1,5 +1,3 @@
-@file:JvmSynthetic
-
 package com.walletconnect.walletconnectv2.di
 
 import com.squareup.moshi.Moshi

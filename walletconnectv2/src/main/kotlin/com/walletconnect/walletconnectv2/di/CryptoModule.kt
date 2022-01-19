@@ -1,5 +1,3 @@
-@file:JvmSynthetic
-
 package com.walletconnect.walletconnectv2.di
 
 import androidx.security.crypto.EncryptedSharedPreferences
@@ -18,7 +16,7 @@ internal fun cryptoManager() = module {
     val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
     val mainKeyAlias = MasterKeys.getOrCreate(keyGenParameterSpec)
 
-    single(named(DITags.KEYSTORE)) {
+    single(named(DITags.KEY_STORE)) {
         EncryptedSharedPreferences.create(
             sharedPrefsFile,
             mainKeyAlias,
@@ -28,7 +26,7 @@ internal fun cryptoManager() = module {
         )
     }
 
-    single<KeyStore> { KeyChain(get(named(DITags.KEYSTORE))) }
+    single<KeyStore> { KeyChain(get(named(DITags.KEY_STORE))) }
 
     single<CryptoRepository> { BouncyCastleCryptoRepository(get()) }
 }

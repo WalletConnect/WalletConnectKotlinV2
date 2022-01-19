@@ -60,7 +60,8 @@ internal sealed class PairingParamsVO : ClientParams {
         val reason: ReasonVO
     ) : PairingParamsVO()
 
-    internal object PingParams : PairingParamsVO()
+    @Suppress("CanSealedSubClassBeObject")
+    internal class PingParams : PairingParamsVO()
 
     internal data class NotificationParams(
         @Json(name = "type")

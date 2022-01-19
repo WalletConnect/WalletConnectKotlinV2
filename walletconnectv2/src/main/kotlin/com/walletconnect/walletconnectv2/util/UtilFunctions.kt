@@ -1,4 +1,5 @@
 @file:JvmName("Utils")
+
 package com.walletconnect.walletconnectv2.util
 
 import java.lang.System.currentTimeMillis

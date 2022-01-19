@@ -1,4 +1,4 @@
-@file:JvmName(" WalletConnectScope")
+@file:JvmSynthetic
 
 package com.walletconnect.walletconnectv2.common.scope
 
