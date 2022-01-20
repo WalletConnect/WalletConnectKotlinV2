@@ -16,17 +16,13 @@ import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
 @JvmSynthetic
-internal fun networkModule(useTls: Boolean, hostName: String, projectId: String) = module {
+internal fun networkModule(serverUrl: String) = module {
     val TIMEOUT_TIME = 5000L
     val DEFAULT_BACKOFF_MINUTES = 5L
 
     single { MoshiMessageAdapter.Factory(get()) }
 
     single { FlowStreamAdapter.Factory() }
-
-    single(named(DITags.SERVER_URL)) {
-        ((if (useTls) "wss" else "ws") + "://$hostName/?projectId=$projectId").trim()
-    }
 
     single {
         OkHttpClient.Builder()
@@ -40,7 +36,7 @@ internal fun networkModule(useTls: Boolean, hostName: String, projectId: String)
     single {
         Scarlet.Builder()
             .backoffStrategy(LinearBackoffStrategy(TimeUnit.MINUTES.toMillis(DEFAULT_BACKOFF_MINUTES)))
-            .webSocketFactory(get<OkHttpClient>().newWebSocketFactory(get<String>(named(DITags.SERVER_URL))))
+            .webSocketFactory(get<OkHttpClient>().newWebSocketFactory(serverUrl))
             .lifecycle(AndroidLifecycle.ofApplicationForeground(androidApplication()))
             .addMessageAdapterFactory(get<MoshiMessageAdapter.Factory>())
             .addStreamAdapterFactory(get<FlowStreamAdapter.Factory>())

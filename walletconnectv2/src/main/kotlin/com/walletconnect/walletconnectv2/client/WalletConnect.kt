@@ -1,6 +1,7 @@
 package com.walletconnect.walletconnectv2.client
 
 import android.app.Application
+import android.net.Uri
 import com.walletconnect.walletconnectv2.util.Empty
 import java.net.URI
 
@@ -57,7 +58,7 @@ object WalletConnect {
             val topic: String,
             val proposerPublicKey: String,
             val ttl: Long,
-            val accounts: List<String>
+            val accounts: List<String>,
         ) : Model() {
             val icon: String = icons.first().toString()
         }
@@ -65,13 +66,13 @@ object WalletConnect {
         data class SessionRequest(
             val topic: String,
             val chainId: String?,
-            val request: JSONRPCRequest
+            val request: JSONRPCRequest,
         ) : Model() {
 
             data class JSONRPCRequest(
                 val id: Long,
                 val method: String,
-                val params: String
+                val params: String,
             ) : Model()
         }
 
@@ -79,13 +80,13 @@ object WalletConnect {
             val topic: String,
             val accounts: List<String>,
             val peerAppMetaData: AppMetaData?,
-            val permissions: Permissions
+            val permissions: Permissions,
         ) : Model() {
 
             data class Permissions(
                 val blockchain: Blockchain,
                 val jsonRpc: JsonRpc,
-                val notifications: Notifications
+                val notifications: Notifications,
             ) {
                 data class Blockchain(val chains: List<String>)
 
@@ -116,12 +117,12 @@ object WalletConnect {
         data class SessionNotification(
             val topic: String,
             val type: String,
-            val data: String
+            val data: String,
         ) : Model()
 
         data class Notification(
             val type: String,
-            val data: String
+            val data: String,
         ) : Model()
 
         sealed class JsonRpcResponse : Model() {
@@ -130,17 +131,17 @@ object WalletConnect {
 
             data class JsonRpcResult(
                 override val id: Long,
-                val result: String
+                val result: String,
             ) : JsonRpcResponse()
 
             data class JsonRpcError(
                 override val id: Long,
-                val error: Error
+                val error: Error,
             ) : JsonRpcResponse()
 
             data class Error(
                 val code: Long,
-                val message: String
+                val message: String,
             )
         }
 
@@ -148,20 +149,49 @@ object WalletConnect {
             val name: String = "Peer",
             val description: String = String.Empty,
             val url: String = String.Empty,
-            val icons: List<String> = emptyList()
+            val icons: List<String> = emptyList(),
         ) : Model()
     }
 
     sealed class Params {
 
-        data class Init(
+        // TODO: Maybe convert this into a Builder
+        data class Init internal constructor(
             val application: Application,
-            val useTls: Boolean,
-            val hostName: String = WALLET_CONNECT_URL,
-            val projectId: String,
             val isController: Boolean,
-            val metadata: Model.AppMetaData
-        ) : Params()
+            val metadata: Model.AppMetaData,
+        ) : Params() {
+            internal lateinit var serverUrl: String
+
+            constructor(
+                application: Application,
+                useTls: Boolean,
+                hostName: String,
+                projectId: String,
+                isController: Boolean,
+                metadata: Model.AppMetaData,
+            ) : this(application, isController, metadata) {
+
+                this.serverUrl = ((if (useTls) "wss" else "ws") + "://$hostName/?projectId=$projectId").trim()
+            }
+
+            constructor(
+                application: Application,
+                relayServerUrl: String,
+                isController: Boolean,
+                metadata: Model.AppMetaData,
+            ) : this(application, isController, metadata) {
+                require(relayServerUrl.isValidRelayServerUrl())
+
+                this.serverUrl = relayServerUrl
+            }
+
+            private fun String.isValidRelayServerUrl(): Boolean {
+                return this.isNotBlank() && Uri.parse(this)?.let { relayUrl ->
+                    arrayOf("wss", "ws").contains(relayUrl.scheme) && !relayUrl.getQueryParameter("projectId").isNullOrBlank()
+                } ?: false
+            }
+        }
 
         data class Pair(val uri: String) : Params()
 
@@ -180,9 +210,5 @@ object WalletConnect {
         data class Ping(val topic: String) : Params()
 
         data class Notify(val topic: String, val notification: Model.Notification) : Params()
-
-        companion object {
-            internal const val WALLET_CONNECT_URL = "relay.walletconnect.com"
-        }
     }
 }

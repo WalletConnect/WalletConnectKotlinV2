@@ -26,7 +26,7 @@ object WalletConnectClient {
             modules(
                 commonModule(),
                 cryptoManager(),
-                networkModule(useTls, hostName, projectId),
+                networkModule(serverUrl),
                 relayerModule(),
                 storageModule(),
                 engineModule(metadata, isController)
