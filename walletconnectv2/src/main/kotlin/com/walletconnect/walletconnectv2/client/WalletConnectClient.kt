@@ -97,7 +97,6 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class)
-    @Throws(IllegalStateException::class)
     fun reject(reject: WalletConnect.Params.Reject, sessionReject: WalletConnect.Listeners.SessionReject) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
@@ -163,7 +162,7 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class)
-    fun notify(notify: WalletConnect.Params.Notify, notificationListener: WalletConnect.Listeners.NotificationListener) {
+    fun notify(notify: WalletConnect.Params.Notify, notificationListener: WalletConnect.Listeners.Notification) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
