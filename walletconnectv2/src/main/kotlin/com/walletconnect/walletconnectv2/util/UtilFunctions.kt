@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import kotlin.random.Random
 
-fun generateTopic(): TopicVO = TopicVO(randomBytes(32).bytesToHex())
+internal fun generateTopic(): TopicVO = TopicVO(randomBytes(32).bytesToHex())
 
 fun pendingSequenceExpirySeconds() = ((System.currentTimeMillis() / 1000) + 86400) //24h
 

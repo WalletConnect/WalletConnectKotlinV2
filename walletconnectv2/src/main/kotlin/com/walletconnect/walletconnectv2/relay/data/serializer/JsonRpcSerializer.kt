@@ -3,6 +3,7 @@ package com.walletconnect.walletconnectv2.relay.data.serializer
 import com.squareup.moshi.Moshi
 import com.walletconnect.walletconnectv2.common.model.type.ClientParams
 import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
+import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.common.model.vo.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.common.model.vo.SharedKey
@@ -14,9 +15,7 @@ import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.befo
 import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.relay.Codec
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
-import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.util.Empty
-import com.walletconnect.walletconnectv2.util.Logger
 import com.walletconnect.walletconnectv2.util.hexToUtf8
 
 internal class JsonRpcSerializer(private val codec: Codec, private val crypto: CryptoRepository, private val moshi: Moshi) {

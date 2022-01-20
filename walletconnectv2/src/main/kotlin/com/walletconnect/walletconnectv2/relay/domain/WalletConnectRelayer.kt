@@ -21,7 +21,12 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-internal class WalletConnectRelayer(private val networkRepository: NetworkRepository, private val serializer: JsonRpcSerializer, private val jsonRpcHistory: JsonRpcHistory) {
+internal class WalletConnectRelayer(
+    private val networkRepository: NetworkRepository,
+    private val serializer: JsonRpcSerializer,
+    private val jsonRpcHistory: JsonRpcHistory
+) {
+
     private val _clientSyncJsonRpc: MutableSharedFlow<RequestSubscriptionPayloadVO> = MutableSharedFlow()
     internal val clientSyncJsonRpc: SharedFlow<RequestSubscriptionPayloadVO> = _clientSyncJsonRpc
 

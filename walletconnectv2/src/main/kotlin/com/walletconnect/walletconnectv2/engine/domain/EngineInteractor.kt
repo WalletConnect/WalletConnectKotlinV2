@@ -211,7 +211,7 @@ internal class EngineInteractor(
     internal fun reject(reason: String, topic: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
         val sessionReject = PreSettlementSessionVO.Reject(id = generateId(), params = SessionParamsVO.RejectParams(reason = reason))
         onSuccess(Pair(topic, reason))
-        storageRepository.deleteSession(TopicVO(topic))
+        sequenceStorageRepository.deleteSession(TopicVO(topic))
         relayer.request(TopicVO(topic), sessionReject) { result ->
             result.fold(
                 onSuccess = {
@@ -434,7 +434,7 @@ internal class EngineInteractor(
             .map { session -> session.toEngineDOSettledSession() }
 
     private fun resubscribeToSettledPairings() {
-        val (listOfExpiredPairing, listOfValidPairing) = storageRepository.getListOfPairingVOs()
+        val (listOfExpiredPairing, listOfValidPairing) = sequenceStorageRepository.getListOfPairingVOs()
             .partition { pairing -> !pairing.expiry.isSequenceValid() }
 
         listOfExpiredPairing
