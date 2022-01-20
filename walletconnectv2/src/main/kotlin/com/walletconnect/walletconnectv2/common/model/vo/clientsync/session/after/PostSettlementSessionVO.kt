@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.SessionParamsVO
-import com.walletconnect.walletconnectv2.relay.model.utils.JsonRpcMethod
+import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
 
 internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
     abstract override val id: Long

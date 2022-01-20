@@ -17,7 +17,7 @@ import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.befo
 import com.walletconnect.walletconnectv2.common.model.vo.sequence.PairingVO
 import com.walletconnect.walletconnectv2.common.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
-import com.walletconnect.walletconnectv2.relay.model.utils.JsonRpcMethod
+import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.pendingSequenceExpirySeconds
@@ -47,7 +47,7 @@ internal fun String.toPairProposal(): PairingParamsVO.Proposal {
 }
 
 internal fun EngineDO.WalletConnectUri.toAbsoluteString(): String =
-    "wc:$topic@$version?controller=$isController&publicKey=$publicKey&relay=${relay.toUrlEncodedString()}"
+    "wc:${topic.value}@$version?controller=$isController&publicKey=${publicKey.keyAsHex}&relay=${relay.toUrlEncodedString()}"
 
 internal fun RelayProtocolOptionsVO.toUrlEncodedString(): String = URLEncoder.encode(JSONObject().put("protocol", protocol).toString(), "UTF-8")
 
@@ -86,8 +86,8 @@ internal fun EngineDO.SessionPermissions.toSessionsProposedPermissions(): Sessio
         jsonRpc!!.methods.let { methods -> SessionProposedPermissionsVO.JsonRpc(methods) }
     )
 
-internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toJsonRpcResponseVO(): JsonRpcResponseVO.JsonRpcResult =
-    JsonRpcResponseVO.JsonRpcResult(id, result)
+internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toJsonRpcResult(): JsonRpcResponseVO.JsonRpcResult =
+    JsonRpcResponseVO.JsonRpcResult(id, result = result)
 
 internal fun PairingParamsVO.PayloadParams.toEngineDOSessionProposal(): EngineDO.SessionProposal =
     EngineDO.SessionProposal(
@@ -166,7 +166,7 @@ private fun AppMetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
 internal fun PairingVO.toEngineDOSettledPairing(sessionPermissions: EngineDO.SessionPermissions): EngineDO.SettledPairing =
     EngineDO.SettledPairing(topic, relay, sessionPermissions)
 
-internal fun SessionVO.toSessionApproved(metaDataVO: AppMetaDataVO?): EngineDO.SessionApproved =
+internal fun SessionVO.toSessionApproved(metaDataVO: AppMetaDataVO?, settledTopic: TopicVO): EngineDO.SessionApproved =
     EngineDO.SessionApproved(
         topic.value,
         metaDataVO?.toEngineDOAppMetaData(),
@@ -323,4 +323,15 @@ internal fun SessionParamsVO.ProposalParams.toAcknowledgedSession(selfPublicKey:
         ttl = TtlVO(pendingSequenceExpirySeconds()),
         controllerType = controllerType,
         relayProtocol = relay.protocol
+    )
+
+internal fun EngineDO.WalletConnectUri.toProposedPairing(controllerType: ControllerType): PairingVO =
+    PairingVO(
+        topic,
+        ExpiryVO(pendingSequenceExpirySeconds()),
+        SequenceStatus.PROPOSED,
+        publicKey,
+        uri = toAbsoluteString(),
+        relay = relay.protocol,
+        controllerType = controllerType
     )

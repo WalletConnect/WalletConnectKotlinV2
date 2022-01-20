@@ -50,7 +50,7 @@ object WalletConnectClient {
         engineInteractor.initialize(engineFactory)
     }
 
-    fun connect(permissions: WalletConnect.Model.SessionPermissions, pairingTopic: String?): String? =
+    fun connect(permissions: WalletConnect.Model.SessionPermissions, pairingTopic: String? = null): String? =
         engineInteractor.proposeSequence(permissions.toEngineSessionPermissions(), pairingTopic)
 
     fun pair(pair: WalletConnect.Params.Pair, pairing: WalletConnect.Listeners.Pairing) {

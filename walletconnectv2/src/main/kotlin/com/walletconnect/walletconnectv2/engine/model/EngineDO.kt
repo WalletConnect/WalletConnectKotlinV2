@@ -8,6 +8,7 @@ import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.proposal.PairingPermissionsVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
+import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.util.Empty
 import org.json.JSONObject
@@ -16,8 +17,8 @@ import java.net.URI
 internal sealed class EngineDO {
 
     internal class WalletConnectUri(
-        val topic: String,
-        val publicKey: String,
+        val topic: TopicVO,
+        val publicKey: PublicKey,
         val isController: Boolean,
         val relay: RelayProtocolOptionsVO,
         val version: String = "2"
@@ -129,18 +130,19 @@ internal sealed class EngineDO {
     internal sealed class JsonRpcResponse : EngineDO() {
 
         abstract val id: Long
-        val jsonrpc: String = "2.0"
 
         @JsonClass(generateAdapter = true)
         data class JsonRpcResult(
             override val id: Long,
+            val jsonrpc: String = "2.0",
             val result: String
         ) : JsonRpcResponse()
 
         @JsonClass(generateAdapter = true)
         data class JsonRpcError(
             override val id: Long,
-            val error: Error,
+            val jsonrpc: String = "2.0",
+            val error: Error
         ) : JsonRpcResponse()
 
         data class Error(

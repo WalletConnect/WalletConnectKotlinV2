@@ -15,8 +15,9 @@ import com.walletconnect.walletconnectv2.crypto.data.repository.BouncyCastleCryp
 import com.walletconnect.walletconnectv2.common.scope.moshi
 import com.walletconnect.walletconnectv2.relay.data.codec.AuthenticatedEncryptionCodec
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
-import com.walletconnect.walletconnectv2.relay.model.utils.JsonRpcMethod
+import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.util.Empty
+import com.walletconnect.walletconnectv2.util.Logger
 import com.walletconnect.walletconnectv2.util.hexToUtf8
 
 class JsonRpcSerializer {
@@ -37,6 +38,7 @@ class JsonRpcSerializer {
 
     internal fun decode(message: String, topic: TopicVO): String {
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
+
         return if (sharedKey.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
             message.hexToUtf8
         } else {
@@ -44,7 +46,7 @@ class JsonRpcSerializer {
         }
     }
 
-    internal fun deserialize(method: String, json: String, topic: TopicVO): ClientParams? =
+    internal fun deserialize(method: String, json: String): ClientParams? =
         when (method) {
             JsonRpcMethod.WC_PAIRING_APPROVE -> tryDeserialize<PreSettlementPairingVO.Approve>(json)?.params
             JsonRpcMethod.WC_PAIRING_REJECT -> tryDeserialize<PreSettlementPairingVO.Reject>(json)?.params
@@ -85,7 +87,8 @@ class JsonRpcSerializer {
             is PostSettlementSessionVO.SessionUpgrade -> trySerialize(payload)
             is PostSettlementSessionVO.SessionPayload -> trySerialize(payload)
             is PostSettlementSessionVO.SessionDelete -> trySerialize(payload)
-            is RelayDO.JsonRpcResponse -> trySerialize(payload)
+            is  RelayDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
+            is RelayDO.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             else -> String.Empty
         }
 

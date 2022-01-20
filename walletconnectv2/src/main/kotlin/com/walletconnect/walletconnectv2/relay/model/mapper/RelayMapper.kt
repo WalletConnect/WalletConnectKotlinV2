@@ -10,10 +10,10 @@ internal fun JsonRpcResponseVO.toRelayDOJsonRpcResponse(): RelayDO.JsonRpcRespon
     }
 
 internal fun JsonRpcResponseVO.JsonRpcResult.toRelayDOJsonRpcResult(): RelayDO.JsonRpcResponse.JsonRpcResult =
-    RelayDO.JsonRpcResponse.JsonRpcResult(id, result)
+    RelayDO.JsonRpcResponse.JsonRpcResult(id, result = result)
 
 internal fun JsonRpcResponseVO.JsonRpcError.toRelayDORpcError(): RelayDO.JsonRpcResponse.JsonRpcError =
-    RelayDO.JsonRpcResponse.JsonRpcError(id, RelayDO.JsonRpcResponse.Error(error.code, error.message))
+    RelayDO.JsonRpcResponse.JsonRpcError(id, error = RelayDO.JsonRpcResponse.Error(error.code, error.message))
 
 internal fun RelayDO.JsonRpcResponse.JsonRpcResult.toJsonRpcResultVO(): JsonRpcResponseVO.JsonRpcResult =
-    JsonRpcResponseVO.JsonRpcResult(id, result)
+    JsonRpcResponseVO.JsonRpcResult(id, result = result.toString())

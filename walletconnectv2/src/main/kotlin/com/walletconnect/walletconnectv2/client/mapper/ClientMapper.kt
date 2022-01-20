@@ -8,44 +8,17 @@ import com.walletconnect.walletconnectv2.engine.model.EngineDO
 
 internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.Model.SessionProposal =
     WalletConnect.Model.SessionProposal(
-        name,
-        description,
-        url,
-        icons,
-        chains,
-        methods,
-        types,
-        topic,
-        publicKey,
-        isController,
-        ttl,
-        accounts,
-        relayProtocol
+        name, description, url, icons, chains, methods, types, topic, publicKey, isController, ttl, accounts, relayProtocol
     )
 
 internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(accountList: List<String>): EngineDO.SessionProposal =
     EngineDO.SessionProposal(
-        name,
-        description,
-        url,
-        icons,
-        chains,
-        methods,
-        types,
-        topic,
-        proposerPublicKey,
-        isController,
-        ttl,
-        accountList,
-        relayProtocol
+        name, description, url, icons, chains, methods, types, topic, proposerPublicKey, isController, ttl, accountList, relayProtocol
     )
 
 internal fun EngineDO.SettledSession.toClientSettledSession(): WalletConnect.Model.SettledSession =
     WalletConnect.Model.SettledSession(
-        topic.value,
-        accounts,
-        peerAppMetaData?.toClientAppMetaData(),
-        permissions.toClientSettledSessionPermissions()
+        topic.value, accounts, peerAppMetaData?.toClientAppMetaData(), permissions.toClientSettledSessionPermissions()
     )
 
 internal fun EngineDO.SettledSession.Permissions.toClientSettledSessionPermissions(): WalletConnect.Model.SettledSession.Permissions =
@@ -66,16 +39,14 @@ internal fun EngineDO.SettledSession.Permissions.Notifications.toClientSettledSe
 
 internal fun EngineDO.SessionRequest.toClientSessionRequest(): WalletConnect.Model.SessionRequest =
     WalletConnect.Model.SessionRequest(
-        topic,
-        chainId,
-        WalletConnect.Model.SessionRequest.JSONRPCRequest(request.id, request.method, request.params)
+        topic, chainId, WalletConnect.Model.SessionRequest.JSONRPCRequest(request.id, request.method, request.params)
     )
 
 internal fun WalletConnect.Model.JsonRpcResponse.JsonRpcResult.toRpcResultVO(): JsonRpcResponseVO.JsonRpcResult =
-    JsonRpcResponseVO.JsonRpcResult(id, result)
+    JsonRpcResponseVO.JsonRpcResult(id, result = result)
 
 internal fun WalletConnect.Model.JsonRpcResponse.JsonRpcError.toRpcErrorVO(): JsonRpcResponseVO.JsonRpcError =
-    JsonRpcResponseVO.JsonRpcError(id, JsonRpcResponseVO.Error(error.code, error.message))
+    JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(error.code, error.message))
 
 internal fun WalletConnect.Model.SessionState.toEngineSessionState(): EngineDO.SessionState = EngineDO.SessionState(accounts)
 

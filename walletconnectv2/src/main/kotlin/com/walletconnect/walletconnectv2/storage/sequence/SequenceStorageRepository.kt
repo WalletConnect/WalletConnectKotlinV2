@@ -132,8 +132,8 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
                 peerParticipant?.keyAsHex,
                 controllerKey?.keyAsHex,
                 permissions,
-                pendingTopic.value,
-                relay
+                relay,
+                pendingTopic.value
             )
         }
     }
@@ -276,7 +276,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         accounts: List<String>?,
         expiry: Long,
         status: SequenceStatus,
-        controller_type: ControllerType, // TODO: Figure out how to handle proposer and responder once proposer is implemented
+        controller_type: ControllerType,
         metadataName: String?,
         metadataDesc: String?,
         metadataUrl: String?,
