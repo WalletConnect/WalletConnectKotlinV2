@@ -1,57 +1,30 @@
 package com.walletconnect.walletconnectv2.storage.sequence
 
-import android.app.Application
-import com.squareup.sqldelight.ColumnAdapter
-import com.squareup.sqldelight.EnumColumnAdapter
-import com.squareup.sqldelight.android.AndroidSqliteDriver
-import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.walletconnectv2.Database
 import com.walletconnect.walletconnectv2.common.model.type.ControllerType
-import com.walletconnect.walletconnectv2.common.model.vo.*
+import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.AppMetaDataVO
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.*
 import com.walletconnect.walletconnectv2.common.model.vo.sequence.PairingVO
+import com.walletconnect.walletconnectv2.common.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.util.Empty
-import org.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
-import org.walletconnect.walletconnectv2.storage.data.dao.PairingDao
-import org.walletconnect.walletconnectv2.storage.data.dao.SessionDao
 
 //TODO: Split into SessionStorageRepository and PairingStorageRepository
-internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, application: Application) {
-    //region provide with DI
-    // TODO: once DI is setup, replace var with val
-    private val driver = sqliteDriver ?: AndroidSqliteDriver(
-        schema = Database.Schema,
-        context = application,
-        name = "WalletConnectV2.db"
-    )
-    private val sequenceDatabase: Database = Database(
-        driver,
-        PairingDaoAdapter = PairingDao.Adapter(
-            statusAdapter = EnumColumnAdapter(),
-            controller_typeAdapter = EnumColumnAdapter(),
-            permissionsAdapter = listOfStringsAdapter
-        ),
-        SessionDaoAdapter = SessionDao.Adapter(
-            permissions_chainsAdapter = listOfStringsAdapter,
-            permissions_methodsAdapter = listOfStringsAdapter,
-            permissions_typesAdapter = listOfStringsAdapter,
-            accountsAdapter = listOfStringsAdapter,
-            statusAdapter = EnumColumnAdapter(),
-            controller_typeAdapter = EnumColumnAdapter()
-        ),
-        MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = listOfStringsAdapter)
-    )
-    //endregion
+internal class SequenceStorageRepository constructor(private val sequenceDatabase: Database) {
 
+    @JvmSynthetic
     fun getListOfPairingVOs() =
         sequenceDatabase.pairingDaoQueries.getListOfPairingDaos(mapper = this@SequenceStorageRepository::mapPairingDaoToPairingVO)
             .executeAsList()
 
+    @JvmSynthetic
     fun getListOfSessionVOs() =
         sequenceDatabase.sessionDaoQueries.getListOfSessionDaos(mapper = this@SequenceStorageRepository::mapSessionDaoToSessionVO)
             .executeAsList()
 
+    @JvmSynthetic
     fun getPairingByTopic(topic: TopicVO): PairingVO? =
         sequenceDatabase.pairingDaoQueries.getPairingByTopic(topic.value)
             .executeAsOneOrNull()?.let { entity ->
@@ -69,6 +42,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
                 )
             }
 
+    @JvmSynthetic
     fun getSessionByTopic(topic: TopicVO): SessionVO? =
         sequenceDatabase.sessionDaoQueries.getSessionByTopic(topic.value)
             .executeAsOneOrNull()?.let { entity ->
@@ -89,6 +63,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
                 )
             }
 
+    @JvmSynthetic
     fun insertPendingPairing(pairing: PairingVO, controllerType: ControllerType) {
         with(pairing) {
             sequenceDatabase.pairingDaoQueries.insertPairing(
@@ -103,6 +78,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         }
     }
 
+    @JvmSynthetic
     fun updateRespondedPairingToPreSettled(proposalTopic: TopicVO, pairing: PairingVO) {
         with(pairing) {
             sequenceDatabase.pairingDaoQueries.updatePendingPairingToPreSettled(
@@ -118,10 +94,12 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         }
     }
 
+    @JvmSynthetic
     fun updatePreSettledPairingToAcknowledged(pairing: PairingVO) {
         sequenceDatabase.pairingDaoQueries.updatePreSettledPairingToAcknowledged(pairing.status, pairing.topic.value)
     }
 
+    @JvmSynthetic
     fun updateProposedPairingToAcknowledged(pairing: PairingVO, pendingTopic: TopicVO) {
         with(pairing) {
             sequenceDatabase.pairingDaoQueries.updateProposedPairingToAcknowledged(
@@ -138,10 +116,12 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         }
     }
 
+    @JvmSynthetic
     fun deletePairing(topic: TopicVO) {
         sequenceDatabase.pairingDaoQueries.deletePairing(topic.value)
     }
 
+    @JvmSynthetic
     fun insertSessionProposal(session: SessionVO, appMetaData: AppMetaDataVO?, controllerType: ControllerType) {
         val metadataId = insertMetaData(appMetaData)
 
@@ -175,10 +155,12 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         } ?: FAILED_INSERT_ID
     }
 
+    @JvmSynthetic
     fun updateProposedSessionToResponded(session: SessionVO) {
         sequenceDatabase.sessionDaoQueries.updateProposedSessionToResponded(session.status, session.topic.value)
     }
 
+    @JvmSynthetic
     fun updateRespondedSessionToPreSettled(session: SessionVO, pendingTopic: TopicVO) {
         with(session) {
             sequenceDatabase.sessionDaoQueries.updateRespondedSessionToPresettled(
@@ -198,14 +180,15 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         }
     }
 
+    @JvmSynthetic
     fun updatePreSettledSessionToAcknowledged(session: SessionVO) {
         sequenceDatabase.sessionDaoQueries.updatePreSettledSessionToAcknowledged(session.status, session.topic.value)
     }
 
+    @JvmSynthetic
     fun updateProposedSessionToAcknowledged(session: SessionVO, pendingTopic: TopicVO) {
 
         val metadataId = insertMetaData(session.appMetaData)
-
         with(session) {
             sequenceDatabase.sessionDaoQueries.updateProposedSessionToAcknowledged(
                 topic.value,
@@ -226,10 +209,12 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         }
     }
 
+    @JvmSynthetic
     fun updateSessionWithAccounts(topic: String, accounts: List<String>) {
         sequenceDatabase.sessionDaoQueries.updateSessionWithAccounts(accounts, topic)
     }
 
+    @JvmSynthetic
     fun updateSessionWithPermissions(topic: String, blockChains: List<String>?, jsonRpcMethods: List<String>?) {
         val (listOfChains, listOfMethods) = sequenceDatabase.sessionDaoQueries.getPermissionsByTopic(topic).executeAsOne()
         val chainsUnion = listOfChains.union((blockChains ?: emptyList())).toList()
@@ -237,6 +222,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         sequenceDatabase.sessionDaoQueries.updateSessionWithPermissions(chainsUnion, methodsUnion, topic)
     }
 
+    @JvmSynthetic
     fun deleteSession(topic: TopicVO) {
         sequenceDatabase.metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
         sequenceDatabase.sessionDaoQueries.deleteSession(topic.value)
@@ -311,18 +297,7 @@ internal class SequenceStorageRepository constructor(sqliteDriver: SqlDriver?, a
         )
     }
 
-    companion object {
-        private const val FAILED_INSERT_ID = -1L
-        internal val listOfStringsAdapter = object : ColumnAdapter<List<String>, String> {
-
-            override fun decode(databaseValue: String) =
-                if (databaseValue.isEmpty()) {
-                    listOf()
-                } else {
-                    databaseValue.split(",")
-                }
-
-            override fun encode(value: List<String>) = value.joinToString(separator = ",")
-        }
+    private companion object {
+        const val FAILED_INSERT_ID = -1L
     }
 }

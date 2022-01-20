@@ -13,7 +13,7 @@ internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
     abstract val params: SessionParamsVO
 
     @JsonClass(generateAdapter = true)
-    data class SessionPayload(
+    internal data class SessionPayload(
         @Json(name = "id")
         override val id: Long,
         @Json(name = "jsonrpc")
@@ -25,7 +25,7 @@ internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
     ) : PostSettlementSessionVO()
 
     @JsonClass(generateAdapter = true)
-    data class SessionDelete(
+    internal data class SessionDelete(
         @Json(name = "id")
         override val id: Long,
         @Json(name = "jsonrpc")
@@ -37,7 +37,7 @@ internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
     ) : PostSettlementSessionVO()
 
     @JsonClass(generateAdapter = true)
-    data class SessionUpdate(
+    internal data class SessionUpdate(
         @Json(name = "id")
         override val id: Long,
         @Json(name = "jsonrpc")
@@ -49,7 +49,7 @@ internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
     ) : PostSettlementSessionVO()
 
     @JsonClass(generateAdapter = true)
-    data class SessionUpgrade(
+    internal data class SessionUpgrade(
         @Json(name = "id")
         override val id: Long,
         @Json(name = "jsonrpc")
@@ -61,7 +61,7 @@ internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
     ) : PostSettlementSessionVO()
 
     @JsonClass(generateAdapter = true)
-    data class SessionPing(
+    internal data class SessionPing(
         @Json(name = "id")
         override val id: Long,
         @Json(name = "jsonrpc")
@@ -73,7 +73,7 @@ internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
     ) : PostSettlementSessionVO()
 
     @JsonClass(generateAdapter = true)
-    data class SessionNotification(
+    internal data class SessionNotification(
         @Json(name = "id")
         override val id: Long,
         @Json(name = "jsonrpc")

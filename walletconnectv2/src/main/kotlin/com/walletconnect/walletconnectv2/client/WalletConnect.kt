@@ -168,11 +168,11 @@ object WalletConnect {
 
         data class Init(
             val application: Application,
-            val useTls: Boolean = true,
+            val useTls: Boolean,
             val hostName: String = WALLET_CONNECT_URL,
-            val projectId: String = "",
-            val isController: Boolean = true,
-            val metadata: Model.AppMetaData = Model.AppMetaData()
+            val projectId: String,
+            val isController: Boolean,
+            val metadata: Model.AppMetaData
         ) : Params()
 
         data class Pair(val uri: String) : Params()

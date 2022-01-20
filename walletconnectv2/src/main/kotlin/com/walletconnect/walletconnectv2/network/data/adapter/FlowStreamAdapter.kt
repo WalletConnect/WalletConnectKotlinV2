@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.reactive.collect
 import java.lang.reflect.Type
 
-class FlowStreamAdapter<T> : StreamAdapter<T, Flow<T>> {
+internal class FlowStreamAdapter<T> : StreamAdapter<T, Flow<T>> {
     
     override fun adapt(stream: Stream<T>) = flow {
         stream.collect {
@@ -16,7 +16,7 @@ class FlowStreamAdapter<T> : StreamAdapter<T, Flow<T>> {
         }
     }
 
-    class Factory : StreamAdapter.Factory {
+    internal class Factory : StreamAdapter.Factory {
 
         override fun create(type: Type): StreamAdapter<Any, Any> {
             return when (type.getRawType()) {

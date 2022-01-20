@@ -1,21 +1,19 @@
 package com.walletconnect.walletconnectv2.crypto.data.repository
 
-
-import org.bouncycastle.math.ec.rfc7748.X25519
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.crypto.data.keystore.KeyChain
-import com.walletconnect.walletconnectv2.crypto.KeyStore
 import com.walletconnect.walletconnectv2.common.model.vo.PrivateKey
 import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.common.model.vo.SharedKey
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.crypto.CryptoRepository
+import com.walletconnect.walletconnectv2.crypto.KeyStore
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import com.walletconnect.walletconnectv2.util.hexToBytes
+import org.bouncycastle.math.ec.rfc7748.X25519
 import java.security.MessageDigest
 import java.security.SecureRandom
 import com.walletconnect.walletconnectv2.common.model.vo.Key as WCKey
 
-class BouncyCastleCryptoRepository(private val keyChain: KeyStore = KeyChain()) : CryptoRepository {
+internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : CryptoRepository {
 
     override fun generateKeyPair(): PublicKey {
         val publicKey = ByteArray(KEY_SIZE)
@@ -74,7 +72,7 @@ class BouncyCastleCryptoRepository(private val keyChain: KeyStore = KeyChain()) 
         return TopicVO(hashedBytes.bytesToHex())
     }
 
-    companion object {
+    private companion object {
         private const val KEY_SIZE: Int = 32
         private const val SHA_256: String = "SHA-256"
     }

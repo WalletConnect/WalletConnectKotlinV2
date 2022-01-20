@@ -14,7 +14,7 @@ import javax.crypto.Mac
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
-class AuthenticatedEncryptionCodec : Codec {
+internal class AuthenticatedEncryptionCodec : Codec {
 
     override fun encrypt(message: String, sharedKey: SharedKey, publicKey: PublicKey): String {
         val (encryptionKey, authenticationKey) = getKeys(sharedKey.keyAsHex)

@@ -1,29 +1,25 @@
 package com.walletconnect.walletconnectv2.relay.data.serializer
 
+import com.squareup.moshi.Moshi
 import com.walletconnect.walletconnectv2.common.model.type.ClientParams
 import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
+import com.walletconnect.walletconnectv2.common.model.vo.EncryptionPayloadVO
+import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.common.model.vo.SharedKey
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.after.PostSettlementPairingVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.PreSettlementPairingVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.PostSettlementSessionVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.PreSettlementSessionVO
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.crypto.CryptoRepository
-import com.walletconnect.walletconnectv2.common.model.vo.EncryptionPayloadVO
-import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
-import com.walletconnect.walletconnectv2.common.model.vo.SharedKey
-import com.walletconnect.walletconnectv2.crypto.data.repository.BouncyCastleCryptoRepository
-import com.walletconnect.walletconnectv2.common.scope.moshi
-import com.walletconnect.walletconnectv2.relay.data.codec.AuthenticatedEncryptionCodec
+import com.walletconnect.walletconnectv2.relay.Codec
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.Logger
 import com.walletconnect.walletconnectv2.util.hexToUtf8
 
-class JsonRpcSerializer {
-
-    private val codec: AuthenticatedEncryptionCodec = AuthenticatedEncryptionCodec()
-    private val crypto: CryptoRepository = BouncyCastleCryptoRepository()
+internal class JsonRpcSerializer(private val codec: Codec, private val crypto: CryptoRepository, private val moshi: Moshi) {
 
     internal fun serialize(payload: ClientSyncJsonRpc, topic: TopicVO): String {
         val json = serialize(payload)

@@ -2,20 +2,39 @@ package com.walletconnect.walletconnectv2.client
 
 import com.walletconnect.walletconnectv2.client.mapper.*
 import com.walletconnect.walletconnectv2.client.mapper.toClientSessionProposal
-import com.walletconnect.walletconnectv2.client.mapper.toClientSessionRequest
 import com.walletconnect.walletconnectv2.client.mapper.toClientSettledSession
-import com.walletconnect.walletconnectv2.client.mapper.toEngineSessionProposal
-import com.walletconnect.walletconnectv2.common.scope.app
 import com.walletconnect.walletconnectv2.common.scope.scope
+import com.walletconnect.walletconnectv2.di.*
 import com.walletconnect.walletconnectv2.engine.domain.EngineInteractor
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.KoinApplication
+import org.koin.core.context.loadKoinModules
+import org.koin.core.context.startKoin
 
 object WalletConnectClient {
 
-    private val engineInteractor = EngineInteractor()
+    private val wcKoinApp: KoinApplication = KoinApplication.init()
+    private val engineInteractor: EngineInteractor by wcKoinApp.koin.inject()
+
+    fun initialize(initial: WalletConnect.Params.Init) = with(initial) {
+        // TODO: add logic to check hostName for ws/wss scheme with and without ://
+        wcKoinApp.run {
+            androidContext(application)
+
+            modules(
+                commonModule(),
+                cryptoManager(),
+                networkModule(useTls, hostName, projectId),
+                relayerModule(),
+                storageModule(),
+                engineModule(metadata, isController)
+            )
+        }
+    }
 
     fun setWalletDelegate(delegate: WalletDelegate) {
         scope.launch {
@@ -40,14 +59,6 @@ object WalletConnectClient {
                 }
             }
         }
-    }
-
-    fun initialize(initial: WalletConnect.Params.Init) = with(initial) {
-        // TODO: pass properties to DI framework
-        app = application
-        val engineFactory =
-            EngineInteractor.EngineFactory(useTls, hostName, projectId, isController, application, metadata.toEngineAppMetaData())
-        engineInteractor.initialize(engineFactory)
     }
 
     fun connect(permissions: WalletConnect.Model.SessionPermissions, pairingTopic: String? = null): String? =

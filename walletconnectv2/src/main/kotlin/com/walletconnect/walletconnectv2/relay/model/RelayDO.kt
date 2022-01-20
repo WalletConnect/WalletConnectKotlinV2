@@ -3,21 +3,21 @@ package com.walletconnect.walletconnectv2.relay.model
 import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
 
-sealed class RelayDO {
+internal sealed class RelayDO {
 
     internal sealed class JsonRpcResponse : RelayDO(), ClientSyncJsonRpc {
 
         abstract override val id: Long
 
         @JsonClass(generateAdapter = true)
-        data class JsonRpcResult(
+        internal data class JsonRpcResult(
             override val id: Long,
             val jsonrpc: String = "2.0",
             val result: Any
         ) : JsonRpcResponse()
 
         @JsonClass(generateAdapter = true)
-        data class JsonRpcError(
+        internal data class JsonRpcError(
             override val id: Long,
             val jsonrpc: String = "2.0",
             val error: Error
@@ -26,7 +26,7 @@ sealed class RelayDO {
             val message: String = error.message
         }
 
-        data class Error(
+        internal data class Error(
             val code: Long,
             val message: String,
         )
