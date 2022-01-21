@@ -24,44 +24,55 @@ allprojects {
 app/build.gradle
 
 ```gradle
-implementation("com.github.WalletConnect:WalletConnectKotlinV2:1.0.0-beta01")
+implementation("com.github.WalletConnect:WalletConnectKotlinV2:1.0.0-beta02")
 ```
 
 ## **Usage**
 
 ### **Initialize WalletConnect Client**
+
 ```kotlin
-val appMetaData = WalletConnect.Model.AppMetaData(name = "Wallet Name", description = "Wallet Description", url = "Wallet Url", icons = listOfIconUrlStrings)
-val init =  WalletConnect.Params.Init(application = application, projectId = "project id", appMetaData = appMetaData)
+val appMetaData =
+    WalletConnect.Model.AppMetaData(name = "Wallet Name", description = "Wallet Description", url = "Wallet Url", icons = listOfIconUrlStrings)
+val init =
+    WalletConnect.Params.Init(application = application, isController = true / false, projectId = "project id", appMetaData = appMetaData)
 WalletConnectClient.initalize(init)
 ```
 
-The controller client will always be the wallet which is exposing blockchain accounts to a Dapp and therefore is also in charge of signing.
-To initialize the WalletConnect client, create a `WalletConnect.Params.Init` object in the Android Application class. The InitialParams object will need at least the application class, the ProjectID and the wallet's AppMetaData. The WalletConnect.Params.Init object will then be passed to the `WalletConnectClient` initialize function. IntitalParams also allows for custom URLs by passing URL string into the `hostName` property.
+The controller client will always be the wallet which is exposing blockchain accounts to a Dapp and therefore is also in charge of signing. To
+initialize the WalletConnect client, create a `WalletConnect.Params.Init` object in the Android Application class. The InitialParams object will
+need at least the application class, the ProjectID and the wallet's AppMetaData. The WalletConnect.Params.Init object will then be passed to
+the `WalletConnectClient` initialize function. WalletConnect.Params.Init also allows for custom URLs by passing URL string into the `hostName`
+property. Remember to setup the isController flag to declare if your peer should act as controller or non-controller. For reference check out
+out docs: https://docs.walletconnect.com/2.0/protocol/glossary#controller
 
-### **Session WalletConnectClient.Delegate**
+## **Wallet**
+
+### **WalletConnectClient.WalletDelegate**
+
 ```kotlin
-val listener = object: WalletConnectClient.Delegate {
-   override fun onSessionProposal(sessionProposal:  WalletConnect.Model.SessionProposal) {
-      // Session Proposal object sent by Dapp after pairing was successful
-   }
+val walletDelegate = object : WalletConnectClient.WalletDelegate {
+    override fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal) {
+        // Session Proposal object sent by Dapp after pairing was successful
+    }
 
-   override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {
-      // JSON-RPC methods wrapped by SessionRequest object sent by Dapp
-   }
+    override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {
+        // JSON-RPC methods wrapped by SessionRequest object sent by Dapp
+    }
 
-   override fun onSessionDelete(deletedSession: DWalletConnect.Model.eletedSession) {
-      // Triggered when the session is deleted by the peer
+    override fun onSessionDelete(deletedSession: DWalletConnect.Model.DeletedSession) {
+        // Triggered when the session is deleted by the peer
    }
 
    override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {
       // Triggered when the peer emits events as notifications that match the list of types agreed upon session settlement
    }
 }
-WalletConnectClient.setDelegate(listener)
+WalletConnectClient.setWalletDelegate(walletDelegate)
 ```
 
-The WalletConnectClient needs a `WalletConnectClient.Delegate` passed to it for it to be able to expose asynchronously updates sent from the Dapp.
+The WalletConnectClient needs a `WalletConnectClient.WalletDelegate` passed to it for it to be able to expose asynchronously updates sent from
+the Dapp.
 
 ### **Pair Clients**
 ```kotlin
@@ -216,22 +227,66 @@ val listener = object : WalletConnect.Listeners.SessionPing {
       // Topic being pinged
    }
 
-   override fun onError(error: Throwable) {
-      // Error
-   }
+    override fun onError(error: Throwable) {
+        // Error
+    }
 }
 
 WalletConnectClient.ping(pingParams, listener)
 ```
-To ping a Dapp with a settled session, call `WalletConnectClient.ping` with the `WalletConnect.Params.Ping` with a settle session's topic. If ping is successful, topic is echo'd in listener.
+
+To ping a Dapp with a settled session, call `WalletConnectClient.ping` with the `WalletConnect.Params.Ping` with a settle session's topic. If
+ping is successful, topic is echo'd in listener.
+
+## **Daap**
+
+### **WalletConnectClient.DappDelegate**
+
+```kotlin
+val dappDelegate = object : WalletConnectClient.DappDelegate {
+    override fun onPairingSettled(settledPairing: WalletConnect.Model.SettledPairing) {
+        // Triggered when Dapp receives the pairing approval from wallet
+    }
+
+    override fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession) {
+        // Triggered when Dapp receives the session approval from wallet
+    }
+
+    override fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession) {
+        // Triggered when Dapp receives the session rejection from wallet
+    }
+}
+WalletConnectClient.setWalletDelegate(dappDelegate)
+```
+
+The WalletConnectClient needs a `WalletConnectClient.DappDelegate` passed to it for it to be able to expose asynchronously updates sent from the
+Wallet.
+
+### **Connect**
+
+```kotlin
+val sessionPermissions: WalletConnect.Model.SessionPermissions = /* List of permissions that wallet will be requested for */
+val pairingTopic: String? =  /* Optional parameter, use it when the pairing between peers is already established*/
+fun WalletConnectClient.connect(sessionPermissions, pairingTopic): String?
+```
+
+The WalletConnect.connect method returns the pairing URI that is shared with wallet out of bound, as qr code or mobile linking. The pairing URI
+is null when there is already the established pairing between peers. To establish a session pass the existing pairing's topic. SDK will send the
+SessionProposal for given topic.
+
+##
 
 ### **Get List of Settled Sessions**
+
 ```kotlin
 WalletConnectClient.getListOfSettledSessions()
 ```
-To get a list of the most current settled sessions, call `WalletConnectClient.getListOfSettledSessions()` which will return a list of type `SettledSession`.
+
+To get a list of the most current settled sessions, call `WalletConnectClient.getListOfSettledSessions()` which will return a list of
+type `SettledSession`.
 
 ### **Get List of Pending Sessions**
+
 ```kotlin
 WalletConnectClient.getListOfPendingSession()
 ```
