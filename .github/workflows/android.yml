@@ -33,5 +33,6 @@ jobs:
         dependencies-cache-enabled: true
         configuration-cache-enabled: true
         arguments: assembleRelease
+      ## :walletconnectv2:testDebugUnitTest
     - name: Run Unit Tests
-      run: ./gradlew :walletconnectv2:testDebugUnitTest
+      run: ./gradlew :walletconnectv2:build
