@@ -40,9 +40,9 @@ WalletConnectClient.initalize(init)
 ```
 
 The controller client will always be the wallet which is exposing blockchain accounts to a Dapp and therefore is also in charge of signing. To
-initialize the WalletConnect client, create a `WalletConnect.Params.Init` object in the Android Application class. The InitialParams object will
-need at least the application class, the ProjectID and the wallet's AppMetaData. The WalletConnect.Params.Init object will then be passed to
-the `WalletConnectClient` initialize function. WalletConnect.Params.Init also allows for custom URLs by passing URL string into the `hostName`
+initialize the WalletConnect client, create a `WalletConnect.Params.Init` object in the Android Application class. The Init object will need the
+application class, the ProjectID, isController flag, and the wallet's AppMetaData. The `WalletConnect.Params.Init` object will then be passed to
+the `WalletConnectClient` initialize function. `WalletConnect.Params.Init` also allows for custom URLs by passing URL string into the `hostName`
 property.
 
 Remember to setup the isController flag to declare if your peer should act as controller or non-controller. For reference check out out
@@ -272,9 +272,9 @@ val pairingTopic: String? =  /* Optional parameter, use it when the pairing betw
 fun WalletConnectClient.connect(sessionPermissions, pairingTopic): String?
 ```
 
-The WalletConnect.connect method returns the pairing URI that is shared with wallet out of bound, as qr code or mobile linking. The pairing URI
-is null when there is already the established pairing between peers. To establish a session pass the existing pairing's topic. SDK will send the
-SessionProposal for given topic.
+The `WalletConnect.connect` method returns the pairing URI that is shared with wallet out of bound, as qr code or mobile linking. The pairing
+URI is null when there is already an established pairing between peers. To establish a session, pass the existing pairing's topic to the connect
+method. The SDK will send the SessionProposal for the given topic.
 
 ##
 
@@ -299,7 +299,6 @@ To get a list of the most current pending sessions, call `WalletConnectClient.ge
 WalletConnectClient.shutdown()
 ```
 To make sure that the internal coroutines are handled correctly when leaving the application, call `WalletConnectClient.shutdown()` before exiting from the application.
-<br>
 
 ## API Keys
 
