@@ -22,7 +22,7 @@ import com.walletconnect.walletconnectv2.common.adapters.TtlAdapter
 internal sealed class SessionParamsVO: ClientParams {
 
     @JsonClass(generateAdapter = true)
-    internal data class Proposal(
+    internal data class ProposalParams(
         @Json(name = "topic")
         @field:TopicAdapter.Qualifier
         val topic: TopicVO,
@@ -40,7 +40,7 @@ internal sealed class SessionParamsVO: ClientParams {
     ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)
-    internal data class Success(
+    internal data class ApprovalParams(
         @Json(name = "relay")
         val relay: RelayProtocolOptionsVO,
         @Json(name = "responder")
@@ -53,7 +53,7 @@ internal sealed class SessionParamsVO: ClientParams {
     ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)
-    internal class Failure(val reason: String) : SessionParamsVO()
+    internal class RejectParams(val reason: String) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)
     internal data class SessionPayloadParams(

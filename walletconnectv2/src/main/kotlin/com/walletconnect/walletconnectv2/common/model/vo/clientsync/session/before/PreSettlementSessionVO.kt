@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.SessionParamsVO
-import com.walletconnect.walletconnectv2.relay.model.utils.JsonRpcMethod
+import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
 
 internal sealed class PreSettlementSessionVO : ClientSyncJsonRpc {
     abstract override val id: Long
@@ -21,7 +21,7 @@ internal sealed class PreSettlementSessionVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_PROPOSE,
         @Json(name = "params")
-        override val params: SessionParamsVO.Proposal
+        override val params: SessionParamsVO.ProposalParams
     ) : PreSettlementSessionVO()
 
     @JsonClass(generateAdapter = true)
@@ -33,7 +33,7 @@ internal sealed class PreSettlementSessionVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_APPROVE,
         @Json(name = "params")
-        override val params: SessionParamsVO.Success
+        override val params: SessionParamsVO.ApprovalParams
     ) : PreSettlementSessionVO() {
         val accounts: List<String> = params.state.accounts
         val expiry: Long = params.expiry.seconds
@@ -43,6 +43,6 @@ internal sealed class PreSettlementSessionVO : ClientSyncJsonRpc {
         override val id: Long,
         override val jsonrpc: String = "2.0",
         override val method: String = JsonRpcMethod.WC_SESSION_REJECT,
-        override val params: SessionParamsVO.Failure
+        override val params: SessionParamsVO.RejectParams
     ) : PreSettlementSessionVO()
 }

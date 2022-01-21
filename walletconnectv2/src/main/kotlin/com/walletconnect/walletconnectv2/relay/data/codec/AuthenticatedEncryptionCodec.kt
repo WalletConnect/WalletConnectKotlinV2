@@ -6,6 +6,7 @@ import com.walletconnect.walletconnectv2.common.model.vo.SharedKey
 import com.walletconnect.walletconnectv2.relay.Codec
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import com.walletconnect.walletconnectv2.util.hexToBytes
+import com.walletconnect.walletconnectv2.util.randomBytes
 import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.Cipher
@@ -64,13 +65,6 @@ internal class AuthenticatedEncryptionCodec : Codec {
         val payload = iv + publicKey + data
         mac.init(SecretKeySpec(authKey, MAC_ALGORITHM))
         return mac.doFinal(payload).bytesToHex()
-    }
-
-    private fun randomBytes(size: Int): ByteArray {
-        val secureRandom = SecureRandom()
-        val bytes = ByteArray(size)
-        secureRandom.nextBytes(bytes)
-        return bytes
     }
 
     companion object {

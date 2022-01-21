@@ -63,7 +63,8 @@ internal fun storageModule() = module {
             get(),
             PairingDaoAdapter = PairingDao.Adapter(
                 statusAdapter = EnumColumnAdapter(),
-                controller_typeAdapter = EnumColumnAdapter()
+                controller_typeAdapter = EnumColumnAdapter(),
+                permissionsAdapter = get()
             ),
             SessionDaoAdapter = SessionDao.Adapter(
                 permissions_chainsAdapter = get(),

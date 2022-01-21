@@ -15,6 +15,7 @@ import org.koin.core.KoinApplication
 import java.lang.IllegalStateException
 
 object WalletConnectClient {
+
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var engineInteractor: EngineInteractor
 
@@ -37,7 +38,7 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class)
-    fun setDelegate(delegate: Delegate) {
+    fun setWalletDelegate(delegate: WalletDelegate) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
@@ -55,11 +56,27 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class)
-    fun pair(pair: WalletConnect.Params.Pair, pairing: WalletConnect.Listeners.Pairing) {
+    fun setDappDelegate(delegate: DappDelegate) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
+        scope.launch {
+            engineInteractor.sequenceEvent.collect { event ->
+                when (event) {
+                    is EngineDO.SettledPairing -> delegate.onPairingSettled(event.toClientSettledPairing())
+                    is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
+                    is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
+                }
+            }
+        }
+    }
+
+    fun connect(permissions: WalletConnect.Model.SessionPermissions, pairingTopic: String? = null): String? =
+        engineInteractor.proposeSequence(permissions.toEngineSessionPermissions(), pairingTopic)
+
+    @Throws(IllegalStateException::class)
+    fun pair(pair: WalletConnect.Params.Pair, pairing: WalletConnect.Listeners.Pairing) {
         engineInteractor.pair(pair.uri,
             { topic -> pairing.onSuccess(WalletConnect.Model.SettledPairing(topic)) },
             { error -> pairing.onError(error) })
@@ -145,7 +162,7 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class)
-    fun notify(notify: WalletConnect.Params.Notify, notificationListener: WalletConnect.Listeners.NotificationListener) {
+    fun notify(notify: WalletConnect.Params.Notify, notificationListener: WalletConnect.Listeners.Notification) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
@@ -197,10 +214,16 @@ object WalletConnectClient {
         wcKoinApp.close()
     }
 
-    interface Delegate {
+    interface WalletDelegate {
         fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal)
         fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest)
         fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
         fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification)
+    }
+
+    interface DappDelegate {
+        fun onPairingSettled(settledPairing: WalletConnect.Model.SettledPairing)
+        fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession)
+        fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession)
     }
 }
