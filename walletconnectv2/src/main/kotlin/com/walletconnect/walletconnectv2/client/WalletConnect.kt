@@ -1,8 +1,8 @@
 package com.walletconnect.walletconnectv2.client
 
 import android.app.Application
-import com.walletconnect.walletconnectv2.util.Empty
 import android.net.Uri
+import com.walletconnect.walletconnectv2.util.Empty
 import java.net.URI
 
 object WalletConnect {
@@ -100,10 +100,7 @@ object WalletConnect {
 
         data class SessionState(val accounts: List<String>) : Model()
 
-        data class SettledPairing(
-            val topic: String,
-            val permissions: SessionPermissions = SessionPermissions()
-        ) : Model()
+        data class SettledPairing(val topic: String) : Model()
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
 
@@ -117,7 +114,7 @@ object WalletConnect {
 
         data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : Model()
 
-        data class SessionPermissions(val blockchain: Blockchain? = null, val jsonRpc: Jsonrpc? = null) : Model()
+        data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: Jsonrpc) : Model()
 
         data class Blockchain(val chains: List<String>) : Model()
 

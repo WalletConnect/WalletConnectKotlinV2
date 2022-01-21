@@ -6,12 +6,9 @@ import com.walletconnect.walletconnectv2.common.model.type.SequenceLifecycle
 import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.proposal.PairingPermissionsVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
-import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.util.Empty
-import org.json.JSONObject
 import java.net.URI
 
 internal sealed class EngineDO {
@@ -114,7 +111,7 @@ internal sealed class EngineDO {
 
     internal data class SessionState(val accounts: List<String>) : EngineDO()
 
-    internal data class SessionPermissions(val blockchain: Blockchain? = null, val jsonRpc: JsonRpc? = null) : EngineDO()
+    internal data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: JsonRpc) : EngineDO()
 
     internal data class Blockchain(val chains: List<String>) : EngineDO()
 

@@ -26,6 +26,7 @@ internal class SequenceStorageRepository constructor(private val sequenceDatabas
 
     @JvmSynthetic
     fun getPairingByTopic(topic: TopicVO): PairingVO? =
+        //TODO:remove getPairingByTopic nullability
         sequenceDatabase.pairingDaoQueries.getPairingByTopic(topic.value)
             .executeAsOneOrNull()?.let { entity ->
                 PairingVO(
@@ -44,6 +45,7 @@ internal class SequenceStorageRepository constructor(private val sequenceDatabas
 
     @JvmSynthetic
     fun getSessionByTopic(topic: TopicVO): SessionVO? =
+        // //TODO:remove getSessionByTopic nullability
         sequenceDatabase.sessionDaoQueries.getSessionByTopic(topic.value)
             .executeAsOneOrNull()?.let { entity ->
                 SessionVO(
