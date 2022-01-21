@@ -12,9 +12,7 @@ class SampleApplication : Application() {
         // TODO: Move to Dapp example once separate workflow is added
         val init = WalletConnect.Params.Init(
             application = this,
-            isController = false,
             useTls = true,
-            projectId = "",
             hostName = WALLET_CONNECT_URL,
             projectId = PROJECT_ID,
             isController = false,
