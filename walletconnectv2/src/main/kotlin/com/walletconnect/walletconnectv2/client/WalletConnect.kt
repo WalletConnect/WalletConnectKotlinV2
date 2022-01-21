@@ -2,6 +2,7 @@ package com.walletconnect.walletconnectv2.client
 
 import android.app.Application
 import com.walletconnect.walletconnectv2.util.Empty
+import android.net.Uri
 import java.net.URI
 
 object WalletConnect {
@@ -165,14 +166,43 @@ object WalletConnect {
 
     sealed class Params {
 
-        data class Init(
+        // TODO: Maybe convert this into a Builder
+        data class Init internal constructor(
             val application: Application,
-            val useTls: Boolean,
-            val hostName: String = WALLET_CONNECT_URL,
-            val projectId: String,
             val isController: Boolean,
-            val metadata: Model.AppMetaData
-        ) : Params()
+            val metadata: Model.AppMetaData,
+        ) : Params() {
+            internal lateinit var serverUrl: String
+
+            constructor(
+                application: Application,
+                useTls: Boolean,
+                hostName: String,
+                projectId: String,
+                isController: Boolean,
+                metadata: Model.AppMetaData,
+            ) : this(application, isController, metadata) {
+
+                this.serverUrl = ((if (useTls) "wss" else "ws") + "://$hostName/?projectId=$projectId").trim()
+            }
+
+            constructor(
+                application: Application,
+                relayServerUrl: String,
+                isController: Boolean,
+                metadata: Model.AppMetaData,
+            ) : this(application, isController, metadata) {
+                require(relayServerUrl.isValidRelayServerUrl())
+
+                this.serverUrl = relayServerUrl
+            }
+
+            private fun String.isValidRelayServerUrl(): Boolean {
+                return this.isNotBlank() && Uri.parse(this)?.let { relayUrl ->
+                    arrayOf("wss", "ws").contains(relayUrl.scheme) && !relayUrl.getQueryParameter("projectId").isNullOrBlank()
+                } ?: false
+            }
+        }
 
         data class Pair(val uri: String) : Params()
 
@@ -191,9 +221,5 @@ object WalletConnect {
         data class Ping(val topic: String) : Params()
 
         data class Notify(val topic: String, val notification: Model.Notification) : Params()
-
-        companion object {
-            internal const val WALLET_CONNECT_URL = "relay.walletconnect.com"
-        }
     }
 }
