@@ -1,7 +1,6 @@
 package com.walletconnect.walletconnectv2.client
 
 import android.app.Application
-import com.walletconnect.walletconnectv2.util.Empty
 import android.net.Uri
 import java.net.URI
 
@@ -102,7 +101,7 @@ object WalletConnect {
 
         data class SettledPairing(
             val topic: String,
-            val permissions: SessionPermissions = SessionPermissions()
+            val appMetaData: AppMetaData?
         ) : Model()
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
@@ -157,10 +156,10 @@ object WalletConnect {
         }
 
         data class AppMetaData(
-            val name: String = "Peer",
-            val description: String = String.Empty,
-            val url: String = String.Empty,
-            val icons: List<String> = emptyList()
+            val name: String,
+            val description: String,
+            val url: String,
+            val icons: List<String>
         ) : Model()
     }
 

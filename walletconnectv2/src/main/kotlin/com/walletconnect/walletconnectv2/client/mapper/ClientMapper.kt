@@ -74,13 +74,7 @@ internal fun EngineDO.SessionNotification.toClientSessionNotification(): WalletC
 
 @JvmSynthetic
 internal fun EngineDO.SettledPairing.toClientSettledPairing(): WalletConnect.Model.SettledPairing =
-    WalletConnect.Model.SettledPairing(
-        //TODO: Validation of permissions is needed
-        topic.value, permissions = WalletConnect.Model.SessionPermissions(
-            WalletConnect.Model.Blockchain(permissions.blockchain?.chains ?: emptyList()),
-            WalletConnect.Model.Jsonrpc(permissions.jsonRpc?.methods ?: emptyList())
-        )
-    )
+    WalletConnect.Model.SettledPairing(topic.value, appMetaData = metaData?.toClientAppMetaData())
 
 @JvmSynthetic
 internal fun EngineDO.SessionRejected.toClientSessionRejected(): WalletConnect.Model.RejectedSession =

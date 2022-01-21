@@ -73,7 +73,7 @@ internal fun PairingParamsVO.Proposal.toApprove(
 ): PreSettlementPairingVO.Approve = PreSettlementPairingVO.Approve(id = id, params = this.toPairingSuccess(settleTopic, expiry, selfPublicKey))
 
 @JvmSynthetic
-internal fun EngineDO.AppMetaData.toClientSyncMetaData() =
+internal fun EngineDO.AppMetaData.toMetaDataVO() =
     AppMetaDataVO(name, description, url, icons)
 
 @JvmSynthetic
@@ -178,13 +178,13 @@ private fun AppMetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
     EngineDO.AppMetaData(name, description, url, icons)
 
 @JvmSynthetic
-internal fun PairingVO.toEngineDOSettledPairing(sessionPermissions: EngineDO.SessionPermissions): EngineDO.SettledPairing =
-    EngineDO.SettledPairing(topic, relay, sessionPermissions)
+internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.SettledPairing =
+    EngineDO.SettledPairing(topic, relay, appMetaDataVO?.toEngineDOAppMetaData())
 
 @JvmSynthetic
 internal fun SessionVO.toSessionApproved(metaDataVO: AppMetaDataVO?, settledTopic: TopicVO): EngineDO.SessionApproved =
     EngineDO.SessionApproved(
-        topic.value,
+        settledTopic.value,
         metaDataVO?.toEngineDOAppMetaData(),
         EngineDO.SessionPermissions(EngineDO.Blockchain(chains), EngineDO.JsonRpc(methods))
     )
@@ -332,7 +332,8 @@ internal fun PairingVO.toAcknowledgedPairingVO(
         uri,
         permissions = permissions,
         relay = relay,
-        controllerType = controllerType
+        controllerType = controllerType,
+        appMetaDataVO = params.state.metadata
     )
 
 @JvmSynthetic

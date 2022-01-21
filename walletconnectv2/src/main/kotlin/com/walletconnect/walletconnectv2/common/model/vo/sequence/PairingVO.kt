@@ -5,10 +5,8 @@ import com.walletconnect.walletconnectv2.common.model.type.Sequence
 import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.success.PairingParticipantVO
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.AppMetaDataVO
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
-import com.walletconnect.walletconnectv2.util.Empty
-import org.json.JSONObject
 
 internal data class PairingVO(
     override val topic: TopicVO,
@@ -20,5 +18,6 @@ internal data class PairingVO(
     val uri: String,
     val relay: String,
     val permissions: List<String>? = null,
-    val controllerType: ControllerType
+    val controllerType: ControllerType,
+    val appMetaDataVO: AppMetaDataVO? = null
 ) : Sequence

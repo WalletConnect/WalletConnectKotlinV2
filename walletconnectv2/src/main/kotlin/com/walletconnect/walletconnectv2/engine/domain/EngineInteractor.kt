@@ -73,11 +73,11 @@ internal class EngineInteractor(
             val pendingSessionTopic: TopicVO = generateTopic()
             val selfPublicKey: PublicKey = crypto.generateKeyPair()
             val isController = controllerType == ControllerType.CONTROLLER
-            val proposalParams = SessionProposerVO(selfPublicKey.keyAsHex, isController, metaData?.toClientSyncMetaData())
+            val proposalParams = SessionProposerVO(selfPublicKey.keyAsHex, isController, metaData?.toMetaDataVO())
                 .toProposalParams(pendingSessionTopic, settledPairing.topic, permissions)
 
             val proposedSession: SessionVO = proposalParams.toProposedSessionVO(pendingSessionTopic, selfPublicKey, controllerType)
-            sequenceStorageRepository.insertSessionProposal(proposedSession, metaData?.toClientSyncMetaData(), controllerType)
+            sequenceStorageRepository.insertSessionProposal(proposedSession, metaData?.toMetaDataVO(), controllerType)
             relayer.subscribe(pendingSessionTopic)
 
             val (sharedKey, publicKey) = crypto.getKeyAgreement(settledPairing.topic)
@@ -137,7 +137,6 @@ internal class EngineInteractor(
             .filter { isOnline -> isOnline }
             .onEach {
                 supervisorScope {
-
                     relayer.request(proposal.topic, preSettlementPairingApprove) { result ->
                         result.fold(
                             onSuccess = { onPairingSuccess(proposal, preSettledPairing, onSuccess) },
@@ -160,11 +159,14 @@ internal class EngineInteractor(
         val pairingUpdate: PostSettlementPairingVO.PairingUpdate =
             PostSettlementPairingVO.PairingUpdate(
                 id = generateId(),
-                params = PairingParamsVO.UpdateParams(state = PairingStateVO(metaData?.toClientSyncMetaData()))
+                params = PairingParamsVO.UpdateParams(state = PairingStateVO(metaData?.toMetaDataVO()))
             )
         relayer.request(settledSequence.topic, pairingUpdate) { result ->
             result.fold(
-                onSuccess = { Logger.log("Responder; Pairing update success") },
+                onSuccess = {
+                    sequenceStorageRepository.updateAcknowledgedPairingMetadata(metaData.toMetaDataVO(), settledSequence.topic)
+                    Logger.log("Responder; Pairing update success")
+                },
                 onFailure = { error -> Logger.error("Pairing update error: $error") }
             )
         }
@@ -185,7 +187,7 @@ internal class EngineInteractor(
         val sessionApprove = PreSettlementSessionVO.Approve(
             id = generateId(), params = SessionParamsVO.ApprovalParams(
                 relay = RelayProtocolOptionsVO(), state = SessionStateVO(proposal.accounts), expiry = preSettledSession.expiry,
-                responder = SessionParticipantVO(selfPublicKey.keyAsHex, metadata = metaData?.toClientSyncMetaData())
+                responder = SessionParticipantVO(selfPublicKey.keyAsHex, metadata = metaData?.toMetaDataVO())
             )
         )
 
@@ -322,6 +324,7 @@ internal class EngineInteractor(
             is SessionParamsVO.SessionPayloadParams -> onSessionPayload(payload.params, payload.topic, payload.requestId)
             is SessionParamsVO.NotificationParams -> onSessionNotification(payload.params, payload.topic)
             is PairingParamsVO.PingParams, is SessionParamsVO.PingParams -> onPing(payload.topic, payload.requestId)
+            //TODO add on pairing update to return the metadata for pairing, update pairing meta data in DB
             else -> EngineDO.Default
         }
 
@@ -344,7 +347,7 @@ internal class EngineInteractor(
 
         //TODO: add permission check
         proposeSession(sessionPermissions, settledTopic.value)
-        return acknowledgedPairing.toEngineDOSettledPairing(sessionPermissions)
+        return acknowledgedPairing.toEngineDOSettledPairing()
     }
 
     private fun onSessionApprove(params: SessionParamsVO.ApprovalParams, topic: TopicVO, requestId: Long): SequenceLifecycle {
@@ -429,10 +432,17 @@ internal class EngineInteractor(
             .map { session -> session.toEngineDOSessionProposal(crypto.getKeyAgreement(session.topic).second as PublicKey) }
     }
 
-    internal fun getListOfSettledSessions(): List<EngineDO.SettledSession> =
-        sequenceStorageRepository.getListOfSessionVOs()
+    internal fun getListOfSettledSessions(): List<EngineDO.SettledSession> {
+        return sequenceStorageRepository.getListOfSessionVOs()
             .filter { session -> session.status == SequenceStatus.ACKNOWLEDGED && session.expiry.isSequenceValid() }
             .map { session -> session.toEngineDOSettledSessionVO() }
+    }
+
+    fun getListOfSettledPairings(): List<EngineDO.SettledPairing> {
+        return sequenceStorageRepository.getListOfPairingVOs()
+            .filter { pairing -> pairing.status == SequenceStatus.ACKNOWLEDGED && pairing.expiry.isSequenceValid() }
+            .map { pairing -> pairing.toEngineDOSettledPairing() }
+    }
 
     private fun resubscribeToSettledPairings() {
         val (listOfExpiredPairing, listOfValidPairing) = sequenceStorageRepository.getListOfPairingVOs()

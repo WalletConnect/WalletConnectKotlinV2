@@ -1,8 +1,6 @@
 package com.walletconnect.walletconnectv2.client
 
 import com.walletconnect.walletconnectv2.client.mapper.*
-import com.walletconnect.walletconnectv2.client.mapper.toClientSessionProposal
-import com.walletconnect.walletconnectv2.client.mapper.toClientSettledSession
 import com.walletconnect.walletconnectv2.common.scope.scope
 import com.walletconnect.walletconnectv2.di.*
 import com.walletconnect.walletconnectv2.engine.domain.EngineInteractor
@@ -12,7 +10,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
-import java.lang.IllegalStateException
 
 object WalletConnectClient {
 
@@ -23,7 +20,6 @@ object WalletConnectClient {
         // TODO: add logic to check hostName for ws/wss scheme with and without ://
         wcKoinApp.run {
             androidContext(application)
-
             modules(
                 commonModule(),
                 cryptoManager(),
@@ -78,7 +74,7 @@ object WalletConnectClient {
     @Throws(IllegalStateException::class)
     fun pair(pair: WalletConnect.Params.Pair, pairing: WalletConnect.Listeners.Pairing) {
         engineInteractor.pair(pair.uri,
-            { topic -> pairing.onSuccess(WalletConnect.Model.SettledPairing(topic)) },
+            { topic -> pairing.onSuccess(WalletConnect.Model.SettledPairing(topic, null)) },
             { error -> pairing.onError(error) })
     }
 
@@ -207,6 +203,15 @@ object WalletConnectClient {
         }
 
         return engineInteractor.getListOfPendingSessions().map(EngineDO.SessionProposal::toClientSessionProposal)
+    }
+
+    @Throws(IllegalStateException::class)
+    fun getListOfSettledPairings(): List<WalletConnect.Model.SettledPairing> {
+        check(::engineInteractor.isInitialized) {
+            "WalletConnectClient needs to be initialized first using the initialize function"
+        }
+
+        return engineInteractor.getListOfSettledPairings().map(EngineDO.SettledPairing::toClientSettledPairing)
     }
 
     fun shutdown() {
