@@ -43,8 +43,10 @@ The controller client will always be the wallet which is exposing blockchain acc
 initialize the WalletConnect client, create a `WalletConnect.Params.Init` object in the Android Application class. The InitialParams object will
 need at least the application class, the ProjectID and the wallet's AppMetaData. The WalletConnect.Params.Init object will then be passed to
 the `WalletConnectClient` initialize function. WalletConnect.Params.Init also allows for custom URLs by passing URL string into the `hostName`
-property. Remember to setup the isController flag to declare if your peer should act as controller or non-controller. For reference check out
-out docs: https://docs.walletconnect.com/2.0/protocol/glossary#controller
+property.
+
+Remember to setup the isController flag to declare if your peer should act as controller or non-controller. For reference check out out
+docs: https://docs.walletconnect.com/2.0/protocol/glossary#controller
 
 ## **Wallet**
 
