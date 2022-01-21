@@ -4,7 +4,8 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.common.Expiry
+import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.common.adapters.ExpiryAdapter
 
 internal class ExpiryAdapterTest {
     private val moshi = Moshi.Builder()
@@ -16,10 +17,10 @@ internal class ExpiryAdapterTest {
 
     @Test
     fun toJson() {
-        val expiry = Expiry(100L)
+        val expiry = ExpiryVO(100L)
         val expected = """"${expiry.seconds}""""
 
-        val expiryJson = moshi.adapter(Expiry::class.java).toJson(expiry)
+        val expiryJson = moshi.adapter(ExpiryVO::class.java).toJson(expiry)
 
         assertEquals(expected, """"$expiryJson"""")
     }

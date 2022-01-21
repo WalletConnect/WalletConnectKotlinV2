@@ -1,11 +1,11 @@
 package com.walletconnect.sample.wallet
 
-import com.walletconnect.walletconnectv2.client.WalletConnectClientData
+import com.walletconnect.walletconnectv2.client.WalletConnect
 
 interface SessionActionListener {
-    fun onDisconnect(session: WalletConnectClientData.SettledSession)
-    fun onUpdate(session: WalletConnectClientData.SettledSession)
-    fun onUpgrade(session: WalletConnectClientData.SettledSession)
-    fun onPing(session: WalletConnectClientData.SettledSession)
-    fun onSessionsDetails(session: WalletConnectClientData.SettledSession)
+    fun onDisconnect(session: WalletConnect.Model.SettledSession)
+    fun onUpdate(session: WalletConnect.Model.SettledSession)
+    fun onUpgrade(session: WalletConnect.Model.SettledSession)
+    fun onPing(session: WalletConnect.Model.SettledSession)
+    fun onSessionsDetails(session: WalletConnect.Model.SettledSession)
 }

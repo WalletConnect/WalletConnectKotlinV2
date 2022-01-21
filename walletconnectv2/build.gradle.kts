@@ -72,6 +72,7 @@ dependencies {
     scarlet()
     sqlDelight()
     security()
+    koin()
 
     jUnit5()
     robolectric()

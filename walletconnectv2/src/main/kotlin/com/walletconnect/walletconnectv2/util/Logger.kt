@@ -3,7 +3,7 @@ package com.walletconnect.walletconnectv2.util
 import com.walletconnect.walletconnectv2.BuildConfig
 import timber.log.Timber
 
-object Logger {
+internal object Logger {
     const val TAG = "WalletConnectV2"
 
     init {

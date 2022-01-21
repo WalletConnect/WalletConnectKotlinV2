@@ -5,14 +5,14 @@ import android.net.Uri
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.walletconnect.sample.databinding.SessionRequestDialogBinding
-import com.walletconnect.walletconnectv2.client.WalletConnectClientData
+import com.walletconnect.walletconnectv2.client.WalletConnect
 
 class SessionRequestDialog(
     context: Context,
-    val approve: (sessionRequest: WalletConnectClientData.SessionRequest) -> Unit,
-    val reject: (sessionRequest: WalletConnectClientData.SessionRequest) -> Unit,
-    private val sessionRequest: WalletConnectClientData.SessionRequest,
-    private val session: WalletConnectClientData.SettledSession
+    val approve: (sessionRequest: WalletConnect.Model.SessionRequest) -> Unit,
+    val reject: (sessionRequest: WalletConnect.Model.SessionRequest) -> Unit,
+    private val sessionRequest: WalletConnect.Model.SessionRequest,
+    private val session: WalletConnect.Model.SettledSession
 ) : BottomSheetDialog(context) {
 
     private val binding = SessionRequestDialogBinding.inflate(layoutInflater)

@@ -4,7 +4,8 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.common.Topic
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
 import com.walletconnect.walletconnectv2.util.getRandom64ByteHexString
 import kotlin.test.assertNotNull
 
@@ -19,9 +20,9 @@ internal class TopicAdapterTest {
     @Test
     fun fromJson() {
         val expectedTopicValue = "AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPPQQRRSSTTUUVVWWXXYYZZAABBCCDDEEFF"
-        val expected = Topic(expectedTopicValue)
+        val expected = TopicVO(expectedTopicValue)
 
-        val resultTopic = moshi.adapter(Topic::class.java).fromJson(expectedTopicValue)
+        val resultTopic = moshi.adapter(TopicVO::class.java).fromJson(expectedTopicValue)
 
         assertNotNull(resultTopic)
         kotlin.test.assertEquals(expected, resultTopic)
@@ -29,10 +30,10 @@ internal class TopicAdapterTest {
 
     @Test
     fun toJson() {
-        val topic = Topic(getRandom64ByteHexString())
+        val topic = TopicVO(getRandom64ByteHexString())
         val expected = "\"${topic.value}\""
 
-        val topicJson = moshi.adapter(Topic::class.java).toJson(topic)
+        val topicJson = moshi.adapter(TopicVO::class.java).toJson(topic)
 
         assertEquals(expected, topicJson)
     }

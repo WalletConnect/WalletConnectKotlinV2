@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.crypto.managers
 
-import com.walletconnect.walletconnectv2.crypto.data.Key
-import com.walletconnect.walletconnectv2.storage.KeyStore
+import com.walletconnect.walletconnectv2.common.model.vo.Key
+import com.walletconnect.walletconnectv2.crypto.KeyStore
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import com.walletconnect.walletconnectv2.util.hexToBytes
 
