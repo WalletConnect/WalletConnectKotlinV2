@@ -1,6 +1,6 @@
 package com.walletconnect.walletconnectv2.client.mapper
 
-import com.walletconnect.walletconnectv2.client.*
+import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.common.model.vo.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 
@@ -75,6 +75,7 @@ internal fun EngineDO.SessionNotification.toClientSessionNotification(): WalletC
 @JvmSynthetic
 internal fun EngineDO.SettledPairing.toClientSettledPairing(): WalletConnect.Model.SettledPairing =
     WalletConnect.Model.SettledPairing(
+        //TODO: Validation of permissions is needed
         topic.value, permissions = WalletConnect.Model.SessionPermissions(
             WalletConnect.Model.Blockchain(permissions.blockchain?.chains ?: emptyList()),
             WalletConnect.Model.Jsonrpc(permissions.jsonRpc?.methods ?: emptyList())

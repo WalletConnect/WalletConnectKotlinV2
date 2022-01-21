@@ -1,9 +1,9 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
-import android.app.Application
 import com.walletconnect.walletconnectv2.common.errors.WalletConnectExceptions
 import com.walletconnect.walletconnectv2.common.model.type.ControllerType
 import com.walletconnect.walletconnectv2.common.model.type.SequenceLifecycle
+import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.common.model.vo.*
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.PairingParamsVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.after.PostSettlementPairingVO
@@ -24,7 +24,6 @@ import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.engine.model.mapper.*
 import com.walletconnect.walletconnectv2.relay.domain.WalletConnectRelayer
-import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
 import com.walletconnect.walletconnectv2.util.Logger
@@ -38,9 +37,8 @@ internal class EngineInteractor(
     private val crypto: CryptoRepository,
     private val sequenceStorageRepository: SequenceStorageRepository,
     private val metaData: EngineDO.AppMetaData,
-    private val controllerType: ControllerType = ControllerType.CONTROLLER
+    private var controllerType: ControllerType = ControllerType.CONTROLLER
 ) {
-    private var isController: Boolean = false
     private lateinit var sessionPermissions: EngineDO.SessionPermissions
 
     val sequenceEvent: StateFlow<SequenceLifecycle> =
@@ -61,6 +59,7 @@ internal class EngineInteractor(
     }
 
     internal fun proposeSequence(permissions: EngineDO.SessionPermissions, pairingTopic: String?): String? {
+        //TODO: Add permissions validation
         if (pairingTopic != null) {
             proposeSession(permissions, pairingTopic)
             return null
@@ -73,10 +72,11 @@ internal class EngineInteractor(
         if (settledPairing != null && settledPairing.status == SequenceStatus.ACKNOWLEDGED) {
             val pendingSessionTopic: TopicVO = generateTopic()
             val selfPublicKey: PublicKey = crypto.generateKeyPair()
+            val isController = controllerType == ControllerType.CONTROLLER
             val proposalParams = SessionProposerVO(selfPublicKey.keyAsHex, isController, metaData?.toClientSyncMetaData())
                 .toProposalParams(pendingSessionTopic, settledPairing.topic, permissions)
 
-            val proposedSession: SessionVO = proposalParams.toProposedSession(pendingSessionTopic, selfPublicKey, controllerType)
+            val proposedSession: SessionVO = proposalParams.toProposedSessionVO(pendingSessionTopic, selfPublicKey, controllerType)
             sequenceStorageRepository.insertSessionProposal(proposedSession, metaData?.toClientSyncMetaData(), controllerType)
             relayer.subscribe(pendingSessionTopic)
 
@@ -109,8 +109,9 @@ internal class EngineInteractor(
     private fun proposePairing(permissions: EngineDO.SessionPermissions): String {
         val topic: TopicVO = generateTopic()
         val publicKey: PublicKey = crypto.generateKeyPair()
+        val isController = controllerType == ControllerType.CONTROLLER
         val uri = EngineDO.WalletConnectUri(topic, publicKey, isController, RelayProtocolOptionsVO())
-        val proposedPairing = uri.toProposedPairing(controllerType)
+        val proposedPairing = uri.toProposedPairingVO(controllerType)
         sequenceStorageRepository.insertPendingPairing(proposedPairing, controllerType)
         relayer.subscribe(topic)
         sessionPermissions = permissions
@@ -122,8 +123,8 @@ internal class EngineInteractor(
         if (sequenceStorageRepository.getPairingByTopic(proposal.topic) != null) throw WalletConnectExceptions.PairWithExistingPairingIsNotAllowed
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val (_, settledTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, PublicKey(proposal.proposer.publicKey))
-        val respondedPairing = proposal.toRespondedPairing(settledTopic, selfPublicKey, uri, controllerType)
-        val preSettledPairing = proposal.toPreSettledPairing(settledTopic, selfPublicKey, uri, controllerType)
+        val respondedPairing = proposal.toRespondedPairingVO(settledTopic, selfPublicKey, uri, controllerType)
+        val preSettledPairing = proposal.toPreSettledPairingVO(settledTopic, selfPublicKey, uri, controllerType)
 
         relayer.subscribe(proposal.topic)
         sequenceStorageRepository.insertPendingPairing(respondedPairing, controllerType)
@@ -172,8 +173,8 @@ internal class EngineInteractor(
     internal fun approve(proposal: EngineDO.SessionProposal, onSuccess: (EngineDO.SettledSession) -> Unit, onFailure: (Throwable) -> Unit) {
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val (_, settledTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, PublicKey(proposal.publicKey))
-        val respondedSession = proposal.toRespondedSession(selfPublicKey, controllerType)
-        val preSettledSession = proposal.toPreSettledSession(settledTopic, selfPublicKey, controllerType)
+        val respondedSession = proposal.toRespondedSessionVO(selfPublicKey, controllerType)
+        val preSettledSession = proposal.toPreSettledSessionVO(settledTopic, selfPublicKey, controllerType)
 
         sequenceStorageRepository.updateProposedSessionToResponded(respondedSession)
         relayer.subscribe(TopicVO(proposal.topic))
@@ -194,7 +195,7 @@ internal class EngineInteractor(
                     relayer.unsubscribe(TopicVO(proposal.topic))
                     crypto.removeKeys(proposal.topic)
                     sequenceStorageRepository.updatePreSettledSessionToAcknowledged(preSettledSession.copy(status = SequenceStatus.ACKNOWLEDGED))
-                    onSuccess(proposal.toAcknowledgedSession(settledTopic, preSettledSession.expiry))
+                    onSuccess(proposal.toEngineDOSettledSessionVO(settledTopic, preSettledSession.expiry))
                 },
                 onFailure = { error ->
                     relayer.unsubscribe(TopicVO(proposal.topic))
@@ -332,7 +333,7 @@ internal class EngineInteractor(
         }
 
         val (_, settledTopic) = crypto.generateTopicAndSharedKey(pendingPairing.selfParticipant, PublicKey(params.responder.publicKey))
-        val acknowledgedPairing = pendingPairing.toAcknowledgedPairing(settledTopic, params, controllerType)
+        val acknowledgedPairing = pendingPairing.toAcknowledgedPairingVO(settledTopic, params, controllerType)
         sequenceStorageRepository.updateProposedPairingToAcknowledged(acknowledgedPairing, pendingTopic)
         relayer.subscribe(settledTopic)
 
@@ -354,7 +355,7 @@ internal class EngineInteractor(
         }
 
         val (_, settledTopic) = crypto.generateTopicAndSharedKey(pendingSession.selfParticipant, PublicKey(params.responder.publicKey))
-        val acknowledgedSession = pendingSession.toAcknowledgedSession(settledTopic, params)
+        val acknowledgedSession = pendingSession.toEngineDOSettledSessionVO(settledTopic, params)
         sequenceStorageRepository.updateProposedSessionToAcknowledged(acknowledgedSession, pendingSession.topic)
 
         relayer.subscribe(settledTopic)
@@ -380,7 +381,7 @@ internal class EngineInteractor(
         val proposal: SessionParamsVO.ProposalParams = payload.request.params
         val (sharedKey, publicKey) = crypto.getKeyAgreement(proposal.signal.params.topic)
 
-        val proposedSession = proposal.toAcknowledgedSession(publicKey as PublicKey, controllerType)
+        val proposedSession = proposal.toEngineDOSettledSessionVO(publicKey as PublicKey, controllerType)
         sequenceStorageRepository.insertSessionProposal(proposedSession, proposal.proposer.metadata, controllerType)
         crypto.setEncryptionKeys(sharedKey as SharedKey, publicKey, proposal.topic)
 
@@ -431,7 +432,7 @@ internal class EngineInteractor(
     internal fun getListOfSettledSessions(): List<EngineDO.SettledSession> =
         sequenceStorageRepository.getListOfSessionVOs()
             .filter { session -> session.status == SequenceStatus.ACKNOWLEDGED && session.expiry.isSequenceValid() }
-            .map { session -> session.toEngineDOSettledSession() }
+            .map { session -> session.toEngineDOSettledSessionVO() }
 
     private fun resubscribeToSettledPairings() {
         val (listOfExpiredPairing, listOfValidPairing) = sequenceStorageRepository.getListOfPairingVOs()

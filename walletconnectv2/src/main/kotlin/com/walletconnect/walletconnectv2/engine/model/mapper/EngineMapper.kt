@@ -1,6 +1,7 @@
 package com.walletconnect.walletconnectv2.engine.model.mapper
 
 import com.walletconnect.walletconnectv2.common.model.type.ControllerType
+import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.common.model.vo.*
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.PairingParamsVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.PreSettlementPairingVO
@@ -10,14 +11,9 @@ import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.befo
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.SessionParamsVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.params.SessionPermissionsVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.*
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.AppMetaDataVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.SessionProposedPermissionsVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.SessionProposerVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.SessionSignalVO
 import com.walletconnect.walletconnectv2.common.model.vo.sequence.PairingVO
 import com.walletconnect.walletconnectv2.common.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
-import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.pendingSequenceExpirySeconds
@@ -90,8 +86,9 @@ internal fun EngineDO.SessionPermissions.toSessionsPermissions(): SessionPermiss
 @JvmSynthetic
 internal fun EngineDO.SessionPermissions.toSessionsProposedPermissions(): SessionProposedPermissionsVO =
     SessionProposedPermissionsVO(
-        blockchain!!.chains.let { chains -> SessionProposedPermissionsVO.Blockchain(chains) },
-        jsonRpc!!.methods.let { methods -> SessionProposedPermissionsVO.JsonRpc(methods) }
+        //TODO: Add permissions validation
+        blockchain?.chains.let { chains -> SessionProposedPermissionsVO.Blockchain(chains ?: emptyList()) },
+        jsonRpc?.methods.let { methods -> SessionProposedPermissionsVO.JsonRpc(methods ?: emptyList()) }
     )
 
 @JvmSynthetic
@@ -133,7 +130,7 @@ internal fun SessionParamsVO.NotificationParams.toEngineDoSessionNotification(to
     EngineDO.SessionNotification(topic.value, type, data.toString())
 
 @JvmSynthetic
-internal fun EngineDO.SessionProposal.toAcknowledgedSession(topic: TopicVO, expiry: ExpiryVO): EngineDO.SettledSession =
+internal fun EngineDO.SessionProposal.toEngineDOSettledSessionVO(topic: TopicVO, expiry: ExpiryVO): EngineDO.SettledSession =
     EngineDO.SettledSession(
         topic,
         expiry,
@@ -165,7 +162,7 @@ internal fun SessionVO.toEngineDOSessionProposal(peerPublicKey: PublicKey): Engi
     )
 
 @JvmSynthetic
-internal fun SessionVO.toEngineDOSettledSession(): EngineDO.SettledSession =
+internal fun SessionVO.toEngineDOSettledSessionVO(): EngineDO.SettledSession =
     EngineDO.SettledSession(
         topic, expiry, status,
         accounts, appMetaData?.toEngineDOAppMetaData(),
@@ -193,7 +190,7 @@ internal fun SessionVO.toSessionApproved(metaDataVO: AppMetaDataVO?, settledTopi
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.ProposalParams.toProposedSession(
+internal fun SessionParamsVO.ProposalParams.toProposedSessionVO(
     topic: TopicVO,
     selfPublicKey: PublicKey,
     controllerType: ControllerType
@@ -227,7 +224,7 @@ internal fun SessionProposerVO.toProposalParams(
     )
 
 @JvmSynthetic
-internal fun PairingParamsVO.Proposal.toRespondedPairing(
+internal fun PairingParamsVO.Proposal.toRespondedPairingVO(
     topic: TopicVO,
     selfPublicKey: PublicKey,
     uri: String,
@@ -244,7 +241,7 @@ internal fun PairingParamsVO.Proposal.toRespondedPairing(
     )
 
 @JvmSynthetic
-internal fun PairingParamsVO.Proposal.toPreSettledPairing(
+internal fun PairingParamsVO.Proposal.toPreSettledPairingVO(
     topic: TopicVO,
     selfPublicKey: PublicKey,
     uri: String,
@@ -264,7 +261,7 @@ internal fun PairingParamsVO.Proposal.toPreSettledPairing(
     )
 
 @JvmSynthetic
-internal fun EngineDO.SessionProposal.toRespondedSession(selfPublicKey: PublicKey, controllerType: ControllerType): SessionVO =
+internal fun EngineDO.SessionProposal.toRespondedSessionVO(selfPublicKey: PublicKey, controllerType: ControllerType): SessionVO =
     SessionVO(
         TopicVO(topic),
         ExpiryVO(pendingSequenceExpirySeconds()),
@@ -279,7 +276,7 @@ internal fun EngineDO.SessionProposal.toRespondedSession(selfPublicKey: PublicKe
     )
 
 @JvmSynthetic
-internal fun EngineDO.SessionProposal.toPreSettledSession(
+internal fun EngineDO.SessionProposal.toPreSettledSessionVO(
     settledTopic: TopicVO,
     selfPublicKey: PublicKey,
     controllerType: ControllerType
@@ -301,7 +298,7 @@ internal fun EngineDO.SessionProposal.toPreSettledSession(
     )
 
 @JvmSynthetic
-internal fun SessionVO.toAcknowledgedSession(settledTopic: TopicVO, params: SessionParamsVO.ApprovalParams): SessionVO =
+internal fun SessionVO.toEngineDOSettledSessionVO(settledTopic: TopicVO, params: SessionParamsVO.ApprovalParams): SessionVO =
     SessionVO(
         settledTopic,
         params.expiry,
@@ -320,7 +317,7 @@ internal fun SessionVO.toAcknowledgedSession(settledTopic: TopicVO, params: Sess
     )
 
 @JvmSynthetic
-internal fun PairingVO.toAcknowledgedPairing(
+internal fun PairingVO.toAcknowledgedPairingVO(
     settledTopic: TopicVO,
     params: PairingParamsVO.ApproveParams,
     controllerType: ControllerType
@@ -339,7 +336,7 @@ internal fun PairingVO.toAcknowledgedPairing(
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.ProposalParams.toAcknowledgedSession(selfPublicKey: PublicKey, controllerType: ControllerType): SessionVO =
+internal fun SessionParamsVO.ProposalParams.toEngineDOSettledSessionVO(selfPublicKey: PublicKey, controllerType: ControllerType): SessionVO =
     SessionVO(
         topic,
         ExpiryVO(pendingSequenceExpirySeconds()),
@@ -354,7 +351,7 @@ internal fun SessionParamsVO.ProposalParams.toAcknowledgedSession(selfPublicKey:
     )
 
 @JvmSynthetic
-internal fun EngineDO.WalletConnectUri.toProposedPairing(controllerType: ControllerType): PairingVO =
+internal fun EngineDO.WalletConnectUri.toProposedPairingVO(controllerType: ControllerType): PairingVO =
     PairingVO(
         topic,
         ExpiryVO(pendingSequenceExpirySeconds()),

@@ -2,8 +2,6 @@ package com.walletconnect.walletconnectv2.common.adapters
 
 import com.squareup.moshi.*
 import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 
 internal object ExpiryAdapter: JsonAdapter<ExpiryVO>() {
 

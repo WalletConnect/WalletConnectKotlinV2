@@ -1,7 +1,6 @@
 package com.walletconnect.walletconnectv2.client
 
 import android.app.Application
-import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.util.Empty
 import java.net.URI
 

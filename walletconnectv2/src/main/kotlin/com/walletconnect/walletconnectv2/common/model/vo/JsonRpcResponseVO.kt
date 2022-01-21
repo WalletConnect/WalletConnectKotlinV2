@@ -22,11 +22,4 @@ internal sealed class JsonRpcResponseVO {
         val code: Long,
         val message: String,
     )
-
-//    @JsonClass(generateAdapter = true)
-//    data class Acknowledgement(
-//        val id: Long,
-//        val jsonrpc: String = "2.0",
-//        val result: Boolean = true
-//    ) : JsonRpcResponseVO()
 }

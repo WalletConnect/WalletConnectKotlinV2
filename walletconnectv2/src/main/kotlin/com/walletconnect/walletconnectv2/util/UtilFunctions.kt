@@ -7,13 +7,15 @@ import java.lang.System.currentTimeMillis
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
-import kotlin.random.Random
 
+@JvmSynthetic
 internal fun generateTopic(): TopicVO = TopicVO(randomBytes(32).bytesToHex())
 
-fun pendingSequenceExpirySeconds() = ((System.currentTimeMillis() / 1000) + 86400) //24h
+@JvmSynthetic
+internal fun pendingSequenceExpirySeconds() = ((System.currentTimeMillis() / 1000) + 86400) //24h
 
-fun randomBytes(size: Int): ByteArray {
+@JvmSynthetic
+internal fun randomBytes(size: Int): ByteArray {
     val secureRandom = SecureRandom()
     val bytes = ByteArray(size)
     secureRandom.nextBytes(bytes)
