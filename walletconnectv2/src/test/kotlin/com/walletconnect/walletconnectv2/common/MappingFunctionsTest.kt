@@ -11,6 +11,9 @@ import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.Pair
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.proposal.PairingProposerVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.success.PairingStateVO
 import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.engine.model.mapper.toApprove
+import com.walletconnect.walletconnectv2.engine.model.mapper.toPairProposal
+import com.walletconnect.walletconnectv2.engine.model.mapper.toPairingSuccess
 import com.walletconnect.walletconnectv2.util.getRandom64ByteHexString
 import kotlin.test.assertEquals
 
