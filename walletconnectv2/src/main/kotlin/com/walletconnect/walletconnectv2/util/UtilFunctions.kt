@@ -2,17 +2,13 @@
 
 package com.walletconnect.walletconnectv2.util
 
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import java.lang.System.currentTimeMillis
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 
 @JvmSynthetic
-internal fun generateTopic(): TopicVO = TopicVO(randomBytes(32).bytesToHex())
-
-@JvmSynthetic
-internal fun pendingSequenceExpirySeconds() = ((System.currentTimeMillis() / 1000) + 86400) //24h
+internal fun pendingSequenceExpirySeconds() = ((currentTimeMillis() / 1000) + 86400) //24h
 
 @JvmSynthetic
 internal fun randomBytes(size: Int): ByteArray {

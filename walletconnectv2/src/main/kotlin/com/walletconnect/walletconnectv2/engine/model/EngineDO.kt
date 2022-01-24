@@ -71,7 +71,7 @@ internal sealed class EngineDO {
     internal data class SettledPairing(
         val topic: TopicVO,
         val relay: String,
-        val metaData: AppMetaData?
+        val permissions: SessionPermissions
     ) : EngineDO(), SequenceLifecycle
 
     internal data class SessionRejected(

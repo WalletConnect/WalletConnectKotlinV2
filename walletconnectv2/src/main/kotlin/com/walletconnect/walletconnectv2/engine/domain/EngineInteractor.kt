@@ -27,8 +27,10 @@ import com.walletconnect.walletconnectv2.relay.domain.WalletConnectRelayer
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
 import com.walletconnect.walletconnectv2.util.Logger
+import com.walletconnect.walletconnectv2.util.bytesToHex
 import com.walletconnect.walletconnectv2.util.generateId
 import com.walletconnect.walletconnectv2.util.generateTopic
+import com.walletconnect.walletconnectv2.util.randomBytes
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
@@ -537,4 +539,5 @@ internal class EngineInteractor(
     }
 
     private fun ExpiryVO.isSequenceValid(): Boolean = seconds > (System.currentTimeMillis() / 1000)
+    private fun generateTopic(): TopicVO = TopicVO(randomBytes(32).bytesToHex())
 }

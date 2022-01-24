@@ -74,7 +74,7 @@ internal fun EngineDO.SessionNotification.toClientSessionNotification(): WalletC
 
 @JvmSynthetic
 internal fun EngineDO.SettledPairing.toClientSettledPairing(): WalletConnect.Model.SettledPairing =
-    WalletConnect.Model.SettledPairing(topic.value, appMetaData = metaData?.toClientAppMetaData())
+    WalletConnect.Model.SettledPairing(topic.value)
 
 @JvmSynthetic
 internal fun EngineDO.SessionRejected.toClientSessionRejected(): WalletConnect.Model.RejectedSession =
@@ -90,9 +90,7 @@ internal fun WalletConnect.Model.SessionPermissions.toEngineSessionPermissions()
 
 @JvmSynthetic
 internal fun EngineDO.SessionPermissions.toClientPerms(): WalletConnect.Model.SessionPermissions =
-    WalletConnect.Model.SessionPermissions(
-        blockchain?.chains?.let { chains -> WalletConnect.Model.Blockchain(chains) },
-        jsonRpc?.methods?.let { methods -> WalletConnect.Model.Jsonrpc(methods) })
+    WalletConnect.Model.SessionPermissions(WalletConnect.Model.Blockchain(blockchain.chains), WalletConnect.Model.Jsonrpc(jsonRpc.methods))
 
 @JvmSynthetic
 internal fun WalletConnect.Model.AppMetaData.toEngineAppMetaData() = EngineDO.AppMetaData(name, description, url, icons)
