@@ -8,7 +8,6 @@ import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
-import com.walletconnect.walletconnectv2.util.Empty
 import java.net.URI
 
 internal sealed class EngineDO {
@@ -71,7 +70,7 @@ internal sealed class EngineDO {
     internal data class SettledPairing(
         val topic: TopicVO,
         val relay: String,
-        val permissions: SessionPermissions
+        val appMetaData: AppMetaData?
     ) : EngineDO(), SequenceLifecycle
 
     internal data class SessionRejected(
@@ -123,10 +122,10 @@ internal sealed class EngineDO {
     internal data class JsonRpc(val methods: List<String>) : EngineDO()
 
     internal data class AppMetaData(
-        val name: String = "Peer",
-        val description: String = String.Empty,
-        val url: String = String.Empty,
-        val icons: List<String> = emptyList()
+        val name: String,
+        val description: String,
+        val url: String,
+        val icons: List<String>
     ) : EngineDO()
 
     internal sealed class JsonRpcResponse : EngineDO() {

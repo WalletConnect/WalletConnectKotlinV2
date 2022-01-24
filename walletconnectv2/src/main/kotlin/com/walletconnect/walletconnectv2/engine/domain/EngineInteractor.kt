@@ -29,7 +29,6 @@ import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageReposit
 import com.walletconnect.walletconnectv2.util.Logger
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import com.walletconnect.walletconnectv2.util.generateId
-import com.walletconnect.walletconnectv2.util.generateTopic
 import com.walletconnect.walletconnectv2.util.randomBytes
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*

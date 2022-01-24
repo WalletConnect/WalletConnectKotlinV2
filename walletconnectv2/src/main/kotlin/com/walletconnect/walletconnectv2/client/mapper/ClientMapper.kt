@@ -74,7 +74,7 @@ internal fun EngineDO.SessionNotification.toClientSessionNotification(): WalletC
 
 @JvmSynthetic
 internal fun EngineDO.SettledPairing.toClientSettledPairing(): WalletConnect.Model.SettledPairing =
-    WalletConnect.Model.SettledPairing(topic.value)
+    WalletConnect.Model.SettledPairing(topic.value, appMetaData?.toClientAppMetaData())
 
 @JvmSynthetic
 internal fun EngineDO.SessionRejected.toClientSessionRejected(): WalletConnect.Model.RejectedSession =
