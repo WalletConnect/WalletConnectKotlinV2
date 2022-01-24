@@ -54,3 +54,8 @@ updateAcknowledgedPairingMetadata:
 UPDATE PairingDao
 SET metadata_id = ?
 WHERE topic = ?;
+
+hasTopic:
+SELECT topic
+FROM PairingDao
+WHERE ? = topic;

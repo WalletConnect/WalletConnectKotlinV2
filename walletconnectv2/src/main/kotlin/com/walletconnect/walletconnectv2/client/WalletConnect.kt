@@ -9,8 +9,10 @@ object WalletConnect {
     sealed interface Listeners {
         fun onError(error: Throwable)
 
+        interface Connecting : Listeners
+
         interface Pairing : Listeners {
-            fun onSuccess(settledPairing: Model.SettledPairing)
+            fun onSuccess(settledPairing: Model.SettledSequence)
         }
 
         interface SessionReject : Listeners {
@@ -103,6 +105,8 @@ object WalletConnect {
             val topic: String,
             val appMetaData: AppMetaData?
         ) : Model()
+
+        data class SettledSequence(val topic: String) : Model()
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
 
@@ -203,6 +207,8 @@ object WalletConnect {
             }
         }
 
+        data class Connect(val permissions: Model.SessionPermissions, val pairingTopic: String? = null) : Params()
+
         data class Pair(val uri: String) : Params()
 
         data class Approve(val proposal: Model.SessionProposal, val accounts: List<String>) : Params()
@@ -221,4 +227,6 @@ object WalletConnect {
 
         data class Notify(val topic: String, val notification: Model.Notification) : Params()
     }
+
+    data class Error(override val message: String?) : Exception(message)
 }

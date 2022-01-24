@@ -61,6 +61,10 @@ internal class EngineInteractor(
     internal fun proposeSequence(permissions: EngineDO.SessionPermissions, pairingTopic: String?): String? {
         //TODO: Add permissions validation
         if (pairingTopic != null) {
+            if (!sequenceStorageRepository.hasPairingTopic(TopicVO(pairingTopic))) {
+                throw WalletConnectExceptions.CannotFindSequenceForTopic("Topic: $pairingTopic")
+            }
+
             proposeSession(permissions, pairingTopic)
             return null
         }
@@ -68,16 +72,16 @@ internal class EngineInteractor(
     }
 
     private fun proposeSession(permissions: EngineDO.SessionPermissions, pairingTopic: String) {
-        val settledPairing: PairingVO? = sequenceStorageRepository.getPairingByTopic(TopicVO(pairingTopic))
-        if (settledPairing != null && settledPairing.status == SequenceStatus.ACKNOWLEDGED) {
+        val settledPairing: PairingVO = sequenceStorageRepository.getPairingByTopic(TopicVO(pairingTopic))
+        if (settledPairing.status == SequenceStatus.ACKNOWLEDGED) {
             val pendingSessionTopic: TopicVO = generateTopic()
             val selfPublicKey: PublicKey = crypto.generateKeyPair()
             val isController = controllerType == ControllerType.CONTROLLER
-            val proposalParams = SessionProposerVO(selfPublicKey.keyAsHex, isController, metaData?.toMetaDataVO())
+            val proposalParams = SessionProposerVO(selfPublicKey.keyAsHex, isController, metaData.toMetaDataVO())
                 .toProposalParams(pendingSessionTopic, settledPairing.topic, permissions)
 
             val proposedSession: SessionVO = proposalParams.toProposedSessionVO(pendingSessionTopic, selfPublicKey, controllerType)
-            sequenceStorageRepository.insertSessionProposal(proposedSession, metaData?.toMetaDataVO(), controllerType)
+            sequenceStorageRepository.insertSessionProposal(proposedSession, metaData.toMetaDataVO(), controllerType)
             relayer.subscribe(pendingSessionTopic)
 
             val (sharedKey, publicKey) = crypto.getKeyAgreement(settledPairing.topic)
@@ -100,9 +104,6 @@ internal class EngineInteractor(
                     }
                 )
             }
-
-        } else {
-            throw WalletConnectExceptions.NoSequenceForTopicException("There is no sequence for topic: $pairingTopic")
         }
     }
 
@@ -119,8 +120,9 @@ internal class EngineInteractor(
     }
 
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
+        //TODO: Add URI validation
         val proposal: PairingParamsVO.Proposal = uri.toPairProposal()
-        if (sequenceStorageRepository.getPairingByTopic(proposal.topic) != null) throw WalletConnectExceptions.PairWithExistingPairingIsNotAllowed
+        if (sequenceStorageRepository.hasPairingTopic(proposal.topic)) throw WalletConnectExceptions.PairWithExistingPairingIsNotAllowed
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val (_, settledTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, PublicKey(proposal.proposer.publicKey))
         val respondedPairing = proposal.toRespondedPairingVO(settledTopic, selfPublicKey, uri, controllerType)
@@ -173,6 +175,7 @@ internal class EngineInteractor(
     }
 
     internal fun approve(proposal: EngineDO.SessionProposal, onSuccess: (EngineDO.SettledSession) -> Unit, onFailure: (Throwable) -> Unit) {
+        //TODO: Add SessionProposal validation
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val (_, settledTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, PublicKey(proposal.publicKey))
         val respondedSession = proposal.toRespondedSessionVO(selfPublicKey, controllerType)
@@ -213,8 +216,8 @@ internal class EngineInteractor(
 
     internal fun reject(reason: String, topic: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
         val sessionReject = PreSettlementSessionVO.Reject(id = generateId(), params = SessionParamsVO.RejectParams(reason = reason))
-        onSuccess(Pair(topic, reason))
         sequenceStorageRepository.deleteSession(TopicVO(topic))
+        onSuccess(Pair(topic, reason))
         relayer.request(TopicVO(topic), sessionReject) { result ->
             result.fold(
                 onSuccess = {
@@ -227,6 +230,8 @@ internal class EngineInteractor(
     }
 
     internal fun disconnect(topic: String, reason: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
+        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectExceptions.CannotFindSequenceForTopic("Topic: $topic")
+
         val sessionDelete =
             PostSettlementSessionVO.SessionDelete(id = generateId(), params = SessionParamsVO.DeleteParams(ReasonVO(message = reason)))
         sequenceStorageRepository.deleteSession(TopicVO(topic))
@@ -241,6 +246,9 @@ internal class EngineInteractor(
     }
 
     internal fun respondSessionPayload(topic: String, jsonRpcResponse: JsonRpcResponseVO, onFailure: (Throwable) -> Unit) {
+        //TODO: Add JsonRpcResponseVO validation
+        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectExceptions.CannotFindSequenceForTopic("Topic: $topic")
+
         relayer.respond(TopicVO(topic), jsonRpcResponse,
             { Logger.error("Session payload sent successfully") },
             { error ->
@@ -255,6 +263,9 @@ internal class EngineInteractor(
         onSuccess: (Pair<String, List<String>>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
+        //TODO: Add accounts validation
+        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectExceptions.CannotFindSequenceForTopic("Topic: $topic")
+
         val sessionUpdate: PostSettlementSessionVO.SessionUpdate =
             PostSettlementSessionVO.SessionUpdate(
                 id = generateId(),
@@ -274,6 +285,9 @@ internal class EngineInteractor(
         onSuccess: (Pair<String, EngineDO.SessionPermissions>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
+        //TODO: Add permissions validation
+        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectExceptions.CannotFindSequenceForTopic("Topic: $topic")
+
         val sessionUpgrade = PostSettlementSessionVO.SessionUpgrade(
             id = generateId(),
             params = SessionParamsVO.SessionPermissionsParams(permissions = permissions.toSessionsPermissions())
@@ -288,8 +302,9 @@ internal class EngineInteractor(
     }
 
     internal fun notify(topic: String, notification: EngineDO.Notification, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
-        /*TODO check whether under given topic there is a pairing or session stored and create proper Notification class*/
-        //val pairingNotification = PostSettlementPairing.PairingNotification(id = generateId(), params = Pairing.NotificationParams(notification.type, notification.data))
+        //TODO: Add Notification validation
+        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectExceptions.CannotFindSequenceForTopic("Topic: $topic")
+
         val sessionNotification =
             PostSettlementSessionVO
                 .SessionNotification(id = generateId(), params = SessionParamsVO.NotificationParams(notification.type, notification.data))
@@ -302,10 +317,15 @@ internal class EngineInteractor(
     }
 
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
-        /*TODO check whether under given topic there is a pairing or session stored and create proper Ping class*/
-        //val pairingParams = PostSettlementPairing.PairingPing(id = generateId(), params = Pairing.PingParams())
-        val sessionPing = PostSettlementSessionVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams())
-        relayer.request(TopicVO(topic), sessionPing) { result ->
+        val pingParams = when {
+            sequenceStorageRepository.hasSessionTopic(TopicVO(topic)) ->
+                PostSettlementSessionVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams())
+            sequenceStorageRepository.hasPairingTopic(TopicVO(topic)) ->
+                PostSettlementPairingVO.PairingPing(id = generateId(), params = PairingParamsVO.PingParams())
+            else -> throw WalletConnectExceptions.CannotFindSequenceForTopic("Topic: $topic")
+        }
+
+        relayer.request(TopicVO(topic), pingParams) { result ->
             result.fold(
                 onSuccess = { onSuccess(topic) },
                 onFailure = { error -> onFailure(error) }

@@ -26,9 +26,15 @@ internal class SequenceStorageRepository constructor(private val sequenceDatabas
             .executeAsList()
 
     @JvmSynthetic
-    fun getPairingByTopic(topic: TopicVO): PairingVO? =
-        sequenceDatabase.pairingDaoQueries.getPairingByTopic(topic.value)
-            .executeAsOneOrNull()?.let { entity ->
+    fun hasSessionTopic(topic: TopicVO): Boolean = sequenceDatabase.sessionDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
+
+    @JvmSynthetic
+    fun hasPairingTopic(topic: TopicVO): Boolean = sequenceDatabase.pairingDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
+
+    @JvmSynthetic
+    fun getPairingByTopic(topic: TopicVO): PairingVO =
+        sequenceDatabase.pairingDaoQueries.getPairingByTopic(topic.value).executeAsOne()
+            .let { entity ->
                 PairingVO(
                     topic = TopicVO(entity.topic),
                     status = entity.status,
@@ -44,9 +50,9 @@ internal class SequenceStorageRepository constructor(private val sequenceDatabas
             }
 
     @JvmSynthetic
-    fun getSessionByTopic(topic: TopicVO): SessionVO? =
-        sequenceDatabase.sessionDaoQueries.getSessionByTopic(topic.value)
-            .executeAsOneOrNull()?.let { entity ->
+    fun getSessionByTopic(topic: TopicVO): SessionVO =
+        sequenceDatabase.sessionDaoQueries.getSessionByTopic(topic.value).executeAsOne()
+            .let { entity ->
                 SessionVO(
                     topic = TopicVO(entity.topic),
                     status = entity.status,

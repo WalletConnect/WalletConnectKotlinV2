@@ -74,3 +74,8 @@ SELECT sd.topic, sd.permissions_chains, sd.permissions_methods, sd.permissions_t
 FROM SessionDao sd
     LEFT JOIN MetaDataDao mdd ON sd.metadata_id = mdd.id
 WHERE topic = ?;
+
+hasTopic:
+SELECT topic
+FROM PairingDao
+WHERE ? = topic;
