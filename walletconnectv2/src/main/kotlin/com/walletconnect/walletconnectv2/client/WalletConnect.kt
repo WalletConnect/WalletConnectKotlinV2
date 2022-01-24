@@ -120,7 +120,7 @@ object WalletConnect {
 
         data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : Model()
 
-        data class SessionPermissions(val blockchain: Blockchain? = null, val jsonRpc: Jsonrpc? = null) : Model()
+        data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: Jsonrpc) : Model()
 
         data class Blockchain(val chains: List<String>) : Model()
 

@@ -57,6 +57,11 @@ internal sealed class EngineDO {
         val reason: String
     ) : EngineDO(), SequenceLifecycle
 
+    internal data class DeletedPairing(
+        val topic: String,
+        val reason: String
+    ) : EngineDO(), SequenceLifecycle
+
     internal data class SessionNotification(
         val topic: String,
         val type: String,
@@ -111,7 +116,7 @@ internal sealed class EngineDO {
 
     internal data class SessionState(val accounts: List<String>) : EngineDO()
 
-    internal data class SessionPermissions(val blockchain: Blockchain? = null, val jsonRpc: JsonRpc? = null) : EngineDO()
+    internal data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: JsonRpc) : EngineDO()
 
     internal data class Blockchain(val chains: List<String>) : EngineDO()
 

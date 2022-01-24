@@ -86,10 +86,7 @@ internal fun EngineDO.SessionApproved.toClientSessionApproved(): WalletConnect.M
 
 @JvmSynthetic
 internal fun WalletConnect.Model.SessionPermissions.toEngineSessionPermissions(): EngineDO.SessionPermissions =
-    EngineDO.SessionPermissions(
-        blockchain?.chains?.let { chains -> EngineDO.Blockchain(chains) },
-        jsonRpc?.methods?.let { methods -> EngineDO.JsonRpc(methods) }
-    )
+    EngineDO.SessionPermissions(EngineDO.Blockchain(blockchain.chains), EngineDO.JsonRpc(jsonRpc.methods))
 
 @JvmSynthetic
 internal fun EngineDO.SessionPermissions.toClientPerms(): WalletConnect.Model.SessionPermissions =

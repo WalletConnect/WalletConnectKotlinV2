@@ -78,17 +78,13 @@ internal fun EngineDO.AppMetaData.toMetaDataVO() =
 
 @JvmSynthetic
 internal fun EngineDO.SessionPermissions.toSessionsPermissions(): SessionPermissionsVO =
-    SessionPermissionsVO(
-        blockchain?.chains?.let { chains -> SessionProposedPermissionsVO.Blockchain(chains) },
-        jsonRpc?.methods?.let { methods -> SessionProposedPermissionsVO.JsonRpc(methods) }
-    )
+    SessionPermissionsVO(SessionProposedPermissionsVO.Blockchain(blockchain.chains), SessionProposedPermissionsVO.JsonRpc(jsonRpc.methods))
 
 @JvmSynthetic
 internal fun EngineDO.SessionPermissions.toSessionsProposedPermissions(): SessionProposedPermissionsVO =
     SessionProposedPermissionsVO(
-        //TODO: Add permissions validation
-        blockchain?.chains.let { chains -> SessionProposedPermissionsVO.Blockchain(chains ?: emptyList()) },
-        jsonRpc?.methods.let { methods -> SessionProposedPermissionsVO.JsonRpc(methods ?: emptyList()) }
+        SessionProposedPermissionsVO.Blockchain(blockchain.chains),
+        SessionProposedPermissionsVO.JsonRpc(jsonRpc.methods)
     )
 
 @JvmSynthetic
