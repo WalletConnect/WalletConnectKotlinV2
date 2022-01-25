@@ -43,6 +43,8 @@ dependencies {
     implementation(project(":walletconnectv2"))
 //    implementation("com.github.walletconnect-labs.walletconnectkotlinv2:walletconnectkotlinv2:1.0.0-alpha01")
 
+    implementation("com.github.kenglxn.QRGen:android:2.6.0")
+
     coroutines()
     navigationComponent()
     ktxCore()

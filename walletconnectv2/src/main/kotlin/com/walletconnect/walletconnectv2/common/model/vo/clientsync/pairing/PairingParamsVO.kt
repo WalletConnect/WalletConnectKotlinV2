@@ -17,26 +17,26 @@ import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.common.adapters.ExpiryAdapter
 import com.walletconnect.walletconnectv2.common.adapters.JSONObjectAdapter
 import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
 
 internal sealed class PairingParamsVO : ClientParams {
 
     internal data class Proposal(
         val topic: TopicVO,
-        val relay: JSONObject,
-        val pairingProposer: PairingProposerVO,
-        val pairingSignal: PairingSignalVO?,
+        val relay: RelayProtocolOptionsVO,
+        val proposer: PairingProposerVO,
+        val signal: PairingSignalVO?,
         val permissions: PairingProposedPermissionsVO?,
         val ttl: TtlVO
     ) : PairingParamsVO()
 
     @JsonClass(generateAdapter = true)
-    internal data class Success(
+    internal data class ApproveParams(
         @Json(name = "topic")
         @TopicAdapter.Qualifier
         val settledTopic: TopicVO,
         @Json(name = "relay")
-        @JSONObjectAdapter.Qualifier
-        val relay: JSONObject,
+        val relay: RelayProtocolOptionsVO,
         @Json(name = "responder")
         val responder: PairingParticipantVO,
         @Json(name = "expiry")
@@ -46,7 +46,7 @@ internal sealed class PairingParamsVO : ClientParams {
         val state: PairingStateVO
     ) : PairingParamsVO()
 
-    class Failure(val reason: String) : PairingParamsVO()
+    class RejectParams(val reason: String) : PairingParamsVO()
 
     @JsonClass(generateAdapter = true)
     internal data class PayloadParams(

@@ -3,6 +3,7 @@ package com.walletconnect.walletconnectv2.relay.data.serializer
 import com.squareup.moshi.Moshi
 import com.walletconnect.walletconnectv2.common.model.type.ClientParams
 import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
+import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.common.model.vo.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.common.model.vo.SharedKey
@@ -14,7 +15,6 @@ import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.befo
 import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.relay.Codec
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
-import com.walletconnect.walletconnectv2.relay.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.hexToUtf8
 
@@ -33,6 +33,7 @@ internal class JsonRpcSerializer(private val codec: Codec, private val crypto: C
 
     internal fun decode(message: String, topic: TopicVO): String {
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
+
         return if (sharedKey.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
             message.hexToUtf8
         } else {
@@ -40,7 +41,7 @@ internal class JsonRpcSerializer(private val codec: Codec, private val crypto: C
         }
     }
 
-    internal fun deserialize(method: String, json: String, topic: TopicVO): ClientParams? =
+    internal fun deserialize(method: String, json: String): ClientParams? =
         when (method) {
             JsonRpcMethod.WC_PAIRING_APPROVE -> tryDeserialize<PreSettlementPairingVO.Approve>(json)?.params
             JsonRpcMethod.WC_PAIRING_REJECT -> tryDeserialize<PreSettlementPairingVO.Reject>(json)?.params
@@ -81,7 +82,8 @@ internal class JsonRpcSerializer(private val codec: Codec, private val crypto: C
             is PostSettlementSessionVO.SessionUpgrade -> trySerialize(payload)
             is PostSettlementSessionVO.SessionPayload -> trySerialize(payload)
             is PostSettlementSessionVO.SessionDelete -> trySerialize(payload)
-            is RelayDO.JsonRpcResponse -> trySerialize(payload)
+            is  RelayDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
+            is RelayDO.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             else -> String.Empty
         }
 

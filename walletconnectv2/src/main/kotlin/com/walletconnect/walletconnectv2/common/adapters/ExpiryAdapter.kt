@@ -9,7 +9,18 @@ internal object ExpiryAdapter: JsonAdapter<ExpiryVO>() {
     @FromJson
     @Qualifier
     override fun fromJson(reader: JsonReader): ExpiryVO? {
-        return null
+        reader.isLenient = true
+        var seconds: Long? = null
+
+        if (reader.hasNext() && reader.peek() == JsonReader.Token.NUMBER) {
+            seconds = reader.nextLong()
+        }
+
+        return if (seconds != null) {
+            ExpiryVO(seconds)
+        } else {
+            null
+        }
     }
 
     @JvmSynthetic

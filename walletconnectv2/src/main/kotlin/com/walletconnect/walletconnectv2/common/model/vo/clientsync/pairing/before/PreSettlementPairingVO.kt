@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.PairingParamsVO
-import com.walletconnect.walletconnectv2.relay.model.utils.JsonRpcMethod
+import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
 
 internal sealed class PreSettlementPairingVO : ClientSyncJsonRpc {
     abstract override val id: Long
@@ -21,14 +21,14 @@ internal sealed class PreSettlementPairingVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PAIRING_APPROVE,
         @Json(name = "params")
-        override val params: PairingParamsVO.Success
+        override val params: PairingParamsVO.ApproveParams
     ) : PreSettlementPairingVO()
 
     internal data class Reject(
         override val id: Long,
         override val jsonrpc: String = "2.0",
         override val method: String = JsonRpcMethod.WC_PAIRING_REJECT,
-        override val params: PairingParamsVO.Failure
+        override val params: PairingParamsVO.RejectParams
     ) : PreSettlementPairingVO()
 }
 

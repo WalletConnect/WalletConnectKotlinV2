@@ -21,7 +21,12 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-internal class WalletConnectRelayer(private val networkRepository: NetworkRepository, private val serializer: JsonRpcSerializer, private val jsonRpcHistory: JsonRpcHistory) {
+internal class WalletConnectRelayer(
+    private val networkRepository: NetworkRepository,
+    private val serializer: JsonRpcSerializer,
+    private val jsonRpcHistory: JsonRpcHistory
+) {
+
     private val _clientSyncJsonRpc: MutableSharedFlow<RequestSubscriptionPayloadVO> = MutableSharedFlow()
     internal val clientSyncJsonRpc: SharedFlow<RequestSubscriptionPayloadVO> = _clientSyncJsonRpc
 
@@ -62,7 +67,7 @@ internal class WalletConnectRelayer(private val networkRepository: NetworkReposi
         }
     }
 
-    internal fun respond(topic: TopicVO, response: JsonRpcResponseVO, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    internal fun respond(topic: TopicVO, response: JsonRpcResponseVO, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {}) {
         networkRepository.publish(topic, serializer.serialize(response.toRelayDOJsonRpcResponse(), topic)) { result ->
             result.fold(
                 onSuccess = { onSuccess() },
@@ -132,21 +137,21 @@ internal class WalletConnectRelayer(private val networkRepository: NetworkReposi
     private suspend fun handleSessionRequest(decryptedMessage: String, topic: TopicVO) {
         val clientJsonRpc = serializer.tryDeserialize<RelayDO.ClientJsonRpc>(decryptedMessage)
         if (clientJsonRpc != null && jsonRpcHistory.setRequest(clientJsonRpc.id, topic)) {
-            serializer.deserialize(clientJsonRpc.method, decryptedMessage, topic)?.let { params ->
+            serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(RequestSubscriptionPayloadVO(clientJsonRpc.id, topic, clientJsonRpc.method, params))
             }
         }
     }
 
     private suspend fun handleJsonRpcResponse(decryptedMessage: String) {
-        val acknowledgement = serializer.tryDeserialize<RelayDO.Acknowledgement>(decryptedMessage)
+        val acknowledgement = serializer.tryDeserialize<RelayDO.JsonRpcResponse.JsonRpcResult>(decryptedMessage)
         if (acknowledgement != null) {
-            peerResponse.emit(RelayDO.JsonRpcResponse.JsonRpcResult(acknowledgement.id, acknowledgement.result.toString()))
+            peerResponse.emit(acknowledgement)
         }
 
         val error = serializer.tryDeserialize<RelayDO.JsonRpcResponse.JsonRpcError>(decryptedMessage)
         if (error != null) {
-            peerResponse.emit(RelayDO.JsonRpcResponse.JsonRpcError(error.id, RelayDO.JsonRpcResponse.Error(error.code, error.message)))
+            peerResponse.emit(error)
         }
     }
 }
