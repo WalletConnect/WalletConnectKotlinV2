@@ -61,7 +61,7 @@ internal class EngineInteractor(
     }
 
     internal fun proposeSequence(permissions: EngineDO.SessionPermissions, pairingTopic: String?): String? {
-        checkPeer(ControllerType.NON_CONTROLLER) {
+        checkPeer(controllerType == ControllerType.NON_CONTROLLER) {
             "The connect() was called by the unauthorized peer. Call it with: ${ControllerType.CONTROLLER}"
         }
 
@@ -79,6 +79,7 @@ internal class EngineInteractor(
 
     private fun proposeSession(permissions: EngineDO.SessionPermissions, pairingTopic: String) {
         val settledPairing: PairingVO = sequenceStorageRepository.getPairingByTopic(TopicVO(pairingTopic))
+
         if (settledPairing.status == SequenceStatus.ACKNOWLEDGED) {
             val pendingSessionTopic: TopicVO = generateTopic()
             val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -87,6 +88,9 @@ internal class EngineInteractor(
                 .toProposalParams(pendingSessionTopic, settledPairing.topic, permissions)
 
             val proposedSession: SessionVO = proposalParams.toProposedSessionVO(pendingSessionTopic, selfPublicKey, controllerType)
+
+            Logger.error("Inserting the session proposal: $proposedSession")
+
             sequenceStorageRepository.insertSessionProposal(proposedSession, metaData.toMetaDataVO(), controllerType)
             relayer.subscribe(pendingSessionTopic)
 
@@ -95,6 +99,7 @@ internal class EngineInteractor(
 
             val params = PairingParamsVO.PayloadParams(ProposalRequestVO(JsonRpcMethod.WC_SESSION_PROPOSE, params = proposalParams))
             val sessionProposal = PostSettlementPairingVO.PairingPayload(id = generateId(), params = params)
+
             relayer.request(settledPairing.topic, sessionProposal) { result ->
                 result.fold(
                     onSuccess = { Logger.log("Session proposal response received") },
@@ -124,8 +129,8 @@ internal class EngineInteractor(
     }
 
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
-        checkPeer(ControllerType.CONTROLLER) {
-            "The pair() was called by the unauthorized peer. Call it with: ${ControllerType.CONTROLLER}"
+        checkPeer(controllerType == ControllerType.CONTROLLER) {
+            "The connect() was called by the unauthorized peer. Call it with: ${ControllerType.CONTROLLER}"
         }
 
         //TODO: Add WC URI validation
@@ -143,7 +148,7 @@ internal class EngineInteractor(
         relayer.subscribe(settledTopic)
         sequenceStorageRepository.updateRespondedPairingToPreSettled(proposal.topic, preSettledPairing)
 
-        val preSettlementPairingApprove = proposal.toApprove(generateId(), settledTopic, preSettledPairing.expiry, selfPublicKey)
+        val preSettlementPairingApprove = proposal.toApprove(generateId(), preSettledPairing.expiry, selfPublicKey)
         relayer.isConnectionOpened
             .filter { isOnline -> isOnline }
             .onEach {
@@ -181,7 +186,7 @@ internal class EngineInteractor(
     }
 
     internal fun approve(proposal: EngineDO.SessionProposal, onSuccess: (EngineDO.SettledSession) -> Unit, onFailure: (Throwable) -> Unit) {
-        checkPeer(ControllerType.CONTROLLER) {
+        checkPeer(controllerType == ControllerType.CONTROLLER) {
             "The approve() was called by the unauthorized peer. Call it with: ${ControllerType.CONTROLLER}"
         }
 
@@ -226,11 +231,13 @@ internal class EngineInteractor(
     }
 
     internal fun reject(reason: String, topic: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
-        checkPeer(ControllerType.CONTROLLER) {
+        checkPeer(controllerType == ControllerType.CONTROLLER) {
             "The reject() was called by the unauthorized peer. Call it with: ${ControllerType.CONTROLLER}"
         }
 
-        val sessionReject = PreSettlementSessionVO.Reject(id = generateId(), params = SessionParamsVO.RejectParams(reason = reason))
+        //TODO: Add error code
+        val params = SessionParamsVO.RejectParams(reason = ReasonVO(message = reason))
+        val sessionReject = PreSettlementSessionVO.Reject(id = generateId(), params = params)
         sequenceStorageRepository.deleteSession(TopicVO(topic))
         onSuccess(Pair(topic, reason))
         relayer.request(TopicVO(topic), sessionReject) { result ->
@@ -261,7 +268,7 @@ internal class EngineInteractor(
     }
 
     internal fun respondSessionPayload(topic: String, jsonRpcResponse: JsonRpcResponseVO, onFailure: (Throwable) -> Unit) {
-        checkPeer(ControllerType.CONTROLLER) {
+        checkPeer(controllerType == ControllerType.CONTROLLER) {
             "The respond() was called by the unauthorized peer. Call it with: ${ControllerType.CONTROLLER}"
         }
 
@@ -281,7 +288,7 @@ internal class EngineInteractor(
         onSuccess: (EngineDO.JsonRpcResponse.JsonRpcResult) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
-        checkPeer(ControllerType.NON_CONTROLLER) {
+        checkPeer(controllerType == ControllerType.NON_CONTROLLER) {
             "The request() was called by the unauthorized peer. Call it with: ${ControllerType.NON_CONTROLLER}"
         }
 
@@ -305,7 +312,7 @@ internal class EngineInteractor(
         onSuccess: (Pair<String, List<String>>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
-        checkPeer(ControllerType.CONTROLLER) {
+        checkPeer(controllerType == ControllerType.CONTROLLER) {
             "The update() was called by the unauthorized peer. Call it with: ${ControllerType.CONTROLLER}"
         }
 
@@ -328,7 +335,7 @@ internal class EngineInteractor(
         onSuccess: (Pair<String, EngineDO.SessionPermissions>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
-        checkPeer(ControllerType.CONTROLLER) {
+        checkPeer(controllerType == ControllerType.CONTROLLER) {
             "The upgrade() was called by the unauthorized peer. Call it with: ${ControllerType.CONTROLLER}"
         }
 
@@ -377,8 +384,8 @@ internal class EngineInteractor(
         }
     }
 
-    private fun checkPeer(authorizedPeer: ControllerType, message: () -> String) {
-        if (controllerType != authorizedPeer) {
+    private fun checkPeer(isAuthorizedPeer: Boolean, message: () -> String) {
+        if (!isAuthorizedPeer) {
             throw WalletConnectExceptions.UnauthorizedPeerException(message())
         }
     }
@@ -465,7 +472,7 @@ internal class EngineInteractor(
 
         sequenceStorageRepository.deleteSession(topic)
         relayer.unsubscribe(topic)
-        return EngineDO.SessionRejected(topic.value, params.reason)
+        return EngineDO.SessionRejected(topic.value, params.reason.message)
     }
 
     private fun onPairingPayload(payload: PairingParamsVO.PayloadParams, topic: TopicVO, requestId: Long): EngineDO.SessionProposal {
@@ -491,7 +498,6 @@ internal class EngineInteractor(
 
     private fun onSessionPayload(params: SessionParamsVO.SessionPayloadParams, topic: TopicVO, requestId: Long): EngineDO.SessionRequest {
         //TODO: Add SessionPayload validation
-
 
         if (!sequenceStorageRepository.hasSessionTopic(topic)) {
             Logger.error("onSessionPayload: No session for topic: $topic")

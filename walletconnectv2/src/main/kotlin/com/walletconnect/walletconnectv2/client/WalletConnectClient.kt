@@ -69,7 +69,7 @@ object WalletConnectClient {
         }
     }
 
-    @Throws(IllegalStateException::class, WalletConnect.Error::class)
+    @Throws(IllegalStateException::class, WalletConnect.WalletConnectError::class)
     fun connect(connect: WalletConnect.Params.Connect): String? {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
@@ -80,7 +80,7 @@ object WalletConnectClient {
         }
     }
 
-    @Throws(IllegalStateException::class, WalletConnect.Error::class)
+    @Throws(IllegalStateException::class, WalletConnect.WalletConnectError::class)
     fun pair(pair: WalletConnect.Params.Pair, pairing: WalletConnect.Listeners.Pairing) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
@@ -121,7 +121,7 @@ object WalletConnectClient {
         }
     }
 
-    @Throws(IllegalStateException::class, WalletConnect.Error::class)
+    @Throws(IllegalStateException::class, WalletConnect.WalletConnectError::class)
     fun respond(response: WalletConnect.Params.Response, sessionPayload: WalletConnect.Listeners.SessionPayload) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
@@ -133,7 +133,7 @@ object WalletConnectClient {
         }
     }
 
-    @Throws(IllegalStateException::class, WalletConnect.Error::class)
+    @Throws(IllegalStateException::class, WalletConnect.WalletConnectError::class)
     fun request(request: WalletConnect.Params.Request, sessionRequest: WalletConnect.Listeners.SessionRequest) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
@@ -146,7 +146,7 @@ object WalletConnectClient {
         }
     }
 
-    @Throws(IllegalStateException::class, WalletConnect.Error::class)
+    @Throws(IllegalStateException::class, WalletConnect.WalletConnectError::class)
     fun upgrade(upgrade: WalletConnect.Params.Upgrade, sessionUpgrade: WalletConnect.Listeners.SessionUpgrade) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
@@ -160,7 +160,7 @@ object WalletConnectClient {
         }
     }
 
-    @Throws(IllegalStateException::class, WalletConnect.Error::class)
+    @Throws(IllegalStateException::class, WalletConnect.WalletConnectError::class)
     fun update(update: WalletConnect.Params.Update, sessionUpdate: WalletConnect.Listeners.SessionUpdate) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
@@ -174,7 +174,7 @@ object WalletConnectClient {
         }
     }
 
-    @Throws(IllegalStateException::class, WalletConnect.Error::class)
+    @Throws(IllegalStateException::class, WalletConnect.WalletConnectError::class)
     fun ping(ping: WalletConnect.Params.Ping, sessionPing: WalletConnect.Listeners.SessionPing) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
@@ -185,7 +185,7 @@ object WalletConnectClient {
         }
     }
 
-    @Throws(IllegalStateException::class, WalletConnect.Error::class)
+    @Throws(IllegalStateException::class, WalletConnect.WalletConnectError::class)
     fun notify(notify: WalletConnect.Params.Notify, notificationListener: WalletConnect.Listeners.Notification) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
@@ -198,7 +198,7 @@ object WalletConnectClient {
         }
     }
 
-    @Throws(IllegalStateException::class, WalletConnect.Error::class)
+    @Throws(IllegalStateException::class, WalletConnect.WalletConnectError::class)
     fun disconnect(disconnect: WalletConnect.Params.Disconnect, listener: WalletConnect.Listeners.SessionDelete) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
@@ -260,7 +260,7 @@ object WalletConnectClient {
         try {
             method()
         } catch (e: WalletConnectExceptions) {
-            throw WalletConnect.Error(e.message)
+            throw WalletConnect.WalletConnectError(e.message)
         }
     }
 
@@ -268,7 +268,7 @@ object WalletConnectClient {
         try {
             return method()
         } catch (e: WalletConnectExceptions) {
-            throw WalletConnect.Error(e.message)
+            throw WalletConnect.WalletConnectError(e.message)
         }
     }
 }

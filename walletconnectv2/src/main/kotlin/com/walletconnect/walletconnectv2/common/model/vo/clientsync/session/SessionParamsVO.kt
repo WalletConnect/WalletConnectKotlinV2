@@ -2,7 +2,13 @@ package com.walletconnect.walletconnectv2.common.model.vo.clientsync.session
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import com.walletconnect.walletconnectv2.common.adapters.ExpiryAdapter
+import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
+import com.walletconnect.walletconnectv2.common.adapters.TtlAdapter
 import com.walletconnect.walletconnectv2.common.model.type.ClientParams
+import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.params.ReasonVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.params.SessionPermissionsVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.params.SessionRequestVO
@@ -12,14 +18,8 @@ import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.befo
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.SessionSignalVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.success.SessionParticipantVO
 import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.common.SessionStateVO
-import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
-import com.walletconnect.walletconnectv2.common.adapters.ExpiryAdapter
-import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
-import com.walletconnect.walletconnectv2.common.adapters.TtlAdapter
 
-internal sealed class SessionParamsVO: ClientParams {
+internal sealed class SessionParamsVO : ClientParams {
 
     @JsonClass(generateAdapter = true)
     internal data class ProposalParams(
@@ -53,7 +53,10 @@ internal sealed class SessionParamsVO: ClientParams {
     ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)
-    internal class RejectParams(val reason: String) : SessionParamsVO()
+    internal class RejectParams(
+        @Json(name = "reason")
+        val reason: ReasonVO
+    ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)
     internal data class SessionPayloadParams(

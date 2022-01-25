@@ -51,13 +51,8 @@ internal fun EngineDO.WalletConnectUri.toAbsoluteString(): String =
 internal fun RelayProtocolOptionsVO.toUrlEncodedString(): String = URLEncoder.encode(JSONObject().put("protocol", protocol).toString(), "UTF-8")
 
 @JvmSynthetic
-internal fun PairingParamsVO.Proposal.toPairingSuccess(
-    settleTopic: TopicVO,
-    expiry: ExpiryVO,
-    selfPublicKey: PublicKey
-): PairingParamsVO.ApproveParams =
+internal fun PairingParamsVO.Proposal.toPairingSuccess(expiry: ExpiryVO, selfPublicKey: PublicKey): PairingParamsVO.ApproveParams =
     PairingParamsVO.ApproveParams(
-        settledTopic = settleTopic,
         relay = relay,
         responder = PairingParticipantVO(publicKey = selfPublicKey.keyAsHex),
         expiry = expiry,
@@ -65,12 +60,8 @@ internal fun PairingParamsVO.Proposal.toPairingSuccess(
     )
 
 @JvmSynthetic
-internal fun PairingParamsVO.Proposal.toApprove(
-    id: Long,
-    settleTopic: TopicVO,
-    expiry: ExpiryVO,
-    selfPublicKey: PublicKey
-): PreSettlementPairingVO.Approve = PreSettlementPairingVO.Approve(id = id, params = this.toPairingSuccess(settleTopic, expiry, selfPublicKey))
+internal fun PairingParamsVO.Proposal.toApprove(id: Long, expiry: ExpiryVO, selfPublicKey: PublicKey): PreSettlementPairingVO.Approve =
+    PreSettlementPairingVO.Approve(id = id, params = this.toPairingSuccess(expiry, selfPublicKey))
 
 @JvmSynthetic
 internal fun EngineDO.AppMetaData.toMetaDataVO() =
