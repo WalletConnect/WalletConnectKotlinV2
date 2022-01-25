@@ -104,3 +104,11 @@ internal fun WalletConnect.Model.JsonRpcResponse.toJsonRpcResponseVO(): JsonRpcR
         is WalletConnect.Model.JsonRpcResponse.JsonRpcResult -> this.toRpcResultVO()
         is WalletConnect.Model.JsonRpcResponse.JsonRpcError -> this.toRpcErrorVO()
     }
+
+@JvmSynthetic
+internal fun WalletConnect.Params.Request.toEngineDORequest(): EngineDO.Request =
+    EngineDO.Request(sessionTopic, method, params, chainId)
+
+@JvmSynthetic
+internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toClientJsonRpcResult(): WalletConnect.Model.JsonRpcResponse.JsonRpcResult =
+    WalletConnect.Model.JsonRpcResponse.JsonRpcResult(id, result)

@@ -151,4 +151,6 @@ internal sealed class EngineDO {
             val message: String,
         )
     }
+
+    data class Request(val topic: String, val method: String, val params: String, val chainId: String?) : EngineDO()
 }

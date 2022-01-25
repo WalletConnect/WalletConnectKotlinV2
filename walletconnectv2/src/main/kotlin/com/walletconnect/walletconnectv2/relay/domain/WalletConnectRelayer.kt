@@ -68,11 +68,14 @@ internal class WalletConnectRelayer(
         }
     }
 
+
     internal fun respond(topic: TopicVO, response: JsonRpcResponseVO, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {}) {
         networkRepository.publish(topic, serializer.serialize(response.toRelayDOJsonRpcResponse(), topic)) { result ->
             result.fold(
                 onSuccess = { onSuccess() },
-                onFailure = { error -> onFailure(error) }
+                onFailure = { error ->
+                    onFailure(error)
+                }
             )
         }
     }

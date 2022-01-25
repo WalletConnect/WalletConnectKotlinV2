@@ -9,8 +9,6 @@ object WalletConnect {
     sealed interface Listeners {
         fun onError(error: Throwable)
 
-        interface Connecting : Listeners
-
         interface Pairing : Listeners {
             fun onSuccess(settledPairing: Model.SettledSequence)
         }
@@ -43,6 +41,10 @@ object WalletConnect {
 
         interface Notification : Listeners {
             fun onSuccess(topic: String)
+        }
+
+        interface SessionRequest : Listeners {
+            fun onSuccess(response: Model.JsonRpcResponse)
         }
     }
 
@@ -218,6 +220,8 @@ object WalletConnect {
         data class Disconnect(val sessionTopic: String, val reason: String) : Params()
 
         data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) : Params()
+
+        data class Request(val sessionTopic: String, val method: String, val params: String, val chainId: String?) : Params()
 
         data class Update(val sessionTopic: String, val sessionState: Model.SessionState) : Params()
 

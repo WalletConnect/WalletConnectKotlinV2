@@ -358,3 +358,7 @@ internal fun EngineDO.WalletConnectUri.toProposedPairingVO(controllerType: Contr
         relay = relay.protocol,
         controllerType = controllerType
     )
+
+@JvmSynthetic
+internal fun JsonRpcResponseVO.JsonRpcResult.toEngineJsonRpcResult(): EngineDO.JsonRpcResponse.JsonRpcResult =
+    EngineDO.JsonRpcResponse.JsonRpcResult(id = id, result = result)

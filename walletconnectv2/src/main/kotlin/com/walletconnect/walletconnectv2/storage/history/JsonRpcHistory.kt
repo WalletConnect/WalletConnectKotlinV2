@@ -7,6 +7,7 @@ import com.walletconnect.walletconnectv2.util.Logger
 
 internal class JsonRpcHistory(private val sharedPreferences: SharedPreferences) {
 
+
     @SuppressLint("ApplySharedPref")
     fun setRequest(requestId: Long, topic: TopicVO): Boolean {
         return if (!sharedPreferences.contains(requestId.toString())) {

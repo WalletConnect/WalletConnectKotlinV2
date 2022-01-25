@@ -44,7 +44,7 @@ object WalletConnectClient {
             engineInteractor.sequenceEvent.collect { event ->
                 when (event) {
                     is EngineDO.SessionProposal -> delegate.onSessionProposal(event.toClientSessionProposal())
-                    is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
+                    is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())  //eth_sign
                     is EngineDO.DeletedSession -> delegate.onSessionDelete(event.toClientDeletedSession())
                     is EngineDO.SessionNotification -> delegate.onSessionNotification(event.toClientSessionNotification())
                 }
@@ -133,8 +133,18 @@ object WalletConnectClient {
         }
     }
 
-//    @Throws(IllegalStateException::class)
-//   REQUEST - PROPOSER
+    @Throws(IllegalStateException::class, WalletConnect.Error::class)
+    fun request(request: WalletConnect.Params.Request, sessionRequest: WalletConnect.Listeners.SessionRequest) {
+        check(::engineInteractor.isInitialized) {
+            "WalletConnectClient needs to be initialized first using the initialize function"
+        }
+
+        safeCall {
+            engineInteractor.sessionRequest(request.toEngineDORequest(),
+                { jsonRpcResult -> sessionRequest.onSuccess(jsonRpcResult.toClientJsonRpcResult()) },
+                { error -> sessionRequest.onError(error) })
+        }
+    }
 
     @Throws(IllegalStateException::class, WalletConnect.Error::class)
     fun upgrade(upgrade: WalletConnect.Params.Upgrade, sessionUpgrade: WalletConnect.Listeners.SessionUpgrade) {
