@@ -100,7 +100,7 @@ class AuthenticatedEncryptionCodecTest {
     }
 }
 
-fun String.toEncryptionPayload(): EncryptionPayloadVO {
+internal fun String.toEncryptionPayload(): EncryptionPayloadVO {
     val pubKeyStartIndex = EncryptionPayloadVO.ivLength
     val macStartIndex = pubKeyStartIndex + EncryptionPayloadVO.publicKeyLength
     val cipherTextStartIndex = macStartIndex + EncryptionPayloadVO.macLength

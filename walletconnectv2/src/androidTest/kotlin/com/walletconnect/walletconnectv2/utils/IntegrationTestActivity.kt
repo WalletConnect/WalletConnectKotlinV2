@@ -1,10 +1,10 @@
 package com.walletconnect.walletconnectv2.utils
 
+import android.app.Activity
 import android.os.Bundle
 import android.widget.LinearLayout
-import androidx.appcompat.app.AppCompatActivity
 
-class IntegrationTestActivity : AppCompatActivity() {
+class IntegrationTestActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
