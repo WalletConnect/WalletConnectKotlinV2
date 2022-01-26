@@ -81,7 +81,8 @@ internal sealed class EngineDO {
     internal data class SessionApproved(
         val topic: String,
         val peerAppMetaData: AppMetaData?,
-        val permissions: SessionPermissions
+        val permissions: SessionPermissions,
+        val accounts: List<String>
     ) : EngineDO(), SequenceLifecycle
 
     internal data class PairingUpdate(val topic: TopicVO, val metaData: AppMetaData) : EngineDO(), SequenceLifecycle

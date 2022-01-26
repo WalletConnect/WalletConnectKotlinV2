@@ -172,11 +172,12 @@ internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.SettledPairing =
     EngineDO.SettledPairing(topic, relay, appMetaDataVO?.toEngineDOAppMetaData())
 
 @JvmSynthetic
-internal fun SessionVO.toSessionApproved(metaDataVO: AppMetaDataVO?, settledTopic: TopicVO): EngineDO.SessionApproved =
+internal fun SessionVO.toSessionApproved(params: SessionParamsVO.ApprovalParams, settledTopic: TopicVO): EngineDO.SessionApproved =
     EngineDO.SessionApproved(
         settledTopic.value,
-        metaDataVO?.toEngineDOAppMetaData(),
-        EngineDO.SessionPermissions(EngineDO.Blockchain(chains), EngineDO.JsonRpc(methods))
+        params.responder.metadata?.toEngineDOAppMetaData(),
+        EngineDO.SessionPermissions(EngineDO.Blockchain(chains), EngineDO.JsonRpc(methods)),
+        params.state.accounts
     )
 
 @JvmSynthetic

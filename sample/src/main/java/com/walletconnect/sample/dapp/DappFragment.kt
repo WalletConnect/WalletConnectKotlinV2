@@ -58,6 +58,5 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
     }
 
     override fun onPairingUpdated(pairing: WalletConnect.Model.SettledPairing) {
-
     }
 }

@@ -15,7 +15,7 @@ class SampleApplication : Application() {
             useTls = true,
             hostName = WALLET_CONNECT_URL,
             projectId = PROJECT_ID,
-            isController = true,
+            isController = false,
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Dapp",
                 description = "Dapp description",
@@ -28,7 +28,7 @@ class SampleApplication : Application() {
         val init2 = WalletConnect.Params.Init(
             application = this,
             relayServerUrl = "wss://$WALLET_CONNECT_URL/?projectId=$PROJECT_ID",
-            isController = false,
+            isController = true,
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Wallet",
                 description = "Wallet description",
@@ -48,6 +48,6 @@ class SampleApplication : Application() {
 
     private companion object {
         const val WALLET_CONNECT_URL = "relay.walletconnect.com"
-        const val PROJECT_ID = "" //TODO: register at https://walletconnect.com/register to get a project ID
+        const val PROJECT_ID = "2ee94aca5d98e6c05c38bce02bee952a" //TODO: register at https://walletconnect.com/register to get a project ID
     }
 }

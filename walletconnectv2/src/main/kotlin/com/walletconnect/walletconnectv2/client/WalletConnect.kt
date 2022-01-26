@@ -107,7 +107,12 @@ object WalletConnect {
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
 
-        data class ApprovedSession(val topic: String, val metaData: AppMetaData?, val permissions: SessionPermissions) : Model()
+        data class ApprovedSession(
+            val topic: String,
+            val metaData: AppMetaData?,
+            val permissions: SessionPermissions,
+            val accounts: List<String>
+        ) : Model()
 
         data class DeletedSession(val topic: String, val reason: String) : Model()
 
