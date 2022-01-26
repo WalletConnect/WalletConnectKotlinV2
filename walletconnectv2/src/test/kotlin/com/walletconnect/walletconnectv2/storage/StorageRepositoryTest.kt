@@ -4,12 +4,11 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.squareup.sqldelight.sqlite.driver.JdbcSqliteDriver
 import com.walletconnect.walletconnectv2.Database
-import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
+import com.walletconnect.walletconnectv2.util.CoroutineTestRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Rule
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import com.walletconnect.walletconnectv2.util.CoroutineTestRule
 
 @ExperimentalCoroutinesApi
 @RunWith(RobolectricTestRunner::class)
@@ -22,5 +21,4 @@ internal class StorageRepositoryTest {
     private val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY).apply {
         Database.Schema.create(this)
     }
-    private val storageRepository = SequenceStorageRepository(driver, app)
 }

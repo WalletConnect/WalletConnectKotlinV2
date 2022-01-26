@@ -5,7 +5,7 @@ import com.walletconnect.walletconnectv2.crypto.KeyStore
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import com.walletconnect.walletconnectv2.util.hexToBytes
 
-class KeyChainMock : KeyStore {
+internal class KeyChainMock : KeyStore {
 
     private val mapOfKeys = mutableMapOf<String, String>()
 
@@ -23,7 +23,7 @@ class KeyChainMock : KeyStore {
         mapOfKeys.remove(tag)
     }
 
-    private fun concatKeys(keyA: Key, keyB: Key): String = (keyA.keyAsHex.hexToBytes() + keyB.keyAsHex.hexToBytes()).bytesToHex()
+    fun concatKeys(keyA: Key, keyB: Key): String = (keyA.keyAsHex.hexToBytes() + keyB.keyAsHex.hexToBytes()).bytesToHex()
 
     private fun splitKeys(concatKeys: String): Pair<String, String> {
         val concatKeysByteArray = concatKeys.hexToBytes()
