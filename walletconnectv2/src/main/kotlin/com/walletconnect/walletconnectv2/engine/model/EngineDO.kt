@@ -51,7 +51,7 @@ internal sealed class EngineDO {
         ) : EngineDO()
     }
 
-    internal data class DeletedSession(
+    internal data class SessionDelete(
         val topic: String,
         val reason: String
     ) : EngineDO(), SequenceLifecycle
@@ -84,10 +84,14 @@ internal sealed class EngineDO {
         val permissions: SessionPermissions
     ) : EngineDO(), SequenceLifecycle
 
-    internal object Default : SequenceLifecycle
-    internal object FailedTopic : SequenceLifecycle
-    internal object NoSession : SequenceLifecycle
-    internal object NoPairing : SequenceLifecycle
+    internal data class PairingUpdate(val topic: TopicVO, val metaData: AppMetaData) : EngineDO(), SequenceLifecycle
+    internal data class SessionUpdate(val topic: TopicVO, val accounts: List<String>) : EngineDO(), SequenceLifecycle
+    internal data class SessionUpgrade(val topic: TopicVO, val chains: List<String>, val methods: List<String>) : EngineDO(), SequenceLifecycle
+    internal object FailedTopic : EngineDO(), SequenceLifecycle
+    internal object NoSession : EngineDO(), SequenceLifecycle
+    internal object NoPairing : EngineDO(), SequenceLifecycle
+    internal object UnauthorizedPeer : EngineDO(), SequenceLifecycle
+    internal object Default : EngineDO(), SequenceLifecycle
 
     internal data class Notification(
         val type: String,

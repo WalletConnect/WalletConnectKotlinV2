@@ -8,7 +8,7 @@ internal data class AppMetaDataVO(
     @Json(name = "name")
     val name: String = "Peer",
     @Json(name = "description")
-    val description: String = "",
+    val description: String,
     @Json(name = "url")
     val url: String = "",
     @Json(name = "icons")

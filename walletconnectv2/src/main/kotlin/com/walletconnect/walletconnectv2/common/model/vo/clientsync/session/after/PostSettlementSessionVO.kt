@@ -3,8 +3,8 @@ package com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.aft
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.SessionParamsVO
 import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.SessionParamsVO
 
 internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
     abstract override val id: Long
@@ -57,7 +57,7 @@ internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_UPGRADE,
         @Json(name = "params")
-        override val params: SessionParamsVO.SessionPermissionsParams
+        override val params: SessionParamsVO.UpgradeParams
     ) : PostSettlementSessionVO()
 
     @JsonClass(generateAdapter = true)

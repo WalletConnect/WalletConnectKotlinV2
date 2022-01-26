@@ -5,7 +5,7 @@ import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.befo
 
 internal data class SessionPermissionsVO(
     @Json(name = "blockchain")
-    val blockchain: SessionProposedPermissionsVO.Blockchain? = null,
+    val blockchain: SessionProposedPermissionsVO.Blockchain,
     @Json(name = "jsonrpc")
-    val jsonRpc: SessionProposedPermissionsVO.JsonRpc? = null,
+    val jsonRpc: SessionProposedPermissionsVO.JsonRpc,
 )
