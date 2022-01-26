@@ -46,9 +46,7 @@ internal class JsonRpcSerializer(private val codec: Codec, private val crypto: C
             JsonRpcMethod.WC_PAIRING_APPROVE -> tryDeserialize<PreSettlementPairingVO.Approve>(json)?.params
             JsonRpcMethod.WC_PAIRING_REJECT -> tryDeserialize<PreSettlementPairingVO.Reject>(json)?.params
             JsonRpcMethod.WC_PAIRING_PAYLOAD -> tryDeserialize<PostSettlementPairingVO.PairingPayload>(json)?.params
-
             JsonRpcMethod.WC_PAIRING_UPDATE -> tryDeserialize<PostSettlementPairingVO.PairingUpdate>(json)?.params
-
             JsonRpcMethod.WC_PAIRING_PING -> tryDeserialize<PostSettlementPairingVO.PairingPing>(json)?.params
             JsonRpcMethod.WC_PAIRING_NOTIFICATION -> tryDeserialize<PostSettlementPairingVO.PairingPing>(json)?.params
             JsonRpcMethod.WC_SESSION_APPROVE -> tryDeserialize<PreSettlementSessionVO.Approve>(json)?.params
