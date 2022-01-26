@@ -10,11 +10,15 @@ class SampleApplication : Application() {
         super.onCreate()
 
         // TODO: Move to Dapp example once separate workflow is added
-        val init = WalletConnect.Params.Init(
+        val initDapp = WalletConnect.Params.Init(
             application = this,
-            useTls = true,
-            hostName = WALLET_CONNECT_URL,
-            projectId = PROJECT_ID,
+            serverUrlConfig = WalletConnect.Params.ServerUrlConfig.Properties(
+                WalletConnect.Params.UrlProps(
+                    useTls = true,
+                    hostName = "wss://$WALLET_CONNECT_URL/?projectId=$PROJECT_ID",
+                    projectId = PROJECT_ID
+                )
+            ),
             isController = false,
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Dapp",
@@ -25,19 +29,21 @@ class SampleApplication : Application() {
         )
 
         // TODO: Move to Wallet example once separate workflow is added
-        val init2 = WalletConnect.Params.Init(
+        val initWallet = WalletConnect.Params.Init(
             application = this,
-            relayServerUrl = "wss://$WALLET_CONNECT_URL/?projectId=$PROJECT_ID",
+            serverUrlConfig = WalletConnect.Params.ServerUrlConfig.ServerUrl(
+                serverUrl = "wss://$WALLET_CONNECT_URL/?projectId=$PROJECT_ID"
+            ),
             isController = true,
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Wallet",
                 description = "Wallet description",
                 url = "example.wallet",
                 icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media")
-            )
+            ),
         )
 
-        WalletConnectClient.initialize(init2)
+        WalletConnectClient.initialize(initWallet)
     }
 
     override fun onTrimMemory(level: Int) {
@@ -48,6 +54,6 @@ class SampleApplication : Application() {
 
     private companion object {
         const val WALLET_CONNECT_URL = "relay.walletconnect.com"
-        const val PROJECT_ID = "" //TODO: register at https://walletconnect.com/register to get a project ID
+        const val PROJECT_ID = "sample" //TODO: register at https://walletconnect.com/register to get a project ID
     }
 }

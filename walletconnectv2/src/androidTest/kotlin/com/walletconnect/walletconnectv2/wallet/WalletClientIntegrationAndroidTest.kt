@@ -19,27 +19,22 @@ class WalletConnectClientIntegrationAndroidTest {
         icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media")
     )
 
-    private val initParams =
-        WalletConnect.Params.Init(
-            application = app,
-            hostName = "relay.walletconnect.org",
-            metadata = metadata,
-            isController = true,
-            projectId = "",
-            useTls = true
-        )
-
     @Test
     fun responderApprovePairingAndGetSessionProposalTest() {
         activityRule.launch {
             val initParams = WalletConnect.Params.Init(
                 application = app,
-                useTls = true,
-                hostName = "relay.walletconnect.org",
-                projectId = "2ee94aca5d98e6c05c38bce02bee952a",
+                serverUrlConfig = WalletConnect.Params.ServerUrlConfig.Properties(
+                    WalletConnect.Params.UrlProps(
+                        useTls = true,
+                        hostName = "relay.walletconnect.org",
+                        projectId = "2ee94aca5d98e6c05c38bce02bee952a"
+                    )
+                ),
                 isController = true,
                 metadata = metadata
             )
+
             WalletConnectClient.initialize(initParams)
             val uri =
                 "wc:4f47abd615d5b56941989e120f108c2f338801ce16ee902237654b8c1970e8a2@2?controller=false&publicKey=2d573da1d2b8dbe3dcdb6ce7de47ce44b18fb8ec5ddc9d3f412ab4a718fff93c&relay=%7B%22protocol%22%3A%22waku%22%7D"
@@ -76,9 +71,13 @@ class WalletConnectClientIntegrationAndroidTest {
         activityRule.launch {
             val initParams = WalletConnect.Params.Init(
                 application = app,
-                useTls = true,
-                hostName = "relay.walletconnect.org",
-                projectId = "2ee94aca5d98e6c05c38bce02bee952a",
+                serverUrlConfig = WalletConnect.Params.ServerUrlConfig.Properties(
+                    WalletConnect.Params.UrlProps(
+                        useTls = true,
+                        hostName = "relay.walletconnect.org",
+                        projectId = "2ee94aca5d98e6c05c38bce02bee952a"
+                    )
+                ),
                 isController = true,
                 metadata = metadata
             )
@@ -127,9 +126,13 @@ class WalletConnectClientIntegrationAndroidTest {
         activityRule.launch {
             val initParams = WalletConnect.Params.Init(
                 application = app,
-                useTls = true,
-                hostName = "relay.walletconnect.org",
-                projectId = "2ee94aca5d98e6c05c38bce02bee952a",
+                serverUrlConfig = WalletConnect.Params.ServerUrlConfig.Properties(
+                    WalletConnect.Params.UrlProps(
+                        useTls = true,
+                        hostName = "relay.walletconnect.org",
+                        projectId = "2ee94aca5d98e6c05c38bce02bee952a"
+                    )
+                ),
                 isController = true,
                 metadata = metadata
             )
@@ -198,9 +201,13 @@ class WalletConnectClientIntegrationAndroidTest {
         activityRule.launch {
             val initParams = WalletConnect.Params.Init(
                 application = app,
-                useTls = true,
-                hostName = "relay.walletconnect.org",
-                projectId = "2ee94aca5d98e6c05c38bce02bee952a",
+                serverUrlConfig = WalletConnect.Params.ServerUrlConfig.Properties(
+                    WalletConnect.Params.UrlProps(
+                        useTls = true,
+                        hostName = "relay.walletconnect.org",
+                        projectId = "2ee94aca5d98e6c05c38bce02bee952a"
+                    )
+                ),
                 isController = true,
                 metadata = metadata
             )
@@ -269,9 +276,13 @@ class WalletConnectClientIntegrationAndroidTest {
         activityRule.launch {
             val initParams = WalletConnect.Params.Init(
                 application = app,
-                useTls = true,
-                hostName = "relay.walletconnect.org",
-                projectId = "2ee94aca5d98e6c05c38bce02bee952a",
+                serverUrlConfig = WalletConnect.Params.ServerUrlConfig.Properties(
+                    WalletConnect.Params.UrlProps(
+                        useTls = true,
+                        hostName = "relay.walletconnect.org",
+                        projectId = "2ee94aca5d98e6c05c38bce02bee952a"
+                    )
+                ),
                 isController = true,
                 metadata = metadata
             )
@@ -340,9 +351,13 @@ class WalletConnectClientIntegrationAndroidTest {
         activityRule.launch {
             val initParams = WalletConnect.Params.Init(
                 application = app,
-                useTls = true,
-                hostName = "relay.walletconnect.org",
-                projectId = "2ee94aca5d98e6c05c38bce02bee952a",
+                serverUrlConfig = WalletConnect.Params.ServerUrlConfig.Properties(
+                    WalletConnect.Params.UrlProps(
+                        useTls = true,
+                        hostName = "relay.walletconnect.org",
+                        projectId = "2ee94aca5d98e6c05c38bce02bee952a"
+                    )
+                ),
                 isController = true,
                 metadata = metadata
             )
@@ -410,9 +425,13 @@ class WalletConnectClientIntegrationAndroidTest {
         activityRule.launch {
             val initParams = WalletConnect.Params.Init(
                 application = app,
-                useTls = true,
-                hostName = "relay.walletconnect.org",
-                projectId = "2ee94aca5d98e6c05c38bce02bee952a",
+                serverUrlConfig = WalletConnect.Params.ServerUrlConfig.Properties(
+                    WalletConnect.Params.UrlProps(
+                        useTls = true,
+                        hostName = "relay.walletconnect.org",
+                        projectId = "2ee94aca5d98e6c05c38bce02bee952a",
+                    )
+                ),
                 isController = true,
                 metadata = metadata
             )
@@ -477,9 +496,13 @@ class WalletConnectClientIntegrationAndroidTest {
         activityRule.launch {
             val initParams = WalletConnect.Params.Init(
                 application = app,
-                useTls = true,
-                hostName = "relay.walletconnect.org",
-                projectId = "2ee94aca5d98e6c05c38bce02bee952a",
+                serverUrlConfig = WalletConnect.Params.ServerUrlConfig.Properties(
+                    WalletConnect.Params.UrlProps(
+                        useTls = true,
+                        hostName = "relay.walletconnect.org",
+                        projectId = "2ee94aca5d98e6c05c38bce02bee952a"
+                    )
+                ),
                 isController = true,
                 metadata = metadata
             )

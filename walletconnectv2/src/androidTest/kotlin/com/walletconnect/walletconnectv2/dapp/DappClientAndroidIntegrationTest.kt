@@ -24,7 +24,7 @@ class DappClientAndroidIntegrationTest {
     @Test
     fun testDappConnectMethod() {
         val initParams =
-            WalletConnect.Params.Init(application = app, hostName = "relay.walletconnect.com", metadata = metadata, isController = false)
+            WalletConnect.Params.Init(application = app, serverUrlConfig = WalletConnect.Params.ServerUrlConfig.ServerUrl("wss://relay.walletconnect.com?projectId=2ee94aca5d98e6c05c38bce02bee952a"), metadata = metadata, isController = false)
         WalletConnectClient.initialize(initParams)
 
         WalletConnectClient.connect(

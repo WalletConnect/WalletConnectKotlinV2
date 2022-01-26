@@ -163,35 +163,39 @@ object WalletConnect {
 
     sealed class Params {
 
-        // TODO: Maybe convert this into a Builder
-        data class Init internal constructor(
+        sealed class ServerUrlConfig {
+            data class ServerUrl(val serverUrl: String) : ServerUrlConfig()
+            data class Properties(val props: UrlProps) : ServerUrlConfig()
+        }
+
+        data class UrlProps(val projectId: String, val hostName: String, val useTls: Boolean)
+
+        class Init(
             val application: Application,
             val isController: Boolean,
             val metadata: Model.AppMetaData,
+            val serverUrlConfig: ServerUrlConfig
         ) : Params() {
-            internal lateinit var serverUrl: String
 
-            constructor(
-                application: Application,
-                useTls: Boolean,
-                hostName: String,
-                projectId: String,
-                isController: Boolean,
-                metadata: Model.AppMetaData,
-            ) : this(application, isController, metadata) {
+            var relayServerUrl: String
 
-                this.serverUrl = ((if (useTls) "wss" else "ws") + "://$hostName/?projectId=$projectId").trim()
-            }
+            init {
+                when (serverUrlConfig) {
+                    is ServerUrlConfig.ServerUrl -> {
+                        //todo make this require compile-time checks
+                        require(serverUrlConfig.serverUrl.isValidRelayServerUrl()) { "relayServerUrl must be valid. " }
 
-            constructor(
-                application: Application,
-                relayServerUrl: String,
-                isController: Boolean,
-                metadata: Model.AppMetaData,
-            ) : this(application, isController, metadata) {
-                require(relayServerUrl.isValidRelayServerUrl())
+                        this.relayServerUrl = serverUrlConfig.serverUrl
+                    }
+                    is ServerUrlConfig.Properties -> {
+                        val url = ((if (serverUrlConfig.props.useTls) "wss" else "ws") + "://${serverUrlConfig.props.hostName}/?projectId=${serverUrlConfig.props.projectId}").trim()
 
-                this.serverUrl = relayServerUrl
+                        //todo make this require compile-time checks
+                        require(url.isValidRelayServerUrl()) { "relayServerUrl must be valid." }
+
+                        this.relayServerUrl = url
+                    }
+                }
             }
 
             private fun String.isValidRelayServerUrl(): Boolean {
