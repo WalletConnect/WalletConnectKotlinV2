@@ -2,9 +2,9 @@ package com.walletconnect.walletconnectv2
 
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
+import com.walletconnect.walletconnectv2.utils.IntegrationTestActivity
 import org.junit.Assert
 import org.junit.rules.ExternalResource
-import com.walletconnect.walletconnectv2.utils.IntegrationTestActivity
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
