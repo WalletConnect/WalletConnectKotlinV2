@@ -26,10 +26,10 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
         //TODO: Improve the dApp sample app. Code below is only for test purposes!
 
         val connectParams = WalletConnect.Params.Connect(
-            WalletConnect.Model.SessionPermissions(
+            permissions = WalletConnect.Model.SessionPermissions(
                 WalletConnect.Model.Blockchain(listOf("eip155:69")),
                 WalletConnect.Model.Jsonrpc(listOf("personal_sign"))
-            ), null
+            ), pairingTopic = null
         )
         val uri = WalletConnectClient.connect(connectParams)
 

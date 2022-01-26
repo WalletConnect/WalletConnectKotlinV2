@@ -1,6 +1,5 @@
 package com.walletconnect.sample.wallet
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
@@ -24,7 +23,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     fun pair(uri: String) {
         val pair = WalletConnect.Params.Pair(uri.trim())
         WalletConnectClient.pair(pair, object : WalletConnect.Listeners.Pairing {
-            override fun onSuccess(settledPairing: WalletConnect.Model.SettledSequence) {
+            override fun onSuccess(settledPairing: WalletConnect.Model.SettledPairing) {
                 //Settled pairing
             }
 

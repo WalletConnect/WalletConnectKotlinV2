@@ -85,6 +85,9 @@ internal sealed class EngineDO {
     ) : EngineDO(), SequenceLifecycle
 
     internal object Default : SequenceLifecycle
+    internal object FailedTopic : SequenceLifecycle
+    internal object NoSession : SequenceLifecycle
+    internal object NoPairing : SequenceLifecycle
 
     internal data class Notification(
         val type: String,
@@ -152,5 +155,5 @@ internal sealed class EngineDO {
         )
     }
 
-    data class Request(val topic: String, val method: String, val params: String, val chainId: String?) : EngineDO()
+    internal data class Request(val topic: String, val method: String, val params: String, val chainId: String?) : EngineDO()
 }

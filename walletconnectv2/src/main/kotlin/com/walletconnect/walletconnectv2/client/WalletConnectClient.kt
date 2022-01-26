@@ -88,7 +88,7 @@ object WalletConnectClient {
 
         safeCall {
             engineInteractor.pair(pair.uri,
-                { topic -> pairing.onSuccess(WalletConnect.Model.SettledSequence(topic)) },
+                { topic -> pairing.onSuccess(WalletConnect.Model.SettledPairing(topic)) },
                 { error -> pairing.onError(error) })
         }
     }

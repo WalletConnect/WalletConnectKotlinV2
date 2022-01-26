@@ -10,7 +10,7 @@ object WalletConnect {
         fun onError(error: Throwable)
 
         interface Pairing : Listeners {
-            fun onSuccess(settledPairing: Model.SettledSequence)
+            fun onSuccess(settledPairing: Model.SettledPairing)
         }
 
         interface SessionReject : Listeners {
@@ -105,10 +105,8 @@ object WalletConnect {
 
         data class SettledPairing(
             val topic: String,
-            val appMetaData: AppMetaData?
+            val appMetaData: AppMetaData? = null
         ) : Model()
-
-        data class SettledSequence(val topic: String) : Model()
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
 

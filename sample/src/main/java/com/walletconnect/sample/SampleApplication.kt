@@ -15,7 +15,7 @@ class SampleApplication : Application() {
             useTls = true,
             hostName = WALLET_CONNECT_URL,
             projectId = PROJECT_ID,
-            isController = false,
+            isController = true,
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Dapp",
                 description = "Dapp description",
