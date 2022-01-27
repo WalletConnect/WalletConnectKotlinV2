@@ -34,8 +34,30 @@ implementation("com.github.WalletConnect:WalletConnectKotlinV2:1.0.0-beta02")
 ```kotlin
 val appMetaData =
     WalletConnect.Model.AppMetaData(name = "Wallet Name", description = "Wallet Description", url = "Wallet Url", icons = listOfIconUrlStrings)
+
 val init =
-    WalletConnect.Params.Init(application = application, isController = true / false, projectId = "project id", appMetaData = appMetaData)
+    WalletConnect.Params.Init(
+                    application = application,
+                    serverUrlConfig = WalletConnect.Params.ServerUrlConfig.ServerUrl("wss://relay.walletconnect.com?projectId=sampleProjectId"),
+                    metadata = metadata,
+                    isController = true / false
+                )
+
+//or
+
+val init = WalletConnect.Params.Init(
+                    application = application,
+                    serverUrlConfig = WalletConnect.Params.ServerUrlConfig.Properties(
+                        WalletConnect.Params.UrlProps(
+                            useTls = true,
+                            hostName = "relay.walletconnect.org",
+                            projectId = "sampleProjectId"
+                        )
+                    ),
+                    isController = true,
+                    metadata = metadata
+                )
+
 WalletConnectClient.initalize(init)
 ```
 
