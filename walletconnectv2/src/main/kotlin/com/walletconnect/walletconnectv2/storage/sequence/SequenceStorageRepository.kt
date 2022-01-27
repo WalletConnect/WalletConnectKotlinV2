@@ -1,14 +1,14 @@
 package com.walletconnect.walletconnectv2.storage.sequence
 
 import com.walletconnect.walletconnectv2.Database
-import com.walletconnect.walletconnectv2.common.model.type.ControllerType
-import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
-import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.AppMetaDataVO
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.PairingVO
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.SessionVO
+import com.walletconnect.walletconnectv2.core.model.type.ControllerType
+import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.TtlVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.AppMetaDataVO
+import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
+import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.util.Empty
 
 //TODO: Split into SessionStorageRepository and PairingStorageRepository

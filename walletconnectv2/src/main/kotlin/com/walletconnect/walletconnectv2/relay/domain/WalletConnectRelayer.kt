@@ -1,13 +1,13 @@
 package com.walletconnect.walletconnectv2.relay.domain
 
 import com.tinder.scarlet.WebSocket
-import com.walletconnect.walletconnectv2.common.errors.WalletConnectExceptions
-import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
-import com.walletconnect.walletconnectv2.common.model.vo.JsonRpcResponseVO
-import com.walletconnect.walletconnectv2.common.model.vo.RequestSubscriptionPayloadVO
-import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.scope.scope
+import com.walletconnect.walletconnectv2.core.exceptions.WalletConnectException
+import com.walletconnect.walletconnectv2.core.model.type.ClientSyncJsonRpc
+import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcResponseVO
+import com.walletconnect.walletconnectv2.core.model.vo.RequestSubscriptionPayloadVO
+import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.network.NetworkRepository
 import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
@@ -162,9 +162,9 @@ internal class WalletConnectRelayer(
         get() =
             when {
                 this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) ==
-                        true -> WalletConnectExceptions.ProjectIdDoesNotExistException(this.message)
+                        true -> WalletConnectException.ProjectIdDoesNotExistException(this.message)
                 this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) ==
-                        true -> WalletConnectExceptions.InvalidProjectIdException(this.message)
-                else -> WalletConnectExceptions.ServerException(this.message)
+                        true -> WalletConnectException.InvalidProjectIdException(this.message)
+                else -> WalletConnectException.ServerException(this.message)
             }
 }

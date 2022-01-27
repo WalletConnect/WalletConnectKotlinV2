@@ -2,11 +2,11 @@ package com.walletconnect.walletconnectv2.common.network.adapters
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import com.walletconnect.walletconnectv2.core.adapters.TopicAdapter
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.util.getRandom64ByteHexString
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
-import com.walletconnect.walletconnectv2.util.getRandom64ByteHexString
 import kotlin.test.assertNotNull
 
 internal class TopicAdapterTest {

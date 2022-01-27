@@ -2,7 +2,7 @@ package com.walletconnect.walletconnectv2.storage.history
 
 import android.annotation.SuppressLint
 import android.content.SharedPreferences
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.util.Logger
 
 internal class JsonRpcHistory(private val sharedPreferences: SharedPreferences) {

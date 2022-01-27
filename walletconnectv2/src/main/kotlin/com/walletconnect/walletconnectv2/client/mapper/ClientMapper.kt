@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.client.mapper
 
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.common.model.vo.JsonRpcResponseVO
+import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 
 //TODO: Provide VO objects for engine classes. Remove using the EngineDO object in the client layer

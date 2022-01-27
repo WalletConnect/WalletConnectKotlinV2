@@ -1,17 +1,18 @@
 package com.walletconnect.walletconnectv2.engine.model.mapper
 
-import com.walletconnect.walletconnectv2.common.model.type.ControllerType
-import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
-import com.walletconnect.walletconnectv2.common.model.vo.*
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.PairingParamsVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.PreSettlementPairingVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.proposal.*
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.success.PairingParticipantVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.SessionParamsVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.params.SessionPermissionsVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.*
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.PairingVO
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.SessionVO
+import com.walletconnect.walletconnectv2.core.model.type.ControllerType
+import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
+import com.walletconnect.walletconnectv2.core.model.vo.*
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.PairingParamsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.PreSettlementPairingVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.proposal.*
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.success.PairingParticipantVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.success.PairingStateVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionParamsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.params.SessionPermissionsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.*
+import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
+import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.util.Empty
@@ -55,7 +56,6 @@ internal fun PairingParamsVO.Proposal.toPairingSuccess(expiry: ExpiryVO, selfPub
         relay = relay,
         responder = PairingParticipantVO(publicKey = selfPublicKey.keyAsHex),
         expiry = expiry
-//        state = PairingStateVO(null)
     )
 
 @JvmSynthetic

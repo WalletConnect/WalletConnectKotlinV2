@@ -227,6 +227,4 @@ object WalletConnect {
 
         data class Notify(val topic: String, val notification: Model.Notification) : Params()
     }
-
-    data class WalletConnectError(override val message: String?) : Exception(message)
 }

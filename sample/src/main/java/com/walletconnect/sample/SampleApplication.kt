@@ -10,7 +10,7 @@ class SampleApplication : Application() {
         super.onCreate()
 
         // TODO: Move to Dapp example once separate workflow is added
-        val init = WalletConnect.Params.Init(
+        val initDapp = WalletConnect.Params.Init(
             application = this,
             useTls = true,
             hostName = WALLET_CONNECT_URL,
@@ -25,7 +25,7 @@ class SampleApplication : Application() {
         )
 
         // TODO: Move to Wallet example once separate workflow is added
-        val init2 = WalletConnect.Params.Init(
+        val initWallet = WalletConnect.Params.Init(
             application = this,
             relayServerUrl = "wss://$WALLET_CONNECT_URL/?projectId=$PROJECT_ID",
             isController = true,
@@ -37,7 +37,7 @@ class SampleApplication : Application() {
             )
         )
 
-        WalletConnectClient.initialize(init2)
+        WalletConnectClient.initialize(initWallet)
     }
 
     override fun onTrimMemory(level: Int) {
