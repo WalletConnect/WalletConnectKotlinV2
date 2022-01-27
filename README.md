@@ -43,7 +43,7 @@ val init =
                     isController = true / false
                 )
 
-//or
+//or below for further customization
 
 val init = WalletConnect.Params.Init(
                     application = application,
