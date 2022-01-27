@@ -2,9 +2,9 @@ package com.walletconnect.walletconnectv2.common.network.adapters
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import com.walletconnect.walletconnectv2.core.adapters.SubscriptionIdAdapter
+import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
 import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
-import com.walletconnect.walletconnectv2.common.adapters.SubscriptionIdAdapter
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 

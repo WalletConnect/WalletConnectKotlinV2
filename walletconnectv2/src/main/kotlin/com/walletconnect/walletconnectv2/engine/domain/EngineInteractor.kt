@@ -1,26 +1,26 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
-import com.walletconnect.walletconnectv2.common.errors.WalletConnectExceptions
-import com.walletconnect.walletconnectv2.common.model.type.ControllerType
-import com.walletconnect.walletconnectv2.common.model.type.SequenceLifecycle
-import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
-import com.walletconnect.walletconnectv2.common.model.vo.*
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.PairingParamsVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.after.PostSettlementPairingVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.after.payload.ProposalRequestVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.success.PairingStateVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.SessionParamsVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.PostSettlementSessionVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.params.ReasonVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.params.SessionRequestVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.PreSettlementSessionVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.SessionProposerVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.success.SessionParticipantVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.common.SessionStateVO
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.PairingVO
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.SessionVO
-import com.walletconnect.walletconnectv2.common.scope.scope
+import com.walletconnect.walletconnectv2.core.exceptions.*
+import com.walletconnect.walletconnectv2.core.model.type.ControllerType
+import com.walletconnect.walletconnectv2.core.model.type.SequenceLifecycle
+import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
+import com.walletconnect.walletconnectv2.core.model.vo.*
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.PairingParamsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.after.PostSettlementPairingVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.after.payload.ProposalRequestVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.success.PairingStateVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionParamsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.PostSettlementSessionVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.params.ReasonVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.params.SessionRequestVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.PreSettlementSessionVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.SessionProposerVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.success.SessionParticipantVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.common.SessionStateVO
+import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
+import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
+import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.engine.model.mapper.*
@@ -61,16 +61,14 @@ internal class EngineInteractor(
     }
 
     internal fun proposeSequence(permissions: EngineDO.SessionPermissions, pairingTopic: String?): String? {
-        checkPeer(ControllerType.NON_CONTROLLER) {
-            "The connect() was called by the unauthorized peer. Initialize SDK with isController = false."
-        }
+        checkPeer(ControllerType.NON_CONTROLLER, UNAUTHORIZED_CONNECT_MESSAGE)
 
-        //TODO: Add permissions validation
         if (pairingTopic != null) {
             if (!sequenceStorageRepository.hasPairingTopic(TopicVO(pairingTopic))) {
-                throw WalletConnectExceptions.CannotFindSequenceForTopic("Topic: $pairingTopic")
+                throw WalletConnectException.CannotFindSequenceForTopic("Topic: $pairingTopic")
             }
 
+            //TODO: Add permissions validation
             proposeSession(permissions, pairingTopic)
             return null
         }
@@ -125,14 +123,11 @@ internal class EngineInteractor(
     }
 
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
-        checkPeer(ControllerType.CONTROLLER) {
-            "The connect() was called by the unauthorized peer. Initialize SDK with isController = true."
-        }
+        checkPeer(ControllerType.CONTROLLER, UNAUTHORIZED_PAIR_MESSAGE)
+        val proposal: PairingParamsVO.Proposal = uri.toPairProposal()
+        if (sequenceStorageRepository.hasPairingTopic(proposal.topic)) throw WalletConnectException.PairWithExistingPairingIsNotAllowed
 
         //TODO: Add WC URI validation
-        val proposal: PairingParamsVO.Proposal = uri.toPairProposal()
-        if (sequenceStorageRepository.hasPairingTopic(proposal.topic)) throw WalletConnectExceptions.PairWithExistingPairingIsNotAllowed
-
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val (_, settledTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, PublicKey(proposal.proposer.publicKey))
         val respondedPairing = proposal.toRespondedPairingVO(settledTopic, selfPublicKey, uri, controllerType)
@@ -182,9 +177,7 @@ internal class EngineInteractor(
     }
 
     internal fun approve(proposal: EngineDO.SessionProposal, onSuccess: (EngineDO.SettledSession) -> Unit, onFailure: (Throwable) -> Unit) {
-        checkPeer(ControllerType.CONTROLLER) {
-            "The approve() was called by the unauthorized peer. Initialize SDK with isController = true"
-        }
+        checkPeer(ControllerType.CONTROLLER, UNAUTHORIZED_APPROVE_MESSAGE)
 
         //TODO: Add SessionProposal validation
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -227,9 +220,7 @@ internal class EngineInteractor(
     }
 
     internal fun reject(reason: String, topic: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
-        checkPeer(ControllerType.CONTROLLER) {
-            "The reject() was called by the unauthorized peer. Initialize SDK with isController = true"
-        }
+        checkPeer(ControllerType.CONTROLLER, UNAUTHORIZED_REJECT_MESSAGE)
 
         //TODO: Add error code
         val params = SessionParamsVO.RejectParams(reason = ReasonVO(message = reason))
@@ -248,7 +239,7 @@ internal class EngineInteractor(
     }
 
     internal fun disconnect(topic: String, reason: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
-        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectExceptions.CannotFindSequenceForTopic("Topic: $topic")
+        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
 
         val deleteParams = SessionParamsVO.DeleteParams(ReasonVO(message = reason))
         val sessionDelete = PostSettlementSessionVO.SessionDelete(id = generateId(), params = deleteParams)
@@ -264,13 +255,10 @@ internal class EngineInteractor(
     }
 
     internal fun respondSessionPayload(topic: String, jsonRpcResponse: JsonRpcResponseVO, onFailure: (Throwable) -> Unit) {
-        checkPeer(ControllerType.CONTROLLER) {
-            "The respond() was called by the unauthorized peer. Initialize SDK with isController = true"
-        }
+        checkPeer(ControllerType.CONTROLLER, UNAUTHORIZED_RESPOND_MESSAGE)
+        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
 
         //TODO: Add JsonRpcResponseVO validation
-        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectExceptions.CannotFindSequenceForTopic("Topic: $topic")
-
         relayer.respond(
             TopicVO(topic), jsonRpcResponse,
             { Logger.error("Session payload sent successfully") },
@@ -285,14 +273,11 @@ internal class EngineInteractor(
         onSuccess: (EngineDO.JsonRpcResponse.JsonRpcResult) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
-        checkPeer(ControllerType.NON_CONTROLLER) {
-            "The request() was called by the unauthorized peer. Initialize SDK with isController = false"
-        }
+        checkPeer(ControllerType.NON_CONTROLLER, UNAUTHORIZED_REQUEST_MESSAGE)
+        val topic = TopicVO(request.topic)
+        if (!sequenceStorageRepository.hasSessionTopic(topic)) throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
 
         //TODO: Add Request validation
-        val topic = TopicVO(request.topic)
-        if (!sequenceStorageRepository.hasSessionTopic(topic)) throw WalletConnectExceptions.CannotFindSequenceForTopic("Topic: $topic")
-
         val params = SessionParamsVO.SessionPayloadParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
         val sessionPayload = PostSettlementSessionVO.SessionPayload(id = generateId(), params = params)
         relayer.request(topic, sessionPayload) { result ->
@@ -309,13 +294,10 @@ internal class EngineInteractor(
         onSuccess: (Pair<String, List<String>>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
-        checkPeer(ControllerType.CONTROLLER) {
-            "The update() was called by the unauthorized peer. Initialize SDK with isController = true"
-        }
+        checkPeer(ControllerType.CONTROLLER, UNAUTHORIZED_UPDATE_MESSAGE)
+        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
 
         //TODO: Add accounts validation
-        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectExceptions.CannotFindSequenceForTopic("Topic: $topic")
-
         val params = SessionParamsVO.UpdateParams(SessionStateVO(state.accounts))
         val sessionUpdate: PostSettlementSessionVO.SessionUpdate = PostSettlementSessionVO.SessionUpdate(id = generateId(), params = params)
         sequenceStorageRepository.updateSessionWithAccounts(topic, state.accounts)
@@ -332,13 +314,10 @@ internal class EngineInteractor(
         onSuccess: (Pair<String, EngineDO.SessionPermissions>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
-        checkPeer(ControllerType.CONTROLLER) {
-            "The upgrade() was called by the unauthorized peer. Initialize SDK with isController = true"
-        }
+        checkPeer(ControllerType.CONTROLLER, UNAUTHORIZED_UPGRADE_MESSAGE)
+        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
 
         //TODO: Add permissions validation
-        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectExceptions.CannotFindSequenceForTopic("Topic: $topic")
-
         val permissionsParams = SessionParamsVO.SessionPermissionsParams(permissions = permissions.toSessionsPermissions())
         val sessionUpgrade = PostSettlementSessionVO.SessionUpgrade(id = generateId(), params = permissionsParams)
         sequenceStorageRepository.updateSessionWithPermissions(topic, permissions.blockchain.chains, permissions.jsonRpc.methods)
@@ -351,9 +330,9 @@ internal class EngineInteractor(
     }
 
     internal fun notify(topic: String, notification: EngineDO.Notification, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
-        //TODO: Add Notification validation
-        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectExceptions.CannotFindSequenceForTopic("Topic: $topic")
+        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
 
+        //TODO: Add Notification validation
         val notificationParams = SessionParamsVO.NotificationParams(notification.type, notification.data)
         val sessionNotification = PostSettlementSessionVO.SessionNotification(id = generateId(), params = notificationParams)
         relayer.request(TopicVO(topic), sessionNotification) { result ->
@@ -370,7 +349,7 @@ internal class EngineInteractor(
                 PostSettlementSessionVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams())
             sequenceStorageRepository.hasPairingTopic(TopicVO(topic)) ->
                 PostSettlementPairingVO.PairingPing(id = generateId(), params = PairingParamsVO.PingParams())
-            else -> throw WalletConnectExceptions.CannotFindSequenceForTopic("Topic: $topic")
+            else -> throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
         }
 
         relayer.request(TopicVO(topic), pingParams) { result ->
@@ -378,12 +357,6 @@ internal class EngineInteractor(
                 onSuccess = { onSuccess(topic) },
                 onFailure = { error -> onFailure(error) }
             )
-        }
-    }
-
-    private fun checkPeer(currentPeer: ControllerType, message: () -> String) {
-        if (controllerType != currentPeer) {
-            throw WalletConnectExceptions.UnauthorizedPeerException(message())
         }
     }
 
@@ -597,6 +570,12 @@ internal class EngineInteractor(
         listOfValidSessions
             .filter { session -> session.status == SequenceStatus.ACKNOWLEDGED }
             .onEach { session -> relayer.subscribe(session.topic) }
+    }
+
+    private fun checkPeer(currentPeer: ControllerType, message: String) {
+        if (controllerType != currentPeer) {
+            throw WalletConnectException.UnauthorizedPeerException(message)
+        }
     }
 
     private fun ExpiryVO.isSequenceValid(): Boolean = seconds > (System.currentTimeMillis() / 1000)

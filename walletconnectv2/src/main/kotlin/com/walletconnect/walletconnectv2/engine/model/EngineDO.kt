@@ -1,12 +1,12 @@
 package com.walletconnect.walletconnectv2.engine.model
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.walletconnectv2.common.model.type.Sequence
-import com.walletconnect.walletconnectv2.common.model.type.SequenceLifecycle
-import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
-import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
+import com.walletconnect.walletconnectv2.core.model.type.Sequence
+import com.walletconnect.walletconnectv2.core.model.type.SequenceLifecycle
+import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import java.net.URI
 

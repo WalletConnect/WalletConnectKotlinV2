@@ -4,12 +4,11 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
-import com.walletconnect.walletconnectv2.common.adapters.*
-import com.walletconnect.walletconnectv2.common.adapters.ExpiryAdapter
-import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
-import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
+import com.walletconnect.walletconnectv2.core.adapters.*
+import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import org.json.JSONObject
 import org.koin.dsl.module

@@ -1,15 +1,11 @@
 package com.walletconnect.walletconnectv2.crypto.managers
 
+import com.walletconnect.walletconnectv2.core.model.vo.*
+import com.walletconnect.walletconnectv2.crypto.KeyStore
+import com.walletconnect.walletconnectv2.crypto.data.repository.BouncyCastleCryptoRepository
 import io.mockk.spyk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.model.vo.Key
-import com.walletconnect.walletconnectv2.common.model.vo.PrivateKey
-import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
-import com.walletconnect.walletconnectv2.common.model.vo.SharedKey
-import com.walletconnect.walletconnectv2.crypto.KeyStore
-import com.walletconnect.walletconnectv2.crypto.data.repository.BouncyCastleCryptoRepository
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
