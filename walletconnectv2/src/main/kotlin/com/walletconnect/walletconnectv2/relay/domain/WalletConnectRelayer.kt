@@ -1,13 +1,13 @@
 package com.walletconnect.walletconnectv2.relay.domain
 
 import com.tinder.scarlet.WebSocket
-import com.walletconnect.walletconnectv2.common.errors.exception
-import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
-import com.walletconnect.walletconnectv2.common.model.vo.JsonRpcResponseVO
-import com.walletconnect.walletconnectv2.common.model.vo.RequestSubscriptionPayloadVO
-import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.scope.scope
+import com.walletconnect.walletconnectv2.core.exceptions.WalletConnectException
+import com.walletconnect.walletconnectv2.core.model.type.ClientSyncJsonRpc
+import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcResponseVO
+import com.walletconnect.walletconnectv2.core.model.vo.RequestSubscriptionPayloadVO
+import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.network.NetworkRepository
 import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
@@ -20,6 +20,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import java.net.HttpURLConnection
 
 internal class WalletConnectRelayer(
     private val networkRepository: NetworkRepository,
@@ -67,11 +68,14 @@ internal class WalletConnectRelayer(
         }
     }
 
+
     internal fun respond(topic: TopicVO, response: JsonRpcResponseVO, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {}) {
         networkRepository.publish(topic, serializer.serialize(response.toRelayDOJsonRpcResponse(), topic)) { result ->
             result.fold(
                 onSuccess = { onSuccess() },
-                onFailure = { error -> onFailure(error) }
+                onFailure = { error ->
+                    onFailure(error)
+                }
             )
         }
     }
@@ -154,4 +158,15 @@ internal class WalletConnectRelayer(
             peerResponse.emit(error)
         }
     }
+
+    @get:JvmSynthetic
+    private val Throwable.exception: Throwable
+        get() =
+            when {
+                this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) ==
+                        true -> WalletConnectException.ProjectIdDoesNotExistException(this.message)
+                this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) ==
+                        true -> WalletConnectException.InvalidProjectIdException(this.message)
+                else -> WalletConnectException.ServerException(this.message)
+            }
 }

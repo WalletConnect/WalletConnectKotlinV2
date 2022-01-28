@@ -1,9 +1,9 @@
 package com.walletconnect.walletconnectv2.crypto
 
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.model.vo.Key
-import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
-import com.walletconnect.walletconnectv2.common.model.vo.SharedKey
+import com.walletconnect.walletconnectv2.core.model.vo.Key
+import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.core.model.vo.SharedKey
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 
 internal interface CryptoRepository {
     fun generateKeyPair(): PublicKey

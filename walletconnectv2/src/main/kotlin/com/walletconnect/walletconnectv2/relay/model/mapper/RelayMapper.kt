@@ -1,6 +1,6 @@
 package com.walletconnect.walletconnectv2.relay.model.mapper
 
-import com.walletconnect.walletconnectv2.common.model.vo.JsonRpcResponseVO
+import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
 
 @JvmSynthetic
