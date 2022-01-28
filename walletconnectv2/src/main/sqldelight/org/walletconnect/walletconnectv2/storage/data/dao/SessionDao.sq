@@ -1,6 +1,6 @@
-import kotlin.collections.List;
+import com.walletconnect.walletconnectv2.core.model.type.ControllerType;
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus;
-import com.walletconnect.walletconnectv2.common.model.type.ControllerType;
+import kotlin.collections.List;
 
 CREATE TABLE SessionDao(
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -74,3 +74,8 @@ SELECT sd.topic, sd.permissions_chains, sd.permissions_methods, sd.permissions_t
 FROM SessionDao sd
     LEFT JOIN MetaDataDao mdd ON sd.metadata_id = mdd.id
 WHERE topic = ?;
+
+hasTopic:
+SELECT topic
+FROM SessionDao
+WHERE ? = topic;

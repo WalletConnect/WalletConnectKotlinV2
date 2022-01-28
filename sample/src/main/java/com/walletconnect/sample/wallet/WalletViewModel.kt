@@ -1,12 +1,12 @@
 package com.walletconnect.sample.wallet
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.sample.wallet.ui.*
-import com.walletconnect.walletconnectv2.client.*
+import com.walletconnect.walletconnectv2.client.WalletConnect
+import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 

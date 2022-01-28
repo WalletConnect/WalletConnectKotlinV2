@@ -2,7 +2,6 @@ package com.walletconnect.walletconnectv2.client
 
 import android.app.Application
 import android.net.Uri
-import com.walletconnect.walletconnectv2.util.Empty
 import java.net.URI
 
 object WalletConnect {
@@ -42,6 +41,10 @@ object WalletConnect {
 
         interface Notification : Listeners {
             fun onSuccess(topic: String)
+        }
+
+        interface SessionRequest : Listeners {
+            fun onSuccess(response: Model.JsonRpcResponse)
         }
     }
 
@@ -100,7 +103,10 @@ object WalletConnect {
 
         data class SessionState(val accounts: List<String>) : Model()
 
-        data class SettledPairing(val topic: String) : Model()
+        data class SettledPairing(
+            val topic: String,
+            val appMetaData: AppMetaData? = null
+        ) : Model()
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
 
@@ -154,10 +160,10 @@ object WalletConnect {
         }
 
         data class AppMetaData(
-            val name: String = "Peer",
-            val description: String = String.Empty,
-            val url: String = String.Empty,
-            val icons: List<String> = emptyList()
+            val name: String,
+            val description: String,
+            val url: String,
+            val icons: List<String>
         ) : Model()
     }
 
@@ -201,6 +207,8 @@ object WalletConnect {
             }
         }
 
+        data class Connect(val permissions: Model.SessionPermissions, val pairingTopic: String? = null) : Params()
+
         data class Pair(val uri: String) : Params()
 
         data class Approve(val proposal: Model.SessionProposal, val accounts: List<String>) : Params()
@@ -210,6 +218,8 @@ object WalletConnect {
         data class Disconnect(val sessionTopic: String, val reason: String) : Params()
 
         data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) : Params()
+
+        data class Request(val sessionTopic: String, val method: String, val params: String, val chainId: String?) : Params()
 
         data class Update(val sessionTopic: String, val sessionState: Model.SessionState) : Params()
 
