@@ -2,15 +2,15 @@ package com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.aft
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.PairingParamsVO
+import com.walletconnect.walletconnectv2.common.model.type.SettlementSequence
 import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.PairingParamsVO
 
-internal sealed class PostSettlementPairingVO : ClientSyncJsonRpc {
+internal sealed class PostSettlementPairingVO : SettlementSequence<PairingParamsVO> {
     abstract override val id: Long
-    abstract val method: String
-    abstract val jsonrpc: String
-    abstract val params: PairingParamsVO
+    abstract override val method: String
+    abstract override val jsonrpc: String
+    abstract override val params: PairingParamsVO
 
     @JsonClass(generateAdapter = true)
     internal data class PairingPayload(
@@ -21,7 +21,7 @@ internal sealed class PostSettlementPairingVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PAIRING_PAYLOAD,
         @Json(name = "params")
-        override val params: PairingParamsVO.PayloadParams
+        override val params: PairingParamsVO.PayloadParams,
     ) : PostSettlementPairingVO()
 
     @JsonClass(generateAdapter = true)
@@ -33,7 +33,7 @@ internal sealed class PostSettlementPairingVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PAIRING_DELETE,
         @Json(name = "params")
-        override val params: PairingParamsVO.DeleteParams
+        override val params: PairingParamsVO.DeleteParams,
     ) : PostSettlementPairingVO()
 
     @JsonClass(generateAdapter = true)
@@ -45,7 +45,7 @@ internal sealed class PostSettlementPairingVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PAIRING_UPDATE,
         @Json(name = "params")
-        override val params: PairingParamsVO.UpdateParams
+        override val params: PairingParamsVO.UpdateParams,
     ) : PostSettlementPairingVO()
 
     @JsonClass(generateAdapter = true)
@@ -57,7 +57,7 @@ internal sealed class PostSettlementPairingVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PAIRING_PING,
         @Json(name = "params")
-        override val params: PairingParamsVO.PingParams
+        override val params: PairingParamsVO.PingParams,
     ) : PostSettlementPairingVO()
 
     @JsonClass(generateAdapter = true)
@@ -69,6 +69,6 @@ internal sealed class PostSettlementPairingVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PAIRING_NOTIFICATION,
         @Json(name = "params")
-        override val params: PairingParamsVO.NotificationParams
+        override val params: PairingParamsVO.NotificationParams,
     ) : PostSettlementPairingVO()
 }

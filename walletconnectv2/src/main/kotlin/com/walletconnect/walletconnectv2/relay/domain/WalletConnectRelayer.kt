@@ -2,7 +2,7 @@ package com.walletconnect.walletconnectv2.relay.domain
 
 import com.tinder.scarlet.WebSocket
 import com.walletconnect.walletconnectv2.common.errors.exception
-import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
+import com.walletconnect.walletconnectv2.common.model.type.SettlementSequence
 import com.walletconnect.walletconnectv2.common.model.vo.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.common.model.vo.RequestSubscriptionPayloadVO
 import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
@@ -14,6 +14,7 @@ import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import com.walletconnect.walletconnectv2.relay.model.mapper.toJsonRpcResultVO
 import com.walletconnect.walletconnectv2.relay.model.mapper.toRelayDOJsonRpcResponse
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
+import com.walletconnect.walletconnectv2.storage.history.model.JsonRpcStatus
 import com.walletconnect.walletconnectv2.util.Logger
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.cancel
@@ -24,9 +25,8 @@ import kotlinx.coroutines.supervisorScope
 internal class WalletConnectRelayer(
     private val networkRepository: NetworkRepository,
     private val serializer: JsonRpcSerializer,
-    private val jsonRpcHistory: JsonRpcHistory
+    private val jsonRpcHistory: JsonRpcHistory,
 ) {
-
     private val _clientSyncJsonRpc: MutableSharedFlow<RequestSubscriptionPayloadVO> = MutableSharedFlow()
     internal val clientSyncJsonRpc: SharedFlow<RequestSubscriptionPayloadVO> = _clientSyncJsonRpc
 
@@ -42,23 +42,31 @@ internal class WalletConnectRelayer(
         manageSubscriptions()
     }
 
-    internal fun request(topic: TopicVO, payload: ClientSyncJsonRpc, onResult: (Result<JsonRpcResponseVO.JsonRpcResult>) -> Unit) {
-        if (jsonRpcHistory.setRequest(payload.id, topic)) {
+    internal fun publishJsonRpcRequests(topic: TopicVO, payload: SettlementSequence<*>, onResult: (Result<JsonRpcResponseVO.JsonRpcResult>) -> Unit) {
+        val serializedPayload = serializer.serialize(payload, topic)
+
+        if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, serializedPayload)) {
             scope.launch {
                 supervisorScope {
                     peerResponse
                         .filter { response -> response.id == payload.id }
                         .collect { response ->
                             when (response) {
-                                is RelayDO.JsonRpcResponse.JsonRpcResult -> onResult(Result.success(response.toJsonRpcResultVO()))
-                                is RelayDO.JsonRpcResponse.JsonRpcError -> onResult(Result.failure(Throwable(response.error.message)))
+                                is RelayDO.JsonRpcResponse.JsonRpcResult -> {
+                                    jsonRpcHistory.updateRequestStatus(payload.id, JsonRpcStatus.SUCCESS)
+                                    onResult(Result.success(response.toJsonRpcResultVO()))
+                                }
+                                is RelayDO.JsonRpcResponse.JsonRpcError -> {
+                                    jsonRpcHistory.updateRequestStatus(payload.id, JsonRpcStatus.FAILURE)
+                                    onResult(Result.failure(Throwable(response.error.message)))
+                                }
                             }
                             cancel()
                         }
                 }
             }
 
-            networkRepository.publish(topic, serializer.serialize(payload, topic)) { result ->
+            networkRepository.publish(topic, serializedPayload) { result ->
                 result.fold(
                     onSuccess = {},
                     onFailure = { error -> onResult(Result.failure(error)) }
@@ -67,11 +75,21 @@ internal class WalletConnectRelayer(
         }
     }
 
-    internal fun respond(topic: TopicVO, response: JsonRpcResponseVO, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {}) {
-        networkRepository.publish(topic, serializer.serialize(response.toRelayDOJsonRpcResponse(), topic)) { result ->
+    internal fun publishJsonRpcResponse(topic: TopicVO, response: JsonRpcResponseVO, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {}) {
+        val responseToDO = response.toRelayDOJsonRpcResponse()
+        val serializedPayload = serializer.serialize(responseToDO, topic)
+
+        jsonRpcHistory.setRequest(response.id, topic, null, serializedPayload)
+        networkRepository.publish(topic, serializedPayload) { result ->
             result.fold(
-                onSuccess = { onSuccess() },
-                onFailure = { error -> onFailure(error) }
+                onSuccess = {
+                    jsonRpcHistory.updateRequestStatus(response.id, JsonRpcStatus.SUCCESS)
+                    onSuccess()
+                },
+                onFailure = { error ->
+                    jsonRpcHistory.updateRequestStatus(response.id, JsonRpcStatus.FAILURE)
+                    onFailure(error)
+                }
             )
         }
     }
@@ -136,7 +154,7 @@ internal class WalletConnectRelayer(
 
     private suspend fun handleSessionRequest(decryptedMessage: String, topic: TopicVO) {
         val clientJsonRpc = serializer.tryDeserialize<RelayDO.ClientJsonRpc>(decryptedMessage)
-        if (clientJsonRpc != null && jsonRpcHistory.setRequest(clientJsonRpc.id, topic)) {
+        if (clientJsonRpc != null && jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(RequestSubscriptionPayloadVO(clientJsonRpc.id, topic, clientJsonRpc.method, params))
             }

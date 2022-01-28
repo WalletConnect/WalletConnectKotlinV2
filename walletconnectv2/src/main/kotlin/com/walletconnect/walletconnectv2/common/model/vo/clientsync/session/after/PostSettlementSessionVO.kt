@@ -2,15 +2,15 @@ package com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.aft
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.walletconnectv2.common.model.type.ClientSyncJsonRpc
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.SessionParamsVO
+import com.walletconnect.walletconnectv2.common.model.type.SettlementSequence
 import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
+import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.SessionParamsVO
 
-internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
+internal sealed class PostSettlementSessionVO : SettlementSequence<SessionParamsVO> {
     abstract override val id: Long
-    abstract val method: String
-    abstract val jsonrpc: String
-    abstract val params: SessionParamsVO
+    abstract override val method: String
+    abstract override val jsonrpc: String
+    abstract override val params: SessionParamsVO
 
     @JsonClass(generateAdapter = true)
     internal data class SessionPayload(
@@ -21,7 +21,7 @@ internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_PAYLOAD,
         @Json(name = "params")
-        override val params: SessionParamsVO.SessionPayloadParams
+        override val params: SessionParamsVO.SessionPayloadParams,
     ) : PostSettlementSessionVO()
 
     @JsonClass(generateAdapter = true)
@@ -33,7 +33,7 @@ internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_DELETE,
         @Json(name = "params")
-        override val params: SessionParamsVO.DeleteParams
+        override val params: SessionParamsVO.DeleteParams,
     ) : PostSettlementSessionVO()
 
     @JsonClass(generateAdapter = true)
@@ -45,7 +45,7 @@ internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_UPDATE,
         @Json(name = "params")
-        override val params: SessionParamsVO.UpdateParams
+        override val params: SessionParamsVO.UpdateParams,
     ) : PostSettlementSessionVO()
 
     @JsonClass(generateAdapter = true)
@@ -57,7 +57,7 @@ internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_UPGRADE,
         @Json(name = "params")
-        override val params: SessionParamsVO.SessionPermissionsParams
+        override val params: SessionParamsVO.SessionPermissionsParams,
     ) : PostSettlementSessionVO()
 
     @JsonClass(generateAdapter = true)
@@ -69,7 +69,7 @@ internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_PING,
         @Json(name = "params")
-        override val params: SessionParamsVO.PingParams
+        override val params: SessionParamsVO.PingParams,
     ) : PostSettlementSessionVO()
 
     @JsonClass(generateAdapter = true)
@@ -81,6 +81,6 @@ internal sealed class PostSettlementSessionVO : ClientSyncJsonRpc {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_NOTIFICATION,
         @Json(name = "params")
-        override val params: SessionParamsVO.NotificationParams
+        override val params: SessionParamsVO.NotificationParams,
     ) : PostSettlementSessionVO()
 }

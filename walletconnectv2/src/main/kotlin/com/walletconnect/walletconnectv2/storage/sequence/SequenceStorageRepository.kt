@@ -1,6 +1,5 @@
 package com.walletconnect.walletconnectv2.storage.sequence
 
-import com.walletconnect.walletconnectv2.Database
 import com.walletconnect.walletconnectv2.common.model.type.ControllerType
 import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
@@ -10,24 +9,27 @@ import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.befo
 import com.walletconnect.walletconnectv2.common.model.vo.sequence.PairingVO
 import com.walletconnect.walletconnectv2.common.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.util.Empty
+import org.walletconnect.walletconnectv2.storage.data.dao.MetaDataDaoQueries
+import org.walletconnect.walletconnectv2.storage.data.dao.PairingDaoQueries
+import org.walletconnect.walletconnectv2.storage.data.dao.SessionDaoQueries
 
 //TODO: Split into SessionStorageRepository and PairingStorageRepository
-internal class SequenceStorageRepository constructor(private val sequenceDatabase: Database) {
+internal class SequenceStorageRepository(private val pairingDaoQueries: PairingDaoQueries, private val sessionDaoQueries: SessionDaoQueries, private val metaDataDaoQueries: MetaDataDaoQueries) {
 
     @JvmSynthetic
     fun getListOfPairingVOs() =
-        sequenceDatabase.pairingDaoQueries.getListOfPairingDaos(mapper = this@SequenceStorageRepository::mapPairingDaoToPairingVO)
+        pairingDaoQueries.getListOfPairingDaos(mapper = this@SequenceStorageRepository::mapPairingDaoToPairingVO)
             .executeAsList()
 
     @JvmSynthetic
     fun getListOfSessionVOs() =
-        sequenceDatabase.sessionDaoQueries.getListOfSessionDaos(mapper = this@SequenceStorageRepository::mapSessionDaoToSessionVO)
+        sessionDaoQueries.getListOfSessionDaos(mapper = this@SequenceStorageRepository::mapSessionDaoToSessionVO)
             .executeAsList()
 
     @JvmSynthetic
     fun getPairingByTopic(topic: TopicVO): PairingVO? =
         //TODO:remove getPairingByTopic nullability
-        sequenceDatabase.pairingDaoQueries.getPairingByTopic(topic.value)
+        pairingDaoQueries.getPairingByTopic(topic.value)
             .executeAsOneOrNull()?.let { entity ->
                 PairingVO(
                     topic = TopicVO(entity.topic),
@@ -46,7 +48,7 @@ internal class SequenceStorageRepository constructor(private val sequenceDatabas
     @JvmSynthetic
     fun getSessionByTopic(topic: TopicVO): SessionVO? =
         // //TODO:remove getSessionByTopic nullability
-        sequenceDatabase.sessionDaoQueries.getSessionByTopic(topic.value)
+        sessionDaoQueries.getSessionByTopic(topic.value)
             .executeAsOneOrNull()?.let { entity ->
                 SessionVO(
                     topic = TopicVO(entity.topic),
@@ -68,7 +70,7 @@ internal class SequenceStorageRepository constructor(private val sequenceDatabas
     @JvmSynthetic
     fun insertPendingPairing(pairing: PairingVO, controllerType: ControllerType) {
         with(pairing) {
-            sequenceDatabase.pairingDaoQueries.insertPairing(
+            pairingDaoQueries.insertPairing(
                 topic.value,
                 uri,
                 expiry.seconds,
@@ -83,7 +85,7 @@ internal class SequenceStorageRepository constructor(private val sequenceDatabas
     @JvmSynthetic
     fun updateRespondedPairingToPreSettled(proposalTopic: TopicVO, pairing: PairingVO) {
         with(pairing) {
-            sequenceDatabase.pairingDaoQueries.updatePendingPairingToPreSettled(
+            pairingDaoQueries.updatePendingPairingToPreSettled(
                 topic.value,
                 expiry.seconds,
                 status,
@@ -98,13 +100,13 @@ internal class SequenceStorageRepository constructor(private val sequenceDatabas
 
     @JvmSynthetic
     fun updatePreSettledPairingToAcknowledged(pairing: PairingVO) {
-        sequenceDatabase.pairingDaoQueries.updatePreSettledPairingToAcknowledged(pairing.status, pairing.topic.value)
+        pairingDaoQueries.updatePreSettledPairingToAcknowledged(pairing.status, pairing.topic.value)
     }
 
     @JvmSynthetic
     fun updateProposedPairingToAcknowledged(pairing: PairingVO, pendingTopic: TopicVO) {
         with(pairing) {
-            sequenceDatabase.pairingDaoQueries.updateProposedPairingToAcknowledged(
+            pairingDaoQueries.updateProposedPairingToAcknowledged(
                 pairing.topic.value,
                 expiry.seconds,
                 status,
@@ -120,7 +122,7 @@ internal class SequenceStorageRepository constructor(private val sequenceDatabas
 
     @JvmSynthetic
     fun deletePairing(topic: TopicVO) {
-        sequenceDatabase.pairingDaoQueries.deletePairing(topic.value)
+        pairingDaoQueries.deletePairing(topic.value)
     }
 
     @JvmSynthetic
@@ -128,7 +130,7 @@ internal class SequenceStorageRepository constructor(private val sequenceDatabas
         val metadataId = insertMetaData(appMetaData)
 
         with(session) {
-            sequenceDatabase.sessionDaoQueries.insertSession(
+            sessionDaoQueries.insertSession(
                 topic = topic.value,
                 permissions_chains = chains,
                 permissions_methods = methods,
@@ -146,26 +148,26 @@ internal class SequenceStorageRepository constructor(private val sequenceDatabas
 
     private fun insertMetaData(appMetaData: AppMetaDataVO?): Long {
         return appMetaData?.let {
-            sequenceDatabase.metaDataDaoQueries.insertOrIgnoreMetaData(
+            metaDataDaoQueries.insertOrIgnoreMetaData(
                 appMetaData.name,
                 appMetaData.description,
                 appMetaData.url,
                 appMetaData.icons
             )
 
-            sequenceDatabase.metaDataDaoQueries.lastInsertedRowId().executeAsOne()
+            metaDataDaoQueries.lastInsertedRowId().executeAsOne()
         } ?: FAILED_INSERT_ID
     }
 
     @JvmSynthetic
     fun updateProposedSessionToResponded(session: SessionVO) {
-        sequenceDatabase.sessionDaoQueries.updateProposedSessionToResponded(session.status, session.topic.value)
+        sessionDaoQueries.updateProposedSessionToResponded(session.status, session.topic.value)
     }
 
     @JvmSynthetic
     fun updateRespondedSessionToPreSettled(session: SessionVO, pendingTopic: TopicVO) {
         with(session) {
-            sequenceDatabase.sessionDaoQueries.updateRespondedSessionToPresettled(
+            sessionDaoQueries.updateRespondedSessionToPresettled(
                 topic.value,
                 accounts,
                 expiry.seconds,
@@ -184,7 +186,7 @@ internal class SequenceStorageRepository constructor(private val sequenceDatabas
 
     @JvmSynthetic
     fun updatePreSettledSessionToAcknowledged(session: SessionVO) {
-        sequenceDatabase.sessionDaoQueries.updatePreSettledSessionToAcknowledged(session.status, session.topic.value)
+        sessionDaoQueries.updatePreSettledSessionToAcknowledged(session.status, session.topic.value)
     }
 
     @JvmSynthetic
@@ -192,7 +194,7 @@ internal class SequenceStorageRepository constructor(private val sequenceDatabas
 
         val metadataId = insertMetaData(session.appMetaData)
         with(session) {
-            sequenceDatabase.sessionDaoQueries.updateProposedSessionToAcknowledged(
+            sessionDaoQueries.updateProposedSessionToAcknowledged(
                 topic.value,
                 accounts,
                 expiry.seconds,
@@ -213,21 +215,21 @@ internal class SequenceStorageRepository constructor(private val sequenceDatabas
 
     @JvmSynthetic
     fun updateSessionWithAccounts(topic: String, accounts: List<String>) {
-        sequenceDatabase.sessionDaoQueries.updateSessionWithAccounts(accounts, topic)
+        sessionDaoQueries.updateSessionWithAccounts(accounts, topic)
     }
 
     @JvmSynthetic
     fun updateSessionWithPermissions(topic: String, blockChains: List<String>?, jsonRpcMethods: List<String>?) {
-        val (listOfChains, listOfMethods) = sequenceDatabase.sessionDaoQueries.getPermissionsByTopic(topic).executeAsOne()
+        val (listOfChains, listOfMethods) = sessionDaoQueries.getPermissionsByTopic(topic).executeAsOne()
         val chainsUnion = listOfChains.union((blockChains ?: emptyList())).toList()
         val methodsUnion = listOfMethods.union((jsonRpcMethods ?: emptyList())).toList()
-        sequenceDatabase.sessionDaoQueries.updateSessionWithPermissions(chainsUnion, methodsUnion, topic)
+        sessionDaoQueries.updateSessionWithPermissions(chainsUnion, methodsUnion, topic)
     }
 
     @JvmSynthetic
     fun deleteSession(topic: TopicVO) {
-        sequenceDatabase.metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
-        sequenceDatabase.sessionDaoQueries.deleteSession(topic.value)
+        metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
+        sessionDaoQueries.deleteSession(topic.value)
     }
 
     private fun mapPairingDaoToPairingVO(
