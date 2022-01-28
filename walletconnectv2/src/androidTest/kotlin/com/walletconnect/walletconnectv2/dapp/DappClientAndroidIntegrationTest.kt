@@ -25,7 +25,7 @@ class DappClientAndroidIntegrationTest {
     fun testDappConnectMethod() {
         val initParams =
             WalletConnect.Params.Init(
-                application = this,
+                application = app,
                 serverUrlConfig = WalletConnect.Params.ServerUrlConfig.Properties(
                     WalletConnect.Params.UrlProps(
                         hostName = "wss://relay.walletconnect.com/",
@@ -43,12 +43,14 @@ class DappClientAndroidIntegrationTest {
             )
         WalletConnectClient.initialize(initParams)
 
-        WalletConnectClient.connect(
-            WalletConnect.Model.SessionPermissions(
-                blockchain = WalletConnect.Model.Blockchain(listOf("1", "2")),
-                WalletConnect.Model.Jsonrpc(listOf("eth_sign"))
-            )
+        val connectParams = WalletConnect.Params.Connect(
+            permissions = WalletConnect.Model.SessionPermissions(
+                WalletConnect.Model.Blockchain(listOf("eip155:69")),
+                WalletConnect.Model.Jsonrpc(listOf("personal_sign"))
+            ), pairingTopic = null
         )
+
+        WalletConnectClient.connect(connectParams)
     }
 
 }
