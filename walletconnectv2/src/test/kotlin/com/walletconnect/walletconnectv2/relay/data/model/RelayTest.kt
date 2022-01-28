@@ -273,9 +273,9 @@ internal class RelayTest {
 //                any<WebSocket.Event.OnConnectionOpened<*>>(),
 //                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relayUnsubscribeRequest)
 //            )
-            serverRelayPublishObserver.awaitValues(
-                any<RelayDTO.Unsubscribe.Request> { assertThat(this).isEqualTo(relayUnsubscribeRequest) }
-            )
+//            serverRelayPublishObserver.awaitValues(
+//                any<RelayDTO.Unsubscribe.Request> { assertThat(this).isEqualTo(relayUnsubscribeRequest) }
+//            )
         }
 
         @Test
