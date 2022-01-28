@@ -27,19 +27,23 @@ internal class WalletConnectRelayer(
     private val serializer: JsonRpcSerializer,
     private val jsonRpcHistory: JsonRpcHistory
 ) {
-
     private val _clientSyncJsonRpc: MutableSharedFlow<RequestSubscriptionPayloadVO> = MutableSharedFlow()
     internal val clientSyncJsonRpc: SharedFlow<RequestSubscriptionPayloadVO> = _clientSyncJsonRpc
 
     private val peerResponse: MutableSharedFlow<RelayDO.JsonRpcResponse> = MutableSharedFlow()
-
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
-    val isConnectionOpened = MutableStateFlow(false)
 
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error(exception) }
+    val isConnectionOpened = MutableStateFlow(false)
+
+    val initializeErrorsFlow: Flow<WalletConnectException>
+        get() = networkRepository.eventsFlow
+            .onEach { event -> Logger.log("$event") }
+            .onEach { event: WebSocket.Event -> setOnConnectionOpen(event) }
+            .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
+            .map { error -> error.throwable.toWalletConnectException }
 
     init {
-        handleInitialisationErrors()
         manageSubscriptions()
     }
 
@@ -67,7 +71,6 @@ internal class WalletConnectRelayer(
             }
         }
     }
-
 
     internal fun respond(topic: TopicVO, response: JsonRpcResponseVO, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {}) {
         networkRepository.publish(topic, serializer.serialize(response.toRelayDOJsonRpcResponse(), topic)) { result ->
@@ -101,25 +104,6 @@ internal class WalletConnectRelayer(
                     onFailure = { error -> Logger.error("Unsubscribe to topic: $topic error: $error") }
                 )
             }
-        }
-    }
-
-    private fun handleInitialisationErrors() {
-        scope.launch(exceptionHandler) {
-            networkRepository.eventsFlow
-                .onEach { event -> Logger.log("$event") }
-                .onEach { event: WebSocket.Event ->
-                    if (event is WebSocket.Event.OnConnectionOpened<*>) {
-                        isConnectionOpened.compareAndSet(expect = false, update = true)
-                    } else if (event is WebSocket.Event.OnConnectionClosed) {
-                        isConnectionOpened.compareAndSet(expect = true, update = false)
-                    }
-                }
-                .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
-                .collect { event ->
-                    Logger.error(event.throwable.stackTraceToString())
-                    throw event.throwable.exception
-                }
         }
     }
 
@@ -159,14 +143,22 @@ internal class WalletConnectRelayer(
         }
     }
 
+    private fun setOnConnectionOpen(event: WebSocket.Event) {
+        if (event is WebSocket.Event.OnConnectionOpened<*>) {
+            isConnectionOpened.compareAndSet(expect = false, update = true)
+        } else if (event is WebSocket.Event.OnConnectionClosed) {
+            isConnectionOpened.compareAndSet(expect = true, update = false)
+        }
+    }
+
     @get:JvmSynthetic
-    private val Throwable.exception: Throwable
+    private val Throwable.toWalletConnectException: WalletConnectException
         get() =
             when {
-                this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) ==
-                        true -> WalletConnectException.ProjectIdDoesNotExistException(this.message)
-                this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) ==
-                        true -> WalletConnectException.InvalidProjectIdException(this.message)
+                this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
+                    WalletConnectException.ProjectIdDoesNotExistException(this.message)
+                this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
+                    WalletConnectException.InvalidProjectIdException(this.message)
                 else -> WalletConnectException.ServerException(this.message)
             }
 }
