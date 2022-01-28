@@ -7,7 +7,6 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.Pairin
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.PreSettlementPairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.proposal.*
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.success.PairingParticipantVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.success.PairingStateVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.params.SessionPermissionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.*
