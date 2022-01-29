@@ -34,7 +34,7 @@ internal class JsonRpcHistory(private val controllerType: ControllerType, privat
     private fun tryMigrationToDB(requestId: Long) {
         if (sharedPreferences.contains(requestId.toString())) {
             sharedPreferences.getString(requestId.toString(), null)?.let { topicValue ->
-                jsonRpcHistoryQueries.insertJsonRpcHistory(requestId, topicValue, null, null, JsonRpcStatus.SUCCESS, controllerType)
+                jsonRpcHistoryQueries.insertJsonRpcHistory(requestId, topicValue, null, null, JsonRpcStatus.REQUEST_SUCCESS, controllerType)
             }
 
             sharedPreferences.edit().remove(requestId.toString()).apply()

@@ -52,12 +52,8 @@ internal class WalletConnectRelayer(
                         .filter { response -> response.id == payload.id }
                         .collect { response ->
                             when (response) {
-                                is RelayDO.JsonRpcResponse.JsonRpcResult -> {
-                                    jsonRpcHistory.updateRequestStatus(payload.id, JsonRpcStatus.SUCCESS)
-                                    onResult(Result.success(response.toJsonRpcResultVO()))
-                                }
+                                is RelayDO.JsonRpcResponse.JsonRpcResult -> onResult(Result.success(response.toJsonRpcResultVO()))
                                 is RelayDO.JsonRpcResponse.JsonRpcError -> {
-                                    jsonRpcHistory.updateRequestStatus(payload.id, JsonRpcStatus.FAILURE)
                                     onResult(Result.failure(Throwable(response.error.message)))
                                 }
                             }
@@ -68,8 +64,11 @@ internal class WalletConnectRelayer(
 
             networkRepository.publish(topic, serializedPayload) { result ->
                 result.fold(
-                    onSuccess = {},
-                    onFailure = { error -> onResult(Result.failure(error)) }
+                    onSuccess = {jsonRpcHistory.updateRequestStatus(payload.id, JsonRpcStatus.REQUEST_SUCCESS)},
+                    onFailure = { error ->
+                        jsonRpcHistory.updateRequestStatus(payload.id, JsonRpcStatus.REQUEST_FAILURE)
+                        onResult(Result.failure(error))
+                    }
                 )
             }
         }
@@ -79,15 +78,14 @@ internal class WalletConnectRelayer(
         val responseToDO = response.toRelayDOJsonRpcResponse()
         val serializedPayload = serializer.serialize(responseToDO, topic)
 
-        jsonRpcHistory.setRequest(response.id, topic, null, serializedPayload)
         networkRepository.publish(topic, serializedPayload) { result ->
             result.fold(
                 onSuccess = {
-                    jsonRpcHistory.updateRequestStatus(response.id, JsonRpcStatus.SUCCESS)
+                    jsonRpcHistory.updateRequestStatus(response.id, JsonRpcStatus.RESPOND_SUCCESS)
                     onSuccess()
                 },
                 onFailure = { error ->
-                    jsonRpcHistory.updateRequestStatus(response.id, JsonRpcStatus.FAILURE)
+                    jsonRpcHistory.updateRequestStatus(response.id, JsonRpcStatus.RESPOND_FAILURE)
                     onFailure(error)
                 }
             )
