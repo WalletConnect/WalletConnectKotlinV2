@@ -1,6 +1,7 @@
 package com.walletconnect.sample
 
 import android.app.Application
+import android.net.Uri
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 
@@ -14,7 +15,7 @@ class SampleApplication : Application() {
             application = this,
             useTls = true,
             hostName = WALLET_CONNECT_URL,
-            projectId = PROJECT_ID,
+            projectId = "",     //TODO: register at https://walletconnect.com/register to get a project ID
             isController = false,
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Dapp",
@@ -27,7 +28,7 @@ class SampleApplication : Application() {
         // TODO: Move to Wallet example once separate workflow is added
         val init2 = WalletConnect.Params.Init(
             application = this,
-            relayServerUrl = "wss://$WALLET_CONNECT_URL/?projectId=$PROJECT_ID",
+            relayServerUrl = "wss://$WALLET_CONNECT_URL/?projectId=",   //TODO: register at https://walletconnect.com/register to get a project ID
             isController = true,
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Wallet",
@@ -48,6 +49,5 @@ class SampleApplication : Application() {
 
     private companion object {
         const val WALLET_CONNECT_URL = "relay.walletconnect.com"
-        const val PROJECT_ID = "2ee94aca5d98e6c05c38bce02bee952a" //TODO: register at https://walletconnect.com/register to get a project ID
     }
 }

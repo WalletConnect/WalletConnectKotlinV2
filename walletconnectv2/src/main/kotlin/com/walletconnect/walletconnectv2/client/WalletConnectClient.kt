@@ -76,10 +76,10 @@ object WalletConnectClient {
         engineInteractor.proposeSequence(permissions.toEngineSessionPermissions(), pairingTopic)
 
     @Throws(IllegalStateException::class)
-    fun pair(pair: WalletConnect.Params.Pair, pairing: WalletConnect.Listeners.Pairing) {
+    fun pair(pair: WalletConnect.Params.Pair, pairing: WalletConnect.Listeners.Pairing? = null) {
         engineInteractor.pair(pair.uri,
-            { topic -> pairing.onSuccess(WalletConnect.Model.SettledPairing(topic)) },
-            { error -> pairing.onError(error) })
+            { topic -> pairing?.onSuccess(WalletConnect.Model.SettledPairing(topic)) },
+            { error -> pairing?.onError(error) })
     }
 
     @Throws(IllegalStateException::class)
