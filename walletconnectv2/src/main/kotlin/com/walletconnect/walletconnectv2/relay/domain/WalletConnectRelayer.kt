@@ -76,9 +76,7 @@ internal class WalletConnectRelayer(
         networkRepository.publish(topic, serializer.serialize(response.toRelayDOJsonRpcResponse(), topic)) { result ->
             result.fold(
                 onSuccess = { onSuccess() },
-                onFailure = { error ->
-                    onFailure(error)
-                }
+                onFailure = { error -> onFailure(error) }
             )
         }
     }

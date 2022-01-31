@@ -74,12 +74,13 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun connect(connect: WalletConnect.Params.Connect): String? {
+    fun connect(connect: WalletConnect.Params.Connect, onFailure: (Throwable) -> Unit = {}): String? {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
         return engineInteractor.proposeSequence(connect.permissions.toEngineSessionPermissions(), connect.pairingTopic)
+        { error -> onFailure(error) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)

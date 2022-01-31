@@ -64,7 +64,7 @@ internal class EngineInteractor(
         relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
 
-    internal fun proposeSequence(permissions: EngineDO.SessionPermissions, pairingTopic: String?): String? {
+    internal fun proposeSequence(permissions: EngineDO.SessionPermissions, pairingTopic: String?, onFailure: (Throwable) -> Unit): String? {
         checkPeer(ControllerType.NON_CONTROLLER) {
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_CONNECT_MESSAGE)
         }
@@ -74,14 +74,17 @@ internal class EngineInteractor(
         }
 
         if (pairingTopic != null) {
-            checkSequence(TopicVO(pairingTopic)) { throw WalletConnectException.CannotFindSequenceForTopic("Topic: $pairingTopic") }
-            proposeSession(permissions, pairingTopic)
+            checkSequence(TopicVO(pairingTopic)) {
+                throw WalletConnectException.CannotFindSequenceForTopic("Topic: $pairingTopic")
+            }
+            proposeSession(permissions, pairingTopic) { error -> onFailure(error) }
+            sessionPermissions
             return null
         }
         return proposePairing(permissions)
     }
 
-    private fun proposeSession(permissions: EngineDO.SessionPermissions, pairingTopic: String) {
+    private fun proposeSession(permissions: EngineDO.SessionPermissions, pairingTopic: String, onFailure: (Throwable) -> Unit) {
         val settledPairing: PairingVO = sequenceStorageRepository.getPairingByTopic(TopicVO(pairingTopic))
         if (settledPairing.status == SequenceStatus.ACKNOWLEDGED) {
             val pendingSessionTopic: TopicVO = generateTopic()
@@ -104,12 +107,13 @@ internal class EngineInteractor(
                 result.fold(
                     onSuccess = { Logger.log("Session proposal response received") },
                     onFailure = { error ->
-                        Logger.error("Peer failed to pair: $error")
+                        Logger.error("Failed to propose session: $error")
                         with(proposalParams) {
                             relayer.unsubscribe(topic)
                             sequenceStorageRepository.deleteSession(topic)
                             crypto.removeKeys(topic.value)
                         }
+                        onFailure(error)
                     }
                 )
             }
@@ -277,8 +281,7 @@ internal class EngineInteractor(
         }
 
         //TODO: Add JsonRpcResponseVO validation
-        relayer.respond(
-            TopicVO(topic), jsonRpcResponse,
+        relayer.respond(TopicVO(topic), jsonRpcResponse,
             { Logger.error("Session payload sent successfully") },
             { error ->
                 onFailure(error)
@@ -476,7 +479,6 @@ internal class EngineInteractor(
 
     private fun onPairingApprove(params: PairingParamsVO.ApproveParams, topic: TopicVO, requestId: Long): SequenceLifecycle {
         checkSequence(topic) { Logger.error("onPairingApproved: No pending pairing for topic: $topic") }.also { isValid -> if (!isValid) return EngineDO.FailedTopic }
-        //TODO: Add params validation
 
         val pendingPairing: PairingVO = sequenceStorageRepository.getPairingByTopic(topic)
         if (pendingPairing.status != SequenceStatus.PROPOSED) {
@@ -495,7 +497,10 @@ internal class EngineInteractor(
         relayer.respond(pendingPairing.topic, jsonRpcResult.toJsonRpcResult(),
             onFailure = { error -> Logger.error("onPairingApproved: Cannot send the respond, error: $error") })
 
-        //TODO: add permission check
+        if (!this::sessionPermissions.isInitialized) {
+            Logger.error("onPairingApproved: Cannot find permissions for pending session")
+            return EngineDO.NoSession
+        }
         proposeSession(sessionPermissions, settledTopic.value)
         return acknowledgedPairing.toEngineDOSettledPairing()
     }
@@ -649,9 +654,6 @@ internal class EngineInteractor(
             onTopicNotFound()
             isValid = false
         }
-//        else {
-//            sequenceStorageRepository.getSessionByTopic(topic).expiry.isSequenceValid()
-//        }
         return isValid
     }
 
