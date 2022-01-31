@@ -124,7 +124,7 @@ internal sealed class EngineDO {
     internal data class SessionState(val accounts: List<String>) : EngineDO()
 
     internal data class SessionPermissions(
-        val blockchain: Blockchain, val jsonRpc: JsonRpc, val notification: SessionNotification? = null
+        val blockchain: Blockchain, val jsonRpc: JsonRpc, val notification: Notifications? = null
     ) : EngineDO()
 
     internal data class Blockchain(val chains: List<String>) : EngineDO()

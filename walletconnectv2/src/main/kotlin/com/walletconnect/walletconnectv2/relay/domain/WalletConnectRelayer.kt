@@ -36,7 +36,7 @@ internal class WalletConnectRelayer(
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error(exception) }
     val isConnectionOpened = MutableStateFlow(false)
 
-    val initializeErrorsFlow: Flow<WalletConnectException>
+    val initializationErrorsFlow: Flow<WalletConnectException>
         get() = networkRepository.eventsFlow
             .onEach { event -> Logger.log("$event") }
             .onEach { event: WebSocket.Event -> setOnConnectionOpen(event) }

@@ -19,5 +19,6 @@ internal const val UNAUTHORIZED_UPGRADE_MESSAGE: String =
 
 internal const val EMPTY_CHAIN_LIST_MESSAGE: String = "List of chains in session permissions cannot be empty"
 internal const val EMPTY_RPC_METHODS_LIST_MESSAGE: String = "List of rpc methods in session permissions cannot be empty"
+internal const val INVALID_NOTIFICATIONS_TYPES_MESSAGE: String = "Invalid notification types"
 internal const val WRONG_CHAIN_ID_FORMAT_MESSAGE: String =
     "Blockchain chaiId does not follow the CAIP2 semantics. See: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-2.md "

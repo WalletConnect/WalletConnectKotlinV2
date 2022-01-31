@@ -61,7 +61,7 @@ internal class EngineInteractor(
     }
 
     fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-        relayer.initializeErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
+        relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
 
     internal fun proposeSequence(permissions: EngineDO.SessionPermissions, pairingTopic: String?): String? {
