@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.relay.model
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.walletconnectv2.common.model.type.SerializableJsonRpc
+import com.walletconnect.walletconnectv2.core.model.type.SerializableJsonRpc
 
 internal sealed class RelayDO {
 

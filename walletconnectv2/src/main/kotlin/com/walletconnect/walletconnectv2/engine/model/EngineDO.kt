@@ -1,14 +1,13 @@
 package com.walletconnect.walletconnectv2.engine.model
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.walletconnectv2.common.model.type.Sequence
-import com.walletconnect.walletconnectv2.common.model.type.SequenceLifecycle
-import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
-import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
+import com.walletconnect.walletconnectv2.core.model.type.Sequence
+import com.walletconnect.walletconnectv2.core.model.type.SequenceLifecycle
+import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
+import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
-import com.walletconnect.walletconnectv2.util.Empty
 import java.net.URI
 
 internal sealed class EngineDO {
@@ -57,6 +56,11 @@ internal sealed class EngineDO {
         val reason: String
     ) : EngineDO(), SequenceLifecycle
 
+    internal data class DeletedPairing(
+        val topic: String,
+        val reason: String
+    ) : EngineDO(), SequenceLifecycle
+
     internal data class SessionNotification(
         val topic: String,
         val type: String,
@@ -66,7 +70,7 @@ internal sealed class EngineDO {
     internal data class SettledPairing(
         val topic: TopicVO,
         val relay: String,
-        val permissions: SessionPermissions
+        val appMetaData: AppMetaData?
     ) : EngineDO(), SequenceLifecycle
 
     internal data class SessionRejected(
@@ -81,6 +85,9 @@ internal sealed class EngineDO {
     ) : EngineDO(), SequenceLifecycle
 
     internal object Default : SequenceLifecycle
+    internal object FailedTopic : SequenceLifecycle
+    internal object NoSession : SequenceLifecycle
+    internal object NoPairing : SequenceLifecycle
 
     internal data class Notification(
         val type: String,
@@ -118,14 +125,13 @@ internal sealed class EngineDO {
     internal data class JsonRpc(val methods: List<String>) : EngineDO()
 
     internal data class AppMetaData(
-        val name: String = "Peer",
-        val description: String = String.Empty,
-        val url: String = String.Empty,
-        val icons: List<String> = emptyList()
+        val name: String,
+        val description: String,
+        val url: String,
+        val icons: List<String>
     ) : EngineDO()
 
     internal sealed class JsonRpcResponse : EngineDO() {
-
         abstract val id: Long
 
         @JsonClass(generateAdapter = true)
@@ -147,4 +153,6 @@ internal sealed class EngineDO {
             val message: String,
         )
     }
+
+    internal data class Request(val topic: String, val method: String, val params: String, val chainId: String?) : EngineDO()
 }

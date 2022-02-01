@@ -1,19 +1,5 @@
 package com.walletconnect.walletconnectv2.common
 
-import com.walletconnect.walletconnectv2.common.model.vo.ExpiryVO
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
-import io.mockk.every
-import io.mockk.mockk
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Test
-import com.walletconnect.walletconnectv2.common.model.vo.PublicKey
-import com.walletconnect.walletconnectv2.engine.model.mapper.toApprove
-import com.walletconnect.walletconnectv2.engine.model.mapper.toPairProposal
-import com.walletconnect.walletconnectv2.engine.model.mapper.toPairingSuccess
-import com.walletconnect.walletconnectv2.util.getRandom64ByteHexString
-import kotlin.test.assertEquals
-
 internal class MappingFunctionsTest {
 
 //    @Test

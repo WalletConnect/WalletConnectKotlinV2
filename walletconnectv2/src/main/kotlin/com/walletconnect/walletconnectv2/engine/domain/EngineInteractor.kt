@@ -1,24 +1,26 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
-import com.walletconnect.walletconnectv2.common.model.type.ControllerType
-import com.walletconnect.walletconnectv2.common.model.type.SequenceLifecycle
-import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
-import com.walletconnect.walletconnectv2.common.model.vo.*
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.PairingParamsVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.after.PostSettlementPairingVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.after.payload.ProposalRequestVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.success.PairingStateVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.SessionParamsVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.PostSettlementSessionVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.params.ReasonVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.PreSettlementSessionVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.SessionProposerVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.success.SessionParticipantVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.common.SessionStateVO
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.PairingVO
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.SessionVO
-import com.walletconnect.walletconnectv2.common.scope.scope
+import com.walletconnect.walletconnectv2.core.exceptions.*
+import com.walletconnect.walletconnectv2.core.model.type.ControllerType
+import com.walletconnect.walletconnectv2.core.model.type.SequenceLifecycle
+import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
+import com.walletconnect.walletconnectv2.core.model.vo.*
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.PairingParamsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.after.PostSettlementPairingVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.after.payload.ProposalRequestVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.success.PairingStateVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionParamsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.PostSettlementSessionVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.params.ReasonVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.params.SessionRequestVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.PreSettlementSessionVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.SessionProposerVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.success.SessionParticipantVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.common.SessionStateVO
+import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
+import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
+import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.engine.model.mapper.*
@@ -59,8 +61,14 @@ internal class EngineInteractor(
     }
 
     internal fun proposeSequence(permissions: EngineDO.SessionPermissions, pairingTopic: String?): String? {
-        //TODO: Add permissions validation
+        checkPeer(ControllerType.NON_CONTROLLER, UNAUTHORIZED_CONNECT_MESSAGE)
+
         if (pairingTopic != null) {
+            if (!sequenceStorageRepository.hasPairingTopic(TopicVO(pairingTopic))) {
+                throw WalletConnectException.CannotFindSequenceForTopic("Topic: $pairingTopic")
+            }
+
+            //TODO: Add permissions validation
             proposeSession(permissions, pairingTopic)
             return null
         }
@@ -68,30 +76,23 @@ internal class EngineInteractor(
     }
 
     private fun proposeSession(permissions: EngineDO.SessionPermissions, pairingTopic: String) {
-        //TODO: add permissions check, topic check, remove getPairingByTopic nullability
-        val settledPairing: PairingVO? = sequenceStorageRepository.getPairingByTopic(TopicVO(pairingTopic))
-        if (settledPairing != null && settledPairing.status == SequenceStatus.ACKNOWLEDGED) {
+        val settledPairing: PairingVO = sequenceStorageRepository.getPairingByTopic(TopicVO(pairingTopic))
+        if (settledPairing.status == SequenceStatus.ACKNOWLEDGED) {
             val pendingSessionTopic: TopicVO = generateTopic()
             val selfPublicKey: PublicKey = crypto.generateKeyPair()
             val isController = controllerType == ControllerType.CONTROLLER
-            val proposalParams = SessionProposerVO(selfPublicKey.keyAsHex, isController, metaData.toClientSyncMetaData())
+            val proposalParams = SessionProposerVO(selfPublicKey.keyAsHex, isController, metaData.toMetaDataVO())
                 .toProposalParams(pendingSessionTopic, settledPairing.topic, permissions)
 
             val proposedSession: SessionVO = proposalParams.toProposedSessionVO(pendingSessionTopic, selfPublicKey, controllerType)
-            sequenceStorageRepository.insertSessionProposal(proposedSession, metaData.toClientSyncMetaData(), controllerType)
+            sequenceStorageRepository.insertSessionProposal(proposedSession, metaData.toMetaDataVO(), controllerType)
             relayer.subscribe(pendingSessionTopic)
 
             val (sharedKey, publicKey) = crypto.getKeyAgreement(settledPairing.topic)
             crypto.setEncryptionKeys(sharedKey as SharedKey, publicKey as PublicKey, pendingSessionTopic)
-            val sessionProposal = PostSettlementPairingVO.PairingPayload(
-                id = generateId(),
-                params = PairingParamsVO.PayloadParams(
-                    request = ProposalRequestVO(
-                        method = JsonRpcMethod.WC_SESSION_PROPOSE,
-                        params = proposalParams
-                    )
-                )
-            )
+
+            val params = PairingParamsVO.PayloadParams(ProposalRequestVO(JsonRpcMethod.WC_SESSION_PROPOSE, params = proposalParams))
+            val sessionProposal = PostSettlementPairingVO.PairingPayload(id = generateId(), params = params)
 
             relayer.publishJsonRpcRequests(settledPairing.topic, sessionProposal) { result ->
                 result.fold(
@@ -122,7 +123,11 @@ internal class EngineInteractor(
     }
 
     internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
+        checkPeer(ControllerType.CONTROLLER, UNAUTHORIZED_PAIR_MESSAGE)
         val proposal: PairingParamsVO.Proposal = uri.toPairProposal()
+        if (sequenceStorageRepository.hasPairingTopic(proposal.topic)) throw WalletConnectException.PairWithExistingPairingIsNotAllowed
+
+        //TODO: Add WC URI validation
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val (_, settledTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, PublicKey(proposal.proposer.publicKey))
         val respondedPairing = proposal.toRespondedPairingVO(settledTopic, selfPublicKey, uri, controllerType)
@@ -134,7 +139,7 @@ internal class EngineInteractor(
         relayer.subscribe(settledTopic)
         sequenceStorageRepository.updateRespondedPairingToPreSettled(proposal.topic, preSettledPairing)
 
-        val preSettlementPairingApprove = proposal.toApprove(generateId(), settledTopic, preSettledPairing.expiry, selfPublicKey)
+        val preSettlementPairingApprove = proposal.toApprove(generateId(), preSettledPairing.expiry, selfPublicKey)
         relayer.isConnectionOpened
             .filter { isOnline -> isOnline }
             .onEach {
@@ -158,20 +163,23 @@ internal class EngineInteractor(
     }
 
     private fun pairingUpdate(settledSequence: PairingVO) {
-        val pairingUpdate: PostSettlementPairingVO.PairingUpdate =
-            PostSettlementPairingVO.PairingUpdate(
-                id = generateId(),
-                params = PairingParamsVO.UpdateParams(state = PairingStateVO(metaData?.toClientSyncMetaData()))
-            )
+        val params = PairingParamsVO.UpdateParams(state = PairingStateVO(metaData.toMetaDataVO()))
+        val pairingUpdate: PostSettlementPairingVO.PairingUpdate = PostSettlementPairingVO.PairingUpdate(id = generateId(), params = params)
         relayer.publishJsonRpcRequests(settledSequence.topic, pairingUpdate) { result ->
             result.fold(
-                onSuccess = { Logger.log("Responder; Pairing update success") },
+                onSuccess = {
+                    sequenceStorageRepository.updateAcknowledgedPairingMetadata(metaData.toMetaDataVO(), settledSequence.topic)
+                    Logger.log("Responder; Pairing update success")
+                },
                 onFailure = { error -> Logger.error("Pairing update error: $error") }
             )
         }
     }
 
     internal fun approve(proposal: EngineDO.SessionProposal, onSuccess: (EngineDO.SettledSession) -> Unit, onFailure: (Throwable) -> Unit) {
+        checkPeer(ControllerType.CONTROLLER, UNAUTHORIZED_APPROVE_MESSAGE)
+
+        //TODO: Add SessionProposal validation
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val (_, settledTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, PublicKey(proposal.publicKey))
         val respondedSession = proposal.toRespondedSessionVO(selfPublicKey, controllerType)
@@ -183,13 +191,14 @@ internal class EngineInteractor(
         relayer.subscribe(settledTopic)
         sequenceStorageRepository.updateRespondedSessionToPreSettled(preSettledSession, TopicVO(proposal.topic))
 
-        val sessionApprove = PreSettlementSessionVO.Approve(
-            id = generateId(), params = SessionParamsVO.ApprovalParams(
-                relay = RelayProtocolOptionsVO(), state = SessionStateVO(proposal.accounts), expiry = preSettledSession.expiry,
-                responder = SessionParticipantVO(selfPublicKey.keyAsHex, metadata = metaData.toClientSyncMetaData())
-            )
-        )
 
+        val params = SessionParamsVO.ApprovalParams(
+            relay = RelayProtocolOptionsVO(),
+            state = SessionStateVO(proposal.accounts),
+            expiry = preSettledSession.expiry,
+            responder = SessionParticipantVO(selfPublicKey.keyAsHex, metadata = metaData.toMetaDataVO())
+        )
+        val sessionApprove = PreSettlementSessionVO.Approve(id = generateId(), params = params)
         relayer.publishJsonRpcRequests(TopicVO(proposal.topic), sessionApprove) { result ->
             result.fold(
                 onSuccess = {
@@ -211,9 +220,13 @@ internal class EngineInteractor(
     }
 
     internal fun reject(reason: String, topic: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
-        val sessionReject = PreSettlementSessionVO.Reject(id = generateId(), params = SessionParamsVO.RejectParams(reason = reason))
-        onSuccess(Pair(topic, reason))
+        checkPeer(ControllerType.CONTROLLER, UNAUTHORIZED_REJECT_MESSAGE)
+
+        //TODO: Add error code
+        val params = SessionParamsVO.RejectParams(reason = ReasonVO(message = reason))
+        val sessionReject = PreSettlementSessionVO.Reject(id = generateId(), params = params)
         sequenceStorageRepository.deleteSession(TopicVO(topic))
+        onSuccess(Pair(topic, reason))
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionReject) { result ->
             result.fold(
                 onSuccess = {
@@ -226,8 +239,10 @@ internal class EngineInteractor(
     }
 
     internal fun disconnect(topic: String, reason: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
-        val sessionDelete =
-            PostSettlementSessionVO.SessionDelete(id = generateId(), params = SessionParamsVO.DeleteParams(ReasonVO(message = reason)))
+        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
+
+        val deleteParams = SessionParamsVO.DeleteParams(ReasonVO(message = reason))
+        val sessionDelete = PostSettlementSessionVO.SessionDelete(id = generateId(), params = deleteParams)
         sequenceStorageRepository.deleteSession(TopicVO(topic))
         relayer.unsubscribe(TopicVO(topic))
         onSuccess(Pair(topic, reason))
@@ -240,7 +255,12 @@ internal class EngineInteractor(
     }
 
     internal fun respondSessionPayload(topic: String, jsonRpcResponse: JsonRpcResponseVO, onFailure: (Throwable) -> Unit) {
-        relayer.publishJsonRpcResponse(TopicVO(topic), jsonRpcResponse,
+        checkPeer(ControllerType.CONTROLLER, UNAUTHORIZED_RESPOND_MESSAGE)
+        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
+
+        //TODO: Add JsonRpcResponseVO validation
+        relayer.publishJsonRpcResponse(
+            TopicVO(topic), jsonRpcResponse,
             { Logger.error("Session payload sent successfully") },
             { error ->
                 onFailure(error)
@@ -248,21 +268,42 @@ internal class EngineInteractor(
             })
     }
 
+    internal fun sessionRequest(
+        request: EngineDO.Request,
+        onSuccess: (EngineDO.JsonRpcResponse.JsonRpcResult) -> Unit,
+        onFailure: (Throwable) -> Unit
+    ) {
+        checkPeer(ControllerType.NON_CONTROLLER, UNAUTHORIZED_REQUEST_MESSAGE)
+        val topic = TopicVO(request.topic)
+        if (!sequenceStorageRepository.hasSessionTopic(topic)) throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
+
+        //TODO: Add Request validation
+        val params = SessionParamsVO.SessionPayloadParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
+        val sessionPayload = PostSettlementSessionVO.SessionPayload(id = generateId(), params = params)
+        relayer.publishJsonRpcRequests(topic, sessionPayload) { result ->
+            result.fold(
+                onSuccess = { jsonRpcResult -> onSuccess(jsonRpcResult.toEngineJsonRpcResult()) },
+                onFailure = { error -> onFailure(error) }
+            )
+        }
+    }
+
     internal fun update(
         topic: String,
-        sessionState: EngineDO.SessionState,
+        state: EngineDO.SessionState,
         onSuccess: (Pair<String, List<String>>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
-        val sessionUpdate: PostSettlementSessionVO.SessionUpdate =
-            PostSettlementSessionVO.SessionUpdate(
-                id = generateId(),
-                params = SessionParamsVO.UpdateParams(SessionStateVO(sessionState.accounts))
-            )
-        sequenceStorageRepository.updateSessionWithAccounts(topic, sessionState.accounts)
+        checkPeer(ControllerType.CONTROLLER, UNAUTHORIZED_UPDATE_MESSAGE)
+        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
+
+        //TODO: Add accounts validation
+        val params = SessionParamsVO.UpdateParams(SessionStateVO(state.accounts))
+        val sessionUpdate: PostSettlementSessionVO.SessionUpdate = PostSettlementSessionVO.SessionUpdate(id = generateId(), params = params)
+        sequenceStorageRepository.updateSessionWithAccounts(topic, state.accounts)
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdate) { result ->
             result.fold(
-                onSuccess = { onSuccess(Pair(topic, sessionState.accounts)) },
+                onSuccess = { onSuccess(Pair(topic, state.accounts)) },
                 onFailure = { error -> onFailure(error) }
             )
         }
@@ -273,11 +314,13 @@ internal class EngineInteractor(
         onSuccess: (Pair<String, EngineDO.SessionPermissions>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
-        val sessionUpgrade = PostSettlementSessionVO.SessionUpgrade(
-            id = generateId(),
-            params = SessionParamsVO.SessionPermissionsParams(permissions = permissions.toSessionsPermissions())
-        )
-        sequenceStorageRepository.updateSessionWithPermissions(topic, permissions.blockchain?.chains, permissions.jsonRpc?.methods)
+        checkPeer(ControllerType.CONTROLLER, UNAUTHORIZED_UPGRADE_MESSAGE)
+        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
+
+        //TODO: Add permissions validation
+        val permissionsParams = SessionParamsVO.SessionPermissionsParams(permissions = permissions.toSessionsPermissions())
+        val sessionUpgrade = PostSettlementSessionVO.SessionUpgrade(id = generateId(), params = permissionsParams)
+        sequenceStorageRepository.updateSessionWithPermissions(topic, permissions.blockchain.chains, permissions.jsonRpc.methods)
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpgrade) { result ->
             result.fold(
                 onSuccess = { onSuccess(Pair(topic, permissions)) },
@@ -287,11 +330,11 @@ internal class EngineInteractor(
     }
 
     internal fun notify(topic: String, notification: EngineDO.Notification, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
-        /*TODO check whether under given topic there is a pairing or session stored and create proper Notification class*/
-        //val pairingNotification = PostSettlementPairing.PairingNotification(id = generateId(), params = Pairing.NotificationParams(notification.type, notification.data))
-        val sessionNotification =
-            PostSettlementSessionVO
-                .SessionNotification(id = generateId(), params = SessionParamsVO.NotificationParams(notification.type, notification.data))
+        if (!sequenceStorageRepository.hasSessionTopic(TopicVO(topic))) throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
+
+        //TODO: Add Notification validation
+        val notificationParams = SessionParamsVO.NotificationParams(notification.type, notification.data)
+        val sessionNotification = PostSettlementSessionVO.SessionNotification(id = generateId(), params = notificationParams)
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionNotification) { result ->
             result.fold(
                 onSuccess = { onSuccess(topic) },
@@ -301,10 +344,15 @@ internal class EngineInteractor(
     }
 
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
-        /*TODO check whether under given topic there is a pairing or session stored and create proper Ping class*/
-        //val pairingParams = PostSettlementPairing.PairingPing(id = generateId(), params = Pairing.PingParams())
-        val sessionPing = PostSettlementSessionVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams())
-        relayer.publishJsonRpcRequests(TopicVO(topic), sessionPing) { result ->
+        val pingParams = when {
+            sequenceStorageRepository.hasSessionTopic(TopicVO(topic)) ->
+                PostSettlementSessionVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams())
+            sequenceStorageRepository.hasPairingTopic(TopicVO(topic)) ->
+                PostSettlementPairingVO.PairingPing(id = generateId(), params = PairingParamsVO.PingParams())
+            else -> throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
+        }
+
+        relayer.publishJsonRpcRequests(TopicVO(topic), pingParams) { result ->
             result.fold(
                 onSuccess = { onSuccess(topic) },
                 onFailure = { error -> onFailure(error) }
@@ -323,38 +371,54 @@ internal class EngineInteractor(
             is SessionParamsVO.SessionPayloadParams -> onSessionPayload(payload.params, payload.topic, payload.requestId)
             is SessionParamsVO.NotificationParams -> onSessionNotification(payload.params, payload.topic)
             is PairingParamsVO.PingParams, is SessionParamsVO.PingParams -> onPing(payload.topic, payload.requestId)
+            //TODO add on pairing update to return the metadata for pairing, update pairing meta data in DB
             else -> EngineDO.Default
         }
 
     private fun onPairingApprove(params: PairingParamsVO.ApproveParams, pendingTopic: TopicVO, requestId: Long): SequenceLifecycle {
-        //TODO: message validation, topic check, remove getPairingByTopic nullability
-        val pendingPairing: PairingVO? = sequenceStorageRepository.getPairingByTopic(pendingTopic)
-        if (pendingPairing == null || pendingPairing.status != SequenceStatus.PROPOSED) {
-            Logger.log("onPairingApproved: No pending pairing for topic: $pendingTopic")
-            return EngineDO.Default
+        //TODO: Add params validation
+
+        if (!sequenceStorageRepository.hasPairingTopic(pendingTopic)) {
+            Logger.error("onPairingApproved: No pending pairing for topic: $pendingTopic")
+            return EngineDO.FailedTopic
+        }
+
+        val pendingPairing: PairingVO = sequenceStorageRepository.getPairingByTopic(pendingTopic)
+
+        if (pendingPairing.status != SequenceStatus.PROPOSED) {
+            Logger.error("onPairingApproved: No pending pairing for topic: $pendingTopic")
+            return EngineDO.NoPairing
         }
 
         val (_, settledTopic) = crypto.generateTopicAndSharedKey(pendingPairing.selfParticipant, PublicKey(params.responder.publicKey))
         val acknowledgedPairing = pendingPairing.toAcknowledgedPairingVO(settledTopic, params, controllerType)
         sequenceStorageRepository.updateProposedPairingToAcknowledged(acknowledgedPairing, pendingTopic)
+
         relayer.subscribe(settledTopic)
+        relayer.unsubscribe(pendingPairing.topic)
 
         val jsonRpcResult = EngineDO.JsonRpcResponse.JsonRpcResult(id = requestId, result = "true")
         relayer.publishJsonRpcResponse(pendingPairing.topic, jsonRpcResult.toJsonRpcResult(),
-            { relayer.unsubscribe(pendingPairing.topic) },
-            { relayer.unsubscribe(pendingPairing.topic) })
+            onFailure = { error -> Logger.error("onPairingApproved: Cannot send the respond, error: $error") })
 
         //TODO: add permission check
         proposeSession(sessionPermissions, settledTopic.value)
-        return acknowledgedPairing.toEngineDOSettledPairing(sessionPermissions)
+        return acknowledgedPairing.toEngineDOSettledPairing()
     }
 
     private fun onSessionApprove(params: SessionParamsVO.ApprovalParams, topic: TopicVO, requestId: Long): SequenceLifecycle {
-        //TODO: add topic check
-        val pendingSession: SessionVO? = sequenceStorageRepository.getSessionByTopic(topic)
-        if (pendingSession == null || pendingSession.status != SequenceStatus.PROPOSED) {
-            Logger.log("onSessionApproved: No pending session for topic: $topic")
-            return EngineDO.Default
+        //TODO: Add isController check + Add params validation
+
+        if (!sequenceStorageRepository.hasSessionTopic(topic)) {
+            Logger.error("onSessionApprove: No pending session for topic: $topic")
+            return EngineDO.FailedTopic
+        }
+
+        val pendingSession: SessionVO = sequenceStorageRepository.getSessionByTopic(topic)
+
+        if (pendingSession.status != SequenceStatus.PROPOSED) {
+            Logger.error("onSessionApprove: No pending session for topic: $topic")
+            return EngineDO.NoSession
         }
 
         val (_, settledTopic) = crypto.generateTopicAndSharedKey(pendingSession.selfParticipant, PublicKey(params.responder.publicKey))
@@ -366,22 +430,29 @@ internal class EngineInteractor(
 
         val jsonRpcResult = EngineDO.JsonRpcResponse.JsonRpcResult(id = requestId, result = "true")
         relayer.publishJsonRpcResponse(topic, jsonRpcResult.toJsonRpcResult(),
-            onFailure = { error -> Logger.error("onSessionApproved: Respond Error: $error") })
+            onFailure = { error -> Logger.error("onSessionApproved: Cannot send the respond, error: $error") })
         return pendingSession.toSessionApproved(params.responder.metadata, settledTopic)
     }
 
     private fun onSessionReject(params: SessionParamsVO.RejectParams, topic: TopicVO): SequenceLifecycle {
-        //TODO: add topic check
-        sequenceStorageRepository.getSessionByTopic(topic) ?: run {
-            Logger.log("onSessionRejected: No session for topic: $topic")
-            return EngineDO.Default
+        if (!sequenceStorageRepository.hasSessionTopic(topic)) {
+            Logger.error("onSessionRejected: No session for topic: $topic")
+            EngineDO.FailedTopic
         }
+
         sequenceStorageRepository.deleteSession(topic)
         relayer.unsubscribe(topic)
-        return EngineDO.SessionRejected(topic.value, params.reason)
+        return EngineDO.SessionRejected(topic.value, params.reason.message)
     }
 
     private fun onPairingPayload(payload: PairingParamsVO.PayloadParams, topic: TopicVO, requestId: Long): EngineDO.SessionProposal {
+        //TODO: Add permission validation - if wc_sessionPropose
+
+        if (!sequenceStorageRepository.hasPairingTopic(topic)) {
+            Logger.error("onPairingPayload: No pairing for topic: $topic")
+            EngineDO.FailedTopic
+        }
+
         val proposal: SessionParamsVO.ProposalParams = payload.request.params
         val (sharedKey, publicKey) = crypto.getKeyAgreement(proposal.signal.params.topic)
 
@@ -391,16 +462,26 @@ internal class EngineInteractor(
 
         val jsonRpcResult = EngineDO.JsonRpcResponse.JsonRpcResult(id = requestId, result = "true")
         relayer.publishJsonRpcResponse(topic, response = jsonRpcResult.toJsonRpcResult(),
-            onFailure = { error -> Logger.error("onPairingPayload Error: $error") })
+            onFailure = { error -> Logger.error("onPairingPayload: Cannot send the respond, error: $error") })
         return payload.toEngineDOSessionProposal()
     }
 
     private fun onSessionPayload(params: SessionParamsVO.SessionPayloadParams, topic: TopicVO, requestId: Long): EngineDO.SessionRequest {
-        //TODO: validate session request against the permissions set
+        //TODO: Add SessionPayload validation
+
+        if (!sequenceStorageRepository.hasSessionTopic(topic)) {
+            Logger.error("onSessionPayload: No session for topic: $topic")
+            EngineDO.FailedTopic
+        }
         return params.toEngineDOSessionRequest(topic, requestId)
     }
 
     private fun onSessionDelete(params: SessionParamsVO.DeleteParams, topic: TopicVO): EngineDO.DeletedSession {
+        if (!sequenceStorageRepository.hasSessionTopic(topic)) {
+            Logger.error("onSessionDelete: No session for topic: $topic")
+            EngineDO.FailedTopic
+        }
+
         crypto.removeKeys(topic.value)
         sequenceStorageRepository.deleteSession(topic)
         relayer.unsubscribe(topic)
@@ -408,20 +489,31 @@ internal class EngineInteractor(
     }
 
     private fun onSessionNotification(params: SessionParamsVO.NotificationParams, topic: TopicVO): EngineDO.SessionNotification {
-        //TODO: validate notification
+        //TODO: Add Notification validation
+
+        if (!sequenceStorageRepository.hasSessionTopic(topic)) {
+            Logger.error("onSessionNotification: No session for topic: $topic")
+            EngineDO.FailedTopic
+        }
         return params.toEngineDoSessionNotification(topic)
     }
 
-    private fun onPairingDelete(params: PairingParamsVO.DeleteParams, topic: TopicVO): EngineDO.Default {
+    private fun onPairingDelete(params: PairingParamsVO.DeleteParams, topic: TopicVO): EngineDO.DeletedPairing {
+        if (!sequenceStorageRepository.hasPairingTopic(topic)) {
+            Logger.error("onPairingDelete: No pairing for topic: $topic")
+            EngineDO.FailedTopic
+        }
+
         crypto.removeKeys(topic.value)
         relayer.unsubscribe(topic)
-        //TODO delete from DB
-        return EngineDO.Default
+        sequenceStorageRepository.deletePairing(topic)
+        return EngineDO.DeletedPairing(topic.value, params.reason.message)
     }
 
     private fun onPing(topic: TopicVO, requestId: Long): EngineDO.Default {
         val jsonRpcResult = EngineDO.JsonRpcResponse.JsonRpcResult(id = requestId, result = "true")
-        relayer.publishJsonRpcResponse(topic, jsonRpcResult.toJsonRpcResult(),
+        relayer.publishJsonRpcResponse(
+            topic, jsonRpcResult.toJsonRpcResult(),
             { Logger.log("Ping send successfully") },
             { error -> Logger.error("Ping Error: $error") })
         return EngineDO.Default
@@ -433,10 +525,17 @@ internal class EngineInteractor(
             .map { session -> session.toEngineDOSessionProposal(crypto.getKeyAgreement(session.topic).second as PublicKey) }
     }
 
-    internal fun getListOfSettledSessions(): List<EngineDO.SettledSession> =
-        sequenceStorageRepository.getListOfSessionVOs()
+    internal fun getListOfSettledSessions(): List<EngineDO.SettledSession> {
+        return sequenceStorageRepository.getListOfSessionVOs()
             .filter { session -> session.status == SequenceStatus.ACKNOWLEDGED && session.expiry.isSequenceValid() }
             .map { session -> session.toEngineDOSettledSessionVO() }
+    }
+
+    internal fun getListOfSettledPairings(): List<EngineDO.SettledPairing> {
+        return sequenceStorageRepository.getListOfPairingVOs()
+            .filter { pairing -> pairing.status == SequenceStatus.ACKNOWLEDGED && pairing.expiry.isSequenceValid() }
+            .map { pairing -> pairing.toEngineDOSettledPairing() }
+    }
 
     private fun resubscribeToSettledPairings() {
         val (listOfExpiredPairing, listOfValidPairing) = sequenceStorageRepository.getListOfPairingVOs()
@@ -471,6 +570,12 @@ internal class EngineInteractor(
         listOfValidSessions
             .filter { session -> session.status == SequenceStatus.ACKNOWLEDGED }
             .onEach { session -> relayer.subscribe(session.topic) }
+    }
+
+    private fun checkPeer(currentPeer: ControllerType, message: String) {
+        if (controllerType != currentPeer) {
+            throw WalletConnectException.UnauthorizedPeerException(message)
+        }
     }
 
     private fun ExpiryVO.isSequenceValid(): Boolean = seconds > (System.currentTimeMillis() / 1000)

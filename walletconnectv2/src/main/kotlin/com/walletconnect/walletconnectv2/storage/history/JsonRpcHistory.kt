@@ -1,8 +1,8 @@
 package com.walletconnect.walletconnectv2.storage.history
 
 import android.content.SharedPreferences
-import com.walletconnect.walletconnectv2.common.model.type.ControllerType
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.type.ControllerType
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.storage.history.model.JsonRpcStatus
 import com.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.storage.data.dao.JsonRpcHistoryQueries

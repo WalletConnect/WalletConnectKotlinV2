@@ -1,13 +1,13 @@
 package com.walletconnect.walletconnectv2.relay.domain
 
 import com.tinder.scarlet.WebSocket
-import com.walletconnect.walletconnectv2.common.errors.exception
-import com.walletconnect.walletconnectv2.common.model.type.SettlementSequence
-import com.walletconnect.walletconnectv2.common.model.vo.JsonRpcResponseVO
-import com.walletconnect.walletconnectv2.common.model.vo.RequestSubscriptionPayloadVO
-import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.scope.scope
+import com.walletconnect.walletconnectv2.core.exceptions.WalletConnectException
+import com.walletconnect.walletconnectv2.core.model.type.SettlementSequence
+import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcResponseVO
+import com.walletconnect.walletconnectv2.core.model.vo.RequestSubscriptionPayloadVO
+import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.network.NetworkRepository
 import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
@@ -21,11 +21,12 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import java.net.HttpURLConnection
 
 internal class WalletConnectRelayer(
     private val networkRepository: NetworkRepository,
     private val serializer: JsonRpcSerializer,
-    private val jsonRpcHistory: JsonRpcHistory,
+    private val jsonRpcHistory: JsonRpcHistory
 ) {
     private val _clientSyncJsonRpc: MutableSharedFlow<RequestSubscriptionPayloadVO> = MutableSharedFlow()
     internal val clientSyncJsonRpc: SharedFlow<RequestSubscriptionPayloadVO> = _clientSyncJsonRpc
@@ -36,6 +37,15 @@ internal class WalletConnectRelayer(
     val isConnectionOpened = MutableStateFlow(false)
 
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error(exception) }
+
+    private val Throwable.exception: Throwable
+        get() = when {
+            this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
+                WalletConnectException.ProjectIdDoesNotExistException(this.message)
+            this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
+                WalletConnectException.InvalidProjectIdException(this.message)
+            else -> WalletConnectException.ServerException(this.message)
+        }
 
     init {
         handleInitialisationErrors()
@@ -53,9 +63,7 @@ internal class WalletConnectRelayer(
                         .collect { response ->
                             when (response) {
                                 is RelayDO.JsonRpcResponse.JsonRpcResult -> onResult(Result.success(response.toJsonRpcResultVO()))
-                                is RelayDO.JsonRpcResponse.JsonRpcError -> {
-                                    onResult(Result.failure(Throwable(response.error.message)))
-                                }
+                                is RelayDO.JsonRpcResponse.JsonRpcError -> onResult(Result.failure(Throwable(response.error.message)))
                             }
                             cancel()
                         }

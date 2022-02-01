@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.client.mapper
 
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.common.model.vo.JsonRpcResponseVO
+import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 
 //TODO: Provide VO objects for engine classes. Remove using the EngineDO object in the client layer
@@ -74,7 +74,7 @@ internal fun EngineDO.SessionNotification.toClientSessionNotification(): WalletC
 
 @JvmSynthetic
 internal fun EngineDO.SettledPairing.toClientSettledPairing(): WalletConnect.Model.SettledPairing =
-    WalletConnect.Model.SettledPairing(topic.value)
+    WalletConnect.Model.SettledPairing(topic.value, appMetaData?.toClientAppMetaData())
 
 @JvmSynthetic
 internal fun EngineDO.SessionRejected.toClientSessionRejected(): WalletConnect.Model.RejectedSession =
@@ -86,10 +86,7 @@ internal fun EngineDO.SessionApproved.toClientSessionApproved(): WalletConnect.M
 
 @JvmSynthetic
 internal fun WalletConnect.Model.SessionPermissions.toEngineSessionPermissions(): EngineDO.SessionPermissions =
-    EngineDO.SessionPermissions(
-        blockchain.chains.let { chains -> EngineDO.Blockchain(chains) },
-        jsonRpc.methods.let { methods -> EngineDO.JsonRpc(methods) }
-    )
+    EngineDO.SessionPermissions(EngineDO.Blockchain(blockchain.chains), EngineDO.JsonRpc(jsonRpc.methods))
 
 @JvmSynthetic
 internal fun EngineDO.SessionPermissions.toClientPerms(): WalletConnect.Model.SessionPermissions =
@@ -107,3 +104,11 @@ internal fun WalletConnect.Model.JsonRpcResponse.toJsonRpcResponseVO(): JsonRpcR
         is WalletConnect.Model.JsonRpcResponse.JsonRpcResult -> this.toRpcResultVO()
         is WalletConnect.Model.JsonRpcResponse.JsonRpcError -> this.toRpcErrorVO()
     }
+
+@JvmSynthetic
+internal fun WalletConnect.Params.Request.toEngineDORequest(): EngineDO.Request =
+    EngineDO.Request(sessionTopic, method, params, chainId)
+
+@JvmSynthetic
+internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toClientJsonRpcResult(): WalletConnect.Model.JsonRpcResponse.JsonRpcResult =
+    WalletConnect.Model.JsonRpcResponse.JsonRpcResult(id, result)

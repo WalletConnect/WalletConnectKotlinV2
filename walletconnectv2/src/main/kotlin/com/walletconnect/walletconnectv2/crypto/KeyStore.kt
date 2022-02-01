@@ -1,6 +1,6 @@
 package com.walletconnect.walletconnectv2.crypto
 
-import com.walletconnect.walletconnectv2.common.model.vo.Key
+import com.walletconnect.walletconnectv2.core.model.vo.Key
 
 internal interface KeyStore {
     fun setKey(tag: String, key1: Key, key2: Key)

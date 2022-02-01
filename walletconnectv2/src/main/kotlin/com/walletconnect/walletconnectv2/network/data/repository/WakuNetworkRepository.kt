@@ -1,9 +1,9 @@
 package com.walletconnect.walletconnectv2.network.data.repository
 
 import com.tinder.scarlet.WebSocket
-import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.scope.scope
+import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.network.NetworkRepository
 import com.walletconnect.walletconnectv2.network.data.service.RelayService
 import com.walletconnect.walletconnectv2.network.model.RelayDTO
