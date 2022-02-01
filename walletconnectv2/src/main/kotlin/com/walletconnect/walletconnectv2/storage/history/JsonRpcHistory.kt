@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.walletconnectv2.storage.history
 
 import android.content.SharedPreferences
@@ -29,6 +31,14 @@ internal class JsonRpcHistory(private val controllerType: ControllerType, privat
         sharedPreferences.all.entries
             .filter { entry -> entry.value == topic.value }
             .forEach { entry -> sharedPreferences.edit().remove(entry.key).apply() }
+    }
+
+    internal fun getRequests(topic: String) {
+
+    }
+
+    internal fun getResponses(topic: String) {
+
     }
 
     private fun tryMigrationToDB(requestId: Long) {

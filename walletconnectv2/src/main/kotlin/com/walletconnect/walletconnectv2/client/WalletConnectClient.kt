@@ -216,6 +216,11 @@ object WalletConnectClient {
         return engineInteractor.getListOfSettledPairings().map(EngineDO.SettledPairing::toClientSettledPairing)
     }
 
+    fun getJsonRpcHistory(topic: String): List<WalletConnect.Model.JsonRpcHistory> {
+        engineInteractor.getListOfJsonRpcHistory(topic)
+        return emptyList()
+    }
+
     fun shutdown() {
         scope.cancel()
         wcKoinApp.close()

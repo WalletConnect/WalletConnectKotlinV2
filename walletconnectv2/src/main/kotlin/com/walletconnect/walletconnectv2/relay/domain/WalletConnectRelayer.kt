@@ -26,7 +26,7 @@ import java.net.HttpURLConnection
 internal class WalletConnectRelayer(
     private val networkRepository: NetworkRepository,
     private val serializer: JsonRpcSerializer,
-    private val jsonRpcHistory: JsonRpcHistory
+    private val jsonRpcHistory: JsonRpcHistory,
 ) {
     private val _clientSyncJsonRpc: MutableSharedFlow<RequestSubscriptionPayloadVO> = MutableSharedFlow()
     internal val clientSyncJsonRpc: SharedFlow<RequestSubscriptionPayloadVO> = _clientSyncJsonRpc
@@ -72,7 +72,7 @@ internal class WalletConnectRelayer(
 
             networkRepository.publish(topic, serializedPayload) { result ->
                 result.fold(
-                    onSuccess = {jsonRpcHistory.updateRequestStatus(payload.id, JsonRpcStatus.REQUEST_SUCCESS)},
+                    onSuccess = { jsonRpcHistory.updateRequestStatus(payload.id, JsonRpcStatus.REQUEST_SUCCESS) },
                     onFailure = { error ->
                         jsonRpcHistory.updateRequestStatus(payload.id, JsonRpcStatus.REQUEST_FAILURE)
                         onResult(Result.failure(error))
@@ -122,6 +122,11 @@ internal class WalletConnectRelayer(
                 )
             }
         }
+    }
+
+    internal fun getJsonRpcHistory(topic: String) {
+        jsonRpcHistory.getRequests(topic)
+        jsonRpcHistory.getResponses(topic)
     }
 
     private fun handleInitialisationErrors() {
