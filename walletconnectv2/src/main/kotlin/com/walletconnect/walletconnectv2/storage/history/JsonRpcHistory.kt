@@ -31,6 +31,8 @@ internal class JsonRpcHistory(private val controllerType: ControllerType, privat
         sharedPreferences.all.entries
             .filter { entry -> entry.value == topic.value }
             .forEach { entry -> sharedPreferences.edit().remove(entry.key).apply() }
+
+        jsonRpcHistoryQueries.deleteJsonRpcHistory(topic.value)
     }
 
     internal fun getRequests(topic: String) {
