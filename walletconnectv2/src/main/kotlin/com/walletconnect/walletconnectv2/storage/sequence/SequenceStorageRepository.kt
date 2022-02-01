@@ -16,7 +16,6 @@ internal class SequenceStorageRepository constructor(private val sequenceDatabas
 
     @JvmSynthetic
     fun getListOfPairingVOs(): List<PairingVO> =
-        //TODO: retrive metadata for given pairing
         sequenceDatabase.pairingDaoQueries.getListOfPairingDaos(mapper = this@SequenceStorageRepository::mapPairingDaoToPairingVO)
             .executeAsList()
 

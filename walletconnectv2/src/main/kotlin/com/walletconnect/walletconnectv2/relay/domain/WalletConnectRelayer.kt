@@ -157,6 +157,6 @@ internal class WalletConnectRelayer(
                     WalletConnectException.ProjectIdDoesNotExistException(this.message)
                 this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
                     WalletConnectException.InvalidProjectIdException(this.message)
-                else -> WalletConnectException.ServerException(this.message)
+                else -> WalletConnectException.GenericException(this.message)
             }
 }

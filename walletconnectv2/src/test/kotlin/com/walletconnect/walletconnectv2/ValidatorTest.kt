@@ -34,9 +34,22 @@ class ValidatorTest {
 
     @Test
     fun `check correct error message when notifications permissions are invalid `() {
-        val blockchain = EngineDO.Blockchain(listOf("1"))
+        val blockchain = EngineDO.Blockchain(listOf("1:aa"))
         val jsonRpc = EngineDO.JsonRpc(listOf("eth_sign"))
         var notifications: EngineDO.Notifications? = EngineDO.Notifications(listOf())
+        val permissions = EngineDO.SessionPermissions(blockchain, jsonRpc, notifications)
+
+        Validator.validateSessionPermissions(permissions) { errorMessage ->
+            assertEquals(INVALID_NOTIFICATIONS_TYPES_MESSAGE, errorMessage)
+        }
+    }
+
+    @Test
+    fun `check correct error message when notifications permissions are null `() {
+        val blockchain = EngineDO.Blockchain(listOf("cosmos:cosmoshub-2"))
+        val jsonRpc = EngineDO.JsonRpc(listOf("eth_sign"))
+
+        var notifications: EngineDO.Notifications? = null
         val permissions = EngineDO.SessionPermissions(blockchain, jsonRpc, notifications)
 
         Validator.validateSessionPermissions(permissions) { errorMessage ->
@@ -78,7 +91,7 @@ class ValidatorTest {
 
     @Test
     fun `are notifications permissions valid`() {
-        var notifications: EngineDO.Notifications? = EngineDO.Notifications(listOf())
+        var notifications: EngineDO.Notifications = EngineDO.Notifications(listOf())
 
         val result1 = Validator.areNotificationTypesValid(notifications)
         assertEquals(result1, false)
@@ -90,10 +103,6 @@ class ValidatorTest {
         notifications = EngineDO.Notifications(listOf("1", "2"))
         val result3 = Validator.areNotificationTypesValid(notifications)
         assertEquals(result3, true)
-
-        notifications = null
-        val result4 = Validator.areNotificationTypesValid(notifications)
-        assertEquals(result4, false)
     }
 
     @Test

@@ -8,5 +8,5 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="scanner_face_color">#295C34A2</color>
-    <color name="blue">#2149e2</color>
+    <color name="walletconnect_blue">#3B99FC</color>
 </resources>
