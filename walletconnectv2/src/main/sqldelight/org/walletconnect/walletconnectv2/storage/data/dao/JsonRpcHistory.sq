@@ -30,3 +30,7 @@ SELECT NOT EXISTS (
 
 selectLastInsertedRowId:
 SELECT last_insert_rowid();
+
+deleteJsonRpcHistory:
+DELETE FROM JsonRpcHistoryDao
+WHERE topic = ?;
