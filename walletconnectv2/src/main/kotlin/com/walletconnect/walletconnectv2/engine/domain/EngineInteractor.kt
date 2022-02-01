@@ -74,8 +74,8 @@ internal class EngineInteractor(
         }
 
         if (pairingTopic != null) {
-            checkSequence(TopicVO(pairingTopic)) {
-                throw WalletConnectException.CannotFindSequenceForTopic("Topic: $pairingTopic")
+            checkTopic(TopicVO(pairingTopic), "Topic: $pairingTopic") { message ->
+                throw WalletConnectException.CannotFindSequenceForTopic(message)
             }
             proposeSession(permissions, pairingTopic) { error -> onFailure(error) }
             sessionPermissions
@@ -137,7 +137,7 @@ internal class EngineInteractor(
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_PAIR_MESSAGE)
         }
         val proposal: PairingParamsVO.Proposal = uri.toPairProposal()
-        checkSequence(proposal.topic).also { isValid -> if (isValid) throw WalletConnectException.PairWithExistingPairingIsNotAllowed }
+        if (sequenceStorageRepository.hasPairingTopic(proposal.topic)) throw WalletConnectException.PairWithExistingPairingIsNotAllowed
 
         //TODO: Add WC URI validation
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -255,8 +255,8 @@ internal class EngineInteractor(
     }
 
     internal fun disconnect(topic: String, reason: String, onSuccess: (Pair<String, String>) -> Unit, onFailure: (Throwable) -> Unit) {
-        checkSequence(TopicVO(topic)) {
-            throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
+        checkTopic(TopicVO(topic), "Topic: $topic") { message ->
+            throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
 
         val deleteParams = SessionParamsVO.DeleteParams(ReasonVO(message = reason))
@@ -276,8 +276,8 @@ internal class EngineInteractor(
         checkPeer(ControllerType.CONTROLLER) {
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_RESPOND_MESSAGE)
         }
-        checkSequence(TopicVO(topic)) {
-            throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
+        checkTopic(TopicVO(topic), "Topic: $topic") { message ->
+            throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
 
         //TODO: Add JsonRpcResponseVO validation
@@ -297,8 +297,8 @@ internal class EngineInteractor(
         checkPeer(ControllerType.NON_CONTROLLER) {
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_REQUEST_MESSAGE)
         }
-        checkSequence(TopicVO(request.topic)) {
-            throw WalletConnectException.CannotFindSequenceForTopic("Topic: ${request.topic}")
+        checkTopic(TopicVO(request.topic), "Topic: ${request.topic}") { message ->
+            throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
 
         //TODO: Add Request validation
@@ -321,8 +321,8 @@ internal class EngineInteractor(
         checkPeer(ControllerType.CONTROLLER) {
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
         }
-        checkSequence(TopicVO(topic)) {
-            throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
+        checkTopic(TopicVO(topic), "Topic: $topic") { message ->
+            throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
 
         //TODO: Add accounts validation
@@ -345,8 +345,8 @@ internal class EngineInteractor(
         checkPeer(ControllerType.CONTROLLER) {
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPGRADE_MESSAGE)
         }
-        checkSequence(TopicVO(topic)) {
-            throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic")
+        checkTopic(TopicVO(topic), "Topic: $topic") { message ->
+            throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
 
         //TODO: Add permissions validation
@@ -363,7 +363,7 @@ internal class EngineInteractor(
 
     internal fun notify(topic: String, notification: EngineDO.Notification, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         //TODO: Add Notification validation
-        checkSequence(TopicVO(topic)) { throw WalletConnectException.CannotFindSequenceForTopic("Topic: $topic") }
+        checkTopic(TopicVO(topic), "Topic: $topic") { message -> throw WalletConnectException.CannotFindSequenceForTopic(message) }
 
         val notificationParams = SessionParamsVO.NotificationParams(notification.type, notification.data)
         val sessionNotification = PostSettlementSessionVO.SessionNotification(id = generateId(), params = notificationParams)
@@ -410,7 +410,7 @@ internal class EngineInteractor(
         }
 
     private fun onSessionUpdate(params: SessionParamsVO.UpdateParams, topic: TopicVO, requestId: Long): SequenceLifecycle {
-        checkSequence(topic) { Logger.error("onSessionUpdate: No session for topic: $topic") }.also { isValid -> if (!isValid) return EngineDO.FailedTopic }
+        checkTopic(topic, "onSessionUpdate: No session for topic: $topic") { return@checkTopic EngineDO.FailedTopic }
 
         val session: SessionVO = sequenceStorageRepository.getSessionByTopic(topic)
         if (session.controllerType != ControllerType.NON_CONTROLLER) {
@@ -432,7 +432,7 @@ internal class EngineInteractor(
     }
 
     private fun onSessionUpgrade(params: SessionParamsVO.UpgradeParams, topic: TopicVO, requestId: Long): SequenceLifecycle {
-        checkSequence(topic) { Logger.error("onSessionUpgrade: No session for topic: $topic") }.also { isValid -> if (!isValid) return EngineDO.FailedTopic }
+        checkTopic(topic, "onSessionUpgrade: No session for topic: $topic") { return@checkTopic EngineDO.FailedTopic }
 
         val session: SessionVO = sequenceStorageRepository.getSessionByTopic(topic)
         if (session.controllerType != ControllerType.NON_CONTROLLER) {
@@ -456,7 +456,7 @@ internal class EngineInteractor(
     }
 
     private fun onPairingUpdate(params: PairingParamsVO.UpdateParams, topic: TopicVO, requestId: Long): SequenceLifecycle {
-        checkSequence(topic) { Logger.error("onPairingUpdate: No pairing for topic: $topic") }.also { isValid -> if (!isValid) return EngineDO.FailedTopic }
+        checkTopic(topic, "onPairingUpdate: No pairing for topic: $topic") { return@checkTopic EngineDO.FailedTopic }
 
         val pairing: PairingVO = sequenceStorageRepository.getPairingByTopic(topic)
         if (pairing.controllerType != ControllerType.NON_CONTROLLER) {
@@ -478,7 +478,8 @@ internal class EngineInteractor(
     }
 
     private fun onPairingApprove(params: PairingParamsVO.ApproveParams, topic: TopicVO, requestId: Long): SequenceLifecycle {
-        checkSequence(topic) { Logger.error("onPairingApproved: No pending pairing for topic: $topic") }.also { isValid -> if (!isValid) return EngineDO.FailedTopic }
+        checkTopic(topic, "onPairingApproved: No pending pairing for topic: $topic") { return@checkTopic EngineDO.FailedTopic }
+        //TODO: Add params validation
 
         val pendingPairing: PairingVO = sequenceStorageRepository.getPairingByTopic(topic)
         if (pendingPairing.status != SequenceStatus.PROPOSED) {
@@ -506,7 +507,7 @@ internal class EngineInteractor(
     }
 
     private fun onSessionApprove(params: SessionParamsVO.ApprovalParams, topic: TopicVO, requestId: Long): SequenceLifecycle {
-        checkSequence(topic) { Logger.error("onSessionApprove: No pending session for topic: $topic") }.also { isValid -> if (!isValid) return EngineDO.FailedTopic }
+        checkTopic(topic, "onSessionApprove: No pending session for topic: $topic") { return@checkTopic EngineDO.FailedTopic }
         //TODO: Add isController check + Add params validation
 
         val pendingSession: SessionVO = sequenceStorageRepository.getSessionByTopic(topic)
@@ -529,14 +530,14 @@ internal class EngineInteractor(
     }
 
     private fun onSessionReject(params: SessionParamsVO.RejectParams, topic: TopicVO): SequenceLifecycle {
-        checkSequence(topic) { Logger.error("onSessionRejected: No session for topic: $topic") }.also { isValid -> if (!isValid) return EngineDO.FailedTopic }
+        checkTopic(topic, "onSessionRejected: No session for topic: $topic") { EngineDO.FailedTopic }
         sequenceStorageRepository.deleteSession(topic)
         relayer.unsubscribe(topic)
         return EngineDO.SessionRejected(topic.value, params.reason.message)
     }
 
     private fun onPairingPayload(payload: PairingParamsVO.PayloadParams, topic: TopicVO, requestId: Long): SequenceLifecycle {
-        checkSequence(topic) { Logger.error("onPairingPayload: No pairing for topic: $topic") }.also { isValid -> if (!isValid) return EngineDO.FailedTopic }
+        checkTopic(topic, "onPairingPayload: No pairing for topic: $topic") { return@checkTopic EngineDO.FailedTopic }
         //TODO: Add permission validation - if wc_sessionPropose
 
         val proposal: SessionParamsVO.ProposalParams = payload.request.params
@@ -553,13 +554,13 @@ internal class EngineInteractor(
     }
 
     private fun onSessionPayload(params: SessionParamsVO.SessionPayloadParams, topic: TopicVO, requestId: Long): SequenceLifecycle {
-        checkSequence(topic) { Logger.error("onSessionPayload: No session for topic: $topic") }.also { isValid -> if (!isValid) return EngineDO.FailedTopic }
+        checkTopic(topic, "onSessionPayload: No session for topic: $topic") { return@checkTopic EngineDO.FailedTopic }
         //TODO: Add SessionPayload validation
         return params.toEngineDOSessionRequest(topic, requestId)
     }
 
     private fun onSessionDelete(params: SessionParamsVO.DeleteParams, topic: TopicVO): SequenceLifecycle {
-        checkSequence(topic) { Logger.error("onSessionDelete: No session for topic: $topic") }.also { isValid -> if (!isValid) return EngineDO.FailedTopic }
+        checkTopic(topic, "onSessionDelete: No session for topic: $topic") { return@checkTopic EngineDO.FailedTopic }
         crypto.removeKeys(topic.value)
         sequenceStorageRepository.deleteSession(topic)
         relayer.unsubscribe(topic)
@@ -567,13 +568,13 @@ internal class EngineInteractor(
     }
 
     private fun onSessionNotification(params: SessionParamsVO.NotificationParams, topic: TopicVO): SequenceLifecycle {
-        checkSequence(topic) { Logger.error("onSessionNotification: No session for topic: $topic") }.also { isValid -> if (!isValid) return EngineDO.FailedTopic }
+        checkTopic(topic, "onSessionNotification: No session for topic: $topic") { return@checkTopic EngineDO.FailedTopic }
         //TODO: Add Notification validation
         return params.toEngineDoSessionNotification(topic)
     }
 
     private fun onPairingDelete(params: PairingParamsVO.DeleteParams, topic: TopicVO): SequenceLifecycle {
-        checkSequence(topic) { Logger.error("onPairingDelete: No pairing for topic: : $topic") }.also { isValid -> if (!isValid) return EngineDO.FailedTopic }
+        checkTopic(topic, "onPairingDelete: No pairing for topic: : $topic") { return@checkTopic EngineDO.FailedTopic }
         crypto.removeKeys(topic.value)
         relayer.unsubscribe(topic)
         sequenceStorageRepository.deletePairing(topic)
@@ -648,13 +649,12 @@ internal class EngineInteractor(
         }
     }
 
-    private fun checkSequence(topic: TopicVO, onTopicNotFound: () -> Unit = {}): Boolean {
-        var isValid = true
-        if (!sequenceStorageRepository.hasSessionTopic(topic) || !sequenceStorageRepository.hasPairingTopic(topic)) {
-            onTopicNotFound()
-            isValid = false
+    private fun <T> checkTopic(topic: TopicVO, errorMessage: String, onInvalidTopic: (String) -> T) {
+        val isValid = sequenceStorageRepository.hasSessionTopic(topic) || sequenceStorageRepository.hasPairingTopic(topic)
+        if (!isValid) {
+            Logger.error(errorMessage)
+            onInvalidTopic(errorMessage)
         }
-        return isValid
     }
 
     private fun ExpiryVO.isSequenceValid(): Boolean = seconds > (System.currentTimeMillis() / 1000)
