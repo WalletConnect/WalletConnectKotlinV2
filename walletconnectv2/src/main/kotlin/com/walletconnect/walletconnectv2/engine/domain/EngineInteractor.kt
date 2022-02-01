@@ -84,7 +84,7 @@ internal class EngineInteractor(
         return proposePairing(permissions)
     }
 
-    private fun proposeSession(permissions: EngineDO.SessionPermissions, pairingTopic: String, onFailure: (Throwable) -> Unit) {
+    private fun proposeSession(permissions: EngineDO.SessionPermissions, pairingTopic: String, onFailure: (Throwable) -> Unit = {}) {
         val settledPairing: PairingVO = sequenceStorageRepository.getPairingByTopic(TopicVO(pairingTopic))
         if (settledPairing.status == SequenceStatus.ACKNOWLEDGED) {
             val pendingSessionTopic: TopicVO = generateTopic()
@@ -479,7 +479,6 @@ internal class EngineInteractor(
 
     private fun onPairingApprove(params: PairingParamsVO.ApproveParams, topic: TopicVO, requestId: Long): SequenceLifecycle {
         checkTopic(topic, "onPairingApproved: No pending pairing for topic: $topic") { return@checkTopic EngineDO.FailedTopic }
-        //TODO: Add params validation
 
         val pendingPairing: PairingVO = sequenceStorageRepository.getPairingByTopic(topic)
         if (pendingPairing.status != SequenceStatus.PROPOSED) {
