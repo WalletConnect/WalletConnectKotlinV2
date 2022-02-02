@@ -2,7 +2,7 @@ package com.walletconnect.walletconnectv2.relay.domain
 
 import com.tinder.scarlet.WebSocket
 import com.walletconnect.walletconnectv2.core.exceptions.WalletConnectException
-import com.walletconnect.walletconnectv2.core.model.type.ClientSyncJsonRpc
+import com.walletconnect.walletconnectv2.core.model.type.SettlementSequence
 import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.core.model.vo.RequestSubscriptionPayloadVO
 import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
@@ -14,6 +14,7 @@ import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import com.walletconnect.walletconnectv2.relay.model.mapper.toJsonRpcResultVO
 import com.walletconnect.walletconnectv2.relay.model.mapper.toRelayDOJsonRpcResponse
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
+import com.walletconnect.walletconnectv2.storage.history.model.JsonRpcStatus
 import com.walletconnect.walletconnectv2.util.Logger
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.cancel
@@ -27,7 +28,6 @@ internal class WalletConnectRelayer(
     private val serializer: JsonRpcSerializer,
     private val jsonRpcHistory: JsonRpcHistory
 ) {
-
     private val _clientSyncJsonRpc: MutableSharedFlow<RequestSubscriptionPayloadVO> = MutableSharedFlow()
     internal val clientSyncJsonRpc: SharedFlow<RequestSubscriptionPayloadVO> = _clientSyncJsonRpc
 
@@ -38,13 +38,24 @@ internal class WalletConnectRelayer(
 
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error(exception) }
 
+    private val Throwable.exception: Throwable
+        get() = when {
+            this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
+                WalletConnectException.ProjectIdDoesNotExistException(this.message)
+            this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
+                WalletConnectException.InvalidProjectIdException(this.message)
+            else -> WalletConnectException.ServerException(this.message)
+        }
+
     init {
         handleInitialisationErrors()
         manageSubscriptions()
     }
 
-    internal fun request(topic: TopicVO, payload: ClientSyncJsonRpc, onResult: (Result<JsonRpcResponseVO.JsonRpcResult>) -> Unit) {
-        if (jsonRpcHistory.setRequest(payload.id, topic)) {
+    internal fun publishJsonRpcRequests(topic: TopicVO, payload: SettlementSequence<*>, onResult: (Result<JsonRpcResponseVO.JsonRpcResult>) -> Unit) {
+        val serializedPayload = serializer.serialize(payload, topic)
+
+        if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, serializedPayload)) {
             scope.launch {
                 supervisorScope {
                     peerResponse
@@ -59,21 +70,30 @@ internal class WalletConnectRelayer(
                 }
             }
 
-            networkRepository.publish(topic, serializer.serialize(payload, topic)) { result ->
+            networkRepository.publish(topic, serializedPayload) { result ->
                 result.fold(
-                    onSuccess = {},
-                    onFailure = { error -> onResult(Result.failure(error)) }
+                    onSuccess = {jsonRpcHistory.updateRequestStatus(payload.id, JsonRpcStatus.REQUEST_SUCCESS)},
+                    onFailure = { error ->
+                        jsonRpcHistory.updateRequestStatus(payload.id, JsonRpcStatus.REQUEST_FAILURE)
+                        onResult(Result.failure(error))
+                    }
                 )
             }
         }
     }
 
+    internal fun publishJsonRpcResponse(topic: TopicVO, response: JsonRpcResponseVO, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {}) {
+        val responseToDO = response.toRelayDOJsonRpcResponse()
+        val serializedPayload = serializer.serialize(responseToDO, topic)
 
-    internal fun respond(topic: TopicVO, response: JsonRpcResponseVO, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {}) {
-        networkRepository.publish(topic, serializer.serialize(response.toRelayDOJsonRpcResponse(), topic)) { result ->
+        networkRepository.publish(topic, serializedPayload) { result ->
             result.fold(
-                onSuccess = { onSuccess() },
+                onSuccess = {
+                    jsonRpcHistory.updateRequestStatus(response.id, JsonRpcStatus.RESPOND_SUCCESS)
+                    onSuccess()
+                },
                 onFailure = { error ->
+                    jsonRpcHistory.updateRequestStatus(response.id, JsonRpcStatus.RESPOND_FAILURE)
                     onFailure(error)
                 }
             )
@@ -140,7 +160,7 @@ internal class WalletConnectRelayer(
 
     private suspend fun handleSessionRequest(decryptedMessage: String, topic: TopicVO) {
         val clientJsonRpc = serializer.tryDeserialize<RelayDO.ClientJsonRpc>(decryptedMessage)
-        if (clientJsonRpc != null && jsonRpcHistory.setRequest(clientJsonRpc.id, topic)) {
+        if (clientJsonRpc != null && jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(RequestSubscriptionPayloadVO(clientJsonRpc.id, topic, clientJsonRpc.method, params))
             }
@@ -158,15 +178,4 @@ internal class WalletConnectRelayer(
             peerResponse.emit(error)
         }
     }
-
-    @get:JvmSynthetic
-    private val Throwable.exception: Throwable
-        get() =
-            when {
-                this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) ==
-                        true -> WalletConnectException.ProjectIdDoesNotExistException(this.message)
-                this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) ==
-                        true -> WalletConnectException.InvalidProjectIdException(this.message)
-                else -> WalletConnectException.ServerException(this.message)
-            }
 }

@@ -2,7 +2,7 @@ package com.walletconnect.walletconnectv2.relay.data.serializer
 
 import com.squareup.moshi.Moshi
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
-import com.walletconnect.walletconnectv2.core.model.type.ClientSyncJsonRpc
+import com.walletconnect.walletconnectv2.core.model.type.SerializableJsonRpc
 import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.core.model.vo.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
@@ -20,7 +20,7 @@ import com.walletconnect.walletconnectv2.util.hexToUtf8
 
 internal class JsonRpcSerializer(private val codec: Codec, private val crypto: CryptoRepository, private val moshi: Moshi) {
 
-    internal fun serialize(payload: ClientSyncJsonRpc, topic: TopicVO): String {
+    internal fun serialize(payload: SerializableJsonRpc, topic: TopicVO): String {
         val json = serialize(payload)
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
 
@@ -65,7 +65,7 @@ internal class JsonRpcSerializer(private val codec: Codec, private val crypto: C
 
     private inline fun <reified T> trySerialize(type: T): String = moshi.adapter(T::class.java).toJson(type)
 
-    private fun serialize(payload: ClientSyncJsonRpc): String =
+    private fun serialize(payload: SerializableJsonRpc): String =
         when (payload) {
             is PreSettlementPairingVO.Approve -> trySerialize(payload)
             is PreSettlementPairingVO.Reject -> trySerialize(payload)
@@ -82,7 +82,7 @@ internal class JsonRpcSerializer(private val codec: Codec, private val crypto: C
             is PostSettlementSessionVO.SessionUpgrade -> trySerialize(payload)
             is PostSettlementSessionVO.SessionPayload -> trySerialize(payload)
             is PostSettlementSessionVO.SessionDelete -> trySerialize(payload)
-            is  RelayDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
+            is RelayDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
             is RelayDO.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             else -> String.Empty
         }

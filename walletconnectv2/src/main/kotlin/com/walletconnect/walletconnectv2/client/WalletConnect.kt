@@ -185,8 +185,17 @@ object WalletConnect {
                 isController: Boolean,
                 metadata: Model.AppMetaData,
             ) : this(application, isController, metadata) {
+                val relayServerUrl = Uri.Builder().scheme((if (useTls) "wss" else "ws"))
+                    .authority(hostName)
+                    .appendQueryParameter("projectId", projectId)
+                    .build()
+                    .toString()
 
-                this.serverUrl = ((if (useTls) "wss" else "ws") + "://$hostName/?projectId=$projectId").trim()
+                require(relayServerUrl.isValidRelayServerUrl()) {
+                    "Check the schema and projectId parameter of the Server Url"
+                }
+
+                this.serverUrl = relayServerUrl
             }
 
             constructor(
@@ -195,7 +204,9 @@ object WalletConnect {
                 isController: Boolean,
                 metadata: Model.AppMetaData,
             ) : this(application, isController, metadata) {
-                require(relayServerUrl.isValidRelayServerUrl())
+                require(relayServerUrl.isValidRelayServerUrl()) {
+                    "Check the schema and projectId parameter of the Server Url"
+                }
 
                 this.serverUrl = relayServerUrl
             }
