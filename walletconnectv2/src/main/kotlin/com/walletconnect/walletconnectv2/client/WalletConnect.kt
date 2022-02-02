@@ -65,7 +65,7 @@ object WalletConnect {
             val isController: Boolean,
             val ttl: Long,
             val accounts: List<String>,
-            val relayProtocol: String,
+            val relayProtocol: String
         ) : Model() {
             val icon: String = icons.first().toString()
         }
@@ -73,13 +73,13 @@ object WalletConnect {
         data class SessionRequest(
             val topic: String,
             val chainId: String?,
-            val request: JSONRPCRequest,
+            val request: JSONRPCRequest
         ) : Model() {
 
             data class JSONRPCRequest(
                 val id: Long,
                 val method: String,
-                val params: String,
+                val params: String
             ) : Model()
         }
 
@@ -87,13 +87,13 @@ object WalletConnect {
             val topic: String,
             val accounts: List<String>,
             val peerAppMetaData: AppMetaData?,
-            val permissions: Permissions,
+            val permissions: Permissions
         ) : Model() {
 
             data class Permissions(
                 val blockchain: Blockchain,
                 val jsonRpc: JsonRpc,
-                val notifications: Notifications,
+                val notifications: Notifications
             ) {
                 data class Blockchain(val chains: List<String>)
 
@@ -105,40 +105,40 @@ object WalletConnect {
 
         data class SessionState(val accounts: List<String>) : Model()
 
-        data class SettledPairing(
-            val topic: String,
-            val appMetaData: AppMetaData? = null,
-        ) : Model()
+        data class SettledPairing(val topic: String, val metaData: AppMetaData? = null) : Model()
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
 
         data class ApprovedSession(
             val topic: String,
-            val peerAppMetaData: AppMetaData?,
+            val metaData: AppMetaData?,
             val permissions: SessionPermissions,
+            val accounts: List<String>
         ) : Model()
 
         data class DeletedSession(val topic: String, val reason: String) : Model()
 
         data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : Model()
 
-        data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: Jsonrpc) : Model()
+        data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: Jsonrpc, val notification: Notification? = null) : Model()
 
         data class Blockchain(val chains: List<String>) : Model()
 
         data class Jsonrpc(val methods: List<String>) : Model()
+
+        data class Notifications(val types: List<String>)
 
         data class UpdatedSession(val topic: String, val accounts: List<String>) : Model()
 
         data class SessionNotification(
             val topic: String,
             val type: String,
-            val data: String,
+            val data: String
         ) : Model()
 
         data class Notification(
             val type: String,
-            val data: String,
+            val data: String
         ) : Model()
 
         sealed class JsonRpcResponse : Model() {
@@ -147,17 +147,17 @@ object WalletConnect {
 
             data class JsonRpcResult(
                 override val id: Long,
-                val result: String,
+                val result: String
             ) : JsonRpcResponse()
 
             data class JsonRpcError(
                 override val id: Long,
-                val error: Error,
+                val error: Error
             ) : JsonRpcResponse()
 
             data class Error(
                 val code: Long,
-                val message: String,
+                val message: String
             )
         }
 
@@ -165,7 +165,7 @@ object WalletConnect {
             val name: String,
             val description: String,
             val url: String,
-            val icons: List<String>,
+            val icons: List<String>
         ) : Model()
 
         data class JsonRpcHistory(

@@ -59,14 +59,14 @@ class ScannerFragment : Fragment(R.layout.scanner_fragment) {
 
     private fun setupObserver() {
         getProcessCameraProvider()
-            .observe(viewLifecycleOwner, { provider: ProcessCameraProvider ->
+            .observe(viewLifecycleOwner) { provider: ProcessCameraProvider ->
                 cameraProvider = provider
                 if (isCameraPermissionGranted()) {
                     bindCameraUseCases()
                 } else {
                     cameraPermissionCallback.launch(Manifest.permission.CAMERA)
                 }
-            })
+            }
     }
 
     private fun getProcessCameraProvider(): LiveData<ProcessCameraProvider> {
@@ -113,9 +113,9 @@ class ScannerFragment : Fragment(R.layout.scanner_fragment) {
                 .setTargetRotation(binding.previewView.display.rotation)
                 .build()
 
-            analysisUseCase?.setAnalyzer(Executors.newSingleThreadExecutor(),
-                { imageProxy -> processImageProxy(barcodeScanner, imageProxy) }
-            )
+            analysisUseCase?.setAnalyzer(
+                Executors.newSingleThreadExecutor()
+            ) { imageProxy -> processImageProxy(barcodeScanner, imageProxy) }
 
             cameraProvider?.bindToLifecycle(this, cameraSelector!!, analysisUseCase)
         }

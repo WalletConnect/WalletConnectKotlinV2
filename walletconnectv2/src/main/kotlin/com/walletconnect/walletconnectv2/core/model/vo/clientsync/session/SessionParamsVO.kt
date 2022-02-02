@@ -77,7 +77,7 @@ internal sealed class SessionParamsVO : ClientParams {
         val state: SessionStateVO
     ) : SessionParamsVO()
 
-    internal data class SessionPermissionsParams(
+    internal data class UpgradeParams(
         @Json(name = "permissions")
         val permissions: SessionPermissionsVO
     ) : SessionParamsVO()

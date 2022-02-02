@@ -10,7 +10,7 @@
         android:id="@+id/wallet_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?actionBarSize"
-        android:background="@color/blue"
+        android:background="@color/walletconnect_blue"
         app:menu="@menu/wallet_toolbar_menu"
         app:titleTextColor="@color/white" />
 

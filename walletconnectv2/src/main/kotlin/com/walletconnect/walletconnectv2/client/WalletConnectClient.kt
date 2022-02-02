@@ -18,7 +18,7 @@ object WalletConnectClient {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var engineInteractor: EngineInteractor
 
-    fun initialize(initial: WalletConnect.Params.Init) = with(initial) {
+    fun initialize(initial: WalletConnect.Params.Init, onError: (WalletConnectException) -> Unit = {}) = with(initial) {
         // TODO: add logic to check hostName for ws/wss scheme with and without ://
         wcKoinApp.run {
             androidContext(application)
@@ -33,6 +33,7 @@ object WalletConnectClient {
         }
 
         engineInteractor = wcKoinApp.koin.get()
+        engineInteractor.handleInitializationErrors { walletConnectException -> onError(walletConnectException) }
     }
 
     @Throws(IllegalStateException::class)
@@ -45,8 +46,8 @@ object WalletConnectClient {
             engineInteractor.sequenceEvent.collect { event ->
                 when (event) {
                     is EngineDO.SessionProposal -> delegate.onSessionProposal(event.toClientSessionProposal())
-                    is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())  //eth_sign
-                    is EngineDO.DeletedSession -> delegate.onSessionDelete(event.toClientDeletedSession())
+                    is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
+                    is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                     is EngineDO.SessionNotification -> delegate.onSessionNotification(event.toClientSessionNotification())
                 }
             }
@@ -63,20 +64,24 @@ object WalletConnectClient {
             engineInteractor.sequenceEvent.collect { event ->
                 when (event) {
                     is EngineDO.SettledPairing -> delegate.onPairingSettled(event.toClientSettledPairing())
+                    is EngineDO.PairingUpdate -> delegate.onPairingUpdated(event.toClientSettledPairing())
                     is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
                     is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
+                    is EngineDO.SessionUpdate -> delegate.onSessionUpdate(event.toClientSessionsUpdate())
+                    is EngineDO.SessionUpgrade -> delegate.onSessionUpgrade(event.toClientSessionsUpgrade())
                 }
             }
         }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun connect(connect: WalletConnect.Params.Connect): String? {
+    fun connect(connect: WalletConnect.Params.Connect, onFailure: (Throwable) -> Unit = {}): String? {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
         return engineInteractor.proposeSequence(connect.permissions.toEngineSessionPermissions(), connect.pairingTopic)
+        { error -> onFailure(error) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
@@ -241,7 +246,10 @@ object WalletConnectClient {
 
     interface DappDelegate {
         fun onPairingSettled(settledPairing: WalletConnect.Model.SettledPairing)
+        fun onPairingUpdated(pairing: WalletConnect.Model.SettledPairing)
         fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession)
+        fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdatedSession)
+        fun onSessionUpgrade(upgradedSession: WalletConnect.Model.UpgradedSession)
     }
 }

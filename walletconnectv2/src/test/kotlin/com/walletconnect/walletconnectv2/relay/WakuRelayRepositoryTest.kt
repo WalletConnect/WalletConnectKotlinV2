@@ -23,7 +23,7 @@ internal class WakuRelayRepositoryTest {
 //                relay = JSONObject(),
 //                responder = PairingParticipantVO(getRandom64ByteHexString()),
 //                expiry = ExpiryVO(1),
-//                state = PairingStateVO()
+//                state = com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.success.PairingStateVO()
 //            )
 //        )
 //        coEvery { sut.observePublishAcknowledgement } returns flowOf(

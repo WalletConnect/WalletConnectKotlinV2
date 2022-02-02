@@ -28,33 +28,47 @@ import java.net.HttpURLConnection
 internal class WalletConnectRelayer(
     private val networkRepository: NetworkRepository,
     private val serializer: JsonRpcSerializer,
-    private val jsonRpcHistory: JsonRpcHistory,
+    private val jsonRpcHistory: JsonRpcHistory
 ) {
     private val _clientSyncJsonRpc: MutableSharedFlow<RequestSubscriptionPayloadVO> = MutableSharedFlow()
     internal val clientSyncJsonRpc: SharedFlow<RequestSubscriptionPayloadVO> = _clientSyncJsonRpc
 
     private val peerResponse: MutableSharedFlow<RelayDO.JsonRpcResponse> = MutableSharedFlow()
-
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
-    val isConnectionOpened = MutableStateFlow(false)
 
+    private val _isConnectionOpened = MutableStateFlow(false)
+    val isConnectionOpened: StateFlow<Boolean> = _isConnectionOpened
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error(exception) }
 
-    private val Throwable.exception: Throwable
-        get() = when {
-            this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
-                WalletConnectException.ProjectIdDoesNotExistException(this.message)
-            this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
-                WalletConnectException.InvalidProjectIdException(this.message)
-            else -> WalletConnectException.ServerException(this.message)
-        }
+    @get:JvmSynthetic
+    private val Throwable.toWalletConnectException: WalletConnectException
+        get() =
+            when {
+                this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
+                    WalletConnectException.ProjectIdDoesNotExistException(this.message)
+                this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
+                    WalletConnectException.InvalidProjectIdException(this.message)
+                else -> WalletConnectException.GenericException(this.message)
+            }
+
+    val initializationErrorsFlow: Flow<WalletConnectException>
+        get() = networkRepository.eventsFlow
+            .onEach { event: WebSocket.Event ->
+                Logger.log("$event")
+                setOnConnectionOpen(event)
+            }
+            .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
+            .map { error -> error.throwable.toWalletConnectException }
 
     init {
-        handleInitialisationErrors()
         manageSubscriptions()
     }
 
-    internal fun publishJsonRpcRequests(topic: TopicVO, payload: SettlementSequence<*>, onResult: (Result<JsonRpcResponseVO.JsonRpcResult>) -> Unit) {
+    internal fun publishJsonRpcRequests(
+        topic: TopicVO,
+        payload: SettlementSequence<*>,
+        onResult: (Result<JsonRpcResponseVO.JsonRpcResult>) -> Unit
+    ) {
         val serializedPayload = serializer.serialize(payload, topic)
 
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, serializedPayload)) {
@@ -84,7 +98,12 @@ internal class WalletConnectRelayer(
         }
     }
 
-    internal fun publishJsonRpcResponse(topic: TopicVO, response: JsonRpcResponseVO, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {}) {
+    internal fun publishJsonRpcResponse(
+        topic: TopicVO,
+        response: JsonRpcResponseVO,
+        onSuccess: () -> Unit = {},
+        onFailure: (Throwable) -> Unit = {}
+    ) {
         val responseToDO = response.toRelayDOJsonRpcResponse()
         val serializedPayload = serializer.serialize(responseToDO, topic)
 
@@ -130,25 +149,6 @@ internal class WalletConnectRelayer(
         return jsonRpcHistory.getRequests(topic, listOfMethodsForRequests) to jsonRpcHistory.getResponses(topic, listOfMethodsForRequests)
     }
 
-    private fun handleInitialisationErrors() {
-        scope.launch(exceptionHandler) {
-            networkRepository.eventsFlow
-                .onEach { event -> Logger.log("$event") }
-                .onEach { event: WebSocket.Event ->
-                    if (event is WebSocket.Event.OnConnectionOpened<*>) {
-                        isConnectionOpened.compareAndSet(expect = false, update = true)
-                    } else if (event is WebSocket.Event.OnConnectionClosed) {
-                        isConnectionOpened.compareAndSet(expect = true, update = false)
-                    }
-                }
-                .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
-                .collect { event ->
-                    Logger.error(event.throwable.stackTraceToString())
-                    throw event.throwable.exception
-                }
-        }
-    }
-
     private fun manageSubscriptions() {
         scope.launch(exceptionHandler) {
             networkRepository.subscriptionRequest
@@ -182,6 +182,14 @@ internal class WalletConnectRelayer(
         val error = serializer.tryDeserialize<RelayDO.JsonRpcResponse.JsonRpcError>(decryptedMessage)
         if (error != null) {
             peerResponse.emit(error)
+        }
+    }
+
+    private fun setOnConnectionOpen(event: WebSocket.Event) {
+        if (event is WebSocket.Event.OnConnectionOpened<*>) {
+            _isConnectionOpened.compareAndSet(expect = false, update = true)
+        } else if (event is WebSocket.Event.OnConnectionClosed) {
+            _isConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }
 

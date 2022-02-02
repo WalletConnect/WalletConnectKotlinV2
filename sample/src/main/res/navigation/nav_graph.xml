@@ -7,7 +7,8 @@
     <fragment
         android:id="@+id/walletFragment"
         android:name="com.walletconnect.sample.wallet.WalletFragment"
-        android:label="wallet_fragment">
+        android:label="wallet_fragment"
+        tools:layout="@layout/wallet_fragment">
         <action
             android:id="@+id/action_walletFragment_to_scannerFragment"
             app:destination="@id/scannerFragment" />
@@ -23,11 +24,12 @@
     <fragment
         android:id="@+id/dappFragment"
         android:name="com.walletconnect.sample.dapp.DappFragment"
-        android:label="fragment_dapp">
+        android:label="fragment_dapp"
+        tools:layout="@layout/dapp_fragment">
         <action
             android:id="@+id/action_dappFragment_to_walletFragment"
             app:destination="@id/walletFragment"
             app:popUpTo="@id/walletFragment"
-            app:popUpToInclusive="true"/>
+            app:popUpToInclusive="true" />
     </fragment>
 </navigation>

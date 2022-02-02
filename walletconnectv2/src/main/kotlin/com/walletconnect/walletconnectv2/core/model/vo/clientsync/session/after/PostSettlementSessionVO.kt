@@ -57,7 +57,7 @@ internal sealed class PostSettlementSessionVO : SettlementSequence<SessionParams
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_UPGRADE,
         @Json(name = "params")
-        override val params: SessionParamsVO.SessionPermissionsParams,
+        override val params: SessionParamsVO.UpgradeParams
     ) : PostSettlementSessionVO()
 
     @JsonClass(generateAdapter = true)
