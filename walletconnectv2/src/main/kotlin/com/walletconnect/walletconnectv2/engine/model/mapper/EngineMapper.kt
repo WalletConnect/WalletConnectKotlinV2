@@ -55,8 +55,7 @@ internal fun PairingParamsVO.Proposal.toPairingSuccess(expiry: ExpiryVO, selfPub
     PairingParamsVO.ApproveParams(
         relay = relay,
         responder = PairingParticipantVO(publicKey = selfPublicKey.keyAsHex),
-        expiry = expiry,
-        state = PairingStateVO(null)
+        expiry = expiry
     )
 
 @JvmSynthetic
@@ -66,6 +65,10 @@ internal fun PairingParamsVO.Proposal.toApprove(id: Long, expiry: ExpiryVO, self
 @JvmSynthetic
 internal fun EngineDO.AppMetaData.toMetaDataVO() =
     AppMetaDataVO(name, description, url, icons)
+
+@JvmSynthetic
+internal fun AppMetaDataVO.toEngineDOMetaData(): EngineDO.AppMetaData =
+    EngineDO.AppMetaData(name, description, url, icons)
 
 @JvmSynthetic
 internal fun EngineDO.SessionPermissions.toSessionsPermissions(): SessionPermissionsVO =
@@ -109,8 +112,8 @@ internal fun SessionParamsVO.SessionPayloadParams.toEngineDOSessionRequest(topic
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: TopicVO): EngineDO.DeletedSession =
-    EngineDO.DeletedSession(topic.value, reason.message)
+internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: TopicVO): EngineDO.SessionDelete =
+    EngineDO.SessionDelete(topic.value, reason.message)
 
 @JvmSynthetic
 internal fun SessionParamsVO.NotificationParams.toEngineDoSessionNotification(topic: TopicVO): EngineDO.SessionNotification =
@@ -169,11 +172,12 @@ internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.SettledPairing =
     EngineDO.SettledPairing(topic, relay, appMetaDataVO?.toEngineDOAppMetaData())
 
 @JvmSynthetic
-internal fun SessionVO.toSessionApproved(metaDataVO: AppMetaDataVO?, settledTopic: TopicVO): EngineDO.SessionApproved =
+internal fun SessionVO.toSessionApproved(params: SessionParamsVO.ApprovalParams, settledTopic: TopicVO): EngineDO.SessionApproved =
     EngineDO.SessionApproved(
         settledTopic.value,
-        metaDataVO?.toEngineDOAppMetaData(),
-        EngineDO.SessionPermissions(EngineDO.Blockchain(chains), EngineDO.JsonRpc(methods))
+        params.responder.metadata?.toEngineDOAppMetaData(),
+        EngineDO.SessionPermissions(EngineDO.Blockchain(chains), EngineDO.JsonRpc(methods)),
+        params.state.accounts
     )
 
 @JvmSynthetic
@@ -320,7 +324,7 @@ internal fun PairingVO.toAcknowledgedPairingVO(
         permissions = permissions,
         relay = relay,
         controllerType = controllerType,
-        appMetaDataVO = params.state.metadata
+        appMetaDataVO = params.state?.metadata
     )
 
 @JvmSynthetic
@@ -353,3 +357,7 @@ internal fun EngineDO.WalletConnectUri.toProposedPairingVO(controllerType: Contr
 @JvmSynthetic
 internal fun JsonRpcResponseVO.JsonRpcResult.toEngineJsonRpcResult(): EngineDO.JsonRpcResponse.JsonRpcResult =
     EngineDO.JsonRpcResponse.JsonRpcResult(id = id, result = result)
+
+@JvmSynthetic
+internal fun EngineDO.JsonRpcResponse.JsonRpcError.toJsonRpcErrorVO(): JsonRpcResponseVO.JsonRpcError =
+    JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(error.code, error.message))

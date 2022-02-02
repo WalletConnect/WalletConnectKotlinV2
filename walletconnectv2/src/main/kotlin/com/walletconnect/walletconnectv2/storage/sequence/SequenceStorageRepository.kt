@@ -225,16 +225,16 @@ internal class SequenceStorageRepository(private val pairingDaoQueries: PairingD
     }
 
     @JvmSynthetic
-    fun updateSessionWithAccounts(topic: String, accounts: List<String>) {
-        sessionDaoQueries.updateSessionWithAccounts(accounts, topic)
+    fun updateSessionWithAccounts(topic: TopicVO, accounts: List<String>) {
+        sessionDaoQueries.updateSessionWithAccounts(accounts, topic.value)
     }
 
     @JvmSynthetic
-    fun updateSessionWithPermissions(topic: String, blockChains: List<String>?, jsonRpcMethods: List<String>?) {
-        val (listOfChains, listOfMethods) = sessionDaoQueries.getPermissionsByTopic(topic).executeAsOne()
+    fun upgradeSessionWithPermissions(topic: TopicVO, blockChains: List<String>?, jsonRpcMethods: List<String>?) {
+        val (listOfChains, listOfMethods) = sessionDaoQueries.getPermissionsByTopic(topic.value).executeAsOne()
         val chainsUnion = listOfChains.union((blockChains ?: emptyList())).toList()
         val methodsUnion = listOfMethods.union((jsonRpcMethods ?: emptyList())).toList()
-        sessionDaoQueries.updateSessionWithPermissions(chainsUnion, methodsUnion, topic)
+        sessionDaoQueries.updateSessionWithPermissions(chainsUnion, methodsUnion, topic.value)
     }
 
     @JvmSynthetic

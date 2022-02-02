@@ -103,17 +103,15 @@ object WalletConnect {
 
         data class SessionState(val accounts: List<String>) : Model()
 
-        data class SettledPairing(
-            val topic: String,
-            val appMetaData: AppMetaData? = null
-        ) : Model()
+        data class SettledPairing(val topic: String, val metaData: AppMetaData? = null) : Model()
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
 
         data class ApprovedSession(
             val topic: String,
-            val peerAppMetaData: AppMetaData?,
-            val permissions: SessionPermissions
+            val metaData: AppMetaData?,
+            val permissions: SessionPermissions,
+            val accounts: List<String>
         ) : Model()
 
         data class DeletedSession(val topic: String, val reason: String) : Model()

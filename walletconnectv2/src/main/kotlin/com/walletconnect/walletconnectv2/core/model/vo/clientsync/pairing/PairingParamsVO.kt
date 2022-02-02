@@ -37,7 +37,7 @@ internal sealed class PairingParamsVO : ClientParams {
         @ExpiryAdapter.Qualifier
         val expiry: ExpiryVO,
         @Json(name = "state")
-        val state: PairingStateVO
+        val state: PairingStateVO? = null
     ) : PairingParamsVO()
 
     class RejectParams(val reason: String) : PairingParamsVO()

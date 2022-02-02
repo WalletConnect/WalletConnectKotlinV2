@@ -44,8 +44,8 @@ object WalletConnectClient {
             engineInteractor.sequenceEvent.collect { event ->
                 when (event) {
                     is EngineDO.SessionProposal -> delegate.onSessionProposal(event.toClientSessionProposal())
-                    is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())  //eth_sign
-                    is EngineDO.DeletedSession -> delegate.onSessionDelete(event.toClientDeletedSession())
+                    is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
+                    is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                     is EngineDO.SessionNotification -> delegate.onSessionNotification(event.toClientSessionNotification())
                 }
             }
@@ -62,8 +62,11 @@ object WalletConnectClient {
             engineInteractor.sequenceEvent.collect { event ->
                 when (event) {
                     is EngineDO.SettledPairing -> delegate.onPairingSettled(event.toClientSettledPairing())
+                    is EngineDO.PairingUpdate -> delegate.onPairingUpdated(event.toClientSettledPairing())
                     is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
                     is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
+                    is EngineDO.SessionUpdate -> delegate.onSessionUpdate(event.toClientSessionsUpdate())
+                    is EngineDO.SessionUpgrade -> delegate.onSessionUpgrade(event.toClientSessionsUpgrade())
                 }
             }
         }
@@ -230,7 +233,10 @@ object WalletConnectClient {
 
     interface DappDelegate {
         fun onPairingSettled(settledPairing: WalletConnect.Model.SettledPairing)
+        fun onPairingUpdated(pairing: WalletConnect.Model.SettledPairing)
         fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession)
+        fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdatedSession)
+        fun onSessionUpgrade(upgradedSession: WalletConnect.Model.UpgradedSession)
     }
 }
