@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setBottomNavigation() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_container) as NavHostFragment
-        NavigationUI.setupWithNavController(binding.bottomNav, navHostFragment.findNavController())
+        NavigationUI.setupWithNavController(binding.bottomNav, navHostFragment.navController)
         navHostFragment.findNavController().addOnDestinationChangedListener { _, destination, _ ->
             binding.bottomNav.isGone = destination.id == R.id.scannerFragment
         }

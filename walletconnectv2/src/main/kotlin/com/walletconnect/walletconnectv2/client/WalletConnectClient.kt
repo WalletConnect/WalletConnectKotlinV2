@@ -17,7 +17,7 @@ object WalletConnectClient {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var engineInteractor: EngineInteractor
 
-    fun initialize(initial: WalletConnect.Params.Init) = with(initial) {
+    fun initialize(initial: WalletConnect.Params.Init, onError: (WalletConnectException) -> Unit = {}) = with(initial) {
         // TODO: add logic to check hostName for ws/wss scheme with and without ://
         wcKoinApp.run {
             androidContext(application)
@@ -32,6 +32,7 @@ object WalletConnectClient {
         }
 
         engineInteractor = wcKoinApp.koin.get()
+        engineInteractor.handleInitializationErrors { walletConnectException -> onError(walletConnectException) }
     }
 
     @Throws(IllegalStateException::class)
@@ -73,12 +74,13 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun connect(connect: WalletConnect.Params.Connect): String? {
+    fun connect(connect: WalletConnect.Params.Connect, onFailure: (Throwable) -> Unit = {}): String? {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
         return engineInteractor.proposeSequence(connect.permissions.toEngineSessionPermissions(), connect.pairingTopic)
+        { error -> onFailure(error) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)

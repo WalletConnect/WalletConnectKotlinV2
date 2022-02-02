@@ -11,7 +11,6 @@ import com.walletconnect.walletconnectv2.network.data.repository.WakuNetworkRepo
 import com.walletconnect.walletconnectv2.network.data.service.RelayService
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 

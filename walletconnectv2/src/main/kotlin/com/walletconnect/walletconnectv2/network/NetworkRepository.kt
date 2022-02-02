@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.SharedFlow
 
 internal interface NetworkRepository {
     val eventsFlow: SharedFlow<WebSocket.Event>
+
     val subscriptionRequest: Flow<RelayDTO.Subscription.Request>
 
     fun publish(topic: TopicVO, message: String, onResult: (Result<RelayDTO.Publish.Acknowledgement>) -> Unit = {})

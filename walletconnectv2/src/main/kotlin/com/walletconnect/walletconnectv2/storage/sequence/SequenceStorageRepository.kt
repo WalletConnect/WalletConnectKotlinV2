@@ -14,11 +14,14 @@ import org.walletconnect.walletconnectv2.storage.data.dao.PairingDaoQueries
 import org.walletconnect.walletconnectv2.storage.data.dao.SessionDaoQueries
 
 //TODO: Split into SessionStorageRepository and PairingStorageRepository
-internal class SequenceStorageRepository(private val pairingDaoQueries: PairingDaoQueries, private val sessionDaoQueries: SessionDaoQueries, private val metaDataDaoQueries: MetaDataDaoQueries) {
+internal class SequenceStorageRepository(
+    private val pairingDaoQueries: PairingDaoQueries,
+    private val sessionDaoQueries: SessionDaoQueries,
+    private val metaDataDaoQueries: MetaDataDaoQueries
+) {
 
     @JvmSynthetic
     fun getListOfPairingVOs(): List<PairingVO> =
-        //TODO: retrieve metadata for given pairing
         pairingDaoQueries.getListOfPairingDaos(mapper = this@SequenceStorageRepository::mapPairingDaoToPairingVO)
             .executeAsList()
 

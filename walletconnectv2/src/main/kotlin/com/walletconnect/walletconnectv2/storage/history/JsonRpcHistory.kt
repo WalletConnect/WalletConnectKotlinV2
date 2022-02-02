@@ -7,7 +7,11 @@ import com.walletconnect.walletconnectv2.storage.history.model.JsonRpcStatus
 import com.walletconnect.walletconnectv2.util.Logger
 import org.walletconnect.walletconnectv2.storage.data.dao.JsonRpcHistoryQueries
 
-internal class JsonRpcHistory(private val controllerType: ControllerType, private val sharedPreferences: SharedPreferences, private val jsonRpcHistoryQueries: JsonRpcHistoryQueries) {
+internal class JsonRpcHistory(
+    private val controllerType: ControllerType,
+    private val sharedPreferences: SharedPreferences,
+    private val jsonRpcHistoryQueries: JsonRpcHistoryQueries
+) {
 
     fun setRequest(requestId: Long, topic: TopicVO, method: String?, payload: String): Boolean {
         tryMigrationToDB(requestId)

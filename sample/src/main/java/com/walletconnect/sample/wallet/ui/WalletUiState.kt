@@ -9,3 +9,4 @@ data class UpdateActiveSessions(val sessions: List<WalletConnect.Model.SettledSe
 data class ShowSessionRequestDialog(val sessionRequest: WalletConnect.Model.SessionRequest, val session: WalletConnect.Model.SettledSession) : WalletUiEvent()
 object PingSuccess : WalletUiEvent()
 object RejectSession : WalletUiEvent()
+object Default : WalletUiEvent()
