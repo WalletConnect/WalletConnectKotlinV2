@@ -36,7 +36,18 @@ internal class WalletConnectRelayer(
 
     private val _isConnectionOpened = MutableStateFlow(false)
     val isConnectionOpened: StateFlow<Boolean> = _isConnectionOpened
+    private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error(exception) }
 
+    @get:JvmSynthetic
+    private val Throwable.toWalletConnectException: WalletConnectException
+        get() =
+            when {
+                this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
+                    WalletConnectException.ProjectIdDoesNotExistException(this.message)
+                this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
+                    WalletConnectException.InvalidProjectIdException(this.message)
+                else -> WalletConnectException.GenericException(this.message)
+            }
 
     val initializationErrorsFlow: Flow<WalletConnectException>
         get() = networkRepository.eventsFlow
@@ -51,7 +62,11 @@ internal class WalletConnectRelayer(
         manageSubscriptions()
     }
 
-    internal fun publishJsonRpcRequests(topic: TopicVO, payload: SettlementSequence<*>, onResult: (Result<JsonRpcResponseVO.JsonRpcResult>) -> Unit) {
+    internal fun publishJsonRpcRequests(
+        topic: TopicVO,
+        payload: SettlementSequence<*>,
+        onResult: (Result<JsonRpcResponseVO.JsonRpcResult>) -> Unit
+    ) {
         val serializedPayload = serializer.serialize(payload, topic)
 
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, serializedPayload)) {
@@ -71,7 +86,7 @@ internal class WalletConnectRelayer(
 
             networkRepository.publish(topic, serializedPayload) { result ->
                 result.fold(
-                    onSuccess = {jsonRpcHistory.updateRequestStatus(payload.id, JsonRpcStatus.REQUEST_SUCCESS)},
+                    onSuccess = { jsonRpcHistory.updateRequestStatus(payload.id, JsonRpcStatus.REQUEST_SUCCESS) },
                     onFailure = { error ->
                         jsonRpcHistory.updateRequestStatus(payload.id, JsonRpcStatus.REQUEST_FAILURE)
                         onResult(Result.failure(error))
@@ -81,7 +96,12 @@ internal class WalletConnectRelayer(
         }
     }
 
-    internal fun publishJsonRpcResponse(topic: TopicVO, response: JsonRpcResponseVO, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {}) {
+    internal fun publishJsonRpcResponse(
+        topic: TopicVO,
+        response: JsonRpcResponseVO,
+        onSuccess: () -> Unit = {},
+        onFailure: (Throwable) -> Unit = {}
+    ) {
         val responseToDO = response.toRelayDOJsonRpcResponse()
         val serializedPayload = serializer.serialize(responseToDO, topic)
 
@@ -166,17 +186,4 @@ internal class WalletConnectRelayer(
             _isConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }
-
-    private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error(exception) }
-
-    @get:JvmSynthetic
-    private val Throwable.toWalletConnectException: WalletConnectException
-        get() =
-            when {
-                this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
-                    WalletConnectException.ProjectIdDoesNotExistException(this.message)
-                this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
-                    WalletConnectException.InvalidProjectIdException(this.message)
-                else -> WalletConnectException.GenericException(this.message)
-            }
 }
