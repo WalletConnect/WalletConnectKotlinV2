@@ -137,7 +137,6 @@ internal sealed class EngineDO {
     ) : EngineDO()
 
     internal sealed class JsonRpcResponse : EngineDO() {
-
         abstract val id: Long
 
         @JsonClass(generateAdapter = true)

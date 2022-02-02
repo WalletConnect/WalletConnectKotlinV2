@@ -12,6 +12,7 @@ import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageReposit
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import org.walletconnect.walletconnectv2.storage.data.dao.JsonRpcHistoryDao
 import org.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
 import org.walletconnect.walletconnectv2.storage.data.dao.PairingDao
 import org.walletconnect.walletconnectv2.storage.data.dao.SessionDao
@@ -30,10 +31,6 @@ internal fun storageModule() = module {
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
-    }
-
-    single {
-        JsonRpcHistory(get(named(DITags.RPC_STORE)))
     }
 
     single<ColumnAdapter<List<String>, String>> {
@@ -74,11 +71,35 @@ internal fun storageModule() = module {
                 statusAdapter = EnumColumnAdapter(),
                 controller_typeAdapter = EnumColumnAdapter()
             ),
-            MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = get())
+            MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = get()),
+            JsonRpcHistoryDaoAdapter = JsonRpcHistoryDao.Adapter(
+                statusAdapter = EnumColumnAdapter(),
+                controller_typeAdapter = EnumColumnAdapter()
+            )
         )
     }
 
     single {
-        SequenceStorageRepository(get())
+        get<Database>().pairingDaoQueries
+    }
+
+    single {
+        get<Database>().sessionDaoQueries
+    }
+
+    single {
+        get<Database>().metaDataDaoQueries
+    }
+
+    single {
+        get<Database>().jsonRpcHistoryQueries
+    }
+
+    single {
+        SequenceStorageRepository(get(), get(), get())
+    }
+
+    single {
+        JsonRpcHistory(get(), get(named(DITags.RPC_STORE)), get())
     }
 }
