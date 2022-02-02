@@ -336,7 +336,7 @@ internal class EngineInteractor(
         }
 
         val chains: List<String> = sequenceStorageRepository.getSessionByTopic(TopicVO(request.topic)).chains
-        Validator.validateChainIsAuthorization(request.chainId, chains) { errorMessage ->
+        Validator.validateChainIdAuthorization(request.chainId, chains) { errorMessage ->
             throw WalletConnectException.UnauthorizedChainIdException(errorMessage)
         }
 

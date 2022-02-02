@@ -27,7 +27,7 @@ internal object Validator {
         if (notification.data.isEmpty() && notification.type.isEmpty()) onInvalidNotification(INVALID_NOTIFICATION_MESSAGE)
     }
 
-    internal fun validateChainIsAuthorization(chainId: String?, chains: List<String>, onInvalidChainId: (String) -> Unit) {
+    internal fun validateChainIdAuthorization(chainId: String?, chains: List<String>, onInvalidChainId: (String) -> Unit) {
         if (chainId != null) {
             if (!chains.contains(chainId)) onInvalidChainId(UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
