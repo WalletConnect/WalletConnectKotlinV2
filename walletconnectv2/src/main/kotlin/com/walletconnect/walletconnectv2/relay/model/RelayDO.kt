@@ -1,13 +1,12 @@
 package com.walletconnect.walletconnectv2.relay.model
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.walletconnectv2.core.model.type.ClientSyncJsonRpc
+import com.walletconnect.walletconnectv2.core.model.type.SerializableJsonRpc
 
 internal sealed class RelayDO {
 
-    internal sealed class JsonRpcResponse : RelayDO(), ClientSyncJsonRpc {
-
-        abstract override val id: Long
+    internal sealed class JsonRpcResponse : RelayDO(), SerializableJsonRpc {
+        abstract val id: Long
 
         @JsonClass(generateAdapter = true)
         internal data class JsonRpcResult(

@@ -102,7 +102,7 @@ internal class EngineInteractor(
             val params = PairingParamsVO.PayloadParams(ProposalRequestVO(JsonRpcMethod.WC_SESSION_PROPOSE, params = proposalParams))
             val sessionProposal = PostSettlementPairingVO.PairingPayload(id = generateId(), params = params)
 
-            relayer.request(settledPairing.topic, sessionProposal) { result ->
+            relayer.publishJsonRpcRequests(settledPairing.topic, sessionProposal) { result ->
                 result.fold(
                     onSuccess = { Logger.log("Session proposal response received") },
                     onFailure = { error ->
@@ -157,7 +157,7 @@ internal class EngineInteractor(
             .filter { isOnline -> isOnline }
             .onEach {
                 supervisorScope {
-                    relayer.request(proposal.topic, preSettlementPairingApprove) { result ->
+                    relayer.publishJsonRpcRequests(proposal.topic, preSettlementPairingApprove) { result ->
                         result.fold(
                             onSuccess = { onPairingSuccess(proposal, preSettledPairing, onSuccess) },
                             onFailure = { throwable -> onFailure(throwable) }
@@ -178,7 +178,7 @@ internal class EngineInteractor(
     private fun pairingUpdate(settledSequence: PairingVO) {
         val params = PairingParamsVO.UpdateParams(state = PairingStateVO(metaData.toMetaDataVO()))
         val pairingUpdate: PostSettlementPairingVO.PairingUpdate = PostSettlementPairingVO.PairingUpdate(id = generateId(), params = params)
-        relayer.request(settledSequence.topic, pairingUpdate) { result ->
+        relayer.publishJsonRpcRequests(settledSequence.topic, pairingUpdate) { result ->
             result.fold(
                 onSuccess = {
                     sequenceStorageRepository.updateAcknowledgedPairingMetadata(metaData.toMetaDataVO(), settledSequence.topic)
@@ -214,7 +214,7 @@ internal class EngineInteractor(
             responder = SessionParticipantVO(selfPublicKey.keyAsHex, metadata = metaData.toMetaDataVO())
         )
         val sessionApprove = PreSettlementSessionVO.Approve(id = generateId(), params = params)
-        relayer.request(TopicVO(proposal.topic), sessionApprove) { result ->
+        relayer.publishJsonRpcRequests(TopicVO(proposal.topic), sessionApprove) { result ->
             result.fold(
                 onSuccess = {
                     relayer.unsubscribe(TopicVO(proposal.topic))
@@ -244,7 +244,7 @@ internal class EngineInteractor(
         val sessionReject = PreSettlementSessionVO.Reject(id = generateId(), params = params)
         sequenceStorageRepository.deleteSession(TopicVO(topic))
         onSuccess(Pair(topic, reason))
-        relayer.request(TopicVO(topic), sessionReject) { result ->
+        relayer.publishJsonRpcRequests(TopicVO(topic), sessionReject) { result ->
             result.fold(
                 onSuccess = {
                     crypto.removeKeys(topic)
@@ -265,7 +265,7 @@ internal class EngineInteractor(
         sequenceStorageRepository.deleteSession(TopicVO(topic))
         relayer.unsubscribe(TopicVO(topic))
         onSuccess(Pair(topic, reason))
-        relayer.request(TopicVO(topic), sessionDelete) { result ->
+        relayer.publishJsonRpcRequests(TopicVO(topic), sessionDelete) { result ->
             result.fold(
                 onSuccess = {/*TODO: Should wait for acknowledgement and delete keys?*/ },
                 onFailure = { error -> onFailure(error) }
@@ -282,7 +282,7 @@ internal class EngineInteractor(
         }
 
         //TODO: Add JsonRpcResponseVO validation
-        relayer.respond(TopicVO(topic), jsonRpcResponse,
+        relayer.publishJsonRpcResponse(TopicVO(topic), jsonRpcResponse,
             { Logger.error("Session payload sent successfully") },
             { error ->
                 onFailure(error)
@@ -305,7 +305,7 @@ internal class EngineInteractor(
         //TODO: Add Request validation
         val params = SessionParamsVO.SessionPayloadParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
         val sessionPayload = PostSettlementSessionVO.SessionPayload(id = generateId(), params = params)
-        relayer.request(TopicVO(request.topic), sessionPayload) { result ->
+        relayer.publishJsonRpcRequests(TopicVO(request.topic), sessionPayload) { result ->
             result.fold(
                 onSuccess = { jsonRpcResult -> onSuccess(jsonRpcResult.toEngineJsonRpcResult()) },
                 onFailure = { error -> onFailure(error) }
@@ -330,7 +330,7 @@ internal class EngineInteractor(
         val params = SessionParamsVO.UpdateParams(SessionStateVO(state.accounts))
         val sessionUpdate: PostSettlementSessionVO.SessionUpdate = PostSettlementSessionVO.SessionUpdate(id = generateId(), params = params)
         sequenceStorageRepository.updateSessionWithAccounts(TopicVO(topic), state.accounts)
-        relayer.request(TopicVO(topic), sessionUpdate) { result ->
+        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdate) { result ->
             result.fold(
                 onSuccess = { onSuccess(Pair(topic, state.accounts)) },
                 onFailure = { error -> onFailure(error) }
@@ -354,7 +354,7 @@ internal class EngineInteractor(
         val permissionsParams = SessionParamsVO.UpgradeParams(permissions = permissions.toSessionsPermissions())
         val sessionUpgrade = PostSettlementSessionVO.SessionUpgrade(id = generateId(), params = permissionsParams)
         sequenceStorageRepository.upgradeSessionWithPermissions(TopicVO(topic), permissions.blockchain.chains, permissions.jsonRpc.methods)
-        relayer.request(TopicVO(topic), sessionUpgrade) { result ->
+        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpgrade) { result ->
             result.fold(
                 onSuccess = { onSuccess(Pair(topic, permissions)) },
                 onFailure = { error -> onFailure(error) }
@@ -370,7 +370,7 @@ internal class EngineInteractor(
 
         val notificationParams = SessionParamsVO.NotificationParams(notification.type, notification.data)
         val sessionNotification = PostSettlementSessionVO.SessionNotification(id = generateId(), params = notificationParams)
-        relayer.request(TopicVO(topic), sessionNotification) { result ->
+        relayer.publishJsonRpcRequests(TopicVO(topic), sessionNotification) { result ->
             result.fold(
                 onSuccess = { onSuccess(topic) },
                 onFailure = { error -> onFailure(error) }
@@ -387,7 +387,7 @@ internal class EngineInteractor(
             else -> throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        relayer.request(TopicVO(topic), pingParams) { result ->
+        relayer.publishJsonRpcRequests(TopicVO(topic), pingParams) { result ->
             result.fold(
                 onSuccess = { onSuccess(topic) },
                 onFailure = { error -> onFailure(error) }
@@ -437,7 +437,7 @@ internal class EngineInteractor(
         relayer.unsubscribe(pendingPairing.topic)
 
         val jsonRpcResult = EngineDO.JsonRpcResponse.JsonRpcResult(id = requestId, result = "true")
-        relayer.respond(pendingPairing.topic, jsonRpcResult.toJsonRpcResult(),
+        relayer.publishJsonRpcResponse(pendingPairing.topic, jsonRpcResult.toJsonRpcResult(),
             onFailure = { error -> Logger.error("onPairingApproved: Cannot send the respond, error: $error") })
 
         if (!this::sessionPermissions.isInitialized) {
@@ -522,7 +522,7 @@ internal class EngineInteractor(
         relayer.unsubscribe(pendingSession.topic)
 
         val jsonRpcResult = EngineDO.JsonRpcResponse.JsonRpcResult(id = requestId, result = "true")
-        relayer.respond(topic, jsonRpcResult.toJsonRpcResult(),
+        relayer.publishJsonRpcResponse(topic, jsonRpcResult.toJsonRpcResult(),
             onFailure = { error -> Logger.error("onSessionApproved: Cannot send the respond, error: $error") })
         return pendingSession.toSessionApproved(params, settledTopic)
     }
@@ -622,7 +622,7 @@ internal class EngineInteractor(
         }
 
         val jsonRpcResult = EngineDO.JsonRpcResponse.JsonRpcResult(id = requestId, result = "true")
-        relayer.respond(topic, jsonRpcResult.toJsonRpcResult(),
+        relayer.publishJsonRpcRequests(topic, jsonRpcResult.toJsonRpcResult(),
             { Logger.log("Ping send successfully") },
             { error -> Logger.error("Ping Error: $error") })
         return EngineDO.Default
