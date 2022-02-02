@@ -24,3 +24,4 @@ internal const val WRONG_CHAIN_ID_FORMAT_MESSAGE: String =
 internal const val WRONG_ACCOUNT_ID_FORMAT_MESSAGE: String =
     "AccountIds does not follow the CAIP10 semantics. See: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-10.md"
 internal const val UNAUTHORIZED_CHAIN_ID_MESSAGE: String = "Unauthorized chain id"
+internal const val INVALID_NOTIFICATION_MESSAGE: String = "Notification type and data fields cannot be empty"

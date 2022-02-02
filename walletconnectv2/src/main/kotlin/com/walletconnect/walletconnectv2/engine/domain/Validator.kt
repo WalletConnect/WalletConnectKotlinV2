@@ -23,6 +23,16 @@ internal object Validator {
         }
     }
 
+    internal fun validateNotification(notification: EngineDO.Notification, onInvalidNotification: (String) -> Unit) {
+        if (notification.data.isEmpty() && notification.type.isEmpty()) onInvalidNotification(INVALID_NOTIFICATION_MESSAGE)
+    }
+
+    internal fun validateChainIsAuthorization(chainId: String?, chains: List<String>, onInvalidChainId: (String) -> Unit) {
+        if (chainId != null) {
+            if (!chains.contains(chainId)) onInvalidChainId(UNAUTHORIZED_CHAIN_ID_MESSAGE)
+        }
+    }
+
     internal fun isJsonRpcValid(jsonRpc: EngineDO.JsonRpc): Boolean =
         jsonRpc.methods.isNotEmpty() && jsonRpc.methods.all { method -> method.isNotEmpty() }
 
@@ -50,7 +60,6 @@ internal object Validator {
         return NAMESPACE_REGEX.toRegex().matches(namespace) &&
                 REFERENCE_REGEX.toRegex().matches(reference) &&
                 ACCOUNT_ADDRESS_REGEX.toRegex().matches(accountAddress)
-
     }
 
     internal fun areChainIdsIncludedInPermissions(accountIds: List<String>, chains: List<String>): Boolean {

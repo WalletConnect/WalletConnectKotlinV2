@@ -204,9 +204,7 @@ internal class EngineInteractor(
 
         Validator.validateAccounts(proposal.accounts, proposal.chains) { errorMessage ->
             throw WalletConnectException.InvalidAccountsException(errorMessage)
-
         }
-        //TODO: Add SessionProposal fields validation: not empty, permissions
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val (_, settledTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, PublicKey(proposal.publicKey))
@@ -218,7 +216,6 @@ internal class EngineInteractor(
 
         relayer.subscribe(settledTopic)
         sequenceStorageRepository.updateRespondedSessionToPreSettled(preSettledSession, TopicVO(proposal.topic))
-
 
         val params = SessionParamsVO.ApprovalParams(
             relay = RelayProtocolOptionsVO(),
@@ -337,9 +334,13 @@ internal class EngineInteractor(
         checkTopic(TopicVO(request.topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}") { message ->
             throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
-        //TODO: If chain id is included in the permissions set check
-        //TODO: Add timeout validation for peer response - 5s
 
+        val chains: List<String> = sequenceStorageRepository.getSessionByTopic(TopicVO(request.topic)).chains
+        Validator.validateChainIsAuthorization(request.chainId, chains) { errorMessage ->
+            throw WalletConnectException.UnauthorizedChainIdException(errorMessage)
+        }
+
+        //TODO: Add timeout validation for peer response - 5s
         val params = SessionParamsVO.SessionPayloadParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
         val sessionPayload = PostSettlementSessionVO.SessionPayload(id = generateId(), params = params)
         relayer.publishJsonRpcRequests(TopicVO(request.topic), sessionPayload) { result ->
@@ -385,7 +386,10 @@ internal class EngineInteractor(
         checkTopic(TopicVO(topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic") { message ->
             throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
-        //TODO: Add Notification validation: type and any field check if not empty
+
+        Validator.validateNotification(notification) { errorMessage ->
+            throw WalletConnectException.InvalidNotificationException(errorMessage)
+        }
 
         val notificationParams = SessionParamsVO.NotificationParams(notification.type, notification.data)
         val sessionNotification = PostSettlementSessionVO.SessionNotification(id = generateId(), params = notificationParams)
