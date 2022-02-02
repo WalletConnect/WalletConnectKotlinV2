@@ -1,8 +1,6 @@
 package com.walletconnect.walletconnectv2
 
-import com.walletconnect.walletconnectv2.core.exceptions.EMPTY_CHAIN_LIST_MESSAGE
-import com.walletconnect.walletconnectv2.core.exceptions.EMPTY_RPC_METHODS_LIST_MESSAGE
-import com.walletconnect.walletconnectv2.core.exceptions.INVALID_NOTIFICATIONS_TYPES_MESSAGE
+import com.walletconnect.walletconnectv2.core.exceptions.client.*
 import com.walletconnect.walletconnectv2.engine.domain.Validator
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import org.junit.jupiter.api.Test
@@ -117,5 +115,113 @@ class ValidatorTest {
         Validator.isChainIdValid("cosmos:").apply { assertEquals(this, false) }
         Validator.isChainIdValid(":").apply { assertEquals(this, false) }
         Validator.isChainIdValid("123:123").apply { assertEquals(this, true) }
+    }
+
+
+    @Test
+    fun `check correct error message when accounts are empty`() {
+        val accounts = listOf("")
+        val chains = listOf("as", "bc")
+        Validator.validateAccounts(accounts, chains) { errorMessage ->
+            assertEquals(errorMessage, EMPTY_ACCOUNT_LIST_MESSAGE)
+        }
+    }
+
+    @Test
+    fun `check correct error message when accounts are invalid`() {
+        val accounts = listOf("as11", "1234")
+        val chains = listOf("")
+        Validator.validateAccounts(accounts, chains) { errorMessage ->
+            assertEquals(errorMessage, WRONG_ACCOUNT_ID_FORMAT_MESSAGE)
+        }
+    }
+
+    @Test
+    fun `check correct error message when accounts are unauthorized`() {
+        val accounts = listOf(
+            "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
+            "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
+        )
+        val chains = listOf("")
+        Validator.validateAccounts(accounts, chains) { errorMessage ->
+            assertEquals(errorMessage, UNAUTHORIZED_CHAIN_ID_MESSAGE)
+        }
+    }
+
+    @Test
+    fun `are accounts not empty test`() {
+        val result1 = Validator.areAccountsNotEmpty(emptyList())
+        assertEquals(result1, false)
+
+        val result2 = Validator.areAccountsNotEmpty(listOf(""))
+        assertEquals(result2, false)
+
+        val result3 = Validator.areAccountsNotEmpty(listOf("123"))
+        assertEquals(result3, true)
+    }
+
+    @Test
+    fun `is chain id valid test`() {
+        Validator.isAccountIdValid("").apply { assertEquals(this, false) }
+        Validator.isAccountIdValid("1231:dadd").apply { assertEquals(this, false) }
+        Validator.isAccountIdValid("0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1").apply { assertEquals(this, false) }
+        Validator.isAccountIdValid("polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy")
+            .apply { assertEquals(this, true) }
+        Validator.isAccountIdValid("polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuy:xw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy")
+            .apply { assertEquals(this, false) }
+        Validator.isAccountIdValid("polkadotb0a8d493285c2df73290dfb7e61f870f:b0a8d493285c2df73290dfb7e61f870f:5hmuy:xw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy")
+            .apply { assertEquals(this, false) }
+        Validator.isAccountIdValid("::").apply { assertEquals(this, false) }
+        Validator.isAccountIdValid("a:s:d").apply { assertEquals(this, false) }
+        Validator.isAccountIdValid("a:s").apply { assertEquals(this, false) }
+        Validator.isAccountIdValid("chainstd:8c3444cf8970a9e41a706fab93e337a6c4:6d9b0b4b9994e8a6afbd3dc3ed983cd51c755afb27cd1dc7825ef59c134a39f7")
+            .apply { assertEquals(this, false) }
+    }
+
+    @Test
+    fun `are chain ids included in permissions`() {
+        Validator.areChainIdsIncludedInPermissions(emptyList(), emptyList()).apply { assertEquals(this, false) }
+        Validator.areChainIdsIncludedInPermissions(listOf(""), listOf("")).apply { assertEquals(this, false) }
+        Validator.areChainIdsIncludedInPermissions(listOf("as"), listOf("")).apply { assertEquals(this, false) }
+        Validator.areChainIdsIncludedInPermissions(listOf("as"), listOf("ss")).apply { assertEquals(this, false) }
+        Validator.areChainIdsIncludedInPermissions(
+            listOf(
+                "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
+                "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
+            ), listOf("ss", "aa")
+        ).apply { assertEquals(this, false) }
+
+        Validator.areChainIdsIncludedInPermissions(
+            listOf(
+                "bip122:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
+                "polkadot:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
+            ), listOf("bip122:000000000019d6689c085ae165831e93", "polkadot:b0a8d493285c2df73290dfb7e61f870f")
+        ).apply { assertEquals(this, false) }
+
+        Validator.areChainIdsIncludedInPermissions(
+            listOf(
+                "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
+                "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
+            ), listOf("bip122:000000000019d6689c085ae165831e93", "polkadot:b0a8d493285c2df73290dfb7e61f870f")
+        ).apply { assertEquals(this, true) }
+
+        Validator.areChainIdsIncludedInPermissions(
+            listOf(
+                "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
+                "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
+            ), listOf("polkadot:b0a8d493285c2df73290dfb7e61f870f")
+        ).apply { assertEquals(this, false) }
+
+        Validator.areChainIdsIncludedInPermissions(
+            listOf(
+                "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6"
+            ), listOf("polkadot:b0a8d493285c2df73290dfb7e61f870f")
+        ).apply { assertEquals(this, false) }
+
+        Validator.areChainIdsIncludedInPermissions(
+            listOf(
+                "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6"
+            ), listOf("bip122:000000000019d6689c085ae165831e93")
+        ).apply { assertEquals(this, true) }
     }
 }

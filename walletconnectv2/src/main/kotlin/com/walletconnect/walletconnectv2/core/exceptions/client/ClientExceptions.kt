@@ -1,4 +1,4 @@
-package com.walletconnect.walletconnectv2.core.exceptions
+package com.walletconnect.walletconnectv2.core.exceptions.client
 
 sealed class WalletConnectException(override val message: String?) : Exception(message) {
     class ProjectIdDoesNotExistException(override val message: String?) : WalletConnectException(message)
@@ -7,6 +7,7 @@ sealed class WalletConnectException(override val message: String?) : Exception(m
 
     class UnauthorizedPeerException(override val message: String?) : WalletConnectException(message)
     class InvalidSessionPermissionsException(override val message: String?) : WalletConnectException(message)
+    class InvalidAccountsException(override val message: String?) : WalletConnectException(message)
 
     class CannotFindSequenceForTopic(override val message: String?) : WalletConnectException(message)
     class PairWithExistingPairingIsNotAllowed(override val message: String?) : WalletConnectException(message)

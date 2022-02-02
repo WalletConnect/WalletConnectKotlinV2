@@ -226,7 +226,7 @@ object WalletConnect {
 
         data class Reject(val rejectionReason: String, val proposalTopic: String) : Params()
 
-        data class Disconnect(val sessionTopic: String, val reason: String) : Params()
+        data class Disconnect(val sessionTopic: String, val reason: String, val reasonCode: Int) : Params()
 
         data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) : Params()
 

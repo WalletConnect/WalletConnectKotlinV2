@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.relay.domain
 
 import com.tinder.scarlet.WebSocket
-import com.walletconnect.walletconnectv2.core.exceptions.WalletConnectException
+import com.walletconnect.walletconnectv2.core.exceptions.client.WalletConnectException
 import com.walletconnect.walletconnectv2.core.model.type.SettlementSequence
 import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.core.model.vo.RequestSubscriptionPayloadVO

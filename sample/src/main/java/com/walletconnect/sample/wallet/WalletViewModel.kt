@@ -65,7 +65,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     }
 
     fun disconnect(topic: String, reason: String = "Reason") {
-        val disconnect = WalletConnect.Params.Disconnect(topic, reason)
+        val disconnect = WalletConnect.Params.Disconnect(topic, reason, 100)
 
         WalletConnectClient.disconnect(disconnect, object : WalletConnect.Listeners.SessionDelete {
             override fun onSuccess(deletedSession: WalletConnect.Model.DeletedSession) {
@@ -113,7 +113,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     fun sessionUpdate(session: WalletConnect.Model.SettledSession) {
         val update = WalletConnect.Params.Update(
             sessionTopic = session.topic,
-            sessionState = WalletConnect.Model.SessionState(accounts = listOf("eip155:8001:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62"))
+            sessionState = WalletConnect.Model.SessionState(accounts = listOf("${proposal.chains[0]}:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62"))
         )
 
         WalletConnectClient.update(update, object : WalletConnect.Listeners.SessionUpdate {
