@@ -1,6 +1,7 @@
 package com.walletconnect.walletconnectv2.client.mapper
 
 import com.walletconnect.walletconnectv2.client.WalletConnect
+import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcHistoryVO
 import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 
@@ -112,3 +113,15 @@ internal fun WalletConnect.Params.Request.toEngineDORequest(): EngineDO.Request 
 @JvmSynthetic
 internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toClientJsonRpcResult(): WalletConnect.Model.JsonRpcResponse.JsonRpcResult =
     WalletConnect.Model.JsonRpcResponse.JsonRpcResult(id, result)
+
+@JvmSynthetic
+internal fun List<JsonRpcHistoryVO>.mapToHistory() = this.map {
+    WalletConnect.Model.JsonRpcHistory.HistoryEntry(
+        it.requestId,
+        it.topic,
+        it.method,
+        it.body,
+        it.jsonRpcStatus,
+        it.controllerType
+    )
+}

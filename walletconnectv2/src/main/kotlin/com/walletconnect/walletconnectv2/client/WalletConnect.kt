@@ -2,6 +2,8 @@ package com.walletconnect.walletconnectv2.client
 
 import android.app.Application
 import android.net.Uri
+import com.walletconnect.walletconnectv2.core.model.type.ControllerType
+import com.walletconnect.walletconnectv2.storage.history.model.JsonRpcStatus
 import java.net.URI
 
 object WalletConnect {
@@ -168,9 +170,19 @@ object WalletConnect {
 
         data class JsonRpcHistory(
             val topic: String,
-            val listOfRequests: List<SessionRequest>,
-            val listOfResponses: List<Params.Response>,
-        ) : Model()
+            val listOfRequests: List<HistoryEntry>,
+            val listOfResponses: List<HistoryEntry>,
+        ) : Model() {
+
+            data class HistoryEntry(
+                val requestId: Long,
+                val topic: String,
+                val method: String?,
+                val body: String?,
+                val jsonRpcStatus: JsonRpcStatus,
+                val controllerType: ControllerType,
+            )
+        }
     }
 
     sealed class Params {

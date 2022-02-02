@@ -537,8 +537,8 @@ internal class EngineInteractor(
             .map { pairing -> pairing.toEngineDOSettledPairing() }
     }
 
-    internal fun getListOfJsonRpcHistory(topic: String) {
-        relayer.getJsonRpcHistory(topic)
+    internal fun getListOfJsonRpcHistory(topic: TopicVO): Pair<List<JsonRpcHistoryVO>, List<JsonRpcHistoryVO>> {
+        return relayer.getJsonRpcHistory(topic)
     }
 
     private fun resubscribeToSettledPairings() {

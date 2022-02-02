@@ -4,10 +4,11 @@ package com.walletconnect.walletconnectv2.storage.history
 
 import android.content.SharedPreferences
 import com.walletconnect.walletconnectv2.core.model.type.ControllerType
+import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcHistoryVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.storage.data.dao.JsonRpcHistoryQueries
 import com.walletconnect.walletconnectv2.storage.history.model.JsonRpcStatus
 import com.walletconnect.walletconnectv2.util.Logger
-import org.walletconnect.walletconnectv2.storage.data.dao.JsonRpcHistoryQueries
 
 internal class JsonRpcHistory(private val controllerType: ControllerType, private val sharedPreferences: SharedPreferences, private val jsonRpcHistoryQueries: JsonRpcHistoryQueries) {
 
@@ -35,13 +36,19 @@ internal class JsonRpcHistory(private val controllerType: ControllerType, privat
         jsonRpcHistoryQueries.deleteJsonRpcHistory(topic.value)
     }
 
-    internal fun getRequests(topic: String) {
+    internal fun getRequests(topic: TopicVO, listOfMethodsForRequests: List<String>): List<JsonRpcHistoryVO> =
+        jsonRpcHistoryQueries.getJsonRpcRequestsDaos(
+            topic.value,
+            listOfMethodsForRequests,
+            mapper = ::mapToJsonRpc
+        ).executeAsList()
 
-    }
-
-    internal fun getResponses(topic: String) {
-
-    }
+    internal fun getResponses(topic: TopicVO, listOfMethodsForRequests: List<String>): List<JsonRpcHistoryVO> =
+        jsonRpcHistoryQueries.getJsonRpcRespondsDaos(
+            topic.value,
+            listOfMethodsForRequests,
+            mapper = ::mapToJsonRpc
+        ).executeAsList()
 
     private fun tryMigrationToDB(requestId: Long) {
         if (sharedPreferences.contains(requestId.toString())) {
@@ -52,4 +59,7 @@ internal class JsonRpcHistory(private val controllerType: ControllerType, privat
             sharedPreferences.edit().remove(requestId.toString()).apply()
         }
     }
+
+    private fun mapToJsonRpc(requestId: Long, topic: String, method: String?, body: String?, jsonRpcStatus: JsonRpcStatus, controllerType: ControllerType): JsonRpcHistoryVO =
+        JsonRpcHistoryVO(requestId, topic, method, body, jsonRpcStatus, controllerType)
 }
