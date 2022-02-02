@@ -239,8 +239,8 @@ internal class SequenceStorageRepository(private val pairingDaoQueries: PairingD
 
     @JvmSynthetic
     fun deleteSession(topic: TopicVO) {
-        metaDataDaoQueries.metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
-        sessionDaoQueries.sessionDaoQueries.deleteSession(topic.value)
+        metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
+        sessionDaoQueries.deleteSession(topic.value)
     }
 
     private fun mapPairingDaoToPairingVO(

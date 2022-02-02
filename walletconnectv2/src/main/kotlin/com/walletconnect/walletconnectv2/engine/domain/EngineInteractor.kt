@@ -411,13 +411,13 @@ internal class EngineInteractor(
                 id = requestId,
                 error = EngineDO.JsonRpcResponse.Error(code = 3003, message = "Unauthorized update request")
             )
-            relayer.respond(topic, jsonRpcError.toJsonRpcErrorVO())
+            relayer.publishJsonRpcResponse(topic, jsonRpcError.toJsonRpcErrorVO())
             return EngineDO.UnauthorizedPeer
         }
 
         sequenceStorageRepository.updateSessionWithAccounts(session.topic, params.state.accounts)
         val jsonRpcResult = EngineDO.JsonRpcResponse.JsonRpcResult(id = requestId, result = "true")
-        relayer.respond(topic, jsonRpcResult.toJsonRpcResult(),
+        relayer.publishJsonRpcResponse(topic, jsonRpcResult.toJsonRpcResult(),
             onFailure = { error -> Logger.error("onSessionUpdate: Cannot send the respond, error: $error") })
 
         //TODO: Change to Engine callbacks? Update storage when got success from respond?
@@ -433,7 +433,7 @@ internal class EngineInteractor(
                 id = requestId,
                 error = EngineDO.JsonRpcResponse.Error(code = 3004, message = "Unauthorized upgrade request")
             )
-            relayer.respond(topic, jsonRpcError.toJsonRpcErrorVO())
+            relayer.publishJsonRpcResponse(topic, jsonRpcError.toJsonRpcErrorVO())
             return EngineDO.UnauthorizedPeer
         }
 
@@ -441,7 +441,7 @@ internal class EngineInteractor(
         val methods = params.permissions.jsonRpc.methods
         sequenceStorageRepository.upgradeSessionWithPermissions(topic, chains, methods)
         val jsonRpcResult = EngineDO.JsonRpcResponse.JsonRpcResult(id = requestId, result = "true")
-        relayer.respond(topic, jsonRpcResult.toJsonRpcResult(),
+        relayer.publishJsonRpcResponse(topic, jsonRpcResult.toJsonRpcResult(),
             onFailure = { error -> Logger.error("onSessionUpgrade: Cannot send the respond, error: $error") })
 
         //TODO: Change to Engine callbacks? Update storage when got success from respond?
@@ -457,13 +457,13 @@ internal class EngineInteractor(
                 id = requestId,
                 error = EngineDO.JsonRpcResponse.Error(code = 3003, message = "Unauthorized update request")
             )
-            relayer.respond(topic, jsonRpcError.toJsonRpcErrorVO())
+            relayer.publishJsonRpcResponse(topic, jsonRpcError.toJsonRpcErrorVO())
             return EngineDO.UnauthorizedPeer
         }
 
         sequenceStorageRepository.updateAcknowledgedPairingMetadata(params.state.metadata, pairing.topic)
         val jsonRpcResult = EngineDO.JsonRpcResponse.JsonRpcResult(id = requestId, result = "true")
-        relayer.respond(topic, jsonRpcResult.toJsonRpcResult(),
+        relayer.publishJsonRpcResponse(topic, jsonRpcResult.toJsonRpcResult(),
             onFailure = { error -> Logger.error("onPairingUpdate:Cannot send the respond, error: $error") })
 
         //TODO: Change to Engine callbacks? Update storage when got success from respond?
