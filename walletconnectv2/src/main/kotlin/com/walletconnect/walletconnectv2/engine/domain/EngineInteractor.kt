@@ -56,8 +56,7 @@ internal class EngineInteractor(
                     launch(Dispatchers.IO) { resubscribeToSettledPairings() }
                     launch(Dispatchers.IO) { resubscribeToSettledSession() }
                 }
-            }
-            .launchIn(scope)
+            }.launchIn(scope)
     }
 
     fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {

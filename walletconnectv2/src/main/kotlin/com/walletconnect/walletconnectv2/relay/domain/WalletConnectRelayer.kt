@@ -33,13 +33,16 @@ internal class WalletConnectRelayer(
     private val peerResponse: MutableSharedFlow<RelayDO.JsonRpcResponse> = MutableSharedFlow()
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
 
-    private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error(exception) }
-    val isConnectionOpened = MutableStateFlow(false)
+    private val _isConnectionOpened = MutableStateFlow(false)
+    val isConnectionOpened: StateFlow<Boolean> = _isConnectionOpened
+
 
     val initializationErrorsFlow: Flow<WalletConnectException>
         get() = networkRepository.eventsFlow
-            .onEach { event -> Logger.log("$event") }
-            .onEach { event: WebSocket.Event -> setOnConnectionOpen(event) }
+            .onEach { event: WebSocket.Event ->
+                Logger.log("$event")
+                setOnConnectionOpen(event)
+            }
             .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
             .map { error -> error.throwable.toWalletConnectException }
 
@@ -143,11 +146,13 @@ internal class WalletConnectRelayer(
 
     private fun setOnConnectionOpen(event: WebSocket.Event) {
         if (event is WebSocket.Event.OnConnectionOpened<*>) {
-            isConnectionOpened.compareAndSet(expect = false, update = true)
+            _isConnectionOpened.compareAndSet(expect = false, update = true)
         } else if (event is WebSocket.Event.OnConnectionClosed) {
-            isConnectionOpened.compareAndSet(expect = true, update = false)
+            _isConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }
+
+    private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error(exception) }
 
     @get:JvmSynthetic
     private val Throwable.toWalletConnectException: WalletConnectException
