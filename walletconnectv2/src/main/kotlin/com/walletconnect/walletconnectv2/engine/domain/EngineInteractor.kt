@@ -645,6 +645,10 @@ internal class EngineInteractor(
             .map { pairing -> pairing.toEngineDOSettledPairing() }
     }
 
+    internal fun getListOfJsonRpcHistory(topic: TopicVO): Pair<List<JsonRpcHistoryVO>, List<JsonRpcHistoryVO>> {
+        return relayer.getJsonRpcHistory(topic)
+    }
+
     private fun resubscribeToSettledPairings() {
         val (listOfExpiredPairing, listOfValidPairing) = sequenceStorageRepository.getListOfPairingVOs()
             .partition { pairing -> !pairing.expiry.isSequenceValid() }
@@ -702,5 +706,6 @@ internal class EngineInteractor(
     }
 
     private fun ExpiryVO.isSequenceValid(): Boolean = seconds > (System.currentTimeMillis() / 1000)
+
     private fun generateTopic(): TopicVO = TopicVO(randomBytes(32).bytesToHex())
 }

@@ -2,6 +2,7 @@ package com.walletconnect.walletconnectv2.client
 
 import com.walletconnect.walletconnectv2.client.mapper.*
 import com.walletconnect.walletconnectv2.core.exceptions.WalletConnectException
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.di.*
 import com.walletconnect.walletconnectv2.engine.domain.EngineInteractor
@@ -13,7 +14,6 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 
 object WalletConnectClient {
-
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var engineInteractor: EngineInteractor
 
@@ -219,6 +219,16 @@ object WalletConnectClient {
         }
 
         return engineInteractor.getListOfSettledPairings().map(EngineDO.SettledPairing::toClientSettledPairing)
+    }
+
+    fun getJsonRpcHistory(topic: String): WalletConnect.Model.JsonRpcHistory {
+        val (listOfRequests, listOfResponses) = engineInteractor.getListOfJsonRpcHistory(TopicVO(topic))
+
+        return WalletConnect.Model.JsonRpcHistory(
+            topic = topic,
+            listOfRequests = listOfRequests.mapToHistory(),
+            listOfResponses = listOfResponses.mapToHistory()
+        )
     }
 
     fun shutdown() {

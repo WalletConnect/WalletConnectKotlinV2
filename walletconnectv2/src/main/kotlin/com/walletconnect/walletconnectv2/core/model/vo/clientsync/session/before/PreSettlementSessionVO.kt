@@ -43,6 +43,6 @@ internal sealed class PreSettlementSessionVO : SettlementSequence<SessionParamsV
         override val id: Long,
         override val jsonrpc: String = "2.0",
         override val method: String = JsonRpcMethod.WC_SESSION_REJECT,
-        override val params: SessionParamsVO.RejectParams
+        override val params: SessionParamsVO.RejectParams,
     ) : PreSettlementSessionVO()
 }
