@@ -221,7 +221,12 @@ object WalletConnectClient {
         return engineInteractor.getListOfSettledPairings().map(EngineDO.SettledPairing::toClientSettledPairing)
     }
 
+    @Throws(IllegalStateException::class)
     fun getJsonRpcHistory(topic: String): WalletConnect.Model.JsonRpcHistory {
+        check(::engineInteractor.isInitialized) {
+            "WalletConnectClient needs to be initialized first using the initialize function"
+        }
+
         val (listOfRequests, listOfResponses) = engineInteractor.getListOfJsonRpcHistory(TopicVO(topic))
 
         return WalletConnect.Model.JsonRpcHistory(
