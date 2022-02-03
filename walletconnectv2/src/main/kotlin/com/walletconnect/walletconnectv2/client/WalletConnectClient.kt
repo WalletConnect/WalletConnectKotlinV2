@@ -227,7 +227,7 @@ object WalletConnectClient {
         return WalletConnect.Model.JsonRpcHistory(
             topic = topic,
             listOfRequests = listOfRequests.mapToHistory(),
-            listOfResponses = listOfRequests.mapToHistory()
+            listOfResponses = listOfResponses.mapToHistory()
         )
     }
 

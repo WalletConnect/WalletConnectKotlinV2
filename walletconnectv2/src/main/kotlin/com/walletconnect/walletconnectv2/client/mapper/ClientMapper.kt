@@ -130,13 +130,13 @@ internal fun EngineDO.SessionUpgrade.toClientSessionsUpgrade(): WalletConnect.Mo
     )
 
 @JvmSynthetic
-internal fun List<JsonRpcHistoryVO>.mapToHistory() = this.map {
+internal fun List<JsonRpcHistoryVO>.mapToHistory() = this.map { jsonRpcHistoryVO ->
     WalletConnect.Model.JsonRpcHistory.HistoryEntry(
-        it.requestId,
-        it.topic,
-        it.method,
-        it.body,
-        it.jsonRpcStatus,
-        it.controllerType
+        jsonRpcHistoryVO.requestId,
+        jsonRpcHistoryVO.topic,
+        jsonRpcHistoryVO.method,
+        jsonRpcHistoryVO.body,
+        jsonRpcHistoryVO.jsonRpcStatus,
+        jsonRpcHistoryVO.controllerType
     )
 }
