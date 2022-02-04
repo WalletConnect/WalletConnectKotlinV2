@@ -1,0 +1,46 @@
+import com.walletconnect.walletconnectv2.core.model.type.ControllerType;
+import com.walletconnect.walletconnectv2.storage.history.model.JsonRpcStatus;
+
+CREATE TABLE JsonRpcHistoryDao(
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  request_id INTEGER UNIQUE NOT NULL,
+  topic TEXT NOT NULL,
+  method TEXT,
+  body TEXT,
+  status TEXT AS JsonRpcStatus NOT NULL,
+  controller_type TEXT AS ControllerType NOT NULL
+);
+
+insertJsonRpcHistory:
+INSERT OR IGNORE INTO JsonRpcHistoryDao (request_id, topic, method, body, status, controller_type)
+VALUES (?, ?, ?, ?, ?, ?);
+
+updateJsonRpcHistory:
+UPDATE JsonRpcHistoryDao
+SET status = ?
+WHERE request_id = ?;
+
+doesJsonRpcNotExist:
+SELECT NOT EXISTS (
+    SELECT 1
+    FROM JsonRpcHistoryDao
+    WHERE request_id = ?
+    LIMIT 1
+);
+
+selectLastInsertedRowId:
+SELECT last_insert_rowid();
+
+deleteJsonRpcHistory:
+DELETE FROM JsonRpcHistoryDao
+WHERE topic = ?;
+
+getJsonRpcRequestsDaos:
+SELECT request_id, topic, method, body, status, controller_type
+FROM JsonRpcHistoryDao
+WHERE topic = ? AND method IN ?;
+
+getJsonRpcRespondsDaos:
+SELECT request_id, topic, method, body, status, controller_type
+FROM JsonRpcHistoryDao
+WHERE topic = ? AND method NOT IN ?;

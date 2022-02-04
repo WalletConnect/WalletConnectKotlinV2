@@ -1,18 +1,17 @@
 package com.walletconnect.walletconnectv2.engine.model.mapper
 
-import com.walletconnect.walletconnectv2.common.model.type.ControllerType
-import com.walletconnect.walletconnectv2.common.model.utils.JsonRpcMethod
-import com.walletconnect.walletconnectv2.common.model.vo.*
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.PairingParamsVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.PreSettlementPairingVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.proposal.*
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.success.PairingParticipantVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.pairing.before.success.PairingStateVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.SessionParamsVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.after.params.SessionPermissionsVO
-import com.walletconnect.walletconnectv2.common.model.vo.clientsync.session.before.proposal.*
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.PairingVO
-import com.walletconnect.walletconnectv2.common.model.vo.sequence.SessionVO
+import com.walletconnect.walletconnectv2.core.model.type.ControllerType
+import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
+import com.walletconnect.walletconnectv2.core.model.vo.*
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.PairingParamsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.PreSettlementPairingVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.proposal.*
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.success.PairingParticipantVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionParamsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.params.SessionPermissionsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.*
+import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
+import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.util.Empty
@@ -51,44 +50,34 @@ internal fun EngineDO.WalletConnectUri.toAbsoluteString(): String =
 internal fun RelayProtocolOptionsVO.toUrlEncodedString(): String = URLEncoder.encode(JSONObject().put("protocol", protocol).toString(), "UTF-8")
 
 @JvmSynthetic
-internal fun PairingParamsVO.Proposal.toPairingSuccess(
-    settleTopic: TopicVO,
-    expiry: ExpiryVO,
-    selfPublicKey: PublicKey
-): PairingParamsVO.ApproveParams =
+internal fun PairingParamsVO.Proposal.toPairingSuccess(expiry: ExpiryVO, selfPublicKey: PublicKey): PairingParamsVO.ApproveParams =
     PairingParamsVO.ApproveParams(
-        settledTopic = settleTopic,
         relay = relay,
         responder = PairingParticipantVO(publicKey = selfPublicKey.keyAsHex),
-        expiry = expiry,
-        state = PairingStateVO(null)
+        expiry = expiry
     )
 
 @JvmSynthetic
-internal fun PairingParamsVO.Proposal.toApprove(
-    id: Long,
-    settleTopic: TopicVO,
-    expiry: ExpiryVO,
-    selfPublicKey: PublicKey
-): PreSettlementPairingVO.Approve = PreSettlementPairingVO.Approve(id = id, params = this.toPairingSuccess(settleTopic, expiry, selfPublicKey))
+internal fun PairingParamsVO.Proposal.toApprove(id: Long, expiry: ExpiryVO, selfPublicKey: PublicKey): PreSettlementPairingVO.Approve =
+    PreSettlementPairingVO.Approve(id = id, params = this.toPairingSuccess(expiry, selfPublicKey))
 
 @JvmSynthetic
-internal fun EngineDO.AppMetaData.toClientSyncMetaData() =
+internal fun EngineDO.AppMetaData.toMetaDataVO() =
     AppMetaDataVO(name, description, url, icons)
 
 @JvmSynthetic
+internal fun AppMetaDataVO.toEngineDOMetaData(): EngineDO.AppMetaData =
+    EngineDO.AppMetaData(name, description, url, icons)
+
+@JvmSynthetic
 internal fun EngineDO.SessionPermissions.toSessionsPermissions(): SessionPermissionsVO =
-    SessionPermissionsVO(
-        blockchain?.chains?.let { chains -> SessionProposedPermissionsVO.Blockchain(chains) },
-        jsonRpc?.methods?.let { methods -> SessionProposedPermissionsVO.JsonRpc(methods) }
-    )
+    SessionPermissionsVO(SessionProposedPermissionsVO.Blockchain(blockchain.chains), SessionProposedPermissionsVO.JsonRpc(jsonRpc.methods))
 
 @JvmSynthetic
 internal fun EngineDO.SessionPermissions.toSessionsProposedPermissions(): SessionProposedPermissionsVO =
     SessionProposedPermissionsVO(
-        //TODO: Add permissions validation
-        blockchain?.chains.let { chains -> SessionProposedPermissionsVO.Blockchain(chains ?: emptyList()) },
-        jsonRpc?.methods.let { methods -> SessionProposedPermissionsVO.JsonRpc(methods ?: emptyList()) }
+        SessionProposedPermissionsVO.Blockchain(blockchain.chains),
+        SessionProposedPermissionsVO.JsonRpc(jsonRpc.methods)
     )
 
 @JvmSynthetic
@@ -122,8 +111,8 @@ internal fun SessionParamsVO.SessionPayloadParams.toEngineDOSessionRequest(topic
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: TopicVO): EngineDO.DeletedSession =
-    EngineDO.DeletedSession(topic.value, reason.message)
+internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: TopicVO): EngineDO.SessionDelete =
+    EngineDO.SessionDelete(topic.value, reason.message)
 
 @JvmSynthetic
 internal fun SessionParamsVO.NotificationParams.toEngineDoSessionNotification(topic: TopicVO): EngineDO.SessionNotification =
@@ -178,15 +167,16 @@ private fun AppMetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
     EngineDO.AppMetaData(name, description, url, icons)
 
 @JvmSynthetic
-internal fun PairingVO.toEngineDOSettledPairing(sessionPermissions: EngineDO.SessionPermissions): EngineDO.SettledPairing =
-    EngineDO.SettledPairing(topic, relay, sessionPermissions)
+internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.SettledPairing =
+    EngineDO.SettledPairing(topic, relay, appMetaDataVO?.toEngineDOAppMetaData())
 
 @JvmSynthetic
-internal fun SessionVO.toSessionApproved(metaDataVO: AppMetaDataVO?, settledTopic: TopicVO): EngineDO.SessionApproved =
+internal fun SessionVO.toSessionApproved(params: SessionParamsVO.ApprovalParams, settledTopic: TopicVO): EngineDO.SessionApproved =
     EngineDO.SessionApproved(
-        topic.value,
-        metaDataVO?.toEngineDOAppMetaData(),
-        EngineDO.SessionPermissions(EngineDO.Blockchain(chains), EngineDO.JsonRpc(methods))
+        settledTopic.value,
+        params.responder.metadata?.toEngineDOAppMetaData(),
+        EngineDO.SessionPermissions(EngineDO.Blockchain(chains), EngineDO.JsonRpc(methods)),
+        params.state.accounts
     )
 
 @JvmSynthetic
@@ -332,7 +322,8 @@ internal fun PairingVO.toAcknowledgedPairingVO(
         uri,
         permissions = permissions,
         relay = relay,
-        controllerType = controllerType
+        controllerType = controllerType,
+        appMetaDataVO = params.state?.metadata
     )
 
 @JvmSynthetic
@@ -361,3 +352,11 @@ internal fun EngineDO.WalletConnectUri.toProposedPairingVO(controllerType: Contr
         relay = relay.protocol,
         controllerType = controllerType
     )
+
+@JvmSynthetic
+internal fun JsonRpcResponseVO.JsonRpcResult.toEngineJsonRpcResult(): EngineDO.JsonRpcResponse.JsonRpcResult =
+    EngineDO.JsonRpcResponse.JsonRpcResult(id = id, result = result)
+
+@JvmSynthetic
+internal fun EngineDO.JsonRpcResponse.JsonRpcError.toJsonRpcErrorVO(): JsonRpcResponseVO.JsonRpcError =
+    JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(error.code, error.message))

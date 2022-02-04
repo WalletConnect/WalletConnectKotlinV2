@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     id("com.android.library")
     kotlin("android")
@@ -39,6 +37,7 @@ android {
 
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
+        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.time.ExperimentalTime"
     }
 
     testOptions.unitTests.isIncludeAndroidResources = true
@@ -53,17 +52,6 @@ android {
     }
 }
 
-kotlin {
-    tasks.withType<KotlinCompile>() {
-        kotlinOptions {
-            sourceCompatibility = jvmVersion.toString()
-            targetCompatibility = jvmVersion.toString()
-            jvmTarget = jvmVersion.toString()
-            freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.time.ExperimentalTime"
-        }
-    }
-}
-
 dependencies {
     okhttp()
     bouncyCastle()
@@ -74,6 +62,7 @@ dependencies {
     security()
     koin()
 
+    androidXTest()
     jUnit5()
     robolectric()
     mockk()

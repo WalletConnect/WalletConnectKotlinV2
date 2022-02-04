@@ -2,12 +2,12 @@ package com.walletconnect.walletconnectv2.network.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.walletconnectv2.common.adapters.SubscriptionIdAdapter
-import com.walletconnect.walletconnectv2.common.adapters.TopicAdapter
-import com.walletconnect.walletconnectv2.common.adapters.TtlAdapter
-import com.walletconnect.walletconnectv2.common.model.vo.SubscriptionIdVO
-import com.walletconnect.walletconnectv2.common.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.common.model.vo.TtlVO
+import com.walletconnect.walletconnectv2.core.adapters.SubscriptionIdAdapter
+import com.walletconnect.walletconnectv2.core.adapters.TopicAdapter
+import com.walletconnect.walletconnectv2.core.adapters.TtlAdapter
+import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.TtlVO
 
 internal sealed class RelayDTO {
     abstract val id: Long

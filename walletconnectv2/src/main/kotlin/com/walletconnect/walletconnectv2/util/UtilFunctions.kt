@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 
 @JvmSynthetic
-internal fun pendingSequenceExpirySeconds() = ((System.currentTimeMillis() / 1000) + 86400) //24h
+internal fun pendingSequenceExpirySeconds() = ((currentTimeMillis() / 1000) + 86400) //24h
 
 @JvmSynthetic
 internal fun randomBytes(size: Int): ByteArray {

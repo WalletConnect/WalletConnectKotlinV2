@@ -18,7 +18,7 @@ class SessionRequestDialog(
     private val binding = SessionRequestDialogBinding.inflate(layoutInflater)
 
     init {
-        setCancelable(false)
+//        setCancelable(false)
         setContentView(binding.root)
         setContent()
     }

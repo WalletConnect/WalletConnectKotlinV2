@@ -2,7 +2,8 @@ package com.walletconnect.walletconnectv2.client
 
 import android.app.Application
 import android.net.Uri
-import com.walletconnect.walletconnectv2.util.Empty
+import com.walletconnect.walletconnectv2.core.model.type.ControllerType
+import com.walletconnect.walletconnectv2.storage.history.model.JsonRpcStatus
 import java.net.URI
 
 object WalletConnect {
@@ -42,6 +43,10 @@ object WalletConnect {
 
         interface Notification : Listeners {
             fun onSuccess(topic: String)
+        }
+
+        interface SessionRequest : Listeners {
+            fun onSuccess(response: Model.JsonRpcResponse)
         }
     }
 
@@ -100,25 +105,28 @@ object WalletConnect {
 
         data class SessionState(val accounts: List<String>) : Model()
 
-        data class SettledPairing(val topic: String) : Model()
+        data class SettledPairing(val topic: String, val metaData: AppMetaData? = null) : Model()
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
 
         data class ApprovedSession(
             val topic: String,
-            val peerAppMetaData: AppMetaData?,
-            val permissions: SessionPermissions
+            val metaData: AppMetaData?,
+            val permissions: SessionPermissions,
+            val accounts: List<String>
         ) : Model()
 
         data class DeletedSession(val topic: String, val reason: String) : Model()
 
         data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : Model()
 
-        data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: Jsonrpc) : Model()
+        data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: Jsonrpc, val notification: Notification? = null) : Model()
 
         data class Blockchain(val chains: List<String>) : Model()
 
         data class Jsonrpc(val methods: List<String>) : Model()
+
+        data class Notifications(val types: List<String>)
 
         data class UpdatedSession(val topic: String, val accounts: List<String>) : Model()
 
@@ -154,11 +162,27 @@ object WalletConnect {
         }
 
         data class AppMetaData(
-            val name: String = "Peer",
-            val description: String = String.Empty,
-            val url: String = String.Empty,
-            val icons: List<String> = emptyList()
+            val name: String,
+            val description: String,
+            val url: String,
+            val icons: List<String>
         ) : Model()
+
+        data class JsonRpcHistory(
+            val topic: String,
+            val listOfRequests: List<HistoryEntry>,
+            val listOfResponses: List<HistoryEntry>,
+        ) : Model() {
+
+            data class HistoryEntry(
+                val requestId: Long,
+                val topic: String,
+                val method: String?,
+                val body: String?,
+                val jsonRpcStatus: JsonRpcStatus,
+                val controllerType: ControllerType,
+            )
+        }
     }
 
     sealed class Params {
@@ -179,8 +203,17 @@ object WalletConnect {
                 isController: Boolean,
                 metadata: Model.AppMetaData,
             ) : this(application, isController, metadata) {
+                val relayServerUrl = Uri.Builder().scheme((if (useTls) "wss" else "ws"))
+                    .authority(hostName)
+                    .appendQueryParameter("projectId", projectId)
+                    .build()
+                    .toString()
 
-                this.serverUrl = ((if (useTls) "wss" else "ws") + "://$hostName/?projectId=$projectId").trim()
+                require(relayServerUrl.isValidRelayServerUrl()) {
+                    "Check the schema and projectId parameter of the Server Url"
+                }
+
+                this.serverUrl = relayServerUrl
             }
 
             constructor(
@@ -189,7 +222,9 @@ object WalletConnect {
                 isController: Boolean,
                 metadata: Model.AppMetaData,
             ) : this(application, isController, metadata) {
-                require(relayServerUrl.isValidRelayServerUrl())
+                require(relayServerUrl.isValidRelayServerUrl()) {
+                    "Check the schema and projectId parameter of the Server Url"
+                }
 
                 this.serverUrl = relayServerUrl
             }
@@ -201,6 +236,8 @@ object WalletConnect {
             }
         }
 
+        data class Connect(val permissions: Model.SessionPermissions, val pairingTopic: String? = null) : Params()
+
         data class Pair(val uri: String) : Params()
 
         data class Approve(val proposal: Model.SessionProposal, val accounts: List<String>) : Params()
@@ -210,6 +247,8 @@ object WalletConnect {
         data class Disconnect(val sessionTopic: String, val reason: String) : Params()
 
         data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) : Params()
+
+        data class Request(val sessionTopic: String, val method: String, val params: String, val chainId: String?) : Params()
 
         data class Update(val sessionTopic: String, val sessionState: Model.SessionState) : Params()
 

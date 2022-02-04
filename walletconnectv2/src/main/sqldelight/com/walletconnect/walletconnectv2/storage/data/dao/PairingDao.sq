@@ -1,0 +1,61 @@
+import com.walletconnect.walletconnectv2.core.model.type.ControllerType;
+import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus;
+import kotlin.collections.List;
+
+CREATE TABLE PairingDao (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    topic TEXT UNIQUE NOT NULL,
+    uri TEXT NOT NULL,
+    expiry INTEGER NOT NULL,
+    status TEXT AS SequenceStatus NOT NULL,
+    controller_type TEXT AS ControllerType NOT NULL,
+    self_participant TEXT NOT NULL,
+    peer_participant TEXT,
+    controller_key TEXT,
+    relay_protocol TEXT NOT NULL,
+    permissions TEXT AS List<String>,
+    metadata_id INTEGER
+);
+
+insertPairing:
+INSERT OR IGNORE INTO PairingDao(topic, uri, expiry, status, controller_type, self_participant, relay_protocol)
+VALUES (?, ?, ?, ?, ?,    ?, ?);
+
+getListOfPairingDaos:
+SELECT pd.topic, pd.expiry, pd.uri, pd.status, pd.controller_type, pd.self_participant, pd.peer_participant, pd.controller_key, pd.relay_protocol, pd.permissions, mdd._name, mdd.description, mdd.url, mdd.icons
+FROM PairingDao pd
+    LEFT JOIN MetaDataDao mdd ON pd.metadata_id = mdd.id;
+
+updatePendingPairingToPreSettled:
+UPDATE PairingDao
+SET topic = ?, expiry = ?, status = ?, self_participant = ?, peer_participant = ?, controller_key = ?, permissions = ?
+WHERE topic = ?;
+
+updatePreSettledPairingToAcknowledged:
+UPDATE PairingDao
+SET status = ?
+WHERE topic = ?;
+
+updateProposedPairingToAcknowledged:
+UPDATE PairingDao
+SET topic = ?, expiry = ?, status = ?, self_participant = ?, peer_participant = ?, controller_key = ?, permissions = ?, relay_protocol = ?, metadata_id = ?
+WHERE topic = ?;
+
+deletePairing:
+DELETE FROM PairingDao
+WHERE ? = topic;
+
+getPairingByTopic:
+SELECT topic, expiry, uri, status, controller_type, self_participant, peer_participant, controller_key, relay_protocol, permissions
+FROM PairingDao
+WHERE ? = topic;
+
+updateAcknowledgedPairingMetadata:
+UPDATE PairingDao
+SET metadata_id = ?
+WHERE topic = ?;
+
+hasTopic:
+SELECT topic
+FROM PairingDao
+WHERE ? = topic;

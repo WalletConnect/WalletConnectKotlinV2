@@ -120,7 +120,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="12dp"
-        android:backgroundTint="@color/blue"
+        android:backgroundTint="@color/walletconnect_blue"
         android:text="Close"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
