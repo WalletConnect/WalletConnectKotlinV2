@@ -1,6 +1,5 @@
 package com.walletconnect.sample.wallet
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
@@ -168,9 +167,6 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     }
 
     override fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal) {
-
-        Log.d("kobe", "Proposal: $sessionProposal")
-
         viewModelScope.launch {
             this@WalletViewModel.proposal = sessionProposal
             _eventFlow.emit(ShowSessionProposalDialog(this@WalletViewModel.proposal))
