@@ -12,10 +12,10 @@ import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageReposit
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import org.walletconnect.walletconnectv2.storage.data.dao.JsonRpcHistoryDao
-import org.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
-import org.walletconnect.walletconnectv2.storage.data.dao.PairingDao
-import org.walletconnect.walletconnectv2.storage.data.dao.SessionDao
+import com.walletconnect.walletconnectv2.storage.data.dao.JsonRpcHistoryDao
+import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
+import com.walletconnect.walletconnectv2.storage.data.dao.PairingDao
+import com.walletconnect.walletconnectv2.storage.data.dao.SessionDao
 
 @JvmSynthetic
 internal fun storageModule() = module {

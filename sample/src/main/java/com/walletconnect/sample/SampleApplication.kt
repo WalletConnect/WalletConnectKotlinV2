@@ -14,7 +14,7 @@ class SampleApplication : Application() {
             application = this,
             useTls = true,
             hostName = WALLET_CONNECT_URL,
-            projectId = "a",     //TODO: register at https://walletconnect.com/register to get a project ID
+            projectId = "",     //TODO: register at https://walletconnect.com/register to get a project ID
             isController = false,
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Dapp",

@@ -3,6 +3,8 @@ package com.walletconnect.walletconnectv2.relay.domain
 import com.tinder.scarlet.WebSocket
 import com.walletconnect.walletconnectv2.core.exceptions.client.WalletConnectException
 import com.walletconnect.walletconnectv2.core.model.type.SettlementSequence
+import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
+import com.walletconnect.walletconnectv2.core.model.vo.*
 import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.core.model.vo.RequestSubscriptionPayloadVO
 import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
@@ -143,6 +145,10 @@ internal class WalletConnectRelayer(
         }
     }
 
+    internal fun getJsonRpcHistory(topic: TopicVO): Pair<List<JsonRpcHistoryVO>, List<JsonRpcHistoryVO>> {
+        return jsonRpcHistory.getRequests(topic, listOfMethodsForRequests) to jsonRpcHistory.getResponses(topic, listOfMethodsForRequests)
+    }
+
     private fun manageSubscriptions() {
         scope.launch(exceptionHandler) {
             networkRepository.subscriptionRequest
@@ -185,5 +191,22 @@ internal class WalletConnectRelayer(
         } else if (event is WebSocket.Event.OnConnectionClosed) {
             _isConnectionOpened.compareAndSet(expect = true, update = false)
         }
+    }
+
+    private companion object {
+        val listOfMethodsForRequests = listOf(
+            JsonRpcMethod.WC_PAIRING_APPROVE,
+            JsonRpcMethod.WC_PAIRING_UPDATE,
+            JsonRpcMethod.WC_PAIRING_PING,
+            JsonRpcMethod.WC_SESSION_PROPOSE,
+            JsonRpcMethod.WC_SESSION_APPROVE,
+            JsonRpcMethod.WC_SESSION_REJECT,
+            JsonRpcMethod.WC_SESSION_DELETE,
+            JsonRpcMethod.WC_SESSION_PAYLOAD,
+            JsonRpcMethod.WC_SESSION_UPDATE,
+            JsonRpcMethod.WC_SESSION_UPGRADE,
+            JsonRpcMethod.WC_SESSION_NOTIFICATION,
+            JsonRpcMethod.WC_SESSION_PING,
+        )
     }
 }

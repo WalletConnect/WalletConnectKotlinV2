@@ -9,9 +9,9 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.util.Empty
-import org.walletconnect.walletconnectv2.storage.data.dao.MetaDataDaoQueries
-import org.walletconnect.walletconnectv2.storage.data.dao.PairingDaoQueries
-import org.walletconnect.walletconnectv2.storage.data.dao.SessionDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.dao.PairingDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.dao.SessionDaoQueries
 
 //TODO: Split into SessionStorageRepository and PairingStorageRepository
 internal class SequenceStorageRepository(

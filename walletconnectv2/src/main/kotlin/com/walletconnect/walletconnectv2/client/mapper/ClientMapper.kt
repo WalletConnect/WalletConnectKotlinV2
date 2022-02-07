@@ -1,6 +1,7 @@
 package com.walletconnect.walletconnectv2.client.mapper
 
 import com.walletconnect.walletconnectv2.client.WalletConnect
+import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcHistoryVO
 import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 
@@ -127,3 +128,15 @@ internal fun EngineDO.SessionUpgrade.toClientSessionsUpgrade(): WalletConnect.Mo
         topic.value,
         WalletConnect.Model.SessionPermissions(WalletConnect.Model.Blockchain(chains), WalletConnect.Model.Jsonrpc(methods))
     )
+
+@JvmSynthetic
+internal fun List<JsonRpcHistoryVO>.mapToHistory() = this.map { jsonRpcHistoryVO ->
+    WalletConnect.Model.JsonRpcHistory.HistoryEntry(
+        jsonRpcHistoryVO.requestId,
+        jsonRpcHistoryVO.topic,
+        jsonRpcHistoryVO.method,
+        jsonRpcHistoryVO.body,
+        jsonRpcHistoryVO.jsonRpcStatus,
+        jsonRpcHistoryVO.controllerType
+    )
+}

@@ -21,7 +21,7 @@ internal sealed class PostSettlementPairingVO : SettlementSequence<PairingParams
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PAIRING_PAYLOAD,
         @Json(name = "params")
-        override val params: PairingParamsVO.PayloadParams
+        override val params: PairingParamsVO.PayloadParams,
     ) : PostSettlementPairingVO()
 
     @JsonClass(generateAdapter = true)
@@ -33,7 +33,7 @@ internal sealed class PostSettlementPairingVO : SettlementSequence<PairingParams
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PAIRING_DELETE,
         @Json(name = "params")
-        override val params: PairingParamsVO.DeleteParams
+        override val params: PairingParamsVO.DeleteParams,
     ) : PostSettlementPairingVO()
 
     @JsonClass(generateAdapter = true)
@@ -45,7 +45,7 @@ internal sealed class PostSettlementPairingVO : SettlementSequence<PairingParams
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PAIRING_UPDATE,
         @Json(name = "params")
-        override val params: PairingParamsVO.UpdateParams
+        override val params: PairingParamsVO.UpdateParams,
     ) : PostSettlementPairingVO()
 
     @JsonClass(generateAdapter = true)
@@ -57,7 +57,7 @@ internal sealed class PostSettlementPairingVO : SettlementSequence<PairingParams
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PAIRING_PING,
         @Json(name = "params")
-        override val params: PairingParamsVO.PingParams
+        override val params: PairingParamsVO.PingParams,
     ) : PostSettlementPairingVO()
 
     @JsonClass(generateAdapter = true)
@@ -69,6 +69,6 @@ internal sealed class PostSettlementPairingVO : SettlementSequence<PairingParams
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PAIRING_NOTIFICATION,
         @Json(name = "params")
-        override val params: PairingParamsVO.NotificationParams
+        override val params: PairingParamsVO.NotificationParams,
     ) : PostSettlementPairingVO()
 }

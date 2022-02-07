@@ -32,10 +32,31 @@ implementation("com.github.WalletConnect:WalletConnectKotlinV2:1.0.0-beta02")
 ### **Initialize WalletConnect Client**
 
 ```kotlin
-val appMetaData =
-    WalletConnect.Model.AppMetaData(name = "Wallet Name", description = "Wallet Description", url = "Wallet Url", icons = listOfIconUrlStrings)
-val init =
-    WalletConnect.Params.Init(application = application, isController = true / false, projectId = "project id", appMetaData = appMetaData)
+val appMetaData = WalletConnect.Model.AppMetaData(
+   name = "Wallet Name", 
+   description = "Wallet Description", 
+   url = "Wallet Url", 
+   icons = listOfIconUrlStrings
+)
+val init = WalletConnect.Params.Init(
+   application = application,
+   relayServerUrl = /*websocket server with scheme, authority, and projectId as query parameter*/
+   isController = true / false,
+   appMetaData = appMetaData
+)
+
+// or
+
+val init = WalletConnect.Params.Init(
+   application = application,
+   useTls = /*true or false*/,
+   hostName = /*websocket server with scheme and authority*/,
+   projectId = /*projectId*/,
+   isController = /*true or false*/, 
+   projectId = "project id", 
+   appMetaData = appMetaData
+)
+
 WalletConnectClient.initalize(init)
 ```
 
@@ -43,7 +64,7 @@ The controller client will always be the wallet which is exposing blockchain acc
 initialize the WalletConnect client, create a `WalletConnect.Params.Init` object in the Android Application class. The Init object will need the
 application class, the ProjectID, isController flag, and the wallet's AppMetaData. The `WalletConnect.Params.Init` object will then be passed to
 the `WalletConnectClient` initialize function. `WalletConnect.Params.Init` also allows for custom URLs by passing URL string into the `hostName`
-property.
+property. Above, there are two example on how to create the initalizing parameters.
 
 Remember to setup the isController flag to declare if your peer should act as controller or non-controller. For reference check out out
 docs: https://docs.walletconnect.com/2.0/protocol/glossary#controller
@@ -95,8 +116,8 @@ val pairListener = object: WalletConnect.Listeners.Pairing {
 WalletConnectClient.pair(pair, pairListener)
 ```
 
-To pair the wallet with the Dapp, call the WalletConnectClient.pair function which needs a ` WalletConnect.Params.Pair` and ` WalletConnect.Listeners.Pairing`. 
-ClientTypes.Params is where the Dapp Uri will be passed. 
+To pair the wallet with the Dapp, call the WalletConnectClient.pair function which needs a ` WalletConnect.Params.Pair` and ` WalletConnect.Listeners.Pairing`.
+ClientTypes.Params is where the Dapp Uri will be passed.
 WalletConnectClientListeners.Pairing is the callback that will be asynchronously called once there a pairing has been made with the Dapp.
 
 &nbsp;
@@ -213,7 +234,7 @@ val listener = object : WalletConnect.Listeners.SessionUpdate {
 
 WalletConnectClient.update(updateParams, listener)
 ```
-To update a settled session, create a `WalletConnect.Params.Update` object with the settled session's topic and accounts to update session with to `WalletConnectClient.update`. Listener will echo the accounts updated on the Dapp if action is successful. 
+To update a settled session, create a `WalletConnect.Params.Update` object with the settled session's topic and accounts to update session with to `WalletConnectClient.update`. Listener will echo the accounts updated on the Dapp if action is successful.
 
 &nbsp;
 
@@ -234,7 +255,7 @@ val listener = object : WalletConnect.Listeners.SessionUpgrade {
 
 WalletConnectClient.upgrade(upgradeParams, listener)
 ```
-To upgrade a settled session, create a `WalletConnect.Params.Upgrade` object with the settled session's topic and blockchains and JSON-RPC methods to upgrade the session with to `WalletConnectClient.upgrade`. Listener will echo the blockchains and JSON-RPC methods upgraded on the Dapp if action is successful. 
+To upgrade a settled session, create a `WalletConnect.Params.Upgrade` object with the settled session's topic and blockchains and JSON-RPC methods to upgrade the session with to `WalletConnectClient.upgrade`. Listener will echo the blockchains and JSON-RPC methods upgraded on the Dapp if action is successful.
 
 &nbsp;
 
@@ -320,6 +341,15 @@ type `SettledSession`.
 WalletConnectClient.getListOfPendingSession()
 ```
 To get a list of the most current pending sessions, call `WalletConnectClient.getListOfPendingSession()` which will return a list of type `SessionProposal`.
+
+&nbsp;
+
+### **Get JSON RPC history for a topic**
+
+```kotlin
+WalletConnectClient.getJsonRpcHistory(topic: String)
+```
+To get a list of all the JSON RPC events for a topic, call `WalletConnectClient.getJsonRpcHistory()` and pass a topic which will return a `JsonRpcHistory` object containing the requests and the responses for the topic.
 
 &nbsp;
 
