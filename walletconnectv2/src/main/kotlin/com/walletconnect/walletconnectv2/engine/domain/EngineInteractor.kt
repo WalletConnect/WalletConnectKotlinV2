@@ -138,13 +138,14 @@ internal class EngineInteractor(
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_PAIR_MESSAGE)
         }
 
-        val proposal: PairingParamsVO.Proposal = uri.toPairProposal()
-        if (sequenceStorageRepository.hasPairingTopic(proposal.topic)) {
+        val walletConnectUri: EngineDO.WalletConnectUri =
+            Validator.validateWCUri(uri) ?: throw WalletConnectException.MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
+
+        if (sequenceStorageRepository.hasPairingTopic(walletConnectUri.topic)) {
             throw WalletConnectException.PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
         }
 
-        //TODO: Add WC URI validation
-
+        val proposal: PairingParamsVO.Proposal = walletConnectUri.toPairProposal()
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val (_, settledTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, PublicKey(proposal.proposer.publicKey))
         val respondedPairing = proposal.toRespondedPairingVO(settledTopic, selfPublicKey, uri, controllerType)
@@ -198,12 +199,20 @@ internal class EngineInteractor(
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_APPROVE_MESSAGE)
         }
 
+        Validator.validateProposalFields(proposal) { errorMessage ->
+            throw WalletConnectException.InvalidSessionProposalException(errorMessage)
+        }
+
         checkTopic(TopicVO(proposal.topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE${proposal.topic}") { message ->
             throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
 
         Validator.validateAccounts(proposal.accounts, proposal.chains) { errorMessage ->
             throw WalletConnectException.InvalidAccountsException(errorMessage)
+        }
+
+        Validator.validateSessionPermissions(proposal.toSessionPermissions()) { errorMessage ->
+            throw WalletConnectException.InvalidSessionPermissionsException(errorMessage)
         }
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()

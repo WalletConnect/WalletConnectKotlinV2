@@ -5,6 +5,8 @@ import com.walletconnect.walletconnectv2.engine.domain.Validator
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class ValidatorTest {
 
@@ -223,5 +225,90 @@ class ValidatorTest {
                 "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6"
             ), listOf("bip122:000000000019d6689c085ae165831e93")
         ).apply { assertEquals(this, true) }
+    }
+
+    @Test
+    fun `is chain id authorize test`() {
+        Validator.validateChainIdAuthorization(
+            "bip122:000000000019d6689c085ae165831e93",
+            listOf()
+        ) { assertEquals(UNAUTHORIZED_CHAIN_ID_MESSAGE, it) }
+
+        Validator.validateChainIdAuthorization(
+            "",
+            listOf("polkadot:b0a8d493285c2df73290dfb7e61f870f:")
+        ) {
+            assertEquals(UNAUTHORIZED_CHAIN_ID_MESSAGE, it)
+        }
+
+        Validator.validateChainIdAuthorization(
+            "bip122:000000000019d6689c085ae165831e93",
+            listOf("polkadot:b0a8d493285c2df73290dfb7e61f870f, bip122:000000000019d6689c085ae165831e93")
+        ) {
+            assertEquals(UNAUTHORIZED_CHAIN_ID_MESSAGE, it)
+        }
+    }
+
+    @Test
+    fun `is notification valid test`() {
+        var notification = EngineDO.Notification("", "data")
+        Validator.validateNotification(notification) {
+            assertEquals(INVALID_NOTIFICATION_MESSAGE, it)
+        }
+
+        notification = EngineDO.Notification("type", "")
+        Validator.validateNotification(notification) {
+            assertEquals(INVALID_NOTIFICATION_MESSAGE, it)
+        }
+
+        notification = EngineDO.Notification("", "")
+        Validator.validateNotification(notification) {
+            assertEquals(INVALID_NOTIFICATION_MESSAGE, it)
+        }
+    }
+
+    @Test
+    fun `is session proposal valid test`() {
+        val proposal = EngineDO.SessionProposal(
+            "name", "dsc", "", listOf(), listOf(),
+            listOf(), listOf(), "", "", false, 1L, listOf(), ""
+        )
+        Validator.validateProposalFields(proposal) { assertEquals(INVALID_SESSION_PROPOSAL_MESSAGE, it) }
+    }
+
+    @Test
+    fun `validate WC uri test`() {
+        val validUri =
+            "wc:0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33@2?controller=false&publicKey=4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249&relay=%7B%22protocol%22%3A%22waku%22%7D"
+
+        Validator.validateWCUri("").apply { assertEquals(null, this) }
+        Validator.validateWCUri(validUri).apply {
+            assertNotNull(this)
+            assertEquals("0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33", this.topic.value)
+            assertEquals("waku", this.relay.protocol)
+            assertEquals("4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249", this.publicKey.keyAsHex)
+            assertEquals(false, this.isController)
+            assertEquals("2", this.version)
+        }
+
+        val noTopicInvalidUri =
+            "wc:@2?controller=false&publicKey=4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249&relay=%7B%22protocol%22%3A%22waku%22%7D"
+        Validator.validateWCUri(noTopicInvalidUri).apply { assertNull(this) }
+
+        val noControllerFlagInvalidUri =
+            "wc:0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33@2?controller=&publicKey=4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249&relay=%7B%22protocol%22%3A%22waku%22%7D"
+        Validator.validateWCUri(noControllerFlagInvalidUri).apply { assertNull(this) }
+
+        val noPrefixInvalidUri =
+            "0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33@2?controller=false&publicKey=4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249&relay=%7B%22protocol%22%3A%22waku%22%7D"
+        Validator.validateWCUri(noPrefixInvalidUri).apply { assertNull(this) }
+
+        val noPubKeyInvalidUri =
+            "wc:0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33@2?controller=false&relay=%7B%22protocol%22%3A%22waku%22%7D"
+        Validator.validateWCUri(noPubKeyInvalidUri).apply { assertNull(this) }
+
+        val noProtocolTypeInvalidUri =
+            "wc:0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33@2?controller=false&publicKey=4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249&relay=%7B%22protocol%22%3A%%22%7D"
+        Validator.validateWCUri(noProtocolTypeInvalidUri).apply { assertNull(this) }
     }
 }

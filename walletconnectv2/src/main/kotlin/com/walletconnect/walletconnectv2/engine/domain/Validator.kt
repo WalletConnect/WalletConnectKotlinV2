@@ -1,7 +1,14 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
+import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
+import java.net.URI
+import java.net.URISyntaxException
 
 internal object Validator {
 
@@ -24,13 +31,63 @@ internal object Validator {
     }
 
     internal fun validateNotification(notification: EngineDO.Notification, onInvalidNotification: (String) -> Unit) {
-        if (notification.data.isEmpty() && notification.type.isEmpty()) onInvalidNotification(INVALID_NOTIFICATION_MESSAGE)
+        if (notification.data.isEmpty() || notification.type.isEmpty()) onInvalidNotification(INVALID_NOTIFICATION_MESSAGE)
     }
 
     internal fun validateChainIdAuthorization(chainId: String?, chains: List<String>, onInvalidChainId: (String) -> Unit) {
         if (chainId != null) {
             if (!chains.contains(chainId)) onInvalidChainId(UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
+    }
+
+    internal fun validateProposalFields(sessionProposal: EngineDO.SessionProposal, onInvalidProposal: (String) -> Unit) {
+        with(sessionProposal) {
+            if (name.isEmpty() || description.isEmpty() || url.isEmpty() || icons.isEmpty() || chains.isEmpty() || methods.isEmpty() ||
+                topic.isEmpty() || publicKey.isEmpty() || relayProtocol.isEmpty()
+            ) {
+                onInvalidProposal(INVALID_SESSION_PROPOSAL_MESSAGE)
+            }
+        }
+    }
+
+    internal fun validateWCUri(uri: String): EngineDO.WalletConnectUri? {
+        if (!uri.startsWith("wc:")) return null
+        val properUriString = if (uri.contains("wc://")) uri else uri.replace("wc:", "wc://")
+        val pairUri: URI
+        try {
+            pairUri = URI(properUriString)
+        } catch (e: URISyntaxException) {
+            return null
+        }
+
+        if (pairUri.userInfo.isEmpty()) return null
+        val mapOfQueryParameters: Map<String, String> =
+            pairUri.query.split("&").associate { query -> query.substringBefore("=") to query.substringAfter("=") }
+
+        var relay = ""
+        mapOfQueryParameters["relay"]?.let { relay = it } ?: return null
+        if (relay.isEmpty()) return null
+
+
+        val moshi = Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
+        val protocolOptionsVO = moshi.adapter(RelayProtocolOptionsVO::class.java).fromJson(relay) ?: return null
+
+        var publicKey = ""
+        mapOfQueryParameters["publicKey"]?.let { publicKey = it } ?: return null
+        if (publicKey.isEmpty()) return null
+
+
+        var controller = ""
+        mapOfQueryParameters["controller"]?.let { controller = it } ?: return null
+        if (controller.isEmpty()) return null
+        val isController = controller.toBoolean()
+
+        return EngineDO.WalletConnectUri(
+            topic = TopicVO(pairUri.userInfo),
+            relay = protocolOptionsVO,
+            publicKey = PublicKey(publicKey),
+            isController = isController
+        )
     }
 
     internal fun isJsonRpcValid(jsonRpc: EngineDO.JsonRpc): Boolean =

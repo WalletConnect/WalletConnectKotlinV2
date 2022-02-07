@@ -23,24 +23,15 @@ import java.util.*
 import kotlin.time.Duration
 
 @JvmSynthetic
-internal fun String.toPairProposal(): PairingParamsVO.Proposal {
-    val properUriString = if (contains("wc://")) this else replace("wc:", "wc://")
-    val pairUri = URI(properUriString)
-    val mapOfQueryParameters: Map<String, String> =
-        pairUri.query.split("&").associate { query -> query.substringBefore("=") to query.substringAfter("=") }
-    val relay = JSONObject(mapOfQueryParameters["relay"] ?: "{}").getString("protocol") ?: String.Empty
-    val publicKey = mapOfQueryParameters["publicKey"] ?: ""
-    val controller: Boolean = mapOfQueryParameters["controller"].toBoolean()
-    val ttl: Long = Duration.days(30).inWholeSeconds
-    return PairingParamsVO.Proposal(
-        topic = TopicVO(pairUri.userInfo),
-        relay = RelayProtocolOptionsVO(relay),
-        proposer = PairingProposerVO(publicKey, controller),
-        signal = PairingSignalVO("uri", PairingSignalParamsVO(properUriString)),
+internal fun EngineDO.WalletConnectUri.toPairProposal(): PairingParamsVO.Proposal =
+    PairingParamsVO.Proposal(
+        topic = topic,
+        relay = relay,
+        proposer = PairingProposerVO(publicKey.keyAsHex, isController),
+        signal = PairingSignalVO("uri", PairingSignalParamsVO(toAbsoluteString())),
         permissions = PairingProposedPermissionsVO(JsonRPCVO(listOf(JsonRpcMethod.WC_SESSION_PROPOSE))),
-        ttl = TtlVO(ttl)
+        ttl = TtlVO(Duration.days(30).inWholeSeconds)
     )
-}
 
 @JvmSynthetic
 internal fun EngineDO.WalletConnectUri.toAbsoluteString(): String =
@@ -129,7 +120,7 @@ internal fun EngineDO.SessionProposal.toEngineDOSettledSessionVO(topic: TopicVO,
         EngineDO.SettledSession.Permissions(
             EngineDO.SettledSession.Permissions.Blockchain(chains),
             EngineDO.SettledSession.Permissions.JsonRpc(methods),
-            EngineDO.SettledSession.Permissions.Notifications(types)
+            EngineDO.SettledSession.Permissions.Notifications(types ?: emptyList())
         )
     )
 
@@ -259,7 +250,7 @@ internal fun EngineDO.SessionProposal.toRespondedSessionVO(selfPublicKey: Public
         selfPublicKey,
         chains = chains,
         methods = methods,
-        types = types,
+        types = types ?: emptyList(),
         ttl = TtlVO(ttl),
         controllerType = controllerType,
         relayProtocol = relayProtocol
@@ -280,7 +271,7 @@ internal fun EngineDO.SessionProposal.toPreSettledSessionVO(
         if (isController) PublicKey(publicKey) else selfPublicKey,
         chains,
         methods,
-        types,
+        types ?: emptyList(),
         TtlVO(ttl),
         accounts,
         controllerType = controllerType,
@@ -360,3 +351,11 @@ internal fun JsonRpcResponseVO.JsonRpcResult.toEngineJsonRpcResult(): EngineDO.J
 @JvmSynthetic
 internal fun EngineDO.JsonRpcResponse.JsonRpcError.toJsonRpcErrorVO(): JsonRpcResponseVO.JsonRpcError =
     JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(error.code, error.message))
+
+@JvmSynthetic
+internal fun EngineDO.SessionProposal.toSessionPermissions(): EngineDO.SessionPermissions =
+    EngineDO.SessionPermissions(
+        blockchain = EngineDO.Blockchain(chains),
+        jsonRpc = EngineDO.JsonRpc(methods),
+        notification = if (types != null) EngineDO.Notifications(types) else null
+    )
