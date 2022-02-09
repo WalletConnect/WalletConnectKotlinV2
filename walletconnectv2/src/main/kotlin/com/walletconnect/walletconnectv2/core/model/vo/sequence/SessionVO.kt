@@ -24,4 +24,6 @@ internal data class SessionVO(
     val appMetaData: AppMetaDataVO? = null,
     val controllerType: ControllerType,
     val relayProtocol: String
-) : Sequence
+) : Sequence {
+    val isPeerController: Boolean = peerParticipant?.keyAsHex == controllerKey?.keyAsHex
+}
