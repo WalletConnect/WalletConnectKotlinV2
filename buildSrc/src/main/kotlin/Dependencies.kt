@@ -70,8 +70,10 @@ fun DependencyHandlerScope.bouncyCastle() {
 }
 
 fun DependencyHandlerScope.sqlDelight() {
+    val sqlCipherVersion = "4.5.0@aar"
     "implementation"("com.squareup.sqldelight:android-driver:$sqlDelightVersion")
     "implementation"("com.squareup.sqldelight:coroutines-extensions-jvm:$sqlDelightVersion")
+    "implementation"("net.zetetic:android-database-sqlcipher:$sqlCipherVersion")
 
     "testImplementation"("com.squareup.sqldelight:sqlite-driver:$sqlDelightVersion")
     "testImplementation"("org.xerial:sqlite-jdbc:3.8.10.2") {
@@ -100,7 +102,7 @@ fun DependencyHandlerScope.jUnit5() {
 }
 
 fun DependencyHandlerScope.androidXTest() {
-    val androidxTestVersion ="1.4.0"
+    val androidxTestVersion = "1.4.0"
 
     "testImplementation"("androidx.test.ext:junit-ktx:1.1.3")
     "testImplementation"("androidx.test:core-ktx:$androidxTestVersion")
