@@ -36,7 +36,9 @@ internal sealed class RelayDTO {
                 val message: String,
                 @Json(name = "ttl")
                 @field:TtlAdapter.Qualifier
-                val ttl: TtlVO = TtlVO(86400)
+                val ttl: TtlVO = TtlVO(86400), //24h
+                @Json(name = "prompt")
+                val prompt: Boolean?
             )
         }
 
