@@ -65,7 +65,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     }
 
     fun disconnect(topic: String, reason: String = "Reason") {
-        val disconnect = WalletConnect.Params.Disconnect(topic, reason, 100)
+        val disconnect = WalletConnect.Params.Disconnect(sessionTopic = topic, reason = reason, reasonCode = 100)
 
         WalletConnectClient.disconnect(disconnect, object : WalletConnect.Listeners.SessionDelete {
             override fun onSuccess(deletedSession: WalletConnect.Model.DeletedSession) {

@@ -294,8 +294,8 @@ internal class EngineInteractor(
             throw WalletConnectException.InvalidSessionPermissionsException(errorMessage)
         }
 
-        val permissionsParams = SessionParamsVO.UpgradeParams(permissions = permissions.toSessionsPermissions())
-        val sessionUpgrade = PostSettlementSessionVO.SessionUpgrade(id = generateId(), params = permissionsParams)
+        val upgradePermissionsParams = SessionParamsVO.UpgradeParams(permissions = permissions.toSessionsPermissions())
+        val sessionUpgrade = PostSettlementSessionVO.SessionUpgrade(id = generateId(), params = upgradePermissionsParams)
         sequenceStorageRepository.upgradeSessionWithPermissions(TopicVO(topic), permissions.blockchain.chains, permissions.jsonRpc.methods)
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpgrade) { result ->
             result.fold(
