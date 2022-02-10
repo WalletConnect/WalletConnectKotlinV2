@@ -59,16 +59,14 @@ object WalletConnect {
             val icons: List<URI>,
             val chains: List<String>,
             val methods: List<String>,
-            val types: List<String>,
+            val types: List<String>? = null,
             val topic: String,
             val proposerPublicKey: String,
             val isController: Boolean,
             val ttl: Long,
             val accounts: List<String>,
             val relayProtocol: String
-        ) : Model() {
-            val icon: String = icons.first().toString()
-        }
+        ) : Model()
 
         data class SessionRequest(
             val topic: String,
@@ -244,7 +242,7 @@ object WalletConnect {
 
         data class Reject(val rejectionReason: String, val proposalTopic: String) : Params()
 
-        data class Disconnect(val sessionTopic: String, val reason: String) : Params()
+        data class Disconnect(val sessionTopic: String, val reason: String, val reasonCode: Int) : Params()
 
         data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) : Params()
 

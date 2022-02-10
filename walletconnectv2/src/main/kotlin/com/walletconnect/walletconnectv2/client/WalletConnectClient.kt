@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.client
 
 import com.walletconnect.walletconnectv2.client.mapper.*
-import com.walletconnect.walletconnectv2.core.exceptions.WalletConnectException
+import com.walletconnect.walletconnectv2.core.exceptions.client.WalletConnectException
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.di.*
@@ -189,7 +189,7 @@ object WalletConnectClient {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.disconnect(disconnect.sessionTopic, disconnect.reason,
+        engineInteractor.disconnect(disconnect.sessionTopic, disconnect.reason, disconnect.reasonCode,
             { (topic, reason) -> listener?.onSuccess(WalletConnect.Model.DeletedSession(topic, reason)) },
             { error -> listener?.onError(error) })
     }

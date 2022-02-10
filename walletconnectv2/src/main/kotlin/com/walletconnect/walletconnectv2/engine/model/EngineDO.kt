@@ -27,16 +27,14 @@ internal sealed class EngineDO {
         val icons: List<URI>,
         val chains: List<String>,
         val methods: List<String>,
-        val types: List<String>,
+        val types: List<String>? = null,
         val topic: String,
         val publicKey: String,
         val isController: Boolean = false,
         val ttl: Long,
         val accounts: List<String>,
         val relayProtocol: String
-    ) : EngineDO(), SequenceLifecycle {
-        val icon: String = icons.first().toString()
-    }
+    ) : EngineDO(), SequenceLifecycle
 
     internal data class SessionRequest(
         val topic: String,
