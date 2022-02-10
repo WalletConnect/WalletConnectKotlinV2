@@ -8,10 +8,10 @@ import com.walletconnect.walletconnectv2.core.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.AppMetaDataVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
-import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDaoQueries
 import com.walletconnect.walletconnectv2.storage.data.dao.PairingDaoQueries
 import com.walletconnect.walletconnectv2.storage.data.dao.SessionDaoQueries
+import com.walletconnect.walletconnectv2.util.Empty
 
 //TODO: Split into SessionStorageRepository and PairingStorageRepository
 internal class SequenceStorageRepository(
@@ -287,7 +287,7 @@ internal class SequenceStorageRepository(
         topic: String,
         permission_chains: List<String>,
         permissions_methods: List<String>,
-        permissions_types: List<String>,
+        permissions_types: List<String>?,
         ttl_seconds: Long,
         accounts: List<String>?,
         expiry: Long,

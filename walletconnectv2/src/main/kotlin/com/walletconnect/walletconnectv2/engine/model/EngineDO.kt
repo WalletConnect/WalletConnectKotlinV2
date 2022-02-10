@@ -111,7 +111,7 @@ internal sealed class EngineDO {
 
             internal data class JsonRpc(val methods: List<String>)
 
-            internal data class Notifications(val types: List<String>)
+            internal data class Notifications(val types: List<String>?)
         }
     }
 
@@ -152,7 +152,7 @@ internal sealed class EngineDO {
         ) : JsonRpcResponse()
 
         internal data class Error(
-            val code: Long,
+            val code: Int,
             val message: String,
         )
     }

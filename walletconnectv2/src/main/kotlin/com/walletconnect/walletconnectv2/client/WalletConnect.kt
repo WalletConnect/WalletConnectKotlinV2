@@ -97,7 +97,7 @@ object WalletConnect {
 
                 data class JsonRpc(val methods: List<String>)
 
-                data class Notifications(val types: List<String>)
+                data class Notifications(val types: List<String>?)
             }
         }
 
@@ -154,7 +154,7 @@ object WalletConnect {
             ) : JsonRpcResponse()
 
             data class Error(
-                val code: Long,
+                val code: Int,
                 val message: String
             )
         }

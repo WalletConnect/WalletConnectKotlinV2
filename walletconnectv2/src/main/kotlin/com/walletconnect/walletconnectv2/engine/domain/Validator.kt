@@ -16,9 +16,8 @@ internal object Validator {
         when {
             !isBlockchainValid(permissions.blockchain) -> onInvalidPermissions(EMPTY_CHAIN_LIST_MESSAGE)
             !isJsonRpcValid(permissions.jsonRpc) -> onInvalidPermissions(EMPTY_RPC_METHODS_LIST_MESSAGE)
-            permissions.notification != null && !areNotificationTypesValid(permissions.notification) -> onInvalidPermissions(
-                INVALID_NOTIFICATIONS_TYPES_MESSAGE
-            )
+            permissions.notification != null && !areNotificationTypesValid(permissions.notification) ->
+                onInvalidPermissions(INVALID_NOTIFICATIONS_TYPES_MESSAGE)
             permissions.blockchain.chains.any { chainId -> !isChainIdValid(chainId) } -> onInvalidPermissions(WRONG_CHAIN_ID_FORMAT_MESSAGE)
         }
     }

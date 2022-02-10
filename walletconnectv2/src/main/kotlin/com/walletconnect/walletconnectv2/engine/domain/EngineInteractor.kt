@@ -723,7 +723,7 @@ internal class EngineInteractor(
             return
         }
 
-        if (session.controllerType != ControllerType.CONTROLLER && !session.types.contains(params.type)) {
+        if (session.controllerType != ControllerType.CONTROLLER && session.types?.contains(params.type) == false) {
             val message = "${Error.UNAUTHORIZED_NOTIFICATION_TYPE.message}${params.type}"
             val code = Error.UNAUTHORIZED_NOTIFICATION_TYPE.code
             respondWithError(requestId, topic, message, code)
@@ -780,7 +780,7 @@ internal class EngineInteractor(
             .onEach { session -> relayer.subscribe(session.topic) }
     }
 
-    private fun respondWithError(requestId: Long, topic: TopicVO, errorMessage: String, errorCode: Long) {
+    private fun respondWithError(requestId: Long, topic: TopicVO, errorMessage: String, errorCode: Int) {
         val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = requestId, error = JsonRpcResponseVO.Error(errorCode, errorMessage))
         relayer.publishJsonRpcResponse(topic, jsonRpcError,
             { Logger.log("Successfully respond with error") },

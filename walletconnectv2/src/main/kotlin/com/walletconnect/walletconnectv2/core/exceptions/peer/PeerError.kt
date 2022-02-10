@@ -1,6 +1,6 @@
 package com.walletconnect.walletconnectv2.core.exceptions.peer
 
-enum class Error(val message: String, val code: Long) {
+enum class Error(val message: String, val code: Int) {
     INVALID_SESSION_UPDATE("Invalid session update request", 1003),
     INVALID_SESSION_UPGRADE("Invalid session upgrade request", 1004),
     NO_MATCHING_SESSION_TOPIC("No matching session with topic: ", 1301),

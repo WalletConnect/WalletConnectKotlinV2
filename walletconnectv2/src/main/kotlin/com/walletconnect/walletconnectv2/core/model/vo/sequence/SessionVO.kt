@@ -18,7 +18,7 @@ internal data class SessionVO(
     val controllerKey: PublicKey? = null,
     val chains: List<String>,
     val methods: List<String>,
-    val types: List<String>,
+    val types: List<String>?,
     val ttl: TtlVO,
     val accounts: List<String> = emptyList(),
     val appMetaData: AppMetaDataVO? = null,
