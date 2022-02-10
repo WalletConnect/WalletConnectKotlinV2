@@ -395,9 +395,13 @@ internal class EngineInteractor(
             throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
 
-        //TODO: check the Notification authorization: of types is included and check public key
         Validator.validateNotification(notification) { errorMessage ->
             throw WalletConnectException.InvalidNotificationException(errorMessage)
+        }
+
+        val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
+        Validator.validateNotificationAuthorization(session, notification.type) { errorMessage ->
+            throw WalletConnectException.UnauthorizedNotificationException(errorMessage)
         }
 
         val notificationParams = SessionParamsVO.NotificationParams(notification.type, notification.data)
@@ -787,8 +791,8 @@ internal class EngineInteractor(
             { error -> Logger.error("Cannot respond with error: $error") })
     }
 
-    private fun checkPeer(currentPeer: ControllerType, onUnauthorizedPeer: () -> Unit) {
-        if (controllerType != currentPeer) {
+    private fun checkPeer(requiredPeer: ControllerType, onUnauthorizedPeer: () -> Unit) {
+        if (controllerType != requiredPeer) {
             onUnauthorizedPeer()
         }
     }
