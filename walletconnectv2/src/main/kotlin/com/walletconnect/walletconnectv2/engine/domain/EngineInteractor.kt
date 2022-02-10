@@ -163,7 +163,10 @@ internal class EngineInteractor(
                     relayer.publishJsonRpcRequests(proposal.topic, preSettlementPairingApprove) { result ->
                         result.fold(
                             onSuccess = { onPairingSuccess(proposal, preSettledPairing, onSuccess) },
-                            onFailure = { throwable -> onFailure(throwable) }
+                            onFailure = { throwable ->
+                                Logger.error("Pairing approve error: $throwable")
+                                onFailure(throwable)
+                            }
                         )
                     }
                     cancel()
@@ -240,6 +243,7 @@ internal class EngineInteractor(
                     onSuccess(proposal.toEngineDOSettledSessionVO(settledTopic, preSettledSession.expiry))
                 },
                 onFailure = { error ->
+                    Logger.error("Session approve error: $error")
                     relayer.unsubscribe(TopicVO(proposal.topic))
                     relayer.unsubscribe(settledTopic)
                     crypto.removeKeys(proposal.topic)
@@ -271,7 +275,10 @@ internal class EngineInteractor(
                     crypto.removeKeys(topic)
                     relayer.unsubscribe(TopicVO(topic))
                 },
-                onFailure = { error -> onFailure(error) }
+                onFailure = { error ->
+                    Logger.error("Session reject error: $error")
+                    onFailure(error)
+                }
             )
         }
     }
@@ -299,7 +306,10 @@ internal class EngineInteractor(
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpgrade) { result ->
             result.fold(
                 onSuccess = { onSuccess(Pair(topic, permissions)) },
-                onFailure = { error -> onFailure(error) }
+                onFailure = { error ->
+                    Logger.error("Session upgrade error: $error")
+                    onFailure(error)
+                }
             )
         }
     }
@@ -329,7 +339,10 @@ internal class EngineInteractor(
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdate) { result ->
             result.fold(
                 onSuccess = { onSuccess(Pair(topic, state.accounts)) },
-                onFailure = { error -> onFailure(error) }
+                onFailure = { error ->
+                    Logger.error("Session update error: $error")
+                    onFailure(error)
+                }
             )
         }
     }
@@ -354,7 +367,10 @@ internal class EngineInteractor(
         relayer.publishJsonRpcRequests(TopicVO(request.topic), sessionPayload) { result ->
             result.fold(
                 onSuccess = { jsonRpcResult -> onSuccess(jsonRpcResult.toEngineJsonRpcResult()) },
-                onFailure = { error -> onFailure(error) }
+                onFailure = { error ->
+                    Logger.error("Session request error: $error")
+                    onFailure(error)
+                }
             )
         }
     }
@@ -385,7 +401,10 @@ internal class EngineInteractor(
         relayer.publishJsonRpcRequests(TopicVO(topic), pingParams) { result ->
             result.fold(
                 onSuccess = { onSuccess(topic) },
-                onFailure = { error -> onFailure(error) }
+                onFailure = { error ->
+                    Logger.error("Ping error: $error")
+                    onFailure(error)
+                }
             )
         }
     }
@@ -409,7 +428,10 @@ internal class EngineInteractor(
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionNotification) { result ->
             result.fold(
                 onSuccess = { onSuccess(topic) },
-                onFailure = { error -> onFailure(error) }
+                onFailure = { error ->
+                    Logger.error("Notify error: $error")
+                    onFailure(error)
+                }
             )
         }
     }
@@ -433,7 +455,10 @@ internal class EngineInteractor(
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionDelete) { result ->
             result.fold(
                 onSuccess = {/*TODO: Should wait for acknowledgement and delete keys?*/ },
-                onFailure = { error -> onFailure(error) }
+                onFailure = { error ->
+                    Logger.error("Session disconnect error: $error")
+                    onFailure(error)
+                }
             )
         }
     }
@@ -564,6 +589,13 @@ internal class EngineInteractor(
             return@checkTopic
         }
 
+        if (params.state.metadata == null) {
+            val message = Error.INVALID_PAIRING_UPDATE.message
+            val code = Error.INVALID_PAIRING_UPDATE.code
+            respondWithError(requestId, topic, message, code)
+            return
+        }
+
         val pairing: PairingVO = sequenceStorageRepository.getPairingByTopic(topic)
         if (pairing.controllerType != ControllerType.NON_CONTROLLER) {
             val message = Error.UNAUTHORIZED_PAIRING_UPDATE.message
@@ -586,7 +618,7 @@ internal class EngineInteractor(
             return@checkTopic
         }
 
-        if (controllerType != ControllerType.CONTROLLER) {
+        if (controllerType != ControllerType.NON_CONTROLLER) {
             val peer: String = if (controllerType == ControllerType.CONTROLLER) "controller" else "non-controller"
             val message = "${Error.UNAUTHORIZED_MATCHING_CONTROLLER.message}$peer"
             val code = Error.UNAUTHORIZED_MATCHING_CONTROLLER.code
@@ -785,6 +817,7 @@ internal class EngineInteractor(
     }
 
     private fun respondWithError(requestId: Long, topic: TopicVO, errorMessage: String, errorCode: Int) {
+        Logger.error("$errorMessage: $errorCode")
         val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = requestId, error = JsonRpcResponseVO.Error(errorCode, errorMessage))
         relayer.publishJsonRpcResponse(topic, jsonRpcError,
             { Logger.log("Successfully respond with error") },

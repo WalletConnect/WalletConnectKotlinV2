@@ -5,10 +5,6 @@ import com.walletconnect.walletconnectv2.core.exceptions.client.WalletConnectExc
 import com.walletconnect.walletconnectv2.core.model.type.SettlementSequence
 import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.core.model.vo.*
-import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcResponseVO
-import com.walletconnect.walletconnectv2.core.model.vo.RequestSubscriptionPayloadVO
-import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
-import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.network.NetworkRepository
 import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
@@ -166,10 +162,11 @@ internal class WalletConnectRelayer(
 
     private suspend fun handleSessionRequest(decryptedMessage: String, topic: TopicVO) {
         val clientJsonRpc = serializer.tryDeserialize<RelayDO.ClientJsonRpc>(decryptedMessage)
+
         if (clientJsonRpc != null && jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(RequestSubscriptionPayloadVO(clientJsonRpc.id, topic, clientJsonRpc.method, params))
-            }
+            } ?: Logger.error("Deserialization error: $clientJsonRpc")
         }
     }
 

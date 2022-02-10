@@ -68,6 +68,7 @@ object WalletConnectClient {
                     is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
                     is EngineDO.SessionUpdate -> delegate.onSessionUpdate(event.toClientSessionsUpdate())
                     is EngineDO.SessionUpgrade -> delegate.onSessionUpgrade(event.toClientSessionsUpgrade())
+                    is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                 }
             }
         }
@@ -255,5 +256,6 @@ object WalletConnectClient {
         fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession)
         fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdatedSession)
         fun onSessionUpgrade(upgradedSession: WalletConnect.Model.UpgradedSession)
+        fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
     }
 }
