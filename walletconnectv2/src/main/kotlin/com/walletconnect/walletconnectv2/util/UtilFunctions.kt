@@ -11,12 +11,10 @@ import java.security.SecureRandom
 internal fun pendingSequenceExpirySeconds() = ((currentTimeMillis() / 1000) + 86400) //24h
 
 @JvmSynthetic
-internal fun randomBytes(size: Int): ByteArray {
-    val secureRandom = SecureRandom()
-    val bytes = ByteArray(size)
-    secureRandom.nextBytes(bytes)
-    return bytes
-}
+internal fun randomBytes(size: Int): ByteArray =
+    ByteArray(size).apply {
+        SecureRandom().nextBytes(this)
+    }
 
 @JvmSynthetic
 internal fun generateId(): Long = (currentTimeMillis() + (100..999).random())

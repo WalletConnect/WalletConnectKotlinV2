@@ -31,39 +31,37 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
         setupToolbar()
         binding.sessions.adapter = sessionAdapter
 
-        lifecycleScope.launch {
-            viewModel.eventFlow.observe(viewLifecycleOwner) { event ->
-                when (event) {
-                    is InitSessionsList -> sessionAdapter.updateList(event.sessions)
-                    is ShowSessionProposalDialog -> {
-                        proposalDialog = SessionProposalDialog(
-                            requireContext(),
-                            viewModel::approve,
-                            viewModel::reject,
-                            event.proposal
-                        )
-                        proposalDialog?.show()
-                    }
-                    is ShowSessionRequestDialog -> {
-                        requestDialog = SessionRequestDialog(
-                            requireContext(),
-                            { sessionRequest -> viewModel.respondRequest(sessionRequest) },
-                            { sessionRequest -> viewModel.rejectRequest(sessionRequest) },
-                            event.sessionRequest,
-                            event.session
-                        )
-                        requestDialog?.show()
-                    }
-                    is UpdateActiveSessions -> {
-                        proposalDialog?.dismiss()
-                        sessionAdapter.updateList(event.sessions)
-                        event.message?.let {
-                            Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                    is RejectSession -> proposalDialog?.dismiss()
-                    is PingSuccess -> Toast.makeText(requireContext(), "Successful session ping", Toast.LENGTH_SHORT).show()
+        viewModel.eventFlow.observe(viewLifecycleOwner) { event ->
+            when (event) {
+                is InitSessionsList -> sessionAdapter.updateList(event.sessions)
+                is ShowSessionProposalDialog -> {
+                    proposalDialog = SessionProposalDialog(
+                        requireContext(),
+                        viewModel::approve,
+                        viewModel::reject,
+                        event.proposal
+                    )
+                    proposalDialog?.show()
                 }
+                is ShowSessionRequestDialog -> {
+                    requestDialog = SessionRequestDialog(
+                        requireContext(),
+                        { sessionRequest -> viewModel.respondRequest(sessionRequest) },
+                        { sessionRequest -> viewModel.rejectRequest(sessionRequest) },
+                        event.sessionRequest,
+                        event.session
+                    )
+                    requestDialog?.show()
+                }
+                is UpdateActiveSessions -> {
+                    proposalDialog?.dismiss()
+                    sessionAdapter.updateList(event.sessions)
+                    event.message?.let {
+                        Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                is RejectSession -> proposalDialog?.dismiss()
+                is PingSuccess -> Toast.makeText(requireContext(), "Successful session ping", Toast.LENGTH_SHORT).show()
             }
         }
     }
