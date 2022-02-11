@@ -30,8 +30,6 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
 //        )
 //        val uri = WalletConnectClient.connect(connectParams)
 //
-//        Log.d("kobe", "URI: $uri")
-//
 //        val qr = QRCode.from(uri).withSize(256, 256).file()
 //        Glide.with(requireContext()).load(qr).into(binding.qrCode)
     }

@@ -520,8 +520,7 @@ internal class EngineInteractor(
         val proposal: SessionParamsVO.ProposalParams = payload.request.params
         val isController: Boolean = controllerType == ControllerType.CONTROLLER
         if (proposal.proposer.controller == isController) {
-            val peer: String = if (isController) "controller" else "non-controller"
-            val message = "${Error.UNAUTHORIZED_MATCHING_CONTROLLER.message}$peer"
+            val message = "${Error.UNAUTHORIZED_MATCHING_CONTROLLER.message}${controllerType.name}"
             val code = Error.UNAUTHORIZED_MATCHING_CONTROLLER.code
             respondWithError(requestId, topic, message, code)
             return
@@ -619,8 +618,7 @@ internal class EngineInteractor(
         }
 
         if (controllerType != ControllerType.NON_CONTROLLER) {
-            val peer: String = if (controllerType == ControllerType.CONTROLLER) "controller" else "non-controller"
-            val message = "${Error.UNAUTHORIZED_MATCHING_CONTROLLER.message}$peer"
+            val message = "${Error.UNAUTHORIZED_MATCHING_CONTROLLER.message}${controllerType.name}"
             val code = Error.UNAUTHORIZED_MATCHING_CONTROLLER.code
             respondWithError(requestId, topic, message, code)
             return
