@@ -14,7 +14,7 @@ android {
     compileSdk = 30
 
     defaultConfig {
-        minSdk = 23
+        minSdk = 24
         targetSdk = 30
 
         testInstrumentationRunner = "com.walletconnect.walletconnectv2.WCTestRunner"

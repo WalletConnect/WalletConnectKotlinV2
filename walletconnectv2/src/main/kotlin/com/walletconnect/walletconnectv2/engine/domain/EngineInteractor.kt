@@ -523,8 +523,7 @@ internal class EngineInteractor(
         val proposal: SessionParamsVO.ProposalParams = payload.request.params
         val isController: Boolean = controllerType == ControllerType.CONTROLLER
         if (proposal.proposer.controller == isController) {
-            val peer: String = if (isController) "controller" else "non-controller"
-            val message = "${Error.UNAUTHORIZED_MATCHING_CONTROLLER.message}$peer"
+            val message = "${Error.UNAUTHORIZED_MATCHING_CONTROLLER.message}${controllerType.name}"
             val code = Error.UNAUTHORIZED_MATCHING_CONTROLLER.code
             respondWithError(requestId, topic, message, code)
             return
@@ -622,8 +621,7 @@ internal class EngineInteractor(
         }
 
         if (controllerType != ControllerType.NON_CONTROLLER) {
-            val peer: String = if (controllerType == ControllerType.CONTROLLER) "controller" else "non-controller"
-            val message = "${Error.UNAUTHORIZED_MATCHING_CONTROLLER.message}$peer"
+            val message = "${Error.UNAUTHORIZED_MATCHING_CONTROLLER.message}${controllerType.name}"
             val code = Error.UNAUTHORIZED_MATCHING_CONTROLLER.code
             respondWithError(requestId, topic, message, code)
             return
@@ -678,17 +676,17 @@ internal class EngineInteractor(
             return@checkTopic
         }
 
-        val session = sequenceStorageRepository.getSessionByTopic(topic)
-
-        if (params.chainId != null && !session.chains.contains(params.chainId)) {
+        val chains = sequenceStorageRepository.getSessionByTopic(topic).chains
+        if (params.chainId != null && !chains.contains(params.chainId)) {
             val message = "${Error.UNAUTHORIZED_TARGET_CHAIN_ID.message}${params.chainId}"
             val code = Error.UNAUTHORIZED_TARGET_CHAIN_ID.code
             respondWithError(requestId, topic, message, code)
             return
         }
 
+        val methods = sequenceStorageRepository.getSessionByTopic(topic).methods
         val method = params.request.method
-        if (!session.methods.contains(method)) {
+        if (!methods.contains(method)) {
             val message = "${Error.UNAUTHORIZED_JSON_RPC_METHOD.message}$method"
             val code = Error.UNAUTHORIZED_TARGET_CHAIN_ID.code
             respondWithError(requestId, topic, message, code)

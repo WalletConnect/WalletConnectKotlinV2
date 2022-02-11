@@ -4,6 +4,9 @@
 
 Kotlin implementation of WalletConnect v2 protocol for Android applications.
 
+[![](https://jitpack.io/v/WalletConnect/WalletConnectKotlinV2.svg)](https://jitpack.io/#WalletConnect/WalletConnectKotlinV2)
+
+
 ## Requirements
 * Android min SDK 23
 * Java 11
@@ -22,7 +25,7 @@ allprojects {
 app/build.gradle
 
 ```gradle
-implementation("com.github.WalletConnect:WalletConnectKotlinV2:1.0.0-beta02")
+implementation("com.github.WalletConnect:WalletConnectKotlinV2:release_version")
 ```
 
 &nbsp;
@@ -318,7 +321,7 @@ val pairingTopic: String? =  /* Optional parameter, use it when the pairing betw
 fun WalletConnectClient.connect(sessionPermissions, pairingTopic): String?
 ```
 
-The `WalletConnect.connect` method returns the pairing URI that is shared with wallet out of bound, as qr code or mobile linking. The pairing
+The `WalletConnectClient.connect` method returns the pairing URI that is shared with wallet out of bound, as qr code or mobile linking. The pairing
 URI is null when there is already an established pairing between peers. To establish a session, pass the existing pairing's topic to the connect
 method. The SDK will send the SessionProposal for the given topic.
 
