@@ -12,6 +12,7 @@ import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDaoQueries
 import com.walletconnect.walletconnectv2.storage.data.dao.PairingDaoQueries
 import com.walletconnect.walletconnectv2.storage.data.dao.SessionDaoQueries
 import com.walletconnect.walletconnectv2.util.Empty
+import com.walletconnect.walletconnectv2.util.isSequenceValid
 
 //TODO: Split into SessionStorageRepository and PairingStorageRepository
 internal class SequenceStorageRepository(
@@ -19,6 +20,9 @@ internal class SequenceStorageRepository(
     private val sessionDaoQueries: SessionDaoQueries,
     private val metaDataDaoQueries: MetaDataDaoQueries
 ) {
+
+    @JvmSynthetic
+    var onSequenceExpired: (topic: TopicVO) -> Unit = {}
 
     @JvmSynthetic
     fun getListOfPairingVOs(): List<PairingVO> =
@@ -31,27 +35,45 @@ internal class SequenceStorageRepository(
             .executeAsList()
 
     @JvmSynthetic
-    fun hasSessionTopic(topic: TopicVO): Boolean = sessionDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
+    fun isSessionValid(topic: TopicVO): Boolean {
+        val hasTopic = sessionDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
+
+        if (hasTopic) {
+            val expiry = ExpiryVO(sessionDaoQueries.getExpiry(topic.value).executeAsOne())
+            return verifyExpiry(expiry, topic) { sessionDaoQueries.deleteSession(topic.value) }
+        }
+        return false
+    }
 
     @JvmSynthetic
-    fun hasPairingTopic(topic: TopicVO): Boolean = pairingDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
+    fun isPairingValid(topic: TopicVO): Boolean {
+        val hasTopic = pairingDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
+
+        if (hasTopic) {
+            val expiry = ExpiryVO(pairingDaoQueries.getExpiry(topic.value).executeAsOne())
+            return verifyExpiry(expiry, topic) { pairingDaoQueries.deletePairing(topic.value) }
+        }
+        return false
+    }
 
     @JvmSynthetic
     fun getPairingByTopic(topic: TopicVO): PairingVO =
-        pairingDaoQueries.getPairingByTopic(topic.value).executeAsOne().let { entity ->
-            PairingVO(
-                topic = TopicVO(entity.topic),
-                status = entity.status,
-                expiry = ExpiryVO(entity.expiry),
-                selfParticipant = PublicKey(entity.self_participant),
-                peerParticipant = PublicKey(entity.peer_participant ?: String.Empty),
-                controllerKey = PublicKey(entity.controller_key ?: String.Empty),
-                uri = entity.uri,
-                permissions = entity.permissions,
-                relay = entity.relay_protocol,
-                controllerType = entity.controller_type
-            )
-        }
+        pairingDaoQueries.getPairingByTopic(topic.value)
+            .executeAsOne()
+            .let { entity ->
+                PairingVO(
+                    topic = TopicVO(entity.topic),
+                    status = entity.status,
+                    expiry = ExpiryVO(entity.expiry),
+                    selfParticipant = PublicKey(entity.self_participant),
+                    peerParticipant = PublicKey(entity.peer_participant ?: String.Empty),
+                    controllerKey = PublicKey(entity.controller_key ?: String.Empty),
+                    uri = entity.uri,
+                    permissions = entity.permissions,
+                    relay = entity.relay_protocol,
+                    controllerType = entity.controller_type
+                )
+            }
 
     @JvmSynthetic
     fun getSessionByTopic(topic: TopicVO): SessionVO =
@@ -244,6 +266,14 @@ internal class SequenceStorageRepository(
     fun deleteSession(topic: TopicVO) {
         metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
         sessionDaoQueries.deleteSession(topic.value)
+    }
+
+    private fun verifyExpiry(expiry: ExpiryVO, topic: TopicVO, deleteSequence: () -> Unit): Boolean {
+        return if (expiry.isSequenceValid()) true else {
+            deleteSequence()
+            onSequenceExpired(topic)
+            false
+        }
     }
 
     private fun mapPairingDaoToPairingVO(

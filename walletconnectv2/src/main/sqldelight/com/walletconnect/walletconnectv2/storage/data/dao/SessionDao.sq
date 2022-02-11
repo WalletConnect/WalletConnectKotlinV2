@@ -79,3 +79,8 @@ hasTopic:
 SELECT topic
 FROM SessionDao
 WHERE ? = topic;
+
+getExpiry:
+SELECT expiry
+FROM SessionDao
+WHERE ? = topic;
