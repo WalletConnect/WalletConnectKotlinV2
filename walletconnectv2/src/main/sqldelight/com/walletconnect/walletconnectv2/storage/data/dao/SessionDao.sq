@@ -7,7 +7,7 @@ CREATE TABLE SessionDao(
   topic TEXT UNIQUE NOT NULL,
   permissions_chains TEXT AS List<String> NOT NULL,
   permissions_methods TEXT AS List<String> NOT NULL,
-  permissions_types TEXT AS List<String> NOT NULL,
+  permissions_types TEXT AS List<String>,
   self_participant TEXT NOT NULL,
   peer_participant TEXT,
   controller_key TEXT,

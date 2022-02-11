@@ -11,6 +11,7 @@ sealed class WalletConnectException(override val message: String?) : Exception(m
     class InvalidSessionProposalException(override val message: String?) : WalletConnectException(message)
     class InvalidAccountsException(override val message: String?) : WalletConnectException(message)
     class InvalidNotificationException(override val message: String?) : WalletConnectException(message)
+    class UnauthorizedNotificationException(override val message: String?) : WalletConnectException(message)
     class UnauthorizedChainIdException(override val message: String?) : WalletConnectException(message)
 
     class CannotFindSequenceForTopic(override val message: String?) : WalletConnectException(message)

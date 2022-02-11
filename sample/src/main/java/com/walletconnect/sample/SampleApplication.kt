@@ -37,7 +37,7 @@ class SampleApplication : Application() {
             )
         )
 
-        WalletConnectClient.initialize(initWallet)
+        WalletConnectClient.initialize(initDapp)
     }
 
     private companion object {

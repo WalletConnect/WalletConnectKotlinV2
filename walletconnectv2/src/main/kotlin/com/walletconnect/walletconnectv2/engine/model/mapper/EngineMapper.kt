@@ -120,7 +120,7 @@ internal fun EngineDO.SessionProposal.toEngineDOSettledSessionVO(topic: TopicVO,
         EngineDO.SettledSession.Permissions(
             EngineDO.SettledSession.Permissions.Blockchain(chains),
             EngineDO.SettledSession.Permissions.JsonRpc(methods),
-            EngineDO.SettledSession.Permissions.Notifications(types ?: emptyList())
+            EngineDO.SettledSession.Permissions.Notifications(types)
         )
     )
 
@@ -250,7 +250,7 @@ internal fun EngineDO.SessionProposal.toRespondedSessionVO(selfPublicKey: Public
         selfPublicKey,
         chains = chains,
         methods = methods,
-        types = types ?: emptyList(),
+        types = types,
         ttl = TtlVO(ttl),
         controllerType = controllerType,
         relayProtocol = relayProtocol

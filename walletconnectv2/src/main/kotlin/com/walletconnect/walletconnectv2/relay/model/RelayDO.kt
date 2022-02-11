@@ -20,13 +20,10 @@ internal sealed class RelayDO {
             override val id: Long,
             val jsonrpc: String = "2.0",
             val error: Error
-        ) : JsonRpcResponse() {
-            val code: Long = error.code
-            val message: String = error.message
-        }
+        ) : JsonRpcResponse()
 
         internal data class Error(
-            val code: Long,
+            val code: Int,
             val message: String,
         )
     }

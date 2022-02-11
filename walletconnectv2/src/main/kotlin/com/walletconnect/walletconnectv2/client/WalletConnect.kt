@@ -97,7 +97,7 @@ object WalletConnect {
 
                 data class JsonRpc(val methods: List<String>)
 
-                data class Notifications(val types: List<String>)
+                data class Notifications(val types: List<String>?)
             }
         }
 
@@ -118,7 +118,7 @@ object WalletConnect {
 
         data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : Model()
 
-        data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: Jsonrpc, val notification: Notification? = null) : Model()
+        data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: Jsonrpc, val notification: Notifications? = null) : Model()
 
         data class Blockchain(val chains: List<String>) : Model()
 
@@ -154,7 +154,7 @@ object WalletConnect {
             ) : JsonRpcResponse()
 
             data class Error(
-                val code: Long,
+                val code: Int,
                 val message: String
             )
         }

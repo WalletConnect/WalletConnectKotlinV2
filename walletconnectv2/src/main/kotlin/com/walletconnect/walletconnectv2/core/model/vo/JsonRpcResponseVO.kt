@@ -20,7 +20,7 @@ internal sealed class JsonRpcResponseVO {
     ) : JsonRpcResponseVO()
 
     internal data class Error(
-        val code: Long,
+        val code: Int,
         val message: String,
     )
 }

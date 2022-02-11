@@ -1,5 +1,5 @@
 package com.walletconnect.walletconnectv2.core.model.type
 
-enum class ControllerType {
-    CONTROLLER, NON_CONTROLLER
+enum class ControllerType(name: String) {
+    CONTROLLER("controller"), NON_CONTROLLER("non-controller")
 }
