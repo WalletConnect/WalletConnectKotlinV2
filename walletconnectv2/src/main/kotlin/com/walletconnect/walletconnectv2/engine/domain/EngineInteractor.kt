@@ -101,7 +101,6 @@ internal class EngineInteractor(
 
             val params = PairingParamsVO.PayloadParams(ProposalRequestVO(JsonRpcMethod.WC_SESSION_PROPOSE, params = proposalParams))
             val sessionProposal = PostSettlementPairingVO.PairingPayload(id = generateId(), params = params)
-            val prompt = true
 
             relayer.publishJsonRpcRequests(settledPairing.topic, sessionProposal, prompt) { result ->
                 result.fold(
@@ -365,7 +364,6 @@ internal class EngineInteractor(
         //TODO: Add timeout validation for peer response - 5s
         val params = SessionParamsVO.SessionPayloadParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
         val sessionPayload = PostSettlementSessionVO.SessionPayload(id = generateId(), params = params)
-        val prompt = true
 
         relayer.publishJsonRpcRequests(TopicVO(request.topic), sessionPayload, prompt) { result ->
             result.fold(
@@ -842,4 +840,8 @@ internal class EngineInteractor(
     private fun ExpiryVO.isSequenceValid(): Boolean = seconds > (System.currentTimeMillis() / 1000)
 
     private fun generateTopic(): TopicVO = TopicVO(randomBytes(32).bytesToHex())
+
+    private companion object {
+        const val prompt: Boolean = true
+    }
 }
