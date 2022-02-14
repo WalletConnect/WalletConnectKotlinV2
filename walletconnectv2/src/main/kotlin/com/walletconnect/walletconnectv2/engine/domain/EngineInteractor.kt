@@ -55,7 +55,7 @@ internal class EngineInteractor(
             }.launchIn(scope)
 
         collectClientSyncJsonRpc()
-        handleSequenceExpiration()
+        setupSequenceExpiration()
     }
 
     fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
@@ -834,7 +834,7 @@ internal class EngineInteractor(
         }
     }
 
-    private fun handleSequenceExpiration() {
+    private fun setupSequenceExpiration() {
         sequenceStorageRepository.onSequenceExpired = { topic ->
             relayer.unsubscribe(topic)
             crypto.removeKeys(topic.value)

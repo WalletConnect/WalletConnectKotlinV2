@@ -39,7 +39,7 @@ internal class SequenceStorageRepository(
         val hasTopic = sessionDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
 
         if (hasTopic) {
-            val expiry = ExpiryVO(sessionDaoQueries.getExpiry(topic.value).executeAsOne())
+            val expiry = sessionDaoQueries.getExpiry(topic.value).executeAsOne()
             return verifyExpiry(expiry, topic) { sessionDaoQueries.deleteSession(topic.value) }
         }
         return false
@@ -50,7 +50,7 @@ internal class SequenceStorageRepository(
         val hasTopic = pairingDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
 
         if (hasTopic) {
-            val expiry = ExpiryVO(pairingDaoQueries.getExpiry(topic.value).executeAsOne())
+            val expiry = pairingDaoQueries.getExpiry(topic.value).executeAsOne()
             return verifyExpiry(expiry, topic) { pairingDaoQueries.deletePairing(topic.value) }
         }
         return false
@@ -268,8 +268,8 @@ internal class SequenceStorageRepository(
         sessionDaoQueries.deleteSession(topic.value)
     }
 
-    private fun verifyExpiry(expiry: ExpiryVO, topic: TopicVO, deleteSequence: () -> Unit): Boolean {
-        return if (expiry.isSequenceValid()) true else {
+    private fun verifyExpiry(expiry: Long, topic: TopicVO, deleteSequence: () -> Unit): Boolean {
+        return if (ExpiryVO(expiry).isSequenceValid()) true else {
             deleteSequence()
             onSequenceExpired(topic)
             false
