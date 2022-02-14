@@ -28,10 +28,7 @@ import com.walletconnect.walletconnectv2.engine.model.mapper.*
 import com.walletconnect.walletconnectv2.relay.domain.WalletConnectRelayer
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
-import com.walletconnect.walletconnectv2.util.Logger
-import com.walletconnect.walletconnectv2.util.bytesToHex
-import com.walletconnect.walletconnectv2.util.generateId
-import com.walletconnect.walletconnectv2.util.randomBytes
+import com.walletconnect.walletconnectv2.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
@@ -58,6 +55,7 @@ internal class EngineInteractor(
             }.launchIn(scope)
 
         collectClientSyncJsonRpc()
+        setupSequenceExpiration()
     }
 
     fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
@@ -74,7 +72,7 @@ internal class EngineInteractor(
         }
 
         if (pairingTopic != null) {
-            checkTopic(TopicVO(pairingTopic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE$pairingTopic") { message ->
+            checkSequence(TopicVO(pairingTopic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE$pairingTopic") { message ->
                 throw WalletConnectException.CannotFindSequenceForTopic(message)
             }
             proposeSession(permissions, pairingTopic) { error -> onFailure(error) }
@@ -139,7 +137,7 @@ internal class EngineInteractor(
         val walletConnectUri: EngineDO.WalletConnectUri =
             Validator.validateWCUri(uri) ?: throw WalletConnectException.MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
 
-        if (sequenceStorageRepository.hasPairingTopic(walletConnectUri.topic)) {
+        if (sequenceStorageRepository.isPairingValid(walletConnectUri.topic)) {
             throw WalletConnectException.PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
         }
 
@@ -204,7 +202,7 @@ internal class EngineInteractor(
             throw WalletConnectException.InvalidSessionProposalException(errorMessage)
         }
 
-        checkTopic(TopicVO(proposal.topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE${proposal.topic}") { message ->
+        checkSequence(TopicVO(proposal.topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE${proposal.topic}") { message ->
             throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
 
@@ -260,7 +258,7 @@ internal class EngineInteractor(
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_REJECT_MESSAGE)
         }
 
-        checkTopic(TopicVO(topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic") { message ->
+        checkSequence(TopicVO(topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic") { message ->
             throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
 
@@ -292,7 +290,7 @@ internal class EngineInteractor(
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPGRADE_MESSAGE)
         }
 
-        checkTopic(TopicVO(topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic") { message ->
+        checkSequence(TopicVO(topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic") { message ->
             throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
 
@@ -324,7 +322,7 @@ internal class EngineInteractor(
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
         }
 
-        checkTopic(TopicVO(topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic") { message ->
+        checkSequence(TopicVO(topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic") { message ->
             throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
 
@@ -352,7 +350,7 @@ internal class EngineInteractor(
         onSuccess: (EngineDO.JsonRpcResponse.JsonRpcResult) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
-        checkTopic(TopicVO(request.topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}") { message ->
+        checkSequence(TopicVO(request.topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}") { message ->
             throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
 
@@ -376,7 +374,7 @@ internal class EngineInteractor(
     }
 
     internal fun respondSessionPayload(topic: String, jsonRpcResponse: JsonRpcResponseVO, onFailure: (Throwable) -> Unit) {
-        checkTopic(TopicVO(topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic") { message ->
+        checkSequence(TopicVO(topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic") { message ->
             throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
 
@@ -390,9 +388,9 @@ internal class EngineInteractor(
 
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         val pingParams = when {
-            sequenceStorageRepository.hasSessionTopic(TopicVO(topic)) ->
+            sequenceStorageRepository.isSessionValid(TopicVO(topic)) ->
                 PostSettlementSessionVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams())
-            sequenceStorageRepository.hasPairingTopic(TopicVO(topic)) ->
+            sequenceStorageRepository.isPairingValid(TopicVO(topic)) ->
                 PostSettlementPairingVO.PairingPing(id = generateId(), params = PairingParamsVO.PingParams())
             else -> throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -410,7 +408,7 @@ internal class EngineInteractor(
     }
 
     internal fun notify(topic: String, notification: EngineDO.Notification, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
-        checkTopic(TopicVO(topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic") { message ->
+        checkSequence(TopicVO(topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic") { message ->
             throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
 
@@ -443,7 +441,7 @@ internal class EngineInteractor(
         onSuccess: (Pair<String, String>) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
-        checkTopic(TopicVO(topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic") { message ->
+        checkSequence(TopicVO(topic), "$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic") { message ->
             throw WalletConnectException.CannotFindSequenceForTopic(message)
         }
 
@@ -507,9 +505,9 @@ internal class EngineInteractor(
     }
 
     private fun onPairingPayload(payload: PairingParamsVO.PayloadParams, topic: TopicVO, requestId: Long) {
-        checkTopic(topic, "${Error.NO_MATCHING_PAIRING_TOPIC.message}$topic") { errorMessage ->
+        checkSequence(topic, "${Error.NO_MATCHING_PAIRING_TOPIC.message}$topic") { errorMessage ->
             respondWithError(requestId, topic, errorMessage, Error.NO_MATCHING_PAIRING_TOPIC.code)
-            return@checkTopic
+            return@checkSequence
         }
 
         if (payload.request.method != JsonRpcMethod.WC_SESSION_PROPOSE) {
@@ -539,9 +537,9 @@ internal class EngineInteractor(
     }
 
     private fun onPairingApprove(params: PairingParamsVO.ApproveParams, topic: TopicVO, requestId: Long) {
-        checkTopic(topic, "${Error.NO_MATCHING_PAIRING_TOPIC.message}$topic") { errorMessage ->
+        checkSequence(topic, "${Error.NO_MATCHING_PAIRING_TOPIC.message}$topic") { errorMessage ->
             respondWithError(requestId, topic, errorMessage, Error.NO_MATCHING_PAIRING_TOPIC.code)
-            return@checkTopic
+            return@checkSequence
         }
 
         val pendingPairing: PairingVO = sequenceStorageRepository.getPairingByTopic(topic)
@@ -571,9 +569,9 @@ internal class EngineInteractor(
     }
 
     private fun onPairingDelete(params: PairingParamsVO.DeleteParams, topic: TopicVO, requestId: Long) {
-        checkTopic(topic, "${Error.NO_MATCHING_PAIRING_TOPIC.message}$topic") { errorMessage ->
+        checkSequence(topic, "${Error.NO_MATCHING_PAIRING_TOPIC.message}$topic") { errorMessage ->
             respondWithError(requestId, topic, errorMessage, Error.NO_MATCHING_PAIRING_TOPIC.code)
-            return@checkTopic
+            return@checkSequence
         }
 
         crypto.removeKeys(topic.value)
@@ -583,9 +581,9 @@ internal class EngineInteractor(
     }
 
     private fun onPairingUpdate(params: PairingParamsVO.UpdateParams, topic: TopicVO, requestId: Long) {
-        checkTopic(topic, "${Error.NO_MATCHING_PAIRING_TOPIC.message}$topic") { errorMessage ->
+        checkSequence(topic, "${Error.NO_MATCHING_PAIRING_TOPIC.message}$topic") { errorMessage ->
             respondWithError(requestId, topic, errorMessage, Error.NO_MATCHING_PAIRING_TOPIC.code)
-            return@checkTopic
+            return@checkSequence
         }
 
         if (params.state.metadata == null) {
@@ -612,9 +610,9 @@ internal class EngineInteractor(
     }
 
     private fun onSessionApprove(params: SessionParamsVO.ApprovalParams, topic: TopicVO, requestId: Long) {
-        checkTopic(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
+        checkSequence(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
             respondWithError(requestId, topic, errorMessage, Error.NO_MATCHING_SESSION_TOPIC.code)
-            return@checkTopic
+            return@checkSequence
         }
 
         if (controllerType != ControllerType.NON_CONTROLLER) {
@@ -645,9 +643,9 @@ internal class EngineInteractor(
     }
 
     private fun onSessionReject(params: SessionParamsVO.RejectParams, topic: TopicVO, requestId: Long) {
-        checkTopic(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
+        checkSequence(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
             respondWithError(requestId, topic, errorMessage, Error.NO_MATCHING_SESSION_TOPIC.code)
-            return@checkTopic
+            return@checkSequence
         }
 
         sequenceStorageRepository.deleteSession(topic)
@@ -656,9 +654,9 @@ internal class EngineInteractor(
     }
 
     private fun onSessionDelete(params: SessionParamsVO.DeleteParams, topic: TopicVO, requestId: Long) {
-        checkTopic(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
+        checkSequence(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
             respondWithError(requestId, topic, errorMessage, Error.NO_MATCHING_SESSION_TOPIC.code)
-            return@checkTopic
+            return@checkSequence
         }
 
         crypto.removeKeys(topic.value)
@@ -668,9 +666,9 @@ internal class EngineInteractor(
     }
 
     private fun onSessionPayload(params: SessionParamsVO.SessionPayloadParams, topic: TopicVO, requestId: Long) {
-        checkTopic(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
+        checkSequence(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
             respondWithError(requestId, topic, errorMessage, Error.NO_MATCHING_SESSION_TOPIC.code)
-            return@checkTopic
+            return@checkSequence
         }
 
         val chains = sequenceStorageRepository.getSessionByTopic(topic).chains
@@ -694,9 +692,9 @@ internal class EngineInteractor(
     }
 
     private fun onSessionUpdate(params: SessionParamsVO.UpdateParams, topic: TopicVO, requestId: Long) {
-        checkTopic(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
+        checkSequence(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
             respondWithError(requestId, topic, errorMessage, Error.NO_MATCHING_SESSION_TOPIC.code)
-            return@checkTopic
+            return@checkSequence
         }
 
         val session: SessionVO = sequenceStorageRepository.getSessionByTopic(topic)
@@ -719,9 +717,9 @@ internal class EngineInteractor(
     }
 
     private fun onSessionUpgrade(params: SessionParamsVO.UpgradeParams, topic: TopicVO, requestId: Long) {
-        checkTopic(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
+        checkSequence(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
             respondWithError(requestId, topic, errorMessage, Error.NO_MATCHING_SESSION_TOPIC.code)
-            return@checkTopic
+            return@checkSequence
         }
 
         val session: SessionVO = sequenceStorageRepository.getSessionByTopic(topic)
@@ -747,9 +745,9 @@ internal class EngineInteractor(
     }
 
     private fun onSessionNotification(params: SessionParamsVO.NotificationParams, topic: TopicVO, requestId: Long) {
-        checkTopic(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
+        checkSequence(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
             respondWithError(requestId, topic, errorMessage, Error.NO_MATCHING_SESSION_TOPIC.code)
-            return@checkTopic
+            return@checkSequence
         }
         val session = sequenceStorageRepository.getSessionByTopic(topic)
         if (session.status != SequenceStatus.ACKNOWLEDGED) {
@@ -768,9 +766,9 @@ internal class EngineInteractor(
     }
 
     private fun onPing(topic: TopicVO, requestId: Long) {
-        checkTopic(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
+        checkSequence(topic, "${Error.NO_MATCHING_SESSION_TOPIC.message}$topic") { errorMessage ->
             respondWithError(requestId, topic, errorMessage, Error.NO_MATCHING_SESSION_TOPIC.code)
-            return@checkTopic
+            return@checkSequence
         }
 
         val jsonRpcResult = EngineDO.JsonRpcResponse.JsonRpcResult(id = requestId, result = "true")
@@ -828,15 +826,20 @@ internal class EngineInteractor(
         }
     }
 
-    private fun <T> checkTopic(topic: TopicVO, errorMessage: String, onInvalidTopic: (String) -> T) {
-        val isValid = sequenceStorageRepository.hasSessionTopic(topic) || sequenceStorageRepository.hasPairingTopic(topic)
+    private fun <T> checkSequence(topic: TopicVO, errorMessage: String, onInvalidSequence: (String) -> T) {
+        val isValid = sequenceStorageRepository.isSessionValid(topic) || sequenceStorageRepository.isPairingValid(topic)
         if (!isValid) {
             Logger.error(errorMessage)
-            onInvalidTopic(errorMessage)
+            onInvalidSequence(errorMessage)
         }
     }
 
-    private fun ExpiryVO.isSequenceValid(): Boolean = seconds > (System.currentTimeMillis() / 1000)
+    private fun setupSequenceExpiration() {
+        sequenceStorageRepository.onSequenceExpired = { topic ->
+            relayer.unsubscribe(topic)
+            crypto.removeKeys(topic.value)
+        }
+    }
 
     private fun generateTopic(): TopicVO = TopicVO(randomBytes(32).bytesToHex())
 }

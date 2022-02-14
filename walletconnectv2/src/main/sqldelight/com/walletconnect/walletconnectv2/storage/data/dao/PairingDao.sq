@@ -59,3 +59,8 @@ hasTopic:
 SELECT topic
 FROM PairingDao
 WHERE ? = topic;
+
+getExpiry:
+SELECT expiry
+FROM PairingDao
+WHERE ? = topic;
