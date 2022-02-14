@@ -211,4 +211,4 @@ internal sealed class RelayDTO {
     }
 }
 
-private const val ONE_DAY_IN_SECONDS = 86400
+private const val ONE_DAY_IN_SECONDS: Long = 86400
