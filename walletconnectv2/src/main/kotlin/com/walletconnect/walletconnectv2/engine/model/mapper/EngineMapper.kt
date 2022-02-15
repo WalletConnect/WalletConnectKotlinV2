@@ -62,13 +62,18 @@ internal fun AppMetaDataVO.toEngineDOMetaData(): EngineDO.AppMetaData =
 
 @JvmSynthetic
 internal fun EngineDO.SessionPermissions.toSessionsPermissions(): SessionPermissionsVO =
-    SessionPermissionsVO(SessionProposedPermissionsVO.Blockchain(blockchain.chains), SessionProposedPermissionsVO.JsonRpc(jsonRpc.methods))
+    SessionPermissionsVO(
+        SessionProposedPermissionsVO.Blockchain(blockchain.chains),
+        SessionProposedPermissionsVO.JsonRpc(jsonRpc.methods),
+        if (notification?.types != null) SessionProposedPermissionsVO.Notifications(notification.types) else null
+    )
 
 @JvmSynthetic
 internal fun EngineDO.SessionPermissions.toSessionsProposedPermissions(): SessionProposedPermissionsVO =
     SessionProposedPermissionsVO(
         SessionProposedPermissionsVO.Blockchain(blockchain.chains),
-        SessionProposedPermissionsVO.JsonRpc(jsonRpc.methods)
+        SessionProposedPermissionsVO.JsonRpc(jsonRpc.methods),
+        if (notification?.types != null) SessionProposedPermissionsVO.Notifications(notification.types) else null
     )
 
 @JvmSynthetic
@@ -84,7 +89,7 @@ internal fun PairingParamsVO.PayloadParams.toEngineDOSessionProposal(): EngineDO
         icons = this.request.params.proposer.metadata.icons.map { URI(it) },
         chains = this.request.params.permissions.blockchain.chains,
         methods = this.request.params.permissions.jsonRpc.methods,
-        types = this.request.params.permissions.notifications.types,
+        types = this.request.params.permissions.notifications?.types,
         topic = this.request.params.topic.value,
         publicKey = this.request.params.proposer.publicKey,
         isController = this.request.params.proposer.controller,
@@ -94,11 +99,11 @@ internal fun PairingParamsVO.PayloadParams.toEngineDOSessionProposal(): EngineDO
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.SessionPayloadParams.toEngineDOSessionRequest(topic: TopicVO, requestId: Long): EngineDO.SessionRequest =
+internal fun SessionParamsVO.SessionPayloadParams.toEngineDOSessionRequest(request: WCRequestVO): EngineDO.SessionRequest =
     EngineDO.SessionRequest(
-        topic.value,
+        request.topic.value,
         chainId,
-        EngineDO.SessionRequest.JSONRPCRequest(requestId, this.request.method, this.request.params.toString())
+        EngineDO.SessionRequest.JSONRPCRequest(request.id, this.request.method, this.request.params.toString())
     )
 
 @JvmSynthetic
@@ -183,7 +188,7 @@ internal fun SessionParamsVO.ProposalParams.toProposedSessionVO(
         selfPublicKey,
         chains = permissions.blockchain.chains,
         methods = permissions.jsonRpc.methods,
-        types = permissions.notifications.types,
+        types = permissions.notifications?.types,
         ttl = TtlVO(pendingSequenceExpirySeconds()),
         controllerType = controllerType,
         relayProtocol = relay.protocol
@@ -326,7 +331,7 @@ internal fun SessionParamsVO.ProposalParams.toEngineDOSettledSessionVO(selfPubli
         selfPublicKey,
         chains = permissions.blockchain.chains,
         methods = permissions.jsonRpc.methods,
-        types = permissions.notifications.types,
+        types = permissions.notifications?.types,
         ttl = TtlVO(pendingSequenceExpirySeconds()),
         controllerType = controllerType,
         relayProtocol = relay.protocol
@@ -358,4 +363,12 @@ internal fun EngineDO.SessionProposal.toSessionPermissions(): EngineDO.SessionPe
         blockchain = EngineDO.Blockchain(chains),
         jsonRpc = EngineDO.JsonRpc(methods),
         notification = if (types != null) EngineDO.Notifications(types) else null
+    )
+
+@JvmSynthetic
+internal fun SessionPermissionsVO.toEngineDOPermissions(): EngineDO.SessionPermissions =
+    EngineDO.SessionPermissions(
+        blockchain = EngineDO.Blockchain(blockchain.chains),
+        jsonRpc = EngineDO.JsonRpc(jsonRpc.methods),
+        notification = if (notifications?.types != null) EngineDO.Notifications(notifications.types) else null
     )

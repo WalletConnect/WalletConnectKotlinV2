@@ -1,6 +1,7 @@
 package com.walletconnect.sample.wallet
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -10,12 +11,12 @@ import androidx.navigation.fragment.findNavController
 import com.walletconnect.sample.R
 import com.walletconnect.sample.databinding.WalletFragmentBinding
 import com.walletconnect.sample.wallet.ui.*
-import kotlinx.coroutines.launch
 import com.walletconnect.sample.wallet.ui.dialog.SessionDetailsDialog
 import com.walletconnect.sample.wallet.ui.dialog.SessionProposalDialog
 import com.walletconnect.sample.wallet.ui.dialog.SessionRequestDialog
 import com.walletconnect.sample.wallet.ui.dialog.UrlDialog
 import com.walletconnect.walletconnectv2.client.WalletConnect
+import kotlinx.coroutines.launch
 
 class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener {
     private val viewModel: WalletViewModel by activityViewModels()
@@ -31,37 +32,45 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
         setupToolbar()
         binding.sessions.adapter = sessionAdapter
 
-        viewModel.eventFlow.observe(viewLifecycleOwner) { event ->
-            when (event) {
-                is InitSessionsList -> sessionAdapter.updateList(event.sessions)
-                is ShowSessionProposalDialog -> {
-                    proposalDialog = SessionProposalDialog(
-                        requireContext(),
-                        viewModel::approve,
-                        viewModel::reject,
-                        event.proposal
-                    )
-                    proposalDialog?.show()
-                }
-                is ShowSessionRequestDialog -> {
-                    requestDialog = SessionRequestDialog(
-                        requireContext(),
-                        { sessionRequest -> viewModel.respondRequest(sessionRequest) },
-                        { sessionRequest -> viewModel.rejectRequest(sessionRequest) },
-                        event.sessionRequest,
-                        event.session
-                    )
-                    requestDialog?.show()
-                }
-                is UpdateActiveSessions -> {
-                    proposalDialog?.dismiss()
-                    sessionAdapter.updateList(event.sessions)
-                    event.message?.let {
-                        Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            viewModel.eventFlow.observe(viewLifecycleOwner) { event ->
+                when (event) {
+                    is InitSessionsList -> sessionAdapter.updateList(event.sessions)
+                    is ShowSessionProposalDialog -> {
+                        proposalDialog = SessionProposalDialog(
+                            requireContext(),
+                            viewModel::approve,
+                            viewModel::reject,
+                            event.proposal
+                        )
+                        proposalDialog?.show()
+                    }
+                    is ShowSessionRequestDialog -> {
+                        requestDialog = SessionRequestDialog(
+                            requireContext(),
+                            { sessionRequest -> viewModel.respondRequest(sessionRequest) },
+                            { sessionRequest -> viewModel.rejectRequest(sessionRequest) },
+                            event.sessionRequest,
+                            event.session
+                        )
+                        requestDialog?.show()
+                    }
+                    is UpdateActiveSessions -> {
+                        proposalDialog?.dismiss()
+                        sessionAdapter.updateList(event.sessions)
+                        event.message?.let {
+                            Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    is RejectSession -> proposalDialog?.dismiss()
+                    is PingSuccess -> {
+                        Log.d("kobe", "Successful session ping")
+                        Toast.makeText(requireContext(), "Successful session ping", Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {
+                        Log.d("kobe", "Else")
                     }
                 }
-                is RejectSession -> proposalDialog?.dismiss()
-                is PingSuccess -> Toast.makeText(requireContext(), "Successful session ping", Toast.LENGTH_SHORT).show()
             }
         }
     }

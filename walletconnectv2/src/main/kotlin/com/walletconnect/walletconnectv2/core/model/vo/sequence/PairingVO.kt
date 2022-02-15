@@ -20,4 +20,6 @@ internal data class PairingVO(
     val permissions: List<String>? = null,
     val controllerType: ControllerType,
     val appMetaDataVO: AppMetaDataVO? = null
-) : Sequence
+) : Sequence {
+    val isPeerController: Boolean = peerParticipant?.keyAsHex == controllerKey?.keyAsHex
+}

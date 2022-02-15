@@ -24,11 +24,16 @@ internal object Validator {
         }
     }
 
-    internal fun validateAccounts(accounts: List<String>, chains: List<String>, onInvalidAccounts: (String) -> Unit) {
+    internal fun validateIfChainIdsIncludedInPermission(accounts: List<String>, chains: List<String>, onInvalidAccounts: (String) -> Unit) {
+        if (!areChainIdsIncludedInPermissions(accounts, chains)) {
+            onInvalidAccounts(UNAUTHORIZED_CHAIN_ID_MESSAGE)
+        }
+    }
+
+    internal fun validateCAIP10(accounts: List<String>, onInvalidAccounts: (String) -> Unit) {
         when {
             !areAccountsNotEmpty(accounts) -> onInvalidAccounts(EMPTY_ACCOUNT_LIST_MESSAGE)
             accounts.any { accountId -> !isAccountIdValid(accountId) } -> onInvalidAccounts(WRONG_ACCOUNT_ID_FORMAT_MESSAGE)
-            !areChainIdsIncludedInPermissions(accounts, chains) -> onInvalidAccounts(UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
     }
 

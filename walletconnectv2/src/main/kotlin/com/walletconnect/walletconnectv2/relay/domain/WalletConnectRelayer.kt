@@ -2,6 +2,7 @@ package com.walletconnect.walletconnectv2.relay.domain
 
 import com.tinder.scarlet.WebSocket
 import com.walletconnect.walletconnectv2.core.exceptions.client.WalletConnectException
+import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
 import com.walletconnect.walletconnectv2.core.model.type.SettlementSequence
 import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.core.model.vo.*
@@ -68,6 +69,7 @@ internal class WalletConnectRelayer(
         val serializedPayload = serializer.serialize(payload, topic)
 
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, serializedPayload)) {
+
             scope.launch {
                 supervisorScope {
                     peerResponse
@@ -145,6 +147,17 @@ internal class WalletConnectRelayer(
         return jsonRpcHistory.getRequests(topic, listOfMethodsForRequests) to jsonRpcHistory.getResponses(topic, listOfMethodsForRequests)
     }
 
+    internal fun respondWithError(request: WCRequestVO, error: PeerError) {
+        Logger.error("Responding with error: ${error.message}: ${error.code}")
+        val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = request.id, error = JsonRpcResponseVO.Error(error.code, error.message))
+        publishJsonRpcResponse(request.topic, jsonRpcError, onFailure = { failure -> Logger.error("Cannot respond with error: $failure") })
+    }
+
+    internal fun respondWithSuccess(request: WCRequestVO) {
+        val jsonRpcResult = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = "true")
+        publishJsonRpcResponse(request.topic, jsonRpcResult, onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
+    }
+
     private fun manageSubscriptions() {
         scope.launch(exceptionHandler) {
             networkRepository.subscriptionRequest
@@ -162,10 +175,9 @@ internal class WalletConnectRelayer(
 
     private suspend fun handleSessionRequest(decryptedMessage: String, topic: TopicVO) {
         val clientJsonRpc = serializer.tryDeserialize<RelayDO.ClientJsonRpc>(decryptedMessage)
-
         if (clientJsonRpc != null && jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
-                _clientSyncJsonRpc.emit(RequestSubscriptionPayloadVO(clientJsonRpc.id, topic, clientJsonRpc.method, params))
+                _clientSyncJsonRpc.emit(RequestSubscriptionPayloadVO(params, WCRequestVO(topic, clientJsonRpc.id, clientJsonRpc.method)))
             } ?: Logger.error("Deserialization error: $clientJsonRpc")
         }
     }
