@@ -121,11 +121,11 @@ class ValidatorTest {
 
 
     @Test
-    fun `check correct error message when accounts are empty`() {
+    fun `check correct error message when accounts are empty and chainIds exists`() {
         val accounts = listOf("")
         val chains = listOf("as", "bc")
-        Validator.validateAccounts(accounts, chains) { errorMessage ->
-            assertEquals(errorMessage, EMPTY_ACCOUNT_LIST_MESSAGE)
+        Validator.validateIfChainIdsIncludedInPermission(accounts, chains) { errorMessage ->
+            assertEquals(errorMessage, UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
     }
 
@@ -133,8 +133,17 @@ class ValidatorTest {
     fun `check correct error message when accounts are invalid`() {
         val accounts = listOf("as11", "1234")
         val chains = listOf("")
-        Validator.validateAccounts(accounts, chains) { errorMessage ->
-            assertEquals(errorMessage, WRONG_ACCOUNT_ID_FORMAT_MESSAGE)
+        Validator.validateIfChainIdsIncludedInPermission(accounts, chains) { errorMessage ->
+            assertEquals(errorMessage, UNAUTHORIZED_CHAIN_ID_MESSAGE)
+        }
+    }
+
+    @Test
+    fun `check correct error message when accounts are empty`() {
+        val accounts = listOf("", "")
+
+        Validator.validateCAIP10(accounts) { errorMessage ->
+            assertEquals(errorMessage, EMPTY_ACCOUNT_LIST_MESSAGE)
         }
     }
 
@@ -145,7 +154,7 @@ class ValidatorTest {
             "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
         )
         val chains = listOf("")
-        Validator.validateAccounts(accounts, chains) { errorMessage ->
+        Validator.validateIfChainIdsIncludedInPermission(accounts, chains) { errorMessage ->
             assertEquals(errorMessage, UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
     }
