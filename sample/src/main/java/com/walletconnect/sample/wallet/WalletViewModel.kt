@@ -1,6 +1,5 @@
 package com.walletconnect.sample.wallet
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
@@ -39,6 +38,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         val approve = WalletConnect.Params.Approve(proposal, accounts)
 
         WalletConnectClient.approve(approve, object : WalletConnect.Listeners.SessionApprove {
+
             override fun onSuccess(settledSession: WalletConnect.Model.SettledSession) {
                 viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())) }
             }
@@ -160,18 +160,12 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
 
         WalletConnectClient.ping(ping, object : WalletConnect.Listeners.SessionPing {
             override fun onSuccess(topic: String) {
-
-                Log.d("kobe", "Wallet Ping Success")
-
                 viewModelScope.launch {
                     _eventFlow.emit(PingSuccess)
                 }
             }
 
             override fun onError(error: Throwable) {
-
-                Log.d("kobe", "Wallet Ping Error: $error")
-
                 //Error
             }
         })

@@ -16,7 +16,6 @@ import kotlinx.coroutines.supervisorScope
 
 internal class WakuNetworkRepository internal constructor(private val relay: RelayService) : NetworkRepository {
     override val eventsFlow: SharedFlow<WebSocket.Event> = relay.eventsFlow().shareIn(scope, SharingStarted.Lazily, REPLAY)
-    internal val observePublishAcknowledgement: Flow<RelayDTO.Publish.Acknowledgement> = relay.observePublishAcknowledgement()
 
     override val subscriptionRequest: Flow<RelayDTO.Subscription.Request> = relay.observeSubscriptionRequest()
         .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }

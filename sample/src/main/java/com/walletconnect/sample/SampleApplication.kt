@@ -1,6 +1,7 @@
 package com.walletconnect.sample
 
 import android.app.Application
+import android.util.Log
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 
@@ -37,7 +38,9 @@ class SampleApplication : Application() {
             )
         )
 
-        WalletConnectClient.initialize(initWallet)
+        WalletConnectClient.initialize(initWallet) {
+            Log.d("kobe", "Connection error: $it")
+        }
     }
 
     private companion object {

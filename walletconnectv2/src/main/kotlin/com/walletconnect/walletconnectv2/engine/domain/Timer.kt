@@ -17,7 +17,9 @@ internal fun TimerTask.onTick(timeout: Int, onFailure: (Throwable) -> Unit) {
     if (timerCounter == timeout) {
         timerCounter = 0
         cancel()
+
         Logger.error("Kobe; throwing the timeout error")
+
         onFailure(WalletConnectException.TimeoutException("Timeout exception, no response within: $timeout seconds"))
         return
     }
