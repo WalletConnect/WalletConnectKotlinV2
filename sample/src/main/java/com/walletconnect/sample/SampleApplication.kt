@@ -1,7 +1,6 @@
 package com.walletconnect.sample
 
 import android.app.Application
-import android.util.Log
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 
@@ -10,25 +9,25 @@ class SampleApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-//        // TODO: Move to Dapp example once separate workflow is added
-//        val initDapp = WalletConnect.Params.Init(
-//            application = this,
-//            useTls = true,
-//            hostName = WALLET_CONNECT_URL,
-//            projectId = "",     //TODO: register at https://walletconnect.com/register to get a project ID
-//            isController = false,
-//            metadata = WalletConnect.Model.AppMetaData(
-//                name = "Kotlin Dapp",
-//                description = "Dapp description",
-//                url = "example.dapp",
-//                icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media")
-//            )
-//        )
+        // TODO: Move to Dapp example once separate workflow is added
+        val initDapp = WalletConnect.Params.Init(
+            application = this,
+            useTls = true,
+            hostName = WALLET_CONNECT_URL,
+            projectId = "",     //TODO: register at https://walletconnect.com/register to get a project ID
+            isController = false,
+            metadata = WalletConnect.Model.AppMetaData(
+                name = "Kotlin Dapp",
+                description = "Dapp description",
+                url = "example.dapp",
+                icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media")
+            )
+        )
 
         // TODO: Move to Wallet example once separate workflow is added
         val initWallet = WalletConnect.Params.Init(
             application = this,
-            relayServerUrl = "wss://$WALLET_CONNECT_URL?projectId=2ee94aca5d98e6c05c38bce02bee952a",   //TODO: register at https://walletconnect.com/register to get a project ID
+            relayServerUrl = "wss://$WALLET_CONNECT_URL?projectId=",   //TODO: register at https://walletconnect.com/register to get a project ID
             isController = true,
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Wallet",
@@ -38,9 +37,7 @@ class SampleApplication : Application() {
             )
         )
 
-        WalletConnectClient.initialize(initWallet) {
-            Log.d("kobe", "Connection error: $it")
-        }
+        WalletConnectClient.initialize(initWallet)
     }
 
     private companion object {
