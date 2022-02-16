@@ -1,7 +1,6 @@
 package com.walletconnect.sample.wallet
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -63,13 +62,7 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
                         }
                     }
                     is RejectSession -> proposalDialog?.dismiss()
-                    is PingSuccess -> {
-                        Log.d("kobe", "Successful session ping")
-                        Toast.makeText(requireContext(), "Successful session ping", Toast.LENGTH_SHORT).show()
-                    }
-                    else -> {
-                        Log.d("kobe", "Else")
-                    }
+                    is PingSuccess -> Toast.makeText(requireContext(), "Successful session ping", Toast.LENGTH_SHORT).show()
                 }
             }
         }
