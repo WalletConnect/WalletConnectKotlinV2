@@ -100,7 +100,7 @@ internal class EngineInteractor(
             val params = PairingParamsVO.PayloadParams(ProposalRequestVO(JsonRpcMethod.WC_SESSION_PROPOSE, params = proposalParams))
             val sessionProposal = PostSettlementPairingVO.PairingPayload(id = generateId(), params = params)
 
-            relayer.publishJsonRpcRequests(settledPairing.topic, sessionProposal) { result ->
+            relayer.publishJsonRpcRequests(settledPairing.topic, sessionProposal, prompt) { result ->
                 result.fold(
                     onSuccess = { Logger.log("Session proposal response received") },
                     onFailure = { error ->
@@ -264,9 +264,9 @@ internal class EngineInteractor(
 
         val params = SessionParamsVO.RejectParams(reason = ReasonVO(message = reason))
         val sessionReject = PreSettlementSessionVO.Reject(id = generateId(), params = params)
-
         sequenceStorageRepository.deleteSession(TopicVO(topic))
         onSuccess(Pair(topic, reason))
+
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionReject) { result ->
             result.fold(
                 onSuccess = {
@@ -362,7 +362,8 @@ internal class EngineInteractor(
         //TODO: Add timeout validation for peer response - 5s
         val params = SessionParamsVO.SessionPayloadParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
         val sessionPayload = PostSettlementSessionVO.SessionPayload(id = generateId(), params = params)
-        relayer.publishJsonRpcRequests(TopicVO(request.topic), sessionPayload) { result ->
+
+        relayer.publishJsonRpcRequests(TopicVO(request.topic), sessionPayload, prompt) { result ->
             result.fold(
                 onSuccess = { jsonRpcResult -> onSuccess(jsonRpcResult.toEngineJsonRpcResult()) },
                 onFailure = { error ->
@@ -842,4 +843,8 @@ internal class EngineInteractor(
     }
 
     private fun generateTopic(): TopicVO = TopicVO(randomBytes(32).bytesToHex())
+
+    private companion object {
+        const val prompt: Boolean = true
+    }
 }

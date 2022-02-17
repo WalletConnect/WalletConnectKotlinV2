@@ -14,7 +14,7 @@ internal interface NetworkRepository {
 
     val subscriptionRequest: Flow<RelayDTO.Subscription.Request>
 
-    fun publish(topic: TopicVO, message: String, onResult: (Result<RelayDTO.Publish.Acknowledgement>) -> Unit = {})
+    fun publish(topic: TopicVO, message: String, prompt: Boolean = false, onResult: (Result<RelayDTO.Publish.Acknowledgement>) -> Unit = {})
 
     fun subscribe(topic: TopicVO, onResult: (Result<RelayDTO.Subscribe.Acknowledgement>) -> Unit)
 

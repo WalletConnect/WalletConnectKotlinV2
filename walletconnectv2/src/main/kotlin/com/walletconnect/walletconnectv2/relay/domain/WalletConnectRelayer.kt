@@ -63,6 +63,7 @@ internal class WalletConnectRelayer(
     internal fun publishJsonRpcRequests(
         topic: TopicVO,
         payload: SettlementSequence<*>,
+        prompt: Boolean = false,
         onResult: (Result<JsonRpcResponseVO.JsonRpcResult>) -> Unit
     ) {
         val serializedPayload = serializer.serialize(payload, topic)
@@ -82,7 +83,7 @@ internal class WalletConnectRelayer(
                 }
             }
 
-            networkRepository.publish(topic, serializedPayload) { result ->
+            networkRepository.publish(topic, serializedPayload, prompt) { result ->
                 result.fold(
                     onSuccess = { jsonRpcHistory.updateRequestStatus(payload.id, JsonRpcStatus.REQUEST_SUCCESS) },
                     onFailure = { error ->
