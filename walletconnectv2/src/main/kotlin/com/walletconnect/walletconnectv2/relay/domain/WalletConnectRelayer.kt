@@ -63,7 +63,13 @@ internal class WalletConnectRelayer(
         manageSubscriptions()
     }
 
-    internal fun publishJsonRpcRequests(topic: TopicVO, payload: SettlementSequence<*>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    internal fun publishJsonRpcRequests(
+        topic: TopicVO,
+        payload: SettlementSequence<*>,
+        prompt: Boolean = false,
+        onSuccess: () -> Unit,
+        onFailure: (Throwable) -> Unit
+    ) {
         val serializedPayload = serializer.serialize(payload, topic)
 
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, serializedPayload)) {

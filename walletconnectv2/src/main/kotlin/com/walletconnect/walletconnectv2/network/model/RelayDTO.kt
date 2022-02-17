@@ -36,7 +36,9 @@ internal sealed class RelayDTO {
                 val message: String,
                 @Json(name = "ttl")
                 @field:TtlAdapter.Qualifier
-                val ttl: TtlVO = TtlVO(86400)
+                val ttl: TtlVO = TtlVO(ONE_DAY_IN_SECONDS),
+                @Json(name = "prompt")
+                val prompt: Boolean?
             )
         }
 
@@ -208,3 +210,5 @@ internal sealed class RelayDTO {
         val errorMessage: String = "Error code: $code; Error message: $message"
     }
 }
+
+private const val ONE_DAY_IN_SECONDS: Long = 86400

@@ -102,7 +102,7 @@ internal class EngineInteractor(
             val params = PairingParamsVO.PayloadParams(ProposalRequestVO(JsonRpcMethod.WC_SESSION_PROPOSE, params = proposalParams))
             val sessionProposal = PostSettlementPairingVO.PairingPayload(id = generateId(), params = params)
 
-            relayer.publishJsonRpcRequests(settledPairing.topic, sessionProposal,
+            relayer.publishJsonRpcRequests(settledPairing.topic, sessionProposal, prompt,
                 onSuccess = {
                     scope.launch {
                         collectResponse(sessionProposal.id) { response ->
@@ -455,7 +455,7 @@ internal class EngineInteractor(
         val params = SessionParamsVO.SessionPayloadParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
         val sessionPayload = PostSettlementSessionVO.SessionPayload(id = generateId(), params = params)
 
-        relayer.publishJsonRpcRequests(TopicVO(request.topic), sessionPayload,
+        relayer.publishJsonRpcRequests(TopicVO(request.topic), sessionPayload, prompt,
             onSuccess = {
                 scope.launch {
                     try {
@@ -927,5 +927,6 @@ internal class EngineInteractor(
     private companion object {
         const val THIRTY_SECONDS_TIMEOUT: Long = 30000L
         const val FIVE_MINUTES_TIMEOUT: Long = 300000L
+        const val prompt: Boolean = true
     }
 }
