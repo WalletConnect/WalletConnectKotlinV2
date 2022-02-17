@@ -1,6 +1,6 @@
 package com.walletconnect.walletconnectv2.engine.model.mapper
 
-import com.walletconnect.walletconnectv2.core.model.type.ControllerType
+import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
 import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.core.model.vo.*
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.PairingParamsVO

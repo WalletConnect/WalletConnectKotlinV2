@@ -147,8 +147,6 @@ internal class WalletConnectRelayer(
                     Pair(decodedMessage, topic)
                 }
                 .collect { (decryptedMessage, topic) ->
-
-                    Logger.error("Kobe; decoded peer message: $decryptedMessage")
                     handleSessionRequest(decryptedMessage, topic)
                     handleJsonRpcResponse(decryptedMessage)
                 }

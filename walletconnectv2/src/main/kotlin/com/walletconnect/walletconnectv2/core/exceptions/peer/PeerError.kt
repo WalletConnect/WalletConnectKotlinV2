@@ -1,6 +1,6 @@
 package com.walletconnect.walletconnectv2.core.exceptions.peer
 
-import com.walletconnect.walletconnectv2.core.model.type.ControllerType
+import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
 
 data class PeerError(val error: Error) {
 
@@ -42,8 +42,4 @@ sealed class Error {
     data class UnauthorizedUpdateRequest(val sequence: String) : Error()
     data class UnauthorizedUpgradeRequest(val sequence: String) : Error()
     data class UnauthorizedMatchingController(val isController: Boolean) : Error()
-}
-
-enum class Sequence {
-    SESSION, PAIRING
 }

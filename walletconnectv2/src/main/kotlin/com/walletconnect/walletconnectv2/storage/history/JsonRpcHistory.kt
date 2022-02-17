@@ -3,7 +3,7 @@
 package com.walletconnect.walletconnectv2.storage.history
 
 import android.content.SharedPreferences
-import com.walletconnect.walletconnectv2.core.model.type.ControllerType
+import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
 import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcHistoryVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.storage.data.dao.JsonRpcHistoryQueries

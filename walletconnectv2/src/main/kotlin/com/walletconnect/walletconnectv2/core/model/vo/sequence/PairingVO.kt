@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.core.model.vo.sequence
 
-import com.walletconnect.walletconnectv2.core.model.type.ControllerType
 import com.walletconnect.walletconnectv2.core.model.type.Sequence
+import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO

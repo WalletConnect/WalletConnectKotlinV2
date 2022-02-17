@@ -3,9 +3,9 @@ package com.walletconnect.walletconnectv2.engine.domain
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
 import com.walletconnect.walletconnectv2.core.exceptions.peer.Error
 import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
-import com.walletconnect.walletconnectv2.core.exceptions.peer.Sequence
-import com.walletconnect.walletconnectv2.core.model.type.ControllerType
 import com.walletconnect.walletconnectv2.core.model.type.SequenceLifecycle
+import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
+import com.walletconnect.walletconnectv2.core.model.type.enums.Sequences
 import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.core.model.vo.*
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.PairingParamsVO
@@ -196,24 +196,27 @@ internal class EngineInteractor(
             }.launchIn(scope)
     }
 
-    private fun onPairingSuccess(proposal: PairingParamsVO.Proposal, sequence: PairingVO, onSuccess: (String) -> Unit) {
-        sequenceStorageRepository.updatePreSettledPairingToAcknowledged(sequence.copy(status = SequenceStatus.ACKNOWLEDGED))
+    private fun onPairingSuccess(proposal: PairingParamsVO.Proposal, pairing: PairingVO, onSuccess: (String) -> Unit) {
+        Logger.log("Pairing approve response received")
+        sequenceStorageRepository.updatePreSettledPairingToAcknowledged(pairing.copy(status = SequenceStatus.ACKNOWLEDGED))
         relayer.unsubscribe(proposal.topic)
-        onSuccess(sequence.topic.value)
-        pairingUpdate(sequence)
+        onSuccess(pairing.topic.value)
+        pairingUpdate(pairing)
     }
 
     private fun pairingUpdate(settledSequence: PairingVO) {
         val params = PairingParamsVO.UpdateParams(state = PairingStateVO(metaData.toMetaDataVO()))
         val pairingUpdate: PostSettlementPairingVO.PairingUpdate = PostSettlementPairingVO.PairingUpdate(id = generateId(), params = params)
 
-        relayer.publishJsonRpcRequests(settledSequence.topic, pairingUpdate,
+        relayer.publishJsonRpcRequests(
+            settledSequence.topic, pairingUpdate,
             onSuccess = {
                 scope.launch {
                     supervisorScope {
                         collectResponse(pairingUpdate.id) { response ->
                             response.fold(
                                 onSuccess = {
+                                    Logger.log("Pairing update response received")
                                     sequenceStorageRepository.updateAcknowledgedPairingMetadata(metaData.toMetaDataVO(), settledSequence.topic)
                                 },
                                 onFailure = { error ->
@@ -280,6 +283,7 @@ internal class EngineInteractor(
                             cancel()
                             response.fold(
                                 onSuccess = {
+                                    Logger.log("Session approve response received")
                                     relayer.unsubscribe(TopicVO(proposal.topic))
                                     crypto.removeKeys(proposal.topic)
                                     sequenceStorageRepository.updatePreSettledSessionToAcknowledged(preSettledSession.copy(status = SequenceStatus.ACKNOWLEDGED))
@@ -361,7 +365,10 @@ internal class EngineInteractor(
                         collectResponse(sessionUpgrade.id) { response ->
                             cancel()
                             response.fold(
-                                onSuccess = { onSuccess(Pair(topic, permissions)) },
+                                onSuccess = {
+                                    Logger.log("Session upgrade response received")
+                                    onSuccess(Pair(topic, permissions))
+                                },
                                 onFailure = { error ->
                                     Logger.error("Peer failed to upgrade session: $error")
                                     onFailure(error)
@@ -412,7 +419,10 @@ internal class EngineInteractor(
                         collectResponse(sessionUpdate.id) { response ->
                             cancel()
                             response.fold(
-                                onSuccess = { onSuccess(Pair(topic, state.accounts)) },
+                                onSuccess = {
+                                    Logger.log("Session update response received")
+                                    onSuccess(Pair(topic, state.accounts))
+                                },
                                 onFailure = { error ->
                                     Logger.error("Peer failed to update session: $error")
                                     onFailure(error)
@@ -476,7 +486,7 @@ internal class EngineInteractor(
         }
 
         relayer.publishJsonRpcResponse(TopicVO(topic), jsonRpcResponse,
-            { Logger.error("Session payload sent successfully") },
+            { Logger.log("Session payload sent successfully") },
             { error ->
                 onFailure(error)
                 Logger.error("Sending session payload response error: $error")
@@ -620,7 +630,7 @@ internal class EngineInteractor(
 
     private fun onPairingPayload(request: WCRequestVO, payloadParams: PairingParamsVO.PayloadParams) {
         if (!isSequenceValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequence.PAIRING.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.PAIRING.name, request.topic.value)))
             return
         }
 
@@ -647,13 +657,13 @@ internal class EngineInteractor(
 
     private fun onPairingApprove(request: WCRequestVO, params: PairingParamsVO.ApproveParams) {
         if (!isSequenceValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequence.PAIRING.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.PAIRING.name, request.topic.value)))
             return
         }
 
         val pendingPairing: PairingVO = sequenceStorageRepository.getPairingByTopic(request.topic)
         if (pendingPairing.status != SequenceStatus.PROPOSED) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequence.PAIRING.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.PAIRING.name, request.topic.value)))
             return
         }
 
@@ -676,7 +686,7 @@ internal class EngineInteractor(
 
     private fun onPairingDelete(request: WCRequestVO, params: PairingParamsVO.DeleteParams) {
         if (!isSequenceValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequence.PAIRING.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.PAIRING.name, request.topic.value)))
             return
         }
 
@@ -688,18 +698,18 @@ internal class EngineInteractor(
 
     private fun onPairingUpdate(request: WCRequestVO, params: PairingParamsVO.UpdateParams) {
         if (!isSequenceValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequence.PAIRING.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.PAIRING.name, request.topic.value)))
             return
         }
 
         if (params.state.metadata == null) {
-            relayer.respondWithError(request, PeerError(Error.InvalidUpdateRequest(Sequence.PAIRING.name)))
+            relayer.respondWithError(request, PeerError(Error.InvalidUpdateRequest(Sequences.PAIRING.name)))
             return
         }
 
         val pairing: PairingVO = sequenceStorageRepository.getPairingByTopic(request.topic)
         if (!pairing.isPeerController) {
-            relayer.respondWithError(request, PeerError(Error.UnauthorizedUpdateRequest(Sequence.PAIRING.name)))
+            relayer.respondWithError(request, PeerError(Error.UnauthorizedUpdateRequest(Sequences.PAIRING.name)))
             return
         }
 
@@ -710,7 +720,7 @@ internal class EngineInteractor(
 
     private fun onSessionApprove(request: WCRequestVO, params: SessionParamsVO.ApprovalParams) {
         if (!isSequenceValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequence.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
             return
         }
 
@@ -721,7 +731,7 @@ internal class EngineInteractor(
 
         val pendingSession: SessionVO = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (pendingSession.status != SequenceStatus.PROPOSED) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequence.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
             return
         }
 
@@ -737,7 +747,7 @@ internal class EngineInteractor(
 
     private fun onSessionReject(request: WCRequestVO, params: SessionParamsVO.RejectParams) {
         if (!isSequenceValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequence.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
             return
         }
 
@@ -749,7 +759,7 @@ internal class EngineInteractor(
 
     private fun onSessionDelete(request: WCRequestVO, params: SessionParamsVO.DeleteParams) {
         if (!isSequenceValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequence.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
             return
         }
 
@@ -762,7 +772,7 @@ internal class EngineInteractor(
 
     private fun onSessionPayload(request: WCRequestVO, params: SessionParamsVO.SessionPayloadParams) {
         if (!isSequenceValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequence.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
             return
         }
 
@@ -783,18 +793,18 @@ internal class EngineInteractor(
 
     private fun onSessionUpdate(request: WCRequestVO, params: SessionParamsVO.UpdateParams) {
         if (!isSequenceValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequence.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
             return
         }
 
         val session: SessionVO = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (!session.isPeerController) {
-            relayer.respondWithError(request, PeerError(Error.UnauthorizedUpdateRequest(Sequence.SESSION.name)))
+            relayer.respondWithError(request, PeerError(Error.UnauthorizedUpdateRequest(Sequences.SESSION.name)))
             return
         }
 
         Validator.validateCAIP10(params.state.accounts) {
-            relayer.respondWithError(request, PeerError(Error.InvalidUpdateRequest(Sequence.SESSION.name)))
+            relayer.respondWithError(request, PeerError(Error.InvalidUpdateRequest(Sequences.SESSION.name)))
             return@validateCAIP10
         }
 
@@ -805,13 +815,13 @@ internal class EngineInteractor(
 
     private fun onSessionUpgrade(request: WCRequestVO, params: SessionParamsVO.UpgradeParams) {
         if (!isSequenceValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequence.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
             return
         }
 
         val session: SessionVO = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (!session.isPeerController) {
-            relayer.respondWithError(request, PeerError(Error.UnauthorizedUpgradeRequest(Sequence.SESSION.name)))
+            relayer.respondWithError(request, PeerError(Error.UnauthorizedUpgradeRequest(Sequences.SESSION.name)))
             return
         }
 
@@ -819,7 +829,7 @@ internal class EngineInteractor(
         val methods = params.permissions.jsonRpc.methods
 
         Validator.validateSessionPermissions(params.permissions.toEngineDOPermissions()) {
-            relayer.respondWithError(request, PeerError(Error.InvalidUpgradeRequest(Sequence.SESSION.name)))
+            relayer.respondWithError(request, PeerError(Error.InvalidUpgradeRequest(Sequences.SESSION.name)))
             return@validateSessionPermissions
         }
 
@@ -833,13 +843,13 @@ internal class EngineInteractor(
 
     private fun onSessionNotification(request: WCRequestVO, params: SessionParamsVO.NotificationParams) {
         if (!isSequenceValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequence.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
             return
         }
 
         val session = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (session.status != SequenceStatus.ACKNOWLEDGED) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequence.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
             return
         }
 
@@ -854,7 +864,7 @@ internal class EngineInteractor(
 
     private fun onPing(request: WCRequestVO) {
         if (!isSequenceValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequence.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
             return
         }
 
