@@ -73,7 +73,7 @@ internal class WalletConnectRelayer(
         val serializedPayload = serializer.serialize(payload, topic)
 
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, serializedPayload)) {
-            networkRepository.publish(topic, serializedPayload) { result ->
+            networkRepository.publish(topic, serializedPayload, prompt) { result ->
                 result.fold(
                     onSuccess = { onSuccess() },
                     onFailure = { error -> onFailure(error) }
