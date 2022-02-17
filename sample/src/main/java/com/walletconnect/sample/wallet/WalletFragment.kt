@@ -5,12 +5,10 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.walletconnect.sample.R
 import com.walletconnect.sample.databinding.WalletFragmentBinding
 import com.walletconnect.sample.wallet.ui.*
-import kotlinx.coroutines.launch
 import com.walletconnect.sample.wallet.ui.dialog.SessionDetailsDialog
 import com.walletconnect.sample.wallet.ui.dialog.SessionProposalDialog
 import com.walletconnect.sample.wallet.ui.dialog.SessionRequestDialog

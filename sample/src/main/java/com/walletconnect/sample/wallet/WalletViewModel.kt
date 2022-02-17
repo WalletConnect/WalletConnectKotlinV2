@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.walletconnect.sample.wallet.ui.*
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
-import com.walletconnect.walletconnectv2.core.exceptions.peer.Error
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -39,6 +38,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         val approve = WalletConnect.Params.Approve(proposal, accounts)
 
         WalletConnectClient.approve(approve, object : WalletConnect.Listeners.SessionApprove {
+
             override fun onSuccess(settledSession: WalletConnect.Model.SettledSession) {
                 viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())) }
             }
@@ -68,8 +68,8 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     fun disconnect(topic: String) {
         val disconnect = WalletConnect.Params.Disconnect(
             sessionTopic = topic,
-            reason = Error.USER_DISCONNECTED.message,
-            reasonCode = Error.USER_DISCONNECTED.code
+            reason = "User disconnects",
+            reasonCode = 1000
         )
 
         WalletConnectClient.disconnect(disconnect, object : WalletConnect.Listeners.SessionDelete {
