@@ -22,7 +22,6 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
         setupToolbar()
 
         //TODO: Improve the dApp sample app. Code below is only for test purposes!
-
 //        val connectParams = WalletConnect.Params.Connect(
 //            permissions = WalletConnect.Model.SessionPermissions(
 //                WalletConnect.Model.Blockchain(listOf("eip155:69")),
@@ -53,6 +52,9 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
     }
 
     override fun onSessionUpgrade(upgradedSession: WalletConnect.Model.UpgradedSession) {
+    }
+
+    override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {
     }
 
     override fun onPairingUpdated(pairing: WalletConnect.Model.SettledPairing) {

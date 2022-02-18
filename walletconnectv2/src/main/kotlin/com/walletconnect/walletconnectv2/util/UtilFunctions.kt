@@ -2,21 +2,23 @@
 
 package com.walletconnect.walletconnectv2.util
 
+import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import java.lang.System.currentTimeMillis
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 
 @JvmSynthetic
+internal fun ExpiryVO.isSequenceValid(): Boolean = seconds > (currentTimeMillis() / 1000)
+
+@JvmSynthetic
 internal fun pendingSequenceExpirySeconds() = ((currentTimeMillis() / 1000) + 86400) //24h
 
 @JvmSynthetic
-internal fun randomBytes(size: Int): ByteArray {
-    val secureRandom = SecureRandom()
-    val bytes = ByteArray(size)
-    secureRandom.nextBytes(bytes)
-    return bytes
-}
+internal fun randomBytes(size: Int): ByteArray =
+    ByteArray(size).apply {
+        SecureRandom().nextBytes(this)
+    }
 
 @JvmSynthetic
 internal fun generateId(): Long = (currentTimeMillis() + (100..999).random())

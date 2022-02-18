@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.client
 
 import com.walletconnect.walletconnectv2.client.mapper.*
-import com.walletconnect.walletconnectv2.core.exceptions.WalletConnectException
+import com.walletconnect.walletconnectv2.core.exceptions.client.WalletConnectException
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.di.*
@@ -68,6 +68,7 @@ object WalletConnectClient {
                     is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
                     is EngineDO.SessionUpdate -> delegate.onSessionUpdate(event.toClientSessionsUpdate())
                     is EngineDO.SessionUpgrade -> delegate.onSessionUpgrade(event.toClientSessionsUpgrade())
+                    is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                 }
             }
         }
@@ -189,7 +190,7 @@ object WalletConnectClient {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.disconnect(disconnect.sessionTopic, disconnect.reason,
+        engineInteractor.disconnect(disconnect.sessionTopic, disconnect.reason, disconnect.reasonCode,
             { (topic, reason) -> listener?.onSuccess(WalletConnect.Model.DeletedSession(topic, reason)) },
             { error -> listener?.onError(error) })
     }
@@ -255,5 +256,6 @@ object WalletConnectClient {
         fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession)
         fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdatedSession)
         fun onSessionUpgrade(upgradedSession: WalletConnect.Model.UpgradedSession)
+        fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
     }
 }

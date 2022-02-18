@@ -2,7 +2,7 @@ package com.walletconnect.walletconnectv2.client
 
 import android.app.Application
 import android.net.Uri
-import com.walletconnect.walletconnectv2.core.model.type.ControllerType
+import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
 import com.walletconnect.walletconnectv2.storage.history.model.JsonRpcStatus
 import java.net.URI
 
@@ -59,16 +59,14 @@ object WalletConnect {
             val icons: List<URI>,
             val chains: List<String>,
             val methods: List<String>,
-            val types: List<String>,
+            val types: List<String>? = null,
             val topic: String,
             val proposerPublicKey: String,
             val isController: Boolean,
             val ttl: Long,
             val accounts: List<String>,
             val relayProtocol: String
-        ) : Model() {
-            val icon: String = icons.first().toString()
-        }
+        ) : Model()
 
         data class SessionRequest(
             val topic: String,
@@ -99,7 +97,7 @@ object WalletConnect {
 
                 data class JsonRpc(val methods: List<String>)
 
-                data class Notifications(val types: List<String>)
+                data class Notifications(val types: List<String>?)
             }
         }
 
@@ -120,7 +118,7 @@ object WalletConnect {
 
         data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : Model()
 
-        data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: Jsonrpc, val notification: Notification? = null) : Model()
+        data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: Jsonrpc, val notification: Notifications? = null) : Model()
 
         data class Blockchain(val chains: List<String>) : Model()
 
@@ -156,7 +154,7 @@ object WalletConnect {
             ) : JsonRpcResponse()
 
             data class Error(
-                val code: Long,
+                val code: Int,
                 val message: String
             )
         }
@@ -244,7 +242,7 @@ object WalletConnect {
 
         data class Reject(val rejectionReason: String, val proposalTopic: String) : Params()
 
-        data class Disconnect(val sessionTopic: String, val reason: String) : Params()
+        data class Disconnect(val sessionTopic: String, val reason: String, val reasonCode: Int) : Params()
 
         data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) : Params()
 

@@ -3,7 +3,7 @@
 package com.walletconnect.walletconnectv2.storage.history
 
 import android.content.SharedPreferences
-import com.walletconnect.walletconnectv2.core.model.type.ControllerType
+import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
 import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcHistoryVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.storage.data.dao.JsonRpcHistoryQueries
@@ -64,6 +64,13 @@ internal class JsonRpcHistory(
         }
     }
 
-    private fun mapToJsonRpc(requestId: Long, topic: String, method: String?, body: String?, jsonRpcStatus: JsonRpcStatus, controllerType: ControllerType): JsonRpcHistoryVO =
+    private fun mapToJsonRpc(
+        requestId: Long,
+        topic: String,
+        method: String?,
+        body: String?,
+        jsonRpcStatus: JsonRpcStatus,
+        controllerType: ControllerType
+    ): JsonRpcHistoryVO =
         JsonRpcHistoryVO(requestId, topic, method, body, jsonRpcStatus, controllerType)
 }

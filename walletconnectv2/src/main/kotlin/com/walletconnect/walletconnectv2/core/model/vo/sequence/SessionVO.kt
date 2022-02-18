@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.core.model.vo.sequence
 
-import com.walletconnect.walletconnectv2.core.model.type.ControllerType
 import com.walletconnect.walletconnectv2.core.model.type.Sequence
+import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
@@ -18,10 +18,12 @@ internal data class SessionVO(
     val controllerKey: PublicKey? = null,
     val chains: List<String>,
     val methods: List<String>,
-    val types: List<String>,
+    val types: List<String>?,
     val ttl: TtlVO,
     val accounts: List<String> = emptyList(),
     val appMetaData: AppMetaDataVO? = null,
     val controllerType: ControllerType,
     val relayProtocol: String
-) : Sequence
+) : Sequence {
+    val isPeerController: Boolean = peerParticipant?.keyAsHex == controllerKey?.keyAsHex
+}

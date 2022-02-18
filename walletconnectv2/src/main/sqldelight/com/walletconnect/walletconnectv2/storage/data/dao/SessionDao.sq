@@ -1,4 +1,4 @@
-import com.walletconnect.walletconnectv2.core.model.type.ControllerType;
+import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType;
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus;
 import kotlin.collections.List;
 
@@ -7,7 +7,7 @@ CREATE TABLE SessionDao(
   topic TEXT UNIQUE NOT NULL,
   permissions_chains TEXT AS List<String> NOT NULL,
   permissions_methods TEXT AS List<String> NOT NULL,
-  permissions_types TEXT AS List<String> NOT NULL,
+  permissions_types TEXT AS List<String>,
   self_participant TEXT NOT NULL,
   peer_participant TEXT,
   controller_key TEXT,
@@ -77,5 +77,10 @@ WHERE topic = ?;
 
 hasTopic:
 SELECT topic
+FROM SessionDao
+WHERE ? = topic;
+
+getExpiry:
+SELECT expiry
 FROM SessionDao
 WHERE ? = topic;

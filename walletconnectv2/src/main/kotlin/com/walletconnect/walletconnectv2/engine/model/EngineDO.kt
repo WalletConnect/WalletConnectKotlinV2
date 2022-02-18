@@ -27,16 +27,14 @@ internal sealed class EngineDO {
         val icons: List<URI>,
         val chains: List<String>,
         val methods: List<String>,
-        val types: List<String>,
+        val types: List<String>? = null,
         val topic: String,
         val publicKey: String,
         val isController: Boolean = false,
         val ttl: Long,
         val accounts: List<String>,
         val relayProtocol: String
-    ) : EngineDO(), SequenceLifecycle {
-        val icon: String = icons.first().toString()
-    }
+    ) : EngineDO(), SequenceLifecycle
 
     internal data class SessionRequest(
         val topic: String,
@@ -88,10 +86,6 @@ internal sealed class EngineDO {
     internal data class PairingUpdate(val topic: TopicVO, val metaData: AppMetaData) : EngineDO(), SequenceLifecycle
     internal data class SessionUpdate(val topic: TopicVO, val accounts: List<String>) : EngineDO(), SequenceLifecycle
     internal data class SessionUpgrade(val topic: TopicVO, val chains: List<String>, val methods: List<String>) : EngineDO(), SequenceLifecycle
-    internal object FailedTopic : EngineDO(), SequenceLifecycle
-    internal object NoSession : EngineDO(), SequenceLifecycle
-    internal object NoPairing : EngineDO(), SequenceLifecycle
-    internal object UnauthorizedPeer : EngineDO(), SequenceLifecycle
     internal object Default : EngineDO(), SequenceLifecycle
 
     internal data class Notification(
@@ -117,7 +111,7 @@ internal sealed class EngineDO {
 
             internal data class JsonRpc(val methods: List<String>)
 
-            internal data class Notifications(val types: List<String>)
+            internal data class Notifications(val types: List<String>?)
         }
     }
 
@@ -158,7 +152,7 @@ internal sealed class EngineDO {
         ) : JsonRpcResponse()
 
         internal data class Error(
-            val code: Long,
+            val code: Int,
             val message: String,
         )
     }

@@ -16,7 +16,19 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.M
 @JvmSynthetic
 internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(accountList: List<String>): EngineDO.SessionProposal =
     EngineDO.SessionProposal(
-        name, description, url, icons, chains, methods, types, topic, proposerPublicKey, isController, ttl, accountList, relayProtocol
+        name,
+        description,
+        url,
+        icons,
+        chains,
+        methods,
+        if (types?.isEmpty() == true) null else types,
+        topic,
+        proposerPublicKey,
+        isController,
+        ttl,
+        accountList,
+        relayProtocol
     )
 
 @JvmSynthetic

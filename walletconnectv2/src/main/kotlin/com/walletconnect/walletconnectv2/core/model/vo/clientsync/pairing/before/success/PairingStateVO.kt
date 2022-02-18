@@ -7,5 +7,5 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before
 @JsonClass(generateAdapter = true)
 internal data class PairingStateVO(
     @Json(name = "metadata")
-    val metadata: AppMetaDataVO
+    val metadata: AppMetaDataVO?
 )

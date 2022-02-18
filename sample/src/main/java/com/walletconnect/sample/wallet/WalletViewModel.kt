@@ -38,6 +38,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         val approve = WalletConnect.Params.Approve(proposal, accounts)
 
         WalletConnectClient.approve(approve, object : WalletConnect.Listeners.SessionApprove {
+
             override fun onSuccess(settledSession: WalletConnect.Model.SettledSession) {
                 viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())) }
             }
@@ -64,8 +65,12 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         })
     }
 
-    fun disconnect(topic: String, reason: String = "Reason") {
-        val disconnect = WalletConnect.Params.Disconnect(topic, reason)
+    fun disconnect(topic: String) {
+        val disconnect = WalletConnect.Params.Disconnect(
+            sessionTopic = topic,
+            reason = "User disconnects",
+            reasonCode = 1000
+        )
 
         WalletConnectClient.disconnect(disconnect, object : WalletConnect.Listeners.SessionDelete {
             override fun onSuccess(deletedSession: WalletConnect.Model.DeletedSession) {
@@ -113,7 +118,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     fun sessionUpdate(session: WalletConnect.Model.SettledSession) {
         val update = WalletConnect.Params.Update(
             sessionTopic = session.topic,
-            sessionState = WalletConnect.Model.SessionState(accounts = listOf("eip155:8001:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62"))
+            sessionState = WalletConnect.Model.SessionState(accounts = listOf("${proposal.chains[0]}:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62"))
         )
 
         WalletConnectClient.update(update, object : WalletConnect.Listeners.SessionUpdate {
