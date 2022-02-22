@@ -20,6 +20,11 @@ UPDATE JsonRpcHistoryDao
 SET status = ?
 WHERE request_id = ?;
 
+getJsonRpcHistoryRecord:
+SELECT request_id, topic, method, body, status, controller_type
+FROM JsonRpcHistoryDao
+WHERE  request_id = ?;
+
 doesJsonRpcNotExist:
 SELECT NOT EXISTS (
     SELECT 1

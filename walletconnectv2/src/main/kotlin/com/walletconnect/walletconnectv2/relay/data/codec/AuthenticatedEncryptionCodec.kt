@@ -1,8 +1,8 @@
 package com.walletconnect.walletconnectv2.relay.data.codec
 
-import com.walletconnect.walletconnectv2.core.model.vo.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.SharedKey
+import com.walletconnect.walletconnectv2.core.model.vo.payload.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.relay.Codec
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import com.walletconnect.walletconnectv2.util.hexToBytes

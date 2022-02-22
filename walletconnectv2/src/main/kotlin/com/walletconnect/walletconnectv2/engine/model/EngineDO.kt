@@ -49,6 +49,12 @@ internal sealed class EngineDO {
         ) : EngineDO()
     }
 
+    data class SessionPayloadResponse(
+        val topic: String,
+        val chainId: String?,
+        val result: JsonRpcResponse
+    ) : EngineDO(), SequenceLifecycle
+
     internal data class SessionDelete(
         val topic: String,
         val reason: String
@@ -67,7 +73,6 @@ internal sealed class EngineDO {
 
     internal data class SettledPairing(
         val topic: TopicVO,
-        val relay: String,
         val appMetaData: AppMetaData?
     ) : EngineDO(), SequenceLifecycle
 
@@ -85,13 +90,10 @@ internal sealed class EngineDO {
 
     internal data class PairingUpdate(val topic: TopicVO, val metaData: AppMetaData) : EngineDO(), SequenceLifecycle
     internal data class SessionUpdate(val topic: TopicVO, val accounts: List<String>) : EngineDO(), SequenceLifecycle
-    internal data class SessionUpgrade(val topic: TopicVO, val chains: List<String>, val methods: List<String>) : EngineDO(), SequenceLifecycle
-    internal object Default : EngineDO(), SequenceLifecycle
+    internal data class SessionUpgrade(val topic: TopicVO, val chains: List<String>, val methods: List<String>) : EngineDO(),
+        SequenceLifecycle
 
-    internal data class Notification(
-        val type: String,
-        val data: String
-    ) : EngineDO()
+    internal object Default : EngineDO(), SequenceLifecycle
 
     internal data class SettledSession(
         override val topic: TopicVO,
@@ -100,7 +102,7 @@ internal sealed class EngineDO {
         val accounts: List<String>,
         val peerAppMetaData: AppMetaData?,
         val permissions: Permissions
-    ) : EngineDO(), Sequence {
+    ) : EngineDO(), Sequence, SequenceLifecycle {
 
         internal data class Permissions(
             val blockchain: Blockchain,
@@ -114,6 +116,11 @@ internal sealed class EngineDO {
             internal data class Notifications(val types: List<String>?)
         }
     }
+
+    internal data class Notification(
+        val type: String,
+        val data: String
+    ) : EngineDO()
 
     internal data class SessionState(val accounts: List<String>) : EngineDO()
 

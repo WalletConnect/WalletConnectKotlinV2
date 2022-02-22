@@ -1,4 +1,4 @@
-package com.walletconnect.walletconnectv2.core.model.vo
+package com.walletconnect.walletconnectv2.core.model.vo.payload
 
 internal data class EncryptionPayloadVO(
     val iv: String,

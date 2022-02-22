@@ -1,8 +1,8 @@
 package com.walletconnect.walletconnectv2.client.mapper
 
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcHistoryVO
-import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcResponseVO
+import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcHistoryVO
+import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 
 //TODO: Provide VO objects for engine classes. Remove using the EngineDO object in the client layer
@@ -131,6 +131,10 @@ internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toClientJsonRpcResult(): Wal
     WalletConnect.Model.JsonRpcResponse.JsonRpcResult(id, result)
 
 @JvmSynthetic
+internal fun EngineDO.JsonRpcResponse.JsonRpcError.toClientJsonRpcError(): WalletConnect.Model.JsonRpcResponse.JsonRpcError =
+    WalletConnect.Model.JsonRpcResponse.JsonRpcError(id, error = WalletConnect.Model.JsonRpcResponse.Error(error.code, error.message))
+
+@JvmSynthetic
 internal fun EngineDO.SessionUpdate.toClientSessionsUpdate(): WalletConnect.Model.UpdatedSession =
     WalletConnect.Model.UpdatedSession(topic.value, accounts)
 
@@ -152,3 +156,14 @@ internal fun List<JsonRpcHistoryVO>.mapToHistory() = this.map { jsonRpcHistoryVO
         jsonRpcHistoryVO.controllerType
     )
 }
+
+@JvmSynthetic
+internal fun EngineDO.JsonRpcResponse.toClientJsonRpcResponse(): WalletConnect.Model.JsonRpcResponse =
+    when (this) {
+        is EngineDO.JsonRpcResponse.JsonRpcResult -> this.toClientJsonRpcResult()
+        is EngineDO.JsonRpcResponse.JsonRpcError -> this.toClientJsonRpcError()
+    }
+
+@JvmSynthetic
+internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): WalletConnect.Model.SessionPayloadResponse =
+    WalletConnect.Model.SessionPayloadResponse(topic, chainId, result.toClientJsonRpcResponse())

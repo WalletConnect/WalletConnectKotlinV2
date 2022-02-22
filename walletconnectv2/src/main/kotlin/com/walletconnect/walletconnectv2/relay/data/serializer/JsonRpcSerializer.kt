@@ -4,7 +4,6 @@ import com.squareup.moshi.Moshi
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
 import com.walletconnect.walletconnectv2.core.model.type.SerializableJsonRpc
 import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
-import com.walletconnect.walletconnectv2.core.model.vo.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.SharedKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
@@ -12,6 +11,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.after.
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.PreSettlementPairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.PostSettlementSessionVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.PreSettlementSessionVO
+import com.walletconnect.walletconnectv2.core.model.vo.payload.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.relay.Codec
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
@@ -20,14 +20,13 @@ import com.walletconnect.walletconnectv2.util.hexToUtf8
 
 internal class JsonRpcSerializer(private val codec: Codec, private val crypto: CryptoRepository, private val moshi: Moshi) {
 
-    internal fun serialize(payload: SerializableJsonRpc, topic: TopicVO): String {
-        val json = serialize(payload)
+    internal fun encode(payload: String, topic: TopicVO): String {
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
 
         return if (sharedKey.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
-            json.encode()
+            payload.encode()
         } else {
-            codec.encrypt(json, sharedKey as SharedKey, selfPublic as PublicKey)
+            codec.encrypt(payload, sharedKey as SharedKey, selfPublic as PublicKey)
         }
     }
 
@@ -65,7 +64,7 @@ internal class JsonRpcSerializer(private val codec: Codec, private val crypto: C
 
     private inline fun <reified T> trySerialize(type: T): String = moshi.adapter(T::class.java).toJson(type)
 
-    private fun serialize(payload: SerializableJsonRpc): String =
+    fun serialize(payload: SerializableJsonRpc): String =
         when (payload) {
             is PreSettlementPairingVO.Approve -> trySerialize(payload)
             is PreSettlementPairingVO.Reject -> trySerialize(payload)

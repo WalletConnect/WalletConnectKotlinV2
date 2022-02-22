@@ -139,6 +139,12 @@ object WalletConnect {
             val data: String
         ) : Model()
 
+        data class SessionPayloadResponse(
+            val topic: String,
+            val chainId: String?,
+            val result: JsonRpcResponse
+        ) : Model()
+
         sealed class JsonRpcResponse : Model() {
             abstract val id: Long
             val jsonrpc: String = "2.0"

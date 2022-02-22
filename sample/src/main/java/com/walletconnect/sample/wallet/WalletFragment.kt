@@ -17,6 +17,7 @@ import com.walletconnect.walletconnectv2.client.WalletConnect
 
 class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener {
     private val viewModel: WalletViewModel by activityViewModels()
+
     private lateinit var binding: WalletFragmentBinding
     private val sessionAdapter = SessionsAdapter(this)
 

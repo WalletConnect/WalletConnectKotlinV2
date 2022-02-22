@@ -7,6 +7,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.AppMetaDataVO
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
+import com.walletconnect.walletconnectv2.util.Empty
 
 internal data class PairingVO(
     override val topic: TopicVO,
@@ -19,7 +20,8 @@ internal data class PairingVO(
     val relay: String,
     val permissions: List<String>? = null,
     val controllerType: ControllerType,
-    val appMetaDataVO: AppMetaDataVO? = null
+    val appMetaDataVO: AppMetaDataVO? = null,
+    val outcomeTopic: TopicVO = TopicVO(String.Empty)
 ) : Sequence {
     val isPeerController: Boolean = peerParticipant?.keyAsHex == controllerKey?.keyAsHex
 }

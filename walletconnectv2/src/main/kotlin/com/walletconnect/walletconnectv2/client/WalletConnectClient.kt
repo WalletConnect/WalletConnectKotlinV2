@@ -44,10 +44,14 @@ object WalletConnectClient {
         scope.launch {
             engineInteractor.sequenceEvent.collect { event ->
                 when (event) {
+                    is EngineDO.SettledPairing -> delegate.onPairingSettled(event.toClientSettledPairing())
                     is EngineDO.SessionProposal -> delegate.onSessionProposal(event.toClientSessionProposal())
                     is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
                     is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                     is EngineDO.SessionNotification -> delegate.onSessionNotification(event.toClientSessionNotification())
+                    is EngineDO.SessionUpgrade -> delegate.onSessionUpgraded(event.toClientSessionsUpgrade())
+                    is EngineDO.SessionUpdate -> delegate.onSessionUpdated(event.toClientSessionsUpdate())
+                    is EngineDO.SettledSession -> delegate.onSessionSettled(event.toClientSettledSession())
                 }
             }
         }
@@ -69,6 +73,7 @@ object WalletConnectClient {
                     is EngineDO.SessionUpdate -> delegate.onSessionUpdate(event.toClientSessionsUpdate())
                     is EngineDO.SessionUpgrade -> delegate.onSessionUpgrade(event.toClientSessionsUpgrade())
                     is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
+                    is EngineDO.SessionPayloadResponse -> delegate.onSessionPayloadResponse(event.toClientSessionPayloadResponse())
                 }
             }
         }
@@ -229,7 +234,6 @@ object WalletConnectClient {
         }
 
         val (listOfRequests, listOfResponses) = engineInteractor.getListOfJsonRpcHistory(TopicVO(topic))
-
         return WalletConnect.Model.JsonRpcHistory(
             topic = topic,
             listOfRequests = listOfRequests.mapToHistory(),
@@ -243,10 +247,14 @@ object WalletConnectClient {
     }
 
     interface WalletDelegate {
+        fun onPairingSettled(settledPairing: WalletConnect.Model.SettledPairing)
         fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal)
+        fun onSessionSettled(settledSession: WalletConnect.Model.SettledSession)
         fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest)
         fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
         fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification)
+        fun onSessionUpgraded(upgradedSession: WalletConnect.Model.UpgradedSession)
+        fun onSessionUpdated(updatedSession: WalletConnect.Model.UpdatedSession)
     }
 
     interface DappDelegate {
@@ -257,5 +265,6 @@ object WalletConnectClient {
         fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdatedSession)
         fun onSessionUpgrade(upgradedSession: WalletConnect.Model.UpgradedSession)
         fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
+        fun onSessionPayloadResponse(sessionResponse: WalletConnect.Model.SessionPayloadResponse)
     }
 }

@@ -1,4 +1,4 @@
-package com.walletconnect.walletconnectv2.core.model.vo
+package com.walletconnect.walletconnectv2.core.model.vo.jsonRpc
 
 import com.squareup.moshi.JsonClass
 
