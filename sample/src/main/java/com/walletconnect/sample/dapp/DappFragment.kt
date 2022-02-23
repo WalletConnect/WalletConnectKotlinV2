@@ -48,6 +48,10 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
         Log.d("kobe", "settledPairing: $settledPairing")
     }
 
+    override fun onPairingUpdated(pairing: WalletConnect.Model.PairingUpdate) {
+        Log.d("kobe", "onPairingUpdated: $pairing")
+    }
+
     override fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession) {
         Log.d("kobe", "approvedSession: $approvedSession")
     }
@@ -70,9 +74,5 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
 
     override fun onSessionPayloadResponse(sessionResponse: WalletConnect.Model.SessionPayloadResponse) {
         Log.d("kobe", "sessionResponse: $sessionResponse")
-    }
-
-    override fun onPairingUpdated(pairing: WalletConnect.Model.SettledPairing) {
-        Log.d("kobe", "pairing: $pairing")
     }
 }

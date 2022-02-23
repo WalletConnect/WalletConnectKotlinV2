@@ -74,6 +74,7 @@ internal class WakuNetworkRepository internal constructor(private val relay: Rel
                 .onEach { jsonRpcError -> Logger.error(Throwable(jsonRpcError.error.errorMessage)) }
                 .catch { exception -> Logger.error(exception) }
                 .collect { errorResponse ->
+                    errorResponse.error
                     supervisorScope {
                         onFailure(Throwable(errorResponse.error.errorMessage))
                         cancel()

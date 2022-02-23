@@ -71,10 +71,25 @@ internal sealed class EngineDO {
         val data: String
     ) : EngineDO(), SequenceLifecycle
 
-    internal data class SettledPairing(
-        val topic: TopicVO,
-        val appMetaData: AppMetaData?
-    ) : EngineDO(), SequenceLifecycle
+    internal sealed class SettledPairingResponse : EngineDO(), SequenceLifecycle {
+        internal data class Result(val topic: TopicVO) : SettledPairingResponse()
+        internal data class Error(val errorMessage: String) : SettledPairingResponse()
+    }
+
+    sealed class SettledSessionResponse : EngineDO(), SequenceLifecycle {
+        data class Result(val settledSession: SettledSession) : SettledSessionResponse()
+        data class Error(val errorMessage: String) : SettledSessionResponse()
+    }
+
+    sealed class SessionUpgradeResponse : EngineDO(), SequenceLifecycle {
+        data class Result(val topic: TopicVO, val chains: List<String>, val methods: List<String>) : SessionUpgradeResponse()
+        data class Error(val errorMessage: String) : SessionUpgradeResponse()
+    }
+
+    sealed class SessionUpdateResponse : EngineDO(), SequenceLifecycle {
+        data class Result(val topic: TopicVO, val accounts: List<String>) : SessionUpdateResponse()
+        data class Error(val errorMessage: String) : SessionUpdateResponse()
+    }
 
     internal data class SessionRejected(
         val topic: String,
@@ -89,10 +104,10 @@ internal sealed class EngineDO {
     ) : EngineDO(), SequenceLifecycle
 
     internal data class PairingUpdate(val topic: TopicVO, val metaData: AppMetaData) : EngineDO(), SequenceLifecycle
+    internal data class SettledPairing(val topic: TopicVO, val metaData: AppMetaData?) : EngineDO(), SequenceLifecycle
     internal data class SessionUpdate(val topic: TopicVO, val accounts: List<String>) : EngineDO(), SequenceLifecycle
     internal data class SessionUpgrade(val topic: TopicVO, val chains: List<String>, val methods: List<String>) : EngineDO(),
         SequenceLifecycle
-
     internal object Default : EngineDO(), SequenceLifecycle
 
     internal data class SettledSession(
