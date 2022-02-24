@@ -7,6 +7,7 @@ import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.di.*
 import com.walletconnect.walletconnectv2.engine.domain.EngineInteractor
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
+import com.walletconnect.walletconnectv2.util.Logger
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -51,7 +52,10 @@ object WalletConnectClient {
                     //Responses
                     is EngineDO.SettledPairingResponse -> delegate.onPairingSettledResponse(event.toClientSettledPairingResponse())
                     is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
-                    is EngineDO.SessionUpgradeResponse -> delegate.onSessionUpgradeResponse(event.toClientUpgradedSessionResponse())
+                    is EngineDO.SessionUpgradeResponse -> {
+                        Logger.log("CLIENT SESSION UPGRADE RESPONSE")
+                        delegate.onSessionUpgradeResponse(event.toClientUpgradedSessionResponse())
+                    }
                     is EngineDO.SessionUpdateResponse -> delegate.onSessionUpdateResponse(event.toClientUpdateSessionResponse())
                 }
             }
@@ -174,12 +178,12 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun disconnect(disconnect: WalletConnect.Params.Disconnect, onError: (Throwable) -> Unit = {}) {
+    fun disconnect(disconnect: WalletConnect.Params.Disconnect) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.disconnect(disconnect.sessionTopic, disconnect.reason, disconnect.reasonCode) { error -> onError(error) }
+        engineInteractor.disconnect(disconnect.sessionTopic, disconnect.reason, disconnect.reasonCode)
     }
 
     @Throws(IllegalStateException::class)
@@ -201,17 +205,12 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class)
-    fun getJsonRpcHistory(topic: String): WalletConnect.Model.JsonRpcHistory {
+    fun getPendingRequests(topic: String): List<WalletConnect.Model.PendingRequest> {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        val (listOfRequests, listOfResponses) = engineInteractor.getListOfJsonRpcHistory(TopicVO(topic))
-        return WalletConnect.Model.JsonRpcHistory(
-            topic = topic,
-            listOfRequests = listOfRequests.mapToHistory(),
-            listOfResponses = listOfResponses.mapToHistory()
-        )
+        return engineInteractor.getPendingRequests(TopicVO(topic)).mapToPendingRequests()
     }
 
     fun shutdown() {
@@ -226,10 +225,10 @@ object WalletConnectClient {
         fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification)
 
         //Responses
-        fun onPairingSettledResponse(settledPairing: WalletConnect.Model.SettledPairingResponse)
-        fun onSessionSettleResponse(settledSession: WalletConnect.Model.SettledSessionResponse)
-        fun onSessionUpgradeResponse(upgradedSession: WalletConnect.Model.SessionUpgradeResponse)
-        fun onSessionUpdateResponse(updatedSession: WalletConnect.Model.SessionUpdateResponse)
+        fun onPairingSettledResponse(response: WalletConnect.Model.SettledPairingResponse)
+        fun onSessionSettleResponse(response: WalletConnect.Model.SettledSessionResponse)
+        fun onSessionUpgradeResponse(response: WalletConnect.Model.SessionUpgradeResponse)
+        fun onSessionUpdateResponse(response: WalletConnect.Model.SessionUpdateResponse)
     }
 
     interface DappDelegate {
@@ -242,6 +241,6 @@ object WalletConnectClient {
         fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
 
         //Responses
-        fun onSessionPayloadResponse(sessionResponse: WalletConnect.Model.SessionPayloadResponse)
+        fun onSessionPayloadResponse(response: WalletConnect.Model.SessionPayloadResponse)
     }
 }

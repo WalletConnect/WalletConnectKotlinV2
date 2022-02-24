@@ -7,18 +7,17 @@ import com.walletconnect.walletconnectv2.core.model.type.SettlementSequence
 import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.PostSettlementSessionVO
 import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcHistoryVO
 import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcResponseVO
+import com.walletconnect.walletconnectv2.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.WCRequestVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.WCResponseVO
 import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.network.NetworkRepository
 import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
-import com.walletconnect.walletconnectv2.relay.model.mapper.toJsonRpcErrorVO
-import com.walletconnect.walletconnectv2.relay.model.mapper.toJsonRpcResultVO
-import com.walletconnect.walletconnectv2.relay.model.mapper.toRelayDOJsonRpcResponse
-import com.walletconnect.walletconnectv2.relay.model.mapper.toWCResponse
+import com.walletconnect.walletconnectv2.relay.model.mapper.*
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.storage.history.model.JsonRpcStatus
 import com.walletconnect.walletconnectv2.util.Logger
@@ -84,7 +83,10 @@ internal class WalletConnectRelayer(
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, json)) {
             networkRepository.publish(topic, serializer.encode(json, topic), prompt) { result ->
                 result.fold(
-                    onSuccess = { onSuccess() },
+                    onSuccess = {
+                        Logger.error("kobe; PUBLISH SUCCESS")
+                        onSuccess()
+                    },
                     onFailure = { error -> onFailure(error) }
                 )
             }
@@ -138,10 +140,6 @@ internal class WalletConnectRelayer(
         }
     }
 
-    internal fun getJsonRpcHistory(topic: TopicVO): Pair<List<JsonRpcHistoryVO>, List<JsonRpcHistoryVO>> {
-        return jsonRpcHistory.getRequests(topic, listOfMethodsForRequests) to jsonRpcHistory.getResponses(topic, listOfMethodsForRequests)
-    }
-
     internal fun respondWithError(request: WCRequestVO, error: PeerError) {
         Logger.error("Responding with error: ${error.message}: ${error.code}")
         val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = request.id, error = JsonRpcResponseVO.Error(error.code, error.message))
@@ -150,11 +148,15 @@ internal class WalletConnectRelayer(
 
     internal fun respondWithSuccess(request: WCRequestVO) {
         val jsonRpcResult = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = "true")
-        publishJsonRpcResponse(
-            request.topic,
-            jsonRpcResult,
+        publishJsonRpcResponse(request.topic, jsonRpcResult,
             onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
     }
+
+    internal fun getPendingRequests(topic: TopicVO): List<PendingRequestVO> =
+        jsonRpcHistory.getRequests(topic)
+            .filter { entry -> entry.jsonRpcStatus == JsonRpcStatus.PENDING && entry.method == JsonRpcMethod.WC_SESSION_PAYLOAD }
+            .filter { entry -> serializer.tryDeserialize<PostSettlementSessionVO.SessionPayload>(entry.body) != null }
+            .map { entry -> serializer.tryDeserialize<PostSettlementSessionVO.SessionPayload>(entry.body)!!.toPendingRequestVO(entry) }
 
     private fun manageSubscriptions() {
         scope.launch(exceptionHandler) {
@@ -227,9 +229,5 @@ internal class WalletConnectRelayer(
         } else if (event is WebSocket.Event.OnConnectionClosed) {
             _isConnectionOpened.compareAndSet(expect = true, update = false)
         }
-    }
-
-    private companion object {
-        val listOfMethodsForRequests = listOf(JsonRpcMethod.WC_SESSION_PAYLOAD)
     }
 }

@@ -22,6 +22,11 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         WalletConnectClient.setWalletDelegate(this)
     }
 
+    fun getPendingRequests(session: WalletConnect.Model.SettledSession) {
+        val history = WalletConnectClient.getPendingRequests(session.topic)
+        Log.e("kobe", "$history")
+    }
+
     fun pair(uri: String) {
         val pair = WalletConnect.Params.Pair(uri.trim())
         WalletConnectClient.pair(pair) { error -> Log.d("kobe", "sending pair error: $error") }
@@ -37,9 +42,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         val rejectionReason = "Reject Session"
         val proposalTopic: String = proposal.topic
         val reject = WalletConnect.Params.Reject(rejectionReason, proposalTopic)
-
         WalletConnectClient.reject(reject) { error -> Log.d("kobe", "sending reject error: $error") }
-        viewModelScope.launch { _eventFlow.emit(RejectSession) }
     }
 
     fun disconnect(topic: String) {
@@ -48,8 +51,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
             reason = "User disconnects",
             reasonCode = 1000
         )
-
-        WalletConnectClient.disconnect(disconnect) { error -> Log.d("kobe", "sending disconnect error: $error") }
+        WalletConnectClient.disconnect(disconnect)
         viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())) }
     }
 
@@ -80,7 +82,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     fun sessionUpdate(session: WalletConnect.Model.SettledSession) {
         val update = WalletConnect.Params.Update(
             sessionTopic = session.topic,
-            sessionState = WalletConnect.Model.SessionState(accounts = listOf("${proposal.chains[0]}:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62"))
+            sessionState = WalletConnect.Model.SessionState(accounts = listOf("eip155:42:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62")) //kovan
         )
 
         WalletConnectClient.update(update) { error -> Log.d("kobe", "sending update error: $error") }
@@ -93,13 +95,11 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         )
 
         val upgrade = WalletConnect.Params.Upgrade(topic = session.topic, permissions = permissions)
-
         WalletConnectClient.upgrade(upgrade) { error -> Log.d("kobe", "sending upgrade error: $error") }
     }
 
     fun sessionPing(session: WalletConnect.Model.SettledSession) {
         val ping = WalletConnect.Params.Ping(session.topic)
-
         WalletConnectClient.ping(ping, object : WalletConnect.Listeners.SessionPing {
             override fun onSuccess(topic: String) {
                 Log.d("kobe", "ping: $topic")
@@ -152,6 +152,8 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     override fun onSessionUpgradeResponse(response: WalletConnect.Model.SessionUpgradeResponse) {
         when (response) {
             is WalletConnect.Model.SessionUpgradeResponse.Result -> {
+                Log.e("kobe", "Session Upgrade result SUCCESS")
+
                 viewModelScope.launch {
                     _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions(), "Successful session upgrade"))
                 }

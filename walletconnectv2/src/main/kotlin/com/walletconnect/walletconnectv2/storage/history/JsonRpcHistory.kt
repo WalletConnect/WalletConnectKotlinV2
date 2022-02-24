@@ -17,8 +17,6 @@ internal class JsonRpcHistory(
 ) {
 
     fun setRequest(requestId: Long, topic: TopicVO, method: String, payload: String): Boolean {
-        tryMigrationToDB(requestId)
-
         return if (jsonRpcHistoryQueries.doesJsonRpcNotExist(requestId).executeAsOne()) {
             jsonRpcHistoryQueries.insertJsonRpcHistory(requestId, topic.value, method, payload, JsonRpcStatus.PENDING, controllerType)
             jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOne() > 0L
@@ -55,34 +53,14 @@ internal class JsonRpcHistory(
         jsonRpcHistoryQueries.deleteJsonRpcHistory(topic.value)
     }
 
-    internal fun getRequests(topic: TopicVO, listOfMethodsForRequests: List<String>): List<JsonRpcHistoryVO> =
-        jsonRpcHistoryQueries.getJsonRpcRequestsDaos(
-            topic.value,
-            listOfMethodsForRequests,
-            mapper = ::mapToJsonRpc
-        ).executeAsList()
-
-    internal fun getResponses(topic: TopicVO, listOfMethodsForRequests: List<String>): List<JsonRpcHistoryVO> =
-        jsonRpcHistoryQueries.getJsonRpcRespondsDaos(
-            topic.value,
-            listOfMethodsForRequests,
-            mapper = ::mapToJsonRpc
-        ).executeAsList()
-
-    private fun tryMigrationToDB(requestId: Long) {
-        if (sharedPreferences.contains(requestId.toString())) {
-            sharedPreferences.getString(requestId.toString(), null)?.let { topicValue ->
-                jsonRpcHistoryQueries.insertJsonRpcHistory(requestId, topicValue, null, null, JsonRpcStatus.REQUEST_SUCCESS, controllerType)
-            }
-            sharedPreferences.edit().remove(requestId.toString()).apply()
-        }
-    }
+    internal fun getRequests(topic: TopicVO): List<JsonRpcHistoryVO> =
+        jsonRpcHistoryQueries.getJsonRpcRequestsDaos(topic.value, mapper = ::mapToJsonRpc).executeAsList()
 
     private fun mapToJsonRpc(
         requestId: Long,
         topic: String,
         method: String?,
-        body: String?,
+        body: String,
         jsonRpcStatus: JsonRpcStatus,
         controllerType: ControllerType
     ): JsonRpcHistoryVO =

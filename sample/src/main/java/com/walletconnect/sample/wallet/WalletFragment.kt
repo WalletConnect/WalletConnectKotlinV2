@@ -60,7 +60,6 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
                     }
                 }
                 is RejectSession -> proposalDialog?.dismiss()
-                is PingSuccess -> Toast.makeText(requireContext(), "Successful session ping", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -99,7 +98,8 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
     }
 
     override fun onSessionsDetails(session: WalletConnect.Model.SettledSession) {
-
-        SessionDetailsDialog(requireContext(), session).show()
+        SessionDetailsDialog(requireContext(), session) { session ->
+            viewModel.getPendingRequests(session)
+        }.show()
     }
 }

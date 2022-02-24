@@ -7,7 +7,7 @@ data class JsonRpcHistoryVO(
     val requestId: Long,
     val topic: String,
     val method: String?,
-    val body: String?,
+    val body: String,
     val jsonRpcStatus: JsonRpcStatus,
     val controllerType: ControllerType
 )

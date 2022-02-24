@@ -72,7 +72,7 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
         Log.d("kobe", "deletedSession: $deletedSession")
     }
 
-    override fun onSessionPayloadResponse(sessionResponse: WalletConnect.Model.SessionPayloadResponse) {
-        Log.d("kobe", "sessionResponse: $sessionResponse")
+    override fun onSessionPayloadResponse(response: WalletConnect.Model.SessionPayloadResponse) {
+        Log.d("kobe", "sessionResponse: $response")
     }
 }

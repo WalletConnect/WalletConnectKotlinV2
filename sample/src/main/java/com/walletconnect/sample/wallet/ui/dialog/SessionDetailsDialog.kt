@@ -7,13 +7,19 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.walletconnect.sample.databinding.SessionDetailsDialogBinding
 import com.walletconnect.walletconnectv2.client.WalletConnect
 
-class SessionDetailsDialog(context: Context, private val session: WalletConnect.Model.SettledSession) : BottomSheetDialog(context) {
+class SessionDetailsDialog(
+    context: Context,
+    private val session: WalletConnect.Model.SettledSession,
+    getPendingRequests: (session: WalletConnect.Model.SettledSession) -> Unit
+) : BottomSheetDialog(context) {
 
     private val binding = SessionDetailsDialogBinding.inflate(layoutInflater)
 
     init {
         setContentView(binding.root)
         setContent()
+
+        getPendingRequests(session)
     }
 
     private fun setContent() = with(binding) {

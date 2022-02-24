@@ -1,8 +1,8 @@
 package com.walletconnect.walletconnectv2.client.mapper
 
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcHistoryVO
 import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcResponseVO
+import com.walletconnect.walletconnectv2.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 
 //TODO: Provide VO objects for engine classes. Remove using the EngineDO object in the client layer
@@ -180,16 +180,17 @@ internal fun EngineDO.SessionUpgrade.toClientSessionsUpgrade(): WalletConnect.Mo
     )
 
 @JvmSynthetic
-internal fun List<JsonRpcHistoryVO>.mapToHistory() = this.map { jsonRpcHistoryVO ->
-    WalletConnect.Model.JsonRpcHistory.HistoryEntry(
-        jsonRpcHistoryVO.requestId,
-        jsonRpcHistoryVO.topic,
-        jsonRpcHistoryVO.method,
-        jsonRpcHistoryVO.body,
-        jsonRpcHistoryVO.jsonRpcStatus,
-        jsonRpcHistoryVO.controllerType
-    )
-}
+internal fun List<PendingRequestVO>.mapToPendingRequests(): List<WalletConnect.Model.PendingRequest> =
+    this.map { request ->
+        WalletConnect.Model.PendingRequest(
+            request.requestId,
+            request.topic,
+            request.jsonRpcStatus,
+            request.method,
+            request.chainId,
+            request.params
+        )
+    }
 
 @JvmSynthetic
 internal fun EngineDO.JsonRpcResponse.toClientJsonRpcResponse(): WalletConnect.Model.JsonRpcResponse =
