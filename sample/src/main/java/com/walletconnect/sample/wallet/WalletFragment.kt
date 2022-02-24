@@ -2,7 +2,6 @@ package com.walletconnect.sample.wallet
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -23,6 +22,8 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
 
     private var proposalDialog: SessionProposalDialog? = null
     private var requestDialog: SessionRequestDialog? = null
+
+    //TODO: Add feature completed wallet sample
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -55,9 +56,6 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
                 is UpdateActiveSessions -> {
                     proposalDialog?.dismiss()
                     sessionAdapter.updateList(event.sessions)
-                    event.message?.let {
-                        Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                    }
                 }
                 is RejectSession -> proposalDialog?.dismiss()
             }
@@ -98,8 +96,6 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
     }
 
     override fun onSessionsDetails(session: WalletConnect.Model.SettledSession) {
-        SessionDetailsDialog(requireContext(), session) { session ->
-            viewModel.getPendingRequests(session)
-        }.show()
+        SessionDetailsDialog(requireContext(), session) { settledSession -> viewModel.getPendingRequests(settledSession) }.show()
     }
 }

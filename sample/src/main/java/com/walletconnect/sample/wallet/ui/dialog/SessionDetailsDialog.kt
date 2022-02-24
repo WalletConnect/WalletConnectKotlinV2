@@ -18,7 +18,6 @@ class SessionDetailsDialog(
     init {
         setContentView(binding.root)
         setContent()
-
         getPendingRequests(session)
     }
 

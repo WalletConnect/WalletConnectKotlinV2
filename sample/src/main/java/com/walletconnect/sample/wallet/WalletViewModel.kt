@@ -2,19 +2,16 @@ package com.walletconnect.sample.wallet
 
 import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
 import com.walletconnect.sample.wallet.ui.*
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 
 class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
 
-    private var _eventFlow = MutableStateFlow<WalletUiEvent>(InitSessionsList(WalletConnectClient.getListOfSettledSessions()))
-    val eventFlow: LiveData<WalletUiEvent> = _eventFlow.asLiveData()
+    private var _eventFlow = MutableLiveData<WalletUiEvent>(InitSessionsList(WalletConnectClient.getListOfSettledSessions()))
+    val eventFlow: LiveData<WalletUiEvent> = _eventFlow
 
     private lateinit var proposal: WalletConnect.Model.SessionProposal
 
@@ -24,25 +21,24 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
 
     fun getPendingRequests(session: WalletConnect.Model.SettledSession) {
         val history = WalletConnectClient.getPendingRequests(session.topic)
-        Log.e("kobe", "$history")
     }
 
     fun pair(uri: String) {
         val pair = WalletConnect.Params.Pair(uri.trim())
-        WalletConnectClient.pair(pair) { error -> Log.d("kobe", "sending pair error: $error") }
+        WalletConnectClient.pair(pair) { error -> Log.d("Error", "sending pair error: $error") }
     }
 
     fun approve() {
         val accounts = proposal.chains.map { chainId -> "$chainId:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716" }
         val approve = WalletConnect.Params.Approve(proposal, accounts)
-        WalletConnectClient.approve(approve) { error -> Log.d("kobe", "sending approve error: $error") }
+        WalletConnectClient.approve(approve) { error -> Log.d("Error", "sending approve error: $error") }
     }
 
     fun reject() {
         val rejectionReason = "Reject Session"
         val proposalTopic: String = proposal.topic
         val reject = WalletConnect.Params.Reject(rejectionReason, proposalTopic)
-        WalletConnectClient.reject(reject) { error -> Log.d("kobe", "sending reject error: $error") }
+        WalletConnectClient.reject(reject) { error -> Log.d("Error", "sending reject error: $error") }
     }
 
     fun disconnect(topic: String) {
@@ -52,7 +48,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
             reasonCode = 1000
         )
         WalletConnectClient.disconnect(disconnect)
-        viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())) }
+        _eventFlow.value = UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())
     }
 
     fun respondRequest(sessionRequest: WalletConnect.Model.SessionRequest) {
@@ -64,7 +60,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
             )
         )
 
-        WalletConnectClient.respond(response) { error -> Log.d("kobe", "sending response error: $error") }
+        WalletConnectClient.respond(response) { error -> Log.d("Error", "sending response error: $error") }
     }
 
     fun rejectRequest(sessionRequest: WalletConnect.Model.SessionRequest) {
@@ -76,7 +72,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
             )
         )
 
-        WalletConnectClient.respond(response) { error -> Log.d("kobe", "sending response error: $error") }
+        WalletConnectClient.respond(response) { error -> Log.d("Error", "sending response error: $error") }
     }
 
     fun sessionUpdate(session: WalletConnect.Model.SettledSession) {
@@ -85,7 +81,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
             sessionState = WalletConnect.Model.SessionState(accounts = listOf("eip155:42:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62")) //kovan
         )
 
-        WalletConnectClient.update(update) { error -> Log.d("kobe", "sending update error: $error") }
+        WalletConnectClient.update(update) { error -> Log.d("Error", "sending update error: $error") }
     }
 
     fun sessionUpgrade(session: WalletConnect.Model.SettledSession) {
@@ -95,81 +91,64 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         )
 
         val upgrade = WalletConnect.Params.Upgrade(topic = session.topic, permissions = permissions)
-        WalletConnectClient.upgrade(upgrade) { error -> Log.d("kobe", "sending upgrade error: $error") }
+        WalletConnectClient.upgrade(upgrade) { error -> Log.d("Error", "sending upgrade error: $error") }
     }
 
     fun sessionPing(session: WalletConnect.Model.SettledSession) {
         val ping = WalletConnect.Params.Ping(session.topic)
         WalletConnectClient.ping(ping, object : WalletConnect.Listeners.SessionPing {
             override fun onSuccess(topic: String) {
-                Log.d("kobe", "ping: $topic")
+                Log.d("On ping", "ping: $topic")
             }
 
             override fun onError(error: Throwable) {
-                Log.d("kobe", "Ping error")
+                Log.d("Ping error", "Ping error")
             }
         })
     }
 
     override fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal) {
-        viewModelScope.launch {
-            this@WalletViewModel.proposal = sessionProposal
-            _eventFlow.emit(ShowSessionProposalDialog(this@WalletViewModel.proposal))
-        }
+        this@WalletViewModel.proposal = sessionProposal
+        _eventFlow.postValue(ShowSessionProposalDialog(this@WalletViewModel.proposal))
     }
 
     override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {
-        viewModelScope.launch {
-            val session = WalletConnectClient.getListOfSettledSessions().find { session -> session.topic == sessionRequest.topic }!!
-            _eventFlow.emit(ShowSessionRequestDialog(sessionRequest, session))
-        }
+        val session = WalletConnectClient.getListOfSettledSessions().find { session -> session.topic == sessionRequest.topic }!!
+        _eventFlow.postValue(ShowSessionRequestDialog(sessionRequest, session))
     }
 
     override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {
-        viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())) }
+        _eventFlow.postValue(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions()))
     }
 
     override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {
-        //TODO handle session notification
+        //session notification
     }
 
     override fun onPairingSettledResponse(response: WalletConnect.Model.SettledPairingResponse) {
-        when (response) {
-            is WalletConnect.Model.SettledPairingResponse.Result -> Log.e("kobe", "Pairing settlement success: ${response.topic}")
-            is WalletConnect.Model.SettledPairingResponse.Error -> Log.e("kobe", "Pairing settlement error: ${response.errorMessage}")
-        }
+        //pairing settlement
     }
 
     override fun onSessionSettleResponse(response: WalletConnect.Model.SettledSessionResponse) {
         when (response) {
             is WalletConnect.Model.SettledSessionResponse.Result -> {
-                viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())) }
+                _eventFlow.postValue(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions()))
             }
-            is WalletConnect.Model.SettledSessionResponse.Error -> Log.e("kobe", "Settled session error: ${response.errorMessage}")
+            is WalletConnect.Model.SettledSessionResponse.Error -> Log.e("Error", "Settled session error: ${response.errorMessage}")
         }
     }
 
     override fun onSessionUpgradeResponse(response: WalletConnect.Model.SessionUpgradeResponse) {
         when (response) {
-            is WalletConnect.Model.SessionUpgradeResponse.Result -> {
-                Log.e("kobe", "Session Upgrade result SUCCESS")
-
-                viewModelScope.launch {
-                    _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions(), "Successful session upgrade"))
-                }
-            }
-            is WalletConnect.Model.SessionUpgradeResponse.Error -> Log.e("kobe", "Session Upgrade error: ${response.errorMessage}")
+            is WalletConnect.Model.SessionUpgradeResponse.Result -> _eventFlow.postValue(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions()))
+            is WalletConnect.Model.SessionUpgradeResponse.Error -> Log.e("Error", "Session Upgrade error: ${response.errorMessage}")
         }
     }
 
     override fun onSessionUpdateResponse(response: WalletConnect.Model.SessionUpdateResponse) {
         when (response) {
-            is WalletConnect.Model.SessionUpdateResponse.Result -> {
-                viewModelScope.launch {
-                    _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions(), "Successful session update"))
-                }
-            }
-            is WalletConnect.Model.SessionUpdateResponse.Error -> Log.e("kobe", "Session Update error: ${response.errorMessage}")
+            is WalletConnect.Model.SessionUpdateResponse.Result -> _eventFlow.postValue(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions()))
+            is WalletConnect.Model.SessionUpdateResponse.Error -> Log.e("Error", "Session Update error: ${response.errorMessage}")
         }
     }
 }

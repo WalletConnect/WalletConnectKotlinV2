@@ -49,8 +49,8 @@ internal class EngineInteractor(
 ) {
     private lateinit var sessionPermissions: EngineDO.SessionPermissions
 
-    private val _sequenceEvent: MutableStateFlow<SequenceLifecycle> = MutableStateFlow(EngineDO.Default)
-    val sequenceEvent: StateFlow<SequenceLifecycle> = _sequenceEvent
+    private val _sequenceEvent: MutableSharedFlow<SequenceLifecycle> = MutableSharedFlow()
+    val sequenceEvent: SharedFlow<SequenceLifecycle> = _sequenceEvent
 
     init {
         resubscribeToSettledSequences()
@@ -480,7 +480,7 @@ internal class EngineInteractor(
         crypto.setEncryptionKeys(sharedKey as SharedKey, publicKey as PublicKey, proposal.topic)
 
         relayer.respondWithSuccess(request)
-        _sequenceEvent.value = payloadParams.toEngineDOSessionProposal()
+        scope.launch { _sequenceEvent.emit(payloadParams.toEngineDOSessionProposal()) }
     }
 
     private fun onPairingApprove(request: WCRequestVO, params: PairingParamsVO.ApproveParams) {
@@ -511,7 +511,7 @@ internal class EngineInteractor(
 
         relayer.respondWithSuccess(request)
         proposeSession(sessionPermissions, settledTopic.value)
-        _sequenceEvent.value = settledPairing.toEngineDOSettledPairing()
+        scope.launch { _sequenceEvent.emit(settledPairing.toEngineDOSettledPairing()) }
     }
 
     private fun onPairingDelete(request: WCRequestVO, params: PairingParamsVO.DeleteParams) {
@@ -523,7 +523,7 @@ internal class EngineInteractor(
         crypto.removeKeys(request.topic.value)
         relayer.unsubscribe(request.topic)
         sequenceStorageRepository.deletePairing(request.topic)
-        _sequenceEvent.value = EngineDO.DeletedPairing(request.topic.value, params.reason.message)
+        scope.launch { _sequenceEvent.emit(EngineDO.DeletedPairing(request.topic.value, params.reason.message)) }
     }
 
     private fun onPairingUpdate(request: WCRequestVO, params: PairingParamsVO.UpdateParams) {
@@ -545,7 +545,7 @@ internal class EngineInteractor(
 
         sequenceStorageRepository.updateAcknowledgedPairingMetadata(params.state.metadata, pairing.topic)
         relayer.respondWithSuccess(request)
-        _sequenceEvent.value = EngineDO.PairingUpdate(request.topic, params.state.metadata.toEngineDOMetaData())
+        scope.launch { _sequenceEvent.emit(EngineDO.PairingUpdate(request.topic, params.state.metadata.toEngineDOMetaData())) }
     }
 
     private fun onSessionApprove(request: WCRequestVO, params: SessionParamsVO.ApprovalParams) {
@@ -575,7 +575,7 @@ internal class EngineInteractor(
         relayer.unsubscribe(pendingSession.topic)
 
         relayer.respondWithSuccess(request)
-        _sequenceEvent.value = pendingSession.toSessionApproved(params, settledTopic)
+        scope.launch { _sequenceEvent.emit(pendingSession.toSessionApproved(params, settledTopic)) }
     }
 
     private fun onSessionReject(request: WCRequestVO, params: SessionParamsVO.RejectParams) {
@@ -587,7 +587,7 @@ internal class EngineInteractor(
         sequenceStorageRepository.deleteSession(request.topic)
         relayer.unsubscribe(request.topic)
         relayer.respondWithSuccess(request)
-        _sequenceEvent.value = EngineDO.SessionRejected(request.topic.value, params.reason.message)
+        scope.launch { _sequenceEvent.emit(EngineDO.SessionRejected(request.topic.value, params.reason.message)) }
     }
 
     private fun onSessionDelete(request: WCRequestVO, params: SessionParamsVO.DeleteParams) {
@@ -600,7 +600,7 @@ internal class EngineInteractor(
         sequenceStorageRepository.deleteSession(request.topic)
         relayer.unsubscribe(request.topic)
         relayer.respondWithSuccess(request)
-        _sequenceEvent.value = params.toEngineDoDeleteSession(request.topic)
+        scope.launch { _sequenceEvent.emit(params.toEngineDoDeleteSession(request.topic)) }
     }
 
     private fun onSessionPayload(request: WCRequestVO, params: SessionParamsVO.SessionPayloadParams) {
@@ -620,8 +620,7 @@ internal class EngineInteractor(
             relayer.respondWithError(request, PeerError(Error.UnauthorizedJsonRpcMethod(method)))
             return
         }
-
-        _sequenceEvent.value = params.toEngineDOSessionRequest(request)
+        scope.launch { _sequenceEvent.emit(params.toEngineDOSessionRequest(request)) }
     }
 
     private fun onSessionUpdate(request: WCRequestVO, params: SessionParamsVO.UpdateParams) {
@@ -643,7 +642,7 @@ internal class EngineInteractor(
 
         sequenceStorageRepository.updateSessionWithAccounts(session.topic, params.state.accounts)
         relayer.respondWithSuccess(request)
-        _sequenceEvent.value = EngineDO.SessionUpdate(request.topic, params.state.accounts)
+        scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdate(request.topic, params.state.accounts)) }
     }
 
     private fun onSessionUpgrade(request: WCRequestVO, params: SessionParamsVO.UpgradeParams) {
@@ -671,7 +670,7 @@ internal class EngineInteractor(
 
         val chainsUnion = session.chains.union(chains).toList()
         val methodsUnion = session.methods.union(methods).toList()
-        _sequenceEvent.value = EngineDO.SessionUpgrade(session.topic, chainsUnion, methodsUnion)
+        scope.launch { _sequenceEvent.emit(EngineDO.SessionUpgrade(session.topic, chainsUnion, methodsUnion)) }
     }
 
     private fun onSessionNotification(request: WCRequestVO, params: SessionParamsVO.NotificationParams) {
@@ -692,7 +691,7 @@ internal class EngineInteractor(
         }
 
         relayer.respondWithSuccess(request)
-        _sequenceEvent.value = params.toEngineDoSessionNotification(request.topic)
+        scope.launch { _sequenceEvent.emit(params.toEngineDoSessionNotification(request.topic)) }
     }
 
     private fun onPing(request: WCRequestVO) {
@@ -734,12 +733,12 @@ internal class EngineInteractor(
                 sequenceStorageRepository.updatePreSettledPairingToAcknowledged(settledPairing.copy(status = SequenceStatus.ACKNOWLEDGED))
                 relayer.unsubscribe(pendingTopic)
                 sequenceStorageRepository.deletePairing(pendingTopic)
-                _sequenceEvent.value = EngineDO.SettledPairingResponse.Result(settledPairing.topic)
+                scope.launch { _sequenceEvent.emit(EngineDO.SettledPairingResponse.Result(settledPairing.topic)) }
                 pairingUpdate(settledPairing)
             }
             is JsonRpcResponseVO.JsonRpcError -> {
                 Logger.log("Pairing approval error response received: ${result.error}")
-                _sequenceEvent.value = EngineDO.SettledPairingResponse.Error(result.errorMessage)
+                scope.launch { _sequenceEvent.emit(EngineDO.SettledPairingResponse.Error(result.errorMessage)) }
             }
         }
     }
@@ -794,9 +793,12 @@ internal class EngineInteractor(
                 sequenceStorageRepository.deleteSession(pendingTopic)
                 crypto.removeKeys(pendingTopic.value)
                 sequenceStorageRepository.updatePreSettledSessionToAcknowledged(settledSession.copy(status = SequenceStatus.ACKNOWLEDGED))
-                Logger.error("kobe; settled session: $settledSession")
-                _sequenceEvent.value =
-                    EngineDO.SettledSessionResponse.Result(settledSession.toEngineDOSettledSessionVO(settledTopic, settledSession.expiry))
+                val expiry = settledSession.expiry
+                scope.launch {
+                    _sequenceEvent.emit(
+                        EngineDO.SettledSessionResponse.Result(settledSession.toEngineDOSettledSessionVO(settledTopic, expiry))
+                    )
+                }
             }
             is JsonRpcResponseVO.JsonRpcError -> {
                 Logger.error("Session approval error response received: ${result.error}")
@@ -806,7 +808,7 @@ internal class EngineInteractor(
                 crypto.removeKeys(settledTopic.value)
                 sequenceStorageRepository.deleteSession(settledTopic)
                 sequenceStorageRepository.deleteSession(pendingTopic)
-                _sequenceEvent.value = EngineDO.SettledSessionResponse.Error(result.errorMessage)
+                scope.launch { _sequenceEvent.emit(EngineDO.SettledSessionResponse.Error(result.errorMessage)) }
             }
         }
     }
@@ -818,11 +820,11 @@ internal class EngineInteractor(
         when (val result = response.result) {
             is JsonRpcResponseVO.JsonRpcResult -> {
                 Logger.log("Session upgrade response received")
-                _sequenceEvent.value = EngineDO.SessionUpgradeResponse.Result(session.topic, session.chains, session.methods)
+                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpgradeResponse.Result(session.topic, session.chains, session.methods)) }
             }
             is JsonRpcResponseVO.JsonRpcError -> {
                 Logger.error("Peer failed to upgrade session: ${result.error}")
-                _sequenceEvent.value = EngineDO.SessionUpgradeResponse.Error(result.errorMessage)
+                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpgradeResponse.Error(result.errorMessage)) }
             }
         }
     }
@@ -834,11 +836,11 @@ internal class EngineInteractor(
         when (val result = response.result) {
             is JsonRpcResponseVO.JsonRpcResult -> {
                 Logger.log("Session update response received")
-                _sequenceEvent.value = EngineDO.SessionUpdateResponse.Result(session.topic, session.accounts)
+                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateResponse.Result(session.topic, session.accounts)) }
             }
             is JsonRpcResponseVO.JsonRpcError -> {
                 Logger.error("Peer failed to update session: ${result.error}")
-                _sequenceEvent.value = EngineDO.SessionUpdateResponse.Error(result.errorMessage)
+                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateResponse.Error(result.errorMessage)) }
             }
         }
     }
@@ -848,7 +850,8 @@ internal class EngineInteractor(
             is JsonRpcResponseVO.JsonRpcResult -> response.result.toEngineJsonRpcResult()
             is JsonRpcResponseVO.JsonRpcError -> response.result.toEngineJsonRpcError()
         }
-        _sequenceEvent.value = EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, result)
+
+        scope.launch { _sequenceEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, result)) }
     }
 
     private fun resubscribeToSettledSequences() {

@@ -59,7 +59,7 @@ internal class JsonRpcHistory(
     private fun mapToJsonRpc(
         requestId: Long,
         topic: String,
-        method: String?,
+        method: String,
         body: String,
         jsonRpcStatus: JsonRpcStatus,
         controllerType: ControllerType
