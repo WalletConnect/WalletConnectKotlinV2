@@ -326,8 +326,7 @@ internal class EngineInteractor(
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        relayer.publishJsonRpcResponse(
-            TopicVO(topic), jsonRpcResponse,
+        relayer.publishJsonRpcResponse(TopicVO(topic), jsonRpcResponse,
             { Logger.log("Session payload sent successfully") },
             { error ->
                 Logger.error("Sending session payload response error: $error")
@@ -503,8 +502,8 @@ internal class EngineInteractor(
         }
 
         relayer.respondWithSuccess(request)
-        proposeSession(sessionPermissions, settledTopic.value)
         scope.launch { _sequenceEvent.emit(settledPairing.toEngineDOSettledPairing()) }
+        proposeSession(sessionPermissions, settledTopic.value)
     }
 
     private fun onPairingDelete(request: WCRequestVO, params: PairingParamsVO.DeleteParams) {

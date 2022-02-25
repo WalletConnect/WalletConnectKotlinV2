@@ -7,23 +7,28 @@ CREATE TABLE JsonRpcHistoryDao(
   topic TEXT NOT NULL,
   method TEXT NOT NULL,
   body TEXT NOT NULL,
-  status TEXT AS JsonRpcStatus NOT NULL,
+  response TEXT AS String,
   controller_type TEXT AS ControllerType NOT NULL
 );
 
 insertJsonRpcHistory:
-INSERT OR IGNORE INTO JsonRpcHistoryDao (request_id, topic, method, body, status, controller_type)
-VALUES (?, ?, ?, ?, ?, ?);
+INSERT OR IGNORE INTO JsonRpcHistoryDao (request_id, topic, method, body, controller_type)
+VALUES (?, ?, ?, ?, ?);
 
 updateJsonRpcHistory:
 UPDATE JsonRpcHistoryDao
-SET status = ?
+SET response = ?
 WHERE request_id = ?;
 
 getJsonRpcHistoryRecord:
-SELECT request_id, topic, method, body, status, controller_type
+SELECT request_id, topic, method, body, response, controller_type
 FROM JsonRpcHistoryDao
 WHERE  request_id = ?;
+
+getJsonRpcRequestsDaos:
+SELECT request_id, topic, method, body, response, controller_type
+FROM JsonRpcHistoryDao
+WHERE topic = ?;
 
 doesJsonRpcNotExist:
 SELECT NOT EXISTS (
@@ -38,9 +43,4 @@ SELECT last_insert_rowid();
 
 deleteJsonRpcHistory:
 DELETE FROM JsonRpcHistoryDao
-WHERE topic = ?;
-
-getJsonRpcRequestsDaos:
-SELECT request_id, topic, method, body, status, controller_type
-FROM JsonRpcHistoryDao
 WHERE topic = ?;

@@ -24,7 +24,7 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
         //TODO: Improve the dApp sample app. Code below is only for test purposes!
 //        val connectParams = WalletConnect.Params.Connect(
 //            permissions = WalletConnect.Model.SessionPermissions(
-//                WalletConnect.Model.Blockchain(listOf("eip155:69")),
+//                WalletConnect.Model.Blockchain(listOf("eip155:42")),
 //                WalletConnect.Model.Jsonrpc(listOf("personal_sign"))
 //            ), pairingTopic = null
 //        )
@@ -40,34 +40,26 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
     }
 
     override fun onPairingSettled(settledPairing: WalletConnect.Model.SettledPairing) {
-
     }
 
     override fun onPairingUpdated(pairing: WalletConnect.Model.PairingUpdate) {
-
     }
 
     override fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession) {
-
-    }
-
-    override fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession) {
-
-    }
-
-    override fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdatedSession) {
-
-    }
-
-    override fun onSessionUpgrade(upgradedSession: WalletConnect.Model.UpgradedSession) {
-
-    }
-
-    override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {
-
     }
 
     override fun onSessionPayloadResponse(response: WalletConnect.Model.SessionPayloadResponse) {
+    }
 
+    override fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession) {
+    }
+
+    override fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdatedSession) {
+    }
+
+    override fun onSessionUpgrade(upgradedSession: WalletConnect.Model.UpgradedSession) {
+    }
+
+    override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {
     }
 }

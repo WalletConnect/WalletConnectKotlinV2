@@ -44,5 +44,4 @@ internal fun PostSettlementSessionVO.SessionPayload.toPendingRequestVO(entry: Js
         params.request.method,
         params.chainId,
         params.request.params.toString(),
-        entry.jsonRpcStatus
     )
