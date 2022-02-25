@@ -12,10 +12,6 @@ object WalletConnect {
         interface SessionPing : Listeners {
             fun onSuccess(topic: String)
         }
-
-        interface Notification : Listeners {
-            fun onSuccess(topic: String)
-        }
     }
 
     sealed class Model {

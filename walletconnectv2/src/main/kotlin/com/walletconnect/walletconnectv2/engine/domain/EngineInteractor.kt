@@ -382,7 +382,7 @@ internal class EngineInteractor(
         val sessionNotification = PostSettlementSessionVO.SessionNotification(id = generateId(), params = notificationParams)
 
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionNotification,
-            onSuccess = { Logger.error("Notify sent successfully") },
+            onSuccess = { Logger.log("Notify sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending notify error: $error")
                 onFailure(error)
