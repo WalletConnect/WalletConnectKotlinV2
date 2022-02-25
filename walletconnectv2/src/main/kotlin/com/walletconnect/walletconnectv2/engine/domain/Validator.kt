@@ -43,8 +43,8 @@ internal object Validator {
     }
 
     internal fun validateChainIdAuthorization(chainId: String?, chains: List<String>, onInvalidChainId: (String) -> Unit) {
-        if (chainId != null) {
-            if (!chains.contains(chainId)) onInvalidChainId(UNAUTHORIZED_CHAIN_ID_MESSAGE)
+        if (chainId != null && !chains.contains(chainId)) {
+            onInvalidChainId(UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
     }
 

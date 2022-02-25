@@ -9,7 +9,9 @@ import java.net.URI
 object WalletConnect {
 
     sealed interface Listeners {
-        fun onError(error: Throwable)
+        fun onError(wcException: Model.WCException)
+
+        interface Connect: Listeners
 
         interface Pairing : Listeners {
             fun onSuccess(settledPairing: Model.SettledPairing)
@@ -19,8 +21,10 @@ object WalletConnect {
             fun onSuccess(rejectedSession: Model.RejectedSession)
         }
 
-        interface SessionDelete : Listeners {
-            fun onSuccess(deletedSession: Model.DeletedSession)
+        interface SessionDelete {
+            fun onSuccess(deletedSessionSuccess: Model.DeletedSession.Success)
+
+            fun onError(deletedSessionError: Model.DeletedSession.Error)
         }
 
         interface SessionApprove : Listeners {
@@ -37,16 +41,20 @@ object WalletConnect {
             fun onSuccess(upgradedSession: Model.UpgradedSession)
         }
 
-        interface SessionPing : Listeners {
-            fun onSuccess(topic: String)
+        interface SessionPing {
+            fun onSuccess(pingSuccess: Model.Ping.Success)
+
+            fun onError(pingError: Model.Ping.Error)
         }
 
         interface Notification : Listeners {
             fun onSuccess(topic: String)
         }
 
-        interface SessionRequest : Listeners {
+        interface SessionRequest {
             fun onSuccess(response: Model.JsonRpcResponse)
+
+            fun onError(requestError: Model.JsonRpcResponse.Error)
         }
     }
 
@@ -114,17 +122,23 @@ object WalletConnect {
             val accounts: List<String>
         ) : Model()
 
-        data class DeletedSession(val topic: String, val reason: String) : Model()
+        sealed class DeletedSession: Model() {
+
+            data class Success(val topic: String, val reason: String): DeletedSession()
+
+            data class Error(val error: Throwable): DeletedSession()
+        }
 
         data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : Model()
 
-        data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: Jsonrpc, val notification: Notifications? = null) : Model()
+        data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: Jsonrpc, val notification: Notifications? = null) : Model() {
 
-        data class Blockchain(val chains: List<String>) : Model()
+            data class Blockchain(val chains: List<String>) : Model()
 
-        data class Jsonrpc(val methods: List<String>) : Model()
+            data class Jsonrpc(val methods: List<String>) : Model()
 
-        data class Notifications(val types: List<String>)
+            data class Notifications(val types: List<String>)
+        }
 
         data class UpdatedSession(val topic: String, val accounts: List<String>) : Model()
 
@@ -150,13 +164,16 @@ object WalletConnect {
 
             data class JsonRpcError(
                 override val id: Long,
-                val error: Error
-            ) : JsonRpcResponse()
+                val errorDetails: Details
+            ) : JsonRpcResponse() {
 
-            data class Error(
-                val code: Int,
-                val message: String
-            )
+                data class Details(
+                    val code: Int,
+                    val message: String
+                )
+            }
+            
+            data class Error(val error: Throwable): Model()
         }
 
         data class AppMetaData(
@@ -181,6 +198,17 @@ object WalletConnect {
                 val controllerType: ControllerType,
             )
         }
+
+        data class PingSuccess(val topic: String): Model()
+
+        sealed class Ping: Model() {
+
+            data class Success(val topic: String): Ping()
+
+            data class Error(val error: Throwable): Ping()
+        }
+
+        data class WCException(val error: Throwable): Model()
     }
 
     sealed class Params {

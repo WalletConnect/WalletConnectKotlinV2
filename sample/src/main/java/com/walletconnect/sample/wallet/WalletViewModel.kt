@@ -28,7 +28,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
                 //Settled pairing
             }
 
-            override fun onError(error: Throwable) {
+            override fun onError(wcException: WalletConnect.Model.WCException) {
                 //Pairing approval error
             }
         })
@@ -43,7 +43,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
                 viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())) }
             }
 
-            override fun onError(error: Throwable) {
+            override fun onError(wcException: WalletConnect.Model.WCException) {
                 //Approve session error
             }
         })
@@ -59,7 +59,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
                 viewModelScope.launch { _eventFlow.emit(RejectSession) }
             }
 
-            override fun onError(error: Throwable) {
+            override fun onError(wcException: WalletConnect.Model.WCException) {
                 //Reject proposal error
             }
         })
@@ -73,11 +73,11 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         )
 
         WalletConnectClient.disconnect(disconnect, object : WalletConnect.Listeners.SessionDelete {
-            override fun onSuccess(deletedSession: WalletConnect.Model.DeletedSession) {
+            override fun onSuccess(deletedSessionSuccess: WalletConnect.Model.DeletedSession.Success) {
                 viewModelScope.launch { _eventFlow.emit(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())) }
             }
 
-            override fun onError(error: Throwable) {
+            override fun onError(deletedSessionError: WalletConnect.Model.DeletedSession.Error) {
                 //Session disconnect error
             }
         })
@@ -93,7 +93,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         )
 
         WalletConnectClient.respond(response, object : WalletConnect.Listeners.SessionPayload {
-            override fun onError(error: Throwable) {
+            override fun onError(wcException: WalletConnect.Model.WCException) {
                 //Error
             }
         })
@@ -104,12 +104,12 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
             sessionTopic = sessionRequest.topic,
             jsonRpcResponse = WalletConnect.Model.JsonRpcResponse.JsonRpcError(
                 sessionRequest.request.id,
-                WalletConnect.Model.JsonRpcResponse.Error(500, "Kotlin Wallet Error")
+                WalletConnect.Model.JsonRpcResponse.JsonRpcError.Details(500, "Kotlin Wallet Error")
             )
         )
 
         WalletConnectClient.respond(response, object : WalletConnect.Listeners.SessionPayload {
-            override fun onError(error: Throwable) {
+            override fun onError(wcException: WalletConnect.Model.WCException) {
                 //Error
             }
         })
@@ -128,7 +128,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
                 }
             }
 
-            override fun onError(error: Throwable) {
+            override fun onError(wcException: WalletConnect.Model.WCException) {
                 //Error
             }
         })
@@ -137,8 +137,8 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     fun sessionUpgrade(session: WalletConnect.Model.SettledSession) {
         val permissions =
             WalletConnect.Model.SessionPermissions(
-                blockchain = WalletConnect.Model.Blockchain(chains = listOf("eip155:80001")),
-                jsonRpc = WalletConnect.Model.Jsonrpc(listOf("eth_sign"))
+                blockchain = WalletConnect.Model.SessionPermissions.Blockchain(chains = listOf("eip155:80001")),
+                jsonRpc = WalletConnect.Model.SessionPermissions.Jsonrpc(listOf("eth_sign"))
             )
         val upgrade = WalletConnect.Params.Upgrade(topic = session.topic, permissions = permissions)
 
@@ -149,7 +149,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
                 }
             }
 
-            override fun onError(error: Throwable) {
+            override fun onError(wcException: WalletConnect.Model.WCException) {
                 //Error
             }
         })
@@ -159,13 +159,13 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         val ping = WalletConnect.Params.Ping(session.topic)
 
         WalletConnectClient.ping(ping, object : WalletConnect.Listeners.SessionPing {
-            override fun onSuccess(topic: String) {
+            override fun onSuccess(pingSuccess: WalletConnect.Model.Ping.Success) {
                 viewModelScope.launch {
                     _eventFlow.emit(PingSuccess)
                 }
             }
 
-            override fun onError(error: Throwable) {
+            override fun onError(pingError: WalletConnect.Model.Ping.Error) {
                 //Error
             }
         })

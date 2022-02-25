@@ -69,7 +69,7 @@ internal fun WalletConnect.Model.JsonRpcResponse.JsonRpcResult.toRpcResultVO(): 
 
 @JvmSynthetic
 internal fun WalletConnect.Model.JsonRpcResponse.JsonRpcError.toRpcErrorVO(): JsonRpcResponseVO.JsonRpcError =
-    JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(error.code, error.message))
+    JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(errorDetails.code, errorDetails.message))
 
 @JvmSynthetic
 internal fun WalletConnect.Model.SessionState.toEngineSessionState(): EngineDO.SessionState = EngineDO.SessionState(accounts)
@@ -79,7 +79,7 @@ internal fun WalletConnect.Model.Notification.toEngineNotification(): EngineDO.N
 
 @JvmSynthetic
 internal fun EngineDO.SessionDelete.toClientDeletedSession(): WalletConnect.Model.DeletedSession =
-    WalletConnect.Model.DeletedSession(topic, reason)
+    WalletConnect.Model.DeletedSession.Success(topic, reason)
 
 @JvmSynthetic
 internal fun EngineDO.SessionNotification.toClientSessionNotification(): WalletConnect.Model.SessionNotification =
@@ -107,7 +107,7 @@ internal fun WalletConnect.Model.SessionPermissions.toEngineSessionPermissions()
 
 @JvmSynthetic
 internal fun EngineDO.SessionPermissions.toClientPerms(): WalletConnect.Model.SessionPermissions =
-    WalletConnect.Model.SessionPermissions(WalletConnect.Model.Blockchain(blockchain.chains), WalletConnect.Model.Jsonrpc(jsonRpc.methods))
+    WalletConnect.Model.SessionPermissions(WalletConnect.Model.SessionPermissions.Blockchain(blockchain.chains), WalletConnect.Model.SessionPermissions.Jsonrpc(jsonRpc.methods))
 
 @JvmSynthetic
 internal fun WalletConnect.Model.AppMetaData.toEngineAppMetaData() = EngineDO.AppMetaData(name, description, url, icons)
@@ -138,7 +138,7 @@ internal fun EngineDO.SessionUpdate.toClientSessionsUpdate(): WalletConnect.Mode
 internal fun EngineDO.SessionUpgrade.toClientSessionsUpgrade(): WalletConnect.Model.UpgradedSession =
     WalletConnect.Model.UpgradedSession(
         topic.value,
-        WalletConnect.Model.SessionPermissions(WalletConnect.Model.Blockchain(chains), WalletConnect.Model.Jsonrpc(methods))
+        WalletConnect.Model.SessionPermissions(WalletConnect.Model.SessionPermissions.Blockchain(chains), WalletConnect.Model.SessionPermissions.Jsonrpc(methods))
     )
 
 @JvmSynthetic

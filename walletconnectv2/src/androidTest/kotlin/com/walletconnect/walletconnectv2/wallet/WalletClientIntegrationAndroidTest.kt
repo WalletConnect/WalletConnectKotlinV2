@@ -150,8 +150,8 @@ class WalletConnectClientIntegrationAndroidTest {
                         override fun onSuccess(settledSession: WalletConnect.Model.SettledSession) {
 
                             val permissions = WalletConnect.Model.SessionPermissions(
-                                blockchain = WalletConnect.Model.Blockchain(chains = listOf("eip155:80001")),
-                                jsonRpc = WalletConnect.Model.Jsonrpc(listOf("eth_sign"))
+                                blockchain = WalletConnect.Model.SessionPermissions.Blockchain(chains = listOf("eip155:80001")),
+                                jsonRpc = WalletConnect.Model.SessionPermissions.Jsonrpc(listOf("eth_sign"))
                             )
                             val upgradeParams = WalletConnect.Params.Upgrade(settledSession.topic, permissions)
                             WalletConnectClient.upgrade(upgradeParams, object : WalletConnect.Listeners.SessionUpgrade {

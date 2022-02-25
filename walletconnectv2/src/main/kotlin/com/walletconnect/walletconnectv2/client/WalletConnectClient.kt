@@ -75,13 +75,13 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun connect(connect: WalletConnect.Params.Connect, onFailure: (Throwable) -> Unit = {}): String? {
+    fun connect(connect: WalletConnect.Params.Connect, connecting: WalletConnect.Listeners.Connect? = null): String? {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
         return engineInteractor.proposeSequence(connect.permissions.toEngineSessionPermissions(), connect.pairingTopic)
-        { error -> onFailure(error) }
+        { error -> connecting?.onError(WalletConnect.Model.WCException(error)) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
@@ -92,7 +92,7 @@ object WalletConnectClient {
 
         engineInteractor.pair(pair.uri,
             { topic -> pairing?.onSuccess(WalletConnect.Model.SettledPairing(topic)) },
-            { error -> pairing?.onError(error) })
+            { error -> pairing?.onError(WalletConnect.Model.WCException(error)) })
     }
 
     @Throws(IllegalStateException::class)
@@ -104,7 +104,7 @@ object WalletConnectClient {
         engineInteractor.approve(
             approve.proposal.toEngineSessionProposal(approve.accounts),
             { settledSession -> sessionApprove?.onSuccess(settledSession.toClientSettledSession()) },
-            { error -> sessionApprove?.onError(error) })
+            { error -> sessionApprove?.onError(WalletConnect.Model.WCException(error)) })
     }
 
     @Throws(IllegalStateException::class)
@@ -116,7 +116,7 @@ object WalletConnectClient {
         engineInteractor.reject(
             reject.rejectionReason, reject.proposalTopic,
             { (topic, reason) -> sessionReject?.onSuccess(WalletConnect.Model.RejectedSession(topic, reason)) },
-            { error -> sessionReject?.onError(error) })
+            { error -> sessionReject?.onError(WalletConnect.Model.WCException(error)) })
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
@@ -126,7 +126,7 @@ object WalletConnectClient {
         }
 
         engineInteractor.respondSessionPayload(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponseVO())
-        { error -> sessionPayload?.onError(error) }
+        { error -> sessionPayload?.onError(WalletConnect.Model.WCException(error)) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
@@ -137,7 +137,7 @@ object WalletConnectClient {
 
         engineInteractor.sessionRequest(request.toEngineDORequest(),
             { jsonRpcResult -> sessionRequest?.onSuccess(jsonRpcResult.toClientJsonRpcResult()) },
-            { error -> sessionRequest?.onError(error) })
+            { error -> sessionRequest?.onError(WalletConnect.Model.JsonRpcResponse.Error(error)) })
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
@@ -149,7 +149,7 @@ object WalletConnectClient {
         engineInteractor.upgrade(
             upgrade.topic, upgrade.permissions.toEngineSessionPermissions(),
             { (topic, permissions) -> sessionUpgrade?.onSuccess(WalletConnect.Model.UpgradedSession(topic, permissions.toClientPerms())) },
-            { error -> sessionUpgrade?.onError(error) })
+            { error -> sessionUpgrade?.onError(WalletConnect.Model.WCException(error)) })
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
@@ -161,7 +161,7 @@ object WalletConnectClient {
         engineInteractor.update(
             update.sessionTopic, update.sessionState.toEngineSessionState(),
             { (topic, accounts) -> sessionUpdate?.onSuccess(WalletConnect.Model.UpdatedSession(topic, accounts)) },
-            { error -> sessionUpdate?.onError(error) })
+            { error -> sessionUpdate?.onError(WalletConnect.Model.WCException(error)) })
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
@@ -170,7 +170,9 @@ object WalletConnectClient {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.ping(ping.topic, { topic -> sessionPing?.onSuccess(topic) }, { error -> sessionPing?.onError(error) })
+        engineInteractor.ping(ping.topic,
+            { topic -> sessionPing?.onSuccess(WalletConnect.Model.Ping.Success(topic)) },
+            { error -> sessionPing?.onError(WalletConnect.Model.Ping.Error(error)) })
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
@@ -181,7 +183,7 @@ object WalletConnectClient {
 
         engineInteractor.notify(notify.topic, notify.notification.toEngineNotification(),
             { topic -> notificationListener?.onSuccess(topic) },
-            { error -> notificationListener?.onError(error) })
+            { error -> notificationListener?.onError(WalletConnect.Model.WCException(error)) })
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
@@ -191,8 +193,8 @@ object WalletConnectClient {
         }
 
         engineInteractor.disconnect(disconnect.sessionTopic, disconnect.reason, disconnect.reasonCode,
-            { (topic, reason) -> listener?.onSuccess(WalletConnect.Model.DeletedSession(topic, reason)) },
-            { error -> listener?.onError(error) })
+            { (topic, reason) -> listener?.onSuccess(WalletConnect.Model.DeletedSession.Success(topic, reason)) },
+            { error -> listener?.onError(WalletConnect.Model.DeletedSession.Error(error)) })
     }
 
     @Throws(IllegalStateException::class)
