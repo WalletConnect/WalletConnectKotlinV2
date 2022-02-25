@@ -185,7 +185,6 @@ internal fun List<PendingRequestVO>.mapToPendingRequests(): List<WalletConnect.M
         WalletConnect.Model.PendingRequest(
             request.requestId,
             request.topic,
-            request.jsonRpcStatus,
             request.method,
             request.chainId,
             request.params
@@ -201,4 +200,4 @@ internal fun EngineDO.JsonRpcResponse.toClientJsonRpcResponse(): WalletConnect.M
 
 @JvmSynthetic
 internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): WalletConnect.Model.SessionPayloadResponse =
-    WalletConnect.Model.SessionPayloadResponse(topic, chainId, result.toClientJsonRpcResponse())
+    WalletConnect.Model.SessionPayloadResponse(topic, chainId, method, result.toClientJsonRpcResponse())

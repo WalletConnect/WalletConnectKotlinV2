@@ -52,6 +52,7 @@ internal sealed class EngineDO {
     data class SessionPayloadResponse(
         val topic: String,
         val chainId: String?,
+        val method: String,
         val result: JsonRpcResponse
     ) : EngineDO(), SequenceLifecycle
 
@@ -108,6 +109,7 @@ internal sealed class EngineDO {
     internal data class SessionUpdate(val topic: TopicVO, val accounts: List<String>) : EngineDO(), SequenceLifecycle
     internal data class SessionUpgrade(val topic: TopicVO, val chains: List<String>, val methods: List<String>) : EngineDO(),
         SequenceLifecycle
+
     internal object Default : EngineDO(), SequenceLifecycle
 
     internal data class SettledSession(

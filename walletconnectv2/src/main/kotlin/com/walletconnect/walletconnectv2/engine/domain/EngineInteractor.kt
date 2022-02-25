@@ -308,15 +308,7 @@ internal class EngineInteractor(
                 Logger.log("Session request sent successfully")
                 scope.launch {
                     try {
-                        withTimeout(FIVE_MINUTES_TIMEOUT) {
-                            collectResponse(sessionPayload.id) { result ->
-                                cancel()
-                                result.fold(
-                                    onSuccess = {},
-                                    onFailure = { error -> onFailure(Throwable(error)) }
-                                )
-                            }
-                        }
+                        withTimeout(FIVE_MINUTES_TIMEOUT) { collectResponse(sessionPayload.id) { cancel() } }
                     } catch (e: TimeoutCancellationException) {
                         onFailure(e)
                     }
@@ -338,8 +330,8 @@ internal class EngineInteractor(
             TopicVO(topic), jsonRpcResponse,
             { Logger.log("Session payload sent successfully") },
             { error ->
-                onFailure(error)
                 Logger.error("Sending session payload response error: $error")
+                onFailure(error)
             })
     }
 
@@ -354,6 +346,7 @@ internal class EngineInteractor(
 
         relayer.publishJsonRpcRequests(TopicVO(topic), pingParams,
             onSuccess = {
+                Logger.log("Ping sent successfully")
                 scope.launch {
                     try {
                         withTimeout(THIRTY_SECONDS_TIMEOUT) {
@@ -412,7 +405,7 @@ internal class EngineInteractor(
             onFailure = { error -> Logger.error("Sending session disconnect error: $error") })
     }
 
-    private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponseVO.JsonRpcResult>) -> Unit) {
+    private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponseVO.JsonRpcResult>) -> Unit = {}) {
         relayer.peerResponse
             .filter { response -> response.result.id == id }
             .collect { response ->
@@ -850,8 +843,8 @@ internal class EngineInteractor(
             is JsonRpcResponseVO.JsonRpcResult -> response.result.toEngineJsonRpcResult()
             is JsonRpcResponseVO.JsonRpcError -> response.result.toEngineJsonRpcError()
         }
-
-        scope.launch { _sequenceEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, result)) }
+        val method = params.request.method
+        scope.launch { _sequenceEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
     }
 
     private fun resubscribeToSettledSequences() {

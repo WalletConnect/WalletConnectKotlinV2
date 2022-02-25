@@ -20,7 +20,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     }
 
     fun getPendingRequests(session: WalletConnect.Model.SettledSession) {
-        val history = WalletConnectClient.getPendingRequests(session.topic)
+        val pendingRequests = WalletConnectClient.getPendingRequests(session.topic)
     }
 
     fun pair(uri: String) {

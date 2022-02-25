@@ -2,7 +2,6 @@ package com.walletconnect.walletconnectv2.client
 
 import android.app.Application
 import android.net.Uri
-import com.walletconnect.walletconnectv2.storage.history.model.JsonRpcStatus
 import java.net.URI
 
 object WalletConnect {
@@ -131,6 +130,7 @@ object WalletConnect {
         data class SessionPayloadResponse(
             val topic: String,
             val chainId: String?,
+            val method: String,
             val result: JsonRpcResponse
         ) : Model()
 
@@ -164,7 +164,6 @@ object WalletConnect {
         data class PendingRequest(
             val requestId: Long,
             val topic: String,
-            val jsonRpcStatus: JsonRpcStatus,
             val method: String,
             val chainId: String?,
             val params: String
