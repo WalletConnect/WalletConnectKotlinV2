@@ -2,6 +2,7 @@ package com.walletconnect.sample.wallet
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -31,7 +32,7 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
         setupToolbar()
         binding.sessions.adapter = sessionAdapter
 
-        viewModel.eventFlow.observe(viewLifecycleOwner) { event ->
+        viewModel.eventFlow.observe(viewLifecycleOwner, EventObserver { event ->
             when (event) {
                 is InitSessionsList -> sessionAdapter.updateList(event.sessions)
                 is ShowSessionProposalDialog -> {
@@ -58,8 +59,9 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
                     sessionAdapter.updateList(event.sessions)
                 }
                 is RejectSession -> proposalDialog?.dismiss()
+                is Ping -> Toast.makeText(requireContext(), "Ping success", Toast.LENGTH_SHORT).show()
             }
-        }
+        })
     }
 
     private fun setupToolbar() {

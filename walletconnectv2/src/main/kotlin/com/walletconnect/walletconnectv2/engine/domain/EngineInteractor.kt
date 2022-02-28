@@ -302,13 +302,18 @@ internal class EngineInteractor(
 
         val params =
             SessionParamsVO.SessionPayloadParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
+
         val sessionPayload = PostSettlementSessionVO.SessionPayload(id = generateId(), params = params)
         relayer.publishJsonRpcRequests(TopicVO(request.topic), sessionPayload, prompt,
             onSuccess = {
                 Logger.log("Session request sent successfully")
                 scope.launch {
                     try {
-                        withTimeout(FIVE_MINUTES_TIMEOUT) { collectResponse(sessionPayload.id) { cancel() } }
+                        withTimeout(FIVE_MINUTES_TIMEOUT) {
+                            collectResponse(sessionPayload.id) {
+                                cancel()
+                            }
+                        }
                     } catch (e: TimeoutCancellationException) {
                         onFailure(e)
                     }

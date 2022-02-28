@@ -10,4 +10,6 @@ data class ShowSessionRequestDialog(
     val sessionRequest: WalletConnect.Model.SessionRequest,
     val session: WalletConnect.Model.SettledSession
 ) : WalletUiEvent()
+
+object Ping : WalletUiEvent()
 object RejectSession : WalletUiEvent()
