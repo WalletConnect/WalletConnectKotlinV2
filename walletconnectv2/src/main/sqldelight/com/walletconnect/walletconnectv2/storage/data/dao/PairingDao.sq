@@ -14,31 +14,26 @@ CREATE TABLE PairingDao (
     controller_key TEXT,
     relay_protocol TEXT NOT NULL,
     permissions TEXT AS List<String>,
-    metadata_id INTEGER
+    metadata_id INTEGER,
+    outcome_topic TEXT
 );
 
-insertPairing:
-INSERT OR IGNORE INTO PairingDao(topic, uri, expiry, status, controller_type, self_participant, relay_protocol)
-VALUES (?, ?, ?, ?, ?,    ?, ?);
+insertPendingPairing:
+INSERT OR IGNORE INTO PairingDao(topic, uri, expiry, status, controller_type, self_participant, relay_protocol, outcome_topic)
+VALUES (?, ?, ?, ?, ?,    ?, ?, ?);
+
+insertSettledPairing:
+INSERT OR IGNORE INTO PairingDao(topic, uri, expiry, status, controller_type, self_participant, peer_participant, controller_key, relay_protocol, permissions, metadata_id)
+VALUES (?, ?, ?, ?, ?,    ?, ?, ?, ?, ?, ?);
 
 getListOfPairingDaos:
 SELECT pd.topic, pd.expiry, pd.uri, pd.status, pd.controller_type, pd.self_participant, pd.peer_participant, pd.controller_key, pd.relay_protocol, pd.permissions, mdd._name, mdd.description, mdd.url, mdd.icons
 FROM PairingDao pd
     LEFT JOIN MetaDataDao mdd ON pd.metadata_id = mdd.id;
 
-updatePendingPairingToPreSettled:
-UPDATE PairingDao
-SET topic = ?, expiry = ?, status = ?, self_participant = ?, peer_participant = ?, controller_key = ?, permissions = ?
-WHERE topic = ?;
-
 updatePreSettledPairingToAcknowledged:
 UPDATE PairingDao
 SET status = ?
-WHERE topic = ?;
-
-updateProposedPairingToAcknowledged:
-UPDATE PairingDao
-SET topic = ?, expiry = ?, status = ?, self_participant = ?, peer_participant = ?, controller_key = ?, permissions = ?, relay_protocol = ?, metadata_id = ?
 WHERE topic = ?;
 
 deletePairing:
@@ -46,7 +41,7 @@ DELETE FROM PairingDao
 WHERE ? = topic;
 
 getPairingByTopic:
-SELECT topic, expiry, uri, status, controller_type, self_participant, peer_participant, controller_key, relay_protocol, permissions
+SELECT topic, expiry, uri, status, controller_type, self_participant, peer_participant, controller_key, relay_protocol, permissions, outcome_topic
 FROM PairingDao
 WHERE ? = topic;
 

@@ -8,6 +8,7 @@ import com.walletconnect.walletconnectv2.core.adapters.TopicAdapter
 import com.walletconnect.walletconnectv2.core.adapters.TtlAdapter
 import com.walletconnect.walletconnectv2.core.model.vo.*
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.after.PostSettlementPairingVO
+import com.walletconnect.walletconnectv2.core.model.vo.payload.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.relay.data.codec.AuthenticatedEncryptionCodec
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import org.junit.jupiter.api.Test

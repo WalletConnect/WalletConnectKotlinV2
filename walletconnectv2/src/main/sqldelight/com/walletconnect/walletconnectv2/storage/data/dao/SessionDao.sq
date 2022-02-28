@@ -17,36 +17,26 @@ CREATE TABLE SessionDao(
   status TEXT AS SequenceStatus NOT NULL,
   controller_type TEXT AS ControllerType NOT NULL,
   metadata_id INTEGER,
-  relay_protocol TEXT NOT NULL
+  relay_protocol TEXT NOT NULL,
+  outcome_topic TEXT
 );
 
-insertSession:
-INSERT OR IGNORE INTO SessionDao(topic, permissions_chains, permissions_methods, permissions_types, self_participant, ttl_seconds, expiry,  status, controller_type, metadata_id, relay_protocol)
-VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?);
+insertPendingSession:
+INSERT OR IGNORE INTO SessionDao(topic, permissions_chains, permissions_methods, permissions_types, self_participant, ttl_seconds, expiry,  status, controller_type, metadata_id, relay_protocol, outcome_topic)
+VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?);
+
+insertSettleSession:
+INSERT OR IGNORE INTO SessionDao(topic, permissions_chains, permissions_methods, permissions_types, self_participant, peer_participant, controller_key,  ttl_seconds, accounts, expiry,  status, controller_type, metadata_id, relay_protocol)
+VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getListOfSessionDaos:
 SELECT sd.topic, sd.permissions_chains, sd.permissions_methods, sd.permissions_types, sd.ttl_seconds, sd.accounts, sd.expiry, sd.status, sd.controller_type, mdd._name, mdd.description, mdd.url, mdd.icons, sd.self_participant, sd.peer_participant, sd.controller_key, sd.relay_protocol
 FROM SessionDao sd
     LEFT JOIN MetaDataDao mdd ON sd.metadata_id = mdd.id;
 
-updateProposedSessionToResponded:
-UPDATE OR ABORT SessionDao
-SET status = ?
-WHERE topic = ?;
-
-updateRespondedSessionToPresettled:
-UPDATE OR ABORT SessionDao
-SET topic = ?, accounts = ?, expiry = ?, status = ?, self_participant = ?, controller_key = ?, peer_participant = ?, permissions_chains = ?, permissions_methods = ?, permissions_types = ?, ttl_seconds = ?
-WHERE topic = ?;
-
 updatePreSettledSessionToAcknowledged:
 UPDATE OR ABORT SessionDao
 SET status = ?
-WHERE topic = ?;
-
-updateProposedSessionToAcknowledged:
-UPDATE OR ABORT SessionDao
-SET topic = ?, accounts = ?, expiry = ?, status = ?, self_participant = ?, controller_key = ?, peer_participant = ?, permissions_chains = ?, permissions_methods = ?, permissions_types = ?, ttl_seconds = ?, relay_protocol = ?, metadata_id =?
 WHERE topic = ?;
 
 updateSessionWithPermissions:
@@ -70,7 +60,7 @@ FROM SessionDao sd
 WHERE topic = ?;
 
 getSessionByTopic:
-SELECT sd.topic, sd.permissions_chains, sd.permissions_methods, sd.permissions_types, sd.ttl_seconds, sd.accounts, sd.expiry, sd.status, sd.controller_type, mdd._name, mdd.description, mdd.url, mdd.icons, sd.self_participant, sd.peer_participant, sd.controller_key, sd.relay_protocol
+SELECT sd.topic, sd.permissions_chains, sd.permissions_methods, sd.permissions_types, sd.ttl_seconds, sd.accounts, sd.expiry, sd.status, sd.controller_type, mdd._name, mdd.description, mdd.url, mdd.icons, sd.self_participant, sd.peer_participant, sd.controller_key, sd.relay_protocol, sd.outcome_topic
 FROM SessionDao sd
     LEFT JOIN MetaDataDao mdd ON sd.metadata_id = mdd.id
 WHERE topic = ?;

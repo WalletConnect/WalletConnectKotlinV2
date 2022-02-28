@@ -71,13 +71,20 @@ internal class SequenceStorageRepository(
                     uri = entity.uri,
                     permissions = entity.permissions,
                     relay = entity.relay_protocol,
-                    controllerType = entity.controller_type
+                    controllerType = entity.controller_type,
+                    outcomeTopic = TopicVO(entity.outcome_topic ?: String.Empty)
                 )
             }
 
     @JvmSynthetic
     fun getSessionByTopic(topic: TopicVO): SessionVO =
         sessionDaoQueries.getSessionByTopic(topic.value).executeAsOne().let { entity ->
+            val appMetaData = if (entity._name != null && entity.description != null && entity.url != null && entity.icons != null) {
+                AppMetaDataVO(entity._name, entity.description, entity.url, entity.icons)
+            } else {
+                null
+            }
+
             SessionVO(
                 topic = TopicVO(entity.topic),
                 status = entity.status,
@@ -91,58 +98,48 @@ internal class SequenceStorageRepository(
                 accounts = entity.accounts ?: emptyList(),
                 ttl = TtlVO(entity.ttl_seconds),
                 controllerType = entity.controller_type,
-                relayProtocol = entity.relay_protocol
+                relayProtocol = entity.relay_protocol,
+                outcomeTopic = TopicVO(entity.outcome_topic ?: String.Empty),
+                metaData = appMetaData
+
             )
         }
 
+    //insert: Proposed, Responded
     @JvmSynthetic
-    fun insertPendingPairing(pairing: PairingVO, controllerType: ControllerType) {
-        with(pairing) {
-            pairingDaoQueries.insertPairing(
+    fun insertPendingPairing(pendingPairing: PairingVO, controllerType: ControllerType, settledTopic: TopicVO? = null) {
+        with(pendingPairing) {
+            pairingDaoQueries.insertPendingPairing(
                 topic.value,
                 uri,
                 expiry.seconds,
                 status,
                 controllerType,
                 selfParticipant.keyAsHex,
-                relay
+                relay,
+                settledTopic?.value
             )
         }
     }
 
+    //insert: Pre-Settled, Acknowledged
     @JvmSynthetic
-    fun insertSessionProposal(session: SessionVO, appMetaData: AppMetaDataVO?, controllerType: ControllerType) {
-        val metadataId = insertMetaData(appMetaData)
+    fun insertSettledPairing(settledPairing: PairingVO, controllerType: ControllerType) {
+        val metadataId = insertMetaData(settledPairing.appMetaDataVO)
 
-        with(session) {
-            sessionDaoQueries.insertSession(
-                topic = topic.value,
-                permissions_chains = chains,
-                permissions_methods = methods,
-                permissions_types = types,
-                ttl_seconds = ttl.seconds,
-                expiry = expiry.seconds,
-                status = status,
-                controller_type = controllerType,
-                metadata_id = metadataId,
-                self_participant = selfParticipant.keyAsHex,
-                relay_protocol = session.relayProtocol
-            )
-        }
-    }
-
-    @JvmSynthetic
-    fun updateRespondedPairingToPreSettled(proposalTopic: TopicVO, pairing: PairingVO) {
-        with(pairing) {
-            pairingDaoQueries.updatePendingPairingToPreSettled(
+        with(settledPairing) {
+            pairingDaoQueries.insertSettledPairing(
                 topic.value,
+                uri,
                 expiry.seconds,
                 status,
+                controllerType,
                 selfParticipant.keyAsHex,
                 peerParticipant?.keyAsHex,
                 controllerKey?.keyAsHex,
+                relay,
                 permissions,
-                proposalTopic.value
+                metadataId
             )
         }
     }
@@ -159,64 +156,59 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun updateProposedPairingToAcknowledged(pairing: PairingVO, pendingTopic: TopicVO) {
-        val metadataId = insertMetaData(pairing.appMetaDataVO)
-        with(pairing) {
-            pairingDaoQueries.updateProposedPairingToAcknowledged(
-                pairing.topic.value,
-                expiry.seconds,
-                status,
-                selfParticipant.keyAsHex,
-                peerParticipant?.keyAsHex,
-                controllerKey?.keyAsHex,
-                permissions,
-                relay,
-                metadataId,
-                pendingTopic.value
-            )
-        }
-    }
-
-    @JvmSynthetic
     fun deletePairing(topic: TopicVO) {
         metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
         pairingDaoQueries.deletePairing(topic.value)
     }
 
-    private fun insertMetaData(appMetaData: AppMetaDataVO?): Long {
-        return appMetaData?.let {
-            metaDataDaoQueries.insertOrIgnoreMetaData(
-                appMetaData.name,
-                appMetaData.description,
-                appMetaData.url,
-                appMetaData.icons
-            )
-
-            metaDataDaoQueries.lastInsertedRowId().executeAsOne()
-        } ?: FAILED_INSERT_ID
-    }
-
+    //insert: Proposed, Responded
     @JvmSynthetic
-    fun updateProposedSessionToResponded(session: SessionVO) {
-        sessionDaoQueries.updateProposedSessionToResponded(session.status, session.topic.value)
-    }
+    fun insertPendingSession(
+        session: SessionVO,
+        appMetaData: AppMetaDataVO?,
+        controllerType: ControllerType
+    ) {
+        val metadataId = insertMetaData(appMetaData)
 
-    @JvmSynthetic
-    fun updateRespondedSessionToPreSettled(session: SessionVO, pendingTopic: TopicVO) {
         with(session) {
-            sessionDaoQueries.updateRespondedSessionToPresettled(
-                topic.value,
-                accounts,
-                expiry.seconds,
-                status,
-                selfParticipant.keyAsHex,
-                controllerKey?.keyAsHex,
-                peerParticipant?.keyAsHex,
-                chains,
-                methods,
-                types,
-                ttl.seconds,
-                pendingTopic.value
+            sessionDaoQueries.insertPendingSession(
+                topic = topic.value,
+                permissions_chains = chains,
+                permissions_methods = methods,
+                permissions_types = types,
+                ttl_seconds = ttl.seconds,
+                expiry = expiry.seconds,
+                status = status,
+                controller_type = controllerType,
+                metadata_id = metadataId,
+                self_participant = selfParticipant.keyAsHex,
+                relay_protocol = session.relayProtocol,
+                outcome_topic = outcomeTopic.value
+            )
+        }
+    }
+
+    //insert: Pre-Settled, Acknowledged
+    @JvmSynthetic
+    fun insertSettledSession(session: SessionVO, appMetaData: AppMetaDataVO?, controllerType: ControllerType) {
+        val metadataId = insertMetaData(appMetaData)
+
+        with(session) {
+            sessionDaoQueries.insertSettleSession(
+                topic = topic.value,
+                permissions_chains = chains,
+                permissions_methods = methods,
+                permissions_types = types,
+                ttl_seconds = ttl.seconds,
+                expiry = expiry.seconds,
+                status = status,
+                controller_type = controllerType,
+                metadata_id = metadataId,
+                self_participant = selfParticipant.keyAsHex,
+                relay_protocol = session.relayProtocol,
+                controller_key = session.controllerKey?.keyAsHex,
+                peer_participant = session.peerParticipant?.keyAsHex,
+                accounts = session.accounts
             )
         }
     }
@@ -224,29 +216,6 @@ internal class SequenceStorageRepository(
     @JvmSynthetic
     fun updatePreSettledSessionToAcknowledged(session: SessionVO) {
         sessionDaoQueries.updatePreSettledSessionToAcknowledged(session.status, session.topic.value)
-    }
-
-    @JvmSynthetic
-    fun updateProposedSessionToAcknowledged(session: SessionVO, pendingTopic: TopicVO) {
-        val metadataId = insertMetaData(session.appMetaData)
-        with(session) {
-            sessionDaoQueries.updateProposedSessionToAcknowledged(
-                topic.value,
-                accounts,
-                expiry.seconds,
-                status,
-                selfParticipant.keyAsHex,
-                controllerKey?.keyAsHex,
-                peerParticipant?.keyAsHex,
-                chains,
-                methods,
-                types,
-                ttl.seconds,
-                relayProtocol,
-                metadataId,
-                pendingTopic.value
-            )
-        }
     }
 
     @JvmSynthetic
@@ -266,6 +235,19 @@ internal class SequenceStorageRepository(
     fun deleteSession(topic: TopicVO) {
         metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
         sessionDaoQueries.deleteSession(topic.value)
+    }
+
+    private fun insertMetaData(appMetaData: AppMetaDataVO?): Long {
+        return appMetaData?.let {
+            metaDataDaoQueries.insertOrIgnoreMetaData(
+                appMetaData.name,
+                appMetaData.description,
+                appMetaData.url,
+                appMetaData.icons
+            )
+
+            metaDataDaoQueries.lastInsertedRowId().executeAsOne()
+        } ?: FAILED_INSERT_ID
     }
 
     private fun verifyExpiry(expiry: Long, topic: TopicVO, deleteSequence: () -> Unit): Boolean {
@@ -347,7 +329,7 @@ internal class SequenceStorageRepository(
             accounts = accounts ?: emptyList(),
             expiry = ExpiryVO(expiry),
             status = status,
-            appMetaData = appMetaData,
+            metaData = appMetaData,
             selfParticipant = PublicKey(self_participant),
             peerParticipant = PublicKey(peer_participant ?: String.Empty),
             controllerKey = PublicKey(controller_key ?: String.Empty),
