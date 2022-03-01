@@ -1,4 +1,4 @@
-package com.walletconnect.dapp.ui.chain_select
+package com.walletconnect.dapp.ui.connect.chain_select
 
 data class ChainSelectionUI(
     val chainName: String,

@@ -10,17 +10,24 @@ import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 
 class DappSampleActivity : AppCompatActivity(R.layout.activity_dapp) {
+    private val navHostFragment by lazy {
+        supportFragmentManager.findFragmentById(R.id.fcvHost) as NavHostFragment
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.fcvHost) as NavHostFragment
+
         NavigationUI.setupActionBarWithNavController(this, navHostFragment.navController)
     }
 
     override fun onNavigateUp(): Boolean {
         onBackPressed()
         return true
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        return navHostFragment.navController.navigateUp() || super.onSupportNavigateUp()
     }
 
     override fun onDestroy() {

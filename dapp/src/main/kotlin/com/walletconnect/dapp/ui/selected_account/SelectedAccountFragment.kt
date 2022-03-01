@@ -6,16 +6,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.FragmentSelectedAccountBinding
 import com.walletconnect.dapp.ui.BottomVerticalSpaceItemDecoration
-import com.walletconnect.dapp.ui.DappViewModel
 import com.walletconnect.dapp.ui.NavigationEvents
 
 class SelectedAccountFragment : Fragment() {
-    private val viewModel: DappViewModel by activityViewModels()
+    private val viewModel: SelectedAccountViewModel by viewModels()
     private var _binding: FragmentSelectedAccountBinding? = null
     private val binding: FragmentSelectedAccountBinding
         get() = _binding!!
@@ -25,7 +25,7 @@ class SelectedAccountFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSelectedAccountBinding.inflate(inflater, container, false)
 
         return binding.root
@@ -42,6 +42,7 @@ class SelectedAccountFragment : Fragment() {
                 is NavigationEvents.UpgradedSelectedAccountUI -> {
                     selectedAccountAdapter.submitList(navigationEvent.selectedAccountUI.listOfMethods)
                 }
+                is NavigationEvents.Disconnect -> findNavController().navigate(R.id.action_fragment_selected_account_to_connect_graph)
                 else -> Unit
             }
         }
@@ -79,7 +80,6 @@ class SelectedAccountFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        viewModel.deselectAccount()
         super.onDestroyView()
 
         _binding = null

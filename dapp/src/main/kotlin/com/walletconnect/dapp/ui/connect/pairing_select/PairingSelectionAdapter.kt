@@ -1,4 +1,4 @@
-package com.walletconnect.dapp.ui.pairing_select
+package com.walletconnect.dapp.ui.connect.pairing_select
 
 import android.net.Uri
 import android.view.LayoutInflater

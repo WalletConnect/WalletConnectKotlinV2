@@ -5,7 +5,9 @@ import com.walletconnect.dapp.ui.session.SessionUI
 
 sealed class NavigationEvents {
 
-    object ToSession : NavigationEvents()
+    object SessionApproved : NavigationEvents()
+
+    object SessionRejected: NavigationEvents()
 
     data class PingSuccess(val topic: String) : NavigationEvents()
 
@@ -22,8 +24,6 @@ sealed class NavigationEvents {
     data class RequestError(val exceptionMsg: String): NavigationEvents()
 
     data class UpgradedSelectedAccountUI(val selectedAccountUI: SelectedAccountUI) : NavigationEvents()
-
-    object Error : NavigationEvents()
 
     object NoAction : NavigationEvents()
 }

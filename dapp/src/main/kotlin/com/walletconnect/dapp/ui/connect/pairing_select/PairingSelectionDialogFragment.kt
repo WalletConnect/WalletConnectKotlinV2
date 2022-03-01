@@ -1,20 +1,21 @@
-package com.walletconnect.dapp.ui.pairing_select
+package com.walletconnect.dapp.ui.connect.pairing_select
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navGraphViewModels
 import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.FragmentPairingSelectionBinding
-import com.walletconnect.dapp.ui.DappViewModel
 import com.walletconnect.dapp.ui.BottomVerticalSpaceItemDecoration
+import com.walletconnect.dapp.ui.NavigationEvents
+import com.walletconnect.dapp.ui.connect.ConnectViewModel
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 
 class PairingSelectionDialogFragment : DialogFragment() {
-    private val viewModel: DappViewModel by activityViewModels()
+    private val viewModel: ConnectViewModel by navGraphViewModels(R.id.connectGraph)
     private var _binding: FragmentPairingSelectionBinding? = null
     private val binding: FragmentPairingSelectionBinding
         get() = _binding!!
@@ -29,8 +30,10 @@ class PairingSelectionDialogFragment : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.navigation.observe(viewLifecycleOwner) {
-            binding.clpbLoading.hide()
-            dismiss()
+            if (it is NavigationEvents.SessionApproved || it is NavigationEvents.SessionRejected) {
+                binding.clpbLoading.hide()
+                dismiss()
+            }
         }
 
         val pairings = WalletConnectClient.getListOfSettledPairings().mapNotNull { pairing ->
@@ -57,9 +60,5 @@ class PairingSelectionDialogFragment : DialogFragment() {
         super.onDestroyView()
 
         _binding = null
-    }
-
-    companion object {
-        val TAG: String = PairingSelectionDialogFragment::class.java.canonicalName
     }
 }

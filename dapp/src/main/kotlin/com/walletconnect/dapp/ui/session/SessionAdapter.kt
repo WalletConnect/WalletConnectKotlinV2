@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.walletconnect.dapp.databinding.ListItemSessionAccountBinding
 
-class SessionAccountAdapter(private val onAccountSelected: (String) -> Unit) : ListAdapter<SessionUI, SessionAccountAdapter.ViewHolder>(DIFF_UTIL) {
+class SessionAdapter(private val onAccountSelected: (String) -> Unit) : ListAdapter<SessionUI, SessionAdapter.ViewHolder>(DIFF_UTIL) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = ViewHolder(
         ListItemSessionAccountBinding.inflate(LayoutInflater.from(parent.context), parent, false)

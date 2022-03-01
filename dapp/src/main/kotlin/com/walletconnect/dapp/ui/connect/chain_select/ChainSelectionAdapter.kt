@@ -1,4 +1,4 @@
-package com.walletconnect.dapp.ui.chain_select
+package com.walletconnect.dapp.ui.connect.chain_select
 
 import android.util.TypedValue
 import android.view.LayoutInflater

@@ -1,4 +1,4 @@
-package com.walletconnect.dapp.ui.pairing_generate
+package com.walletconnect.dapp.ui.connect.pairing_generate
 
 import android.app.Dialog
 import android.content.ClipData
@@ -8,18 +8,22 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.activityViewModels
+import androidx.navigation.navGraphViewModels
 import com.google.android.material.snackbar.Snackbar
+import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.DialogConnectUriBinding
-import com.walletconnect.dapp.ui.DappViewModel
+import com.walletconnect.dapp.ui.NavigationEvents
+import com.walletconnect.dapp.ui.connect.ConnectViewModel
 import net.glxn.qrgen.android.QRCode
 
 class PairingGenerationDialogFragment : DialogFragment() {
-    private val viewModel: DappViewModel by activityViewModels()
+    private val viewModel: ConnectViewModel by navGraphViewModels(R.id.connectGraph)
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         viewModel.navigation.observe(this) {
-            dismiss()
+            if (it is NavigationEvents.SessionApproved || it is NavigationEvents.SessionRejected) {
+                dismiss()
+            }
         }
 
         val binding = DialogConnectUriBinding.inflate(LayoutInflater.from(requireContext())).apply {

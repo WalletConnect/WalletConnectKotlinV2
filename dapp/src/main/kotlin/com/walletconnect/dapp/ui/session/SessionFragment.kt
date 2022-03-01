@@ -5,21 +5,20 @@ import android.view.*
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.FragmentSessionBinding
 import com.walletconnect.dapp.ui.BottomVerticalSpaceItemDecoration
-import com.walletconnect.dapp.ui.DappViewModel
 import com.walletconnect.dapp.ui.NavigationEvents
 
 class SessionFragment : Fragment() {
-    private val viewModel: DappViewModel by activityViewModels()
+    private val viewModel: SessionViewModel by viewModels()
     private var _binding: FragmentSessionBinding? = null
     private val binding: FragmentSessionBinding
         get() = _binding!!
     private val sessionAccountAdapter by lazy {
-        SessionAccountAdapter() { selectedAccount ->
+        SessionAdapter() { selectedAccount ->
             val selectedAccountKey = getString(R.string.selected_account)
             this.findNavController().navigate(R.id.action_fragment_session_to_fragment_selected_account, bundleOf(selectedAccountKey to selectedAccount))
         }
@@ -27,7 +26,6 @@ class SessionFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSessionBinding.inflate(inflater, container, false).also { _binding = it }
-        setHasOptionsMenu(true)
 
         return binding.root
     }
@@ -39,7 +37,7 @@ class SessionFragment : Fragment() {
             when (navigationEvent) {
                 is NavigationEvents.PingSuccess -> Toast.makeText(requireContext(), "Pinged Peer Successfully on Topic: ${navigationEvent.topic}", Toast.LENGTH_SHORT).show()
                 is NavigationEvents.PingError -> Toast.makeText(requireContext(), "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT).show()
-                is NavigationEvents.Disconnect -> findNavController().popBackStack(R.id.fragment_chain_selection, true)
+                is NavigationEvents.Disconnect -> findNavController().navigate(R.id.action_fragment_session_to_connect_graph)
                 is NavigationEvents.UpdatedListOfAccounts -> sessionAccountAdapter.submitList(navigationEvent.listOfAccounts)
                 else -> Unit
             }
@@ -78,5 +76,10 @@ class SessionFragment : Fragment() {
         super.onDestroyView()
 
         _binding = null
+    }
+
+    override fun onDestroy() {
+        viewModel.disconnect()
+        super.onDestroy()
     }
 }

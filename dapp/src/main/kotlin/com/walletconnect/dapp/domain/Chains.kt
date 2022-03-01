@@ -6,7 +6,8 @@ import com.walletconnect.dapp.R
 private val defaultEthMethods: List<String> = listOf("eth_sendTransaction", "personal_sign", "eth_signTypedData")
 
 fun getPersonalSignBody(account: String): String {
-    return """["0xdeadbeaf", "$account"]"""
+    val msg = "My email is john@doe.com - ${System.currentTimeMillis()}".encodeToByteArray().joinToString(separator = "", prefix = "0x") { eachByte -> "%02x".format(eachByte) }
+    return """[$msg, $account]"""
 }
 
 fun getEthSendTransaction(account: String): String {
@@ -98,6 +99,18 @@ fun getEthSignTypedData(account: String): String {
             ]
         ]
     """.trimIndent()
+}
+
+private fun String.hexToBytes(): ByteArray {
+    val len = this.length
+    val data = ByteArray(len / 2)
+    var i = 0
+    while (i < len) {
+        data[i / 2] = ((Character.digit(this[i], 16) shl 4)
+                + Character.digit(this[i + 1], 16)).toByte()
+        i += 2
+    }
+    return data
 }
 
 enum class Chains(val chainName: String, val parentChain: String, val chainId: Int, @DrawableRes val icon: Int, val methods: List<String>) {
