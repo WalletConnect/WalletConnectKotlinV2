@@ -68,7 +68,8 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
             sessionTopic = sessionRequest.topic,
             jsonRpcResponse = WalletConnect.Model.JsonRpcResponse.JsonRpcError(
                 sessionRequest.request.id,
-                WalletConnect.Model.JsonRpcResponse.Error(500, "Kotlin Wallet Error")
+                code = 500,
+                message = "Kotlin Wallet Error"
             )
         )
 

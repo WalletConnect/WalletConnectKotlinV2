@@ -11,16 +11,14 @@ import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 
-class SelectedAccountViewModel: ViewModel() {
+class SelectedAccountViewModel : ViewModel() {
     private val _dappEvents: MutableStateFlow<Pair<Long, WalletConnect.Model?>> = MutableStateFlow(Pair(0, null))
     val navigation: LiveData<NavigationEvents> =
         DappDelegate.wcEventModels.combine(_dappEvents) { (walletEventTimestamp, walletEvent: WalletConnect.Model?), (dappEventTimestamp, dappEvent: WalletConnect.Model?) ->
             if (dappEventTimestamp > walletEventTimestamp) {
                 when (dappEvent) {
                     is WalletConnect.Model.DeletedSession -> NavigationEvents.Disconnect
-                    is WalletConnect.Model.JsonRpcResponse.JsonRpcResult -> NavigationEvents.RequestSuccess(dappEvent.result)
-                    is WalletConnect.Model.JsonRpcResponse.JsonRpcError -> NavigationEvents.RequestPeerError("Error Message: ${dappEvent.errorDetails.message}\t Error Code: ${dappEvent.errorDetails.code}")
-                    is WalletConnect.Model.JsonRpcResponse.Error -> NavigationEvents.RequestError(dappEvent.error.localizedMessage ?: "Error trying to send request")
+                    is WalletConnect.Model.Error -> NavigationEvents.RequestError(dappEvent.error.localizedMessage ?: "Error trying to send request")
                     else -> NavigationEvents.NoAction
                 }
             } else {
@@ -28,6 +26,16 @@ class SelectedAccountViewModel: ViewModel() {
                     is WalletConnect.Model.UpgradedSession -> {
                         val selectedAccountUI = getSelectedAccount()
                         NavigationEvents.UpgradedSelectedAccountUI(selectedAccountUI)
+                    }
+                    is WalletConnect.Model.SessionPayloadResponse -> {
+                        when (walletEvent.result) {
+                            is WalletConnect.Model.JsonRpcResponse.JsonRpcResult -> NavigationEvents.RequestSuccess((walletEvent.result as WalletConnect.Model.JsonRpcResponse.JsonRpcResult).result)
+                            is WalletConnect.Model.JsonRpcResponse.JsonRpcError -> {
+                                val errorResult = (walletEvent.result as WalletConnect.Model.JsonRpcResponse.JsonRpcError)
+                                NavigationEvents.RequestPeerError("Error Message: ${errorResult.message}\n Error Code: ${errorResult.code}")
+                            }
+                            else -> NavigationEvents.NoAction
+                        }
                     }
                     is WalletConnect.Model.DeletedSession -> NavigationEvents.Disconnect
                     else -> NavigationEvents.NoAction
@@ -52,15 +60,9 @@ class SelectedAccountViewModel: ViewModel() {
             chainId = "$parentChain:$chainId"
         )
 
-        WalletConnectClient.request(requestParams, object : WalletConnect.Listeners.SessionRequest {
-            override fun onSuccess(response: WalletConnect.Model.JsonRpcResponse) {
-                _dappEvents.tryEmit(System.currentTimeMillis() to response)
-            }
-
-            override fun onError(requestError: WalletConnect.Model.JsonRpcResponse.Error) {
-                _dappEvents.tryEmit(System.currentTimeMillis() to requestError)
-            }
-        })
+        WalletConnectClient.request(requestParams) {
+            _dappEvents.tryEmit(System.currentTimeMillis() to it)
+        }
     }
 
     fun getSelectedAccount(selectAccountDetails: String? = null): SelectedAccountUI {

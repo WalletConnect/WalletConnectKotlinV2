@@ -35,7 +35,7 @@ class SelectedAccountFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.navigation.observe(viewLifecycleOwner) { navigationEvent ->
-            when(navigationEvent) {
+            when (navigationEvent) {
                 is NavigationEvents.RequestSuccess -> onRequest(navigationEvent.result)
                 is NavigationEvents.RequestPeerError -> onRequest(navigationEvent.errorMsg)
                 is NavigationEvents.RequestError -> onRequest(navigationEvent.exceptionMsg)

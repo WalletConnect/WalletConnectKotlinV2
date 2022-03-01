@@ -12,7 +12,7 @@ import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 
-class SessionViewModel: ViewModel() {
+class SessionViewModel : ViewModel() {
     private val _dappEvents: MutableStateFlow<Pair<Long, WalletConnect.Model?>> = MutableStateFlow(Pair(0, null))
     val navigation: LiveData<NavigationEvents> =
         DappDelegate.wcEventModels.combine(_dappEvents) { (walletEventTimestamp, walletEvent: WalletConnect.Model?), (dappEventTimestamp, dappEvent: WalletConnect.Model?) ->
@@ -76,15 +76,6 @@ class SessionViewModel: ViewModel() {
             reasonCode = 400
         )
 
-        WalletConnectClient.disconnect(disconnectParams, object : WalletConnect.Listeners.SessionDelete {
-            override fun onSuccess(deletedSessionSuccess: WalletConnect.Model.DeletedSession.Success) {
-                DappDelegate.deselectAccountDetails()
-                _dappEvents.tryEmit(System.currentTimeMillis() to deletedSessionSuccess)
-            }
-
-            override fun onError(deletedSessionError: WalletConnect.Model.DeletedSession.Error) {
-                _dappEvents.tryEmit(System.currentTimeMillis() to deletedSessionError)
-            }
-        })
+        WalletConnectClient.disconnect(disconnectParams)
     }
 }

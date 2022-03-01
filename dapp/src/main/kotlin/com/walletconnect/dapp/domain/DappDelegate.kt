@@ -3,7 +3,6 @@ package com.walletconnect.dapp.domain
 import android.util.Log
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 
@@ -25,7 +24,7 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         Log.d(TAG, "pairing settled")
     }
 
-    override fun onPairingUpdated(pairing: WalletConnect.Model.SettledPairing) {
+    override fun onPairingUpdated(pairing: WalletConnect.Model.PairingUpdate) {
         Log.d(TAG, "pairing updated")
     }
 
@@ -63,6 +62,12 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         selectedSessionTopic = null
 
         _wcEventModels.tryEmit(System.currentTimeMillis() to deletedSession)
+    }
+
+    override fun onSessionPayloadResponse(response: WalletConnect.Model.SessionPayloadResponse) {
+        Log.d(TAG, "session payload response")
+
+        _wcEventModels.tryEmit(System.currentTimeMillis() to response)
     }
 
     fun setSelectedAccountDetails(accountDetails: String) {

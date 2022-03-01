@@ -6,7 +6,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.walletconnect.dapp.databinding.ListItemChainBinding
 
-class ChainSelectionAdapter(private val listOfChainSelectionUI: List<ChainSelectionUI>, private val onChainSelected: (Int, Boolean) -> Unit) : RecyclerView.Adapter<ChainSelectionAdapter.ViewHolder>() {
+class ChainSelectionAdapter(private val listOfChainSelectionUI: List<ChainSelectionUI>, private val onChainSelected: (Int, Boolean) -> Unit) :
+    RecyclerView.Adapter<ChainSelectionAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
         ViewHolder(ListItemChainBinding.inflate(LayoutInflater.from(parent.context), parent, false))
