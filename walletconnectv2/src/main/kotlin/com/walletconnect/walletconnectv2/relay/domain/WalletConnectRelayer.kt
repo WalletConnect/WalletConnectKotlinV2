@@ -91,11 +91,13 @@ internal class WalletConnectRelayer(
         onFailure: (Throwable) -> Unit = {}
     ) {
         val responseJson = serializer.serialize(response.toRelayDOJsonRpcResponse())
-        jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
 
         networkRepository.publish(topic, serializer.encode(responseJson, topic)) { result ->
             result.fold(
-                onSuccess = { onSuccess() },
+                onSuccess = {
+                    jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
+                    onSuccess()
+                },
                 onFailure = { error -> onFailure(error) }
             )
         }
@@ -139,7 +141,7 @@ internal class WalletConnectRelayer(
 
     internal fun getPendingRequests(topic: TopicVO): List<PendingRequestVO> =
         jsonRpcHistory.getRequests(topic)
-            .filter { entry -> entry.response == null && entry.method == JsonRpcMethod.WC_SESSION_PAYLOAD }
+            .filter { entry -> entry.response == null && entry.method == JsonRpcMethod.WC_SESSION_REQUEST }
             .filter { entry -> serializer.tryDeserialize<PostSettlementSessionVO.SessionPayload>(entry.body) != null }
             .map { entry -> serializer.tryDeserialize<PostSettlementSessionVO.SessionPayload>(entry.body)!!.toPendingRequestVO(entry) }
 

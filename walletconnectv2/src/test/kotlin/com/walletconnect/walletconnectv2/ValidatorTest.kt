@@ -288,36 +288,47 @@ class ValidatorTest {
     @Test
     fun `validate WC uri test`() {
         val validUri =
-            "wc:0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33@2?controller=false&publicKey=4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249&relay=%7B%22protocol%22%3A%22waku%22%7D"
+            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=waku&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
 
         Validator.validateWCUri("").apply { assertEquals(null, this) }
         Validator.validateWCUri(validUri).apply {
             assertNotNull(this)
-            assertEquals("0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33", this.topic.value)
+            assertEquals("7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9", this.topic.value)
             assertEquals("waku", this.relay.protocol)
-            assertEquals("4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249", this.publicKey.keyAsHex)
-            assertEquals(false, this.isController)
+            assertEquals("587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303", this.symKey.keyAsHex)
             assertEquals("2", this.version)
         }
 
         val noTopicInvalidUri =
-            "wc:@2?controller=false&publicKey=4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249&relay=%7B%22protocol%22%3A%22waku%22%7D"
+            "wc:@2?relay-protocol=waku&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
         Validator.validateWCUri(noTopicInvalidUri).apply { assertNull(this) }
 
-        val noControllerFlagInvalidUri =
-            "wc:0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33@2?controller=&publicKey=4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249&relay=%7B%22protocol%22%3A%22waku%22%7D"
-        Validator.validateWCUri(noControllerFlagInvalidUri).apply { assertNull(this) }
-
         val noPrefixInvalidUri =
-            "0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33@2?controller=false&publicKey=4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249&relay=%7B%22protocol%22%3A%22waku%22%7D"
+            "7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=waku&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
         Validator.validateWCUri(noPrefixInvalidUri).apply { assertNull(this) }
 
-        val noPubKeyInvalidUri =
-            "wc:0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33@2?controller=false&relay=%7B%22protocol%22%3A%22waku%22%7D"
-        Validator.validateWCUri(noPubKeyInvalidUri).apply { assertNull(this) }
+        val noSymKeyInvalidUri =
+            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=waku&symKey="
+        Validator.validateWCUri(noSymKeyInvalidUri).apply { assertNull(this) }
 
         val noProtocolTypeInvalidUri =
-            "wc:0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33@2?controller=false&publicKey=4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249&relay=%7B%22protocol%22%3A%%22%7D"
+            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
         Validator.validateWCUri(noProtocolTypeInvalidUri).apply { assertNull(this) }
+    }
+
+    @Test
+    fun `validate WC uri test optional data field`() {
+        val validUri =
+            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=waku&relay-data=testData&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
+
+        Validator.validateWCUri("").apply { assertEquals(null, this) }
+        Validator.validateWCUri(validUri).apply {
+            assertNotNull(this)
+            assertEquals("7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9", this.topic.value)
+            assertEquals("waku", this.relay.protocol)
+            assertEquals("testData", this.relay.data)
+            assertEquals("587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303", this.symKey.keyAsHex)
+            assertEquals("2", this.version)
+        }
     }
 }

@@ -7,7 +7,7 @@ import com.walletconnect.walletconnectv2.core.adapters.SubscriptionIdAdapter
 import com.walletconnect.walletconnectv2.core.adapters.TopicAdapter
 import com.walletconnect.walletconnectv2.core.adapters.TtlAdapter
 import com.walletconnect.walletconnectv2.core.model.vo.*
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.after.PostSettlementPairingVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.SettlementPairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.payload.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.relay.data.codec.AuthenticatedEncryptionCodec
 import com.walletconnect.walletconnectv2.util.bytesToHex
@@ -86,8 +86,8 @@ class AuthenticatedEncryptionCodecTest {
                 }
             }.addLast(KotlinJsonAdapterFactory()).build()
 
-        val request: PostSettlementPairingVO.PairingPayload? =
-            moshi.adapter(PostSettlementPairingVO.PairingPayload::class.java).fromJson(json)
+        val request: SettlementPairingVO.PairingPayload? =
+            moshi.adapter(SettlementPairingVO.PairingPayload::class.java).fromJson(json)
 
         assertEquals(
             request?.params?.request?.params?.proposer?.publicKey,

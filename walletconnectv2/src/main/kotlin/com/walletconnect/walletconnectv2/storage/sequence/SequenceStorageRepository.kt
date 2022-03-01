@@ -107,7 +107,7 @@ internal class SequenceStorageRepository(
 
     //insert: Proposed, Responded
     @JvmSynthetic
-    fun insertPendingPairing(pendingPairing: PairingVO, controllerType: ControllerType, settledTopic: TopicVO? = null) {
+    fun insertPairing(pendingPairing: PairingVO, controllerType: ControllerType, settledTopic: TopicVO? = null) {
         with(pendingPairing) {
             pairingDaoQueries.insertPendingPairing(
                 topic.value,
@@ -122,27 +122,27 @@ internal class SequenceStorageRepository(
         }
     }
 
-    //insert: Pre-Settled, Acknowledged
-    @JvmSynthetic
-    fun insertSettledPairing(settledPairing: PairingVO, controllerType: ControllerType) {
-        val metadataId = insertMetaData(settledPairing.appMetaDataVO)
-
-        with(settledPairing) {
-            pairingDaoQueries.insertSettledPairing(
-                topic.value,
-                uri,
-                expiry.seconds,
-                status,
-                controllerType,
-                selfParticipant.keyAsHex,
-                peerParticipant?.keyAsHex,
-                controllerKey?.keyAsHex,
-                relay,
-                permissions,
-                metadataId
-            )
-        }
-    }
+//    //insert: Pre-Settled, Acknowledged
+//    @JvmSynthetic
+//    fun insertSettledPairing(settledPairing: PairingVO, controllerType: ControllerType) {
+//        val metadataId = insertMetaData(settledPairing.appMetaDataVO)
+//
+//        with(settledPairing) {
+//            pairingDaoQueries.insertSettledPairing(
+//                topic.value,
+//                uri,
+//                expiry.seconds,
+//                status,
+//                controllerType,
+//                selfParticipant.keyAsHex,
+//                peerParticipant?.keyAsHex,
+//                controllerKey?.keyAsHex,
+//                relay,
+//                permissions,
+//                metadataId
+//            )
+//        }
+//    }
 
     @JvmSynthetic
     fun updatePreSettledPairingToAcknowledged(pairing: PairingVO) {

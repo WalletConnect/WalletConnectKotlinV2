@@ -7,8 +7,7 @@ import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.SharedKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.after.PostSettlementPairingVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.before.PreSettlementPairingVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.SettlementPairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.PostSettlementSessionVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.PreSettlementSessionVO
 import com.walletconnect.walletconnectv2.core.model.vo.payload.EncryptionPayloadVO
@@ -18,15 +17,22 @@ import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.hexToUtf8
 
-internal class JsonRpcSerializer(private val codec: Codec, private val crypto: CryptoRepository, private val moshi: Moshi) {
+internal class JsonRpcSerializer(
+    private val authenticatedEncryptionCodec: Codec,
+    private val crypto: CryptoRepository,
+    private val moshi: Moshi
+) {
 
     internal fun encode(payload: String, topic: TopicVO): String {
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
 
         return if (sharedKey.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
+            //TODO: symmetric ket encryption over topic A
+//            val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(topic)
+            //symmetric decryption  authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), sharedKey as SharedKey)
             payload.encode()
         } else {
-            codec.encrypt(payload, sharedKey as SharedKey, selfPublic as PublicKey)
+            authenticatedEncryptionCodec.encrypt(payload, sharedKey as SharedKey, selfPublic as PublicKey)
         }
     }
 
@@ -34,29 +40,24 @@ internal class JsonRpcSerializer(private val codec: Codec, private val crypto: C
         val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
 
         return if (sharedKey.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
+            //TODO: symmetric ket decryption over topic A
+//            val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(topic)
+            //symmetric decryption  authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), sharedKey as SharedKey)
             message.hexToUtf8
         } else {
-            codec.decrypt(toEncryptionPayload(message), sharedKey as SharedKey)
+            authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), sharedKey as SharedKey)
         }
     }
 
     internal fun deserialize(method: String, json: String): ClientParams? =
         when (method) {
-            JsonRpcMethod.WC_PAIRING_APPROVE -> tryDeserialize<PreSettlementPairingVO.Approve>(json)?.params
-            JsonRpcMethod.WC_PAIRING_REJECT -> tryDeserialize<PreSettlementPairingVO.Reject>(json)?.params
-            JsonRpcMethod.WC_PAIRING_PAYLOAD -> tryDeserialize<PostSettlementPairingVO.PairingPayload>(json)?.params
-            JsonRpcMethod.WC_PAIRING_UPDATE -> tryDeserialize<PostSettlementPairingVO.PairingUpdate>(json)?.params
-            JsonRpcMethod.WC_PAIRING_PING -> tryDeserialize<PostSettlementPairingVO.PairingPing>(json)?.params
-            JsonRpcMethod.WC_PAIRING_NOTIFICATION -> tryDeserialize<PostSettlementPairingVO.PairingPing>(json)?.params
-            JsonRpcMethod.WC_SESSION_APPROVE -> tryDeserialize<PreSettlementSessionVO.Approve>(json)?.params
-            JsonRpcMethod.WC_SESSION_REJECT -> tryDeserialize<PreSettlementSessionVO.Reject>(json)?.params
+            JsonRpcMethod.WC_PAIRING_PING -> tryDeserialize<SettlementPairingVO.PairingPing>(json)?.params
             JsonRpcMethod.WC_SESSION_PROPOSE -> tryDeserialize<PreSettlementSessionVO.Proposal>(json)?.params
-            JsonRpcMethod.WC_SESSION_PAYLOAD -> tryDeserialize<PostSettlementSessionVO.SessionPayload>(json)?.params
             JsonRpcMethod.WC_SESSION_DELETE -> tryDeserialize<PostSettlementSessionVO.SessionDelete>(json)?.params
             JsonRpcMethod.WC_SESSION_UPDATE -> tryDeserialize<PostSettlementSessionVO.SessionUpdate>(json)?.params
             JsonRpcMethod.WC_SESSION_UPGRADE -> tryDeserialize<PostSettlementSessionVO.SessionUpgrade>(json)?.params
             JsonRpcMethod.WC_SESSION_PING -> tryDeserialize<PostSettlementSessionVO.SessionPing>(json)?.params
-            JsonRpcMethod.WC_SESSION_NOTIFICATION -> tryDeserialize<PostSettlementSessionVO.SessionNotification>(json)?.params
+            JsonRpcMethod.WC_SESSION_NOTIFY -> tryDeserialize<PostSettlementSessionVO.SessionNotification>(json)?.params
             else -> null
         }
 
@@ -66,14 +67,10 @@ internal class JsonRpcSerializer(private val codec: Codec, private val crypto: C
 
     fun serialize(payload: SerializableJsonRpc): String =
         when (payload) {
-            is PreSettlementPairingVO.Approve -> trySerialize(payload)
-            is PreSettlementPairingVO.Reject -> trySerialize(payload)
-            is PostSettlementPairingVO.PairingPayload -> trySerialize(payload)
-            is PostSettlementPairingVO.PairingNotification -> trySerialize(payload)
-            is PostSettlementPairingVO.PairingPing -> trySerialize(payload)
-            is PostSettlementPairingVO.PairingUpdate -> trySerialize(payload)
-            is PreSettlementSessionVO.Approve -> trySerialize(payload)
-            is PreSettlementSessionVO.Reject -> trySerialize(payload)
+            is SettlementPairingVO.PairingPayload -> trySerialize(payload)
+            is SettlementPairingVO.PairingPing -> trySerialize(payload)
+//            is PreSettlementSessionVO.Approve -> trySerialize(payload)
+//            is PreSettlementSessionVO.Reject -> trySerialize(payload)
             is PreSettlementSessionVO.Proposal -> trySerialize(payload)
             is PostSettlementSessionVO.SessionNotification -> trySerialize(payload)
             is PostSettlementSessionVO.SessionPing -> trySerialize(payload)

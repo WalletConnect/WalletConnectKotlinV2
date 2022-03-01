@@ -9,6 +9,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.util.Empty
 
+//todo add data field from uri
 internal data class PairingVO(
     override val topic: TopicVO,
     override val expiry: ExpiryVO,
@@ -17,9 +18,9 @@ internal data class PairingVO(
     val peerParticipant: PublicKey? = null,
     val controllerKey: PublicKey? = null,
     val uri: String,
-    val relay: String,
+    val relay: String, //todo: change to relayProtocol with data, relayData
     val permissions: List<String>? = null,
-    val controllerType: ControllerType,
+    val controllerType: ControllerType = ControllerType.CONTROLLER, //todo: delete
     val appMetaDataVO: AppMetaDataVO? = null,
     val outcomeTopic: TopicVO = TopicVO(String.Empty)
 ) : Sequence {

@@ -92,12 +92,12 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun pair(pair: WalletConnect.Params.Pair, onError: (Throwable) -> Unit = {}) {
+    fun pair(pair: WalletConnect.Params.Pair) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.pair(pair.uri) { error -> onError(error) }
+        engineInteractor.pair(pair.uri)
     }
 
     @Throws(IllegalStateException::class)

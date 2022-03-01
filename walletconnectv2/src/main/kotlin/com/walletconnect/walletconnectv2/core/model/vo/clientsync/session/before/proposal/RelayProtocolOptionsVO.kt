@@ -3,4 +3,4 @@ package com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.befor
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class RelayProtocolOptionsVO(val protocol: String = "waku")
+data class RelayProtocolOptionsVO(val protocol: String = "waku", val data: String? = null)

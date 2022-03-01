@@ -1,19 +1,31 @@
 package com.walletconnect.walletconnectv2.crypto.data.repository
 
-import com.walletconnect.walletconnectv2.core.model.vo.PrivateKey
-import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
-import com.walletconnect.walletconnectv2.core.model.vo.SharedKey
-import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.*
 import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.crypto.KeyStore
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import com.walletconnect.walletconnectv2.util.hexToBytes
+import com.walletconnect.walletconnectv2.util.randomBytes
 import org.bouncycastle.math.ec.rfc7748.X25519
 import java.security.MessageDigest
 import java.security.SecureRandom
 import com.walletconnect.walletconnectv2.core.model.vo.Key as WCKey
 
 internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : CryptoRepository {
+
+    override fun generateSymmetricKey(topic: TopicVO): SymmetricKey {
+        val symmetricKey = randomBytes(32)
+        keyChain.setSymmetricKey(topic.value, SymmetricKey(symmetricKey.bytesToHex()))
+        return SymmetricKey(symmetricKey.bytesToHex())
+    }
+
+    override fun setSymmetricKey(topic: TopicVO, key: SymmetricKey) {
+        keyChain.setSymmetricKey(topic.value, key)
+    }
+
+    override fun getSymmetricKey(topic: TopicVO): SymmetricKey {
+        return keyChain.getSymmetricKey(topic.value)
+    }
 
     override fun generateKeyPair(): PublicKey {
         val publicKey = ByteArray(KEY_SIZE)
@@ -41,14 +53,15 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
     }
 
     override fun setEncryptionKeys(sharedKey: SharedKey, publicKey: PublicKey, topic: TopicVO) {
-        keyChain.setKey(topic.value, sharedKey, publicKey)
+        keyChain.setKeys(topic.value, sharedKey, publicKey)
     }
 
-    override fun removeKeys(tag: String) {
-        val (_, publicKey) = keyChain.getKeys(tag)
+    override fun removeKeys(topic: String) {
+        val (_, publicKey) = keyChain.getKeys(topic)
         with(keyChain) {
             deleteKeys(publicKey.lowercase())
-            deleteKeys(tag)
+            deleteKeys(topic)
+            //todo: add separate method for sym key deletion?
         }
     }
 
@@ -58,7 +71,7 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
     }
 
     internal fun setKeyPair(publicKey: PublicKey, privateKey: PrivateKey) {
-        keyChain.setKey(publicKey.keyAsHex, publicKey, privateKey)
+        keyChain.setKeys(publicKey.keyAsHex, publicKey, privateKey)
     }
 
     internal fun getKeyPair(wcKey: WCKey): Pair<PublicKey, PrivateKey> {

@@ -4,7 +4,7 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.core.model.type.Sequence
 import com.walletconnect.walletconnectv2.core.model.type.SequenceLifecycle
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
-import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.core.model.vo.SymmetricKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
@@ -14,8 +14,7 @@ internal sealed class EngineDO {
 
     internal class WalletConnectUri(
         val topic: TopicVO,
-        val publicKey: PublicKey,
-        val isController: Boolean,
+        val symKey: SymmetricKey,
         val relay: RelayProtocolOptionsVO,
         val version: String = "2"
     ) : EngineDO()
