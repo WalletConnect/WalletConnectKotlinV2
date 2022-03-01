@@ -5,12 +5,10 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.walletconnect.sample.R
 import com.walletconnect.sample.databinding.WalletFragmentBinding
 import com.walletconnect.sample.wallet.ui.*
-import kotlinx.coroutines.launch
 import com.walletconnect.sample.wallet.ui.dialog.SessionDetailsDialog
 import com.walletconnect.sample.wallet.ui.dialog.SessionProposalDialog
 import com.walletconnect.sample.wallet.ui.dialog.SessionRequestDialog
@@ -19,11 +17,14 @@ import com.walletconnect.walletconnectv2.client.WalletConnect
 
 class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener {
     private val viewModel: WalletViewModel by activityViewModels()
+
     private lateinit var binding: WalletFragmentBinding
     private val sessionAdapter = SessionsAdapter(this)
 
     private var proposalDialog: SessionProposalDialog? = null
     private var requestDialog: SessionRequestDialog? = null
+
+    //TODO: Add feature completed wallet sample
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -31,7 +32,7 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
         setupToolbar()
         binding.sessions.adapter = sessionAdapter
 
-        viewModel.eventFlow.observe(viewLifecycleOwner) { event ->
+        viewModel.eventFlow.observe(viewLifecycleOwner, EventObserver { event ->
             when (event) {
                 is InitSessionsList -> sessionAdapter.updateList(event.sessions)
                 is ShowSessionProposalDialog -> {
@@ -56,14 +57,11 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
                 is UpdateActiveSessions -> {
                     proposalDialog?.dismiss()
                     sessionAdapter.updateList(event.sessions)
-                    event.message?.let {
-                        Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                    }
                 }
                 is RejectSession -> proposalDialog?.dismiss()
-                is PingSuccess -> Toast.makeText(requireContext(), "Successful session ping", Toast.LENGTH_SHORT).show()
+                is Ping -> Toast.makeText(requireContext(), "Ping success", Toast.LENGTH_SHORT).show()
             }
-        }
+        })
     }
 
     private fun setupToolbar() {
@@ -100,7 +98,6 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
     }
 
     override fun onSessionsDetails(session: WalletConnect.Model.SettledSession) {
-
-        SessionDetailsDialog(requireContext(), session).show()
+        SessionDetailsDialog(requireContext(), session) { settledSession -> viewModel.getPendingRequests(settledSession) }.show()
     }
 }

@@ -3,7 +3,7 @@ package com.walletconnect.walletconnectv2.engine.domain
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
-import com.walletconnect.walletconnectv2.core.model.type.ControllerType
+import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
@@ -24,11 +24,16 @@ internal object Validator {
         }
     }
 
-    internal fun validateAccounts(accounts: List<String>, chains: List<String>, onInvalidAccounts: (String) -> Unit) {
+    internal fun validateIfChainIdsIncludedInPermission(accounts: List<String>, chains: List<String>, onInvalidAccounts: (String) -> Unit) {
+        if (!areChainIdsIncludedInPermissions(accounts, chains)) {
+            onInvalidAccounts(UNAUTHORIZED_CHAIN_ID_MESSAGE)
+        }
+    }
+
+    internal fun validateCAIP10(accounts: List<String>, onInvalidAccounts: (String) -> Unit) {
         when {
             !areAccountsNotEmpty(accounts) -> onInvalidAccounts(EMPTY_ACCOUNT_LIST_MESSAGE)
             accounts.any { accountId -> !isAccountIdValid(accountId) } -> onInvalidAccounts(WRONG_ACCOUNT_ID_FORMAT_MESSAGE)
-            !areChainIdsIncludedInPermissions(accounts, chains) -> onInvalidAccounts(UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
     }
 

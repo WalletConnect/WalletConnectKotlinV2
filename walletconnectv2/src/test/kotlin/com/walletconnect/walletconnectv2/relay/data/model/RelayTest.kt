@@ -75,7 +75,8 @@ internal class RelayTest {
                 id = 1,
                 params = RelayDTO.Publish.Request.Params(
                     topic = TopicVO(getRandom64ByteHexString()),
-                    message = getRandom64ByteHexString()
+                    message = getRandom64ByteHexString(),
+                    prompt = true
                 )
             )
             val serverRelayPublishObserver = server.observeRelayPublish().test()

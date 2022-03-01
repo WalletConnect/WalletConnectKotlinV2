@@ -48,6 +48,11 @@ object WalletConnectClient {
                     is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
                     is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                     is EngineDO.SessionNotification -> delegate.onSessionNotification(event.toClientSessionNotification())
+                    //Responses
+                    is EngineDO.SettledPairingResponse -> delegate.onPairingSettledResponse(event.toClientSettledPairingResponse())
+                    is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
+                    is EngineDO.SessionUpgradeResponse -> delegate.onSessionUpgradeResponse(event.toClientUpgradedSessionResponse())
+                    is EngineDO.SessionUpdateResponse -> delegate.onSessionUpdateResponse(event.toClientUpdateSessionResponse())
                 }
             }
         }
@@ -69,99 +74,85 @@ object WalletConnectClient {
                     is EngineDO.SessionUpdate -> delegate.onSessionUpdate(event.toClientSessionsUpdate())
                     is EngineDO.SessionUpgrade -> delegate.onSessionUpgrade(event.toClientSessionsUpgrade())
                     is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
+                    //Responses
+                    is EngineDO.SessionPayloadResponse -> delegate.onSessionPayloadResponse(event.toClientSessionPayloadResponse())
                 }
             }
         }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun connect(connect: WalletConnect.Params.Connect, connecting: WalletConnect.Listeners.Connect? = null): String? {
+    fun connect(connect: WalletConnect.Params.Connect, onFailure: (WCException) -> Unit = {}): String? {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
         return engineInteractor.proposeSequence(connect.permissions.toEngineSessionPermissions(), connect.pairingTopic)
-        { error -> connecting?.onError(WalletConnect.Model.WCException(error)) }
+        { error -> onFailure(WalletConnect.Model.WCException(error)) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun pair(pair: WalletConnect.Params.Pair, pairing: WalletConnect.Listeners.Pairing? = null) {
+    fun pair(pair: WalletConnect.Params.Pair, onError: (WCException) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.pair(pair.uri,
-            { topic -> pairing?.onSuccess(WalletConnect.Model.SettledPairing(topic)) },
-            { error -> pairing?.onError(WalletConnect.Model.WCException(error)) })
+        engineInteractor.pair(pair.uri) { error -> onError(WalletConnect.Model.WCException(error)) }
     }
 
     @Throws(IllegalStateException::class)
-    fun approve(approve: WalletConnect.Params.Approve, sessionApprove: WalletConnect.Listeners.SessionApprove? = null) {
+    fun approve(approve: WalletConnect.Params.Approve, onError: (WCException) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.approve(
-            approve.proposal.toEngineSessionProposal(approve.accounts),
-            { settledSession -> sessionApprove?.onSuccess(settledSession.toClientSettledSession()) },
-            { error -> sessionApprove?.onError(WalletConnect.Model.WCException(error)) })
+        engineInteractor.approve(approve.proposal.toEngineSessionProposal(approve.accounts)) { error -> onError(WalletConnect.Model.WCException(error)) }
     }
 
     @Throws(IllegalStateException::class)
-    fun reject(reject: WalletConnect.Params.Reject, sessionReject: WalletConnect.Listeners.SessionReject? = null) {
+    fun reject(reject: WalletConnect.Params.Reject, onError: (WCException) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.reject(
-            reject.rejectionReason, reject.proposalTopic,
-            { (topic, reason) -> sessionReject?.onSuccess(WalletConnect.Model.RejectedSession(topic, reason)) },
-            { error -> sessionReject?.onError(WalletConnect.Model.WCException(error)) })
+        engineInteractor.reject(reject.rejectionReason, reject.proposalTopic) { error -> onError(WalletConnect.Model.WCException(error)) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun respond(response: WalletConnect.Params.Response, sessionPayload: WalletConnect.Listeners.SessionPayload? = null) {
+    fun respond(response: WalletConnect.Params.Response, onError: (WCException) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
         engineInteractor.respondSessionPayload(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponseVO())
-        { error -> sessionPayload?.onError(WalletConnect.Model.WCException(error)) }
+        { error -> onError(WalletConnect.Model.WCException(error)) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun request(request: WalletConnect.Params.Request, sessionRequest: WalletConnect.Listeners.SessionRequest? = null) {
+    fun request(request: WalletConnect.Params.Request, onError: (Throwable) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.sessionRequest(request.toEngineDORequest(),
-            { jsonRpcResult -> sessionRequest?.onSuccess(jsonRpcResult.toClientJsonRpcResult()) },
-            { error -> sessionRequest?.onError(WalletConnect.Model.JsonRpcResponse.Error(error)) })
+        engineInteractor.sessionRequest(request.toEngineDORequest()) { error -> onError(error) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun upgrade(upgrade: WalletConnect.Params.Upgrade, sessionUpgrade: WalletConnect.Listeners.SessionUpgrade? = null) {
+    fun upgrade(upgrade: WalletConnect.Params.Upgrade, onError: (Throwable) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.upgrade(
-            upgrade.topic, upgrade.permissions.toEngineSessionPermissions(),
-            { (topic, permissions) -> sessionUpgrade?.onSuccess(WalletConnect.Model.UpgradedSession(topic, permissions.toClientPerms())) },
-            { error -> sessionUpgrade?.onError(WalletConnect.Model.WCException(error)) })
+        engineInteractor.upgrade(upgrade.topic, upgrade.permissions.toEngineSessionPermissions()) { error -> onError(error) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun update(update: WalletConnect.Params.Update, sessionUpdate: WalletConnect.Listeners.SessionUpdate? = null) {
+    fun update(update: WalletConnect.Params.Update, onError: (Throwable) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.update(
-            update.sessionTopic, update.sessionState.toEngineSessionState(),
-            { (topic, accounts) -> sessionUpdate?.onSuccess(WalletConnect.Model.UpdatedSession(topic, accounts)) },
-            { error -> sessionUpdate?.onError(WalletConnect.Model.WCException(error)) })
+        engineInteractor.update(update.sessionTopic, update.sessionState.toEngineSessionState()) { error -> onError(error) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
@@ -176,25 +167,21 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun notify(notify: WalletConnect.Params.Notify, notificationListener: WalletConnect.Listeners.Notification? = null) {
+    fun notify(notify: WalletConnect.Params.Notify, onError: (Throwable) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.notify(notify.topic, notify.notification.toEngineNotification(),
-            { topic -> notificationListener?.onSuccess(topic) },
-            { error -> notificationListener?.onError(WalletConnect.Model.WCException(error)) })
+        engineInteractor.notify(notify.topic, notify.notification.toEngineNotification()) { error -> onError(error) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun disconnect(disconnect: WalletConnect.Params.Disconnect, listener: WalletConnect.Listeners.SessionDelete? = null) {
+    fun disconnect(disconnect: WalletConnect.Params.Disconnect) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.disconnect(disconnect.sessionTopic, disconnect.reason, disconnect.reasonCode,
-            { (topic, reason) -> listener?.onSuccess(WalletConnect.Model.DeletedSession.Success(topic, reason)) },
-            { error -> listener?.onError(WalletConnect.Model.DeletedSession.Error(error)) })
+        engineInteractor.disconnect(disconnect.sessionTopic, disconnect.reason, disconnect.reasonCode)
     }
 
     @Throws(IllegalStateException::class)
@@ -207,15 +194,6 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class)
-    fun getListOfPendingSession(): List<WalletConnect.Model.SessionProposal> {
-        check(::engineInteractor.isInitialized) {
-            "WalletConnectClient needs to be initialized first using the initialize function"
-        }
-
-        return engineInteractor.getListOfPendingSessions().map(EngineDO.SessionProposal::toClientSessionProposal)
-    }
-
-    @Throws(IllegalStateException::class)
     fun getListOfSettledPairings(): List<WalletConnect.Model.SettledPairing> {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
@@ -225,18 +203,12 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class)
-    fun getJsonRpcHistory(topic: String): WalletConnect.Model.JsonRpcHistory {
+    fun getPendingRequests(topic: String): List<WalletConnect.Model.PendingRequest> {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        val (listOfRequests, listOfResponses) = engineInteractor.getListOfJsonRpcHistory(TopicVO(topic))
-
-        return WalletConnect.Model.JsonRpcHistory(
-            topic = topic,
-            listOfRequests = listOfRequests.mapToHistory(),
-            listOfResponses = listOfResponses.mapToHistory()
-        )
+        return engineInteractor.getPendingRequests(TopicVO(topic)).mapToPendingRequests()
     }
 
     fun shutdown() {
@@ -249,15 +221,24 @@ object WalletConnectClient {
         fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest)
         fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
         fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification)
+
+        //Responses
+        fun onPairingSettledResponse(response: WalletConnect.Model.SettledPairingResponse)
+        fun onSessionSettleResponse(response: WalletConnect.Model.SettledSessionResponse)
+        fun onSessionUpgradeResponse(response: WalletConnect.Model.SessionUpgradeResponse)
+        fun onSessionUpdateResponse(response: WalletConnect.Model.SessionUpdateResponse)
     }
 
     interface DappDelegate {
         fun onPairingSettled(settledPairing: WalletConnect.Model.SettledPairing)
-        fun onPairingUpdated(pairing: WalletConnect.Model.SettledPairing)
+        fun onPairingUpdated(pairing: WalletConnect.Model.PairingUpdate)
         fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession)
         fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdatedSession)
         fun onSessionUpgrade(upgradedSession: WalletConnect.Model.UpgradedSession)
         fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
+
+        //Responses
+        fun onSessionPayloadResponse(response: WalletConnect.Model.SessionPayloadResponse)
     }
 }

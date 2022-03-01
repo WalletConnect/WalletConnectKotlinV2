@@ -195,10 +195,8 @@ internal fun storageModule(): Module = module {
                 controller_typeAdapter = EnumColumnAdapter()
             ),
             MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = get()),
-            JsonRpcHistoryDaoAdapter = JsonRpcHistoryDao.Adapter(
-                statusAdapter = EnumColumnAdapter(),
-                controller_typeAdapter = EnumColumnAdapter()
-            )
+            JsonRpcHistoryDaoAdapter =
+            JsonRpcHistoryDao.Adapter(controller_typeAdapter = EnumColumnAdapter())
         )
     }
 

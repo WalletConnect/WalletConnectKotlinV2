@@ -7,6 +7,9 @@
         domain="sharedpref"
         path="wc_rpc_store.xml" />
     <exclude
+        domain="sharedpref"
+        path="db_key_store.xml" />
+    <exclude
         domain="database"
         path="WalletConnectV2.db" />
 </full-backup-content>

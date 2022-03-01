@@ -1,4 +1,4 @@
-package com.walletconnect.walletconnectv2.core.model.vo
+package com.walletconnect.walletconnectv2.core.model.vo.jsonRpc
 
 import com.squareup.moshi.JsonClass
 
@@ -17,7 +17,9 @@ internal sealed class JsonRpcResponseVO {
         override val id: Long,
         val jsonrpc: String = "2.0",
         val error: Error
-    ) : JsonRpcResponseVO()
+    ) : JsonRpcResponseVO() {
+        val errorMessage: String = "${error.message} : code: ${error.code}"
+    }
 
     internal data class Error(
         val code: Int,

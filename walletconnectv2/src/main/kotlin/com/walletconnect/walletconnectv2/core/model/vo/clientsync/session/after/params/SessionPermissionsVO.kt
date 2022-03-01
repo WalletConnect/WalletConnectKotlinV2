@@ -10,4 +10,6 @@ internal data class SessionPermissionsVO(
     val blockchain: SessionProposedPermissionsVO.Blockchain,
     @Json(name = "jsonrpc")
     val jsonRpc: SessionProposedPermissionsVO.JsonRpc,
+    @Json(name = "notifications")
+    val notifications: SessionProposedPermissionsVO.Notifications?,
 )

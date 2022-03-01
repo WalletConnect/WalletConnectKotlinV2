@@ -1,13 +1,14 @@
 package com.walletconnect.walletconnectv2.core.model.vo.sequence
 
-import com.walletconnect.walletconnectv2.core.model.type.ControllerType
 import com.walletconnect.walletconnectv2.core.model.type.Sequence
+import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.AppMetaDataVO
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
+import com.walletconnect.walletconnectv2.util.Empty
 
 internal data class SessionVO(
     override val topic: TopicVO,
@@ -21,9 +22,10 @@ internal data class SessionVO(
     val types: List<String>?,
     val ttl: TtlVO,
     val accounts: List<String> = emptyList(),
-    val appMetaData: AppMetaDataVO? = null,
+    val metaData: AppMetaDataVO? = null,
     val controllerType: ControllerType,
-    val relayProtocol: String
+    val relayProtocol: String,
+    val outcomeTopic: TopicVO = TopicVO(String.Empty)
 ) : Sequence {
     val isPeerController: Boolean = peerParticipant?.keyAsHex == controllerKey?.keyAsHex
 }

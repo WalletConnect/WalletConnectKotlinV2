@@ -16,13 +16,16 @@ import kotlinx.coroutines.supervisorScope
 
 internal class WakuNetworkRepository internal constructor(private val relay: RelayService) : NetworkRepository {
     override val eventsFlow: SharedFlow<WebSocket.Event> = relay.eventsFlow().shareIn(scope, SharingStarted.Lazily, REPLAY)
-    internal val observePublishAcknowledgement: Flow<RelayDTO.Publish.Acknowledgement> = relay.observePublishAcknowledgement()
 
     override val subscriptionRequest: Flow<RelayDTO.Subscription.Request> = relay.observeSubscriptionRequest()
         .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
 
-    override fun publish(topic: TopicVO, message: String, onResult: (Result<RelayDTO.Publish.Acknowledgement>) -> Unit) {
-        val publishRequest = RelayDTO.Publish.Request(id = generateId(), params = RelayDTO.Publish.Request.Params(topic = topic, message = message))
+    override fun publish(topic: TopicVO, message: String, prompt: Boolean, onResult: (Result<RelayDTO.Publish.Acknowledgement>) -> Unit) {
+        val publishRequest =
+            RelayDTO.Publish.Request(
+                id = generateId(),
+                params = RelayDTO.Publish.Request.Params(topic = topic, message = message, prompt = prompt)
+            )
         observePublishAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
         observePublishError { error -> onResult(Result.failure(error)) }
         relay.publishRequest(publishRequest)
@@ -35,7 +38,11 @@ internal class WakuNetworkRepository internal constructor(private val relay: Rel
         relay.subscribeRequest(subscribeRequest)
     }
 
-    override fun unsubscribe(topic: TopicVO, subscriptionId: SubscriptionIdVO, onResult: (Result<RelayDTO.Unsubscribe.Acknowledgement>) -> Unit) {
+    override fun unsubscribe(
+        topic: TopicVO,
+        subscriptionId: SubscriptionIdVO,
+        onResult: (Result<RelayDTO.Unsubscribe.Acknowledgement>) -> Unit
+    ) {
         val unsubscribeRequest =
             RelayDTO.Unsubscribe.Request(id = generateId(), params = RelayDTO.Unsubscribe.Request.Params(topic, subscriptionId))
         observeUnSubscribeAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
