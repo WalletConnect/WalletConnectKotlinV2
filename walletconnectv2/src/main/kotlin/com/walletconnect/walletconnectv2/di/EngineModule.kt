@@ -2,22 +2,21 @@ package com.walletconnect.walletconnectv2.di
 
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.mapper.toEngineAppMetaData
-import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
 import com.walletconnect.walletconnectv2.engine.domain.EngineInteractor
 import org.koin.dsl.module
 
 @JvmSynthetic
-internal fun engineModule(metadata: WalletConnect.Model.AppMetaData, isController: Boolean) = module {
+internal fun engineModule(metadata: WalletConnect.Model.AppMetaData) = module {
 
-    single {
-        if (isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
-    }
+//    single {
+//        if (isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
+//    }
 
     single {
         metadata.toEngineAppMetaData()
     }
 
     single {
-        EngineInteractor(get(), get(), get(), get(), get())
+        EngineInteractor(get(), get(), get(), get())
     }
 }

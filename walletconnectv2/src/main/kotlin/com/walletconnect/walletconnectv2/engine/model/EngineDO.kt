@@ -29,7 +29,7 @@ internal sealed class EngineDO {
         val types: List<String>? = null,
         val topic: String,
         val publicKey: String,
-        val isController: Boolean = false,
+        val isController: Boolean = true,
         val ttl: Long,
         val accounts: List<String>,
         val relayProtocol: String

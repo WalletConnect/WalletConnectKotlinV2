@@ -1,6 +1,5 @@
 package com.walletconnect.walletconnectv2.engine.model.mapper
 
-import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
@@ -18,9 +17,7 @@ import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.pendingSequenceExpirySeconds
 import com.walletconnect.walletconnectv2.util.proposedPairingExpirySeconds
-import org.json.JSONObject
 import java.net.URI
-import java.net.URLEncoder
 import java.util.*
 
 //@JvmSynthetic
@@ -35,39 +32,40 @@ import java.util.*
 //    )
 
 @JvmSynthetic
-internal fun createPairing(topic: TopicVO, relay: RelayProtocolOptionsVO): PairingVO =
+internal fun createPairing(topic: TopicVO, relay: RelayProtocolOptionsVO, uri: String): PairingVO =
     PairingVO(
         topic,
-        ExpiryVO(proposedPairingExpirySeconds()),
+        ExpiryVO(proposedPairingExpirySeconds()), //todo: change to 5mins?
         SequenceStatus.PROPOSED,
         PublicKey("null"),
-        uri = "uri",
-        relay = relay.protocol,
-        //todo: data -> relay.data
+        uri = uri,
+        relayProtocol = relay.protocol,
+        relayData = relay.data
     )
-
 
 @JvmSynthetic
 internal fun EngineDO.WalletConnectUri.toPairingVO(): PairingVO =
     PairingVO(
         topic,
-        ExpiryVO(pendingSequenceExpirySeconds()),
+        ExpiryVO(pendingSequenceExpirySeconds()), //todo: change to 5mins?
         SequenceStatus.ACKNOWLEDGED,
         PublicKey("null"),
         uri = toAbsoluteString(),
-        relay = relay.protocol,
-        //todo: data
+        relayProtocol = relay.protocol,
+        relayData = relay.data
     )
 
-//todo add optional relay-data
 @JvmSynthetic
 internal fun EngineDO.WalletConnectUri.toAbsoluteString(): String =
-    "wc:${topic.value}@$version?&relay-protocol=${relay.toUrlEncodedString()}symKey=${symKey.keyAsHex}"
+    "wc:${topic.value}@$version?${getQuery()}&symKey=${symKey.keyAsHex}"
 
-//todo add optional relay-data
-@JvmSynthetic
-internal fun RelayProtocolOptionsVO.toUrlEncodedString(): String =
-    URLEncoder.encode(JSONObject().put("protocol", protocol).toString(), "UTF-8")
+private fun EngineDO.WalletConnectUri.getQuery(): String {
+    var query = "relay-protocol=${relay.protocol}"
+    if (relay.data != null) {
+        query = "$query&relay-data=${relay.data}"
+    }
+    return query
+}
 
 @JvmSynthetic
 internal fun EngineDO.AppMetaData.toMetaDataVO() =
@@ -199,8 +197,7 @@ internal fun SessionVO.toSessionApproved(params: SessionParamsVO.ApprovalParams,
 @JvmSynthetic
 internal fun SessionParamsVO.ProposalParams.toProposedSessionVO(
     topic: TopicVO,
-    selfPublicKey: PublicKey,
-    controllerType: ControllerType
+    selfPublicKey: PublicKey
 ): SessionVO =
     SessionVO(
         topic,
@@ -211,7 +208,6 @@ internal fun SessionParamsVO.ProposalParams.toProposedSessionVO(
         methods = permissions.jsonRpc.methods,
         types = permissions.notifications?.types,
         ttl = TtlVO(pendingSequenceExpirySeconds()),
-        controllerType = controllerType,
         relayProtocol = relay.protocol
     )
 
@@ -231,11 +227,7 @@ internal fun SessionProposerVO.toProposalParams(
     )
 
 @JvmSynthetic
-internal fun EngineDO.SessionProposal.toRespondedSessionVO(
-    selfPublicKey: PublicKey,
-    settledTopic: TopicVO,
-    controllerType: ControllerType
-): SessionVO =
+internal fun EngineDO.SessionProposal.toRespondedSessionVO(selfPublicKey: PublicKey, settledTopic: TopicVO): SessionVO =
     SessionVO(
         TopicVO(topic),
         ExpiryVO(pendingSequenceExpirySeconds()),
@@ -245,17 +237,12 @@ internal fun EngineDO.SessionProposal.toRespondedSessionVO(
         methods = methods,
         types = types,
         ttl = TtlVO(ttl),
-        controllerType = controllerType,
         relayProtocol = relayProtocol,
         outcomeTopic = settledTopic
     )
 
 @JvmSynthetic
-internal fun EngineDO.SessionProposal.toPreSettledSessionVO(
-    settledTopic: TopicVO,
-    selfPublicKey: PublicKey,
-    controllerType: ControllerType
-): SessionVO =
+internal fun EngineDO.SessionProposal.toPreSettledSessionVO(settledTopic: TopicVO, selfPublicKey: PublicKey): SessionVO =
     SessionVO(
         settledTopic,
         ExpiryVO((Calendar.getInstance().timeInMillis / 1000) + ttl),
@@ -268,7 +255,6 @@ internal fun EngineDO.SessionProposal.toPreSettledSessionVO(
         types ?: emptyList(),
         TtlVO(ttl),
         accounts,
-        controllerType = controllerType,
         relayProtocol = relayProtocol
     )
 
@@ -280,8 +266,7 @@ internal fun SessionVO.toEngineDOAcknowledgeSessionVO(settledTopic: TopicVO, par
         SequenceStatus.ACKNOWLEDGED,
         selfParticipant,
         PublicKey(params.responder.publicKey),
-        controllerKey = if (controllerType == ControllerType.CONTROLLER) selfParticipant else PublicKey(params.responder.publicKey),
-        controllerType = controllerType,
+        controllerKey = PublicKey(params.responder.publicKey), //todo: should always set responder key as controller ?
         metaData = params.responder.metadata,
         relayProtocol = params.relay.protocol,
         chains = chains,
@@ -312,10 +297,7 @@ internal fun SessionVO.toEngineDOAcknowledgeSessionVO(settledTopic: TopicVO, par
 //    )
 
 @JvmSynthetic
-internal fun SessionParamsVO.ProposalParams.toEngineDOPendingSessionVO(
-    selfPublicKey: PublicKey,
-    controllerType: ControllerType
-): SessionVO =
+internal fun SessionParamsVO.ProposalParams.toEngineDOPendingSessionVO(selfPublicKey: PublicKey): SessionVO =
     SessionVO(
         topic,
         ExpiryVO(pendingSequenceExpirySeconds()),
@@ -325,7 +307,6 @@ internal fun SessionParamsVO.ProposalParams.toEngineDOPendingSessionVO(
         methods = permissions.jsonRpc.methods,
         types = permissions.notifications?.types,
         ttl = TtlVO(pendingSequenceExpirySeconds()),
-        controllerType = controllerType,
         relayProtocol = relay.protocol
     )
 

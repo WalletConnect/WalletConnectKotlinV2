@@ -14,6 +14,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.Key as WCKey
 internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : CryptoRepository {
 
     override fun generateSymmetricKey(topic: TopicVO): SymmetricKey {
+        //todo: add pubKey field to symKey. pulKey is sha256 from symKey
         val symmetricKey = randomBytes(32)
         keyChain.setSymmetricKey(topic.value, SymmetricKey(symmetricKey.bytesToHex()))
         return SymmetricKey(symmetricKey.bytesToHex())

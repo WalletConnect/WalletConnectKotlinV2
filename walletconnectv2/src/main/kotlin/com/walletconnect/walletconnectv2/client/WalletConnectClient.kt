@@ -27,7 +27,7 @@ object WalletConnectClient {
                 networkModule(serverUrl),
                 relayerModule(),
                 storageModule(),
-                engineModule(metadata, isController)
+                engineModule(metadata)
             )
         }
 

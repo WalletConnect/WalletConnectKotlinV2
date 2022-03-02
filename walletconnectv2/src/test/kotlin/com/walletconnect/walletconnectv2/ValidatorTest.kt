@@ -1,8 +1,12 @@
 package com.walletconnect.walletconnectv2
 
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
+import com.walletconnect.walletconnectv2.core.model.vo.SymmetricKey
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.engine.domain.Validator
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
+import com.walletconnect.walletconnectv2.engine.model.mapper.toAbsoluteString
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -330,5 +334,24 @@ class ValidatorTest {
             assertEquals("587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303", this.symKey.keyAsHex)
             assertEquals("2", this.version)
         }
+    }
+
+    @Test
+    fun `parse walletconnect uri to absolute string`() {
+        val uri = EngineDO.WalletConnectUri(
+            TopicVO("11112222244444"),
+            SymmetricKey("0x12321321312312312321"),
+            RelayProtocolOptionsVO("waku", "teeestData")
+        )
+
+        assertEquals(uri.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=waku&relay-data=teeestData&symKey=0x12321321312312312321")
+
+        val uri2 = EngineDO.WalletConnectUri(
+            TopicVO("11112222244444"),
+            SymmetricKey("0x12321321312312312321"),
+            RelayProtocolOptionsVO("waku")
+        )
+
+        assertEquals(uri2.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=waku&symKey=0x12321321312312312321")
     }
 }

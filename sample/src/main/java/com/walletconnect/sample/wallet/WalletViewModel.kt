@@ -25,7 +25,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
 
     fun pair(uri: String) {
         val pair = WalletConnect.Params.Pair(uri.trim())
-        WalletConnectClient.pair(pair) { error -> Log.d("Error", "sending pair error: $error") }
+        WalletConnectClient.pair(pair)
     }
 
     fun approve() {

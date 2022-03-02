@@ -171,7 +171,6 @@ object WalletConnect {
         // TODO: Maybe convert this into a Builder
         data class Init internal constructor(
             val application: Application,
-            val isController: Boolean,
             val metadata: Model.AppMetaData,
         ) : Params() {
             internal lateinit var serverUrl: String
@@ -181,9 +180,8 @@ object WalletConnect {
                 useTls: Boolean,
                 hostName: String,
                 projectId: String,
-                isController: Boolean,
                 metadata: Model.AppMetaData,
-            ) : this(application, isController, metadata) {
+            ) : this(application, metadata) {
                 val relayServerUrl = Uri.Builder().scheme((if (useTls) "wss" else "ws"))
                     .authority(hostName)
                     .appendQueryParameter("projectId", projectId)
@@ -200,9 +198,8 @@ object WalletConnect {
             constructor(
                 application: Application,
                 relayServerUrl: String,
-                isController: Boolean,
                 metadata: Model.AppMetaData,
-            ) : this(application, isController, metadata) {
+            ) : this(application, metadata) {
                 require(relayServerUrl.isValidRelayServerUrl()) {
                     "Check the schema and projectId parameter of the Server Url"
                 }

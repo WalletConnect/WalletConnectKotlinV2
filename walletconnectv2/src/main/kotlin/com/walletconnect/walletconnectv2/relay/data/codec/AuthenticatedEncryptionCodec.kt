@@ -33,7 +33,9 @@ internal class AuthenticatedEncryptionCodec : Codec {
         val (encryptionKey, authenticationKey) = getKeys(sharedKey.keyAsHex)
         val data = payload.cipherText.hexToBytes()
         val iv = payload.iv.hexToBytes()
-        val computedHmac = computeHmac(data, iv, authenticationKey, payload.publicKey.hexToBytes())
+        val publicKey = payload.publicKey.hexToBytes()
+
+        val computedHmac = computeHmac(data, iv, authenticationKey, publicKey)
 
         if (computedHmac != payload.mac.lowercase()) {
             throw Exception("Invalid Hmac")

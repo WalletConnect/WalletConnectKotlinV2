@@ -28,7 +28,8 @@ internal class JsonRpcSerializer(
 
         return if (sharedKey.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
             //TODO: symmetric ket encryption over topic A
-//            val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(topic)
+            //val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(topic)
+            //publicKey is hash from symKey
             //symmetric decryption  authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), sharedKey as SharedKey)
             payload.encode()
         } else {
@@ -41,7 +42,7 @@ internal class JsonRpcSerializer(
 
         return if (sharedKey.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
             //TODO: symmetric ket decryption over topic A
-//            val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(topic)
+            // val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(topic)
             //symmetric decryption  authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), sharedKey as SharedKey)
             message.hexToUtf8
         } else {
