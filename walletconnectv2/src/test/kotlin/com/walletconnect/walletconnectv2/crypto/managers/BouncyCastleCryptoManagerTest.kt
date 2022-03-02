@@ -39,13 +39,21 @@ internal class BouncyCastleCryptoManagerTest {
         )
 
         assert(result.length == 64)
-
-        assertEquals(
-            "9c87e48e69b33a613907515bcd5b1b4cc10bbaf15167b19804b00f0a9217e607",
-            result.lowercase()
-        )
+        assertEquals("9c87e48e69b33a613907515bcd5b1b4cc10bbaf15167b19804b00f0a9217e607", result.lowercase())
     }
 
+    @Test
+    fun `generate symmetric key test`() {
+        val topic = TopicVO("topic")
+        val symKey = sut.generateSymmetricKey(topic)
+
+        assert(symKey.keyAsHex.length == 64)
+
+        val (symmetricKey, pubKey) = sut.getSymmetricKeys(topic)
+
+        assertEquals(symKey.keyAsHex, symmetricKey.keyAsHex)
+        assert(pubKey.keyAsHex.length == 64)
+    }
 
     @Test
     fun `Generate a shared key and return a Topic object`() {

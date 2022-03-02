@@ -14,18 +14,22 @@ import com.walletconnect.walletconnectv2.core.model.vo.Key as WCKey
 internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : CryptoRepository {
 
     override fun generateSymmetricKey(topic: TopicVO): SymmetricKey {
-        //todo: add pubKey field to symKey. pulKey is sha256 from symKey
-        val symmetricKey = randomBytes(32)
-        keyChain.setSymmetricKey(topic.value, SymmetricKey(symmetricKey.bytesToHex()))
-        return SymmetricKey(symmetricKey.bytesToHex())
+        //todo: is symKey valid?
+        val symmetricKey = randomBytes(KEY_SIZE).bytesToHex()
+        val publicKey = PublicKey(sha256(symmetricKey))
+
+        keyChain.setKeys(topic.value, SymmetricKey(symmetricKey), publicKey)
+        return SymmetricKey(symmetricKey)
     }
 
-    override fun setSymmetricKey(topic: TopicVO, key: SymmetricKey) {
-        keyChain.setSymmetricKey(topic.value, key)
+    override fun setSymmetricKey(topic: TopicVO, symmetricKey: SymmetricKey) {
+        val publicKey = PublicKey(sha256(symmetricKey.keyAsHex))
+        keyChain.setKeys(topic.value, symmetricKey, publicKey)
     }
 
-    override fun getSymmetricKey(topic: TopicVO): SymmetricKey {
-        return keyChain.getSymmetricKey(topic.value)
+    override fun getSymmetricKeys(topic: TopicVO): Pair<SymmetricKey, PublicKey> {
+        val (symmetricKey, peerPublic) = keyChain.getKeys(topic.value)
+        return Pair(SymmetricKey(symmetricKey), PublicKey(peerPublic))
     }
 
     override fun generateKeyPair(): PublicKey {
@@ -48,7 +52,7 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
         val sharedKeyBytes = ByteArray(KEY_SIZE)
         X25519.scalarMult(privateKey.keyAsHex.hexToBytes(), 0, peer.keyAsHex.hexToBytes(), 0, sharedKeyBytes, 0)
         val sharedKey = SharedKey(sharedKeyBytes.bytesToHex())
-        val topic = generateTopic(sharedKey.keyAsHex)
+        val topic = TopicVO(sha256(sharedKey.keyAsHex))
         setEncryptionKeys(sharedKey, publicKey, TopicVO(topic.value.lowercase()))
         return Pair(sharedKey, topic)
     }
@@ -80,10 +84,10 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
         return Pair(PublicKey(publicKeyHex), PrivateKey(privateKeyHex))
     }
 
-    private fun generateTopic(sharedKey: String): TopicVO {
+    private fun sha256(key: String): String {
         val messageDigest: MessageDigest = MessageDigest.getInstance(SHA_256)
-        val hashedBytes: ByteArray = messageDigest.digest(sharedKey.hexToBytes())
-        return TopicVO(hashedBytes.bytesToHex())
+        val hashedBytes: ByteArray = messageDigest.digest(key.hexToBytes())
+        return hashedBytes.bytesToHex()
     }
 
     private companion object {

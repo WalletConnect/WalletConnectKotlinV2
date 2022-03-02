@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.relay.data.codec
 
+import com.walletconnect.walletconnectv2.core.model.vo.Key
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
-import com.walletconnect.walletconnectv2.core.model.vo.SharedKey
 import com.walletconnect.walletconnectv2.core.model.vo.payload.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.relay.Codec
 import com.walletconnect.walletconnectv2.util.bytesToHex
@@ -15,8 +15,8 @@ import javax.crypto.spec.SecretKeySpec
 
 internal class AuthenticatedEncryptionCodec : Codec {
 
-    override fun encrypt(message: String, sharedKey: SharedKey, publicKey: PublicKey): String {
-        val (encryptionKey, authenticationKey) = getKeys(sharedKey.keyAsHex)
+    override fun encrypt(message: String, key: Key, publicKey: PublicKey): String {
+        val (encryptionKey, authenticationKey) = getKeys(key.keyAsHex)
 
         val data = message.toByteArray(Charsets.UTF_8)
         val iv: ByteArray = randomBytes(16)
@@ -29,8 +29,8 @@ internal class AuthenticatedEncryptionCodec : Codec {
         return iv.bytesToHex() + publicKey.keyAsHex + computedMac + cipherText.bytesToHex()
     }
 
-    override fun decrypt(payload: EncryptionPayloadVO, sharedKey: SharedKey): String {
-        val (encryptionKey, authenticationKey) = getKeys(sharedKey.keyAsHex)
+    override fun decrypt(payload: EncryptionPayloadVO, key: Key): String {
+        val (encryptionKey, authenticationKey) = getKeys(key.keyAsHex)
         val data = payload.cipherText.hexToBytes()
         val iv = payload.iv.hexToBytes()
         val publicKey = payload.publicKey.hexToBytes()
