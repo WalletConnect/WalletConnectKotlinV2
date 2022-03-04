@@ -9,7 +9,7 @@ import com.walletconnect.walletconnectv2.util.hexToBytes
 
 internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyStore {
 
-    override fun setKey(tag: String, key1: Key, key2: Key) {
+    override fun setKeys(tag: String, key1: Key, key2: Key) {
         val keys = concatKeys(key1, key2)
         sharedPreferences.edit().putString(tag, keys).apply()
     }

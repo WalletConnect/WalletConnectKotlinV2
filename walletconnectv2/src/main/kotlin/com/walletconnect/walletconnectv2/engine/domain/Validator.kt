@@ -1,10 +1,7 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
-import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
-import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.core.model.vo.SymmetricKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
@@ -42,7 +39,7 @@ internal object Validator {
     }
 
     internal fun validateNotificationAuthorization(session: SessionVO, type: String, onUnauthorizedNotification: (String) -> Unit) {
-        if (session.controllerType != ControllerType.CONTROLLER && session.types?.contains(type) == false) {
+        if (!session.isSelfController && session.types?.contains(type) == false) {
             onUnauthorizedNotification(UNAUTHORIZED_NOTIFICATION_TYPE_MESSAGE)
         }
     }
@@ -77,29 +74,21 @@ internal object Validator {
         val mapOfQueryParameters: Map<String, String> =
             pairUri.query.split("&").associate { query -> query.substringBefore("=") to query.substringAfter("=") }
 
-        var relay = ""
-        mapOfQueryParameters["relay"]?.let { relay = it } ?: return null
-        if (relay.isEmpty()) return null
+        var relayProtocol = ""
+        mapOfQueryParameters["relay-protocol"]?.let { relayProtocol = it } ?: return null
+        if (relayProtocol.isEmpty()) return null
 
+        var relayData: String? = ""
+        relayData = mapOfQueryParameters["relay-data"]
 
-        val moshi = Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
-        val protocolOptionsVO = moshi.adapter(RelayProtocolOptionsVO::class.java).fromJson(relay) ?: return null
-
-        var publicKey = ""
-        mapOfQueryParameters["publicKey"]?.let { publicKey = it } ?: return null
-        if (publicKey.isEmpty()) return null
-
-
-        var controller = ""
-        mapOfQueryParameters["controller"]?.let { controller = it } ?: return null
-        if (controller.isEmpty()) return null
-        val isController = controller.toBoolean()
+        var symKey = ""
+        mapOfQueryParameters["symKey"]?.let { symKey = it } ?: return null
+        if (symKey.isEmpty()) return null
 
         return EngineDO.WalletConnectUri(
             topic = TopicVO(pairUri.userInfo),
-            relay = protocolOptionsVO,
-            publicKey = PublicKey(publicKey),
-            isController = isController
+            relay = RelayProtocolOptionsVO(protocol = relayProtocol, data = relayData),
+            symKey = SymmetricKey(symKey)
         )
     }
 

@@ -1,4 +1,4 @@
-package com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.after.payload
+package com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.payload
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

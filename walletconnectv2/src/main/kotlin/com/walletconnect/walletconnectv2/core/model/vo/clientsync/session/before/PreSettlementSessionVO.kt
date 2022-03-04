@@ -12,6 +12,7 @@ internal sealed class PreSettlementSessionVO : SettlementSequence<SessionParamsV
     abstract override val jsonrpc: String
     abstract override val params: SessionParamsVO
 
+    //todo use model from SettelementPairing
     @JsonClass(generateAdapter = true)
     internal data class Proposal(
         @Json(name = "id")
@@ -24,6 +25,8 @@ internal sealed class PreSettlementSessionVO : SettlementSequence<SessionParamsV
         override val params: SessionParamsVO.ProposalParams
     ) : PreSettlementSessionVO()
 
+
+    //todo: send as response for session propose
     @JsonClass(generateAdapter = true)
     internal data class Approve(
         @Json(name = "id")
@@ -31,7 +34,7 @@ internal sealed class PreSettlementSessionVO : SettlementSequence<SessionParamsV
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
-        override val method: String = JsonRpcMethod.WC_SESSION_APPROVE,
+        override val method: String = "wc_sessionApprove",
         @Json(name = "params")
         override val params: SessionParamsVO.ApprovalParams
     ) : PreSettlementSessionVO() {
@@ -42,7 +45,7 @@ internal sealed class PreSettlementSessionVO : SettlementSequence<SessionParamsV
     internal data class Reject(
         override val id: Long,
         override val jsonrpc: String = "2.0",
-        override val method: String = JsonRpcMethod.WC_SESSION_REJECT,
+        override val method: String = "wc_sessionReject",
         override val params: SessionParamsVO.RejectParams,
     ) : PreSettlementSessionVO()
 }

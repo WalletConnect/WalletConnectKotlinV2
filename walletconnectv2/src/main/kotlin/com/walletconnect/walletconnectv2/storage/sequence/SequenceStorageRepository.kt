@@ -1,6 +1,5 @@
 package com.walletconnect.walletconnectv2.storage.sequence
 
-import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
@@ -70,8 +69,8 @@ internal class SequenceStorageRepository(
                     controllerKey = PublicKey(entity.controller_key ?: String.Empty),
                     uri = entity.uri,
                     permissions = entity.permissions,
-                    relay = entity.relay_protocol,
-                    controllerType = entity.controller_type,
+                    relayProtocol = entity.relay_protocol,
+                    relayData = entity.relay_data,
                     outcomeTopic = TopicVO(entity.outcome_topic ?: String.Empty)
                 )
             }
@@ -97,7 +96,6 @@ internal class SequenceStorageRepository(
                 types = entity.permissions_types,
                 accounts = entity.accounts ?: emptyList(),
                 ttl = TtlVO(entity.ttl_seconds),
-                controllerType = entity.controller_type,
                 relayProtocol = entity.relay_protocol,
                 outcomeTopic = TopicVO(entity.outcome_topic ?: String.Empty),
                 metaData = appMetaData
@@ -107,39 +105,17 @@ internal class SequenceStorageRepository(
 
     //insert: Proposed, Responded
     @JvmSynthetic
-    fun insertPendingPairing(pendingPairing: PairingVO, controllerType: ControllerType, settledTopic: TopicVO? = null) {
+    fun insertPairing(pendingPairing: PairingVO, settledTopic: TopicVO? = null) {
         with(pendingPairing) {
             pairingDaoQueries.insertPendingPairing(
                 topic.value,
                 uri,
                 expiry.seconds,
                 status,
-                controllerType,
                 selfParticipant.keyAsHex,
-                relay,
+                relayProtocol,
+                relayData,
                 settledTopic?.value
-            )
-        }
-    }
-
-    //insert: Pre-Settled, Acknowledged
-    @JvmSynthetic
-    fun insertSettledPairing(settledPairing: PairingVO, controllerType: ControllerType) {
-        val metadataId = insertMetaData(settledPairing.appMetaDataVO)
-
-        with(settledPairing) {
-            pairingDaoQueries.insertSettledPairing(
-                topic.value,
-                uri,
-                expiry.seconds,
-                status,
-                controllerType,
-                selfParticipant.keyAsHex,
-                peerParticipant?.keyAsHex,
-                controllerKey?.keyAsHex,
-                relay,
-                permissions,
-                metadataId
             )
         }
     }
@@ -163,11 +139,7 @@ internal class SequenceStorageRepository(
 
     //insert: Proposed, Responded
     @JvmSynthetic
-    fun insertPendingSession(
-        session: SessionVO,
-        appMetaData: AppMetaDataVO?,
-        controllerType: ControllerType
-    ) {
+    fun insertPendingSession(session: SessionVO, appMetaData: AppMetaDataVO?) {
         val metadataId = insertMetaData(appMetaData)
 
         with(session) {
@@ -179,7 +151,6 @@ internal class SequenceStorageRepository(
                 ttl_seconds = ttl.seconds,
                 expiry = expiry.seconds,
                 status = status,
-                controller_type = controllerType,
                 metadata_id = metadataId,
                 self_participant = selfParticipant.keyAsHex,
                 relay_protocol = session.relayProtocol,
@@ -190,7 +161,7 @@ internal class SequenceStorageRepository(
 
     //insert: Pre-Settled, Acknowledged
     @JvmSynthetic
-    fun insertSettledSession(session: SessionVO, appMetaData: AppMetaDataVO?, controllerType: ControllerType) {
+    fun insertSettledSession(session: SessionVO, appMetaData: AppMetaDataVO?) {
         val metadataId = insertMetaData(appMetaData)
 
         with(session) {
@@ -202,7 +173,6 @@ internal class SequenceStorageRepository(
                 ttl_seconds = ttl.seconds,
                 expiry = expiry.seconds,
                 status = status,
-                controller_type = controllerType,
                 metadata_id = metadataId,
                 self_participant = selfParticipant.keyAsHex,
                 relay_protocol = session.relayProtocol,
@@ -263,11 +233,11 @@ internal class SequenceStorageRepository(
         expirySeconds: Long,
         uri: String,
         status: SequenceStatus,
-        controller_type: ControllerType,
         self_participant: String,
         peer_participant: String?,
         controller_key: String?,
         relay_protocol: String,
+        relay_data: String?,
         permissions: List<String>?,
         metadataName: String?,
         metadataDesc: String?,
@@ -289,8 +259,8 @@ internal class SequenceStorageRepository(
             permissions = permissions,
             controllerKey = PublicKey(controller_key ?: String.Empty),
             uri = uri,
-            relay = relay_protocol,
-            controllerType = controller_type,
+            relayProtocol = relay_protocol,
+            relayData = relay_data,
             appMetaDataVO = appMetaData
         )
     }
@@ -304,7 +274,6 @@ internal class SequenceStorageRepository(
         accounts: List<String>?,
         expiry: Long,
         status: SequenceStatus,
-        controller_type: ControllerType,
         metadataName: String?,
         metadataDesc: String?,
         metadataUrl: String?,
@@ -333,7 +302,6 @@ internal class SequenceStorageRepository(
             selfParticipant = PublicKey(self_participant),
             peerParticipant = PublicKey(peer_participant ?: String.Empty),
             controllerKey = PublicKey(controller_key ?: String.Empty),
-            controllerType = controller_type,
             relayProtocol = relay_protocol
         )
     }

@@ -183,7 +183,6 @@ internal fun storageModule(): Module = module {
             get(),
             PairingDaoAdapter = PairingDao.Adapter(
                 statusAdapter = EnumColumnAdapter(),
-                controller_typeAdapter = EnumColumnAdapter(),
                 permissionsAdapter = get()
             ),
             SessionDaoAdapter = SessionDao.Adapter(
@@ -191,8 +190,7 @@ internal fun storageModule(): Module = module {
                 permissions_methodsAdapter = get(),
                 permissions_typesAdapter = get(),
                 accountsAdapter = get(),
-                statusAdapter = EnumColumnAdapter(),
-                controller_typeAdapter = EnumColumnAdapter()
+                statusAdapter = EnumColumnAdapter()
             ),
             MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = get()),
             JsonRpcHistoryDaoAdapter =

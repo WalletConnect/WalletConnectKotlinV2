@@ -1,19 +1,36 @@
 package com.walletconnect.walletconnectv2.crypto.data.repository
 
-import com.walletconnect.walletconnectv2.core.model.vo.PrivateKey
-import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
-import com.walletconnect.walletconnectv2.core.model.vo.SharedKey
-import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.*
 import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.crypto.KeyStore
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import com.walletconnect.walletconnectv2.util.hexToBytes
+import com.walletconnect.walletconnectv2.util.randomBytes
 import org.bouncycastle.math.ec.rfc7748.X25519
 import java.security.MessageDigest
 import java.security.SecureRandom
 import com.walletconnect.walletconnectv2.core.model.vo.Key as WCKey
 
 internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : CryptoRepository {
+
+    override fun generateSymmetricKey(topic: TopicVO): SymmetricKey {
+        //todo: is symKey valid?
+        val symmetricKey = randomBytes(KEY_SIZE).bytesToHex()
+        val publicKey = PublicKey(sha256(symmetricKey))
+
+        keyChain.setKeys(topic.value, SymmetricKey(symmetricKey), publicKey)
+        return SymmetricKey(symmetricKey)
+    }
+
+    override fun setSymmetricKey(topic: TopicVO, symmetricKey: SymmetricKey) {
+        val publicKey = PublicKey(sha256(symmetricKey.keyAsHex))
+        keyChain.setKeys(topic.value, symmetricKey, publicKey)
+    }
+
+    override fun getSymmetricKeys(topic: TopicVO): Pair<SymmetricKey, PublicKey> {
+        val (symmetricKey, peerPublic) = keyChain.getKeys(topic.value)
+        return Pair(SymmetricKey(symmetricKey), PublicKey(peerPublic))
+    }
 
     override fun generateKeyPair(): PublicKey {
         val publicKey = ByteArray(KEY_SIZE)
@@ -35,20 +52,21 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
         val sharedKeyBytes = ByteArray(KEY_SIZE)
         X25519.scalarMult(privateKey.keyAsHex.hexToBytes(), 0, peer.keyAsHex.hexToBytes(), 0, sharedKeyBytes, 0)
         val sharedKey = SharedKey(sharedKeyBytes.bytesToHex())
-        val topic = generateTopic(sharedKey.keyAsHex)
+        val topic = TopicVO(sha256(sharedKey.keyAsHex))
         setEncryptionKeys(sharedKey, publicKey, TopicVO(topic.value.lowercase()))
         return Pair(sharedKey, topic)
     }
 
     override fun setEncryptionKeys(sharedKey: SharedKey, publicKey: PublicKey, topic: TopicVO) {
-        keyChain.setKey(topic.value, sharedKey, publicKey)
+        keyChain.setKeys(topic.value, sharedKey, publicKey)
     }
 
-    override fun removeKeys(tag: String) {
-        val (_, publicKey) = keyChain.getKeys(tag)
+    override fun removeKeys(topic: String) {
+        val (_, publicKey) = keyChain.getKeys(topic)
         with(keyChain) {
             deleteKeys(publicKey.lowercase())
-            deleteKeys(tag)
+            deleteKeys(topic)
+            //todo: add separate method for sym key deletion?
         }
     }
 
@@ -58,7 +76,7 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
     }
 
     internal fun setKeyPair(publicKey: PublicKey, privateKey: PrivateKey) {
-        keyChain.setKey(publicKey.keyAsHex, publicKey, privateKey)
+        keyChain.setKeys(publicKey.keyAsHex, publicKey, privateKey)
     }
 
     internal fun getKeyPair(wcKey: WCKey): Pair<PublicKey, PrivateKey> {
@@ -66,10 +84,10 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
         return Pair(PublicKey(publicKeyHex), PrivateKey(privateKeyHex))
     }
 
-    private fun generateTopic(sharedKey: String): TopicVO {
+    private fun sha256(key: String): String {
         val messageDigest: MessageDigest = MessageDigest.getInstance(SHA_256)
-        val hashedBytes: ByteArray = messageDigest.digest(sharedKey.hexToBytes())
-        return TopicVO(hashedBytes.bytesToHex())
+        val hashedBytes: ByteArray = messageDigest.digest(key.hexToBytes())
+        return hashedBytes.bytesToHex()
     }
 
     private companion object {

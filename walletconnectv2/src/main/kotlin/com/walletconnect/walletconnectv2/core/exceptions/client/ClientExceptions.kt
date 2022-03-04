@@ -13,6 +13,7 @@ sealed class WalletConnectException(override val message: String?) : Exception(m
     class InvalidNotificationException(override val message: String?) : WalletConnectException(message)
     class UnauthorizedNotificationException(override val message: String?) : WalletConnectException(message)
     class UnauthorizedChainIdException(override val message: String?) : WalletConnectException(message)
+    class NotSettledSessionException(override val message: String?) : WalletConnectException(message)
 
     class CannotFindSequenceForTopic(override val message: String?) : WalletConnectException(message)
     class PairWithExistingPairingIsNotAllowed(override val message: String?) : WalletConnectException(message)

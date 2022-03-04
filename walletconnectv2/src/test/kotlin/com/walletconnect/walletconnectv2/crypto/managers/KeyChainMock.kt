@@ -9,7 +9,7 @@ internal class KeyChainMock : KeyStore {
 
     private val mapOfKeys = mutableMapOf<String, String>()
 
-    override fun setKey(tag: String, key1: Key, key2: Key) {
+    override fun setKeys(tag: String, key1: Key, key2: Key) {
         val keys = concatKeys(key1, key2)
         mapOfKeys[tag] = keys
     }

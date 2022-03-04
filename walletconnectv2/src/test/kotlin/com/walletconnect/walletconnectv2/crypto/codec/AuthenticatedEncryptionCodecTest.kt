@@ -7,7 +7,7 @@ import com.walletconnect.walletconnectv2.core.adapters.SubscriptionIdAdapter
 import com.walletconnect.walletconnectv2.core.adapters.TopicAdapter
 import com.walletconnect.walletconnectv2.core.adapters.TtlAdapter
 import com.walletconnect.walletconnectv2.core.model.vo.*
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.after.PostSettlementPairingVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.SettlementPairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.payload.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.relay.data.codec.AuthenticatedEncryptionCodec
 import com.walletconnect.walletconnectv2.util.bytesToHex
@@ -20,27 +20,27 @@ class AuthenticatedEncryptionCodecTest {
 
     @Test
     fun `Codec AES_256_CBC and Hmac_SHA256 authentication test`() {
-        val sharedKey = SharedKey("94BA14D48AAF8E0D3FA13E94A73C8745136EB7C3D7BA6232E6512A78D6624A04")
+        val sharedKey = SharedKey("3d9e52650d49c3a0982da6da6c6a844a652841288a9e1e82b44c2434a6140b44")
         val message = "WalletConnect"
 
         val encryptedMessage =
-            codec.encrypt(message, sharedKey, PublicKey("355957413b1693eea042918f8f346618bfdc29e9d00f2e6bbd702bc29c3e2e4d"))
+            codec.encrypt(message, sharedKey, PublicKey("29a3b4100f12e8c8578b0dffb9a25b5c3410fd90b258b1b0db1712ae28602dc5"))
         val payload = encryptedMessage.toEncryptionPayload()
-        assertEquals(payload.publicKey, "355957413b1693eea042918f8f346618bfdc29e9d00f2e6bbd702bc29c3e2e4d")
+        assertEquals(payload.publicKey, "29a3b4100f12e8c8578b0dffb9a25b5c3410fd90b258b1b0db1712ae28602dc5")
         val text = codec.decrypt(payload, sharedKey)
         assertEquals(text, message)
     }
 
     @Test
     fun `Codec AES_256_CBC and Hmac_SHA256 invalid HMAC test`() {
-        val sharedKey1 = SharedKey("94BA14D48AAF8E0D3FA13E94A73C8745136EB7C3D7BA6232E6512A78D6624A04")
-        val sharedKey2 = SharedKey("95BA14D48AAF8E0D3FA13E94A73C8745136EB7C3D7BA6232E6512A78D6624A04")
+        val sharedKey1 = SharedKey("3d9e52650d49c3a0982da6da6c6a844a652841288a9e1e82b44c2434a6140b44")
+        val sharedKey2 = SharedKey("3d9e52650d49c3a0982da6da6c6a844a652841288a9e1e82b44c2434a6140b44")
         val message = "WalletConnect"
 
         val encryptedMessage =
-            codec.encrypt(message, sharedKey1, PublicKey("355957413b1693eea042918f8f346618bfdc29e9d00f2e6bbd702bc29c3e2e4d"))
+            codec.encrypt(message, sharedKey1, PublicKey("29a3b4100f12e8c8578b0dffb9a25b5c3410fd90b258b1b0db1712ae28602dc5"))
         val payload = encryptedMessage.toEncryptionPayload()
-        assertEquals(payload.publicKey, "355957413b1693eea042918f8f346618bfdc29e9d00f2e6bbd702bc29c3e2e4d")
+        assertEquals(payload.publicKey, "29a3b4100f12e8c8578b0dffb9a25b5c3410fd90b258b1b0db1712ae28602dc5")
 
         try {
             codec.decrypt(payload, sharedKey2)
@@ -51,10 +51,10 @@ class AuthenticatedEncryptionCodecTest {
 
     @Test
     fun `get auth and hmac keys test`() {
-        val sharedKey = "4b21b43b2e04dbe0105d250f5d72d5d9c28d8de202f240863e268e4ded9e9a6a"
+        val sharedKey = "3d9e52650d49c3a0982da6da6c6a844a652841288a9e1e82b44c2434a6140b44"
 
-        val decryptionKey = "c237bae5d78d52a6a718202fabfaae1cdfb83dd8a54b575c2e2f3e11fb67fa8b"
-        val hmac = "50e98dc7a1013c3c38f76aaa80dd7ca6c4230a866298415f308c59d4285a6f48"
+        val decryptionKey = "5e4f0fbf963610098d468c55c7044bc28a4f6e7ea3d4eb2dccc6c70bbd71dd72"
+        val hmac = "026f500ae3cb95abd119dbb5bf0793da609b41a8e6c2629d3892302f4149caee"
         val (decrypt, auth) = codec.getKeys(sharedKey)
 
         assertEquals(decrypt.bytesToHex(), decryptionKey)
@@ -86,8 +86,8 @@ class AuthenticatedEncryptionCodecTest {
                 }
             }.addLast(KotlinJsonAdapterFactory()).build()
 
-        val request: PostSettlementPairingVO.PairingPayload? =
-            moshi.adapter(PostSettlementPairingVO.PairingPayload::class.java).fromJson(json)
+        val request: SettlementPairingVO.PairingPayload? =
+            moshi.adapter(SettlementPairingVO.PairingPayload::class.java).fromJson(json)
 
         assertEquals(
             request?.params?.request?.params?.proposer?.publicKey,
