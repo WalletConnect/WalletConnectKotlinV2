@@ -46,8 +46,8 @@ internal class AuthenticatedEncryptionCodec : Codec {
         return String(cipher.doFinal(data), Charsets.UTF_8)
     }
 
-    internal fun getKeys(sharedKey: String): Pair<ByteArray, ByteArray> {
-        val hexKey = sharedKey.hexToBytes()
+    internal fun getKeys(key: String): Pair<ByteArray, ByteArray> {
+        val hexKey = key.hexToBytes()
         val messageDigest: MessageDigest = MessageDigest.getInstance(HASH_ALGORITHM)
         val hashedKey: ByteArray = messageDigest.digest(hexKey)
 

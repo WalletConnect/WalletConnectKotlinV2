@@ -20,7 +20,7 @@ class AuthenticatedEncryptionCodecTest {
 
     @Test
     fun `Codec AES_256_CBC and Hmac_SHA256 authentication test`() {
-        val sharedKey = SharedKey("3d9e52650d49c3a0982da6da6c6a844a652841288a9e1e82b44c2434a6140b44")
+        val sharedKey = SecretKey("3d9e52650d49c3a0982da6da6c6a844a652841288a9e1e82b44c2434a6140b44")
         val message = "WalletConnect"
 
         val encryptedMessage =
@@ -33,8 +33,8 @@ class AuthenticatedEncryptionCodecTest {
 
     @Test
     fun `Codec AES_256_CBC and Hmac_SHA256 invalid HMAC test`() {
-        val sharedKey1 = SharedKey("3d9e52650d49c3a0982da6da6c6a844a652841288a9e1e82b44c2434a6140b44")
-        val sharedKey2 = SharedKey("3d9e52650d49c3a0982da6da6c6a844a652841288a9e1e82b44c2434a6140b44")
+        val sharedKey1 = SecretKey("3d9e52650d49c3a0982da6da6c6a844a652841288a9e1e82b44c2434a6140b44")
+        val sharedKey2 = SecretKey("3d9e52650d49c3a0982da6da6c6a844a652841288a9e1e82b44c2434a6140b44")
         val message = "WalletConnect"
 
         val encryptedMessage =
@@ -72,7 +72,7 @@ class AuthenticatedEncryptionCodecTest {
         assertEquals(payload.publicKey.length, 64)
         assertEquals(payload.mac.length, 64)
 
-        val sharedKey = SharedKey("b426d6b8b7a57930cae8870179864849d6e89f1e8e801f7ca9a50bc2384ee043")
+        val sharedKey = SecretKey("b426d6b8b7a57930cae8870179864849d6e89f1e8e801f7ca9a50bc2384ee043")
         val json = codec.decrypt(payload, sharedKey)
 
 

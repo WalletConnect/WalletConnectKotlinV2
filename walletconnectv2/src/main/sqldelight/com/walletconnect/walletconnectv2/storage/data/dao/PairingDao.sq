@@ -36,6 +36,11 @@ deletePairing:
 DELETE FROM PairingDao
 WHERE ? = topic;
 
+updatePairingExpiry:
+UPDATE OR ABORT PairingDao
+SET expiry = ?
+WHERE topic = ?;
+
 getPairingByTopic:
 SELECT topic, expiry, uri, status, self_participant, peer_participant, controller_key, relay_protocol, relay_data, permissions, outcome_topic
 FROM PairingDao

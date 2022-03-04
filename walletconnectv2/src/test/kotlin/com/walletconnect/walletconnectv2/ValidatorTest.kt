@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2
 
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
-import com.walletconnect.walletconnectv2.core.model.vo.SymmetricKey
+import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.engine.domain.Validator
@@ -340,7 +340,7 @@ class ValidatorTest {
     fun `parse walletconnect uri to absolute string`() {
         val uri = EngineDO.WalletConnectUri(
             TopicVO("11112222244444"),
-            SymmetricKey("0x12321321312312312321"),
+            SecretKey("0x12321321312312312321"),
             RelayProtocolOptionsVO("waku", "teeestData")
         )
 
@@ -348,7 +348,7 @@ class ValidatorTest {
 
         val uri2 = EngineDO.WalletConnectUri(
             TopicVO("11112222244444"),
-            SymmetricKey("0x12321321312312312321"),
+            SecretKey("0x12321321312312312321"),
             RelayProtocolOptionsVO("waku")
         )
 

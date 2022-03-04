@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.crypto.managers
 
 import com.walletconnect.walletconnectv2.core.model.vo.Key
-import com.walletconnect.walletconnectv2.core.model.vo.SymmetricKey
+import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.crypto.KeyStore
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import com.walletconnect.walletconnectv2.util.hexToBytes
@@ -10,12 +10,12 @@ internal class KeyChainMock : KeyStore {
 
     private val mapOfKeys = mutableMapOf<String, String>()
 
-    override fun setSymmetricKey(topic: String, key: SymmetricKey) {
+    override fun setSymmetricKey(topic: String, key: SecretKey) {
         mapOfKeys[topic] = key.keyAsHex
     }
 
-    override fun getSymmetricKey(topic: String): SymmetricKey {
-        return SymmetricKey(mapOfKeys[topic] ?: "")
+    override fun getSymmetricKey(topic: String): SecretKey {
+        return SecretKey(mapOfKeys[topic] ?: "")
     }
 
     override fun setKeys(tag: String, key1: Key, key2: Key) {

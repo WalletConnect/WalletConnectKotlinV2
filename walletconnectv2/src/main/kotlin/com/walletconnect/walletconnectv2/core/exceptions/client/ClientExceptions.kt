@@ -18,5 +18,5 @@ sealed class WalletConnectException(override val message: String?) : Exception(m
     class CannotFindSequenceForTopic(override val message: String?) : WalletConnectException(message)
     class PairWithExistingPairingIsNotAllowed(override val message: String?) : WalletConnectException(message)
 
-    class TimeoutException(override val message: String?) : WalletConnectException(message)
+    class InvalidExtendException(override val message: String?) : WalletConnectException(message)
 }

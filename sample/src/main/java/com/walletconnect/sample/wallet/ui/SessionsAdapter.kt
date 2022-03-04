@@ -13,7 +13,7 @@ import com.walletconnect.sample.wallet.SessionActionListener
 import com.walletconnect.walletconnectv2.client.WalletConnect
 
 class SessionsAdapter(private val listener: SessionActionListener) : RecyclerView.Adapter<SessionsAdapter.SessionViewHolder>() {
-    private var sessions: List<WalletConnect.Model.SettledSession> = listOf()
+    private var sessions: List<WalletConnect.Model.Session> = listOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SessionViewHolder =
         SessionViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.session_item, parent, false), listener)
@@ -24,7 +24,7 @@ class SessionsAdapter(private val listener: SessionActionListener) : RecyclerVie
 
     override fun getItemCount(): Int = sessions.size
 
-    fun updateList(sessions: List<WalletConnect.Model.SettledSession>) {
+    fun updateList(sessions: List<WalletConnect.Model.Session>) {
         this.sessions = sessions
         notifyDataSetChanged()
     }
@@ -34,18 +34,18 @@ class SessionsAdapter(private val listener: SessionActionListener) : RecyclerVie
 
         private val binding = SessionItemBinding.bind(view)
 
-        fun bind(session: WalletConnect.Model.SettledSession) = with(binding) {
+        fun bind(session: WalletConnect.Model.Session) = with(binding) {
 
             view.setOnClickListener {
                 listener.onSessionsDetails(session)
             }
 
             Glide.with(view.context)
-                .load(Uri.parse(session.peerAppMetaData?.icons?.first()))
+                .load(Uri.parse(session.metaData?.icons?.first()))
                 .into(icon)
 
-            name.text = session.peerAppMetaData?.name
-            uri.text = session.peerAppMetaData?.url
+            name.text = session.metaData?.name
+            uri.text = session.metaData?.url
 
             menu.setOnClickListener {
                 with(PopupMenu(view.context, menu)) {

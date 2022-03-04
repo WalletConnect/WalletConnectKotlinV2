@@ -1,11 +1,12 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
-import com.walletconnect.walletconnectv2.core.model.vo.SymmetricKey
+import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
+import com.walletconnect.walletconnectv2.util.Time
 import java.net.URI
 import java.net.URISyntaxException
 
@@ -60,6 +61,18 @@ internal object Validator {
         }
     }
 
+    internal fun validateSessionExtend(newExpiry: Long, currentExpiry: Long, onInvalidExtend: (String) -> Unit) {
+        if (newExpiry <= currentExpiry && newExpiry > Time.week) {
+            onInvalidExtend(INVALID_EXTEND_TIME)
+        }
+    }
+
+    internal fun validatePairingExtend(newExpiry: Long, currentExpiry: Long, onInvalidExtend: (String) -> Unit) {
+        if (newExpiry <= currentExpiry && newExpiry > Time.month) {
+            onInvalidExtend(INVALID_EXTEND_TIME)
+        }
+    }
+
     internal fun validateWCUri(uri: String): EngineDO.WalletConnectUri? {
         if (!uri.startsWith("wc:")) return null
         val properUriString = if (uri.contains("wc://")) uri else uri.replace("wc:", "wc://")
@@ -88,7 +101,7 @@ internal object Validator {
         return EngineDO.WalletConnectUri(
             topic = TopicVO(pairUri.userInfo),
             relay = RelayProtocolOptionsVO(protocol = relayProtocol, data = relayData),
-            symKey = SymmetricKey(symKey)
+            symKey = SecretKey(symKey)
         )
     }
 

@@ -19,7 +19,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         WalletConnectClient.setWalletDelegate(this)
     }
 
-    fun getPendingRequests(session: WalletConnect.Model.SettledSession) {
+    fun getPendingRequests(session: WalletConnect.Model.Session) {
         val pendingRequests = WalletConnectClient.getPendingRequests(session.topic)
     }
 
@@ -75,7 +75,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         WalletConnectClient.respond(response) { error -> Log.d("Error", "sending response error: $error") }
     }
 
-    fun sessionUpdate(session: WalletConnect.Model.SettledSession) {
+    fun sessionUpdate(session: WalletConnect.Model.Session) {
         val update = WalletConnect.Params.Update(
             sessionTopic = session.topic,
             sessionState = WalletConnect.Model.SessionState(accounts = listOf("eip155:42:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62")) //kovan
@@ -84,7 +84,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         WalletConnectClient.update(update) { error -> Log.d("Error", "sending update error: $error") }
     }
 
-    fun sessionUpgrade(session: WalletConnect.Model.SettledSession) {
+    fun sessionUpgrade(session: WalletConnect.Model.Session) {
         val permissions = WalletConnect.Model.SessionPermissions(
             blockchain = WalletConnect.Model.Blockchain(chains = listOf("eip155:80001")),
             jsonRpc = WalletConnect.Model.Jsonrpc(listOf("eth_sign"))
@@ -94,7 +94,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         WalletConnectClient.upgrade(upgrade) { error -> Log.d("Error", "sending upgrade error: $error") }
     }
 
-    fun sessionPing(session: WalletConnect.Model.SettledSession) {
+    fun sessionPing(session: WalletConnect.Model.Session) {
         val ping = WalletConnect.Params.Ping(session.topic)
         WalletConnectClient.ping(ping, object : WalletConnect.Listeners.SessionPing {
             override fun onSuccess(topic: String) {

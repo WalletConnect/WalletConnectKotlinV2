@@ -3,17 +3,19 @@ package com.walletconnect.walletconnectv2.core.exceptions.client
 internal const val NO_SEQUENCE_FOR_TOPIC_MESSAGE: String = "Cannot find sequence for given topic: "
 internal const val PAIRING_NOW_ALLOWED_MESSAGE: String = "Pair with existing pairing is not allowed"
 internal const val UNAUTHORIZED_CONNECT_MESSAGE: String =
-    "The connect() was called by the unauthorized peer. Initialize SDK with isController = false."
+    "The connect() was called by the unauthorized peer. Must be called by controller client."
 internal const val UNAUTHORIZED_PAIR_MESSAGE: String =
-    "The pair() was called by the unauthorized peer. Initialize SDK with isController = true."
+    "The pair() was called by the unauthorized peer. Must be called by controller client."
 internal const val UNAUTHORIZED_APPROVE_MESSAGE: String =
-    "The approve() was called by the unauthorized peer. Initialize SDK with isController = true."
+    "The approve() was called by the unauthorized peer. Must be called by controller client."
 internal const val UNAUTHORIZED_REJECT_MESSAGE: String =
-    "The reject() was called by the unauthorized peer. Initialize SDK with isController = true."
+    "The reject() was called by the unauthorized peer. Must be called by controller client."
 internal const val UNAUTHORIZED_UPDATE_MESSAGE: String =
-    "The update() was called by the unauthorized peer. Initialize SDK with isController = true"
+    "The update() was called by the unauthorized peer. Must be called by controller client."
 internal const val UNAUTHORIZED_UPGRADE_MESSAGE: String =
-    "The upgrade() was called by the unauthorized peer. Initialize SDK with isController = true"
+    "The upgrade() was called by the unauthorized peer. Must be called by controller client."
+internal const val UNAUTHORIZED_EXTEND_MESSAGE: String =
+    "The extend() was called by the unauthorized peer. Must be called by controller client."
 
 internal const val SESSION_IS_NOT_SETTLED_MESSAGE: String = "Session is not settled, topic: "
 
@@ -30,3 +32,4 @@ internal const val UNAUTHORIZED_CHAIN_ID_MESSAGE: String = "Unauthorized chain i
 internal const val INVALID_NOTIFICATION_MESSAGE: String = "Notification type and data fields cannot be empty"
 internal const val INVALID_SESSION_PROPOSAL_MESSAGE: String = "None of the session proposal fields cannot be empty"
 internal const val MALFORMED_PAIRING_URI_MESSAGE: String = "Pairing URI string is invalid."
+internal const val INVALID_EXTEND_TIME: String = "Extend time is out of range"

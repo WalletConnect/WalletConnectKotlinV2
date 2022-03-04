@@ -62,4 +62,8 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
 
     override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {
     }
+
+    override fun onSessionExtend(session: WalletConnect.Model.Session) {
+
+    }
 }
