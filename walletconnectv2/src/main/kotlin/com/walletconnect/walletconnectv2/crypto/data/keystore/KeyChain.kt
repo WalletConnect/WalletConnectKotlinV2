@@ -2,22 +2,12 @@ package com.walletconnect.walletconnectv2.crypto.data.keystore
 
 import android.content.SharedPreferences
 import com.walletconnect.walletconnectv2.core.model.vo.Key
-import com.walletconnect.walletconnectv2.core.model.vo.SymmetricKey
 import com.walletconnect.walletconnectv2.crypto.KeyStore
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import com.walletconnect.walletconnectv2.util.hexToBytes
 
 internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyStore {
-
-    override fun setSymmetricKey(topic: String, key: SymmetricKey) {
-        sharedPreferences.edit().putString(topic, key.keyAsHex).apply()
-    }
-
-    override fun getSymmetricKey(topic: String): SymmetricKey {
-        val key = sharedPreferences.getString(topic, String.Empty) ?: String.Empty
-        return SymmetricKey(key)
-    }
 
     override fun setKeys(tag: String, key1: Key, key2: Key) {
         val keys = concatKeys(key1, key2)
