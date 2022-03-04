@@ -62,13 +62,13 @@ internal object Validator {
     }
 
     internal fun validateSessionExtend(newExpiry: Long, currentExpiry: Long, onInvalidExtend: (String) -> Unit) {
-        if (newExpiry <= currentExpiry && newExpiry > Time.week) {
+        if (newExpiry <= currentExpiry && newExpiry > Time.weekInMillis) {
             onInvalidExtend(INVALID_EXTEND_TIME)
         }
     }
 
     internal fun validatePairingExtend(newExpiry: Long, currentExpiry: Long, onInvalidExtend: (String) -> Unit) {
-        if (newExpiry <= currentExpiry && newExpiry > Time.month) {
+        if (newExpiry <= currentExpiry && newExpiry > Time.monthInMillis) {
             onInvalidExtend(INVALID_EXTEND_TIME)
         }
     }

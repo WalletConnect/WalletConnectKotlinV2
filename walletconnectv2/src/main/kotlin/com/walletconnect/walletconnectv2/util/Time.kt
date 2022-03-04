@@ -1,8 +1,10 @@
 package com.walletconnect.walletconnectv2.util
 
+import java.util.concurrent.TimeUnit
+
 object Time {
-    const val hour: Long = 3600
-    const val day: Long = 86400
-    const val week: Long = 604800
-    const val month: Long = 18144000
+    val hourInMillis: Long = TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS)
+    val dayInMillis: Long = TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS)
+    val weekInMillis: Long = TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS)
+    val monthInMillis: Long = TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS)
 }

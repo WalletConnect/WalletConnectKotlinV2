@@ -18,9 +18,6 @@ internal const val UNAUTHORIZED_EXTEND_MESSAGE: String =
     "The extend() was called by the unauthorized peer. Must be called by controller client."
 
 internal const val SESSION_IS_NOT_SETTLED_MESSAGE: String = "Session is not settled, topic: "
-
-internal const val SESSION_IS_NOT_SETTLED_MESSAGE: String = "Session is not settled, topic: "
-
 internal const val EMPTY_CHAIN_LIST_MESSAGE: String = "List of chains in session permissions cannot be empty"
 internal const val EMPTY_ACCOUNT_LIST_MESSAGE: String = "List of accounts cannot be empty"
 internal const val EMPTY_RPC_METHODS_LIST_MESSAGE: String = "List of rpc methods in session permissions cannot be empty"

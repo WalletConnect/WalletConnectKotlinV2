@@ -7,16 +7,15 @@ import java.lang.System.currentTimeMillis
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
-import java.util.concurrent.TimeUnit
 
 @JvmSynthetic
 internal fun ExpiryVO.isSequenceValid(): Boolean = seconds > (currentTimeMillis() / 1000)
 
 @JvmSynthetic
-internal fun proposedPairingExpirySeconds() = ((currentTimeMillis() / 1000) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS))
+internal fun proposedPairingExpirySeconds() = ((currentTimeMillis() / 1000) + Time.hourInMillis)
 
 @JvmSynthetic
-internal fun pendingSequenceExpirySeconds() = ((currentTimeMillis() / 1000) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS))
+internal fun pendingSequenceExpirySeconds() = ((currentTimeMillis() / 1000) + Time.dayInMillis)
 
 @JvmSynthetic
 internal fun randomBytes(size: Int): ByteArray =
