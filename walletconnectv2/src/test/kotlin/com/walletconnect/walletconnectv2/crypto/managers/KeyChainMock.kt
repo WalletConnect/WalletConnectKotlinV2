@@ -10,14 +10,6 @@ internal class KeyChainMock : KeyStore {
 
     private val mapOfKeys = mutableMapOf<String, String>()
 
-    override fun setSymmetricKey(topic: String, key: SecretKey) {
-        mapOfKeys[topic] = key.keyAsHex
-    }
-
-    override fun getSymmetricKey(topic: String): SecretKey {
-        return SecretKey(mapOfKeys[topic] ?: "")
-    }
-
     override fun setKeys(tag: String, key1: Key, key2: Key) {
         val keys = concatKeys(key1, key2)
         mapOfKeys[tag] = keys

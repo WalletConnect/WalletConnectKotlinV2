@@ -7,7 +7,6 @@ import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 internal interface CryptoRepository {
     fun generateSymmetricKey(topic: TopicVO): SecretKey
     fun setSymmetricKey(topic: TopicVO, symmetricKey: SecretKey)
-//    fun getSymmetricKeys(topic: TopicVO): Pair<SymmetricKey, PublicKey>
 
     fun generateKeyPair(): PublicKey
     fun generateTopicAndSharedKey(self: PublicKey, peer: PublicKey): Pair<SecretKey, TopicVO>
