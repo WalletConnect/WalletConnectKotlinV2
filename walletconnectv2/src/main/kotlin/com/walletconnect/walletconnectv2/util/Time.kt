@@ -3,8 +3,8 @@ package com.walletconnect.walletconnectv2.util
 import java.util.concurrent.TimeUnit
 
 object Time {
-    val hourInMillis: Long = TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS)
-    val dayInMillis: Long = TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS)
-    val weekInMillis: Long = TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS)
-    val monthInMillis: Long = TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS)
+    val hourInSeconds: Long = TimeUnit.SECONDS.convert(1, TimeUnit.HOURS)
+    val dayInSeconds: Long = TimeUnit.SECONDS.convert(1, TimeUnit.DAYS)
+    val weekInSeconds: Long = TimeUnit.SECONDS.convert(7, TimeUnit.DAYS)
+    val monthInSeconds: Long = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS)
 }

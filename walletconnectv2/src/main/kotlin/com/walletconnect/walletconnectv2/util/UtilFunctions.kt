@@ -12,10 +12,10 @@ import java.security.SecureRandom
 internal fun ExpiryVO.isSequenceValid(): Boolean = seconds > (currentTimeMillis() / 1000)
 
 @JvmSynthetic
-internal fun proposedPairingExpirySeconds() = ((currentTimeMillis() / 1000) + Time.hourInMillis)
+internal fun proposedPairingExpirySeconds() = ((currentTimeMillis() / 1000) + Time.hourInSeconds)
 
 @JvmSynthetic
-internal fun pendingSequenceExpirySeconds() = ((currentTimeMillis() / 1000) + Time.dayInMillis)
+internal fun pendingSequenceExpirySeconds() = ((currentTimeMillis() / 1000) + Time.dayInSeconds)
 
 @JvmSynthetic
 internal fun randomBytes(size: Int): ByteArray =

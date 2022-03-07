@@ -62,13 +62,19 @@ internal object Validator {
     }
 
     internal fun validateSessionExtend(newExpiry: Long, currentExpiry: Long, onInvalidExtend: (String) -> Unit) {
-        if (newExpiry <= currentExpiry && newExpiry > Time.weekInMillis) {
+        val extendedExpiry = newExpiry - currentExpiry
+        val maxExpiry = Time.weekInSeconds
+
+        if (newExpiry <= currentExpiry || extendedExpiry > maxExpiry) {
             onInvalidExtend(INVALID_EXTEND_TIME)
         }
     }
 
     internal fun validatePairingExtend(newExpiry: Long, currentExpiry: Long, onInvalidExtend: (String) -> Unit) {
-        if (newExpiry <= currentExpiry && newExpiry > Time.monthInMillis) {
+        val extendedExpiry = newExpiry - currentExpiry
+        val maxExpiry = Time.monthInSeconds
+
+        if (newExpiry <= currentExpiry || extendedExpiry > maxExpiry) {
             onInvalidExtend(INVALID_EXTEND_TIME)
         }
     }
