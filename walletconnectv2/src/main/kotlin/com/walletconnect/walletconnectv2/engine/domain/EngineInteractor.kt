@@ -118,7 +118,6 @@ internal class EngineInteractor(
     internal fun pair(uri: String) {
         val walletConnectUri: EngineDO.WalletConnectUri =
             Validator.validateWCUri(uri) ?: throw WalletConnectException.MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
-
         if (sequenceStorageRepository.isPairingValid(walletConnectUri.topic)) {
             throw WalletConnectException.PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
         }

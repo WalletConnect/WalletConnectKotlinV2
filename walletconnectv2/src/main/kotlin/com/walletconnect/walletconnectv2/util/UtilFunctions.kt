@@ -9,13 +9,13 @@ import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 
 @JvmSynthetic
-internal fun ExpiryVO.isSequenceValid(): Boolean = seconds > (currentTimeMillis() / 1000)
+internal fun ExpiryVO.isSequenceValid(): Boolean = seconds > Time.currentTimeInSeconds
 
 @JvmSynthetic
-internal fun proposedPairingExpirySeconds() = ((currentTimeMillis() / 1000) + Time.hourInSeconds)
+internal fun proposedPairingExpirySeconds() = Time.currentTimeInSeconds + Time.hourInSeconds
 
 @JvmSynthetic
-internal fun pendingSequenceExpirySeconds() = ((currentTimeMillis() / 1000) + Time.dayInSeconds)
+internal fun pendingSequenceExpirySeconds() = Time.currentTimeInSeconds + Time.dayInSeconds
 
 @JvmSynthetic
 internal fun randomBytes(size: Int): ByteArray =
