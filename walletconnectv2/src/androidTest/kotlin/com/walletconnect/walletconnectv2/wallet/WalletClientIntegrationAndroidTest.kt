@@ -1,6 +1,7 @@
-package com.walletconnect.walletconnectv2
+package com.walletconnect.walletconnectv2.wallet
 
 import androidx.test.core.app.ApplicationProvider
+import com.walletconnect.walletconnectv2.WCIntegrationActivityScenarioRule
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import com.walletconnect.walletconnectv2.util.Logger
