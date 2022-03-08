@@ -6,7 +6,7 @@ import com.walletconnect.walletconnectv2.core.model.type.SequenceLifecycle
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import java.net.URI
 
@@ -29,8 +29,6 @@ internal sealed class EngineDO {
         val types: List<String>? = null,
         val topic: String,
         val publicKey: String,
-        val isController: Boolean = true,
-        val ttl: Long,
         val accounts: List<String>,
         val relayProtocol: String
     ) : EngineDO(), SequenceLifecycle
@@ -77,12 +75,12 @@ internal sealed class EngineDO {
     }
 
     sealed class SettledSessionResponse : EngineDO(), SequenceLifecycle {
-        data class Result(val settledSession: SettledSession) : SettledSessionResponse()
+        data class Result(val settledSession: Session) : SettledSessionResponse()
         data class Error(val errorMessage: String) : SettledSessionResponse()
     }
 
     sealed class SessionUpgradeResponse : EngineDO(), SequenceLifecycle {
-        data class Result(val topic: TopicVO, val chains: List<String>, val methods: List<String>) : SessionUpgradeResponse()
+        data class Result(val topic: TopicVO, val methods: List<String>, val types: List<String>) : SessionUpgradeResponse()
         data class Error(val errorMessage: String) : SessionUpgradeResponse()
     }
 
@@ -106,8 +104,11 @@ internal sealed class EngineDO {
     internal data class PairingUpdate(val topic: TopicVO, val metaData: AppMetaData) : EngineDO(), SequenceLifecycle
     internal data class PairingSettle(val topic: TopicVO, val metaData: AppMetaData?) : EngineDO(), SequenceLifecycle
     internal data class SessionUpdate(val topic: TopicVO, val accounts: List<String>) : EngineDO(), SequenceLifecycle
-    internal data class SessionUpgrade(val topic: TopicVO, val chains: List<String>, val methods: List<String>) : EngineDO(),
-        SequenceLifecycle
+    internal data class SessionUpgrade(
+        val topic: TopicVO,
+        val types: List<String>,
+        val methods: List<String>
+    ) : EngineDO(), SequenceLifecycle
 
     internal object Default : EngineDO(), SequenceLifecycle
 
@@ -117,29 +118,24 @@ internal sealed class EngineDO {
         override val status: SequenceStatus,
         val accounts: List<String>,
         val peerAppMetaData: AppMetaData?,
-        val permissions: Permissions
+        val permissions: SessionPermissions,
+        val blockchain: Blockchain
     ) : EngineDO(), Sequence, SequenceLifecycle
 
-    internal data class SettledSession(
+    internal data class Session(
         override val topic: TopicVO,
         override val expiry: ExpiryVO,
         override val status: SequenceStatus,
         val accounts: List<String>,
         val peerAppMetaData: AppMetaData?,
-        val permissions: Permissions
+        val permissions: SessionPermissions,
+        val blockchain: Blockchain
     ) : EngineDO(), Sequence, SequenceLifecycle
 
-    internal data class Permissions(
-        val blockchain: Blockchain,
+    internal data class SessionPermissions(
         val jsonRpc: JsonRpc,
-        val notifications: Notifications
-    ) {
-        internal data class Blockchain(val chains: List<String>)
-
-        internal data class JsonRpc(val methods: List<String>)
-
-        internal data class Notifications(val types: List<String>?)
-    }
+        val notifications: Notifications? = null
+    ) : EngineDO()
 
     internal data class Notification(
         val type: String,
@@ -147,10 +143,6 @@ internal sealed class EngineDO {
     ) : EngineDO()
 
     internal data class SessionState(val accounts: List<String>) : EngineDO()
-
-    internal data class SessionPermissions(
-        val blockchain: Blockchain, val jsonRpc: JsonRpc, val notification: Notifications? = null
-    ) : EngineDO()
 
     internal data class Blockchain(val chains: List<String>) : EngineDO()
 

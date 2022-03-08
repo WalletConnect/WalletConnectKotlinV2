@@ -28,7 +28,6 @@ class DappClientAndroidIntegrationTest {
             useTls = true,
             hostName = "",
             projectId = "",
-            isController = false,
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Dapp",
                 description = "Dapp description",
@@ -41,9 +40,8 @@ class DappClientAndroidIntegrationTest {
         WalletConnectClient.connect(
             WalletConnect.Params.Connect(
                 permissions = WalletConnect.Model.SessionPermissions(
-                    blockchain = WalletConnect.Model.Blockchain(listOf("1", "2")),
-                    jsonRpc = WalletConnect.Model.Jsonrpc(listOf("eth_sign"))
-                )
+                    jsonRpc = WalletConnect.Model.JsonRpc(listOf("eth_sign")),
+                ), blockchain = WalletConnect.Model.Blockchain(listOf("1", "2"))
             )
         )
     }

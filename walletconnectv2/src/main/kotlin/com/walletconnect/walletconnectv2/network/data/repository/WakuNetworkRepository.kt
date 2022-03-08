@@ -15,20 +15,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class WakuNetworkRepository internal constructor(private val relay: RelayService) : NetworkRepository {
-    override val eventsFlow: SharedFlow<WebSocket.Event> = relay.eventsFlow().shareIn(scope, SharingStarted.Lazily, REPLAY)
 
-    override val subscriptionRequest: Flow<RelayDTO.Subscription.Request> = relay.observeSubscriptionRequest()
-        .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
+    override val eventsFlow: SharedFlow<WebSocket.Event> = relay.eventsFlow().shareIn(scope, SharingStarted.Lazily, REPLAY)
+    override val subscriptionRequest: Flow<RelayDTO.Subscription.Request> =
+        relay.observeSubscriptionRequest()
+            .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
 
     override fun publish(topic: TopicVO, message: String, prompt: Boolean, onResult: (Result<RelayDTO.Publish.Acknowledgement>) -> Unit) {
-        val publishRequest =
-            RelayDTO.Publish.Request(
-                id = generateId(),
-                params = RelayDTO.Publish.Request.Params(topic = topic, message = message, prompt = prompt)
-            )
+        val request = RelayDTO.Publish.Request(generateId(), params = RelayDTO.Publish.Request.Params(topic, message, prompt = prompt))
         observePublishAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
         observePublishError { error -> onResult(Result.failure(error)) }
-        relay.publishRequest(publishRequest)
+        relay.publishRequest(request)
     }
 
     override fun subscribe(topic: TopicVO, onResult: (Result<RelayDTO.Subscribe.Acknowledgement>) -> Unit) {

@@ -26,8 +26,6 @@ object WalletConnect {
             val types: List<String>? = null,
             val topic: String,
             val proposerPublicKey: String,
-            val isController: Boolean,
-            val ttl: Long,
             val accounts: List<String>,
             val relayProtocol: String
         ) : Model()
@@ -71,6 +69,16 @@ object WalletConnect {
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
 
+        data class DeletedSession(val topic: String, val reason: String) : Model()
+
+        data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : Model()
+
+        data class Blockchain(val chains: List<String>) : Model()
+        data class JsonRpc(val methods: List<String>) : Model()
+        data class Notifications(val types: List<String>)
+
+        data class UpdatedSession(val topic: String, val accounts: List<String>) : Model()
+
         data class ApprovedSession(
             val topic: String,
             val metaData: AppMetaData?,
@@ -78,39 +86,15 @@ object WalletConnect {
             val accounts: List<String>
         ) : Model()
 
-        data class DeletedSession(val topic: String, val reason: String) : Model()
-
-        data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : Model()
-
-        data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: Jsonrpc, val notification: Notifications? = null) : Model()
-
-        data class Blockchain(val chains: List<String>) : Model()
-
-        data class Jsonrpc(val methods: List<String>) : Model()
-
-        data class Notifications(val types: List<String>)
-
-        data class UpdatedSession(val topic: String, val accounts: List<String>) : Model()
-
         data class Session(
             val topic: String,
             val expiry: Long,
             val accounts: List<String>,
             val metaData: AppMetaData?,
-            val permissions: Permissions
+            val permissions: SessionPermissions
         ) : Model()
 
-        data class Permissions(
-            val blockchain: Blockchain,
-            val jsonRpc: JsonRpc,
-            val notifications: Notifications
-        ) {
-            data class Blockchain(val chains: List<String>)
-
-            data class JsonRpc(val methods: List<String>)
-
-            data class Notifications(val types: List<String>?)
-        }
+        data class SessionPermissions(val jsonRpc: JsonRpc, val notification: Notifications? = null) : Model()
 
         data class SessionNotification(
             val topic: String,
@@ -214,7 +198,11 @@ object WalletConnect {
             }
         }
 
-        data class Connect(val permissions: Model.SessionPermissions, val pairingTopic: String? = null) : Params()
+        data class Connect(
+            val permissions: Model.SessionPermissions,
+            val blockchain: Model.Blockchain,
+            val pairingTopic: String? = null
+        ) : Params()
 
         data class Pair(val uri: String) : Params()
 

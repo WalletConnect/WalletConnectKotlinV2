@@ -88,8 +88,11 @@ object WalletConnectClient {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        return engineInteractor.proposeSequence(connect.permissions.toEngineSessionPermissions(), connect.pairingTopic)
-        { error -> onFailure(error) }
+        return engineInteractor.proposeSequence(
+            connect.permissions.toEngineSessionPermissions(),
+            connect.blockchain.toEngineBlockchain(),
+            connect.pairingTopic
+        ) { error -> onFailure(error) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
@@ -198,7 +201,7 @@ object WalletConnectClient {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        return engineInteractor.getListOfSettledSessions().map(EngineDO.SettledSession::toClientSettledSession)
+        return engineInteractor.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
     }
 
     @Throws(IllegalStateException::class)

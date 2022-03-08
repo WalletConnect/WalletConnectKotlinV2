@@ -3,7 +3,7 @@ package com.walletconnect.walletconnectv2.engine.domain
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
 import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.util.Time
@@ -12,13 +12,21 @@ import java.net.URISyntaxException
 
 internal object Validator {
 
-    internal fun validateSessionPermissions(permissions: EngineDO.SessionPermissions, onInvalidPermissions: (String) -> Unit) {
+    internal fun validatePermissions(
+        jsonRpc: EngineDO.JsonRpc,
+        notifications: EngineDO.Notifications?,
+        onInvalidPermissions: (String) -> Unit
+    ) {
         when {
-            !isBlockchainValid(permissions.blockchain) -> onInvalidPermissions(EMPTY_CHAIN_LIST_MESSAGE)
-            !isJsonRpcValid(permissions.jsonRpc) -> onInvalidPermissions(EMPTY_RPC_METHODS_LIST_MESSAGE)
-            permissions.notification != null && !areNotificationTypesValid(permissions.notification) ->
-                onInvalidPermissions(INVALID_NOTIFICATIONS_TYPES_MESSAGE)
-            permissions.blockchain.chains.any { chainId -> !isChainIdValid(chainId) } -> onInvalidPermissions(WRONG_CHAIN_ID_FORMAT_MESSAGE)
+            !isJsonRpcValid(jsonRpc) -> onInvalidPermissions(EMPTY_RPC_METHODS_LIST_MESSAGE)
+            notifications != null && !areNotificationTypesValid(notifications) -> onInvalidPermissions(INVALID_NOTIFICATIONS_TYPES_MESSAGE)
+        }
+    }
+
+    internal fun validateBlockchain(blockchain: EngineDO.Blockchain, onInvalidBlockchain: (String) -> Unit) {
+        when {
+            !isBlockchainValid(blockchain) -> onInvalidBlockchain(EMPTY_CHAIN_LIST_MESSAGE)
+            blockchain.chains.any { chainId -> !isChainIdValid(chainId) } -> onInvalidBlockchain(WRONG_CHAIN_ID_FORMAT_MESSAGE)
         }
     }
 

@@ -38,11 +38,6 @@ UPDATE OR ABORT SessionDao
 SET status = ?
 WHERE topic = ?;
 
-updateSessionWithPermissions:
-UPDATE OR ABORT SessionDao
-SET permissions_chains = ?, permissions_methods = ?
-WHERE topic = ?;
-
 updateSessionWithAccounts:
 UPDATE OR ABORT SessionDao
 SET accounts = ?
@@ -58,9 +53,14 @@ DELETE FROM SessionDao
 WHERE topic = ?;
 
 getPermissionsByTopic:
-SELECT sd.permissions_chains, sd.permissions_methods
+SELECT sd.permissions_types, sd.permissions_methods
 FROM SessionDao sd
     LEFT JOIN MetaDataDao mdd ON sd.metadata_id = mdd.id
+WHERE topic = ?;
+
+updateSessionWithPermissions:
+UPDATE OR ABORT SessionDao
+SET permissions_types = ?, permissions_methods = ?
 WHERE topic = ?;
 
 getSessionByTopic:

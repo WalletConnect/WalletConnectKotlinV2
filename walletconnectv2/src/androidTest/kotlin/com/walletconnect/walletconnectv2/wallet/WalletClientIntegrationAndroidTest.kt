@@ -147,7 +147,7 @@ class WalletConnectClientIntegrationAndroidTest {
                     if (response is WalletConnect.Model.SettledSessionResponse.Result) {
                         val permissions = WalletConnect.Model.SessionPermissions(
                             blockchain = WalletConnect.Model.Blockchain(chains = listOf("eip155:80001")),
-                            jsonRpc = WalletConnect.Model.Jsonrpc(listOf("eth_sign"))
+                            jsonRpc = WalletConnect.Model.JsonRpc(listOf("eth_sign"))
                         )
                         val upgradeParams = WalletConnect.Params.Upgrade(response.session.topic, permissions)
 

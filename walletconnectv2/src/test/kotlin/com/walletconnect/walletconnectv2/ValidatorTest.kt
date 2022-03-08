@@ -3,7 +3,7 @@ package com.walletconnect.walletconnectv2
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
 import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.engine.domain.Validator
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.engine.model.mapper.toAbsoluteString
@@ -13,48 +13,68 @@ import kotlin.test.*
 class ValidatorTest {
 
     @Test
-    fun `check correct error message when blockchain permissions are invalid `() {
-        val blockchain = EngineDO.Blockchain(listOf())
+    fun `check correct error message when permissions are invalid `() {
+        val notifications = EngineDO.Notifications(listOf())
         val jsonRpc = EngineDO.JsonRpc(listOf())
-        val permissions = EngineDO.SessionPermissions(blockchain, jsonRpc)
 
-        Validator.validateSessionPermissions(permissions) { errorMessage ->
+        Validator.validatePermissions(jsonRpc, notifications) { errorMessage ->
+            assertEquals(EMPTY_RPC_METHODS_LIST_MESSAGE, errorMessage)
+        }
+    }
+
+    @Test
+    fun `check correct error message when notifications are null `() {
+        val notifications = null
+        val jsonRpc = EngineDO.JsonRpc(listOf("method"))
+
+        Validator.validatePermissions(jsonRpc, notifications) { errorMessage ->
             assertEquals(EMPTY_CHAIN_LIST_MESSAGE, errorMessage)
         }
     }
 
     @Test
     fun `check correct error message when json rpc permissions are invalid `() {
-        val blockchain = EngineDO.Blockchain(listOf("1"))
+        val notifications = EngineDO.Notifications(listOf("type"))
         val jsonRpc = EngineDO.JsonRpc(listOf())
-        val permissions = EngineDO.SessionPermissions(blockchain, jsonRpc)
 
-        Validator.validateSessionPermissions(permissions) { errorMessage ->
+        Validator.validatePermissions(jsonRpc, notifications) { errorMessage ->
             assertEquals(EMPTY_RPC_METHODS_LIST_MESSAGE, errorMessage)
         }
     }
 
     @Test
     fun `check correct error message when notifications permissions are invalid `() {
-        val blockchain = EngineDO.Blockchain(listOf("1:aa"))
         val jsonRpc = EngineDO.JsonRpc(listOf("eth_sign"))
-        var notifications: EngineDO.Notifications? = EngineDO.Notifications(listOf())
-        val permissions = EngineDO.SessionPermissions(blockchain, jsonRpc, notifications)
+        val notifications: EngineDO.Notifications = EngineDO.Notifications(listOf())
 
-        Validator.validateSessionPermissions(permissions) { errorMessage ->
+        Validator.validatePermissions(jsonRpc, notifications) { errorMessage ->
             assertEquals(INVALID_NOTIFICATIONS_TYPES_MESSAGE, errorMessage)
         }
     }
 
     @Test
+    fun `check if chainIds list is empty`() {
+        val jsonRpc = EngineDO.Blockchain(listOf())
+        Validator.validateBlockchain(jsonRpc) { errorMessage ->
+            assertEquals(EMPTY_CHAIN_LIST_MESSAGE, errorMessage)
+        }
+    }
+
+    @Test
+    fun `check if chainIds list is invalid`() {
+        val jsonRpc = EngineDO.Blockchain(listOf("chainID"))
+        Validator.validateBlockchain(jsonRpc) { errorMessage ->
+            assertEquals(WRONG_CHAIN_ID_FORMAT_MESSAGE, errorMessage)
+        }
+    }
+
+
+    @Test
     fun `check correct error message when notifications permissions are null `() {
-        val blockchain = EngineDO.Blockchain(listOf("cosmos:cosmoshub-2"))
         val jsonRpc = EngineDO.JsonRpc(listOf("eth_sign"))
+        val notifications: EngineDO.Notifications? = null
 
-        var notifications: EngineDO.Notifications? = null
-        val permissions = EngineDO.SessionPermissions(blockchain, jsonRpc, notifications)
-
-        Validator.validateSessionPermissions(permissions) { errorMessage ->
+        Validator.validatePermissions(jsonRpc, notifications) { errorMessage ->
             assertEquals(INVALID_NOTIFICATIONS_TYPES_MESSAGE, errorMessage)
         }
     }
@@ -282,7 +302,7 @@ class ValidatorTest {
     fun `is session proposal valid test`() {
         val proposal = EngineDO.SessionProposal(
             "name", "dsc", "", listOf(), listOf(),
-            listOf(), listOf(), "", "", false, 1L, listOf(), ""
+            listOf(), listOf(), "", "", listOf(), ""
         )
         Validator.validateProposalFields(proposal) { assertEquals(INVALID_SESSION_PROPOSAL_MESSAGE, it) }
     }

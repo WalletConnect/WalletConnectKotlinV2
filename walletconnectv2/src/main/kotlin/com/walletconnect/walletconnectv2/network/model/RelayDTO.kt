@@ -8,6 +8,7 @@ import com.walletconnect.walletconnectv2.core.adapters.TtlAdapter
 import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.TtlVO
+import com.walletconnect.walletconnectv2.util.Time
 
 internal sealed class RelayDTO {
     abstract val id: Long
@@ -36,7 +37,7 @@ internal sealed class RelayDTO {
                 val message: String,
                 @Json(name = "ttl")
                 @field:TtlAdapter.Qualifier
-                val ttl: TtlVO = TtlVO(ONE_DAY_IN_SECONDS),
+                val ttl: TtlVO = TtlVO(Time.dayInSeconds),
                 @Json(name = "prompt")
                 val prompt: Boolean?
             )
@@ -210,5 +211,3 @@ internal sealed class RelayDTO {
         val errorMessage: String = "Error code: $code; Error message: $message"
     }
 }
-
-private const val ONE_DAY_IN_SECONDS: Long = 86400

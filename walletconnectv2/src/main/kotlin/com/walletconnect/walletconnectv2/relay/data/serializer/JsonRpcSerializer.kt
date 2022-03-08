@@ -5,9 +5,8 @@ import com.walletconnect.walletconnectv2.core.model.type.ClientParams
 import com.walletconnect.walletconnectv2.core.model.type.SerializableJsonRpc
 import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.SettlementPairingVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.PostSettlementSessionVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.PreSettlementSessionVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.PairingSettlementVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionSettlementVO
 import com.walletconnect.walletconnectv2.core.model.vo.payload.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.relay.Codec
@@ -53,15 +52,15 @@ internal class JsonRpcSerializer(
 
     internal fun deserialize(method: String, json: String): ClientParams? =
         when (method) {
-            JsonRpcMethod.WC_PAIRING_PING -> tryDeserialize<SettlementPairingVO.PairingPing>(json)?.params
-            JsonRpcMethod.WC_SESSION_PROPOSE -> tryDeserialize<PreSettlementSessionVO.Proposal>(json)?.params
+            JsonRpcMethod.WC_PAIRING_PING -> tryDeserialize<PairingSettlementVO.PairingPing>(json)?.params
+            JsonRpcMethod.WC_SESSION_PROPOSE -> tryDeserialize<PairingSettlementVO.SessionPropose>(json)?.params
 //            JsonRpcMethod.WC_SESSION_APPROVE -> tryDeserialize<PreSettlementSessionVO.Approve>(json)?.params
 //            JsonRpcMethod.WC_SESSION_REJECT -> tryDeserialize<PreSettlementSessionVO.Reject>(json)?.params
-            JsonRpcMethod.WC_SESSION_DELETE -> tryDeserialize<PostSettlementSessionVO.SessionDelete>(json)?.params
-            JsonRpcMethod.WC_SESSION_UPDATE -> tryDeserialize<PostSettlementSessionVO.SessionUpdate>(json)?.params
-            JsonRpcMethod.WC_SESSION_UPGRADE -> tryDeserialize<PostSettlementSessionVO.SessionUpgrade>(json)?.params
-            JsonRpcMethod.WC_SESSION_PING -> tryDeserialize<PostSettlementSessionVO.SessionPing>(json)?.params
-            JsonRpcMethod.WC_SESSION_NOTIFY -> tryDeserialize<PostSettlementSessionVO.SessionNotify>(json)?.params
+            JsonRpcMethod.WC_SESSION_DELETE -> tryDeserialize<SessionSettlementVO.SessionDelete>(json)?.params
+            JsonRpcMethod.WC_SESSION_UPDATE -> tryDeserialize<SessionSettlementVO.SessionUpdate>(json)?.params
+            JsonRpcMethod.WC_SESSION_UPGRADE -> tryDeserialize<SessionSettlementVO.SessionUpgrade>(json)?.params
+            JsonRpcMethod.WC_SESSION_PING -> tryDeserialize<SessionSettlementVO.SessionPing>(json)?.params
+            JsonRpcMethod.WC_SESSION_NOTIFY -> tryDeserialize<SessionSettlementVO.SessionNotify>(json)?.params
             else -> null
         }
 
@@ -71,17 +70,17 @@ internal class JsonRpcSerializer(
 
     fun serialize(payload: SerializableJsonRpc): String =
         when (payload) {
-            is SettlementPairingVO.PairingPayload -> trySerialize(payload)
-            is SettlementPairingVO.PairingPing -> trySerialize(payload)
+            is PairingSettlementVO.SessionPropose -> trySerialize(payload)
+            is PairingSettlementVO.PairingPing -> trySerialize(payload)
 //            is PreSettlementSessionVO.Approve -> trySerialize(payload)
 //            is PreSettlementSessionVO.Reject -> trySerialize(payload)
-            is PreSettlementSessionVO.Proposal -> trySerialize(payload)
-            is PostSettlementSessionVO.SessionNotify -> trySerialize(payload)
-            is PostSettlementSessionVO.SessionPing -> trySerialize(payload)
-            is PostSettlementSessionVO.SessionUpdate -> trySerialize(payload)
-            is PostSettlementSessionVO.SessionUpgrade -> trySerialize(payload)
-            is PostSettlementSessionVO.SessionPayload -> trySerialize(payload)
-            is PostSettlementSessionVO.SessionDelete -> trySerialize(payload)
+//            is PairingSettlementVO.SessionPropose -> trySerialize(payload)
+            is SessionSettlementVO.SessionNotify -> trySerialize(payload)
+            is SessionSettlementVO.SessionPing -> trySerialize(payload)
+            is SessionSettlementVO.SessionUpdate -> trySerialize(payload)
+            is SessionSettlementVO.SessionUpgrade -> trySerialize(payload)
+            is SessionSettlementVO.SessionRequest -> trySerialize(payload)
+            is SessionSettlementVO.SessionDelete -> trySerialize(payload)
             is RelayDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
             is RelayDO.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             else -> String.Empty
@@ -100,5 +99,5 @@ internal class JsonRpcSerializer(
         return EncryptionPayloadVO(iv, publicKey, mac, cipherText)
     }
 
-    private fun String.encode(): String = this.encodeToByteArray().joinToString(separator = "") { bytes -> String.format("%02X", bytes) }
+//todo: remove    private fun String.encode(): String = this.encodeToByteArray().joinToString(separator = "") { bytes -> String.format("%02X", bytes) }
 }

@@ -1,18 +1,13 @@
 package com.walletconnect.walletconnectv2.crypto.codec
 
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import com.tinder.scarlet.utils.getRawType
-import com.walletconnect.walletconnectv2.core.adapters.SubscriptionIdAdapter
-import com.walletconnect.walletconnectv2.core.adapters.TopicAdapter
-import com.walletconnect.walletconnectv2.core.adapters.TtlAdapter
-import com.walletconnect.walletconnectv2.core.model.vo.*
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.SettlementPairingVO
+import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.payload.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.relay.data.codec.AuthenticatedEncryptionCodec
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class AuthenticatedEncryptionCodecTest {
 
@@ -75,24 +70,7 @@ class AuthenticatedEncryptionCodecTest {
         val sharedKey = SecretKey("b426d6b8b7a57930cae8870179864849d6e89f1e8e801f7ca9a50bc2384ee043")
         val json = codec.decrypt(payload, sharedKey)
 
-
-        val moshi =
-            Moshi.Builder().addLast { type, annotations, moshi ->
-                when (type.getRawType().name) {
-                    SubscriptionIdVO::class.qualifiedName -> SubscriptionIdAdapter
-                    TopicVO::class.qualifiedName -> TopicAdapter
-                    TtlVO::class.qualifiedName -> TtlAdapter
-                    else -> null
-                }
-            }.addLast(KotlinJsonAdapterFactory()).build()
-
-        val request: SettlementPairingVO.PairingPayload? =
-            moshi.adapter(SettlementPairingVO.PairingPayload::class.java).fromJson(json)
-
-        assertEquals(
-            request?.params?.request?.params?.proposer?.publicKey,
-            "37d8c448a2241f21550329f451e8c1901e7dad5135ade604f1e106437843037f"
-        )
+        assertTrue { json.contains("wc_sessionPropose") }
     }
 }
 
