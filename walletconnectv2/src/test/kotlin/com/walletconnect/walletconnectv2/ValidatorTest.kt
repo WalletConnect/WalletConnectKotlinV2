@@ -1,16 +1,14 @@
 package com.walletconnect.walletconnectv2
 
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
-import com.walletconnect.walletconnectv2.core.model.vo.SymmetricKey
+import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.engine.domain.Validator
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.engine.model.mapper.toAbsoluteString
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import kotlin.test.*
 
 class ValidatorTest {
 
@@ -340,7 +338,7 @@ class ValidatorTest {
     fun `parse walletconnect uri to absolute string`() {
         val uri = EngineDO.WalletConnectUri(
             TopicVO("11112222244444"),
-            SymmetricKey("0x12321321312312312321"),
+            SecretKey("0x12321321312312312321"),
             RelayProtocolOptionsVO("waku", "teeestData")
         )
 
@@ -348,10 +346,69 @@ class ValidatorTest {
 
         val uri2 = EngineDO.WalletConnectUri(
             TopicVO("11112222244444"),
-            SymmetricKey("0x12321321312312312321"),
+            SecretKey("0x12321321312312312321"),
             RelayProtocolOptionsVO("waku")
         )
 
         assertEquals(uri2.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=waku&symKey=0x12321321312312312321")
+    }
+
+    @Test
+    fun `extend session expiry less than 1 week`() {
+        val currentExpiry: Long = 1646641841 //07.03
+        val newExpiry: Long = 1646901496 //10.03
+        Validator.validateSessionExtend(newExpiry, currentExpiry) {
+            assertTrue(false)
+        }
+    }
+
+    @Test
+    fun `extend session expiry over 1 week`() {
+        val currentExpiry: Long = 1646641841 //07.03
+        val newExpiry: Long = 1647765496 //20.03
+
+        Validator.validateSessionExtend(newExpiry, currentExpiry) {
+            assertEquals(INVALID_EXTEND_TIME, it)
+        }
+    }
+
+    @Test
+    fun `extend session expiry less than current expiry`() {
+        val currentExpiry: Long = 1646641841 //07.03
+        val newExpiry: Long = 1646555896 //06.03
+
+        Validator.validateSessionExtend(newExpiry, currentExpiry) {
+            assertEquals(INVALID_EXTEND_TIME, it)
+        }
+    }
+
+    @Test
+    fun `extend pairing expiry less than 30 days`() {
+        val currentExpiry: Long = 1646641841 //07.03
+        val newExpiry: Long = 1647765496 //30.03
+
+        Validator.validatePairingExtend(newExpiry, currentExpiry) {
+            assertFalse(false)
+        }
+    }
+
+    @Test
+    fun `extend pairing expiry over 30 days`() {
+        val currentExpiry: Long = 1646641841 //07.03
+        val newExpiry: Long = 1649407096 //08.04
+
+        Validator.validatePairingExtend(newExpiry, currentExpiry) {
+            assertEquals(INVALID_EXTEND_TIME, it)
+        }
+    }
+
+    @Test
+    fun `extend pairing expiry less than current expiry`() {
+        val currentExpiry: Long = 1646641841 //07.03
+        val newExpiry: Long = 1646555896 //06.03
+
+        Validator.validatePairingExtend(newExpiry, currentExpiry) {
+            assertEquals(INVALID_EXTEND_TIME, it)
+        }
     }
 }

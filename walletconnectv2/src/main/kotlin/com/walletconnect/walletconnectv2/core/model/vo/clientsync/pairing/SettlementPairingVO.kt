@@ -12,8 +12,6 @@ internal sealed class SettlementPairingVO : SettlementSequence<PairingParamsVO> 
     abstract override val jsonrpc: String
     abstract override val params: PairingParamsVO
 
-    //todo: add wc_pairingExtend
-
     //todo: check session propose model
     @JsonClass(generateAdapter = true)
     internal data class PairingPayload(
@@ -49,5 +47,17 @@ internal sealed class SettlementPairingVO : SettlementSequence<PairingParamsVO> 
         override val method: String = JsonRpcMethod.WC_PAIRING_PING,
         @Json(name = "params")
         override val params: PairingParamsVO.PingParams,
+    ) : SettlementPairingVO()
+
+    @JsonClass(generateAdapter = true)
+    internal data class PairingExtend(
+        @Json(name = "id")
+        override val id: Long,
+        @Json(name = "jsonrpc")
+        override val jsonrpc: String = "2.0",
+        @Json(name = "method")
+        override val method: String = JsonRpcMethod.WC_PAIRING_EXTEND,
+        @Json(name = "params")
+        override val params: PairingParamsVO.ExtendParams,
     ) : SettlementPairingVO()
 }

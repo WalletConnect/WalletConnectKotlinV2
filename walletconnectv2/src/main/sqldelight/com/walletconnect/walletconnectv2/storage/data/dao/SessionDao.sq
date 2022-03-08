@@ -48,6 +48,11 @@ UPDATE OR ABORT SessionDao
 SET accounts = ?
 WHERE topic = ?;
 
+updateSessionExpiry:
+UPDATE OR ABORT SessionDao
+SET expiry = ?
+WHERE topic = ?;
+
 deleteSession:
 DELETE FROM SessionDao
 WHERE topic = ?;

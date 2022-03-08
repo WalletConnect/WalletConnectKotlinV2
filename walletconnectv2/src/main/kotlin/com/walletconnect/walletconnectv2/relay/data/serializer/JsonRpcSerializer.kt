@@ -4,8 +4,6 @@ import com.squareup.moshi.Moshi
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
 import com.walletconnect.walletconnectv2.core.model.type.SerializableJsonRpc
 import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
-import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
-import com.walletconnect.walletconnectv2.core.model.vo.SharedKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.SettlementPairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.PostSettlementSessionVO
@@ -15,7 +13,6 @@ import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.relay.Codec
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import com.walletconnect.walletconnectv2.util.Empty
-import com.walletconnect.walletconnectv2.util.hexToUtf8
 
 internal class JsonRpcSerializer(
     private val authenticatedEncryptionCodec: Codec,
@@ -24,30 +21,34 @@ internal class JsonRpcSerializer(
 ) {
 
     internal fun encode(payload: String, topic: TopicVO): String {
-        val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
+        val (secretKey, selfPublic) = crypto.getKeyAgreement(topic)
 
-        return if (sharedKey.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
-            //TODO: symmetric ket encryption over topic A
-            //val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(topic)
-            //publicKey is hash from symKey
-            //symmetric decryption  authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), sharedKey as SharedKey)
-            payload.encode()
-        } else {
-            authenticatedEncryptionCodec.encrypt(payload, sharedKey as SharedKey, selfPublic as PublicKey)
-        }
+        return authenticatedEncryptionCodec.encrypt(payload, secretKey, selfPublic)
+
+//        return if (key.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
+//            //TODO: symmetric ket encryption over topic A
+//            //val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(topic)
+//            //publicKey is hash from symKey
+//            //symmetric decryption  authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), sharedKey as SharedKey)
+//            payload.encode()
+//        } else {
+//            authenticatedEncryptionCodec.encrypt(payload, key as SharedKey, selfPublic as PublicKey)
+//        }
     }
 
     internal fun decode(message: String, topic: TopicVO): String {
-        val (sharedKey, selfPublic) = crypto.getKeyAgreement(topic)
+        val (secretKey, selfPublic) = crypto.getKeyAgreement(topic)
 
-        return if (sharedKey.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
-            //TODO: symmetric ket decryption over topic A
-            // val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(topic)
-            //symmetric decryption  authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), sharedKey as SharedKey)
-            message.hexToUtf8
-        } else {
-            authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), sharedKey as SharedKey)
-        }
+        return authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), secretKey)
+
+//        return if (sharedKey.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
+//            //TODO: symmetric ket decryption over topic A
+//            // val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(topic)
+//            //symmetric decryption  authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), sharedKey as SharedKey)
+//            message.hexToUtf8
+//        } else {
+//            authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), sharedKey as SharedKey)
+//        }
     }
 
     internal fun deserialize(method: String, json: String): ClientParams? =
@@ -60,7 +61,7 @@ internal class JsonRpcSerializer(
             JsonRpcMethod.WC_SESSION_UPDATE -> tryDeserialize<PostSettlementSessionVO.SessionUpdate>(json)?.params
             JsonRpcMethod.WC_SESSION_UPGRADE -> tryDeserialize<PostSettlementSessionVO.SessionUpgrade>(json)?.params
             JsonRpcMethod.WC_SESSION_PING -> tryDeserialize<PostSettlementSessionVO.SessionPing>(json)?.params
-            JsonRpcMethod.WC_SESSION_NOTIFY -> tryDeserialize<PostSettlementSessionVO.SessionNotification>(json)?.params
+            JsonRpcMethod.WC_SESSION_NOTIFY -> tryDeserialize<PostSettlementSessionVO.SessionNotify>(json)?.params
             else -> null
         }
 
@@ -75,7 +76,7 @@ internal class JsonRpcSerializer(
 //            is PreSettlementSessionVO.Approve -> trySerialize(payload)
 //            is PreSettlementSessionVO.Reject -> trySerialize(payload)
             is PreSettlementSessionVO.Proposal -> trySerialize(payload)
-            is PostSettlementSessionVO.SessionNotification -> trySerialize(payload)
+            is PostSettlementSessionVO.SessionNotify -> trySerialize(payload)
             is PostSettlementSessionVO.SessionPing -> trySerialize(payload)
             is PostSettlementSessionVO.SessionUpdate -> trySerialize(payload)
             is PostSettlementSessionVO.SessionUpgrade -> trySerialize(payload)

@@ -10,16 +10,13 @@ internal data class ExpiryVO(val seconds: Long)
 internal data class SubscriptionIdVO(val id: String)
 
 @JvmInline
-internal value class SymmetricKey(override val keyAsHex: String) : Key
+internal value class SecretKey(override val keyAsHex: String) : Key
 
 @JvmInline
 internal value class PublicKey(override val keyAsHex: String) : Key
 
 @JvmInline
 internal value class PrivateKey(override val keyAsHex: String) : Key
-
-@JvmInline
-internal value class SharedKey(override val keyAsHex: String) : Key
 
 internal interface Key {
     val keyAsHex: String

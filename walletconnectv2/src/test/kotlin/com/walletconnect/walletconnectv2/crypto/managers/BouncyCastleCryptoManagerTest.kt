@@ -49,9 +49,9 @@ internal class BouncyCastleCryptoManagerTest {
 
         assert(symKey.keyAsHex.length == 64)
 
-        val (symmetricKey, pubKey) = sut.getSymmetricKeys(topic)
+        val (secretKey, pubKey) = sut.getKeyAgreement(topic)
 
-        assertEquals(symKey.keyAsHex, symmetricKey.keyAsHex)
+        assertEquals(symKey.keyAsHex, secretKey.keyAsHex)
         assert(pubKey.keyAsHex.length == 64)
     }
 
@@ -71,7 +71,7 @@ internal class BouncyCastleCryptoManagerTest {
 
     @Test
     fun `Generate a Topic with a sharedKey and a public key and no existing topic`() {
-        val sharedKeyString = SharedKey("D083CDBBD08B93BD9AD10E95712DC0D4BD880401B04D587D8D3782FEA0CD31A9".lowercase())
+        val sharedKeyString = SecretKey("D083CDBBD08B93BD9AD10E95712DC0D4BD880401B04D587D8D3782FEA0CD31A9".lowercase())
         val sharedKey = object : Key {
             override val keyAsHex: String = sharedKeyString.keyAsHex
         }

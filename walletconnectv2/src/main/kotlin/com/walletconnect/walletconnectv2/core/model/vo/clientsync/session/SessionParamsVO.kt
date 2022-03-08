@@ -85,10 +85,15 @@ internal sealed class SessionParamsVO : ClientParams {
     @Suppress("CanSealedSubClassBeObject")
     internal class PingParams : SessionParamsVO()
 
-    internal data class NotificationParams(
+    internal data class NotifyParams(
         @Json(name = "type")
         val type: String,
         @Json(name = "data")
         val data: Any
+    ) : SessionParamsVO()
+
+    internal data class ExtendParams(
+        @Json(name = "ttl")
+        val ttl: Long,
     ) : SessionParamsVO()
 }

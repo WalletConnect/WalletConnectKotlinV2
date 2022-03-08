@@ -74,7 +74,7 @@ internal sealed class PostSettlementSessionVO : SettlementSequence<SessionParams
     ) : PostSettlementSessionVO()
 
     @JsonClass(generateAdapter = true)
-    internal data class SessionNotification(
+    internal data class SessionNotify(
         @Json(name = "id")
         override val id: Long,
         @Json(name = "jsonrpc")
@@ -82,6 +82,18 @@ internal sealed class PostSettlementSessionVO : SettlementSequence<SessionParams
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_NOTIFY,
         @Json(name = "params")
-        override val params: SessionParamsVO.NotificationParams
+        override val params: SessionParamsVO.NotifyParams
+    ) : PostSettlementSessionVO()
+
+    @JsonClass(generateAdapter = true)
+    internal data class SessionExtend(
+        @Json(name = "id")
+        override val id: Long,
+        @Json(name = "jsonrpc")
+        override val jsonrpc: String = "2.0",
+        @Json(name = "method")
+        override val method: String = JsonRpcMethod.WC_SESSION_EXTEND,
+        @Json(name = "params")
+        override val params: SessionParamsVO.ExtendParams
     ) : PostSettlementSessionVO()
 }

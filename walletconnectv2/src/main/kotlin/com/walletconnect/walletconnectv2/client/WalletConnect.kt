@@ -50,7 +50,7 @@ object WalletConnect {
         data class SettledPairing(val topic: String, val metaData: AppMetaData?) : Model()
 
         sealed class SettledSessionResponse : Model() {
-            data class Result(val settledSession: SettledSession) : SettledSessionResponse()
+            data class Result(val session: Session) : SettledSessionResponse()
             data class Error(val errorMessage: String) : SettledSessionResponse()
         }
 
@@ -92,24 +92,24 @@ object WalletConnect {
 
         data class UpdatedSession(val topic: String, val accounts: List<String>) : Model()
 
-        data class SettledSession(
+        data class Session(
             val topic: String,
+            val expiry: Long,
             val accounts: List<String>,
-            val peerAppMetaData: AppMetaData?,
+            val metaData: AppMetaData?,
             val permissions: Permissions
-        ) : Model() {
+        ) : Model()
 
-            data class Permissions(
-                val blockchain: Blockchain,
-                val jsonRpc: JsonRpc,
-                val notifications: Notifications
-            ) {
-                data class Blockchain(val chains: List<String>)
+        data class Permissions(
+            val blockchain: Blockchain,
+            val jsonRpc: JsonRpc,
+            val notifications: Notifications
+        ) {
+            data class Blockchain(val chains: List<String>)
 
-                data class JsonRpc(val methods: List<String>)
+            data class JsonRpc(val methods: List<String>)
 
-                data class Notifications(val types: List<String>?)
-            }
+            data class Notifications(val types: List<String>?)
         }
 
         data class SessionNotification(
@@ -235,5 +235,7 @@ object WalletConnect {
         data class Ping(val topic: String) : Params()
 
         data class Notify(val topic: String, val notification: Model.Notification) : Params()
+
+        data class Extend(val topic: String, val ttl: Long) : Params()
     }
 }

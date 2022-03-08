@@ -121,6 +121,11 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
+    fun updatePairingExpiry(topic: TopicVO, expiryInSeconds: Long) {
+        pairingDaoQueries.updatePairingExpiry(expiryInSeconds, topic.value)
+    }
+
+    @JvmSynthetic
     fun updatePreSettledPairingToAcknowledged(pairing: PairingVO) {
         pairingDaoQueries.updatePreSettledPairingToAcknowledged(pairing.status, pairing.topic.value)
     }
@@ -186,6 +191,11 @@ internal class SequenceStorageRepository(
     @JvmSynthetic
     fun updatePreSettledSessionToAcknowledged(session: SessionVO) {
         sessionDaoQueries.updatePreSettledSessionToAcknowledged(session.status, session.topic.value)
+    }
+
+    @JvmSynthetic
+    fun updateSessionExpiry(topic: TopicVO, expiryInSeconds: Long) {
+        sessionDaoQueries.updateSessionExpiry(expiryInSeconds, topic.value)
     }
 
     @JvmSynthetic

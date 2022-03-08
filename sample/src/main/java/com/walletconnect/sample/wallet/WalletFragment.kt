@@ -81,23 +81,23 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
         }
     }
 
-    override fun onDisconnect(session: WalletConnect.Model.SettledSession) {
+    override fun onDisconnect(session: WalletConnect.Model.Session) {
         viewModel.disconnect(session.topic)
     }
 
-    override fun onUpdate(session: WalletConnect.Model.SettledSession) {
+    override fun onUpdate(session: WalletConnect.Model.Session) {
         viewModel.sessionUpdate(session)
     }
 
-    override fun onUpgrade(session: WalletConnect.Model.SettledSession) {
+    override fun onUpgrade(session: WalletConnect.Model.Session) {
         viewModel.sessionUpgrade(session)
     }
 
-    override fun onPing(session: WalletConnect.Model.SettledSession) {
+    override fun onPing(session: WalletConnect.Model.Session) {
         viewModel.sessionPing(session)
     }
 
-    override fun onSessionsDetails(session: WalletConnect.Model.SettledSession) {
+    override fun onSessionsDetails(session: WalletConnect.Model.Session) {
         SessionDetailsDialog(requireContext(), session) { settledSession -> viewModel.getPendingRequests(settledSession) }.show()
     }
 }

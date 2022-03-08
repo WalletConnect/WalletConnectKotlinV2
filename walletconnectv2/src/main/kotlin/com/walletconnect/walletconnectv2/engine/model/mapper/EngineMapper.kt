@@ -126,7 +126,7 @@ internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: TopicVO
     EngineDO.SessionDelete(topic.value, reason.message)
 
 @JvmSynthetic
-internal fun SessionParamsVO.NotificationParams.toEngineDoSessionNotification(topic: TopicVO): EngineDO.SessionNotification =
+internal fun SessionParamsVO.NotifyParams.toEngineDoSessionNotification(topic: TopicVO): EngineDO.SessionNotification =
     EngineDO.SessionNotification(topic.value, type, data.toString())
 
 @JvmSynthetic
@@ -141,10 +141,10 @@ internal fun SessionVO.toEngineDOSettledSessionVO(topic: TopicVO, expiry: Expiry
             metaData?.description ?: String.Empty,
             metaData?.url ?: String.Empty,
             metaData?.icons?.map { iconUri -> iconUri } ?: listOf()),
-        EngineDO.SettledSession.Permissions(
-            EngineDO.SettledSession.Permissions.Blockchain(chains),
-            EngineDO.SettledSession.Permissions.JsonRpc(methods),
-            EngineDO.SettledSession.Permissions.Notifications(types)
+        EngineDO.Permissions(
+            EngineDO.Permissions.Blockchain(chains),
+            EngineDO.Permissions.JsonRpc(methods),
+            EngineDO.Permissions.Notifications(types)
         )
     )
 
@@ -170,10 +170,22 @@ internal fun SessionVO.toEngineDOSettledSessionVO(): EngineDO.SettledSession =
     EngineDO.SettledSession(
         topic, expiry, status,
         accounts, metaData?.toEngineDOAppMetaData(),
-        EngineDO.SettledSession.Permissions(
-            EngineDO.SettledSession.Permissions.Blockchain(chains),
-            EngineDO.SettledSession.Permissions.JsonRpc(methods),
-            EngineDO.SettledSession.Permissions.Notifications(types)
+        EngineDO.Permissions(
+            EngineDO.Permissions.Blockchain(chains),
+            EngineDO.Permissions.JsonRpc(methods),
+            EngineDO.Permissions.Notifications(types)
+        )
+    )
+
+@JvmSynthetic
+internal fun SessionVO.toEngineDOExtendedSessionVO(expiryVO: ExpiryVO): EngineDO.SessionExtend =
+    EngineDO.SessionExtend(
+        topic, expiryVO, status,
+        accounts, metaData?.toEngineDOAppMetaData(),
+        EngineDO.Permissions(
+            EngineDO.Permissions.Blockchain(chains),
+            EngineDO.Permissions.JsonRpc(methods),
+            EngineDO.Permissions.Notifications(types)
         )
     )
 
@@ -182,8 +194,8 @@ private fun AppMetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
     EngineDO.AppMetaData(name, description, url, icons)
 
 @JvmSynthetic
-internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.SettledPairing =
-    EngineDO.SettledPairing(topic, appMetaDataVO?.toEngineDOAppMetaData())
+internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.PairingSettle =
+    EngineDO.PairingSettle(topic, appMetaDataVO?.toEngineDOAppMetaData())
 
 @JvmSynthetic
 internal fun SessionVO.toSessionApproved(params: SessionParamsVO.ApprovalParams, settledTopic: TopicVO): EngineDO.SessionApproved =
