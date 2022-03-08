@@ -27,7 +27,8 @@ object WalletConnect {
             val topic: String,
             val proposerPublicKey: String,
             val accounts: List<String>,
-            val relayProtocol: String
+            val relayProtocol: String,
+            val relayData: String?
         ) : Model()
 
         data class SessionRequest(

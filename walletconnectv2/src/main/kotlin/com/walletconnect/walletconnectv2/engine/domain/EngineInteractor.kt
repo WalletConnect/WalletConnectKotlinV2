@@ -662,8 +662,6 @@ internal class EngineInteractor(
             return@validateCAIP10
         }
 
-        //todo: add chains validation
-
         sequenceStorageRepository.updateSessionWithAccounts(session.topic, params.blockchain.accounts)
         relayer.respondWithSuccess(request)
         scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdate(request.topic, params.blockchain.accounts)) }

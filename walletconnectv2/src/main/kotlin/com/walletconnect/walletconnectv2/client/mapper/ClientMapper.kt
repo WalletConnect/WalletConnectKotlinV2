@@ -9,7 +9,20 @@ import com.walletconnect.walletconnectv2.engine.model.EngineDO
 
 @JvmSynthetic
 internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.Model.SessionProposal =
-    WalletConnect.Model.SessionProposal(name, description, url, icons, chains, methods, types, topic, publicKey, accounts, relayProtocol)
+    WalletConnect.Model.SessionProposal(
+        name,
+        description,
+        url,
+        icons,
+        chains,
+        methods,
+        types,
+        topic,
+        publicKey,
+        accounts,
+        relayProtocol,
+        relayData
+    )
 
 @JvmSynthetic
 internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(accountList: List<String>): EngineDO.SessionProposal =
@@ -24,7 +37,8 @@ internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(account
         topic,
         proposerPublicKey,
         accountList,
-        relayProtocol
+        relayProtocol,
+        relayData
     )
 
 @JvmSynthetic

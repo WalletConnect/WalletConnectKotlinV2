@@ -3,7 +3,6 @@ package com.walletconnect.walletconnectv2.engine.model.mapper
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.core.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.AppMetaDataVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionPermissionsVO
@@ -32,7 +31,6 @@ internal fun createPairing(topic: TopicVO, relay: RelayProtocolOptionsVO, uri: S
         topic,
         ExpiryVO(proposedPairingExpirySeconds()), //todo: change to 5mins?
         SequenceStatus.PROPOSED,
-        PublicKey("null"),
         uri = uri,
         relayProtocol = relay.protocol,
         relayData = relay.data
@@ -44,7 +42,6 @@ internal fun EngineDO.WalletConnectUri.toPairingVO(): PairingVO =
         topic,
         ExpiryVO(pendingSequenceExpirySeconds()), //todo: change to 5mins?
         SequenceStatus.ACKNOWLEDGED,
-        PublicKey("null"),
         uri = toAbsoluteString(),
         relayProtocol = relay.protocol,
         relayData = relay.data
@@ -87,7 +84,8 @@ internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): E
         topic = "", //todo: assign correct topic
         publicKey = this.proposer.publicKey,
         accounts = listOf(),
-        relayProtocol = relays.first().protocol
+        relayProtocol = relays.first().protocol,
+        relayData = relays.first().data
     )
 
 @JvmSynthetic
@@ -114,10 +112,10 @@ internal fun SessionVO.toEngineDOSettledSessionVO(topic: TopicVO, expiry: Expiry
         SequenceStatus.ACKNOWLEDGED,
         accounts,
         EngineDO.AppMetaData(
-            metaData?.name ?: String.Empty,
-            metaData?.description ?: String.Empty,
-            metaData?.url ?: String.Empty,
-            metaData?.icons?.map { iconUri -> iconUri } ?: listOf()),
+            selfMetaData?.name ?: String.Empty,
+            selfMetaData?.description ?: String.Empty,
+            selfMetaData?.url ?: String.Empty,
+            selfMetaData?.icons?.map { iconUri -> iconUri } ?: listOf()),
         EngineDO.SessionPermissions(EngineDO.JsonRpc(methods), getNotifications(types)),
         EngineDO.Blockchain(chains),
     )
@@ -125,24 +123,25 @@ internal fun SessionVO.toEngineDOSettledSessionVO(topic: TopicVO, expiry: Expiry
 @JvmSynthetic
 internal fun SessionVO.toEngineDOSessionProposal(peerPublicKey: PublicKey): EngineDO.SessionProposal =
     EngineDO.SessionProposal(
-        name = metaData?.name ?: String.Empty,
-        description = metaData?.description ?: String.Empty,
-        url = metaData?.url ?: String.Empty,
-        icons = metaData?.icons?.map { URI(it) } ?: emptyList(),
+        name = selfMetaData?.name ?: String.Empty,
+        description = selfMetaData?.description ?: String.Empty,
+        url = selfMetaData?.url ?: String.Empty,
+        icons = selfMetaData?.icons?.map { URI(it) } ?: emptyList(),
         chains = chains,
         methods = methods,
         types = types,
         topic = topic.value,
         publicKey = peerPublicKey.keyAsHex,
         accounts = accounts,
-        relayProtocol = relayProtocol
+        relayProtocol = relayProtocol,
+        relayData = relayData
     )
 
 @JvmSynthetic
 internal fun SessionVO.toEngineDOSettledSessionVO(): EngineDO.Session =
     EngineDO.Session(
         topic, expiry, status,
-        accounts, metaData?.toEngineDOAppMetaData(),
+        accounts, selfMetaData?.toEngineDOAppMetaData(),
         EngineDO.SessionPermissions(EngineDO.JsonRpc(methods), getNotifications(types)),
         EngineDO.Blockchain(chains),
     )
@@ -151,7 +150,7 @@ internal fun SessionVO.toEngineDOSettledSessionVO(): EngineDO.Session =
 internal fun SessionVO.toEngineDOExtendedSessionVO(expiryVO: ExpiryVO): EngineDO.SessionExtend =
     EngineDO.SessionExtend(
         topic, expiryVO, status,
-        accounts, metaData?.toEngineDOAppMetaData(),
+        accounts, selfMetaData?.toEngineDOAppMetaData(),
         EngineDO.SessionPermissions(EngineDO.JsonRpc(methods), getNotifications(types)),
         EngineDO.Blockchain(chains),
     )
@@ -162,7 +161,7 @@ private fun AppMetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
 
 @JvmSynthetic
 internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.PairingSettle =
-    EngineDO.PairingSettle(topic, appMetaDataVO?.toEngineDOAppMetaData())
+    EngineDO.PairingSettle(topic, selfMetaData?.toEngineDOAppMetaData())
 
 //@JvmSynthetic
 //internal fun SessionVO.toSessionApproved(params: SessionParamsVO.ApprovalParams, settledTopic: TopicVO): EngineDO.SessionApproved =
@@ -183,12 +182,12 @@ internal fun PairingParamsVO.SessionProposeParams.toProposedSessionVO(
         topic,
         ExpiryVO(pendingSequenceExpirySeconds()),
         SequenceStatus.PROPOSED,
-        selfPublicKey,
+        relayProtocol = relays.first().protocol,
+        relayData = relays.first().data,
+        selfParticipant = selfPublicKey,
         chains = blockchain.chains,
         methods = permissions.jsonRpc.methods,
         types = permissions.notifications?.types,
-        ttl = TtlVO(pendingSequenceExpirySeconds()),
-        relayProtocol = relays.first().protocol
     )
 
 @JvmSynthetic
@@ -219,12 +218,12 @@ internal fun EngineDO.SessionProposal.toRespondedSessionVO(selfPublicKey: Public
         TopicVO(topic),
         ExpiryVO(pendingSequenceExpirySeconds()),
         SequenceStatus.RESPONDED,
-        selfPublicKey,
+        relayProtocol = relayProtocol,
+        relayData = relayData,
+        selfParticipant = selfPublicKey,
         chains = chains,
         methods = methods,
         types = types,
-        ttl = TtlVO(12321312), //todo: add proper expiry, remove ttl param?
-        relayProtocol = relayProtocol,
         outcomeTopic = settledTopic
     )
 
@@ -234,15 +233,15 @@ internal fun EngineDO.SessionProposal.toPreSettledSessionVO(settledTopic: TopicV
         settledTopic,
         ExpiryVO((Calendar.getInstance().timeInMillis / 1000) + Time.dayInSeconds), //todo: add proper expiry
         SequenceStatus.PRE_SETTLED,
-        selfPublicKey,
-        PublicKey(publicKey),
-        PublicKey(publicKey),//todo: which is controller key else selfPublicKey,
-        chains,
-        methods,
-        types ?: emptyList(),
-        TtlVO(12321312), //todo: add proper expiry, remove ttl param?
-        accounts,
-        relayProtocol = relayProtocol
+        relayProtocol = relayProtocol,
+        relayData = relayData,
+        selfParticipant = selfPublicKey,
+        peerParticipant = PublicKey(publicKey),
+        controllerKey = PublicKey(publicKey),//todo: which is controller key else selfPublicKey,
+        chains = chains,
+        methods = methods,
+        types = types ?: emptyList(),
+        accounts = accounts
     )
 
 //@JvmSynthetic

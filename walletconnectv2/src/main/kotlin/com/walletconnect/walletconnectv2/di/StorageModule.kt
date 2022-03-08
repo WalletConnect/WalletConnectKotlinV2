@@ -181,10 +181,7 @@ internal fun storageModule(): Module = module {
     single {
         Database(
             get(),
-            PairingDaoAdapter = PairingDao.Adapter(
-                statusAdapter = EnumColumnAdapter(),
-                permissionsAdapter = get()
-            ),
+            PairingDaoAdapter = PairingDao.Adapter(statusAdapter = EnumColumnAdapter()),
             SessionDaoAdapter = SessionDao.Adapter(
                 permissions_chainsAdapter = get(),
                 permissions_methodsAdapter = get(),

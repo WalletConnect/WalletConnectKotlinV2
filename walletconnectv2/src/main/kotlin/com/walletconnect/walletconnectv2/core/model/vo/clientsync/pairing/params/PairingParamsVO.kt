@@ -21,11 +21,6 @@ internal sealed class PairingParamsVO : ClientParams {
         val permissions: SessionPermissionsVO,
         @Json(name = "proposer")
         val proposer: SessionProposerVO
-//        @Json(name = "signal")
-//        val signal: SessionSignalVO,
-//        @Json(name = "ttl")
-//        @field:TtlAdapter.Qualifier
-//        val ttl: TtlVO
     ) : PairingParamsVO()
 
     @JsonClass(generateAdapter = true)
