@@ -30,7 +30,7 @@ internal fun createPairing(topic: TopicVO, relay: RelayProtocolOptionsVO, uri: S
     PairingVO(
         topic,
         ExpiryVO(proposedPairingExpirySeconds()), //todo: change to 5mins?
-        SequenceStatus.PROPOSED,
+        SequenceStatus.ACKNOWLEDGED, //todo: remove states from pairings?
         uri = uri,
         relayProtocol = relay.protocol,
         relayData = relay.data
@@ -41,10 +41,25 @@ internal fun EngineDO.WalletConnectUri.toPairingVO(): PairingVO =
     PairingVO(
         topic,
         ExpiryVO(pendingSequenceExpirySeconds()), //todo: change to 5mins?
-        SequenceStatus.ACKNOWLEDGED,
+        SequenceStatus.ACKNOWLEDGED, //todo: remove states from pairings?
         uri = toAbsoluteString(),
         relayProtocol = relay.protocol,
         relayData = relay.data
+    )
+
+@JvmSynthetic
+internal fun PairingParamsVO.SessionProposeParams.toProposedSessionVO(topic: TopicVO): SessionVO =
+    SessionVO(
+        topic,
+        ExpiryVO(pendingSequenceExpirySeconds()),
+        SequenceStatus.PROPOSED,
+        relayProtocol = relays.first().protocol,
+        relayData = relays.first().data,
+        selfParticipant = PublicKey(proposer.publicKey),
+        selfMetaData = proposer.metadata,
+        chains = blockchainProposedVO.chains,
+        methods = permissions.jsonRpc.methods,
+        types = permissions.notifications?.types,
     )
 
 @JvmSynthetic
@@ -172,23 +187,6 @@ internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.PairingSettle =
 //        params.state.accounts
 //    )
 
-@JvmSynthetic
-internal fun PairingParamsVO.SessionProposeParams.toProposedSessionVO(
-    topic: TopicVO,
-    selfPublicKey: PublicKey,
-    blockchain: EngineDO.Blockchain
-): SessionVO =
-    SessionVO(
-        topic,
-        ExpiryVO(pendingSequenceExpirySeconds()),
-        SequenceStatus.PROPOSED,
-        relayProtocol = relays.first().protocol,
-        relayData = relays.first().data,
-        selfParticipant = selfPublicKey,
-        chains = blockchain.chains,
-        methods = permissions.jsonRpc.methods,
-        types = permissions.notifications?.types,
-    )
 
 @JvmSynthetic
 internal fun SessionProposerVO.toProposalParams(
