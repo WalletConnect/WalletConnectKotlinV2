@@ -26,7 +26,7 @@ internal fun JsonRpcResponseVO.JsonRpcError.toRelayDORpcError(): RelayDO.JsonRpc
 
 @JvmSynthetic
 internal fun RelayDO.JsonRpcResponse.JsonRpcResult.toJsonRpcResultVO(): JsonRpcResponseVO.JsonRpcResult =
-    JsonRpcResponseVO.JsonRpcResult(id, result = result.toString())
+    JsonRpcResponseVO.JsonRpcResult(id, result = result)
 
 @JvmSynthetic
 internal fun RelayDO.JsonRpcResponse.JsonRpcError.toJsonRpcErrorVO(): JsonRpcResponseVO.JsonRpcError =
@@ -34,7 +34,7 @@ internal fun RelayDO.JsonRpcResponse.JsonRpcError.toJsonRpcErrorVO(): JsonRpcRes
 
 @JvmSynthetic
 internal fun JsonRpcHistoryVO.toWCResponse(result: JsonRpcResponseVO, params: ClientParams): WCResponseVO =
-    WCResponseVO(TopicVO(topic), method!!, result, params)
+    WCResponseVO(TopicVO(topic), method, result, params)
 
 @JvmSynthetic
 internal fun SessionSettlementVO.SessionRequest.toPendingRequestVO(entry: JsonRpcHistoryVO): PendingRequestVO =

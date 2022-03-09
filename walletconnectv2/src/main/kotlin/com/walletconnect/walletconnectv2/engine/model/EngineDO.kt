@@ -27,7 +27,6 @@ internal sealed class EngineDO {
         val chains: List<String>,
         val methods: List<String>,
         val types: List<String>? = null,
-        val topic: String,
         val publicKey: String,
         val accounts: List<String>,
         val relayProtocol: String,
@@ -81,7 +80,7 @@ internal sealed class EngineDO {
     }
 
     sealed class SessionUpgradeResponse : EngineDO(), SequenceLifecycle {
-        data class Result(val topic: TopicVO, val methods: List<String>, val types: List<String>) : SessionUpgradeResponse()
+        data class Result(val topic: TopicVO, val methods: List<String>, val types: List<String>?) : SessionUpgradeResponse()
         data class Error(val errorMessage: String) : SessionUpgradeResponse()
     }
 

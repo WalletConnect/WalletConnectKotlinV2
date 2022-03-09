@@ -16,6 +16,7 @@ data class PeerError(val error: Error) {
         is Error.UnauthorizedUpgradeRequest -> "Unauthorized ${error.sequence} upgrade request"
         is Error.UnauthorizedMatchingController -> "Unauthorized: peer is also ${getPeerType(error)}"
         is Error.UnauthorizedExtendRequest -> "Unauthorized ${error.sequence} extend request"
+        is Error.UserError -> error.message
     }
 
     val code: Int = when (error) {
@@ -30,6 +31,7 @@ data class PeerError(val error: Error) {
         is Error.UnauthorizedUpgradeRequest -> 3004
         is Error.UnauthorizedExtendRequest -> 3005
         is Error.UnauthorizedMatchingController -> 3100
+        is Error.UserError -> error.code
     }
 
     private fun getPeerType(error: Error.UnauthorizedMatchingController): String =
@@ -48,4 +50,5 @@ sealed class Error {
     data class UnauthorizedMatchingController(val isController: Boolean) : Error()
     data class UnauthorizedExtendRequest(val sequence: String) : Error()
     data class InvalidExtendRequest(val sequence: String) : Error()
+    data class UserError(val message: String, val code: Int) : Error()
 }

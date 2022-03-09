@@ -9,24 +9,13 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payloa
 
 internal sealed class SessionParamsVO : ClientParams {
 
-//    @JsonClass(generateAdapter = true)
-//    internal data class ApprovalParams(
-//        @Json(name = "relay")
-//        val relay: RelayProtocolOptionsVO,
-//        @Json(name = "responder")
-//        val responder: SessionParticipantVO,
-//        @Json(name = "expiry")
-//        @ExpiryAdapter.Qualifier
-//        val expiry: ExpiryVO,
-//        @Json(name = "state")
-//        val state: SessionStateVO
-//    ) : SessionParamsVO()
-//
-//    @JsonClass(generateAdapter = true)
-//    internal class RejectParams(
-//        @Json(name = "reason")
-//        val reason: ReasonVO
-//    ) : SessionParamsVO()
+    @JsonClass(generateAdapter = true)
+    internal data class ApprovalParams(
+        @Json(name = "relay")
+        val relay: RelayProtocolOptionsVO,
+        @Json(name = "responder")
+        val responder: AgreementPeer,
+    ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)
     internal data class SessionSettleParams(
@@ -39,7 +28,7 @@ internal sealed class SessionParamsVO : ClientParams {
         @Json(name = "permission")
         val permission: SessionPermissionsVO,
         @Json(name = "controller")
-        val controller: SessionParticipantVO
+        val controller: SessionParticipantVO,
     ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)

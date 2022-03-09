@@ -119,7 +119,7 @@ object WalletConnectClient {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.reject(reject.rejectionReason, reject.proposalTopic) { error -> onError(error) }
+        engineInteractor.reject(reject.proposal.toEngineSessionProposal(), reject.reason, reject.code) { error -> onError(error) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)

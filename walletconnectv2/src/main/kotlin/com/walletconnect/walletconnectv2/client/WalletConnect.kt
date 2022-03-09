@@ -24,7 +24,6 @@ object WalletConnect {
             val chains: List<String>,
             val methods: List<String>,
             val types: List<String>? = null,
-            val topic: String,
             val proposerPublicKey: String,
             val accounts: List<String>,
             val relayProtocol: String,
@@ -209,7 +208,7 @@ object WalletConnect {
 
         data class Approve(val proposal: Model.SessionProposal, val accounts: List<String>) : Params()
 
-        data class Reject(val rejectionReason: String, val proposalTopic: String) : Params()
+        data class Reject(val proposal: Model.SessionProposal, val reason: String, val code: Int) : Params()
 
         data class Disconnect(val sessionTopic: String, val reason: String, val reasonCode: Int) : Params()
 

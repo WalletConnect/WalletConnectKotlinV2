@@ -35,9 +35,10 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     }
 
     fun reject() {
-        val rejectionReason = "Reject Session"
-        val proposalTopic: String = proposal.topic
-        val reject = WalletConnect.Params.Reject(rejectionReason, proposalTopic)
+        //https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-25.md
+        val rejectionReason = "User disapproved requested chains"
+        val code = 500
+        val reject = WalletConnect.Params.Reject(proposal, rejectionReason, code)
         WalletConnectClient.reject(reject) { error -> Log.d("Error", "sending reject error: $error") }
     }
 

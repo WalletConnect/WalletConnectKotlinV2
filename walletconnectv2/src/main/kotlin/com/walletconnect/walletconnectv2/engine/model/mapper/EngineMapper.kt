@@ -19,48 +19,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.sync.WCRequestVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.util.Empty
-import com.walletconnect.walletconnectv2.util.Time
-import com.walletconnect.walletconnectv2.util.pendingSequenceExpirySeconds
-import com.walletconnect.walletconnectv2.util.proposedPairingExpirySeconds
 import java.net.URI
-import java.util.*
-
-@JvmSynthetic
-internal fun createPairing(topic: TopicVO, relay: RelayProtocolOptionsVO, uri: String): PairingVO =
-    PairingVO(
-        topic,
-        ExpiryVO(proposedPairingExpirySeconds()), //todo: change to 5mins?
-        SequenceStatus.ACKNOWLEDGED, //todo: remove states from pairings?
-        uri = uri,
-        relayProtocol = relay.protocol,
-        relayData = relay.data
-    )
-
-@JvmSynthetic
-internal fun EngineDO.WalletConnectUri.toPairingVO(): PairingVO =
-    PairingVO(
-        topic,
-        ExpiryVO(pendingSequenceExpirySeconds()), //todo: change to 5mins?
-        SequenceStatus.ACKNOWLEDGED, //todo: remove states from pairings?
-        uri = toAbsoluteString(),
-        relayProtocol = relay.protocol,
-        relayData = relay.data
-    )
-
-@JvmSynthetic
-internal fun PairingParamsVO.SessionProposeParams.toProposedSessionVO(topic: TopicVO): SessionVO =
-    SessionVO(
-        topic,
-        ExpiryVO(pendingSequenceExpirySeconds()),
-        SequenceStatus.PROPOSED,
-        relayProtocol = relays.first().protocol,
-        relayData = relays.first().data,
-        selfParticipant = PublicKey(proposer.publicKey),
-        selfMetaData = proposer.metadata,
-        chains = blockchainProposedVO.chains,
-        methods = permissions.jsonRpc.methods,
-        types = permissions.notifications?.types,
-    )
 
 @JvmSynthetic
 internal fun EngineDO.WalletConnectUri.toAbsoluteString(): String =
@@ -96,7 +55,6 @@ internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): E
         chains = this.blockchainProposedVO.chains,
         methods = this.permissions.jsonRpc.methods,
         types = this.permissions.notifications?.types,
-        topic = "", //todo: assign correct topic
         publicKey = this.proposer.publicKey,
         accounts = listOf(),
         relayProtocol = relays.first().protocol,
@@ -145,7 +103,6 @@ internal fun SessionVO.toEngineDOSessionProposal(peerPublicKey: PublicKey): Engi
         chains = chains,
         methods = methods,
         types = types,
-        topic = topic.value,
         publicKey = peerPublicKey.keyAsHex,
         accounts = accounts,
         relayProtocol = relayProtocol,
@@ -179,14 +136,13 @@ internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.PairingSettle =
     EngineDO.PairingSettle(topic, selfMetaData?.toEngineDOAppMetaData())
 
 //@JvmSynthetic
-//internal fun SessionVO.toSessionApproved(params: SessionParamsVO.ApprovalParams, settledTopic: TopicVO): EngineDO.SessionApproved =
+//internal fun SessionVO.toSessionApproved(params: PairingParamsVO.SessionProposeParams, settledTopic: TopicVO): EngineDO.SessionApproved =
 //    EngineDO.SessionApproved(
 //        settledTopic.value,
 //        params.responder.metadata?.toEngineDOAppMetaData(),
 //        EngineDO.SessionPermissions(EngineDO.Blockchain(chains), EngineDO.JsonRpc(methods)),
 //        params.state.accounts
 //    )
-
 
 @JvmSynthetic
 internal fun SessionProposerVO.toProposalParams(
@@ -211,92 +167,8 @@ internal fun EngineDO.SessionPermissions.toSessionsPermissions(): SessionPermiss
     )
 
 @JvmSynthetic
-internal fun EngineDO.SessionProposal.toRespondedSessionVO(selfPublicKey: PublicKey, settledTopic: TopicVO): SessionVO =
-    SessionVO(
-        TopicVO(topic),
-        ExpiryVO(pendingSequenceExpirySeconds()),
-        SequenceStatus.RESPONDED,
-        relayProtocol = relayProtocol,
-        relayData = relayData,
-        selfParticipant = selfPublicKey,
-        chains = chains,
-        methods = methods,
-        types = types,
-        outcomeTopic = settledTopic
-    )
-
-@JvmSynthetic
-internal fun EngineDO.SessionProposal.toPreSettledSessionVO(settledTopic: TopicVO, selfPublicKey: PublicKey): SessionVO =
-    SessionVO(
-        settledTopic,
-        ExpiryVO((Calendar.getInstance().timeInMillis / 1000) + Time.dayInSeconds), //todo: add proper expiry
-        SequenceStatus.PRE_SETTLED,
-        relayProtocol = relayProtocol,
-        relayData = relayData,
-        selfParticipant = selfPublicKey,
-        peerParticipant = PublicKey(publicKey),
-        controllerKey = PublicKey(publicKey),//todo: which is controller key else selfPublicKey,
-        chains = chains,
-        methods = methods,
-        types = types ?: emptyList(),
-        accounts = accounts
-    )
-
-//@JvmSynthetic
-//internal fun SessionVO.toEngineDOAcknowledgeSessionVO(settledTopic: TopicVO, params: SessionParamsVO.ApprovalParams): SessionVO =
-//    SessionVO(
-//        settledTopic,
-//        params.expiry,
-//        SequenceStatus.ACKNOWLEDGED,
-//        selfParticipant,
-//        PublicKey(params.responder.publicKey),
-//        controllerKey = PublicKey(params.responder.publicKey), //todo: should always set responder key as controller ?
-//        metaData = params.responder.metadata,
-//        relayProtocol = params.relay.protocol,
-//        chains = chains,
-//        methods = methods,
-//        types = types,
-//        accounts = params.state.accounts,
-//        ttl = TtlVO(params.expiry.seconds)
-//    )
-
-//@JvmSynthetic
-//internal fun PairingVO.toAcknowledgedPairingVO(
-//    settledTopic: TopicVO,
-//    params: PairingParamsVO.ApproveParams,
-//    controllerType: ControllerType
-//): PairingVO =
-//    PairingVO(
-//        settledTopic,
-//        params.expiry,
-//        SequenceStatus.ACKNOWLEDGED,
-//        selfParticipant,
-//        PublicKey(params.responder.publicKey),
-//        controllerKey = if (controllerType == ControllerType.CONTROLLER) selfParticipant else PublicKey(params.responder.publicKey),
-//        uri,
-//        permissions = permissions,
-//        relay = relay,
-//        controllerType = controllerType,
-//        appMetaDataVO = params.state?.metadata
-//    )
-
-//@JvmSynthetic
-//internal fun SessionParamsVO.ProposalParams.toEngineDOPendingSessionVO(selfPublicKey: PublicKey): SessionVO =
-//    SessionVO(
-//        topic,
-//        ExpiryVO(pendingSequenceExpirySeconds()),
-//        SequenceStatus.PROPOSED,
-//        selfPublicKey,
-//        chains = permissions.blockchain.chains,
-//        methods = permissions.jsonRpc.methods,
-//        types = permissions.notifications?.types,
-//        ttl = TtlVO(pendingSequenceExpirySeconds()),
-//        relayProtocol = relay.protocol
-//    )
-
-@JvmSynthetic
 internal fun JsonRpcResponseVO.JsonRpcResult.toEngineJsonRpcResult(): EngineDO.JsonRpcResponse.JsonRpcResult =
-    EngineDO.JsonRpcResponse.JsonRpcResult(id = id, result = result)
+    EngineDO.JsonRpcResponse.JsonRpcResult(id = id, result = result.toString())
 
 @JvmSynthetic
 internal fun JsonRpcResponseVO.JsonRpcError.toEngineJsonRpcError(): EngineDO.JsonRpcResponse.JsonRpcError =

@@ -72,7 +72,7 @@ internal class JsonRpcSerializer(
         when (payload) {
             is PairingSettlementVO.SessionPropose -> trySerialize(payload)
             is PairingSettlementVO.PairingPing -> trySerialize(payload)
-//            is PreSettlementSessionVO.Approve -> trySerialize(payload)
+//            is SessionSettlementVO. -> trySerialize(payload)
 //            is PreSettlementSessionVO.Reject -> trySerialize(payload)
 //            is PairingSettlementVO.SessionPropose -> trySerialize(payload)
             is SessionSettlementVO.SessionNotify -> trySerialize(payload)

@@ -17,7 +17,6 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.M
         chains,
         methods,
         types,
-        topic,
         publicKey,
         accounts,
         relayProtocol,
@@ -25,7 +24,7 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.M
     )
 
 @JvmSynthetic
-internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(accountList: List<String>): EngineDO.SessionProposal =
+internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(accountList: List<String> = listOf()): EngineDO.SessionProposal =
     EngineDO.SessionProposal(
         name,
         description,
@@ -34,7 +33,6 @@ internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(account
         chains,
         methods,
         if (types?.isEmpty() == true) null else types,
-        topic,
         proposerPublicKey,
         accountList,
         relayProtocol,
@@ -108,7 +106,10 @@ internal fun EngineDO.SessionUpgradeResponse.toClientUpgradedSessionResponse(): 
         is EngineDO.SessionUpgradeResponse.Result ->
             WalletConnect.Model.SessionUpgradeResponse.Result(
                 topic.value,
-                WalletConnect.Model.SessionPermissions(WalletConnect.Model.JsonRpc(methods), WalletConnect.Model.Notifications(types))
+                WalletConnect.Model.SessionPermissions(
+                    WalletConnect.Model.JsonRpc(methods),
+                    if (types != null) WalletConnect.Model.Notifications(types) else null
+                )
             )
         is EngineDO.SessionUpgradeResponse.Error -> WalletConnect.Model.SessionUpgradeResponse.Error(errorMessage)
     }

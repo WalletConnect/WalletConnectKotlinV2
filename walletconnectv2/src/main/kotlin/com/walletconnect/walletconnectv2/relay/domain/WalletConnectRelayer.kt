@@ -7,7 +7,9 @@ import com.walletconnect.walletconnectv2.core.model.type.SettlementSequence
 import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionSettlementVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.WCRequestVO
@@ -16,7 +18,10 @@ import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.network.NetworkRepository
 import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
-import com.walletconnect.walletconnectv2.relay.model.mapper.*
+import com.walletconnect.walletconnectv2.relay.model.mapper.toJsonRpcErrorVO
+import com.walletconnect.walletconnectv2.relay.model.mapper.toPendingRequestVO
+import com.walletconnect.walletconnectv2.relay.model.mapper.toRelayDOJsonRpcResponse
+import com.walletconnect.walletconnectv2.relay.model.mapper.toWCResponse
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.util.Logger
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -103,6 +108,22 @@ internal class WalletConnectRelayer(
         }
     }
 
+    internal fun respondWithError(request: WCRequestVO, error: PeerError, onFailure: (Throwable) -> Unit = {}) {
+        Logger.error("Responding with error: ${error.message}: ${error.code}")
+        val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = request.id, error = JsonRpcResponseVO.Error(error.code, error.message))
+
+        publishJsonRpcResponse(request.topic, jsonRpcError, onFailure = { failure ->
+            Logger.error("Cannot respond with error: $failure")
+            onFailure(failure)
+        })
+    }
+
+    internal fun respondWithSuccess(request: WCRequestVO) {
+        val jsonRpcResult = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = true)
+        publishJsonRpcResponse(request.topic, jsonRpcResult,
+            onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
+    }
+
     internal fun subscribe(topic: TopicVO) {
         networkRepository.subscribe(topic) { result ->
             result.fold(
@@ -125,18 +146,6 @@ internal class WalletConnectRelayer(
                 )
             }
         }
-    }
-
-    internal fun respondWithError(request: WCRequestVO, error: PeerError) {
-        Logger.error("Responding with error: ${error.message}: ${error.code}")
-        val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = request.id, error = JsonRpcResponseVO.Error(error.code, error.message))
-        publishJsonRpcResponse(request.topic, jsonRpcError, onFailure = { failure -> Logger.error("Cannot respond with error: $failure") })
-    }
-
-    internal fun respondWithSuccess(request: WCRequestVO) {
-        val jsonRpcResult = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = "true")
-        publishJsonRpcResponse(request.topic, jsonRpcResult,
-            onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
     }
 
     internal fun getPendingRequests(topic: TopicVO): List<PendingRequestVO> =
@@ -178,8 +187,20 @@ internal class WalletConnectRelayer(
     private suspend fun handleJsonRpcResult(jsonRpcResult: RelayDO.JsonRpcResponse.JsonRpcResult) {
         val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcResult.id, serializer.serialize(jsonRpcResult))
         if (jsonRpcRecord != null) {
+
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
-                _peerResponse.emit(jsonRpcRecord.toWCResponse(jsonRpcResult.toJsonRpcResultVO(), params))
+
+
+                val result = if (params is PairingParamsVO.SessionProposeParams) {
+                    val resultParams = serializer.tryDeserialize<SessionParamsVO.ApprovalParams>(jsonRpcResult.result.toString())
+                        ?: Logger.error("WalletConnectRelay: Unknown error params")
+                    JsonRpcResponseVO.JsonRpcResult(jsonRpcResult.id, result = resultParams)
+                } else {
+                    JsonRpcResponseVO.JsonRpcResult(jsonRpcResult.id, result = jsonRpcResult.result)
+                }
+
+                _peerResponse.emit(jsonRpcRecord.toWCResponse(result, params))
+
             } ?: Logger.error("WalletConnectRelay: Unknown result params")
         }
     }
