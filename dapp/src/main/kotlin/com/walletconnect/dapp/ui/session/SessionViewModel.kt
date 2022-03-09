@@ -1,39 +1,36 @@
 package com.walletconnect.dapp.ui.session
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.dapp.domain.Chains
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.NavigationEvents
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 
 class SessionViewModel : ViewModel() {
-    private val _dappEvents: MutableStateFlow<Pair<Long, WalletConnect.Model?>> = MutableStateFlow(Pair(0, null))
-    val navigation: LiveData<NavigationEvents> =
-        DappDelegate.wcEventModels.combine(_dappEvents) { (walletEventTimestamp, walletEvent: WalletConnect.Model?), (dappEventTimestamp, dappEvent: WalletConnect.Model?) ->
-            if (dappEventTimestamp > walletEventTimestamp) {
-                when (dappEvent) {
-                    is WalletConnect.Model.Ping.Success -> NavigationEvents.PingSuccess(dappEvent.topic)
-                    is WalletConnect.Model.Ping.Error -> NavigationEvents.PingError
-                    is WalletConnect.Model.DeletedSession -> NavigationEvents.Disconnect
-                    else -> NavigationEvents.NoAction
+    private val navigationChannel = Channel<NavigationEvents>(Channel.BUFFERED)
+    val navigation = navigationChannel.receiveAsFlow()
+
+    init {
+        DappDelegate.wcEventModels.map { walletEvent ->
+            when (walletEvent) {
+                is WalletConnect.Model.UpdatedSession -> {
+                    val listOfAccounts = getListOfAccounts(walletEvent.topic)
+                    NavigationEvents.UpdatedListOfAccounts(listOfAccounts)
                 }
-            } else {
-                when (walletEvent) {
-                    is WalletConnect.Model.UpdatedSession -> {
-                        val listOfAccounts = getListOfAccounts(walletEvent.topic)
-                        NavigationEvents.UpdatedListOfAccounts(listOfAccounts)
-                    }
-                    is WalletConnect.Model.DeletedSession -> NavigationEvents.Disconnect
-                    else -> NavigationEvents.NoAction
-                }
+                is WalletConnect.Model.DeletedSession -> NavigationEvents.Disconnect
+                else -> NavigationEvents.NoAction
             }
-        }.asLiveData(viewModelScope.coroutineContext)
+        }.onEach { navigationEvents ->
+            navigationChannel.trySend(navigationEvents)
+        }.launchIn(viewModelScope)
+    }
 
     fun getListOfAccounts(topic: String? = null): List<SessionUI> {
         return WalletConnectClient.getListOfSettledSessions().filter {
@@ -60,22 +57,27 @@ class SessionViewModel : ViewModel() {
 
         WalletConnectClient.ping(pingParams, object : WalletConnect.Listeners.SessionPing {
             override fun onSuccess(pingSuccess: WalletConnect.Model.Ping.Success) {
-                _dappEvents.tryEmit(System.currentTimeMillis() to pingSuccess)
+                navigationChannel.trySend(NavigationEvents.PingSuccess(pingSuccess.topic))
             }
 
             override fun onError(pingError: WalletConnect.Model.Ping.Error) {
-                _dappEvents.tryEmit(System.currentTimeMillis() to pingError)
+                navigationChannel.trySend(NavigationEvents.PingError)
             }
         })
     }
 
     fun disconnect() {
-        val disconnectParams = WalletConnect.Params.Disconnect(
-            sessionTopic = requireNotNull(DappDelegate.selectedSessionTopic),
-            reason = "Disconnect Clicked",
-            reasonCode = 400
-        )
+        if (DappDelegate.selectedSessionTopic != null) {
+            val disconnectParams = WalletConnect.Params.Disconnect(
+                sessionTopic = requireNotNull(DappDelegate.selectedSessionTopic),
+                reason = "Disconnect Clicked",
+                reasonCode = 400
+            )
 
-        WalletConnectClient.disconnect(disconnectParams)
+            WalletConnectClient.disconnect(disconnectParams)
+            DappDelegate.deselectAccountDetails()
+        }
+
+        navigationChannel.trySend(NavigationEvents.Disconnect)
     }
 }

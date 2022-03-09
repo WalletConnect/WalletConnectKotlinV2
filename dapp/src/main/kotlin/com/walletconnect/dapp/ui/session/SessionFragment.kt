@@ -6,11 +6,16 @@ import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.FragmentSessionBinding
 import com.walletconnect.dapp.ui.BottomVerticalSpaceItemDecoration
 import com.walletconnect.dapp.ui.NavigationEvents
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 class SessionFragment : Fragment() {
     private val viewModel: SessionViewModel by viewModels()
@@ -20,31 +25,34 @@ class SessionFragment : Fragment() {
     private val sessionAccountAdapter by lazy {
         SessionAdapter() { selectedAccount ->
             val selectedAccountKey = getString(R.string.selected_account)
-            this.findNavController().navigate(R.id.action_fragment_session_to_fragment_selected_account, bundleOf(selectedAccountKey to selectedAccount))
+            findNavController().navigate(R.id.action_fragment_session_to_fragment_selected_account, bundleOf(selectedAccountKey to selectedAccount))
         }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSessionBinding.inflate(inflater, container, false).also { _binding = it }
-
+        setHasOptionsMenu(true)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.navigation.observe(viewLifecycleOwner) { navigationEvent ->
-            when (navigationEvent) {
-                is NavigationEvents.PingSuccess -> Toast.makeText(requireContext(), "Pinged Peer Successfully on Topic: ${navigationEvent.topic}", Toast.LENGTH_SHORT).show()
-                is NavigationEvents.PingError -> Toast.makeText(requireContext(), "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT).show()
-                is NavigationEvents.Disconnect -> findNavController().navigate(R.id.action_fragment_session_to_connect_graph)
-                is NavigationEvents.UpdatedListOfAccounts -> sessionAccountAdapter.submitList(navigationEvent.listOfAccounts)
-                else -> Unit
+        viewModel.navigation
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.RESUMED)
+            .onEach { events ->
+                when (events) {
+                    is NavigationEvents.PingSuccess -> Toast.makeText(requireContext(), "Pinged Peer Successfully on Topic: ${events.topic}", Toast.LENGTH_SHORT).show()
+                    is NavigationEvents.PingError -> Toast.makeText(requireContext(), "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT).show()
+                    is NavigationEvents.Disconnect -> findNavController().popBackStack()
+                    is NavigationEvents.UpdatedListOfAccounts -> sessionAccountAdapter.submitList(events.listOfAccounts)
+                    else -> Unit
+                }
             }
-        }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
 
         with(binding.rvAccounts) {
-            adapter = sessionAccountAdapter.apply {
+            adapter = (sessionAccountAdapter).apply {
                 submitList(viewModel.getListOfAccounts())
             }
             addItemDecoration(BottomVerticalSpaceItemDecoration(16))
@@ -68,6 +76,11 @@ class SessionFragment : Fragment() {
 
                 false
             }
+            android.R.id.home -> {
+                viewModel.disconnect()
+
+                false
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -79,7 +92,8 @@ class SessionFragment : Fragment() {
     }
 
     override fun onDestroy() {
-        viewModel.disconnect()
         super.onDestroy()
+
+        viewModel.disconnect()
     }
 }

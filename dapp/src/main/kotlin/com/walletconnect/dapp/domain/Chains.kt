@@ -7,7 +7,7 @@ private val defaultEthMethods: List<String> = listOf("eth_sendTransaction", "per
 
 fun getPersonalSignBody(account: String): String {
     val msg = "My email is john@doe.com - ${System.currentTimeMillis()}".encodeToByteArray().joinToString(separator = "", prefix = "0x") { eachByte -> "%02x".format(eachByte) }
-    return """[$msg, $account]"""
+    return """["$msg", "$account"]"""
 }
 
 fun getEthSendTransaction(account: String): String {

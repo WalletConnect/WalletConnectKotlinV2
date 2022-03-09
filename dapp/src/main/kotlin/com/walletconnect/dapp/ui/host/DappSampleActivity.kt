@@ -17,13 +17,7 @@ class DappSampleActivity : AppCompatActivity(R.layout.activity_dapp) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
         NavigationUI.setupActionBarWithNavController(this, navHostFragment.navController)
-    }
-
-    override fun onNavigateUp(): Boolean {
-        onBackPressed()
-        return true
     }
 
     override fun onSupportNavigateUp(): Boolean {

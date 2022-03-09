@@ -7,6 +7,7 @@ import com.walletconnect.walletconnectv2.core.model.type.SettlementSequence
 import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.PostSettlementSessionVO
 import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.PendingRequestVO
@@ -74,6 +75,11 @@ internal class WalletConnectRelayer(
     ) {
         val payloadJson = serializer.serialize(payload)
 
+//react
+//        """{"id":1646803156436784,"jsonrpc":"2.0","method":"wc_sessionPayload","params":{"request":{"method":"personal_sign","params":["0x4d7920656d61696c206973206a6f686e40646f652e636f6d202d2031363436383035333230323033","0x201b709c727FD30D9fEcBA2f6C0D7F2b2a0383D9"]},"chainId":"eip155:42"}}"""
+
+//kotlin
+//        """{"id":1646803156436784,"jsonrpc":"2.0","method":"wc_sessionPayload","params":{"request":{"method":"personal_sign","params":"[\"0x4d7920656d61696c206973206a6f686e40646f652e636f6d202d2031363436383035363432303636\", \"0x201b709c727FD30D9fEcBA2f6C0D7F2b2a0383D9\"]"},"chainId":"eip155:42"}}"""
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, payloadJson)) {
             networkRepository.publish(topic, serializer.encode(payloadJson, topic), prompt) { result ->
                 result.fold(
@@ -183,7 +189,6 @@ internal class WalletConnectRelayer(
     }
 
     private suspend fun handleJsonRpcError(jsonRpcError: RelayDO.JsonRpcResponse.JsonRpcError) {
-
         val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcError.id, serializer.serialize(jsonRpcError))
 
         if (jsonRpcRecord != null) {

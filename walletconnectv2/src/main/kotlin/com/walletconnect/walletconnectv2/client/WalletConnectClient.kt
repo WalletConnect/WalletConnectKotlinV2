@@ -82,14 +82,16 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun connect(connect: WalletConnect.Params.Connect, onFailure: (WalletConnect.Model.Error) -> Unit = {}): String? {
+    fun connect(connect: WalletConnect.Params.Connect, onFailure: (WalletConnect.Model.Error) -> Unit = {}): WalletConnect.Model.ProposedSequence {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        return engineInteractor.proposeSequence(connect.permissions.toEngineSessionPermissions(), connect.pairingTopic) { error ->
+        val proposedSequence = engineInteractor.proposeSequence(connect.permissions.toEngineSessionPermissions(), connect.pairingTopic) { error ->
             onFailure(WalletConnect.Model.Error(error))
         }
+
+        return proposedSequence.toClientProposedSequence()
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)

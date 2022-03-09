@@ -20,9 +20,6 @@
             <action
                 android:id="@+id/action_fragment_chain_selection_to_dialog_pairing_generation"
                 app:destination="@id/dialog_pairing_generation" />
-            <action
-                android:id="@+id/action_fragment_chain_selection_to_fragment_session"
-                app:destination="@id/fragment_session" />
         </fragment>
 
         <dialog
@@ -32,10 +29,9 @@
             tools:layout="@layout/fragment_pairing_selection">
             <action
                 android:id="@+id/action_dialog_pairing_selection_to_dialog_pairing_generation"
-                app:destination="@id/dialog_pairing_generation" />
-            <action
-                android:id="@+id/action_dialog_pairing_selection_to_fragment_session"
-                app:destination="@id/fragment_session" />
+                app:destination="@id/dialog_pairing_generation"
+                app:popUpTo="@id/fragment_chain_selection"
+                app:popUpToInclusive="false" />
         </dialog>
 
         <dialog
@@ -43,13 +39,20 @@
             android:name="com.walletconnect.dapp.ui.connect.pairing_generate.PairingGenerationDialogFragment"
             android:label="Pairing Generation"
             tools:layout="@layout/dialog_connect_uri" />
+
+        <action
+            android:id="@+id/action_global_fragment_session"
+            app:destination="@id/fragment_session"
+            app:popUpTo="@id/fragment_chain_selection"
+            app:popUpToInclusive="false" />
     </navigation>
 
     <fragment
         android:id="@+id/fragment_session"
         android:name="com.walletconnect.dapp.ui.session.SessionFragment"
-        android:label="All Chains"
+        android:label="Session Chains"
         tools:layout="@layout/fragment_session">
+
         <action
             android:id="@+id/action_fragment_session_to_fragment_selected_account"
             app:destination="@id/fragment_selected_account">
@@ -59,11 +62,6 @@
                 app:argType="string"
                 app:nullable="false" />
         </action>
-        <action
-            android:id="@+id/action_fragment_session_to_connect_graph"
-            app:destination="@id/connectGraph"
-            app:popUpTo="@id/fragment_chain_selection"
-            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
@@ -71,6 +69,7 @@
         android:name="com.walletconnect.dapp.ui.selected_account.SelectedAccountFragment"
         android:label="Selected Account"
         tools:layout="@layout/fragment_selected_account">
+
         <action
             android:id="@+id/action_fragment_selected_account_to_connect_graph"
             app:destination="@id/connectGraph"

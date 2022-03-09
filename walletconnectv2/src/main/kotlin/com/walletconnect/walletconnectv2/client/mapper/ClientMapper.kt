@@ -8,6 +8,13 @@ import com.walletconnect.walletconnectv2.engine.model.EngineDO
 //TODO: Provide VO objects for engine classes. Remove using the EngineDO object in the client layer
 
 @JvmSynthetic
+internal fun EngineDO.ProposedSequence.toClientProposedSequence(): WalletConnect.Model.ProposedSequence =
+    when (this) {
+        is EngineDO.ProposedSequence.Pairing -> WalletConnect.Model.ProposedSequence.Pairing(this.uri)
+        is EngineDO.ProposedSequence.Session -> WalletConnect.Model.ProposedSequence.Session
+    }
+
+@JvmSynthetic
 internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.Model.SessionProposal =
     WalletConnect.Model.SessionProposal(
         name, description, url, icons, chains, methods, types, topic, publicKey, isController, ttl, accounts, relayProtocol

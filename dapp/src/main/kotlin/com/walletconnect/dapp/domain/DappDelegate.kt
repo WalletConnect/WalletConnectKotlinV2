@@ -1,15 +1,18 @@
 package com.walletconnect.dapp.domain
 
-import android.util.Log
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.launch
 
 object DappDelegate : WalletConnectClient.DappDelegate {
-    private val TAG: String = DappDelegate::class.java.canonicalName!!
-    private val _wcEventModels: MutableSharedFlow<Pair<Long, WalletConnect.Model?>> = MutableSharedFlow(extraBufferCapacity = 2)
-    val wcEventModels: SharedFlow<Pair<Long, WalletConnect.Model?>> = _wcEventModels
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val _wcEventModels: MutableSharedFlow<WalletConnect.Model?> = MutableSharedFlow()
+    val wcEventModels: SharedFlow<WalletConnect.Model?> = _wcEventModels
 
     var selectedSessionTopic: String? = null
         private set
@@ -20,54 +23,48 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         WalletConnectClient.setDappDelegate(this)
     }
 
-    override fun onPairingSettled(settledPairing: WalletConnect.Model.SettledPairing) {
-        Log.d(TAG, "pairing settled")
-    }
+    override fun onPairingSettled(settledPairing: WalletConnect.Model.SettledPairing) {}
 
-    override fun onPairingUpdated(pairing: WalletConnect.Model.PairingUpdate) {
-        Log.d(TAG, "pairing updated")
-    }
+    override fun onPairingUpdated(pairing: WalletConnect.Model.PairingUpdate) {}
 
     override fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession) {
-        Log.d(TAG, "session approved")
         selectedSessionTopic = approvedSession.topic
 
-        _wcEventModels.tryEmit(System.currentTimeMillis() to approvedSession)
-        _wcEventModels.tryEmit(System.currentTimeMillis() to null)
+        scope.launch {
+            _wcEventModels.emit(approvedSession)
+        }
     }
 
     override fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession) {
-        Log.d(TAG, "session rejected")
-
-        _wcEventModels.tryEmit(System.currentTimeMillis() to rejectedSession)
-        _wcEventModels.tryEmit(System.currentTimeMillis() to null)
+        scope.launch {
+            _wcEventModels.emit(rejectedSession)
+        }
     }
 
     override fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdatedSession) {
-        Log.d(TAG, "session updated")
-
-        _wcEventModels.tryEmit(System.currentTimeMillis() to updatedSession)
+        scope.launch {
+            _wcEventModels.emit(updatedSession)
+        }
     }
 
     override fun onSessionUpgrade(upgradedSession: WalletConnect.Model.UpgradedSession) {
-        Log.d(TAG, "session upgrade")
-
-        _wcEventModels.tryEmit(System.currentTimeMillis() to upgradedSession)
+        scope.launch {
+            _wcEventModels.emit(upgradedSession)
+        }
     }
 
     override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {
-        Log.d(TAG, "session deleted")
+        deselectAccountDetails()
 
-        selectedAccountDetails = null
-        selectedSessionTopic = null
-
-        _wcEventModels.tryEmit(System.currentTimeMillis() to deletedSession)
+        scope.launch {
+            _wcEventModels.emit(deletedSession)
+        }
     }
 
     override fun onSessionPayloadResponse(response: WalletConnect.Model.SessionPayloadResponse) {
-        Log.d(TAG, "session payload response")
-
-        _wcEventModels.tryEmit(System.currentTimeMillis() to response)
+        scope.launch {
+            _wcEventModels.emit(response)
+        }
     }
 
     fun setSelectedAccountDetails(accountDetails: String) {

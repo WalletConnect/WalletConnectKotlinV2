@@ -66,9 +66,9 @@ internal object Validator {
     internal fun validateWCUri(uri: String): EngineDO.WalletConnectUri? {
         if (!uri.startsWith("wc:")) return null
         val properUriString = if (uri.contains("wc://")) uri else uri.replace("wc:", "wc://")
-        val pairUri: URI
-        try {
-            pairUri = URI(properUriString)
+
+        val pairUri: URI = try {
+            URI(properUriString)
         } catch (e: URISyntaxException) {
             return null
         }

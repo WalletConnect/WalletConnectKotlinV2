@@ -1,18 +1,26 @@
 package com.walletconnect.dapp.ui.selected_account
 
 import android.app.AlertDialog
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.FragmentSelectedAccountBinding
 import com.walletconnect.dapp.ui.BottomVerticalSpaceItemDecoration
 import com.walletconnect.dapp.ui.NavigationEvents
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 class SelectedAccountFragment : Fragment() {
     private val viewModel: SelectedAccountViewModel by viewModels()
@@ -21,7 +29,7 @@ class SelectedAccountFragment : Fragment() {
         get() = _binding!!
     private val selectedAccountAdapter by lazy {
         SelectedAccountAdapter() { methodName ->
-            viewModel.requestMethod(methodName)
+            viewModel.requestMethod(methodName, ::sendRequestDeepLink)
         }
     }
 
@@ -34,18 +42,20 @@ class SelectedAccountFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.navigation.observe(viewLifecycleOwner) { navigationEvent ->
-            when (navigationEvent) {
-                is NavigationEvents.RequestSuccess -> onRequest(navigationEvent.result)
-                is NavigationEvents.RequestPeerError -> onRequest(navigationEvent.errorMsg)
-                is NavigationEvents.RequestError -> onRequest(navigationEvent.exceptionMsg)
-                is NavigationEvents.UpgradedSelectedAccountUI -> {
-                    selectedAccountAdapter.submitList(navigationEvent.selectedAccountUI.listOfMethods)
+        viewModel.navigation
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.RESUMED)
+            .onEach { navigationEvent ->
+                when (navigationEvent) {
+                    is NavigationEvents.RequestSuccess -> onRequest(navigationEvent.result)
+                    is NavigationEvents.RequestPeerError -> onRequest(navigationEvent.errorMsg)
+                    is NavigationEvents.RequestError -> onRequest(navigationEvent.exceptionMsg)
+                    is NavigationEvents.UpgradedSelectedAccountUI -> {
+                        selectedAccountAdapter.submitList(navigationEvent.selectedAccountUI.listOfMethods)
+                    }
+                    is NavigationEvents.Disconnect -> findNavController().navigate(R.id.action_fragment_selected_account_to_connect_graph)
+                    else -> Unit
                 }
-                is NavigationEvents.Disconnect -> findNavController().navigate(R.id.action_fragment_selected_account_to_connect_graph)
-                else -> Unit
-            }
-        }
+            }.launchIn(viewLifecycleOwner.lifecycleScope)
 
         val selectedAccountKey = getString(R.string.selected_account)
 
@@ -77,6 +87,14 @@ class SelectedAccountFragment : Fragment() {
                 dialog.dismiss()
             }
             .show()
+    }
+
+    private fun sendRequestDeepLink(sessionRequestDeeplinkUri: Uri) {
+        try {
+            requireActivity().startActivity(Intent(Intent.ACTION_VIEW, sessionRequestDeeplinkUri))
+        } catch (exception: ActivityNotFoundException) {
+            // There is no app to handle deep link
+        }
     }
 
     override fun onDestroyView() {

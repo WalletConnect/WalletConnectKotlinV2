@@ -19,6 +19,13 @@ object WalletConnect {
 
         data class Error(val error: Throwable) : Model()
 
+        sealed class ProposedSequence {
+
+            class Pairing(val uri: String): ProposedSequence()
+
+            object Session: ProposedSequence()
+        }
+
         data class SessionProposal(
             val name: String,
             val description: String,

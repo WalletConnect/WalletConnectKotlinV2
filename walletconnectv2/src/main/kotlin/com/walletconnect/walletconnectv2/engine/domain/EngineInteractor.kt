@@ -63,7 +63,7 @@ internal class EngineInteractor(
         relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
 
-    internal fun proposeSequence(permissions: EngineDO.SessionPermissions, pairingTopic: String?, onFailure: (Throwable) -> Unit): String? {
+    internal fun proposeSequence(permissions: EngineDO.SessionPermissions, pairingTopic: String?, onFailure: (Throwable) -> Unit): EngineDO.ProposedSequence {
         checkPeer(ControllerType.NON_CONTROLLER) {
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_CONNECT_MESSAGE)
         }
@@ -77,7 +77,7 @@ internal class EngineInteractor(
                 throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$pairingTopic")
             }
             proposeSession(permissions, pairingTopic) { error -> onFailure(error) }
-            return null
+            return EngineDO.ProposedSequence.Session
         }
         return proposePairing(permissions)
     }
@@ -112,16 +112,18 @@ internal class EngineInteractor(
         }
     }
 
-    private fun proposePairing(permissions: EngineDO.SessionPermissions): String {
+    private fun proposePairing(permissions: EngineDO.SessionPermissions): EngineDO.ProposedSequence.Pairing {
         val pendingTopic: TopicVO = generateTopic()
         val publicKey: PublicKey = crypto.generateKeyPair()
         val isController = controllerType == ControllerType.CONTROLLER
         val uri = EngineDO.WalletConnectUri(pendingTopic, publicKey, isController, RelayProtocolOptionsVO())
         val pendingPairing = uri.toProposedPairingVO(controllerType)
+
         sequenceStorageRepository.insertPendingPairing(pendingPairing, controllerType)
         relayer.subscribe(pendingTopic)
         sessionPermissions = permissions
-        return uri.toAbsoluteString()
+
+        return EngineDO.ProposedSequence.Pairing(uri.toAbsoluteString())
     }
 
     internal fun pair(uri: String, onFailure: (Throwable) -> Unit) {

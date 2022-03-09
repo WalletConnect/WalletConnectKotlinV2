@@ -10,7 +10,6 @@ import androidx.navigation.navGraphViewModels
 import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.FragmentPairingSelectionBinding
 import com.walletconnect.dapp.ui.BottomVerticalSpaceItemDecoration
-import com.walletconnect.dapp.ui.NavigationEvents
 import com.walletconnect.dapp.ui.connect.ConnectViewModel
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 
@@ -29,13 +28,6 @@ class PairingSelectionDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.navigation.observe(viewLifecycleOwner) {
-            if (it is NavigationEvents.SessionApproved || it is NavigationEvents.SessionRejected) {
-                binding.clpbLoading.hide()
-                dismiss()
-            }
-        }
-
         val pairings = WalletConnectClient.getListOfSettledPairings().mapNotNull { pairing ->
             pairing.metaData?.let { metadata ->
                 metadata.icons.first() to metadata.name
@@ -51,7 +43,6 @@ class PairingSelectionDialogFragment : DialogFragment() {
         }
 
         binding.btnNewPairing.setOnClickListener {
-            dismiss()
             findNavController().navigate(R.id.action_dialog_pairing_selection_to_dialog_pairing_generation)
         }
     }
