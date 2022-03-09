@@ -6,7 +6,9 @@ import com.walletconnect.walletconnectv2.core.model.type.SerializableJsonRpc
 import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.PairingSettlementVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionSettlementVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.payload.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.relay.Codec
@@ -16,7 +18,7 @@ import com.walletconnect.walletconnectv2.util.Empty
 internal class JsonRpcSerializer(
     private val authenticatedEncryptionCodec: Codec,
     private val crypto: CryptoRepository,
-    private val moshi: Moshi
+    private val moshi: Moshi,
 ) {
 
     internal fun encode(payload: String, topic: TopicVO): String {
@@ -62,6 +64,13 @@ internal class JsonRpcSerializer(
             JsonRpcMethod.WC_SESSION_PING -> tryDeserialize<SessionSettlementVO.SessionPing>(json)?.params
             JsonRpcMethod.WC_SESSION_NOTIFY -> tryDeserialize<SessionSettlementVO.SessionNotify>(json)?.params
             else -> null
+        }
+
+    internal fun deserializeJsonRpcResult(params: ClientParams, jsonRpcResult: RelayDO.JsonRpcResponse.JsonRpcResult): Any =
+        when (params) {
+            is PairingParamsVO.SessionProposeParams ->
+                tryDeserialize<SessionParamsVO.ApprovalParams>(jsonRpcResult.result.toString()) ?: jsonRpcResult.result
+            else -> jsonRpcResult.result
         }
 
     inline fun <reified T> tryDeserialize(json: String): T? = runCatching { moshi.adapter(T::class.java).fromJson(json) }.getOrNull()

@@ -669,7 +669,7 @@ internal class EngineInteractor(
                 Logger.log("Session proposal approve received")
 
                 val selfPublicKey = PublicKey(params.proposer.publicKey)
-                val approveParams = (response.result as SessionParamsVO.ApprovalParams) //todo: chekck if it works
+                val approveParams = (response.result as SessionParamsVO.ApprovalParams) //todo: check if it works
                 val responderPublicKey = PublicKey(approveParams.responder.publicKey)
 
                 //Topic B
