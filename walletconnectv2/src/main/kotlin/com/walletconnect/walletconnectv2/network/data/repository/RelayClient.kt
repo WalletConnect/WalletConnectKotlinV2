@@ -4,7 +4,7 @@ import com.tinder.scarlet.WebSocket
 import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.scope.scope
-import com.walletconnect.walletconnectv2.network.NetworkRepository
+import com.walletconnect.walletconnectv2.network.RelayRepository
 import com.walletconnect.walletconnectv2.network.data.service.RelayService
 import com.walletconnect.walletconnectv2.network.model.RelayDTO
 import com.walletconnect.walletconnectv2.util.Logger
@@ -14,8 +14,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-//todo: RelayClient
-internal class WakuNetworkRepository internal constructor(private val relay: RelayService) : NetworkRepository { //toto
+internal class RelayClient internal constructor(private val relay: RelayService) : RelayRepository {
 
     override val eventsFlow: SharedFlow<WebSocket.Event> = relay.eventsFlow().shareIn(scope, SharingStarted.Lazily, REPLAY)
     override val subscriptionRequest: Flow<RelayDTO.Subscription.Request> =
@@ -39,7 +38,7 @@ internal class WakuNetworkRepository internal constructor(private val relay: Rel
     override fun unsubscribe(
         topic: TopicVO,
         subscriptionId: SubscriptionIdVO,
-        onResult: (Result<RelayDTO.Unsubscribe.Acknowledgement>) -> Unit
+        onResult: (Result<RelayDTO.Unsubscribe.Acknowledgement>) -> Unit,
     ) {
         val unsubscribeRequest =
             RelayDTO.Unsubscribe.Request(id = generateId(), params = RelayDTO.Unsubscribe.Request.Params(topic, subscriptionId))
