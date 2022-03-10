@@ -9,7 +9,7 @@ CREATE TABLE PairingDao (
     uri TEXT NOT NULL
 );
 
-insertPendingPairing:
+insertPairing:
 INSERT OR IGNORE INTO PairingDao(topic, expiry, self_metadata_id, peer_metadata_id, relay_protocol,  relay_data, uri)
 VALUES (?, ?,  ?,    ?, ?, ?, ?);
 

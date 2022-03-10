@@ -3,10 +3,10 @@ package com.walletconnect.walletconnectv2.engine.model.mapper
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.AppMetaDataVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionPermissionsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.*
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.BlockchainSettledVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.JsonRpcVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.NotificationsVO
 import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcResponseVO
@@ -139,20 +139,18 @@ internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
         accounts
     )
 
-//@JvmSynthetic
-//internal fun SessionProposerVO.toProposalParams(
-//    pendingTopic: TopicVO,
-//    settleTopic: TopicVO,
-//    permissions: EngineDO.SessionPermissions,
-//    blockchain: EngineDO.Blockchain,
-//): PairingParamsVO.SessionProposeParams =
-//    PairingParamsVO.SessionProposeParams(
-//        relays = listOf(RelayProtocolOptionsVO()),
-//        blockchainProposedVO = BlockchainProposedVO(blockchain.chains),
-//        permissions = permissions.toSessionsPermissions(),
-//        proposer = this
-////        topic = pendingTopic //todo: pending or settled topic?
-//    )
+@JvmSynthetic
+internal fun EngineDO.SessionProposal.toSessionApproveParams(): SessionParamsVO.ApprovalParams =
+    SessionParamsVO.ApprovalParams(RelayProtocolOptionsVO(relayProtocol, relayData), AgreementPeer(publicKey))
+
+@JvmSynthetic
+internal fun EngineDO.SessionProposal.toSessionSettleParams(selfParticipant: SessionParticipantVO): SessionParamsVO.SessionSettleParams =
+    SessionParamsVO.SessionSettleParams(
+        relay = RelayProtocolOptionsVO(relayProtocol, relayData),
+        blockchain = BlockchainSettledVO(accounts = accounts, chains),
+        permission = SessionPermissionsVO(JsonRpcVO(methods = methods),
+            notifications = if (types != null) NotificationsVO(types) else null),
+        controller = selfParticipant)
 
 @JvmSynthetic
 internal fun EngineDO.SessionPermissions.toSessionsPermissions(): SessionPermissionsVO =

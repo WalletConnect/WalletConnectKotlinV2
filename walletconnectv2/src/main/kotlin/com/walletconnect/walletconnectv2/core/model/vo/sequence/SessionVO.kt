@@ -5,6 +5,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.AppMetaDataVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.util.Time
@@ -34,11 +35,9 @@ internal data class SessionVO(
 
         @JvmSynthetic
         internal fun createUnacknowledgedSession(
-            //when wallet sends session settle
             settledTopic: TopicVO,
-            selfPublicKey: PublicKey,
             proposal: EngineDO.SessionProposal,
-            selfMetadata: AppMetaDataVO,
+            selfParticipant: SessionParticipantVO,
         ): SessionVO {
             val peerMetaData = AppMetaDataVO(proposal.name, proposal.description, proposal.url, proposal.icons.map { it.toString() })
             return SessionVO(
@@ -48,9 +47,9 @@ internal data class SessionVO(
                 relayData = proposal.relayData,
                 peerParticipant = PublicKey(proposal.publicKey),
                 peerMetaData = peerMetaData,
-                selfParticipant = selfPublicKey,
-                selfMetaData = selfMetadata,
-                controllerKey = selfPublicKey,
+                selfParticipant = PublicKey(selfParticipant.publicKey),
+                selfMetaData = selfParticipant.metadata,
+                controllerKey = PublicKey(selfParticipant.publicKey),
                 chains = proposal.chains,
                 methods = proposal.methods,
                 types = proposal.types ?: emptyList(),

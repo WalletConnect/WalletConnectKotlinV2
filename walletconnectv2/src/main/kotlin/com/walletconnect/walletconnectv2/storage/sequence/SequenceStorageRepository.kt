@@ -69,14 +69,13 @@ internal class SequenceStorageRepository(
     fun getSessionByTopic(topic: TopicVO): SessionVO =
         sessionDaoQueries.getSessionByTopic(topic.value, mapper = this@SequenceStorageRepository::mapSessionDaoToSessionVO).executeAsOne()
 
-    //insert: Proposed, Responded
     @JvmSynthetic
-    fun insertPairing(pairing: PairingVO, settledTopic: TopicVO? = null) {
+    fun insertPairing(pairing: PairingVO) {
         val selfMetadataId = insertMetaData(pairing.selfMetaData)
         val peerMetadataId = insertMetaData(pairing.peerMetaData)
 
         with(pairing) {
-            pairingDaoQueries.insertPendingPairing(
+            pairingDaoQueries.insertPairing(
                 topic.value,
                 expiry.seconds,
                 selfMetadataId,
@@ -92,17 +91,6 @@ internal class SequenceStorageRepository(
     fun updatePairingExpiry(topic: TopicVO, expiryInSeconds: Long) {
         pairingDaoQueries.updatePairingExpiry(expiryInSeconds, topic.value)
     }
-
-//    @JvmSynthetic
-//    fun updatePreSettledPairingToAcknowledged(pairing: PairingVO) {
-//        pairingDaoQueries.updatePreSettledPairingToAcknowledged(pairing.status, pairing.topic.value)
-//    }
-
-//    @JvmSynthetic
-//    fun updateAcknowledgedPairingMetadata(metaData: AppMetaDataVO, topic: TopicVO) {
-//        val metadataId = insertMetaData(metaData)
-//        pairingDaoQueries.updateAcknowledgedPairingMetadata(metadataId, topic.value)
-//    }
 
     @JvmSynthetic
     fun deletePairing(topic: TopicVO) {
@@ -135,33 +123,6 @@ internal class SequenceStorageRepository(
             )
         }
     }
-
-//    //insert: Settled, Acknowledged
-//    @JvmSynthetic
-//    fun insertSettledSession(session: SessionVO, appMetaData: AppMetaDataVO?) {
-//        val selfMetadataId = insertMetaData(session.selfMetaData)
-//        val peerMetadataId = insertMetaData(session.peerMetaData)
-//
-//        with(session) {
-//            sessionDaoQueries.insertSettleSession(
-//                topic = topic.value,
-//                permissions_chains = chains,
-//                permissions_methods = methods,
-//                permissions_types = types,
-//                expiry = expiry.seconds,
-//                status = status,
-//                //todo: peer or self metadata id?
-//                self_metadata_id = selfMetadataId,
-//                peer_metadata_id = peerMetadataId,
-//                self_participant = selfParticipant.keyAsHex,
-//                relay_protocol = session.relayProtocol,
-//                controller_key = session.controllerKey?.keyAsHex,
-//                peer_participant = session.peerParticipant?.keyAsHex,
-//                accounts = session.accounts,
-//                relay_data = session.relayData,
-//            )
-//        }
-//    }
 
     @JvmSynthetic
     fun acknowledgeSession(topic: TopicVO) {
