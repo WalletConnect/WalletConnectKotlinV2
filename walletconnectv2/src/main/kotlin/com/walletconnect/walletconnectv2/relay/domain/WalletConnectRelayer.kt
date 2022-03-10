@@ -183,7 +183,6 @@ internal class WalletConnectRelayer(
     }
 
     private suspend fun handleJsonRpcError(jsonRpcError: RelayDO.JsonRpcResponse.JsonRpcError) {
-
         val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcError.id, serializer.serialize(jsonRpcError))
 
         if (jsonRpcRecord != null) {
