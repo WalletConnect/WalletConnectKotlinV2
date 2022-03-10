@@ -54,6 +54,7 @@ class PairingGenerationDialogFragment : DialogFragment() {
                 Snackbar.make(binding.root, "Copied to Clipboard", Snackbar.LENGTH_SHORT).show()
             }
 
+            //TODO: Uncomment once refactor merged in
 //                try {
 //                    requireActivity().startActivity(Intent(Intent.ACTION_VIEW, deeplinkPairingUri.toUri()))
 //                } catch (exception: ActivityNotFoundException) {

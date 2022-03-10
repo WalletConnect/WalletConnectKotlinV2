@@ -3,11 +3,19 @@ package com.walletconnect.dapp.domain
 import androidx.annotation.DrawableRes
 import com.walletconnect.dapp.R
 
-private val defaultEthMethods: List<String> = listOf("eth_sendTransaction", "personal_sign", "eth_signTypedData")
+private val ETH_CHAIN = "eip155"
+// Commented out other methods due to wallet not understanding request
+// TODO: Fix other RPC methods
+private val defaultEthMethods: List<String> = listOf(
+//    "eth_sendTransaction",
+    "personal_sign"
+//    "eth_signTypedData"
+)
+
 
 fun getPersonalSignBody(account: String): String {
     val msg = "My email is john@doe.com - ${System.currentTimeMillis()}".encodeToByteArray().joinToString(separator = "", prefix = "0x") { eachByte -> "%02x".format(eachByte) }
-    return """["$msg", "$account"]"""
+    return "[\"$msg\", \"$account\"]"
 }
 
 fun getEthSendTransaction(account: String): String {
@@ -101,23 +109,11 @@ fun getEthSignTypedData(account: String): String {
     """.trimIndent()
 }
 
-private fun String.hexToBytes(): ByteArray {
-    val len = this.length
-    val data = ByteArray(len / 2)
-    var i = 0
-    while (i < len) {
-        data[i / 2] = ((Character.digit(this[i], 16) shl 4)
-                + Character.digit(this[i + 1], 16)).toByte()
-        i += 2
-    }
-    return data
-}
-
 enum class Chains(val chainName: String, val parentChain: String, val chainId: Int, @DrawableRes val icon: Int, val methods: List<String>) {
 
     ETHEREUM_KOVAN(
         chainName = "Ethereum Kovan",
-        parentChain = "eip155",
+        parentChain = ETH_CHAIN,
         chainId = 42,
         icon = R.drawable.ic_ethereum,
         methods = defaultEthMethods
@@ -125,7 +121,7 @@ enum class Chains(val chainName: String, val parentChain: String, val chainId: I
 
     OPTIMISM_KOVAN(
         chainName = "Optimism Kovan",
-        parentChain = "eip155",
+        parentChain = ETH_CHAIN,
         chainId = 69,
         icon = R.drawable.ic_optimism,
         methods = defaultEthMethods
@@ -133,7 +129,7 @@ enum class Chains(val chainName: String, val parentChain: String, val chainId: I
 
     POLYGON_MUMBAI(
         chainName = "Polygon Mumbai",
-        parentChain = "eip155",
+        parentChain = ETH_CHAIN,
         chainId = 80001,
         icon = R.drawable.ic_polygon,
         methods = defaultEthMethods
@@ -141,7 +137,7 @@ enum class Chains(val chainName: String, val parentChain: String, val chainId: I
 
     ARBITRUM_RINKBY(
         chainName = "Arbitrum Rinkeby",
-        parentChain = "eip155",
+        parentChain = ETH_CHAIN,
         chainId = 421611,
         icon = R.drawable.ic_arbitrum,
         methods = defaultEthMethods
@@ -149,7 +145,7 @@ enum class Chains(val chainName: String, val parentChain: String, val chainId: I
 
     CELO_ALFAJORES(
         chainName = "Celo Alfajores",
-        parentChain = "eip155",
+        parentChain = ETH_CHAIN,
         chainId = 44787,
         icon = R.drawable.ic_celo,
         methods = defaultEthMethods

@@ -1,15 +1,18 @@
 package com.walletconnect.dapp.ui.connect
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.dapp.domain.Chains
 import com.walletconnect.dapp.domain.DappDelegate
+import com.walletconnect.dapp.tag
 import com.walletconnect.dapp.ui.NavigationEvents
 import com.walletconnect.dapp.ui.connect.chain_select.ChainSelectionUI
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 
@@ -30,13 +33,13 @@ class ConnectViewModel : ViewModel() {
     val navigation = navigationChannel.receiveAsFlow()
 
     init {
-        DappDelegate.wcEventModels.onEach { walletEvent: WalletConnect.Model? ->
-            val event = when (walletEvent) {
+        DappDelegate.wcEventModels.map { walletEvent: WalletConnect.Model? ->
+            when (walletEvent) {
                 is WalletConnect.Model.ApprovedSession -> NavigationEvents.SessionApproved
                 is WalletConnect.Model.RejectedSession -> NavigationEvents.SessionRejected
                 else -> NavigationEvents.NoAction
             }
-
+        }.onEach { event ->
             navigationChannel.trySend(event)
         }.launchIn(viewModelScope)
     }
@@ -54,7 +57,7 @@ class ConnectViewModel : ViewModel() {
 
         val selectedChains: List<ChainSelectionUI> = listOfChainUI.filter { it.isSelected }
         val blockchains = selectedChains.map { "${it.parentChain}:${it.chainId}" }
-        val methods = selectedChains.map { it.methods }.flatten().distinct()
+        val methods = selectedChains.flatMap { it.methods }.distinct()
         val sessionPermissions = WalletConnect.Model.SessionPermissions(
             blockchain = WalletConnect.Model.SessionPermissions.Blockchain(chains = blockchains),
             jsonRpc = WalletConnect.Model.SessionPermissions.JsonRpc(methods = methods),
@@ -62,6 +65,8 @@ class ConnectViewModel : ViewModel() {
         )
         val connectParams = WalletConnect.Params.Connect(permissions = sessionPermissions, pairingTopic = pairingTopic)
 
-        return WalletConnectClient.connect(connectParams)
+        return WalletConnectClient.connect(connectParams) { error ->
+            Log.e(tag(this@ConnectViewModel), error.error.stackTraceToString())
+        }
     }
 }

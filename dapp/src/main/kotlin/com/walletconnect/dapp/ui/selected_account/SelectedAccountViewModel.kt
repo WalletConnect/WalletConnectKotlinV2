@@ -58,6 +58,7 @@ class SelectedAccountViewModel : ViewModel() {
             navigationChannel.trySend(NavigationEvents.RequestError(it.error.localizedMessage ?: "Error trying to send request"))
         }
 
+        //TODO: Uncomment once refactor merged in
 //        val sessionRequestDeepLinkUri = "wc:/${requireNotNull(DappDelegate.selectedSessionTopic)}".toUri()
 //        sendSessionRequestDeepLink(sessionRequestDeepLinkUri)
     }

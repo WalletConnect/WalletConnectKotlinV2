@@ -12,7 +12,7 @@ internal sealed class PostSettlementSessionVO : SettlementSequence<SessionParams
     abstract override val jsonrpc: String
     abstract override val params: SessionParamsVO
 
-    @JsonClass(generateAdapter = true)
+    @JsonClass(generateAdapter = false)
     internal data class SessionPayload(
         @Json(name = "id")
         override val id: Long,

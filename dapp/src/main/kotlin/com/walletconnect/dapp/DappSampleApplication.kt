@@ -45,5 +45,5 @@ class DappSampleApplication: Application() {
 }
 
 inline fun <reified T: Any> tag(currentClass: T): String {
-    return "Talha-" + currentClass::class.java.canonicalName!!.substringAfterLast(".")
+    return currentClass::class.java.canonicalName!!.substringAfterLast(".")
 }
