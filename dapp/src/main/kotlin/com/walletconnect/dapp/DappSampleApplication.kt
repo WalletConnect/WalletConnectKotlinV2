@@ -17,7 +17,7 @@ class DappSampleApplication: Application() {
             application = this,
             useTls = true,
             hostName = WALLET_CONNECT_PROD_RELAY_URL,
-            projectId = "2ee94aca5d98e6c05c38bce02bee952a",     //TODO: register at https://walletconnect.com/register to get a project ID
+            projectId = "",     //TODO: register at https://walletconnect.com/register to get a project ID
             isController = false,
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Dapp",
@@ -30,7 +30,7 @@ class DappSampleApplication: Application() {
         // Sample of how to use a URI to initialize the WalletConnect SDK
         val initString = WalletConnect.Params.Init(
             application = this,
-            relayServerUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=2ee94aca5d98e6c05c38bce02bee952a",   //TODO: register at https://walletconnect.com/register to get a project ID
+            relayServerUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=",   //TODO: register at https://walletconnect.com/register to get a project ID
             isController = false,
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Dapp",
