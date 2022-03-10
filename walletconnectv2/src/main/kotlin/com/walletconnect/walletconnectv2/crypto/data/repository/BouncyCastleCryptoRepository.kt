@@ -21,7 +21,7 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
         //todo: better option is: getSymmetricKeyFromKeyGenerator("AES", 256)
         //Check both keys when new flow is implemented
 
-        val symmetricKey = createSymmetricKey(256).bytesToHex()
+        val symmetricKey = createSymmetricKey().bytesToHex()
         val publicKey = PublicKey(sha256(symmetricKey))
 
 
@@ -29,9 +29,9 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
         return SecretKey(symmetricKey)
     }
 
-    private fun createSymmetricKey(keySize: Int): ByteArray {
+    private fun createSymmetricKey(): ByteArray {
         val keyGenerator: KeyGenerator = KeyGenerator.getInstance("AES")
-        keyGenerator.init(keySize)
+        keyGenerator.init(256)
         return keyGenerator.generateKey().encoded
     }
 

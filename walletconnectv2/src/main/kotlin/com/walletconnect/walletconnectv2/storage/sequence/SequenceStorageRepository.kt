@@ -16,7 +16,7 @@ import com.walletconnect.walletconnectv2.util.isSequenceValid
 internal class SequenceStorageRepository(
     private val pairingDaoQueries: PairingDaoQueries,
     private val sessionDaoQueries: SessionDaoQueries,
-    private val metaDataDaoQueries: MetaDataDaoQueries
+    private val metaDataDaoQueries: MetaDataDaoQueries,
 ) {
 
     @JvmSynthetic
@@ -58,12 +58,10 @@ internal class SequenceStorageRepository(
             .let { entity ->
                 PairingVO(
                     topic = TopicVO(entity.topic),
-                    status = entity.status,
                     expiry = ExpiryVO(entity.expiry),
                     uri = entity.uri,
                     relayProtocol = entity.relay_protocol,
-                    relayData = entity.relay_data,
-                    outcomeTopic = TopicVO(entity.outcome_topic ?: String.Empty)
+                    relayData = entity.relay_data
                 )
             }
 
@@ -81,13 +79,11 @@ internal class SequenceStorageRepository(
             pairingDaoQueries.insertPendingPairing(
                 topic.value,
                 expiry.seconds,
-                status,
                 selfMetadataId,
                 peerMetadataId,
                 relayProtocol,
                 relayData,
-                uri,
-                settledTopic?.value //todo:propably not needed, remove
+                uri
             )
         }
     }
@@ -97,10 +93,10 @@ internal class SequenceStorageRepository(
         pairingDaoQueries.updatePairingExpiry(expiryInSeconds, topic.value)
     }
 
-    @JvmSynthetic
-    fun updatePreSettledPairingToAcknowledged(pairing: PairingVO) {
-        pairingDaoQueries.updatePreSettledPairingToAcknowledged(pairing.status, pairing.topic.value)
-    }
+//    @JvmSynthetic
+//    fun updatePreSettledPairingToAcknowledged(pairing: PairingVO) {
+//        pairingDaoQueries.updatePreSettledPairingToAcknowledged(pairing.status, pairing.topic.value)
+//    }
 
 //    @JvmSynthetic
 //    fun updateAcknowledgedPairingMetadata(metaData: AppMetaDataVO, topic: TopicVO) {
@@ -115,58 +111,61 @@ internal class SequenceStorageRepository(
         pairingDaoQueries.deletePairing(topic.value)
     }
 
-    //insert: Proposed, Responded
     @JvmSynthetic
-    fun insertPendingSession(session: SessionVO, appMetaData: AppMetaDataVO?) {
-        val metadataId = insertMetaData(appMetaData)
-
-        with(session) {
-            sessionDaoQueries.insertPendingSession(
-                topic = topic.value,
-                permissions_chains = chains,
-                permissions_methods = methods,
-                permissions_types = types,
-                expiry = expiry.seconds,
-                status = status,
-                self_metadata_id = metadataId, //todo: peer or self metadata id?
-                self_participant = selfParticipant.keyAsHex,
-                relay_protocol = session.relayProtocol,
-                relay_data = session.relayData,
-                outcome_topic = outcomeTopic.value
-            )
-        }
-    }
-
-    //insert: Pre-Settled, Acknowledged
-    @JvmSynthetic
-    fun insertSettledSession(session: SessionVO, appMetaData: AppMetaDataVO?) {
+    fun insertSession(session: SessionVO) {
         val selfMetadataId = insertMetaData(session.selfMetaData)
         val peerMetadataId = insertMetaData(session.peerMetaData)
 
         with(session) {
-            sessionDaoQueries.insertSettleSession(
+            sessionDaoQueries.insertSession(
                 topic = topic.value,
                 permissions_chains = chains,
                 permissions_methods = methods,
                 permissions_types = types,
                 expiry = expiry.seconds,
-                status = status,
-                //todo: peer or self metadata id?
                 self_metadata_id = selfMetadataId,
                 peer_metadata_id = peerMetadataId,
                 self_participant = selfParticipant.keyAsHex,
-                relay_protocol = session.relayProtocol,
-                controller_key = session.controllerKey?.keyAsHex,
-                peer_participant = session.peerParticipant?.keyAsHex,
-                accounts = session.accounts,
-                relay_data = session.relayData,
+                relay_protocol = relayProtocol,
+                controller_key = controllerKey?.keyAsHex,
+                peer_participant = peerParticipant?.keyAsHex,
+                accounts = accounts,
+                relay_data = relayData,
+                is_acknowledged = isAcknowledged
             )
         }
     }
 
+//    //insert: Settled, Acknowledged
+//    @JvmSynthetic
+//    fun insertSettledSession(session: SessionVO, appMetaData: AppMetaDataVO?) {
+//        val selfMetadataId = insertMetaData(session.selfMetaData)
+//        val peerMetadataId = insertMetaData(session.peerMetaData)
+//
+//        with(session) {
+//            sessionDaoQueries.insertSettleSession(
+//                topic = topic.value,
+//                permissions_chains = chains,
+//                permissions_methods = methods,
+//                permissions_types = types,
+//                expiry = expiry.seconds,
+//                status = status,
+//                //todo: peer or self metadata id?
+//                self_metadata_id = selfMetadataId,
+//                peer_metadata_id = peerMetadataId,
+//                self_participant = selfParticipant.keyAsHex,
+//                relay_protocol = session.relayProtocol,
+//                controller_key = session.controllerKey?.keyAsHex,
+//                peer_participant = session.peerParticipant?.keyAsHex,
+//                accounts = session.accounts,
+//                relay_data = session.relayData,
+//            )
+//        }
+//    }
+
     @JvmSynthetic
-    fun updatePreSettledSessionToAcknowledged(session: SessionVO) {
-        sessionDaoQueries.updatePreSettledSessionToAcknowledged(session.status, session.topic.value)
+    fun acknowledgeSession(topic: TopicVO) {
+        sessionDaoQueries.acknowledgeSession(true, topic.value)
     }
 
     @JvmSynthetic
@@ -218,7 +217,6 @@ internal class SequenceStorageRepository(
     private fun mapPairingDaoToPairingVO(
         topic: String,
         expirySeconds: Long,
-        status: SequenceStatus,
         relay_protocol: String,
         relay_data: String?,
         uri: String,
@@ -229,7 +227,7 @@ internal class SequenceStorageRepository(
         peerName: String?,
         peerDesc: String?,
         peerUrl: String?,
-        peerIcons: List<String>?
+        peerIcons: List<String>?,
     ): PairingVO {
         val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
             AppMetaDataVO(selfName, selfDesc, selfUrl, selfIcons)
@@ -246,7 +244,6 @@ internal class SequenceStorageRepository(
         return PairingVO(
             topic = TopicVO(topic),
             expiry = ExpiryVO(expirySeconds),
-            status = status,
             selfMetaData = selfMetaData,
             peerMetaData = peerMetaData,
             relayProtocol = relay_protocol,
@@ -258,7 +255,6 @@ internal class SequenceStorageRepository(
     private fun mapSessionDaoToSessionVO(
         topic: String,
         expiry: Long,
-        status: SequenceStatus,
         relay_protocol: String,
         relay_data: String?,
         controller_key: String?,
@@ -276,7 +272,7 @@ internal class SequenceStorageRepository(
         permission_chains: List<String>,
         permissions_methods: List<String>,
         permissions_types: List<String>?,
-        outcome_topic: String?
+        is_acknowledged: Boolean,
     ): SessionVO {
 
         val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
@@ -298,7 +294,6 @@ internal class SequenceStorageRepository(
             types = permissions_types,
             accounts = accounts ?: emptyList(),
             expiry = ExpiryVO(expiry),
-            status = status,
             selfMetaData = selfMetaData,
             peerMetaData = peerMetaData,
             selfParticipant = PublicKey(self_participant),
@@ -306,7 +301,7 @@ internal class SequenceStorageRepository(
             controllerKey = PublicKey(controller_key ?: String.Empty),
             relayProtocol = relay_protocol,
             relayData = relay_data,
-            outcomeTopic = TopicVO(outcome_topic ?: String.Empty)
+            isAcknowledged = is_acknowledged
         )
     }
 

@@ -68,8 +68,8 @@ internal class JsonRpcSerializer(
 
     internal fun deserializeJsonRpcResult(params: ClientParams, jsonRpcResult: RelayDO.JsonRpcResponse.JsonRpcResult): Any =
         when (params) {
-            is PairingParamsVO.SessionProposeParams ->
-                tryDeserialize<SessionParamsVO.ApprovalParams>(jsonRpcResult.result.toString()) ?: jsonRpcResult.result
+            is PairingParamsVO.SessionProposeParams -> tryDeserialize<SessionParamsVO.ApprovalParams>(jsonRpcResult.result.toString())
+                ?: jsonRpcResult.result
             else -> jsonRpcResult.result
         }
 

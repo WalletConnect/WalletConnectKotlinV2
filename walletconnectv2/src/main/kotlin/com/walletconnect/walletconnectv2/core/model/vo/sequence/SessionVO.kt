@@ -5,18 +5,13 @@ import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.AppMetaDataVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
-import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
-import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.Time
-import com.walletconnect.walletconnectv2.util.pendingSequenceExpirySeconds
-import java.util.*
 
 internal data class SessionVO(
     override val topic: TopicVO,
     override val expiry: ExpiryVO,
-    override val status: SequenceStatus,
     val relayProtocol: String,
     val relayData: String?,
     val controllerKey: PublicKey? = null,
@@ -28,83 +23,66 @@ internal data class SessionVO(
     val chains: List<String>,
     val methods: List<String>,
     val types: List<String>?,
-    val outcomeTopic: TopicVO = TopicVO(String.Empty)
+    val isAcknowledged: Boolean,
 ) : Sequence {
     val isPeerController: Boolean = peerParticipant?.keyAsHex == controllerKey?.keyAsHex
     val isSelfController: Boolean = selfParticipant.keyAsHex == controllerKey?.keyAsHex
 
     internal companion object {
-        internal fun createProposedSession(topic: TopicVO, params: PairingParamsVO.SessionProposeParams): SessionVO = with(params) {
-            return SessionVO(
-                topic,
-                ExpiryVO(pendingSequenceExpirySeconds()),
-                SequenceStatus.PROPOSED,
-                relayProtocol = relays.first().protocol,
-                relayData = relays.first().data,
-                selfParticipant = PublicKey(proposer.publicKey),
-                selfMetaData = proposer.metadata,
-                chains = blockchainProposedVO.chains,
-                methods = permissions.jsonRpc.methods,
-                types = permissions.notifications?.types,
-            )
-        }
 
-        internal fun createRespondedSession(
-            selfPublicKey: PublicKey,
+        private val sessionExpirySeconds: Long get() = Time.currentTimeInSeconds + Time.weekInSeconds
+
+        @JvmSynthetic
+        internal fun createUnacknowledgedSession(
+            //when wallet sends session settle
             settledTopic: TopicVO,
+            selfPublicKey: PublicKey,
             proposal: EngineDO.SessionProposal,
-        ): SessionVO = with(proposal) {
+            selfMetadata: AppMetaDataVO,
+        ): SessionVO {
+            val peerMetaData = AppMetaDataVO(proposal.name, proposal.description, proposal.url, proposal.icons.map { it.toString() })
             return SessionVO(
-                settledTopic, //todo: topic A?
-                ExpiryVO(pendingSequenceExpirySeconds()),
-                SequenceStatus.RESPONDED,
-                relayProtocol = relayProtocol,
-                relayData = relayData,
+                settledTopic,
+                ExpiryVO(sessionExpirySeconds),
+                relayProtocol = proposal.relayProtocol,
+                relayData = proposal.relayData,
+                peerParticipant = PublicKey(proposal.publicKey),
+                peerMetaData = peerMetaData,
                 selfParticipant = selfPublicKey,
-                chains = chains,
-                methods = methods,
-                types = types,
-                outcomeTopic = settledTopic //todo: topic B?
+                selfMetaData = selfMetadata,
+                controllerKey = selfPublicKey,
+                chains = proposal.chains,
+                methods = proposal.methods,
+                types = proposal.types ?: emptyList(),
+                accounts = proposal.accounts,
+                isAcknowledged = false
             )
         }
 
         @JvmSynthetic
-        internal fun createPreSettledSession(
-            settledTopic: TopicVO,
+        internal fun createAcknowledgedSession(
+            //when dapp receives on session settle, and wallet receives session settle response
+            sessionTopic: TopicVO,
+            settleParams: SessionParamsVO.SessionSettleParams,
             selfPublicKey: PublicKey,
-            proposal: EngineDO.SessionProposal,
-        ): SessionVO = with(proposal) {
+            selfMetadata: AppMetaDataVO,
+        ): SessionVO {
             return SessionVO(
-                settledTopic,
-                ExpiryVO((Calendar.getInstance().timeInMillis / 1000) + Time.dayInSeconds), //todo: add proper expiry
-                SequenceStatus.PRE_SETTLED,
-                relayProtocol = relayProtocol,
-                relayData = relayData,
+                sessionTopic,
+                ExpiryVO(sessionExpirySeconds),
+                relayProtocol = settleParams.relay.protocol,
+                relayData = settleParams.relay.data,
+                peerParticipant = PublicKey(settleParams.controller.publicKey),
+                peerMetaData = settleParams.controller.metadata,
                 selfParticipant = selfPublicKey,
-                peerParticipant = PublicKey(publicKey),
-                controllerKey = PublicKey(publicKey),//todo: which is controller key else selfPublicKey,
-                chains = chains,
-                methods = methods,
-                types = types ?: emptyList(),
-                accounts = accounts
+                selfMetaData = selfMetadata,
+                controllerKey = PublicKey(settleParams.controller.publicKey),
+                chains = settleParams.blockchain.chains,
+                methods = settleParams.permission.jsonRpc.methods,
+                types = settleParams.permission.notifications?.types,
+                accounts = settleParams.blockchain.accounts,
+                isAcknowledged = true
             )
         }
-        //@JvmSynthetic
-//internal fun SessionVO.toEngineDOAcknowledgeSessionVO(settledTopic: TopicVO, params: SessionParamsVO.ApprovalParams): SessionVO =
-//    SessionVO(
-//        settledTopic,
-//        params.expiry,
-//        SequenceStatus.ACKNOWLEDGED,
-//        selfParticipant,
-//        PublicKey(params.responder.publicKey),
-//        controllerKey = PublicKey(params.responder.publicKey), //todo: should always set responder key as controller ?
-//        metaData = params.responder.metadata,
-//        relayProtocol = params.relay.protocol,
-//        chains = chains,
-//        methods = methods,
-//        types = types,
-//        accounts = params.state.accounts,
-//        ttl = TtlVO(params.expiry.seconds)
-//    )
     }
 }

@@ -21,8 +21,6 @@ internal sealed class SessionParamsVO : ClientParams {
     internal data class SessionSettleParams(
         @Json(name = "relay")
         val relay: RelayProtocolOptionsVO,
-        @Json(name = "state")
-        val metadata: AppMetaDataVO,
         @Json(name = "blockchain")
         val blockchain: BlockchainSettledVO,
         @Json(name = "permission")

@@ -3,10 +3,12 @@ package com.walletconnect.walletconnectv2.core.model.utils
 internal object JsonRpcMethod {
     @get:JvmSynthetic
     const val WC_PAIRING_PING: String = "wc_pairingPing"
-    @get:JvmSynthetic
-    const val WC_PAIRING_EXTEND: String = "wc_pairingExtend"
+
+    //    @get:JvmSynthetic
+//    const val WC_PAIRING_EXTEND: String = "wc_pairingExtend"
     @get:JvmSynthetic
     const val WC_PAIRING_DELETE: String = "wc_pairingDelete"
+
     @get:JvmSynthetic
     const val WC_SESSION_PROPOSE: String = "wc_sessionPropose"
 

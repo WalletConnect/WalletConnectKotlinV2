@@ -14,7 +14,6 @@ import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.walletconnectv2.Database
 import com.walletconnect.walletconnectv2.storage.data.dao.JsonRpcHistoryDao
 import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
-import com.walletconnect.walletconnectv2.storage.data.dao.PairingDao
 import com.walletconnect.walletconnectv2.storage.data.dao.SessionDao
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
@@ -181,13 +180,11 @@ internal fun storageModule(): Module = module {
     single {
         Database(
             get(),
-            PairingDaoAdapter = PairingDao.Adapter(statusAdapter = EnumColumnAdapter()),
             SessionDaoAdapter = SessionDao.Adapter(
                 permissions_chainsAdapter = get(),
                 permissions_methodsAdapter = get(),
                 permissions_typesAdapter = get(),
-                accountsAdapter = get(),
-                statusAdapter = EnumColumnAdapter()
+                accountsAdapter = get()
             ),
             MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = get()),
             JsonRpcHistoryDaoAdapter =

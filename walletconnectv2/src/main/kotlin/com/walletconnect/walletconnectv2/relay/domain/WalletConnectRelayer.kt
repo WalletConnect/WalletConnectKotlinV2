@@ -72,8 +72,8 @@ internal class WalletConnectRelayer(
         topic: TopicVO,
         payload: SettlementSequence<*>,
         prompt: Boolean = false,
-        onSuccess: () -> Unit,
-        onFailure: (Throwable) -> Unit,
+        onSuccess: () -> Unit = {},
+        onFailure: (Throwable) -> Unit = {},
     ) {
         val payloadJson = serializer.serialize(payload)
 
@@ -186,7 +186,7 @@ internal class WalletConnectRelayer(
         val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcResult.id, serializer.serialize(jsonRpcResult))
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
-                //todo: check if works
+                //todo: check if works, SessionProposeParams
                 val result = serializer.deserializeJsonRpcResult(params, jsonRpcResult)
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(JsonRpcResponseVO.JsonRpcResult(jsonRpcResult.id, result = result), params))
             } ?: Logger.error("WalletConnectRelay: Unknown result params")

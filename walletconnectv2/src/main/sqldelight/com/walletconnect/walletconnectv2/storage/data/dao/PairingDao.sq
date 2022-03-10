@@ -1,37 +1,28 @@
-import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus;
-
 CREATE TABLE PairingDao (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     topic TEXT UNIQUE NOT NULL,
     expiry INTEGER NOT NULL,
-    status TEXT AS SequenceStatus NOT NULL,
     self_metadata_id INTEGER NOT NULL,
     peer_metadata_id INTEGER NOT NULL,
     relay_protocol TEXT NOT NULL,
     relay_data TEXT,
-    uri TEXT NOT NULL,
-    outcome_topic TEXT
+    uri TEXT NOT NULL
 );
 
 insertPendingPairing:
-INSERT OR IGNORE INTO PairingDao(topic, expiry, status, self_metadata_id, peer_metadata_id, relay_protocol,  relay_data, uri, outcome_topic)
-VALUES (?, ?, ?, ?,    ?, ?, ?, ?, ?);
+INSERT OR IGNORE INTO PairingDao(topic, expiry, self_metadata_id, peer_metadata_id, relay_protocol,  relay_data, uri)
+VALUES (?, ?,  ?,    ?, ?, ?, ?);
 
 getListOfPairingDaos:
-SELECT pd.topic, pd.expiry, pd.status, pd.relay_protocol, pd.relay_data, pd.uri, mdd_self.name, mdd_self.description, mdd_self.url, mdd_self.icons,  mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons
+SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, mdd_self.name, mdd_self.description, mdd_self.url, mdd_self.icons,  mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons
 FROM PairingDao pd
     LEFT JOIN MetaDataDao mdd_self ON pd.self_metadata_id = mdd_self.id
     LEFT JOIN MetaDataDao mdd_peer ON pd.peer_metadata_id = mdd_peer.id;
 
 getPairingByTopic:
-SELECT topic, expiry, status, relay_protocol, relay_data, uri, outcome_topic
+SELECT topic, expiry, relay_protocol, relay_data, uri
 FROM PairingDao
 WHERE ? = topic;
-
-updatePreSettledPairingToAcknowledged:
-UPDATE PairingDao
-SET status = ?
-WHERE topic = ?;
 
 deletePairing:
 DELETE FROM PairingDao
@@ -41,11 +32,6 @@ updatePairingExpiry:
 UPDATE OR ABORT PairingDao
 SET expiry = ?
 WHERE topic = ?;
-
--- updateAcknowledgedPairingMetadata:
--- UPDATE PairingDao
--- SET metadata_id = ?
--- WHERE topic = ?;
 
 hasTopic:
 SELECT topic

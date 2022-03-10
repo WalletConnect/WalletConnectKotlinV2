@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-internal class WakuNetworkRepository internal constructor(private val relay: RelayService) : NetworkRepository {
+//todo: RelayClient
+internal class WakuNetworkRepository internal constructor(private val relay: RelayService) : NetworkRepository { //toto
 
     override val eventsFlow: SharedFlow<WebSocket.Event> = relay.eventsFlow().shareIn(scope, SharingStarted.Lazily, REPLAY)
     override val subscriptionRequest: Flow<RelayDTO.Subscription.Request> =

@@ -4,11 +4,8 @@ import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.AppMetaDataVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionPermissionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.payload.BlockchainProposedVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.payload.SessionProposerVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.JsonRpcVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.NotificationsVO
@@ -17,7 +14,6 @@ import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.WCRequestVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
-import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
 import com.walletconnect.walletconnectv2.util.Empty
 import java.net.URI
 
@@ -82,7 +78,6 @@ internal fun SessionVO.toEngineDOSettledSessionVO(topic: TopicVO, expiry: Expiry
     EngineDO.Session(
         topic,
         expiry,
-        SequenceStatus.ACKNOWLEDGED,
         accounts,
         EngineDO.AppMetaData(
             selfMetaData?.name ?: String.Empty,
@@ -112,7 +107,7 @@ internal fun SessionVO.toEngineDOSessionProposal(peerPublicKey: PublicKey): Engi
 @JvmSynthetic
 internal fun SessionVO.toEngineDOSettledSessionVO(): EngineDO.Session =
     EngineDO.Session(
-        topic, expiry, status,
+        topic, expiry,
         accounts, selfMetaData?.toEngineDOAppMetaData(),
         EngineDO.SessionPermissions(EngineDO.JsonRpc(methods), getNotifications(types)),
         EngineDO.Blockchain(chains),
@@ -121,7 +116,7 @@ internal fun SessionVO.toEngineDOSettledSessionVO(): EngineDO.Session =
 @JvmSynthetic
 internal fun SessionVO.toEngineDOExtendedSessionVO(expiryVO: ExpiryVO): EngineDO.SessionExtend =
     EngineDO.SessionExtend(
-        topic, expiryVO, status,
+        topic, expiryVO,
         accounts, selfMetaData?.toEngineDOAppMetaData(),
         EngineDO.SessionPermissions(EngineDO.JsonRpc(methods), getNotifications(types)),
         EngineDO.Blockchain(chains),
@@ -135,29 +130,29 @@ private fun AppMetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
 internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.PairingSettle =
     EngineDO.PairingSettle(topic, selfMetaData?.toEngineDOAppMetaData())
 
-//@JvmSynthetic
-//internal fun SessionVO.toSessionApproved(params: PairingParamsVO.SessionProposeParams, settledTopic: TopicVO): EngineDO.SessionApproved =
-//    EngineDO.SessionApproved(
-//        settledTopic.value,
-//        params.responder.metadata?.toEngineDOAppMetaData(),
-//        EngineDO.SessionPermissions(EngineDO.Blockchain(chains), EngineDO.JsonRpc(methods)),
-//        params.state.accounts
-//    )
-
 @JvmSynthetic
-internal fun SessionProposerVO.toProposalParams(
-    pendingTopic: TopicVO,
-    settleTopic: TopicVO,
-    permissions: EngineDO.SessionPermissions,
-    blockchain: EngineDO.Blockchain
-): PairingParamsVO.SessionProposeParams =
-    PairingParamsVO.SessionProposeParams(
-        relays = listOf(RelayProtocolOptionsVO()),
-        blockchainProposedVO = BlockchainProposedVO(blockchain.chains),
-        permissions = permissions.toSessionsPermissions(),
-        proposer = this
-//        topic = pendingTopic //todo: pending or settled topic?
+internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
+    EngineDO.SessionApproved(
+        topic.value,
+        peerMetaData?.toEngineDOMetaData(),
+        EngineDO.SessionPermissions(EngineDO.JsonRpc(methods), if (types != null) EngineDO.Notifications(types) else null),
+        accounts
     )
+
+//@JvmSynthetic
+//internal fun SessionProposerVO.toProposalParams(
+//    pendingTopic: TopicVO,
+//    settleTopic: TopicVO,
+//    permissions: EngineDO.SessionPermissions,
+//    blockchain: EngineDO.Blockchain,
+//): PairingParamsVO.SessionProposeParams =
+//    PairingParamsVO.SessionProposeParams(
+//        relays = listOf(RelayProtocolOptionsVO()),
+//        blockchainProposedVO = BlockchainProposedVO(blockchain.chains),
+//        permissions = permissions.toSessionsPermissions(),
+//        proposer = this
+////        topic = pendingTopic //todo: pending or settled topic?
+//    )
 
 @JvmSynthetic
 internal fun EngineDO.SessionPermissions.toSessionsPermissions(): SessionPermissionsVO =
