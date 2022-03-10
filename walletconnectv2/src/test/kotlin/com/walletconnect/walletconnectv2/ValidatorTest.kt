@@ -302,7 +302,7 @@ class ValidatorTest {
     fun `is session proposal valid test`() {
         val proposal = EngineDO.SessionProposal(
             "name", "dsc", "", listOf(), listOf(),
-            listOf(), listOf(), "", "", listOf(), ""
+            listOf(), listOf(), "", listOf(), "", ""
         )
         Validator.validateProposalFields(proposal) { assertEquals(INVALID_SESSION_PROPOSAL_MESSAGE, it) }
     }
@@ -429,6 +429,22 @@ class ValidatorTest {
 
         Validator.validatePairingExtend(newExpiry, currentExpiry) {
             assertEquals(INVALID_EXTEND_TIME, it)
+        }
+    }
+
+    @Test
+    fun `get chains from accountIds test`() {
+        Validator.getChainIds(listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb",
+            "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6")).apply {
+            assertEquals(this[0], "eip155:1")
+            assertEquals(this[1], "bip122:000000000019d6689c085ae165831e93")
+        }
+
+        Validator.getChainIds(listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb")).apply {
+            assertEquals(this[0], "eip155:1")
+        }
+        Validator.getChainIds(listOf("111:dssa:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb")).apply {
+            assertNotEquals(this[0], "eip155:1")
         }
     }
 }

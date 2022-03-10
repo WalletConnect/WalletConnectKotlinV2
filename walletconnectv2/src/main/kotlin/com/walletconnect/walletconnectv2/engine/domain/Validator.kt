@@ -15,7 +15,7 @@ internal object Validator {
     internal fun validatePermissions(
         jsonRpc: EngineDO.JsonRpc,
         notifications: EngineDO.Notifications?,
-        onInvalidPermissions: (String) -> Unit
+        onInvalidPermissions: (String) -> Unit,
     ) {
         when {
             !isJsonRpcValid(jsonRpc) -> onInvalidPermissions(EMPTY_RPC_METHODS_LIST_MESSAGE)
@@ -154,7 +154,6 @@ internal object Validator {
             val elements = accountId.split(":")
             if (elements.isEmpty() || elements.size != 3) return false
             val (namespace, reference, _) = splitAccountId(elements)
-
             val chainId = "$namespace:$reference"
             if (!chains.contains(chainId)) return false
         }
@@ -166,6 +165,20 @@ internal object Validator {
         val reference = elements[1]
         val accountAddress = elements[2]
         return Triple(namespace, reference, accountAddress)
+    }
+
+    fun getChainIds(accountIds: List<String>): List<String> {
+        val chains = mutableListOf<String>()
+        accountIds.forEach { accountId ->
+            chains.add(getChainId(accountId))
+        }
+        return chains
+    }
+
+    private fun getChainId(accountId: String): String {
+        val elements = accountId.split(":")
+        val (namespace, reference, _) = splitAccountId(elements)
+        return "$namespace:$reference"
     }
 
     private const val NAMESPACE_REGEX: String = "^[-a-z0-9]{3,8}$"

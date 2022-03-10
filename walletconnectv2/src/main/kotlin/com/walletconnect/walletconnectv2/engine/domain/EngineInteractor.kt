@@ -205,19 +205,16 @@ internal class EngineInteractor(
             throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
-        //TODO: get chains from user or split account and get from account
-//        val params = SessionParamsVO.UpdateParams(BlockchainSettledVO(state.accounts))
-//        val sessionUpdate: SessionSettlementVO.SessionUpdate = SessionSettlementVO.SessionUpdate(id = generateId(), params = params)
-//        sequenceStorageRepository.updateSessionWithAccounts(TopicVO(topic), state.accounts)
-
-//        relayer.publishJsonRpcRequests(
-//            TopicVO(topic), sessionUpdate,
-//            onSuccess = { Logger.log("Session update sent successfully") },
-//            onFailure = { error ->
-//                Logger.error("Sending session update error: $error")
-//                onFailure(error)
-//            }
-//        )
+        val params = SessionParamsVO.UpdateParams(BlockchainSettledVO(state.accounts, Validator.getChainIds(state.accounts)))
+        val sessionUpdate: SessionSettlementVO.SessionUpdate = SessionSettlementVO.SessionUpdate(id = generateId(), params = params)
+        sequenceStorageRepository.updateSessionWithAccounts(TopicVO(topic), state.accounts)
+        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdate,
+            onSuccess = { Logger.log("Session update sent successfully") },
+            onFailure = { error ->
+                Logger.error("Sending session update error: $error")
+                onFailure(error)
+            }
+        )
     }
 
     internal fun sessionRequest(request: EngineDO.Request, onFailure: (Throwable) -> Unit) {
