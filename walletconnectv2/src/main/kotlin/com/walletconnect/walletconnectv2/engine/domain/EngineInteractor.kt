@@ -322,8 +322,9 @@ internal class EngineInteractor(
         permissions: EngineDO.SessionPermissions,
         blockchain: EngineDO.Blockchain,
         pairingTopic: String?,
+        onSessionProposeSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit,
-    ): String? {
+    ) {
         Validator.validatePermissions(permissions.jsonRpc, permissions.notifications) { errorMessage ->
             throw WalletConnectException.InvalidSessionPermissionsException(errorMessage)
         }
@@ -339,12 +340,18 @@ internal class EngineInteractor(
             val pairing: PairingVO = sequenceStorageRepository.getPairingByTopic(TopicVO(pairingTopic))
             val relay = RelayProtocolOptionsVO(pairing.relayProtocol, pairing.relayData)
             proposeSession(permissions, blockchain, TopicVO(pairingTopic), relay, onFailure = { error -> onFailure(error) })
-            return null
         }
-        return proposePairing(permissions, blockchain)
+        proposePairing(permissions, blockchain,
+            onSessionProposeSuccess = { walletConnectUri -> onSessionProposeSuccess(walletConnectUri) },
+            onFailure = { error -> onFailure(error) })
     }
 
-    private fun proposePairing(permissions: EngineDO.SessionPermissions, blockchain: EngineDO.Blockchain): String {
+    private fun proposePairing(
+        permissions: EngineDO.SessionPermissions,
+        blockchain: EngineDO.Blockchain,
+        onSessionProposeSuccess: (String) -> Unit,
+        onFailure: (Throwable) -> Unit,
+    ) {
         val pairingTopic: TopicVO = generateTopic()
         val symmetricKey: SecretKey = crypto.generateSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptionsVO()
@@ -352,8 +359,9 @@ internal class EngineInteractor(
         val pairing = PairingVO.createPairing(pairingTopic, relay, walletConnectUri.toAbsoluteString(), metaData)
         sequenceStorageRepository.insertPairing(pairing)
         relayer.subscribe(pairingTopic)
-        proposeSession(permissions, blockchain, pairingTopic, relay)
-        return walletConnectUri.toAbsoluteString() //todo: return URI when session proposal is sent
+        proposeSession(permissions, blockchain, pairingTopic, relay,
+            onSuccess = { onSessionProposeSuccess(walletConnectUri.toAbsoluteString()) },
+            onFailure = { error -> onFailure(error) })
     }
 
     private fun proposeSession(
@@ -458,8 +466,7 @@ internal class EngineInteractor(
                 sequenceStorageRepository.deleteSession(pairingTopic)
                 crypto.removeKeys(pairingTopic.value)
                 scope.launch {
-                    _sequenceEvent.emit(EngineDO.SessionRejected(pairingTopic.value,
-                        response.errorMessage))
+                    _sequenceEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage))
                 }  //todo: check how it works, returning on session reject
             }
         }

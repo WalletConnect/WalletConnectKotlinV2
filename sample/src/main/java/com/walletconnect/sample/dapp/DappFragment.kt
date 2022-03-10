@@ -23,15 +23,14 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
 
         //TODO: Improve the dApp sample app. Code below is only for test purposes!
 //        val connectParams = WalletConnect.Params.Connect(
-//            permissions = WalletConnect.Model.SessionPermissions(
-//                WalletConnect.Model.Blockchain(listOf("eip155:42")),
-//                WalletConnect.Model.Jsonrpc(listOf("personal_sign"))
-//            ), pairingTopic = null
-//        )
-//        val uri = WalletConnectClient.connect(connectParams)
+//            permissions = WalletConnect.Model.SessionPermissions(WalletConnect.Model.JsonRpc(listOf("eth_sign"))),
+//            blockchain = WalletConnect.Model.Blockchain(listOf("eip155:42")),
+//            pairingTopic = null)
 //
-//        val qr = QRCode.from(uri).withSize(256, 256).file()
-//        Glide.with(requireContext()).load(qr).into(binding.qrCode)
+//        WalletConnectClient.connect(connectParams, onWalletConnectUri = { uri ->
+//            val qr = QRCode.from(uri).withSize(256, 256).file()
+//            Glide.with(requireContext()).load(qr).into(binding.qrCode)
+//        })
     }
 
     private fun setupToolbar() {

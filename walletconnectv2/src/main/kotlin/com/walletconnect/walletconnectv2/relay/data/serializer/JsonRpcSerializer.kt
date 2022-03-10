@@ -107,6 +107,4 @@ internal class JsonRpcSerializer(
 
         return EncryptionPayloadVO(iv, publicKey, mac, cipherText)
     }
-
-//todo: remove    private fun String.encode(): String = this.encodeToByteArray().joinToString(separator = "") { bytes -> String.format("%02X", bytes) }
 }
