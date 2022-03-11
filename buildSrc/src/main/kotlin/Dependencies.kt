@@ -1,7 +1,7 @@
 import org.gradle.api.JavaVersion
 import org.gradle.kotlin.dsl.DependencyHandlerScope
 
-const val kotlinVersion = "1.5.31"
+const val kotlinVersion = "1.6.10"
 val jvmVersion = JavaVersion.VERSION_11
 const val sqlDelightVersion = "1.5.2"
 
@@ -50,7 +50,7 @@ fun DependencyHandlerScope.scarlet() {
 }
 
 fun DependencyHandlerScope.moshi() {
-    val moshiVersion = "1.12.0"
+    val moshiVersion = "1.13.0"
     "implementation"("com.squareup.moshi:moshi-adapters:$moshiVersion")
     "implementation"("com.squareup.moshi:moshi-kotlin:$moshiVersion")
     "kapt"("com.squareup.moshi:moshi-kotlin-codegen:$moshiVersion")
