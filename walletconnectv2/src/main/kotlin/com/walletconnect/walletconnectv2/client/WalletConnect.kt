@@ -7,14 +7,24 @@ import java.net.URI
 object WalletConnect {
 
     sealed interface Listeners {
-        fun onError(error: Throwable)
 
-        interface SessionPing : Listeners {
-            fun onSuccess(topic: String)
+        interface SessionPing: Listeners {
+            fun onSuccess(pingSuccess: Model.Ping.Success)
+
+            fun onError(pingError: Model.Ping.Error)
         }
     }
 
     sealed class Model {
+
+        data class Error(val error: Throwable) : Model()
+
+        sealed class ProposedSequence {
+
+            class Pairing(val uri: String): ProposedSequence()
+
+            object Session: ProposedSequence()
+        }
 
         data class SessionProposal(
             val name: String,
@@ -69,7 +79,12 @@ object WalletConnect {
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
 
-        data class DeletedSession(val topic: String, val reason: String) : Model()
+        sealed class DeletedSession : Model() {
+
+            data class Success(val topic: String, val reason: String) : DeletedSession()
+
+            data class Error(val error: Throwable) : DeletedSession()
+        }
 
         data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : Model()
 
@@ -125,13 +140,9 @@ object WalletConnect {
 
             data class JsonRpcError(
                 override val id: Long,
-                val error: Error
-            ) : JsonRpcResponse()
-
-            data class Error(
                 val code: Int,
-                val message: String
-            )
+                val message: String,
+            ) : JsonRpcResponse()
         }
 
         data class AppMetaData(
@@ -148,6 +159,13 @@ object WalletConnect {
             val chainId: String?,
             val params: String
         ) : Model()
+
+        sealed class Ping: Model() {
+
+            data class Success(val topic: String): Ping()
+
+            data class Error(val error: Throwable): Ping()
+        }
     }
 
     sealed class Params {

@@ -11,6 +11,13 @@ import java.net.URI
 
 internal sealed class EngineDO {
 
+    internal sealed class ProposedSequence {
+
+        class Pairing(val uri: String): ProposedSequence()
+
+        object Session: ProposedSequence()
+    }
+
     internal class WalletConnectUri(
         val topic: TopicVO,
         val symKey: SecretKey,

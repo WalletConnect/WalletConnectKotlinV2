@@ -260,8 +260,9 @@ class WalletConnectClientIntegrationAndroidTest {
                     val result = WalletConnect.Params.Response(
                         sessionTopic = sessionRequest.topic,
                         jsonRpcResponse = WalletConnect.Model.JsonRpcResponse.JsonRpcError(
-                            sessionRequest.request.id,
-                            WalletConnect.Model.JsonRpcResponse.Error(500, "Kotlin Wallet Error")
+                            id = sessionRequest.request.id,
+                            code = 500,
+                            message = "Kotlin Wallet Error"
                         )
                     )
 

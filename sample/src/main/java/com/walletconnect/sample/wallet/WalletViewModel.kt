@@ -69,7 +69,8 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
             sessionTopic = sessionRequest.topic,
             jsonRpcResponse = WalletConnect.Model.JsonRpcResponse.JsonRpcError(
                 sessionRequest.request.id,
-                WalletConnect.Model.JsonRpcResponse.Error(500, "Kotlin Wallet Error")
+                code = 500,
+                message = "Kotlin Wallet Error"
             )
         )
 
@@ -95,12 +96,13 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     fun sessionPing(session: WalletConnect.Model.Session) {
         val ping = WalletConnect.Params.Ping(session.topic)
         WalletConnectClient.ping(ping, object : WalletConnect.Listeners.SessionPing {
-            override fun onSuccess(topic: String) {
-                Log.d("Ping", topic)
+
+            override fun onSuccess(pingSuccess: WalletConnect.Model.Ping.Success) {
+                Log.d("Ping", pingSuccess.topic)
                 _eventFlow.postValue(Event(Ping))
             }
 
-            override fun onError(error: Throwable) {
+            override fun onError(pingError: WalletConnect.Model.Ping.Error) {
                 Log.d("Ping error", "Ping error")
             }
         })

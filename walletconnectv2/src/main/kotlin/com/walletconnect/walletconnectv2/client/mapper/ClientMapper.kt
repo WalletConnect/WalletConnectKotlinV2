@@ -8,6 +8,13 @@ import com.walletconnect.walletconnectv2.engine.model.EngineDO
 //TODO: Provide VO objects for engine classes. Remove using the EngineDO object in the client layer
 
 @JvmSynthetic
+internal fun EngineDO.ProposedSequence.toClientProposedSequence(): WalletConnect.Model.ProposedSequence =
+    when (this) {
+        is EngineDO.ProposedSequence.Pairing -> WalletConnect.Model.ProposedSequence.Pairing(this.uri)
+        is EngineDO.ProposedSequence.Session -> WalletConnect.Model.ProposedSequence.Session
+    }
+
+@JvmSynthetic
 internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.Model.SessionProposal =
     WalletConnect.Model.SessionProposal(
         name,
@@ -70,7 +77,7 @@ internal fun WalletConnect.Model.JsonRpcResponse.JsonRpcResult.toRpcResultVO(): 
 
 @JvmSynthetic
 internal fun WalletConnect.Model.JsonRpcResponse.JsonRpcError.toRpcErrorVO(): JsonRpcResponseVO.JsonRpcError =
-    JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(error.code, error.message))
+    JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(code, message))
 
 @JvmSynthetic
 internal fun WalletConnect.Model.SessionState.toEngineSessionState(): EngineDO.SessionState = EngineDO.SessionState(accounts)
@@ -80,7 +87,7 @@ internal fun WalletConnect.Model.Notification.toEngineNotification(): EngineDO.N
 
 @JvmSynthetic
 internal fun EngineDO.SessionDelete.toClientDeletedSession(): WalletConnect.Model.DeletedSession =
-    WalletConnect.Model.DeletedSession(topic, reason)
+    WalletConnect.Model.DeletedSession.Success(topic, reason)
 
 @JvmSynthetic
 internal fun EngineDO.SessionNotification.toClientSessionNotification(): WalletConnect.Model.SessionNotification =
@@ -189,7 +196,7 @@ internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toClientJsonRpcResult(): Wal
 
 @JvmSynthetic
 internal fun EngineDO.JsonRpcResponse.JsonRpcError.toClientJsonRpcError(): WalletConnect.Model.JsonRpcResponse.JsonRpcError =
-    WalletConnect.Model.JsonRpcResponse.JsonRpcError(id, error = WalletConnect.Model.JsonRpcResponse.Error(error.code, error.message))
+    WalletConnect.Model.JsonRpcResponse.JsonRpcError(id, code = error.code, message = error.message)
 
 @JvmSynthetic
 internal fun EngineDO.SessionUpdate.toClientSessionsUpdate(): WalletConnect.Model.UpdatedSession =

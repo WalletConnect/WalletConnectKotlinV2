@@ -25,7 +25,7 @@ internal sealed class SessionSettlementVO : SettlementSequence<SessionParamsVO> 
     ) : SessionSettlementVO()
 
 
-    @JsonClass(generateAdapter = true)
+    @JsonClass(generateAdapter = false)
     internal data class SessionRequest(
         @Json(name = "id")
         override val id: Long,
