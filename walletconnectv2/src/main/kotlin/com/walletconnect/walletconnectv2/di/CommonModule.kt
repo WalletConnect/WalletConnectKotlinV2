@@ -9,7 +9,8 @@ import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.TtlVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionSettlementVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionRequestVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionRequestVOJsonAdapter
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import org.json.JSONObject
 import org.koin.dsl.module
@@ -31,19 +32,13 @@ internal fun commonModule() = module {
     single {
         Moshi.Builder()
             .addLast { type, _, moshi ->
-                if (type.getRawType().name == SessionSettlementVO.SessionRequest::class.jvmName) {
-                    SessionSettlementVO_SessionRequestJsonAdapter(moshi)
-                } else {
-                    null
-                }
-            }
-            .addLast { type, _, moshi ->
                 when (type.getRawType().name) {
                     ExpiryVO::class.jvmName -> ExpiryAdapter
                     JSONObject::class.jvmName -> JSONObjectAdapter
                     SubscriptionIdVO::class.jvmName -> SubscriptionIdAdapter
                     TopicVO::class.jvmName -> TopicAdapter
                     TtlVO::class.jvmName -> TtlAdapter
+                    SessionRequestVO::class.jvmName -> SessionRequestVOJsonAdapter(moshi)
                     else -> null
                 }
             }
