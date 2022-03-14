@@ -8,10 +8,6 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun engineModule(metadata: WalletConnect.Model.AppMetaData) = module {
 
-//    single {
-//        if (isController) ControllerType.CONTROLLER else ControllerType.NON_CONTROLLER
-//    }
-
     single {
         metadata.toEngineAppMetaData()
     }

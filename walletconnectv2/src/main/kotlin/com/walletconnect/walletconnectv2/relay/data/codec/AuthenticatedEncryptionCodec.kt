@@ -17,7 +17,6 @@ internal class AuthenticatedEncryptionCodec : Codec {
 
     override fun encrypt(message: String, key: Key, publicKey: PublicKey): String {
         val (encryptionKey, authenticationKey) = getKeys(key.keyAsHex)
-
         val data = message.toByteArray(Charsets.UTF_8)
         val iv: ByteArray = randomBytes(16)
 
@@ -34,7 +33,6 @@ internal class AuthenticatedEncryptionCodec : Codec {
         val data = payload.cipherText.hexToBytes()
         val iv = payload.iv.hexToBytes()
         val publicKey = payload.publicKey.hexToBytes()
-
         val computedHmac = computeHmac(data, iv, authenticationKey, publicKey)
 
         if (computedHmac != payload.mac.lowercase()) {

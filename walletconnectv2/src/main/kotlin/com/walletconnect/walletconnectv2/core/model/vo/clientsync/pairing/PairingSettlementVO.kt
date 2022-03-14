@@ -47,16 +47,4 @@ internal sealed class PairingSettlementVO : SettlementSequence<PairingParamsVO> 
         @Json(name = "params")
         override val params: PairingParamsVO.PingParams,
     ) : PairingSettlementVO()
-
-//    @JsonClass(generateAdapter = true)
-//    internal data class PairingExtend(
-//        @Json(name = "id")
-//        override val id: Long,
-//        @Json(name = "jsonrpc")
-//        override val jsonrpc: String = "2.0",
-//        @Json(name = "method")
-//        override val method: String = JsonRpcMethod.WC_PAIRING_EXTEND,
-//        @Json(name = "params")
-//        override val params: PairingParamsVO.ExtendParams,
-//    ) : PairingSettlementVO()
 }

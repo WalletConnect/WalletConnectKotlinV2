@@ -24,14 +24,13 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
         val symmetricKey = createSymmetricKey().bytesToHex()
         val publicKey = PublicKey(sha256(symmetricKey))
 
-
         keyChain.setKeys(topic.value, SecretKey(symmetricKey), publicKey)
         return SecretKey(symmetricKey)
     }
 
     private fun createSymmetricKey(): ByteArray {
-        val keyGenerator: KeyGenerator = KeyGenerator.getInstance("AES")
-        keyGenerator.init(256)
+        val keyGenerator: KeyGenerator = KeyGenerator.getInstance(AES)
+        keyGenerator.init(SYM_KEY_SIZE)
         return keyGenerator.generateKey().encoded
     }
 
@@ -100,6 +99,8 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
 
     private companion object {
         private const val KEY_SIZE: Int = 32
+        private const val SYM_KEY_SIZE: Int = 256
         private const val SHA_256: String = "SHA-256"
+        private const val AES: String = "AES"
     }
 }

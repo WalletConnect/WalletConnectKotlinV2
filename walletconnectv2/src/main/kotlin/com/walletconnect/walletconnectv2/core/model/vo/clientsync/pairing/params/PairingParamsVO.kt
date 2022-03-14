@@ -31,9 +31,4 @@ internal sealed class PairingParamsVO : ClientParams {
 
     @Suppress("CanSealedSubClassBeObject")
     internal class PingParams : PairingParamsVO()
-
-    internal data class ExtendParams(
-        @Json(name = "ttl")
-        val ttl: Long,
-    ) : PairingParamsVO()
 }

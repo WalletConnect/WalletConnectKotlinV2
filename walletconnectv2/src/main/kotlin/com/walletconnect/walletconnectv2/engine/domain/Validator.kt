@@ -62,7 +62,7 @@ internal object Validator {
     internal fun validateProposalFields(sessionProposal: EngineDO.SessionProposal, onInvalidProposal: (String) -> Unit) {
         with(sessionProposal) {
             if (name.isEmpty() || description.isEmpty() || url.isEmpty() || icons.isEmpty() || chains.isEmpty() ||
-                methods.isEmpty() || publicKey.isEmpty() || relayProtocol.isEmpty()
+                methods.isEmpty() || proposerPublicKey.isEmpty() || relayProtocol.isEmpty()
             ) {
                 onInvalidProposal(INVALID_SESSION_PROPOSAL_MESSAGE)
             }

@@ -45,7 +45,7 @@ internal data class SessionVO(
                 ExpiryVO(sessionExpirySeconds),
                 relayProtocol = proposal.relayProtocol,
                 relayData = proposal.relayData,
-                peerParticipant = PublicKey(proposal.publicKey),
+                peerParticipant = PublicKey(proposal.proposerPublicKey),
                 peerMetaData = peerMetaData,
                 selfParticipant = PublicKey(selfParticipant.publicKey),
                 selfMetaData = selfParticipant.metadata,
@@ -60,7 +60,6 @@ internal data class SessionVO(
 
         @JvmSynthetic
         internal fun createAcknowledgedSession(
-            //when dapp receives on session settle, and wallet receives session settle response
             sessionTopic: TopicVO,
             settleParams: SessionParamsVO.SessionSettleParams,
             selfPublicKey: PublicKey,

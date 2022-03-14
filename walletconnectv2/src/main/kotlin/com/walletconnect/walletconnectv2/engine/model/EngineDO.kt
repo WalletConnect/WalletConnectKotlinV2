@@ -33,7 +33,7 @@ internal sealed class EngineDO {
         val chains: List<String>,
         val methods: List<String>,
         val types: List<String>? = null,
-        val publicKey: String,
+        val proposerPublicKey: String,
         val accounts: List<String>,
         val relayProtocol: String,
         val relayData: String?,
@@ -74,11 +74,6 @@ internal sealed class EngineDO {
         val type: String,
         val data: String,
     ) : EngineDO(), SequenceLifecycle
-
-    internal sealed class SettledPairingResponse : EngineDO(), SequenceLifecycle {
-        internal data class Result(val topic: TopicVO) : SettledPairingResponse()
-        internal data class Error(val errorMessage: String) : SettledPairingResponse()
-    }
 
     sealed class SettledSessionResponse : EngineDO(), SequenceLifecycle {
         data class Result(val settledSession: Session) : SettledSessionResponse()

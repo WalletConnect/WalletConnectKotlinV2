@@ -20,10 +20,6 @@ CREATE TABLE SessionDao(
    is_acknowledged  INTEGER AS Boolean NOT NULL
 );
 
--- insertPendingSession:
--- INSERT OR IGNORE INTO SessionDao(topic, expiry, relay_protocol, relay_data, permissions_chains, permissions_methods, permissions_types, self_participant, self_metadata_id, is_acknowledged)
--- VALUES (?, ?,  ?,?, ?, ?, ?, ?, ?,  ?);
-
 insertSession:
 INSERT OR IGNORE INTO SessionDao(topic, expiry, relay_protocol, relay_data, controller_key, self_participant, self_metadata_id, peer_participant, peer_metadata_id, accounts, permissions_chains, permissions_methods, permissions_types, is_acknowledged)
 VALUES (?,  ?, ?,?, ?, ?, ?, ?, ?, ?, ?,  ?, ? ,?);

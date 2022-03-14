@@ -9,7 +9,7 @@ internal sealed class JsonRpcResponseVO {
     internal data class JsonRpcResult(
         override val id: Long,
         val jsonrpc: String = "2.0",
-        val result: Any, //todo: should be string???
+        val result: Any,
     ) : JsonRpcResponseVO()
 
     @JsonClass(generateAdapter = true)

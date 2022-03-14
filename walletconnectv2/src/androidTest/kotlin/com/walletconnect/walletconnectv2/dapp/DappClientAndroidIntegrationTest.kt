@@ -42,7 +42,16 @@ class DappClientAndroidIntegrationTest {
                 permissions = WalletConnect.Model.SessionPermissions(jsonRpc = WalletConnect.Model.JsonRpc(listOf("eth_sign"))),
                 blockchain = WalletConnect.Model.Blockchain(listOf("1", "2"))
             ),
-            onWalletConnectUri = { uri ->
+            onProposedSequence = { proposedSequence ->
+                when (proposedSequence) {
+                    is WalletConnect.Model.ProposedSequence.Pairing -> {
+
+                    }
+
+                    is WalletConnect.Model.ProposedSequence.Session -> {
+
+                    }
+                }
 
             }
         )

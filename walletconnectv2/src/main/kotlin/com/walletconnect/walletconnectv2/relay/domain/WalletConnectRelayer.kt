@@ -3,6 +3,7 @@ package com.walletconnect.walletconnectv2.relay.domain
 import com.tinder.scarlet.WebSocket
 import com.walletconnect.walletconnectv2.core.exceptions.client.WalletConnectException
 import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
+import com.walletconnect.walletconnectv2.core.model.type.ClientParams
 import com.walletconnect.walletconnectv2.core.model.type.SettlementSequence
 import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
@@ -71,14 +72,16 @@ internal class WalletConnectRelayer(
     internal fun publishJsonRpcRequests(
         topic: TopicVO,
         payload: SettlementSequence<*>,
-        prompt: Boolean = false,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
-        val payloadJson = serializer.serialize(payload)
+        val requestJson = serializer.serialize(payload)
 
-        if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, payloadJson)) {
-            relayRepository.publish(topic, serializer.encode(payloadJson, topic), prompt) { result ->
+        Logger.error("Request JSON: $requestJson")
+
+        if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
+            val encodedRequest = serializer.encode(requestJson, topic)
+            relayRepository.publish(topic, encodedRequest, shouldPrompt(payload.method)) { result ->
                 result.fold(
                     onSuccess = { onSuccess() },
                     onFailure = { error -> onFailure(error) }
@@ -93,9 +96,11 @@ internal class WalletConnectRelayer(
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
-        val responseJson = serializer.serialize(response.toRelayDOJsonRpcResponse())
-
-        relayRepository.publish(topic, serializer.encode(responseJson, topic)) { result ->
+        val jsonResponseDO = response.toRelayDOJsonRpcResponse()
+        val responseJson = serializer.serialize(jsonResponseDO)
+        val encodedJson = serializer.encode(responseJson, topic)
+        Logger.error("Response JSON: $response")
+        relayRepository.publish(topic, encodedJson) { result ->
             result.fold(
                 onSuccess = {
                     jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
@@ -106,20 +111,24 @@ internal class WalletConnectRelayer(
         }
     }
 
+    internal fun respondWithResult(request: WCRequestVO, params: ClientParams? = null) {
+        val jsonResult = getResult(params)
+
+        Logger.error("Params JSON: $jsonResult")
+
+        val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = jsonResult)
+        publishJsonRpcResponse(request.topic, result, onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
+    }
+
     internal fun respondWithError(request: WCRequestVO, error: PeerError, onFailure: (Throwable) -> Unit = {}) {
         Logger.error("Responding with error: ${error.message}: ${error.code}")
         val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = request.id, error = JsonRpcResponseVO.Error(error.code, error.message))
 
-        publishJsonRpcResponse(request.topic, jsonRpcError, onFailure = { failure ->
-            Logger.error("Cannot respond with error: $failure")
-            onFailure(failure)
-        })
-    }
-
-    internal fun respondWithSuccess(request: WCRequestVO) {
-        val jsonRpcResult = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = true)
-        publishJsonRpcResponse(request.topic, jsonRpcResult,
-            onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
+        publishJsonRpcResponse(request.topic, jsonRpcError,
+            onFailure = { failure ->
+                Logger.error("Cannot respond with error: $failure")
+                onFailure(failure)
+            })
     }
 
     internal fun subscribe(topic: TopicVO) {
@@ -157,10 +166,10 @@ internal class WalletConnectRelayer(
             relayRepository.subscriptionRequest
                 .map { relayRequest ->
                     val decodedMessage = serializer.decode(relayRequest.message, relayRequest.subscriptionTopic)
+                    Logger.error("Peer message: $decodedMessage")
                     val topic = relayRequest.subscriptionTopic
                     Pair(decodedMessage, topic)
-                }
-                .collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
+                }.collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
         }
     }
 
@@ -184,10 +193,10 @@ internal class WalletConnectRelayer(
 
     private suspend fun handleJsonRpcResult(jsonRpcResult: RelayDO.JsonRpcResponse.JsonRpcResult) {
         val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcResult.id, serializer.serialize(jsonRpcResult))
+
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
-                //todo: check if works, SessionProposeParams
-                val result = serializer.deserializeJsonRpcResult(params, jsonRpcResult)
+                val result = serializer.deserializeJsonRpcResultWithParams(params, jsonRpcResult)
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(JsonRpcResponseVO.JsonRpcResult(jsonRpcResult.id, result = result), params))
             } ?: Logger.error("WalletConnectRelay: Unknown result params")
         }
@@ -195,6 +204,7 @@ internal class WalletConnectRelayer(
 
     private suspend fun handleJsonRpcError(jsonRpcError: RelayDO.JsonRpcResponse.JsonRpcError) {
         val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcError.id, serializer.serialize(jsonRpcError))
+
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(jsonRpcError.toJsonRpcErrorVO(), params))
@@ -209,4 +219,11 @@ internal class WalletConnectRelayer(
             _isConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }
+
+    private fun getResult(params: ClientParams?): Any {
+        return if (params != null) serializer.serialize(params)
+        else true
+    }
+
+    private fun shouldPrompt(method: String): Boolean = method == JsonRpcMethod.WC_SESSION_REQUEST
 }

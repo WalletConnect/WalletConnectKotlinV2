@@ -1,16 +1,15 @@
 package com.walletconnect.walletconnectv2.core.adapters
 
-import android.util.Log
 import com.squareup.moshi.*
 import com.squareup.moshi.internal.Util
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionParamsVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.PostSettlementSessionVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionSettlementVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 import okio.use
 import java.lang.reflect.Constructor
 
-internal class PostSettlementSessionVO_SessionPayloadJsonAdapter(
+internal class SessionSettlementVO_SessionRequestJsonAdapter(
     moshi: Moshi,
-) : JsonAdapter<PostSettlementSessionVO.SessionPayload>() {
+) : JsonAdapter<SessionSettlementVO.SessionRequest>() {
     private val options: JsonReader.Options = JsonReader.Options.of("id", "jsonrpc", "method",
         "params")
 
@@ -19,11 +18,11 @@ internal class PostSettlementSessionVO_SessionPayloadJsonAdapter(
     private val stringAdapter: JsonAdapter<String> = moshi.adapter(String::class.java, emptySet(),
         "jsonrpc")
 
-    private val sessionPayloadParamsAdapter: JsonAdapter<SessionParamsVO.SessionPayloadParams> =
-        moshi.adapter(SessionParamsVO.SessionPayloadParams::class.java, emptySet(), "params")
+    private val sessionPayloadParamsAdapter: JsonAdapter<SessionParamsVO.SessionRequestParams> =
+        moshi.adapter(SessionParamsVO.SessionRequestParams::class.java, emptySet(), "params")
 
     @Volatile
-    private var constructorRef: Constructor<PostSettlementSessionVO.SessionPayload>? = null
+    private var constructorRef: Constructor<SessionSettlementVO.SessionRequest>? = null
 
     override fun toString(): String = buildString(60) {
         append("GeneratedJsonAdapter(").append("PostSettlementSessionVO.SessionPayload").append(')')
@@ -31,12 +30,12 @@ internal class PostSettlementSessionVO_SessionPayloadJsonAdapter(
 
     @JvmSynthetic
     @FromJson
-    @PostSettlementSessionVO_SessionPayloadJsonAdapter.Qualifier
-    override fun fromJson(reader: JsonReader): PostSettlementSessionVO.SessionPayload {
+    @SessionSettlementVO_SessionRequestJsonAdapter.Qualifier
+    override fun fromJson(reader: JsonReader): SessionSettlementVO.SessionRequest {
         var id: Long? = null
         var jsonrpc: String? = null
         var method: String? = null
-        var params: SessionParamsVO.SessionPayloadParams? = null
+        var params: SessionParamsVO.SessionRequestParams? = null
         var mask0 = -1
         reader.beginObject()
         while (reader.hasNext()) {
@@ -65,7 +64,7 @@ internal class PostSettlementSessionVO_SessionPayloadJsonAdapter(
         reader.endObject()
         if (mask0 == 0xfffffff9.toInt()) {
             // All parameters with defaults are set, invoke the constructor directly
-            return PostSettlementSessionVO.SessionPayload(
+            return SessionSettlementVO.SessionRequest(
                 id = id ?: throw Util.missingProperty("id", "id", reader),
                 jsonrpc = jsonrpc as String,
                 method = method as String,
@@ -74,9 +73,9 @@ internal class PostSettlementSessionVO_SessionPayloadJsonAdapter(
         } else {
             // Reflectively invoke the synthetic defaults constructor
             @Suppress("UNCHECKED_CAST")
-            val localConstructor: Constructor<PostSettlementSessionVO.SessionPayload> =
-                this.constructorRef ?: PostSettlementSessionVO.SessionPayload::class.java.getDeclaredConstructor(Long::class.javaPrimitiveType,
-                    String::class.java, String::class.java, SessionParamsVO.SessionPayloadParams::class.java,
+            val localConstructor: Constructor<SessionSettlementVO.SessionRequest> =
+                this.constructorRef ?: SessionSettlementVO.SessionRequest::class.java.getDeclaredConstructor(Long::class.javaPrimitiveType,
+                    String::class.java, String::class.java, SessionParamsVO.SessionRequestParams::class.java,
                     Int::class.javaPrimitiveType, Util.DEFAULT_CONSTRUCTOR_MARKER).also {
                     this.constructorRef = it
                 }
@@ -93,7 +92,7 @@ internal class PostSettlementSessionVO_SessionPayloadJsonAdapter(
 
     @JvmSynthetic
     @ToJson
-    override fun toJson(writer: JsonWriter, value_: PostSettlementSessionVO.SessionPayload?) {
+    override fun toJson(writer: JsonWriter, value_: SessionSettlementVO.SessionRequest?) {
         if (value_ == null) {
             throw NullPointerException("value_ was null! Wrap in .nullSafe() to write nullable values.")
         }

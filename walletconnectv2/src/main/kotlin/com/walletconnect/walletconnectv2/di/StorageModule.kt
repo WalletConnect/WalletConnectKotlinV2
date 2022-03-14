@@ -8,11 +8,9 @@ import android.util.Base64
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.squareup.sqldelight.ColumnAdapter
-import com.squareup.sqldelight.EnumColumnAdapter
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.walletconnectv2.Database
-import com.walletconnect.walletconnectv2.storage.data.dao.JsonRpcHistoryDao
 import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
 import com.walletconnect.walletconnectv2.storage.data.dao.SessionDao
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
@@ -186,9 +184,7 @@ internal fun storageModule(): Module = module {
                 permissions_typesAdapter = get(),
                 accountsAdapter = get()
             ),
-            MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = get()),
-            JsonRpcHistoryDaoAdapter =
-            JsonRpcHistoryDao.Adapter(controller_typeAdapter = EnumColumnAdapter())
+            MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = get())
         )
     }
 
@@ -213,7 +209,7 @@ internal fun storageModule(): Module = module {
     }
 
     single {
-        JsonRpcHistory(get(), get(named(DITags.RPC_STORE)), get())
+        JsonRpcHistory(get(named(DITags.RPC_STORE)), get())
     }
 }
 

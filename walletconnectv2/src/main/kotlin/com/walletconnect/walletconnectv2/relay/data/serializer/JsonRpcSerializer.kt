@@ -23,41 +23,21 @@ internal class JsonRpcSerializer(
 
     internal fun encode(payload: String, topic: TopicVO): String {
         val (secretKey, selfPublic) = crypto.getKeyAgreement(topic)
-
         return authenticatedEncryptionCodec.encrypt(payload, secretKey, selfPublic)
-
-//        return if (key.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
-//            //TODO: symmetric ket encryption over topic A
-//            //val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(topic)
-//            //publicKey is hash from symKey
-//            //symmetric decryption  authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), sharedKey as SharedKey)
-//            payload.encode()
-//        } else {
-//            authenticatedEncryptionCodec.encrypt(payload, key as SharedKey, selfPublic as PublicKey)
-//        }
     }
 
     internal fun decode(message: String, topic: TopicVO): String {
-        val (secretKey, selfPublic) = crypto.getKeyAgreement(topic)
-
+        val (secretKey, _) = crypto.getKeyAgreement(topic)
         return authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), secretKey)
-
-//        return if (sharedKey.keyAsHex.isEmpty() || selfPublic.keyAsHex.isEmpty()) {
-//            //TODO: symmetric ket decryption over topic A
-//            // val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(topic)
-//            //symmetric decryption  authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), sharedKey as SharedKey)
-//            message.hexToUtf8
-//        } else {
-//            authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), sharedKey as SharedKey)
-//        }
     }
 
     internal fun deserialize(method: String, json: String): ClientParams? =
         when (method) {
-            JsonRpcMethod.WC_PAIRING_PING -> tryDeserialize<PairingSettlementVO.PairingPing>(json)?.params
             JsonRpcMethod.WC_SESSION_PROPOSE -> tryDeserialize<PairingSettlementVO.SessionPropose>(json)?.params
-//            JsonRpcMethod.WC_SESSION_APPROVE -> tryDeserialize<PreSettlementSessionVO.Approve>(json)?.params
-//            JsonRpcMethod.WC_SESSION_REJECT -> tryDeserialize<PreSettlementSessionVO.Reject>(json)?.params
+            JsonRpcMethod.WC_PAIRING_PING -> tryDeserialize<PairingSettlementVO.PairingPing>(json)?.params
+
+            JsonRpcMethod.WC_SESSION_SETTLE -> tryDeserialize<SessionSettlementVO.SessionSettle>(json)?.params
+            JsonRpcMethod.WC_SESSION_REQUEST -> tryDeserialize<SessionSettlementVO.SessionRequest>(json)?.params
             JsonRpcMethod.WC_SESSION_DELETE -> tryDeserialize<SessionSettlementVO.SessionDelete>(json)?.params
             JsonRpcMethod.WC_SESSION_UPDATE -> tryDeserialize<SessionSettlementVO.SessionUpdate>(json)?.params
             JsonRpcMethod.WC_SESSION_UPGRADE -> tryDeserialize<SessionSettlementVO.SessionUpgrade>(json)?.params
@@ -66,34 +46,35 @@ internal class JsonRpcSerializer(
             else -> null
         }
 
-    internal fun deserializeJsonRpcResult(params: ClientParams, jsonRpcResult: RelayDO.JsonRpcResponse.JsonRpcResult): Any =
+    internal fun deserializeJsonRpcResultWithParams(params: ClientParams, jsonRpcResult: RelayDO.JsonRpcResponse.JsonRpcResult): Any =
         when (params) {
             is PairingParamsVO.SessionProposeParams ->
                 tryDeserialize<SessionParamsVO.ApprovalParams>(jsonRpcResult.result.toString()) ?: jsonRpcResult.result
             else -> jsonRpcResult.result
         }
 
-    inline fun <reified T> tryDeserialize(json: String): T? = runCatching { moshi.adapter(T::class.java).fromJson(json) }.getOrNull()
-
-    private inline fun <reified T> trySerialize(type: T): String = moshi.adapter(T::class.java).toJson(type)
-
     fun serialize(payload: SerializableJsonRpc): String =
         when (payload) {
             is PairingSettlementVO.SessionPropose -> trySerialize(payload)
             is PairingSettlementVO.PairingPing -> trySerialize(payload)
-//            is SessionSettlementVO. -> trySerialize(payload)
-//            is PreSettlementSessionVO.Reject -> trySerialize(payload)
-//            is PairingSettlementVO.SessionPropose -> trySerialize(payload)
+            is PairingSettlementVO.PairingDelete -> trySerialize(payload)
+
             is SessionSettlementVO.SessionNotify -> trySerialize(payload)
             is SessionSettlementVO.SessionPing -> trySerialize(payload)
             is SessionSettlementVO.SessionUpdate -> trySerialize(payload)
             is SessionSettlementVO.SessionUpgrade -> trySerialize(payload)
             is SessionSettlementVO.SessionRequest -> trySerialize(payload)
             is SessionSettlementVO.SessionDelete -> trySerialize(payload)
+            is SessionSettlementVO.SessionSettle -> trySerialize(payload)
+            is SessionSettlementVO.SessionExtend -> trySerialize(payload)
+            is SessionParamsVO.ApprovalParams -> trySerialize(payload)
             is RelayDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
             is RelayDO.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             else -> String.Empty
         }
+
+    inline fun <reified T> tryDeserialize(json: String): T? = runCatching { moshi.adapter(T::class.java).fromJson(json) }.getOrNull()
+    private inline fun <reified T> trySerialize(type: T): String = moshi.adapter(T::class.java).toJson(type)
 
     private fun toEncryptionPayload(message: String): EncryptionPayloadVO {
         val pubKeyStartIndex = EncryptionPayloadVO.ivLength
