@@ -22,13 +22,13 @@ fun DependencyHandlerScope.lifecycle() {
     val lifecycleVersion = "2.3.1"
     "implementation"("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion")
     "implementation"("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
-    "implementation"("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-alpha01")
+    "implementation"("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
 }
 
 fun DependencyHandlerScope.navigationComponent() {
     val navVersion = "2.3.5"
-    "implementation"("androidx.navigation:navigation-fragment-ktx:$navVersion")
-    "implementation"("androidx.navigation:navigation-ui-ktx:$navVersion")
+    "api"("androidx.navigation:navigation-fragment-ktx:$navVersion")
+    "api"("androidx.navigation:navigation-ui-ktx:$navVersion")
 }
 
 fun DependencyHandlerScope.coroutines() {
@@ -86,6 +86,11 @@ fun DependencyHandlerScope.koin() {
     val koinVersion = "3.1.5"
 
     "api"("io.insert-koin:koin-android:$koinVersion")
+}
+
+fun DependencyHandlerScope.glide_N_kapt() {
+    "implementation"("com.github.bumptech.glide:glide:4.12.0")
+    "kapt"("com.github.bumptech.glide:compiler:4.12.0")
 }
 
 fun DependencyHandlerScope.jUnit5() {

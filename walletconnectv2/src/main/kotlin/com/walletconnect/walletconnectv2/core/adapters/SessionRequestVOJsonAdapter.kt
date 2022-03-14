@@ -62,3 +62,12 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
         }
     }
 }
+
+val test = """
+    //wc(
+        "params" : {
+           "method":"payload",
+           "params": "[]"
+        }
+)
+"""

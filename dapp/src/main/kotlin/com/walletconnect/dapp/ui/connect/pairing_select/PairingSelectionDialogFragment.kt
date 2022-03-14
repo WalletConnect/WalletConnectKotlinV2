@@ -9,7 +9,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
 import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.FragmentPairingSelectionBinding
-import com.walletconnect.dapp.ui.BottomVerticalSpaceItemDecoration
+import com.walletconnect.sample_common.BottomVerticalSpaceItemDecoration
 import com.walletconnect.dapp.ui.connect.ConnectViewModel
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 

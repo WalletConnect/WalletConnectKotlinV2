@@ -11,11 +11,11 @@ tasks.withType<Test> {
 }
 
 android {
-    compileSdk = 30
+    compileSdk = 32
 
     defaultConfig {
         minSdk = 24
-        targetSdk = 30
+        targetSdk = 32
 
         testInstrumentationRunner = "com.walletconnect.walletconnectv2.WCTestRunner"
         testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")

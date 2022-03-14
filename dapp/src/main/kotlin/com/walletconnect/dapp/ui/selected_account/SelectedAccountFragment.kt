@@ -17,7 +17,7 @@ import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.FragmentSelectedAccountBinding
-import com.walletconnect.dapp.ui.BottomVerticalSpaceItemDecoration
+import com.walletconnect.sample_common.BottomVerticalSpaceItemDecoration
 import com.walletconnect.dapp.ui.NavigationEvents
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach

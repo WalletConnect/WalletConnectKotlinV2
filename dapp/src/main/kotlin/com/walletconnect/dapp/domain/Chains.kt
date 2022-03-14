@@ -3,7 +3,7 @@ package com.walletconnect.dapp.domain
 import androidx.annotation.DrawableRes
 import com.walletconnect.dapp.R
 
-private val ETH_CHAIN = "eip155"
+private const val ETH_CHAIN = "eip155"
 // Commented out other methods due to wallet not understanding request
 // TODO: Fix other RPC methods
 private val defaultEthMethods: List<String> = listOf(
