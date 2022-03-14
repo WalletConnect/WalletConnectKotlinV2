@@ -3,6 +3,7 @@ package com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.param
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
+import com.walletconnect.walletconnectv2.core.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.ReasonVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionPermissionsVO
@@ -20,13 +21,15 @@ internal sealed class PairingParamsVO : ClientParams {
         @Json(name = "permissions")
         val permissions: SessionPermissionsVO,
         @Json(name = "proposer")
-        val proposer: SessionProposerVO
+        val proposer: SessionProposerVO,
+        @Json(name = "ttl")
+        val ttl: TtlVO,
     ) : PairingParamsVO()
 
     @JsonClass(generateAdapter = true)
     internal class DeleteParams(
         @Json(name = "reason")
-        val reason: ReasonVO
+        val reason: ReasonVO,
     ) : PairingParamsVO()
 
     @Suppress("CanSealedSubClassBeObject")

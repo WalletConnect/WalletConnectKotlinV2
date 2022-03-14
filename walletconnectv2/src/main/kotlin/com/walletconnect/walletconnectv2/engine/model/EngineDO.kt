@@ -12,10 +12,8 @@ import java.net.URI
 internal sealed class EngineDO {
 
     internal sealed class ProposedSequence {
-
-        class Pairing(val uri: String): ProposedSequence()
-
-        object Session: ProposedSequence()
+        class Pairing(val uri: String) : ProposedSequence()
+        object Session : ProposedSequence()
     }
 
     internal class WalletConnectUri(
@@ -37,6 +35,7 @@ internal sealed class EngineDO {
         val accounts: List<String>,
         val relayProtocol: String,
         val relayData: String?,
+        val ttl: Long,
     ) : EngineDO(), SequenceLifecycle
 
     internal data class SessionRequest(
@@ -102,16 +101,10 @@ internal sealed class EngineDO {
         val accounts: List<String>,
     ) : EngineDO(), SequenceLifecycle
 
-    internal data class PairingUpdate(val topic: TopicVO, val metaData: AppMetaData) : EngineDO(), SequenceLifecycle
     internal data class PairingSettle(val topic: TopicVO, val metaData: AppMetaData?) : EngineDO(), SequenceLifecycle
     internal data class SessionUpdate(val topic: TopicVO, val accounts: List<String>) : EngineDO(), SequenceLifecycle
-    internal data class SessionUpgrade(
-        val topic: TopicVO,
-        val types: List<String>,
-        val methods: List<String>,
-    ) : EngineDO(), SequenceLifecycle
-
-    internal object Default : EngineDO(), SequenceLifecycle
+    internal data class SessionUpgrade(val topic: TopicVO, val types: List<String>, val methods: List<String>) : EngineDO(),
+        SequenceLifecycle
 
     internal data class SessionExtend(
         override val topic: TopicVO,
@@ -142,11 +135,8 @@ internal sealed class EngineDO {
     ) : EngineDO()
 
     internal data class SessionState(val accounts: List<String>) : EngineDO()
-
     internal data class Blockchain(val chains: List<String>) : EngineDO()
-
     internal data class JsonRpc(val methods: List<String>) : EngineDO()
-
     data class Notifications(val types: List<String>)
 
     internal data class AppMetaData(

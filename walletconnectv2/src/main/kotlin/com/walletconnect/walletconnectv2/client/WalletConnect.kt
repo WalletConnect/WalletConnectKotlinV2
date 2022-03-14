@@ -35,6 +35,7 @@ object WalletConnect {
             val accounts: List<String>,
             val relayProtocol: String,
             val relayData: String?,
+            val ttl: Long,
         ) : Model()
 
         data class SessionRequest(

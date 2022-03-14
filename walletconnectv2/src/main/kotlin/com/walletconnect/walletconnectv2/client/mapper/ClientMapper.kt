@@ -65,7 +65,8 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.M
         proposerPublicKey,
         accounts,
         relayProtocol,
-        relayData
+        relayData,
+        ttl
     )
 
 @JvmSynthetic
@@ -81,7 +82,8 @@ internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(account
         proposerPublicKey,
         accountList,
         relayProtocol,
-        relayData
+        relayData,
+        ttl
     )
 
 @JvmSynthetic

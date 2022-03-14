@@ -31,7 +31,7 @@ internal data class SessionVO(
 
     internal companion object {
 
-        private val sessionExpirySeconds: Long get() = Time.currentTimeInSeconds + Time.weekInSeconds
+        internal val sessionExpirySeconds: Long get() = Time.currentTimeInSeconds + Time.weekInSeconds
 
         @JvmSynthetic
         internal fun createUnacknowledgedSession(
@@ -42,7 +42,7 @@ internal data class SessionVO(
             val peerMetaData = AppMetaDataVO(proposal.name, proposal.description, proposal.url, proposal.icons.map { it.toString() })
             return SessionVO(
                 settledTopic,
-                ExpiryVO(sessionExpirySeconds),
+                ExpiryVO(proposal.ttl),
                 relayProtocol = proposal.relayProtocol,
                 relayData = proposal.relayData,
                 peerParticipant = PublicKey(proposal.proposerPublicKey),
