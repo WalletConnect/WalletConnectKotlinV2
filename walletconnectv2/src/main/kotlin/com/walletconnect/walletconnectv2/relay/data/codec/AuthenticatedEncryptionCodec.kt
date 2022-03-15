@@ -41,6 +41,7 @@ internal class AuthenticatedEncryptionCodec : Codec {
 
         val cipher = Cipher.getInstance(CIPHER_ALGORITHM)
         cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(encryptionKey, AES_ALGORITHM), IvParameterSpec(iv))
+
         return String(cipher.doFinal(data), Charsets.UTF_8)
     }
 
@@ -63,6 +64,7 @@ internal class AuthenticatedEncryptionCodec : Codec {
         val mac = Mac.getInstance(MAC_ALGORITHM)
         val payload = iv + publicKey + data
         mac.init(SecretKeySpec(authKey, MAC_ALGORITHM))
+
         return mac.doFinal(payload).bytesToHex()
     }
 

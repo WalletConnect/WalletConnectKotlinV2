@@ -1,6 +1,7 @@
 package com.walletconnect.dapp.ui.connect.chain_select
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -41,11 +42,15 @@ class ChainSelectionFragment : Fragment() {
 
         binding.btnConnect.setOnClickListener {
             if (viewModel.listOfChainUI.any { it.isSelected }) {
+
+                Log.e("kobe", "PAIRINGS: ${WalletConnectClient.getListOfSettledPairings().size}")
+
                 if (WalletConnectClient.getListOfSettledPairings().isNotEmpty()) {
                     findNavController().navigate(R.id.action_fragment_chain_selection_to_dialog_pairing_selection)
                 } else {
                     findNavController().navigate(R.id.action_fragment_chain_selection_to_dialog_pairing_generation)
                 }
+
             } else {
                 Toast.makeText(requireContext(), "Please select a chain", Toast.LENGTH_SHORT).show()
             }

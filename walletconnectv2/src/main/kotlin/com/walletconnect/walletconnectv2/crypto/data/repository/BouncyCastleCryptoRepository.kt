@@ -17,21 +17,11 @@ import com.walletconnect.walletconnectv2.core.model.vo.Key as WCKey
 internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : CryptoRepository {
 
     override fun generateSymmetricKey(topic: TopicVO): SecretKey {
-        //todo: symKey from SecureRandom is standard for obtaining randomness: randomBytes(KEY_SIZE).bytesToHex()
-        //todo: better option is: getSymmetricKeyFromKeyGenerator("AES", 256)
-        //Check both keys when new flow is implemented
-
         val symmetricKey = createSymmetricKey().bytesToHex()
         val publicKey = PublicKey(sha256(symmetricKey))
 
         keyChain.setKeys(topic.value, SecretKey(symmetricKey), publicKey)
         return SecretKey(symmetricKey)
-    }
-
-    private fun createSymmetricKey(): ByteArray {
-        val keyGenerator: KeyGenerator = KeyGenerator.getInstance(AES)
-        keyGenerator.init(SYM_KEY_SIZE)
-        return keyGenerator.generateKey().encoded
     }
 
     override fun setSymmetricKey(topic: TopicVO, symmetricKey: SecretKey) {
@@ -42,6 +32,7 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
     override fun generateKeyPair(): PublicKey {
         val publicKey = ByteArray(KEY_SIZE)
         val privateKey = ByteArray(KEY_SIZE)
+
         X25519.generatePrivateKey(SecureRandom(ByteArray(KEY_SIZE)), privateKey)
         X25519.generatePublicKey(privateKey, 0, publicKey, 0)
         setKeyPair(PublicKey(publicKey.bytesToHex().lowercase()), PrivateKey(privateKey.bytesToHex().lowercase()))
@@ -57,6 +48,7 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
     override fun generateTopicAndSharedKey(self: PublicKey, peer: PublicKey): Pair<SecretKey, TopicVO> {
         val (publicKey, privateKey) = getKeyPair(self)
         val sharedKeyBytes = ByteArray(KEY_SIZE)
+
         X25519.scalarMult(privateKey.keyAsHex.hexToBytes(), 0, peer.keyAsHex.hexToBytes(), 0, sharedKeyBytes, 0)
         val sharedKey = SecretKey(sharedKeyBytes.bytesToHex())
         val topic = TopicVO(sha256(sharedKey.keyAsHex))
@@ -73,7 +65,6 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
         with(keyChain) {
             deleteKeys(publicKey.lowercase())
             deleteKeys(topic)
-            //todo: add separate method for sym key deletion?
         }
     }
 
@@ -89,6 +80,12 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
     internal fun getKeyPair(wcKey: WCKey): Pair<PublicKey, PrivateKey> {
         val (publicKeyHex, privateKeyHex) = keyChain.getKeys(wcKey.keyAsHex)
         return Pair(PublicKey(publicKeyHex), PrivateKey(privateKeyHex))
+    }
+
+    private fun createSymmetricKey(): ByteArray {
+        val keyGenerator: KeyGenerator = KeyGenerator.getInstance(AES)
+        keyGenerator.init(SYM_KEY_SIZE)
+        return keyGenerator.generateKey().encoded
     }
 
     private fun sha256(key: String): String {

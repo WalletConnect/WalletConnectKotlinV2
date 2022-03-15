@@ -18,6 +18,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.WCRequestVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.util.Empty
+import com.walletconnect.walletconnectv2.util.Expiration
 import java.net.URI
 
 @JvmSynthetic
@@ -92,22 +93,6 @@ internal fun SessionVO.toEngineDOSettledSessionVO(topic: TopicVO): EngineDO.Sess
         EngineDO.Blockchain(chains),
     )
 
-//@JvmSynthetic
-//internal fun SessionVO.toEngineDOSessionProposal(peerPublicKey: PublicKey): EngineDO.SessionProposal =
-//    EngineDO.SessionProposal(
-//        name = selfMetaData?.name ?: String.Empty,
-//        description = selfMetaData?.description ?: String.Empty,
-//        url = selfMetaData?.url ?: String.Empty,
-//        icons = selfMetaData?.icons?.map { URI(it) } ?: emptyList(),
-//        chains = chains,
-//        methods = methods,
-//        types = types,
-//        proposerPublicKey = peerPublicKey.keyAsHex,
-//        accounts = accounts,
-//        relayProtocol = relayProtocol,
-//        relayData = relayData
-//    )
-
 @JvmSynthetic
 internal fun SessionVO.toEngineDOSettledSessionVO(): EngineDO.Session =
     EngineDO.Session(
@@ -132,7 +117,7 @@ private fun AppMetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
 
 @JvmSynthetic
 internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.PairingSettle =
-    EngineDO.PairingSettle(topic, selfMetaData?.toEngineDOAppMetaData())
+    EngineDO.PairingSettle(topic, peerMetaData?.toEngineDOAppMetaData())
 
 @JvmSynthetic
 internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
@@ -170,7 +155,7 @@ internal fun EngineDO.Blockchain.toSessionProposeParams(
     blockchainProposedVO = BlockchainProposedVO(chains),
     permissions = permissions.toSessionsPermissionsVO(),
     proposer = SessionProposerVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO()),
-    ttl = TtlVO(SessionVO.sessionExpirySeconds)
+    ttl = TtlVO(Expiration.activeSession)
 )
 
 @JvmSynthetic

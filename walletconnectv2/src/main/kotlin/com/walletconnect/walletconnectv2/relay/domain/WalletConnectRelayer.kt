@@ -14,7 +14,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.WCRequestVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.WCResponseVO
 import com.walletconnect.walletconnectv2.core.scope.scope
-import com.walletconnect.walletconnectv2.network.RelayRepository
+import com.walletconnect.walletconnectv2.network.Relay
 import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import com.walletconnect.walletconnectv2.relay.model.mapper.toJsonRpcErrorVO
@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
 import java.net.HttpURLConnection
 
 internal class WalletConnectRelayer(
-    private val relayRepository: RelayRepository,
+    private val relayRepository: Relay,
     private val serializer: JsonRpcSerializer,
     private val jsonRpcHistory: JsonRpcHistory,
 ) {
@@ -113,9 +113,6 @@ internal class WalletConnectRelayer(
 
     internal fun respondWithResult(request: WCRequestVO, params: ClientParams? = null) {
         val jsonResult = getResult(params)
-
-        Logger.error("Params JSON: $jsonResult")
-
         val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = jsonResult)
         publishJsonRpcResponse(request.topic, result, onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
     }
@@ -123,7 +120,6 @@ internal class WalletConnectRelayer(
     internal fun respondWithError(request: WCRequestVO, error: PeerError, onFailure: (Throwable) -> Unit = {}) {
         Logger.error("Responding with error: ${error.message}: ${error.code}")
         val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = request.id, error = JsonRpcResponseVO.Error(error.code, error.message))
-
         publishJsonRpcResponse(request.topic, jsonRpcError,
             onFailure = { failure ->
                 Logger.error("Cannot respond with error: $failure")
@@ -166,10 +162,13 @@ internal class WalletConnectRelayer(
             relayRepository.subscriptionRequest
                 .map { relayRequest ->
                     val decodedMessage = serializer.decode(relayRequest.message, relayRequest.subscriptionTopic)
+
                     Logger.error("Peer message: $decodedMessage")
+
                     val topic = relayRequest.subscriptionTopic
                     Pair(decodedMessage, topic)
-                }.collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
+                }
+                .collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
         }
     }
 

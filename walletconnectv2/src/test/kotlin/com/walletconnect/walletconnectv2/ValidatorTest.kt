@@ -7,6 +7,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayPr
 import com.walletconnect.walletconnectv2.engine.domain.Validator
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.engine.model.mapper.toAbsoluteString
+import com.walletconnect.walletconnectv2.util.Time
 import org.junit.jupiter.api.Test
 import kotlin.test.*
 
@@ -302,7 +303,7 @@ class ValidatorTest {
     fun `is session proposal valid test`() {
         val proposal = EngineDO.SessionProposal(
             "name", "dsc", "", listOf(), listOf(),
-            listOf(), listOf(), "", listOf(), "", ""
+            listOf(), listOf(), "", listOf(), "", "", 123L
         )
         Validator.validateProposalFields(proposal) { assertEquals(INVALID_SESSION_PROPOSAL_MESSAGE, it) }
     }
@@ -446,5 +447,13 @@ class ValidatorTest {
         Validator.getChainIds(listOf("111:dssa:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb")).apply {
             assertNotEquals(this[0], "eip155:1")
         }
+    }
+
+    @Test
+    fun `test time periods in seconds`() {
+        Time.fiveMinutesInSeconds.apply { assertEquals(this.compareTo(300), 0) }
+        Time.dayInSeconds.apply { assertEquals(this.compareTo(86400), 0) }
+        Time.weekInSeconds.apply { assertEquals(this.compareTo(604800), 0) }
+        Time.monthInSeconds.apply { assertEquals(this.compareTo(2592000), 0) }
     }
 }
