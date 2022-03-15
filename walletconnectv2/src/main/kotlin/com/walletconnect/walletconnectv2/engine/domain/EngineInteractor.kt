@@ -284,7 +284,7 @@ internal class EngineInteractor(
         )
     }
 
-    internal fun respondSessionPayload(topic: String, jsonRpcResponse: JsonRpcResponseVO, onFailure: (Throwable) -> Unit) {
+    internal fun respondSessionRequest(topic: String, jsonRpcResponse: JsonRpcResponseVO, onFailure: (Throwable) -> Unit) {
         if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -398,7 +398,7 @@ internal class EngineInteractor(
     internal fun getListOfSettledSessions(): List<EngineDO.Session> {
         return sequenceStorageRepository.getListOfSessionVOs()
             .filter { session -> session.isAcknowledged && session.expiry.isSequenceValid() }
-            .map { session -> session.toEngineDOSettledSessionVO() }
+            .map { session -> session.toEngineDOApprovedSessionVO() }
     }
 
     internal fun getListOfSettledPairings(): List<EngineDO.PairingSettle> {
@@ -651,7 +651,7 @@ internal class EngineInteractor(
             is JsonRpcResponseVO.JsonRpcResult -> {
                 Logger.log("Session settle success received")
                 sequenceStorageRepository.acknowledgeSession(sessionTopic)
-                scope.launch { _sequenceEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDOSettledSessionVO(sessionTopic))) }
+                scope.launch { _sequenceEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDOApprovedSessionVO(sessionTopic))) }
             }
             is JsonRpcResponseVO.JsonRpcError -> {
                 Logger.error("Peer failed to settle session: ${wcResponse.response.errorMessage}")

@@ -72,7 +72,7 @@ internal fun SessionParamsVO.NotifyParams.toEngineDoSessionNotification(topic: T
     EngineDO.SessionNotification(topic.value, type, data.toString())
 
 @JvmSynthetic
-internal fun SessionVO.toEngineDOSettledSessionVO(topic: TopicVO): EngineDO.Session =
+internal fun SessionVO.toEngineDOApprovedSessionVO(topic: TopicVO): EngineDO.Session =
     EngineDO.Session(
         topic,
         expiry,
@@ -87,7 +87,7 @@ internal fun SessionVO.toEngineDOSettledSessionVO(topic: TopicVO): EngineDO.Sess
     )
 
 @JvmSynthetic
-internal fun SessionVO.toEngineDOSettledSessionVO(): EngineDO.Session =
+internal fun SessionVO.toEngineDOApprovedSessionVO(): EngineDO.Session =
     EngineDO.Session(
         topic, expiry,
         accounts, selfMetaData?.toEngineDOAppMetaData(),

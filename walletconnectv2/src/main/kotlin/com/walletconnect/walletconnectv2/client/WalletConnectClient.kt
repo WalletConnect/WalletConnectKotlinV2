@@ -133,7 +133,7 @@ object WalletConnectClient {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.respondSessionPayload(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponseVO()) { error ->
+        engineInteractor.respondSessionRequest(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponseVO()) { error ->
             onError(WalletConnect.Model.Error(error))
         }
     }
