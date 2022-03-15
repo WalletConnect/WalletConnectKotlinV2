@@ -35,7 +35,6 @@ internal sealed class EngineDO {
         val accounts: List<String>,
         val relayProtocol: String,
         val relayData: String?,
-        val ttl: Long,
     ) : EngineDO(), SequenceLifecycle
 
     internal data class SessionRequest(

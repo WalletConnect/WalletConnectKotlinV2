@@ -8,7 +8,6 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.AppMeta
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
-import com.walletconnect.walletconnectv2.util.Expiration
 
 internal data class SessionVO(
     override val topic: TopicVO,
@@ -36,11 +35,12 @@ internal data class SessionVO(
             sessionTopic: TopicVO,
             proposal: EngineDO.SessionProposal,
             selfParticipant: SessionParticipantVO,
+            sessionExpiry: Long,
         ): SessionVO {
             val peerMetaData = AppMetaDataVO(proposal.name, proposal.description, proposal.url, proposal.icons.map { it.toString() })
             return SessionVO(
                 sessionTopic,
-                ExpiryVO(proposal.ttl),
+                ExpiryVO(sessionExpiry),
                 relayProtocol = proposal.relayProtocol,
                 relayData = proposal.relayData,
                 peerParticipant = PublicKey(proposal.proposerPublicKey),
@@ -65,7 +65,7 @@ internal data class SessionVO(
         ): SessionVO {
             return SessionVO(
                 sessionTopic,
-                ExpiryVO(Expiration.activeSession),
+                ExpiryVO(settleParams.expiryTimestamp),
                 relayProtocol = settleParams.relay.protocol,
                 relayData = settleParams.relay.data,
                 peerParticipant = PublicKey(settleParams.controller.publicKey),

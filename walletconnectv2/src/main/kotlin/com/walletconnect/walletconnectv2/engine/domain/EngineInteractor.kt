@@ -482,9 +482,10 @@ internal class EngineInteractor(
     private fun sessionSettle(proposal: EngineDO.SessionProposal, sessionTopic: TopicVO, onFailure: (Throwable) -> Unit) {
         val (_, selfPublicKey) = crypto.getKeyAgreement(sessionTopic)
         val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO())
-        val session = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant)
+        val sessionExpiry = Expiration.activeSession
+        val session = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry)
         sequenceStorageRepository.insertSession(session)
-        val params = proposal.toSessionSettleParams(selfParticipant)
+        val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry)
         val sessionSettle = SessionSettlementVO.SessionSettle(id = generateId(), params = params)
         relayer.publishJsonRpcRequests(sessionTopic, sessionSettle, onFailure = { error -> onFailure(error) })
     }
