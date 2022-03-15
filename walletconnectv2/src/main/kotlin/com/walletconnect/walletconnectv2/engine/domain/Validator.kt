@@ -78,15 +78,6 @@ internal object Validator {
         }
     }
 
-    internal fun validatePairingExtend(newExpiry: Long, currentExpiry: Long, onInvalidExtend: (String) -> Unit) {
-        val extendedExpiry = newExpiry - currentExpiry
-        val maxExpiry = Time.monthInSeconds
-
-        if (newExpiry <= currentExpiry || extendedExpiry > maxExpiry) {
-            onInvalidExtend(INVALID_EXTEND_TIME)
-        }
-    }
-
     internal fun validateWCUri(uri: String): EngineDO.WalletConnectUri? {
         if (!uri.startsWith("wc:")) return null
         val properUriString = if (uri.contains("wc://")) uri else uri.replace("wc:", "wc://")

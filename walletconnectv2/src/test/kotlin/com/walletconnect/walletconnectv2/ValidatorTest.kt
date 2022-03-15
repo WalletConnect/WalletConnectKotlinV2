@@ -301,10 +301,7 @@ class ValidatorTest {
 
     @Test
     fun `is session proposal valid test`() {
-        val proposal = EngineDO.SessionProposal(
-            "name", "dsc", "", listOf(), listOf(),
-            listOf(), listOf(), "", listOf(), "", "", 123L
-        )
+        val proposal = EngineDO.SessionProposal("name", "dsc", "", listOf(), listOf(), listOf(), listOf(), "", listOf(), "", "")
         Validator.validateProposalFields(proposal) { assertEquals(INVALID_SESSION_PROPOSAL_MESSAGE, it) }
     }
 
@@ -399,36 +396,6 @@ class ValidatorTest {
         val newExpiry: Long = 1646555896 //06.03
 
         Validator.validateSessionExtend(newExpiry, currentExpiry) {
-            assertEquals(INVALID_EXTEND_TIME, it)
-        }
-    }
-
-    @Test
-    fun `extend pairing expiry less than 30 days`() {
-        val currentExpiry: Long = 1646641841 //07.03
-        val newExpiry: Long = 1647765496 //30.03
-
-        Validator.validatePairingExtend(newExpiry, currentExpiry) {
-            assertFalse(false)
-        }
-    }
-
-    @Test
-    fun `extend pairing expiry over 30 days`() {
-        val currentExpiry: Long = 1646641841 //07.03
-        val newExpiry: Long = 1649407096 //08.04
-
-        Validator.validatePairingExtend(newExpiry, currentExpiry) {
-            assertEquals(INVALID_EXTEND_TIME, it)
-        }
-    }
-
-    @Test
-    fun `extend pairing expiry less than current expiry`() {
-        val currentExpiry: Long = 1646641841 //07.03
-        val newExpiry: Long = 1646555896 //06.03
-
-        Validator.validatePairingExtend(newExpiry, currentExpiry) {
             assertEquals(INVALID_EXTEND_TIME, it)
         }
     }

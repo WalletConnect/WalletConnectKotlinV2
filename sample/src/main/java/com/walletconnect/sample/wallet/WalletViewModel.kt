@@ -129,12 +129,8 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     }
 
     override fun onSessionSettleResponse(response: WalletConnect.Model.SettledSessionResponse) {
-        Log.e("kobe", "Session Settle success LOOOL")
         when (response) {
             is WalletConnect.Model.SettledSessionResponse.Result -> {
-
-                Log.e("kobe", "Session Settle success")
-
                 _eventFlow.postValue(Event(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())))
             }
             is WalletConnect.Model.SettledSessionResponse.Error -> Log.e("Error", "Settled session error: ${response.errorMessage}")

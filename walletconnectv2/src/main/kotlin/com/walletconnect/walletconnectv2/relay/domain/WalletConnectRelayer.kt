@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
 import java.net.HttpURLConnection
 
 internal class WalletConnectRelayer(
-    private val relayRepository: Relay,
+    private val relay: Relay,
     private val serializer: JsonRpcSerializer,
     private val jsonRpcHistory: JsonRpcHistory,
 ) {
@@ -43,7 +43,7 @@ internal class WalletConnectRelayer(
     val isConnectionOpened: StateFlow<Boolean> = _isConnectionOpened
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
-    private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error(exception) }
+    private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error("Exception handler: $exception") }
 
     @get:JvmSynthetic
     private val Throwable.toWalletConnectException: WalletConnectException
@@ -57,7 +57,7 @@ internal class WalletConnectRelayer(
             }
 
     val initializationErrorsFlow: Flow<WalletConnectException>
-        get() = relayRepository.eventsFlow
+        get() = relay.eventsFlow
             .onEach { event: WebSocket.Event ->
                 Logger.log("$event")
                 setOnConnectionOpen(event)
@@ -77,11 +77,9 @@ internal class WalletConnectRelayer(
     ) {
         val requestJson = serializer.serialize(payload)
 
-        Logger.error("Request JSON: $requestJson")
-
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encodedRequest = serializer.encode(requestJson, topic)
-            relayRepository.publish(topic, encodedRequest, shouldPrompt(payload.method)) { result ->
+            relay.publish(topic, encodedRequest, shouldPrompt(payload.method)) { result ->
                 result.fold(
                     onSuccess = { onSuccess() },
                     onFailure = { error -> onFailure(error) }
@@ -99,8 +97,8 @@ internal class WalletConnectRelayer(
         val jsonResponseDO = response.toRelayDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
         val encodedJson = serializer.encode(responseJson, topic)
-        Logger.error("Response JSON: $response")
-        relayRepository.publish(topic, encodedJson) { result ->
+
+        relay.publish(topic, encodedJson) { result ->
             result.fold(
                 onSuccess = {
                     jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
@@ -114,12 +112,14 @@ internal class WalletConnectRelayer(
     internal fun respondWithResult(request: WCRequestVO, params: ClientParams? = null) {
         val jsonResult = getResult(params)
         val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = jsonResult)
+
         publishJsonRpcResponse(request.topic, result, onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
     }
 
     internal fun respondWithError(request: WCRequestVO, error: PeerError, onFailure: (Throwable) -> Unit = {}) {
         Logger.error("Responding with error: ${error.message}: ${error.code}")
         val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = request.id, error = JsonRpcResponseVO.Error(error.code, error.message))
+
         publishJsonRpcResponse(request.topic, jsonRpcError,
             onFailure = { failure ->
                 Logger.error("Cannot respond with error: $failure")
@@ -128,7 +128,7 @@ internal class WalletConnectRelayer(
     }
 
     internal fun subscribe(topic: TopicVO) {
-        relayRepository.subscribe(topic) { result ->
+        relay.subscribe(topic) { result ->
             result.fold(
                 onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result.id },
                 onFailure = { error -> Logger.error("Subscribe to topic: $topic error: $error") }
@@ -139,7 +139,7 @@ internal class WalletConnectRelayer(
     internal fun unsubscribe(topic: TopicVO) {
         if (subscriptions.contains(topic.value)) {
             val subscriptionId = SubscriptionIdVO(subscriptions[topic.value].toString())
-            relayRepository.unsubscribe(topic, subscriptionId) { result ->
+            relay.unsubscribe(topic, subscriptionId) { result ->
                 result.fold(
                     onSuccess = {
                         jsonRpcHistory.deleteRequests(topic)
@@ -159,13 +159,11 @@ internal class WalletConnectRelayer(
 
     private fun manageSubscriptions() {
         scope.launch(exceptionHandler) {
-            relayRepository.subscriptionRequest
+            relay.subscriptionRequest
                 .map { relayRequest ->
                     val decodedMessage = serializer.decode(relayRequest.message, relayRequest.subscriptionTopic)
-
-                    Logger.error("Peer message: $decodedMessage")
-
                     val topic = relayRequest.subscriptionTopic
+
                     Pair(decodedMessage, topic)
                 }
                 .collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }

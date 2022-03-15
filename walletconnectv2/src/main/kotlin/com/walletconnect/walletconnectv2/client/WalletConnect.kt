@@ -35,7 +35,6 @@ object WalletConnect {
             val accounts: List<String>,
             val relayProtocol: String,
             val relayData: String?,
-            val ttl: Long,
         ) : Model()
 
         data class SessionRequest(
@@ -226,6 +225,6 @@ object WalletConnect {
 
         data class Notify(val topic: String, val notification: Model.Notification) : Params()
 
-        data class Extend(val topic: String, val ttl: Long) : Params()
+        data class Extend(val topic: String, val newExpiration: Long) : Params()
     }
 }

@@ -197,7 +197,7 @@ object WalletConnectClient {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.sessionExtend(extend.topic, extend.ttl) { error -> onError(error) }
+        engineInteractor.sessionExtend(extend.topic, extend.newExpiration) { error -> onError(error) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)

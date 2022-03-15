@@ -14,6 +14,7 @@ import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.relay.Codec
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import com.walletconnect.walletconnectv2.util.Empty
+import com.walletconnect.walletconnectv2.util.Logger
 
 internal class JsonRpcSerializer(
     private val authenticatedEncryptionCodec: Codec,
@@ -28,7 +29,13 @@ internal class JsonRpcSerializer(
 
     internal fun decode(message: String, topic: TopicVO): String {
         val (secretKey, _) = crypto.getKeyAgreement(topic)
-        return authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), secretKey)
+        var decodedMessage = String.Empty
+        try {
+            decodedMessage = authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), secretKey)
+        } catch (e: Exception) {
+            Logger.error("Decoding error: ${e.message}")
+        }
+        return decodedMessage
     }
 
     internal fun deserialize(method: String, json: String): ClientParams? =
