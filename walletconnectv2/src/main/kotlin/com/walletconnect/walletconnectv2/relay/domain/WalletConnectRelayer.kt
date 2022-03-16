@@ -58,10 +58,7 @@ internal class WalletConnectRelayer(
 
     val initializationErrorsFlow: Flow<WalletConnectException>
         get() = relay.eventsFlow
-            .onEach { event: WebSocket.Event ->
-                Logger.log("$event")
-                setOnConnectionOpen(event)
-            }
+            .onEach { event: WebSocket.Event -> setOnConnectionOpen(event) }
             .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
             .map { error -> error.throwable.toWalletConnectException }
 
@@ -212,7 +209,7 @@ internal class WalletConnectRelayer(
     private fun setOnConnectionOpen(event: WebSocket.Event) {
         if (event is WebSocket.Event.OnConnectionOpened<*>) {
             _isConnectionOpened.compareAndSet(expect = false, update = true)
-        } else if (event is WebSocket.Event.OnConnectionClosed) {
+        } else if (event is WebSocket.Event.OnConnectionClosed || event is WebSocket.Event.OnConnectionFailed) {
             _isConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }
