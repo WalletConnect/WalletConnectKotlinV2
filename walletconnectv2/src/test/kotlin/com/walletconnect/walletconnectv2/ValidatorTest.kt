@@ -15,8 +15,8 @@ class ValidatorTest {
 
     @Test
     fun `check correct error message when permissions are invalid `() {
-        val notifications = EngineDO.Notifications(listOf())
-        val jsonRpc = EngineDO.JsonRpc(listOf())
+        val notifications = EngineDO.SessionPermissions.Notifications(listOf())
+        val jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf())
 
         Validator.validatePermissions(jsonRpc, notifications) { errorMessage ->
             assertEquals(EMPTY_RPC_METHODS_LIST_MESSAGE, errorMessage)
@@ -26,7 +26,7 @@ class ValidatorTest {
     @Test
     fun `check correct error message when notifications are null `() {
         val notifications = null
-        val jsonRpc = EngineDO.JsonRpc(listOf("method"))
+        val jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf("method"))
 
         Validator.validatePermissions(jsonRpc, notifications) { errorMessage ->
             assertEquals(EMPTY_CHAIN_LIST_MESSAGE, errorMessage)
@@ -35,8 +35,8 @@ class ValidatorTest {
 
     @Test
     fun `check correct error message when json rpc permissions are invalid `() {
-        val notifications = EngineDO.Notifications(listOf("type"))
-        val jsonRpc = EngineDO.JsonRpc(listOf())
+        val notifications = EngineDO.SessionPermissions.Notifications(listOf("type"))
+        val jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf())
 
         Validator.validatePermissions(jsonRpc, notifications) { errorMessage ->
             assertEquals(EMPTY_RPC_METHODS_LIST_MESSAGE, errorMessage)
@@ -45,8 +45,8 @@ class ValidatorTest {
 
     @Test
     fun `check correct error message when notifications permissions are invalid `() {
-        val jsonRpc = EngineDO.JsonRpc(listOf("eth_sign"))
-        val notifications: EngineDO.Notifications = EngineDO.Notifications(listOf())
+        val jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf("eth_sign"))
+        val notifications: EngineDO.SessionPermissions.Notifications = EngineDO.SessionPermissions.Notifications(listOf())
 
         Validator.validatePermissions(jsonRpc, notifications) { errorMessage ->
             assertEquals(INVALID_NOTIFICATIONS_TYPES_MESSAGE, errorMessage)
@@ -72,8 +72,8 @@ class ValidatorTest {
 
     @Test
     fun `check correct error message when notifications permissions are null `() {
-        val jsonRpc = EngineDO.JsonRpc(listOf("eth_sign"))
-        val notifications: EngineDO.Notifications? = null
+        val jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf("eth_sign"))
+        val notifications: EngineDO.SessionPermissions.Notifications? = null
 
         Validator.validatePermissions(jsonRpc, notifications) { errorMessage ->
             assertEquals(INVALID_NOTIFICATIONS_TYPES_MESSAGE, errorMessage)
@@ -82,16 +82,16 @@ class ValidatorTest {
 
     @Test
     fun `are json rpc permissions valid`() {
-        var jsonRpc = EngineDO.JsonRpc(listOf())
+        var jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf())
 
         val result1 = Validator.isJsonRpcValid(jsonRpc)
         assertEquals(result1, false)
 
-        jsonRpc = EngineDO.JsonRpc(listOf("", ""))
+        jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf("", ""))
         val result2 = Validator.isJsonRpcValid(jsonRpc)
         assertEquals(result2, false)
 
-        jsonRpc = EngineDO.JsonRpc(listOf("personal_sign", "eth_sign"))
+        jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf("personal_sign", "eth_sign"))
         val result3 = Validator.isJsonRpcValid(jsonRpc)
         assertEquals(result3, true)
     }
@@ -114,16 +114,16 @@ class ValidatorTest {
 
     @Test
     fun `are notifications permissions valid`() {
-        var notifications: EngineDO.Notifications = EngineDO.Notifications(listOf())
+        var notifications: EngineDO.SessionPermissions.Notifications = EngineDO.SessionPermissions.Notifications(listOf())
 
         val result1 = Validator.areNotificationTypesValid(notifications)
         assertEquals(result1, false)
 
-        notifications = EngineDO.Notifications(listOf("", ""))
+        notifications = EngineDO.SessionPermissions.Notifications(listOf("", ""))
         val result2 = Validator.areNotificationTypesValid(notifications)
         assertEquals(result2, false)
 
-        notifications = EngineDO.Notifications(listOf("1", "2"))
+        notifications = EngineDO.SessionPermissions.Notifications(listOf("1", "2"))
         val result3 = Validator.areNotificationTypesValid(notifications)
         assertEquals(result3, true)
     }

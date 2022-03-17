@@ -33,10 +33,10 @@ private fun EngineDO.WalletConnectUri.getQuery(): String {
 
 @JvmSynthetic
 internal fun EngineDO.AppMetaData.toMetaDataVO() =
-    AppMetaDataVO(name, description, url, icons)
+    MetaDataVO(name, description, url, icons)
 
 @JvmSynthetic
-internal fun AppMetaDataVO.toEngineDOMetaData(): EngineDO.AppMetaData =
+internal fun MetaDataVO.toEngineDOMetaData(): EngineDO.AppMetaData =
     EngineDO.AppMetaData(name, description, url, icons)
 
 @JvmSynthetic
@@ -82,7 +82,7 @@ internal fun SessionVO.toEngineDOApprovedSessionVO(topic: TopicVO): EngineDO.Ses
             selfMetaData?.description ?: String.Empty,
             selfMetaData?.url ?: String.Empty,
             selfMetaData?.icons?.map { iconUri -> iconUri } ?: listOf()),
-        EngineDO.SessionPermissions(EngineDO.JsonRpc(methods), getNotifications(types)),
+        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getNotifications(types)),
         EngineDO.Blockchain(chains),
     )
 
@@ -91,7 +91,7 @@ internal fun SessionVO.toEngineDOApprovedSessionVO(): EngineDO.Session =
     EngineDO.Session(
         topic, expiry,
         accounts, selfMetaData?.toEngineDOAppMetaData(),
-        EngineDO.SessionPermissions(EngineDO.JsonRpc(methods), getNotifications(types)),
+        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getNotifications(types)),
         EngineDO.Blockchain(chains),
     )
 
@@ -100,12 +100,12 @@ internal fun SessionVO.toEngineDOExtendedSessionVO(expiryVO: ExpiryVO): EngineDO
     EngineDO.SessionExtend(
         topic, expiryVO,
         accounts, selfMetaData?.toEngineDOAppMetaData(),
-        EngineDO.SessionPermissions(EngineDO.JsonRpc(methods), getNotifications(types)),
+        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getNotifications(types)),
         EngineDO.Blockchain(chains),
     )
 
 @JvmSynthetic
-private fun AppMetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
+private fun MetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
     EngineDO.AppMetaData(name, description, url, icons)
 
 @JvmSynthetic
@@ -117,7 +117,8 @@ internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
     EngineDO.SessionApproved(
         topic.value,
         peerMetaData?.toEngineDOMetaData(),
-        EngineDO.SessionPermissions(EngineDO.JsonRpc(methods), if (types != null) EngineDO.Notifications(types) else null),
+        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods),
+            if (types != null) EngineDO.SessionPermissions.Notifications(types) else null),
         accounts
     )
 
@@ -165,7 +166,7 @@ internal fun JsonRpcResponseVO.JsonRpcError.toEngineJsonRpcError(): EngineDO.Jso
 @JvmSynthetic
 internal fun EngineDO.SessionProposal.toSessionPermissions(): EngineDO.SessionPermissions =
     EngineDO.SessionPermissions(
-        jsonRpc = EngineDO.JsonRpc(methods),
+        jsonRpc = EngineDO.SessionPermissions.JsonRpc(methods),
         notifications = getNotifications(types)
     )
 
@@ -178,10 +179,10 @@ internal fun EngineDO.SessionProposal.toSessionApproveParams(selfPublicKey: Publ
 @JvmSynthetic
 internal fun SessionPermissionsVO.toEngineDOPermissions(): EngineDO.SessionPermissions =
     EngineDO.SessionPermissions(
-        jsonRpc = EngineDO.JsonRpc(jsonRpc.methods),
+        jsonRpc = EngineDO.SessionPermissions.JsonRpc(jsonRpc.methods),
         notifications = getNotifications(notifications?.types)
     )
 
 @JvmSynthetic
-private fun getNotifications(types: List<String>?) = if (types != null) EngineDO.Notifications(types) else null
+private fun getNotifications(types: List<String>?) = if (types != null) EngineDO.SessionPermissions.Notifications(types) else null
 

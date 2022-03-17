@@ -126,7 +126,10 @@ internal sealed class EngineDO {
     internal data class SessionPermissions(
         val jsonRpc: JsonRpc,
         val notifications: Notifications? = null,
-    ) : EngineDO()
+    ) : EngineDO() {
+        internal data class JsonRpc(val methods: List<String>) : EngineDO()
+        data class Notifications(val types: List<String>) : EngineDO()
+    }
 
     internal data class Notification(
         val type: String,
@@ -135,9 +138,6 @@ internal sealed class EngineDO {
 
     internal data class SessionState(val accounts: List<String>) : EngineDO()
     internal data class Blockchain(val chains: List<String>) : EngineDO()
-    internal data class JsonRpc(val methods: List<String>) : EngineDO()
-    data class Notifications(val types: List<String>)
-
     internal data class AppMetaData(
         val name: String,
         val description: String,

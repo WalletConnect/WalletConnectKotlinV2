@@ -3,7 +3,7 @@ package com.walletconnect.walletconnectv2.storage.sequence
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.AppMetaDataVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDaoQueries
@@ -154,13 +154,13 @@ internal class SequenceStorageRepository(
         sessionDaoQueries.deleteSession(topic.value)
     }
 
-    private fun insertMetaData(appMetaData: AppMetaDataVO?): Long {
-        return appMetaData?.let {
+    private fun insertMetaData(metaData: MetaDataVO?): Long {
+        return metaData?.let {
             metaDataDaoQueries.insertOrIgnoreMetaData(
-                appMetaData.name,
-                appMetaData.description,
-                appMetaData.url,
-                appMetaData.icons
+                metaData.name,
+                metaData.description,
+                metaData.url,
+                metaData.icons
             )
 
             metaDataDaoQueries.lastInsertedRowId().executeAsOne()
@@ -191,13 +191,13 @@ internal class SequenceStorageRepository(
         peerIcons: List<String>?,
     ): PairingVO {
         val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
-            AppMetaDataVO(selfName, selfDesc, selfUrl, selfIcons)
+            MetaDataVO(selfName, selfDesc, selfUrl, selfIcons)
         } else {
             null
         }
 
         val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
-            AppMetaDataVO(peerName, peerDesc, peerUrl, peerIcons)
+            MetaDataVO(peerName, peerDesc, peerUrl, peerIcons)
         } else {
             null
         }
@@ -237,13 +237,13 @@ internal class SequenceStorageRepository(
     ): SessionVO {
 
         val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
-            AppMetaDataVO(selfName, selfDesc, selfUrl, selfIcons)
+            MetaDataVO(selfName, selfDesc, selfUrl, selfIcons)
         } else {
             null
         }
 
         val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
-            AppMetaDataVO(peerName, peerDesc, peerUrl, peerIcons)
+            MetaDataVO(peerName, peerDesc, peerUrl, peerIcons)
         } else {
             null
         }

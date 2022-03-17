@@ -4,7 +4,7 @@ import com.walletconnect.walletconnectv2.core.model.type.Sequence
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.AppMetaDataVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
@@ -16,9 +16,9 @@ internal data class SessionVO(
     val relayData: String?,
     val controllerKey: PublicKey? = null,
     val selfParticipant: PublicKey,
-    val selfMetaData: AppMetaDataVO? = null,
+    val selfMetaData: MetaDataVO? = null,
     val peerParticipant: PublicKey? = null,
-    val peerMetaData: AppMetaDataVO? = null,
+    val peerMetaData: MetaDataVO? = null,
     val accounts: List<String> = emptyList(),
     val chains: List<String>,
     val methods: List<String>,
@@ -37,7 +37,7 @@ internal data class SessionVO(
             selfParticipant: SessionParticipantVO,
             sessionExpiry: Long,
         ): SessionVO {
-            val peerMetaData = AppMetaDataVO(proposal.name, proposal.description, proposal.url, proposal.icons.map { it.toString() })
+            val peerMetaData = MetaDataVO(proposal.name, proposal.description, proposal.url, proposal.icons.map { it.toString() })
             return SessionVO(
                 sessionTopic,
                 ExpiryVO(sessionExpiry),
@@ -61,7 +61,7 @@ internal data class SessionVO(
             sessionTopic: TopicVO,
             settleParams: SessionParamsVO.SessionSettleParams,
             selfPublicKey: PublicKey,
-            selfMetadata: AppMetaDataVO,
+            selfMetadata: MetaDataVO,
         ): SessionVO {
             return SessionVO(
                 sessionTopic,

@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-internal data class AppMetaDataVO(
+internal data class MetaDataVO(
     @Json(name = "name")
     val name: String,
     @Json(name = "description")
@@ -12,5 +12,5 @@ internal data class AppMetaDataVO(
     @Json(name = "url")
     val url: String,
     @Json(name = "icons")
-    val icons: List<String>
+    val icons: List<String>,
 )

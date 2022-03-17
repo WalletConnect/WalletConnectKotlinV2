@@ -58,7 +58,10 @@ internal class WalletConnectRelayer(
 
     val initializationErrorsFlow: Flow<WalletConnectException>
         get() = relay.eventsFlow
-            .onEach { event: WebSocket.Event -> setOnConnectionOpen(event) }
+            .onEach { event: WebSocket.Event ->
+                Logger.log("$event")
+                setOnConnectionOpen(event)
+            }
             .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
             .map { error -> error.throwable.toWalletConnectException }
 

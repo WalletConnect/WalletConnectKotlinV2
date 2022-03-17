@@ -13,8 +13,8 @@ import java.net.URISyntaxException
 internal object Validator {
 
     internal fun validatePermissions(
-        jsonRpc: EngineDO.JsonRpc,
-        notifications: EngineDO.Notifications?,
+        jsonRpc: EngineDO.SessionPermissions.JsonRpc,
+        notifications: EngineDO.SessionPermissions.Notifications?,
         onInvalidPermissions: (String) -> Unit,
     ) {
         when {
@@ -110,13 +110,13 @@ internal object Validator {
         )
     }
 
-    internal fun isJsonRpcValid(jsonRpc: EngineDO.JsonRpc): Boolean =
+    internal fun isJsonRpcValid(jsonRpc: EngineDO.SessionPermissions.JsonRpc): Boolean =
         jsonRpc.methods.isNotEmpty() && jsonRpc.methods.all { method -> method.isNotEmpty() }
 
     internal fun isBlockchainValid(blockchain: EngineDO.Blockchain) =
         blockchain.chains.isNotEmpty() && blockchain.chains.any { chain -> chain.isNotEmpty() }
 
-    internal fun areNotificationTypesValid(notification: EngineDO.Notifications): Boolean =
+    internal fun areNotificationTypesValid(notification: EngineDO.SessionPermissions.Notifications): Boolean =
         notification.types.isNotEmpty() && notification.types.any { type -> type.isNotEmpty() }
 
     internal fun isChainIdValid(chainId: String): Boolean {

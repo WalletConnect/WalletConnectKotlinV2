@@ -3,7 +3,7 @@ package com.walletconnect.walletconnectv2.core.model.vo.sequence
 import com.walletconnect.walletconnectv2.core.model.type.Sequence
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.AppMetaDataVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.engine.model.mapper.toAbsoluteString
@@ -13,8 +13,8 @@ import com.walletconnect.walletconnectv2.util.Expiration
 internal data class PairingVO(
     override val topic: TopicVO,
     override val expiry: ExpiryVO,
-    val selfMetaData: AppMetaDataVO? = null,
-    val peerMetaData: AppMetaDataVO? = null,
+    val selfMetaData: MetaDataVO? = null,
+    val peerMetaData: MetaDataVO? = null,
     val relayProtocol: String,
     val relayData: String?,
     val uri: String,
