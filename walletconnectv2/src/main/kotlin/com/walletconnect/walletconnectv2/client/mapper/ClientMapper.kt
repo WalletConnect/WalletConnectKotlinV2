@@ -33,8 +33,12 @@ internal fun EngineDO.SessionUpgradeResponse.toClientUpgradedSessionResponse(): 
     when (this) {
         is EngineDO.SessionUpgradeResponse.Result ->
             WalletConnect.Model.SessionUpgradeResponse.Result(topic.value,
-                WalletConnect.Model.SessionPermissions(WalletConnect.Model.SessionPermissions.JsonRpc(methods),
-                    if (types != null) WalletConnect.Model.SessionPermissions.Notifications(types) else null))
+                WalletConnect.Model.SessionPermissions(
+                    WalletConnect.Model.SessionPermissions.JsonRpc(methods),
+                    if (types != null) WalletConnect.Model.SessionPermissions.Notifications(types) else null
+                )
+            )
+
         is EngineDO.SessionUpgradeResponse.Error -> WalletConnect.Model.SessionUpgradeResponse.Error(errorMessage)
     }
 

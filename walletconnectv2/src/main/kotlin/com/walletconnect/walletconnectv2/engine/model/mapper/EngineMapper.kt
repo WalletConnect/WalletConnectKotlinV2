@@ -33,10 +33,10 @@ private fun EngineDO.WalletConnectUri.getQuery(): String {
 
 @JvmSynthetic
 internal fun EngineDO.AppMetaData.toMetaDataVO() =
-    AppMetaDataVO(name, description, url, icons)
+    MetaDataVO(name, description, url, icons)
 
 @JvmSynthetic
-internal fun AppMetaDataVO.toEngineDOMetaData(): EngineDO.AppMetaData =
+internal fun MetaDataVO.toEngineDOMetaData(): EngineDO.AppMetaData =
     EngineDO.AppMetaData(name, description, url, icons)
 
 @JvmSynthetic
@@ -105,7 +105,7 @@ internal fun SessionVO.toEngineDOExtendedSessionVO(expiryVO: ExpiryVO): EngineDO
     )
 
 @JvmSynthetic
-private fun AppMetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
+private fun MetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
     EngineDO.AppMetaData(name, description, url, icons)
 
 @JvmSynthetic

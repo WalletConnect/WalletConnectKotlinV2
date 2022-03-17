@@ -29,13 +29,12 @@ internal class JsonRpcSerializer(
 
     internal fun decode(message: String, topic: TopicVO): String {
         val (secretKey, _) = crypto.getKeyAgreement(topic)
-        var decodedMessage = String.Empty
-        try {
-            decodedMessage = authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), secretKey)
+        return try {
+            authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), secretKey)
         } catch (e: Exception) {
             Logger.error("Decoding error: ${e.message}")
+            String.Empty
         }
-        return decodedMessage
     }
 
     internal fun deserialize(method: String, json: String): ClientParams? =

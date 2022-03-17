@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class ConnectViewModel : ViewModel() {
     private val _listOfChainUI: MutableList<ChainSelectionUI> = mutableListOf()
@@ -71,10 +70,8 @@ class ConnectViewModel : ViewModel() {
 
         WalletConnectClient.connect(connectParams,
             onProposedSequence = { proposedSequence ->
-                viewModelScope.launch {
-                    withContext(Dispatchers.Main) {
-                        onProposedSequence(proposedSequence)
-                    }
+                viewModelScope.launch(Dispatchers.Main) {
+                    onProposedSequence(proposedSequence)
                 }
 
             },
