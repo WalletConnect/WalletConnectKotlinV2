@@ -1,47 +1,52 @@
-import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType;
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus;
+import java.lang.Boolean;
 import kotlin.collections.List;
 
 CREATE TABLE SessionDao(
-  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-  topic TEXT UNIQUE NOT NULL,
-  permissions_chains TEXT AS List<String> NOT NULL,
-  permissions_methods TEXT AS List<String> NOT NULL,
-  permissions_types TEXT AS List<String>,
-  self_participant TEXT NOT NULL,
-  peer_participant TEXT,
-  controller_key TEXT,
-  ttl_seconds INTEGER NOT NULL,
-  accounts TEXT AS List<String> DEFAULT(NULL),
-  expiry INTEGER NOT NULL,
-  status TEXT AS SequenceStatus NOT NULL,
-  controller_type TEXT AS ControllerType NOT NULL,
-  metadata_id INTEGER,
-  relay_protocol TEXT NOT NULL,
-  outcome_topic TEXT
+   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+   topic TEXT UNIQUE NOT NULL,
+   expiry INTEGER NOT NULL,
+   relay_protocol TEXT NOT NULL,
+   relay_data TEXT,
+   controller_key TEXT,
+   self_participant TEXT NOT NULL,
+   self_metadata_id INTEGER,
+   peer_participant TEXT,
+   peer_metadata_id INTEGER,
+   accounts TEXT AS List<String> DEFAULT(NULL),
+   permissions_chains TEXT AS List<String> NOT NULL,
+   permissions_methods TEXT AS List<String> NOT NULL,
+   permissions_types TEXT AS List<String>,
+   is_acknowledged  INTEGER AS Boolean NOT NULL
 );
 
-insertPendingSession:
-INSERT OR IGNORE INTO SessionDao(topic, permissions_chains, permissions_methods, permissions_types, self_participant, ttl_seconds, expiry,  status, controller_type, metadata_id, relay_protocol, outcome_topic)
-VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?);
-
-insertSettleSession:
-INSERT OR IGNORE INTO SessionDao(topic, permissions_chains, permissions_methods, permissions_types, self_participant, peer_participant, controller_key,  ttl_seconds, accounts, expiry,  status, controller_type, metadata_id, relay_protocol)
-VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+insertSession:
+INSERT OR IGNORE INTO SessionDao(topic, expiry, relay_protocol, relay_data, controller_key, self_participant, self_metadata_id, peer_participant, peer_metadata_id, accounts, permissions_chains, permissions_methods, permissions_types, is_acknowledged)
+VALUES (?,  ?, ?,?, ?, ?, ?, ?, ?, ?, ?,  ?, ? ,?);
 
 getListOfSessionDaos:
-SELECT sd.topic, sd.permissions_chains, sd.permissions_methods, sd.permissions_types, sd.ttl_seconds, sd.accounts, sd.expiry, sd.status, sd.controller_type, mdd._name, mdd.description, mdd.url, mdd.icons, sd.self_participant, sd.peer_participant, sd.controller_key, sd.relay_protocol
+SELECT sd.topic, sd.expiry, sd.relay_protocol, sd.relay_data, sd.controller_key, sd.self_participant, self_mdd.name, self_mdd.description, self_mdd.url, self_mdd.icons, sd.peer_participant, peer_mdd.name, peer_mdd.description, peer_mdd.url, peer_mdd.icons, sd.accounts, sd.permissions_chains, sd.permissions_methods, sd.permissions_types, sd.is_acknowledged
 FROM SessionDao sd
-    LEFT JOIN MetaDataDao mdd ON sd.metadata_id = mdd.id;
+    LEFT JOIN MetaDataDao self_mdd ON sd.self_metadata_id = self_mdd.id
+    LEFT JOIN MetaDataDao peer_mdd ON sd.peer_metadata_id = peer_mdd.id;
 
-updatePreSettledSessionToAcknowledged:
-UPDATE OR ABORT SessionDao
-SET status = ?
+getSessionByTopic:
+SELECT sd.topic, sd.expiry, sd.relay_protocol, sd.relay_data, sd.controller_key, sd.self_participant, self_mdd.name, self_mdd.description, self_mdd.url, self_mdd.icons, sd.peer_participant, peer_mdd.name, peer_mdd.description, peer_mdd.url, peer_mdd.icons, sd.accounts, sd.permissions_chains, sd.permissions_methods, sd.permissions_types, sd.is_acknowledged
+FROM SessionDao sd
+    LEFT JOIN MetaDataDao self_mdd ON sd.self_metadata_id = self_mdd.id
+    LEFT JOIN MetaDataDao peer_mdd ON sd.peer_metadata_id = peer_mdd.id
 WHERE topic = ?;
 
-updateSessionWithPermissions:
+getPermissionsByTopic:
+SELECT sd.permissions_types, sd.permissions_methods
+FROM SessionDao sd
+    LEFT JOIN MetaDataDao self_mdd ON sd.self_metadata_id = self_mdd.id
+    LEFT JOIN MetaDataDao peer_mdd ON sd.peer_metadata_id = peer_mdd.id
+WHERE topic = ?;
+
+acknowledgeSession:
 UPDATE OR ABORT SessionDao
-SET permissions_chains = ?, permissions_methods = ?
+SET is_acknowledged = ?
 WHERE topic = ?;
 
 updateSessionWithAccounts:
@@ -49,20 +54,18 @@ UPDATE OR ABORT SessionDao
 SET accounts = ?
 WHERE topic = ?;
 
+updateSessionExpiry:
+UPDATE OR ABORT SessionDao
+SET expiry = ?
+WHERE topic = ?;
+
 deleteSession:
 DELETE FROM SessionDao
 WHERE topic = ?;
 
-getPermissionsByTopic:
-SELECT sd.permissions_chains, sd.permissions_methods
-FROM SessionDao sd
-    LEFT JOIN MetaDataDao mdd ON sd.metadata_id = mdd.id
-WHERE topic = ?;
-
-getSessionByTopic:
-SELECT sd.topic, sd.permissions_chains, sd.permissions_methods, sd.permissions_types, sd.ttl_seconds, sd.accounts, sd.expiry, sd.status, sd.controller_type, mdd._name, mdd.description, mdd.url, mdd.icons, sd.self_participant, sd.peer_participant, sd.controller_key, sd.relay_protocol, sd.outcome_topic
-FROM SessionDao sd
-    LEFT JOIN MetaDataDao mdd ON sd.metadata_id = mdd.id
+updateSessionWithPermissions:
+UPDATE OR ABORT SessionDao
+SET permissions_types = ?, permissions_methods = ?
 WHERE topic = ?;
 
 hasTopic:

@@ -46,6 +46,7 @@ class ChainSelectionFragment : Fragment() {
                 } else {
                     findNavController().navigate(R.id.action_fragment_chain_selection_to_dialog_pairing_generation)
                 }
+
             } else {
                 Toast.makeText(requireContext(), "Please select a chain", Toast.LENGTH_SHORT).show()
             }

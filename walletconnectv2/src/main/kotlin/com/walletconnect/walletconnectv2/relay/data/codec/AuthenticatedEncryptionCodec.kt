@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.relay.data.codec
 
+import com.walletconnect.walletconnectv2.core.model.vo.Key
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
-import com.walletconnect.walletconnectv2.core.model.vo.SharedKey
 import com.walletconnect.walletconnectv2.core.model.vo.payload.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.relay.Codec
 import com.walletconnect.walletconnectv2.util.bytesToHex
@@ -15,9 +15,8 @@ import javax.crypto.spec.SecretKeySpec
 
 internal class AuthenticatedEncryptionCodec : Codec {
 
-    override fun encrypt(message: String, sharedKey: SharedKey, publicKey: PublicKey): String {
-        val (encryptionKey, authenticationKey) = getKeys(sharedKey.keyAsHex)
-
+    override fun encrypt(message: String, key: Key, publicKey: PublicKey): String {
+        val (encryptionKey, authenticationKey) = getKeys(key.keyAsHex)
         val data = message.toByteArray(Charsets.UTF_8)
         val iv: ByteArray = randomBytes(16)
 
@@ -29,11 +28,12 @@ internal class AuthenticatedEncryptionCodec : Codec {
         return iv.bytesToHex() + publicKey.keyAsHex + computedMac + cipherText.bytesToHex()
     }
 
-    override fun decrypt(payload: EncryptionPayloadVO, sharedKey: SharedKey): String {
-        val (encryptionKey, authenticationKey) = getKeys(sharedKey.keyAsHex)
+    override fun decrypt(payload: EncryptionPayloadVO, key: Key): String {
+        val (encryptionKey, authenticationKey) = getKeys(key.keyAsHex)
         val data = payload.cipherText.hexToBytes()
         val iv = payload.iv.hexToBytes()
-        val computedHmac = computeHmac(data, iv, authenticationKey, payload.publicKey.hexToBytes())
+        val publicKey = payload.publicKey.hexToBytes()
+        val computedHmac = computeHmac(data, iv, authenticationKey, publicKey)
 
         if (computedHmac != payload.mac.lowercase()) {
             throw Exception("Invalid Hmac")
@@ -41,11 +41,12 @@ internal class AuthenticatedEncryptionCodec : Codec {
 
         val cipher = Cipher.getInstance(CIPHER_ALGORITHM)
         cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(encryptionKey, AES_ALGORITHM), IvParameterSpec(iv))
+
         return String(cipher.doFinal(data), Charsets.UTF_8)
     }
 
-    internal fun getKeys(sharedKey: String): Pair<ByteArray, ByteArray> {
-        val hexKey = sharedKey.hexToBytes()
+    internal fun getKeys(key: String): Pair<ByteArray, ByteArray> {
+        val hexKey = key.hexToBytes()
         val messageDigest: MessageDigest = MessageDigest.getInstance(HASH_ALGORITHM)
         val hashedKey: ByteArray = messageDigest.digest(hexKey)
 
@@ -63,6 +64,7 @@ internal class AuthenticatedEncryptionCodec : Codec {
         val mac = Mac.getInstance(MAC_ALGORITHM)
         val payload = iv + publicKey + data
         mac.init(SecretKeySpec(authKey, MAC_ALGORITHM))
+
         return mac.doFinal(payload).bytesToHex()
     }
 

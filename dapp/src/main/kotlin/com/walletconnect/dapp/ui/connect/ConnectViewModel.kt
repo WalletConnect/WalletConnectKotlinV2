@@ -10,11 +10,13 @@ import com.walletconnect.dapp.ui.NavigationEvents
 import com.walletconnect.dapp.ui.connect.chain_select.ChainSelectionUI
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 
 class ConnectViewModel : ViewModel() {
     private val _listOfChainUI: MutableList<ChainSelectionUI> = mutableListOf()
@@ -48,7 +50,7 @@ class ConnectViewModel : ViewModel() {
         _listOfChainUI[position].isSelected = isChecked
     }
 
-    fun connectToWallet(pairingTopicPosition: Int = -1): WalletConnect.Model.ProposedSequence {
+    fun connectToWallet(pairingTopicPosition: Int = -1, onProposedSequence: (WalletConnect.Model.ProposedSequence) -> Unit = {}) {
         var pairingTopic: String? = null
 
         if (pairingTopicPosition > -1) {
@@ -59,14 +61,20 @@ class ConnectViewModel : ViewModel() {
         val blockchains = selectedChains.map { "${it.parentChain}:${it.chainId}" }
         val methods = selectedChains.flatMap { it.methods }.distinct()
         val sessionPermissions = WalletConnect.Model.SessionPermissions(
-            blockchain = WalletConnect.Model.SessionPermissions.Blockchain(chains = blockchains),
             jsonRpc = WalletConnect.Model.SessionPermissions.JsonRpc(methods = methods),
             notification = null
         )
-        val connectParams = WalletConnect.Params.Connect(permissions = sessionPermissions, pairingTopic = pairingTopic)
+        val connectParams = WalletConnect.Params.Connect(permissions = sessionPermissions,
+            blockchain = WalletConnect.Model.Blockchain(chains = blockchains),
+            pairingTopic = pairingTopic)
 
-        return WalletConnectClient.connect(connectParams) { error ->
-            Log.e(tag(this@ConnectViewModel), error.error.stackTraceToString())
-        }
+        WalletConnectClient.connect(connectParams,
+            onProposedSequence = { proposedSequence ->
+                viewModelScope.launch(Dispatchers.Main) {
+                    onProposedSequence(proposedSequence)
+                }
+
+            },
+            onFailure = { error -> Log.e(tag(this@ConnectViewModel), error.error.stackTraceToString()) })
     }
 }

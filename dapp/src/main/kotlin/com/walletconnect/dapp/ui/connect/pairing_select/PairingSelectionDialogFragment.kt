@@ -38,6 +38,8 @@ class PairingSelectionDialogFragment : DialogFragment() {
             addItemDecoration(BottomVerticalSpaceItemDecoration(16))
             adapter = PairingSelectionAdapter(pairings) { pairingTopicPosition ->
                 binding.clpbLoading.show()
+
+
                 viewModel.connectToWallet(pairingTopicPosition)
             }
         }

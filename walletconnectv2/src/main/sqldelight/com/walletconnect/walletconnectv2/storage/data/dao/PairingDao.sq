@@ -1,53 +1,36 @@
-import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType;
-import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus;
-import kotlin.collections.List;
-
 CREATE TABLE PairingDao (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     topic TEXT UNIQUE NOT NULL,
-    uri TEXT NOT NULL,
     expiry INTEGER NOT NULL,
-    status TEXT AS SequenceStatus NOT NULL,
-    controller_type TEXT AS ControllerType NOT NULL,
-    self_participant TEXT NOT NULL,
-    peer_participant TEXT,
-    controller_key TEXT,
+    self_metadata_id INTEGER NOT NULL,
+    peer_metadata_id INTEGER NOT NULL,
     relay_protocol TEXT NOT NULL,
-    permissions TEXT AS List<String>,
-    metadata_id INTEGER,
-    outcome_topic TEXT
+    relay_data TEXT,
+    uri TEXT NOT NULL
 );
 
-insertPendingPairing:
-INSERT OR IGNORE INTO PairingDao(topic, uri, expiry, status, controller_type, self_participant, relay_protocol, outcome_topic)
-VALUES (?, ?, ?, ?, ?,    ?, ?, ?);
-
-insertSettledPairing:
-INSERT OR IGNORE INTO PairingDao(topic, uri, expiry, status, controller_type, self_participant, peer_participant, controller_key, relay_protocol, permissions, metadata_id)
-VALUES (?, ?, ?, ?, ?,    ?, ?, ?, ?, ?, ?);
+insertPairing:
+INSERT OR IGNORE INTO PairingDao(topic, expiry, self_metadata_id, peer_metadata_id, relay_protocol,  relay_data, uri)
+VALUES (?, ?,  ?,    ?, ?, ?, ?);
 
 getListOfPairingDaos:
-SELECT pd.topic, pd.expiry, pd.uri, pd.status, pd.controller_type, pd.self_participant, pd.peer_participant, pd.controller_key, pd.relay_protocol, pd.permissions, mdd._name, mdd.description, mdd.url, mdd.icons
+SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, mdd_self.name, mdd_self.description, mdd_self.url, mdd_self.icons,  mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons
 FROM PairingDao pd
-    LEFT JOIN MetaDataDao mdd ON pd.metadata_id = mdd.id;
+    LEFT JOIN MetaDataDao mdd_self ON pd.self_metadata_id = mdd_self.id
+    LEFT JOIN MetaDataDao mdd_peer ON pd.peer_metadata_id = mdd_peer.id;
 
-updatePreSettledPairingToAcknowledged:
-UPDATE PairingDao
-SET status = ?
-WHERE topic = ?;
+getPairingByTopic:
+SELECT topic, expiry, relay_protocol, relay_data, uri
+FROM PairingDao
+WHERE ? = topic;
 
 deletePairing:
 DELETE FROM PairingDao
 WHERE ? = topic;
 
-getPairingByTopic:
-SELECT topic, expiry, uri, status, controller_type, self_participant, peer_participant, controller_key, relay_protocol, permissions, outcome_topic
-FROM PairingDao
-WHERE ? = topic;
-
-updateAcknowledgedPairingMetadata:
-UPDATE PairingDao
-SET metadata_id = ?
+updatePairingExpiry:
+UPDATE OR ABORT PairingDao
+SET expiry = ?
 WHERE topic = ?;
 
 hasTopic:

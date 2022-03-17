@@ -28,7 +28,6 @@ class SampleApplication : Application() {
         val initWallet = WalletConnect.Params.Init(
             application = this,
             relayServerUrl = "wss://$WALLET_CONNECT_URL?projectId=",   //TODO: register at https://walletconnect.com/register to get a project ID
-            isController = true,
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Wallet",
                 description = "Wallet description",

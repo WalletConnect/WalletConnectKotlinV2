@@ -9,7 +9,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.TtlVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.params.SessionRequestVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionRequestVO
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import org.json.JSONObject
 import org.koin.dsl.module

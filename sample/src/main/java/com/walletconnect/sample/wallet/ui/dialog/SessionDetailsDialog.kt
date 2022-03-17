@@ -9,8 +9,8 @@ import com.walletconnect.walletconnectv2.client.WalletConnect
 
 class SessionDetailsDialog(
     context: Context,
-    private val session: WalletConnect.Model.SettledSession,
-    getPendingRequests: (session: WalletConnect.Model.SettledSession) -> Unit
+    private val session: WalletConnect.Model.Session,
+    getPendingRequests: (session: WalletConnect.Model.Session) -> Unit
 ) : BottomSheetDialog(context) {
 
     private val binding = SessionDetailsDialogBinding.inflate(layoutInflater)
@@ -23,11 +23,11 @@ class SessionDetailsDialog(
 
     private fun setContent() = with(binding) {
         Glide.with(context)
-            .load(Uri.parse(session.peerAppMetaData?.icons?.first().toString()))
+            .load(Uri.parse(session.metaData?.icons?.first().toString()))
             .into(icon)
-        name.text = session.peerAppMetaData?.name
-        uri.text = session.peerAppMetaData?.url
-        description.text = session.peerAppMetaData?.description
+        name.text = session.metaData?.name
+        uri.text = session.metaData?.url
+        description.text = session.metaData?.description
 
         var accountsString = ""
         session.accounts.forEach {

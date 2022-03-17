@@ -5,9 +5,9 @@ import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
-import com.walletconnect.walletconnectv2.network.NetworkRepository
+import com.walletconnect.walletconnectv2.network.Relay
 import com.walletconnect.walletconnectv2.network.data.adapter.FlowStreamAdapter
-import com.walletconnect.walletconnectv2.network.data.repository.WakuNetworkRepository
+import com.walletconnect.walletconnectv2.network.data.repository.RelayClient
 import com.walletconnect.walletconnectv2.network.data.service.RelayService
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
@@ -44,5 +44,5 @@ internal fun networkModule(serverUrl: String) = module {
 
     single { get<Scarlet>().create(RelayService::class.java) }
 
-    single<NetworkRepository> { WakuNetworkRepository(get()) }
+    single<Relay> { RelayClient(get()) }
 }

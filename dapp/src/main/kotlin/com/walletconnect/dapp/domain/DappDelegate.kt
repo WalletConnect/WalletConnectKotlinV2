@@ -23,10 +23,6 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         WalletConnectClient.setDappDelegate(this)
     }
 
-    override fun onPairingSettled(settledPairing: WalletConnect.Model.SettledPairing) {}
-
-    override fun onPairingUpdated(pairing: WalletConnect.Model.PairingUpdate) {}
-
     override fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession) {
         selectedSessionTopic = approvedSession.topic
 
@@ -59,6 +55,10 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         scope.launch {
             _wcEventModels.emit(deletedSession)
         }
+    }
+
+    override fun onSessionExtend(session: WalletConnect.Model.Session) {
+        //session extend
     }
 
     override fun onSessionPayloadResponse(response: WalletConnect.Model.SessionPayloadResponse) {

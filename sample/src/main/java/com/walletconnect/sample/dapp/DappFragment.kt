@@ -23,26 +23,21 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
 
         //TODO: Improve the dApp sample app. Code below is only for test purposes!
 //        val connectParams = WalletConnect.Params.Connect(
-//            permissions = WalletConnect.Model.SessionPermissions(
-//                WalletConnect.Model.Blockchain(listOf("eip155:42")),
-//                WalletConnect.Model.Jsonrpc(listOf("personal_sign"))
-//            ), pairingTopic = null
-//        )
-//        val uri = WalletConnectClient.connect(connectParams)
-//
-//        val qr = QRCode.from(uri).withSize(256, 256).file()
-//        Glide.with(requireContext()).load(qr).into(binding.qrCode)
+//            permissions = WalletConnect.Model.SessionPermissions(WalletConnect.Model.JsonRpc(listOf("eth_sign"))),
+//            blockchain = WalletConnect.Model.Blockchain(listOf("eip155:42")),
+//            pairingTopic = null)
+////
+//        WalletConnectClient.connect(connectParams, onWalletConnectUri = { proposedSequence ->
+//            (proposedSequence as WalletConnect.Model.ProposedSequence.Pairing).apply {
+//                val qr = QRCode.from(proposedSequence.uri).withSize(256, 256).file()
+//                Glide.with(requireContext()).load(qr).into(binding.qrCode)
+//            }
+//        })
     }
 
     private fun setupToolbar() {
         binding.dappToolbar.title = getString(R.string.app_name)
         binding.dappToolbar.setOnMenuItemClickListener { false }
-    }
-
-    override fun onPairingSettled(settledPairing: WalletConnect.Model.SettledPairing) {
-    }
-
-    override fun onPairingUpdated(pairing: WalletConnect.Model.PairingUpdate) {
     }
 
     override fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession) {
@@ -61,5 +56,9 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
     }
 
     override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {
+    }
+
+    override fun onSessionExtend(session: WalletConnect.Model.Session) {
+
     }
 }

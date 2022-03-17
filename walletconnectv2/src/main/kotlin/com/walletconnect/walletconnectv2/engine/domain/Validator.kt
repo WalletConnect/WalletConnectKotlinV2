@@ -1,26 +1,32 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
-import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
-import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.RelayProtocolOptionsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
+import com.walletconnect.walletconnectv2.util.Time
 import java.net.URI
 import java.net.URISyntaxException
 
 internal object Validator {
 
-    internal fun validateSessionPermissions(permissions: EngineDO.SessionPermissions, onInvalidPermissions: (String) -> Unit) {
+    internal fun validatePermissions(
+        jsonRpc: EngineDO.SessionPermissions.JsonRpc,
+        notifications: EngineDO.SessionPermissions.Notifications?,
+        onInvalidPermissions: (String) -> Unit,
+    ) {
         when {
-            !isBlockchainValid(permissions.blockchain) -> onInvalidPermissions(EMPTY_CHAIN_LIST_MESSAGE)
-            !isJsonRpcValid(permissions.jsonRpc) -> onInvalidPermissions(EMPTY_RPC_METHODS_LIST_MESSAGE)
-            permissions.notification != null && !areNotificationTypesValid(permissions.notification) ->
-                onInvalidPermissions(INVALID_NOTIFICATIONS_TYPES_MESSAGE)
-            permissions.blockchain.chains.any { chainId -> !isChainIdValid(chainId) } -> onInvalidPermissions(WRONG_CHAIN_ID_FORMAT_MESSAGE)
+            !isJsonRpcValid(jsonRpc) -> onInvalidPermissions(EMPTY_RPC_METHODS_LIST_MESSAGE)
+            notifications != null && !areNotificationTypesValid(notifications) -> onInvalidPermissions(INVALID_NOTIFICATIONS_TYPES_MESSAGE)
+        }
+    }
+
+    internal fun validateBlockchain(blockchain: EngineDO.Blockchain, onInvalidBlockchain: (String) -> Unit) {
+        when {
+            !isBlockchainValid(blockchain) -> onInvalidBlockchain(EMPTY_CHAIN_LIST_MESSAGE)
+            blockchain.chains.any { chainId -> !isChainIdValid(chainId) } -> onInvalidBlockchain(WRONG_CHAIN_ID_FORMAT_MESSAGE)
         }
     }
 
@@ -42,7 +48,7 @@ internal object Validator {
     }
 
     internal fun validateNotificationAuthorization(session: SessionVO, type: String, onUnauthorizedNotification: (String) -> Unit) {
-        if (session.controllerType != ControllerType.CONTROLLER && session.types?.contains(type) == false) {
+        if (!session.isSelfController && session.types?.contains(type) == false) {
             onUnauthorizedNotification(UNAUTHORIZED_NOTIFICATION_TYPE_MESSAGE)
         }
     }
@@ -55,11 +61,20 @@ internal object Validator {
 
     internal fun validateProposalFields(sessionProposal: EngineDO.SessionProposal, onInvalidProposal: (String) -> Unit) {
         with(sessionProposal) {
-            if (name.isEmpty() || description.isEmpty() || url.isEmpty() || icons.isEmpty() || chains.isEmpty() || methods.isEmpty() ||
-                topic.isEmpty() || publicKey.isEmpty() || relayProtocol.isEmpty()
+            if (name.isEmpty() || description.isEmpty() || url.isEmpty() || icons.isEmpty() || chains.isEmpty() ||
+                methods.isEmpty() || proposerPublicKey.isEmpty() || relayProtocol.isEmpty()
             ) {
                 onInvalidProposal(INVALID_SESSION_PROPOSAL_MESSAGE)
             }
+        }
+    }
+
+    internal fun validateSessionExtend(newExpiry: Long, currentExpiry: Long, onInvalidExtend: (String) -> Unit) {
+        val extendedExpiry = newExpiry - currentExpiry
+        val maxExpiry = Time.weekInSeconds
+
+        if (newExpiry <= currentExpiry || extendedExpiry > maxExpiry) {
+            onInvalidExtend(INVALID_EXTEND_TIME)
         }
     }
 
@@ -77,39 +92,31 @@ internal object Validator {
         val mapOfQueryParameters: Map<String, String> =
             pairUri.query.split("&").associate { query -> query.substringBefore("=") to query.substringAfter("=") }
 
-        var relay = ""
-        mapOfQueryParameters["relay"]?.let { relay = it } ?: return null
-        if (relay.isEmpty()) return null
+        var relayProtocol = ""
+        mapOfQueryParameters["relay-protocol"]?.let { relayProtocol = it } ?: return null
+        if (relayProtocol.isEmpty()) return null
 
+        var relayData: String? = ""
+        relayData = mapOfQueryParameters["relay-data"]
 
-        val moshi = Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
-        val protocolOptionsVO = moshi.adapter(RelayProtocolOptionsVO::class.java).fromJson(relay) ?: return null
-
-        var publicKey = ""
-        mapOfQueryParameters["publicKey"]?.let { publicKey = it } ?: return null
-        if (publicKey.isEmpty()) return null
-
-
-        var controller = ""
-        mapOfQueryParameters["controller"]?.let { controller = it } ?: return null
-        if (controller.isEmpty()) return null
-        val isController = controller.toBoolean()
+        var symKey = ""
+        mapOfQueryParameters["symKey"]?.let { symKey = it } ?: return null
+        if (symKey.isEmpty()) return null
 
         return EngineDO.WalletConnectUri(
             topic = TopicVO(pairUri.userInfo),
-            relay = protocolOptionsVO,
-            publicKey = PublicKey(publicKey),
-            isController = isController
+            relay = RelayProtocolOptionsVO(protocol = relayProtocol, data = relayData),
+            symKey = SecretKey(symKey)
         )
     }
 
-    internal fun isJsonRpcValid(jsonRpc: EngineDO.JsonRpc): Boolean =
+    internal fun isJsonRpcValid(jsonRpc: EngineDO.SessionPermissions.JsonRpc): Boolean =
         jsonRpc.methods.isNotEmpty() && jsonRpc.methods.all { method -> method.isNotEmpty() }
 
     internal fun isBlockchainValid(blockchain: EngineDO.Blockchain) =
         blockchain.chains.isNotEmpty() && blockchain.chains.any { chain -> chain.isNotEmpty() }
 
-    internal fun areNotificationTypesValid(notification: EngineDO.Notifications): Boolean =
+    internal fun areNotificationTypesValid(notification: EngineDO.SessionPermissions.Notifications): Boolean =
         notification.types.isNotEmpty() && notification.types.any { type -> type.isNotEmpty() }
 
     internal fun isChainIdValid(chainId: String): Boolean {
@@ -138,7 +145,6 @@ internal object Validator {
             val elements = accountId.split(":")
             if (elements.isEmpty() || elements.size != 3) return false
             val (namespace, reference, _) = splitAccountId(elements)
-
             val chainId = "$namespace:$reference"
             if (!chains.contains(chainId)) return false
         }
@@ -150,6 +156,20 @@ internal object Validator {
         val reference = elements[1]
         val accountAddress = elements[2]
         return Triple(namespace, reference, accountAddress)
+    }
+
+    fun getChainIds(accountIds: List<String>): List<String> {
+        val chains = mutableListOf<String>()
+        accountIds.forEach { accountId ->
+            chains.add(getChainId(accountId))
+        }
+        return chains
+    }
+
+    private fun getChainId(accountId: String): String {
+        val elements = accountId.split(":")
+        val (namespace, reference, _) = splitAccountId(elements)
+        return "$namespace:$reference"
     }
 
     private const val NAMESPACE_REGEX: String = "^[-a-z0-9]{3,8}$"
