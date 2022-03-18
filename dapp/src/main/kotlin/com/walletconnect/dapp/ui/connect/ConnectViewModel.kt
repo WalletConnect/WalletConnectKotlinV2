@@ -64,7 +64,8 @@ class ConnectViewModel : ViewModel() {
             jsonRpc = WalletConnect.Model.SessionPermissions.JsonRpc(methods = methods),
             notification = null
         )
-        val connectParams = WalletConnect.Params.Connect(permissions = sessionPermissions,
+        val connectParams = WalletConnect.Params.Connect(
+            permissions = sessionPermissions,
             blockchain = WalletConnect.Model.Blockchain(chains = blockchains),
             pairingTopic = pairingTopic)
 

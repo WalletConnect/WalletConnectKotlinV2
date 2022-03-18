@@ -27,8 +27,8 @@ internal sealed class SessionParamsVO : ClientParams {
         val permission: SessionPermissionsVO,
         @Json(name = "controller")
         val controller: SessionParticipantVO,
-        @Json(name = "expiryTimestamp")
-        val expiryTimestamp: Long,
+        @Json(name = "expiry")
+        val expiry: Long,
     ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)

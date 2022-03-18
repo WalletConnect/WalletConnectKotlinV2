@@ -212,7 +212,7 @@ internal class WalletConnectRelayer(
     private fun setOnConnectionOpen(event: WebSocket.Event) {
         if (event is WebSocket.Event.OnConnectionOpened<*>) {
             _isConnectionOpened.compareAndSet(expect = false, update = true)
-        } else if (event is WebSocket.Event.OnConnectionClosed) {
+        } else if (event is WebSocket.Event.OnConnectionClosed || event is WebSocket.Event.OnConnectionFailed) {
             _isConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }

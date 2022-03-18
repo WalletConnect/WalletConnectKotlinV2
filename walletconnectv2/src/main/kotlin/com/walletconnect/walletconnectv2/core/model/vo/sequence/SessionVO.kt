@@ -65,7 +65,7 @@ internal data class SessionVO(
         ): SessionVO {
             return SessionVO(
                 sessionTopic,
-                ExpiryVO(settleParams.expiryTimestamp),
+                ExpiryVO(settleParams.expiry),
                 relayProtocol = settleParams.relay.protocol,
                 relayData = settleParams.relay.data,
                 peerParticipant = PublicKey(settleParams.controller.publicKey),

@@ -133,7 +133,7 @@ internal fun EngineDO.SessionProposal.toSessionSettleParams(
         permission = SessionPermissionsVO(JsonRpcVO(methods = methods),
             notifications = if (types != null) NotificationsVO(types) else null),
         controller = selfParticipant,
-        expiryTimestamp = sessionExpiry)
+        expiry = sessionExpiry)
 
 @JvmSynthetic
 internal fun EngineDO.SessionPermissions.toSessionsPermissionsVO(): SessionPermissionsVO =
