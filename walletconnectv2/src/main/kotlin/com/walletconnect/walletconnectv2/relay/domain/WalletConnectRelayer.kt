@@ -77,6 +77,8 @@ internal class WalletConnectRelayer(
     ) {
         val requestJson = serializer.serialize(payload)
 
+        Logger.error("Topic: $topic; Publishing request: $requestJson")
+
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encodedRequest = serializer.encode(requestJson, topic)
             relay.publish(topic, encodedRequest, shouldPrompt(payload.method)) { result ->
@@ -96,6 +98,9 @@ internal class WalletConnectRelayer(
     ) {
         val jsonResponseDO = response.toRelayDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
+
+        Logger.error("Topic: $topic; Publishing response: $responseJson")
+
         val encodedJson = serializer.encode(responseJson, topic)
 
         relay.publish(topic, encodedJson) { result ->
@@ -164,6 +169,8 @@ internal class WalletConnectRelayer(
                     val decodedMessage = serializer.decode(relayRequest.message, relayRequest.subscriptionTopic)
                     val topic = relayRequest.subscriptionTopic
 
+                    Logger.error("Peer message: $decodedMessage")
+
                     Pair(decodedMessage, topic)
                 }
                 .collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
@@ -182,6 +189,9 @@ internal class WalletConnectRelayer(
 
     private suspend fun handleRequest(clientJsonRpc: RelayDO.ClientJsonRpc, topic: TopicVO, decryptedMessage: String) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
+
+            Logger.error("ClientJsonRpc: $clientJsonRpc")
+
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(WCRequestVO(topic, clientJsonRpc.id, clientJsonRpc.method, params))
             } ?: Logger.error("WalletConnectRelay: Unknown request params")

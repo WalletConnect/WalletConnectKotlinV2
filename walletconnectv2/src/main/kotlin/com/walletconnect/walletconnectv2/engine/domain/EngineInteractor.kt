@@ -460,6 +460,8 @@ internal class EngineInteractor(
         val (_, selfPublicKey) = crypto.getKeyAgreement(sessionTopic)
         val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toMetaDataVO())
         sequenceStorageRepository.insertSession(session)
+
+        //todo: update pairing with the peer metadata
         relayer.respondWithResult(request)
         scope.launch { _sequenceEvent.emit(session.toSessionApproved()) }
     }
@@ -624,6 +626,8 @@ internal class EngineInteractor(
     private fun onSessionProposalResponse(wcResponse: WCResponseVO, params: PairingParamsVO.SessionProposeParams) {
         val pairingTopic = wcResponse.topic
         if (!sequenceStorageRepository.isPairingValid(pairingTopic)) return
+
+        //todo: set pairing as active
         sequenceStorageRepository.updatePairingExpiry(pairingTopic, Expiration.activePairing)
 
         when (val response = wcResponse.response) {
@@ -636,6 +640,7 @@ internal class EngineInteractor(
                 relayer.subscribe(sessionTopic)
             }
             is JsonRpcResponseVO.JsonRpcError -> {
+                //todo: remove inactive pairing
                 Logger.log("Session proposal reject received: ${response.error}")
                 scope.launch { _sequenceEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
             }

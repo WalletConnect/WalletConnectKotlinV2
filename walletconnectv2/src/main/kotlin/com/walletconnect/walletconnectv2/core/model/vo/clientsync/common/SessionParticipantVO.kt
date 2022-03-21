@@ -8,5 +8,5 @@ internal data class SessionParticipantVO(
     @Json(name = "publicKey")
     val publicKey: String,
     @Json(name = "metadata")
-    val metadata: MetaDataVO? = null,
+    val metadata: MetaDataVO,
 )
