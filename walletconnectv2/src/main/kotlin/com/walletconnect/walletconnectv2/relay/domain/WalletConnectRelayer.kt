@@ -9,6 +9,7 @@ import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionSettlementVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.WCRequestVO
@@ -76,9 +77,6 @@ internal class WalletConnectRelayer(
         onFailure: (Throwable) -> Unit = {},
     ) {
         val requestJson = serializer.serialize(payload)
-
-        Logger.error("Topic: $topic; Publishing request: $requestJson")
-
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encodedRequest = serializer.encode(requestJson, topic)
             relay.publish(topic, encodedRequest, shouldPrompt(payload.method)) { result ->
@@ -98,9 +96,6 @@ internal class WalletConnectRelayer(
     ) {
         val jsonResponseDO = response.toRelayDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
-
-        Logger.error("Topic: $topic; Publishing response: $responseJson")
-
         val encodedJson = serializer.encode(responseJson, topic)
 
         relay.publish(topic, encodedJson) { result ->
@@ -114,10 +109,14 @@ internal class WalletConnectRelayer(
         }
     }
 
-    internal fun respondWithResult(request: WCRequestVO, params: ClientParams? = null) {
-        val jsonResult = getResult(params)
-        val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = jsonResult)
+    //todo: figure out more generic way of serialization
+    internal fun respondWithParams(request: WCRequestVO, params: ClientParams) {
+        val result = JsonRpcResponseVO.JsonRpcSessionApprove(id = request.id, result = params as SessionParamsVO.ApprovalParams)
+        publishJsonRpcResponse(request.topic, result, onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
+    }
 
+    internal fun respondWithSuccess(request: WCRequestVO) {
+        val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = true)
         publishJsonRpcResponse(request.topic, result, onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
     }
 
@@ -169,17 +168,16 @@ internal class WalletConnectRelayer(
                     val decodedMessage = serializer.decode(relayRequest.message, relayRequest.subscriptionTopic)
                     val topic = relayRequest.subscriptionTopic
 
-                    Logger.error("Peer message: $decodedMessage")
-
                     Pair(decodedMessage, topic)
-                }
-                .collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
+                }.collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
         }
     }
 
     private suspend fun manageSubscriptions(decryptedMessage: String, topic: TopicVO) {
         serializer.tryDeserialize<RelayDO.ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
             handleRequest(clientJsonRpc, topic, decryptedMessage)
+        } ?: serializer.tryDeserialize<RelayDO.JsonRpcResponse.JsonRpcSessionApprove>(decryptedMessage)?.let { approveSession ->
+            handleApproveSession(approveSession)
         } ?: serializer.tryDeserialize<RelayDO.JsonRpcResponse.JsonRpcResult>(decryptedMessage)?.let { result ->
             handleJsonRpcResult(result)
         } ?: serializer.tryDeserialize<RelayDO.JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
@@ -189,12 +187,20 @@ internal class WalletConnectRelayer(
 
     private suspend fun handleRequest(clientJsonRpc: RelayDO.ClientJsonRpc, topic: TopicVO, decryptedMessage: String) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
-
-            Logger.error("ClientJsonRpc: $clientJsonRpc")
-
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(WCRequestVO(topic, clientJsonRpc.id, clientJsonRpc.method, params))
             } ?: Logger.error("WalletConnectRelay: Unknown request params")
+        }
+    }
+
+    private suspend fun handleApproveSession(jsonRpcResult: RelayDO.JsonRpcResponse.JsonRpcSessionApprove) {
+        val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcResult.id, serializer.serialize(jsonRpcResult))
+
+        if (jsonRpcRecord != null) {
+            serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
+                val responseVO = JsonRpcResponseVO.JsonRpcSessionApprove(jsonRpcResult.id, result = jsonRpcResult.result)
+                _peerResponse.emit(jsonRpcRecord.toWCResponse(responseVO, params))
+            } ?: Logger.error("WalletConnectRelay: Unknown result params")
         }
     }
 
@@ -203,8 +209,8 @@ internal class WalletConnectRelayer(
 
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
-                val result = serializer.deserializeJsonRpcResultWithParams(params, jsonRpcResult)
-                _peerResponse.emit(jsonRpcRecord.toWCResponse(JsonRpcResponseVO.JsonRpcResult(jsonRpcResult.id, result = result), params))
+                val responseVO = JsonRpcResponseVO.JsonRpcResult(jsonRpcResult.id, result = jsonRpcResult.result)
+                _peerResponse.emit(jsonRpcRecord.toWCResponse(responseVO, params))
             } ?: Logger.error("WalletConnectRelay: Unknown result params")
         }
     }
@@ -225,11 +231,6 @@ internal class WalletConnectRelayer(
         } else if (event is WebSocket.Event.OnConnectionClosed || event is WebSocket.Event.OnConnectionFailed) {
             _isConnectionOpened.compareAndSet(expect = true, update = false)
         }
-    }
-
-    private fun getResult(params: ClientParams?): Any {
-        return if (params != null) serializer.serialize(params)
-        else true
     }
 
     private fun shouldPrompt(method: String): Boolean = method == JsonRpcMethod.WC_SESSION_REQUEST

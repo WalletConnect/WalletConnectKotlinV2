@@ -23,7 +23,7 @@ internal sealed class SessionParamsVO : ClientParams {
         val relay: RelayProtocolOptionsVO,
         @Json(name = "blockchain")
         val blockchain: BlockchainSettledVO,
-        @Json(name = "permission")
+        @Json(name = "permissions")
         val permission: SessionPermissionsVO,
         @Json(name = "controller")
         val controller: SessionParticipantVO,
@@ -66,7 +66,7 @@ internal sealed class SessionParamsVO : ClientParams {
     ) : SessionParamsVO()
 
     internal data class ExtendParams(
-        @Json(name = "ttl")
+        @Json(name = "ttl") //todo: change to the expiry
         val ttl: Long,
     ) : SessionParamsVO()
 }

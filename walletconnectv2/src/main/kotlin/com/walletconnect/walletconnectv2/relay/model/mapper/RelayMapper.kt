@@ -3,6 +3,7 @@ package com.walletconnect.walletconnectv2.relay.model.mapper
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionSettlementVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcHistoryVO
 import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.PendingRequestVO
@@ -14,6 +15,9 @@ internal fun JsonRpcResponseVO.toRelayDOJsonRpcResponse(): RelayDO.JsonRpcRespon
     when (this) {
         is JsonRpcResponseVO.JsonRpcResult -> toRelayDOJsonRpcResult()
         is JsonRpcResponseVO.JsonRpcError -> toRelayDORpcError()
+        is JsonRpcResponseVO.JsonRpcSessionApprove ->
+            RelayDO.JsonRpcResponse.JsonRpcSessionApprove(id,
+                result = SessionParamsVO.ApprovalParams(relay = result.relay, responder = result.responder))
     }
 
 @JvmSynthetic
