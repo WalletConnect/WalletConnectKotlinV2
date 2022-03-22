@@ -1,4 +1,3 @@
-import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus;
 import java.lang.Boolean;
 import kotlin.collections.List;
 

@@ -61,7 +61,8 @@ internal class SequenceStorageRepository(
                     expiry = ExpiryVO(entity.expiry),
                     uri = entity.uri,
                     relayProtocol = entity.relay_protocol,
-                    relayData = entity.relay_data
+                    relayData = entity.relay_data,
+                    isActive = entity.is_active
                 )
             }
 
@@ -82,7 +83,8 @@ internal class SequenceStorageRepository(
                 peerMetadataId,
                 relayProtocol,
                 relayData,
-                uri
+                uri,
+                isActive
             )
         }
     }
@@ -189,6 +191,7 @@ internal class SequenceStorageRepository(
         peerDesc: String?,
         peerUrl: String?,
         peerIcons: List<String>?,
+        is_active: Boolean,
     ): PairingVO {
         val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
             MetaDataVO(selfName, selfDesc, selfUrl, selfIcons)
@@ -209,7 +212,8 @@ internal class SequenceStorageRepository(
             peerMetaData = peerMetaData,
             relayProtocol = relay_protocol,
             relayData = relay_data,
-            uri = uri
+            uri = uri,
+            isActive = is_active
         )
     }
 
