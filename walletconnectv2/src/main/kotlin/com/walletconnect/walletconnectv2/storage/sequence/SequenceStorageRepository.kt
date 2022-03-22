@@ -73,14 +73,12 @@ internal class SequenceStorageRepository(
     @JvmSynthetic
     fun insertPairing(pairing: PairingVO) {
         val selfMetadataId = insertMetaData(pairing.selfMetaData)
-        val peerMetadataId = insertMetaData(pairing.peerMetaData)
 
         with(pairing) {
             pairingDaoQueries.insertPairing(
                 topic.value,
                 expiry.seconds,
                 selfMetadataId,
-                peerMetadataId,
                 relayProtocol,
                 relayData,
                 uri,
@@ -90,8 +88,14 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun updatePairingExpiry(topic: TopicVO, expiryInSeconds: Long) {
-        pairingDaoQueries.updatePairingExpiry(expiryInSeconds, topic.value)
+    fun activatePairing(topic: TopicVO, expiryInSeconds: Long) {
+        pairingDaoQueries.activatePairing(expiryInSeconds, true, topic.value)
+    }
+
+    @JvmSynthetic
+    fun updatePairingPeerMetadata(topic: TopicVO, metaData: MetaDataVO?) {
+        val peerMetadataId = insertMetaData(metaData)
+        pairingDaoQueries.updatePairingPeerMetadata(peerMetadataId, topic.value)
     }
 
     @JvmSynthetic

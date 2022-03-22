@@ -30,7 +30,7 @@ internal data class PairingVO(
                 uri = uri,
                 relayProtocol = relay.protocol,
                 relayData = relay.data,
-                peerMetaData = metaData.toMetaDataVO(),
+                selfMetaData = metaData.toMetaDataVO(),
                 isActive = false
             )
         }

@@ -371,7 +371,8 @@ internal class EngineInteractor(
         }
 
         sequenceStorageRepository.updateSessionExpiry(TopicVO(topic), newExpiration)
-        val sessionExtend = SessionSettlementVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(ttl = newExpiration))
+        val sessionExtend =
+            SessionSettlementVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(expiry = newExpiration))
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionExtend,
             onSuccess = { Logger.error("Session extend sent successfully") },
             onFailure = { error ->
@@ -460,10 +461,39 @@ internal class EngineInteractor(
         val (_, selfPublicKey) = crypto.getKeyAgreement(sessionTopic)
         val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toMetaDataVO())
         sequenceStorageRepository.insertSession(session)
-
-        //todo: update pairing with the peer metadata
         relayer.respondWithSuccess(request)
         scope.launch { _sequenceEvent.emit(session.toSessionApproved()) }
+    }
+
+    private fun onSessionProposalResponse(wcResponse: WCResponseVO, params: PairingParamsVO.SessionProposeParams) {
+        val pairingTopic = wcResponse.topic
+        if (!sequenceStorageRepository.isPairingValid(pairingTopic)) return
+        val pairing = sequenceStorageRepository.getPairingByTopic(pairingTopic)
+        if (!pairing.isActive) {
+            sequenceStorageRepository.activatePairing(pairingTopic, Expiration.activePairing)
+        }
+
+        when (val response = wcResponse.response) {
+            is JsonRpcResponseVO.JsonRpcSessionApprove -> {
+                Logger.log("Session proposal approve received")
+                val selfPublicKey = PublicKey(params.proposer.publicKey)
+                val approveParams = response.result
+                val responderPublicKey = PublicKey(approveParams.responder.publicKey)
+                val (_, sessionTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, responderPublicKey)
+
+                //todo: update pairing with the peer metadata
+//        val peerMetadata = settleParams.controller.metadata
+//        sequenceStorageRepository.updatePairingPeerMetadata()
+
+                relayer.subscribe(sessionTopic)
+            }
+            is JsonRpcResponseVO.JsonRpcError -> {
+                if (!pairing.isActive) sequenceStorageRepository.deletePairing(pairingTopic)
+                Logger.log("Session proposal reject received: ${response.error}")
+                scope.launch { _sequenceEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
+            }
+            else -> Logger.error("Unknown JsonRpc")
+        }
     }
 
     private fun onPairingDelete(request: WCRequestVO, params: PairingParamsVO.DeleteParams) {
@@ -594,7 +624,7 @@ internal class EngineInteractor(
             return
         }
 
-        val ttl = requestParams.ttl
+        val ttl = requestParams.expiry
         Validator.validateSessionExtend(ttl, session.expiry.seconds) {
             relayer.respondWithError(request, PeerError(Error.UnauthorizedExtendRequest(Sequences.SESSION.name)))
             return@validateSessionExtend
@@ -620,28 +650,6 @@ internal class EngineInteractor(
                     is SessionParamsVO.SessionRequestParams -> onSessionRequestResponse(response, params)
                 }
             }
-        }
-    }
-
-    private fun onSessionProposalResponse(wcResponse: WCResponseVO, params: PairingParamsVO.SessionProposeParams) {
-        val pairingTopic = wcResponse.topic
-        if (!sequenceStorageRepository.isPairingValid(pairingTopic)) return
-        sequenceStorageRepository.updatePairingExpiry(pairingTopic, Expiration.activePairing)
-
-        when (val response = wcResponse.response) {
-            is JsonRpcResponseVO.JsonRpcSessionApprove -> {
-                Logger.log("Session proposal approve received")
-                val selfPublicKey = PublicKey(params.proposer.publicKey)
-                val approveParams = response.result
-                val responderPublicKey = PublicKey(approveParams.responder.publicKey)
-                val (_, sessionTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, responderPublicKey)
-                relayer.subscribe(sessionTopic)
-            }
-            is JsonRpcResponseVO.JsonRpcError -> {
-                Logger.log("Session proposal reject received: ${response.error}")
-                scope.launch { _sequenceEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
-            }
-            else -> Logger.error("Unknown JsonRpc")
         }
     }
 

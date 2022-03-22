@@ -66,7 +66,7 @@ internal sealed class SessionParamsVO : ClientParams {
     ) : SessionParamsVO()
 
     internal data class ExtendParams(
-        @Json(name = "ttl") //todo: change to the expiry
-        val ttl: Long,
+        @Json(name = "expiry")
+        val expiry: Long,
     ) : SessionParamsVO()
 }
