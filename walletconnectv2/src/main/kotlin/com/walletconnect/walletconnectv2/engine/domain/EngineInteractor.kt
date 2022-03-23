@@ -175,7 +175,7 @@ internal class EngineInteractor(
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val (_, sessionTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, PublicKey(proposal.proposerPublicKey))
         relayer.subscribe(sessionTopic)
-        val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
+        val approvalParams = proposal.toSessionApproveParams(selfPublicKey, metaData.toMetaDataVO())
         relayer.respondWithParams(request, approvalParams)
         sessionSettle(proposal, sessionTopic) { error -> onFailure(error) }
     }
@@ -476,14 +476,14 @@ internal class EngineInteractor(
         when (val response = wcResponse.response) {
             is JsonRpcResponseVO.JsonRpcSessionApprove -> {
                 Logger.log("Session proposal approve received")
+
                 val selfPublicKey = PublicKey(params.proposer.publicKey)
                 val approveParams = response.result
                 val responderPublicKey = PublicKey(approveParams.responder.publicKey)
                 val (_, sessionTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, responderPublicKey)
 
-                //todo: update pairing with the peer metadata
-//        val peerMetadata = settleParams.controller.metadata
-//        sequenceStorageRepository.updatePairingPeerMetadata()
+                val peerMetadata = approveParams.responder.metadata
+                sequenceStorageRepository.updatePairingPeerMetadata(pairingTopic, peerMetadata)
 
                 relayer.subscribe(sessionTopic)
             }

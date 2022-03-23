@@ -3,7 +3,10 @@ package com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.param
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.*
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.ReasonVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionPermissionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.BlockchainSettledVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionRequestVO
 
@@ -14,7 +17,7 @@ internal sealed class SessionParamsVO : ClientParams {
         @Json(name = "relay")
         val relay: RelayProtocolOptionsVO,
         @Json(name = "responder")
-        val responder: AgreementPeer,
+        val responder: SessionParticipantVO,
     ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)

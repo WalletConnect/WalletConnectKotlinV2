@@ -3,7 +3,10 @@ package com.walletconnect.walletconnectv2.engine.model.mapper
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.*
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.MetaDataVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionPermissionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.payload.BlockchainProposedVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.payload.SessionProposerVO
@@ -171,10 +174,13 @@ internal fun EngineDO.SessionProposal.toSessionPermissions(): EngineDO.SessionPe
     )
 
 @JvmSynthetic
-internal fun EngineDO.SessionProposal.toSessionApproveParams(selfPublicKey: PublicKey): SessionParamsVO.ApprovalParams =
+internal fun EngineDO.SessionProposal.toSessionApproveParams(
+    selfPublicKey: PublicKey,
+    metaDataVO: MetaDataVO,
+): SessionParamsVO.ApprovalParams =
     SessionParamsVO.ApprovalParams(
         relay = RelayProtocolOptionsVO(relayProtocol, relayData),
-        responder = AgreementPeer(selfPublicKey.keyAsHex))
+        responder = SessionParticipantVO(selfPublicKey.keyAsHex, metaDataVO))
 
 @JvmSynthetic
 internal fun SessionPermissionsVO.toEngineDOPermissions(): EngineDO.SessionPermissions =
