@@ -3,7 +3,7 @@ package com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.paylo
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-@JsonClass(generateAdapter = true)
+@JsonClass(generateAdapter = false)
 internal data class SessionRequestVO(
     @Json(name = "method")
     val method: String,
