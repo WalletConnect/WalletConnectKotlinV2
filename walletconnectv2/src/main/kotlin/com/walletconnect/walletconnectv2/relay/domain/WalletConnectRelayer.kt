@@ -76,6 +76,9 @@ internal class WalletConnectRelayer(
         onFailure: (Throwable) -> Unit = {},
     ) {
         val requestJson = serializer.serialize(payload)
+
+        Logger.error("Publishing request: $requestJson")
+
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encodedRequest = serializer.encode(requestJson, topic)
             relay.publish(topic, encodedRequest, shouldPrompt(payload.method)) { result ->
@@ -95,6 +98,9 @@ internal class WalletConnectRelayer(
     ) {
         val jsonResponseDO = response.toRelayDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
+
+        Logger.error("Publishing response: $responseJson")
+
         val encodedJson = serializer.encode(responseJson, topic)
 
         relay.publish(topic, encodedJson) { result ->
@@ -215,8 +221,9 @@ internal class WalletConnectRelayer(
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
 
-
                 val responseVO = JsonRpcResponseVO.JsonRpcResult(jsonRpcResult.id, result = jsonRpcResult.result)
+
+                Logger.error("Response: $responseVO")
 
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(responseVO, params))
             } ?: Logger.error("WalletConnectRelay: Unknown result params")

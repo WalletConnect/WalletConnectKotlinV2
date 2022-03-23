@@ -635,6 +635,8 @@ internal class EngineInteractor(
 
                 val approveParams = response.result as SessionParamsVO.ApprovalParams
 
+                Logger.log("Approve params: $approveParams}")
+
                 val responderPublicKey = PublicKey(approveParams.responder.publicKey)
                 val (_, sessionTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, responderPublicKey)
                 relayer.subscribe(sessionTopic)
@@ -643,7 +645,6 @@ internal class EngineInteractor(
                 Logger.log("Session proposal reject received: ${response.error}")
                 scope.launch { _sequenceEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
             }
-//            else -> Logger.error("Unknown JsonRpc")
         }
     }
 
@@ -664,7 +665,6 @@ internal class EngineInteractor(
                 sequenceStorageRepository.deleteSession(sessionTopic)
                 crypto.removeKeys(sessionTopic.value)
             }
-//            else -> Logger.error("Unknown JsonRpc")
         }
     }
 
@@ -682,7 +682,6 @@ internal class EngineInteractor(
                 Logger.error("Peer failed to upgrade session: ${response.error}")
                 scope.launch { _sequenceEvent.emit(EngineDO.SessionUpgradeResponse.Error(response.errorMessage)) }
             }
-//            else -> Logger.error("Unknown JsonRpc")
         }
     }
 
@@ -708,7 +707,6 @@ internal class EngineInteractor(
         val result = when (response.response) {
             is JsonRpcResponseVO.JsonRpcResult -> response.response.toEngineJsonRpcResult()
             is JsonRpcResponseVO.JsonRpcError -> response.response.toEngineJsonRpcError()
-//            is JsonRpcResponseVO.JsonRpcSessionApprove -> TODO()
         }
         val method = params.request.method
         scope.launch { _sequenceEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
