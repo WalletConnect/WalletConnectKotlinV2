@@ -3,24 +3,25 @@ CREATE TABLE PairingDao (
     topic TEXT UNIQUE NOT NULL,
     expiry INTEGER NOT NULL,
     self_metadata_id INTEGER NOT NULL,
-    peer_metadata_id INTEGER NOT NULL,
+    peer_metadata_id INTEGER,
     relay_protocol TEXT NOT NULL,
     relay_data TEXT,
-    uri TEXT NOT NULL
+    uri TEXT NOT NULL,
+    is_active  INTEGER AS Boolean NOT NULL
 );
 
 insertPairing:
-INSERT OR IGNORE INTO PairingDao(topic, expiry, self_metadata_id, peer_metadata_id, relay_protocol,  relay_data, uri)
-VALUES (?, ?,  ?,    ?, ?, ?, ?);
+INSERT OR IGNORE INTO PairingDao(topic, expiry, self_metadata_id, relay_protocol,  relay_data, uri, is_active)
+VALUES (?,?,?,?,?,?,?);
 
 getListOfPairingDaos:
-SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, mdd_self.name, mdd_self.description, mdd_self.url, mdd_self.icons,  mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons
+SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, mdd_self.name, mdd_self.description, mdd_self.url, mdd_self.icons,  mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, pd.is_active
 FROM PairingDao pd
     LEFT JOIN MetaDataDao mdd_self ON pd.self_metadata_id = mdd_self.id
     LEFT JOIN MetaDataDao mdd_peer ON pd.peer_metadata_id = mdd_peer.id;
 
 getPairingByTopic:
-SELECT topic, expiry, relay_protocol, relay_data, uri
+SELECT topic, expiry, relay_protocol, relay_data, uri, is_active
 FROM PairingDao
 WHERE ? = topic;
 
@@ -28,9 +29,14 @@ deletePairing:
 DELETE FROM PairingDao
 WHERE ? = topic;
 
-updatePairingExpiry:
+activatePairing:
 UPDATE OR ABORT PairingDao
-SET expiry = ?
+SET expiry = ?, is_active = ?
+WHERE topic = ?;
+
+updatePairingPeerMetadata:
+UPDATE OR ABORT PairingDao
+SET peer_metadata_id = ?
 WHERE topic = ?;
 
 hasTopic:

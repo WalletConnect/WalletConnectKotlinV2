@@ -61,7 +61,8 @@ internal class SequenceStorageRepository(
                     expiry = ExpiryVO(entity.expiry),
                     uri = entity.uri,
                     relayProtocol = entity.relay_protocol,
-                    relayData = entity.relay_data
+                    relayData = entity.relay_data,
+                    isActive = entity.is_active
                 )
             }
 
@@ -72,24 +73,29 @@ internal class SequenceStorageRepository(
     @JvmSynthetic
     fun insertPairing(pairing: PairingVO) {
         val selfMetadataId = insertMetaData(pairing.selfMetaData)
-        val peerMetadataId = insertMetaData(pairing.peerMetaData)
 
         with(pairing) {
             pairingDaoQueries.insertPairing(
                 topic.value,
                 expiry.seconds,
                 selfMetadataId,
-                peerMetadataId,
                 relayProtocol,
                 relayData,
-                uri
+                uri,
+                isActive
             )
         }
     }
 
     @JvmSynthetic
-    fun updatePairingExpiry(topic: TopicVO, expiryInSeconds: Long) {
-        pairingDaoQueries.updatePairingExpiry(expiryInSeconds, topic.value)
+    fun activatePairing(topic: TopicVO, expiryInSeconds: Long) {
+        pairingDaoQueries.activatePairing(expiryInSeconds, true, topic.value)
+    }
+
+    @JvmSynthetic
+    fun updatePairingPeerMetadata(topic: TopicVO, metaData: MetaDataVO?) {
+        val peerMetadataId = insertMetaData(metaData)
+        pairingDaoQueries.updatePairingPeerMetadata(peerMetadataId, topic.value)
     }
 
     @JvmSynthetic
@@ -189,6 +195,7 @@ internal class SequenceStorageRepository(
         peerDesc: String?,
         peerUrl: String?,
         peerIcons: List<String>?,
+        is_active: Boolean,
     ): PairingVO {
         val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
             MetaDataVO(selfName, selfDesc, selfUrl, selfIcons)
@@ -209,7 +216,8 @@ internal class SequenceStorageRepository(
             peerMetaData = peerMetaData,
             relayProtocol = relay_protocol,
             relayData = relay_data,
-            uri = uri
+            uri = uri,
+            isActive = is_active
         )
     }
 

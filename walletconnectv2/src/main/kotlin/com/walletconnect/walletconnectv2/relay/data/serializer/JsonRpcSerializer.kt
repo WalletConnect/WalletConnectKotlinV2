@@ -6,9 +6,7 @@ import com.walletconnect.walletconnectv2.core.model.type.SerializableJsonRpc
 import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.PairingSettlementVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionSettlementVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.payload.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.relay.Codec
@@ -51,13 +49,6 @@ internal class JsonRpcSerializer(
             else -> null
         }
 
-    internal fun deserializeJsonRpcResultWithParams(params: ClientParams, jsonRpcResult: RelayDO.JsonRpcResponse.JsonRpcResult): Any =
-        when (params) {
-            is PairingParamsVO.SessionProposeParams ->
-                tryDeserialize<SessionParamsVO.ApprovalParams>(jsonRpcResult.result.toString()) ?: jsonRpcResult.result
-            else -> jsonRpcResult.result
-        }
-
     fun serialize(payload: SerializableJsonRpc): String =
         when (payload) {
             is PairingSettlementVO.SessionPropose -> trySerialize(payload)
@@ -71,7 +62,6 @@ internal class JsonRpcSerializer(
             is SessionSettlementVO.SessionDelete -> trySerialize(payload)
             is SessionSettlementVO.SessionSettle -> trySerialize(payload)
             is SessionSettlementVO.SessionExtend -> trySerialize(payload)
-            is SessionParamsVO.ApprovalParams -> trySerialize(payload)
             is RelayDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
             is RelayDO.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             else -> String.Empty

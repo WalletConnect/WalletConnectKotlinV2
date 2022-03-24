@@ -175,8 +175,8 @@ internal class EngineInteractor(
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val (_, sessionTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, PublicKey(proposal.proposerPublicKey))
         relayer.subscribe(sessionTopic)
-        val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
-        relayer.respondWithResult(request, approvalParams)
+        val approvalParams = proposal.toSessionApproveParams(selfPublicKey, metaData.toMetaDataVO())
+        relayer.respondWithParams(request, approvalParams)
         sessionSettle(proposal, sessionTopic) { error -> onFailure(error) }
     }
 
@@ -371,7 +371,8 @@ internal class EngineInteractor(
         }
 
         sequenceStorageRepository.updateSessionExpiry(TopicVO(topic), newExpiration)
-        val sessionExtend = SessionSettlementVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(ttl = newExpiration))
+        val sessionExtend =
+            SessionSettlementVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(expiry = newExpiration))
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionExtend,
             onSuccess = { Logger.error("Session extend sent successfully") },
             onFailure = { error ->
@@ -460,7 +461,7 @@ internal class EngineInteractor(
         val (_, selfPublicKey) = crypto.getKeyAgreement(sessionTopic)
         val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toMetaDataVO())
         sequenceStorageRepository.insertSession(session)
-        relayer.respondWithResult(request)
+        relayer.respondWithSuccess(request)
         scope.launch { _sequenceEvent.emit(session.toSessionApproved()) }
     }
 
@@ -485,7 +486,7 @@ internal class EngineInteractor(
         crypto.removeKeys(request.topic.value)
         sequenceStorageRepository.deleteSession(request.topic)
         relayer.unsubscribe(request.topic)
-        relayer.respondWithResult(request)
+        relayer.respondWithSuccess(request)
         scope.launch { _sequenceEvent.emit(params.toEngineDoDeleteSession(request.topic)) }
     }
 
@@ -527,7 +528,7 @@ internal class EngineInteractor(
         }
 
         sequenceStorageRepository.updateSessionWithAccounts(session.topic, params.blockchain.accounts)
-        relayer.respondWithResult(request)
+        relayer.respondWithSuccess(request)
         scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdate(request.topic, params.blockchain.accounts)) }
     }
 
@@ -552,7 +553,7 @@ internal class EngineInteractor(
         val notificationTypes = params.permissions.notifications?.types ?: listOf()
         val methods = params.permissions.jsonRpc.methods
         sequenceStorageRepository.upgradeSessionWithPermissions(request.topic, notificationTypes, methods)
-        relayer.respondWithResult(request)
+        relayer.respondWithSuccess(request)
 
         val typesUnion = session.chains.union(notificationTypes).toList()
         val methodsUnion = session.methods.union(methods).toList()
@@ -576,7 +577,7 @@ internal class EngineInteractor(
             return@validateNotificationAuthorization
         }
 
-        relayer.respondWithResult(request)
+        relayer.respondWithSuccess(request)
         scope.launch { _sequenceEvent.emit(params.toEngineDoSessionNotification(request.topic)) }
     }
 
@@ -592,19 +593,19 @@ internal class EngineInteractor(
             return
         }
 
-        val ttl = requestParams.ttl
+        val ttl = requestParams.expiry
         Validator.validateSessionExtend(ttl, session.expiry.seconds) {
             relayer.respondWithError(request, PeerError(Error.UnauthorizedExtendRequest(Sequences.SESSION.name)))
             return@validateSessionExtend
         }
 
         sequenceStorageRepository.updateSessionExpiry(request.topic, ttl)
-        relayer.respondWithResult(request)
+        relayer.respondWithSuccess(request)
         scope.launch { _sequenceEvent.emit(session.toEngineDOExtendedSessionVO(ExpiryVO(ttl))) }
     }
 
     private fun onPing(request: WCRequestVO) {
-        relayer.respondWithResult(request)
+        relayer.respondWithSuccess(request)
     }
 
     private fun collectJsonRpcResponses() {
@@ -624,18 +625,24 @@ internal class EngineInteractor(
     private fun onSessionProposalResponse(wcResponse: WCResponseVO, params: PairingParamsVO.SessionProposeParams) {
         val pairingTopic = wcResponse.topic
         if (!sequenceStorageRepository.isPairingValid(pairingTopic)) return
-        sequenceStorageRepository.updatePairingExpiry(pairingTopic, Expiration.activePairing)
+        val pairing = sequenceStorageRepository.getPairingByTopic(pairingTopic)
+        if (!pairing.isActive) {
+            sequenceStorageRepository.activatePairing(pairingTopic, Expiration.activePairing)
+        }
 
         when (val response = wcResponse.response) {
             is JsonRpcResponseVO.JsonRpcResult -> {
                 Logger.log("Session proposal approve received")
                 val selfPublicKey = PublicKey(params.proposer.publicKey)
-                val approveParams = (response.result as SessionParamsVO.ApprovalParams)
+                val approveParams = response.result as SessionParamsVO.ApprovalParams
                 val responderPublicKey = PublicKey(approveParams.responder.publicKey)
                 val (_, sessionTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, responderPublicKey)
+                val peerMetadata = approveParams.responder.metadata
+                sequenceStorageRepository.updatePairingPeerMetadata(pairingTopic, peerMetadata)
                 relayer.subscribe(sessionTopic)
             }
             is JsonRpcResponseVO.JsonRpcError -> {
+                if (!pairing.isActive) sequenceStorageRepository.deletePairing(pairingTopic)
                 Logger.log("Session proposal reject received: ${response.error}")
                 scope.launch { _sequenceEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
             }

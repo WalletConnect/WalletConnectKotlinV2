@@ -38,6 +38,7 @@ internal fun commonModule() = module {
                     TopicVO::class.jvmName -> TopicAdapter
                     TtlVO::class.jvmName -> TtlAdapter
                     SessionRequestVO::class.jvmName -> SessionRequestVOJsonAdapter(moshi)
+                    RelayDO.JsonRpcResponse.JsonRpcResult::class.jvmName -> RelayDOJsonRpcResultJsonAdapter(moshi)
                     else -> null
                 }
             }

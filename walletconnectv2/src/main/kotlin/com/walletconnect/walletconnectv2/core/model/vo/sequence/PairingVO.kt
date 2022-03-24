@@ -18,6 +18,7 @@ internal data class PairingVO(
     val relayProtocol: String,
     val relayData: String?,
     val uri: String,
+    val isActive: Boolean,
 ) : Sequence {
 
     companion object {
@@ -29,7 +30,8 @@ internal data class PairingVO(
                 uri = uri,
                 relayProtocol = relay.protocol,
                 relayData = relay.data,
-                peerMetaData = metaData.toMetaDataVO()
+                selfMetaData = metaData.toMetaDataVO(),
+                isActive = false
             )
         }
 
@@ -39,7 +41,8 @@ internal data class PairingVO(
                 ExpiryVO(Expiration.activePairing),
                 uri = uri.toAbsoluteString(),
                 relayProtocol = uri.relay.protocol,
-                relayData = uri.relay.data
+                relayData = uri.relay.data,
+                isActive = true
             )
         }
     }
