@@ -7,7 +7,6 @@ import java.net.URI
 object WalletConnect {
 
     sealed interface Listeners {
-
         interface SessionPing : Listeners {
             fun onSuccess(pingSuccess: Model.Ping.Success)
             fun onError(pingError: Model.Ping.Error)

@@ -21,6 +21,8 @@ internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) :
 
     private val stringAdapter: JsonAdapter<String> = moshi.adapter(String::class.java, emptySet(), "jsonrpc")
 
+    private val booleanAdapter: JsonAdapter<Long> = moshi.adapter(Boolean::class.java, emptySet(), "result")
+
     private val anyAdapter: JsonAdapter<Any> = moshi.adapter(Any::class.java, emptySet(), "result")
 
     private val approvalParamsAdapter: JsonAdapter<SessionParamsVO.ApprovalParams> =
@@ -49,9 +51,11 @@ internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) :
                     mask0 = mask0 and 0xfffffffd.toInt()
                 }
                 2 -> {
-                    result = approvalParamsAdapter.fromJson(reader) ?: anyAdapter.fromJson(reader) ?: throw Util.unexpectedNull("result",
-                        "result",
-                        reader)
+                    result = try {
+                        approvalParamsAdapter.fromJson(reader)
+                    } catch (e: Exception) {
+                        anyAdapter.fromJson(reader)
+                    }
                 }
                 -1 -> {
                     // Unknown name, skip it.

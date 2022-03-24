@@ -731,7 +731,6 @@ internal class EngineInteractor(
                 Logger.error("Peer failed to update session: ${response.error}")
                 scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateResponse.Error(response.errorMessage)) }
             }
-            else -> Logger.error("Unknown JsonRpc")
         }
     }
 
