@@ -5,13 +5,6 @@ import com.squareup.moshi.JsonClass
 internal sealed class JsonRpcResponseVO {
     abstract val id: Long
 
-//    @JsonClass(generateAdapter = true)
-//    internal data class JsonRpcSessionApprove(
-//        override val id: Long,
-//        val jsonrpc: String = "2.0",
-//        val result: SessionParamsVO.ApprovalParams,
-//    ) : JsonRpcResponseVO()
-
     @JsonClass(generateAdapter = true)
     internal data class JsonRpcResult(
         override val id: Long,

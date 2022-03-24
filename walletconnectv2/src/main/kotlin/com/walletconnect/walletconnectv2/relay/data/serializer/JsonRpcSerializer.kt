@@ -62,8 +62,6 @@ internal class JsonRpcSerializer(
             is SessionSettlementVO.SessionDelete -> trySerialize(payload)
             is SessionSettlementVO.SessionSettle -> trySerialize(payload)
             is SessionSettlementVO.SessionExtend -> trySerialize(payload)
-//            is SessionParamsVO.ApprovalParams -> trySerialize(payload)
-//            is RelayDO.JsonRpcResponse.JsonRpcSessionApprove -> trySerialize(payload)
             is RelayDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
             is RelayDO.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             else -> String.Empty

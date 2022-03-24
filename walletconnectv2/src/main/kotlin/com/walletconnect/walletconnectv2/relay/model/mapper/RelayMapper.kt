@@ -14,10 +14,6 @@ internal fun JsonRpcResponseVO.toRelayDOJsonRpcResponse(): RelayDO.JsonRpcRespon
     when (this) {
         is JsonRpcResponseVO.JsonRpcResult -> toRelayDOJsonRpcResult()
         is JsonRpcResponseVO.JsonRpcError -> toRelayDORpcError()
-
-//        is JsonRpcResponseVO.JsonRpcSessionApprove ->
-//            RelayDO.JsonRpcResponse.JsonRpcSessionApprove(id,
-//                result = SessionParamsVO.ApprovalParams(relay = result.relay, responder = result.responder))
     }
 
 @JvmSynthetic

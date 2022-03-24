@@ -465,64 +465,6 @@ internal class EngineInteractor(
         scope.launch { _sequenceEvent.emit(session.toSessionApproved()) }
     }
 
-    private fun onSessionProposalResponse(wcResponse: WCResponseVO, params: PairingParamsVO.SessionProposeParams) {
-        val pairingTopic = wcResponse.topic
-        if (!sequenceStorageRepository.isPairingValid(pairingTopic)) return
-        val pairing = sequenceStorageRepository.getPairingByTopic(pairingTopic)
-        if (!pairing.isActive) {
-            sequenceStorageRepository.activatePairing(pairingTopic, Expiration.activePairing)
-        }
-
-        when (val response = wcResponse.response) {
-            is JsonRpcResponseVO.JsonRpcResult -> {
-                Logger.log("Session proposal approve received")
-
-                val selfPublicKey = PublicKey(params.proposer.publicKey)
-
-                val approveParams = response.result as SessionParamsVO.ApprovalParams
-                Logger.log("Approve params: $approveParams}")
-
-                val responderPublicKey = PublicKey(approveParams.responder.publicKey)
-                val (_, sessionTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, responderPublicKey)
-
-                val peerMetadata = approveParams.responder.metadata
-                sequenceStorageRepository.updatePairingPeerMetadata(pairingTopic, peerMetadata)
-
-                relayer.subscribe(sessionTopic)
-            }
-            is JsonRpcResponseVO.JsonRpcError -> {
-                if (!pairing.isActive) sequenceStorageRepository.deletePairing(pairingTopic)
-                Logger.log("Session proposal reject received: ${response.error}")
-                scope.launch { _sequenceEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
-            }
-        }
-    }
-
-//    private fun onSessionProposalResponse(wcResponse: WCResponseVO, params: PairingParamsVO.SessionProposeParams) {
-//        val pairingTopic = wcResponse.topic
-//        if (!sequenceStorageRepository.isPairingValid(pairingTopic)) return
-//        sequenceStorageRepository.updatePairingExpiry(pairingTopic, Expiration.activePairing)
-//
-//        when (val response = wcResponse.response) {
-//            is JsonRpcResponseVO.JsonRpcResult -> {
-//                Logger.log("Session proposal approve received")
-//                val selfPublicKey = PublicKey(params.proposer.publicKey)
-//
-//                val approveParams = response.result as SessionParamsVO.ApprovalParams
-//
-//                Logger.log("Approve params: $approveParams}")
-//
-//                val responderPublicKey = PublicKey(approveParams.responder.publicKey)
-//                val (_, sessionTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, responderPublicKey)
-//                relayer.subscribe(sessionTopic)
-//            }
-//            is JsonRpcResponseVO.JsonRpcError -> {
-//                Logger.log("Session proposal reject received: ${response.error}")
-//                scope.launch { _sequenceEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
-//            }
-//        }
-//    }
-
     private fun onPairingDelete(request: WCRequestVO, params: PairingParamsVO.DeleteParams) {
         if (!sequenceStorageRepository.isPairingValid(request.topic)) {
             relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.PAIRING.name, request.topic.value)))
@@ -676,6 +618,33 @@ internal class EngineInteractor(
                     is SessionParamsVO.UpdateParams -> onSessionUpdateResponse(response)
                     is SessionParamsVO.SessionRequestParams -> onSessionRequestResponse(response, params)
                 }
+            }
+        }
+    }
+
+    private fun onSessionProposalResponse(wcResponse: WCResponseVO, params: PairingParamsVO.SessionProposeParams) {
+        val pairingTopic = wcResponse.topic
+        if (!sequenceStorageRepository.isPairingValid(pairingTopic)) return
+        val pairing = sequenceStorageRepository.getPairingByTopic(pairingTopic)
+        if (!pairing.isActive) {
+            sequenceStorageRepository.activatePairing(pairingTopic, Expiration.activePairing)
+        }
+
+        when (val response = wcResponse.response) {
+            is JsonRpcResponseVO.JsonRpcResult -> {
+                Logger.log("Session proposal approve received")
+                val selfPublicKey = PublicKey(params.proposer.publicKey)
+                val approveParams = response.result as SessionParamsVO.ApprovalParams
+                val responderPublicKey = PublicKey(approveParams.responder.publicKey)
+                val (_, sessionTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, responderPublicKey)
+                val peerMetadata = approveParams.responder.metadata
+                sequenceStorageRepository.updatePairingPeerMetadata(pairingTopic, peerMetadata)
+                relayer.subscribe(sessionTopic)
+            }
+            is JsonRpcResponseVO.JsonRpcError -> {
+                if (!pairing.isActive) sequenceStorageRepository.deletePairing(pairingTopic)
+                Logger.log("Session proposal reject received: ${response.error}")
+                scope.launch { _sequenceEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
             }
         }
     }
