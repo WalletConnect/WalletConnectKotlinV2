@@ -168,7 +168,8 @@ internal class WalletConnectRelayer(
                     val topic = relayRequest.subscriptionTopic
 
                     Pair(decodedMessage, topic)
-                }.collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
+                }
+                .collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
         }
     }
 
