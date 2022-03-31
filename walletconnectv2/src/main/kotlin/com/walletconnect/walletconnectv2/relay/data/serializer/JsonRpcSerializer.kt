@@ -7,7 +7,6 @@ import com.walletconnect.walletconnectv2.core.model.utils.JsonRpcMethod
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.PairingSettlementVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionSettlementVO
-import com.walletconnect.walletconnectv2.core.model.vo.payload.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.relay.Codec
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
@@ -21,14 +20,14 @@ internal class JsonRpcSerializer(
 ) {
 
     internal fun encode(payload: String, topic: TopicVO): String {
-        val (secretKey, selfPublic) = crypto.getKeyAgreement(topic)
-        return authenticatedEncryptionCodec.encrypt(payload, secretKey, selfPublic)
+        val (secretKey, _) = crypto.getKeyAgreement(topic)
+        return authenticatedEncryptionCodec.encrypt(payload, secretKey)
     }
 
     internal fun decode(message: String, topic: TopicVO): String {
         val (secretKey, _) = crypto.getKeyAgreement(topic)
         return try {
-            authenticatedEncryptionCodec.decrypt(toEncryptionPayload(message), secretKey)
+            authenticatedEncryptionCodec.decrypt(message, secretKey)
         } catch (e: Exception) {
             Logger.error("Decoding error: ${e.message}")
             String.Empty
@@ -69,17 +68,4 @@ internal class JsonRpcSerializer(
 
     inline fun <reified T> tryDeserialize(json: String): T? = runCatching { moshi.adapter(T::class.java).fromJson(json) }.getOrNull()
     private inline fun <reified T> trySerialize(type: T): String = moshi.adapter(T::class.java).toJson(type)
-
-    private fun toEncryptionPayload(message: String): EncryptionPayloadVO {
-        val pubKeyStartIndex = EncryptionPayloadVO.ivLength
-        val macStartIndex = pubKeyStartIndex + EncryptionPayloadVO.publicKeyLength
-        val cipherTextStartIndex = macStartIndex + EncryptionPayloadVO.macLength
-
-        val iv = message.substring(0, pubKeyStartIndex)
-        val publicKey = message.substring(pubKeyStartIndex, macStartIndex)
-        val mac = message.substring(macStartIndex, cipherTextStartIndex)
-        val cipherText = message.substring(cipherTextStartIndex, message.length)
-
-        return EncryptionPayloadVO(iv, publicKey, mac, cipherText)
-    }
 }

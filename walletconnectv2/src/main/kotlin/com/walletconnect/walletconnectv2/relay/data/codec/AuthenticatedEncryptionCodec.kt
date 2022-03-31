@@ -1,77 +1,43 @@
 package com.walletconnect.walletconnectv2.relay.data.codec
 
 import com.walletconnect.walletconnectv2.core.model.vo.Key
-import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
-import com.walletconnect.walletconnectv2.core.model.vo.payload.EncryptionPayloadVO
 import com.walletconnect.walletconnectv2.relay.Codec
-import com.walletconnect.walletconnectv2.util.bytesToHex
 import com.walletconnect.walletconnectv2.util.hexToBytes
-import com.walletconnect.walletconnectv2.util.randomBytes
-import java.security.MessageDigest
+import org.bouncycastle.util.encoders.Base64
+import java.security.spec.AlgorithmParameterSpec
 import javax.crypto.Cipher
-import javax.crypto.Mac
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 internal class AuthenticatedEncryptionCodec : Codec {
 
-    override fun encrypt(message: String, key: Key, publicKey: PublicKey): String {
-        val (encryptionKey, authenticationKey) = getKeys(key.keyAsHex)
+    override fun encrypt(message: String, key: Key): String {
         val data = message.toByteArray(Charsets.UTF_8)
-        val iv: ByteArray = randomBytes(16)
+        val nonceBytes = ByteArray(NONCE_SIZE)
+        val cipher: Cipher = Cipher.getInstance(CHA_CHA_POLY)
+        val ivParameterSpec: AlgorithmParameterSpec = IvParameterSpec(nonceBytes)
+        val keySpec = SecretKeySpec(key.keyAsHex.hexToBytes(), CHA_CHA_20)
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParameterSpec)
+        val cipherTextInBytes: ByteArray = cipher.doFinal(data)
 
-        val cipher: Cipher = Cipher.getInstance(CIPHER_ALGORITHM)
-        cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(encryptionKey, AES_ALGORITHM), IvParameterSpec(iv))
-        val cipherText: ByteArray = cipher.doFinal(data)
-        val computedMac: String = computeHmac(cipherText, iv, authenticationKey, publicKey.keyAsHex.hexToBytes())
-
-        return iv.bytesToHex() + publicKey.keyAsHex + computedMac + cipherText.bytesToHex()
+        return Base64.toBase64String(cipherTextInBytes)
     }
 
-    override fun decrypt(payload: EncryptionPayloadVO, key: Key): String {
-        val (encryptionKey, authenticationKey) = getKeys(key.keyAsHex)
-        val data = payload.cipherText.hexToBytes()
-        val iv = payload.iv.hexToBytes()
-        val publicKey = payload.publicKey.hexToBytes()
-        val computedHmac = computeHmac(data, iv, authenticationKey, publicKey)
+    override fun decrypt(cipherText: String, key: Key): String {
+        val nonceBytes = ByteArray(NONCE_SIZE)
+        val ivParameterSpec: AlgorithmParameterSpec = IvParameterSpec(nonceBytes)
+        val keySpec = SecretKeySpec(key.keyAsHex.hexToBytes(), CHA_CHA_20)
+        val cipher = Cipher.getInstance(CHA_CHA_POLY)
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, ivParameterSpec)
+        val cipherTextBytes = Base64.decode(cipherText)
+        val message = cipher.doFinal(cipherTextBytes)
 
-        if (computedHmac != payload.mac.lowercase()) {
-            throw Exception("Invalid Hmac")
-        }
-
-        val cipher = Cipher.getInstance(CIPHER_ALGORITHM)
-        cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(encryptionKey, AES_ALGORITHM), IvParameterSpec(iv))
-
-        return String(cipher.doFinal(data), Charsets.UTF_8)
-    }
-
-    internal fun getKeys(key: String): Pair<ByteArray, ByteArray> {
-        val hexKey = key.hexToBytes()
-        val messageDigest: MessageDigest = MessageDigest.getInstance(HASH_ALGORITHM)
-        val hashedKey: ByteArray = messageDigest.digest(hexKey)
-
-        val aesKey: ByteArray = hashedKey.take(32).toByteArray()
-        val hmacKey: ByteArray = hashedKey.takeLast(32).toByteArray()
-        return Pair(aesKey, hmacKey)
-    }
-
-    private fun computeHmac(
-        data: ByteArray,
-        iv: ByteArray,
-        authKey: ByteArray,
-        publicKey: ByteArray
-    ): String {
-        val mac = Mac.getInstance(MAC_ALGORITHM)
-        val payload = iv + publicKey + data
-        mac.init(SecretKeySpec(authKey, MAC_ALGORITHM))
-
-        return mac.doFinal(payload).bytesToHex()
+        return String(message, Charsets.UTF_8)
     }
 
     companion object {
-        private const val CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding"
-        private const val MAC_ALGORITHM = "HmacSHA256"
-        private const val HASH_ALGORITHM = "SHA-512"
-        private const val AES_ALGORITHM = "AES"
+        private const val CHA_CHA_POLY = "ChaCha20-Poly1305" ///None/NoPadding")
+        private const val CHA_CHA_20 = "ChaCha20"
+        private const val NONCE_SIZE = 12
     }
 }
