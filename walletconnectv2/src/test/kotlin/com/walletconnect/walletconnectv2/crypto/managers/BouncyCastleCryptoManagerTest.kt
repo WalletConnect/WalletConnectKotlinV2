@@ -1,6 +1,8 @@
 package com.walletconnect.walletconnectv2.crypto.managers
 
-import com.walletconnect.walletconnectv2.core.model.vo.*
+import com.walletconnect.walletconnectv2.core.model.vo.PrivateKey
+import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.crypto.KeyStore
 import com.walletconnect.walletconnectv2.crypto.data.repository.BouncyCastleCryptoRepository
 import io.mockk.spyk
@@ -46,9 +48,10 @@ internal class BouncyCastleCryptoManagerTest {
         val symKey = sut.generateSymmetricKey(topic)
         assert(symKey.keyAsHex.length == 64)
 
-        val (secretKey, pubKey) = sut.getKeyAgreement(topic)
+        val secretKey = sut.getSecretKey(topic)
+
         assertEquals(symKey.keyAsHex, secretKey.keyAsHex)
-        assert(pubKey.keyAsHex.length == 64)
+        assert(secretKey.keyAsHex.length == 64)
     }
 
     @Test
@@ -64,18 +67,6 @@ internal class BouncyCastleCryptoManagerTest {
 
         assertEquals("2c03712132ad2f85adc472a2242e608d67bfecd4362d05012d69a89143fecd16", topic.value)
         assertEquals("0653ca620c7b4990392e1c53c4a51c14a2840cd20f0f1524cf435b17b6fe988c", sharedKey.keyAsHex)
-    }
-
-    @Test
-    fun `Generate a Topic with a sharedKey and a public key and no existing topic`() {
-        val sharedKeyString = SecretKey("D083CDBBD08B93BD9AD10E95712DC0D4BD880401B04D587D8D3782FEA0CD31A9".lowercase())
-        val sharedKey = object : Key {
-            override val keyAsHex: String = sharedKeyString.keyAsHex
-        }
-        sut.setEncryptionKeys(sharedKeyString, publicKey, TopicVO("topic"))
-
-        assertEquals(sharedKey.keyAsHex, keyChain.getKeys(TopicVO("topic").value).first)
-        assertEquals(publicKey.keyAsHex, keyChain.getKeys(TopicVO("topic").value).second)
     }
 
     @Test

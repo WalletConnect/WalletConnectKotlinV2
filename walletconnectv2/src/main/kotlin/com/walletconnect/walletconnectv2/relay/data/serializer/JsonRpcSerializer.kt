@@ -20,13 +20,13 @@ internal class JsonRpcSerializer(
 ) {
 
     internal fun encode(payload: String, topic: TopicVO): String {
-        val (secretKey, _) = crypto.getKeyAgreement(topic)
+        val secretKey = crypto.getSecretKey(topic)
         return authenticatedEncryptionCodec.encrypt(payload, secretKey)
     }
 
     internal fun decode(message: String, topic: TopicVO): String {
-        val (secretKey, _) = crypto.getKeyAgreement(topic)
         return try {
+            val secretKey = crypto.getSecretKey(topic)
             authenticatedEncryptionCodec.decrypt(message, secretKey)
         } catch (e: Exception) {
             Logger.error("Decoding error: ${e.message}")
