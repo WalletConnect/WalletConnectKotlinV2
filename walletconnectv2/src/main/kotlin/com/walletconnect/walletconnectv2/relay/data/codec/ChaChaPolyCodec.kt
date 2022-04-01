@@ -34,7 +34,7 @@ internal class ChaChaPolyCodec : Codec {
         val cipherTextBytes = Base64.decode(cipherText)
         val encryptedText = ByteArray(cipherTextBytes.size - NONCE_SIZE)
         val nonce = ByteArray(NONCE_SIZE)
-        val byteBuffer: ByteBuffer = ByteBuffer.wrap(cipherTextBytes).get(nonce).get(encryptedText)
+        val byteBuffer: ByteBuffer = ByteBuffer.wrap(cipherTextBytes)
         byteBuffer.get(nonce)
         byteBuffer.get(encryptedText)
 
