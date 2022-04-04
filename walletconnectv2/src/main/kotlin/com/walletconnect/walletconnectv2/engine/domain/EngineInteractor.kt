@@ -486,7 +486,6 @@ internal class EngineInteractor(
         crypto.removeKeys(request.topic.value)
         sequenceStorageRepository.deleteSession(request.topic)
         relayer.unsubscribe(request.topic)
-        relayer.respondWithSuccess(request)
         scope.launch { _sequenceEvent.emit(params.toEngineDoDeleteSession(request.topic)) }
     }
 

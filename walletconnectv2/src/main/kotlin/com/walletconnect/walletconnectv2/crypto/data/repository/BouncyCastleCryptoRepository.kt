@@ -8,6 +8,9 @@ import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.crypto.KeyStore
 import com.walletconnect.walletconnectv2.util.bytesToHex
 import com.walletconnect.walletconnectv2.util.hexToBytes
+import org.bouncycastle.crypto.digests.SHA256Digest
+import org.bouncycastle.crypto.generators.HKDFBytesGenerator
+import org.bouncycastle.crypto.params.HKDFParameters
 import org.bouncycastle.math.ec.rfc7748.X25519
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -18,53 +21,56 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
 
     override fun generateSymmetricKey(topic: TopicVO): SecretKey {
         val symmetricKey = createSymmetricKey().bytesToHex()
-        val publicKey = PublicKey(sha256(symmetricKey))
+        keyChain.setSecretKey(topic.value, SecretKey(symmetricKey))
 
-        keyChain.setKeys(topic.value, SecretKey(symmetricKey), publicKey)
         return SecretKey(symmetricKey)
     }
 
     override fun setSymmetricKey(topic: TopicVO, symmetricKey: SecretKey) {
-        val publicKey = PublicKey(sha256(symmetricKey.keyAsHex))
-        keyChain.setKeys(topic.value, symmetricKey, publicKey)
+        keyChain.setSecretKey(topic.value, symmetricKey)
+    }
+
+    override fun getSecretKey(topic: TopicVO): SecretKey {
+        val symmetricKey = keyChain.getSecretKey(topic.value)
+
+        return SecretKey(symmetricKey)
     }
 
     override fun generateKeyPair(): PublicKey {
         val publicKey = ByteArray(KEY_SIZE)
         val privateKey = ByteArray(KEY_SIZE)
-
         X25519.generatePrivateKey(SecureRandom(ByteArray(KEY_SIZE)), privateKey)
         X25519.generatePublicKey(privateKey, 0, publicKey, 0)
         setKeyPair(PublicKey(publicKey.bytesToHex().lowercase()), PrivateKey(privateKey.bytesToHex().lowercase()))
+
         return PublicKey(publicKey.bytesToHex().lowercase())
     }
 
     internal fun getSharedKey(selfPrivate: PrivateKey, peerPublic: PublicKey): String {
         val sharedKeyBytes = ByteArray(KEY_SIZE)
         X25519.scalarMult(selfPrivate.keyAsHex.hexToBytes(), 0, peerPublic.keyAsHex.hexToBytes(), 0, sharedKeyBytes, 0)
+
         return sharedKeyBytes.bytesToHex()
     }
 
     override fun generateTopicAndSharedKey(self: PublicKey, peer: PublicKey): Pair<SecretKey, TopicVO> {
-        val (publicKey, privateKey) = getKeyPair(self)
-        val sharedKeyBytes = ByteArray(KEY_SIZE)
+        val (_, privateKey) = getKeyPair(self)
+        val sharedSecretBytes = ByteArray(KEY_SIZE)
+        X25519.scalarMult(privateKey.keyAsHex.hexToBytes(), 0, peer.keyAsHex.hexToBytes(), 0, sharedSecretBytes, 0)
+        val sharedSecret = sharedSecretBytes.bytesToHex()
+        val sharedKeyBytes = deriveHKDFKey(sharedSecret)
+        val secretKey = SecretKey(sharedKeyBytes.bytesToHex())
+        val topic = TopicVO(sha256(secretKey.keyAsHex))
+        keyChain.setSecretKey(topic.value.lowercase(), secretKey)
 
-        X25519.scalarMult(privateKey.keyAsHex.hexToBytes(), 0, peer.keyAsHex.hexToBytes(), 0, sharedKeyBytes, 0)
-        val sharedKey = SecretKey(sharedKeyBytes.bytesToHex())
-        val topic = TopicVO(sha256(sharedKey.keyAsHex))
-        setEncryptionKeys(sharedKey, publicKey, TopicVO(topic.value.lowercase()))
-        return Pair(sharedKey, topic)
+        return Pair(secretKey, topic)
     }
 
-    override fun setEncryptionKeys(sharedKey: SecretKey, publicKey: PublicKey, topic: TopicVO) {
-        keyChain.setKeys(topic.value, sharedKey, publicKey)
-    }
-
-    override fun removeKeys(topic: String) {
-        val (_, publicKey) = keyChain.getKeys(topic)
+    override fun removeKeys(tag: String) {
+        val (_, publicKey) = keyChain.getKeys(tag)
         with(keyChain) {
             deleteKeys(publicKey.lowercase())
-            deleteKeys(topic)
+            deleteKeys(tag)
         }
     }
 
@@ -92,6 +98,19 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
         val messageDigest: MessageDigest = MessageDigest.getInstance(SHA_256)
         val hashedBytes: ByteArray = messageDigest.digest(key.hexToBytes())
         return hashedBytes.bytesToHex()
+    }
+
+    private fun deriveHKDFKey(sharedSecret: String): ByteArray {
+        val hkdf = HKDFBytesGenerator(SHA256Digest())
+        val inputKeyMaterial = sharedSecret.hexToBytes()
+        val salt = ByteArray(0)
+        val info = ByteArray(0)
+        val hkdfParameters = HKDFParameters(inputKeyMaterial, salt, info)
+        val derivedKey = ByteArray(KEY_SIZE)
+        hkdf.init(hkdfParameters)
+        hkdf.generateBytes(derivedKey, 0, KEY_SIZE)
+
+        return derivedKey
     }
 
     private companion object {
