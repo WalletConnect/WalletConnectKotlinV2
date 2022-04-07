@@ -12,8 +12,8 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.payloa
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.payload.SessionProposerVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.BlockchainSettledVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.EventsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.JsonRpcVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.NotificationsVO
 import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
@@ -51,7 +51,7 @@ internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): E
         icons = this.proposer.metadata?.icons?.map { URI(it) } ?: listOf(),
         chains = this.blockchainProposedVO.chains,
         methods = this.permissions.jsonRpc.methods,
-        types = this.permissions.notifications?.types,
+        types = this.permissions.notifications?.names,
         proposerPublicKey = this.proposer.publicKey,
         accounts = listOf(),
         relayProtocol = relays.first().protocol,
@@ -71,8 +71,8 @@ internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: TopicVO
     EngineDO.SessionDelete(topic.value, reason.message)
 
 @JvmSynthetic
-internal fun SessionParamsVO.NotifyParams.toEngineDoSessionNotification(topic: TopicVO): EngineDO.SessionNotification =
-    EngineDO.SessionNotification(topic.value, type, data.toString())
+internal fun SessionParamsVO.EventParams.toEngineDOSessionEvent(topic: TopicVO): EngineDO.SessionEvent =
+    EngineDO.SessionEvent(topic.value, event.name, event.data.toString(), chainId)
 
 @JvmSynthetic
 internal fun SessionVO.toEngineDOApprovedSessionVO(topic: TopicVO): EngineDO.Session =
@@ -85,7 +85,7 @@ internal fun SessionVO.toEngineDOApprovedSessionVO(topic: TopicVO): EngineDO.Ses
             selfMetaData?.description ?: String.Empty,
             selfMetaData?.url ?: String.Empty,
             selfMetaData?.icons?.map { iconUri -> iconUri } ?: listOf()),
-        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getNotifications(types)),
+        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getNotifications(events)),
         EngineDO.Blockchain(chains),
     )
 
@@ -94,7 +94,7 @@ internal fun SessionVO.toEngineDOApprovedSessionVO(): EngineDO.Session =
     EngineDO.Session(
         topic, expiry,
         accounts, selfMetaData?.toEngineDOAppMetaData(),
-        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getNotifications(types)),
+        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getNotifications(events)),
         EngineDO.Blockchain(chains),
     )
 
@@ -103,7 +103,7 @@ internal fun SessionVO.toEngineDOExtendedSessionVO(expiryVO: ExpiryVO): EngineDO
     EngineDO.SessionExtend(
         topic, expiryVO,
         accounts, selfMetaData?.toEngineDOAppMetaData(),
-        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getNotifications(types)),
+        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getNotifications(events)),
         EngineDO.Blockchain(chains),
     )
 
@@ -121,7 +121,7 @@ internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
         topic.value,
         peerMetaData?.toEngineDOMetaData(),
         EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods),
-            if (types != null) EngineDO.SessionPermissions.Notifications(types) else null),
+            if (events != null) EngineDO.SessionPermissions.Events(events) else null),
         accounts
     )
 
@@ -134,7 +134,7 @@ internal fun EngineDO.SessionProposal.toSessionSettleParams(
         relay = RelayProtocolOptionsVO(relayProtocol, relayData),
         blockchain = BlockchainSettledVO(accounts = accounts, chains),
         permission = SessionPermissionsVO(JsonRpcVO(methods = methods),
-            notifications = if (types != null) NotificationsVO(types) else null),
+            notifications = if (types != null) EventsVO(types) else null),
         controller = selfParticipant,
         expiry = sessionExpiry)
 
@@ -142,7 +142,7 @@ internal fun EngineDO.SessionProposal.toSessionSettleParams(
 internal fun EngineDO.SessionPermissions.toSessionsPermissionsVO(): SessionPermissionsVO =
     SessionPermissionsVO(
         JsonRpcVO(jsonRpc.methods),
-        if (notifications?.types != null) NotificationsVO(notifications.types) else null
+        if (events?.names != null) EventsVO(events.names) else null
     )
 
 @JvmSynthetic
@@ -170,7 +170,7 @@ internal fun JsonRpcResponseVO.JsonRpcError.toEngineJsonRpcError(): EngineDO.Jso
 internal fun EngineDO.SessionProposal.toSessionPermissions(): EngineDO.SessionPermissions =
     EngineDO.SessionPermissions(
         jsonRpc = EngineDO.SessionPermissions.JsonRpc(methods),
-        notifications = getNotifications(types)
+        events = getNotifications(types)
     )
 
 @JvmSynthetic
@@ -186,9 +186,9 @@ internal fun EngineDO.SessionProposal.toSessionApproveParams(
 internal fun SessionPermissionsVO.toEngineDOPermissions(): EngineDO.SessionPermissions =
     EngineDO.SessionPermissions(
         jsonRpc = EngineDO.SessionPermissions.JsonRpc(jsonRpc.methods),
-        notifications = getNotifications(notifications?.types)
+        events = getNotifications(notifications?.names)
     )
 
 @JvmSynthetic
-private fun getNotifications(types: List<String>?) = if (types != null) EngineDO.SessionPermissions.Notifications(types) else null
+private fun getNotifications(types: List<String>?) = if (types != null) EngineDO.SessionPermissions.Events(types) else null
 

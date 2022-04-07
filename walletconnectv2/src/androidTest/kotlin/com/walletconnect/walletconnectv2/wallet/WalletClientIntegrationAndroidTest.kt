@@ -454,7 +454,7 @@ class WalletConnectClientIntegrationAndroidTest {
                     if (response is WalletConnect.Model.SettledSessionResponse.Result) {
                         val notificationParams = WalletConnect.Params.Notify(
                             response.session.topic,
-                            WalletConnect.Model.Notification("type", "test")
+                            WalletConnect.Model.Event("type", "test")
                         )
 
                         WalletConnectClient.notify(notificationParams)

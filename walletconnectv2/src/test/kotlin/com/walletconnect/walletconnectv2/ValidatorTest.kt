@@ -14,42 +14,29 @@ import kotlin.test.*
 class ValidatorTest {
 
     @Test
-    fun `check correct error message when permissions are invalid `() {
-        val notifications = EngineDO.SessionPermissions.Notifications(listOf())
+    fun `check correct error message when methods are empty `() {
         val jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf())
 
-        Validator.validatePermissions(jsonRpc, notifications) { errorMessage ->
+        Validator.validateMethods(jsonRpc) { errorMessage ->
             assertEquals(EMPTY_RPC_METHODS_LIST_MESSAGE, errorMessage)
+        }
+    }
+
+    @Test
+    fun `check correct error message when events are empty `() {
+        val events = EngineDO.SessionPermissions.Events(listOf())
+
+        Validator.validateEvents(events) { errorMessage ->
+            assertEquals(INVALID_EVENTS_TYPES_MESSAGE, errorMessage)
         }
     }
 
     @Test
     fun `check correct error message when notifications are null `() {
-        val notifications = null
-        val jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf("method"))
+        val events = null
 
-        Validator.validatePermissions(jsonRpc, notifications) { errorMessage ->
-            assertEquals(EMPTY_CHAIN_LIST_MESSAGE, errorMessage)
-        }
-    }
-
-    @Test
-    fun `check correct error message when json rpc permissions are invalid `() {
-        val notifications = EngineDO.SessionPermissions.Notifications(listOf("type"))
-        val jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf())
-
-        Validator.validatePermissions(jsonRpc, notifications) { errorMessage ->
-            assertEquals(EMPTY_RPC_METHODS_LIST_MESSAGE, errorMessage)
-        }
-    }
-
-    @Test
-    fun `check correct error message when notifications permissions are invalid `() {
-        val jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf("eth_sign"))
-        val notifications: EngineDO.SessionPermissions.Notifications = EngineDO.SessionPermissions.Notifications(listOf())
-
-        Validator.validatePermissions(jsonRpc, notifications) { errorMessage ->
-            assertEquals(INVALID_NOTIFICATIONS_TYPES_MESSAGE, errorMessage)
+        Validator.validateEvents(events) { errorMessage ->
+            assertEquals(INVALID_EVENTS_TYPES_MESSAGE, errorMessage)
         }
     }
 
@@ -66,17 +53,6 @@ class ValidatorTest {
         val jsonRpc = EngineDO.Blockchain(listOf("chainID"))
         Validator.validateBlockchain(jsonRpc) { errorMessage ->
             assertEquals(WRONG_CHAIN_ID_FORMAT_MESSAGE, errorMessage)
-        }
-    }
-
-
-    @Test
-    fun `check correct error message when notifications permissions are null `() {
-        val jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf("eth_sign"))
-        val notifications: EngineDO.SessionPermissions.Notifications? = null
-
-        Validator.validatePermissions(jsonRpc, notifications) { errorMessage ->
-            assertEquals(INVALID_NOTIFICATIONS_TYPES_MESSAGE, errorMessage)
         }
     }
 
@@ -114,17 +90,17 @@ class ValidatorTest {
 
     @Test
     fun `are notifications permissions valid`() {
-        var notifications: EngineDO.SessionPermissions.Notifications = EngineDO.SessionPermissions.Notifications(listOf())
+        var events: EngineDO.SessionPermissions.Events = EngineDO.SessionPermissions.Events(listOf())
 
-        val result1 = Validator.areNotificationTypesValid(notifications)
+        val result1 = Validator.areEventsValid(events)
         assertEquals(result1, false)
 
-        notifications = EngineDO.SessionPermissions.Notifications(listOf("", ""))
-        val result2 = Validator.areNotificationTypesValid(notifications)
+        events = EngineDO.SessionPermissions.Events(listOf("", ""))
+        val result2 = Validator.areEventsValid(events)
         assertEquals(result2, false)
 
-        notifications = EngineDO.SessionPermissions.Notifications(listOf("1", "2"))
-        val result3 = Validator.areNotificationTypesValid(notifications)
+        events = EngineDO.SessionPermissions.Events(listOf("1", "2"))
+        val result3 = Validator.areEventsValid(events)
         assertEquals(result3, true)
     }
 
@@ -283,19 +259,19 @@ class ValidatorTest {
 
     @Test
     fun `is notification valid test`() {
-        var notification = EngineDO.Notification("", "data")
-        Validator.validateNotification(notification) {
-            assertEquals(INVALID_NOTIFICATION_MESSAGE, it)
+        var notification = EngineDO.Event("", "data", null)
+        Validator.validateEvent(notification) {
+            assertEquals(INVALID_EVENT_MESSAGE, it)
         }
 
-        notification = EngineDO.Notification("type", "")
-        Validator.validateNotification(notification) {
-            assertEquals(INVALID_NOTIFICATION_MESSAGE, it)
+        notification = EngineDO.Event("type", "", "")
+        Validator.validateEvent(notification) {
+            assertEquals(INVALID_EVENT_MESSAGE, it)
         }
 
-        notification = EngineDO.Notification("", "")
-        Validator.validateNotification(notification) {
-            assertEquals(INVALID_NOTIFICATION_MESSAGE, it)
+        notification = EngineDO.Event("", "", "")
+        Validator.validateEvent(notification) {
+            assertEquals(INVALID_EVENT_MESSAGE, it)
         }
     }
 

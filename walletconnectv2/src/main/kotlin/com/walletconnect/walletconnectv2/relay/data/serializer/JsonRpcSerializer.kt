@@ -41,10 +41,13 @@ internal class JsonRpcSerializer(
             JsonRpcMethod.WC_SESSION_SETTLE -> tryDeserialize<SessionSettlementVO.SessionSettle>(json)?.params
             JsonRpcMethod.WC_SESSION_REQUEST -> tryDeserialize<SessionSettlementVO.SessionRequest>(json)?.params
             JsonRpcMethod.WC_SESSION_DELETE -> tryDeserialize<SessionSettlementVO.SessionDelete>(json)?.params
-            JsonRpcMethod.WC_SESSION_UPDATE -> tryDeserialize<SessionSettlementVO.SessionUpdate>(json)?.params
-            JsonRpcMethod.WC_SESSION_UPGRADE -> tryDeserialize<SessionSettlementVO.SessionUpgrade>(json)?.params
             JsonRpcMethod.WC_SESSION_PING -> tryDeserialize<SessionSettlementVO.SessionPing>(json)?.params
-            JsonRpcMethod.WC_SESSION_NOTIFY -> tryDeserialize<SessionSettlementVO.SessionNotify>(json)?.params
+
+            JsonRpcMethod.WC_SESSION_EVENT -> tryDeserialize<SessionSettlementVO.SessionEvent>(json)?.params
+            JsonRpcMethod.WC_SESSION_UPDATE_EVENTS -> tryDeserialize<SessionSettlementVO.SessionUpdateEvents>(json)?.params
+            JsonRpcMethod.WC_SESSION_UPDATE_ACCOUNTS -> tryDeserialize<SessionSettlementVO.SessionUpdateAccounts>(json)?.params
+            JsonRpcMethod.WC_SESSION_UPDATE_METHODS -> tryDeserialize<SessionSettlementVO.SessionUpdateMethods>(json)?.params
+            JsonRpcMethod.WC_SESSION_UPDATE_EXPIRY -> tryDeserialize<SessionSettlementVO.SessionUpdateExpiry>(json)?.params
             else -> null
         }
 
@@ -53,14 +56,17 @@ internal class JsonRpcSerializer(
             is PairingSettlementVO.SessionPropose -> trySerialize(payload)
             is PairingSettlementVO.PairingPing -> trySerialize(payload)
             is PairingSettlementVO.PairingDelete -> trySerialize(payload)
-            is SessionSettlementVO.SessionNotify -> trySerialize(payload)
             is SessionSettlementVO.SessionPing -> trySerialize(payload)
-            is SessionSettlementVO.SessionUpdate -> trySerialize(payload)
-            is SessionSettlementVO.SessionUpgrade -> trySerialize(payload)
+
+            is SessionSettlementVO.SessionEvent -> trySerialize(payload)
+            is SessionSettlementVO.SessionUpdateAccounts -> trySerialize(payload)
+            is SessionSettlementVO.SessionUpdateMethods -> trySerialize(payload)
+            is SessionSettlementVO.SessionUpdateEvents -> trySerialize(payload)
+            is SessionSettlementVO.SessionUpdateExpiry -> trySerialize(payload)
+
             is SessionSettlementVO.SessionRequest -> trySerialize(payload)
             is SessionSettlementVO.SessionDelete -> trySerialize(payload)
             is SessionSettlementVO.SessionSettle -> trySerialize(payload)
-            is SessionSettlementVO.SessionExtend -> trySerialize(payload)
             is RelayDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
             is RelayDO.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             else -> String.Empty

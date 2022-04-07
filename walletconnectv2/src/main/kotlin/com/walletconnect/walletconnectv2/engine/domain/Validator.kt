@@ -12,14 +12,15 @@ import java.net.URISyntaxException
 
 internal object Validator {
 
-    internal fun validatePermissions(
-        jsonRpc: EngineDO.SessionPermissions.JsonRpc,
-        notifications: EngineDO.SessionPermissions.Notifications?,
-        onInvalidPermissions: (String) -> Unit,
-    ) {
-        when {
-            !isJsonRpcValid(jsonRpc) -> onInvalidPermissions(EMPTY_RPC_METHODS_LIST_MESSAGE)
-            notifications != null && !areNotificationTypesValid(notifications) -> onInvalidPermissions(INVALID_NOTIFICATIONS_TYPES_MESSAGE)
+    internal fun validateMethods(jsonRpc: EngineDO.SessionPermissions.JsonRpc, onInvalidJsonRpc: (String) -> Unit) {
+        if (!isJsonRpcValid(jsonRpc)) {
+            onInvalidJsonRpc(EMPTY_RPC_METHODS_LIST_MESSAGE)
+        }
+    }
+
+    internal fun validateEvents(events: EngineDO.SessionPermissions.Events?, onInvalidEvents: (String) -> Unit) {
+        if (events != null && !areEventsValid(events)) {
+            onInvalidEvents(INVALID_EVENTS_TYPES_MESSAGE)
         }
     }
 
@@ -43,13 +44,15 @@ internal object Validator {
         }
     }
 
-    internal fun validateNotification(notification: EngineDO.Notification, onInvalidNotification: (String) -> Unit) {
-        if (notification.data.isEmpty() || notification.type.isEmpty()) onInvalidNotification(INVALID_NOTIFICATION_MESSAGE)
+    internal fun validateEvent(event: EngineDO.Event, onInvalidEvent: (String) -> Unit) {
+        if (event.data.isEmpty() || event.name.isEmpty() || event.chainId != null && event.chainId.isEmpty()) {
+            onInvalidEvent(INVALID_EVENT_MESSAGE)
+        }
     }
 
-    internal fun validateNotificationAuthorization(session: SessionVO, type: String, onUnauthorizedNotification: (String) -> Unit) {
-        if (!session.isSelfController && session.types?.contains(type) == false) {
-            onUnauthorizedNotification(UNAUTHORIZED_NOTIFICATION_TYPE_MESSAGE)
+    internal fun validateEventAuthorization(session: SessionVO, eventName: String, onUnauthorizedEvent: (String) -> Unit) {
+        if (!session.isSelfController && session.events?.contains(eventName) == false) {
+            onUnauthorizedEvent(UNAUTHORIZED_EVENT_TYPE_MESSAGE)
         }
     }
 
@@ -113,11 +116,11 @@ internal object Validator {
     internal fun isJsonRpcValid(jsonRpc: EngineDO.SessionPermissions.JsonRpc): Boolean =
         jsonRpc.methods.isNotEmpty() && jsonRpc.methods.all { method -> method.isNotEmpty() }
 
-    internal fun isBlockchainValid(blockchain: EngineDO.Blockchain) =
+    internal fun isBlockchainValid(blockchain: EngineDO.Blockchain): Boolean =
         blockchain.chains.isNotEmpty() && blockchain.chains.any { chain -> chain.isNotEmpty() }
 
-    internal fun areNotificationTypesValid(notification: EngineDO.SessionPermissions.Notifications): Boolean =
-        notification.types.isNotEmpty() && notification.types.any { type -> type.isNotEmpty() }
+    internal fun areEventsValid(events: EngineDO.SessionPermissions.Events): Boolean =
+        events.names.isNotEmpty() && events.names.any { type -> type.isNotEmpty() }
 
     internal fun isChainIdValid(chainId: String): Boolean {
         val elements: List<String> = chainId.split(":")

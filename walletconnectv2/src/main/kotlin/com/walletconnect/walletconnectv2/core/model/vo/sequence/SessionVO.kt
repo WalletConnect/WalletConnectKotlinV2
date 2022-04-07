@@ -22,7 +22,7 @@ internal data class SessionVO(
     val accounts: List<String> = emptyList(),
     val chains: List<String>,
     val methods: List<String>,
-    val types: List<String>?,
+    val events: List<String>?,
     val isAcknowledged: Boolean,
 ) : Sequence {
     val isPeerController: Boolean = peerParticipant?.keyAsHex == controllerKey?.keyAsHex
@@ -50,7 +50,7 @@ internal data class SessionVO(
                 controllerKey = PublicKey(selfParticipant.publicKey),
                 chains = proposal.chains,
                 methods = proposal.methods,
-                types = proposal.types ?: emptyList(),
+                events = proposal.types ?: emptyList(),
                 accounts = proposal.accounts,
                 isAcknowledged = false
             )
@@ -75,7 +75,7 @@ internal data class SessionVO(
                 controllerKey = PublicKey(settleParams.controller.publicKey),
                 chains = settleParams.blockchain.chains,
                 methods = settleParams.permission.jsonRpc.methods,
-                types = settleParams.permission.notifications?.types,
+                events = settleParams.permission.notifications?.names,
                 accounts = settleParams.blockchain.accounts,
                 isAcknowledged = true
             )
