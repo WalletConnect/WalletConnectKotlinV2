@@ -43,10 +43,10 @@ internal fun EngineDO.SessionUpgradeResponse.toClientUpgradedSessionResponse(): 
     }
 
 @JvmSynthetic
-internal fun EngineDO.SessionUpdateResponse.toClientUpdateSessionResponse(): WalletConnect.Model.SessionUpdateResponse =
+internal fun EngineDO.SessionUpdateAccountsResponse.toClientUpdateSessionResponse(): WalletConnect.Model.SessionUpdateResponse =
     when (this) {
-        is EngineDO.SessionUpdateResponse.Result -> WalletConnect.Model.SessionUpdateResponse.Result(topic.value, accounts)
-        is EngineDO.SessionUpdateResponse.Error -> WalletConnect.Model.SessionUpdateResponse.Error(errorMessage)
+        is EngineDO.SessionUpdateAccountsResponse.Result -> WalletConnect.Model.SessionUpdateResponse.Result(topic.value, accounts)
+        is EngineDO.SessionUpdateAccountsResponse.Error -> WalletConnect.Model.SessionUpdateResponse.Error(errorMessage)
     }
 
 @JvmSynthetic

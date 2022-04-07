@@ -20,7 +20,7 @@ internal object Validator {
 
     internal fun validateEvents(events: EngineDO.SessionPermissions.Events?, onInvalidEvents: (String) -> Unit) {
         if (events != null && !areEventsValid(events)) {
-            onInvalidEvents(INVALID_EVENTS_TYPES_MESSAGE)
+            onInvalidEvents(INVALID_EVENTS_MESSAGE)
         }
     }
 

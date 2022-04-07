@@ -84,9 +84,9 @@ internal sealed class EngineDO {
         data class Error(val errorMessage: String) : SessionUpgradeResponse()
     }
 
-    sealed class SessionUpdateResponse : EngineDO(), SequenceLifecycle {
-        data class Result(val topic: TopicVO, val accounts: List<String>) : SessionUpdateResponse()
-        data class Error(val errorMessage: String) : SessionUpdateResponse()
+    sealed class SessionUpdateAccountsResponse : EngineDO(), SequenceLifecycle {
+        data class Result(val topic: TopicVO, val accounts: List<String>) : SessionUpdateAccountsResponse()
+        data class Error(val errorMessage: String) : SessionUpdateAccountsResponse()
     }
 
     internal data class SessionRejected(

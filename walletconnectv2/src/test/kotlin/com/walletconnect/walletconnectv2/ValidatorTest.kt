@@ -27,7 +27,7 @@ class ValidatorTest {
         val events = EngineDO.SessionPermissions.Events(listOf())
 
         Validator.validateEvents(events) { errorMessage ->
-            assertEquals(INVALID_EVENTS_TYPES_MESSAGE, errorMessage)
+            assertEquals(INVALID_EVENTS_MESSAGE, errorMessage)
         }
     }
 
@@ -36,7 +36,7 @@ class ValidatorTest {
         val events = null
 
         Validator.validateEvents(events) { errorMessage ->
-            assertEquals(INVALID_EVENTS_TYPES_MESSAGE, errorMessage)
+            assertEquals(INVALID_EVENTS_MESSAGE, errorMessage)
         }
     }
 
