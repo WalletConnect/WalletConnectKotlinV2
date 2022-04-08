@@ -87,11 +87,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     }
 
     fun sessionUpgrade(session: WalletConnect.Model.Session) {
-        val permissions =
-            WalletConnect.Model.SessionPermissions(jsonRpc = WalletConnect.Model.SessionPermissions.JsonRpc(listOf("eth_sign")))
-
-        val upgrade = WalletConnect.Params.Upgrade(topic = session.topic, permissions = permissions)
-//        WalletConnectClient.upgrade(upgrade) { error -> Log.d("Error", "sending upgrade error: $error") }
+        //todo: replace with sessionUpdateMethods and sessionUpdateEvents
     }
 
     fun sessionPing(session: WalletConnect.Model.Session) {

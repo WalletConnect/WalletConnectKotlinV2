@@ -1,7 +1,6 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
-import com.walletconnect.walletconnectv2.core.exceptions.peer.Error
 import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
 import com.walletconnect.walletconnectv2.core.model.type.SequenceLifecycle
 import com.walletconnect.walletconnectv2.core.model.type.enums.Sequences
@@ -153,7 +152,7 @@ internal class EngineInteractor(
     internal fun reject(proposal: EngineDO.SessionProposal, reason: String, code: Int, onFailure: (Throwable) -> Unit = {}) {
         val request = sessionProposalRequest[proposal.proposerPublicKey] ?: return
         sessionProposalRequest.remove(proposal.proposerPublicKey)
-        relayer.respondWithError(request, PeerError(Error.UserError(reason, code)), onFailure = { error -> onFailure(error) })
+        relayer.respondWithError(request, PeerError.Error(reason, code), onFailure = { error -> onFailure(error) })
     }
 
     internal fun approve(proposal: EngineDO.SessionProposal, onFailure: (Throwable) -> Unit) {
@@ -443,7 +442,7 @@ internal class EngineInteractor(
 
     private fun onPairingDelete(request: WCRequestVO, params: PairingParamsVO.DeleteParams) {
         if (!sequenceStorageRepository.isPairingValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.PAIRING.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.PAIRING.name, request.topic.value))
             return
         }
 
@@ -455,7 +454,7 @@ internal class EngineInteractor(
 
     private fun onSessionDelete(request: WCRequestVO, params: SessionParamsVO.DeleteParams) {
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value))
             return
         }
 
@@ -467,19 +466,19 @@ internal class EngineInteractor(
 
     private fun onSessionRequest(request: WCRequestVO, params: SessionParamsVO.SessionRequestParams) {
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value))
             return
         }
 
         val session = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (params.chainId != null && !session.chains.contains(params.chainId)) {
-            relayer.respondWithError(request, PeerError(Error.UnauthorizedTargetChainId(params.chainId)))
+            relayer.respondWithError(request, PeerError.UnauthorizedTargetChainId(params.chainId))
             return
         }
 
         val method = params.request.method
         if (!session.methods.contains(method)) {
-            relayer.respondWithError(request, PeerError(Error.UnauthorizedJsonRpcMethod(method)))
+            relayer.respondWithError(request, PeerError.UnauthorizedJsonRpcMethod(method))
             return
         }
         scope.launch { _sequenceEvent.emit(params.toEngineDOSessionRequest(request)) }
@@ -487,24 +486,24 @@ internal class EngineInteractor(
 
     private fun onSessionEvent(request: WCRequestVO, params: SessionParamsVO.EventParams) {
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value))
             return
         }
 
         val session = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (!session.isAcknowledged) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value))
             return
         }
 
         val event = params.event
-        Validator.validateChainIdAuthorization(params.chainId, session.chains) { errorMessage ->
-            relayer.respondWithError(request, PeerError(Error.UnauthorizedEventRequest(event.name)))
+        Validator.validateChainIdAuthorization(params.chainId, session.chains) {
+            relayer.respondWithError(request, PeerError.UnauthorizedEventRequest(event.name))
             return@validateChainIdAuthorization
         }
 
         Validator.validateEventAuthorization(session, event.name) {
-            relayer.respondWithError(request, PeerError(Error.UnauthorizedEventRequest(event.name)))
+            relayer.respondWithError(request, PeerError.UnauthorizedEventRequest(event.name))
             return@validateEventAuthorization
         }
 
@@ -514,18 +513,18 @@ internal class EngineInteractor(
 
     private fun onSessionUpdateAccounts(request: WCRequestVO, params: SessionParamsVO.UpdateAccountsParams) {
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value))
             return
         }
 
         val session: SessionVO = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (!session.isPeerController) {
-            relayer.respondWithError(request, PeerError(Error.UnauthorizedUpdateAccountsRequest(Sequences.SESSION.name)))
+            relayer.respondWithError(request, PeerError.UnauthorizedUpdateAccountsRequest(Sequences.SESSION.name))
             return
         }
 
         Validator.validateCAIP10(params.accounts) {
-            relayer.respondWithError(request, PeerError(Error.InvalidUpdateAccountsRequest(Sequences.SESSION.name)))
+            relayer.respondWithError(request, PeerError.InvalidUpdateAccountsRequest(Sequences.SESSION.name))
             return@validateCAIP10
         }
 
@@ -538,19 +537,19 @@ internal class EngineInteractor(
 
     private fun onSessionUpdateMethods(request: WCRequestVO, params: SessionParamsVO.UpdateMethodsParams) {
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value))
             return
         }
 
         val session: SessionVO = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (!session.isPeerController) {
-            relayer.respondWithError(request, PeerError(Error.UnauthorizedUpdateAccountsRequest(Sequences.SESSION.name)))
+            relayer.respondWithError(request, PeerError.UnauthorizedUpdateMethodsRequest(Sequences.SESSION.name))
             return
         }
 
         val jsonRpcMethods = EngineDO.SessionPermissions.JsonRpc(params.methods)
         Validator.validateMethods(jsonRpcMethods) {
-            relayer.respondWithError(request, PeerError(Error.InvalidUpdateMethodsRequest(Sequences.SESSION.name)))
+            relayer.respondWithError(request, PeerError.InvalidUpdateMethodsRequest(Sequences.SESSION.name))
             return@validateMethods
         }
 
@@ -563,19 +562,19 @@ internal class EngineInteractor(
 
     private fun onSessionUpdateEvents(request: WCRequestVO, params: SessionParamsVO.UpdateEventsParams) {
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value))
             return
         }
 
         val session: SessionVO = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (!session.isPeerController) {
-            relayer.respondWithError(request, PeerError(Error.UnauthorizedUpdateEventsRequest(Sequences.SESSION.name)))
+            relayer.respondWithError(request, PeerError.UnauthorizedUpdateEventsRequest(Sequences.SESSION.name))
             return
         }
 
         val events = EngineDO.SessionPermissions.Events(params.events)
         Validator.validateEvents(events) {
-            relayer.respondWithError(request, PeerError(Error.InvalidUpdateEventsRequest(Sequences.SESSION.name)))
+            relayer.respondWithError(request, PeerError.InvalidUpdateEventsRequest(Sequences.SESSION.name))
             return@validateEvents
         }
 
@@ -588,19 +587,19 @@ internal class EngineInteractor(
 
     private fun onSessionUpdateExpiry(request: WCRequestVO, requestParams: SessionParamsVO.UpdateExpiryParams) {
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError(Error.NoMatchingTopic(Sequences.SESSION.name, request.topic.value)))
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value))
             return
         }
 
         val session = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (!session.isSelfController) {
-            relayer.respondWithError(request, PeerError(Error.UnauthorizedUpdateExpiryRequest(Sequences.SESSION.name)))
+            relayer.respondWithError(request, PeerError.UnauthorizedUpdateExpiryRequest(Sequences.SESSION.name))
             return
         }
 
         val newExpiry = requestParams.expiry
         Validator.validateSessionExtend(newExpiry, session.expiry.seconds) {
-            relayer.respondWithError(request, PeerError(Error.InvalidUpdateExpiryRequest(Sequences.SESSION.name)))
+            relayer.respondWithError(request, PeerError.InvalidUpdateExpiryRequest(Sequences.SESSION.name))
             return@validateSessionExtend
         }
 
