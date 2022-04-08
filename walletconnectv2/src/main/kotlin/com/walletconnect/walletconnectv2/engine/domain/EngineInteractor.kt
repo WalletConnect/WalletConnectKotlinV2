@@ -188,7 +188,6 @@ internal class EngineInteractor(
         sessionSettle(proposal, sessionTopic) { error -> onFailure(error) }
     }
 
-    //todo: add updateAccounts, updateMethods, updateEvents
     internal fun updateSessionAccounts(topic: String, accounts: List<String>, onFailure: (Throwable) -> Unit) {
         if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
@@ -211,8 +210,7 @@ internal class EngineInteractor(
         }
 
         val params = SessionParamsVO.UpdateAccountsParams(accounts)
-        val sessionUpdateAccounts: SessionSettlementVO.SessionUpdateAccounts =
-            SessionSettlementVO.SessionUpdateAccounts(id = generateId(), params = params)
+        val sessionUpdateAccounts = SessionSettlementVO.SessionUpdateAccounts(id = generateId(), params = params)
         sequenceStorageRepository.updateSessionWithAccounts(TopicVO(topic), accounts)
 
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateAccounts,
@@ -225,11 +223,63 @@ internal class EngineInteractor(
     }
 
     internal fun updateSessionMethods(topic: String, methods: List<String>, onFailure: (Throwable) -> Unit) {
+        if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
+            throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+        }
 
+        Validator.validateMethods(EngineDO.SessionPermissions.JsonRpc(methods)) { errorMessage ->
+            throw WalletConnectException.InvalidSessionMethodsException(errorMessage)
+        }
+
+        val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
+        if (!session.isSelfController) {
+            throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
+        }
+        if (!session.isAcknowledged) {
+            throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
+        }
+
+        val params = SessionParamsVO.UpdateMethodsParams(methods)
+        val sessionUpdateMethods = SessionSettlementVO.SessionUpdateMethods(id = generateId(), params = params)
+        sequenceStorageRepository.updateSessionWithMethods(TopicVO(topic), methods)
+
+        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateMethods,
+            onSuccess = { Logger.log("Session update sent successfully") },
+            onFailure = { error ->
+                Logger.error("Sending session update error: $error")
+                onFailure(error)
+            }
+        )
     }
 
     internal fun updateSessionEvents(topic: String, events: List<String>, onFailure: (Throwable) -> Unit) {
+        if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
+            throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+        }
 
+        Validator.validateEvents(EngineDO.SessionPermissions.Events(events)) { errorMessage ->
+            throw WalletConnectException.InvalidSessionEventsException(errorMessage)
+        }
+
+        val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
+        if (!session.isSelfController) {
+            throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
+        }
+        if (!session.isAcknowledged) {
+            throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
+        }
+
+        val params = SessionParamsVO.UpdateEventsParams(events)
+        val sessionUpdateEvents = SessionSettlementVO.SessionUpdateEvents(id = generateId(), params = params)
+        sequenceStorageRepository.updateSessionWithEvents(TopicVO(topic), events)
+
+        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateEvents,
+            onSuccess = { Logger.log("Session update sent successfully") },
+            onFailure = { error ->
+                Logger.error("Sending session update error: $error")
+                onFailure(error)
+            }
+        )
     }
 
     internal fun sessionRequest(request: EngineDO.Request, onFailure: (Throwable) -> Unit) {

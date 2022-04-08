@@ -168,7 +168,7 @@ object WalletConnectClient {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.updateSessionAccounts(updateMethods.sessionTopic, updateMethods.methods) { error ->
+        engineInteractor.updateSessionMethods(updateMethods.sessionTopic, updateMethods.methods) { error ->
             onError(WalletConnect.Model.Error(error))
         }
     }
@@ -179,7 +179,7 @@ object WalletConnectClient {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.updateSessionAccounts(updateEvents.sessionTopic, updateEvents.events) { error ->
+        engineInteractor.updateSessionEvents(updateEvents.sessionTopic, updateEvents.events) { error ->
             onError(WalletConnect.Model.Error(error))
         }
     }
