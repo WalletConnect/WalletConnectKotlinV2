@@ -189,17 +189,17 @@ internal class EngineInteractor(
     }
 
     //todo: add updateAccounts, updateMethods, updateEvents
-    internal fun update(topic: String, state: EngineDO.SessionState, onFailure: (Throwable) -> Unit) {
+    internal fun updateSessionAccounts(topic: String, accounts: List<String>, onFailure: (Throwable) -> Unit) {
         if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
         val chains: List<String> = sequenceStorageRepository.getSessionByTopic(TopicVO(topic)).chains
-        Validator.validateCAIP10(state.accounts) { errorMessage ->
+        Validator.validateCAIP10(accounts) { errorMessage ->
             throw WalletConnectException.InvalidAccountsException(errorMessage)
         }
 
-        Validator.validateIfChainIdsIncludedInPermission(state.accounts, chains) { errorMessage ->
+        Validator.validateIfChainIdsIncludedInPermission(accounts, chains) { errorMessage ->
             throw WalletConnectException.InvalidAccountsException(errorMessage)
         }
         val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
@@ -210,10 +210,11 @@ internal class EngineInteractor(
             throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
-        val params = SessionParamsVO.UpdateAccountsParams(state.accounts)
+        val params = SessionParamsVO.UpdateAccountsParams(accounts)
         val sessionUpdateAccounts: SessionSettlementVO.SessionUpdateAccounts =
             SessionSettlementVO.SessionUpdateAccounts(id = generateId(), params = params)
-        sequenceStorageRepository.updateSessionWithAccounts(TopicVO(topic), state.accounts)
+        sequenceStorageRepository.updateSessionWithAccounts(TopicVO(topic), accounts)
+
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateAccounts,
             onSuccess = { Logger.log("Session update sent successfully") },
             onFailure = { error ->
@@ -221,6 +222,14 @@ internal class EngineInteractor(
                 onFailure(error)
             }
         )
+    }
+
+    internal fun updateSessionMethods(topic: String, methods: List<String>, onFailure: (Throwable) -> Unit) {
+
+    }
+
+    internal fun updateSessionEvents(topic: String, events: List<String>, onFailure: (Throwable) -> Unit) {
+
     }
 
     internal fun sessionRequest(request: EngineDO.Request, onFailure: (Throwable) -> Unit) {
@@ -531,8 +540,7 @@ internal class EngineInteractor(
         sequenceStorageRepository.updateSessionWithAccounts(session.topic, params.accounts)
         relayer.respondWithSuccess(request)
 
-        //todo: emit SessionUpdateAccounts
-        scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdate(request.topic, params.accounts)) }
+        scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateAccounts(request.topic, params.accounts)) }
     }
 
     private fun onSessionUpdateMethods(request: WCRequestVO, params: SessionParamsVO.UpdateMethodsParams) {
@@ -556,8 +564,7 @@ internal class EngineInteractor(
         sequenceStorageRepository.updateSessionWithMethods(session.topic, params.methods)
         relayer.respondWithSuccess(request)
 
-        //todo: emit SessionUpdateMethods
-        scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdate(request.topic, params.methods)) }
+        scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateMethods(request.topic, params.methods)) }
     }
 
     private fun onSessionUpdateEvents(request: WCRequestVO, params: SessionParamsVO.UpdateEventsParams) {
@@ -581,8 +588,7 @@ internal class EngineInteractor(
         sequenceStorageRepository.updateSessionWithEvents(session.topic, params.events)
         relayer.respondWithSuccess(request)
 
-        //todo: emit SessionUpdateEvents
-        scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdate(request.topic, params.events)) }
+        scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateEvents(request.topic, params.events)) }
     }
 
     private fun onSessionUpdateExpiry(request: WCRequestVO, requestParams: SessionParamsVO.UpdateExpiryParams) {
@@ -605,7 +611,7 @@ internal class EngineInteractor(
 
         sequenceStorageRepository.updateSessionExpiry(request.topic, newExpiry)
         relayer.respondWithSuccess(request)
-        scope.launch { _sequenceEvent.emit(session.toEngineDOExtendedSessionVO(ExpiryVO(newExpiry))) }
+        scope.launch { _sequenceEvent.emit(session.toEngineDOSessionUpdateExpiry(ExpiryVO(newExpiry))) }
     }
 
     private fun onPing(request: WCRequestVO) {
@@ -699,11 +705,11 @@ internal class EngineInteractor(
         when (val response = wcResponse.response) {
             is JsonRpcResponseVO.JsonRpcResult -> {
                 Logger.log("Session update methods response received")
-//                todo: emit SessionUpdateMethodsResponse
+                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateMethodsResponse.Result(session.topic, session.methods)) }
             }
             is JsonRpcResponseVO.JsonRpcError -> {
                 Logger.error("Peer failed to update session: ${response.error}")
-//                todo: emit SessionUpdateMethodsResponse
+                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateMethodsResponse.Error(response.errorMessage)) }
             }
         }
     }
@@ -715,12 +721,14 @@ internal class EngineInteractor(
 
         when (val response = wcResponse.response) {
             is JsonRpcResponseVO.JsonRpcResult -> {
-                Logger.log("Session update ecents response received")
-//                todo: emit SessionUpdateEventsResponse
+                Logger.log("Session update events response received")
+                scope.launch {
+                    _sequenceEvent.emit(EngineDO.SessionUpdateEventsResponse.Result(session.topic, session.events ?: emptyList()))
+                }
             }
             is JsonRpcResponseVO.JsonRpcError -> {
                 Logger.error("Peer failed to events session: ${response.error}")
-//                todo: emit SessionUpdateEventsResponse
+                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateMethodsResponse.Error(response.errorMessage)) }
             }
         }
     }

@@ -99,8 +99,8 @@ internal fun SessionVO.toEngineDOApprovedSessionVO(): EngineDO.Session =
     )
 
 @JvmSynthetic
-internal fun SessionVO.toEngineDOExtendedSessionVO(expiryVO: ExpiryVO): EngineDO.SessionExtend =
-    EngineDO.SessionExtend(
+internal fun SessionVO.toEngineDOSessionUpdateExpiry(expiryVO: ExpiryVO): EngineDO.SessionUpdateExpiry =
+    EngineDO.SessionUpdateExpiry(
         topic, expiryVO,
         accounts, selfMetaData?.toEngineDOAppMetaData(),
         EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getNotifications(events)),

@@ -78,12 +78,12 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     }
 
     fun sessionUpdate(session: WalletConnect.Model.Session) {
-        val update = WalletConnect.Params.Update(
+        val update = WalletConnect.Params.UpdateAccounts(
             sessionTopic = session.topic,
-            sessionState = WalletConnect.Model.SessionState(accounts = listOf("eip155:42:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62")) //kovan
+            accounts = listOf("eip155:42:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62") //kovan
         )
 
-        WalletConnectClient.update(update) { error -> Log.d("Error", "sending update error: $error") }
+        WalletConnectClient.updateSessionAccounts(update) { error -> Log.d("Error", "sending update error: $error") }
     }
 
     fun sessionUpgrade(session: WalletConnect.Model.Session) {
@@ -121,7 +121,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         _eventFlow.postValue(Event(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())))
     }
 
-    override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {
+    override fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent) {
         //session notification
     }
 
@@ -134,23 +134,31 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         }
     }
 
-    override fun onSessionUpgradeResponse(response: WalletConnect.Model.SessionUpgradeResponse) {
-        when (response) {
-            is WalletConnect.Model.SessionUpgradeResponse.Result -> {
-                Log.d("Session Upgrade", "Session upgrade result: $response")
-                _eventFlow.postValue(Event(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())))
-            }
-            is WalletConnect.Model.SessionUpgradeResponse.Error -> Log.e("Error", "Session Upgrade error: ${response.errorMessage}")
-        }
-    }
+//    override fun onSessionUpgradeResponse(response: WalletConnect.Model.SessionUpgradeResponse) {
+//        when (response) {
+//            is WalletConnect.Model.SessionUpgradeResponse.Result -> {
+//                Log.d("Session Upgrade", "Session upgrade result: $response")
+//                _eventFlow.postValue(Event(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())))
+//            }
+//            is WalletConnect.Model.SessionUpgradeResponse.Error -> Log.e("Error", "Session Upgrade error: ${response.errorMessage}")
+//        }
+//    }
 
-    override fun onSessionUpdateResponse(response: WalletConnect.Model.SessionUpdateResponse) {
+    override fun onSessionUpdateAccountsResponse(response: WalletConnect.Model.SessionUpdateAccountsResponse) {
         when (response) {
-            is WalletConnect.Model.SessionUpdateResponse.Result -> {
+            is WalletConnect.Model.SessionUpdateAccountsResponse.Result -> {
                 Log.d("Session Update", "Session update result: $response")
                 _eventFlow.postValue(Event(UpdateActiveSessions(WalletConnectClient.getListOfSettledSessions())))
             }
-            is WalletConnect.Model.SessionUpdateResponse.Error -> Log.e("Error", "Session Update error: ${response.errorMessage}")
+            is WalletConnect.Model.SessionUpdateAccountsResponse.Error -> Log.e("Error", "Session Update error: ${response.errorMessage}")
         }
+    }
+
+    override fun onSessionUpdateMethodsResponse(response: WalletConnect.Model.SessionUpdateMethodsResponse) {
+
+    }
+
+    override fun onSessionUpdateEventsResponse(response: WalletConnect.Model.SessionUpdateEventsResponse) {
+
     }
 }
