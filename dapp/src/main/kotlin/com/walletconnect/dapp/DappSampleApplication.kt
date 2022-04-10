@@ -1,8 +1,6 @@
 package com.walletconnect.dapp
 
 import android.app.Application
-import android.content.Context
-import com.walletconnect.dapp.ui.connect.chain_select.ChainSelectionFragment
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
@@ -42,8 +40,4 @@ class DappSampleApplication: Application() {
 
         WalletConnectClient.initialize(initString)
     }
-}
-
-inline fun <reified T: Any> tag(currentClass: T): String {
-    return currentClass::class.java.canonicalName!!.substringAfterLast(".")
 }

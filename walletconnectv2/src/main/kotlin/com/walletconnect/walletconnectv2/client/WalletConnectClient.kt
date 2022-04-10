@@ -18,6 +18,7 @@ object WalletConnectClient {
     private lateinit var engineInteractor: EngineInteractor
 
     fun initialize(initial: WalletConnect.Params.Init, onError: (WalletConnectException) -> Unit = {}) = with(initial) {
+        // TODO: re-init scope
         // TODO: add logic to check hostName for ws/wss scheme with and without ://
         wcKoinApp.run {
             androidContext(application)
@@ -239,10 +240,10 @@ object WalletConnectClient {
         fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification)
 
         //Responses
-        fun onPairingSettledResponse(response: WalletConnect.Model.SettledPairingResponse)
-        fun onSessionSettleResponse(response: WalletConnect.Model.SettledSessionResponse)
-        fun onSessionUpgradeResponse(response: WalletConnect.Model.SessionUpgradeResponse)
-        fun onSessionUpdateResponse(response: WalletConnect.Model.SessionUpdateResponse)
+        fun onPairingSettledResponse(pairingResponse: WalletConnect.Model.SettledPairingResponse)
+        fun onSessionSettleResponse(settleSessionResponse: WalletConnect.Model.SettledSessionResponse)
+        fun onSessionUpgradeResponse(sessionUpgradeResponse: WalletConnect.Model.SessionUpgradeResponse)
+        fun onSessionUpdateResponse(sessionUpdateResponse: WalletConnect.Model.SessionUpdateResponse)
     }
 
     interface DappDelegate {

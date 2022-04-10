@@ -44,7 +44,6 @@ dependencies {
     implementation(project(":samples_common"))
 
     glide_N_kapt()
-
     implementation("com.github.kenglxn.QRGen:android:2.6.0")
 
     testImplementation("junit:junit:4.13.2")

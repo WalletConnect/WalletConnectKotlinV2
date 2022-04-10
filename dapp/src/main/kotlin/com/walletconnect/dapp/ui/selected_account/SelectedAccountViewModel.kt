@@ -1,18 +1,21 @@
 package com.walletconnect.dapp.ui.selected_account
 
 import android.net.Uri
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.dapp.domain.*
-import com.walletconnect.dapp.ui.NavigationEvents
+import com.walletconnect.dapp.ui.SampleDappEvents
+import com.walletconnect.sample_common.EthTestChains
+import com.walletconnect.sample_common.getEthSendTransaction
+import com.walletconnect.sample_common.getEthSignTypedData
+import com.walletconnect.sample_common.getPersonalSignBody
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 
 class SelectedAccountViewModel : ViewModel() {
-    private val navigationChannel = Channel<NavigationEvents>(Channel.BUFFERED)
+    private val navigationChannel = Channel<SampleDappEvents>(Channel.BUFFERED)
     val navigation = navigationChannel.receiveAsFlow()
 
     init {
@@ -20,17 +23,17 @@ class SelectedAccountViewModel : ViewModel() {
             when {
                 walletEvent is WalletConnect.Model.UpgradedSession -> {
                     val selectedAccountUI = getSelectedAccount()
-                    NavigationEvents.UpgradedSelectedAccountUI(selectedAccountUI)
+                    SampleDappEvents.UpgradedSelectedAccountUI(selectedAccountUI)
                 }
                 walletEvent is WalletConnect.Model.SessionPayloadResponse && walletEvent.result is WalletConnect.Model.JsonRpcResponse.JsonRpcResult -> {
-                    NavigationEvents.RequestSuccess((walletEvent.result as WalletConnect.Model.JsonRpcResponse.JsonRpcResult).result)
+                    SampleDappEvents.RequestSuccess((walletEvent.result as WalletConnect.Model.JsonRpcResponse.JsonRpcResult).result)
                 }
                 walletEvent is WalletConnect.Model.SessionPayloadResponse && walletEvent.result is WalletConnect.Model.JsonRpcResponse.JsonRpcError -> {
                     val errorResult = (walletEvent.result as WalletConnect.Model.JsonRpcResponse.JsonRpcError)
-                    NavigationEvents.RequestPeerError("Error Message: ${errorResult.message}\n Error Code: ${errorResult.code}")
+                    SampleDappEvents.RequestPeerError("Error Message: ${errorResult.message}\n Error Code: ${errorResult.code}")
                 }
-                walletEvent is WalletConnect.Model.DeletedSession -> NavigationEvents.Disconnect
-                else -> NavigationEvents.NoAction
+                walletEvent is WalletConnect.Model.DeletedSession -> SampleDappEvents.Disconnect
+                else -> SampleDappEvents.NoAction
             }
         }.onEach { navigationEvents ->
             navigationChannel.trySend(navigationEvents)
@@ -55,7 +58,7 @@ class SelectedAccountViewModel : ViewModel() {
         )
 
         WalletConnectClient.request(requestParams) {
-            navigationChannel.trySend(NavigationEvents.RequestError(it.error.localizedMessage ?: "Error trying to send request"))
+            navigationChannel.trySend(SampleDappEvents.RequestError(it.error.localizedMessage ?: "Error trying to send request"))
         }
 
         //TODO: Uncomment once refactor merged in
@@ -69,14 +72,14 @@ class SelectedAccountViewModel : ViewModel() {
         }
 
         val (parentChain, chainId, account) = requireNotNull(DappDelegate.selectedAccountDetails)
-        val chainDetails = Chains.values().first {
+        val chainDetails = EthTestChains.values().first {
             it.parentChain == parentChain && it.chainId == chainId.toInt()
         }
-        val listOfMethods = WalletConnectClient.getListOfSettledSessions().filter {
+        val listOfMethods: List<String> = WalletConnectClient.getListOfSettledSessions().filter {
             it.topic == DappDelegate.selectedSessionTopic
-        }.map {
+        }.flatMap {
             it.permissions.jsonRpc.methods
-        }.flatten()
+        }
 
         return SelectedAccountUI(chainDetails.icon, chainDetails.chainName, account, listOfMethods)
     }

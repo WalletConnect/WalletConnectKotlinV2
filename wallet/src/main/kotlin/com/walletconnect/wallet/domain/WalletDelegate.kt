@@ -1,0 +1,81 @@
+package com.walletconnect.wallet.domain
+
+import com.walletconnect.walletconnectv2.client.WalletConnect
+import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.launch
+
+object WalletDelegate : WalletConnectClient.WalletDelegate {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val _wcEventModels: MutableSharedFlow<WalletConnect.Model?> = MutableSharedFlow(1)
+    val wcEventModels: SharedFlow<WalletConnect.Model?> = _wcEventModels
+
+    var sessionProposal: WalletConnect.Model.SessionProposal? = null
+        private set
+    var selectedChainAddressId: Int = 1
+        private set
+
+    init {
+        WalletConnectClient.setWalletDelegate(this)
+    }
+
+    override fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal) {
+        this.sessionProposal = sessionProposal
+
+        scope.launch {
+            _wcEventModels.emit(sessionProposal)
+        }
+    }
+
+    override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {
+        scope.launch {
+            _wcEventModels.emit(sessionRequest)
+        }
+    }
+
+    override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {
+        scope.launch {
+            _wcEventModels.emit(deletedSession)
+        }
+    }
+
+    override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {
+        scope.launch {
+            _wcEventModels.emit(sessionNotification)
+        }
+    }
+
+    override fun onPairingSettledResponse(pairingResponse: WalletConnect.Model.SettledPairingResponse) {
+        scope.launch {
+            _wcEventModels.emit(pairingResponse)
+        }
+    }
+
+    override fun onSessionSettleResponse(settleSessionResponse: WalletConnect.Model.SettledSessionResponse) {
+        sessionProposal = null
+
+        scope.launch {
+            _wcEventModels.emit(settleSessionResponse)
+        }
+    }
+
+    override fun onSessionUpgradeResponse(sessionUpgradeResponse: WalletConnect.Model.SessionUpgradeResponse) {
+        scope.launch {
+            _wcEventModels.emit(sessionUpgradeResponse)
+        }
+    }
+
+    override fun onSessionUpdateResponse(sessionUpdateResponse: WalletConnect.Model.SessionUpdateResponse) {
+        scope.launch {
+            _wcEventModels.emit(sessionUpdateResponse)
+        }
+    }
+
+    fun setSelectedAccount(selectedChainAddressId: Int) {
+        this.selectedChainAddressId = selectedChainAddressId
+    }
+}

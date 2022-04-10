@@ -29,7 +29,6 @@ import com.walletconnect.sample.wallet.WalletViewModel
 import java.util.concurrent.Executors
 
 class ScannerFragment : Fragment(R.layout.scanner_fragment) {
-
     private lateinit var binding: ScannerFragmentBinding
     private val viewModel: WalletViewModel by activityViewModels()
     private val cameraPermissionCallback =
@@ -52,8 +51,7 @@ class ScannerFragment : Fragment(R.layout.scanner_fragment) {
     }
 
     private fun setupCamera() {
-        cameraSelector =
-            CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build()
+        cameraSelector = CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build()
         setupObserver()
     }
 

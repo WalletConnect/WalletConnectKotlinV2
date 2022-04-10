@@ -117,8 +117,6 @@ internal sealed class EngineDO {
     internal data class SessionUpgrade(val topic: TopicVO, val chains: List<String>, val methods: List<String>) : EngineDO(),
         SequenceLifecycle
 
-    internal object Default : EngineDO(), SequenceLifecycle
-
     internal data class SettledSession(
         override val topic: TopicVO,
         override val expiry: ExpiryVO,

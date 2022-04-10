@@ -1,7 +1,6 @@
-package com.walletconnect.dapp.domain
+package com.walletconnect.sample_common
 
 import androidx.annotation.DrawableRes
-import com.walletconnect.dapp.R
 
 private const val ETH_CHAIN = "eip155"
 // Commented out other methods due to wallet not understanding request
@@ -109,14 +108,15 @@ fun getEthSignTypedData(account: String): String {
     """.trimIndent()
 }
 
-enum class Chains(val chainName: String, val parentChain: String, val chainId: Int, @DrawableRes val icon: Int, val methods: List<String>) {
+enum class EthTestChains(val chainName: String, val parentChain: String, val chainId: Int, @DrawableRes val icon: Int, val methods: List<String>, val order: Int) {
 
     ETHEREUM_KOVAN(
         chainName = "Ethereum Kovan",
         parentChain = ETH_CHAIN,
         chainId = 42,
         icon = R.drawable.ic_ethereum,
-        methods = defaultEthMethods
+        methods = defaultEthMethods,
+        order = 1
     ),
 
     OPTIMISM_KOVAN(
@@ -124,7 +124,8 @@ enum class Chains(val chainName: String, val parentChain: String, val chainId: I
         parentChain = ETH_CHAIN,
         chainId = 69,
         icon = R.drawable.ic_optimism,
-        methods = defaultEthMethods
+        methods = defaultEthMethods,
+        order = 2
     ),
 
     POLYGON_MUMBAI(
@@ -132,7 +133,8 @@ enum class Chains(val chainName: String, val parentChain: String, val chainId: I
         parentChain = ETH_CHAIN,
         chainId = 80001,
         icon = R.drawable.ic_polygon,
-        methods = defaultEthMethods
+        methods = defaultEthMethods,
+        order = 3
     ),
 
     ARBITRUM_RINKBY(
@@ -140,7 +142,8 @@ enum class Chains(val chainName: String, val parentChain: String, val chainId: I
         parentChain = ETH_CHAIN,
         chainId = 421611,
         icon = R.drawable.ic_arbitrum,
-        methods = defaultEthMethods
+        methods = defaultEthMethods,
+        order = 4
     ),
 
     CELO_ALFAJORES(
@@ -148,6 +151,7 @@ enum class Chains(val chainName: String, val parentChain: String, val chainId: I
         parentChain = ETH_CHAIN,
         chainId = 44787,
         icon = R.drawable.ic_celo,
-        methods = defaultEthMethods
+        methods = defaultEthMethods,
+        order = 5
     )
 }

@@ -2,9 +2,9 @@ package com.walletconnect.dapp.ui.session
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.dapp.domain.Chains
 import com.walletconnect.dapp.domain.DappDelegate
-import com.walletconnect.dapp.ui.NavigationEvents
+import com.walletconnect.dapp.ui.SampleDappEvents
+import com.walletconnect.sample_common.EthTestChains
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.channels.Channel
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 
 class SessionViewModel : ViewModel() {
-    private val navigationChannel = Channel<NavigationEvents>(Channel.BUFFERED)
+    private val navigationChannel = Channel<SampleDappEvents>(Channel.BUFFERED)
     val navigation = navigationChannel.receiveAsFlow()
 
     init {
@@ -22,10 +22,10 @@ class SessionViewModel : ViewModel() {
             when (walletEvent) {
                 is WalletConnect.Model.UpdatedSession -> {
                     val listOfAccounts = getListOfAccounts(walletEvent.topic)
-                    NavigationEvents.UpdatedListOfAccounts(listOfAccounts)
+                    SampleDappEvents.UpdatedListOfAccounts(listOfAccounts)
                 }
-                is WalletConnect.Model.DeletedSession -> NavigationEvents.Disconnect
-                else -> NavigationEvents.NoAction
+                is WalletConnect.Model.DeletedSession -> SampleDappEvents.Disconnect
+                else -> SampleDappEvents.NoAction
             }
         }.onEach { navigationEvents ->
             navigationChannel.trySend(navigationEvents)
@@ -39,12 +39,12 @@ class SessionViewModel : ViewModel() {
             } else {
                 it.topic == DappDelegate.selectedSessionTopic
             }
-        }.map { settledSession ->
+        }.flatMap { settledSession ->
             settledSession.accounts
-        }.flatten().map {
+        }.map {
             val (parentChain, chainId, account) = it.split(":")
 
-            val chain = Chains.values().first { chain ->
+            val chain = EthTestChains.values().first { chain ->
                 chain.parentChain == parentChain && chain.chainId == chainId.toInt()
             }
 
@@ -57,11 +57,11 @@ class SessionViewModel : ViewModel() {
 
         WalletConnectClient.ping(pingParams, object : WalletConnect.Listeners.SessionPing {
             override fun onSuccess(pingSuccess: WalletConnect.Model.Ping.Success) {
-                navigationChannel.trySend(NavigationEvents.PingSuccess(pingSuccess.topic))
+                navigationChannel.trySend(SampleDappEvents.PingSuccess(pingSuccess.topic))
             }
 
             override fun onError(pingError: WalletConnect.Model.Ping.Error) {
-                navigationChannel.trySend(NavigationEvents.PingError)
+                navigationChannel.trySend(SampleDappEvents.PingError)
             }
         })
     }
@@ -78,6 +78,6 @@ class SessionViewModel : ViewModel() {
             DappDelegate.deselectAccountDetails()
         }
 
-        navigationChannel.trySend(NavigationEvents.Disconnect)
+        navigationChannel.trySend(SampleDappEvents.Disconnect)
     }
 }

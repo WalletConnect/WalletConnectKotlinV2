@@ -26,7 +26,7 @@ fun DependencyHandlerScope.lifecycle() {
 }
 
 fun DependencyHandlerScope.navigationComponent() {
-    val navVersion = "2.3.5"
+    val navVersion = "2.4.1"
     "api"("androidx.navigation:navigation-fragment-ktx:$navVersion")
     "api"("androidx.navigation:navigation-ui-ktx:$navVersion")
 }

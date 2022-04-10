@@ -5,9 +5,7 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -17,42 +15,36 @@ import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.FragmentSelectedAccountBinding
+import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.sample_common.BottomVerticalSpaceItemDecoration
-import com.walletconnect.dapp.ui.NavigationEvents
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-class SelectedAccountFragment : Fragment() {
+class SelectedAccountFragment : Fragment(R.layout.fragment_selected_account) {
     private val viewModel: SelectedAccountViewModel by viewModels()
     private var _binding: FragmentSelectedAccountBinding? = null
-    private val binding: FragmentSelectedAccountBinding
-        get() = _binding!!
     private val selectedAccountAdapter by lazy {
         SelectedAccountAdapter() { methodName ->
             viewModel.requestMethod(methodName, ::sendRequestDeepLink)
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = FragmentSelectedAccountBinding.inflate(inflater, container, false)
-
-        return binding.root
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val binding = FragmentSelectedAccountBinding.bind(view).also { _binding = it }
 
         viewModel.navigation
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.RESUMED)
             .onEach { navigationEvent ->
                 when (navigationEvent) {
-                    is NavigationEvents.RequestSuccess -> onRequest(navigationEvent.result)
-                    is NavigationEvents.RequestPeerError -> onRequest(navigationEvent.errorMsg)
-                    is NavigationEvents.RequestError -> onRequest(navigationEvent.exceptionMsg)
-                    is NavigationEvents.UpgradedSelectedAccountUI -> {
+                    is SampleDappEvents.RequestSuccess -> onRequest(navigationEvent.result)
+                    is SampleDappEvents.RequestPeerError -> onRequest(navigationEvent.errorMsg)
+                    is SampleDappEvents.RequestError -> onRequest(navigationEvent.exceptionMsg)
+                    is SampleDappEvents.UpgradedSelectedAccountUI -> {
                         selectedAccountAdapter.submitList(navigationEvent.selectedAccountUI.listOfMethods)
                     }
-                    is NavigationEvents.Disconnect -> findNavController().navigate(R.id.action_fragment_selected_account_to_connect_graph)
+                    is SampleDappEvents.Disconnect -> findNavController().navigate(R.id.action_fragment_selected_account_to_connect_graph)
                     else -> Unit
                 }
             }.launchIn(viewLifecycleOwner.lifecycleScope)
@@ -102,5 +94,4 @@ class SelectedAccountFragment : Fragment() {
 
         _binding = null
     }
-
 }

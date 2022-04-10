@@ -3,11 +3,11 @@ package com.walletconnect.dapp.ui.connect
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.dapp.domain.Chains
 import com.walletconnect.dapp.domain.DappDelegate
-import com.walletconnect.dapp.tag
-import com.walletconnect.dapp.ui.NavigationEvents
+import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.dapp.ui.connect.chain_select.ChainSelectionUI
+import com.walletconnect.sample_common.EthTestChains
+import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.channels.Channel
@@ -20,7 +20,7 @@ class ConnectViewModel : ViewModel() {
     private val _listOfChainUI: MutableList<ChainSelectionUI> = mutableListOf()
         get() {
             return if (field.isEmpty()) {
-                Chains.values().mapTo(field) {
+                EthTestChains.values().mapTo(field) {
                     ChainSelectionUI(it.chainName, it.parentChain, it.chainId, it.icon, it.methods)
                 }
             } else {
@@ -29,15 +29,15 @@ class ConnectViewModel : ViewModel() {
         }
     val listOfChainUI: List<ChainSelectionUI> = _listOfChainUI
 
-    private val navigationChannel = Channel<NavigationEvents>(Channel.BUFFERED)
+    private val navigationChannel = Channel<SampleDappEvents>(Channel.BUFFERED)
     val navigation = navigationChannel.receiveAsFlow()
 
     init {
         DappDelegate.wcEventModels.map { walletEvent: WalletConnect.Model? ->
             when (walletEvent) {
-                is WalletConnect.Model.ApprovedSession -> NavigationEvents.SessionApproved
-                is WalletConnect.Model.RejectedSession -> NavigationEvents.SessionRejected
-                else -> NavigationEvents.NoAction
+                is WalletConnect.Model.ApprovedSession -> SampleDappEvents.SessionApproved
+                is WalletConnect.Model.RejectedSession -> SampleDappEvents.SessionRejected
+                else -> SampleDappEvents.NoAction
             }
         }.onEach { event ->
             navigationChannel.trySend(event)

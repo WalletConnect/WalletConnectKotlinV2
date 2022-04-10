@@ -126,7 +126,8 @@ internal object Validator {
     internal fun isAccountIdValid(accountId: String): Boolean {
         val elements = accountId.split(":")
         if (elements.isEmpty() || elements.size != 3) return false
-        val (namespace, reference, accountAddress) = splitAccountId(elements)
+        val (namespace, reference, accountAddress) = elements
+
         return NAMESPACE_REGEX.toRegex().matches(namespace) &&
                 REFERENCE_REGEX.toRegex().matches(reference) &&
                 ACCOUNT_ADDRESS_REGEX.toRegex().matches(accountAddress)
@@ -137,19 +138,12 @@ internal object Validator {
         accountIds.forEach { accountId ->
             val elements = accountId.split(":")
             if (elements.isEmpty() || elements.size != 3) return false
-            val (namespace, reference, _) = splitAccountId(elements)
+            val (namespace, reference, _) = elements
 
             val chainId = "$namespace:$reference"
             if (!chains.contains(chainId)) return false
         }
         return true
-    }
-
-    private fun splitAccountId(elements: List<String>): Triple<String, String, String> {
-        val namespace = elements[0]
-        val reference = elements[1]
-        val accountAddress = elements[2]
-        return Triple(namespace, reference, accountAddress)
     }
 
     private const val NAMESPACE_REGEX: String = "^[-a-z0-9]{3,8}$"

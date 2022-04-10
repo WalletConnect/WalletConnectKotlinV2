@@ -1,7 +1,10 @@
 package com.walletconnect.dapp.ui.session
 
 import android.os.Bundle
-import android.view.*
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -12,16 +15,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.FragmentSessionBinding
+import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.sample_common.BottomVerticalSpaceItemDecoration
-import com.walletconnect.dapp.ui.NavigationEvents
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-class SessionFragment : Fragment() {
+class SessionFragment : Fragment(R.layout.fragment_session) {
     private val viewModel: SessionViewModel by viewModels()
     private var _binding: FragmentSessionBinding? = null
-    private val binding: FragmentSessionBinding
-        get() = _binding!!
     private val sessionAccountAdapter by lazy {
         SessionAdapter() { selectedAccount ->
             val selectedAccountKey = getString(R.string.selected_account)
@@ -29,23 +30,19 @@ class SessionFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = FragmentSessionBinding.inflate(inflater, container, false).also { _binding = it }
-        setHasOptionsMenu(true)
-        return binding.root
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val binding = FragmentSessionBinding.bind(view).also { _binding = it }
 
         viewModel.navigation
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.RESUMED)
             .onEach { events ->
                 when (events) {
-                    is NavigationEvents.PingSuccess -> Toast.makeText(requireContext(), "Pinged Peer Successfully on Topic: ${events.topic}", Toast.LENGTH_SHORT).show()
-                    is NavigationEvents.PingError -> Toast.makeText(requireContext(), "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT).show()
-                    is NavigationEvents.Disconnect -> findNavController().popBackStack()
-                    is NavigationEvents.UpdatedListOfAccounts -> sessionAccountAdapter.submitList(events.listOfAccounts)
+                    is SampleDappEvents.PingSuccess -> Toast.makeText(requireContext(), "Pinged Peer Successfully on Topic: ${events.topic}", Toast.LENGTH_SHORT).show()
+                    is SampleDappEvents.PingError -> Toast.makeText(requireContext(), "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT).show()
+                    is SampleDappEvents.Disconnect -> findNavController().popBackStack()
+                    is SampleDappEvents.UpdatedListOfAccounts -> sessionAccountAdapter.submitList(events.listOfAccounts)
                     else -> Unit
                 }
             }
