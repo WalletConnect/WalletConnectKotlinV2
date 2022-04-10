@@ -40,8 +40,7 @@ class SessionProposalViewModel : ViewModel() {
     fun reject() {
         WalletDelegate.sessionProposal?.let { sessionProposal ->
             val rejectionReason = "Reject Session"
-            val proposalTopic: String = sessionProposal.topic
-            val reject = WalletConnect.Params.Reject(rejectionReason, proposalTopic)
+            val reject = WalletConnect.Params.Reject(proposal = sessionProposal, reason = rejectionReason, code = 406)
 
             WalletConnectClient.reject(reject) { error ->
                 Log.d(tag(this@SessionProposalViewModel), "sending reject error: $error")

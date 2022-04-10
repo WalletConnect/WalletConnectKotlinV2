@@ -152,6 +152,13 @@ internal object Validator {
         return true
     }
 
+    fun getChainIds(accountIds: List<String>): List<String> {
+        return accountIds.map { accountId ->
+            val (namespace: String, reference: String, _) = accountId.split(":")
+            "$namespace:$reference"
+        }
+    }
+
     private const val NAMESPACE_REGEX: String = "^[-a-z0-9]{3,8}$"
     private const val REFERENCE_REGEX: String = "^[-a-zA-Z0-9]{1,32}$"
     private const val ACCOUNT_ADDRESS_REGEX: String = "^[a-zA-Z0-9]{1,64}$"

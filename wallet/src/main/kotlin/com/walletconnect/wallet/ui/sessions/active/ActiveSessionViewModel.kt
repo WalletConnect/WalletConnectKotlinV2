@@ -27,12 +27,12 @@ class ActiveSessionViewModel : ViewModel() {
 
     private fun getLatestActiveSessions(): List<ActiveSessionUI> {
         return WalletConnectClient.getListOfSettledSessions().filter { wcSession ->
-            wcSession.peerAppMetaData != null
+            wcSession.metaData != null
         }.map { wcSession ->
             ActiveSessionUI(
-                icon = wcSession.peerAppMetaData!!.icons.first(),
-                name = wcSession.peerAppMetaData!!.name,
-                url = wcSession.peerAppMetaData!!.url,
+                icon = wcSession.metaData!!.icons.first(),
+                name = wcSession.metaData!!.name,
+                url = wcSession.metaData!!.url,
                 topic = wcSession.topic
             )
         }

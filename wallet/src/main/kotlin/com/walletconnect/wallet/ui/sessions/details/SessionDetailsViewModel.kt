@@ -43,7 +43,7 @@ class SessionDetailsViewModel : ViewModel() {
             selectedSessionTopic = sessionTopic
 
             val listOfChainAccountInfo = filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession)
-            val selectedSessionPeerData: WalletConnect.Model.AppMetaData = requireNotNull(selectedSession.peerAppMetaData)
+            val selectedSessionPeerData: WalletConnect.Model.AppMetaData = requireNotNull(selectedSession.metaData)
             val uiState = SessionDetailsUI.Content(
                 icon = selectedSessionPeerData.icons.first(),
                 name = selectedSessionPeerData.name,
@@ -136,6 +136,7 @@ class SessionDetailsViewModel : ViewModel() {
             sessionDetails.copy(listOfChainAccountInfo = listOfChainAccountInfo)
         }
 
+        // TODO: Once state sync is complete, replace updating UI from VM with event from WalletDelegate
         viewModelScope.launch {
             _uiState.emit(updatedUIState)
         }
@@ -150,7 +151,7 @@ class SessionDetailsViewModel : ViewModel() {
             }
             selectedSessionTopic?.let { sessionTopic ->
                 val permissions = WalletConnect.Model.SessionPermissions(
-                    blockchain = WalletConnect.Model.SessionPermissions.Blockchain(chains = chains),
+//                    blockchain = WalletConnect.Model.SessionPermissions.Blockchain(chains = chains),
                     jsonRpc = WalletConnect.Model.SessionPermissions.JsonRpc(listOf("eth_sign"))
                 )
 
@@ -161,12 +162,13 @@ class SessionDetailsViewModel : ViewModel() {
             sessionDetails.copy(methods = "eth_sign")
         }
 
+        // TODO: Once state sync is complete, replace updating UI from VM with event from WalletDelegate
         viewModelScope.launch {
             _uiState.emit(updatedState)
         }
     }
 
-    private fun filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession: WalletConnect.Model.SettledSession): List<SessionDetailsUI.Content.ChainAccountInfo> =
+    private fun filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession: WalletConnect.Model.Session): List<SessionDetailsUI.Content.ChainAccountInfo> =
         mapOfAllAccounts.values
             .flatMap { accountsMap: Map<EthTestChains, String> ->
                 val accountsMapID = mapOfAllAccounts.entries.associate { it.value to it.key }.getValue(accountsMap)

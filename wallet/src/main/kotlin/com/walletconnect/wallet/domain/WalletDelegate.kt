@@ -49,12 +49,6 @@ object WalletDelegate : WalletConnectClient.WalletDelegate {
         }
     }
 
-    override fun onPairingSettledResponse(pairingResponse: WalletConnect.Model.SettledPairingResponse) {
-        scope.launch {
-            _wcEventModels.emit(pairingResponse)
-        }
-    }
-
     override fun onSessionSettleResponse(settleSessionResponse: WalletConnect.Model.SettledSessionResponse) {
         sessionProposal = null
 
