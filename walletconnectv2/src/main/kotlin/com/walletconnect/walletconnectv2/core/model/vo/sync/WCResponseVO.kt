@@ -7,6 +7,6 @@ import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcResponseVO
 internal data class WCResponseVO(
     val topic: TopicVO,
     val method: String,
-    val result: JsonRpcResponseVO,
-    val params: ClientParams
+    val response: JsonRpcResponseVO,
+    val params: ClientParams,
 )

@@ -7,7 +7,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.walletconnect.dapp.databinding.ListItemPairingBinding
 
-class PairingSelectionAdapter(private val listOfPairings: List<Pair<String, String>>, private val pairingTopic: (Int) -> Unit) : RecyclerView.Adapter<PairingSelectionAdapter.ViewHolder>() {
+class PairingSelectionAdapter(
+    private val listOfPairings: List<Pair<String, String>>,
+    private val pairingTopic: (Int) -> Unit,
+) : RecyclerView.Adapter<PairingSelectionAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(ListItemPairingBinding.inflate(LayoutInflater.from(parent.context), parent, false))

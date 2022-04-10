@@ -28,32 +28,32 @@ class PairingGenerationDialogFragment : DialogFragment(R.layout.dialog_connect_u
         dialog?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 
         val binding = DialogConnectUriBinding.bind(view).also { _binding = it }
-        val proposedSequence: WalletConnect.Model.ProposedSequence = viewModel.connectToWallet()
+        viewModel.connectToWallet { proposedSequence ->
+            if (proposedSequence is WalletConnect.Model.ProposedSequence.Pairing) {
+                val pairingUri = proposedSequence.uri.also {
+                    Log.e(tag(this@PairingGenerationDialogFragment), it)
+                }
+                val deeplinkPairingUri = pairingUri.replace("wc:", "wc:/")
+                val qr = QRCode.from(pairingUri).bitmap()
 
-        if (proposedSequence is WalletConnect.Model.ProposedSequence.Pairing) {
-            val pairingUri = proposedSequence.uri.also {
-                Log.e(tag(this@PairingGenerationDialogFragment), it)
-            }
-            val deeplinkPairingUri = pairingUri.replace("wc:", "wc:/")
-            val qr = QRCode.from(pairingUri).bitmap()
+                binding.ivUri.setImageBitmap(qr)
+                binding.btnCopyToClipboard.setOnClickListener {
+                    val clipBoard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clipData = ClipData.newPlainText("WalletConnect Pairing URI", pairingUri)
+                    clipBoard.setPrimaryClip(clipData)
 
-            binding.ivUri.setImageBitmap(qr)
-            binding.btnCopyToClipboard.setOnClickListener {
-                val clipBoard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                val clipData = ClipData.newPlainText("WalletConnect Pairing URI", pairingUri)
-                clipBoard.setPrimaryClip(clipData)
+                    Snackbar.make(binding.root, "Copied to Clipboard", Snackbar.LENGTH_SHORT).show()
+                }
 
-                Snackbar.make(binding.root, "Copied to Clipboard", Snackbar.LENGTH_SHORT).show()
-            }
-
-            //TODO: Uncomment once refactor merged in
+                //TODO: Uncomment once refactor merged in
 //                try {
 //                    requireActivity().startActivity(Intent(Intent.ACTION_VIEW, deeplinkPairingUri.toUri()))
 //                } catch (exception: ActivityNotFoundException) {
 //                    // There is no app to handle deep link
 //                }
-        } else {
-            findNavController().popBackStack(R.id.fragment_chain_selection, true)
+            } else {
+                findNavController().popBackStack(R.id.fragment_chain_selection, true)
+            }
         }
     }
 }

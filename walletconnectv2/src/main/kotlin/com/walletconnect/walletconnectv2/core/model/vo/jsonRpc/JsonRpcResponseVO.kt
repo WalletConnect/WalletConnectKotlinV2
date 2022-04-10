@@ -9,14 +9,14 @@ internal sealed class JsonRpcResponseVO {
     internal data class JsonRpcResult(
         override val id: Long,
         val jsonrpc: String = "2.0",
-        val result: String
+        val result: Any,
     ) : JsonRpcResponseVO()
 
     @JsonClass(generateAdapter = true)
     internal data class JsonRpcError(
         override val id: Long,
         val jsonrpc: String = "2.0",
-        val error: Error
+        val error: Error,
     ) : JsonRpcResponseVO() {
         val errorMessage: String = "${error.message} : code: ${error.code}"
     }

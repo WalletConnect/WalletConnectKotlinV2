@@ -5,7 +5,7 @@ import com.squareup.moshi.JsonReader
 import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.after.params.SessionRequestVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionRequestVO
 import kotlin.String
 
 internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRequestVO>() {

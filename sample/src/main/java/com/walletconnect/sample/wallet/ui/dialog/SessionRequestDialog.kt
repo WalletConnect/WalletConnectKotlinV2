@@ -12,7 +12,7 @@ class SessionRequestDialog(
     val approve: (sessionRequest: WalletConnect.Model.SessionRequest) -> Unit,
     val reject: (sessionRequest: WalletConnect.Model.SessionRequest) -> Unit,
     private val sessionRequest: WalletConnect.Model.SessionRequest,
-    private val session: WalletConnect.Model.SettledSession
+    private val session: WalletConnect.Model.Session
 ) : BottomSheetDialog(context) {
 
     private val binding = SessionRequestDialogBinding.inflate(layoutInflater)
@@ -25,10 +25,10 @@ class SessionRequestDialog(
 
     private fun setContent() = with(binding) {
         Glide.with(context)
-            .load(Uri.parse(session.peerAppMetaData?.icons?.first().toString()))
+            .load(Uri.parse(session.metaData?.icons?.first().toString()))
             .into(icon)
-        name.text = session.peerAppMetaData?.name
-        uri.text = session.peerAppMetaData?.url
+        name.text = session.metaData?.name
+        uri.text = session.metaData?.url
         message.setTitleAndBody("Params", sessionRequest.request.params)
         chains.text = sessionRequest.chainId
         methods.text = sessionRequest.request.method

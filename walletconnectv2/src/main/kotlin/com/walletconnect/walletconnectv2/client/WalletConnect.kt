@@ -7,10 +7,8 @@ import java.net.URI
 object WalletConnect {
 
     sealed interface Listeners {
-
-        interface SessionPing: Listeners {
+        interface SessionPing : Listeners {
             fun onSuccess(pingSuccess: Model.Ping.Success)
-
             fun onError(pingError: Model.Ping.Error)
         }
     }
@@ -20,10 +18,8 @@ object WalletConnect {
         data class Error(val error: Throwable) : Model()
 
         sealed class ProposedSequence {
-
-            class Pairing(val uri: String): ProposedSequence()
-
-            object Session: ProposedSequence()
+            class Pairing(val uri: String) : ProposedSequence()
+            object Session : ProposedSequence()
         }
 
         data class SessionProposal(
@@ -34,12 +30,10 @@ object WalletConnect {
             val chains: List<String>,
             val methods: List<String>,
             val types: List<String>? = null,
-            val topic: String,
             val proposerPublicKey: String,
-            val isController: Boolean,
-            val ttl: Long,
             val accounts: List<String>,
             val relayProtocol: String,
+            val relayData: String?,
         ) : Model()
 
         data class SessionRequest(
@@ -56,17 +50,11 @@ object WalletConnect {
         }
 
         data class SessionState(val accounts: List<String>) : Model()
-        data class PairingUpdate(val topic: String, val metaData: AppMetaData) : Model()
         data class SettledPairing(val topic: String, val metaData: AppMetaData?) : Model()
 
         sealed class SettledSessionResponse : Model() {
-            data class Result(val settledSession: SettledSession) : SettledSessionResponse()
+            data class Result(val session: Session) : SettledSessionResponse()
             data class Error(val errorMessage: String) : SettledSessionResponse()
-        }
-
-        sealed class SettledPairingResponse : Model() {
-            data class Result(val topic: String) : SettledPairingResponse()
-            data class Error(val errorMessage: String) : SettledPairingResponse()
         }
 
         sealed class SessionUpgradeResponse : Model() {
@@ -79,8 +67,20 @@ object WalletConnect {
             data class Error(val errorMessage: String) : SessionUpdateResponse()
         }
 
-        data class RejectedSession(val topic: String, val reason: String) : Model()
+        sealed class DeletedSession : Model() {
+            data class Success(val topic: String, val reason: String) : DeletedSession()
+            data class Error(val error: Throwable) : DeletedSession()
+        }
 
+        sealed class Ping : Model() {
+            data class Success(val topic: String) : Ping()
+            data class Error(val error: Throwable) : Ping()
+        }
+
+        data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : Model()
+        data class RejectedSession(val topic: String, val reason: String) : Model()
+        data class Blockchain(val chains: List<String>) : Model()
+        data class UpdatedSession(val topic: String, val accounts: List<String>) : Model()
         data class ApprovedSession(
             val topic: String,
             val metaData: AppMetaData?,
@@ -88,31 +88,17 @@ object WalletConnect {
             val accounts: List<String>,
         ) : Model()
 
-        sealed class DeletedSession : Model() {
-
-            data class Success(val topic: String, val reason: String) : DeletedSession()
-
-            data class Error(val error: Throwable) : DeletedSession()
-        }
-
-        data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : Model()
-
-        data class UpdatedSession(val topic: String, val accounts: List<String>) : Model()
-
-        data class SettledSession(
+        data class Session(
             val topic: String,
+            val expiry: Long,
             val accounts: List<String>,
-            val peerAppMetaData: AppMetaData?,
+            val metaData: AppMetaData?,
             val permissions: SessionPermissions,
         ) : Model()
 
-        data class SessionPermissions(val blockchain: Blockchain, val jsonRpc: JsonRpc, val notification: Notifications? = null) : Model() {
-
-            data class Blockchain(val chains: List<String>)
-
-            data class JsonRpc(val methods: List<String>)
-
-            data class Notifications(val types: List<String>?)
+        data class SessionPermissions(val jsonRpc: JsonRpc, val notification: Notifications? = null) : Model() {
+            data class JsonRpc(val methods: List<String>) : Model()
+            data class Notifications(val types: List<String>) : Model()
         }
 
         data class SessionNotification(
@@ -163,13 +149,6 @@ object WalletConnect {
             val chainId: String?,
             val params: String,
         ) : Model()
-
-        sealed class Ping: Model() {
-
-            data class Success(val topic: String): Ping()
-
-            data class Error(val error: Throwable): Ping()
-        }
     }
 
     sealed class Params {
@@ -177,7 +156,6 @@ object WalletConnect {
         // TODO: Maybe convert this into a Builder
         data class Init internal constructor(
             val application: Application,
-            val isController: Boolean,
             val metadata: Model.AppMetaData,
         ) : Params() {
             internal lateinit var serverUrl: String
@@ -187,9 +165,8 @@ object WalletConnect {
                 useTls: Boolean,
                 hostName: String,
                 projectId: String,
-                isController: Boolean,
                 metadata: Model.AppMetaData,
-            ) : this(application, isController, metadata) {
+            ) : this(application, metadata) {
                 val relayServerUrl = Uri.Builder().scheme((if (useTls) "wss" else "ws"))
                     .authority(hostName)
                     .appendQueryParameter("projectId", projectId)
@@ -206,9 +183,8 @@ object WalletConnect {
             constructor(
                 application: Application,
                 relayServerUrl: String,
-                isController: Boolean,
                 metadata: Model.AppMetaData,
-            ) : this(application, isController, metadata) {
+            ) : this(application, metadata) {
                 require(relayServerUrl.isValidRelayServerUrl()) {
                     "Check the schema and projectId parameter of the Server Url"
                 }
@@ -223,13 +199,17 @@ object WalletConnect {
             }
         }
 
-        data class Connect(val permissions: Model.SessionPermissions, val pairingTopic: String? = null) : Params()
+        data class Connect(
+            val permissions: Model.SessionPermissions,
+            val blockchain: Model.Blockchain,
+            val pairingTopic: String? = null,
+        ) : Params()
 
         data class Pair(val uri: String) : Params()
 
         data class Approve(val proposal: Model.SessionProposal, val accounts: List<String>) : Params()
 
-        data class Reject(val rejectionReason: String, val proposalTopic: String) : Params()
+        data class Reject(val proposal: Model.SessionProposal, val reason: String, val code: Int) : Params()
 
         data class Disconnect(val sessionTopic: String, val reason: String, val reasonCode: Int) : Params()
 
@@ -244,5 +224,7 @@ object WalletConnect {
         data class Ping(val topic: String) : Params()
 
         data class Notify(val topic: String, val notification: Model.Notification) : Params()
+
+        data class Extend(val topic: String, val newExpiration: Long) : Params()
     }
 }

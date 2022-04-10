@@ -8,13 +8,10 @@ import android.util.Base64
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.squareup.sqldelight.ColumnAdapter
-import com.squareup.sqldelight.EnumColumnAdapter
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.walletconnectv2.Database
-import com.walletconnect.walletconnectv2.storage.data.dao.JsonRpcHistoryDao
 import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
-import com.walletconnect.walletconnectv2.storage.data.dao.PairingDao
 import com.walletconnect.walletconnectv2.storage.data.dao.SessionDao
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
@@ -181,22 +178,13 @@ internal fun storageModule(): Module = module {
     single {
         Database(
             get(),
-            PairingDaoAdapter = PairingDao.Adapter(
-                statusAdapter = EnumColumnAdapter(),
-                controller_typeAdapter = EnumColumnAdapter(),
-                permissionsAdapter = get()
-            ),
             SessionDaoAdapter = SessionDao.Adapter(
                 permissions_chainsAdapter = get(),
                 permissions_methodsAdapter = get(),
                 permissions_typesAdapter = get(),
-                accountsAdapter = get(),
-                statusAdapter = EnumColumnAdapter(),
-                controller_typeAdapter = EnumColumnAdapter()
+                accountsAdapter = get()
             ),
-            MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = get()),
-            JsonRpcHistoryDaoAdapter =
-            JsonRpcHistoryDao.Adapter(controller_typeAdapter = EnumColumnAdapter())
+            MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = get())
         )
     }
 
@@ -221,7 +209,7 @@ internal fun storageModule(): Module = module {
     }
 
     single {
-        JsonRpcHistory(get(), get(named(DITags.RPC_STORE)), get())
+        JsonRpcHistory(get(named(DITags.RPC_STORE)), get())
     }
 }
 

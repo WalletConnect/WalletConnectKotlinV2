@@ -29,6 +29,8 @@ class PairingSelectionDialogFragment : DialogFragment(R.layout.dialog_pairing_se
             addItemDecoration(BottomVerticalSpaceItemDecoration(16))
             adapter = PairingSelectionAdapter(pairings) { pairingTopicPosition ->
                 binding.clpbLoading.show()
+
+
                 viewModel.connectToWallet(pairingTopicPosition)
             }
         }
