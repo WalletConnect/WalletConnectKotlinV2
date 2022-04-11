@@ -8,7 +8,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayPr
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionPermissionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.BlockchainSettledVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.EventVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionRequestVO
 
 internal sealed class SessionParamsVO : ClientParams {
@@ -54,7 +54,7 @@ internal sealed class SessionParamsVO : ClientParams {
 
     internal data class EventParams(
         @Json(name = "event")
-        val event: EventVO,
+        val event: SessionEventVO,
         @Json(name = "chainId")
         val chainId: String?,
     ) : SessionParamsVO()
