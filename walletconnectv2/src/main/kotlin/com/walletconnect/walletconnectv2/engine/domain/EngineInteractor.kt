@@ -15,7 +15,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.Pairin
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionSettlementVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.EventVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionRequestVO
 import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
@@ -315,7 +315,7 @@ internal class EngineInteractor(
             throw WalletConnectException.UnauthorizedNotificationException(errorMessage)
         }
 
-        val eventParams = SessionParamsVO.EventParams(EventVO(event.name, event.data), event.chainId)
+        val eventParams = SessionParamsVO.EventParams(SessionEventVO(event.name, event.data), event.chainId)
         val sessionEvent = SessionSettlementVO.SessionEvent(id = generateId(), params = eventParams)
 
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionEvent,
