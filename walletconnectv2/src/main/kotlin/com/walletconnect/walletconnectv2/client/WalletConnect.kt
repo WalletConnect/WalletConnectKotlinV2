@@ -106,9 +106,9 @@ object WalletConnect {
             val permissions: SessionPermissions,
         ) : Model()
 
-        data class SessionPermissions(val jsonRpc: JsonRpc, val notification: Notifications? = null) : Model() {
+        data class SessionPermissions(val jsonRpc: JsonRpc, val events: Events? = null) : Model() {
             data class JsonRpc(val methods: List<String>) : Model()
-            data class Notifications(val types: List<String>) : Model()
+            data class Events(val events: List<String>) : Model()
         }
 
         data class SessionEvent(

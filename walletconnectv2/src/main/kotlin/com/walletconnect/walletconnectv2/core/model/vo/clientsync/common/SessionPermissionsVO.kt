@@ -10,5 +10,5 @@ internal data class SessionPermissionsVO(
     @Json(name = "jsonrpc")
     val jsonRpc: JsonRpcVO,
     @Json(name = "events")
-    val notifications: EventsVO?,
+    val events: EventsVO?,
 )

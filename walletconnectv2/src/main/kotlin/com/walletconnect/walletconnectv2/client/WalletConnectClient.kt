@@ -47,7 +47,7 @@ object WalletConnectClient {
                     is EngineDO.SessionProposal -> delegate.onSessionProposal(event.toClientSessionProposal())
                     is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
                     is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
-                    is EngineDO.SessionEvent -> delegate.onSessionEvent(event.toClientSessionNotification())
+                    is EngineDO.SessionEvent -> delegate.onSessionEvent(event.toClientSessionEvent())
                     //Responses
                     is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
                     is EngineDO.SessionUpdateAccountsResponse -> delegate.onSessionUpdateAccountsResponse(event.toClientUpdateSessionAccountsResponse())

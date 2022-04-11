@@ -36,13 +36,6 @@ FROM SessionDao sd
     LEFT JOIN MetaDataDao peer_mdd ON sd.peer_metadata_id = peer_mdd.id
 WHERE topic = ?;
 
--- getPermissionsByTopic:
--- SELECT sd.permissions_events, sd.permissions_methods
--- FROM SessionDao sd
---     LEFT JOIN MetaDataDao self_mdd ON sd.self_metadata_id = self_mdd.id
---     LEFT JOIN MetaDataDao peer_mdd ON sd.peer_metadata_id = peer_mdd.id
--- WHERE topic = ?;
-
 acknowledgeSession:
 UPDATE OR ABORT SessionDao
 SET is_acknowledged = ?

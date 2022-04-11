@@ -366,12 +366,12 @@ internal class EngineInteractor(
         }
 
         Validator.validateEvent(event) { errorMessage ->
-            throw WalletConnectException.InvalidNotificationException(errorMessage)
+            throw WalletConnectException.InvalidEventException(errorMessage)
         }
 
         val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
         Validator.validateEventAuthorization(session, event.name) { errorMessage ->
-            throw WalletConnectException.UnauthorizedNotificationException(errorMessage)
+            throw WalletConnectException.UnauthorizedEventException(errorMessage)
         }
 
         val eventParams = SessionParamsVO.EventParams(SessionEventVO(event.name, event.data), event.chainId)

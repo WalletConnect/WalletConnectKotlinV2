@@ -30,7 +30,7 @@ internal sealed class EngineDO {
         val icons: List<URI>,
         val chains: List<String>,
         val methods: List<String>,
-        val types: List<String>? = null,
+        val events: List<String>? = null,
         val proposerPublicKey: String,
         val accounts: List<String>,
         val relayProtocol: String,

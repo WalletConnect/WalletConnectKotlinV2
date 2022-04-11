@@ -65,7 +65,7 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.M
         icons,
         chains,
         methods,
-        types,
+        events,
         proposerPublicKey,
         accounts,
         relayProtocol,
@@ -92,7 +92,7 @@ internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(account
 internal fun EngineDO.SessionPermissions.toClientSettledSessionPermissions(): WalletConnect.Model.SessionPermissions =
     WalletConnect.Model.SessionPermissions(
         jsonRpc.toClientSettledSessionJsonRpc(),
-        events?.toClientSettledSessionNotifications()
+        events?.toClientSettledSessionEvents()
     )
 
 @JvmSynthetic
@@ -100,8 +100,8 @@ internal fun EngineDO.SessionPermissions.JsonRpc.toClientSettledSessionJsonRpc()
     WalletConnect.Model.SessionPermissions.JsonRpc(methods)
 
 @JvmSynthetic
-internal fun EngineDO.SessionPermissions.Events.toClientSettledSessionNotifications(): WalletConnect.Model.SessionPermissions.Notifications =
-    WalletConnect.Model.SessionPermissions.Notifications(names)
+internal fun EngineDO.SessionPermissions.Events.toClientSettledSessionEvents(): WalletConnect.Model.SessionPermissions.Events =
+    WalletConnect.Model.SessionPermissions.Events(names)
 
 @JvmSynthetic
 internal fun EngineDO.SessionRequest.toClientSessionRequest(): WalletConnect.Model.SessionRequest =
@@ -125,7 +125,7 @@ internal fun EngineDO.SessionDelete.toClientDeletedSession(): WalletConnect.Mode
     WalletConnect.Model.DeletedSession.Success(topic, reason)
 
 @JvmSynthetic
-internal fun EngineDO.SessionEvent.toClientSessionNotification(): WalletConnect.Model.SessionEvent =
+internal fun EngineDO.SessionEvent.toClientSessionEvent(): WalletConnect.Model.SessionEvent =
     WalletConnect.Model.SessionEvent(topic, WalletConnect.Model.Event(name, data, chainId))
 
 @JvmSynthetic
@@ -160,7 +160,7 @@ internal fun EngineDO.SessionApproved.toClientSessionApproved(): WalletConnect.M
 internal fun WalletConnect.Model.SessionPermissions.toEngineSessionPermissions(): EngineDO.SessionPermissions =
     EngineDO.SessionPermissions(
         EngineDO.SessionPermissions.JsonRpc(jsonRpc.methods),
-        if (notification != null) EngineDO.SessionPermissions.Events(notification.types) else null
+        if (events != null) EngineDO.SessionPermissions.Events(events.events) else null
     )
 
 @JvmSynthetic
@@ -170,7 +170,7 @@ internal fun WalletConnect.Model.Blockchain.toEngineBlockchain(): EngineDO.Block
 internal fun EngineDO.SessionPermissions.toClientPerms(): WalletConnect.Model.SessionPermissions =
     WalletConnect.Model.SessionPermissions(
         WalletConnect.Model.SessionPermissions.JsonRpc(jsonRpc.methods),
-        if (events != null) WalletConnect.Model.SessionPermissions.Notifications(events.names) else null
+        if (events != null) WalletConnect.Model.SessionPermissions.Events(events.names) else null
     )
 
 @JvmSynthetic

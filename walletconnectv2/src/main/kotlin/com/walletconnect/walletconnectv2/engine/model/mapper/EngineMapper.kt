@@ -51,7 +51,7 @@ internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): E
         icons = this.proposer.metadata?.icons?.map { URI(it) } ?: listOf(),
         chains = this.blockchainProposedVO.chains,
         methods = this.permissions.jsonRpc.methods,
-        types = this.permissions.notifications?.names,
+        events = this.permissions.events?.names,
         proposerPublicKey = this.proposer.publicKey,
         accounts = listOf(),
         relayProtocol = relays.first().protocol,
@@ -85,7 +85,7 @@ internal fun SessionVO.toEngineDOApprovedSessionVO(topic: TopicVO): EngineDO.Ses
             selfMetaData?.description ?: String.Empty,
             selfMetaData?.url ?: String.Empty,
             selfMetaData?.icons?.map { iconUri -> iconUri } ?: listOf()),
-        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getNotifications(events)),
+        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getEvents(events)),
         EngineDO.Blockchain(chains),
     )
 
@@ -94,7 +94,7 @@ internal fun SessionVO.toEngineDOApprovedSessionVO(): EngineDO.Session =
     EngineDO.Session(
         topic, expiry,
         accounts, selfMetaData?.toEngineDOAppMetaData(),
-        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getNotifications(events)),
+        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getEvents(events)),
         EngineDO.Blockchain(chains),
     )
 
@@ -103,7 +103,7 @@ internal fun SessionVO.toEngineDOSessionUpdateExpiry(expiryVO: ExpiryVO): Engine
     EngineDO.SessionUpdateExpiry(
         topic, expiryVO,
         accounts, selfMetaData?.toEngineDOAppMetaData(),
-        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getNotifications(events)),
+        EngineDO.SessionPermissions(EngineDO.SessionPermissions.JsonRpc(methods), getEvents(events)),
         EngineDO.Blockchain(chains),
     )
 
@@ -134,7 +134,7 @@ internal fun EngineDO.SessionProposal.toSessionSettleParams(
         relay = RelayProtocolOptionsVO(relayProtocol, relayData),
         blockchain = BlockchainSettledVO(accounts = accounts, chains),
         permission = SessionPermissionsVO(JsonRpcVO(methods = methods),
-            notifications = if (types != null) EventsVO(types) else null),
+            events = if (events != null) EventsVO(events) else null),
         controller = selfParticipant,
         expiry = sessionExpiry)
 
@@ -170,7 +170,7 @@ internal fun JsonRpcResponseVO.JsonRpcError.toEngineJsonRpcError(): EngineDO.Jso
 internal fun EngineDO.SessionProposal.toSessionPermissions(): EngineDO.SessionPermissions =
     EngineDO.SessionPermissions(
         jsonRpc = EngineDO.SessionPermissions.JsonRpc(methods),
-        events = getNotifications(types)
+        events = getEvents(events)
     )
 
 @JvmSynthetic
@@ -183,12 +183,5 @@ internal fun EngineDO.SessionProposal.toSessionApproveParams(
         responder = SessionParticipantVO(selfPublicKey.keyAsHex, metaDataVO))
 
 @JvmSynthetic
-internal fun SessionPermissionsVO.toEngineDOPermissions(): EngineDO.SessionPermissions =
-    EngineDO.SessionPermissions(
-        jsonRpc = EngineDO.SessionPermissions.JsonRpc(jsonRpc.methods),
-        events = getNotifications(notifications?.names)
-    )
-
-@JvmSynthetic
-private fun getNotifications(types: List<String>?) = if (types != null) EngineDO.SessionPermissions.Events(types) else null
+private fun getEvents(types: List<String>?) = if (types != null) EngineDO.SessionPermissions.Events(types) else null
 

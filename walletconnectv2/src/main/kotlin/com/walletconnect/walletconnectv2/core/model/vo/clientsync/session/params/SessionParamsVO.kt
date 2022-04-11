@@ -60,7 +60,7 @@ internal sealed class SessionParamsVO : ClientParams {
     ) : SessionParamsVO()
 
     internal class UpdateEventsParams(
-        @Json(name = "names")
+        @Json(name = "events")
         val events: List<String>,
     ) : SessionParamsVO()
 
