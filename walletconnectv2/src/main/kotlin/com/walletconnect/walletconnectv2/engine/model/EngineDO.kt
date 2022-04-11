@@ -67,10 +67,11 @@ internal sealed class EngineDO {
         val reason: String,
     ) : EngineDO(), SequenceLifecycle
 
-    internal data class SessionNotification(
+    internal data class SessionEvent(
         val topic: String,
-        val type: String,
+        val name: String,
         val data: String,
+        val chainId: String?,
     ) : EngineDO(), SequenceLifecycle
 
     sealed class SettledSessionResponse : EngineDO(), SequenceLifecycle {
@@ -83,9 +84,9 @@ internal sealed class EngineDO {
         data class Error(val errorMessage: String) : SessionUpgradeResponse()
     }
 
-    sealed class SessionUpdateResponse : EngineDO(), SequenceLifecycle {
-        data class Result(val topic: TopicVO, val accounts: List<String>) : SessionUpdateResponse()
-        data class Error(val errorMessage: String) : SessionUpdateResponse()
+    sealed class SessionUpdateAccountsResponse : EngineDO(), SequenceLifecycle {
+        data class Result(val topic: TopicVO, val accounts: List<String>) : SessionUpdateAccountsResponse()
+        data class Error(val errorMessage: String) : SessionUpdateAccountsResponse()
     }
 
     internal data class SessionRejected(
@@ -125,15 +126,16 @@ internal sealed class EngineDO {
 
     internal data class SessionPermissions(
         val jsonRpc: JsonRpc,
-        val notifications: Notifications? = null,
+        val events: Events? = null,
     ) : EngineDO() {
         internal data class JsonRpc(val methods: List<String>) : EngineDO()
-        data class Notifications(val types: List<String>) : EngineDO()
+        data class Events(val names: List<String>) : EngineDO()
     }
 
-    internal data class Notification(
-        val type: String,
+    internal data class Event(
+        val name: String,
         val data: String,
+        val chainId: String?,
     ) : EngineDO()
 
     internal data class SessionState(val accounts: List<String>) : EngineDO()

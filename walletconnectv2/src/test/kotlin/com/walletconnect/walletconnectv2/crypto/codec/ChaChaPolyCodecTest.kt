@@ -23,8 +23,8 @@ class ChaChaPolyCodecTest {
     @Test
     fun `decrypt test`() {
         val sharedKey = SecretKey("0653ca620c7b4990392e1c53c4a51c14a2840cd20f0f1524cf435b17b6fe988c")
-        val cipherText = "cXdlY2ZhYXNkYWRzVhkbjHqli8hN0rFbAtMPIsJho4zLvWskMTQKSGw="
-        val encryptedMessage = codec.decrypt(cipherText, sharedKey)
+        val cipherPayload = "cXdlY2ZhYXNkYWRzVhkbjHqli8hN0rFbAtMPIsJho4zLvWskMTQKSGw="
+        val encryptedMessage = codec.decrypt(cipherPayload, sharedKey)
 
         assertEquals("WalletConnect", encryptedMessage)
     }

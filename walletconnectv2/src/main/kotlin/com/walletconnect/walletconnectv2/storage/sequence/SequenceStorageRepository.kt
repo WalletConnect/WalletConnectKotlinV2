@@ -115,7 +115,7 @@ internal class SequenceStorageRepository(
                 topic = topic.value,
                 permissions_chains = chains,
                 permissions_methods = methods,
-                permissions_types = types,
+                permissions_events = events,
                 expiry = expiry.seconds,
                 self_metadata_id = selfMetadataId,
                 peer_metadata_id = peerMetadataId,
@@ -146,11 +146,13 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun upgradeSessionWithPermissions(topic: TopicVO, notificationTypes: List<String>?, jsonRpcMethods: List<String>?) {
-        val (listOfTypes, listOfMethods) = sessionDaoQueries.getPermissionsByTopic(topic.value).executeAsOne()
-        val typesUnion = listOfTypes?.union((notificationTypes ?: emptyList()))?.toList()
-        val methodsUnion = listOfMethods.union((jsonRpcMethods ?: emptyList())).toList()
-        sessionDaoQueries.updateSessionWithPermissions(typesUnion, methodsUnion, topic.value)
+    fun updateSessionWithMethods(topic: TopicVO, methods: List<String>) {
+        sessionDaoQueries.updateSessionWithMethods(methods, topic.value)
+    }
+
+    @JvmSynthetic
+    fun updateSessionWithEvents(topic: TopicVO, events: List<String>) {
+        sessionDaoQueries.updateSessionWithEvents(events, topic.value)
     }
 
     @JvmSynthetic
@@ -240,7 +242,7 @@ internal class SequenceStorageRepository(
         accounts: List<String>?,
         permission_chains: List<String>,
         permissions_methods: List<String>,
-        permissions_types: List<String>?,
+        permissions_events: List<String>?,
         is_acknowledged: Boolean,
     ): SessionVO {
 
@@ -260,7 +262,7 @@ internal class SequenceStorageRepository(
             topic = TopicVO(topic),
             chains = permission_chains,
             methods = permissions_methods,
-            types = permissions_types,
+            events = permissions_events,
             accounts = accounts ?: emptyList(),
             expiry = ExpiryVO(expiry),
             selfMetaData = selfMetaData,

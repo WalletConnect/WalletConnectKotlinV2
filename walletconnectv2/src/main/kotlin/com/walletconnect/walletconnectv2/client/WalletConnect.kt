@@ -107,9 +107,10 @@ object WalletConnect {
             val data: String,
         ) : Model()
 
-        data class Notification(
+        data class Event(
             val type: String,
             val data: String,
+            val chainId: String?,
         ) : Model()
 
         data class SessionPayloadResponse(
@@ -223,7 +224,7 @@ object WalletConnect {
 
         data class Ping(val topic: String) : Params()
 
-        data class Notify(val topic: String, val notification: Model.Notification) : Params()
+        data class Notify(val topic: String, val event: Model.Event) : Params()
 
         data class Extend(val topic: String, val newExpiration: Long) : Params()
     }

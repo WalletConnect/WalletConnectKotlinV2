@@ -18,7 +18,7 @@ internal sealed class PairingParamsVO : ClientParams {
         @Json(name = "blockchain")
         val blockchainProposedVO: BlockchainProposedVO,
         @Json(name = "permissions")
-        val permissions: SessionPermissionsVO,
+        val permissions: SessionPermissionsVO, //todo: flatten permissions structure
         @Json(name = "proposer")
         val proposer: SessionProposerVO,
     ) : PairingParamsVO()
