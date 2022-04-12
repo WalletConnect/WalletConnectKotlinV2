@@ -1,7 +1,11 @@
 package com.walletconnect.wallet.ui.accounts
 
 import android.os.Bundle
-import android.view.*
+import android.util.Log
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
@@ -67,7 +71,7 @@ class AccountsFragment : Fragment(R.layout.fragment_accounts) {
 
         findNavController().currentBackStackEntry?.savedStateHandle?.getLiveData<String>(ACCOUNTS_ARGUMENT_KEY)?.observe(viewLifecycleOwner) { pairingUri ->
             viewModel.pair(pairingUri)
-            findNavController().currentBackStackEntry?.savedStateHandle?.remove<String>(ACCOUNTS_ARGUMENT_KEY)
+            findNavController().currentBackStackEntry?.savedStateHandle?.remove<String>(ACCOUNTS_ARGUMENT_KEY).also { Log.e("Talha", it.toString()) }
         }
     }
 

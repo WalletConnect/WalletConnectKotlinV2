@@ -32,7 +32,7 @@ class SessionFragment : Fragment(R.layout.fragment_session) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        setHasOptionsMenu(true)
         val binding = FragmentSessionBinding.bind(view).also { _binding = it }
 
         viewModel.navigation

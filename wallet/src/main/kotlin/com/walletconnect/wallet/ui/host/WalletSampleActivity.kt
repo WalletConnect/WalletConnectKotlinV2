@@ -13,6 +13,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.walletconnect.wallet.R
 import com.walletconnect.wallet.databinding.ActivityWalletBinding
 import com.walletconnect.wallet.ui.SampleWalletEvents
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -28,12 +29,10 @@ class WalletSampleActivity : AppCompatActivity(R.layout.activity_wallet) {
         val binding = ActivityWalletBinding.bind(findViewById(R.id.root))
 
         viewModel.events
+            .filterIsInstance<SampleWalletEvents.SessionProposal>()
             .flowWithLifecycle(lifecycle)
-            .onEach { event ->
-                when (event) {
-                    is SampleWalletEvents.SessionProposal -> navController.navigate(R.id.action_global_to_session_proposal)
-                    else -> Unit
-                }
+            .onEach {
+                navController.navigate(R.id.action_global_to_session_proposal)
             }
             .launchIn(lifecycleScope)
 

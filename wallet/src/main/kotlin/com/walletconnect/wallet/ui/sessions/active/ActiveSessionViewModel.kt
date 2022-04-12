@@ -7,7 +7,10 @@ import com.walletconnect.wallet.ui.SampleWalletEvents
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 
 class ActiveSessionViewModel : ViewModel() {
     private val _activeSessionEvents = Channel<SampleWalletEvents>(Channel.BUFFERED)
@@ -20,10 +23,6 @@ class ActiveSessionViewModel : ViewModel() {
             else -> SampleWalletEvents.NoAction
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), SampleWalletEvents.ActiveSessions(getLatestActiveSessions()))
-
-    init {
-
-    }
 
     private fun getLatestActiveSessions(): List<ActiveSessionUI> {
         return WalletConnectClient.getListOfSettledSessions().filter { wcSession ->

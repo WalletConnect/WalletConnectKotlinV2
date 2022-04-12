@@ -38,7 +38,7 @@ internal fun storageModule(): Module = module {
         MasterKeys.getOrCreate(keyGenParameterSpec)
     }
 
-    single(named(DITags.RPC_STORE)) {
+    single<SharedPreferences>(named(DITags.RPC_STORE)) {
         val sharedPrefsFile = "wc_rpc_store"
 
         EncryptedSharedPreferences.create(
