@@ -86,11 +86,11 @@ class WalletFragment : Fragment(R.layout.wallet_fragment), SessionActionListener
     }
 
     override fun onUpdate(session: WalletConnect.Model.Session) {
-        viewModel.sessionUpdate(session)
+        viewModel.sessionUpdateAccounts(session)
     }
 
     override fun onUpgrade(session: WalletConnect.Model.Session) {
-        viewModel.sessionUpgrade(session)
+        viewModel.sessionUpdateMethods(session)
     }
 
     override fun onPing(session: WalletConnect.Model.Session) {

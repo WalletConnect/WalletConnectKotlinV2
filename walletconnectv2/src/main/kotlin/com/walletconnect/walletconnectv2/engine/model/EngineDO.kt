@@ -30,7 +30,7 @@ internal sealed class EngineDO {
         val icons: List<URI>,
         val chains: List<String>,
         val methods: List<String>,
-        val types: List<String>? = null,
+        val events: List<String>? = null,
         val proposerPublicKey: String,
         val accounts: List<String>,
         val relayProtocol: String,
@@ -79,14 +79,19 @@ internal sealed class EngineDO {
         data class Error(val errorMessage: String) : SettledSessionResponse()
     }
 
-    sealed class SessionUpgradeResponse : EngineDO(), SequenceLifecycle {
-        data class Result(val topic: TopicVO, val methods: List<String>, val types: List<String>?) : SessionUpgradeResponse()
-        data class Error(val errorMessage: String) : SessionUpgradeResponse()
-    }
-
     sealed class SessionUpdateAccountsResponse : EngineDO(), SequenceLifecycle {
         data class Result(val topic: TopicVO, val accounts: List<String>) : SessionUpdateAccountsResponse()
         data class Error(val errorMessage: String) : SessionUpdateAccountsResponse()
+    }
+
+    sealed class SessionUpdateMethodsResponse : EngineDO(), SequenceLifecycle {
+        data class Result(val topic: TopicVO, val methods: List<String>) : SessionUpdateMethodsResponse()
+        data class Error(val errorMessage: String) : SessionUpdateMethodsResponse()
+    }
+
+    sealed class SessionUpdateEventsResponse : EngineDO(), SequenceLifecycle {
+        data class Result(val topic: TopicVO, val events: List<String>) : SessionUpdateEventsResponse()
+        data class Error(val errorMessage: String) : SessionUpdateEventsResponse()
     }
 
     internal data class SessionRejected(
@@ -102,11 +107,11 @@ internal sealed class EngineDO {
     ) : EngineDO(), SequenceLifecycle
 
     internal data class PairingSettle(val topic: TopicVO, val metaData: AppMetaData?) : EngineDO(), SequenceLifecycle
-    internal data class SessionUpdate(val topic: TopicVO, val accounts: List<String>) : EngineDO(), SequenceLifecycle
-    internal data class SessionUpgrade(val topic: TopicVO, val types: List<String>, val methods: List<String>) : EngineDO(),
-        SequenceLifecycle
+    internal data class SessionUpdateAccounts(val topic: TopicVO, val accounts: List<String>) : EngineDO(), SequenceLifecycle
+    internal data class SessionUpdateMethods(val topic: TopicVO, val methods: List<String>) : EngineDO(), SequenceLifecycle
+    internal data class SessionUpdateEvents(val topic: TopicVO, val events: List<String>) : EngineDO(), SequenceLifecycle
 
-    internal data class SessionExtend(
+    internal data class SessionUpdateExpiry(
         override val topic: TopicVO,
         override val expiry: ExpiryVO,
         val accounts: List<String>,
@@ -138,7 +143,6 @@ internal sealed class EngineDO {
         val chainId: String?,
     ) : EngineDO()
 
-    internal data class SessionState(val accounts: List<String>) : EngineDO()
     internal data class Blockchain(val chains: List<String>) : EngineDO()
     internal data class AppMetaData(
         val name: String,

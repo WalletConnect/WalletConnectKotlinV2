@@ -62,7 +62,7 @@ class ConnectViewModel : ViewModel() {
         val methods = selectedChains.flatMap { it.methods }.distinct()
         val sessionPermissions = WalletConnect.Model.SessionPermissions(
             jsonRpc = WalletConnect.Model.SessionPermissions.JsonRpc(methods = methods),
-            notification = null
+            events = null
         )
         val connectParams = WalletConnect.Params.Connect(
             permissions = sessionPermissions,

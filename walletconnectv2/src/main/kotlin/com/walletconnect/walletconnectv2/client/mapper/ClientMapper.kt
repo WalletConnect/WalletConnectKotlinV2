@@ -29,24 +29,24 @@ internal fun EngineDO.SettledSessionResponse.toClientSettledSessionResponse(): W
     }
 
 @JvmSynthetic
-internal fun EngineDO.SessionUpgradeResponse.toClientUpgradedSessionResponse(): WalletConnect.Model.SessionUpgradeResponse =
+internal fun EngineDO.SessionUpdateAccountsResponse.toClientUpdateSessionAccountsResponse(): WalletConnect.Model.SessionUpdateAccountsResponse =
     when (this) {
-        is EngineDO.SessionUpgradeResponse.Result ->
-            WalletConnect.Model.SessionUpgradeResponse.Result(topic.value,
-                WalletConnect.Model.SessionPermissions(
-                    WalletConnect.Model.SessionPermissions.JsonRpc(methods),
-                    if (types != null) WalletConnect.Model.SessionPermissions.Notifications(types) else null
-                )
-            )
-
-        is EngineDO.SessionUpgradeResponse.Error -> WalletConnect.Model.SessionUpgradeResponse.Error(errorMessage)
+        is EngineDO.SessionUpdateAccountsResponse.Result -> WalletConnect.Model.SessionUpdateAccountsResponse.Result(topic.value, accounts)
+        is EngineDO.SessionUpdateAccountsResponse.Error -> WalletConnect.Model.SessionUpdateAccountsResponse.Error(errorMessage)
     }
 
 @JvmSynthetic
-internal fun EngineDO.SessionUpdateAccountsResponse.toClientUpdateSessionResponse(): WalletConnect.Model.SessionUpdateResponse =
+internal fun EngineDO.SessionUpdateMethodsResponse.toClientUpdateSessionMethodsResponse(): WalletConnect.Model.SessionUpdateMethodsResponse =
     when (this) {
-        is EngineDO.SessionUpdateAccountsResponse.Result -> WalletConnect.Model.SessionUpdateResponse.Result(topic.value, accounts)
-        is EngineDO.SessionUpdateAccountsResponse.Error -> WalletConnect.Model.SessionUpdateResponse.Error(errorMessage)
+        is EngineDO.SessionUpdateMethodsResponse.Result -> WalletConnect.Model.SessionUpdateMethodsResponse.Result(topic.value, methods)
+        is EngineDO.SessionUpdateMethodsResponse.Error -> WalletConnect.Model.SessionUpdateMethodsResponse.Error(errorMessage)
+    }
+
+@JvmSynthetic
+internal fun EngineDO.SessionUpdateEventsResponse.toClientUpdateSessionEventsResponse(): WalletConnect.Model.SessionUpdateEventsResponse =
+    when (this) {
+        is EngineDO.SessionUpdateEventsResponse.Result -> WalletConnect.Model.SessionUpdateEventsResponse.Result(topic.value, events)
+        is EngineDO.SessionUpdateEventsResponse.Error -> WalletConnect.Model.SessionUpdateEventsResponse.Error(errorMessage)
     }
 
 @JvmSynthetic
@@ -65,7 +65,7 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.M
         icons,
         chains,
         methods,
-        types,
+        events,
         proposerPublicKey,
         accounts,
         relayProtocol,
@@ -92,7 +92,7 @@ internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(account
 internal fun EngineDO.SessionPermissions.toClientSettledSessionPermissions(): WalletConnect.Model.SessionPermissions =
     WalletConnect.Model.SessionPermissions(
         jsonRpc.toClientSettledSessionJsonRpc(),
-        events?.toClientSettledSessionNotifications()
+        events?.toClientSettledSessionEvents()
     )
 
 @JvmSynthetic
@@ -100,8 +100,8 @@ internal fun EngineDO.SessionPermissions.JsonRpc.toClientSettledSessionJsonRpc()
     WalletConnect.Model.SessionPermissions.JsonRpc(methods)
 
 @JvmSynthetic
-internal fun EngineDO.SessionPermissions.Events.toClientSettledSessionNotifications(): WalletConnect.Model.SessionPermissions.Notifications =
-    WalletConnect.Model.SessionPermissions.Notifications(names)
+internal fun EngineDO.SessionPermissions.Events.toClientSettledSessionEvents(): WalletConnect.Model.SessionPermissions.Events =
+    WalletConnect.Model.SessionPermissions.Events(names)
 
 @JvmSynthetic
 internal fun EngineDO.SessionRequest.toClientSessionRequest(): WalletConnect.Model.SessionRequest =
@@ -118,18 +118,15 @@ internal fun WalletConnect.Model.JsonRpcResponse.JsonRpcError.toRpcErrorVO(): Js
     JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(code, message))
 
 @JvmSynthetic
-internal fun WalletConnect.Model.SessionState.toEngineSessionState(): EngineDO.SessionState = EngineDO.SessionState(accounts)
-
-@JvmSynthetic
-internal fun WalletConnect.Model.Event.toEngineEvent(): EngineDO.Event = EngineDO.Event(type, data, chainId)
+internal fun WalletConnect.Model.Event.toEngineEvent(): EngineDO.Event = EngineDO.Event(name, data, chainId)
 
 @JvmSynthetic
 internal fun EngineDO.SessionDelete.toClientDeletedSession(): WalletConnect.Model.DeletedSession =
     WalletConnect.Model.DeletedSession.Success(topic, reason)
 
 @JvmSynthetic
-internal fun EngineDO.SessionEvent.toClientSessionNotification(): WalletConnect.Model.SessionNotification =
-    WalletConnect.Model.SessionNotification(topic, name, data)
+internal fun EngineDO.SessionEvent.toClientSessionEvent(): WalletConnect.Model.SessionEvent =
+    WalletConnect.Model.SessionEvent(topic, WalletConnect.Model.Event(name, data, chainId))
 
 @JvmSynthetic
 internal fun EngineDO.Session.toClientSettledSession(): WalletConnect.Model.Session =
@@ -142,7 +139,7 @@ internal fun EngineDO.Session.toClientSettledSession(): WalletConnect.Model.Sess
     )
 
 @JvmSynthetic
-internal fun EngineDO.SessionExtend.toClientSettledSession(): WalletConnect.Model.Session =
+internal fun EngineDO.SessionUpdateExpiry.toClientSettledSession(): WalletConnect.Model.Session =
     WalletConnect.Model.Session(
         topic.value,
         expiry.seconds,
@@ -163,7 +160,7 @@ internal fun EngineDO.SessionApproved.toClientSessionApproved(): WalletConnect.M
 internal fun WalletConnect.Model.SessionPermissions.toEngineSessionPermissions(): EngineDO.SessionPermissions =
     EngineDO.SessionPermissions(
         EngineDO.SessionPermissions.JsonRpc(jsonRpc.methods),
-        if (notification != null) EngineDO.SessionPermissions.Events(notification.types) else null
+        if (events != null) EngineDO.SessionPermissions.Events(events.events) else null
     )
 
 @JvmSynthetic
@@ -173,7 +170,7 @@ internal fun WalletConnect.Model.Blockchain.toEngineBlockchain(): EngineDO.Block
 internal fun EngineDO.SessionPermissions.toClientPerms(): WalletConnect.Model.SessionPermissions =
     WalletConnect.Model.SessionPermissions(
         WalletConnect.Model.SessionPermissions.JsonRpc(jsonRpc.methods),
-        if (events != null) WalletConnect.Model.SessionPermissions.Notifications(events.names) else null
+        if (events != null) WalletConnect.Model.SessionPermissions.Events(events.names) else null
     )
 
 @JvmSynthetic
@@ -191,25 +188,24 @@ internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toClientJsonRpcResult(): Wal
     WalletConnect.Model.JsonRpcResponse.JsonRpcResult(id, result)
 
 @JvmSynthetic
+internal fun EngineDO.SessionUpdateAccounts.toClientSessionsUpdateAccounts(): WalletConnect.Model.UpdatedSessionAccounts =
+    WalletConnect.Model.UpdatedSessionAccounts(topic.value, accounts)
+
+@JvmSynthetic
+internal fun EngineDO.SessionUpdateMethods.toClientSessionsUpdateMethods(): WalletConnect.Model.UpdatedSessionMethods =
+    WalletConnect.Model.UpdatedSessionMethods(topic.value, methods)
+
+@JvmSynthetic
+internal fun EngineDO.SessionUpdateEvents.toClientSessionsUpdateEvents(): WalletConnect.Model.UpdatedSessionEvents =
+    WalletConnect.Model.UpdatedSessionEvents(topic.value, events)
+
+@JvmSynthetic
 internal fun EngineDO.JsonRpcResponse.JsonRpcError.toClientJsonRpcError(): WalletConnect.Model.JsonRpcResponse.JsonRpcError =
     WalletConnect.Model.JsonRpcResponse.JsonRpcError(id, code = error.code, message = error.message)
 
 @JvmSynthetic
-internal fun EngineDO.SessionUpdate.toClientSessionsUpdate(): WalletConnect.Model.UpdatedSession =
-    WalletConnect.Model.UpdatedSession(topic.value, accounts)
-
-@JvmSynthetic
 internal fun EngineDO.PairingSettle.toClientSettledPairing(): WalletConnect.Model.SettledPairing =
     WalletConnect.Model.SettledPairing(topic.value, metaData?.toClientAppMetaData())
-
-@JvmSynthetic
-internal fun EngineDO.SessionUpgrade.toClientSessionsUpgrade(): WalletConnect.Model.UpgradedSession =
-    WalletConnect.Model.UpgradedSession(
-        topic.value,
-        WalletConnect.Model.SessionPermissions(
-            WalletConnect.Model.SessionPermissions.JsonRpc(methods),
-            WalletConnect.Model.SessionPermissions.Notifications(types))
-    )
 
 @JvmSynthetic
 internal fun List<PendingRequestVO>.mapToPendingRequests(): List<WalletConnect.Model.PendingRequest> =

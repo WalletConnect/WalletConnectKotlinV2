@@ -32,7 +32,7 @@ class ValidatorTest {
     }
 
     @Test
-    fun `check correct error message when notifications are null `() {
+    fun `check correct error message when events are null `() {
         val events = null
 
         Validator.validateEvents(events) { errorMessage ->
@@ -89,7 +89,7 @@ class ValidatorTest {
     }
 
     @Test
-    fun `are notifications permissions valid`() {
+    fun `are events permissions valid`() {
         var events: EngineDO.SessionPermissions.Events = EngineDO.SessionPermissions.Events(listOf())
 
         val result1 = Validator.areEventsValid(events)
@@ -258,19 +258,19 @@ class ValidatorTest {
     }
 
     @Test
-    fun `is notification valid test`() {
-        var notification = EngineDO.Event("", "data", null)
-        Validator.validateEvent(notification) {
+    fun `is event valid test`() {
+        var event = EngineDO.Event("", "data", null)
+        Validator.validateEvent(event) {
             assertEquals(INVALID_EVENT_MESSAGE, it)
         }
 
-        notification = EngineDO.Event("type", "", "")
-        Validator.validateEvent(notification) {
+        event = EngineDO.Event("type", "", "")
+        Validator.validateEvent(event) {
             assertEquals(INVALID_EVENT_MESSAGE, it)
         }
 
-        notification = EngineDO.Event("", "", "")
-        Validator.validateEvent(notification) {
+        event = EngineDO.Event("", "", "")
+        Validator.validateEvent(event) {
             assertEquals(INVALID_EVENT_MESSAGE, it)
         }
     }

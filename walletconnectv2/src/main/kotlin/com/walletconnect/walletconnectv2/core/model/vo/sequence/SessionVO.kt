@@ -50,7 +50,7 @@ internal data class SessionVO(
                 controllerKey = PublicKey(selfParticipant.publicKey),
                 chains = proposal.chains,
                 methods = proposal.methods,
-                events = proposal.types ?: emptyList(),
+                events = proposal.events ?: emptyList(),
                 accounts = proposal.accounts,
                 isAcknowledged = false
             )
@@ -75,7 +75,7 @@ internal data class SessionVO(
                 controllerKey = PublicKey(settleParams.controller.publicKey),
                 chains = settleParams.blockchain.chains,
                 methods = settleParams.permission.jsonRpc.methods,
-                events = settleParams.permission.notifications?.names,
+                events = settleParams.permission.events?.names,
                 accounts = settleParams.blockchain.accounts,
                 isAcknowledged = true
             )

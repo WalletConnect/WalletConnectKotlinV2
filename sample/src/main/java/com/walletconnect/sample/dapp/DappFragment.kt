@@ -49,16 +49,21 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
     override fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession) {
     }
 
-    override fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdatedSession) {
+    override fun onSessionUpdateAccounts(updatedSession: WalletConnect.Model.UpdatedSessionAccounts) {
     }
 
-    override fun onSessionUpgrade(upgradedSession: WalletConnect.Model.UpgradedSession) {
+    override fun onSessionUpdateMethods(updatedSession: WalletConnect.Model.UpdatedSessionMethods) {
+
+    }
+
+    override fun onSessionUpdateEvents(updatedSession: WalletConnect.Model.UpdatedSessionEvents) {
+
     }
 
     override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {
     }
 
-    override fun onSessionExtend(session: WalletConnect.Model.Session) {
+    override fun onUpdateSessionExpiry(session: WalletConnect.Model.Session) {
 
     }
 }
