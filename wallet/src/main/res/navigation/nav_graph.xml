@@ -19,9 +19,9 @@
         app:startDestination="@id/fragment_accounts">
 
         <fragment
-            android:label="Accounts"
             android:id="@+id/fragment_accounts"
             android:name="com.walletconnect.wallet.ui.accounts.AccountsFragment"
+            android:label="Accounts"
             tools:layout="@layout/fragment_accounts">
 
             <action
@@ -30,6 +30,10 @@
             <action
                 android:id="@+id/action_fragment_accounts_to_dialog_paste_uri"
                 app:destination="@id/dialog_paste_uri" />
+
+            <deepLink
+                app:action="android.intent.action.VIEW"
+                app:uri="wc:/{topic}@2"  />
         </fragment>
 
         <fragment

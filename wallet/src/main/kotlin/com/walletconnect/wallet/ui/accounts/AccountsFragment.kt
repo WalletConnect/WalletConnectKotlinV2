@@ -1,5 +1,6 @@
 package com.walletconnect.wallet.ui.accounts
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -33,6 +34,10 @@ class AccountsFragment : Fragment(R.layout.fragment_accounts) {
         setHasOptionsMenu(true)
 
         val binding = FragmentAccountsBinding.bind(view).also { _binding = it }
+
+        requireActivity().intent?.takeIf { intent -> intent.action == Intent.ACTION_VIEW }?.let { intent ->
+            viewModel.pair(intent.dataString.toString())
+        }
 
         (requireActivity() as AppCompatActivity).supportActionBar?.let {
             it.setDisplayShowTitleEnabled(false)

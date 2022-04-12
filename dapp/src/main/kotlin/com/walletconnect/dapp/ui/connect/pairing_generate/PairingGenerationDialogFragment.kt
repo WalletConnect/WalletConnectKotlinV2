@@ -13,8 +13,8 @@ import androidx.navigation.navGraphViewModels
 import com.google.android.material.snackbar.Snackbar
 import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.DialogConnectUriBinding
-import com.walletconnect.sample_common.tag
 import com.walletconnect.dapp.ui.connect.ConnectViewModel
+import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import net.glxn.qrgen.android.QRCode
 
