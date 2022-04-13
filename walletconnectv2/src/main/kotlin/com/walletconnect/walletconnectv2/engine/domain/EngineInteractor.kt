@@ -138,45 +138,55 @@ internal class EngineInteractor(
         relayer.subscribe(pairing.topic)
     }
 
-    //todo: remove proposal and validation
-    internal fun reject(proposal: EngineDO.SessionProposal, reason: String, code: Int, onFailure: (Throwable) -> Unit = {}) {
-        val request = sessionProposalRequest[proposal.proposerPublicKey] ?: return
-        sessionProposalRequest.remove(proposal.proposerPublicKey)
+    internal fun reject(proposerPublicKey: String, reason: String, code: Int, onFailure: (Throwable) -> Unit = {}) {
+        val request = sessionProposalRequest[proposerPublicKey] ?: return
+        sessionProposalRequest.remove(proposerPublicKey)
         relayer.respondWithError(request, PeerError.Error(reason, code), onFailure = { error -> onFailure(error) })
     }
 
-    //todo: remove proposal and validation
-    internal fun approve(proposal: EngineDO.SessionProposal, onFailure: (Throwable) -> Unit) {
-        val request = sessionProposalRequest[proposal.proposerPublicKey] ?: return
-        sessionProposalRequest.remove(proposal.proposerPublicKey)
+    internal fun approve(
+        proposerPublicKey: String,
+        accounts: List<String>,
+        methods: List<String>,
+        events: List<String>,
+        onFailure: (Throwable) -> Unit,
+    ) {
+        val request = sessionProposalRequest[proposerPublicKey] ?: return
+        sessionProposalRequest.remove(proposerPublicKey)
+        val proposal = request.params as PairingParamsVO.SessionProposeParams
 
-        Validator.validateProposalFields(proposal) { errorMessage ->
-            throw WalletConnectException.InvalidSessionProposalException(errorMessage)
-        }
-
-        Validator.validateCAIP10(proposal.accounts) { errorMessage ->
+        Validator.validateCAIP10(accounts) { errorMessage ->
             throw WalletConnectException.InvalidAccountsException(errorMessage)
-        }
-
-        Validator.validateIfAccountsAreOnValidNetwork(proposal.accounts, proposal.chains) { errorMessage ->
-            throw WalletConnectException.InvalidAccountsException(errorMessage)
-        }
-
-        Validator.validateMethods(proposal.methods) { errorMessage ->
-            throw WalletConnectException.InvalidSessionMethodsException(errorMessage)
-        }
-
-        Validator.validateEvents(proposal.events) { errorMessage ->
-            throw WalletConnectException.InvalidSessionEventsException(errorMessage)
         }
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
-        val (_, sessionTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, PublicKey(proposal.proposerPublicKey))
+        val (_, sessionTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, PublicKey(proposerPublicKey))
         relayer.subscribe(sessionTopic)
-        val approvalParams = proposal.toSessionApproveParams(selfPublicKey, metaData.toMetaDataVO())
 
+        val approvalParams = proposal.toSessionApproveParams(selfPublicKey, metaData.toMetaDataVO())
         relayer.respondWithParams(request, approvalParams)
-        sessionSettle(proposal, sessionTopic) { error -> onFailure(error) }
+
+        sessionSettle(proposal, accounts, methods, events, sessionTopic) { error -> onFailure(error) }
+    }
+
+    private fun sessionSettle(
+        proposal: PairingParamsVO.SessionProposeParams,
+        accounts: List<String>,
+        methods: List<String>,
+        events: List<String>,
+        sessionTopic: TopicVO,
+        onFailure: (Throwable) -> Unit,
+    ) {
+        val (_, selfPublicKey) = crypto.getKeyAgreement(sessionTopic)
+        val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO())
+        val sessionExpiry = Expiration.activeSession
+        val session =
+            SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, accounts, methods, events)
+        sequenceStorageRepository.insertSession(session)
+
+        val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, accounts, methods, events)
+        val sessionSettle = SessionSettlementVO.SessionSettle(id = generateId(), params = params)
+        relayer.publishJsonRpcRequests(sessionTopic, sessionSettle, onFailure = { error -> onFailure(error) })
     }
 
     internal fun updateSessionAccounts(topic: String, newAccounts: List<String>, onFailure: (Throwable) -> Unit) {
@@ -468,17 +478,6 @@ internal class EngineInteractor(
     private fun onSessionPropose(request: WCRequestVO, payloadParams: PairingParamsVO.SessionProposeParams) {
         sessionProposalRequest[payloadParams.proposer.publicKey] = request
         scope.launch { _sequenceEvent.emit(payloadParams.toEngineDOSessionProposal()) }
-    }
-
-    private fun sessionSettle(proposal: EngineDO.SessionProposal, sessionTopic: TopicVO, onFailure: (Throwable) -> Unit) {
-        val (_, selfPublicKey) = crypto.getKeyAgreement(sessionTopic)
-        val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO())
-        val sessionExpiry = Expiration.activeSession
-        val session = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry)
-        sequenceStorageRepository.insertSession(session)
-        val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry)
-        val sessionSettle = SessionSettlementVO.SessionSettle(id = generateId(), params = params)
-        relayer.publishJsonRpcRequests(sessionTopic, sessionSettle, onFailure = { error -> onFailure(error) })
     }
 
     private fun onSessionSettle(request: WCRequestVO, settleParams: SessionParamsVO.SessionSettleParams) {

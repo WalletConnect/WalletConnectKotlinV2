@@ -6,8 +6,8 @@ import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
-import com.walletconnect.walletconnectv2.engine.model.EngineDO
 
 internal data class SessionVO(
     override val topic: TopicVO,
@@ -33,24 +33,26 @@ internal data class SessionVO(
         @JvmSynthetic
         internal fun createUnacknowledgedSession(
             sessionTopic: TopicVO,
-            proposal: EngineDO.SessionProposal,
+            proposal: PairingParamsVO.SessionProposeParams,
             selfParticipant: SessionParticipantVO,
             sessionExpiry: Long,
+            accounts: List<String>,
+            methods: List<String>,
+            events: List<String>,
         ): SessionVO {
-            val peerMetaData = MetaDataVO(proposal.name, proposal.description, proposal.url, proposal.icons.map { it.toString() })
             return SessionVO(
                 sessionTopic,
                 ExpiryVO(sessionExpiry),
-                relayProtocol = proposal.relayProtocol,
-                relayData = proposal.relayData,
-                peerParticipant = PublicKey(proposal.proposerPublicKey),
-                peerMetaData = peerMetaData,
+                relayProtocol = proposal.relays.first().protocol,
+                relayData = proposal.relays.first().data,
+                peerParticipant = PublicKey(proposal.proposer.publicKey),
+                peerMetaData = proposal.proposer.metadata,
                 selfParticipant = PublicKey(selfParticipant.publicKey),
                 selfMetaData = selfParticipant.metadata,
                 controllerKey = PublicKey(selfParticipant.publicKey),
-                methods = proposal.methods,
-                events = proposal.events,
-                accounts = proposal.accounts,
+                methods = methods,
+                events = events,
+                accounts = accounts,
                 isAcknowledged = false
             )
         }

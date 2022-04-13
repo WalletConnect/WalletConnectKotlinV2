@@ -111,11 +111,14 @@ internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
     )
 
 @JvmSynthetic
-internal fun EngineDO.SessionProposal.toSessionSettleParams(
+internal fun PairingParamsVO.SessionProposeParams.toSessionSettleParams(
     selfParticipant: SessionParticipantVO,
     sessionExpiry: Long,
+    accounts: List<String>,
+    methods: List<String>,
+    events: List<String>,
 ): SessionParamsVO.SessionSettleParams =
-    SessionParamsVO.SessionSettleParams(RelayProtocolOptionsVO(relayProtocol, relayData),
+    SessionParamsVO.SessionSettleParams(RelayProtocolOptionsVO(relays.first().protocol, relays.first().data),
         selfParticipant,
         accounts,
         methods,
@@ -143,11 +146,11 @@ internal fun JsonRpcResponseVO.JsonRpcError.toEngineJsonRpcError(): EngineDO.Jso
     EngineDO.JsonRpcResponse.JsonRpcError(id = id, error = EngineDO.JsonRpcResponse.Error(error.code, error.message))
 
 @JvmSynthetic
-internal fun EngineDO.SessionProposal.toSessionApproveParams(
+internal fun PairingParamsVO.SessionProposeParams.toSessionApproveParams(
     selfPublicKey: PublicKey,
     metaDataVO: MetaDataVO,
 ): SessionParamsVO.ApprovalParams =
     SessionParamsVO.ApprovalParams(
-        relay = RelayProtocolOptionsVO(relayProtocol, relayData),
+        relay = RelayProtocolOptionsVO(relays.first().protocol, relays.first().data),
         responder = SessionParticipantVO(selfPublicKey.keyAsHex, metaDataVO))
 

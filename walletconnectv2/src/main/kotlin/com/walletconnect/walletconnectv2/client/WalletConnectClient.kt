@@ -111,22 +111,22 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class)
-    fun approveSession(approve: WalletConnect.Params.Approve, onError: (WalletConnect.Model.Error) -> Unit = {}) {
+    fun approve(approve: WalletConnect.Params.Approve, onError: (WalletConnect.Model.Error) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.approve(approve.proposal.toEngineSessionProposal(approve.accounts))
+        engineInteractor.approve(approve.proposerPublicKey, approve.accounts, approve.methods, approve.events)
         { error -> onError(WalletConnect.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
-    fun rejectSession(reject: WalletConnect.Params.Reject, onError: (WalletConnect.Model.Error) -> Unit = {}) {
+    fun reject(reject: WalletConnect.Params.Reject, onError: (WalletConnect.Model.Error) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.reject(reject.proposal.toEngineSessionProposal(), reject.reason, reject.code)
+        engineInteractor.reject(reject.proposerPublicKey, reject.reason, reject.code)
         { error -> onError(WalletConnect.Model.Error(error)) }
     }
 
