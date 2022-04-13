@@ -58,15 +58,12 @@ class ConnectViewModel : ViewModel() {
         }
 
         val selectedChains: List<ChainSelectionUI> = listOfChainUI.filter { it.isSelected }
-        val blockchains = selectedChains.map { "${it.parentChain}:${it.chainId}" }
+        val chains = selectedChains.map { "${it.parentChain}:${it.chainId}" }
         val methods = selectedChains.flatMap { it.methods }.distinct()
-        val sessionPermissions = WalletConnect.Model.SessionPermissions(
-            jsonRpc = WalletConnect.Model.SessionPermissions.JsonRpc(methods = methods),
-            events = null
-        )
         val connectParams = WalletConnect.Params.Connect(
-            permissions = sessionPermissions,
-            blockchain = WalletConnect.Model.Blockchain(chains = blockchains),
+            chains = chains,
+            methods = methods,
+            events = listOf(),
             pairingTopic = pairingTopic)
 
         WalletConnectClient.connect(connectParams,

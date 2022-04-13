@@ -36,11 +36,3 @@ WHERE id = (
    FROM SessionDao
    WHERE topic = ?
 );
-
-deletePairingSelfMetaDataFromTopic:
-DELETE FROM MetaDataDao
-WHERE id = (
-   SELECT self_metadata_id
-   FROM PairingDao
-   WHERE topic = ?
-);

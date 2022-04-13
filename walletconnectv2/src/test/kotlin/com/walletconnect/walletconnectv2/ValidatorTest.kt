@@ -60,15 +60,15 @@ class ValidatorTest {
     fun `are json rpc permissions valid`() {
         var jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf())
 
-        val result1 = Validator.isJsonRpcValid(jsonRpc)
+        val result1 = Validator.areMethodsValid(jsonRpc)
         assertEquals(result1, false)
 
         jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf("", ""))
-        val result2 = Validator.isJsonRpcValid(jsonRpc)
+        val result2 = Validator.areMethodsValid(jsonRpc)
         assertEquals(result2, false)
 
         jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf("personal_sign", "eth_sign"))
-        val result3 = Validator.isJsonRpcValid(jsonRpc)
+        val result3 = Validator.areMethodsValid(jsonRpc)
         assertEquals(result3, true)
     }
 

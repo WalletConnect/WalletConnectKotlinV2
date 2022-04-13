@@ -58,8 +58,11 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
         val sharedSecretBytes = ByteArray(KEY_SIZE)
         X25519.scalarMult(privateKey.keyAsHex.hexToBytes(), 0, peer.keyAsHex.hexToBytes(), 0, sharedSecretBytes, 0)
         val sharedSecret = sharedSecretBytes.bytesToHex()
+
         val sharedKeyBytes = deriveHKDFKey(sharedSecret)
+
         val secretKey = SecretKey(sharedKeyBytes.bytesToHex())
+
         val topic = TopicVO(sha256(secretKey.keyAsHex))
         keyChain.setSecretKey(topic.value.lowercase(), secretKey)
 

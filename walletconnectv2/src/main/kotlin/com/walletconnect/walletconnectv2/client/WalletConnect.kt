@@ -29,7 +29,7 @@ object WalletConnect {
             val icons: List<URI>,
             val chains: List<String>,
             val methods: List<String>,
-            val types: List<String>? = null,
+            val events: List<String>,
             val proposerPublicKey: String,
             val accounts: List<String>,
             val relayProtocol: String,
@@ -94,7 +94,8 @@ object WalletConnect {
         data class ApprovedSession(
             val topic: String,
             val metaData: AppMetaData?,
-            val permissions: SessionPermissions,
+            val methods: List<String>,
+            val events: List<String>,
             val accounts: List<String>,
         ) : Model()
 
@@ -102,24 +103,14 @@ object WalletConnect {
             val topic: String,
             val expiry: Long,
             val accounts: List<String>,
-            val metaData: AppMetaData?,
-            val permissions: SessionPermissions,
+            val methods: List<String>,
+            val events: List<String>,
+            val metaData: AppMetaData,
         ) : Model()
-
-        data class SessionPermissions(val jsonRpc: JsonRpc, val events: Events? = null) : Model() {
-            data class JsonRpc(val methods: List<String>) : Model()
-            data class Events(val events: List<String>) : Model()
-        }
 
         data class SessionEvent(
-            val topic: String,
-            val event: Event,
-        ) : Model()
-
-        data class Event(
             val name: String,
             val data: String,
-            val chainId: String?,
         ) : Model()
 
         data class SessionPayloadResponse(
@@ -210,8 +201,9 @@ object WalletConnect {
         }
 
         data class Connect(
-            val permissions: Model.SessionPermissions,
-            val blockchain: Model.Blockchain,
+            val chains: List<String>,
+            val methods: List<String>,
+            val events: List<String>,
             val pairingTopic: String? = null,
         ) : Params()
 
@@ -233,11 +225,9 @@ object WalletConnect {
 
         data class UpdateEvents(val sessionTopic: String, val events: List<String>) : Params()
 
-        data class Upgrade(val topic: String, val permissions: Model.SessionPermissions) : Params()
-
         data class Ping(val topic: String) : Params()
 
-        data class Emit(val topic: String, val event: Model.Event) : Params()
+        data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String?) : Params()
 
         data class UpdateExpiry(val topic: String, val newExpiration: Long) : Params()
     }

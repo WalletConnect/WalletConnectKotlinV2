@@ -31,7 +31,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
     fun approve() {
         val accounts = proposal.chains.map { chainId -> "$chainId:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716" }
         val approve = WalletConnect.Params.Approve(proposal, accounts)
-        WalletConnectClient.approve(approve) { error -> Log.d("Error", "sending approve error: $error") }
+        WalletConnectClient.approveSession(approve) { error -> Log.d("Error", "sending approve error: $error") }
     }
 
     fun reject() {
@@ -39,7 +39,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         val rejectionReason = "User disapproved requested chains"
         val code = 500
         val reject = WalletConnect.Params.Reject(proposal, rejectionReason, code)
-        WalletConnectClient.reject(reject) { error -> Log.d("Error", "sending reject error: $error") }
+        WalletConnectClient.rejectSession(reject) { error -> Log.d("Error", "sending reject error: $error") }
     }
 
     fun disconnect(topic: String) {
@@ -83,7 +83,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
             accounts = listOf("eip155:42:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62") //kovan
         )
 
-        WalletConnectClient.updateSessionAccounts(update) { error -> Log.d("Error", "sending update error: $error") }
+        WalletConnectClient.updateAccounts(update) { error -> Log.d("Error", "sending update error: $error") }
     }
 
     fun sessionUpdateMethods(session: WalletConnect.Model.Session) {
@@ -92,7 +92,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
             methods = listOf("eth_sign")
         )
 
-        WalletConnectClient.updateSessionMethods(update) { error -> Log.d("Error", "sending update error: $error") }
+        WalletConnectClient.updateMethods(update) { error -> Log.d("Error", "sending update error: $error") }
     }
 
     fun sessionPing(session: WalletConnect.Model.Session) {

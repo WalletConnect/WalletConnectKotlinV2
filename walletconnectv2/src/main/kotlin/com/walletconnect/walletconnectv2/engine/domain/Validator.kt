@@ -12,24 +12,25 @@ import java.net.URISyntaxException
 
 internal object Validator {
 
-    internal fun validateMethods(jsonRpc: EngineDO.SessionPermissions.JsonRpc, onInvalidJsonRpc: (String) -> Unit) {
-        if (!isJsonRpcValid(jsonRpc)) {
+    internal fun validateMethods(methods: List<String>, onInvalidJsonRpc: (String) -> Unit) {
+        if (!areMethodsValid(methods)) {
             onInvalidJsonRpc(EMPTY_RPC_METHODS_LIST_MESSAGE)
         }
     }
 
-    internal fun validateEvents(events: EngineDO.SessionPermissions.Events?, onInvalidEvents: (String) -> Unit) {
-        if (events != null && !areEventsValid(events)) {
+    internal fun validateEvents(events: List<String>, onInvalidEvents: (String) -> Unit) {
+        if (!areEventsValid(events)) {
             onInvalidEvents(INVALID_EVENTS_MESSAGE)
         }
     }
 
-    internal fun validateBlockchain(blockchain: EngineDO.Blockchain, onInvalidBlockchain: (String) -> Unit) {
-        when {
-            !isBlockchainValid(blockchain) -> onInvalidBlockchain(EMPTY_CHAIN_LIST_MESSAGE)
-            blockchain.chains.any { chainId -> !isChainIdValid(chainId) } -> onInvalidBlockchain(WRONG_CHAIN_ID_FORMAT_MESSAGE)
-        }
-    }
+    //todo: change to caip-2 validation
+//    internal fun validateBlockchain(blockchain: EngineDO.Blockchain, onInvalidBlockchain: (String) -> Unit) {
+//        when {
+//            !isBlockchainValid(blockchain) -> onInvalidBlockchain(EMPTY_CHAIN_LIST_MESSAGE)
+//            blockchain.chains.any { chainId -> !isChainIdValid(chainId) } -> onInvalidBlockchain(WRONG_CHAIN_ID_FORMAT_MESSAGE)
+//        }
+//    }
 
     internal fun validateIfChainIdsIncludedInPermission(accounts: List<String>, chains: List<String>, onInvalidAccounts: (String) -> Unit) {
         if (!areChainIdsIncludedInPermissions(accounts, chains)) {
@@ -51,7 +52,7 @@ internal object Validator {
     }
 
     internal fun validateEventAuthorization(session: SessionVO, eventName: String, onUnauthorizedEvent: (String) -> Unit) {
-        if (!session.isSelfController && session.events?.contains(eventName) == false) {
+        if (!session.isSelfController && !session.events.contains(eventName)) {
             onUnauthorizedEvent(UNAUTHORIZED_EVENT_TYPE_MESSAGE)
         }
     }
@@ -113,14 +114,14 @@ internal object Validator {
         )
     }
 
-    internal fun isJsonRpcValid(jsonRpc: EngineDO.SessionPermissions.JsonRpc): Boolean =
-        jsonRpc.methods.isNotEmpty() && jsonRpc.methods.all { method -> method.isNotEmpty() }
+    internal fun areMethodsValid(methods: List<String>): Boolean =
+        methods.isNotEmpty() && methods.all { method -> method.isNotEmpty() }
 
-    internal fun isBlockchainValid(blockchain: EngineDO.Blockchain): Boolean =
-        blockchain.chains.isNotEmpty() && blockchain.chains.any { chain -> chain.isNotEmpty() }
+//    internal fun isBlockchainValid(blockchain: EngineDO.Blockchain): Boolean =
+//        blockchain.chains.isNotEmpty() && blockchain.chains.any { chain -> chain.isNotEmpty() }
 
-    internal fun areEventsValid(events: EngineDO.SessionPermissions.Events): Boolean =
-        events.names.isNotEmpty() && events.names.any { type -> type.isNotEmpty() }
+    internal fun areEventsValid(events: List<String>): Boolean =
+        events.isNotEmpty() && events.any { type -> type.isNotEmpty() }
 
     internal fun isChainIdValid(chainId: String): Boolean {
         val elements: List<String> = chainId.split(":")

@@ -17,6 +17,7 @@ import kotlinx.coroutines.supervisorScope
 internal class RelayClient internal constructor(private val relay: RelayService) : Relay {
 
     override val eventsFlow: SharedFlow<WebSocket.Event> = relay.eventsFlow().shareIn(scope, SharingStarted.Lazily, REPLAY)
+
     override val subscriptionRequest: Flow<RelayDTO.Subscription.Request> =
         relay.observeSubscriptionRequest()
             .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }

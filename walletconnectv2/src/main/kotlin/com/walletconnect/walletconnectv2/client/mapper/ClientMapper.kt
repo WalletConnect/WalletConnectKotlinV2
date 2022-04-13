@@ -81,27 +81,12 @@ internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(account
         icons,
         chains,
         methods,
-        if (types?.isEmpty() == true) null else types,
+        events,
         proposerPublicKey,
         accountList,
         relayProtocol,
         relayData
     )
-
-@JvmSynthetic
-internal fun EngineDO.SessionPermissions.toClientSettledSessionPermissions(): WalletConnect.Model.SessionPermissions =
-    WalletConnect.Model.SessionPermissions(
-        jsonRpc.toClientSettledSessionJsonRpc(),
-        events?.toClientSettledSessionEvents()
-    )
-
-@JvmSynthetic
-internal fun EngineDO.SessionPermissions.JsonRpc.toClientSettledSessionJsonRpc(): WalletConnect.Model.SessionPermissions.JsonRpc =
-    WalletConnect.Model.SessionPermissions.JsonRpc(methods)
-
-@JvmSynthetic
-internal fun EngineDO.SessionPermissions.Events.toClientSettledSessionEvents(): WalletConnect.Model.SessionPermissions.Events =
-    WalletConnect.Model.SessionPermissions.Events(names)
 
 @JvmSynthetic
 internal fun EngineDO.SessionRequest.toClientSessionRequest(): WalletConnect.Model.SessionRequest =
@@ -118,7 +103,7 @@ internal fun WalletConnect.Model.JsonRpcResponse.JsonRpcError.toRpcErrorVO(): Js
     JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(code, message))
 
 @JvmSynthetic
-internal fun WalletConnect.Model.Event.toEngineEvent(): EngineDO.Event = EngineDO.Event(name, data, chainId)
+internal fun WalletConnect.Model.SessionEvent.toEngineEvent(chainId: String?): EngineDO.Event = EngineDO.Event(name, data, chainId)
 
 @JvmSynthetic
 internal fun EngineDO.SessionDelete.toClientDeletedSession(): WalletConnect.Model.DeletedSession =
@@ -126,7 +111,7 @@ internal fun EngineDO.SessionDelete.toClientDeletedSession(): WalletConnect.Mode
 
 @JvmSynthetic
 internal fun EngineDO.SessionEvent.toClientSessionEvent(): WalletConnect.Model.SessionEvent =
-    WalletConnect.Model.SessionEvent(topic, WalletConnect.Model.Event(name, data, chainId))
+    WalletConnect.Model.SessionEvent(name, data)
 
 @JvmSynthetic
 internal fun EngineDO.Session.toClientSettledSession(): WalletConnect.Model.Session =
@@ -134,8 +119,9 @@ internal fun EngineDO.Session.toClientSettledSession(): WalletConnect.Model.Sess
         topic.value,
         expiry.seconds,
         accounts,
-        peerAppMetaData?.toClientAppMetaData(),
-        permissions.toClientSettledSessionPermissions()
+        methods,
+        events,
+        peerAppMetaData.toClientAppMetaData()
     )
 
 @JvmSynthetic
@@ -144,8 +130,9 @@ internal fun EngineDO.SessionUpdateExpiry.toClientSettledSession(): WalletConnec
         topic.value,
         expiry.seconds,
         accounts,
-        peerAppMetaData?.toClientAppMetaData(),
-        permissions.toClientSettledSessionPermissions()
+        methods,
+        events,
+        peerAppMetaData.toClientAppMetaData()
     )
 
 @JvmSynthetic
@@ -154,24 +141,7 @@ internal fun EngineDO.SessionRejected.toClientSessionRejected(): WalletConnect.M
 
 @JvmSynthetic
 internal fun EngineDO.SessionApproved.toClientSessionApproved(): WalletConnect.Model.ApprovedSession =
-    WalletConnect.Model.ApprovedSession(topic, peerAppMetaData?.toClientAppMetaData(), permissions.toClientPerms(), accounts)
-
-@JvmSynthetic
-internal fun WalletConnect.Model.SessionPermissions.toEngineSessionPermissions(): EngineDO.SessionPermissions =
-    EngineDO.SessionPermissions(
-        EngineDO.SessionPermissions.JsonRpc(jsonRpc.methods),
-        if (events != null) EngineDO.SessionPermissions.Events(events.events) else null
-    )
-
-@JvmSynthetic
-internal fun WalletConnect.Model.Blockchain.toEngineBlockchain(): EngineDO.Blockchain = EngineDO.Blockchain(chains)
-
-@JvmSynthetic
-internal fun EngineDO.SessionPermissions.toClientPerms(): WalletConnect.Model.SessionPermissions =
-    WalletConnect.Model.SessionPermissions(
-        WalletConnect.Model.SessionPermissions.JsonRpc(jsonRpc.methods),
-        if (events != null) WalletConnect.Model.SessionPermissions.Events(events.names) else null
-    )
+    WalletConnect.Model.ApprovedSession(topic, peerAppMetaData.toClientAppMetaData(), methods, events, accounts)
 
 @JvmSynthetic
 internal fun WalletConnect.Model.AppMetaData.toEngineAppMetaData() = EngineDO.AppMetaData(name, description, url, icons)
