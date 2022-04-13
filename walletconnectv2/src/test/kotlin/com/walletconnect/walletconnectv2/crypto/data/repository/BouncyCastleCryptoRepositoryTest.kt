@@ -1,17 +1,18 @@
-package com.walletconnect.walletconnectv2.crypto.managers
+package com.walletconnect.walletconnectv2.crypto.data.repository
 
 import com.walletconnect.walletconnectv2.core.model.vo.PrivateKey
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.crypto.KeyStore
-import com.walletconnect.walletconnectv2.crypto.data.repository.BouncyCastleCryptoRepository
+import com.walletconnect.walletconnectv2.crypto.managers.KeyChainMock
+import com.walletconnect.walletconnectv2.util.Empty
 import io.mockk.spyk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-internal class BouncyCastleCryptoManagerTest {
+internal class BouncyCastleCryptoRepositoryTest {
     private val publicKey = PublicKey("590c2c627be7af08597091ff80dd41f7fa28acd10ef7191d7e830e116d3a186a")
     private val privateKey = PrivateKey("36bf507903537de91f5e573666eaa69b1fa313974f23b2b59645f20fea505854")
     private val keyChain: KeyStore = KeyChainMock()
@@ -43,7 +44,7 @@ internal class BouncyCastleCryptoManagerTest {
     }
 
     @Test
-    fun `generate symmetric key test`() {
+    fun `Generate symmetric key test`() {
         val topic = TopicVO("topic")
         val symKey = sut.generateSymmetricKey(topic)
         assert(symKey.keyAsHex.length == 64)
@@ -97,5 +98,36 @@ internal class BouncyCastleCryptoManagerTest {
         val (public, private) = sut.getKeyPair(publicKey)
         assertEquals(publicKeyString, public.keyAsHex)
         assertEquals(privateKeyString, private.keyAsHex)
+    }
+
+    @Test
+    fun `Stored KeyPair gets removed when using a PublicKey as the tag for removeKeys`() {
+        val publicKeyString = "590c2c627be7af08597091ff80dd41f7fa28acd10ef7191d7e830e116d3a186a"
+        val privateKeyString = "36bf507903537de91f5e573666eaa69b1fa313974f23b2b59645f20fea505854"
+        sut.setKeyPair(publicKey, privateKey)
+
+        val (public, private) = sut.getKeyPair(publicKey)
+        assertEquals(publicKeyString, public.keyAsHex)
+        assertEquals(privateKeyString, private.keyAsHex)
+
+        sut.removeKeys(publicKey.keyAsHex)
+
+        val (publicAfterRemoval, privateAfterRemoval) = sut.getKeyPair(publicKey)
+        assertEquals(String.Empty, publicAfterRemoval.keyAsHex)
+        assertEquals(String.Empty, privateAfterRemoval.keyAsHex)
+    }
+
+    @Test
+    fun `Generated SymmetricKey gets removed when using a TopicVO as the tag for removeKeys`() {
+        val topic = TopicVO("someTopic")
+        val symKey = sut.generateSymmetricKey(topic)
+
+        val secretKey = sut.getSecretKey(topic)
+        assertEquals(symKey.keyAsHex, secretKey.keyAsHex)
+
+        sut.removeKeys(topic.value)
+
+        val secretKeyAfterRemoval = sut.getSecretKey(topic)
+        assertEquals(String.Empty, secretKeyAfterRemoval.keyAsHex)
     }
 }
