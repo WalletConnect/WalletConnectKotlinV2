@@ -15,17 +15,17 @@ internal data class SessionVO(
     val relayProtocol: String,
     val relayData: String?,
     val controllerKey: PublicKey? = null,
-    val selfParticipant: PublicKey,
+    val selfPublicKey: PublicKey,
     val selfMetaData: MetaDataVO? = null,
-    val peerParticipant: PublicKey? = null,
+    val peerPublicKey: PublicKey? = null,
     val peerMetaData: MetaDataVO? = null,
     val accounts: List<String> = emptyList(),
     val methods: List<String>,
     val events: List<String>,
     val isAcknowledged: Boolean,
 ) : Sequence {
-    val isPeerController: Boolean = peerParticipant?.keyAsHex == controllerKey?.keyAsHex
-    val isSelfController: Boolean = selfParticipant.keyAsHex == controllerKey?.keyAsHex
+    val isPeerController: Boolean = peerPublicKey?.keyAsHex == controllerKey?.keyAsHex
+    val isSelfController: Boolean = selfPublicKey.keyAsHex == controllerKey?.keyAsHex
     val chains: List<String> get() = getChainIds(accounts)
 
     internal companion object {
@@ -45,9 +45,9 @@ internal data class SessionVO(
                 ExpiryVO(sessionExpiry),
                 relayProtocol = proposal.relays.first().protocol,
                 relayData = proposal.relays.first().data,
-                peerParticipant = PublicKey(proposal.proposer.publicKey),
+                peerPublicKey = PublicKey(proposal.proposer.publicKey),
                 peerMetaData = proposal.proposer.metadata,
-                selfParticipant = PublicKey(selfParticipant.publicKey),
+                selfPublicKey = PublicKey(selfParticipant.publicKey),
                 selfMetaData = selfParticipant.metadata,
                 controllerKey = PublicKey(selfParticipant.publicKey),
                 methods = methods,
@@ -69,9 +69,9 @@ internal data class SessionVO(
                 ExpiryVO(settleParams.expiry),
                 relayProtocol = settleParams.relay.protocol,
                 relayData = settleParams.relay.data,
-                peerParticipant = PublicKey(settleParams.controller.publicKey),
+                peerPublicKey = PublicKey(settleParams.controller.publicKey),
                 peerMetaData = settleParams.controller.metadata,
-                selfParticipant = selfPublicKey,
+                selfPublicKey = selfPublicKey,
                 selfMetaData = selfMetadata,
                 controllerKey = PublicKey(settleParams.controller.publicKey),
                 methods = settleParams.methods,

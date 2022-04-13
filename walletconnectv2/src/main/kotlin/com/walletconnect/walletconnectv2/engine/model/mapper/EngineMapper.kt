@@ -63,7 +63,7 @@ internal fun SessionParamsVO.SessionRequestParams.toEngineDOSessionRequest(reque
 
 @JvmSynthetic
 internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: TopicVO): EngineDO.SessionDelete =
-    EngineDO.SessionDelete(topic.value, reason.message)
+    EngineDO.SessionDelete(topic.value, message)
 
 @JvmSynthetic
 internal fun SessionParamsVO.EventParams.toEngineDOSessionEvent(topic: TopicVO): EngineDO.SessionEvent =
