@@ -26,6 +26,7 @@ internal data class SessionVO(
 ) : Sequence {
     val isPeerController: Boolean = peerParticipant?.keyAsHex == controllerKey?.keyAsHex
     val isSelfController: Boolean = selfParticipant.keyAsHex == controllerKey?.keyAsHex
+    val chains: List<String> get() = getChainIds(accounts)
 
     internal companion object {
 
@@ -76,6 +77,20 @@ internal data class SessionVO(
                 accounts = settleParams.accounts,
                 isAcknowledged = true
             )
+        }
+
+        fun getChainIds(accountIds: List<String>): List<String> {
+            val chains = mutableListOf<String>()
+            accountIds.forEach { accountId ->
+                chains.add(getChainId(accountId))
+            }
+            return chains
+        }
+
+        private fun getChainId(accountId: String): String {
+            val elements = accountId.split(":")
+            val (namespace, reference) = Pair(elements[0], elements[1])
+            return "$namespace:$reference"
         }
     }
 }

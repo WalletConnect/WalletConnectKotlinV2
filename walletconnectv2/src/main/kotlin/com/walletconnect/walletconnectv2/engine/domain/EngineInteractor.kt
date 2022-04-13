@@ -61,7 +61,9 @@ internal class EngineInteractor(
         onFailure: (Throwable) -> Unit,
     ) {
 
-        //chains caip-2 validate
+        Validator.validateCAIP2(chains) { errorMessage ->
+            throw WalletConnectException.InvalidSessionChainIdsException(errorMessage)
+        }
 
         if (pairingTopic != null) {
             if (!sequenceStorageRepository.isPairingValid(TopicVO(pairingTopic))) {
@@ -90,7 +92,6 @@ internal class EngineInteractor(
         val symmetricKey: SecretKey = crypto.generateSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptionsVO()
         val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
-
         val pairing = PairingVO.createPairing(pairingTopic, relay, walletConnectUri.toAbsoluteString())
         sequenceStorageRepository.insertPairing(pairing)
         relayer.subscribe(pairingTopic)
@@ -137,12 +138,14 @@ internal class EngineInteractor(
         relayer.subscribe(pairing.topic)
     }
 
+    //todo: remove proposal and validation
     internal fun reject(proposal: EngineDO.SessionProposal, reason: String, code: Int, onFailure: (Throwable) -> Unit = {}) {
         val request = sessionProposalRequest[proposal.proposerPublicKey] ?: return
         sessionProposalRequest.remove(proposal.proposerPublicKey)
         relayer.respondWithError(request, PeerError.Error(reason, code), onFailure = { error -> onFailure(error) })
     }
 
+    //todo: remove proposal and validation
     internal fun approve(proposal: EngineDO.SessionProposal, onFailure: (Throwable) -> Unit) {
         val request = sessionProposalRequest[proposal.proposerPublicKey] ?: return
         sessionProposalRequest.remove(proposal.proposerPublicKey)
@@ -155,7 +158,7 @@ internal class EngineInteractor(
             throw WalletConnectException.InvalidAccountsException(errorMessage)
         }
 
-        Validator.validateIfChainIdsIncludedInPermission(proposal.accounts, proposal.chains) { errorMessage ->
+        Validator.validateIfAccountsAreOnValidNetwork(proposal.accounts, proposal.chains) { errorMessage ->
             throw WalletConnectException.InvalidAccountsException(errorMessage)
         }
 
@@ -176,18 +179,17 @@ internal class EngineInteractor(
         sessionSettle(proposal, sessionTopic) { error -> onFailure(error) }
     }
 
-    internal fun updateSessionAccounts(topic: String, accounts: List<String>, onFailure: (Throwable) -> Unit) {
+    internal fun updateSessionAccounts(topic: String, newAccounts: List<String>, onFailure: (Throwable) -> Unit) {
         if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        val chains: List<String> = sequenceStorageRepository.getSessionByTopic(TopicVO(topic)).accounts
-        //todo: get chains from accounts
-        Validator.validateCAIP10(accounts) { errorMessage ->
+        Validator.validateCAIP10(newAccounts) { errorMessage ->
             throw WalletConnectException.InvalidAccountsException(errorMessage)
         }
 
-        Validator.validateIfChainIdsIncludedInPermission(accounts, chains) { errorMessage ->
+        val chains: List<String> = sequenceStorageRepository.getSessionByTopic(TopicVO(topic)).chains
+        Validator.validateIfAccountsAreOnValidNetwork(newAccounts, chains) { errorMessage ->
             throw WalletConnectException.InvalidAccountsException(errorMessage)
         }
         val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
@@ -198,9 +200,9 @@ internal class EngineInteractor(
             throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
-        val params = SessionParamsVO.UpdateAccountsParams(accounts)
+        val params = SessionParamsVO.UpdateAccountsParams(newAccounts)
         val sessionUpdateAccounts = SessionSettlementVO.SessionUpdateAccounts(id = generateId(), params = params)
-        sequenceStorageRepository.updateSessionWithAccounts(TopicVO(topic), accounts)
+        sequenceStorageRepository.updateSessionWithAccounts(TopicVO(topic), newAccounts)
 
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateAccounts,
             onSuccess = { Logger.log("Session update sent successfully") },
@@ -276,8 +278,7 @@ internal class EngineInteractor(
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
 
-        //todo: get chains from accounts
-        val chains: List<String> = sequenceStorageRepository.getSessionByTopic(TopicVO(request.topic)).accounts
+        val chains: List<String> = sequenceStorageRepository.getSessionByTopic(TopicVO(request.topic)).chains
         Validator.validateChainIdAuthorization(request.chainId, chains) { errorMessage ->
             throw WalletConnectException.UnauthorizedChainIdException(errorMessage)
         }
@@ -450,7 +451,6 @@ internal class EngineInteractor(
                 when (val requestParams = request.params) {
                     is PairingParamsVO.SessionProposeParams -> onSessionPropose(request, requestParams)
                     is PairingParamsVO.DeleteParams -> onPairingDelete(request, requestParams)
-
                     is SessionParamsVO.SessionSettleParams -> onSessionSettle(request, requestParams)
                     is SessionParamsVO.SessionRequestParams -> onSessionRequest(request, requestParams)
                     is SessionParamsVO.DeleteParams -> onSessionDelete(request, requestParams)
@@ -521,10 +521,7 @@ internal class EngineInteractor(
         }
 
         val session = sequenceStorageRepository.getSessionByTopic(request.topic)
-        //todo: get chains from accounts
-        val chains = session.accounts
-
-        if (params.chainId != null && !chains.contains(params.chainId)) {
+        if (params.chainId != null && !session.chains.contains(params.chainId)) {
             relayer.respondWithError(request, PeerError.UnauthorizedTargetChainId(params.chainId))
             return
         }
@@ -550,10 +547,7 @@ internal class EngineInteractor(
         }
 
         val event = params.event
-        //todo: get chains from accounts
-        val chains = session.accounts
-
-        Validator.validateChainIdAuthorization(params.chainId, chains) {
+        Validator.validateChainIdAuthorization(params.chainId, session.chains) {
             relayer.respondWithError(request, PeerError.UnauthorizedEventRequest(event.name))
             return@validateChainIdAuthorization
         }

@@ -4,6 +4,7 @@ import com.walletconnect.walletconnectv2.core.exceptions.client.*
 import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
+import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO.Companion.getChainIds
 import com.walletconnect.walletconnectv2.engine.domain.Validator
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.engine.model.mapper.toAbsoluteString
@@ -15,25 +16,16 @@ class ValidatorTest {
 
     @Test
     fun `check correct error message when methods are empty `() {
-        val jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf())
+        val methods: List<String> = listOf()
 
-        Validator.validateMethods(jsonRpc) { errorMessage ->
+        Validator.validateMethods(methods) { errorMessage ->
             assertEquals(EMPTY_RPC_METHODS_LIST_MESSAGE, errorMessage)
         }
     }
 
     @Test
     fun `check correct error message when events are empty `() {
-        val events = EngineDO.SessionPermissions.Events(listOf())
-
-        Validator.validateEvents(events) { errorMessage ->
-            assertEquals(INVALID_EVENTS_MESSAGE, errorMessage)
-        }
-    }
-
-    @Test
-    fun `check correct error message when events are null `() {
-        val events = null
+        val events: List<String> = listOf()
 
         Validator.validateEvents(events) { errorMessage ->
             assertEquals(INVALID_EVENTS_MESSAGE, errorMessage)
@@ -42,64 +34,64 @@ class ValidatorTest {
 
     @Test
     fun `check if chainIds list is empty`() {
-        val jsonRpc = EngineDO.Blockchain(listOf())
-        Validator.validateBlockchain(jsonRpc) { errorMessage ->
+        val chains: List<String> = listOf()
+        Validator.validateCAIP2(chains) { errorMessage ->
             assertEquals(EMPTY_CHAIN_LIST_MESSAGE, errorMessage)
         }
     }
 
     @Test
     fun `check if chainIds list is invalid`() {
-        val jsonRpc = EngineDO.Blockchain(listOf("chainID"))
-        Validator.validateBlockchain(jsonRpc) { errorMessage ->
+        val chains: List<String> = listOf("chainID")
+        Validator.validateCAIP2(chains) { errorMessage ->
             assertEquals(WRONG_CHAIN_ID_FORMAT_MESSAGE, errorMessage)
         }
     }
 
     @Test
-    fun `are json rpc permissions valid`() {
-        var jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf())
+    fun `are methods valid`() {
+        var methods: List<String> = listOf()
 
-        val result1 = Validator.areMethodsValid(jsonRpc)
+        val result1 = Validator.areMethodsValid(methods)
         assertEquals(result1, false)
 
-        jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf("", ""))
-        val result2 = Validator.areMethodsValid(jsonRpc)
+        methods = listOf("", "")
+        val result2 = Validator.areMethodsValid(methods)
         assertEquals(result2, false)
 
-        jsonRpc = EngineDO.SessionPermissions.JsonRpc(listOf("personal_sign", "eth_sign"))
-        val result3 = Validator.areMethodsValid(jsonRpc)
+        methods = listOf("personal_sign", "eth_sign")
+        val result3 = Validator.areMethodsValid(methods)
         assertEquals(result3, true)
     }
 
     @Test
-    fun `are blockchain permissions not empty`() {
-        var blockchain = EngineDO.Blockchain(listOf())
+    fun `are chains permissions not empty`() {
+        var chains: List<String> = listOf()
 
-        val result1 = Validator.isBlockchainValid(blockchain)
+        val result1 = Validator.isBlockchainValid(chains)
         assertEquals(result1, false)
 
-        blockchain = EngineDO.Blockchain(listOf("", ""))
-        val result2 = Validator.isBlockchainValid(blockchain)
+        chains = listOf("", "")
+        val result2 = Validator.isBlockchainValid(chains)
         assertEquals(result2, false)
 
-        blockchain = EngineDO.Blockchain(listOf("1", "2"))
-        val result3 = Validator.isBlockchainValid(blockchain)
+        chains = listOf("1", "2")
+        val result3 = Validator.isBlockchainValid(chains)
         assertEquals(result3, true)
     }
 
     @Test
     fun `are events permissions valid`() {
-        var events: EngineDO.SessionPermissions.Events = EngineDO.SessionPermissions.Events(listOf())
+        var events: List<String> = listOf()
 
         val result1 = Validator.areEventsValid(events)
         assertEquals(result1, false)
 
-        events = EngineDO.SessionPermissions.Events(listOf("", ""))
+        events = listOf("", "")
         val result2 = Validator.areEventsValid(events)
         assertEquals(result2, false)
 
-        events = EngineDO.SessionPermissions.Events(listOf("1", "2"))
+        events = listOf("1", "2")
         val result3 = Validator.areEventsValid(events)
         assertEquals(result3, true)
     }
@@ -123,7 +115,7 @@ class ValidatorTest {
     fun `check correct error message when accounts are empty and chainIds exists`() {
         val accounts = listOf("")
         val chains = listOf("as", "bc")
-        Validator.validateIfChainIdsIncludedInPermission(accounts, chains) { errorMessage ->
+        Validator.validateIfAccountsAreOnValidNetwork(accounts, chains) { errorMessage ->
             assertEquals(errorMessage, UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
     }
@@ -132,7 +124,7 @@ class ValidatorTest {
     fun `check correct error message when accounts are invalid`() {
         val accounts = listOf("as11", "1234")
         val chains = listOf("")
-        Validator.validateIfChainIdsIncludedInPermission(accounts, chains) { errorMessage ->
+        Validator.validateIfAccountsAreOnValidNetwork(accounts, chains) { errorMessage ->
             assertEquals(errorMessage, UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
     }
@@ -153,7 +145,7 @@ class ValidatorTest {
             "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
         )
         val chains = listOf("")
-        Validator.validateIfChainIdsIncludedInPermission(accounts, chains) { errorMessage ->
+        Validator.validateIfAccountsAreOnValidNetwork(accounts, chains) { errorMessage ->
             assertEquals(errorMessage, UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
     }
@@ -190,45 +182,45 @@ class ValidatorTest {
 
     @Test
     fun `are chain ids included in permissions`() {
-        Validator.areChainIdsIncludedInPermissions(emptyList(), emptyList()).apply { assertEquals(this, false) }
-        Validator.areChainIdsIncludedInPermissions(listOf(""), listOf("")).apply { assertEquals(this, false) }
-        Validator.areChainIdsIncludedInPermissions(listOf("as"), listOf("")).apply { assertEquals(this, false) }
-        Validator.areChainIdsIncludedInPermissions(listOf("as"), listOf("ss")).apply { assertEquals(this, false) }
-        Validator.areChainIdsIncludedInPermissions(
+        Validator.areAccountsOnValidNetworks(emptyList(), emptyList()).apply { assertEquals(this, false) }
+        Validator.areAccountsOnValidNetworks(listOf(""), listOf("")).apply { assertEquals(this, false) }
+        Validator.areAccountsOnValidNetworks(listOf("as"), listOf("")).apply { assertEquals(this, false) }
+        Validator.areAccountsOnValidNetworks(listOf("as"), listOf("ss")).apply { assertEquals(this, false) }
+        Validator.areAccountsOnValidNetworks(
             listOf(
                 "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
                 "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
             ), listOf("ss", "aa")
         ).apply { assertEquals(this, false) }
 
-        Validator.areChainIdsIncludedInPermissions(
+        Validator.areAccountsOnValidNetworks(
             listOf(
                 "bip122:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
                 "polkadot:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
             ), listOf("bip122:000000000019d6689c085ae165831e93", "polkadot:b0a8d493285c2df73290dfb7e61f870f")
         ).apply { assertEquals(this, false) }
 
-        Validator.areChainIdsIncludedInPermissions(
+        Validator.areAccountsOnValidNetworks(
             listOf(
                 "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
                 "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
             ), listOf("bip122:000000000019d6689c085ae165831e93", "polkadot:b0a8d493285c2df73290dfb7e61f870f")
         ).apply { assertEquals(this, true) }
 
-        Validator.areChainIdsIncludedInPermissions(
+        Validator.areAccountsOnValidNetworks(
             listOf(
                 "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
                 "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
             ), listOf("polkadot:b0a8d493285c2df73290dfb7e61f870f")
         ).apply { assertEquals(this, false) }
 
-        Validator.areChainIdsIncludedInPermissions(
+        Validator.areAccountsOnValidNetworks(
             listOf(
                 "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6"
             ), listOf("polkadot:b0a8d493285c2df73290dfb7e61f870f")
         ).apply { assertEquals(this, false) }
 
-        Validator.areChainIdsIncludedInPermissions(
+        Validator.areAccountsOnValidNetworks(
             listOf(
                 "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6"
             ), listOf("bip122:000000000019d6689c085ae165831e93")
@@ -378,16 +370,16 @@ class ValidatorTest {
 
     @Test
     fun `get chains from accountIds test`() {
-        Validator.getChainIds(listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb",
+        getChainIds(listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb",
             "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6")).apply {
             assertEquals(this[0], "eip155:1")
             assertEquals(this[1], "bip122:000000000019d6689c085ae165831e93")
         }
 
-        Validator.getChainIds(listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb")).apply {
+        getChainIds(listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb")).apply {
             assertEquals(this[0], "eip155:1")
         }
-        Validator.getChainIds(listOf("111:dssa:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb")).apply {
+        getChainIds(listOf("111:dssa:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb")).apply {
             assertNotEquals(this[0], "eip155:1")
         }
     }
