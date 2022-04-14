@@ -72,13 +72,11 @@ internal class SequenceStorageRepository(
 
     @JvmSynthetic
     fun insertPairing(pairing: PairingVO) {
-        val selfMetadataId = insertMetaData(pairing.selfMetaData)
 
         with(pairing) {
             pairingDaoQueries.insertPairing(
                 topic.value,
                 expiry.seconds,
-                selfMetadataId,
                 relayProtocol,
                 relayData,
                 uri,
@@ -101,7 +99,6 @@ internal class SequenceStorageRepository(
     @JvmSynthetic
     fun deletePairing(topic: TopicVO) {
         metaDataDaoQueries.deleteSessionSelfMetaDataFromTopic(topic.value)
-        metaDataDaoQueries.deletePairingSelfMetaDataFromTopic(topic.value)
         pairingDaoQueries.deletePairing(topic.value)
     }
 
@@ -113,7 +110,6 @@ internal class SequenceStorageRepository(
         with(session) {
             sessionDaoQueries.insertSession(
                 topic = topic.value,
-                permissions_chains = chains,
                 permissions_methods = methods,
                 permissions_events = events,
                 expiry = expiry.seconds,
@@ -189,22 +185,12 @@ internal class SequenceStorageRepository(
         relay_protocol: String,
         relay_data: String?,
         uri: String,
-        selfName: String?,
-        selfDesc: String?,
-        selfUrl: String?,
-        selfIcons: List<String>?,
         peerName: String?,
         peerDesc: String?,
         peerUrl: String?,
         peerIcons: List<String>?,
         is_active: Boolean,
     ): PairingVO {
-        val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
-            MetaDataVO(selfName, selfDesc, selfUrl, selfIcons)
-        } else {
-            null
-        }
-
         val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
             MetaDataVO(peerName, peerDesc, peerUrl, peerIcons)
         } else {
@@ -214,7 +200,6 @@ internal class SequenceStorageRepository(
         return PairingVO(
             topic = TopicVO(topic),
             expiry = ExpiryVO(expirySeconds),
-            selfMetaData = selfMetaData,
             peerMetaData = peerMetaData,
             relayProtocol = relay_protocol,
             relayData = relay_data,
@@ -240,9 +225,8 @@ internal class SequenceStorageRepository(
         peerUrl: String?,
         peerIcons: List<String>?,
         accounts: List<String>?,
-        permission_chains: List<String>,
         permissions_methods: List<String>,
-        permissions_events: List<String>?,
+        permissions_events: List<String>,
         is_acknowledged: Boolean,
     ): SessionVO {
 
@@ -260,7 +244,6 @@ internal class SequenceStorageRepository(
 
         return SessionVO(
             topic = TopicVO(topic),
-            chains = permission_chains,
             methods = permissions_methods,
             events = permissions_events,
             accounts = accounts ?: emptyList(),

@@ -30,7 +30,7 @@ internal sealed class EngineDO {
         val icons: List<URI>,
         val chains: List<String>,
         val methods: List<String>,
-        val events: List<String>? = null,
+        val events: List<String>,
         val proposerPublicKey: String,
         val accounts: List<String>,
         val relayProtocol: String,
@@ -102,8 +102,9 @@ internal sealed class EngineDO {
     internal data class SessionApproved(
         val topic: String,
         val peerAppMetaData: AppMetaData?,
-        val permissions: SessionPermissions,
         val accounts: List<String>,
+        val methods: List<String>,
+        val events: List<String>,
     ) : EngineDO(), SequenceLifecycle
 
     internal data class PairingSettle(val topic: TopicVO, val metaData: AppMetaData?) : EngineDO(), SequenceLifecycle
@@ -115,27 +116,19 @@ internal sealed class EngineDO {
         override val topic: TopicVO,
         override val expiry: ExpiryVO,
         val accounts: List<String>,
+        val methods: List<String>,
+        val events: List<String>,
         val peerAppMetaData: AppMetaData?,
-        val permissions: SessionPermissions,
-        val blockchain: Blockchain,
     ) : EngineDO(), Sequence, SequenceLifecycle
 
     internal data class Session(
         override val topic: TopicVO,
         override val expiry: ExpiryVO,
         val accounts: List<String>,
+        val methods: List<String>,
+        val events: List<String>,
         val peerAppMetaData: AppMetaData?,
-        val permissions: SessionPermissions,
-        val blockchain: Blockchain,
     ) : EngineDO(), Sequence, SequenceLifecycle
-
-    internal data class SessionPermissions(
-        val jsonRpc: JsonRpc,
-        val events: Events? = null,
-    ) : EngineDO() {
-        internal data class JsonRpc(val methods: List<String>) : EngineDO()
-        data class Events(val names: List<String>) : EngineDO()
-    }
 
     internal data class Event(
         val name: String,
@@ -143,7 +136,6 @@ internal sealed class EngineDO {
         val chainId: String?,
     ) : EngineDO()
 
-    internal data class Blockchain(val chains: List<String>) : EngineDO()
     internal data class AppMetaData(
         val name: String,
         val description: String,

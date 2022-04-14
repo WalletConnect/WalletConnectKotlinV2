@@ -77,7 +77,7 @@ class SelectedAccountViewModel : ViewModel() {
         val listOfMethods = WalletConnectClient.getListOfSettledSessions().filter {
             it.topic == DappDelegate.selectedSessionTopic
         }.map {
-            it.permissions.jsonRpc.methods
+            it.methods
         }.flatten()
 
         return SelectedAccountUI(chainDetails.icon, chainDetails.chainName, account, listOfMethods)

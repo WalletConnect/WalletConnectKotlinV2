@@ -39,7 +39,7 @@ class DappClientAndroidIntegrationTest {
 
         WalletConnectClient.connect(
             WalletConnect.Params.Connect(
-                permissions = WalletConnect.Model.SessionPermissions(jsonRpc = WalletConnect.Model.JsonRpc(listOf("eth_sign"))),
+                permissions = WalletConnect.Model.SessionPermissions(methods = WalletConnect.Model.JsonRpc(listOf("eth_sign"))),
                 blockchain = WalletConnect.Model.Blockchain(listOf("1", "2"))
             ),
             onProposedSequence = { proposedSequence ->

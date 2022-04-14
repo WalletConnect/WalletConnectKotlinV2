@@ -13,24 +13,23 @@ CREATE TABLE SessionDao(
    peer_participant TEXT,
    peer_metadata_id INTEGER,
    accounts TEXT AS List<String> DEFAULT(NULL),
-   permissions_chains TEXT AS List<String> NOT NULL,
    permissions_methods TEXT AS List<String> NOT NULL,
-   permissions_events TEXT AS List<String>,
+   permissions_events TEXT AS List<String> NOT NULL,
    is_acknowledged  INTEGER AS Boolean NOT NULL
 );
 
 insertSession:
-INSERT OR IGNORE INTO SessionDao(topic, expiry, relay_protocol, relay_data, controller_key, self_participant, self_metadata_id, peer_participant, peer_metadata_id, accounts, permissions_chains, permissions_methods, permissions_events, is_acknowledged)
-VALUES (?,  ?, ?,?, ?, ?, ?, ?, ?, ?, ?,  ?, ? ,?);
+INSERT OR IGNORE INTO SessionDao(topic, expiry, relay_protocol, relay_data, controller_key, self_participant, self_metadata_id, peer_participant, peer_metadata_id, accounts, permissions_methods, permissions_events, is_acknowledged)
+VALUES (?,  ?, ?,?, ?, ?, ?, ?, ?, ?, ?,   ? ,?);
 
 getListOfSessionDaos:
-SELECT sd.topic, sd.expiry, sd.relay_protocol, sd.relay_data, sd.controller_key, sd.self_participant, self_mdd.name, self_mdd.description, self_mdd.url, self_mdd.icons, sd.peer_participant, peer_mdd.name, peer_mdd.description, peer_mdd.url, peer_mdd.icons, sd.accounts, sd.permissions_chains, sd.permissions_methods, sd.permissions_events, sd.is_acknowledged
+SELECT sd.topic, sd.expiry, sd.relay_protocol, sd.relay_data, sd.controller_key, sd.self_participant, self_mdd.name, self_mdd.description, self_mdd.url, self_mdd.icons, sd.peer_participant, peer_mdd.name, peer_mdd.description, peer_mdd.url, peer_mdd.icons, sd.accounts, sd.permissions_methods, sd.permissions_events, sd.is_acknowledged
 FROM SessionDao sd
     LEFT JOIN MetaDataDao self_mdd ON sd.self_metadata_id = self_mdd.id
     LEFT JOIN MetaDataDao peer_mdd ON sd.peer_metadata_id = peer_mdd.id;
 
 getSessionByTopic:
-SELECT sd.topic, sd.expiry, sd.relay_protocol, sd.relay_data, sd.controller_key, sd.self_participant, self_mdd.name, self_mdd.description, self_mdd.url, self_mdd.icons, sd.peer_participant, peer_mdd.name, peer_mdd.description, peer_mdd.url, peer_mdd.icons, sd.accounts, sd.permissions_chains, sd.permissions_methods, sd.permissions_events, sd.is_acknowledged
+SELECT sd.topic, sd.expiry, sd.relay_protocol, sd.relay_data, sd.controller_key, sd.self_participant, self_mdd.name, self_mdd.description, self_mdd.url, self_mdd.icons, sd.peer_participant, peer_mdd.name, peer_mdd.description, peer_mdd.url, peer_mdd.icons, sd.accounts, sd.permissions_methods, sd.permissions_events, sd.is_acknowledged
 FROM SessionDao sd
     LEFT JOIN MetaDataDao self_mdd ON sd.self_metadata_id = self_mdd.id
     LEFT JOIN MetaDataDao peer_mdd ON sd.peer_metadata_id = peer_mdd.id

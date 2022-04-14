@@ -6,8 +6,6 @@ import com.walletconnect.walletconnectv2.core.model.type.ClientParams
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.ReasonVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionPermissionsVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.BlockchainSettledVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionRequestVO
 
@@ -25,12 +23,14 @@ internal sealed class SessionParamsVO : ClientParams {
     internal data class SessionSettleParams(
         @Json(name = "relay")
         val relay: RelayProtocolOptionsVO,
-        @Json(name = "blockchain")
-        val blockchain: BlockchainSettledVO,
-        @Json(name = "permissions")
-        val permission: SessionPermissionsVO, //todo: flatten permissions structure
         @Json(name = "controller")
         val controller: SessionParticipantVO,
+        @Json(name = "accounts")
+        val accounts: List<String>,
+        @Json(name = "methods")
+        val methods: List<String>,
+        @Json(name = "events")
+        val events: List<String>,
         @Json(name = "expiry")
         val expiry: Long,
     ) : SessionParamsVO()

@@ -20,13 +20,13 @@ internal data class SessionVO(
     val peerParticipant: PublicKey? = null,
     val peerMetaData: MetaDataVO? = null,
     val accounts: List<String> = emptyList(),
-    val chains: List<String>,
     val methods: List<String>,
-    val events: List<String>?,
+    val events: List<String>,
     val isAcknowledged: Boolean,
 ) : Sequence {
     val isPeerController: Boolean = peerParticipant?.keyAsHex == controllerKey?.keyAsHex
     val isSelfController: Boolean = selfParticipant.keyAsHex == controllerKey?.keyAsHex
+    val chains: List<String> get() = getChainIds(accounts)
 
     internal companion object {
 
@@ -48,9 +48,8 @@ internal data class SessionVO(
                 selfParticipant = PublicKey(selfParticipant.publicKey),
                 selfMetaData = selfParticipant.metadata,
                 controllerKey = PublicKey(selfParticipant.publicKey),
-                chains = proposal.chains,
                 methods = proposal.methods,
-                events = proposal.events ?: emptyList(),
+                events = proposal.events,
                 accounts = proposal.accounts,
                 isAcknowledged = false
             )
@@ -73,12 +72,15 @@ internal data class SessionVO(
                 selfParticipant = selfPublicKey,
                 selfMetaData = selfMetadata,
                 controllerKey = PublicKey(settleParams.controller.publicKey),
-                chains = settleParams.blockchain.chains,
-                methods = settleParams.permission.jsonRpc.methods,
-                events = settleParams.permission.events?.names,
-                accounts = settleParams.blockchain.accounts,
+                methods = settleParams.methods,
+                events = settleParams.events,
+                accounts = settleParams.accounts,
                 isAcknowledged = true
             )
+        }
+
+        fun getChainIds(accountIds: List<String>): List<String> {
+            return accountIds.map { accountId -> accountId.split(":").take(2).joinToString(":") }
         }
     }
 }

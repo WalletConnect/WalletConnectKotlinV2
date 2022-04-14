@@ -12,37 +12,40 @@ import java.net.URISyntaxException
 
 internal object Validator {
 
-    internal fun validateMethods(jsonRpc: EngineDO.SessionPermissions.JsonRpc, onInvalidJsonRpc: (String) -> Unit) {
-        if (!isJsonRpcValid(jsonRpc)) {
+    internal fun validateMethods(methods: List<String>, onInvalidJsonRpc: (String) -> Unit) {
+        if (!areMethodsValid(methods)) {
             onInvalidJsonRpc(EMPTY_RPC_METHODS_LIST_MESSAGE)
         }
     }
 
-    internal fun validateEvents(events: EngineDO.SessionPermissions.Events?, onInvalidEvents: (String) -> Unit) {
-        if (events != null && !areEventsValid(events)) {
+    internal fun validateEvents(events: List<String>, onInvalidEvents: (String) -> Unit) {
+        if (!areEventsValid(events)) {
             onInvalidEvents(INVALID_EVENTS_MESSAGE)
         }
     }
 
-    internal fun validateBlockchain(blockchain: EngineDO.Blockchain, onInvalidBlockchain: (String) -> Unit) {
+    internal fun validateCAIP2(chains: List<String>, onInvalidChains: (String) -> Unit) {
         when {
-            !isBlockchainValid(blockchain) -> onInvalidBlockchain(EMPTY_CHAIN_LIST_MESSAGE)
-            blockchain.chains.any { chainId -> !isChainIdValid(chainId) } -> onInvalidBlockchain(WRONG_CHAIN_ID_FORMAT_MESSAGE)
+            !isBlockchainValid(chains) -> onInvalidChains(EMPTY_CHAIN_LIST_MESSAGE)
+            chains.any { chainId -> !isChainIdValid(chainId) } -> onInvalidChains(WRONG_CHAIN_ID_FORMAT_MESSAGE)
         }
     }
 
-    internal fun validateIfChainIdsIncludedInPermission(accounts: List<String>, chains: List<String>, onInvalidAccounts: (String) -> Unit) {
-        if (!areChainIdsIncludedInPermissions(accounts, chains)) {
+    internal fun validateIfAccountsAreOnValidNetwork(accounts: List<String>, chains: List<String>, onInvalidAccounts: (String) -> Unit) {
+        if (!areAccountsOnValidNetworks(accounts, chains)) {
             onInvalidAccounts(UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
     }
 
-    internal fun validateCAIP10(accounts: List<String>, onInvalidAccounts: (String) -> Unit) {
+    internal fun validateCAIP10(chains: List<String>, onInvalidAccounts: (String) -> Unit) {
         when {
-            !areAccountsNotEmpty(accounts) -> onInvalidAccounts(EMPTY_ACCOUNT_LIST_MESSAGE)
-            accounts.any { accountId -> !isAccountIdValid(accountId) } -> onInvalidAccounts(WRONG_ACCOUNT_ID_FORMAT_MESSAGE)
+            !areAccountsNotEmpty(chains) -> onInvalidAccounts(EMPTY_ACCOUNT_LIST_MESSAGE)
+            chains.any { accountId -> !isAccountIdValid(accountId) } -> onInvalidAccounts(WRONG_ACCOUNT_ID_FORMAT_MESSAGE)
         }
     }
+
+    internal fun isBlockchainValid(chains: List<String>): Boolean =
+        chains.isNotEmpty() && chains.any { chain -> chain.isNotEmpty() }
 
     internal fun validateEvent(event: EngineDO.Event, onInvalidEvent: (String) -> Unit) {
         if (event.data.isEmpty() || event.name.isEmpty() || event.chainId != null && event.chainId.isEmpty()) {
@@ -51,7 +54,7 @@ internal object Validator {
     }
 
     internal fun validateEventAuthorization(session: SessionVO, eventName: String, onUnauthorizedEvent: (String) -> Unit) {
-        if (!session.isSelfController && session.events?.contains(eventName) == false) {
+        if (!session.isSelfController && !session.events.contains(eventName)) {
             onUnauthorizedEvent(UNAUTHORIZED_EVENT_TYPE_MESSAGE)
         }
     }
@@ -113,14 +116,11 @@ internal object Validator {
         )
     }
 
-    internal fun isJsonRpcValid(jsonRpc: EngineDO.SessionPermissions.JsonRpc): Boolean =
-        jsonRpc.methods.isNotEmpty() && jsonRpc.methods.all { method -> method.isNotEmpty() }
+    internal fun areMethodsValid(methods: List<String>): Boolean =
+        methods.isNotEmpty() && methods.all { method -> method.isNotEmpty() }
 
-    internal fun isBlockchainValid(blockchain: EngineDO.Blockchain): Boolean =
-        blockchain.chains.isNotEmpty() && blockchain.chains.any { chain -> chain.isNotEmpty() }
-
-    internal fun areEventsValid(events: EngineDO.SessionPermissions.Events): Boolean =
-        events.names.isNotEmpty() && events.names.any { type -> type.isNotEmpty() }
+    internal fun areEventsValid(events: List<String>): Boolean =
+        events.isNotEmpty() && events.any { type -> type.isNotEmpty() }
 
     internal fun isChainIdValid(chainId: String): Boolean {
         val elements: List<String> = chainId.split(":")
@@ -142,7 +142,7 @@ internal object Validator {
                 ACCOUNT_ADDRESS_REGEX.toRegex().matches(accountAddress)
     }
 
-    internal fun areChainIdsIncludedInPermissions(accountIds: List<String>, chains: List<String>): Boolean {
+    internal fun areAccountsOnValidNetworks(accountIds: List<String>, chains: List<String>): Boolean {
         if (!areAccountsNotEmpty(accountIds) || chains.isEmpty()) return false
         accountIds.forEach { accountId ->
             val elements = accountId.split(":")
@@ -159,20 +159,6 @@ internal object Validator {
         val reference = elements[1]
         val accountAddress = elements[2]
         return Triple(namespace, reference, accountAddress)
-    }
-
-    fun getChainIds(accountIds: List<String>): List<String> {
-        val chains = mutableListOf<String>()
-        accountIds.forEach { accountId ->
-            chains.add(getChainId(accountId))
-        }
-        return chains
-    }
-
-    private fun getChainId(accountId: String): String {
-        val elements = accountId.split(":")
-        val (namespace, reference, _) = splitAccountId(elements)
-        return "$namespace:$reference"
     }
 
     private const val NAMESPACE_REGEX: String = "^[-a-z0-9]{3,8}$"
