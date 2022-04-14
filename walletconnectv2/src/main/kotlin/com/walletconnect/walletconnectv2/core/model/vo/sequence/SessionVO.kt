@@ -82,17 +82,7 @@ internal data class SessionVO(
         }
 
         fun getChainIds(accountIds: List<String>): List<String> {
-            val chains = mutableListOf<String>()
-            accountIds.forEach { accountId ->
-                chains.add(getChainId(accountId))
-            }
-            return chains
-        }
-
-        private fun getChainId(accountId: String): String {
-            val elements = accountId.split(":")
-            val (namespace, reference) = Pair(elements[0], elements[1])
-            return "$namespace:$reference"
+            return accountIds.map { accountId -> accountId.split(":").take(2).joinToString(":") }
         }
     }
 }

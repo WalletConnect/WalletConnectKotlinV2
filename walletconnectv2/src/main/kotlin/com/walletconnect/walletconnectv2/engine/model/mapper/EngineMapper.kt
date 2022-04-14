@@ -84,14 +84,14 @@ internal fun SessionVO.toEngineDOApprovedSessionVO(topic: TopicVO): EngineDO.Ses
 internal fun SessionVO.toEngineDOApprovedSessionVO(): EngineDO.Session =
     EngineDO.Session(
         topic, expiry, accounts, methods, events,
-        selfMetaData!!.toEngineDOAppMetaData()
+        selfMetaData?.toEngineDOAppMetaData()
     )
 
 @JvmSynthetic
 internal fun SessionVO.toEngineDOSessionUpdateExpiry(expiryVO: ExpiryVO): EngineDO.SessionUpdateExpiry =
     EngineDO.SessionUpdateExpiry(
         topic, expiryVO, accounts, methods, events,
-        selfMetaData!!.toEngineDOAppMetaData()
+        selfMetaData?.toEngineDOAppMetaData()
     )
 
 @JvmSynthetic
@@ -106,7 +106,7 @@ internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.PairingSettle =
 internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
     EngineDO.SessionApproved(
         topic.value,
-        peerMetaData!!.toEngineDOMetaData(),
+        peerMetaData?.toEngineDOMetaData(),
         accounts, methods, events,
     )
 

@@ -101,7 +101,7 @@ internal sealed class EngineDO {
 
     internal data class SessionApproved(
         val topic: String,
-        val peerAppMetaData: AppMetaData,
+        val peerAppMetaData: AppMetaData?,
         val accounts: List<String>,
         val methods: List<String>,
         val events: List<String>,
@@ -118,7 +118,7 @@ internal sealed class EngineDO {
         val accounts: List<String>,
         val methods: List<String>,
         val events: List<String>,
-        val peerAppMetaData: AppMetaData,
+        val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, SequenceLifecycle
 
     internal data class Session(
@@ -127,7 +127,7 @@ internal sealed class EngineDO {
         val accounts: List<String>,
         val methods: List<String>,
         val events: List<String>,
-        val peerAppMetaData: AppMetaData,
+        val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, SequenceLifecycle
 
     internal data class Event(
@@ -136,7 +136,6 @@ internal sealed class EngineDO {
         val chainId: String?,
     ) : EngineDO()
 
-    //    internal data class Blockchain(val chains: List<String>) : EngineDO()
     internal data class AppMetaData(
         val name: String,
         val description: String,
