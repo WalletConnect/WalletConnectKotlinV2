@@ -83,7 +83,7 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {}
@@ -131,7 +131,7 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {}
@@ -195,7 +195,7 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {
@@ -253,7 +253,7 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {
@@ -310,7 +310,7 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {}
@@ -374,7 +374,7 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {}
@@ -437,7 +437,7 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {}
@@ -492,7 +492,7 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {}

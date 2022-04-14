@@ -185,6 +185,7 @@ internal class EngineInteractor(
 
         val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, accounts, methods, events)
         val sessionSettle = SessionSettlementVO.SessionSettle(id = generateId(), params = params)
+
         relayer.publishJsonRpcRequests(sessionTopic, sessionSettle, onFailure = { error -> onFailure(error) })
     }
 
