@@ -105,7 +105,7 @@ object WalletConnect {
             val accounts: List<String>,
             val methods: List<String>,
             val events: List<String>,
-            val metaData: AppMetaData,
+            val metaData: AppMetaData?,
         ) : Model()
 
         data class SessionEvent(
