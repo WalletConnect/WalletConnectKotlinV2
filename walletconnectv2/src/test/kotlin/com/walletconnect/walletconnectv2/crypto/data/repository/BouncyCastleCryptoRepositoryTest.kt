@@ -7,7 +7,6 @@ import com.walletconnect.walletconnectv2.crypto.KeyStore
 import com.walletconnect.walletconnectv2.crypto.managers.KeyChainMock
 import com.walletconnect.walletconnectv2.util.Empty
 import io.mockk.spyk
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -17,18 +16,11 @@ internal class BouncyCastleCryptoRepositoryTest {
     private val privateKey = PrivateKey("36bf507903537de91f5e573666eaa69b1fa313974f23b2b59645f20fea505854")
     private val keyChain: KeyStore = KeyChainMock()
     private val sut = spyk(BouncyCastleCryptoRepository(keyChain), recordPrivateCalls = true)
-
-    @BeforeEach
-    fun setUp() {
-        sut.setKeyPair(publicKey, privateKey)
-    }
+    private val topicVO = TopicVO("topic")
 
     @Test
     fun `Verify that the generated public key has valid length`() {
         val publicKey = sut.generateKeyPair()
-
-        val test = "7d819cb5192e0f18aa4394b72d24d2a02df773a0eb56a990e9adcdb16db39e7b"
-        assert(test.length == 64)
         assert(publicKey.keyAsHex.length == 64)
     }
 
@@ -36,7 +28,7 @@ internal class BouncyCastleCryptoRepositoryTest {
     fun `Generate shared key test`() {
         val result = sut.getSharedKey(
             PrivateKey("1fb63fca5c6ac731246f2f069d3bc2454345d5208254aa8ea7bffc6d110c8862"),
-            PublicKey("590c2c627be7af08597091ff80dd41f7fa28acd10ef7191d7e830e116d3a186a")
+            publicKey
         )
 
         assert(result.length == 64)
@@ -45,22 +37,19 @@ internal class BouncyCastleCryptoRepositoryTest {
 
     @Test
     fun `Generate symmetric key test`() {
-        val topic = TopicVO("topic")
-        val symKey = sut.generateSymmetricKey(topic)
+        val symKey = sut.generateSymmetricKey(topicVO)
         assert(symKey.keyAsHex.length == 64)
 
-        val secretKey = sut.getSymmetricKey(topic)
-
+        val secretKey = sut.getSymmetricKey(topicVO)
         assertEquals(symKey.keyAsHex, secretKey.keyAsHex)
         assert(secretKey.keyAsHex.length == 64)
     }
 
     @Test
     fun `Generate a shared key and return a Topic object`() {
+        sut.setKeyPair(publicKey, privateKey)
         val peerKey = PublicKey("ff7a7d5767c362b0a17ad92299ebdb7831dcbd9a56959c01368c7404543b3342")
-
-        val (sharedKey, topic) =
-            sut.generateTopicAndSharedKey(PublicKey("590c2c627be7af08597091ff80dd41f7fa28acd10ef7191d7e830e116d3a186a"), peerKey)
+        val (sharedKey, topic) = sut.generateTopicAndSharedKey(publicKey, peerKey)
 
         assert(topic.value.isNotBlank())
         assert(topic.value.length == 64)
@@ -72,17 +61,16 @@ internal class BouncyCastleCryptoRepositoryTest {
 
     @Test
     fun `SetKeyPair sets the concatenated keys to storage`() {
-        val publicKeyString = "590c2c627be7af08597091ff80dd41f7fa28acd10ef7191d7e830e116d3a186a"
-        val privateKeyString = "36bf507903537de91f5e573666eaa69b1fa313974f23b2b59645f20fea505854"
         sut.setKeyPair(publicKey, privateKey)
 
         assertNotNull(sut.getKeyPair(publicKey))
-        assertEquals(publicKeyString, keyChain.getKeys(publicKeyString).first)
-        assertEquals(privateKeyString, keyChain.getKeys(publicKeyString).second)
+        assertEquals(publicKey.keyAsHex, keyChain.getKeys(publicKey.keyAsHex).first)
+        assertEquals(privateKey.keyAsHex, keyChain.getKeys(publicKey.keyAsHex).second)
     }
 
     @Test
     fun `GetKeyPair gets a pair of PublicKey and PrivateKey when using a PublicKey as the key`() {
+        sut.setKeyPair(publicKey, privateKey)
         val (testPublicKey, testPrivateKey) = sut.getKeyPair(publicKey)
 
         assertEquals(publicKey.keyAsHex, testPublicKey.keyAsHex)
@@ -91,24 +79,20 @@ internal class BouncyCastleCryptoRepositoryTest {
 
     @Test
     fun `ConcatKeys takes two keys and returns a string of the two keys combined`() {
-        val publicKeyString = "590c2c627be7af08597091ff80dd41f7fa28acd10ef7191d7e830e116d3a186a"
-        val privateKeyString = "36bf507903537de91f5e573666eaa69b1fa313974f23b2b59645f20fea505854"
         sut.setKeyPair(publicKey, privateKey)
 
         val (public, private) = sut.getKeyPair(publicKey)
-        assertEquals(publicKeyString, public.keyAsHex)
-        assertEquals(privateKeyString, private.keyAsHex)
+        assertEquals(publicKey.keyAsHex, public.keyAsHex)
+        assertEquals(privateKey.keyAsHex, private.keyAsHex)
     }
 
     @Test
     fun `Stored KeyPair gets removed when using a PublicKey as the tag for removeKeys`() {
-        val publicKeyString = "590c2c627be7af08597091ff80dd41f7fa28acd10ef7191d7e830e116d3a186a"
-        val privateKeyString = "36bf507903537de91f5e573666eaa69b1fa313974f23b2b59645f20fea505854"
         sut.setKeyPair(publicKey, privateKey)
 
         val (public, private) = sut.getKeyPair(publicKey)
-        assertEquals(publicKeyString, public.keyAsHex)
-        assertEquals(privateKeyString, private.keyAsHex)
+        assertEquals(publicKey.keyAsHex, public.keyAsHex)
+        assertEquals(privateKey.keyAsHex, private.keyAsHex)
 
         sut.removeKeys(publicKey.keyAsHex)
 
@@ -119,15 +103,14 @@ internal class BouncyCastleCryptoRepositoryTest {
 
     @Test
     fun `Generated SymmetricKey gets removed when using a TopicVO as the tag for removeKeys`() {
-        val topic = TopicVO("someTopic")
-        val symKey = sut.generateSymmetricKey(topic)
+        val symKey = sut.generateSymmetricKey(topicVO)
 
-        val secretKey = sut.getSecretKey(topic)
+        val secretKey = sut.getSecretKey(topicVO)
         assertEquals(symKey.keyAsHex, secretKey.keyAsHex)
 
-        sut.removeKeys(topic.value)
+        sut.removeKeys(topicVO.value)
 
-        val secretKeyAfterRemoval = sut.getSecretKey(topic)
+        val secretKeyAfterRemoval = sut.getSecretKey(topicVO)
         assertEquals(String.Empty, secretKeyAfterRemoval.keyAsHex)
     }
 }
