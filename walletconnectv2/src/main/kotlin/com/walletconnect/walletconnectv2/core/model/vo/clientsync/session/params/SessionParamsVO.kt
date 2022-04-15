@@ -15,8 +15,8 @@ internal sealed class SessionParamsVO : ClientParams {
     internal data class ApprovalParams(
         @Json(name = "relay")
         val relay: RelayProtocolOptionsVO,
-        @Json(name = "responder")
-        val responder: SessionParticipantVO,
+        @Json(name = "responderPublicKey")
+        val responderPublicKey: String,
     ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)

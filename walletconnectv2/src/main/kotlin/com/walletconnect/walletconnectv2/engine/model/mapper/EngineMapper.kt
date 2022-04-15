@@ -118,12 +118,13 @@ internal fun PairingParamsVO.SessionProposeParams.toSessionSettleParams(
     methods: List<String>,
     events: List<String>,
 ): SessionParamsVO.SessionSettleParams =
-    SessionParamsVO.SessionSettleParams(RelayProtocolOptionsVO(relays.first().protocol, relays.first().data),
-        selfParticipant,
-        accounts,
-        methods,
-        events,
-        sessionExpiry)
+    SessionParamsVO.SessionSettleParams(
+        relay = RelayProtocolOptionsVO(relays.first().protocol, relays.first().data),
+        controller = selfParticipant,
+        accounts = accounts,
+        methods = methods,
+        events = events,
+        expiry = sessionExpiry)
 
 @JvmSynthetic
 internal fun toSessionProposeParams(
@@ -146,11 +147,8 @@ internal fun JsonRpcResponseVO.JsonRpcError.toEngineJsonRpcError(): EngineDO.Jso
     EngineDO.JsonRpcResponse.JsonRpcError(id = id, error = EngineDO.JsonRpcResponse.Error(error.code, error.message))
 
 @JvmSynthetic
-internal fun PairingParamsVO.SessionProposeParams.toSessionApproveParams(
-    selfPublicKey: PublicKey,
-    metaDataVO: MetaDataVO,
-): SessionParamsVO.ApprovalParams =
+internal fun PairingParamsVO.SessionProposeParams.toSessionApproveParams(selfPublicKey: PublicKey): SessionParamsVO.ApprovalParams =
     SessionParamsVO.ApprovalParams(
         relay = RelayProtocolOptionsVO(relays.first().protocol, relays.first().data),
-        responder = SessionParticipantVO(selfPublicKey.keyAsHex, metaDataVO))
+        responderPublicKey = selfPublicKey.keyAsHex)
 
