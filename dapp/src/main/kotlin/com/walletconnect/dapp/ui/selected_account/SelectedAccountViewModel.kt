@@ -20,10 +20,10 @@ class SelectedAccountViewModel : ViewModel() {
     init {
         DappDelegate.wcEventModels.map { walletEvent ->
             when {
-//                walletEvent is WalletConnect.Model.UpgradedSession -> {
-//                    val selectedAccountUI = getSelectedAccount()
-//                    NavigationEvents.UpgradedSelectedAccountUI(selectedAccountUI)
-//                }
+                walletEvent is WalletConnect.Model.UpdatedSessionMethods -> {
+                    val selectedAccountUI = getSelectedAccount()
+                    NavigationEvents.UpgradedSelectedAccountUI(selectedAccountUI)
+                }
                 walletEvent is WalletConnect.Model.SessionPayloadResponse && walletEvent.result is WalletConnect.Model.JsonRpcResponse.JsonRpcResult -> {
                     NavigationEvents.RequestSuccess((walletEvent.result as WalletConnect.Model.JsonRpcResponse.JsonRpcResult).result)
                 }

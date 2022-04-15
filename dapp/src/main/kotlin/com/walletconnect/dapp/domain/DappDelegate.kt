@@ -44,18 +44,14 @@ object DappDelegate : WalletConnectClient.DappDelegate {
     }
 
     override fun onSessionUpdateMethods(updatedSession: WalletConnect.Model.UpdatedSessionMethods) {
-
+        scope.launch {
+            _wcEventModels.emit(updatedSession)
+        }
     }
 
     override fun onSessionUpdateEvents(updatedSession: WalletConnect.Model.UpdatedSessionEvents) {
-
+        // update events
     }
-
-//    override fun onSessionUpgrade(upgradedSession: WalletConnect.Model.UpgradedSession) {
-//        scope.launch {
-//            _wcEventModels.emit(upgradedSession)
-//        }
-//    }
 
     override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {
         deselectAccountDetails()
