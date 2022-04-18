@@ -47,12 +47,12 @@ internal class WalletConnectRelayerTest {
     private val topicVO = TopicVO("mockkTopic")
 
     private val settlementSequence: SettlementSequence<*> = mockk {
-        every { id } returns Long.DefaultId
+        every { id } returns DEFAULT_ID
         every { method } returns String.Empty
     }
 
     private val request: WCRequestVO = mockk {
-        every { id } returns Long.DefaultId
+        every { id } returns DEFAULT_ID
         every { topic } returns topicVO
     }
 
@@ -99,26 +99,20 @@ internal class WalletConnectRelayerTest {
     }
 
     companion object {
-        private fun mockLogger() {
+        private const val DEFAULT_ID = -1L
+
+        @BeforeAll
+        @JvmStatic
+        fun beforeAll() {
             mockkObject(Logger)
             every { Logger.error(any<String>()) } answers {}
             every { Logger.log(any<String>()) } answers {}
         }
 
-        private fun unmockLogger() {
-            unmockkObject(Logger)
-        }
-
-        @BeforeAll
-        @JvmStatic
-        fun beforeAll() {
-            mockLogger()
-        }
-
         @AfterAll
         @JvmStatic
         fun afterAll() {
-            unmockLogger()
+            unmockkObject(Logger)
         }
     }
 
