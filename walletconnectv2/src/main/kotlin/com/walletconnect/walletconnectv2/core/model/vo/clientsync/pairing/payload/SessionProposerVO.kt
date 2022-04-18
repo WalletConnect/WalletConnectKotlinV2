@@ -9,5 +9,5 @@ internal data class SessionProposerVO(
     @Json(name = "publicKey")
     val publicKey: String,
     @Json(name = "metadata")
-    val metadata: MetaDataVO?,
+    val metadata: MetaDataVO,
 )

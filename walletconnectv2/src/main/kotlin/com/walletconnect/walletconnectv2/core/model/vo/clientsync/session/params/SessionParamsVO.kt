@@ -3,12 +3,11 @@ package com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.param
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.ReasonVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionPermissionsVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.BlockchainSettledVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionRequestVO
+import com.walletconnect.walletconnectv2.util.DefaultId
 
 internal sealed class SessionParamsVO : ClientParams {
 
@@ -16,20 +15,22 @@ internal sealed class SessionParamsVO : ClientParams {
     internal data class ApprovalParams(
         @Json(name = "relay")
         val relay: RelayProtocolOptionsVO,
-        @Json(name = "responder")
-        val responder: SessionParticipantVO,
+        @Json(name = "responderPublicKey")
+        val responderPublicKey: String,
     ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)
     internal data class SessionSettleParams(
         @Json(name = "relay")
         val relay: RelayProtocolOptionsVO,
-        @Json(name = "blockchain")
-        val blockchain: BlockchainSettledVO,
-        @Json(name = "permissions")
-        val permission: SessionPermissionsVO,
         @Json(name = "controller")
         val controller: SessionParticipantVO,
+        @Json(name = "accounts")
+        val accounts: List<String>,
+        @Json(name = "methods")
+        val methods: List<String>,
+        @Json(name = "events")
+        val events: List<String>,
         @Json(name = "expiry")
         val expiry: Long,
     ) : SessionParamsVO()
@@ -39,36 +40,43 @@ internal sealed class SessionParamsVO : ClientParams {
         @Json(name = "request")
         val request: SessionRequestVO,
         @Json(name = "chainId")
-        val chainId: String?
+        val chainId: String?,
     ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)
     internal class DeleteParams(
-        @Json(name = "reason")
-        val reason: ReasonVO
-    ) : SessionParamsVO()
-
-    internal class UpdateParams(
-        @Json(name = "blockchain")
-        val blockchain: BlockchainSettledVO
-    ) : SessionParamsVO()
-
-    internal data class UpgradeParams(
-        @Json(name = "permissions")
-        val permissions: SessionPermissionsVO
+        @Json(name = "code")
+        val code: Int = Int.DefaultId,
+        @Json(name = "message")
+        val message: String,
     ) : SessionParamsVO()
 
     @Suppress("CanSealedSubClassBeObject")
     internal class PingParams : SessionParamsVO()
 
-    internal data class NotifyParams(
-        @Json(name = "type")
-        val type: String,
-        @Json(name = "data")
-        val data: Any
+    internal data class EventParams(
+        @Json(name = "event")
+        val event: SessionEventVO,
+        @Json(name = "chainId")
+        val chainId: String?,
     ) : SessionParamsVO()
 
-    internal data class ExtendParams(
+    internal class UpdateEventsParams(
+        @Json(name = "events")
+        val events: List<String>,
+    ) : SessionParamsVO()
+
+    internal class UpdateAccountsParams(
+        @Json(name = "accounts")
+        val accounts: List<String>,
+    ) : SessionParamsVO()
+
+    internal class UpdateMethodsParams(
+        @Json(name = "methods")
+        val methods: List<String>,
+    ) : SessionParamsVO()
+
+    internal data class UpdateExpiryParams(
         @Json(name = "expiry")
         val expiry: Long,
     ) : SessionParamsVO()

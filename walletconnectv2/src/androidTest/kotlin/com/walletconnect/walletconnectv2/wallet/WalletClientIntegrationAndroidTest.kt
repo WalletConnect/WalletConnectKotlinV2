@@ -44,7 +44,7 @@ class WalletConnectClientIntegrationAndroidTest {
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {}
                 override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {}
-                override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
+                override fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent) {}
                 override fun onPairingSettledResponse(response: WalletConnect.Model.SettledPairingResponse) {
                     Logger.log("Pairing settle response: $response")
                 }
@@ -54,7 +54,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 }
 
                 override fun onSessionUpgradeResponse(response: WalletConnect.Model.SessionUpgradeResponse) {}
-                override fun onSessionUpdateResponse(response: WalletConnect.Model.SessionUpdateResponse) {}
+                override fun onSessionUpdateAccountsResponse(response: WalletConnect.Model.SessionUpdateAccountsResponse) {}
             }
 
             WalletConnectClient.setWalletDelegate(delegate)
@@ -83,12 +83,12 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {}
                 override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {}
-                override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
+                override fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent) {}
                 override fun onPairingSettledResponse(response: WalletConnect.Model.SettledPairingResponse) {
                     Logger.log("Pairing settle response: $response")
                 }
@@ -100,7 +100,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 }
 
                 override fun onSessionUpgradeResponse(response: WalletConnect.Model.SessionUpgradeResponse) {}
-                override fun onSessionUpdateResponse(response: WalletConnect.Model.SessionUpdateResponse) {}
+                override fun onSessionUpdateAccountsResponse(response: WalletConnect.Model.SessionUpdateAccountsResponse) {}
             }
 
             WalletConnectClient.setWalletDelegate(listener)
@@ -131,12 +131,12 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {}
                 override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {}
-                override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
+                override fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent) {}
                 override fun onPairingSettledResponse(response: WalletConnect.Model.SettledPairingResponse) {
                     Logger.log("Pairing settle response: $response")
                 }
@@ -147,7 +147,7 @@ class WalletConnectClientIntegrationAndroidTest {
                     if (response is WalletConnect.Model.SettledSessionResponse.Result) {
                         val permissions = WalletConnect.Model.SessionPermissions(
                             blockchain = WalletConnect.Model.Blockchain(chains = listOf("eip155:80001")),
-                            jsonRpc = WalletConnect.Model.JsonRpc(listOf("eth_sign"))
+                            methods = WalletConnect.Model.JsonRpc(listOf("eth_sign"))
                         )
                         val upgradeParams = WalletConnect.Params.Upgrade(response.session.topic, permissions)
 
@@ -163,7 +163,7 @@ class WalletConnectClientIntegrationAndroidTest {
                     }
                 }
 
-                override fun onSessionUpdateResponse(response: WalletConnect.Model.SessionUpdateResponse) {}
+                override fun onSessionUpdateAccountsResponse(response: WalletConnect.Model.SessionUpdateAccountsResponse) {}
 
             }
 
@@ -195,7 +195,7 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {
@@ -212,7 +212,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 }
 
                 override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {}
-                override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
+                override fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent) {}
                 override fun onPairingSettledResponse(response: WalletConnect.Model.SettledPairingResponse) {
                     Logger.log("Pairing settle response: $response")
                 }
@@ -222,7 +222,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 }
 
                 override fun onSessionUpgradeResponse(response: WalletConnect.Model.SessionUpgradeResponse) {}
-                override fun onSessionUpdateResponse(response: WalletConnect.Model.SessionUpdateResponse) {}
+                override fun onSessionUpdateAccountsResponse(response: WalletConnect.Model.SessionUpdateAccountsResponse) {}
             }
 
             WalletConnectClient.setWalletDelegate(listener)
@@ -253,7 +253,7 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {
@@ -270,7 +270,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 }
 
                 override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {}
-                override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
+                override fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent) {}
                 override fun onPairingSettledResponse(response: WalletConnect.Model.SettledPairingResponse) {
                     Logger.log("Pairing settle response: $response")
                 }
@@ -280,7 +280,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 }
 
                 override fun onSessionUpgradeResponse(response: WalletConnect.Model.SessionUpgradeResponse) {}
-                override fun onSessionUpdateResponse(response: WalletConnect.Model.SessionUpdateResponse) {}
+                override fun onSessionUpdateAccountsResponse(response: WalletConnect.Model.SessionUpdateAccountsResponse) {}
             }
 
             WalletConnectClient.setWalletDelegate(listener)
@@ -310,12 +310,12 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {}
                 override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {}
-                override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
+                override fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent) {}
 
                 override fun onPairingSettledResponse(response: WalletConnect.Model.SettledPairingResponse) {
                     Logger.log("Pairing settle response: $response")
@@ -326,18 +326,18 @@ class WalletConnectClientIntegrationAndroidTest {
 
                     if (response is WalletConnect.Model.SettledSessionResponse.Result) {
 
-                        val updateParams = WalletConnect.Params.Update(
+                        val updateParams = WalletConnect.Params.UpdateAccounts(
                             response.session.topic,
                             WalletConnect.Model.SessionState(accounts = listOf("eip155:8001:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716"))
                         )
 
-                        WalletConnectClient.update(updateParams)
+                        WalletConnectClient.updateAccounts(updateParams)
                     }
                 }
 
                 override fun onSessionUpgradeResponse(response: WalletConnect.Model.SessionUpgradeResponse) {}
-                override fun onSessionUpdateResponse(response: WalletConnect.Model.SessionUpdateResponse) {
-                    if (response is WalletConnect.Model.SessionUpdateResponse.Result) {
+                override fun onSessionUpdateAccountsResponse(response: WalletConnect.Model.SessionUpdateAccountsResponse) {
+                    if (response is WalletConnect.Model.SessionUpdateAccountsResponse.Result) {
                         assert(true)
                         activityRule.close()
                     } else {
@@ -374,12 +374,12 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {}
                 override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {}
-                override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
+                override fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent) {}
 
                 override fun onPairingSettledResponse(response: WalletConnect.Model.SettledPairingResponse) {
                     Logger.log("Pairing settle response: $response")
@@ -406,7 +406,7 @@ class WalletConnectClientIntegrationAndroidTest {
                 }
 
                 override fun onSessionUpgradeResponse(response: WalletConnect.Model.SessionUpgradeResponse) {}
-                override fun onSessionUpdateResponse(response: WalletConnect.Model.SessionUpdateResponse) {}
+                override fun onSessionUpdateAccountsResponse(response: WalletConnect.Model.SessionUpdateAccountsResponse) {}
             }
 
             WalletConnectClient.setWalletDelegate(listener)
@@ -437,12 +437,12 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {}
                 override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {}
-                override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
+                override fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent) {}
 
                 override fun onPairingSettledResponse(response: WalletConnect.Model.SettledPairingResponse) {
                     Logger.log("Pairing settle response: $response")
@@ -452,17 +452,17 @@ class WalletConnectClientIntegrationAndroidTest {
                     Logger.log("Session settle response: $response")
 
                     if (response is WalletConnect.Model.SettledSessionResponse.Result) {
-                        val notificationParams = WalletConnect.Params.Notify(
+                        val notificationParams = WalletConnect.Params.Emit(
                             response.session.topic,
-                            WalletConnect.Model.Notification("type", "test")
+                            WalletConnect.Model.SessionEvent("type", "test")
                         )
 
-                        WalletConnectClient.notify(notificationParams)
+                        WalletConnectClient.emit(notificationParams)
                     }
                 }
 
                 override fun onSessionUpgradeResponse(response: WalletConnect.Model.SessionUpgradeResponse) {}
-                override fun onSessionUpdateResponse(response: WalletConnect.Model.SessionUpdateResponse) {}
+                override fun onSessionUpdateAccountsResponse(response: WalletConnect.Model.SessionUpdateAccountsResponse) {}
             }
 
             WalletConnectClient.setWalletDelegate(listener)
@@ -492,12 +492,12 @@ class WalletConnectClientIntegrationAndroidTest {
                     val accounts = sessionProposal.chains.map { chainId -> "$chainId:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62" }
                     val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
 
-                    WalletConnectClient.approve(approveParams)
+                    WalletConnectClient.approveSession(approveParams)
                 }
 
                 override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {}
                 override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {}
-                override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {}
+                override fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent) {}
 
                 override fun onPairingSettledResponse(response: WalletConnect.Model.SettledPairingResponse) {
                     Logger.log("Pairing settle response: $response")
@@ -508,13 +508,13 @@ class WalletConnectClientIntegrationAndroidTest {
 
                     if (response is WalletConnect.Model.SettledSessionResponse.Result) {
 
-                        val extend = WalletConnect.Params.Extend(response.session.topic, 1646901496)
-                        WalletConnectClient.sessionExtend(extend)
+                        val extend = WalletConnect.Params.UpdateExpiry(response.session.topic, 1646901496)
+                        WalletConnectClient.updateExpiry(extend)
                     }
                 }
 
                 override fun onSessionUpgradeResponse(response: WalletConnect.Model.SessionUpgradeResponse) {}
-                override fun onSessionUpdateResponse(response: WalletConnect.Model.SessionUpdateResponse) {}
+                override fun onSessionUpdateAccountsResponse(response: WalletConnect.Model.SessionUpdateAccountsResponse) {}
             }
 
             WalletConnectClient.setWalletDelegate(listener)

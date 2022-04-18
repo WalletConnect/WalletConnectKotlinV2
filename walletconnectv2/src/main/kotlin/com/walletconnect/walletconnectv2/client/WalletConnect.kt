@@ -29,7 +29,7 @@ object WalletConnect {
             val icons: List<URI>,
             val chains: List<String>,
             val methods: List<String>,
-            val types: List<String>? = null,
+            val events: List<String>,
             val proposerPublicKey: String,
             val accounts: List<String>,
             val relayProtocol: String,
@@ -49,7 +49,6 @@ object WalletConnect {
             ) : Model()
         }
 
-        data class SessionState(val accounts: List<String>) : Model()
         data class SettledPairing(val topic: String, val metaData: AppMetaData?) : Model()
 
         sealed class SettledSessionResponse : Model() {
@@ -57,14 +56,19 @@ object WalletConnect {
             data class Error(val errorMessage: String) : SettledSessionResponse()
         }
 
-        sealed class SessionUpgradeResponse : Model() {
-            data class Result(val topic: String, val permissions: SessionPermissions) : SessionUpgradeResponse()
-            data class Error(val errorMessage: String) : SessionUpgradeResponse()
+        sealed class SessionUpdateAccountsResponse : Model() {
+            data class Result(val topic: String, val accounts: List<String>) : SessionUpdateAccountsResponse()
+            data class Error(val errorMessage: String) : SessionUpdateAccountsResponse()
         }
 
-        sealed class SessionUpdateResponse : Model() {
-            data class Result(val topic: String, val accounts: List<String>) : SessionUpdateResponse()
-            data class Error(val errorMessage: String) : SessionUpdateResponse()
+        sealed class SessionUpdateMethodsResponse : Model() {
+            data class Result(val topic: String, val methods: List<String>) : SessionUpdateMethodsResponse()
+            data class Error(val errorMessage: String) : SessionUpdateMethodsResponse()
+        }
+
+        sealed class SessionUpdateEventsResponse : Model() {
+            data class Result(val topic: String, val events: List<String>) : SessionUpdateEventsResponse()
+            data class Error(val errorMessage: String) : SessionUpdateEventsResponse()
         }
 
         sealed class DeletedSession : Model() {
@@ -77,14 +81,21 @@ object WalletConnect {
             data class Error(val error: Throwable) : Ping()
         }
 
-        data class UpgradedSession(val topic: String, val permissions: SessionPermissions) : Model()
         data class RejectedSession(val topic: String, val reason: String) : Model()
+
         data class Blockchain(val chains: List<String>) : Model()
-        data class UpdatedSession(val topic: String, val accounts: List<String>) : Model()
+
+        data class UpdatedSessionAccounts(val topic: String, val accounts: List<String>) : Model()
+
+        data class UpdatedSessionMethods(val topic: String, val methods: List<String>) : Model()
+
+        data class UpdatedSessionEvents(val topic: String, val events: List<String>) : Model()
+
         data class ApprovedSession(
             val topic: String,
             val metaData: AppMetaData?,
-            val permissions: SessionPermissions,
+            val methods: List<String>,
+            val events: List<String>,
             val accounts: List<String>,
         ) : Model()
 
@@ -92,23 +103,13 @@ object WalletConnect {
             val topic: String,
             val expiry: Long,
             val accounts: List<String>,
+            val methods: List<String>,
+            val events: List<String>,
             val metaData: AppMetaData?,
-            val permissions: SessionPermissions,
         ) : Model()
 
-        data class SessionPermissions(val jsonRpc: JsonRpc, val notification: Notifications? = null) : Model() {
-            data class JsonRpc(val methods: List<String>) : Model()
-            data class Notifications(val types: List<String>) : Model()
-        }
-
-        data class SessionNotification(
-            val topic: String,
-            val type: String,
-            val data: String,
-        ) : Model()
-
-        data class Notification(
-            val type: String,
+        data class SessionEvent(
+            val name: String,
             val data: String,
         ) : Model()
 
@@ -200,16 +201,18 @@ object WalletConnect {
         }
 
         data class Connect(
-            val permissions: Model.SessionPermissions,
-            val blockchain: Model.Blockchain,
+            val chains: List<String>,
+            val methods: List<String>,
+            val events: List<String>,
             val pairingTopic: String? = null,
         ) : Params()
 
         data class Pair(val uri: String) : Params()
 
-        data class Approve(val proposal: Model.SessionProposal, val accounts: List<String>) : Params()
+        data class Approve(val proposerPublicKey: String, val accounts: List<String>, val methods: List<String>, val events: List<String>) :
+            Params()
 
-        data class Reject(val proposal: Model.SessionProposal, val reason: String, val code: Int) : Params()
+        data class Reject(val proposerPublicKey: String, val reason: String, val code: Int) : Params()
 
         data class Disconnect(val sessionTopic: String, val reason: String, val reasonCode: Int) : Params()
 
@@ -217,14 +220,16 @@ object WalletConnect {
 
         data class Request(val sessionTopic: String, val method: String, val params: String, val chainId: String?) : Params()
 
-        data class Update(val sessionTopic: String, val sessionState: Model.SessionState) : Params()
+        data class UpdateAccounts(val sessionTopic: String, val accounts: List<String>) : Params()
 
-        data class Upgrade(val topic: String, val permissions: Model.SessionPermissions) : Params()
+        data class UpdateMethods(val sessionTopic: String, val methods: List<String>) : Params()
+
+        data class UpdateEvents(val sessionTopic: String, val events: List<String>) : Params()
 
         data class Ping(val topic: String) : Params()
 
-        data class Notify(val topic: String, val notification: Model.Notification) : Params()
+        data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String?) : Params()
 
-        data class Extend(val topic: String, val newExpiration: Long) : Params()
+        data class UpdateExpiry(val topic: String, val newExpiration: Long) : Params()
     }
 }

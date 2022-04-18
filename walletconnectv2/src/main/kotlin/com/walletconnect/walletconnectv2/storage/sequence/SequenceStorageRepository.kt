@@ -72,13 +72,11 @@ internal class SequenceStorageRepository(
 
     @JvmSynthetic
     fun insertPairing(pairing: PairingVO) {
-        val selfMetadataId = insertMetaData(pairing.selfMetaData)
 
         with(pairing) {
             pairingDaoQueries.insertPairing(
                 topic.value,
                 expiry.seconds,
-                selfMetadataId,
                 relayProtocol,
                 relayData,
                 uri,
@@ -101,7 +99,6 @@ internal class SequenceStorageRepository(
     @JvmSynthetic
     fun deletePairing(topic: TopicVO) {
         metaDataDaoQueries.deleteSessionSelfMetaDataFromTopic(topic.value)
-        metaDataDaoQueries.deletePairingSelfMetaDataFromTopic(topic.value)
         pairingDaoQueries.deletePairing(topic.value)
     }
 
@@ -113,16 +110,15 @@ internal class SequenceStorageRepository(
         with(session) {
             sessionDaoQueries.insertSession(
                 topic = topic.value,
-                permissions_chains = chains,
                 permissions_methods = methods,
-                permissions_types = types,
+                permissions_events = events,
                 expiry = expiry.seconds,
                 self_metadata_id = selfMetadataId,
                 peer_metadata_id = peerMetadataId,
-                self_participant = selfParticipant.keyAsHex,
+                self_participant = selfPublicKey.keyAsHex,
                 relay_protocol = relayProtocol,
                 controller_key = controllerKey?.keyAsHex,
-                peer_participant = peerParticipant?.keyAsHex,
+                peer_participant = peerPublicKey?.keyAsHex,
                 accounts = accounts,
                 relay_data = relayData,
                 is_acknowledged = isAcknowledged
@@ -146,11 +142,13 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun upgradeSessionWithPermissions(topic: TopicVO, notificationTypes: List<String>?, jsonRpcMethods: List<String>?) {
-        val (listOfTypes, listOfMethods) = sessionDaoQueries.getPermissionsByTopic(topic.value).executeAsOne()
-        val typesUnion = listOfTypes?.union((notificationTypes ?: emptyList()))?.toList()
-        val methodsUnion = listOfMethods.union((jsonRpcMethods ?: emptyList())).toList()
-        sessionDaoQueries.updateSessionWithPermissions(typesUnion, methodsUnion, topic.value)
+    fun updateSessionWithMethods(topic: TopicVO, methods: List<String>) {
+        sessionDaoQueries.updateSessionWithMethods(methods, topic.value)
+    }
+
+    @JvmSynthetic
+    fun updateSessionWithEvents(topic: TopicVO, events: List<String>) {
+        sessionDaoQueries.updateSessionWithEvents(events, topic.value)
     }
 
     @JvmSynthetic
@@ -187,22 +185,12 @@ internal class SequenceStorageRepository(
         relay_protocol: String,
         relay_data: String?,
         uri: String,
-        selfName: String?,
-        selfDesc: String?,
-        selfUrl: String?,
-        selfIcons: List<String>?,
         peerName: String?,
         peerDesc: String?,
         peerUrl: String?,
         peerIcons: List<String>?,
         is_active: Boolean,
     ): PairingVO {
-        val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
-            MetaDataVO(selfName, selfDesc, selfUrl, selfIcons)
-        } else {
-            null
-        }
-
         val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
             MetaDataVO(peerName, peerDesc, peerUrl, peerIcons)
         } else {
@@ -212,7 +200,6 @@ internal class SequenceStorageRepository(
         return PairingVO(
             topic = TopicVO(topic),
             expiry = ExpiryVO(expirySeconds),
-            selfMetaData = selfMetaData,
             peerMetaData = peerMetaData,
             relayProtocol = relay_protocol,
             relayData = relay_data,
@@ -238,9 +225,8 @@ internal class SequenceStorageRepository(
         peerUrl: String?,
         peerIcons: List<String>?,
         accounts: List<String>?,
-        permission_chains: List<String>,
         permissions_methods: List<String>,
-        permissions_types: List<String>?,
+        permissions_events: List<String>,
         is_acknowledged: Boolean,
     ): SessionVO {
 
@@ -258,15 +244,14 @@ internal class SequenceStorageRepository(
 
         return SessionVO(
             topic = TopicVO(topic),
-            chains = permission_chains,
             methods = permissions_methods,
-            types = permissions_types,
+            events = permissions_events,
             accounts = accounts ?: emptyList(),
             expiry = ExpiryVO(expiry),
             selfMetaData = selfMetaData,
             peerMetaData = peerMetaData,
-            selfParticipant = PublicKey(self_participant),
-            peerParticipant = PublicKey(peer_participant ?: String.Empty),
+            selfPublicKey = PublicKey(self_participant),
+            peerPublicKey = PublicKey(peer_participant ?: String.Empty),
             controllerKey = PublicKey(controller_key ?: String.Empty),
             relayProtocol = relay_protocol,
             relayData = relay_data,
