@@ -109,8 +109,7 @@ internal class EngineInteractor(
     ) {
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val sessionProposal = toSessionProposeParams(relay, chains, methods, events, selfPublicKey, metaData)
-        val requestId = generateId()
-        val request = PairingSettlementVO.SessionPropose(id = requestId, params = sessionProposal)
+        val request = PairingSettlementVO.SessionPropose(id = generateId(), params = sessionProposal)
         sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequestVO(pairingTopic, request.id, request.method, sessionProposal)
 
         relayer.publishJsonRpcRequests(pairingTopic, request,
