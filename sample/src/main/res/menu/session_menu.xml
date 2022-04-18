@@ -2,12 +2,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/update"
-        android:title="Update"
+        android:id="@+id/update_accounts"
+        android:title="Update Accounts"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/upgrade"
-        android:title="Upgrade"
+        android:id="@+id/update_methods"
+        android:title="Update Methods"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/ping"

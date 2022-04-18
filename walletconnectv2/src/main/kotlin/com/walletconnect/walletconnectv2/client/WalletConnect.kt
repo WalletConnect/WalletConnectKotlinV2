@@ -209,9 +209,10 @@ object WalletConnect {
 
         data class Pair(val uri: String) : Params()
 
-        data class Approve(val proposal: Model.SessionProposal, val accounts: List<String>) : Params()
+        data class Approve(val proposerPublicKey: String, val accounts: List<String>, val methods: List<String>, val events: List<String>) :
+            Params()
 
-        data class Reject(val proposal: Model.SessionProposal, val reason: String, val code: Int) : Params()
+        data class Reject(val proposerPublicKey: String, val reason: String, val code: Int) : Params()
 
         data class Disconnect(val sessionTopic: String, val reason: String, val reasonCode: Int) : Params()
 

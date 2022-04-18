@@ -30,7 +30,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
 
     fun approve() {
         val accounts = proposal.chains.map { chainId -> "$chainId:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716" }
-        val approve = WalletConnect.Params.Approve(proposal, accounts)
+        val approve = WalletConnect.Params.Approve(proposal.proposerPublicKey, accounts, proposal.methods, proposal.events)
         WalletConnectClient.approveSession(approve) { error -> Log.d("Error", "sending approve error: $error") }
     }
 
@@ -38,7 +38,7 @@ class WalletViewModel : ViewModel(), WalletConnectClient.WalletDelegate {
         //https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-25.md
         val rejectionReason = "User disapproved requested chains"
         val code = 500
-        val reject = WalletConnect.Params.Reject(proposal, rejectionReason, code)
+        val reject = WalletConnect.Params.Reject(proposal.proposerPublicKey, rejectionReason, code)
         WalletConnectClient.rejectSession(reject) { error -> Log.d("Error", "sending reject error: $error") }
     }
 

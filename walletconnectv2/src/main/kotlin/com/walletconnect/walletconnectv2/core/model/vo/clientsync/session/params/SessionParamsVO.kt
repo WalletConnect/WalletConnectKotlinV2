@@ -3,11 +3,11 @@ package com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.param
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.ReasonVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionRequestVO
+import com.walletconnect.walletconnectv2.util.DefaultId
 
 internal sealed class SessionParamsVO : ClientParams {
 
@@ -15,8 +15,8 @@ internal sealed class SessionParamsVO : ClientParams {
     internal data class ApprovalParams(
         @Json(name = "relay")
         val relay: RelayProtocolOptionsVO,
-        @Json(name = "responder")
-        val responder: SessionParticipantVO,
+        @Json(name = "responderPublicKey")
+        val responderPublicKey: String,
     ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)
@@ -45,8 +45,10 @@ internal sealed class SessionParamsVO : ClientParams {
 
     @JsonClass(generateAdapter = true)
     internal class DeleteParams(
-        @Json(name = "reason")
-        val reason: ReasonVO,
+        @Json(name = "code")
+        val code: Int = Int.DefaultId,
+        @Json(name = "message")
+        val message: String,
     ) : SessionParamsVO()
 
     @Suppress("CanSealedSubClassBeObject")

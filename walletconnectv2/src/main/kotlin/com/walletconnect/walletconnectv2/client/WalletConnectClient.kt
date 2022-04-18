@@ -116,7 +116,7 @@ object WalletConnectClient {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.approve(approve.proposal.toEngineSessionProposal(approve.accounts))
+        engineInteractor.approve(approve.proposerPublicKey, approve.accounts, approve.methods, approve.events)
         { error -> onError(WalletConnect.Model.Error(error)) }
     }
 
@@ -126,7 +126,7 @@ object WalletConnectClient {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.reject(reject.proposal.toEngineSessionProposal(), reject.reason, reject.code)
+        engineInteractor.reject(reject.proposerPublicKey, reject.reason, reject.code)
         { error -> onError(WalletConnect.Model.Error(error)) }
     }
 

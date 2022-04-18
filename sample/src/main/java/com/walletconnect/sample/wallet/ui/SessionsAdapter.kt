@@ -53,8 +53,8 @@ class SessionsAdapter(private val listener: SessionActionListener) : RecyclerVie
                     setOnMenuItemClickListener { item ->
                         when (item.itemId) {
                             R.id.disconnect -> listener.onDisconnect(session)
-                            R.id.update -> listener.onUpdate(session)
-                            R.id.upgrade -> listener.onUpgrade(session)
+                            R.id.update_accounts -> listener.onUpdateAccounts(session)
+                            R.id.update_methods -> listener.onUpdateMethods(session)
                             R.id.ping -> listener.onPing(session)
                         }
                         true

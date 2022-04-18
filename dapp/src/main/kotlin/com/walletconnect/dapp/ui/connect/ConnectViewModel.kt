@@ -60,6 +60,7 @@ class ConnectViewModel : ViewModel() {
         val selectedChains: List<ChainSelectionUI> = listOfChainUI.filter { it.isSelected }
         val chains = selectedChains.map { "${it.parentChain}:${it.chainId}" }
         val methods = selectedChains.flatMap { it.methods }.distinct()
+
         val connectParams = WalletConnect.Params.Connect(
             chains = chains,
             methods = methods,

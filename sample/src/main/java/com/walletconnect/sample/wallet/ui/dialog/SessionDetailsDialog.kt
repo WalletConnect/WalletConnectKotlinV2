@@ -36,7 +36,7 @@ class SessionDetailsDialog(
         accounts.text = accountsString
 
         var methodsString = ""
-        session.permissions.methods.methods.forEach {
+        session.methods.forEach {
             methodsString += "$it\n"
         }
         methods.text = methodsString
