@@ -103,12 +103,12 @@ internal class BouncyCastleCryptoRepositoryTest {
     fun `Generated SymmetricKey gets removed when using a TopicVO as the tag for removeKeys`() {
         val symKey = sut.generateSymmetricKey(topicVO)
 
-        val secretKey = sut.getSecretKey(topicVO)
+        val secretKey = sut.getSymmetricKey(topicVO)
         assertEquals(symKey.keyAsHex, secretKey.keyAsHex)
 
         sut.removeKeys(topicVO.value)
 
-        val secretKeyAfterRemoval = sut.getSecretKey(topicVO)
+        val secretKeyAfterRemoval = sut.getSymmetricKey(topicVO)
         assertEquals(String.Empty, secretKeyAfterRemoval.keyAsHex)
     }
 }
