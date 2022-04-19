@@ -12,7 +12,10 @@ import com.walletconnect.sample_common.getPersonalSignBody
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 
 class SelectedAccountViewModel : ViewModel() {
     private val navigationChannel = Channel<SampleDappEvents>(Channel.BUFFERED)
@@ -21,7 +24,7 @@ class SelectedAccountViewModel : ViewModel() {
     init {
         DappDelegate.wcEventModels.map { walletEvent ->
             when {
-                walletEvent is WalletConnect.Model.UpgradedSession -> {
+                walletEvent is WalletConnect.Model.UpdatedSessionMethods -> {
                     val selectedAccountUI = getSelectedAccount()
                     SampleDappEvents.UpgradedSelectedAccountUI(selectedAccountUI)
                 }

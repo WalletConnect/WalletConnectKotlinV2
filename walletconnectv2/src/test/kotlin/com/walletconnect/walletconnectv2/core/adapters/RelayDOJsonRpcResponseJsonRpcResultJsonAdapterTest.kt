@@ -4,7 +4,6 @@ import com.squareup.moshi.Moshi
 import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import org.junit.jupiter.api.Test
@@ -24,8 +23,7 @@ internal class RelayDOJsonRpcResponseJsonRpcResultJsonAdapterTest {
         val adapter = moshi.adapter(RelayDO.JsonRpcResponse.JsonRpcResult::class.java)
         val metadata = MetaDataVO("name", "desc", "url", listOf("icon"))
         val approvalParams =
-            SessionParamsVO.ApprovalParams(relay = RelayProtocolOptionsVO("waku"),
-                responder = SessionParticipantVO(publicKey = "124", metadata = metadata))
+            SessionParamsVO.ApprovalParams(relay = RelayProtocolOptionsVO("waku"), responderPublicKey = "124")
         val jsonResult = RelayDO.JsonRpcResponse.JsonRpcResult(
             id = 1L,
             jsonrpc = "2.0",
@@ -50,8 +48,7 @@ internal class RelayDOJsonRpcResponseJsonRpcResultJsonAdapterTest {
 
         val metadata = MetaDataVO("name", "desc", "url", listOf("icon"))
         val approvalParamsJsonResult = RelayDO.JsonRpcResponse.JsonRpcResult(id = 11L,
-            result = SessionParamsVO.ApprovalParams(relay = RelayProtocolOptionsVO("waku"),
-                responder = SessionParticipantVO(publicKey = "124", metadata = metadata)))
+            result = SessionParamsVO.ApprovalParams(relay = RelayProtocolOptionsVO("waku"), responderPublicKey = "124"))
         val resultString = moshi.adapter(RelayDO.JsonRpcResponse.JsonRpcResult::class.java).toJson(approvalParamsJsonResult)
         val result = adapter.fromJson(resultString)
         result is RelayDO.JsonRpcResponse.JsonRpcResult

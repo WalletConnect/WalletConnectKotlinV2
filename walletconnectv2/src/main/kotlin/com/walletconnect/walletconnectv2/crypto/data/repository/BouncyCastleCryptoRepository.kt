@@ -30,7 +30,7 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
         keyChain.setSecretKey(topic.value, symmetricKey)
     }
 
-    override fun getSecretKey(topic: TopicVO): SecretKey {
+    override fun getSymmetricKey(topic: TopicVO): SecretKey {
         val symmetricKey = keyChain.getSecretKey(topic.value)
 
         return SecretKey(symmetricKey)
@@ -62,6 +62,7 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
         val secretKey = SecretKey(sharedKeyBytes.bytesToHex())
         val topic = TopicVO(sha256(secretKey.keyAsHex))
         keyChain.setSecretKey(topic.value.lowercase(), secretKey)
+        setKeyAgreement(topic, self, peer)
 
         return Pair(secretKey, topic)
     }
@@ -74,9 +75,16 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
         }
     }
 
-    override fun getKeyAgreement(topic: TopicVO): Pair<SecretKey, PublicKey> {
-        val (secretKey, peerPublic) = keyChain.getKeys(topic.value)
-        return Pair(SecretKey(secretKey), PublicKey(peerPublic))
+    override fun getKeyAgreement(topic: TopicVO): Pair<PublicKey, PublicKey> {
+        val tag = "$keyAgreementContext${topic.value}"
+        val (selfPublic, peerPublic) = keyChain.getKeys(tag)
+
+        return Pair(PublicKey(selfPublic), PublicKey(peerPublic))
+    }
+
+    private fun setKeyAgreement(topic: TopicVO, self: PublicKey, peer: PublicKey) {
+        val tag = "$keyAgreementContext${topic.value}"
+        keyChain.setKeys(tag, self, peer)
     }
 
     internal fun setKeyPair(publicKey: PublicKey, privateKey: PrivateKey) {
@@ -85,18 +93,21 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
 
     internal fun getKeyPair(wcKey: WCKey): Pair<PublicKey, PrivateKey> {
         val (publicKeyHex, privateKeyHex) = keyChain.getKeys(wcKey.keyAsHex)
+
         return Pair(PublicKey(publicKeyHex), PrivateKey(privateKeyHex))
     }
 
     private fun createSymmetricKey(): ByteArray {
         val keyGenerator: KeyGenerator = KeyGenerator.getInstance(AES)
         keyGenerator.init(SYM_KEY_SIZE)
+
         return keyGenerator.generateKey().encoded
     }
 
     private fun sha256(key: String): String {
         val messageDigest: MessageDigest = MessageDigest.getInstance(SHA_256)
         val hashedBytes: ByteArray = messageDigest.digest(key.hexToBytes())
+
         return hashedBytes.bytesToHex()
     }
 
@@ -118,5 +129,7 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
         private const val SYM_KEY_SIZE: Int = 256
         private const val SHA_256: String = "SHA-256"
         private const val AES: String = "AES"
+
+        private const val keyAgreementContext = "key_agreement/"
     }
 }

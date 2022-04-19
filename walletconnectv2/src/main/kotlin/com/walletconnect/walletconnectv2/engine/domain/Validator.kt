@@ -12,44 +12,50 @@ import java.net.URISyntaxException
 
 internal object Validator {
 
-    internal fun validatePermissions(
-        jsonRpc: EngineDO.SessionPermissions.JsonRpc,
-        notifications: EngineDO.SessionPermissions.Notifications?,
-        onInvalidPermissions: (String) -> Unit,
-    ) {
-        when {
-            !isJsonRpcValid(jsonRpc) -> onInvalidPermissions(EMPTY_RPC_METHODS_LIST_MESSAGE)
-            notifications != null && !areNotificationTypesValid(notifications) -> onInvalidPermissions(INVALID_NOTIFICATIONS_TYPES_MESSAGE)
+    internal fun validateMethods(methods: List<String>, onInvalidJsonRpc: (String) -> Unit) {
+        if (!areMethodsValid(methods)) {
+            onInvalidJsonRpc(EMPTY_RPC_METHODS_LIST_MESSAGE)
         }
     }
 
-    internal fun validateBlockchain(blockchain: EngineDO.Blockchain, onInvalidBlockchain: (String) -> Unit) {
-        when {
-            !isBlockchainValid(blockchain) -> onInvalidBlockchain(EMPTY_CHAIN_LIST_MESSAGE)
-            blockchain.chains.any { chainId -> !isChainIdValid(chainId) } -> onInvalidBlockchain(WRONG_CHAIN_ID_FORMAT_MESSAGE)
+    internal fun validateEvents(events: List<String>, onInvalidEvents: (String) -> Unit) {
+        if (!areEventsValid(events)) {
+            onInvalidEvents(INVALID_EVENTS_MESSAGE)
         }
     }
 
-    internal fun validateIfChainIdsIncludedInPermission(accounts: List<String>, chains: List<String>, onInvalidAccounts: (String) -> Unit) {
-        if (!areChainIdsIncludedInPermissions(accounts, chains)) {
+    internal fun validateCAIP2(chains: List<String>, onInvalidChains: (String) -> Unit) {
+        when {
+            !isBlockchainValid(chains) -> onInvalidChains(EMPTY_CHAIN_LIST_MESSAGE)
+            chains.any { chainId -> !isChainIdValid(chainId) } -> onInvalidChains(WRONG_CHAIN_ID_FORMAT_MESSAGE)
+        }
+    }
+
+    internal fun validateIfAccountsAreOnValidNetwork(accounts: List<String>, chains: List<String>, onInvalidAccounts: (String) -> Unit) {
+        if (!areAccountsOnValidNetworks(accounts, chains)) {
             onInvalidAccounts(UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
     }
 
-    internal fun validateCAIP10(accounts: List<String>, onInvalidAccounts: (String) -> Unit) {
+    internal fun validateCAIP10(chains: List<String>, onInvalidAccounts: (String) -> Unit) {
         when {
-            !areAccountsNotEmpty(accounts) -> onInvalidAccounts(EMPTY_ACCOUNT_LIST_MESSAGE)
-            accounts.any { accountId -> !isAccountIdValid(accountId) } -> onInvalidAccounts(WRONG_ACCOUNT_ID_FORMAT_MESSAGE)
+            !areAccountsNotEmpty(chains) -> onInvalidAccounts(EMPTY_ACCOUNT_LIST_MESSAGE)
+            chains.any { accountId -> !isAccountIdValid(accountId) } -> onInvalidAccounts(WRONG_ACCOUNT_ID_FORMAT_MESSAGE)
         }
     }
 
-    internal fun validateNotification(notification: EngineDO.Notification, onInvalidNotification: (String) -> Unit) {
-        if (notification.data.isEmpty() || notification.type.isEmpty()) onInvalidNotification(INVALID_NOTIFICATION_MESSAGE)
+    internal fun isBlockchainValid(chains: List<String>): Boolean =
+        chains.isNotEmpty() && chains.any { chain -> chain.isNotEmpty() }
+
+    internal fun validateEvent(event: EngineDO.Event, onInvalidEvent: (String) -> Unit) {
+        if (event.data.isEmpty() || event.name.isEmpty() || event.chainId != null && event.chainId.isEmpty()) {
+            onInvalidEvent(INVALID_EVENT_MESSAGE)
+        }
     }
 
-    internal fun validateNotificationAuthorization(session: SessionVO, type: String, onUnauthorizedNotification: (String) -> Unit) {
-        if (!session.isSelfController && session.types?.contains(type) == false) {
-            onUnauthorizedNotification(UNAUTHORIZED_NOTIFICATION_TYPE_MESSAGE)
+    internal fun validateEventAuthorization(session: SessionVO, eventName: String, onUnauthorizedEvent: (String) -> Unit) {
+        if (!session.isSelfController && !session.events.contains(eventName)) {
+            onUnauthorizedEvent(UNAUTHORIZED_EVENT_TYPE_MESSAGE)
         }
     }
 
@@ -114,14 +120,11 @@ internal object Validator {
         )
     }
 
-    internal fun isJsonRpcValid(jsonRpc: EngineDO.SessionPermissions.JsonRpc): Boolean =
-        jsonRpc.methods.isNotEmpty() && jsonRpc.methods.all { method -> method.isNotEmpty() }
+    internal fun areMethodsValid(methods: List<String>): Boolean =
+        methods.isNotEmpty() && methods.all { method -> method.isNotEmpty() }
 
-    internal fun isBlockchainValid(blockchain: EngineDO.Blockchain) =
-        blockchain.chains.isNotEmpty() && blockchain.chains.any { chain -> chain.isNotEmpty() }
-
-    internal fun areNotificationTypesValid(notification: EngineDO.SessionPermissions.Notifications): Boolean =
-        notification.types.isNotEmpty() && notification.types.any { type -> type.isNotEmpty() }
+    internal fun areEventsValid(events: List<String>): Boolean =
+        events.isNotEmpty() && events.any { type -> type.isNotEmpty() }
 
     internal fun isChainIdValid(chainId: String): Boolean {
         val elements: List<String> = chainId.split(":")
@@ -144,7 +147,7 @@ internal object Validator {
                 ACCOUNT_ADDRESS_REGEX.toRegex().matches(accountAddress)
     }
 
-    internal fun areChainIdsIncludedInPermissions(accountIds: List<String>, chains: List<String>): Boolean {
+    internal fun areAccountsOnValidNetworks(accountIds: List<String>, chains: List<String>): Boolean {
         if (!areAccountsNotEmpty(accountIds) || chains.isEmpty()) return false
         accountIds.forEach { accountId ->
             val elements = accountId.split(":")
@@ -154,6 +157,13 @@ internal object Validator {
             if (!chains.contains(chainId)) return false
         }
         return true
+    }
+
+    private fun splitAccountId(elements: List<String>): Triple<String, String, String> {
+        val namespace = elements[0]
+        val reference = elements[1]
+        val accountAddress = elements[2]
+        return Triple(namespace, reference, accountAddress)
     }
 
     fun getChainIds(accountIds: List<String>): List<String> {

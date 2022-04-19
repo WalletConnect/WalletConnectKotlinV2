@@ -48,7 +48,7 @@ internal class BouncyCastleCryptoManagerTest {
         val symKey = sut.generateSymmetricKey(topic)
         assert(symKey.keyAsHex.length == 64)
 
-        val secretKey = sut.getSecretKey(topic)
+        val secretKey = sut.getSymmetricKey(topic)
 
         assertEquals(symKey.keyAsHex, secretKey.keyAsHex)
         assert(secretKey.keyAsHex.length == 64)

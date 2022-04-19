@@ -20,7 +20,7 @@ class SessionViewModel : ViewModel() {
     init {
         DappDelegate.wcEventModels.map { walletEvent ->
             when (walletEvent) {
-                is WalletConnect.Model.UpdatedSession -> {
+                is WalletConnect.Model.UpdatedSessionAccounts -> {
                     val listOfAccounts = getListOfAccounts(walletEvent.topic)
                     SampleDappEvents.UpdatedListOfAccounts(listOfAccounts)
                 }
