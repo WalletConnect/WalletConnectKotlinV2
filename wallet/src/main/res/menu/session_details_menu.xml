@@ -8,7 +8,7 @@
         app:showAsAction="never|withText" />
 
     <item
-        android:id="@+id/upgrade"
-        android:title="Upgrade"
+        android:id="@+id/updateMethods"
+        android:title="Update Methods"
         app:showAsAction="never|withText" />
 </menu>

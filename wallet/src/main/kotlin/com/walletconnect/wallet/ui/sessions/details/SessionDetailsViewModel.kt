@@ -133,13 +133,13 @@ class SessionDetailsViewModel : ViewModel() {
             }
         }
 
-        // TODO: Once state sync is complete, replace updating UI from VM with event from WalletDelegate
+        // TODO: Once state sync is complete, replace updating UI from VM with event from WalletDelegate - SessionUpdateResponse
 //        viewModelScope.launch {
 //            _uiState.emit(updatedUIState)
 //        }
     }
 
-    fun upgrade() {
+    fun updateMethods() {
         val updatedState = (_uiState.value as? SessionDetailsUI.Content)?.let { sessionDetails ->
             selectedSessionTopic?.let { sessionTopic ->
                 val upgrade = WalletConnect.Params.UpdateMethods(sessionTopic = sessionTopic, methods = listOf("eth_sign"))
@@ -149,7 +149,7 @@ class SessionDetailsViewModel : ViewModel() {
             sessionDetails.copy(methods = "eth_sign")
         }
 
-        // TODO: Once state sync is complete, replace updating UI from VM with event from WalletDelegate
+        // TODO: Once state sync is complete, replace updating UI from VM with event from WalletDelegate - onSessionUpgradeResponse
         viewModelScope.launch {
             _uiState.emit(updatedState)
         }

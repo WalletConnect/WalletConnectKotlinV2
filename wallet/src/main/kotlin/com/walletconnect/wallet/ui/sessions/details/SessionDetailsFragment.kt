@@ -97,8 +97,8 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
                 viewModel.ping()
                 false
             }
-            R.id.upgrade -> {
-                viewModel.upgrade()
+            R.id.updateMethods -> {
+                viewModel.updateMethods()
                 false
             }
             else -> super.onOptionsItemSelected(item)
