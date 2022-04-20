@@ -65,7 +65,7 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         //session extend
     }
 
-    override fun onSessionPayloadResponse(response: WalletConnect.Model.SessionPayloadResponse) {
+    override fun onSessionRequestResponse(response: WalletConnect.Model.SessionRequestResponse) {
         scope.launch {
             _wcEventModels.emit(response)
         }

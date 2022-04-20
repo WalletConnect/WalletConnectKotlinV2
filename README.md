@@ -8,7 +8,7 @@ Kotlin implementation of WalletConnect v2 protocol for Android applications.
 
 
 ## Requirements
-* Android min SDK 23
+* Android min SDK 24
 * Java 11
 
 ## Installation
@@ -44,7 +44,6 @@ val appMetaData = WalletConnect.Model.AppMetaData(
 val init = WalletConnect.Params.Init(
    application = application,
    relayServerUrl = /*websocket server with scheme, authority, and projectId as query parameter*/
-   isController = true / false,
    appMetaData = appMetaData
 )
 
@@ -55,22 +54,17 @@ val init = WalletConnect.Params.Init(
    useTls = /*true or false*/,
    hostName = /*websocket server with scheme and authority*/,
    projectId = /*projectId*/,
-   isController = /*true or false*/, 
-   projectId = "project id", 
    appMetaData = appMetaData
 )
 
 WalletConnectClient.initalize(init)
 ```
 
-The controller client will always be the wallet which is exposing blockchain accounts to a Dapp and therefore is also in charge of signing. To
+The wallet client will always be responsible of exposing accounts(CAPI10) to a Dapp and therefore is also in charge of signing. To
 initialize the WalletConnect client, create a `WalletConnect.Params.Init` object in the Android Application class. The Init object will need the
-application class, the ProjectID, isController flag, and the wallet's AppMetaData. The `WalletConnect.Params.Init` object will then be passed to
+application class, the projectId, and the wallet's AppMetaData. The `WalletConnect.Params.Init` object will then be passed to
 the `WalletConnectClient` initialize function. `WalletConnect.Params.Init` also allows for custom URLs by passing URL string into the `hostName`
 property. Above, there are two example on how to create the initalizing parameters.
-
-Remember to setup the isController flag to declare if your peer should act as controller or non-controller. For reference check out out
-docs: https://docs.walletconnect.com/2.0/protocol/glossary#controller
 
 &nbsp;
 
@@ -81,7 +75,7 @@ docs: https://docs.walletconnect.com/2.0/protocol/glossary#controller
 ```kotlin
 val walletDelegate = object : WalletConnectClient.WalletDelegate {
     override fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal) {
-        // Session Proposal object sent by Dapp after pairing was successful
+        // Session Proposal object sent by Dapp
     }
 
     override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {
@@ -92,9 +86,25 @@ val walletDelegate = object : WalletConnectClient.WalletDelegate {
         // Triggered when the session is deleted by the peer
    }
 
-   override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {
-      // Triggered when the peer emits events as notifications that match the list of types agreed upon session settlement
+   override fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent) {
+        // Triggered when the peer emits events that match the list of events agreed upon session settlement
    }
+
+    override fun onSessionSettleResponse(response: WalletConnect.Model.SettledSessionResponse) {
+         // Triggered when wallet receives the session settlement response from Dapp
+    }
+
+    override fun onSessionUpdateAccountsResponse(response: WalletConnect.Model.SessionUpdateAccountsResponse) {
+         // Triggered when wallet receives the update accounts response from Dapp
+    }
+
+    override fun onSessionUpdateMethodsResponse(response: WalletConnect.Model.SessionUpdateMethodsResponse) {
+         // Triggered when wallet receives the update methods response from Dapp
+    }
+
+    fun onSessionUpdateEventsResponse(response: WalletConnect.Model.SessionUpdateEventsResponse) {
+         // Triggered when wallet receives the update events response from Dapp
+    }
 }
 WalletConnectClient.setWalletDelegate(walletDelegate)
 ```
@@ -107,171 +117,137 @@ the Dapp.
 ### **Pair Clients**
 ```kotlin
 val pair = WalletConnect.Params.Pair("wc:...")
-val pairListener = object: WalletConnect.Listeners.Pairing {
-   override fun onSuccess(settledPairing: WalletConnect.Model.SettledPairing) {
-      // Settled pairing
-   }
-
-   override fun onError(error: Throwable) {
-      // Pairing approval error
-   }
-}
-WalletConnectClient.pair(pair, pairListener)
+WalletConnectClient.pair(pair)
 ```
 
-To pair the wallet with the Dapp, call the WalletConnectClient.pair function which needs a ` WalletConnect.Params.Pair` and ` WalletConnect.Listeners.Pairing`.
-ClientTypes.Params is where the Dapp Uri will be passed.
-WalletConnectClientListeners.Pairing is the callback that will be asynchronously called once there a pairing has been made with the Dapp.
+To pair the wallet with the Dapp, call the WalletConnectClient.pair function which needs a ` WalletConnect.Params.Pair` parameter.
+` WalletConnect.Params.Pair` is where the WC Uri will be passed.
 
 &nbsp;
 
 ### **Session Approval**
 NOTE: addresses provided in `accounts` array should follow [CAPI10](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-10.md) semantics.
 ```kotlin
-val accounts: List<String> = /*list of accounts on chains*/
-val sessionProposal:  WalletConnect.Model.SessionProposal = /*Session Proposal object*/
-val approve: WalletConnect.Params.Approve = WalletConnect.Params.Approve(sessionProposal, accounts)
-val listener:  WalletConnect.Listeners.SessionApprove {
-   override fun onSuccess(settledSession:  WalletConnect.Model.SettledSession) {
-      // Approve session success
-   }
+val proposerPublicKey: String = /*Proposer publicKey from SessionProposal object*/
+val accounts: List<String> = /*List of accounts on chains*/
+val methods: List<String> = /*List of methods that wallet approves*/
+val events: List<String> = /*List of events that wallet approves*/
 
-   override fun onError(error: Throwable) {
-      // Approve session error
-   }
-}
-WalletConnectClient.approve(approveParams, listener)
+val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(proposerPublicKey, accounts, methods, events)
+WalletConnectClient.approveSession(approveParams) { error -> /*optional callback for error while sending session approval*/ }
 ```
 
-To send an approval, pass a Session Proposal object along with the list of accounts to the `WalletConnectClient.approve` function. Listener will asynchronously expose the settled session if the operation is successful.
+To send an approval, pass a proposerPublicKey along with the list of accounts, methods and events to the `WalletConnectClient.approveSession` function.
 
 &nbsp;
 
 ### **Session Rejection**
 ```kotlin
+val proposerPublicKey: String = /*Proposer publicKey from SessionProposal object*/
 val rejectionReason: String = /*The reason for rejecting the Session Proposal*/
-val proposalTopic: String = /*Topic from the Session Proposal*/
-val rejectParams:  WalletConnect.Params.Reject = Reject(rejectionReason, proposalTopic)
-val listener:  WalletConnect.Listeners.SessionReject {
-   override fun onSuccess(rejectedSession:  WalletConnect.Model.RejectedSession) {
-      // Rejection proposal
-   }
+val rejectionCode: String = /*The code for rejecting the Session Proposal*/
+For reference use CAIP-25: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-25.md
 
-   override fun onError(error: Throwable) {
-      //Rejected proposal error
-   }
-}
-WalletConnectClient.reject(rejectParams, listener)
+val rejectParams:  WalletConnect.Params.Reject = Reject(proposerPublicKey, rejectionReason, rejectionCode)
+WalletConnectClient.rejectSession(rejectParams) { error -> /*optional callback for error while sending session rejection*/ }
 ```
-To send a rejection for the Session Proposal, pass a rejection reason and the Session Proposal topic to the `WalletConnectClient.reject` function. Listener will asynchronously expose a `WalletConnect.Model.RejectedSession` object that will mirror the data sent for rejection.
+To send a rejection for the Session Proposal, pass a proposerPublicKey, rejection reason and rejection code to the `WalletConnectClient.rejectSession` function.
 
 &nbsp;
 
 ### **Session Disconnect**
 ```kotlin
-val disconnectionReason: String = /*The reason for disconnecting the Settled Session*/
-val sessionTopic: String = /*Topic from the Settled Session*/
-val disconnectParams = WalletConnect.Params.Disconnect(sessionTopic, disconnectionReason)
-val listener = object : WalletConnect.Listeners.SessionDelete {
-   override fun onSuccess(deletedSession: WalletConnect.Model.DeletedSession) {
-      // DeleteSession object with topic and reason
-   }
+val disconnectionReason: String = /*The reason for disconnecting the Session*/
+val disconnectionCode: String = /*The code for for disconnecting the Session*/
+val sessionTopic: String = /*Topic from the Session*/
+val disconnectParams = WalletConnect.Params.Disconnect(sessionTopic, disconnectionReason, disconnectionCode)
 
-   override fun onError(error: Throwable) {
-      // Session disconnect error
-   }
-}
-
-WalletConnectClient.disconnect(disconnectParams, listener)
+WalletConnectClient.disconnect(disconnectParams)
 ```
-To disconnect from a settle session, pass a disconnection reason and the Settled Session topic to the `WalletConnectClient.disconnect` function. Listener will asynchronously expose a DeleteSession object that will mirror the data sent for rejection.
+To disconnect from a settle session, pass a disconnection reason with code and the Session topic to the `WalletConnectClient.disconnect` function.
 
 &nbsp;
 
 ### **Respond Request**
 ```kotlin
-val sessionRequestTopic: String = /*Topic of Settled Session*/
+val sessionTopic: String = /*Topic of Session*/
 val jsonRpcResponse: WalletConnect.Model.JsonRpcResponse.JsonRpcResult = /*Settled Session Request ID along with request data*/
-val result = WalletConnect.Params.Response(sessionTopic = sessionRequestTopic, jsonRpcResponse = jsonRpcResponse)
-val listener = object : WalletConnect.Listeners.SessionPayload {
-   override fun onError(error: Throwable) {
-      // Error
-   }
-}
+val result = WalletConnect.Params.Response(sessionTopic = sessionTopic, jsonRpcResponse = jsonRpcResponse)
 
-WalletConnectClient.respond(result, listener)
+WalletConnectClient.respond(result) { error -> /*optional callback for error while responding session request*/ }
 ```
-To respond to JSON-RPC methods that were sent from Dapps for a settle session, submit a `WalletConnect.Params.Response` with the settled session's topic and request ID along with the respond data to the `WalletConnectClient.respond` function. Any errors would exposed through the `WalletConnect.Listeners.SessionPayload` listener.
+To respond to JSON-RPC methods that were sent from Dapps for a session, submit a `WalletConnect.Params.Response` with the session's topic and request ID along with the respond data to the `WalletConnectClient.respond` function.
 
 ### **Reject Request**
 ```kotlin
-val sessionRequestTopic: String = /*Topic of Settled Session*/
-val jsonRpcResponseError: WalletConnect.Model.JsonRpcResponse.JsonRpcError = /*Settled Session Request ID along with error code and message*/
-val result = WalletConnect.Params.Response(sessionTopic = sessionRequestTopic, jsonRpcResponse = jsonRpcResponseError)
-val listener = object : WalletConnect.Listeners.SessionPayload {
-   override fun onError(error: Throwable) {
-      // Error
-   }
-}
+val sessionTopic: String = /*Topic of Session*/
+val jsonRpcResponseError: WalletConnect.Model.JsonRpcResponse.JsonRpcError = /*Session Request ID along with error code and message*/
+val result = WalletConnect.Params.Response(sessionTopic = sessionTopic, jsonRpcResponse = jsonRpcResponseError)
 
-WalletConnectClient.respond(result, listener)
+WalletConnectClient.respond(result) { error -> /*optional callback for error while responding session request*/ }
 ```
-To reject a JSON-RPC method that was sent from a Dapps for a settle session, submit a `WalletConnect.Params.Response` with the settled session's topic and request ID along with the rejection data to the `WalletConnectClient.respond` function. Any errors would exposed through the `WalletConnect.Listeners.SessionPayload` listener.
+To reject a JSON-RPC method that was sent from a Dapps for a session, submit a `WalletConnect.Params.Response` with the settled session's topic and request ID along with the rejection data to the `WalletConnectClient.respond` function.
 
 &nbsp;
 
-### **Session Update**
+### **Session Update Accounts**
 ```kotlin
-val sessionTopic: String = /*Topic of Settled Session*/
-val sessionState: WalletConnect.Model.SessionState = /*object with list of accounts to update*/
-val updateParams = WalletConnect.Params.Update(sessionTopic = sessionTopic, sessionState = sessionState)
-val listener = object : WalletConnect.Listeners.SessionUpdate {
-   override fun onSuccess(updatedSession: WalletConnect.Model.UpdatedSession) {
-      // Callback for when Dapps successfully updates settled session
-   }
+val sessionTopic: String = /*Topic of Session*/
+val accounts: List<String> = /*List of accounts to update*/
+val updateParams = WalletConnect.Params.Update(sessionTopic = sessionTopic, accounts = accounts)
 
-   override fun onError(error: Throwable) {
-      // Error
-   }
-}
-
-WalletConnectClient.update(updateParams, listener)
+WalletConnectClient.updateAccounts(updateParams) { error -> /*optional callback for error while sending update accounts request*/ }
 ```
-To update a settled session, create a `WalletConnect.Params.Update` object with the settled session's topic and accounts to update session with to `WalletConnectClient.update`. Listener will echo the accounts updated on the Dapp if action is successful.
+To update a session with accounts, create a `WalletConnect.Params.UpdateAccounts` object with the session's topic and accounts to update session with to `WalletConnectClient.updateAccounts`.
 
 &nbsp;
 
-### **Session Upgrade**
+### **Session Update Methods**
 ```kotlin
-val sessionTopic: String = /*Topic of Settled Session*/
-val permissions: WalletConnect.Model.SessionPermissions = /*list of blockchains and JSON-RPC methods to upgrade with*/
-val upgradeParams = WalletConnect.Params.Upgrade(sessionTopic = sessionTopic, permissions = permissions)
-val listener = object : WalletConnect.Listeners.SessionUpgrade {
-   override fun onSuccess(upgradedSession: WalletConnect.Model.UpgradedSession) {
-      // Callback for when Dapps successfully upgrades settled session
-   }
+val sessionTopic: String = /*Topic of Session*/
+val methods: List<String> = /*List of methods to update*/
+val updateParams = WalletConnect.Params.UpdateMethods(sessionTopic = sessionTopic, methods = methods)
 
-   override fun onError(error: Throwable) {
-      // Error
-   }
-}
-
-WalletConnectClient.upgrade(upgradeParams, listener)
+WalletConnectClient.updateMethods(updateParams) { error -> /*optional callback for error while sending update methods request*/ }
 ```
-To upgrade a settled session, create a `WalletConnect.Params.Upgrade` object with the settled session's topic and blockchains and JSON-RPC methods to upgrade the session with to `WalletConnectClient.upgrade`. Listener will echo the blockchains and JSON-RPC methods upgraded on the Dapp if action is successful.
+To update a session with methods, create a `WalletConnect.Params.UpdateMethods` object with the session's topic and methods to update the session with to `WalletConnectClient.updateMethods`.
+
+&nbsp;
+
+### **Session Update Events**
+```kotlin
+val sessionTopic: String = /*Topic of Session*/
+val events: List<String> = /*List of methods to update*/
+val updateParams = WalletConnect.Params.UpdateEvents(sessionTopic = sessionTopic, events = events)
+
+WalletConnectClient.updateEvents(updateParams) { error -> /*optional callback for error while sending update events request*/ }
+```
+To update a session with events, create a `WalletConnect.Params.UpdateEvents` object with the session's topic and events to update the session with to `WalletConnectClient.updateEvents`.
+
+&nbsp;
+
+### **Session Update Expiry**
+```kotlin
+val sessionTopic: String = /*Topic of Session*/
+val newExpiration: Long = /*New session timestamp expiration in seconds. Must be greater than current session expiration and max 7 days*/
+val updateParams = WalletConnect.Params.UpdateExpiry(sessionTopic = sessionTopic, newExpiration = newExpiration)
+
+WalletConnectClient.updateExpiry(updateParams) { error -> /*optional callback for error while sending update session expiry request*/ }
+```
+To update a session with new expiration, create a `WalletConnect.Params.UpdateExpiry` object with the session's topic and new expiration to update the session with to `WalletConnectClient.updateExpiry`.
 
 &nbsp;
 
 ### **Session Ping**
 ```kotlin
-val sessionTopic: String = /*Topic of Settled Session*/
+val sessionTopic: String = /*Topic of Session*/
 val pingParams = WalletConnect.Params.Ping(sessionTopic)
 val listener = object : WalletConnect.Listeners.SessionPing {
-   override fun onSuccess(topic: String) {
+   override fun onSuccess(pingSuccess: Model.Ping.Success) {
       // Topic being pinged
    }
 
-    override fun onError(error: Throwable) {
+    override fun onError(pingError: Model.Ping.Error) {
         // Error
     }
 }
@@ -279,7 +255,7 @@ val listener = object : WalletConnect.Listeners.SessionPing {
 WalletConnectClient.ping(pingParams, listener)
 ```
 
-To ping a Dapp with a settled session, call `WalletConnectClient.ping` with the `WalletConnect.Params.Ping` with a settle session's topic. If
+To ping a peer with a session, call `WalletConnectClient.ping` with the `WalletConnect.Params.Ping` with a session's topic. If
 ping is successful, topic is echo'd in listener.
 
 &nbsp;
@@ -293,16 +269,36 @@ ping is successful, topic is echo'd in listener.
 
 ```kotlin
 val dappDelegate = object : WalletConnectClient.DappDelegate {
-    override fun onPairingSettled(settledPairing: WalletConnect.Model.SettledPairing) {
-        // Triggered when Dapp receives the pairing approval from wallet
-    }
-
     override fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession) {
         // Triggered when Dapp receives the session approval from wallet
     }
 
     override fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession) {
         // Triggered when Dapp receives the session rejection from wallet
+    }
+
+    override fun onSessionUpdateAccounts(updatedSession: WalletConnect.Model.UpdatedSessionAccounts) {
+        // Triggered when Dapp receives the session update accounts from wallet
+    }
+
+    fun onSessionUpdateMethods(updatedSession: WalletConnect.Model.UpdatedSessionMethods) {
+        // Triggered when Dapp receives the session update methods from wallet
+    }
+
+    fun onSessionUpdateEvents(updatedSession: WalletConnect.Model.UpdatedSessionEvents) {
+           // Triggered when Dapp receives the session update events from wallet
+    }
+
+    fun onUpdateSessionExpiry(session: WalletConnect.Model.Session) {
+           // Triggered when Dapp receives the session update expiry from wallet
+    }
+
+    fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {
+           // Triggered when Dapp receives the session delete from wallet
+    }
+
+    fun onSessionRequestResponse(response: WalletConnect.Model.SessionRequestResponse) {
+           // Triggered when Dapp receives the session request response from wallet
     }
 }
 WalletConnectClient.setWalletDelegate(dappDelegate)
@@ -316,14 +312,18 @@ Wallet.
 ### **Connect**
 
 ```kotlin
-val sessionPermissions: WalletConnect.Model.SessionPermissions = /* List of permissions that wallet will be requested for */
+val chains: List<String> = /*List of chains that wallet will be requested for*/
+val methods: List<String> = /*List of methods that wallet will be requested for*/
+val events: List<String> = /*List of events that wallet will be requested for*/
 val pairingTopic: String? =  /* Optional parameter, use it when the pairing between peers is already established*/
-fun WalletConnectClient.connect(sessionPermissions, pairingTopic): String?
+val connectParams = WalletConnect.Params.Connect(chains, methods, events, pairingTopic)
+
+fun WalletConnectClient.connect(connectParams, {proposedSequence -> /*callback that returns the WalletConnect.Model.ProposedSequence*/}, {error -> /*optional callback for error while sending session proposal*/})
 ```
 
-The `WalletConnectClient.connect` method returns the pairing URI that is shared with wallet out of bound, as qr code or mobile linking. The pairing
-URI is null when there is already an established pairing between peers. To establish a session, pass the existing pairing's topic to the connect
-method. The SDK will send the SessionProposal for the given topic.
+The `WalletConnectClient.connect` asynchronously exposes the pairing URI that is shared with wallet out of bound, as qr code or mobile linking. The WalletConnect.Model.ProposedSequence
+is Session when there is already an established pairing between peers. To establish a session between peers, pass the existing pairing's topic to the connect
+method. The SDK will send the SessionProposal under the hood for the given topic and expect session approval or rejection in onSessionApproved and onSessionRejected in DappDelegate accordingly.
 
 &nbsp;
 
@@ -334,25 +334,27 @@ WalletConnectClient.getListOfSettledSessions()
 ```
 
 To get a list of the most current settled sessions, call `WalletConnectClient.getListOfSettledSessions()` which will return a list of
-type `SettledSession`.
+type `Session`.
 
 &nbsp;
 
-### **Get List of Pending Sessions**
+### **Get List of Settled Pairings**
 
 ```kotlin
-WalletConnectClient.getListOfPendingSession()
+WalletConnectClient.getListOfSettledPairings()
 ```
-To get a list of the most current pending sessions, call `WalletConnectClient.getListOfPendingSession()` which will return a list of type `SessionProposal`.
+
+To get a list of the most current settled pairings, call `WalletConnectClient.getListOfSettledPairings()` which will return a list of
+type `Pairing`.
 
 &nbsp;
 
-### **Get JSON RPC history for a topic**
+### **Get list of pending session requests for a topic**
 
 ```kotlin
-WalletConnectClient.getJsonRpcHistory(topic: String)
+WalletConnectClient.getPendingRequests(topic: String)
 ```
-To get a list of all the JSON RPC events for a topic, call `WalletConnectClient.getJsonRpcHistory()` and pass a topic which will return a `JsonRpcHistory` object containing the requests and the responses for the topic.
+To get a list of pending session requests for a topic, call `WalletConnectClient.getPendingRequests()` and pass a topic which will return a `PendingRequest` object containing requestId, method, chainIs and params for pending request.
 
 &nbsp;
 

@@ -24,10 +24,10 @@ class SelectedAccountViewModel : ViewModel() {
                     val selectedAccountUI = getSelectedAccount()
                     NavigationEvents.UpgradedSelectedAccountUI(selectedAccountUI)
                 }
-                walletEvent is WalletConnect.Model.SessionPayloadResponse && walletEvent.result is WalletConnect.Model.JsonRpcResponse.JsonRpcResult -> {
+                walletEvent is WalletConnect.Model.SessionRequestResponse && walletEvent.result is WalletConnect.Model.JsonRpcResponse.JsonRpcResult -> {
                     NavigationEvents.RequestSuccess((walletEvent.result as WalletConnect.Model.JsonRpcResponse.JsonRpcResult).result)
                 }
-                walletEvent is WalletConnect.Model.SessionPayloadResponse && walletEvent.result is WalletConnect.Model.JsonRpcResponse.JsonRpcError -> {
+                walletEvent is WalletConnect.Model.SessionRequestResponse && walletEvent.result is WalletConnect.Model.JsonRpcResponse.JsonRpcError -> {
                     val errorResult = (walletEvent.result as WalletConnect.Model.JsonRpcResponse.JsonRpcError)
                     NavigationEvents.RequestPeerError("Error Message: ${errorResult.message}\n Error Code: ${errorResult.code}")
                 }

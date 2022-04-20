@@ -15,7 +15,6 @@ class SampleApplication : Application() {
 //            useTls = true,
 //            hostName = WALLET_CONNECT_URL,
 //            projectId = "",     //TODO: register at https://walletconnect.com/register to get a project ID
-//            isController = false,
 //            metadata = WalletConnect.Model.AppMetaData(
 //                name = "Kotlin Dapp",
 //                description = "Dapp description",
@@ -27,7 +26,7 @@ class SampleApplication : Application() {
         // TODO: Move to Wallet example once separate workflow is added
         val initWallet = WalletConnect.Params.Init(
             application = this,
-            relayServerUrl = "wss://$WALLET_CONNECT_URL?projectId=",   //TODO: register at https://walletconnect.com/register to get a project ID
+            relayServerUrl = "wss://$WALLET_CONNECT_URL?projectId=2ee94aca5d98e6c05c38bce02bee952a",   //TODO: register at https://walletconnect.com/register to get a project ID
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Wallet",
                 description = "Wallet description",

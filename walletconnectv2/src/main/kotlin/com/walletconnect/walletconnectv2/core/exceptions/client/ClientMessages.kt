@@ -32,3 +32,4 @@ internal const val INVALID_EVENT_MESSAGE: String = "Event name and data fields c
 internal const val INVALID_SESSION_PROPOSAL_MESSAGE: String = "None of the session proposal fields cannot be empty"
 internal const val MALFORMED_PAIRING_URI_MESSAGE: String = "Pairing URI string is invalid."
 internal const val INVALID_EXTEND_TIME: String = "Extend time is out of range"
+internal const val NO_SESSION_PROPOSAL: String = "No session proposal for proposer publicKey: "

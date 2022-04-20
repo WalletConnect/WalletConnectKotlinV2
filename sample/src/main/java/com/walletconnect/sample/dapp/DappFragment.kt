@@ -43,7 +43,7 @@ class DappFragment : Fragment(R.layout.dapp_fragment), WalletConnectClient.DappD
     override fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession) {
     }
 
-    override fun onSessionPayloadResponse(response: WalletConnect.Model.SessionPayloadResponse) {
+    override fun onSessionRequestResponse(response: WalletConnect.Model.SessionRequestResponse) {
     }
 
     override fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession) {

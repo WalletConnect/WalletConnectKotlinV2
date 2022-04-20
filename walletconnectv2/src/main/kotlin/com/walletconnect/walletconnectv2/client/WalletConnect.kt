@@ -49,7 +49,7 @@ object WalletConnect {
             ) : Model()
         }
 
-        data class SettledPairing(val topic: String, val metaData: AppMetaData?) : Model()
+        data class Pairing(val topic: String, val metaData: AppMetaData?) : Model()
 
         sealed class SettledSessionResponse : Model() {
             data class Result(val session: Session) : SettledSessionResponse()
@@ -113,7 +113,7 @@ object WalletConnect {
             val data: String,
         ) : Model()
 
-        data class SessionPayloadResponse(
+        data class SessionRequestResponse(
             val topic: String,
             val chainId: String?,
             val method: String,
