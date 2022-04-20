@@ -4,7 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.walletconnect.sample_common.EthTestChains
 import com.walletconnect.sample_common.tag
-import com.walletconnect.wallet.domain.*
+import com.walletconnect.wallet.domain.WalletDelegate
+import com.walletconnect.wallet.domain.mapOfAllAccounts
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 

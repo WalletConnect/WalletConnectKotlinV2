@@ -12,10 +12,13 @@ import com.walletconnect.walletconnectv2.network.Relay
 import com.walletconnect.walletconnectv2.network.model.RelayDTO
 import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
-import com.walletconnect.walletconnectv2.util.*
+import com.walletconnect.walletconnectv2.util.Empty
+import com.walletconnect.walletconnectv2.util.Logger
 import io.mockk.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertTrue
