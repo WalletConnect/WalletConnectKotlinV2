@@ -80,7 +80,7 @@
         android:text="Accounts"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
         android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/tvAccounts"
+        app:layout_constraintBottom_toTopOf="@id/rvAccounts"
         app:layout_constraintEnd_toStartOf="@id/glEnd"
         app:layout_constraintStart_toEndOf="@id/glStart"
         app:layout_constraintTop_toBottomOf="@id/tvPeerDescription" />
@@ -97,20 +97,6 @@
         app:layout_constraintStart_toEndOf="@id/glStart"
         app:layout_constraintTop_toBottomOf="@id/tvAccountsTitle"
         tools:listitem="@layout/list_item_selected_account" />
-
-    <TextView
-        android:id="@+id/tvAccounts"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
-        android:visibility="invisible"
-        app:layout_constraintEnd_toStartOf="@id/glEnd"
-        app:layout_constraintStart_toEndOf="@id/glStart"
-        app:layout_constraintTop_toBottomOf="@id/tvAccountsTitle"
-        tools:text="Eth\nPolugon" />
 
     <TextView
         android:id="@+id/tvMethodsTitle"

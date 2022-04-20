@@ -52,10 +52,9 @@ internal fun storageModule(): Module = module {
         Database(
             get(),
             SessionDaoAdapter = SessionDao.Adapter(
-                permissions_chainsAdapter = get(),
+                accountsAdapter = get(),
                 permissions_methodsAdapter = get(),
-                permissions_typesAdapter = get(),
-                accountsAdapter = get()
+                permissions_eventsAdapter = get()
             ),
             MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = get())
         )

@@ -24,6 +24,7 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import com.walletconnect.sample_common.tag
+import com.walletconnect.sample_common.viewBinding
 import com.walletconnect.wallet.ACCOUNTS_ARGUMENT_KEY
 import com.walletconnect.wallet.R
 import com.walletconnect.wallet.databinding.FragmentScannerBinding
@@ -32,7 +33,7 @@ import java.util.concurrent.Executors
 
 @ExperimentalCoroutinesApi
 class ScannerFragment : Fragment(R.layout.fragment_scanner) {
-    private val binding: FragmentScannerBinding by lazy { FragmentScannerBinding.bind(requireView()) }
+    private val binding: FragmentScannerBinding by viewBinding(FragmentScannerBinding::bind)
     private val cameraPermissionCallback: ActivityResultLauncher<String> = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) {
             getProcessCameraProvider()

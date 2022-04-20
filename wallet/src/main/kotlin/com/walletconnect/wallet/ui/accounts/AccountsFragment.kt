@@ -2,7 +2,6 @@ package com.walletconnect.wallet.ui.accounts
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -17,23 +16,21 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
 import com.walletconnect.sample_common.BottomVerticalSpaceItemDecoration
+import com.walletconnect.sample_common.viewBinding
 import com.walletconnect.wallet.ACCOUNTS_ARGUMENT_KEY
 import com.walletconnect.wallet.R
 import com.walletconnect.wallet.databinding.FragmentAccountsBinding
-import com.walletconnect.wallet.databinding.ToolbarItemAccountsBinding
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 class AccountsFragment : Fragment(R.layout.fragment_accounts) {
+    private val binding by viewBinding(FragmentAccountsBinding::bind)
     private val viewModel: AccountsViewModel by navGraphViewModels(R.id.accounts_graph)
-    private var _binding: FragmentAccountsBinding? = null
     private val accountAdapter by lazy { AccountAdapter() }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true)
-
-        val binding = FragmentAccountsBinding.bind(view).also { _binding = it }
 
         requireActivity().intent?.takeIf { intent -> intent.action == Intent.ACTION_VIEW }?.let { intent ->
             viewModel.pair(intent.dataString.toString())
@@ -76,7 +73,7 @@ class AccountsFragment : Fragment(R.layout.fragment_accounts) {
 
         findNavController().currentBackStackEntry?.savedStateHandle?.getLiveData<String>(ACCOUNTS_ARGUMENT_KEY)?.observe(viewLifecycleOwner) { pairingUri ->
             viewModel.pair(pairingUri)
-            findNavController().currentBackStackEntry?.savedStateHandle?.remove<String>(ACCOUNTS_ARGUMENT_KEY).also { Log.e("Talha", it.toString()) }
+            findNavController().currentBackStackEntry?.savedStateHandle?.remove<String>(ACCOUNTS_ARGUMENT_KEY)
         }
     }
 
@@ -88,8 +85,6 @@ class AccountsFragment : Fragment(R.layout.fragment_accounts) {
             it.displayOptions = ActionBar.DISPLAY_SHOW_TITLE
             it.customView = null
         }
-
-        _binding = null
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -108,13 +103,5 @@ class AccountsFragment : Fragment(R.layout.fragment_accounts) {
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
-
-    private fun test(): TextView {
-        return ToolbarItemAccountsBinding.inflate(requireActivity().layoutInflater, _binding?.root, false).root
-    }
-
-    private fun setupAccountSelector() {
-
     }
 }

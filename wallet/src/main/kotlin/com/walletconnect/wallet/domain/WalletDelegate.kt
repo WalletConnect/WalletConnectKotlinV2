@@ -43,9 +43,9 @@ object WalletDelegate : WalletConnectClient.WalletDelegate {
         }
     }
 
-    override fun onSessionNotification(sessionNotification: WalletConnect.Model.SessionNotification) {
+    override fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent) {
         scope.launch {
-            _wcEventModels.emit(sessionNotification)
+            _wcEventModels.emit(sessionEvent)
         }
     }
 
@@ -57,15 +57,21 @@ object WalletDelegate : WalletConnectClient.WalletDelegate {
         }
     }
 
-    override fun onSessionUpgradeResponse(sessionUpgradeResponse: WalletConnect.Model.SessionUpgradeResponse) {
+    override fun onSessionUpdateAccountsResponse(sessionUpdateAccountsResponse: WalletConnect.Model.SessionUpdateAccountsResponse) {
         scope.launch {
-            _wcEventModels.emit(sessionUpgradeResponse)
+            _wcEventModels.emit(sessionUpdateAccountsResponse)
         }
     }
 
-    override fun onSessionUpdateResponse(sessionUpdateResponse: WalletConnect.Model.SessionUpdateResponse) {
+    override fun onSessionUpdateMethodsResponse(sessionUpdateMethodsResponse: WalletConnect.Model.SessionUpdateMethodsResponse) {
         scope.launch {
-            _wcEventModels.emit(sessionUpdateResponse)
+            _wcEventModels.emit(sessionUpdateMethodsResponse)
+        }
+    }
+
+    override fun onSessionUpdateEventsResponse(sessionUpdateEventsResponse: WalletConnect.Model.SessionUpdateEventsResponse) {
+        scope.launch {
+            _wcEventModels.emit(sessionUpdateEventsResponse)
         }
     }
 

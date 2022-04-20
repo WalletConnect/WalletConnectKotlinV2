@@ -9,7 +9,6 @@ sealed class SessionDetailsUI {
         val name: String,
         val url: String,
         val description: String,
-        val accounts: String,
         val listOfChainAccountInfo: List<ChainAccountInfo>,
         val methods: String
     ): SessionDetailsUI() {

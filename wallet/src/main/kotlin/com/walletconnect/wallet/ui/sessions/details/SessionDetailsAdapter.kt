@@ -17,7 +17,8 @@ import com.bumptech.glide.request.transition.Transition
 import com.walletconnect.wallet.databinding.ListItemChainAccountBinding
 import com.walletconnect.wallet.databinding.ListItemSelectedAccountBinding
 
-class ChainAccountInfoAdapter(private val updateOnSelection: (SessionDetailsUI.Content.ChainAccountInfo.Account) -> Unit) : ListAdapter<SessionDetailsUI.Content.ChainAccountInfo, ChainAccountInfoAdapter.ViewHolder>(DIFF_UTIL) {
+class SessionDetailsAdapter(private val updateOnSelection: (SessionDetailsUI.Content.ChainAccountInfo.Account) -> Unit) :
+    ListAdapter<SessionDetailsUI.Content.ChainAccountInfo, SessionDetailsAdapter.ViewHolder>(DIFF_UTIL) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(ListItemChainAccountBinding.inflate(LayoutInflater.from(parent.context), parent, false))

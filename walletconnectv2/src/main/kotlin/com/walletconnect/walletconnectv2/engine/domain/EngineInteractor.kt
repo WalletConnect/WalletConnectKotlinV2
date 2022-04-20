@@ -191,7 +191,7 @@ internal class EngineInteractor(
         sequenceStorageRepository.updateSessionWithAccounts(TopicVO(topic), newAccounts)
 
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateAccounts,
-            onSuccess = { Logger.log("Session update sent successfully") },
+            onSuccess = { Logger.log("Update accounts sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending session update error: $error")
                 onFailure(error)
@@ -221,7 +221,7 @@ internal class EngineInteractor(
         sequenceStorageRepository.updateSessionWithMethods(TopicVO(topic), methods)
 
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateMethods,
-            onSuccess = { Logger.log("Session update sent successfully") },
+            onSuccess = { Logger.log("Update methods sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending session update error: $error")
                 onFailure(error)
@@ -251,7 +251,7 @@ internal class EngineInteractor(
         sequenceStorageRepository.updateSessionWithEvents(TopicVO(topic), events)
 
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateEvents,
-            onSuccess = { Logger.log("Session update sent successfully") },
+            onSuccess = { Logger.log("Update events sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending session update error: $error")
                 onFailure(error)

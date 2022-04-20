@@ -7,32 +7,35 @@ import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.sample_common.EthTestChains
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 class SessionViewModel : ViewModel() {
-    private val navigationChannel = Channel<SampleDappEvents>(Channel.BUFFERED)
-    val navigation = navigationChannel.receiveAsFlow()
+    private val _sessionUI: MutableStateFlow<List<SessionUI>> = MutableStateFlow(getListOfAccounts())
+    val uiState: StateFlow<List<SessionUI>> = _sessionUI.asStateFlow()
+
+    private val _navigationEvents: MutableSharedFlow<SampleDappEvents> = MutableSharedFlow()
+    val navigationEvents: SharedFlow<SampleDappEvents> = _navigationEvents.asSharedFlow()
 
     init {
-        DappDelegate.wcEventModels.map { walletEvent ->
-            when (walletEvent) {
-                is WalletConnect.Model.UpdatedSessionAccounts -> {
-                    val listOfAccounts = getListOfAccounts(walletEvent.topic)
-                    SampleDappEvents.UpdatedListOfAccounts(listOfAccounts)
+        DappDelegate.wcEventModels
+            .filterNotNull()
+            .onEach { walletEvent ->
+                when (walletEvent) {
+                    is WalletConnect.Model.UpdatedSessionAccounts -> {
+                        val listOfAccounts = getListOfAccounts(walletEvent.topic)
+                        _sessionUI.value = listOfAccounts
+                    }
+                    is WalletConnect.Model.DeletedSession -> {
+                        _navigationEvents.emit(SampleDappEvents.Disconnect)
+                    }
+                    else -> Unit
                 }
-                is WalletConnect.Model.DeletedSession -> SampleDappEvents.Disconnect
-                else -> SampleDappEvents.NoAction
-            }
-        }.onEach { navigationEvents ->
-            navigationChannel.trySend(navigationEvents)
-        }.launchIn(viewModelScope)
+            }.launchIn(viewModelScope)
+
     }
 
-    fun getListOfAccounts(topic: String? = null): List<SessionUI> {
+    private fun getListOfAccounts(topic: String? = null): List<SessionUI> {
         return WalletConnectClient.getListOfSettledSessions().filter {
             if (topic != null) {
                 it.topic == topic
@@ -57,11 +60,11 @@ class SessionViewModel : ViewModel() {
 
         WalletConnectClient.ping(pingParams, object : WalletConnect.Listeners.SessionPing {
             override fun onSuccess(pingSuccess: WalletConnect.Model.Ping.Success) {
-                navigationChannel.trySend(SampleDappEvents.PingSuccess(pingSuccess.topic))
+                _navigationEvents.tryEmit(SampleDappEvents.PingSuccess(pingSuccess.topic))
             }
 
             override fun onError(pingError: WalletConnect.Model.Ping.Error) {
-                navigationChannel.trySend(SampleDappEvents.PingError)
+                _navigationEvents.tryEmit(SampleDappEvents.PingError)
             }
         })
     }
@@ -78,6 +81,8 @@ class SessionViewModel : ViewModel() {
             DappDelegate.deselectAccountDetails()
         }
 
-        navigationChannel.trySend(SampleDappEvents.Disconnect)
+        viewModelScope.launch {
+            _navigationEvents.emit(SampleDappEvents.Disconnect)
+        }
     }
 }

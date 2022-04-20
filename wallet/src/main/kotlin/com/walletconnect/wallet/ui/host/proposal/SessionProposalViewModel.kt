@@ -28,9 +28,14 @@ class SessionProposalViewModel : ViewModel() {
                 }.map { (chain: EthTestChains, accountAddress: String) ->
                     "${chain.parentChain}:${chain.chainId}:${accountAddress}"
                 }
-                val approveProposal = WalletConnect.Params.Approve(requireNotNull(WalletDelegate.sessionProposal), accounts)
+                val approveProposal = WalletConnect.Params.Approve(
+                    proposerPublicKey = sessionProposal.proposerPublicKey,
+                    accounts = accounts,
+                    methods = sessionProposal.methods,
+                    events = sessionProposal.events
+                )
 
-                WalletConnectClient.approve(approveProposal) { error ->
+                WalletConnectClient.approveSession(approveProposal) { error ->
                     Log.e(tag(this@SessionProposalViewModel), error.error.stackTraceToString())
                 }
             }
@@ -40,9 +45,13 @@ class SessionProposalViewModel : ViewModel() {
     fun reject() {
         WalletDelegate.sessionProposal?.let { sessionProposal ->
             val rejectionReason = "Reject Session"
-            val reject = WalletConnect.Params.Reject(proposal = sessionProposal, reason = rejectionReason, code = 406)
+            val reject = WalletConnect.Params.Reject(
+                proposerPublicKey = sessionProposal.proposerPublicKey,
+                reason = rejectionReason,
+                code = 406
+            )
 
-            WalletConnectClient.reject(reject) { error ->
+            WalletConnectClient.rejectSession(reject) { error ->
                 Log.d(tag(this@SessionProposalViewModel), "sending reject error: $error")
             }
         }

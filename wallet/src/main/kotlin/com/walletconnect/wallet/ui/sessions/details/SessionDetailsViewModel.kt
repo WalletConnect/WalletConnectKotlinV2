@@ -28,6 +28,9 @@ class SessionDetailsViewModel : ViewModel() {
                     is WalletConnect.Model.SessionRequest -> {
                         _sessionDetails.emit(SampleWalletEvents.SessionRequest)
                     }
+                    is WalletConnect.Model.SessionUpdateAccountsResponse.Result -> {
+
+                    }
                     is WalletConnect.Model.DeletedSession.Success -> {
                         selectedSessionTopic = null
                         _sessionDetails.emit(SampleWalletEvents.Disconnect)
@@ -49,9 +52,8 @@ class SessionDetailsViewModel : ViewModel() {
                 name = selectedSessionPeerData.name,
                 url = selectedSessionPeerData.url,
                 description = selectedSessionPeerData.description,
-                accounts = selectedSession.accounts.joinToString("\n"),
                 listOfChainAccountInfo = listOfChainAccountInfo,
-                methods = selectedSession.permissions.jsonRpc.methods.joinToString("\n")
+                methods = selectedSession.methods.joinToString("\n")
             )
 
             uiState
@@ -101,8 +103,8 @@ class SessionDetailsViewModel : ViewModel() {
         }
     }
 
-    fun update(newUpdatedAccount: SessionDetailsUI.Content.ChainAccountInfo.Account) {
-        val updatedUIState = (_uiState.value as? SessionDetailsUI.Content)?.let { sessionDetails ->
+    fun updateAccounts(newUpdatedAccount: SessionDetailsUI.Content.ChainAccountInfo.Account) {
+        (_uiState.value as? SessionDetailsUI.Content)?.let { sessionDetails ->
             val listOfChainAccountInfo: List<SessionDetailsUI.Content.ChainAccountInfo> = sessionDetails.listOfChainAccountInfo.map { chainAccountInfo ->
                 if (chainAccountInfo.listOfAccounts.any { it.addressTitle == newUpdatedAccount.addressTitle }) {
                     val listOfAccounts: List<SessionDetailsUI.Content.ChainAccountInfo.Account> = chainAccountInfo.listOfAccounts.map { account ->
@@ -125,38 +127,23 @@ class SessionDetailsViewModel : ViewModel() {
                 }
             }
             selectedSessionTopic?.let {
-                val update = WalletConnect.Params.Update(
-                    sessionTopic = it,
-                    sessionState = WalletConnect.Model.SessionState(accounts = listOfSelectedAccounts)
-                )
+                val update = WalletConnect.Params.UpdateAccounts(sessionTopic = it, accounts = listOfSelectedAccounts)
 
-                WalletConnectClient.update(update) { error -> Log.d("Error", "sending update error: $error") }
+                WalletConnectClient.updateAccounts(update) { error -> Log.d("Error", "sending update error: $error") }
             }
-
-            sessionDetails.copy(listOfChainAccountInfo = listOfChainAccountInfo)
         }
 
         // TODO: Once state sync is complete, replace updating UI from VM with event from WalletDelegate
-        viewModelScope.launch {
-            _uiState.emit(updatedUIState)
-        }
+//        viewModelScope.launch {
+//            _uiState.emit(updatedUIState)
+//        }
     }
 
     fun upgrade() {
         val updatedState = (_uiState.value as? SessionDetailsUI.Content)?.let { sessionDetails ->
-            val chains = sessionDetails.listOfChainAccountInfo.flatMap { chainAccountInfo: SessionDetailsUI.Content.ChainAccountInfo ->
-                chainAccountInfo.listOfAccounts.filter { account -> account.isSelected }.map { account ->
-                    "${chainAccountInfo.parentChain}:${chainAccountInfo.chainId}"
-                }
-            }
             selectedSessionTopic?.let { sessionTopic ->
-                val permissions = WalletConnect.Model.SessionPermissions(
-//                    blockchain = WalletConnect.Model.SessionPermissions.Blockchain(chains = chains),
-                    jsonRpc = WalletConnect.Model.SessionPermissions.JsonRpc(listOf("eth_sign"))
-                )
-
-                val upgrade = WalletConnect.Params.Upgrade(topic = sessionTopic, permissions = permissions)
-                WalletConnectClient.upgrade(upgrade) { error -> Log.d("Error", "sending upgrade error: $error") }
+                val upgrade = WalletConnect.Params.UpdateMethods(sessionTopic = sessionTopic, methods = listOf("eth_sign"))
+                WalletConnectClient.updateMethods(upgrade) { error -> Log.d("Error", "sending upgrade error: $error") }
             }
 
             sessionDetails.copy(methods = "eth_sign")
@@ -172,7 +159,7 @@ class SessionDetailsViewModel : ViewModel() {
         mapOfAllAccounts.values
             .flatMap { accountsMap: Map<EthTestChains, String> ->
                 val accountsMapID = mapOfAllAccounts.entries.associate { it.value to it.key }.getValue(accountsMap)
-                accountsMap.toList().map { (a, b) -> Triple(a, b, accountsMapID) }
+                accountsMap.toList().map { (ethChain, accountAddress) -> Triple(ethChain, accountAddress, accountsMapID) }
             }
             .filter { (ethChain: EthTestChains, _, _) ->
                 val listOfParentChainsWChainId = selectedSession.accounts.map {

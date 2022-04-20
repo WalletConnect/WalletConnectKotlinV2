@@ -264,7 +264,7 @@ object WalletConnectClient {
 
         //Responses
         fun onSessionSettleResponse(settleSessionResponse: WalletConnect.Model.SettledSessionResponse)
-        fun onSessionUpdateAccountsResponse(sessionUpgradeAccountsResponse: WalletConnect.Model.SessionUpdateAccountsResponse)
+        fun onSessionUpdateAccountsResponse(sessionUpdateAccountsResponse: WalletConnect.Model.SessionUpdateAccountsResponse)
         fun onSessionUpdateMethodsResponse(sessionUpdateMethodsResponse: WalletConnect.Model.SessionUpdateMethodsResponse)
         fun onSessionUpdateEventsResponse(sessionUpdateEventsResponse: WalletConnect.Model.SessionUpdateEventsResponse)
     }
@@ -272,9 +272,9 @@ object WalletConnectClient {
     interface DappDelegate {
         fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession)
-        fun onSessionUpdateAccounts(updatedSession: WalletConnect.Model.UpdatedSessionAccounts)
-        fun onSessionUpdateMethods(updatedSession: WalletConnect.Model.UpdatedSessionMethods)
-        fun onSessionUpdateEvents(updatedSession: WalletConnect.Model.UpdatedSessionEvents)
+        fun onSessionUpdateAccounts(updatedSessionAccounts: WalletConnect.Model.UpdatedSessionAccounts)
+        fun onSessionUpdateMethods(updatedSessionMethods: WalletConnect.Model.UpdatedSessionMethods)
+        fun onSessionUpdateEvents(updatedSessionEvents: WalletConnect.Model.UpdatedSessionEvents)
         fun onUpdateSessionExpiry(session: WalletConnect.Model.Session)
         fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
 

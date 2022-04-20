@@ -7,6 +7,6 @@
 
     <item
         android:id="@+id/active_session_graph"
-        android:iconTint="@drawable/ic_sessions"
+        android:icon="@drawable/ic_sessions"
         android:title="Session" />
 </menu>

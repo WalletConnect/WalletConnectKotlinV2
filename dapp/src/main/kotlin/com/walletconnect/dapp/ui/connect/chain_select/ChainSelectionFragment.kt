@@ -14,18 +14,17 @@ import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.FragmentChainSelectionBinding
 import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.dapp.ui.connect.ConnectViewModel
+import com.walletconnect.sample_common.viewBinding
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 class ChainSelectionFragment : Fragment(R.layout.fragment_chain_selection) {
+    private val binding by viewBinding(FragmentChainSelectionBinding::bind)
     private val viewModel: ConnectViewModel by navGraphViewModels(R.id.connectGraph)
-    private var _binding: FragmentChainSelectionBinding? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        val binding = FragmentChainSelectionBinding.bind(view).also { _binding = it }
 
         binding.rvChains.adapter = ChainSelectionAdapter(viewModel.listOfChainUI) { position, isChecked ->
             viewModel.updateSelectedChainUI(position, isChecked)
@@ -54,11 +53,5 @@ class ChainSelectionFragment : Fragment(R.layout.fragment_chain_selection) {
                 }
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-
-        _binding = null
     }
 }

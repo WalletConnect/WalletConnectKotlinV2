@@ -15,6 +15,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.bumptech.glide.Glide
 import com.walletconnect.sample_common.BottomVerticalSpaceItemDecoration
+import com.walletconnect.sample_common.viewBinding
 import com.walletconnect.wallet.R
 import com.walletconnect.wallet.SELECTED_SESSION_TOPIC_KEY
 import com.walletconnect.wallet.databinding.FragmentSessionDetailsBinding
@@ -24,15 +25,13 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
-    private var _binding: FragmentSessionDetailsBinding? = null
+    private val binding: FragmentSessionDetailsBinding by viewBinding(FragmentSessionDetailsBinding::bind)
     private val viewModel: SessionDetailsViewModel by viewModels()
-    private val chainAccountsAdapter by lazy { ChainAccountInfoAdapter(viewModel::update) }
+    private val chainAccountsAdapter by lazy { SessionDetailsAdapter(viewModel::updateAccounts) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setHasOptionsMenu(true)
-        val binding = FragmentSessionDetailsBinding.bind(view).also { _binding = it }
 
         arguments.takeIf { it?.isEmpty == false && it.containsKey(SELECTED_SESSION_TOPIC_KEY) }?.let { args ->
             val sessionTopic: String = requireNotNull(args.getString(SELECTED_SESSION_TOPIC_KEY))
@@ -63,7 +62,6 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
                         binding.tvPeerName.text = sessionDetailsUI.name
                         binding.tvPeerUrl.text = sessionDetailsUI.url
                         binding.tvPeerDescription.text = sessionDetailsUI.description
-                        binding.tvAccounts.text = sessionDetailsUI.accounts
                         binding.tvMethods.text = sessionDetailsUI.methods
                         binding.btnDelete.setOnClickListener {
                             viewModel.deleteSession()
@@ -105,11 +103,5 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-
-        _binding = null
     }
 }
