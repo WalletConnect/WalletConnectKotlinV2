@@ -75,11 +75,11 @@ property. Above, there are two example on how to create the initalizing paramete
 ```kotlin
 val walletDelegate = object : WalletConnectClient.WalletDelegate {
     override fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal) {
-        // Session Proposal object sent by Dapp
+        // Triggered when wallet receives the session proposal sent by a Dapp
     }
 
     override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {
-        // JSON-RPC methods wrapped by SessionRequest object sent by Dapp
+        // Triggered when a Dapp sends SessionRequest to sign a transaction or a message
     }
 
     override fun onSessionDelete(deletedSession: DWalletConnect.Model.DeletedSession) {
@@ -157,14 +157,14 @@ To send a rejection for the Session Proposal, pass a proposerPublicKey, rejectio
 
 ### **Session Disconnect**
 ```kotlin
-val disconnectionReason: String = /*The reason for disconnecting the Session*/
-val disconnectionCode: String = /*The code for for disconnecting the Session*/
+val disconnectionReason: String = /*The reason for disconnecting the Session Follow [the link](Follow [the link](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-25.md) for standard codes) for standard reasons*/
+val disconnectionCode: String = /*The code for for disconnecting the Session Follow[the link](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-25.md) for standard codes*/
 val sessionTopic: String = /*Topic from the Session*/
 val disconnectParams = WalletConnect.Params.Disconnect(sessionTopic, disconnectionReason, disconnectionCode)
 
 WalletConnectClient.disconnect(disconnectParams)
 ```
-To disconnect from a settle session, pass a disconnection reason with code and the Session topic to the `WalletConnectClient.disconnect` function.
+To disconnect from a settled session, pass a disconnection reason with code and the Session topic to the `WalletConnectClient.disconnect` function.
 
 &nbsp;
 
