@@ -157,9 +157,10 @@ To send a rejection for the Session Proposal, pass a proposerPublicKey, rejectio
 
 ### **Session Disconnect**
 ```kotlin
-val disconnectionReason: String = /*The reason for disconnecting the Session Follow [the link](Follow [the link](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-25.md) for standard codes) for standard reasons*/
-val disconnectionCode: String = /*The code for for disconnecting the Session Follow[the link](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-25.md) for standard codes*/
+val disconnectionReason: String = /*The reason for disconnecting the Session*/
+val disconnectionCode: String = /*The code for for disconnecting the Session*/
 val sessionTopic: String = /*Topic from the Session*/
+For reference use CAIP-25: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-25.md
 val disconnectParams = WalletConnect.Params.Disconnect(sessionTopic, disconnectionReason, disconnectionCode)
 
 WalletConnectClient.disconnect(disconnectParams)
