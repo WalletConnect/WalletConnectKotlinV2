@@ -32,7 +32,7 @@ class WalletSampleApplication : Application() {
         // Sample of how to use a URI to initialize the WalletConnect SDK
         val initString = WalletConnect.Params.Init(
             application = this,
-            relayServerUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=",   //TODO: register at https://walletconnect.com/register to get a project ID
+            relayServerUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=$projectId",   //TODO: register at https://walletconnect.com/register to get a project ID
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Wallet",
                 description = "Wallet description",
