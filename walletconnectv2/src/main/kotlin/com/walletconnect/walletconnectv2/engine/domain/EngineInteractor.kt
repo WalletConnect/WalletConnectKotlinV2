@@ -139,7 +139,8 @@ internal class EngineInteractor(
     }
 
     internal fun reject(proposerPublicKey: String, reason: String, code: Int, onFailure: (Throwable) -> Unit = {}) {
-        val request = sessionProposalRequest[proposerPublicKey] ?: return
+        val request = sessionProposalRequest[proposerPublicKey]
+            ?: throw WalletConnectException.CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
         relayer.respondWithError(request, PeerError.Error(reason, code), onFailure = { error -> onFailure(error) })
     }
@@ -151,7 +152,8 @@ internal class EngineInteractor(
         events: List<String>,
         onFailure: (Throwable) -> Unit,
     ) {
-        val request = sessionProposalRequest[proposerPublicKey] ?: return
+        val request = sessionProposalRequest[proposerPublicKey]
+            ?: throw WalletConnectException.CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
         val proposal = request.params as PairingParamsVO.SessionProposeParams
 

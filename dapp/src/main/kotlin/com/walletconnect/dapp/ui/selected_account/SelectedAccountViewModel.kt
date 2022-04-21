@@ -47,7 +47,7 @@ class SelectedAccountViewModel : ViewModel() {
                             _uiState.value = updatedState
                         }
                     }
-                    is WalletConnect.Model.SessionPayloadResponse -> {
+                    is WalletConnect.Model.SessionRequestResponse -> {
                         val request = when (walletEvent.result) {
                             is WalletConnect.Model.JsonRpcResponse.JsonRpcResult -> {
                                 val successResult = (walletEvent.result as WalletConnect.Model.JsonRpcResponse.JsonRpcResult)

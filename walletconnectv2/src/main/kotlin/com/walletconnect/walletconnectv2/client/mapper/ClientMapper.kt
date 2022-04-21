@@ -181,8 +181,8 @@ internal fun EngineDO.JsonRpcResponse.JsonRpcError.toClientJsonRpcError(): Walle
     WalletConnect.Model.JsonRpcResponse.JsonRpcError(id, code = error.code, message = error.message)
 
 @JvmSynthetic
-internal fun EngineDO.PairingSettle.toClientSettledPairing(): WalletConnect.Model.SettledPairing =
-    WalletConnect.Model.SettledPairing(topic.value, metaData?.toClientAppMetaData())
+internal fun EngineDO.PairingSettle.toClientSettledPairing(): WalletConnect.Model.Pairing =
+    WalletConnect.Model.Pairing(topic.value, metaData?.toClientAppMetaData())
 
 @JvmSynthetic
 internal fun List<PendingRequestVO>.mapToPendingRequests(): List<WalletConnect.Model.PendingRequest> =
@@ -197,5 +197,5 @@ internal fun List<PendingRequestVO>.mapToPendingRequests(): List<WalletConnect.M
     }
 
 @JvmSynthetic
-internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): WalletConnect.Model.SessionPayloadResponse =
-    WalletConnect.Model.SessionPayloadResponse(topic, chainId, method, result.toClientJsonRpcResponse())
+internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): WalletConnect.Model.SessionRequestResponse =
+    WalletConnect.Model.SessionRequestResponse(topic, chainId, method, result.toClientJsonRpcResponse())

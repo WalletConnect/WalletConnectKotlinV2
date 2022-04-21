@@ -76,7 +76,7 @@ object WalletConnectClient {
                     is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                     is EngineDO.SessionUpdateExpiry -> delegate.onUpdateSessionExpiry(event.toClientSettledSession())
                     //Responses
-                    is EngineDO.SessionPayloadResponse -> delegate.onSessionPayloadResponse(event.toClientSessionPayloadResponse())
+                    is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
                 }
             }
         }
@@ -111,7 +111,7 @@ object WalletConnectClient {
         engineInteractor.pair(pair.uri)
     }
 
-    @Throws(IllegalStateException::class)
+    @Throws(IllegalStateException::class, WalletConnectException::class)
     fun approveSession(approve: WalletConnect.Params.Approve, onError: (WalletConnect.Model.Error) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
@@ -121,7 +121,7 @@ object WalletConnectClient {
         { error -> onError(WalletConnect.Model.Error(error)) }
     }
 
-    @Throws(IllegalStateException::class)
+    @Throws(IllegalStateException::class, WalletConnectException::class)
     fun rejectSession(reject: WalletConnect.Params.Reject, onError: (WalletConnect.Model.Error) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
@@ -234,7 +234,7 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class)
-    fun getListOfSettledPairings(): List<WalletConnect.Model.SettledPairing> {
+    fun getListOfSettledPairings(): List<WalletConnect.Model.Pairing> {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
@@ -280,6 +280,6 @@ object WalletConnectClient {
         fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
 
         //Responses
-        fun onSessionPayloadResponse(response: WalletConnect.Model.SessionPayloadResponse)
+        fun onSessionRequestResponse(response: WalletConnect.Model.SessionRequestResponse)
     }
 }
