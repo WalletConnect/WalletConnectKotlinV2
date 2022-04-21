@@ -88,6 +88,3 @@ lint/tmp/
 
 # Android Profiling
 *.hprof
-
-# Project ID
-/samples_common/src/main/res/values/project_id.xml

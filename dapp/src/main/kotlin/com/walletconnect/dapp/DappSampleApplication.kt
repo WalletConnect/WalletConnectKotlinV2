@@ -1,25 +1,22 @@
 package com.walletconnect.dapp
 
 import android.app.Application
-import com.walletconnect.sample_common.R
+import com.walletconnect.sample_common.PROJECT_ID
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 
-class DappSampleApplication: Application() {
+class DappSampleApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-
-        // This is strictly for sample purposes
-        val projectId = resources.getString(R.string.project_id)
 
         // Sample of how to use parts of a URI to initialize the WalletConnect SDK
 //        val initParts = WalletConnect.Params.Init(
 //            application = this,
 //            useTls = true,
 //            hostName = WALLET_CONNECT_PROD_RELAY_URL,
-//            projectId = projectId,     //TODO: register at https://walletconnect.com/register to get a project ID
+//            projectId = PROJECT_ID,     //TODO: register at https://walletconnect.com/register to get a project ID
 //            metadata = WalletConnect.Model.AppMetaData(
 //                name = "Kotlin Dapp",
 //                description = "Dapp description",
@@ -31,7 +28,7 @@ class DappSampleApplication: Application() {
         // Sample of how to use a URI to initialize the WalletConnect SDK
         val initString = WalletConnect.Params.Init(
             application = this,
-            relayServerUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=$projectId",   //TODO: register at https://walletconnect.com/register to get a project ID
+            relayServerUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=$PROJECT_ID",   //TODO: register at https://walletconnect.com/register to get a project ID
             metadata = WalletConnect.Model.AppMetaData(
                 name = "Kotlin Dapp",
                 description = "Dapp description",
