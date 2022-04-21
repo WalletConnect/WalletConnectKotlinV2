@@ -60,10 +60,11 @@ val init = WalletConnect.Params.Init(
 WalletConnectClient.initalize(init)
 ```
 
-The wallet client will always be responsible of exposing accounts(CAPI10) to a Dapp and therefore is also in charge of signing. To
-initialize the WalletConnect client, create a `WalletConnect.Params.Init` object in the Android Application class. The Init object will need the
-application class, the projectId, and the wallet's AppMetaData. The `WalletConnect.Params.Init` object will then be passed to
-the `WalletConnectClient` initialize function. `WalletConnect.Params.Init` also allows for custom URLs by passing URL string into the `hostName`
+The wallet client will always be responsible for exposing accounts (CAPI10 compatible) to a Dapp and therefore is also in charge of signing.
+To initialize the WalletConnect client, create a `WalletConnect.Params.Init` object in the Android Application class. The Init object will
+need the application class, the Project ID, and the wallet's AppMetaData. The `WalletConnect.Params.Init` object will then be passed to
+the `WalletConnectClient` initialize function. `WalletConnect.Params.Init` also allows for custom URLs by passing URL string into
+the `hostName`
 property. Above, there are two example on how to create the initalizing parameters.
 
 &nbsp;
@@ -137,7 +138,8 @@ val approveParams: WalletConnect.Params.Approve = WalletConnect.Params.Approve(p
 WalletConnectClient.approveSession(approveParams) { error -> /*optional callback for error while sending session approval*/ }
 ```
 
-To send an approval, pass a proposerPublicKey along with the list of accounts, methods and events to the `WalletConnectClient.approveSession` function.
+To send an approval, pass a Proposer's Public Key along with the list of accounts, methods and events to
+the `WalletConnectClient.approveSession` function.
 
 &nbsp;
 
@@ -322,9 +324,11 @@ val connectParams = WalletConnect.Params.Connect(chains, methods, events, pairin
 fun WalletConnectClient.connect(connectParams, {proposedSequence -> /*callback that returns the WalletConnect.Model.ProposedSequence*/}, {error -> /*optional callback for error while sending session proposal*/})
 ```
 
-The `WalletConnectClient.connect` asynchronously exposes the pairing URI that is shared with wallet out of bound, as qr code or mobile linking. The WalletConnect.Model.ProposedSequence
-is Session when there is already an established pairing between peers. To establish a session between peers, pass the existing pairing's topic to the connect
-method. The SDK will send the SessionProposal under the hood for the given topic and expect session approval or rejection in onSessionApproved and onSessionRejected in DappDelegate accordingly.
+The `WalletConnectClient.connect` asynchronously exposes the pairing URI that is shared with wallet out of bound, as qr code or mobile
+linking. The WalletConnect.Model.ProposedSequence returns either a Pairing or Session flag depending on if there is already an established
+pairing between peers. To establish a session between peers, pass the existing pairing's topic to the connect method. The SDK will send the
+SessionProposal under the hood for the given topic and expect session approval or rejection in onSessionApproved and onSessionRejected in
+DappDelegate accordingly.
 
 &nbsp;
 
