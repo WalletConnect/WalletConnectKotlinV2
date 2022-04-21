@@ -86,7 +86,11 @@ internal object Validator {
 
     internal fun validateWCUri(uri: String): EngineDO.WalletConnectUri? {
         if (!uri.startsWith("wc:")) return null
-        val properUriString = if (uri.contains("wc://")) uri else uri.replace("wc:", "wc://")
+        val properUriString = when {
+            uri.contains("wc://") -> uri
+            uri.contains("wc:/") -> uri.replace("wc:/", "wc://")
+            else -> uri.replace("wc:", "wc://")
+        }
 
         val pairUri: URI = try {
             URI(properUriString)
@@ -136,7 +140,8 @@ internal object Validator {
     internal fun isAccountIdValid(accountId: String): Boolean {
         val elements = accountId.split(":")
         if (elements.isEmpty() || elements.size != 3) return false
-        val (namespace, reference, accountAddress) = splitAccountId(elements)
+        val (namespace: String, reference: String, accountAddress: String) = elements
+
         return NAMESPACE_REGEX.toRegex().matches(namespace) &&
                 REFERENCE_REGEX.toRegex().matches(reference) &&
                 ACCOUNT_ADDRESS_REGEX.toRegex().matches(accountAddress)
@@ -147,7 +152,7 @@ internal object Validator {
         accountIds.forEach { accountId ->
             val elements = accountId.split(":")
             if (elements.isEmpty() || elements.size != 3) return false
-            val (namespace, reference, _) = splitAccountId(elements)
+            val (namespace: String, reference: String, _) = elements
             val chainId = "$namespace:$reference"
             if (!chains.contains(chainId)) return false
         }
@@ -159,6 +164,13 @@ internal object Validator {
         val reference = elements[1]
         val accountAddress = elements[2]
         return Triple(namespace, reference, accountAddress)
+    }
+
+    fun getChainIds(accountIds: List<String>): List<String> {
+        return accountIds.map { accountId ->
+            val (namespace: String, reference: String, _) = accountId.split(":")
+            "$namespace:$reference"
+        }
     }
 
     private const val NAMESPACE_REGEX: String = "^[-a-z0-9]{3,8}$"

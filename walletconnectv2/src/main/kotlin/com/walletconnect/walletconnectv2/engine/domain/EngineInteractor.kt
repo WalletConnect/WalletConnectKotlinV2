@@ -191,7 +191,7 @@ internal class EngineInteractor(
         sequenceStorageRepository.updateSessionWithAccounts(TopicVO(topic), newAccounts)
 
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateAccounts,
-            onSuccess = { Logger.log("Session update sent successfully") },
+            onSuccess = { Logger.log("Update accounts sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending session update error: $error")
                 onFailure(error)
@@ -221,7 +221,7 @@ internal class EngineInteractor(
         sequenceStorageRepository.updateSessionWithMethods(TopicVO(topic), methods)
 
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateMethods,
-            onSuccess = { Logger.log("Session update sent successfully") },
+            onSuccess = { Logger.log("Update methods sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending session update error: $error")
                 onFailure(error)
@@ -251,7 +251,7 @@ internal class EngineInteractor(
         sequenceStorageRepository.updateSessionWithEvents(TopicVO(topic), events)
 
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateEvents,
-            onSuccess = { Logger.log("Session update sent successfully") },
+            onSuccess = { Logger.log("Update events sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending session update error: $error")
                 onFailure(error)
@@ -269,8 +269,7 @@ internal class EngineInteractor(
             throw WalletConnectException.UnauthorizedChainIdException(errorMessage)
         }
 
-        val params =
-            SessionParamsVO.SessionRequestParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
+        val params = SessionParamsVO.SessionRequestParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
         val sessionPayload = SessionSettlementVO.SessionRequest(id = generateId(), params = params)
 
         relayer.publishJsonRpcRequests(
@@ -532,7 +531,7 @@ internal class EngineInteractor(
             relayer.respondWithError(request, PeerError.UnauthorizedJsonRpcMethod(method))
             return
         }
-        scope.launch { _sequenceEvent.emit(params.toEngineDOSessionRequest(request)) }
+        scope.launch { _sequenceEvent.emit(params.toEngineDOSessionRequest(request, session.peerMetaData)) }
     }
 
     private fun onSessionEvent(request: WCRequestVO, params: SessionParamsVO.EventParams) {

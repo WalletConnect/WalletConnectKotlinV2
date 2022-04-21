@@ -20,7 +20,7 @@ internal sealed class EngineDO {
         val topic: TopicVO,
         val symKey: SecretKey,
         val relay: RelayProtocolOptionsVO,
-        val version: String = "2",
+        val version: String = "2"
     ) : EngineDO()
 
     internal data class SessionProposal(
@@ -40,6 +40,7 @@ internal sealed class EngineDO {
     internal data class SessionRequest(
         val topic: String,
         val chainId: String?,
+        val peerAppMetaData: AppMetaData?,
         val request: JSONRPCRequest,
     ) : EngineDO(), SequenceLifecycle {
 

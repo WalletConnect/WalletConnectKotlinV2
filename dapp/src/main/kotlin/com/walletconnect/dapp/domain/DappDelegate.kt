@@ -7,16 +7,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 object DappDelegate : WalletConnectClient.DappDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcEventModels: MutableSharedFlow<WalletConnect.Model?> = MutableSharedFlow()
-    val wcEventModels: SharedFlow<WalletConnect.Model?> = _wcEventModels
+    val wcEventModels: SharedFlow<WalletConnect.Model?> = _wcEventModels.asSharedFlow()
 
     var selectedSessionTopic: String? = null
-        private set
-    var selectedAccountDetails: Triple<String, String, String>? = null
         private set
 
     init {
@@ -37,20 +36,28 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         }
     }
 
-    override fun onSessionUpdateAccounts(updatedSession: WalletConnect.Model.UpdatedSessionAccounts) {
+    override fun onSessionUpdateAccounts(updatedSessionAccounts: WalletConnect.Model.UpdatedSessionAccounts) {
         scope.launch {
-            _wcEventModels.emit(updatedSession)
+            _wcEventModels.emit(updatedSessionAccounts)
         }
     }
 
-    override fun onSessionUpdateMethods(updatedSession: WalletConnect.Model.UpdatedSessionMethods) {
+    override fun onSessionUpdateMethods(updatedSessionMethods: WalletConnect.Model.UpdatedSessionMethods) {
         scope.launch {
-            _wcEventModels.emit(updatedSession)
+            _wcEventModels.emit(updatedSessionMethods)
         }
     }
 
-    override fun onSessionUpdateEvents(updatedSession: WalletConnect.Model.UpdatedSessionEvents) {
-        // update events
+    override fun onSessionUpdateEvents(updatedSessionEvents: WalletConnect.Model.UpdatedSessionEvents) {
+        scope.launch {
+            _wcEventModels.emit(updatedSessionEvents)
+        }
+    }
+
+    override fun onUpdateSessionExpiry(session: WalletConnect.Model.Session) {
+        scope.launch {
+            _wcEventModels.emit(session)
+        }
     }
 
     override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {
@@ -61,23 +68,13 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         }
     }
 
-    override fun onUpdateSessionExpiry(session: WalletConnect.Model.Session) {
-        //session extend
-    }
-
     override fun onSessionPayloadResponse(response: WalletConnect.Model.SessionPayloadResponse) {
         scope.launch {
             _wcEventModels.emit(response)
         }
     }
 
-    fun setSelectedAccountDetails(accountDetails: String) {
-        val (parentChain, chainId, account) = accountDetails.split(":")
-        selectedAccountDetails = Triple(parentChain, chainId, account)
-    }
-
     fun deselectAccountDetails() {
-        selectedAccountDetails = null
         selectedSessionTopic = null
     }
 }

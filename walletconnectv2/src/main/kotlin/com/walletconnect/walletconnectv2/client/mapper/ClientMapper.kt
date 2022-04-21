@@ -90,9 +90,16 @@ internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(account
 
 @JvmSynthetic
 internal fun EngineDO.SessionRequest.toClientSessionRequest(): WalletConnect.Model.SessionRequest =
-    WalletConnect.Model.SessionRequest(topic,
-        chainId,
-        WalletConnect.Model.SessionRequest.JSONRPCRequest(request.id, request.method, request.params))
+    WalletConnect.Model.SessionRequest(
+        topic = topic,
+        chainId = chainId,
+        peerMetaData = peerAppMetaData?.toClientAppMetaData(),
+        request = WalletConnect.Model.SessionRequest.JSONRPCRequest(
+            id = request.id,
+            method = request.method,
+            params = request.params
+        )
+    )
 
 @JvmSynthetic
 internal fun WalletConnect.Model.JsonRpcResponse.JsonRpcResult.toRpcResultVO(): JsonRpcResponseVO.JsonRpcResult =
