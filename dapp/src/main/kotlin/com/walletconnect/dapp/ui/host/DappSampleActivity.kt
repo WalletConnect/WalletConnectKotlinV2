@@ -31,9 +31,6 @@ class DappSampleActivity : AppCompatActivity(R.layout.activity_dapp) {
             val disconnectParams = WalletConnect.Params.Disconnect(sessionTopic = it, reason = "shutdown", reasonCode = 400)
             WalletConnectClient.disconnect(disconnectParams)
         }
-
-        // re-init scope
-//        WalletConnectClient.shutdown()
     }
 }
 

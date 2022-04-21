@@ -26,7 +26,7 @@
             android:id="@+id/dialog_pairing_selection"
             android:name="com.walletconnect.dapp.ui.connect.pairing_select.PairingSelectionDialogFragment"
             android:label="Pairing Selection"
-            tools:layout="@layout/fragment_pairing_selection">
+            tools:layout="@layout/dialog_pairing_selection">
             <action
                 android:id="@+id/action_dialog_pairing_selection_to_dialog_pairing_generation"
                 app:destination="@id/dialog_pairing_generation"

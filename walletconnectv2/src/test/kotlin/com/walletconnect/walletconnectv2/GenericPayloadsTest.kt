@@ -1,6 +1,7 @@
 package com.walletconnect.walletconnectv2
 
-import com.squareup.moshi.*
+import com.squareup.moshi.JsonDataException
+import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test

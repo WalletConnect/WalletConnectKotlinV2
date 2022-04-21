@@ -18,6 +18,7 @@ object WalletConnectClient {
     private lateinit var engineInteractor: EngineInteractor
 
     fun initialize(initial: WalletConnect.Params.Init, onError: (WalletConnectException) -> Unit = {}) = with(initial) {
+        // TODO: re-init scope
         // TODO: add logic to check hostName for ws/wss scheme with and without ://
         wcKoinApp.run {
             androidContext(application)
@@ -250,10 +251,11 @@ object WalletConnectClient {
         return engineInteractor.getPendingRequests(TopicVO(topic)).mapToPendingRequests()
     }
 
-    fun shutdown() {
-        scope.cancel()
-        wcKoinApp.close()
-    }
+    // TODO: Uncomment once reinit scope logic is added
+//    fun shutdown() {
+//        scope.cancel()
+//        wcKoinApp.close()
+//    }
 
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal)
@@ -262,18 +264,18 @@ object WalletConnectClient {
         fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent)
 
         //Responses
-        fun onSessionSettleResponse(response: WalletConnect.Model.SettledSessionResponse)
-        fun onSessionUpdateAccountsResponse(response: WalletConnect.Model.SessionUpdateAccountsResponse)
-        fun onSessionUpdateMethodsResponse(response: WalletConnect.Model.SessionUpdateMethodsResponse)
-        fun onSessionUpdateEventsResponse(response: WalletConnect.Model.SessionUpdateEventsResponse)
+        fun onSessionSettleResponse(settleSessionResponse: WalletConnect.Model.SettledSessionResponse)
+        fun onSessionUpdateAccountsResponse(sessionUpdateAccountsResponse: WalletConnect.Model.SessionUpdateAccountsResponse)
+        fun onSessionUpdateMethodsResponse(sessionUpdateMethodsResponse: WalletConnect.Model.SessionUpdateMethodsResponse)
+        fun onSessionUpdateEventsResponse(sessionUpdateEventsResponse: WalletConnect.Model.SessionUpdateEventsResponse)
     }
 
     interface DappDelegate {
         fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession)
-        fun onSessionUpdateAccounts(updatedSession: WalletConnect.Model.UpdatedSessionAccounts)
-        fun onSessionUpdateMethods(updatedSession: WalletConnect.Model.UpdatedSessionMethods)
-        fun onSessionUpdateEvents(updatedSession: WalletConnect.Model.UpdatedSessionEvents)
+        fun onSessionUpdateAccounts(updatedSessionAccounts: WalletConnect.Model.UpdatedSessionAccounts)
+        fun onSessionUpdateMethods(updatedSessionMethods: WalletConnect.Model.UpdatedSessionMethods)
+        fun onSessionUpdateEvents(updatedSessionEvents: WalletConnect.Model.UpdatedSessionEvents)
         fun onUpdateSessionExpiry(session: WalletConnect.Model.Session)
         fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
 

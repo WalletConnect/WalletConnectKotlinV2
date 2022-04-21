@@ -5,7 +5,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
@@ -14,30 +13,22 @@ import androidx.navigation.navGraphViewModels
 import com.google.android.material.snackbar.Snackbar
 import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.DialogConnectUriBinding
-import com.walletconnect.dapp.tag
 import com.walletconnect.dapp.ui.connect.ConnectViewModel
+import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import net.glxn.qrgen.android.QRCode
 
-class PairingGenerationDialogFragment : DialogFragment() {
+class PairingGenerationDialogFragment : DialogFragment(R.layout.dialog_connect_uri) {
     private val viewModel: ConnectViewModel by navGraphViewModels(R.id.connectGraph)
     private var _binding: DialogConnectUriBinding? = null
-    private val binding: DialogConnectUriBinding
-        get() = _binding!!
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = DialogConnectUriBinding.inflate(inflater, container, false)
-
-        return binding.root
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         dialog?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 
+        val binding = DialogConnectUriBinding.bind(view).also { _binding = it }
         viewModel.connectToWallet { proposedSequence ->
-
             if (proposedSequence is WalletConnect.Model.ProposedSequence.Pairing) {
                 val pairingUri = proposedSequence.uri.also {
                     Log.e(tag(this@PairingGenerationDialogFragment), it)
