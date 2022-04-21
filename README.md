@@ -363,14 +363,6 @@ To get a list of pending session requests for a topic, call `WalletConnectClient
 
 &nbsp;
 
-### **Shutdown SDK**
-```kotlin
-WalletConnectClient.shutdown()
-```
-To make sure that the internal coroutines are handled correctly when leaving the application, call `WalletConnectClient.shutdown()` before exiting from the application.
-
-&nbsp;
-
 ## Project ID
 
 For the Project ID look at [Project ID](../../api/project-id.md).
