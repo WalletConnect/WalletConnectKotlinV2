@@ -54,11 +54,16 @@ internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): E
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.SessionRequestParams.toEngineDOSessionRequest(request: WCRequestVO): EngineDO.SessionRequest =
+internal fun SessionParamsVO.SessionRequestParams.toEngineDOSessionRequest(request: WCRequestVO, peerMetaDataVO: MetaDataVO?): EngineDO.SessionRequest =
     EngineDO.SessionRequest(
-        request.topic.value,
-        chainId,
-        EngineDO.SessionRequest.JSONRPCRequest(request.id, this.request.method, this.request.params.toString())
+        topic = request.topic.value,
+        chainId = chainId,
+        peerAppMetaData = peerMetaDataVO?.toEngineDOAppMetaData(),
+        request = EngineDO.SessionRequest.JSONRPCRequest(
+            id = request.id,
+            method = this.request.method,
+            params = this.request.params.toString()
+        )
     )
 
 @JvmSynthetic

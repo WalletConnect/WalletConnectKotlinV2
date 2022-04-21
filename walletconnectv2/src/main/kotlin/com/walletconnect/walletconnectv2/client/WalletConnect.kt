@@ -39,6 +39,7 @@ object WalletConnect {
         data class SessionRequest(
             val topic: String,
             val chainId: String?,
+            val peerMetaData: AppMetaData?,
             val request: JSONRPCRequest,
         ) : Model() {
 

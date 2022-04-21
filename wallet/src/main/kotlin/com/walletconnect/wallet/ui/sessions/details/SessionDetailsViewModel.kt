@@ -25,11 +25,9 @@ class SessionDetailsViewModel : ViewModel() {
         WalletDelegate.wcEventModels
             .onEach { wcModel: WalletConnect.Model? ->
                 when (wcModel) {
-                    is WalletConnect.Model.SessionRequest -> {
-                        _sessionDetails.emit(SampleWalletEvents.SessionRequest)
-                    }
                     is WalletConnect.Model.SessionUpdateAccountsResponse.Result -> {
-
+                        // TODO: Update UI once state synchronization
+                        SampleWalletEvents.NoAction
                     }
                     is WalletConnect.Model.DeletedSession.Success -> {
                         selectedSessionTopic = null

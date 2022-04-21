@@ -3,6 +3,7 @@ package com.walletconnect.wallet.ui.host
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -11,9 +12,10 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupWithNavController
 import com.walletconnect.wallet.R
+import com.walletconnect.wallet.SESSION_REQUEST_ARGS_NUM_KEY
+import com.walletconnect.wallet.SESSION_REQUEST_KEY
 import com.walletconnect.wallet.databinding.ActivityWalletBinding
 import com.walletconnect.wallet.ui.SampleWalletEvents
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -29,10 +31,15 @@ class WalletSampleActivity : AppCompatActivity(R.layout.activity_wallet) {
         val binding = ActivityWalletBinding.bind(findViewById(R.id.root))
 
         viewModel.events
-            .filterIsInstance<SampleWalletEvents.SessionProposal>()
             .flowWithLifecycle(lifecycle)
-            .onEach {
-                navController.navigate(R.id.action_global_to_session_proposal)
+            .onEach { event ->
+                when (event) {
+                    is SampleWalletEvents.SessionProposal -> navController.navigate(R.id.action_global_to_session_proposal)
+                    is SampleWalletEvents.SessionRequest -> {
+                        navController.navigate(R.id.action_global_to_session_request, bundleOf(SESSION_REQUEST_KEY to event.arrayOfArgs, SESSION_REQUEST_ARGS_NUM_KEY to event.numOfArgs))
+                    }
+                    else -> Unit
+                }
             }
             .launchIn(lifecycleScope)
 

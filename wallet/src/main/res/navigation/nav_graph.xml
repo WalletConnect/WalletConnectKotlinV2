@@ -14,6 +14,15 @@
         android:id="@+id/action_global_to_session_proposal"
         app:destination="@id/dialog_session_proposal" />
 
+    <dialog
+        android:id="@+id/dialog_session_request"
+        android:name="com.walletconnect.wallet.ui.host.request.SessionRequestBottomSheet"
+        tools:layout="@layout/bottomsheet_session_request" />
+
+    <action
+        android:id="@+id/action_global_to_session_request"
+        app:destination="@id/dialog_session_request" />
+
     <navigation
         android:id="@+id/accounts_graph"
         app:startDestination="@id/fragment_accounts">

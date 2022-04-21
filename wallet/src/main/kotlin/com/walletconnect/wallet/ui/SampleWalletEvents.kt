@@ -10,7 +10,9 @@ sealed class SampleWalletEvents {
 
     object Disconnect : SampleWalletEvents()
 
-    object SessionRequest : SampleWalletEvents()
+    data class SessionRequest(val arrayOfArgs: ArrayList<String?>, val numOfArgs: Int) : SampleWalletEvents()
+
+    object SessionRequestResponded : SampleWalletEvents()
 
     object NoAction : SampleWalletEvents()
 }

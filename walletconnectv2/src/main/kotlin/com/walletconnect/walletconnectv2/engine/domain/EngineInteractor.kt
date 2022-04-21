@@ -269,8 +269,7 @@ internal class EngineInteractor(
             throw WalletConnectException.UnauthorizedChainIdException(errorMessage)
         }
 
-        val params =
-            SessionParamsVO.SessionRequestParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
+        val params = SessionParamsVO.SessionRequestParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
         val sessionPayload = SessionSettlementVO.SessionRequest(id = generateId(), params = params)
 
         relayer.publishJsonRpcRequests(
@@ -532,7 +531,7 @@ internal class EngineInteractor(
             relayer.respondWithError(request, PeerError.UnauthorizedJsonRpcMethod(method))
             return
         }
-        scope.launch { _sequenceEvent.emit(params.toEngineDOSessionRequest(request)) }
+        scope.launch { _sequenceEvent.emit(params.toEngineDOSessionRequest(request, session.peerMetaData)) }
     }
 
     private fun onSessionEvent(request: WCRequestVO, params: SessionParamsVO.EventParams) {

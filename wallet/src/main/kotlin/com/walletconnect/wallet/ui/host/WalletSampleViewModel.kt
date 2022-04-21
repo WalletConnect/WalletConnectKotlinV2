@@ -13,6 +13,18 @@ class WalletSampleViewModel : ViewModel() {
     val events = WalletDelegate.wcEventModels.map { wcEvent ->
         when (wcEvent) {
             is WalletConnect.Model.SessionProposal -> SampleWalletEvents.SessionProposal
+            is WalletConnect.Model.SessionRequest -> {
+                val topic = wcEvent.topic
+                val icon = wcEvent.peerMetaData?.icons?.first()
+                val peerName = wcEvent.peerMetaData?.name
+                val requestId = wcEvent.request.id.toString()
+                val params = wcEvent.request.params
+                val chain = wcEvent.chainId
+                val method = wcEvent.request.method
+                val arrayOfArgs: ArrayList<String?> = arrayListOf(topic, icon, peerName, requestId, params, chain, method)
+
+                SampleWalletEvents.SessionRequest(arrayOfArgs, arrayOfArgs.size)
+            }
             else -> SampleWalletEvents.NoAction
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
