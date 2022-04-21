@@ -251,10 +251,11 @@ object WalletConnectClient {
         return engineInteractor.getPendingRequests(TopicVO(topic)).mapToPendingRequests()
     }
 
-    fun shutdown() {
-        scope.cancel()
-        wcKoinApp.close()
-    }
+    // TODO: Uncomment once reinit scope logic is added
+//    fun shutdown() {
+//        scope.cancel()
+//        wcKoinApp.close()
+//    }
 
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal)
