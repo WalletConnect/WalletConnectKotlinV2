@@ -1,7 +1,7 @@
 import org.gradle.api.JavaVersion
 import org.gradle.kotlin.dsl.DependencyHandlerScope
 
-const val kotlinVersion = "1.5.31"
+const val kotlinVersion = "1.6.10"
 val jvmVersion = JavaVersion.VERSION_11
 const val sqlDelightVersion = "1.5.2"
 
@@ -22,13 +22,13 @@ fun DependencyHandlerScope.lifecycle() {
     val lifecycleVersion = "2.3.1"
     "implementation"("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion")
     "implementation"("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
-    "implementation"("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-alpha01")
+    "implementation"("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
 }
 
 fun DependencyHandlerScope.navigationComponent() {
-    val navVersion = "2.3.5"
-    "implementation"("androidx.navigation:navigation-fragment-ktx:$navVersion")
-    "implementation"("androidx.navigation:navigation-ui-ktx:$navVersion")
+    val navVersion = "2.4.1"
+    "api"("androidx.navigation:navigation-fragment-ktx:$navVersion")
+    "api"("androidx.navigation:navigation-ui-ktx:$navVersion")
 }
 
 fun DependencyHandlerScope.coroutines() {
@@ -50,7 +50,7 @@ fun DependencyHandlerScope.scarlet() {
 }
 
 fun DependencyHandlerScope.moshi() {
-    val moshiVersion = "1.12.0"
+    val moshiVersion = "1.13.0"
     "implementation"("com.squareup.moshi:moshi-adapters:$moshiVersion")
     "implementation"("com.squareup.moshi:moshi-kotlin:$moshiVersion")
     "kapt"("com.squareup.moshi:moshi-kotlin-codegen:$moshiVersion")
@@ -86,6 +86,11 @@ fun DependencyHandlerScope.koin() {
     val koinVersion = "3.1.5"
 
     "api"("io.insert-koin:koin-android:$koinVersion")
+}
+
+fun DependencyHandlerScope.glide_N_kapt() {
+    "implementation"("com.github.bumptech.glide:glide:4.12.0")
+    "kapt"("com.github.bumptech.glide:compiler:4.12.0")
 }
 
 fun DependencyHandlerScope.jUnit5() {

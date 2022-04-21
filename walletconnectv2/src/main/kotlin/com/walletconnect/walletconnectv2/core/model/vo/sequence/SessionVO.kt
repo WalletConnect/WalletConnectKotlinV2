@@ -1,29 +1,88 @@
 package com.walletconnect.walletconnectv2.core.model.vo.sequence
 
 import com.walletconnect.walletconnectv2.core.model.type.Sequence
-import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.core.model.vo.TtlVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.AppMetaDataVO
-import com.walletconnect.walletconnectv2.storage.sequence.SequenceStatus
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.MetaDataVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 
 internal data class SessionVO(
     override val topic: TopicVO,
     override val expiry: ExpiryVO,
-    override val status: SequenceStatus,
-    val selfParticipant: PublicKey,
-    val peerParticipant: PublicKey? = null,
+    val relayProtocol: String,
+    val relayData: String?,
     val controllerKey: PublicKey? = null,
-    val chains: List<String>,
-    val methods: List<String>,
-    val types: List<String>?,
-    val ttl: TtlVO,
+    val selfPublicKey: PublicKey,
+    val selfMetaData: MetaDataVO? = null,
+    val peerPublicKey: PublicKey? = null,
+    val peerMetaData: MetaDataVO? = null,
     val accounts: List<String> = emptyList(),
-    val appMetaData: AppMetaDataVO? = null,
-    val controllerType: ControllerType,
-    val relayProtocol: String
+    val methods: List<String>,
+    val events: List<String>,
+    val isAcknowledged: Boolean,
 ) : Sequence {
-    val isPeerController: Boolean = peerParticipant?.keyAsHex == controllerKey?.keyAsHex
+    val isPeerController: Boolean = peerPublicKey?.keyAsHex == controllerKey?.keyAsHex
+    val isSelfController: Boolean = selfPublicKey.keyAsHex == controllerKey?.keyAsHex
+    val chains: List<String> get() = getChainIds(accounts)
+
+    internal companion object {
+
+        @JvmSynthetic
+        internal fun createUnacknowledgedSession(
+            sessionTopic: TopicVO,
+            proposal: PairingParamsVO.SessionProposeParams,
+            selfParticipant: SessionParticipantVO,
+            sessionExpiry: Long,
+            accounts: List<String>,
+            methods: List<String>,
+            events: List<String>,
+        ): SessionVO {
+            return SessionVO(
+                sessionTopic,
+                ExpiryVO(sessionExpiry),
+                relayProtocol = proposal.relays.first().protocol,
+                relayData = proposal.relays.first().data,
+                peerPublicKey = PublicKey(proposal.proposer.publicKey),
+                peerMetaData = proposal.proposer.metadata,
+                selfPublicKey = PublicKey(selfParticipant.publicKey),
+                selfMetaData = selfParticipant.metadata,
+                controllerKey = PublicKey(selfParticipant.publicKey),
+                methods = methods,
+                events = events,
+                accounts = accounts,
+                isAcknowledged = false
+            )
+        }
+
+        @JvmSynthetic
+        internal fun createAcknowledgedSession(
+            sessionTopic: TopicVO,
+            settleParams: SessionParamsVO.SessionSettleParams,
+            selfPublicKey: PublicKey,
+            selfMetadata: MetaDataVO,
+        ): SessionVO {
+            return SessionVO(
+                sessionTopic,
+                ExpiryVO(settleParams.expiry),
+                relayProtocol = settleParams.relay.protocol,
+                relayData = settleParams.relay.data,
+                peerPublicKey = PublicKey(settleParams.controller.publicKey),
+                peerMetaData = settleParams.controller.metadata,
+                selfPublicKey = selfPublicKey,
+                selfMetaData = selfMetadata,
+                controllerKey = PublicKey(settleParams.controller.publicKey),
+                methods = settleParams.methods,
+                events = settleParams.events,
+                accounts = settleParams.accounts,
+                isAcknowledged = true
+            )
+        }
+
+        fun getChainIds(accountIds: List<String>): List<String> {
+            return accountIds.map { accountId -> accountId.split(":").take(2).joinToString(":") }
+        }
+    }
 }

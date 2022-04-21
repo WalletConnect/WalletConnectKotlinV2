@@ -1,107 +1,98 @@
 package com.walletconnect.walletconnectv2
 
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
+import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
+import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
+import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO.Companion.getChainIds
 import com.walletconnect.walletconnectv2.engine.domain.Validator
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
+import com.walletconnect.walletconnectv2.engine.model.mapper.toAbsoluteString
+import com.walletconnect.walletconnectv2.util.Time
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import kotlin.test.*
 
 class ValidatorTest {
 
     @Test
-    fun `check correct error message when blockchain permissions are invalid `() {
-        val blockchain = EngineDO.Blockchain(listOf())
-        val jsonRpc = EngineDO.JsonRpc(listOf())
-        val permissions = EngineDO.SessionPermissions(blockchain, jsonRpc)
+    fun `check correct error message when methods are empty `() {
+        val methods: List<String> = listOf()
 
-        Validator.validateSessionPermissions(permissions) { errorMessage ->
-            assertEquals(EMPTY_CHAIN_LIST_MESSAGE, errorMessage)
-        }
-    }
-
-    @Test
-    fun `check correct error message when json rpc permissions are invalid `() {
-        val blockchain = EngineDO.Blockchain(listOf("1"))
-        val jsonRpc = EngineDO.JsonRpc(listOf())
-        val permissions = EngineDO.SessionPermissions(blockchain, jsonRpc)
-
-        Validator.validateSessionPermissions(permissions) { errorMessage ->
+        Validator.validateMethods(methods) { errorMessage ->
             assertEquals(EMPTY_RPC_METHODS_LIST_MESSAGE, errorMessage)
         }
     }
 
     @Test
-    fun `check correct error message when notifications permissions are invalid `() {
-        val blockchain = EngineDO.Blockchain(listOf("1:aa"))
-        val jsonRpc = EngineDO.JsonRpc(listOf("eth_sign"))
-        var notifications: EngineDO.Notifications? = EngineDO.Notifications(listOf())
-        val permissions = EngineDO.SessionPermissions(blockchain, jsonRpc, notifications)
+    fun `check correct error message when events are empty `() {
+        val events: List<String> = listOf()
 
-        Validator.validateSessionPermissions(permissions) { errorMessage ->
-            assertEquals(INVALID_NOTIFICATIONS_TYPES_MESSAGE, errorMessage)
+        Validator.validateEvents(events) { errorMessage ->
+            assertEquals(INVALID_EVENTS_MESSAGE, errorMessage)
         }
     }
 
     @Test
-    fun `check correct error message when notifications permissions are null `() {
-        val blockchain = EngineDO.Blockchain(listOf("cosmos:cosmoshub-2"))
-        val jsonRpc = EngineDO.JsonRpc(listOf("eth_sign"))
-
-        var notifications: EngineDO.Notifications? = null
-        val permissions = EngineDO.SessionPermissions(blockchain, jsonRpc, notifications)
-
-        Validator.validateSessionPermissions(permissions) { errorMessage ->
-            assertEquals(INVALID_NOTIFICATIONS_TYPES_MESSAGE, errorMessage)
+    fun `check if chainIds list is empty`() {
+        val chains: List<String> = listOf()
+        Validator.validateCAIP2(chains) { errorMessage ->
+            assertEquals(EMPTY_CHAIN_LIST_MESSAGE, errorMessage)
         }
     }
 
     @Test
-    fun `are json rpc permissions valid`() {
-        var jsonRpc = EngineDO.JsonRpc(listOf())
+    fun `check if chainIds list is invalid`() {
+        val chains: List<String> = listOf("chainID")
+        Validator.validateCAIP2(chains) { errorMessage ->
+            assertEquals(WRONG_CHAIN_ID_FORMAT_MESSAGE, errorMessage)
+        }
+    }
 
-        val result1 = Validator.isJsonRpcValid(jsonRpc)
+    @Test
+    fun `are methods valid`() {
+        var methods: List<String> = listOf()
+
+        val result1 = Validator.areMethodsValid(methods)
         assertEquals(result1, false)
 
-        jsonRpc = EngineDO.JsonRpc(listOf("", ""))
-        val result2 = Validator.isJsonRpcValid(jsonRpc)
+        methods = listOf("", "")
+        val result2 = Validator.areMethodsValid(methods)
         assertEquals(result2, false)
 
-        jsonRpc = EngineDO.JsonRpc(listOf("personal_sign", "eth_sign"))
-        val result3 = Validator.isJsonRpcValid(jsonRpc)
+        methods = listOf("personal_sign", "eth_sign")
+        val result3 = Validator.areMethodsValid(methods)
         assertEquals(result3, true)
     }
 
     @Test
-    fun `are blockchain permissions not empty`() {
-        var blockchain = EngineDO.Blockchain(listOf())
+    fun `are chains permissions not empty`() {
+        var chains: List<String> = listOf()
 
-        val result1 = Validator.isBlockchainValid(blockchain)
+        val result1 = Validator.isBlockchainValid(chains)
         assertEquals(result1, false)
 
-        blockchain = EngineDO.Blockchain(listOf("", ""))
-        val result2 = Validator.isBlockchainValid(blockchain)
+        chains = listOf("", "")
+        val result2 = Validator.isBlockchainValid(chains)
         assertEquals(result2, false)
 
-        blockchain = EngineDO.Blockchain(listOf("1", "2"))
-        val result3 = Validator.isBlockchainValid(blockchain)
+        chains = listOf("1", "2")
+        val result3 = Validator.isBlockchainValid(chains)
         assertEquals(result3, true)
     }
 
     @Test
-    fun `are notifications permissions valid`() {
-        var notifications: EngineDO.Notifications = EngineDO.Notifications(listOf())
+    fun `are events permissions valid`() {
+        var events: List<String> = listOf()
 
-        val result1 = Validator.areNotificationTypesValid(notifications)
+        val result1 = Validator.areEventsValid(events)
         assertEquals(result1, false)
 
-        notifications = EngineDO.Notifications(listOf("", ""))
-        val result2 = Validator.areNotificationTypesValid(notifications)
+        events = listOf("", "")
+        val result2 = Validator.areEventsValid(events)
         assertEquals(result2, false)
 
-        notifications = EngineDO.Notifications(listOf("1", "2"))
-        val result3 = Validator.areNotificationTypesValid(notifications)
+        events = listOf("1", "2")
+        val result3 = Validator.areEventsValid(events)
         assertEquals(result3, true)
     }
 
@@ -124,7 +115,7 @@ class ValidatorTest {
     fun `check correct error message when accounts are empty and chainIds exists`() {
         val accounts = listOf("")
         val chains = listOf("as", "bc")
-        Validator.validateIfChainIdsIncludedInPermission(accounts, chains) { errorMessage ->
+        Validator.validateIfAccountsAreOnValidNetwork(accounts, chains) { errorMessage ->
             assertEquals(errorMessage, UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
     }
@@ -133,7 +124,7 @@ class ValidatorTest {
     fun `check correct error message when accounts are invalid`() {
         val accounts = listOf("as11", "1234")
         val chains = listOf("")
-        Validator.validateIfChainIdsIncludedInPermission(accounts, chains) { errorMessage ->
+        Validator.validateIfAccountsAreOnValidNetwork(accounts, chains) { errorMessage ->
             assertEquals(errorMessage, UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
     }
@@ -154,7 +145,7 @@ class ValidatorTest {
             "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
         )
         val chains = listOf("")
-        Validator.validateIfChainIdsIncludedInPermission(accounts, chains) { errorMessage ->
+        Validator.validateIfAccountsAreOnValidNetwork(accounts, chains) { errorMessage ->
             assertEquals(errorMessage, UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
     }
@@ -191,45 +182,45 @@ class ValidatorTest {
 
     @Test
     fun `are chain ids included in permissions`() {
-        Validator.areChainIdsIncludedInPermissions(emptyList(), emptyList()).apply { assertEquals(this, false) }
-        Validator.areChainIdsIncludedInPermissions(listOf(""), listOf("")).apply { assertEquals(this, false) }
-        Validator.areChainIdsIncludedInPermissions(listOf("as"), listOf("")).apply { assertEquals(this, false) }
-        Validator.areChainIdsIncludedInPermissions(listOf("as"), listOf("ss")).apply { assertEquals(this, false) }
-        Validator.areChainIdsIncludedInPermissions(
+        Validator.areAccountsOnValidNetworks(emptyList(), emptyList()).apply { assertEquals(this, false) }
+        Validator.areAccountsOnValidNetworks(listOf(""), listOf("")).apply { assertEquals(this, false) }
+        Validator.areAccountsOnValidNetworks(listOf("as"), listOf("")).apply { assertEquals(this, false) }
+        Validator.areAccountsOnValidNetworks(listOf("as"), listOf("ss")).apply { assertEquals(this, false) }
+        Validator.areAccountsOnValidNetworks(
             listOf(
                 "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
                 "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
             ), listOf("ss", "aa")
         ).apply { assertEquals(this, false) }
 
-        Validator.areChainIdsIncludedInPermissions(
+        Validator.areAccountsOnValidNetworks(
             listOf(
                 "bip122:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
                 "polkadot:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
             ), listOf("bip122:000000000019d6689c085ae165831e93", "polkadot:b0a8d493285c2df73290dfb7e61f870f")
         ).apply { assertEquals(this, false) }
 
-        Validator.areChainIdsIncludedInPermissions(
+        Validator.areAccountsOnValidNetworks(
             listOf(
                 "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
                 "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
             ), listOf("bip122:000000000019d6689c085ae165831e93", "polkadot:b0a8d493285c2df73290dfb7e61f870f")
         ).apply { assertEquals(this, true) }
 
-        Validator.areChainIdsIncludedInPermissions(
+        Validator.areAccountsOnValidNetworks(
             listOf(
                 "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
                 "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
             ), listOf("polkadot:b0a8d493285c2df73290dfb7e61f870f")
         ).apply { assertEquals(this, false) }
 
-        Validator.areChainIdsIncludedInPermissions(
+        Validator.areAccountsOnValidNetworks(
             listOf(
                 "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6"
             ), listOf("polkadot:b0a8d493285c2df73290dfb7e61f870f")
         ).apply { assertEquals(this, false) }
 
-        Validator.areChainIdsIncludedInPermissions(
+        Validator.areAccountsOnValidNetworks(
             listOf(
                 "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6"
             ), listOf("bip122:000000000019d6689c085ae165831e93")
@@ -259,65 +250,146 @@ class ValidatorTest {
     }
 
     @Test
-    fun `is notification valid test`() {
-        var notification = EngineDO.Notification("", "data")
-        Validator.validateNotification(notification) {
-            assertEquals(INVALID_NOTIFICATION_MESSAGE, it)
+    fun `is event valid test`() {
+        var event = EngineDO.Event("", "data", null)
+        Validator.validateEvent(event) {
+            assertEquals(INVALID_EVENT_MESSAGE, it)
         }
 
-        notification = EngineDO.Notification("type", "")
-        Validator.validateNotification(notification) {
-            assertEquals(INVALID_NOTIFICATION_MESSAGE, it)
+        event = EngineDO.Event("type", "", "")
+        Validator.validateEvent(event) {
+            assertEquals(INVALID_EVENT_MESSAGE, it)
         }
 
-        notification = EngineDO.Notification("", "")
-        Validator.validateNotification(notification) {
-            assertEquals(INVALID_NOTIFICATION_MESSAGE, it)
+        event = EngineDO.Event("", "", "")
+        Validator.validateEvent(event) {
+            assertEquals(INVALID_EVENT_MESSAGE, it)
         }
     }
 
     @Test
     fun `is session proposal valid test`() {
-        val proposal = EngineDO.SessionProposal(
-            "name", "dsc", "", listOf(), listOf(),
-            listOf(), listOf(), "", "", false, 1L, listOf(), ""
-        )
+        val proposal = EngineDO.SessionProposal("name", "dsc", "", listOf(), listOf(), listOf(), listOf(), "", listOf(), "", "")
         Validator.validateProposalFields(proposal) { assertEquals(INVALID_SESSION_PROPOSAL_MESSAGE, it) }
     }
 
     @Test
     fun `validate WC uri test`() {
         val validUri =
-            "wc:0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33@2?controller=false&publicKey=4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249&relay=%7B%22protocol%22%3A%22waku%22%7D"
+            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=waku&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
 
         Validator.validateWCUri("").apply { assertEquals(null, this) }
         Validator.validateWCUri(validUri).apply {
             assertNotNull(this)
-            assertEquals("0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33", this.topic.value)
+            assertEquals("7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9", this.topic.value)
             assertEquals("waku", this.relay.protocol)
-            assertEquals("4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249", this.publicKey.keyAsHex)
-            assertEquals(false, this.isController)
+            assertEquals("587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303", this.symKey.keyAsHex)
             assertEquals("2", this.version)
         }
 
         val noTopicInvalidUri =
-            "wc:@2?controller=false&publicKey=4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249&relay=%7B%22protocol%22%3A%22waku%22%7D"
+            "wc:@2?relay-protocol=waku&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
         Validator.validateWCUri(noTopicInvalidUri).apply { assertNull(this) }
 
-        val noControllerFlagInvalidUri =
-            "wc:0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33@2?controller=&publicKey=4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249&relay=%7B%22protocol%22%3A%22waku%22%7D"
-        Validator.validateWCUri(noControllerFlagInvalidUri).apply { assertNull(this) }
-
         val noPrefixInvalidUri =
-            "0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33@2?controller=false&publicKey=4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249&relay=%7B%22protocol%22%3A%22waku%22%7D"
+            "7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=waku&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
         Validator.validateWCUri(noPrefixInvalidUri).apply { assertNull(this) }
 
-        val noPubKeyInvalidUri =
-            "wc:0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33@2?controller=false&relay=%7B%22protocol%22%3A%22waku%22%7D"
-        Validator.validateWCUri(noPubKeyInvalidUri).apply { assertNull(this) }
+        val noSymKeyInvalidUri =
+            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=waku&symKey="
+        Validator.validateWCUri(noSymKeyInvalidUri).apply { assertNull(this) }
 
         val noProtocolTypeInvalidUri =
-            "wc:0ec08854dea4a7cc8ede647c163e8f5dafd39c371f0011b30907c98d289daf33@2?controller=false&publicKey=4699519eaebe8e0d171cd5ff349552704b078b2ae66999fc1addd8710bfa1249&relay=%7B%22protocol%22%3A%%22%7D"
+            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
         Validator.validateWCUri(noProtocolTypeInvalidUri).apply { assertNull(this) }
+    }
+
+    @Test
+    fun `validate WC uri test optional data field`() {
+        val validUri =
+            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=waku&relay-data=testData&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
+
+        Validator.validateWCUri("").apply { assertEquals(null, this) }
+        Validator.validateWCUri(validUri).apply {
+            assertNotNull(this)
+            assertEquals("7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9", this.topic.value)
+            assertEquals("waku", this.relay.protocol)
+            assertEquals("testData", this.relay.data)
+            assertEquals("587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303", this.symKey.keyAsHex)
+            assertEquals("2", this.version)
+        }
+    }
+
+    @Test
+    fun `parse walletconnect uri to absolute string`() {
+        val uri = EngineDO.WalletConnectUri(
+            TopicVO("11112222244444"),
+            SecretKey("0x12321321312312312321"),
+            RelayProtocolOptionsVO("waku", "teeestData")
+        )
+
+        assertEquals(uri.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=waku&relay-data=teeestData&symKey=0x12321321312312312321")
+
+        val uri2 = EngineDO.WalletConnectUri(
+            TopicVO("11112222244444"),
+            SecretKey("0x12321321312312312321"),
+            RelayProtocolOptionsVO("waku")
+        )
+
+        assertEquals(uri2.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=waku&symKey=0x12321321312312312321")
+    }
+
+    @Test
+    fun `extend session expiry less than 1 week`() {
+        val currentExpiry: Long = 1646641841 //07.03
+        val newExpiry: Long = 1646901496 //10.03
+        Validator.validateSessionExtend(newExpiry, currentExpiry) {
+            assertTrue(false)
+        }
+    }
+
+    @Test
+    fun `extend session expiry over 1 week`() {
+        val currentExpiry: Long = 1646641841 //07.03
+        val newExpiry: Long = 1647765496 //20.03
+
+        Validator.validateSessionExtend(newExpiry, currentExpiry) {
+            assertEquals(INVALID_EXTEND_TIME, it)
+        }
+    }
+
+    @Test
+    fun `extend session expiry less than current expiry`() {
+        val currentExpiry: Long = 1646641841 //07.03
+        val newExpiry: Long = 1646555896 //06.03
+
+        Validator.validateSessionExtend(newExpiry, currentExpiry) {
+            assertEquals(INVALID_EXTEND_TIME, it)
+        }
+    }
+
+    @Test
+    fun `get chains from accountIds test`() {
+        getChainIds(listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb",
+            "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6")).apply {
+            assertEquals(this[0], "eip155:1")
+            assertEquals(this[1], "bip122:000000000019d6689c085ae165831e93")
+        }
+
+        getChainIds(listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb")).apply {
+            assertEquals(this[0], "eip155:1")
+        }
+
+        getChainIds(listOf("111:dssa:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb")).apply {
+            assertNotEquals(this[0], "eip155:1")
+        }
+    }
+
+    @Test
+    fun `test time periods in seconds`() {
+        Time.fiveMinutesInSeconds.apply { assertEquals(this.compareTo(300), 0) }
+        Time.dayInSeconds.apply { assertEquals(this.compareTo(86400), 0) }
+        Time.weekInSeconds.apply { assertEquals(this.compareTo(604800), 0) }
+        Time.monthInSeconds.apply { assertEquals(this.compareTo(2592000), 0) }
     }
 }

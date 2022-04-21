@@ -1,11 +1,9 @@
 package com.walletconnect.walletconnectv2.storage.sequence
 
-import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.core.model.vo.TtlVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.before.proposal.AppMetaDataVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDaoQueries
@@ -18,7 +16,7 @@ import com.walletconnect.walletconnectv2.util.isSequenceValid
 internal class SequenceStorageRepository(
     private val pairingDaoQueries: PairingDaoQueries,
     private val sessionDaoQueries: SessionDaoQueries,
-    private val metaDataDaoQueries: MetaDataDaoQueries
+    private val metaDataDaoQueries: MetaDataDaoQueries,
 ) {
 
     @JvmSynthetic
@@ -26,13 +24,11 @@ internal class SequenceStorageRepository(
 
     @JvmSynthetic
     fun getListOfPairingVOs(): List<PairingVO> =
-        pairingDaoQueries.getListOfPairingDaos(mapper = this@SequenceStorageRepository::mapPairingDaoToPairingVO)
-            .executeAsList()
+        pairingDaoQueries.getListOfPairingDaos(mapper = this@SequenceStorageRepository::mapPairingDaoToPairingVO).executeAsList()
 
     @JvmSynthetic
     fun getListOfSessionVOs(): List<SessionVO> =
-        sessionDaoQueries.getListOfSessionDaos(mapper = this@SequenceStorageRepository::mapSessionDaoToSessionVO)
-            .executeAsList()
+        sessionDaoQueries.getListOfSessionDaos(mapper = this@SequenceStorageRepository::mapSessionDaoToSessionVO).executeAsList()
 
     @JvmSynthetic
     fun isSessionValid(topic: TopicVO): Boolean {
@@ -58,195 +54,86 @@ internal class SequenceStorageRepository(
 
     @JvmSynthetic
     fun getPairingByTopic(topic: TopicVO): PairingVO =
-        pairingDaoQueries.getPairingByTopic(topic.value)
-            .executeAsOne()
+        pairingDaoQueries.getPairingByTopic(topic.value).executeAsOne()
             .let { entity ->
                 PairingVO(
                     topic = TopicVO(entity.topic),
-                    status = entity.status,
                     expiry = ExpiryVO(entity.expiry),
-                    selfParticipant = PublicKey(entity.self_participant),
-                    peerParticipant = PublicKey(entity.peer_participant ?: String.Empty),
-                    controllerKey = PublicKey(entity.controller_key ?: String.Empty),
                     uri = entity.uri,
-                    permissions = entity.permissions,
-                    relay = entity.relay_protocol,
-                    controllerType = entity.controller_type
+                    relayProtocol = entity.relay_protocol,
+                    relayData = entity.relay_data,
+                    isActive = entity.is_active
                 )
             }
 
     @JvmSynthetic
     fun getSessionByTopic(topic: TopicVO): SessionVO =
-        sessionDaoQueries.getSessionByTopic(topic.value).executeAsOne().let { entity ->
-            SessionVO(
-                topic = TopicVO(entity.topic),
-                status = entity.status,
-                expiry = ExpiryVO(entity.expiry),
-                selfParticipant = PublicKey(entity.self_participant),
-                peerParticipant = PublicKey(entity.peer_participant ?: String.Empty),
-                controllerKey = PublicKey(entity.controller_key ?: String.Empty),
-                chains = entity.permissions_chains,
-                methods = entity.permissions_methods,
-                types = entity.permissions_types,
-                accounts = entity.accounts ?: emptyList(),
-                ttl = TtlVO(entity.ttl_seconds),
-                controllerType = entity.controller_type,
-                relayProtocol = entity.relay_protocol
-            )
-        }
+        sessionDaoQueries.getSessionByTopic(topic.value, mapper = this@SequenceStorageRepository::mapSessionDaoToSessionVO).executeAsOne()
 
     @JvmSynthetic
-    fun insertPendingPairing(pairing: PairingVO, controllerType: ControllerType) {
+    fun insertPairing(pairing: PairingVO) {
+
         with(pairing) {
             pairingDaoQueries.insertPairing(
                 topic.value,
+                expiry.seconds,
+                relayProtocol,
+                relayData,
                 uri,
-                expiry.seconds,
-                status,
-                controllerType,
-                selfParticipant.keyAsHex,
-                relay
+                isActive
             )
         }
     }
 
     @JvmSynthetic
-    fun insertSessionProposal(session: SessionVO, appMetaData: AppMetaDataVO?, controllerType: ControllerType) {
-        val metadataId = insertMetaData(appMetaData)
-
-        with(session) {
-            sessionDaoQueries.insertSession(
-                topic = topic.value,
-                permissions_chains = chains,
-                permissions_methods = methods,
-                permissions_types = types,
-                ttl_seconds = ttl.seconds,
-                expiry = expiry.seconds,
-                status = status,
-                controller_type = controllerType,
-                metadata_id = metadataId,
-                self_participant = selfParticipant.keyAsHex,
-                relay_protocol = session.relayProtocol
-            )
-        }
+    fun activatePairing(topic: TopicVO, expiryInSeconds: Long) {
+        pairingDaoQueries.activatePairing(expiryInSeconds, true, topic.value)
     }
 
     @JvmSynthetic
-    fun updateRespondedPairingToPreSettled(proposalTopic: TopicVO, pairing: PairingVO) {
-        with(pairing) {
-            pairingDaoQueries.updatePendingPairingToPreSettled(
-                topic.value,
-                expiry.seconds,
-                status,
-                selfParticipant.keyAsHex,
-                peerParticipant?.keyAsHex,
-                controllerKey?.keyAsHex,
-                permissions,
-                proposalTopic.value
-            )
-        }
-    }
-
-    @JvmSynthetic
-    fun updatePreSettledPairingToAcknowledged(pairing: PairingVO) {
-        pairingDaoQueries.updatePreSettledPairingToAcknowledged(pairing.status, pairing.topic.value)
-    }
-
-    @JvmSynthetic
-    fun updateAcknowledgedPairingMetadata(metaData: AppMetaDataVO, topic: TopicVO) {
-        val metadataId = insertMetaData(metaData)
-        pairingDaoQueries.updateAcknowledgedPairingMetadata(metadataId, topic.value)
-    }
-
-    @JvmSynthetic
-    fun updateProposedPairingToAcknowledged(pairing: PairingVO, pendingTopic: TopicVO) {
-        val metadataId = insertMetaData(pairing.appMetaDataVO)
-        with(pairing) {
-            pairingDaoQueries.updateProposedPairingToAcknowledged(
-                pairing.topic.value,
-                expiry.seconds,
-                status,
-                selfParticipant.keyAsHex,
-                peerParticipant?.keyAsHex,
-                controllerKey?.keyAsHex,
-                permissions,
-                relay,
-                metadataId,
-                pendingTopic.value
-            )
-        }
+    fun updatePairingPeerMetadata(topic: TopicVO, metaData: MetaDataVO?) {
+        val peerMetadataId = insertMetaData(metaData)
+        pairingDaoQueries.updatePairingPeerMetadata(peerMetadataId, topic.value)
     }
 
     @JvmSynthetic
     fun deletePairing(topic: TopicVO) {
-        metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
+        metaDataDaoQueries.deleteSessionSelfMetaDataFromTopic(topic.value)
         pairingDaoQueries.deletePairing(topic.value)
     }
 
-    private fun insertMetaData(appMetaData: AppMetaDataVO?): Long {
-        return appMetaData?.let {
-            metaDataDaoQueries.insertOrIgnoreMetaData(
-                appMetaData.name,
-                appMetaData.description,
-                appMetaData.url,
-                appMetaData.icons
-            )
-
-            metaDataDaoQueries.lastInsertedRowId().executeAsOne()
-        } ?: FAILED_INSERT_ID
-    }
-
     @JvmSynthetic
-    fun updateProposedSessionToResponded(session: SessionVO) {
-        sessionDaoQueries.updateProposedSessionToResponded(session.status, session.topic.value)
-    }
+    fun insertSession(session: SessionVO) {
+        val selfMetadataId = insertMetaData(session.selfMetaData)
+        val peerMetadataId = insertMetaData(session.peerMetaData)
 
-    @JvmSynthetic
-    fun updateRespondedSessionToPreSettled(session: SessionVO, pendingTopic: TopicVO) {
         with(session) {
-            sessionDaoQueries.updateRespondedSessionToPresettled(
-                topic.value,
-                accounts,
-                expiry.seconds,
-                status,
-                selfParticipant.keyAsHex,
-                controllerKey?.keyAsHex,
-                peerParticipant?.keyAsHex,
-                chains,
-                methods,
-                types,
-                ttl.seconds,
-                pendingTopic.value
+            sessionDaoQueries.insertSession(
+                topic = topic.value,
+                permissions_methods = methods,
+                permissions_events = events,
+                expiry = expiry.seconds,
+                self_metadata_id = selfMetadataId,
+                peer_metadata_id = peerMetadataId,
+                self_participant = selfPublicKey.keyAsHex,
+                relay_protocol = relayProtocol,
+                controller_key = controllerKey?.keyAsHex,
+                peer_participant = peerPublicKey?.keyAsHex,
+                accounts = accounts,
+                relay_data = relayData,
+                is_acknowledged = isAcknowledged
             )
         }
     }
 
     @JvmSynthetic
-    fun updatePreSettledSessionToAcknowledged(session: SessionVO) {
-        sessionDaoQueries.updatePreSettledSessionToAcknowledged(session.status, session.topic.value)
+    fun acknowledgeSession(topic: TopicVO) {
+        sessionDaoQueries.acknowledgeSession(true, topic.value)
     }
 
     @JvmSynthetic
-    fun updateProposedSessionToAcknowledged(session: SessionVO, pendingTopic: TopicVO) {
-        val metadataId = insertMetaData(session.appMetaData)
-        with(session) {
-            sessionDaoQueries.updateProposedSessionToAcknowledged(
-                topic.value,
-                accounts,
-                expiry.seconds,
-                status,
-                selfParticipant.keyAsHex,
-                controllerKey?.keyAsHex,
-                peerParticipant?.keyAsHex,
-                chains,
-                methods,
-                types,
-                ttl.seconds,
-                relayProtocol,
-                metadataId,
-                pendingTopic.value
-            )
-        }
+    fun updateSessionExpiry(topic: TopicVO, expiryInSeconds: Long) {
+        sessionDaoQueries.updateSessionExpiry(expiryInSeconds, topic.value)
     }
 
     @JvmSynthetic
@@ -255,17 +142,33 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun upgradeSessionWithPermissions(topic: TopicVO, blockChains: List<String>?, jsonRpcMethods: List<String>?) {
-        val (listOfChains, listOfMethods) = sessionDaoQueries.getPermissionsByTopic(topic.value).executeAsOne()
-        val chainsUnion = listOfChains.union((blockChains ?: emptyList())).toList()
-        val methodsUnion = listOfMethods.union((jsonRpcMethods ?: emptyList())).toList()
-        sessionDaoQueries.updateSessionWithPermissions(chainsUnion, methodsUnion, topic.value)
+    fun updateSessionWithMethods(topic: TopicVO, methods: List<String>) {
+        sessionDaoQueries.updateSessionWithMethods(methods, topic.value)
+    }
+
+    @JvmSynthetic
+    fun updateSessionWithEvents(topic: TopicVO, events: List<String>) {
+        sessionDaoQueries.updateSessionWithEvents(events, topic.value)
     }
 
     @JvmSynthetic
     fun deleteSession(topic: TopicVO) {
-        metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
+        metaDataDaoQueries.deleteSessionSelfMetaDataFromTopic(topic.value)
+        metaDataDaoQueries.deleteSessionPeerMetaDataFromTopic(topic.value)
         sessionDaoQueries.deleteSession(topic.value)
+    }
+
+    private fun insertMetaData(metaData: MetaDataVO?): Long {
+        return metaData?.let {
+            metaDataDaoQueries.insertOrIgnoreMetaData(
+                metaData.name,
+                metaData.description,
+                metaData.url,
+                metaData.icons
+            )
+
+            metaDataDaoQueries.lastInsertedRowId().executeAsOne()
+        } ?: FAILED_INSERT_ID
     }
 
     private fun verifyExpiry(expiry: Long, topic: TopicVO, deleteSequence: () -> Unit): Boolean {
@@ -279,21 +182,17 @@ internal class SequenceStorageRepository(
     private fun mapPairingDaoToPairingVO(
         topic: String,
         expirySeconds: Long,
-        uri: String,
-        status: SequenceStatus,
-        controller_type: ControllerType,
-        self_participant: String,
-        peer_participant: String?,
-        controller_key: String?,
         relay_protocol: String,
-        permissions: List<String>?,
-        metadataName: String?,
-        metadataDesc: String?,
-        metadataUrl: String?,
-        metadataIcons: List<String>?
+        relay_data: String?,
+        uri: String,
+        peerName: String?,
+        peerDesc: String?,
+        peerUrl: String?,
+        peerIcons: List<String>?,
+        is_active: Boolean,
     ): PairingVO {
-        val appMetaData = if (metadataName != null && metadataDesc != null && metadataUrl != null && metadataIcons != null) {
-            AppMetaDataVO(metadataName, metadataDesc, metadataUrl, metadataIcons)
+        val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
+            MetaDataVO(peerName, peerDesc, peerUrl, peerIcons)
         } else {
             null
         }
@@ -301,58 +200,62 @@ internal class SequenceStorageRepository(
         return PairingVO(
             topic = TopicVO(topic),
             expiry = ExpiryVO(expirySeconds),
-            status = status,
-            selfParticipant = PublicKey(self_participant),
-            peerParticipant = PublicKey(peer_participant ?: String.Empty),
-            permissions = permissions,
-            controllerKey = PublicKey(controller_key ?: String.Empty),
+            peerMetaData = peerMetaData,
+            relayProtocol = relay_protocol,
+            relayData = relay_data,
             uri = uri,
-            relay = relay_protocol,
-            controllerType = controller_type,
-            appMetaDataVO = appMetaData
+            isActive = is_active
         )
     }
 
     private fun mapSessionDaoToSessionVO(
         topic: String,
-        permission_chains: List<String>,
-        permissions_methods: List<String>,
-        permissions_types: List<String>?,
-        ttl_seconds: Long,
-        accounts: List<String>?,
         expiry: Long,
-        status: SequenceStatus,
-        controller_type: ControllerType,
-        metadataName: String?,
-        metadataDesc: String?,
-        metadataUrl: String?,
-        metadataIcons: List<String>?,
-        self_participant: String,
-        peer_participant: String?,
+        relay_protocol: String,
+        relay_data: String?,
         controller_key: String?,
-        relay_protocol: String
+        self_participant: String,
+        selfName: String?,
+        selfDesc: String?,
+        selfUrl: String?,
+        selfIcons: List<String>?,
+        peer_participant: String?,
+        peerName: String?,
+        peerDesc: String?,
+        peerUrl: String?,
+        peerIcons: List<String>?,
+        accounts: List<String>?,
+        permissions_methods: List<String>,
+        permissions_events: List<String>,
+        is_acknowledged: Boolean,
     ): SessionVO {
-        val appMetaData = if (metadataName != null && metadataDesc != null && metadataUrl != null && metadataIcons != null) {
-            AppMetaDataVO(metadataName, metadataDesc, metadataUrl, metadataIcons)
+
+        val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
+            MetaDataVO(selfName, selfDesc, selfUrl, selfIcons)
+        } else {
+            null
+        }
+
+        val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
+            MetaDataVO(peerName, peerDesc, peerUrl, peerIcons)
         } else {
             null
         }
 
         return SessionVO(
             topic = TopicVO(topic),
-            chains = permission_chains,
             methods = permissions_methods,
-            types = permissions_types,
-            ttl = TtlVO(ttl_seconds),
+            events = permissions_events,
             accounts = accounts ?: emptyList(),
             expiry = ExpiryVO(expiry),
-            status = status,
-            appMetaData = appMetaData,
-            selfParticipant = PublicKey(self_participant),
-            peerParticipant = PublicKey(peer_participant ?: String.Empty),
+            selfMetaData = selfMetaData,
+            peerMetaData = peerMetaData,
+            selfPublicKey = PublicKey(self_participant),
+            peerPublicKey = PublicKey(peer_participant ?: String.Empty),
             controllerKey = PublicKey(controller_key ?: String.Empty),
-            controllerType = controller_type,
-            relayProtocol = relay_protocol
+            relayProtocol = relay_protocol,
+            relayData = relay_data,
+            isAcknowledged = is_acknowledged
         )
     }
 

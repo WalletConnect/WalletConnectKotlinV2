@@ -9,7 +9,16 @@ internal class KeyChainMock : KeyStore {
 
     private val mapOfKeys = mutableMapOf<String, String>()
 
-    override fun setKey(tag: String, key1: Key, key2: Key) {
+    override fun setSecretKey(tag: String, key: Key) {
+        mapOfKeys[tag] = key.keyAsHex
+    }
+
+    override fun getSecretKey(tag: String): String {
+        return mapOfKeys[tag] ?: ""
+    }
+
+
+    override fun setKeys(tag: String, key1: Key, key2: Key) {
         val keys = concatKeys(key1, key2)
         mapOfKeys[tag] = keys
     }
@@ -23,7 +32,7 @@ internal class KeyChainMock : KeyStore {
         mapOfKeys.remove(tag)
     }
 
-    fun concatKeys(keyA: Key, keyB: Key): String = (keyA.keyAsHex.hexToBytes() + keyB.keyAsHex.hexToBytes()).bytesToHex()
+    private fun concatKeys(keyA: Key, keyB: Key): String = (keyA.keyAsHex.hexToBytes() + keyB.keyAsHex.hexToBytes()).bytesToHex()
 
     private fun splitKeys(concatKeys: String): Pair<String, String> {
         val concatKeysByteArray = concatKeys.hexToBytes()

@@ -1,20 +1,79 @@
 package com.walletconnect.walletconnectv2.client.mapper
 
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcHistoryVO
-import com.walletconnect.walletconnectv2.core.model.vo.JsonRpcResponseVO
+import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcResponseVO
+import com.walletconnect.walletconnectv2.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 
 //TODO: Provide VO objects for engine classes. Remove using the EngineDO object in the client layer
 
 @JvmSynthetic
+internal fun EngineDO.ProposedSequence.toClientProposedSequence(): WalletConnect.Model.ProposedSequence =
+    when (this) {
+        is EngineDO.ProposedSequence.Pairing -> WalletConnect.Model.ProposedSequence.Pairing(this.uri)
+        is EngineDO.ProposedSequence.Session -> WalletConnect.Model.ProposedSequence.Session
+    }
+
+@JvmSynthetic
+internal fun WalletConnect.Model.JsonRpcResponse.toJsonRpcResponseVO(): JsonRpcResponseVO =
+    when (this) {
+        is WalletConnect.Model.JsonRpcResponse.JsonRpcResult -> this.toRpcResultVO()
+        is WalletConnect.Model.JsonRpcResponse.JsonRpcError -> this.toRpcErrorVO()
+    }
+
+@JvmSynthetic
+internal fun EngineDO.SettledSessionResponse.toClientSettledSessionResponse(): WalletConnect.Model.SettledSessionResponse =
+    when (this) {
+        is EngineDO.SettledSessionResponse.Result -> WalletConnect.Model.SettledSessionResponse.Result(settledSession.toClientSettledSession())
+        is EngineDO.SettledSessionResponse.Error -> WalletConnect.Model.SettledSessionResponse.Error(errorMessage)
+    }
+
+@JvmSynthetic
+internal fun EngineDO.SessionUpdateAccountsResponse.toClientUpdateSessionAccountsResponse(): WalletConnect.Model.SessionUpdateAccountsResponse =
+    when (this) {
+        is EngineDO.SessionUpdateAccountsResponse.Result -> WalletConnect.Model.SessionUpdateAccountsResponse.Result(topic.value, accounts)
+        is EngineDO.SessionUpdateAccountsResponse.Error -> WalletConnect.Model.SessionUpdateAccountsResponse.Error(errorMessage)
+    }
+
+@JvmSynthetic
+internal fun EngineDO.SessionUpdateMethodsResponse.toClientUpdateSessionMethodsResponse(): WalletConnect.Model.SessionUpdateMethodsResponse =
+    when (this) {
+        is EngineDO.SessionUpdateMethodsResponse.Result -> WalletConnect.Model.SessionUpdateMethodsResponse.Result(topic.value, methods)
+        is EngineDO.SessionUpdateMethodsResponse.Error -> WalletConnect.Model.SessionUpdateMethodsResponse.Error(errorMessage)
+    }
+
+@JvmSynthetic
+internal fun EngineDO.SessionUpdateEventsResponse.toClientUpdateSessionEventsResponse(): WalletConnect.Model.SessionUpdateEventsResponse =
+    when (this) {
+        is EngineDO.SessionUpdateEventsResponse.Result -> WalletConnect.Model.SessionUpdateEventsResponse.Result(topic.value, events)
+        is EngineDO.SessionUpdateEventsResponse.Error -> WalletConnect.Model.SessionUpdateEventsResponse.Error(errorMessage)
+    }
+
+@JvmSynthetic
+internal fun EngineDO.JsonRpcResponse.toClientJsonRpcResponse(): WalletConnect.Model.JsonRpcResponse =
+    when (this) {
+        is EngineDO.JsonRpcResponse.JsonRpcResult -> this.toClientJsonRpcResult()
+        is EngineDO.JsonRpcResponse.JsonRpcError -> this.toClientJsonRpcError()
+    }
+
+@JvmSynthetic
 internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.Model.SessionProposal =
     WalletConnect.Model.SessionProposal(
-        name, description, url, icons, chains, methods, types, topic, publicKey, isController, ttl, accounts, relayProtocol
+        name,
+        description,
+        url,
+        icons,
+        chains,
+        methods,
+        events,
+        proposerPublicKey,
+        accounts,
+        relayProtocol,
+        relayData
     )
 
 @JvmSynthetic
-internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(accountList: List<String>): EngineDO.SessionProposal =
+internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(accountList: List<String> = listOf()): EngineDO.SessionProposal =
     EngineDO.SessionProposal(
         name,
         description,
@@ -22,45 +81,24 @@ internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(account
         icons,
         chains,
         methods,
-        if (types?.isEmpty() == true) null else types,
-        topic,
+        events,
         proposerPublicKey,
-        isController,
-        ttl,
         accountList,
-        relayProtocol
+        relayProtocol,
+        relayData
     )
-
-@JvmSynthetic
-internal fun EngineDO.SettledSession.toClientSettledSession(): WalletConnect.Model.SettledSession =
-    WalletConnect.Model.SettledSession(
-        topic.value, accounts, peerAppMetaData?.toClientAppMetaData(), permissions.toClientSettledSessionPermissions()
-    )
-
-@JvmSynthetic
-internal fun EngineDO.SettledSession.Permissions.toClientSettledSessionPermissions(): WalletConnect.Model.SettledSession.Permissions =
-    WalletConnect.Model.SettledSession.Permissions(
-        blockchain.toClientSettledSessionBlockchain(),
-        jsonRpc.toClientSettledSessionJsonRpc(),
-        notifications.toClientSettledSessionNotifications()
-    )
-
-@JvmSynthetic
-internal fun EngineDO.SettledSession.Permissions.Blockchain.toClientSettledSessionBlockchain(): WalletConnect.Model.SettledSession.Permissions.Blockchain =
-    WalletConnect.Model.SettledSession.Permissions.Blockchain(chains)
-
-@JvmSynthetic
-internal fun EngineDO.SettledSession.Permissions.JsonRpc.toClientSettledSessionJsonRpc(): WalletConnect.Model.SettledSession.Permissions.JsonRpc =
-    WalletConnect.Model.SettledSession.Permissions.JsonRpc(methods)
-
-@JvmSynthetic
-internal fun EngineDO.SettledSession.Permissions.Notifications.toClientSettledSessionNotifications(): WalletConnect.Model.SettledSession.Permissions.Notifications =
-    WalletConnect.Model.SettledSession.Permissions.Notifications(types)
 
 @JvmSynthetic
 internal fun EngineDO.SessionRequest.toClientSessionRequest(): WalletConnect.Model.SessionRequest =
     WalletConnect.Model.SessionRequest(
-        topic, chainId, WalletConnect.Model.SessionRequest.JSONRPCRequest(request.id, request.method, request.params)
+        topic = topic,
+        chainId = chainId,
+        peerMetaData = peerAppMetaData?.toClientAppMetaData(),
+        request = WalletConnect.Model.SessionRequest.JSONRPCRequest(
+            id = request.id,
+            method = request.method,
+            params = request.params
+        )
     )
 
 @JvmSynthetic
@@ -69,29 +107,40 @@ internal fun WalletConnect.Model.JsonRpcResponse.JsonRpcResult.toRpcResultVO(): 
 
 @JvmSynthetic
 internal fun WalletConnect.Model.JsonRpcResponse.JsonRpcError.toRpcErrorVO(): JsonRpcResponseVO.JsonRpcError =
-    JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(error.code, error.message))
+    JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(code, message))
 
 @JvmSynthetic
-internal fun WalletConnect.Model.SessionState.toEngineSessionState(): EngineDO.SessionState = EngineDO.SessionState(accounts)
-
-@JvmSynthetic
-internal fun WalletConnect.Model.Notification.toEngineNotification(): EngineDO.Notification = EngineDO.Notification(type, data)
+internal fun WalletConnect.Model.SessionEvent.toEngineEvent(chainId: String?): EngineDO.Event = EngineDO.Event(name, data, chainId)
 
 @JvmSynthetic
 internal fun EngineDO.SessionDelete.toClientDeletedSession(): WalletConnect.Model.DeletedSession =
-    WalletConnect.Model.DeletedSession(topic, reason)
+    WalletConnect.Model.DeletedSession.Success(topic, reason)
 
 @JvmSynthetic
-internal fun EngineDO.SessionNotification.toClientSessionNotification(): WalletConnect.Model.SessionNotification =
-    WalletConnect.Model.SessionNotification(topic, type, data)
+internal fun EngineDO.SessionEvent.toClientSessionEvent(): WalletConnect.Model.SessionEvent =
+    WalletConnect.Model.SessionEvent(name, data)
 
 @JvmSynthetic
-internal fun EngineDO.SettledPairing.toClientSettledPairing(): WalletConnect.Model.SettledPairing =
-    WalletConnect.Model.SettledPairing(topic.value, appMetaData?.toClientAppMetaData())
+internal fun EngineDO.Session.toClientSettledSession(): WalletConnect.Model.Session =
+    WalletConnect.Model.Session(
+        topic.value,
+        expiry.seconds,
+        accounts,
+        methods,
+        events,
+        peerAppMetaData?.toClientAppMetaData()
+    )
 
 @JvmSynthetic
-internal fun EngineDO.PairingUpdate.toClientSettledPairing(): WalletConnect.Model.SettledPairing =
-    WalletConnect.Model.SettledPairing(topic.value, metaData.toClientAppMetaData())
+internal fun EngineDO.SessionUpdateExpiry.toClientSettledSession(): WalletConnect.Model.Session =
+    WalletConnect.Model.Session(
+        topic.value,
+        expiry.seconds,
+        accounts,
+        methods,
+        events,
+        peerAppMetaData?.toClientAppMetaData()
+    )
 
 @JvmSynthetic
 internal fun EngineDO.SessionRejected.toClientSessionRejected(): WalletConnect.Model.RejectedSession =
@@ -99,28 +148,13 @@ internal fun EngineDO.SessionRejected.toClientSessionRejected(): WalletConnect.M
 
 @JvmSynthetic
 internal fun EngineDO.SessionApproved.toClientSessionApproved(): WalletConnect.Model.ApprovedSession =
-    WalletConnect.Model.ApprovedSession(topic, peerAppMetaData?.toClientAppMetaData(), permissions.toClientPerms(), accounts)
-
-@JvmSynthetic
-internal fun WalletConnect.Model.SessionPermissions.toEngineSessionPermissions(): EngineDO.SessionPermissions =
-    EngineDO.SessionPermissions(EngineDO.Blockchain(blockchain.chains), EngineDO.JsonRpc(jsonRpc.methods))
-
-@JvmSynthetic
-internal fun EngineDO.SessionPermissions.toClientPerms(): WalletConnect.Model.SessionPermissions =
-    WalletConnect.Model.SessionPermissions(WalletConnect.Model.Blockchain(blockchain.chains), WalletConnect.Model.Jsonrpc(jsonRpc.methods))
+    WalletConnect.Model.ApprovedSession(topic, peerAppMetaData?.toClientAppMetaData(), methods, events, accounts)
 
 @JvmSynthetic
 internal fun WalletConnect.Model.AppMetaData.toEngineAppMetaData() = EngineDO.AppMetaData(name, description, url, icons)
 
 @JvmSynthetic
 internal fun EngineDO.AppMetaData.toClientAppMetaData() = WalletConnect.Model.AppMetaData(name, description, url, icons)
-
-@JvmSynthetic
-internal fun WalletConnect.Model.JsonRpcResponse.toJsonRpcResponseVO(): JsonRpcResponseVO =
-    when (this) {
-        is WalletConnect.Model.JsonRpcResponse.JsonRpcResult -> this.toRpcResultVO()
-        is WalletConnect.Model.JsonRpcResponse.JsonRpcError -> this.toRpcErrorVO()
-    }
 
 @JvmSynthetic
 internal fun WalletConnect.Params.Request.toEngineDORequest(): EngineDO.Request =
@@ -131,24 +165,37 @@ internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toClientJsonRpcResult(): Wal
     WalletConnect.Model.JsonRpcResponse.JsonRpcResult(id, result)
 
 @JvmSynthetic
-internal fun EngineDO.SessionUpdate.toClientSessionsUpdate(): WalletConnect.Model.UpdatedSession =
-    WalletConnect.Model.UpdatedSession(topic.value, accounts)
+internal fun EngineDO.SessionUpdateAccounts.toClientSessionsUpdateAccounts(): WalletConnect.Model.UpdatedSessionAccounts =
+    WalletConnect.Model.UpdatedSessionAccounts(topic.value, accounts)
 
 @JvmSynthetic
-internal fun EngineDO.SessionUpgrade.toClientSessionsUpgrade(): WalletConnect.Model.UpgradedSession =
-    WalletConnect.Model.UpgradedSession(
-        topic.value,
-        WalletConnect.Model.SessionPermissions(WalletConnect.Model.Blockchain(chains), WalletConnect.Model.Jsonrpc(methods))
-    )
+internal fun EngineDO.SessionUpdateMethods.toClientSessionsUpdateMethods(): WalletConnect.Model.UpdatedSessionMethods =
+    WalletConnect.Model.UpdatedSessionMethods(topic.value, methods)
 
 @JvmSynthetic
-internal fun List<JsonRpcHistoryVO>.mapToHistory() = this.map { jsonRpcHistoryVO ->
-    WalletConnect.Model.JsonRpcHistory.HistoryEntry(
-        jsonRpcHistoryVO.requestId,
-        jsonRpcHistoryVO.topic,
-        jsonRpcHistoryVO.method,
-        jsonRpcHistoryVO.body,
-        jsonRpcHistoryVO.jsonRpcStatus,
-        jsonRpcHistoryVO.controllerType
-    )
-}
+internal fun EngineDO.SessionUpdateEvents.toClientSessionsUpdateEvents(): WalletConnect.Model.UpdatedSessionEvents =
+    WalletConnect.Model.UpdatedSessionEvents(topic.value, events)
+
+@JvmSynthetic
+internal fun EngineDO.JsonRpcResponse.JsonRpcError.toClientJsonRpcError(): WalletConnect.Model.JsonRpcResponse.JsonRpcError =
+    WalletConnect.Model.JsonRpcResponse.JsonRpcError(id, code = error.code, message = error.message)
+
+@JvmSynthetic
+internal fun EngineDO.PairingSettle.toClientSettledPairing(): WalletConnect.Model.Pairing =
+    WalletConnect.Model.Pairing(topic.value, metaData?.toClientAppMetaData())
+
+@JvmSynthetic
+internal fun List<PendingRequestVO>.mapToPendingRequests(): List<WalletConnect.Model.PendingRequest> =
+    this.map { request ->
+        WalletConnect.Model.PendingRequest(
+            request.requestId,
+            request.topic,
+            request.method,
+            request.chainId,
+            request.params
+        )
+    }
+
+@JvmSynthetic
+internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): WalletConnect.Model.SessionRequestResponse =
+    WalletConnect.Model.SessionRequestResponse(topic, chainId, method, result.toClientJsonRpcResponse())

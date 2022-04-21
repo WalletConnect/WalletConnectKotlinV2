@@ -4,15 +4,10 @@ package com.walletconnect.walletconnectv2.util
 
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import java.lang.System.currentTimeMillis
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 
 @JvmSynthetic
-internal fun ExpiryVO.isSequenceValid(): Boolean = seconds > (currentTimeMillis() / 1000)
-
-@JvmSynthetic
-internal fun pendingSequenceExpirySeconds() = ((currentTimeMillis() / 1000) + 86400) //24h
+internal fun ExpiryVO.isSequenceValid(): Boolean = seconds > Time.currentTimeInSeconds
 
 @JvmSynthetic
 internal fun randomBytes(size: Int): ByteArray =
@@ -48,22 +43,6 @@ internal fun String.hexToBytes(): ByteArray {
     }
     return data
 }
-
-@get:JvmSynthetic
-internal val String.hexToUtf8: String
-    get() {
-        var hex = this
-        hex = getHexPrefix(hex)
-        val buff = ByteBuffer.allocate(hex.length / 2)
-        var i = 0
-        while (i < hex.length) {
-            buff.put(hex.substring(i, i + 2).toInt(16).toByte())
-            i += 2
-        }
-        buff.rewind()
-        val cb = StandardCharsets.UTF_8.decode(buff)
-        return cb.toString()
-    }
 
 private fun getHexPrefix(input: String): String =
     if (containsHexPrefix(input)) {

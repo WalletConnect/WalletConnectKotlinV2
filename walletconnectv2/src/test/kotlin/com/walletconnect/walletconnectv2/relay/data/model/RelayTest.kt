@@ -31,7 +31,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.singleOrNull
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockWebServer
-import org.assertj.core.api.Assertions.assertThat
 import org.intellij.lang.annotations.Language
 import org.json.JSONObject
 import org.junit.Rule
@@ -119,56 +118,56 @@ internal class RelayTest {
         }
     }
 
-    @Nested
-    inner class Subscribe {
-
-        @Test
-        fun `Client sends Relay_Subscribe_Request, should be received by the server`() {
-            // Arrange
-            val relaySubscribeRequest = RelayDTO.Subscribe.Request(
-                id = 1,
-                params = RelayDTO.Subscribe.Request.Params(TopicVO(getRandom64ByteHexString()))
-            )
-            val serverRelayPublishObserver = server.observeSubscribePublish().test()
-
-            // Act
-            client.subscribeRequest(relaySubscribeRequest)
-
-            // Assert
-            serverEventObserver.awaitValues(
-                any<WebSocket.Event.OnConnectionOpened<*>>(),
-                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relaySubscribeRequest)
-            )
-            serverRelayPublishObserver.awaitValues(
-                any<RelayDTO.Subscribe.Request> { assertThat(this).isEqualTo(relaySubscribeRequest) }
-            )
-        }
-
-        @Test
-        fun `Server sends Relay_Subscribe_Acknowledgement, should be received by the client`() {
-            // Arrange
-            val relaySubscribeAcknowledgement = RelayDTO.Subscribe.Acknowledgement(
-                id = 1,
-                result = SubscriptionIdVO("SubscriptionId 1")
-            )
-            val clientRelaySubscribeObserver = client.observeSubscribeAcknowledgement()
-
-            // Act
-            server.sendSubscribeAcknowledgement(relaySubscribeAcknowledgement)
-
-            // Assert
-//            clientEventObserver.awaitValues(
-//                any<WebSocket.Event.OnConnectionOpened<*>>(),
-//                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relaySubscribeAcknowledgement)
+//    @Nested
+//    inner class Subscribe {
+//
+//        @Test
+//        fun `Client sends Relay_Subscribe_Request, should be received by the server`() {
+//            // Arrange
+//            val relaySubscribeRequest = RelayDTO.Subscribe.Request(
+//                id = 1,
+//                params = RelayDTO.Subscribe.Request.Params(TopicVO(getRandom64ByteHexString()))
 //            )
-
-            coroutineRule.runTest {
-                val actualSubscribeAcknowledgement = clientRelaySubscribeObserver.singleOrNull()
-                assertNotNull(actualSubscribeAcknowledgement)
-                assertEquals(relaySubscribeAcknowledgement, actualSubscribeAcknowledgement)
-            }
-        }
-    }
+//            val serverRelayPublishObserver = server.observeSubscribePublish().test()
+//
+//            // Act
+//            client.subscribeRequest(relaySubscribeRequest)
+//
+//            // Assert
+//            serverEventObserver.awaitValues(
+//                any<WebSocket.Event.OnConnectionOpened<*>>(),
+//                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relaySubscribeRequest)
+//            )
+//            serverRelayPublishObserver.awaitValues(
+//                any<RelayDTO.Subscribe.Request> { assertThat(this).isEqualTo(relaySubscribeRequest) }
+//            )
+//        }
+//
+//        @Test
+//        fun `Server sends Relay_Subscribe_Acknowledgement, should be received by the client`() {
+//            // Arrange
+//            val relaySubscribeAcknowledgement = RelayDTO.Subscribe.Acknowledgement(
+//                id = 1,
+//                result = SubscriptionIdVO("SubscriptionId 1")
+//            )
+//            val clientRelaySubscribeObserver = client.observeSubscribeAcknowledgement()
+//
+//            // Act
+//            server.sendSubscribeAcknowledgement(relaySubscribeAcknowledgement)
+//
+//            // Assert
+////            clientEventObserver.awaitValues(
+////                any<WebSocket.Event.OnConnectionOpened<*>>(),
+////                any<WebSocket.Event.OnMessageReceived>().containingRelayObject(relaySubscribeAcknowledgement)
+////            )
+//
+//            coroutineRule.runTest {
+//                val actualSubscribeAcknowledgement = clientRelaySubscribeObserver.singleOrNull()
+//                assertNotNull(actualSubscribeAcknowledgement)
+//                assertEquals(relaySubscribeAcknowledgement, actualSubscribeAcknowledgement)
+//            }
+//        }
+//    }
 
     @Nested
     inner class Subscription {

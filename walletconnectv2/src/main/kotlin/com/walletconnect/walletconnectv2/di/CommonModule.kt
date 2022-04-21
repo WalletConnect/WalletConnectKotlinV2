@@ -9,9 +9,11 @@ import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.TtlVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionRequestVO
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
 import org.json.JSONObject
 import org.koin.dsl.module
+import kotlin.reflect.jvm.jvmName
 
 @JvmSynthetic
 internal fun commonModule() = module {
@@ -28,13 +30,15 @@ internal fun commonModule() = module {
 
     single {
         Moshi.Builder()
-            .addLast { type, _, _ ->
+            .addLast { type, _, moshi ->
                 when (type.getRawType().name) {
-                    ExpiryVO::class.qualifiedName -> ExpiryAdapter
-                    JSONObject::class.qualifiedName -> JSONObjectAdapter
-                    SubscriptionIdVO::class.qualifiedName -> SubscriptionIdAdapter
-                    TopicVO::class.qualifiedName -> TopicAdapter
-                    TtlVO::class.qualifiedName -> TtlAdapter
+                    ExpiryVO::class.jvmName -> ExpiryAdapter
+                    JSONObject::class.jvmName -> JSONObjectAdapter
+                    SubscriptionIdVO::class.jvmName -> SubscriptionIdAdapter
+                    TopicVO::class.jvmName -> TopicAdapter
+                    TtlVO::class.jvmName -> TtlAdapter
+                    SessionRequestVO::class.jvmName -> SessionRequestVOJsonAdapter(moshi)
+                    RelayDO.JsonRpcResponse.JsonRpcResult::class.jvmName -> RelayDOJsonRpcResultJsonAdapter(moshi)
                     else -> null
                 }
             }
