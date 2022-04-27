@@ -822,7 +822,6 @@ internal class EngineInteractor(
             }
 
         listOfValidSessions
-            .filter { session -> session.isAcknowledged }
             .onEach { session -> relayer.subscribe(session.topic) }
     }
 

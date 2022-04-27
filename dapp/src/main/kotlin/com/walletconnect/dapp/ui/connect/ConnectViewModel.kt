@@ -65,14 +65,14 @@ class ConnectViewModel : ViewModel() {
             chains = chains,
             methods = methods,
             events = listOf(),
-            pairingTopic = pairingTopic)
+            pairingTopic = pairingTopic
+        )
 
         WalletConnectClient.connect(connectParams,
             onProposedSequence = { proposedSequence ->
                 viewModelScope.launch(Dispatchers.Main) {
                     onProposedSequence(proposedSequence)
                 }
-
             },
             onFailure = { error -> Log.e(tag(this@ConnectViewModel), error.error.stackTraceToString()) })
     }

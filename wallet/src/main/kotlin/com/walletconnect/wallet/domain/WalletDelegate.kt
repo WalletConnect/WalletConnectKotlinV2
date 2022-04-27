@@ -78,4 +78,8 @@ object WalletDelegate : WalletConnectClient.WalletDelegate {
     fun setSelectedAccount(selectedChainAddressId: Int) {
         this.selectedChainAddressId = selectedChainAddressId
     }
+
+    fun clearCache() {
+        _wcEventModels.resetReplayCache()
+    }
 }
