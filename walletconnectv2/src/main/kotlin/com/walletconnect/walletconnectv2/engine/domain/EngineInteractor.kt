@@ -215,6 +215,8 @@ internal class EngineInteractor(
             throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
+        //todo: @Szymon: Any additional validation is needed here?
+
         val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toNamespacesVO())
         val sessionUpdateMethods = SessionSettlementVO.SessionUpdateNamespaces(id = generateId(), params = params)
         sequenceStorageRepository.updateSessionWithNamespaces(TopicVO(topic), namespaces.toNamespacesVO())
@@ -488,6 +490,7 @@ internal class EngineInteractor(
             return
         }
 
+        //todo: @Szymon: add validation whether the method and chainId are included into namespaces. What if chainId is null?
         val session = sequenceStorageRepository.getSessionByTopic(request.topic)
         Validator.validateChainIdAuthorization(params.chainId, session.namespaces) {
             relayer.respondWithError(request, PeerError.UnauthorizedTargetChainId(params.chainId ?: String.Empty))
@@ -514,6 +517,7 @@ internal class EngineInteractor(
             return
         }
 
+        //todo: @Szymon: add validation whether the event and chainId are included into namespaces. What if chainId is null?
         val event = params.event
         Validator.validateChainIdAuthorization(params.chainId, session.namespaces) {
             relayer.respondWithError(request, PeerError.UnauthorizedEventRequest(event.name))
@@ -606,8 +610,7 @@ internal class EngineInteractor(
                     is PairingParamsVO.SessionProposeParams -> onSessionProposalResponse(response, params)
                     is SessionParamsVO.SessionSettleParams -> onSessionSettleResponse(response)
                     is SessionParamsVO.UpdateAccountsParams -> onSessionUpdateAccountsResponse(response)
-//                    is SessionParamsVO.UpdateMethodsParams -> onSessionUpdateMethodsResponse(response)
-//                    is SessionParamsVO.UpdateEventsParams -> onSessionUpdateEventsResponse(response)
+                    is SessionParamsVO.UpdateNamespacesParams -> onSessionUpdateNamespacesResponse(response)
                     is SessionParamsVO.SessionRequestParams -> onSessionRequestResponse(response, params)
                 }
             }
@@ -676,41 +679,25 @@ internal class EngineInteractor(
         }
     }
 
-//    private fun onSessionUpdateMethodsResponse(wcResponse: WCResponseVO) {
-//        val sessionTopic = wcResponse.topic
-//        if (!sequenceStorageRepository.isSessionValid(sessionTopic)) return
-//        val session = sequenceStorageRepository.getSessionByTopic(sessionTopic)
-//
-//        when (val response = wcResponse.response) {
-//            is JsonRpcResponseVO.JsonRpcResult -> {
-//                Logger.log("Session update methods response received")
-//                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateMethodsResponse.Result(session.topic, session.methods)) }
-//            }
-//            is JsonRpcResponseVO.JsonRpcError -> {
-//                Logger.error("Peer failed to update session: ${response.error}")
-//                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateMethodsResponse.Error(response.errorMessage)) }
-//            }
-//        }
-//    }
-//
-//    private fun onSessionUpdateEventsResponse(wcResponse: WCResponseVO) {
-//        val sessionTopic = wcResponse.topic
-//        if (!sequenceStorageRepository.isSessionValid(sessionTopic)) return
-//        val session = sequenceStorageRepository.getSessionByTopic(sessionTopic)
-//
-//        when (val response = wcResponse.response) {
-//            is JsonRpcResponseVO.JsonRpcResult -> {
-//                Logger.log("Session update events response received")
-//                scope.launch {
-//                    _sequenceEvent.emit(EngineDO.SessionUpdateEventsResponse.Result(session.topic, session.events))
-//                }
-//            }
-//            is JsonRpcResponseVO.JsonRpcError -> {
-//                Logger.error("Peer failed to events session: ${response.error}")
-//                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateMethodsResponse.Error(response.errorMessage)) }
-//            }
-//        }
-//    }
+    private fun onSessionUpdateNamespacesResponse(wcResponse: WCResponseVO) {
+        val sessionTopic = wcResponse.topic
+        if (!sequenceStorageRepository.isSessionValid(sessionTopic)) return
+        val session = sequenceStorageRepository.getSessionByTopic(sessionTopic)
+
+        when (val response = wcResponse.response) {
+            is JsonRpcResponseVO.JsonRpcResult -> {
+                Logger.log("Session update namespaces response received")
+                scope.launch {
+                    _sequenceEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Result(session.topic,
+                        session.namespaces.toListOfEngineNamespaces()))
+                }
+            }
+            is JsonRpcResponseVO.JsonRpcError -> {
+                Logger.error("Peer failed to update session namespaces: ${response.error}")
+                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error(response.errorMessage)) }
+            }
+        }
+    }
 
     private fun onSessionRequestResponse(response: WCResponseVO, params: SessionParamsVO.SessionRequestParams) {
         val result = when (response.response) {

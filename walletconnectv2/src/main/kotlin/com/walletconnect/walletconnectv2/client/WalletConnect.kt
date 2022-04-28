@@ -64,14 +64,9 @@ object WalletConnect {
             data class Error(val errorMessage: String) : SessionUpdateAccountsResponse()
         }
 
-        sealed class SessionUpdateMethodsResponse : Model() {
-            data class Result(val topic: String, val methods: List<String>) : SessionUpdateMethodsResponse()
-            data class Error(val errorMessage: String) : SessionUpdateMethodsResponse()
-        }
-
-        sealed class SessionUpdateEventsResponse : Model() {
-            data class Result(val topic: String, val events: List<String>) : SessionUpdateEventsResponse()
-            data class Error(val errorMessage: String) : SessionUpdateEventsResponse()
+        sealed class SessionUpdateNamespacesResponse : Model() {
+            data class Result(val topic: String, val namespaces: List<Namespace>) : SessionUpdateNamespacesResponse()
+            data class Error(val errorMessage: String) : SessionUpdateNamespacesResponse()
         }
 
         sealed class DeletedSession : Model() {

@@ -36,17 +36,11 @@ internal fun EngineDO.SessionUpdateAccountsResponse.toClientUpdateSessionAccount
     }
 
 @JvmSynthetic
-internal fun EngineDO.SessionUpdateMethodsResponse.toClientUpdateSessionMethodsResponse(): WalletConnect.Model.SessionUpdateMethodsResponse =
+internal fun EngineDO.SessionUpdateNamespacesResponse.toClientUpdateSessionNamespacesResponse(): WalletConnect.Model.SessionUpdateNamespacesResponse =
     when (this) {
-        is EngineDO.SessionUpdateMethodsResponse.Result -> WalletConnect.Model.SessionUpdateMethodsResponse.Result(topic.value, methods)
-        is EngineDO.SessionUpdateMethodsResponse.Error -> WalletConnect.Model.SessionUpdateMethodsResponse.Error(errorMessage)
-    }
-
-@JvmSynthetic
-internal fun EngineDO.SessionUpdateEventsResponse.toClientUpdateSessionEventsResponse(): WalletConnect.Model.SessionUpdateEventsResponse =
-    when (this) {
-        is EngineDO.SessionUpdateEventsResponse.Result -> WalletConnect.Model.SessionUpdateEventsResponse.Result(topic.value, events)
-        is EngineDO.SessionUpdateEventsResponse.Error -> WalletConnect.Model.SessionUpdateEventsResponse.Error(errorMessage)
+        is EngineDO.SessionUpdateNamespacesResponse.Result ->
+            WalletConnect.Model.SessionUpdateNamespacesResponse.Result(topic.value, namespaces.toListOfClientNamespaces())
+        is EngineDO.SessionUpdateNamespacesResponse.Error -> WalletConnect.Model.SessionUpdateNamespacesResponse.Error(errorMessage)
     }
 
 @JvmSynthetic
