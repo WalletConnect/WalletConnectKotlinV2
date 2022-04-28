@@ -3,6 +3,7 @@ package com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.param
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.payload.SessionProposerVO
 import com.walletconnect.walletconnectv2.util.DefaultId
@@ -15,12 +16,8 @@ internal sealed class PairingParamsVO : ClientParams {
         val relays: List<RelayProtocolOptionsVO>,
         @Json(name = "proposer")
         val proposer: SessionProposerVO,
-        @Json(name = "chains")
-        val chains: List<String>,
-        @Json(name = "methods")
-        val methods: List<String>,
-        @Json(name = "events")
-        val events: List<String>,
+        @Json(name = "namespaces")
+        val namespaces: List<NamespaceVO>,
     ) : PairingParamsVO()
 
     @JsonClass(generateAdapter = true)

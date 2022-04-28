@@ -63,9 +63,7 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.M
         description,
         url,
         icons,
-        chains,
-        methods,
-        events,
+        namespaces.toListOfClientNamespaces(),
         proposerPublicKey,
         accounts,
         relayProtocol,
@@ -79,9 +77,7 @@ internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(account
         description,
         url,
         icons,
-        chains,
-        methods,
-        events,
+        namespaces.toListOfEngineNamespaces(),
         proposerPublicKey,
         accountList,
         relayProtocol,
@@ -199,3 +195,37 @@ internal fun List<PendingRequestVO>.mapToPendingRequests(): List<WalletConnect.M
 @JvmSynthetic
 internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): WalletConnect.Model.SessionRequestResponse =
     WalletConnect.Model.SessionRequestResponse(topic, chainId, method, result.toClientJsonRpcResponse())
+
+@JvmSynthetic
+internal fun List<WalletConnect.Model.Namespace>.toListOfEngineNamespaces(): List<EngineDO.Namespace> =
+    mutableListOf<EngineDO.Namespace>().apply {
+        this@toListOfEngineNamespaces.forEach { namespace ->
+            add(namespace.toEngineNamespace())
+        }
+    }
+
+@JvmSynthetic
+internal fun WalletConnect.Model.Namespace.toEngineNamespace(): EngineDO.Namespace = EngineDO.Namespace(chains, methods, events)
+
+@JvmSynthetic
+internal fun List<EngineDO.Namespace>.toListOfClientNamespaces(): List<WalletConnect.Model.Namespace> =
+    mutableListOf<WalletConnect.Model.Namespace>().apply {
+        this@toListOfClientNamespaces.forEach { namespace ->
+            add(namespace.toClientNamespace())
+        }
+    }
+
+@JvmSynthetic
+internal fun EngineDO.Namespace.toClientNamespace(): WalletConnect.Model.Namespace = WalletConnect.Model.Namespace(chains, methods, events)
+
+@JvmSynthetic
+internal fun List<WalletConnect.Model.RelayProtocolOptions>.toListEngineOfRelayProtocolOptions(): List<EngineDO.RelayProtocolOptions> =
+    mutableListOf<EngineDO.RelayProtocolOptions>().apply {
+        this@toListEngineOfRelayProtocolOptions.forEach { relayOptions ->
+            add(relayOptions.toEngineRelayProtocolOptions())
+        }
+    }
+
+@JvmSynthetic
+internal fun WalletConnect.Model.RelayProtocolOptions.toEngineRelayProtocolOptions(): EngineDO.RelayProtocolOptions =
+    EngineDO.RelayProtocolOptions(protocol, data)

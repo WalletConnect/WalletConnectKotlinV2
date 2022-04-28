@@ -27,9 +27,7 @@ object WalletConnect {
             val description: String,
             val url: String,
             val icons: List<URI>,
-            val chains: List<String>,
-            val methods: List<String>,
-            val events: List<String>,
+            val namespaces: List<Namespace>,
             val proposerPublicKey: String,
             val accounts: List<String>,
             val relayProtocol: String,
@@ -49,6 +47,10 @@ object WalletConnect {
                 val params: String,
             ) : Model()
         }
+
+        data class Namespace(val chains: List<String>, val methods: List<String>, val events: List<String>) : Model()
+
+        data class RelayProtocolOptions(val protocol: String, val data: String? = null) : Model()
 
         data class Pairing(val topic: String, val metaData: AppMetaData?) : Model()
 
@@ -202,16 +204,19 @@ object WalletConnect {
         }
 
         data class Connect(
-            val chains: List<String>,
-            val methods: List<String>,
-            val events: List<String>,
+            val namespaces: List<Model.Namespace>,
+            val relays: List<Model.RelayProtocolOptions>? = null,
             val pairingTopic: String? = null,
         ) : Params()
 
         data class Pair(val uri: String) : Params()
 
-        data class Approve(val proposerPublicKey: String, val accounts: List<String>, val methods: List<String>, val events: List<String>) :
-            Params()
+        data class Approve(
+            val proposerPublicKey: String,
+            val accounts: List<String>,
+            val namespaces: List<Model.Namespace>,
+            val relayProtocol: String? = null,
+        ) : Params()
 
         data class Reject(val proposerPublicKey: String, val reason: String, val code: Int) : Params()
 

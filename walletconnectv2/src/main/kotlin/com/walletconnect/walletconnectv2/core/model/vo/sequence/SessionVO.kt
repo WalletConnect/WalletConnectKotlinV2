@@ -8,6 +8,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.MetaDat
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
+import com.walletconnect.walletconnectv2.engine.model.EngineDO
 
 internal data class SessionVO(
     override val topic: TopicVO,
@@ -30,6 +31,8 @@ internal data class SessionVO(
 
     internal companion object {
 
+        //todo: add namespaces
+
         @JvmSynthetic
         internal fun createUnacknowledgedSession(
             sessionTopic: TopicVO,
@@ -37,8 +40,7 @@ internal data class SessionVO(
             selfParticipant: SessionParticipantVO,
             sessionExpiry: Long,
             accounts: List<String>,
-            methods: List<String>,
-            events: List<String>,
+            namespaces: List<EngineDO.Namespace>,
         ): SessionVO {
             return SessionVO(
                 sessionTopic,
@@ -50,7 +52,7 @@ internal data class SessionVO(
                 selfPublicKey = PublicKey(selfParticipant.publicKey),
                 selfMetaData = selfParticipant.metadata,
                 controllerKey = PublicKey(selfParticipant.publicKey),
-                methods = methods,
+                methods = namespaces,
                 events = events,
                 accounts = accounts,
                 isAcknowledged = false

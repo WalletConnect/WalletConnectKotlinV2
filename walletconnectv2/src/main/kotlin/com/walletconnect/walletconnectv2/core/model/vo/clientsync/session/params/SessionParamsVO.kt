@@ -3,6 +3,7 @@ package com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.param
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionEventVO
@@ -27,10 +28,8 @@ internal sealed class SessionParamsVO : ClientParams {
         val controller: SessionParticipantVO,
         @Json(name = "accounts")
         val accounts: List<String>,
-        @Json(name = "methods")
-        val methods: List<String>,
-        @Json(name = "events")
-        val events: List<String>,
+        @Json(name = "namespaces")
+        val namespaces: List<NamespaceVO>,
         @Json(name = "expiry")
         val expiry: Long,
     ) : SessionParamsVO()

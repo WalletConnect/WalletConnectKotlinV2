@@ -4,6 +4,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.MetaDataVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
@@ -44,9 +45,7 @@ internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): E
         description = this.proposer.metadata.description,
         url = this.proposer.metadata.url,
         icons = this.proposer.metadata.icons.map { URI(it) },
-        chains = this.chains,
-        methods = this.methods,
-        events = this.events,
+        namespaces = this.namespaces.toListOfEngineNamespaces(),
         proposerPublicKey = this.proposer.publicKey,
         accounts = listOf(),
         relayProtocol = relays.first().protocol,
@@ -54,7 +53,10 @@ internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): E
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.SessionRequestParams.toEngineDOSessionRequest(request: WCRequestVO, peerMetaDataVO: MetaDataVO?): EngineDO.SessionRequest =
+internal fun SessionParamsVO.SessionRequestParams.toEngineDOSessionRequest(
+    request: WCRequestVO,
+    peerMetaDataVO: MetaDataVO?,
+): EngineDO.SessionRequest =
     EngineDO.SessionRequest(
         topic = request.topic.value,
         chainId = chainId,
@@ -120,28 +122,48 @@ internal fun PairingParamsVO.SessionProposeParams.toSessionSettleParams(
     selfParticipant: SessionParticipantVO,
     sessionExpiry: Long,
     accounts: List<String>,
-    methods: List<String>,
-    events: List<String>,
+    namespaces: List<EngineDO.Namespace>,
 ): SessionParamsVO.SessionSettleParams =
     SessionParamsVO.SessionSettleParams(
         relay = RelayProtocolOptionsVO(relays.first().protocol, relays.first().data),
         controller = selfParticipant,
         accounts = accounts,
-        methods = methods,
-        events = events,
+        namespaces = namespaces.toNamespacesVO(),
         expiry = sessionExpiry)
 
 @JvmSynthetic
 internal fun toSessionProposeParams(
-    relay: RelayProtocolOptionsVO,
-    chains: List<String>, methods: List<String>, events: List<String>,
+    relays: List<EngineDO.RelayProtocolOptions>?,
+    namespaces: List<EngineDO.Namespace>,
     selfPublicKey: PublicKey,
     metaData: EngineDO.AppMetaData,
 ) = PairingParamsVO.SessionProposeParams(
-    relays = listOf(relay),
+    relays = getSessionRelays(relays),
     proposer = SessionProposerVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO()),
-    chains, methods, events
+    namespaces = namespaces.toNamespacesVO()
 )
+
+@JvmSynthetic
+internal fun List<EngineDO.Namespace>.toNamespacesVO(): List<NamespaceVO> {
+    return mutableListOf<NamespaceVO>().apply {
+        this@toNamespacesVO.forEach { namespace ->
+            add(NamespaceVO(namespace.chains, namespace.methods, namespace.events))
+        }
+    }
+}
+
+@JvmSynthetic
+internal fun getSessionRelays(relays: List<EngineDO.RelayProtocolOptions>?): List<RelayProtocolOptionsVO> {
+    if (relays == null) {
+        return listOf(RelayProtocolOptionsVO())
+    } else {
+        return mutableListOf<RelayProtocolOptionsVO>().apply {
+            relays.forEach { relay ->
+                add(RelayProtocolOptionsVO(relay.protocol, relay.data))
+            }
+        }
+    }
+}
 
 @JvmSynthetic
 internal fun JsonRpcResponseVO.JsonRpcResult.toEngineJsonRpcResult(): EngineDO.JsonRpcResponse.JsonRpcResult =
@@ -156,4 +178,15 @@ internal fun PairingParamsVO.SessionProposeParams.toSessionApproveParams(selfPub
     SessionParamsVO.ApprovalParams(
         relay = RelayProtocolOptionsVO(relays.first().protocol, relays.first().data),
         responderPublicKey = selfPublicKey.keyAsHex)
+
+@JvmSynthetic
+internal fun List<NamespaceVO>.toListOfEngineNamespaces(): List<EngineDO.Namespace> =
+    mutableListOf<EngineDO.Namespace>().apply {
+        this@toListOfEngineNamespaces.forEach { namespace ->
+            add(namespace.toEngineNamespace())
+        }
+    }
+
+@JvmSynthetic
+internal fun NamespaceVO.toEngineNamespace(): EngineDO.Namespace = EngineDO.Namespace(chains, methods, events)
 

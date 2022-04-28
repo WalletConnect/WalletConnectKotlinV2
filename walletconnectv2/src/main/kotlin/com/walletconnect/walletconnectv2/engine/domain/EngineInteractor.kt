@@ -54,13 +54,13 @@ internal class EngineInteractor(
     }
 
     internal fun proposeSequence(
-        chains: List<String>, methods: List<String>, events: List<String>,
+        namespaces: List<EngineDO.Namespace>,
+        relays: List<EngineDO.RelayProtocolOptions>?,
         pairingTopic: String?,
         onProposedSequence: (EngineDO.ProposedSequence) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-
-        Validator.validateCAIP2(chains) { errorMessage ->
+        Validator.validateCAIP2(namespaces.chains) { errorMessage ->
             throw WalletConnectException.InvalidSessionChainIdsException(errorMessage)
         }
 
@@ -69,21 +69,22 @@ internal class EngineInteractor(
                 throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$pairingTopic")
             }
             val pairing: PairingVO = sequenceStorageRepository.getPairingByTopic(TopicVO(pairingTopic))
-            val relay = RelayProtocolOptionsVO(pairing.relayProtocol, pairing.relayData)
+            val relay = EngineDO.RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
 
-            proposeSession(chains, methods, events, TopicVO(pairingTopic), relay,
+            proposeSession(namespaces, TopicVO(pairingTopic), listOf(relay),
                 onSuccess = { onProposedSequence(EngineDO.ProposedSequence.Session) },
                 onFailure = { error -> onFailure(error) })
 
         } else {
-            proposePairing(chains, methods, events,
+            proposePairing(namespaces, relays,
                 onSessionProposeSuccess = { pairing -> onProposedSequence(pairing) },
                 onFailure = { error -> onFailure(error) })
         }
     }
 
     private fun proposePairing(
-        chains: List<String>, methods: List<String>, events: List<String>,
+        namespaces: List<EngineDO.Namespace>,
+        relays: List<EngineDO.RelayProtocolOptions>?,
         onSessionProposeSuccess: (EngineDO.ProposedSequence.Pairing) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
@@ -95,20 +96,20 @@ internal class EngineInteractor(
         sequenceStorageRepository.insertPairing(pairing)
         relayer.subscribe(pairingTopic)
 
-        proposeSession(chains, methods, events, pairingTopic, relay,
+        proposeSession(namespaces, pairingTopic, relays,
             onSuccess = { onSessionProposeSuccess(EngineDO.ProposedSequence.Pairing(walletConnectUri.toAbsoluteString())) },
             onFailure = { error -> onFailure(error) })
     }
 
     private fun proposeSession(
-        chains: List<String>, methods: List<String>, events: List<String>,
+        namespaces: List<EngineDO.Namespace>,
         pairingTopic: TopicVO,
-        relay: RelayProtocolOptionsVO,
+        relays: List<EngineDO.RelayProtocolOptions>?,
         onFailure: (Throwable) -> Unit = {},
         onSuccess: () -> Unit = {},
     ) {
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
-        val sessionProposal = toSessionProposeParams(relay, chains, methods, events, selfPublicKey, metaData)
+        val sessionProposal = toSessionProposeParams(relays, namespaces, selfPublicKey, metaData)
         val request = PairingSettlementVO.SessionPropose(id = generateId(), params = sessionProposal)
         sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequestVO(pairingTopic, request.id, request.method, sessionProposal)
 
@@ -148,8 +149,7 @@ internal class EngineInteractor(
     internal fun approve(
         proposerPublicKey: String,
         accounts: List<String>,
-        methods: List<String>,
-        events: List<String>,
+        namespaces: List<EngineDO.Namespace>,
         onFailure: (Throwable) -> Unit,
     ) {
         val request = sessionProposalRequest[proposerPublicKey]
@@ -168,7 +168,7 @@ internal class EngineInteractor(
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
         relayer.respondWithParams(request, approvalParams)
 
-        sessionSettle(proposal, accounts, methods, events, sessionTopic) { error -> onFailure(error) }
+        sessionSettle(proposal, accounts, namespaces, sessionTopic) { error -> onFailure(error) }
     }
 
     internal fun updateSessionAccounts(topic: String, newAccounts: List<String>, onFailure: (Throwable) -> Unit) {
@@ -271,7 +271,8 @@ internal class EngineInteractor(
             throw WalletConnectException.UnauthorizedChainIdException(errorMessage)
         }
 
-        val params = SessionParamsVO.SessionRequestParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
+        val params =
+            SessionParamsVO.SessionRequestParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
         val sessionPayload = SessionSettlementVO.SessionRequest(id = generateId(), params = params)
 
         relayer.publishJsonRpcRequests(
@@ -435,8 +436,7 @@ internal class EngineInteractor(
     private fun sessionSettle(
         proposal: PairingParamsVO.SessionProposeParams,
         accounts: List<String>,
-        methods: List<String>,
-        events: List<String>,
+        namespaces: List<EngineDO.Namespace>,
         sessionTopic: TopicVO,
         onFailure: (Throwable) -> Unit,
     ) {
@@ -444,9 +444,9 @@ internal class EngineInteractor(
         val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO())
         val sessionExpiry = Expiration.activeSession
         val session =
-            SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, accounts, methods, events)
+            SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, accounts, namespaces)
         sequenceStorageRepository.insertSession(session)
-        val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, accounts, methods, events)
+        val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, accounts, namespaces)
         val sessionSettle = SessionSettlementVO.SessionSettle(id = generateId(), params = params)
 
         relayer.publishJsonRpcRequests(sessionTopic, sessionSettle, onFailure = { error -> onFailure(error) })

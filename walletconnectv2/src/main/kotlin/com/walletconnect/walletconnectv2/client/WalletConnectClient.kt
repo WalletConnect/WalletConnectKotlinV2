@@ -7,7 +7,6 @@ import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.di.*
 import com.walletconnect.walletconnectv2.engine.domain.EngineInteractor
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
@@ -93,9 +92,8 @@ object WalletConnectClient {
         }
 
         return engineInteractor.proposeSequence(
-            connect.chains,
-            connect.methods,
-            connect.events,
+            connect.namespaces.toListOfEngineNamespaces(),
+            connect.relays?.toListEngineOfRelayProtocolOptions(),
             connect.pairingTopic,
             onProposedSequence = { proposedSequence -> onProposedSequence(proposedSequence.toClientProposedSequence()) },
             onFailure = { error -> onFailure(WalletConnect.Model.Error(error)) }
@@ -117,7 +115,9 @@ object WalletConnectClient {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.approve(approve.proposerPublicKey, approve.accounts, approve.methods, approve.events)
+        engineInteractor.approve(approve.proposerPublicKey,
+            approve.accounts,
+            approve.namespaces.toListOfEngineNamespaces())
         { error -> onError(WalletConnect.Model.Error(error)) }
     }
 
@@ -185,6 +185,17 @@ object WalletConnectClient {
             onError(WalletConnect.Model.Error(error))
         }
     }
+
+//    @Throws(IllegalStateException::class, WalletConnectException::class)
+//    fun updateNamespace(updateNamespace: WalletConnect.Params.UpdateNamespace, onError: (WalletConnect.Model.Error) -> Unit = {}) {
+//        check(::engineInteractor.isInitialized) {
+//            "WalletConnectClient needs to be initialized first using the initialize function"
+//        }
+//
+//        engineInteractor.updateSessionEvents(updateNamespace.sessionTopic, updateNamespace.events) { error ->
+//            onError(WalletConnect.Model.Error(error))
+//        }
+//    }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
     fun updateExpiry(updateExpiry: WalletConnect.Params.UpdateExpiry, onError: (Throwable) -> Unit = {}) {

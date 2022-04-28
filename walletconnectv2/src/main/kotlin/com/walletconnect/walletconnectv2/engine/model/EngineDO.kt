@@ -20,7 +20,7 @@ internal sealed class EngineDO {
         val topic: TopicVO,
         val symKey: SecretKey,
         val relay: RelayProtocolOptionsVO,
-        val version: String = "2"
+        val version: String = "2",
     ) : EngineDO()
 
     internal data class SessionProposal(
@@ -28,14 +28,16 @@ internal sealed class EngineDO {
         val description: String,
         val url: String,
         val icons: List<URI>,
-        val chains: List<String>,
-        val methods: List<String>,
-        val events: List<String>,
+        val namespaces: List<Namespace>,
         val proposerPublicKey: String,
         val accounts: List<String>,
         val relayProtocol: String,
         val relayData: String?,
     ) : EngineDO(), SequenceLifecycle
+
+    data class Namespace(val chains: List<String>, val methods: List<String>, val events: List<String>) : EngineDO()
+
+    data class RelayProtocolOptions(val protocol: String, val data: String? = null) : EngineDO()
 
     internal data class SessionRequest(
         val topic: String,
