@@ -24,10 +24,9 @@ internal object Validator {
         }
     }
 
-    internal fun validateCAIP2(chains: List<String>, onInvalidChains: (String) -> Unit) {
-        when {
-            !isBlockchainValid(chains) -> onInvalidChains(EMPTY_CHAIN_LIST_MESSAGE)
-            chains.any { chainId -> !isChainIdValid(chainId) } -> onInvalidChains(WRONG_CHAIN_ID_FORMAT_MESSAGE)
+    internal fun validateCAIP2(namespaces: List<EngineDO.Namespace>, onInvalidChains: (String) -> Unit) {
+        if (namespaces.any { namespace -> namespace.chains.any { chainId -> !isChainIdValid(chainId) } }) {
+            onInvalidChains(WRONG_CHAIN_ID_FORMAT_MESSAGE)
         }
     }
 
@@ -44,7 +43,7 @@ internal object Validator {
         }
     }
 
-    internal fun isBlockchainValid(chains: List<String>): Boolean =
+    internal fun isChainListNotEmpty(chains: List<String>): Boolean =
         chains.isNotEmpty() && chains.any { chain -> chain.isNotEmpty() }
 
     internal fun validateEvent(event: EngineDO.Event, onInvalidEvent: (String) -> Unit) {
@@ -62,16 +61,6 @@ internal object Validator {
     internal fun validateChainIdAuthorization(chainId: String?, chains: List<String>, onInvalidChainId: (String) -> Unit) {
         if (chainId != null && !chains.contains(chainId)) {
             onInvalidChainId(UNAUTHORIZED_CHAIN_ID_MESSAGE)
-        }
-    }
-
-    internal fun validateProposalFields(sessionProposal: EngineDO.SessionProposal, onInvalidProposal: (String) -> Unit) {
-        with(sessionProposal) {
-            if (name.isEmpty() || description.isEmpty() || url.isEmpty() || icons.isEmpty() || chains.isEmpty() ||
-                methods.isEmpty() || proposerPublicKey.isEmpty() || relayProtocol.isEmpty()
-            ) {
-                onInvalidProposal(INVALID_SESSION_PROPOSAL_MESSAGE)
-            }
         }
     }
 

@@ -60,7 +60,7 @@ internal class EngineInteractor(
         onProposedSequence: (EngineDO.ProposedSequence) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        Validator.validateCAIP2(namespaces.chains) { errorMessage ->
+        Validator.validateCAIP2(namespaces) { errorMessage ->
             throw WalletConnectException.InvalidSessionChainIdsException(errorMessage)
         }
 
