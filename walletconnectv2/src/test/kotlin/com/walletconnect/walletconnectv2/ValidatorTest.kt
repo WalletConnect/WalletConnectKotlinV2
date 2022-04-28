@@ -3,14 +3,17 @@ package com.walletconnect.walletconnectv2
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
 import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
-import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO.Companion.getChainIds
 import com.walletconnect.walletconnectv2.engine.domain.Validator
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.engine.model.mapper.toAbsoluteString
 import com.walletconnect.walletconnectv2.util.Time
 import org.junit.jupiter.api.Test
-import kotlin.test.*
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ValidatorTest {
 
@@ -18,7 +21,7 @@ class ValidatorTest {
     fun `check correct error message when methods are empty `() {
         val methods: List<String> = listOf()
 
-        Validator.validateMethods(methods) { errorMessage ->
+        Validator.isMethodListNotEmpty(methods) { errorMessage ->
             assertEquals(EMPTY_RPC_METHODS_LIST_MESSAGE, errorMessage)
         }
     }
@@ -27,7 +30,7 @@ class ValidatorTest {
     fun `check correct error message when events are empty `() {
         val events: List<String> = listOf()
 
-        Validator.validateEvents(events) { errorMessage ->
+        Validator.isEventListNotEmpty(events) { errorMessage ->
             assertEquals(INVALID_EVENTS_MESSAGE, errorMessage)
         }
     }
@@ -45,6 +48,14 @@ class ValidatorTest {
         val namespaces = listOf(EngineDO.Namespace(chains = listOf("chainID"), listOf(), listOf()))
         Validator.validateCAIP2(namespaces) { errorMessage ->
             assertEquals(WRONG_CHAIN_ID_FORMAT_MESSAGE, errorMessage)
+        }
+    }
+
+    @Test
+    fun `validate method`() {
+        val namespaces = listOf(NamespaceVO(methods = listOf("method"), chains = listOf(), events = listOf()))
+        Validator.validateMethodAuthorisation(namespaces, "method1") { errorMessage ->
+            assertEquals(UNAUTHORIZED_METHOD, errorMessage)
         }
     }
 
@@ -236,14 +247,16 @@ class ValidatorTest {
 
         Validator.validateChainIdAuthorization(
             "",
-            listOf("polkadot:b0a8d493285c2df73290dfb7e61f870f:")
+            listOf(NamespaceVO(chains = listOf("polkadot:b0a8d493285c2df73290dfb7e61f870f:"), methods = listOf(), events = listOf()))
         ) {
             assertEquals(UNAUTHORIZED_CHAIN_ID_MESSAGE, it)
         }
 
         Validator.validateChainIdAuthorization(
             "bip122:000000000019d6689c085ae165831e93",
-            listOf("polkadot:b0a8d493285c2df73290dfb7e61f870f, bip122:000000000019d6689c085ae165831e93")
+            listOf(NamespaceVO(chains = listOf("polkadot:b0a8d493285c2df73290dfb7e61f870f, bip122:000000000019d6689c085ae165831e93"),
+                events = listOf(),
+                methods = listOf()))
         ) {
             assertEquals(UNAUTHORIZED_CHAIN_ID_MESSAGE, it)
         }
@@ -266,12 +279,6 @@ class ValidatorTest {
             assertEquals(INVALID_EVENT_MESSAGE, it)
         }
     }
-
-//    @Test
-//    fun `is session proposal valid test`() {
-//        val proposal = EngineDO.SessionProposal("name", "dsc", "", listOf(), listOf(), listOf(), listOf(), "", listOf(), "", "")
-//        Validator.validateProposalFields(proposal) { assertEquals(INVALID_SESSION_PROPOSAL_MESSAGE, it) }
-//    }
 
     @Test
     fun `validate WC uri test`() {
@@ -365,23 +372,6 @@ class ValidatorTest {
 
         Validator.validateSessionExtend(newExpiry, currentExpiry) {
             assertEquals(INVALID_EXTEND_TIME, it)
-        }
-    }
-
-    @Test
-    fun `get chains from accountIds test`() {
-        getChainIds(listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb",
-            "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6")).apply {
-            assertEquals(this[0], "eip155:1")
-            assertEquals(this[1], "bip122:000000000019d6689c085ae165831e93")
-        }
-
-        getChainIds(listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb")).apply {
-            assertEquals(this[0], "eip155:1")
-        }
-
-        getChainIds(listOf("111:dssa:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb")).apply {
-            assertNotEquals(this[0], "eip155:1")
         }
     }
 

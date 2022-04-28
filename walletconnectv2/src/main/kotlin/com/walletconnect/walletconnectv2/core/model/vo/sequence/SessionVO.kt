@@ -28,7 +28,6 @@ internal data class SessionVO(
 ) : Sequence {
     val isPeerController: Boolean = peerPublicKey?.keyAsHex == controllerKey?.keyAsHex
     val isSelfController: Boolean = selfPublicKey.keyAsHex == controllerKey?.keyAsHex
-    val chains: List<String> get() = getChainIds(accounts)
 
     internal companion object {
         @JvmSynthetic
@@ -79,8 +78,8 @@ internal data class SessionVO(
             )
         }
 
-        fun getChainIds(accountIds: List<String>): List<String> {
-            return accountIds.map { accountId -> accountId.split(":").take(2).joinToString(":") }
-        }
+//        fun getChainIds(accountIds: List<String>): List<String> {
+//            return accountIds.map { accountId -> accountId.split(":").take(2).joinToString(":") }
+//        }
     }
 }

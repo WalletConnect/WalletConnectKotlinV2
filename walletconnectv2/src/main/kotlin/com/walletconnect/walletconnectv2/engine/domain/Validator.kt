@@ -3,6 +3,7 @@ package com.walletconnect.walletconnectv2.engine.domain
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
 import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
@@ -12,13 +13,13 @@ import java.net.URISyntaxException
 
 internal object Validator {
 
-    internal fun validateMethods(methods: List<String>, onInvalidJsonRpc: (String) -> Unit) {
+    internal fun isMethodListNotEmpty(methods: List<String>, onInvalidJsonRpc: (String) -> Unit) {
         if (!areMethodsValid(methods)) {
             onInvalidJsonRpc(EMPTY_RPC_METHODS_LIST_MESSAGE)
         }
     }
 
-    internal fun validateEvents(events: List<String>, onInvalidEvents: (String) -> Unit) {
+    internal fun isEventListNotEmpty(events: List<String>, onInvalidEvents: (String) -> Unit) {
         if (!areEventsValid(events)) {
             onInvalidEvents(INVALID_EVENTS_MESSAGE)
         }
@@ -27,6 +28,12 @@ internal object Validator {
     internal fun validateCAIP2(namespaces: List<EngineDO.Namespace>, onInvalidChains: (String) -> Unit) {
         if (namespaces.any { namespace -> namespace.chains.any { chainId -> !isChainIdValid(chainId) } }) {
             onInvalidChains(WRONG_CHAIN_ID_FORMAT_MESSAGE)
+        }
+    }
+
+    internal fun validateMethodAuthorisation(namespaces: List<NamespaceVO>, method: String, onInvalidMethod: (String) -> Unit) {
+        if (namespaces.find { namespace -> namespace.methods.contains(method) } == null) {
+            onInvalidMethod(UNAUTHORIZED_METHOD)
         }
     }
 
@@ -53,13 +60,13 @@ internal object Validator {
     }
 
     internal fun validateEventAuthorization(session: SessionVO, eventName: String, onUnauthorizedEvent: (String) -> Unit) {
-        if (!session.isSelfController && !session.events.contains(eventName)) {
+        if (!session.isSelfController && session.namespaces.find { namespace -> namespace.events.contains(eventName) } == null) {
             onUnauthorizedEvent(UNAUTHORIZED_EVENT_TYPE_MESSAGE)
         }
     }
 
-    internal fun validateChainIdAuthorization(chainId: String?, chains: List<String>, onInvalidChainId: (String) -> Unit) {
-        if (chainId != null && !chains.contains(chainId)) {
+    internal fun validateChainIdAuthorization(chainId: String?, namespaces: List<NamespaceVO>, onInvalidChainId: (String) -> Unit) {
+        if (chainId != null && namespaces.find { namespace -> namespace.chains.contains(chainId) } == null) {
             onInvalidChainId(UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
     }

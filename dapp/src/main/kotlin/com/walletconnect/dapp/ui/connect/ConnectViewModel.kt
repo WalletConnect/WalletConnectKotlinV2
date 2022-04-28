@@ -62,9 +62,7 @@ class ConnectViewModel : ViewModel() {
         val methods = selectedChains.flatMap { it.methods }.distinct()
 
         val connectParams = WalletConnect.Params.Connect(
-            chains = chains,
-            methods = methods,
-            events = listOf(),
+            namespaces = listOf(WalletConnect.Model.Namespace(chains, methods, listOf())),
             pairingTopic = pairingTopic)
 
         WalletConnectClient.connect(connectParams,

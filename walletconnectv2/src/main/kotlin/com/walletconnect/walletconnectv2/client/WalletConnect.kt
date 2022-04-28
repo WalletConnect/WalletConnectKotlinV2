@@ -97,8 +97,7 @@ object WalletConnect {
         data class ApprovedSession(
             val topic: String,
             val metaData: AppMetaData?,
-            val methods: List<String>,
-            val events: List<String>,
+            val namespaces: List<Namespace>,
             val accounts: List<String>,
         ) : Model()
 
@@ -106,8 +105,7 @@ object WalletConnect {
             val topic: String,
             val expiry: Long,
             val accounts: List<String>,
-            val methods: List<String>,
-            val events: List<String>,
+            val namespaces: List<Namespace>,
             val metaData: AppMetaData?,
         ) : Model()
 

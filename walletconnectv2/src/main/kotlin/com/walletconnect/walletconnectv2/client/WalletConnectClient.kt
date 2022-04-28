@@ -164,27 +164,27 @@ object WalletConnectClient {
         }
     }
 
-    @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun updateMethods(updateMethods: WalletConnect.Params.UpdateMethods, onError: (WalletConnect.Model.Error) -> Unit = {}) {
-        check(::engineInteractor.isInitialized) {
-            "WalletConnectClient needs to be initialized first using the initialize function"
-        }
-
-        engineInteractor.updateSessionMethods(updateMethods.sessionTopic, updateMethods.methods) { error ->
-            onError(WalletConnect.Model.Error(error))
-        }
-    }
-
-    @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun updateEvents(updateEvents: WalletConnect.Params.UpdateEvents, onError: (WalletConnect.Model.Error) -> Unit = {}) {
-        check(::engineInteractor.isInitialized) {
-            "WalletConnectClient needs to be initialized first using the initialize function"
-        }
-
-        engineInteractor.updateSessionEvents(updateEvents.sessionTopic, updateEvents.events) { error ->
-            onError(WalletConnect.Model.Error(error))
-        }
-    }
+//    @Throws(IllegalStateException::class, WalletConnectException::class)
+//    fun updateMethods(updateMethods: WalletConnect.Params.UpdateMethods, onError: (WalletConnect.Model.Error) -> Unit = {}) {
+//        check(::engineInteractor.isInitialized) {
+//            "WalletConnectClient needs to be initialized first using the initialize function"
+//        }
+//
+//        engineInteractor.updateSessionMethods(updateMethods.sessionTopic, updateMethods.methods) { error ->
+//            onError(WalletConnect.Model.Error(error))
+//        }
+//    }
+//
+//    @Throws(IllegalStateException::class, WalletConnectException::class)
+//    fun updateEvents(updateEvents: WalletConnect.Params.UpdateEvents, onError: (WalletConnect.Model.Error) -> Unit = {}) {
+//        check(::engineInteractor.isInitialized) {
+//            "WalletConnectClient needs to be initialized first using the initialize function"
+//        }
+//
+//        engineInteractor.updateSessionEvents(updateEvents.sessionTopic, updateEvents.events) { error ->
+//            onError(WalletConnect.Model.Error(error))
+//        }
+//    }
 
 //    @Throws(IllegalStateException::class, WalletConnectException::class)
 //    fun updateNamespace(updateNamespace: WalletConnect.Params.UpdateNamespace, onError: (WalletConnect.Model.Error) -> Unit = {}) {

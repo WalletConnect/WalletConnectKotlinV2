@@ -106,8 +106,7 @@ internal sealed class EngineDO {
         val topic: String,
         val peerAppMetaData: AppMetaData?,
         val accounts: List<String>,
-        val methods: List<String>,
-        val events: List<String>,
+        val namespaces: List<Namespace>,
     ) : EngineDO(), SequenceLifecycle
 
     internal data class PairingSettle(val topic: TopicVO, val metaData: AppMetaData?) : EngineDO(), SequenceLifecycle
@@ -119,8 +118,7 @@ internal sealed class EngineDO {
         override val topic: TopicVO,
         override val expiry: ExpiryVO,
         val accounts: List<String>,
-        val methods: List<String>,
-        val events: List<String>,
+        val namespaces: List<Namespace>,
         val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, SequenceLifecycle
 
@@ -128,8 +126,7 @@ internal sealed class EngineDO {
         override val topic: TopicVO,
         override val expiry: ExpiryVO,
         val accounts: List<String>,
-        val methods: List<String>,
-        val events: List<String>,
+        val namespaces: List<Namespace>,
         val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, SequenceLifecycle
 

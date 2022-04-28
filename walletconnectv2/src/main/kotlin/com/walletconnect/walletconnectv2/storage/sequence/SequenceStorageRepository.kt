@@ -110,8 +110,8 @@ internal class SequenceStorageRepository(
         with(session) {
             sessionDaoQueries.insertSession(
                 topic = topic.value,
-                permissions_methods = methods,
-                permissions_events = events,
+                permissions_methods = listOf(),
+                permissions_events = listOf(),
                 expiry = expiry.seconds,
                 self_metadata_id = selfMetadataId,
                 peer_metadata_id = peerMetadataId,
@@ -244,8 +244,7 @@ internal class SequenceStorageRepository(
 
         return SessionVO(
             topic = TopicVO(topic),
-            methods = permissions_methods,
-            events = permissions_events,
+            namespaces = listOf(),
             accounts = accounts ?: emptyList(),
             expiry = ExpiryVO(expiry),
             selfMetaData = selfMetaData,

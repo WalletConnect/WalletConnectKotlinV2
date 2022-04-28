@@ -8,6 +8,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.PairingSettlementVO
@@ -201,73 +202,73 @@ internal class EngineInteractor(
         )
     }
 
-    internal fun updateSessionMethods(topic: String, methods: List<String>, onFailure: (Throwable) -> Unit) {
-        if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
-            throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
-        }
-
-        Validator.validateMethods(methods) { errorMessage ->
-            throw WalletConnectException.InvalidSessionMethodsException(errorMessage)
-        }
-
-        val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
-        if (!session.isSelfController) {
-            throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
-        }
-        if (!session.isAcknowledged) {
-            throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
-        }
-
-        val params = SessionParamsVO.UpdateMethodsParams(methods)
-        val sessionUpdateMethods = SessionSettlementVO.SessionUpdateMethods(id = generateId(), params = params)
-        sequenceStorageRepository.updateSessionWithMethods(TopicVO(topic), methods)
-
-        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateMethods,
-            onSuccess = { Logger.log("Update methods sent successfully") },
-            onFailure = { error ->
-                Logger.error("Sending session update error: $error")
-                onFailure(error)
-            }
-        )
-    }
-
-    internal fun updateSessionEvents(topic: String, events: List<String>, onFailure: (Throwable) -> Unit) {
-        if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
-            throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
-        }
-
-        Validator.validateEvents(events) { errorMessage ->
-            throw WalletConnectException.InvalidSessionEventsException(errorMessage)
-        }
-
-        val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
-        if (!session.isSelfController) {
-            throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
-        }
-        if (!session.isAcknowledged) {
-            throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
-        }
-
-        val params = SessionParamsVO.UpdateEventsParams(events)
-        val sessionUpdateEvents = SessionSettlementVO.SessionUpdateEvents(id = generateId(), params = params)
-        sequenceStorageRepository.updateSessionWithEvents(TopicVO(topic), events)
-
-        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateEvents,
-            onSuccess = { Logger.log("Update events sent successfully") },
-            onFailure = { error ->
-                Logger.error("Sending session update error: $error")
-                onFailure(error)
-            }
-        )
-    }
+//    internal fun updateSessionMethods(topic: String, methods: List<String>, onFailure: (Throwable) -> Unit) {
+//        if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
+//            throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+//        }
+//
+//        Validator.validateMethods(methods) { errorMessage ->
+//            throw WalletConnectException.InvalidSessionMethodsException(errorMessage)
+//        }
+//
+//        val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
+//        if (!session.isSelfController) {
+//            throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
+//        }
+//        if (!session.isAcknowledged) {
+//            throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
+//        }
+//
+//        val params = SessionParamsVO.UpdateMethodsParams(methods)
+//        val sessionUpdateMethods = SessionSettlementVO.SessionUpdateMethods(id = generateId(), params = params)
+//        sequenceStorageRepository.updateSessionWithMethods(TopicVO(topic), methods)
+//
+//        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateMethods,
+//            onSuccess = { Logger.log("Update methods sent successfully") },
+//            onFailure = { error ->
+//                Logger.error("Sending session update error: $error")
+//                onFailure(error)
+//            }
+//        )
+//    }
+//
+//    internal fun updateSessionEvents(topic: String, events: List<String>, onFailure: (Throwable) -> Unit) {
+//        if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
+//            throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+//        }
+//
+//        Validator.validateEvents(events) { errorMessage ->
+//            throw WalletConnectException.InvalidSessionEventsException(errorMessage)
+//        }
+//
+//        val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
+//        if (!session.isSelfController) {
+//            throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
+//        }
+//        if (!session.isAcknowledged) {
+//            throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
+//        }
+//
+//        val params = SessionParamsVO.UpdateEventsParams(events)
+//        val sessionUpdateEvents = SessionSettlementVO.SessionUpdateEvents(id = generateId(), params = params)
+//        sequenceStorageRepository.updateSessionWithEvents(TopicVO(topic), events)
+//
+//        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateEvents,
+//            onSuccess = { Logger.log("Update events sent successfully") },
+//            onFailure = { error ->
+//                Logger.error("Sending session update error: $error")
+//                onFailure(error)
+//            }
+//        )
+//    }
 
     internal fun sessionRequest(request: EngineDO.Request, onFailure: (Throwable) -> Unit) {
         if (!sequenceStorageRepository.isSessionValid(TopicVO(request.topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
 
-        val chains: List<String> = sequenceStorageRepository.getSessionByTopic(TopicVO(request.topic)).chains
-        Validator.validateChainIdAuthorization(request.chainId, chains) { errorMessage ->
+        val namespaces: List<NamespaceVO> = sequenceStorageRepository.getSessionByTopic(TopicVO(request.topic)).namespaces
+        Validator.validateChainIdAuthorization(request.chainId, namespaces) { errorMessage ->
             throw WalletConnectException.UnauthorizedChainIdException(errorMessage)
         }
 
@@ -523,15 +524,15 @@ internal class EngineInteractor(
         }
 
         val session = sequenceStorageRepository.getSessionByTopic(request.topic)
-        if (params.chainId != null && !session.chains.contains(params.chainId)) {
-            relayer.respondWithError(request, PeerError.UnauthorizedTargetChainId(params.chainId))
-            return
+        Validator.validateChainIdAuthorization(params.chainId, session.namespaces) {
+            relayer.respondWithError(request, PeerError.UnauthorizedTargetChainId(params.chainId ?: String.Empty))
+            return@validateChainIdAuthorization
         }
 
         val method = params.request.method
-        if (!session.methods.contains(method)) {
+        Validator.validateMethodAuthorisation(session.namespaces, method) {
             relayer.respondWithError(request, PeerError.UnauthorizedJsonRpcMethod(method))
-            return
+            return@validateMethodAuthorisation
         }
         scope.launch { _sequenceEvent.emit(params.toEngineDOSessionRequest(request, session.peerMetaData)) }
     }
@@ -549,7 +550,7 @@ internal class EngineInteractor(
         }
 
         val event = params.event
-        Validator.validateChainIdAuthorization(params.chainId, session.chains) {
+        Validator.validateChainIdAuthorization(params.chainId, session.namespaces) {
             relayer.respondWithError(request, PeerError.UnauthorizedEventRequest(event.name))
             return@validateChainIdAuthorization
         }
@@ -598,9 +599,9 @@ internal class EngineInteractor(
             return
         }
 
-        Validator.validateMethods(params.methods) {
+        Validator.isMethodListNotEmpty(params.methods) {
             relayer.respondWithError(request, PeerError.InvalidUpdateMethodsRequest(Sequences.SESSION.name))
-            return@validateMethods
+            return@isMethodListNotEmpty
         }
 
         sequenceStorageRepository.updateSessionWithMethods(session.topic, params.methods)
@@ -621,9 +622,9 @@ internal class EngineInteractor(
             return
         }
 
-        Validator.validateEvents(params.events) {
+        Validator.isEventListNotEmpty(params.events) {
             relayer.respondWithError(request, PeerError.InvalidUpdateEventsRequest(Sequences.SESSION.name))
-            return@validateEvents
+            return@isEventListNotEmpty
         }
 
         sequenceStorageRepository.updateSessionWithEvents(session.topic, params.events)
@@ -666,8 +667,8 @@ internal class EngineInteractor(
                     is PairingParamsVO.SessionProposeParams -> onSessionProposalResponse(response, params)
                     is SessionParamsVO.SessionSettleParams -> onSessionSettleResponse(response)
                     is SessionParamsVO.UpdateAccountsParams -> onSessionUpdateAccountsResponse(response)
-                    is SessionParamsVO.UpdateMethodsParams -> onSessionUpdateMethodsResponse(response)
-                    is SessionParamsVO.UpdateEventsParams -> onSessionUpdateEventsResponse(response)
+//                    is SessionParamsVO.UpdateMethodsParams -> onSessionUpdateMethodsResponse(response)
+//                    is SessionParamsVO.UpdateEventsParams -> onSessionUpdateEventsResponse(response)
                     is SessionParamsVO.SessionRequestParams -> onSessionRequestResponse(response, params)
                 }
             }
@@ -736,41 +737,41 @@ internal class EngineInteractor(
         }
     }
 
-    private fun onSessionUpdateMethodsResponse(wcResponse: WCResponseVO) {
-        val sessionTopic = wcResponse.topic
-        if (!sequenceStorageRepository.isSessionValid(sessionTopic)) return
-        val session = sequenceStorageRepository.getSessionByTopic(sessionTopic)
-
-        when (val response = wcResponse.response) {
-            is JsonRpcResponseVO.JsonRpcResult -> {
-                Logger.log("Session update methods response received")
-                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateMethodsResponse.Result(session.topic, session.methods)) }
-            }
-            is JsonRpcResponseVO.JsonRpcError -> {
-                Logger.error("Peer failed to update session: ${response.error}")
-                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateMethodsResponse.Error(response.errorMessage)) }
-            }
-        }
-    }
-
-    private fun onSessionUpdateEventsResponse(wcResponse: WCResponseVO) {
-        val sessionTopic = wcResponse.topic
-        if (!sequenceStorageRepository.isSessionValid(sessionTopic)) return
-        val session = sequenceStorageRepository.getSessionByTopic(sessionTopic)
-
-        when (val response = wcResponse.response) {
-            is JsonRpcResponseVO.JsonRpcResult -> {
-                Logger.log("Session update events response received")
-                scope.launch {
-                    _sequenceEvent.emit(EngineDO.SessionUpdateEventsResponse.Result(session.topic, session.events))
-                }
-            }
-            is JsonRpcResponseVO.JsonRpcError -> {
-                Logger.error("Peer failed to events session: ${response.error}")
-                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateMethodsResponse.Error(response.errorMessage)) }
-            }
-        }
-    }
+//    private fun onSessionUpdateMethodsResponse(wcResponse: WCResponseVO) {
+//        val sessionTopic = wcResponse.topic
+//        if (!sequenceStorageRepository.isSessionValid(sessionTopic)) return
+//        val session = sequenceStorageRepository.getSessionByTopic(sessionTopic)
+//
+//        when (val response = wcResponse.response) {
+//            is JsonRpcResponseVO.JsonRpcResult -> {
+//                Logger.log("Session update methods response received")
+//                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateMethodsResponse.Result(session.topic, session.methods)) }
+//            }
+//            is JsonRpcResponseVO.JsonRpcError -> {
+//                Logger.error("Peer failed to update session: ${response.error}")
+//                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateMethodsResponse.Error(response.errorMessage)) }
+//            }
+//        }
+//    }
+//
+//    private fun onSessionUpdateEventsResponse(wcResponse: WCResponseVO) {
+//        val sessionTopic = wcResponse.topic
+//        if (!sequenceStorageRepository.isSessionValid(sessionTopic)) return
+//        val session = sequenceStorageRepository.getSessionByTopic(sessionTopic)
+//
+//        when (val response = wcResponse.response) {
+//            is JsonRpcResponseVO.JsonRpcResult -> {
+//                Logger.log("Session update events response received")
+//                scope.launch {
+//                    _sequenceEvent.emit(EngineDO.SessionUpdateEventsResponse.Result(session.topic, session.events))
+//                }
+//            }
+//            is JsonRpcResponseVO.JsonRpcError -> {
+//                Logger.error("Peer failed to events session: ${response.error}")
+//                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateMethodsResponse.Error(response.errorMessage)) }
+//            }
+//        }
+//    }
 
     private fun onSessionRequestResponse(response: WCResponseVO, params: SessionParamsVO.SessionRequestParams) {
         val result = when (response.response) {

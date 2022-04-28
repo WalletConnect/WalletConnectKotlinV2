@@ -118,14 +118,11 @@ internal fun EngineDO.SessionEvent.toClientSessionEvent(): WalletConnect.Model.S
 
 @JvmSynthetic
 internal fun EngineDO.Session.toClientSettledSession(): WalletConnect.Model.Session =
-    WalletConnect.Model.Session(
-        topic.value,
+    WalletConnect.Model.Session(topic.value,
         expiry.seconds,
         accounts,
-        methods,
-        events,
-        peerAppMetaData?.toClientAppMetaData()
-    )
+        namespaces.toListOfClientNamespaces(),
+        peerAppMetaData?.toClientAppMetaData())
 
 @JvmSynthetic
 internal fun EngineDO.SessionUpdateExpiry.toClientSettledSession(): WalletConnect.Model.Session =
@@ -133,8 +130,7 @@ internal fun EngineDO.SessionUpdateExpiry.toClientSettledSession(): WalletConnec
         topic.value,
         expiry.seconds,
         accounts,
-        methods,
-        events,
+        namespaces.toListOfClientNamespaces(),
         peerAppMetaData?.toClientAppMetaData()
     )
 
@@ -144,7 +140,7 @@ internal fun EngineDO.SessionRejected.toClientSessionRejected(): WalletConnect.M
 
 @JvmSynthetic
 internal fun EngineDO.SessionApproved.toClientSessionApproved(): WalletConnect.Model.ApprovedSession =
-    WalletConnect.Model.ApprovedSession(topic, peerAppMetaData?.toClientAppMetaData(), methods, events, accounts)
+    WalletConnect.Model.ApprovedSession(topic, peerAppMetaData?.toClientAppMetaData(), namespaces.toListOfClientNamespaces(), accounts)
 
 @JvmSynthetic
 internal fun WalletConnect.Model.AppMetaData.toEngineAppMetaData() = EngineDO.AppMetaData(name, description, url, icons)
