@@ -70,8 +70,7 @@ object WalletConnectClient {
                     is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
                     is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
                     is EngineDO.SessionUpdateAccounts -> delegate.onSessionUpdateAccounts(event.toClientSessionsUpdateAccounts())
-                    is EngineDO.SessionUpdateMethods -> delegate.onSessionUpdateMethods(event.toClientSessionsUpdateMethods())
-                    is EngineDO.SessionUpdateEvents -> delegate.onSessionUpdateEvents(event.toClientSessionsUpdateEvents())
+                    is EngineDO.SessionUpdateNamespaces -> delegate.onSessionUpdateNamespaces(event.toClientSessionsNamespaces())
                     is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                     is EngineDO.SessionUpdateExpiry -> delegate.onUpdateSessionExpiry(event.toClientSettledSession())
                     //Responses
@@ -164,38 +163,15 @@ object WalletConnectClient {
         }
     }
 
-//    @Throws(IllegalStateException::class, WalletConnectException::class)
-//    fun updateMethods(updateMethods: WalletConnect.Params.UpdateMethods, onError: (WalletConnect.Model.Error) -> Unit = {}) {
-//        check(::engineInteractor.isInitialized) {
-//            "WalletConnectClient needs to be initialized first using the initialize function"
-//        }
-//
-//        engineInteractor.updateSessionMethods(updateMethods.sessionTopic, updateMethods.methods) { error ->
-//            onError(WalletConnect.Model.Error(error))
-//        }
-//    }
-//
-//    @Throws(IllegalStateException::class, WalletConnectException::class)
-//    fun updateEvents(updateEvents: WalletConnect.Params.UpdateEvents, onError: (WalletConnect.Model.Error) -> Unit = {}) {
-//        check(::engineInteractor.isInitialized) {
-//            "WalletConnectClient needs to be initialized first using the initialize function"
-//        }
-//
-//        engineInteractor.updateSessionEvents(updateEvents.sessionTopic, updateEvents.events) { error ->
-//            onError(WalletConnect.Model.Error(error))
-//        }
-//    }
+    @Throws(IllegalStateException::class, WalletConnectException::class)
+    fun updateNamespaces(updateNamespaces: WalletConnect.Params.UpdateNamespaces, onError: (WalletConnect.Model.Error) -> Unit = {}) {
+        check(::engineInteractor.isInitialized) {
+            "WalletConnectClient needs to be initialized first using the initialize function"
+        }
 
-//    @Throws(IllegalStateException::class, WalletConnectException::class)
-//    fun updateNamespace(updateNamespace: WalletConnect.Params.UpdateNamespace, onError: (WalletConnect.Model.Error) -> Unit = {}) {
-//        check(::engineInteractor.isInitialized) {
-//            "WalletConnectClient needs to be initialized first using the initialize function"
-//        }
-//
-//        engineInteractor.updateSessionEvents(updateNamespace.sessionTopic, updateNamespace.events) { error ->
-//            onError(WalletConnect.Model.Error(error))
-//        }
-//    }
+        engineInteractor.updateSessionNamespaces(updateNamespaces.sessionTopic, updateNamespaces.namespaces.toListOfEngineNamespaces())
+        { error -> onError(WalletConnect.Model.Error(error)) }
+    }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
     fun updateExpiry(updateExpiry: WalletConnect.Params.UpdateExpiry, onError: (Throwable) -> Unit = {}) {
@@ -285,8 +261,7 @@ object WalletConnectClient {
         fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession)
         fun onSessionUpdateAccounts(updatedSessionAccounts: WalletConnect.Model.UpdatedSessionAccounts)
-        fun onSessionUpdateMethods(updatedSessionMethods: WalletConnect.Model.UpdatedSessionMethods)
-        fun onSessionUpdateEvents(updatedSessionEvents: WalletConnect.Model.UpdatedSessionEvents)
+        fun onSessionUpdateNamespaces(updatedSessionAccounts: WalletConnect.Model.UpdateSessionNamespaces)
         fun onUpdateSessionExpiry(session: WalletConnect.Model.Session)
         fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
 

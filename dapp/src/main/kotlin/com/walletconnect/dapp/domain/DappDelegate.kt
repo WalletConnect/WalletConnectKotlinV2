@@ -42,16 +42,8 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         }
     }
 
-    override fun onSessionUpdateMethods(updatedSessionMethods: WalletConnect.Model.UpdatedSessionMethods) {
-        scope.launch {
-            _wcEventModels.emit(updatedSessionMethods)
-        }
-    }
-
-    override fun onSessionUpdateEvents(updatedSessionEvents: WalletConnect.Model.UpdatedSessionEvents) {
-        scope.launch {
-            _wcEventModels.emit(updatedSessionEvents)
-        }
+    override fun onSessionUpdateNamespaces(updatedSessionAccounts: WalletConnect.Model.UpdateSessionNamespaces) {
+        //TODO: handle update namespaces
     }
 
     override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {

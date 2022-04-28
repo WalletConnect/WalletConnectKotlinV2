@@ -202,65 +202,31 @@ internal class EngineInteractor(
         )
     }
 
-//    internal fun updateSessionMethods(topic: String, methods: List<String>, onFailure: (Throwable) -> Unit) {
-//        if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
-//            throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
-//        }
-//
-//        Validator.validateMethods(methods) { errorMessage ->
-//            throw WalletConnectException.InvalidSessionMethodsException(errorMessage)
-//        }
-//
-//        val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
-//        if (!session.isSelfController) {
-//            throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
-//        }
-//        if (!session.isAcknowledged) {
-//            throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
-//        }
-//
-//        val params = SessionParamsVO.UpdateMethodsParams(methods)
-//        val sessionUpdateMethods = SessionSettlementVO.SessionUpdateMethods(id = generateId(), params = params)
-//        sequenceStorageRepository.updateSessionWithMethods(TopicVO(topic), methods)
-//
-//        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateMethods,
-//            onSuccess = { Logger.log("Update methods sent successfully") },
-//            onFailure = { error ->
-//                Logger.error("Sending session update error: $error")
-//                onFailure(error)
-//            }
-//        )
-//    }
-//
-//    internal fun updateSessionEvents(topic: String, events: List<String>, onFailure: (Throwable) -> Unit) {
-//        if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
-//            throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
-//        }
-//
-//        Validator.validateEvents(events) { errorMessage ->
-//            throw WalletConnectException.InvalidSessionEventsException(errorMessage)
-//        }
-//
-//        val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
-//        if (!session.isSelfController) {
-//            throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
-//        }
-//        if (!session.isAcknowledged) {
-//            throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
-//        }
-//
-//        val params = SessionParamsVO.UpdateEventsParams(events)
-//        val sessionUpdateEvents = SessionSettlementVO.SessionUpdateEvents(id = generateId(), params = params)
-//        sequenceStorageRepository.updateSessionWithEvents(TopicVO(topic), events)
-//
-//        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateEvents,
-//            onSuccess = { Logger.log("Update events sent successfully") },
-//            onFailure = { error ->
-//                Logger.error("Sending session update error: $error")
-//                onFailure(error)
-//            }
-//        )
-//    }
+    internal fun updateSessionNamespaces(topic: String, namespaces: List<EngineDO.Namespace>, onFailure: (Throwable) -> Unit) {
+        if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
+            throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+        }
+
+        val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
+        if (!session.isSelfController) {
+            throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
+        }
+        if (!session.isAcknowledged) {
+            throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
+        }
+
+        val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toNamespacesVO())
+        val sessionUpdateMethods = SessionSettlementVO.SessionUpdateNamespaces(id = generateId(), params = params)
+        sequenceStorageRepository.updateSessionWithNamespaces(TopicVO(topic), namespaces.toNamespacesVO())
+
+        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateMethods,
+            onSuccess = { Logger.log("Update methods sent successfully") },
+            onFailure = { error ->
+                Logger.error("Sending session update error: $error")
+                onFailure(error)
+            }
+        )
+    }
 
     internal fun sessionRequest(request: EngineDO.Request, onFailure: (Throwable) -> Unit) {
         if (!sequenceStorageRepository.isSessionValid(TopicVO(request.topic))) {
@@ -464,8 +430,7 @@ internal class EngineInteractor(
                     is SessionParamsVO.DeleteParams -> onSessionDelete(request, requestParams)
                     is SessionParamsVO.EventParams -> onSessionEvent(request, requestParams)
                     is SessionParamsVO.UpdateAccountsParams -> onSessionUpdateAccounts(request, requestParams)
-                    is SessionParamsVO.UpdateMethodsParams -> onSessionUpdateMethods(request, requestParams)
-                    is SessionParamsVO.UpdateEventsParams -> onSessionUpdateEvents(request, requestParams)
+                    is SessionParamsVO.UpdateNamespacesParams -> onSessionUpdateNamespaces(request, requestParams)
                     is SessionParamsVO.UpdateExpiryParams -> onSessionUpdateExpiry(request, requestParams)
                     is SessionParamsVO.PingParams, is PairingParamsVO.PingParams -> onPing(request)
                 }
@@ -587,7 +552,7 @@ internal class EngineInteractor(
         scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateAccounts(request.topic, params.accounts)) }
     }
 
-    private fun onSessionUpdateMethods(request: WCRequestVO, params: SessionParamsVO.UpdateMethodsParams) {
+    private fun onSessionUpdateNamespaces(request: WCRequestVO, params: SessionParamsVO.UpdateNamespacesParams) {
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
             relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value))
             return
@@ -599,38 +564,12 @@ internal class EngineInteractor(
             return
         }
 
-        Validator.isMethodListNotEmpty(params.methods) {
-            relayer.respondWithError(request, PeerError.InvalidUpdateMethodsRequest(Sequences.SESSION.name))
-            return@isMethodListNotEmpty
-        }
+        //todo: @Szymon: is validation needed on a Dapp side. Should we just validate CAIP-2(chainIds) and save all as is?
 
-        sequenceStorageRepository.updateSessionWithMethods(session.topic, params.methods)
+        sequenceStorageRepository.updateSessionWithNamespaces(session.topic, params.namespaces)
         relayer.respondWithSuccess(request)
 
-        scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateMethods(request.topic, params.methods)) }
-    }
-
-    private fun onSessionUpdateEvents(request: WCRequestVO, params: SessionParamsVO.UpdateEventsParams) {
-        if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value))
-            return
-        }
-
-        val session: SessionVO = sequenceStorageRepository.getSessionByTopic(request.topic)
-        if (!session.isPeerController) {
-            relayer.respondWithError(request, PeerError.UnauthorizedUpdateEventsRequest(Sequences.SESSION.name))
-            return
-        }
-
-        Validator.isEventListNotEmpty(params.events) {
-            relayer.respondWithError(request, PeerError.InvalidUpdateEventsRequest(Sequences.SESSION.name))
-            return@isEventListNotEmpty
-        }
-
-        sequenceStorageRepository.updateSessionWithEvents(session.topic, params.events)
-        relayer.respondWithSuccess(request)
-
-        scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateEvents(request.topic, params.events)) }
+        scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateNamespaces(request.topic, params.namespaces.toListOfEngineNamespaces())) }
     }
 
     private fun onSessionUpdateExpiry(request: WCRequestVO, requestParams: SessionParamsVO.UpdateExpiryParams) {

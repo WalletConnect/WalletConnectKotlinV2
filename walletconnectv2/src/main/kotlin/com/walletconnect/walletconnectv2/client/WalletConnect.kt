@@ -90,9 +90,7 @@ object WalletConnect {
 
         data class UpdatedSessionAccounts(val topic: String, val accounts: List<String>) : Model()
 
-        data class UpdatedSessionMethods(val topic: String, val methods: List<String>) : Model()
-
-        data class UpdatedSessionEvents(val topic: String, val events: List<String>) : Model()
+        data class UpdateSessionNamespaces(val topic: String, val namespaces: List<Namespace>) : Model()
 
         data class ApprovedSession(
             val topic: String,
@@ -226,9 +224,7 @@ object WalletConnect {
 
         data class UpdateAccounts(val sessionTopic: String, val accounts: List<String>) : Params()
 
-        data class UpdateMethods(val sessionTopic: String, val methods: List<String>) : Params()
-
-        data class UpdateEvents(val sessionTopic: String, val events: List<String>) : Params()
+        data class UpdateNamespaces(val sessionTopic: String, val namespaces: List<Model.Namespace>) : Params()
 
         data class Ping(val topic: String) : Params()
 

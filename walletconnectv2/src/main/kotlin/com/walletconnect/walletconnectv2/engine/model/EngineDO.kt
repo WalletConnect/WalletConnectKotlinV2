@@ -111,8 +111,7 @@ internal sealed class EngineDO {
 
     internal data class PairingSettle(val topic: TopicVO, val metaData: AppMetaData?) : EngineDO(), SequenceLifecycle
     internal data class SessionUpdateAccounts(val topic: TopicVO, val accounts: List<String>) : EngineDO(), SequenceLifecycle
-    internal data class SessionUpdateMethods(val topic: TopicVO, val methods: List<String>) : EngineDO(), SequenceLifecycle
-    internal data class SessionUpdateEvents(val topic: TopicVO, val events: List<String>) : EngineDO(), SequenceLifecycle
+    internal data class SessionUpdateNamespaces(val topic: TopicVO, val namespaces: List<Namespace>) : EngineDO(), SequenceLifecycle
 
     internal data class SessionUpdateExpiry(
         override val topic: TopicVO,

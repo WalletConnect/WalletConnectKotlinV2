@@ -42,6 +42,28 @@ internal sealed class SessionParamsVO : ClientParams {
         val chainId: String?,
     ) : SessionParamsVO()
 
+    internal data class EventParams(
+        @Json(name = "event")
+        val event: SessionEventVO,
+        @Json(name = "chainId")
+        val chainId: String?,
+    ) : SessionParamsVO()
+
+    internal class UpdateAccountsParams(
+        @Json(name = "accounts")
+        val accounts: List<String>,
+    ) : SessionParamsVO()
+
+    internal class UpdateNamespacesParams(
+        @Json(name = "namespaces")
+        val namespaces: List<NamespaceVO>,
+    ) : SessionParamsVO()
+
+    internal data class UpdateExpiryParams(
+        @Json(name = "expiry")
+        val expiry: Long,
+    ) : SessionParamsVO()
+
     @JsonClass(generateAdapter = true)
     internal class DeleteParams(
         @Json(name = "code")
@@ -52,31 +74,4 @@ internal sealed class SessionParamsVO : ClientParams {
 
     @Suppress("CanSealedSubClassBeObject")
     internal class PingParams : SessionParamsVO()
-
-    internal data class EventParams(
-        @Json(name = "event")
-        val event: SessionEventVO,
-        @Json(name = "chainId")
-        val chainId: String?,
-    ) : SessionParamsVO()
-
-    internal class UpdateEventsParams(
-        @Json(name = "events")
-        val events: List<String>,
-    ) : SessionParamsVO()
-
-    internal class UpdateAccountsParams(
-        @Json(name = "accounts")
-        val accounts: List<String>,
-    ) : SessionParamsVO()
-
-    internal class UpdateMethodsParams(
-        @Json(name = "methods")
-        val methods: List<String>,
-    ) : SessionParamsVO()
-
-    internal data class UpdateExpiryParams(
-        @Json(name = "expiry")
-        val expiry: Long,
-    ) : SessionParamsVO()
 }

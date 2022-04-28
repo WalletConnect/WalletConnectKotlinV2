@@ -161,12 +161,8 @@ internal fun EngineDO.SessionUpdateAccounts.toClientSessionsUpdateAccounts(): Wa
     WalletConnect.Model.UpdatedSessionAccounts(topic.value, accounts)
 
 @JvmSynthetic
-internal fun EngineDO.SessionUpdateMethods.toClientSessionsUpdateMethods(): WalletConnect.Model.UpdatedSessionMethods =
-    WalletConnect.Model.UpdatedSessionMethods(topic.value, methods)
-
-@JvmSynthetic
-internal fun EngineDO.SessionUpdateEvents.toClientSessionsUpdateEvents(): WalletConnect.Model.UpdatedSessionEvents =
-    WalletConnect.Model.UpdatedSessionEvents(topic.value, events)
+internal fun EngineDO.SessionUpdateNamespaces.toClientSessionsNamespaces(): WalletConnect.Model.UpdateSessionNamespaces =
+    WalletConnect.Model.UpdateSessionNamespaces(topic.value, namespaces.toListOfClientNamespaces())
 
 @JvmSynthetic
 internal fun EngineDO.JsonRpcResponse.JsonRpcError.toClientJsonRpcError(): WalletConnect.Model.JsonRpcResponse.JsonRpcError =

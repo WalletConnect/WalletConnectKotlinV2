@@ -4,6 +4,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.MetaDataVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDaoQueries
@@ -142,13 +143,8 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun updateSessionWithMethods(topic: TopicVO, methods: List<String>) {
-        sessionDaoQueries.updateSessionWithMethods(methods, topic.value)
-    }
-
-    @JvmSynthetic
-    fun updateSessionWithEvents(topic: TopicVO, events: List<String>) {
-        sessionDaoQueries.updateSessionWithEvents(events, topic.value)
+    fun updateSessionWithNamespaces(topic: TopicVO, namespaces: List<NamespaceVO>) {
+        //todo: update session with new namespaces
     }
 
     @JvmSynthetic
