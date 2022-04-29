@@ -1,12 +1,13 @@
 package com.walletconnect.walletconnectv2.network.data.repository
 
-import com.tinder.scarlet.WebSocket
 import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.scope.scope
+import com.walletconnect.walletconnectv2.network.model.RelayEvent
 import com.walletconnect.walletconnectv2.network.Relay
 import com.walletconnect.walletconnectv2.network.data.service.RelayService
 import com.walletconnect.walletconnectv2.network.model.RelayDTO
+import com.walletconnect.walletconnectv2.network.model.toRelayEvent
 import com.walletconnect.walletconnectv2.util.Logger
 import com.walletconnect.walletconnectv2.util.generateId
 import kotlinx.coroutines.cancel
@@ -16,7 +17,10 @@ import kotlinx.coroutines.supervisorScope
 
 internal class RelayClient internal constructor(private val relay: RelayService) : Relay {
 
-    override val eventsFlow: SharedFlow<WebSocket.Event> = relay.eventsFlow().shareIn(scope, SharingStarted.Lazily, REPLAY)
+    override val eventsFlow: SharedFlow<RelayEvent> = relay
+        .observeWebSocketEvent()
+        .map { it.toRelayEvent() }
+        .shareIn(scope, SharingStarted.Lazily, REPLAY)
 
     override val subscriptionRequest: Flow<RelayDTO.Subscription.Request> =
         relay.observeSubscriptionRequest()

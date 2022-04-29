@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 internal interface RelayService {
 
     @Receive
-    fun eventsFlow(): Flow<WebSocket.Event>
+    fun observeWebSocketEvent(): Flow<WebSocket.Event>
 
     @Send
     fun publishRequest(publishRequest: RelayDTO.Publish.Request)

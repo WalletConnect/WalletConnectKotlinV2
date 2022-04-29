@@ -1,6 +1,5 @@
 package com.walletconnect.walletconnectv2.relay.domain
 
-import com.tinder.scarlet.WebSocket
 import com.walletconnect.walletconnectv2.core.exceptions.client.WalletConnectException
 import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
@@ -14,6 +13,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.WCRequestVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.WCResponseVO
 import com.walletconnect.walletconnectv2.core.scope.scope
+import com.walletconnect.walletconnectv2.network.model.RelayEvent
 import com.walletconnect.walletconnectv2.network.Relay
 import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
 import com.walletconnect.walletconnectv2.relay.model.RelayDO
@@ -58,11 +58,11 @@ internal class WalletConnectRelayer(
 
     val initializationErrorsFlow: Flow<WalletConnectException>
         get() = relay.eventsFlow
-            .onEach { event: WebSocket.Event ->
+            .onEach { event: RelayEvent ->
                 Logger.log("$event")
-                setOnConnectionOpen(event)
+                setIsConnectionOpen(event)
             }
-            .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
+            .filterIsInstance<RelayEvent.OnConnectionFailed>()
             .map { error -> error.throwable.toWalletConnectException }
 
     init {
@@ -212,10 +212,10 @@ internal class WalletConnectRelayer(
         }
     }
 
-    private fun setOnConnectionOpen(event: WebSocket.Event) {
-        if (event is WebSocket.Event.OnConnectionOpened<*>) {
+    private fun setIsConnectionOpen(event: RelayEvent) {
+        if (event is RelayEvent.OnConnectionOpened<*>) {
             _isConnectionOpened.compareAndSet(expect = false, update = true)
-        } else if (event is WebSocket.Event.OnConnectionClosed || event is WebSocket.Event.OnConnectionFailed) {
+        } else if (event is RelayEvent.OnConnectionClosed || event is RelayEvent.OnConnectionFailed) {
             _isConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }

@@ -2,6 +2,7 @@ package com.walletconnect.walletconnectv2.client
 
 import android.app.Application
 import android.net.Uri
+import com.walletconnect.walletconnectv2.network.Relay
 import java.net.URI
 
 object WalletConnect {
@@ -159,6 +160,7 @@ object WalletConnect {
         data class Init internal constructor(
             val application: Application,
             val metadata: Model.AppMetaData,
+            val relay: Relay? = null
         ) : Params() {
             internal lateinit var serverUrl: String
 
@@ -168,7 +170,8 @@ object WalletConnect {
                 hostName: String,
                 projectId: String,
                 metadata: Model.AppMetaData,
-            ) : this(application, metadata) {
+                relay: Relay? = null
+            ) : this(application, metadata, relay) {
                 val relayServerUrl = Uri.Builder().scheme((if (useTls) "wss" else "ws"))
                     .authority(hostName)
                     .appendQueryParameter("projectId", projectId)
@@ -186,7 +189,8 @@ object WalletConnect {
                 application: Application,
                 relayServerUrl: String,
                 metadata: Model.AppMetaData,
-            ) : this(application, metadata) {
+                relay: Relay? = null
+            ) : this(application, metadata, relay) {
                 require(relayServerUrl.isValidRelayServerUrl()) {
                     "Check the schema and projectId parameter of the Server Url"
                 }

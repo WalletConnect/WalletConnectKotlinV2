@@ -2,15 +2,15 @@
 
 package com.walletconnect.walletconnectv2.network
 
-import com.tinder.scarlet.WebSocket
 import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.network.model.RelayEvent
 import com.walletconnect.walletconnectv2.network.model.RelayDTO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 
 internal interface Relay {
-    val eventsFlow: SharedFlow<WebSocket.Event>
+    val eventsFlow: SharedFlow<RelayEvent>
 
     val subscriptionRequest: Flow<RelayDTO.Subscription.Request>
 
