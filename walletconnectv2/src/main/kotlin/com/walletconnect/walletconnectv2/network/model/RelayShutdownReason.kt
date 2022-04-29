@@ -2,7 +2,7 @@ package com.walletconnect.walletconnectv2.network.model
 
 import com.tinder.scarlet.ShutdownReason
 
-internal data class RelayShutdownReason(val code: Int, val reason: String) {
+data class RelayShutdownReason(val code: Int, val reason: String) {
     companion object {
         private const val NORMAL_CLOSURE_STATUS_CODE = 1000
         private const val NORMAL_CLOSURE_REASON = "Normal closure"
@@ -12,4 +12,4 @@ internal data class RelayShutdownReason(val code: Int, val reason: String) {
     }
 }
 
-internal fun ShutdownReason.toRelayShutdownReason() = RelayShutdownReason(code, reason)
+fun ShutdownReason.toRelayShutdownReason() = RelayShutdownReason(code, reason)

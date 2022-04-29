@@ -9,7 +9,7 @@ import com.walletconnect.walletconnectv2.network.model.RelayDTO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 
-internal interface Relay {
+interface Relay {
     val eventsFlow: SharedFlow<RelayEvent>
 
     val subscriptionRequest: Flow<RelayDTO.Subscription.Request>
