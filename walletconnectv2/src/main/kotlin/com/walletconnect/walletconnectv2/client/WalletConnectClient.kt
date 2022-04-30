@@ -7,7 +7,6 @@ import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.di.*
 import com.walletconnect.walletconnectv2.engine.domain.EngineInteractor
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext

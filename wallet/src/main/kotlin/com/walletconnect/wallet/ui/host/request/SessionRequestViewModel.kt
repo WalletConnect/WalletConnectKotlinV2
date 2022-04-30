@@ -2,6 +2,7 @@ package com.walletconnect.wallet.ui.host.request
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.ui.SampleWalletEvents
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
@@ -43,6 +44,7 @@ class SessionRequestViewModel : ViewModel() {
 
         viewModelScope.launch {
             _event.emit(SampleWalletEvents.SessionRequestResponded)
+            WalletDelegate.clearCache()
         }
     }
 
@@ -60,6 +62,7 @@ class SessionRequestViewModel : ViewModel() {
 
         viewModelScope.launch {
             _event.emit(SampleWalletEvents.SessionRequestResponded)
+            WalletDelegate.clearCache()
         }
     }
 }

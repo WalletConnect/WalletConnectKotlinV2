@@ -78,6 +78,11 @@
                     android:name="selectedSessionTopic"
                     app:argType="string" />
             </action>
+
+            <deepLink
+                app:action="android.intent.action.VIEW"
+                app:uri="wc:/{topic}/request" />
+
         </fragment>
 
         <fragment

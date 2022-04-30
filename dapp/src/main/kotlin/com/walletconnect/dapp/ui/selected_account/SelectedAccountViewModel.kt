@@ -1,6 +1,7 @@
 package com.walletconnect.dapp.ui.selected_account
 
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.dapp.domain.DappDelegate
@@ -92,9 +93,8 @@ class SelectedAccountViewModel : ViewModel() {
                 }
             }
 
-            //TODO: Uncomment once refactor merged in
-//        val sessionRequestDeepLinkUri = "wc:/${requireNotNull(DappDelegate.selectedSessionTopic)}".toUri()
-//        sendSessionRequestDeepLink(sessionRequestDeepLinkUri)
+            val sessionRequestDeepLinkUri = "wc:/${requestParams.sessionTopic})}/request".toUri()
+            sendSessionRequestDeepLink(sessionRequestDeepLinkUri)
         }
     }
 

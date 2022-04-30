@@ -43,7 +43,7 @@ internal class EngineInteractor(
     private val sessionProposalRequest: MutableMap<String, WCRequestVO> = mutableMapOf()
 
     init {
-        resubscribeToSettledSequences()
+        resubscribeToSequences()
         setupSequenceExpiration()
         collectJsonRpcRequests()
         collectJsonRpcResponses()
@@ -781,18 +781,18 @@ internal class EngineInteractor(
         scope.launch { _sequenceEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
     }
 
-    private fun resubscribeToSettledSequences() {
+    private fun resubscribeToSequences() {
         relayer.isConnectionOpened
             .filter { isConnected: Boolean -> isConnected }
             .onEach {
                 coroutineScope {
-                    launch(Dispatchers.IO) { resubscribeToSettledPairings() }
-                    launch(Dispatchers.IO) { resubscribeToSettledSession() }
+                    launch(Dispatchers.IO) { resubscribeToPairings() }
+                    launch(Dispatchers.IO) { resubscribeToSession() }
                 }
             }.launchIn(scope)
     }
 
-    private fun resubscribeToSettledPairings() {
+    private fun resubscribeToPairings() {
         val (listOfExpiredPairing, listOfValidPairing) =
             sequenceStorageRepository.getListOfPairingVOs().partition { pairing -> !pairing.expiry.isSequenceValid() }
 
@@ -809,7 +809,7 @@ internal class EngineInteractor(
             .onEach { pairingTopic -> relayer.subscribe(pairingTopic) }
     }
 
-    private fun resubscribeToSettledSession() {
+    private fun resubscribeToSession() {
         val (listOfExpiredSession, listOfValidSessions) =
             sequenceStorageRepository.getListOfSessionVOs().partition { session -> !session.expiry.isSequenceValid() }
 
@@ -822,7 +822,6 @@ internal class EngineInteractor(
             }
 
         listOfValidSessions
-            .filter { session -> session.isAcknowledged }
             .onEach { session -> relayer.subscribe(session.topic) }
     }
 

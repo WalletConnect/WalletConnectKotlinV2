@@ -25,7 +25,16 @@
         android:layout_marginTop="24dp"
         android:text="Copy to Clipboard"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnDeepLink"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/ivUri" />
+
+    <Button
+        android:id="@+id/btnDeepLink"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="DeepLink"
+        app:layout_constraintTop_toTopOf="@id/btnCopyToClipboard"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btnCopyToClipboard" />
 </androidx.constraintlayout.widget.ConstraintLayout>
