@@ -16,6 +16,7 @@
 
         <activity android:name=".ui.host.WalletSampleActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:screenOrientation="portrait">
 
             <nav-graph android:value="@navigation/nav_graph" />

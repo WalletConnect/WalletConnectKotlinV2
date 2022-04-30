@@ -1,12 +1,11 @@
 package com.walletconnect.dapp.ui.connect.pairing_generate
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
+import android.content.*
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.net.toUri
 import androidx.fragment.app.DialogFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
@@ -45,12 +44,13 @@ class PairingGenerationDialogFragment : DialogFragment(R.layout.dialog_connect_u
                     Snackbar.make(binding.root, "Copied to Clipboard", Snackbar.LENGTH_SHORT).show()
                 }
 
-                //TODO: Uncomment once refactor merged in
-//                try {
-//                    requireActivity().startActivity(Intent(Intent.ACTION_VIEW, deeplinkPairingUri.toUri()))
-//                } catch (exception: ActivityNotFoundException) {
-//                    // There is no app to handle deep link
-//                }
+                binding.btnDeepLink.setOnClickListener {
+                    try {
+                        requireActivity().startActivity(Intent(Intent.ACTION_VIEW, deeplinkPairingUri.toUri()))
+                    } catch (exception: ActivityNotFoundException) {
+                        // There is no app to handle deep link
+                    }
+                }
             } else {
                 findNavController().popBackStack(R.id.fragment_chain_selection, true)
             }

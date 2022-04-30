@@ -32,8 +32,10 @@ class AccountsFragment : Fragment(R.layout.fragment_accounts) {
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true)
 
-        requireActivity().intent?.takeIf { intent -> intent.action == Intent.ACTION_VIEW }?.let { intent ->
-            viewModel.pair(intent.dataString.toString())
+        requireActivity().intent?.takeIf { intent -> intent.action == Intent.ACTION_VIEW && !intent.dataString.isNullOrBlank() }?.let { intent ->
+            viewModel.pair(intent.dataString.toString()).also {
+                intent.data = null
+            }
         }
 
         (requireActivity() as AppCompatActivity).supportActionBar?.let {

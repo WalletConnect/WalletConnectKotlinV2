@@ -36,8 +36,8 @@ internal class SequenceStorageRepository(
         val hasTopic = sessionDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
 
         if (hasTopic) {
-            val expiry = sessionDaoQueries.getExpiry(topic.value).executeAsOne()
-            return verifyExpiry(expiry, topic) { sessionDaoQueries.deleteSession(topic.value) }
+            val expiry = sessionDaoQueries.getExpiry(topic.value).executeAsOneOrNull()
+            return expiry?.let { verifyExpiry(it, topic) { sessionDaoQueries.deleteSession(topic.value) } } ?: false
         }
         return false
     }

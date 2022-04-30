@@ -39,6 +39,8 @@ class SessionProposalViewModel : ViewModel() {
                 WalletConnectClient.approveSession(approveProposal) { error ->
                     Log.e(tag(this@SessionProposalViewModel), error.error.stackTraceToString())
                 }
+
+                WalletDelegate.clearCache()
             }
         }
     }
@@ -55,6 +57,8 @@ class SessionProposalViewModel : ViewModel() {
             WalletConnectClient.rejectSession(reject) { error ->
                 Log.d(tag(this@SessionProposalViewModel), "sending reject error: $error")
             }
+
+            WalletDelegate.clearCache()
         }
     }
 

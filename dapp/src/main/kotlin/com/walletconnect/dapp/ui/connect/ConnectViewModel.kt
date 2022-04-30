@@ -70,7 +70,6 @@ class ConnectViewModel : ViewModel() {
                 viewModelScope.launch(Dispatchers.Main) {
                     onProposedSequence(proposedSequence)
                 }
-
             },
             onFailure = { error -> Log.e(tag(this@ConnectViewModel), error.error.stackTraceToString()) })
     }
