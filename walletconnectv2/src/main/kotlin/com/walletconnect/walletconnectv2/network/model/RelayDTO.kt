@@ -10,14 +10,14 @@ import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.util.Time
 
-sealed class RelayDTO {
+internal sealed class RelayDTO {
     abstract val id: Long
     abstract val jsonrpc: String
 
-    sealed class Publish : RelayDTO() {
+    internal sealed class Publish : RelayDTO() {
 
         @JsonClass(generateAdapter = true)
-        data class Request(
+        internal data class Request(
             @Json(name = "id")
             override val id: Long,
             @Json(name = "jsonrpc")
@@ -29,7 +29,7 @@ sealed class RelayDTO {
         ) : Publish() {
 
             @JsonClass(generateAdapter = true)
-            data class Params(
+            internal data class Params(
                 @Json(name = "topic")
                 @field:TopicAdapter.Qualifier
                 val topic: TopicVO,
@@ -43,7 +43,7 @@ sealed class RelayDTO {
             )
         }
 
-        data class Acknowledgement(
+        internal data class Acknowledgement(
             @Json(name = "id")
             override val id: Long,
             @Json(name = "jsonrpc")
@@ -52,7 +52,7 @@ sealed class RelayDTO {
             val result: Boolean
         ) : Publish()
 
-        data class JsonRpcError(
+        internal data class JsonRpcError(
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "error")
@@ -62,10 +62,10 @@ sealed class RelayDTO {
         ) : Publish()
     }
 
-    sealed class Subscribe : RelayDTO() {
+    internal sealed class Subscribe : RelayDTO() {
 
         @JsonClass(generateAdapter = true)
-        data class Request(
+        internal data class Request(
             @Json(name = "id")
             override val id: Long,
             @Json(name = "jsonrpc")
@@ -77,14 +77,14 @@ sealed class RelayDTO {
         ) : Subscribe() {
 
             @JsonClass(generateAdapter = true)
-            data class Params(
+            internal data class Params(
                 @Json(name = "topic")
                 @field:TopicAdapter.Qualifier
                 val topic: TopicVO
             )
         }
 
-        data class Acknowledgement(
+        internal data class Acknowledgement(
             @Json(name = "id")
             override val id: Long,
             @Json(name = "jsonrpc")
@@ -94,7 +94,7 @@ sealed class RelayDTO {
             val result: SubscriptionIdVO
         ) : Subscribe()
 
-        data class JsonRpcError(
+        internal data class JsonRpcError(
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "error")
@@ -104,10 +104,10 @@ sealed class RelayDTO {
         ) : Subscribe()
     }
 
-    sealed class Subscription : RelayDTO() {
+    internal sealed class Subscription : RelayDTO() {
 
         @JsonClass(generateAdapter = true)
-        data class Request(
+        internal data class Request(
             @Json(name = "id")
             override val id: Long,
             @Json(name = "jsonrpc")
@@ -122,7 +122,7 @@ sealed class RelayDTO {
             val message: String = params.subscriptionData.message
 
             @JsonClass(generateAdapter = true)
-            data class Params(
+            internal data class Params(
                 @Json(name = "id")
                 @field:SubscriptionIdAdapter.Qualifier
                 val subscriptionId: SubscriptionIdVO,
@@ -131,7 +131,7 @@ sealed class RelayDTO {
             ) {
 
                 @JsonClass(generateAdapter = true)
-                data class SubscriptionData(
+                internal data class SubscriptionData(
                     @Json(name = "topic")
                     @field:TopicAdapter.Qualifier
                     val topic: TopicVO,
@@ -141,7 +141,7 @@ sealed class RelayDTO {
             }
         }
 
-        data class Acknowledgement(
+        internal data class Acknowledgement(
             @Json(name = "id")
             override val id: Long,
             @Json(name = "jsonrpc")
@@ -150,7 +150,7 @@ sealed class RelayDTO {
             val result: Boolean
         ) : Subscription()
 
-        data class JsonRpcError(
+        internal data class JsonRpcError(
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "error")
@@ -160,9 +160,9 @@ sealed class RelayDTO {
         ) : Subscription()
     }
 
-    sealed class Unsubscribe : RelayDTO() {
+    internal sealed class Unsubscribe : RelayDTO() {
 
-        data class Request(
+        internal data class Request(
             @Json(name = "id")
             override val id: Long,
             @Json(name = "jsonrpc")
@@ -173,7 +173,7 @@ sealed class RelayDTO {
             val params: Params
         ) : Unsubscribe() {
 
-            data class Params(
+            internal data class Params(
                 @Json(name = "topic")
                 @field:TopicAdapter.Qualifier
                 val topic: TopicVO,
@@ -183,7 +183,7 @@ sealed class RelayDTO {
             )
         }
 
-        data class Acknowledgement(
+        internal data class Acknowledgement(
             @Json(name = "id")
             override val id: Long,
             @Json(name = "jsonrpc")
@@ -192,7 +192,7 @@ sealed class RelayDTO {
             val result: Boolean
         ) : Unsubscribe()
 
-        data class JsonRpcError(
+        internal data class JsonRpcError(
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "error")
@@ -202,7 +202,7 @@ sealed class RelayDTO {
         ) : Unsubscribe()
     }
 
-    data class Error(
+    internal data class Error(
         @Json(name = "code")
         val code: Long,
         @Json(name = "message")
