@@ -78,7 +78,7 @@ internal class WalletConnectRelayerTest {
 
     private fun mockRelayPublishSuccess() {
         every { relay.publish(any(), any(), any(), any()) } answers {
-            lastArg<(Result<WalletConnect.Model.Relay.DTO.Publish.Acknowledgement>) -> Unit>().invoke(
+            lastArg<(Result<WalletConnect.Model.Relay.Call.Publish.Acknowledgement>) -> Unit>().invoke(
                 Result.success(mockk())
             )
         }
@@ -86,7 +86,7 @@ internal class WalletConnectRelayerTest {
 
     private fun mockRelayPublishFailure() {
         every { relay.publish(any(), any(), any(), any()) } answers {
-            lastArg<(Result<WalletConnect.Model.Relay.DTO.Publish.Acknowledgement>) -> Unit>().invoke(
+            lastArg<(Result<WalletConnect.Model.Relay.Call.Publish.Acknowledgement>) -> Unit>().invoke(
                 Result.failure(mockk())
             )
         }

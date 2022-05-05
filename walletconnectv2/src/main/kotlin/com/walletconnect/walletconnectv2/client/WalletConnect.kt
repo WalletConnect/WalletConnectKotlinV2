@@ -154,11 +154,11 @@ object WalletConnect {
         ) : Model()
 
         sealed class Relay : Model() {
-            sealed class DTO : Relay() {
+            sealed class Call : Relay() {
                 abstract val id: Long
                 abstract val jsonrpc: String
 
-                sealed class Publish : DTO() {
+                sealed class Publish : Call() {
 
                     data class Request(
                         override val id: Long,
@@ -183,12 +183,12 @@ object WalletConnect {
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
-                        val error: Error,
+                        val error: WalletConnect.Model.Relay.Error,
                         override val id: Long
                     ) : Publish()
                 }
 
-                sealed class Subscribe : DTO() {
+                sealed class Subscribe : Call() {
 
                     data class Request(
                         override val id: Long,
@@ -210,12 +210,12 @@ object WalletConnect {
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
-                        val error: Error,
+                        val error: WalletConnect.Model.Relay.Error,
                         override val id: Long
                     ) : Subscribe()
                 }
 
-                sealed class Subscription : DTO() {
+                sealed class Subscription : Call() {
 
                     data class Request(
                         override val id: Long,
@@ -247,12 +247,12 @@ object WalletConnect {
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
-                        val error: Error,
+                        val error: WalletConnect.Model.Relay.Error,
                         override val id: Long
                     ) : Subscription()
                 }
 
-                sealed class Unsubscribe : DTO() {
+                sealed class Unsubscribe : Call() {
 
                     data class Request(
                         override val id: Long,
@@ -275,23 +275,22 @@ object WalletConnect {
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
-                        val error: Error,
+                        val error: WalletConnect.Model.Relay.Error,
                         override val id: Long
                     ) : Unsubscribe()
                 }
+            }
 
-                data class Error(
-                    val code: Long,
-                    val message: String,
-                ) {
-                    val errorMessage: String = "Error code: $code; Error message: $message"
-                }
+            data class Error(
+                val code: Long,
+                val message: String,
+            ) : Relay() {
+                val errorMessage: String = "Error code: $code; Error message: $message"
             }
 
             sealed class Event : Relay() {
                 data class OnConnectionOpened<out WEB_SOCKET : Any>(val webSocket: WEB_SOCKET) :
                     Event()
-
                 data class OnMessageReceived(val message: Message) : Event()
                 data class OnConnectionClosing(val shutdownReason: ShutdownReason) : Event()
                 data class OnConnectionClosed(val shutdownReason: ShutdownReason) : Event()

@@ -31,24 +31,24 @@ internal fun ShutdownReason.toRelayShutdownReason() =
 
 @JvmSynthetic
 internal fun RelayDTO.Subscription.Request.Params.SubscriptionData.toRelaySubscriptionData() =
-    WalletConnect.Model.Relay.DTO.Subscription.Request.Params.SubscriptionData(topic.value, message)
+    WalletConnect.Model.Relay.Call.Subscription.Request.Params.SubscriptionData(topic.value, message)
 
 @JvmSynthetic
 internal fun RelayDTO.Subscription.Request.Params.toRelayParams() =
-    WalletConnect.Model.Relay.DTO.Subscription.Request.Params(subscriptionId.id, subscriptionData.toRelaySubscriptionData())
+    WalletConnect.Model.Relay.Call.Subscription.Request.Params(subscriptionId.id, subscriptionData.toRelaySubscriptionData())
 
 @JvmSynthetic
 internal fun RelayDTO.Subscription.Request.toRelayRequest() =
-    WalletConnect.Model.Relay.DTO.Subscription.Request(id, jsonrpc, method, params.toRelayParams())
+    WalletConnect.Model.Relay.Call.Subscription.Request(id, jsonrpc, method, params.toRelayParams())
 
 @JvmSynthetic
 internal fun RelayDTO.Publish.Acknowledgement.toRelayAcknowledgment() =
-    WalletConnect.Model.Relay.DTO.Publish.Acknowledgement(id, jsonrpc, result)
+    WalletConnect.Model.Relay.Call.Publish.Acknowledgement(id, jsonrpc, result)
 
 @JvmSynthetic
 internal fun RelayDTO.Subscribe.Acknowledgement.toRelayAcknowledgment() =
-    WalletConnect.Model.Relay.DTO.Subscribe.Acknowledgement(id, jsonrpc, result.id)
+    WalletConnect.Model.Relay.Call.Subscribe.Acknowledgement(id, jsonrpc, result.id)
 
 @JvmSynthetic
 internal fun RelayDTO.Unsubscribe.Acknowledgement.toRelayAcknowledgment() =
-    WalletConnect.Model.Relay.DTO.Unsubscribe.Acknowledgement(id, jsonrpc, result)
+    WalletConnect.Model.Relay.Call.Unsubscribe.Acknowledgement(id, jsonrpc, result)
