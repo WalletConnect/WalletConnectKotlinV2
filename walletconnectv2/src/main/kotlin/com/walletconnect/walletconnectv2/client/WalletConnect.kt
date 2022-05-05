@@ -288,7 +288,7 @@ object WalletConnect {
                 }
             }
 
-            sealed class Event : Model() {
+            sealed class Event : Relay() {
                 data class OnConnectionOpened<out WEB_SOCKET : Any>(val webSocket: WEB_SOCKET) :
                     Event()
 
@@ -298,12 +298,12 @@ object WalletConnect {
                 data class OnConnectionFailed(val throwable: Throwable) : Event()
             }
 
-            sealed class Message : Model() {
+            sealed class Message : Relay() {
                 data class Text(val value: String) : Message()
                 class Bytes(val value: ByteArray) : Message()
             }
 
-            data class ShutdownReason(val code: Int, val reason: String) : Model()
+            data class ShutdownReason(val code: Int, val reason: String) : Relay()
         }
     }
 
