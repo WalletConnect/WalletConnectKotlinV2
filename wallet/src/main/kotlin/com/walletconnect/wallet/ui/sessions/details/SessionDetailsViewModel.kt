@@ -40,26 +40,26 @@ class SessionDetailsViewModel : ViewModel() {
     }
 
     fun getSessionDetails(sessionTopic: String) {
-        val state = WalletConnectClient.getListOfSettledSessions().find { it.topic == sessionTopic }?.let { selectedSession ->
-            selectedSessionTopic = sessionTopic
-
-            val listOfChainAccountInfo = filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession)
-            val selectedSessionPeerData: WalletConnect.Model.AppMetaData = requireNotNull(selectedSession.metaData)
-            val uiState = SessionDetailsUI.Content(
-                icon = selectedSessionPeerData.icons.first(),
-                name = selectedSessionPeerData.name,
-                url = selectedSessionPeerData.url,
-                description = selectedSessionPeerData.description,
-                listOfChainAccountInfo = listOfChainAccountInfo,
-                methods = selectedSession.methods.joinToString("\n")
-            )
-
-            uiState
-        } ?: SessionDetailsUI.NoContent
-
-        viewModelScope.launch {
-            _uiState.emit(state)
-        }
+//        val state = WalletConnectClient.getListOfSettledSessions().find { it.topic == sessionTopic }?.let { selectedSession ->
+//            selectedSessionTopic = sessionTopic
+//
+//            val listOfChainAccountInfo = filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession)
+//            val selectedSessionPeerData: WalletConnect.Model.AppMetaData = requireNotNull(selectedSession.metaData)
+//            val uiState = SessionDetailsUI.Content(
+//                icon = selectedSessionPeerData.icons.first(),
+//                name = selectedSessionPeerData.name,
+//                url = selectedSessionPeerData.url,
+//                description = selectedSessionPeerData.description,
+//                listOfChainAccountInfo = listOfChainAccountInfo,
+//                methods = selectedSession.methods.joinToString("\n")
+//            )
+//
+//            uiState
+//        } ?: SessionDetailsUI.NoContent
+//
+//        viewModelScope.launch {
+//            _uiState.emit(state)
+//        }
     }
 
     fun deleteSession() {
@@ -138,19 +138,19 @@ class SessionDetailsViewModel : ViewModel() {
     }
 
     fun updateMethods() {
-        val updatedState = (_uiState.value as? SessionDetailsUI.Content)?.let { sessionDetails ->
-            selectedSessionTopic?.let { sessionTopic ->
-                val upgrade = WalletConnect.Params.UpdateMethods(sessionTopic = sessionTopic, methods = listOf("eth_sign"))
-                WalletConnectClient.updateMethods(upgrade) { error -> Log.d("Error", "sending upgrade error: $error") }
-            }
-
-            sessionDetails.copy(methods = "eth_sign")
-        }
-
-        // TODO: Once state sync is complete, replace updating UI from VM with event from WalletDelegate - onSessionUpgradeResponse
-        viewModelScope.launch {
-            _uiState.emit(updatedState)
-        }
+//        val updatedState = (_uiState.value as? SessionDetailsUI.Content)?.let { sessionDetails ->
+//            selectedSessionTopic?.let { sessionTopic ->
+//                val upgrade = WalletConnect.Params.UpdateMethods(sessionTopic = sessionTopic, methods = listOf("eth_sign"))
+//                WalletConnectClient.updateMethods(upgrade) { error -> Log.d("Error", "sending upgrade error: $error") }
+//            }
+//
+//            sessionDetails.copy(methods = "eth_sign")
+//        }
+//
+//        // TODO: Once state sync is complete, replace updating UI from VM with event from WalletDelegate - onSessionUpgradeResponse
+//        viewModelScope.launch {
+//            _uiState.emit(updatedState)
+//        }
     }
 
     private fun filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession: WalletConnect.Model.Session): List<SessionDetailsUI.Content.ChainAccountInfo> =

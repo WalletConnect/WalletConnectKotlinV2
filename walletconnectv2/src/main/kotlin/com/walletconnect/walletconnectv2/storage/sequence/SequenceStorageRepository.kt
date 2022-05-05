@@ -1,5 +1,6 @@
 package com.walletconnect.walletconnectv2.storage.sequence
 
+import com.walletconnect.walletconnectv2.core.model.type.enums.MetaDataType
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
@@ -8,6 +9,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.Namespa
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.dao.NamespaceDaoQueries
 import com.walletconnect.walletconnectv2.storage.data.dao.PairingDaoQueries
 import com.walletconnect.walletconnectv2.storage.data.dao.SessionDaoQueries
 import com.walletconnect.walletconnectv2.util.Empty
@@ -18,6 +20,7 @@ internal class SequenceStorageRepository(
     private val pairingDaoQueries: PairingDaoQueries,
     private val sessionDaoQueries: SessionDaoQueries,
     private val metaDataDaoQueries: MetaDataDaoQueries,
+    private val namespaceDaoQueries: NamespaceDaoQueries,
 ) {
 
     @JvmSynthetic
@@ -35,11 +38,12 @@ internal class SequenceStorageRepository(
     fun isSessionValid(topic: TopicVO): Boolean {
         val hasTopic = sessionDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
 
-        if (hasTopic) {
+        return if (hasTopic) {
             val expiry = sessionDaoQueries.getExpiry(topic.value).executeAsOneOrNull()
-            return expiry?.let { verifyExpiry(it, topic) { sessionDaoQueries.deleteSession(topic.value) } } ?: false
+            expiry?.let { verifyExpiry(it, topic) { sessionDaoQueries.deleteSession(topic.value) } } ?: false
+        } else {
+            false
         }
-        return false
     }
 
     @JvmSynthetic
@@ -73,7 +77,6 @@ internal class SequenceStorageRepository(
 
     @JvmSynthetic
     fun insertPairing(pairing: PairingVO) {
-
         with(pairing) {
             pairingDaoQueries.insertPairing(
                 topic.value,
@@ -84,6 +87,9 @@ internal class SequenceStorageRepository(
                 isActive
             )
         }
+
+        val insertedPairingId = sessionDaoQueries.lastInsertedRow().executeAsOne()
+        pairing.peerMetaData?.let { metaDataDaoQueries.insertOrIgnoreMetaData(insertedPairingId, it.name, it.description, it.url, it.icons, MetaDataType.PEER) }
     }
 
     @JvmSynthetic
@@ -93,29 +99,23 @@ internal class SequenceStorageRepository(
 
     @JvmSynthetic
     fun updatePairingPeerMetadata(topic: TopicVO, metaData: MetaDataVO?) {
-        val peerMetadataId = insertMetaData(metaData)
-        pairingDaoQueries.updatePairingPeerMetadata(peerMetadataId, topic.value)
+        insertMetaDataForPairing(metaData, MetaDataType.PEER, topic.value)
     }
 
     @JvmSynthetic
+    // TODO: Delete?
     fun deletePairing(topic: TopicVO) {
-        metaDataDaoQueries.deleteSessionSelfMetaDataFromTopic(topic.value)
+        metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
+        namespaceDaoQueries.deleteNamespacesDataFromTopic(topic.value)
         pairingDaoQueries.deletePairing(topic.value)
     }
 
     @JvmSynthetic
     fun insertSession(session: SessionVO) {
-        val selfMetadataId = insertMetaData(session.selfMetaData)
-        val peerMetadataId = insertMetaData(session.peerMetaData)
-
         with(session) {
             sessionDaoQueries.insertSession(
                 topic = topic.value,
-                permissions_methods = listOf(),
-                permissions_events = listOf(),
                 expiry = expiry.seconds,
-                self_metadata_id = selfMetadataId,
-                peer_metadata_id = peerMetadataId,
                 self_participant = selfPublicKey.keyAsHex,
                 relay_protocol = relayProtocol,
                 controller_key = controllerKey?.keyAsHex,
@@ -125,6 +125,11 @@ internal class SequenceStorageRepository(
                 is_acknowledged = isAcknowledged
             )
         }
+
+        val lastInsertedSessionId = sessionDaoQueries.lastInsertedRow().executeAsOne()
+        insertMetaData(session.selfMetaData, MetaDataType.SELF, lastInsertedSessionId)
+        insertMetaData(session.peerMetaData, MetaDataType.PEER, lastInsertedSessionId)
+        insertNamespace(session.namespaces, lastInsertedSessionId)
     }
 
     @JvmSynthetic
@@ -144,27 +149,50 @@ internal class SequenceStorageRepository(
 
     @JvmSynthetic
     fun updateSessionWithNamespaces(topic: TopicVO, namespaces: List<NamespaceVO>) {
-        //todo: update session with new namespaces
+        namespaces.forEach { namespace ->
+            namespaceDaoQueries.updateNamespace(namespace.methods, namespace.events, topic.value, namespace.chains)
+        }
     }
 
     @JvmSynthetic
     fun deleteSession(topic: TopicVO) {
-        metaDataDaoQueries.deleteSessionSelfMetaDataFromTopic(topic.value)
-        metaDataDaoQueries.deleteSessionPeerMetaDataFromTopic(topic.value)
+        metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
+        namespaceDaoQueries.deleteNamespacesDataFromTopic(topic.value)
         sessionDaoQueries.deleteSession(topic.value)
     }
 
-    private fun insertMetaData(metaData: MetaDataVO?): Long {
-        return metaData?.let {
+    private fun insertMetaData(metaData: MetaDataVO?, metaDataType: MetaDataType, sessionId: Long) {
+        metaData?.let {
             metaDataDaoQueries.insertOrIgnoreMetaData(
+                sessionId,
                 metaData.name,
                 metaData.description,
                 metaData.url,
-                metaData.icons
+                metaData.icons,
+                metaDataType
             )
+        }
+    }
 
-            metaDataDaoQueries.lastInsertedRowId().executeAsOne()
-        } ?: FAILED_INSERT_ID
+    private fun insertMetaDataForPairing(metaData: MetaDataVO?, metaDataType: MetaDataType, sessionTopic: String) {
+        metaData?.let {
+            val sessionId = sessionDaoQueries.getSessionIdByTopic(sessionTopic).executeAsOne()
+
+            metaDataDaoQueries.insertOrIgnoreMetaDataForPairing(
+                sessionId,
+                metaData.name,
+                metaData.description,
+                metaData.url,
+                metaData.icons,
+                metaDataType
+            )
+        }
+    }
+
+    private fun insertNamespace(namespaces: List<NamespaceVO>, sessionId: Long) {
+        namespaces.forEach { (chains: List<String>, methods: List<String>, events: List<String>) ->
+            namespaceDaoQueries.insertNamespace(sessionId, chains, methods, events)
+        }
     }
 
     private fun verifyExpiry(expiry: Long, topic: TopicVO, deleteSequence: () -> Unit): Boolean {
@@ -205,6 +233,7 @@ internal class SequenceStorageRepository(
     }
 
     private fun mapSessionDaoToSessionVO(
+        id: Long,
         topic: String,
         expiry: Long,
         relay_protocol: String,
@@ -221,11 +250,8 @@ internal class SequenceStorageRepository(
         peerUrl: String?,
         peerIcons: List<String>?,
         accounts: List<String>?,
-        permissions_methods: List<String>,
-        permissions_events: List<String>,
         is_acknowledged: Boolean,
     ): SessionVO {
-
         val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
             MetaDataVO(selfName, selfDesc, selfUrl, selfIcons)
         } else {
@@ -238,9 +264,12 @@ internal class SequenceStorageRepository(
             null
         }
 
+        val namespaces = namespaceDaoQueries.getNamespaces(id) { chains, methods, events ->
+            NamespaceVO(chains ?: emptyList(), methods ?: emptyList(), events ?: emptyList())
+        }.executeAsList()
+
         return SessionVO(
             topic = TopicVO(topic),
-            namespaces = listOf(),
             accounts = accounts ?: emptyList(),
             expiry = ExpiryVO(expiry),
             selfMetaData = selfMetaData,
@@ -250,11 +279,8 @@ internal class SequenceStorageRepository(
             controllerKey = PublicKey(controller_key ?: String.Empty),
             relayProtocol = relay_protocol,
             relayData = relay_data,
+            namespaces = namespaces,
             isAcknowledged = is_acknowledged
         )
-    }
-
-    private companion object {
-        const val FAILED_INSERT_ID = -1L
     }
 }

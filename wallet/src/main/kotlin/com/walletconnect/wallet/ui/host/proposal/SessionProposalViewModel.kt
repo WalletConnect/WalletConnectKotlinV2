@@ -21,28 +21,28 @@ class SessionProposalViewModel : ViewModel() {
     }
 
     fun approve() {
-        if (WalletDelegate.sessionProposal != null && WalletDelegate.selectedChainAddressId in mapOfAllAccounts.keys) {
-            val selectedAccounts = mapOfAllAccounts[WalletDelegate.selectedChainAddressId] ?: throw Exception("Can't find account")
-            requireNotNull(WalletDelegate.sessionProposal).let { sessionProposal ->
-                val accounts: List<String> = selectedAccounts.filter { (chain: EthTestChains, _) ->
-                    "${chain.parentChain}:${chain.chainId}" in sessionProposal.chains
-                }.map { (chain: EthTestChains, accountAddress: String) ->
-                    "${chain.parentChain}:${chain.chainId}:${accountAddress}"
-                }
-                val approveProposal = WalletConnect.Params.Approve(
-                    proposerPublicKey = sessionProposal.proposerPublicKey,
-                    accounts = accounts,
-                    methods = sessionProposal.methods,
-                    events = sessionProposal.events
-                )
-
-                WalletConnectClient.approveSession(approveProposal) { error ->
-                    Log.e(tag(this@SessionProposalViewModel), error.error.stackTraceToString())
-                }
-
-                WalletDelegate.clearCache()
-            }
-        }
+//        if (WalletDelegate.sessionProposal != null && WalletDelegate.selectedChainAddressId in mapOfAllAccounts.keys) {
+//            val selectedAccounts = mapOfAllAccounts[WalletDelegate.selectedChainAddressId] ?: throw Exception("Can't find account")
+//            requireNotNull(WalletDelegate.sessionProposal).let { sessionProposal ->
+//                val accounts: List<String> = selectedAccounts.filter { (chain: EthTestChains, _) ->
+//                    "${chain.parentChain}:${chain.chainId}" in sessionProposal.chains
+//                }.map { (chain: EthTestChains, accountAddress: String) ->
+//                    "${chain.parentChain}:${chain.chainId}:${accountAddress}"
+//                }
+//                val approveProposal = WalletConnect.Params.Approve(
+//                    proposerPublicKey = sessionProposal.proposerPublicKey,
+//                    accounts = accounts,
+//                    methods = sessionProposal.methods,
+//                    events = sessionProposal.events
+//                )
+//
+//                WalletConnectClient.approveSession(approveProposal) { error ->
+//                    Log.e(tag(this@SessionProposalViewModel), error.error.stackTraceToString())
+//                }
+//
+//                WalletDelegate.clearCache()
+//            }
+//        }
     }
 
     fun reject() {
@@ -68,8 +68,8 @@ class SessionProposalViewModel : ViewModel() {
             peerName = sessionProposal.name,
             proposalUri = sessionProposal.url,
             peerDescription = sessionProposal.description,
-            chains = sessionProposal.chains.joinToString("\n"),
-            methods = sessionProposal.methods.joinToString("\n")
+            chains = "",//sessionProposal.namespaces.map { it.chains }.joinToString("\n"),
+            methods = ""//sessionProposal.namespaces.map { it.methods}.joinToString("\n")
         )
     }
 }

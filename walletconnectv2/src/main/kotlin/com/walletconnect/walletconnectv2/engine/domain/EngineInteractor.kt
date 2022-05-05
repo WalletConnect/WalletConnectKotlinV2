@@ -51,7 +51,9 @@ internal class EngineInteractor(
     }
 
     fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-        relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
+        relayer.initializationErrorsFlow.onEach { walletConnectException ->
+            onError(walletConnectException)
+        }.launchIn(scope)
     }
 
     internal fun proposeSequence(
@@ -144,6 +146,7 @@ internal class EngineInteractor(
         val request = sessionProposalRequest[proposerPublicKey]
             ?: throw WalletConnectException.CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
+        sequenceStorageRepository.deletePairing(request.topic)
         relayer.respondWithError(request, PeerError.Error(reason, code), onFailure = { error -> onFailure(error) })
     }
 
@@ -151,7 +154,7 @@ internal class EngineInteractor(
         proposerPublicKey: String,
         accounts: List<String>,
         namespaces: List<EngineDO.Namespace>,
-        onFailure: (Throwable) -> Unit,
+        onFailure: (Throwable) -> Unit = {},
     ) {
         val request = sessionProposalRequest[proposerPublicKey]
             ?: throw WalletConnectException.CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
