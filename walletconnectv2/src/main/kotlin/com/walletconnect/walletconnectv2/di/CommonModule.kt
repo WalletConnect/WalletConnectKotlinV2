@@ -10,7 +10,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.TtlVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionRequestVO
-import com.walletconnect.walletconnectv2.relay.model.RelayDO
+import com.walletconnect.walletconnectv2.relay.model.RelayerDO
 import org.json.JSONObject
 import org.koin.dsl.module
 import kotlin.reflect.jvm.jvmName
@@ -18,10 +18,10 @@ import kotlin.reflect.jvm.jvmName
 @JvmSynthetic
 internal fun commonModule() = module {
 
-    single<PolymorphicJsonAdapterFactory<RelayDO.JsonRpcResponse>> {
-        PolymorphicJsonAdapterFactory.of(RelayDO.JsonRpcResponse::class.java, "type")
-            .withSubtype(RelayDO.JsonRpcResponse.JsonRpcResult::class.java, "result")
-            .withSubtype(RelayDO.JsonRpcResponse.JsonRpcError::class.java, "error")
+    single<PolymorphicJsonAdapterFactory<RelayerDO.JsonRpcResponse>> {
+        PolymorphicJsonAdapterFactory.of(RelayerDO.JsonRpcResponse::class.java, "type")
+            .withSubtype(RelayerDO.JsonRpcResponse.JsonRpcResult::class.java, "result")
+            .withSubtype(RelayerDO.JsonRpcResponse.JsonRpcError::class.java, "error")
     }
 
     single {
@@ -38,12 +38,12 @@ internal fun commonModule() = module {
                     TopicVO::class.jvmName -> TopicAdapter
                     TtlVO::class.jvmName -> TtlAdapter
                     SessionRequestVO::class.jvmName -> SessionRequestVOJsonAdapter(moshi)
-                    RelayDO.JsonRpcResponse.JsonRpcResult::class.jvmName -> RelayDOJsonRpcResultJsonAdapter(moshi)
+                    RelayerDO.JsonRpcResponse.JsonRpcResult::class.jvmName -> RelayDOJsonRpcResultJsonAdapter(moshi)
                     else -> null
                 }
             }
             .addLast(get<KotlinJsonAdapterFactory>())
-            .add(get<PolymorphicJsonAdapterFactory<RelayDO.JsonRpcResponse>>())
+            .add(get<PolymorphicJsonAdapterFactory<RelayerDO.JsonRpcResponse>>())
             .build()
     }
 }

@@ -2,21 +2,18 @@
 
 package com.walletconnect.walletconnectv2.network
 
-import com.tinder.scarlet.WebSocket
-import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
-import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
-import com.walletconnect.walletconnectv2.network.model.RelayDTO
+import com.walletconnect.walletconnectv2.client.WalletConnect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 
-internal interface Relay {
-    val eventsFlow: SharedFlow<WebSocket.Event>
+interface Relay {
+    val eventsFlow: SharedFlow<WalletConnect.Model.Relay.Event>
 
-    val subscriptionRequest: Flow<RelayDTO.Subscription.Request>
+    val subscriptionRequest: Flow<WalletConnect.Model.Relay.Call.Subscription.Request>
 
-    fun publish(topic: TopicVO, message: String, prompt: Boolean = false, onResult: (Result<RelayDTO.Publish.Acknowledgement>) -> Unit = {})
+    fun publish(topic: String, message: String, prompt: Boolean = false, onResult: (Result<WalletConnect.Model.Relay.Call.Publish.Acknowledgement>) -> Unit = {})
 
-    fun subscribe(topic: TopicVO, onResult: (Result<RelayDTO.Subscribe.Acknowledgement>) -> Unit)
+    fun subscribe(topic: String, onResult: (Result<WalletConnect.Model.Relay.Call.Subscribe.Acknowledgement>) -> Unit)
 
-    fun unsubscribe(topic: TopicVO, subscriptionId: SubscriptionIdVO, onResult: (Result<RelayDTO.Unsubscribe.Acknowledgement>) -> Unit)
+    fun unsubscribe(topic: String, subscriptionId: String, onResult: (Result<WalletConnect.Model.Relay.Call.Unsubscribe.Acknowledgement>) -> Unit)
 }

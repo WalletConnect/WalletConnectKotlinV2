@@ -1,6 +1,6 @@
 package com.walletconnect.walletconnectv2.relay.domain
 
-import com.tinder.scarlet.WebSocket
+import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.core.exceptions.client.WalletConnectException
 import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
@@ -78,7 +78,7 @@ internal class WalletConnectRelayerTest {
 
     private fun mockRelayPublishSuccess() {
         every { relay.publish(any(), any(), any(), any()) } answers {
-            lastArg<(Result<RelayDTO.Publish.Acknowledgement>) -> Unit>().invoke(
+            lastArg<(Result<WalletConnect.Model.Relay.Call.Publish.Acknowledgement>) -> Unit>().invoke(
                 Result.success(mockk())
             )
         }
@@ -86,7 +86,7 @@ internal class WalletConnectRelayerTest {
 
     private fun mockRelayPublishFailure() {
         every { relay.publish(any(), any(), any(), any()) } answers {
-            lastArg<(Result<RelayDTO.Publish.Acknowledgement>) -> Unit>().invoke(
+            lastArg<(Result<WalletConnect.Model.Relay.Call.Publish.Acknowledgement>) -> Unit>().invoke(
                 Result.failure(mockk())
             )
         }
@@ -206,11 +206,11 @@ internal class WalletConnectRelayerTest {
     @Test
     fun `InitializationErrorsFlow emits value only on OnConnectionFailed`() = runBlockingTest {
         every { relay.eventsFlow } returns flowOf(
-            mockk<WebSocket.Event.OnConnectionOpened<*>>(),
-            mockk<WebSocket.Event.OnMessageReceived>(),
-            mockk<WebSocket.Event.OnConnectionClosing>(),
-            mockk<WebSocket.Event.OnConnectionClosed>(),
-            mockk<WebSocket.Event.OnConnectionFailed>() {
+            mockk<WalletConnect.Model.Relay.Event.OnConnectionOpened<*>>(),
+            mockk<WalletConnect.Model.Relay.Event.OnMessageReceived>(),
+            mockk<WalletConnect.Model.Relay.Event.OnConnectionClosing>(),
+            mockk<WalletConnect.Model.Relay.Event.OnConnectionClosed>(),
+            mockk<WalletConnect.Model.Relay.Event.OnConnectionFailed>() {
                 every { throwable } returns RuntimeException()
             }
         ).shareIn(this, SharingStarted.Lazily)
@@ -232,7 +232,7 @@ internal class WalletConnectRelayerTest {
     @Test
     fun `IsConnectionOpened emits true after OnConnectionOpened`() = runBlockingTest {
         every { relay.eventsFlow } returns flowOf(
-            mockk<WebSocket.Event.OnConnectionOpened<*>>()
+            mockk<WalletConnect.Model.Relay.Event.OnConnectionOpened<*>>()
         ).shareIn(this, SharingStarted.Lazily)
 
         val connectionObserverJob = sut.isConnectionOpened.launchIn(this)
@@ -251,9 +251,9 @@ internal class WalletConnectRelayerTest {
         runBlockingTest {
             var stateChangedCounter = -1  // to counter measure initial state set as false
             every { relay.eventsFlow } returns flowOf(
-                mockk<WebSocket.Event.OnConnectionOpened<*>>(),
-                mockk<WebSocket.Event.OnConnectionOpened<*>>(),
-                mockk<WebSocket.Event.OnConnectionOpened<*>>()
+                mockk<WalletConnect.Model.Relay.Event.OnConnectionOpened<*>>(),
+                mockk<WalletConnect.Model.Relay.Event.OnConnectionOpened<*>>(),
+                mockk<WalletConnect.Model.Relay.Event.OnConnectionOpened<*>>()
             ).shareIn(this, SharingStarted.Lazily)
 
             val connectionObserverJob =
@@ -272,8 +272,8 @@ internal class WalletConnectRelayerTest {
     fun `IsConnectionOpened emits false on OnConnectionClosed when IsConnectionOpened was true`() =
         runBlockingTest {
             every { relay.eventsFlow } returns flowOf(
-                mockk<WebSocket.Event.OnConnectionOpened<*>>(),
-                mockk<WebSocket.Event.OnConnectionClosed>()
+                mockk<WalletConnect.Model.Relay.Event.OnConnectionOpened<*>>(),
+                mockk<WalletConnect.Model.Relay.Event.OnConnectionClosed>()
             ).shareIn(this, SharingStarted.Lazily)
 
             val connectionObserverJob = sut.isConnectionOpened.launchIn(this)
@@ -291,8 +291,8 @@ internal class WalletConnectRelayerTest {
     fun `IsConnectionOpened emits false on OnConnectionFailed when IsConnectionOpened was true`() =
         runBlockingTest {
             every { relay.eventsFlow } returns flowOf(
-                mockk<WebSocket.Event.OnConnectionOpened<*>>(),
-                mockk<WebSocket.Event.OnConnectionFailed>() {
+                mockk<WalletConnect.Model.Relay.Event.OnConnectionOpened<*>>(),
+                mockk<WalletConnect.Model.Relay.Event.OnConnectionFailed>() {
                     every { throwable } returns RuntimeException()
                 }
             ).shareIn(this, SharingStarted.Lazily)

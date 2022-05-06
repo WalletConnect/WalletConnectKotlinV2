@@ -9,7 +9,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.Pairin
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionSettlementVO
 import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.relay.Codec
-import com.walletconnect.walletconnectv2.relay.model.RelayDO
+import com.walletconnect.walletconnectv2.relay.model.RelayerDO
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.Logger
 
@@ -64,8 +64,8 @@ internal class JsonRpcSerializer(
             is SessionSettlementVO.SessionRequest -> trySerialize(payload)
             is SessionSettlementVO.SessionDelete -> trySerialize(payload)
             is SessionSettlementVO.SessionSettle -> trySerialize(payload)
-            is RelayDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
-            is RelayDO.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
+            is RelayerDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
+            is RelayerDO.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             else -> String.Empty
         }
 

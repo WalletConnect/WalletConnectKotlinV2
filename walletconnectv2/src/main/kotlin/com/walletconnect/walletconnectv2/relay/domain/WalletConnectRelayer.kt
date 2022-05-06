@@ -1,6 +1,6 @@
 package com.walletconnect.walletconnectv2.relay.domain
 
-import com.tinder.scarlet.WebSocket
+import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.core.exceptions.client.WalletConnectException
 import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
@@ -16,11 +16,11 @@ import com.walletconnect.walletconnectv2.core.model.vo.sync.WCResponseVO
 import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.network.Relay
 import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
-import com.walletconnect.walletconnectv2.relay.model.RelayDO
-import com.walletconnect.walletconnectv2.relay.model.mapper.toJsonRpcErrorVO
-import com.walletconnect.walletconnectv2.relay.model.mapper.toPendingRequestVO
-import com.walletconnect.walletconnectv2.relay.model.mapper.toRelayDOJsonRpcResponse
-import com.walletconnect.walletconnectv2.relay.model.mapper.toWCResponse
+import com.walletconnect.walletconnectv2.relay.model.RelayerDO
+import com.walletconnect.walletconnectv2.relay.model.toJsonRpcErrorVO
+import com.walletconnect.walletconnectv2.relay.model.toPendingRequestVO
+import com.walletconnect.walletconnectv2.relay.model.toRelayerDOJsonRpcResponse
+import com.walletconnect.walletconnectv2.relay.model.toWCResponse
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.util.Logger
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -58,11 +58,11 @@ internal class WalletConnectRelayer(
 
     val initializationErrorsFlow: Flow<WalletConnectException>
         get() = relay.eventsFlow
-            .onEach { event: WebSocket.Event ->
+            .onEach { event: WalletConnect.Model.Relay.Event ->
                 Logger.log("$event")
-                setOnConnectionOpen(event)
+                setIsConnectionOpen(event)
             }
-            .filterIsInstance<WebSocket.Event.OnConnectionFailed>()
+            .filterIsInstance<WalletConnect.Model.Relay.Event.OnConnectionFailed>()
             .map { error -> error.throwable.toWalletConnectException }
 
     init {
@@ -79,7 +79,7 @@ internal class WalletConnectRelayer(
 
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encodedRequest = serializer.encode(requestJson, topic)
-            relay.publish(topic, encodedRequest, shouldPrompt(payload.method)) { result ->
+            relay.publish(topic.value, encodedRequest, shouldPrompt(payload.method)) { result ->
                 result.fold(
                     onSuccess = { onSuccess() },
                     onFailure = { error -> onFailure(error) }
@@ -94,11 +94,11 @@ internal class WalletConnectRelayer(
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
-        val jsonResponseDO = response.toRelayDOJsonRpcResponse()
+        val jsonResponseDO = response.toRelayerDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
         val encodedJson = serializer.encode(responseJson, topic)
 
-        relay.publish(topic, encodedJson) { result ->
+        relay.publish(topic.value, encodedJson) { result ->
             result.fold(
                 onSuccess = {
                     jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
@@ -131,9 +131,9 @@ internal class WalletConnectRelayer(
     }
 
     internal fun subscribe(topic: TopicVO) {
-        relay.subscribe(topic) { result ->
+        relay.subscribe(topic.value) { result ->
             result.fold(
-                onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result.id },
+                onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result },
                 onFailure = { error -> Logger.error("Subscribe to topic: $topic error: $error") }
             )
         }
@@ -142,7 +142,7 @@ internal class WalletConnectRelayer(
     internal fun unsubscribe(topic: TopicVO) {
         if (subscriptions.contains(topic.value)) {
             val subscriptionId = SubscriptionIdVO(subscriptions[topic.value].toString())
-            relay.unsubscribe(topic, subscriptionId) { result ->
+            relay.unsubscribe(topic.value, subscriptionId.id) { result ->
                 result.fold(
                     onSuccess = {
                         jsonRpcHistory.deleteRequests(topic)
@@ -164,8 +164,8 @@ internal class WalletConnectRelayer(
         scope.launch(exceptionHandler) {
             relay.subscriptionRequest
                 .map { relayRequest ->
-                    val decodedMessage = serializer.decode(relayRequest.message, relayRequest.subscriptionTopic)
-                    val topic = relayRequest.subscriptionTopic
+                    val topic = TopicVO(relayRequest.subscriptionTopic)
+                    val decodedMessage = serializer.decode(relayRequest.message, topic)
 
                     Pair(decodedMessage, topic)
                 }
@@ -174,16 +174,16 @@ internal class WalletConnectRelayer(
     }
 
     private suspend fun manageSubscriptions(decryptedMessage: String, topic: TopicVO) {
-        serializer.tryDeserialize<RelayDO.ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
+        serializer.tryDeserialize<RelayerDO.ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
             handleRequest(clientJsonRpc, topic, decryptedMessage)
-        } ?: serializer.tryDeserialize<RelayDO.JsonRpcResponse.JsonRpcResult>(decryptedMessage)?.let { result ->
+        } ?: serializer.tryDeserialize<RelayerDO.JsonRpcResponse.JsonRpcResult>(decryptedMessage)?.let { result ->
             handleJsonRpcResult(result)
-        } ?: serializer.tryDeserialize<RelayDO.JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
+        } ?: serializer.tryDeserialize<RelayerDO.JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
             handleJsonRpcError(error)
         } ?: Logger.error("WalletConnectRelay: Received unknown object type")
     }
 
-    private suspend fun handleRequest(clientJsonRpc: RelayDO.ClientJsonRpc, topic: TopicVO, decryptedMessage: String) {
+    private suspend fun handleRequest(clientJsonRpc: RelayerDO.ClientJsonRpc, topic: TopicVO, decryptedMessage: String) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(WCRequestVO(topic, clientJsonRpc.id, clientJsonRpc.method, params))
@@ -191,7 +191,7 @@ internal class WalletConnectRelayer(
         }
     }
 
-    private suspend fun handleJsonRpcResult(jsonRpcResult: RelayDO.JsonRpcResponse.JsonRpcResult) {
+    private suspend fun handleJsonRpcResult(jsonRpcResult: RelayerDO.JsonRpcResponse.JsonRpcResult) {
         val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcResult.id, serializer.serialize(jsonRpcResult))
 
         if (jsonRpcRecord != null) {
@@ -202,7 +202,7 @@ internal class WalletConnectRelayer(
         }
     }
 
-    private suspend fun handleJsonRpcError(jsonRpcError: RelayDO.JsonRpcResponse.JsonRpcError) {
+    private suspend fun handleJsonRpcError(jsonRpcError: RelayerDO.JsonRpcResponse.JsonRpcError) {
         val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcError.id, serializer.serialize(jsonRpcError))
 
         if (jsonRpcRecord != null) {
@@ -212,10 +212,10 @@ internal class WalletConnectRelayer(
         }
     }
 
-    private fun setOnConnectionOpen(event: WebSocket.Event) {
-        if (event is WebSocket.Event.OnConnectionOpened<*>) {
+    private fun setIsConnectionOpen(event: WalletConnect.Model.Relay.Event) {
+        if (event is WalletConnect.Model.Relay.Event.OnConnectionOpened<*>) {
             _isConnectionOpened.compareAndSet(expect = false, update = true)
-        } else if (event is WebSocket.Event.OnConnectionClosed || event is WebSocket.Event.OnConnectionFailed) {
+        } else if (event is WalletConnect.Model.Relay.Event.OnConnectionClosed || event is WalletConnect.Model.Relay.Event.OnConnectionFailed) {
             _isConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }

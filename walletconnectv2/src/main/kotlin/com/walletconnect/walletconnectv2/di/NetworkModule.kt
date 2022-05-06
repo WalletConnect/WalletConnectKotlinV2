@@ -15,7 +15,7 @@ import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
 @JvmSynthetic
-internal fun networkModule(serverUrl: String) = module {
+internal fun networkModule(serverUrl: String, relay: Relay?) = module {
     val TIMEOUT_TIME = 5000L
     val DEFAULT_BACKOFF_MINUTES = 5L
 
@@ -44,5 +44,5 @@ internal fun networkModule(serverUrl: String) = module {
 
     single { get<Scarlet>().create(RelayService::class.java) }
 
-    single<Relay> { RelayClient(get()) }
+    single { relay ?: RelayClient(get()) }
 }

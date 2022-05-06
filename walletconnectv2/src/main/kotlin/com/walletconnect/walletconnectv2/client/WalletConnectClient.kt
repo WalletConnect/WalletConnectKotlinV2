@@ -7,6 +7,7 @@ import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.di.*
 import com.walletconnect.walletconnectv2.engine.domain.EngineInteractor
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
+import com.walletconnect.walletconnectv2.network.Relay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
@@ -15,24 +16,27 @@ import org.koin.core.KoinApplication
 object WalletConnectClient {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var engineInteractor: EngineInteractor
+    private lateinit var relay: Relay
 
-    fun initialize(initial: WalletConnect.Params.Init, onError: (WalletConnectException) -> Unit = {}) = with(initial) {
-        // TODO: re-init scope
-        // TODO: add logic to check hostName for ws/wss scheme with and without ://
-        wcKoinApp.run {
-            androidContext(application)
-            modules(
-                commonModule(),
-                cryptoManager(),
-                networkModule(serverUrl),
-                relayerModule(),
-                storageModule(),
-                engineModule(metadata)
-            )
+    fun initialize(initial: WalletConnect.Params.Init, onError: (WalletConnectException) -> Unit = {}) {
+        with(initial) {
+            // TODO: re-init scope
+            // TODO: add logic to check hostName for ws/wss scheme with and without ://
+            wcKoinApp.run {
+                androidContext(application)
+                modules(
+                    commonModule(),
+                    cryptoManager(),
+                    networkModule(serverUrl, relay),
+                    relayerModule(),
+                    storageModule(),
+                    engineModule(metadata)
+                )
+            }
         }
-
         engineInteractor = wcKoinApp.koin.get()
         engineInteractor.handleInitializationErrors { walletConnectException -> onError(walletConnectException) }
+        relay = wcKoinApp.koin.get()
     }
 
     @Throws(IllegalStateException::class)
