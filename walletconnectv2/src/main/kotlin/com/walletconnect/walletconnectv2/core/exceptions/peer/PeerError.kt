@@ -1,7 +1,5 @@
 package com.walletconnect.walletconnectv2.core.exceptions.peer
 
-import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
-
 sealed class PeerError {
     abstract val message: String
     abstract val code: Int
@@ -9,16 +7,6 @@ sealed class PeerError {
     data class InvalidUpdateAccountsRequest(val sequence: String) : PeerError() {
         override val message = "Invalid $sequence update accounts request"
         override val code: Int = 1003
-    }
-
-    data class InvalidUpdateMethodsRequest(val sequence: String) : PeerError() {
-        override val message = "Invalid $sequence update methods request"
-        override val code: Int = 1004
-    }
-
-    data class InvalidUpdateEventsRequest(val sequence: String) : PeerError() {
-        override val message = "Invalid $sequence update events request"
-        override val code: Int = 1005
     }
 
     data class InvalidUpdateExpiryRequest(val sequence: String) : PeerError() {
@@ -51,12 +39,7 @@ sealed class PeerError {
         override val code: Int = 3003
     }
 
-    data class UnauthorizedUpdateEventsRequest(val sequence: String) : PeerError() {
-        override val message: String = "Unauthorized $sequence update accounts request"
-        override val code: Int = 3004
-    }
-
-    data class UnauthorizedUpdateMethodsRequest(val sequence: String) : PeerError() {
+    data class UnauthorizedUpdateNamespacesRequest(val sequence: String) : PeerError() {
         override val message: String = "Unauthorized $sequence update methods request"
         override val code: Int = 3005
     }
@@ -64,12 +47,6 @@ sealed class PeerError {
     data class UnauthorizedUpdateExpiryRequest(val sequence: String) : PeerError() {
         override val message: String = "Unauthorized $sequence update expiry request"
         override val code: Int = 3006
-    }
-
-    data class UnauthorizedMatchingController(val isController: Boolean) : PeerError() {
-        private val peerType: String = if (isController) ControllerType.CONTROLLER.type else ControllerType.NON_CONTROLLER.type
-        override val message: String = "Unauthorized: peer is also $peerType"
-        override val code: Int = 3100
     }
 
     data class Error(val reason: String, val errorCode: Int) : PeerError() {

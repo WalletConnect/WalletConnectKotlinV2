@@ -167,51 +167,31 @@ internal fun EngineDO.PairingSettle.toClientSettledPairing(): WalletConnect.Mode
     WalletConnect.Model.Pairing(topic.value, metaData?.toClientAppMetaData())
 
 @JvmSynthetic
-internal fun List<PendingRequestVO>.mapToPendingRequests(): List<WalletConnect.Model.PendingRequest> =
-    this.map { request ->
-        WalletConnect.Model.PendingRequest(
-            request.requestId,
-            request.topic,
-            request.method,
-            request.chainId,
-            request.params
-        )
-    }
+internal fun List<PendingRequestVO>.mapToPendingRequests(): List<WalletConnect.Model.PendingRequest> = map { request ->
+    WalletConnect.Model.PendingRequest(
+        request.requestId,
+        request.topic,
+        request.method,
+        request.chainId,
+        request.params
+    )
+}
 
 @JvmSynthetic
 internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): WalletConnect.Model.SessionRequestResponse =
     WalletConnect.Model.SessionRequestResponse(topic, chainId, method, result.toClientJsonRpcResponse())
 
 @JvmSynthetic
-internal fun List<WalletConnect.Model.Namespace>.toListOfEngineNamespaces(): List<EngineDO.Namespace> =
-    mutableListOf<EngineDO.Namespace>().apply {
-        this@toListOfEngineNamespaces.forEach { namespace ->
-            add(namespace.toEngineNamespace())
-        }
-    }
+internal fun List<WalletConnect.Model.Namespace>.toListOfEngineNamespaces(): List<EngineDO.Namespace> = map { namespace ->
+    EngineDO.Namespace(namespace.chains, namespace.methods, namespace.events)
+}
 
 @JvmSynthetic
-internal fun WalletConnect.Model.Namespace.toEngineNamespace(): EngineDO.Namespace = EngineDO.Namespace(chains, methods, events)
+internal fun List<EngineDO.Namespace>.toListOfClientNamespaces(): List<WalletConnect.Model.Namespace> = map { namespace ->
+    WalletConnect.Model.Namespace(namespace.chains, namespace.methods, namespace.events)
+}
 
 @JvmSynthetic
-internal fun List<EngineDO.Namespace>.toListOfClientNamespaces(): List<WalletConnect.Model.Namespace> =
-    mutableListOf<WalletConnect.Model.Namespace>().apply {
-        this@toListOfClientNamespaces.forEach { namespace ->
-            add(namespace.toClientNamespace())
-        }
-    }
-
-@JvmSynthetic
-internal fun EngineDO.Namespace.toClientNamespace(): WalletConnect.Model.Namespace = WalletConnect.Model.Namespace(chains, methods, events)
-
-@JvmSynthetic
-internal fun List<WalletConnect.Model.RelayProtocolOptions>.toListEngineOfRelayProtocolOptions(): List<EngineDO.RelayProtocolOptions> =
-    mutableListOf<EngineDO.RelayProtocolOptions>().apply {
-        this@toListEngineOfRelayProtocolOptions.forEach { relayOptions ->
-            add(relayOptions.toEngineRelayProtocolOptions())
-        }
-    }
-
-@JvmSynthetic
-internal fun WalletConnect.Model.RelayProtocolOptions.toEngineRelayProtocolOptions(): EngineDO.RelayProtocolOptions =
-    EngineDO.RelayProtocolOptions(protocol, data)
+internal fun List<WalletConnect.Model.RelayProtocolOptions>.toListEngineOfRelayProtocolOptions(): List<EngineDO.RelayProtocolOptions> = map { relayProtocolOptions ->
+    EngineDO.RelayProtocolOptions(relayProtocolOptions.protocol, relayProtocolOptions.data)
+}

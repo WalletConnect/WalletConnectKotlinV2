@@ -77,9 +77,5 @@ internal data class SessionVO(
                 isAcknowledged = true
             )
         }
-
-//        fun getChainIds(accountIds: List<String>): List<String> {
-//            return accountIds.map { accountId -> accountId.split(":").take(2).joinToString(":") }
-//        }
     }
 }

@@ -8,6 +8,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
@@ -63,8 +64,33 @@ internal class EngineInteractor(
         onProposedSequence: (EngineDO.ProposedSequence) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
+        fun proposeSession(
+            pairingTopic: TopicVO,
+            proposedRelays: List<EngineDO.RelayProtocolOptions>?,
+            proposedSequence: EngineDO.ProposedSequence
+        ) {
+            val selfPublicKey: PublicKey = crypto.generateKeyPair()
+            val sessionProposal = toSessionProposeParams(proposedRelays ?: relays, namespaces, selfPublicKey, metaData)
+            val request = PairingSettlementVO.SessionPropose(id = generateId(), params = sessionProposal)
+            sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequestVO(pairingTopic, request.id, request.method, sessionProposal)
+
+            relayer.publishJsonRpcRequests(pairingTopic, request,
+                onSuccess = {
+                    Logger.log("Session proposal sent successfully")
+                    onProposedSequence(proposedSequence)
+                },
+                onFailure = { error ->
+                    Logger.error("Failed to send a session proposal: $error")
+                    onFailure(error)
+                })
+        }
+
         Validator.validateCAIP2(namespaces) { errorMessage ->
             throw WalletConnectException.InvalidSessionChainIdsException(errorMessage)
+        }
+
+        Validator.validateNamespaces(namespaces) { errorMessage ->
+            throw WalletConnectException.InvalidNamespaceException(errorMessage)
         }
 
         if (pairingTopic != null) {
@@ -74,23 +100,13 @@ internal class EngineInteractor(
             val pairing: PairingVO = sequenceStorageRepository.getPairingByTopic(TopicVO(pairingTopic))
             val relay = EngineDO.RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
 
-            proposeSession(namespaces, TopicVO(pairingTopic), listOf(relay),
-                onSuccess = { onProposedSequence(EngineDO.ProposedSequence.Session) },
-                onFailure = { error -> onFailure(error) })
-
+            proposeSession(TopicVO(pairingTopic), listOf(relay), EngineDO.ProposedSequence.Session)
         } else {
-            proposePairing(namespaces, relays,
-                onSessionProposeSuccess = { pairing -> onProposedSequence(pairing) },
-                onFailure = { error -> onFailure(error) })
+            proposePairing(::proposeSession)
         }
     }
 
-    private fun proposePairing(
-        namespaces: List<EngineDO.Namespace>,
-        relays: List<EngineDO.RelayProtocolOptions>?,
-        onSessionProposeSuccess: (EngineDO.ProposedSequence.Pairing) -> Unit,
-        onFailure: (Throwable) -> Unit,
-    ) {
+    private fun proposePairing(proposedSession: (TopicVO, List<EngineDO.RelayProtocolOptions>?, EngineDO.ProposedSequence) -> Unit) {
         val pairingTopic: TopicVO = generateTopic()
         val symmetricKey: SecretKey = crypto.generateSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptionsVO()
@@ -99,32 +115,7 @@ internal class EngineInteractor(
         sequenceStorageRepository.insertPairing(pairing)
         relayer.subscribe(pairingTopic)
 
-        proposeSession(namespaces, pairingTopic, relays,
-            onSuccess = { onSessionProposeSuccess(EngineDO.ProposedSequence.Pairing(walletConnectUri.toAbsoluteString())) },
-            onFailure = { error -> onFailure(error) })
-    }
-
-    private fun proposeSession(
-        namespaces: List<EngineDO.Namespace>,
-        pairingTopic: TopicVO,
-        relays: List<EngineDO.RelayProtocolOptions>?,
-        onFailure: (Throwable) -> Unit = {},
-        onSuccess: () -> Unit = {},
-    ) {
-        val selfPublicKey: PublicKey = crypto.generateKeyPair()
-        val sessionProposal = toSessionProposeParams(relays, namespaces, selfPublicKey, metaData)
-        val request = PairingSettlementVO.SessionPropose(id = generateId(), params = sessionProposal)
-        sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequestVO(pairingTopic, request.id, request.method, sessionProposal)
-
-        relayer.publishJsonRpcRequests(pairingTopic, request,
-            onSuccess = {
-                Logger.error("Session proposal sent successfully")
-                onSuccess()
-            },
-            onFailure = { error ->
-                Logger.error("Failed to send a session proposal: $error")
-                onFailure(error)
-            })
+        proposedSession(pairingTopic, null, EngineDO.ProposedSequence.Pairing(walletConnectUri.toAbsoluteString()))
     }
 
     internal fun pair(uri: String) {
@@ -156,6 +147,23 @@ internal class EngineInteractor(
         namespaces: List<EngineDO.Namespace>,
         onFailure: (Throwable) -> Unit = {},
     ) {
+        fun sessionSettle(
+            proposal: PairingParamsVO.SessionProposeParams,
+            sessionTopic: TopicVO,
+            onFailure: (Throwable) -> Unit,
+        ) {
+            val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
+            val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO())
+            val sessionExpiry = Expiration.activeSession
+            val session =
+                SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, accounts, namespaces)
+            sequenceStorageRepository.insertSession(session)
+            val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, accounts, namespaces)
+            val sessionSettle = SessionSettlementVO.SessionSettle(id = generateId(), params = params)
+
+            relayer.publishJsonRpcRequests(sessionTopic, sessionSettle, onFailure = { error -> onFailure(error) })
+        }
+
         val request = sessionProposalRequest[proposerPublicKey]
             ?: throw WalletConnectException.CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
@@ -165,6 +173,10 @@ internal class EngineInteractor(
             throw WalletConnectException.InvalidAccountsException(errorMessage)
         }
 
+        Validator.validateNamespaces(namespaces) { errorMessage ->
+            throw WalletConnectException.InvalidNamespaceException(errorMessage)
+        }
+
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val (_, sessionTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, PublicKey(proposerPublicKey))
         relayer.subscribe(sessionTopic)
@@ -172,7 +184,7 @@ internal class EngineInteractor(
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
         relayer.respondWithParams(request, approvalParams)
 
-        sessionSettle(proposal, accounts, namespaces, sessionTopic) { error -> onFailure(error) }
+        sessionSettle(proposal, sessionTopic) { error -> onFailure(error) }
     }
 
     internal fun updateSessionAccounts(topic: String, newAccounts: List<String>, onFailure: (Throwable) -> Unit) {
@@ -187,22 +199,21 @@ internal class EngineInteractor(
         val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
         if (!session.isSelfController) {
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
-        }
-        if (!session.isAcknowledged) {
+        } else if (!session.isAcknowledged) {
             throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
+        } else {
+            val params = SessionParamsVO.UpdateAccountsParams(newAccounts)
+            val sessionUpdateAccounts = SessionSettlementVO.SessionUpdateAccounts(id = generateId(), params = params)
+            sequenceStorageRepository.updateSessionWithAccounts(TopicVO(topic), newAccounts)
+
+            relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateAccounts,
+                onSuccess = { Logger.log("Update accounts sent successfully") },
+                onFailure = { error ->
+                    Logger.error("Sending session update error: $error")
+                    onFailure(error)
+                }
+            )
         }
-
-        val params = SessionParamsVO.UpdateAccountsParams(newAccounts)
-        val sessionUpdateAccounts = SessionSettlementVO.SessionUpdateAccounts(id = generateId(), params = params)
-        sequenceStorageRepository.updateSessionWithAccounts(TopicVO(topic), newAccounts)
-
-        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateAccounts,
-            onSuccess = { Logger.log("Update accounts sent successfully") },
-            onFailure = { error ->
-                Logger.error("Sending session update error: $error")
-                onFailure(error)
-            }
-        )
     }
 
     internal fun updateSessionNamespaces(topic: String, namespaces: List<EngineDO.Namespace>, onFailure: (Throwable) -> Unit) {
@@ -210,27 +221,28 @@ internal class EngineInteractor(
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
+        Validator.validateNamespaces(namespaces) {
+            throw WalletConnectException.InvalidNamespaceException(NAMESPACE_MISSING_CHAINS_MESSAGE)
+        }
+
         val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
         if (!session.isSelfController) {
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
-        }
-        if (!session.isAcknowledged) {
+        } else if (!session.isAcknowledged) {
             throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
+        } else {
+            val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toNamespacesVO())
+            val sessionUpdateMethods = SessionSettlementVO.SessionUpdateNamespaces(id = generateId(), params = params)
+            sequenceStorageRepository.updateSessionWithNamespaces(TopicVO(topic), namespaces.toNamespacesVO())
+
+            relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateMethods,
+                onSuccess = { Logger.log("Update methods sent successfully") },
+                onFailure = { error ->
+                    Logger.error("Sending session update error: $error")
+                    onFailure(error)
+                }
+            )
         }
-
-        //todo: @Szymon: Any additional validation is needed here?
-
-        val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toNamespacesVO())
-        val sessionUpdateMethods = SessionSettlementVO.SessionUpdateNamespaces(id = generateId(), params = params)
-        sequenceStorageRepository.updateSessionWithNamespaces(TopicVO(topic), namespaces.toNamespacesVO())
-
-        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateMethods,
-            onSuccess = { Logger.log("Update methods sent successfully") },
-            onFailure = { error ->
-                Logger.error("Sending session update error: $error")
-                onFailure(error)
-            }
-        )
     }
 
     internal fun sessionRequest(request: EngineDO.Request, onFailure: (Throwable) -> Unit) {
@@ -243,12 +255,16 @@ internal class EngineInteractor(
             throw WalletConnectException.UnauthorizedChainIdException(errorMessage)
         }
 
-        val params =
-            SessionParamsVO.SessionRequestParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
+        Validator.validateMethodAuthorisation(namespaces, request.method) { errorMessage ->
+            throw WalletConnectException.UnauthorizedMethodException(errorMessage)
+        }
+
+        val params = SessionParamsVO.SessionRequestParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
         val sessionPayload = SessionSettlementVO.SessionRequest(id = generateId(), params = params)
 
         relayer.publishJsonRpcRequests(
-            TopicVO(request.topic), sessionPayload,
+            topic = TopicVO(request.topic),
+            payload = sessionPayload,
             onSuccess = {
                 Logger.log("Session request sent successfully")
                 scope.launch {
@@ -405,25 +421,6 @@ internal class EngineInteractor(
             }
     }
 
-    private fun sessionSettle(
-        proposal: PairingParamsVO.SessionProposeParams,
-        accounts: List<String>,
-        namespaces: List<EngineDO.Namespace>,
-        sessionTopic: TopicVO,
-        onFailure: (Throwable) -> Unit,
-    ) {
-        val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
-        val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO())
-        val sessionExpiry = Expiration.activeSession
-        val session =
-            SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, accounts, namespaces)
-        sequenceStorageRepository.insertSession(session)
-        val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, accounts, namespaces)
-        val sessionSettle = SessionSettlementVO.SessionSettle(id = generateId(), params = params)
-
-        relayer.publishJsonRpcRequests(sessionTopic, sessionSettle, onFailure = { error -> onFailure(error) })
-    }
-
     private fun collectJsonRpcRequests() {
         scope.launch {
             relayer.clientSyncJsonRpc.collect { request ->
@@ -493,19 +490,19 @@ internal class EngineInteractor(
             return
         }
 
-        //todo: @Szymon: add validation whether the method and chainId are included into namespaces. What if chainId is null?
-        val session = sequenceStorageRepository.getSessionByTopic(request.topic)
-        Validator.validateChainIdAuthorization(params.chainId, session.namespaces) {
+        val (sessionNamespaces: List<NamespaceVO>, sessionPeerMetaData: MetaDataVO?) = with(sequenceStorageRepository.getSessionByTopic(request.topic)) { namespaces to peerMetaData }
+        Validator.validateChainIdAuthorization(params.chainId, sessionNamespaces) {
             relayer.respondWithError(request, PeerError.UnauthorizedTargetChainId(params.chainId ?: String.Empty))
             return@validateChainIdAuthorization
         }
 
         val method = params.request.method
-        Validator.validateMethodAuthorisation(session.namespaces, method) {
+        Validator.validateMethodAuthorisation(sessionNamespaces, method) {
             relayer.respondWithError(request, PeerError.UnauthorizedJsonRpcMethod(method))
             return@validateMethodAuthorisation
         }
-        scope.launch { _sequenceEvent.emit(params.toEngineDOSessionRequest(request, session.peerMetaData)) }
+
+        scope.launch { _sequenceEvent.emit(params.toEngineDOSessionRequest(request, sessionPeerMetaData)) }
     }
 
     private fun onSessionEvent(request: WCRequestVO, params: SessionParamsVO.EventParams) {
@@ -520,7 +517,6 @@ internal class EngineInteractor(
             return
         }
 
-        //todo: @Szymon: add validation whether the event and chainId are included into namespaces. What if chainId is null?
         val event = params.event
         Validator.validateChainIdAuthorization(params.chainId, session.namespaces) {
             relayer.respondWithError(request, PeerError.UnauthorizedEventRequest(event.name))
@@ -562,16 +558,47 @@ internal class EngineInteractor(
     private fun onSessionUpdateNamespaces(request: WCRequestVO, params: SessionParamsVO.UpdateNamespacesParams) {
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
             relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value))
+
             return
         }
 
         val session: SessionVO = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (!session.isPeerController) {
-            relayer.respondWithError(request, PeerError.UnauthorizedUpdateMethodsRequest(Sequences.SESSION.name))
+            relayer.respondWithError(request, PeerError.UnauthorizedUpdateNamespacesRequest(Sequences.SESSION.name))
+
             return
         }
 
-        //todo: @Szymon: is validation needed on a Dapp side. Should we just validate CAIP-2(chainIds) and save all as is?
+        val sessionNamespacesToEngineDO: List<EngineDO.Namespace> = session.namespaces.toListOfEngineNamespaces()
+        Validator.validateCAIP2(sessionNamespacesToEngineDO) {
+            relayer.respondWithError(request, PeerError.UnauthorizedUpdateNamespacesRequest(Sequences.SESSION.name))
+
+            return@validateCAIP2
+        }
+
+        Validator.validateNamespaces(sessionNamespacesToEngineDO) {
+            relayer.respondWithError(request, PeerError.UnauthorizedUpdateNamespacesRequest(Sequences.SESSION.name))
+
+            return@validateNamespaces
+        }
+
+        sessionNamespacesToEngineDO.onEach { namespace ->
+            namespace.methods.onEach { method ->
+                Validator.validateMethodAuthorisation(session.namespaces, method) {
+                    relayer.respondWithError(request, PeerError.UnauthorizedJsonRpcMethod(method))
+
+                    return@validateMethodAuthorisation
+                }
+            }
+
+            namespace.events.onEach { event ->
+                Validator.validateEventAuthorization(session, event) {
+                    relayer.respondWithError(request, PeerError.UnauthorizedEventRequest(event))
+
+                    return@validateEventAuthorization
+                }
+            }
+        }
 
         sequenceStorageRepository.updateSessionWithNamespaces(session.topic, params.namespaces)
         relayer.respondWithSuccess(request)

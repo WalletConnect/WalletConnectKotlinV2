@@ -13,12 +13,14 @@ import java.net.URISyntaxException
 
 internal object Validator {
 
+    // TODO: Ask if this is still valid
     internal fun isMethodListNotEmpty(methods: List<String>, onInvalidJsonRpc: (String) -> Unit) {
         if (!areMethodsValid(methods)) {
             onInvalidJsonRpc(EMPTY_RPC_METHODS_LIST_MESSAGE)
         }
     }
 
+    // TODO: Ask if this is still valid
     internal fun isEventListNotEmpty(events: List<String>, onInvalidEvents: (String) -> Unit) {
         if (!areEventsValid(events)) {
             onInvalidEvents(INVALID_EVENTS_MESSAGE)
@@ -31,8 +33,14 @@ internal object Validator {
         }
     }
 
+    internal fun validateNamespaces(namespaces: List<EngineDO.Namespace>, onInvalidNamespace: (String) -> Unit) {
+        if (namespaces.any { namespace -> namespace.chains.isEmpty() }) {
+            onInvalidNamespace(NAMESPACE_MISSING_CHAINS_MESSAGE)
+        }
+    }
+
     internal fun validateMethodAuthorisation(namespaces: List<NamespaceVO>, method: String, onInvalidMethod: (String) -> Unit) {
-        if (namespaces.find { namespace -> namespace.methods.contains(method) } == null) {
+        if (!namespaces.any { namespace -> namespace.methods.contains(method) }) {
             onInvalidMethod(UNAUTHORIZED_METHOD)
         }
     }
@@ -60,13 +68,13 @@ internal object Validator {
     }
 
     internal fun validateEventAuthorization(session: SessionVO, eventName: String, onUnauthorizedEvent: (String) -> Unit) {
-        if (!session.isSelfController && session.namespaces.find { namespace -> namespace.events.contains(eventName) } == null) {
+        if (!session.isSelfController || !session.namespaces.any { namespace -> namespace.events.contains(eventName) }) {
             onUnauthorizedEvent(UNAUTHORIZED_EVENT_TYPE_MESSAGE)
         }
     }
 
     internal fun validateChainIdAuthorization(chainId: String?, namespaces: List<NamespaceVO>, onInvalidChainId: (String) -> Unit) {
-        if (chainId != null && namespaces.find { namespace -> namespace.chains.contains(chainId) } == null) {
+        if (chainId == null || !namespaces.any { namespace -> namespace.chains.contains(chainId) }) {
             onInvalidChainId(UNAUTHORIZED_CHAIN_ID_MESSAGE)
         }
     }
@@ -125,8 +133,7 @@ internal object Validator {
     internal fun isChainIdValid(chainId: String): Boolean {
         val elements: List<String> = chainId.split(":")
         if (elements.isEmpty() || elements.size != 2) return false
-        val namespace = elements[0]
-        val reference = elements[1]
+        val (namespace: String, reference: String) = elements
         return NAMESPACE_REGEX.toRegex().matches(namespace) && REFERENCE_REGEX.toRegex().matches(reference)
     }
 
@@ -145,6 +152,7 @@ internal object Validator {
 
     internal fun areAccountsOnValidNetworks(accountIds: List<String>, chains: List<String>): Boolean {
         if (!areAccountsNotEmpty(accountIds) || chains.isEmpty()) return false
+
         accountIds.forEach { accountId ->
             val elements = accountId.split(":")
             if (elements.isEmpty() || elements.size != 3) return false
@@ -152,21 +160,8 @@ internal object Validator {
             val chainId = "$namespace:$reference"
             if (!chains.contains(chainId)) return false
         }
+
         return true
-    }
-
-    private fun splitAccountId(elements: List<String>): Triple<String, String, String> {
-        val namespace = elements[0]
-        val reference = elements[1]
-        val accountAddress = elements[2]
-        return Triple(namespace, reference, accountAddress)
-    }
-
-    fun getChainIds(accountIds: List<String>): List<String> {
-        return accountIds.map { accountId ->
-            val (namespace: String, reference: String, _) = accountId.split(":")
-            "$namespace:$reference"
-        }
     }
 
     private const val NAMESPACE_REGEX: String = "^[-a-z0-9]{3,8}$"

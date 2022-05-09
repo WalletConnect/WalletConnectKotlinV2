@@ -134,26 +134,14 @@ internal fun toSessionProposeParams(
 )
 
 @JvmSynthetic
-internal fun List<EngineDO.Namespace>.toNamespacesVO(): List<NamespaceVO> {
-    return mutableListOf<NamespaceVO>().apply {
-        this@toNamespacesVO.forEach { namespace ->
-            add(NamespaceVO(namespace.chains, namespace.methods, namespace.events))
-        }
-    }
+internal fun List<EngineDO.Namespace>.toNamespacesVO(): List<NamespaceVO> = map { namespace ->
+    NamespaceVO(namespace.chains, namespace.methods, namespace.events)
 }
 
 @JvmSynthetic
-internal fun getSessionRelays(relays: List<EngineDO.RelayProtocolOptions>?): List<RelayProtocolOptionsVO> {
-    if (relays == null) {
-        return listOf(RelayProtocolOptionsVO())
-    } else {
-        return mutableListOf<RelayProtocolOptionsVO>().apply {
-            relays.forEach { relay ->
-                add(RelayProtocolOptionsVO(relay.protocol, relay.data))
-            }
-        }
-    }
-}
+internal fun getSessionRelays(relays: List<EngineDO.RelayProtocolOptions>?): List<RelayProtocolOptionsVO> = relays?.map { relay ->
+    RelayProtocolOptionsVO(relay.protocol, relay.data)
+} ?: listOf(RelayProtocolOptionsVO())
 
 @JvmSynthetic
 internal fun JsonRpcResponseVO.JsonRpcResult.toEngineJsonRpcResult(): EngineDO.JsonRpcResponse.JsonRpcResult =
@@ -170,13 +158,7 @@ internal fun PairingParamsVO.SessionProposeParams.toSessionApproveParams(selfPub
         responderPublicKey = selfPublicKey.keyAsHex)
 
 @JvmSynthetic
-internal fun List<NamespaceVO>.toListOfEngineNamespaces(): List<EngineDO.Namespace> =
-    mutableListOf<EngineDO.Namespace>().apply {
-        this@toListOfEngineNamespaces.forEach { namespace ->
-            add(namespace.toEngineNamespace())
-        }
-    }
-
-@JvmSynthetic
-internal fun NamespaceVO.toEngineNamespace(): EngineDO.Namespace = EngineDO.Namespace(chains, methods, events)
+internal fun List<NamespaceVO>.toListOfEngineNamespaces(): List<EngineDO.Namespace> = map { namespaceVO ->
+    EngineDO.Namespace(namespaceVO.chains, namespaceVO.methods, namespaceVO.events)
+}
 

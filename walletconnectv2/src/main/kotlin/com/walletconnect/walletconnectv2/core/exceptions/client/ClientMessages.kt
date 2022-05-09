@@ -17,6 +17,7 @@ internal const val INVALID_EVENTS_MESSAGE: String = "Invalid event"
 internal const val UNAUTHORIZED_EVENT_TYPE_MESSAGE: String = "Unauthorized event type"
 internal const val WRONG_CHAIN_ID_FORMAT_MESSAGE: String =
     "Blockchain chaiId does not follow the CAIP2 semantics. See: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-2.md"
+internal const val NAMESPACE_MISSING_CHAINS_MESSAGE: String = "A namespace missing at least one chain"
 internal const val WRONG_ACCOUNT_ID_FORMAT_MESSAGE: String =
     "AccountIds does not follow the CAIP10 semantics. See: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-10.md"
 internal const val UNAUTHORIZED_CHAIN_ID_MESSAGE: String = "Unauthorized chain id"

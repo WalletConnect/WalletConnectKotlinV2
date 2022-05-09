@@ -160,5 +160,10 @@ internal sealed class EngineDO {
         )
     }
 
-    internal data class Request(val topic: String, val method: String, val params: String, val chainId: String?) : EngineDO()
+    internal data class Request(
+        val topic: String,
+        val method: String,
+        val params: String,
+        val chainId: String?,
+    ) : EngineDO()
 }

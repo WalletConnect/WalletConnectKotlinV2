@@ -9,6 +9,7 @@ sealed class WalletConnectException(override val message: String?) : Exception(m
     class InvalidSessionMethodsException(override val message: String?) : WalletConnectException(message)
     class InvalidSessionEventsException(override val message: String?) : WalletConnectException(message)
     class InvalidSessionChainIdsException(override val message: String?) : WalletConnectException(message)
+    class InvalidNamespaceException(override val message: String?) : WalletConnectException(message)
     class InvalidSessionProposalException(override val message: String?) : WalletConnectException(message)
     class InvalidAccountsException(override val message: String?) : WalletConnectException(message)
     class InvalidEventException(override val message: String?) : WalletConnectException(message)
@@ -19,4 +20,5 @@ sealed class WalletConnectException(override val message: String?) : Exception(m
     class PairWithExistingPairingIsNotAllowed(override val message: String?) : WalletConnectException(message)
     class InvalidExtendException(override val message: String?) : WalletConnectException(message)
     class CannotFindSessionProposalException(override val message: String?) : WalletConnectException(message)
+    class UnauthorizedMethodException(message: String) : WalletConnectException(message)
 }
