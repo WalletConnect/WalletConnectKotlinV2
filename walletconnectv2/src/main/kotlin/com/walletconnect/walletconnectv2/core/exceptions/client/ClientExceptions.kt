@@ -1,6 +1,6 @@
 package com.walletconnect.walletconnectv2.core.exceptions.client
 
-sealed class WalletConnectException(override val message: String?) : Exception(message) {
+internal sealed class WalletConnectException(override val message: String?) : Exception(message) {
     class ProjectIdDoesNotExistException(override val message: String?) : WalletConnectException(message)
     class InvalidProjectIdException(override val message: String?) : WalletConnectException(message)
     class GenericException(override val message: String?) : WalletConnectException(message)
@@ -19,4 +19,5 @@ sealed class WalletConnectException(override val message: String?) : Exception(m
     class PairWithExistingPairingIsNotAllowed(override val message: String?) : WalletConnectException(message)
     class InvalidExtendException(override val message: String?) : WalletConnectException(message)
     class CannotFindSessionProposalException(override val message: String?) : WalletConnectException(message)
+    class MissingInternetConnectionException(override val message: String?) : WalletConnectException(message)
 }

@@ -1,11 +1,13 @@
 package com.walletconnect.dapp.ui.host
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import com.walletconnect.dapp.R
 import com.walletconnect.dapp.domain.DappDelegate
+import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 
@@ -29,7 +31,9 @@ class DappSampleActivity : AppCompatActivity(R.layout.activity_dapp) {
 
         DappDelegate.selectedSessionTopic?.let {
             val disconnectParams = WalletConnect.Params.Disconnect(sessionTopic = it, reason = "shutdown", reasonCode = 400)
-            WalletConnectClient.disconnect(disconnectParams)
+            WalletConnectClient.disconnect(disconnectParams){ error ->
+                Log.e(tag(this), error.error.stackTraceToString())
+            }
         }
     }
 }

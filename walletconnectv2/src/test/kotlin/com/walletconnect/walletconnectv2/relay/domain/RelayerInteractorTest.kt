@@ -14,21 +14,19 @@ import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.Logger
+import com.walletconnect.walletconnectv2.util.NetworkState
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
 @ExperimentalCoroutinesApi
-internal class WalletConnectRelayerTest {
+internal class RelayerInteractorTest {
 
     private val relay: Relay = mockk {
         every { subscriptionRequest } returns flow { }
@@ -44,8 +42,17 @@ internal class WalletConnectRelayerTest {
         every { updateRequestWithResponse(any(), any()) } returns mockk()
     }
 
+    private val networkState: NetworkState = mockk(relaxed = true) {
+        every { isAvailable } returns MutableStateFlow(true).asStateFlow()
+    }
+
     private val sut =
-        spyk(WalletConnectRelayer(relay, serializer, jsonRpcHistory), recordPrivateCalls = true)
+        spyk(
+            RelayerInteractor(relay, serializer, jsonRpcHistory, networkState),
+            recordPrivateCalls = true
+        ) {
+            every { ensureConnectionWorking() } answers { }
+        }
 
     private val topicVO = TopicVO("mockkTopic")
 
@@ -225,86 +232,7 @@ internal class WalletConnectRelayerTest {
     }
 
     @Test
-    fun `IsConnectionOpened initial value is false`() {
-        assertFalse(sut.isConnectionOpened.value)
+    fun `IsConnectionOpened initial value is false`() = runBlockingTest{
+        assertFalse(sut.isConnectionAvailable.first())
     }
-
-    @Test
-    fun `IsConnectionOpened emits true after OnConnectionOpened`() = runBlockingTest {
-        every { relay.eventsFlow } returns flowOf(
-            mockk<WalletConnect.Model.Relay.Event.OnConnectionOpened<*>>()
-        ).shareIn(this, SharingStarted.Lazily)
-
-        val connectionObserverJob = sut.isConnectionOpened.launchIn(this)
-        val initErrorFlowJob = sut.initializationErrorsFlow.onEach { walletConnectException ->
-            onError(walletConnectException)
-        }.launchIn(this)
-
-        assertTrue(sut.isConnectionOpened.value)
-
-        initErrorFlowJob.cancelAndJoin()
-        connectionObserverJob.cancelAndJoin()
-    }
-
-    @Test
-    fun `IsConnectionOpened don't emit value only once on consequent OnConnectionOpened`() =
-        runBlockingTest {
-            var stateChangedCounter = -1  // to counter measure initial state set as false
-            every { relay.eventsFlow } returns flowOf(
-                mockk<WalletConnect.Model.Relay.Event.OnConnectionOpened<*>>(),
-                mockk<WalletConnect.Model.Relay.Event.OnConnectionOpened<*>>(),
-                mockk<WalletConnect.Model.Relay.Event.OnConnectionOpened<*>>()
-            ).shareIn(this, SharingStarted.Lazily)
-
-            val connectionObserverJob =
-                launch { sut.isConnectionOpened.collect() { stateChangedCounter++ } }
-            val initErrorFlowJob = sut.initializationErrorsFlow.onEach { walletConnectException ->
-                onError(walletConnectException)
-            }.launchIn(this)
-
-            assertEquals(1, stateChangedCounter)
-
-            initErrorFlowJob.cancelAndJoin()
-            connectionObserverJob.cancelAndJoin()
-        }
-
-    @Test
-    fun `IsConnectionOpened emits false on OnConnectionClosed when IsConnectionOpened was true`() =
-        runBlockingTest {
-            every { relay.eventsFlow } returns flowOf(
-                mockk<WalletConnect.Model.Relay.Event.OnConnectionOpened<*>>(),
-                mockk<WalletConnect.Model.Relay.Event.OnConnectionClosed>()
-            ).shareIn(this, SharingStarted.Lazily)
-
-            val connectionObserverJob = sut.isConnectionOpened.launchIn(this)
-            val initErrorFlowJob = sut.initializationErrorsFlow.onEach { walletConnectException ->
-                onError(walletConnectException)
-            }.launchIn(this)
-
-            assertFalse(sut.isConnectionOpened.value)
-
-            initErrorFlowJob.cancelAndJoin()
-            connectionObserverJob.cancelAndJoin()
-        }
-
-    @Test
-    fun `IsConnectionOpened emits false on OnConnectionFailed when IsConnectionOpened was true`() =
-        runBlockingTest {
-            every { relay.eventsFlow } returns flowOf(
-                mockk<WalletConnect.Model.Relay.Event.OnConnectionOpened<*>>(),
-                mockk<WalletConnect.Model.Relay.Event.OnConnectionFailed>() {
-                    every { throwable } returns RuntimeException()
-                }
-            ).shareIn(this, SharingStarted.Lazily)
-
-            val connectionObserverJob = sut.isConnectionOpened.launchIn(this)
-            val initErrorFlowJob = sut.initializationErrorsFlow.onEach { walletConnectException ->
-                onError(walletConnectException)
-            }.launchIn(this)
-
-            assertFalse(sut.isConnectionOpened.value)
-
-            initErrorFlowJob.cancelAndJoin()
-            connectionObserverJob.cancelAndJoin()
-        }
 }

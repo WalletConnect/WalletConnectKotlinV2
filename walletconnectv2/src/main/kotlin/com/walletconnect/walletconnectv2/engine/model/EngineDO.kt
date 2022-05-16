@@ -1,6 +1,7 @@
 package com.walletconnect.walletconnectv2.engine.model
 
 import com.squareup.moshi.JsonClass
+import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.core.model.type.Sequence
 import com.walletconnect.walletconnectv2.core.model.type.SequenceLifecycle
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
@@ -143,6 +144,10 @@ internal sealed class EngineDO {
         val url: String,
         val icons: List<String>,
     ) : EngineDO()
+
+    internal data class NetworkState(
+        val isAvailable: Boolean
+    ) : EngineDO(), SequenceLifecycle
 
     internal sealed class JsonRpcResponse : EngineDO() {
         abstract val id: Long

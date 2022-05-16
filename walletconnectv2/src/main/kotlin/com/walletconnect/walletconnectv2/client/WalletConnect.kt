@@ -153,6 +153,10 @@ object WalletConnect {
             val params: String,
         ) : Model()
 
+        data class NetworkState(
+            val isAvailable: Boolean
+        ) : Model()
+
         sealed class Relay : Model() {
             sealed class Call : Relay() {
                 abstract val id: Long
