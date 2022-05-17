@@ -43,15 +43,14 @@ class SessionViewModel : ViewModel() {
                 it.topic == DappDelegate.selectedSessionTopic
             }
         }.flatMap { settledSession ->
-            settledSession.accounts
-        }.map {
-            val (parentChain, chainId, account) = it.split(":")
-
+            settledSession.namespaces.values.flatMap { it.accounts }
+        }.map { caip10Account ->
+            val (chainNamespace, chainReference, account) = caip10Account.split(":")
             val chain = EthTestChains.values().first { chain ->
-                chain.parentChain == parentChain && chain.chainId == chainId.toInt()
+                chain.chainNamespace == chainNamespace && chain.chainReference == chainReference.toInt()
             }
 
-            SessionUI(chain.icon, chain.name, account, chain.parentChain, chain.chainId)
+            SessionUI(chain.icon, chain.name, account, chain.chainNamespace, chain.chainReference)
         }
     }
 

@@ -72,17 +72,17 @@ internal sealed class SessionSettlementVO : SettlementSequence<SessionParamsVO> 
         override val params: SessionParamsVO.EventParams,
     ) : SessionSettlementVO()
 
-    @JsonClass(generateAdapter = true)
-    internal data class SessionUpdateAccounts(
-        @Json(name = "id")
-        override val id: Long,
-        @Json(name = "jsonrpc")
-        override val jsonrpc: String = "2.0",
-        @Json(name = "method")
-        override val method: String = JsonRpcMethod.WC_SESSION_UPDATE_ACCOUNTS,
-        @Json(name = "params")
-        override val params: SessionParamsVO.UpdateAccountsParams,
-    ) : SessionSettlementVO()
+//    @JsonClass(generateAdapter = true)
+//    internal data class SessionUpdateAccounts(
+//        @Json(name = "id")
+//        override val id: Long,
+//        @Json(name = "jsonrpc")
+//        override val jsonrpc: String = "2.0",
+//        @Json(name = "method")
+//        override val method: String = JsonRpcMethod.WC_SESSION_UPDATE_ACCOUNTS,
+//        @Json(name = "params")
+//        override val params: SessionParamsVO.UpdateAccountsParams,
+//    ) : SessionSettlementVO()
 
     @JsonClass(generateAdapter = true)
     internal data class SessionUpdateNamespaces(

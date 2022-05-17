@@ -8,10 +8,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.MetaDat
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
-import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDaoQueries
-import com.walletconnect.walletconnectv2.storage.data.dao.NamespaceDaoQueries
-import com.walletconnect.walletconnectv2.storage.data.dao.PairingDaoQueries
-import com.walletconnect.walletconnectv2.storage.data.dao.SessionDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.dao.*
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.isSequenceValid
 
@@ -21,6 +18,7 @@ internal class SequenceStorageRepository(
     private val sessionDaoQueries: SessionDaoQueries,
     private val metaDataDaoQueries: MetaDataDaoQueries,
     private val namespaceDaoQueries: NamespaceDaoQueries,
+    private val extensionsDaoQueries: NamespaceExtensionDaoQueries
 ) {
 
     @JvmSynthetic
@@ -88,7 +86,7 @@ internal class SequenceStorageRepository(
             )
         }
 
-        val insertedPairingId = sessionDaoQueries.lastInsertedRow().executeAsOne()
+        val insertedPairingId = pairingDaoQueries.lastInsertedRow().executeAsOne()
         pairing.peerMetaData?.let { metaDataDaoQueries.insertOrIgnoreMetaData(insertedPairingId, it.name, it.description, it.url, it.icons, MetaDataType.PEER) }
     }
 
@@ -106,7 +104,6 @@ internal class SequenceStorageRepository(
     // TODO: Delete?
     fun deletePairing(topic: TopicVO) {
         metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
-        namespaceDaoQueries.deleteNamespacesDataFromTopic(topic.value)
         pairingDaoQueries.deletePairing(topic.value)
     }
 
@@ -120,7 +117,6 @@ internal class SequenceStorageRepository(
                 relay_protocol = relayProtocol,
                 controller_key = controllerKey?.keyAsHex,
                 peer_participant = peerPublicKey?.keyAsHex,
-                accounts = accounts,
                 relay_data = relayData,
                 is_acknowledged = isAcknowledged
             )
@@ -143,21 +139,22 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun updateSessionWithAccounts(topic: TopicVO, accounts: List<String>) {
-        sessionDaoQueries.updateSessionWithAccounts(accounts, topic.value)
+    fun deleteNamespaces(topic: String) {
+        namespaceDaoQueries.deleteNamespacesByTopic(topic)
+        extensionsDaoQueries.deleteNamespacesExtensionsByTopic(topic)
     }
 
     @JvmSynthetic
-    fun updateSessionWithNamespaces(topic: TopicVO, namespaces: List<NamespaceVO>) {
-        namespaces.forEach { namespace ->
-            namespaceDaoQueries.updateNamespace(namespace.methods, namespace.events, topic.value, namespace.chains)
-        }
+    fun insertNamespacesByTopic(topic: String, namespaces: Map<String, NamespaceVO.Session>) {
+        val sessionId = sessionDaoQueries.getSessionIdByTopic(topic).executeAsOne()
+        insertNamespace(namespaces, sessionId)
     }
 
     @JvmSynthetic
     fun deleteSession(topic: TopicVO) {
         metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
-        namespaceDaoQueries.deleteNamespacesDataFromTopic(topic.value)
+        namespaceDaoQueries.deleteNamespacesByTopic(topic.value)
+        extensionsDaoQueries.deleteNamespacesExtensionsByTopic(topic.value)
         sessionDaoQueries.deleteSession(topic.value)
     }
 
@@ -189,9 +186,13 @@ internal class SequenceStorageRepository(
         }
     }
 
-    private fun insertNamespace(namespaces: List<NamespaceVO>, sessionId: Long) {
-        namespaces.forEach { (chains: List<String>, methods: List<String>, events: List<String>) ->
-            namespaceDaoQueries.insertNamespace(sessionId, chains, methods, events)
+    private fun insertNamespace(namespaces: Map<String, NamespaceVO.Session>, sessionId: Long) {
+        namespaces.forEach { key, (accounts: List<String>, methods: List<String>, events: List<String>, extensions: List<NamespaceVO.Session.Extension>?) ->
+            namespaceDaoQueries.insertNamespace(sessionId, key, accounts, methods, events)
+
+            extensions?.forEach { extension ->
+                extensionsDaoQueries.insertNamespaceExtension(key, sessionId, extension.accounts, extension.methods, extension.events)
+            }
         }
     }
 
@@ -232,6 +233,7 @@ internal class SequenceStorageRepository(
         )
     }
 
+    // TODO: Validate this works
     private fun mapSessionDaoToSessionVO(
         id: Long,
         topic: String,
@@ -249,7 +251,6 @@ internal class SequenceStorageRepository(
         peerDesc: String?,
         peerUrl: String?,
         peerIcons: List<String>?,
-        accounts: List<String>?,
         is_acknowledged: Boolean,
     ): SessionVO {
         val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
@@ -264,13 +265,16 @@ internal class SequenceStorageRepository(
             null
         }
 
-        val namespaces = namespaceDaoQueries.getNamespaces(id) { chains, methods, events ->
-            NamespaceVO(chains ?: emptyList(), methods ?: emptyList(), events ?: emptyList())
-        }.executeAsList()
+        val namespaces: Map<String, NamespaceVO.Session> = namespaceDaoQueries.getNamespaces(id) { key, accounts, methods, events ->
+            val extensions: List<NamespaceVO.Session.Extension>? = extensionsDaoQueries.getNamespaceExtensionByNamespaceKeyAndSessionId(key, id) { extAccounts, extMethods, extEvents ->
+                NamespaceVO.Session.Extension(extAccounts, extMethods, extEvents)
+            }.executeAsList().takeIf { it.isNotEmpty() }
+
+            key to NamespaceVO.Session(accounts, methods, events, extensions)
+        }.executeAsList().toMap()
 
         return SessionVO(
             topic = TopicVO(topic),
-            accounts = accounts ?: emptyList(),
             expiry = ExpiryVO(expiry),
             selfMetaData = selfMetaData,
             peerMetaData = peerMetaData,

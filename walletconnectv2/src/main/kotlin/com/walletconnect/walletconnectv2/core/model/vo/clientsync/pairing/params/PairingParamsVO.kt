@@ -16,8 +16,8 @@ internal sealed class PairingParamsVO : ClientParams {
         val relays: List<RelayProtocolOptionsVO>,
         @Json(name = "proposer")
         val proposer: SessionProposerVO,
-        @Json(name = "namespaces")
-        val namespaces: List<NamespaceVO>,
+        @Json(name = "requiredNamespaces")
+        val namespaces: Map<String, NamespaceVO.Proposal>,
     ) : PairingParamsVO()
 
     @JsonClass(generateAdapter = true)

@@ -1,6 +1,7 @@
 package com.walletconnect.walletconnectv2.engine.model
 
 import com.squareup.moshi.JsonClass
+import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.core.model.type.Sequence
 import com.walletconnect.walletconnectv2.core.model.type.SequenceLifecycle
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
@@ -28,16 +29,37 @@ internal sealed class EngineDO {
         val description: String,
         val url: String,
         val icons: List<URI>,
-        val namespaces: List<Namespace>,
+        val requiredNamespaces: Map<String, Namespace.Proposal>,
         val proposerPublicKey: String,
         val accounts: List<String>,
         val relayProtocol: String,
         val relayData: String?,
     ) : EngineDO(), SequenceLifecycle
 
-    data class Namespace(val chains: List<String>, val methods: List<String>, val events: List<String>) : EngineDO()
+    internal sealed class Namespace: EngineDO() {
 
-    data class RelayProtocolOptions(val protocol: String, val data: String? = null) : EngineDO()
+        data class Proposal(
+            val chains: List<String>,
+            val methods: List<String>,
+            val events: List<String>,
+            val extensions: List<Extension>?
+        ): Namespace() {
+
+            data class Extension(val chains: List<String>, val methods: List<String>, val events: List<String>)
+        }
+
+        data class Session(
+            val accounts: List<String>,
+            val methods: List<String>,
+            val events: List<String>,
+            val extensions: List<Extension>?
+        ): Namespace() {
+
+            data class Extension(val accounts: List<String>, val methods: List<String>, val events: List<String>)
+        }
+    }
+
+    internal data class RelayProtocolOptions(val protocol: String, val data: String? = null) : EngineDO()
 
     internal data class SessionRequest(
         val topic: String,
@@ -53,7 +75,7 @@ internal sealed class EngineDO {
         ) : EngineDO()
     }
 
-    data class SessionPayloadResponse(
+    internal data class SessionPayloadResponse(
         val topic: String,
         val chainId: String?,
         val method: String,
@@ -77,18 +99,18 @@ internal sealed class EngineDO {
         val chainId: String?,
     ) : EngineDO(), SequenceLifecycle
 
-    sealed class SettledSessionResponse : EngineDO(), SequenceLifecycle {
+    internal sealed class SettledSessionResponse : EngineDO(), SequenceLifecycle {
         data class Result(val settledSession: Session) : SettledSessionResponse()
         data class Error(val errorMessage: String) : SettledSessionResponse()
     }
 
-    sealed class SessionUpdateAccountsResponse : EngineDO(), SequenceLifecycle {
+    internal sealed class SessionUpdateAccountsResponse : EngineDO(), SequenceLifecycle {
         data class Result(val topic: TopicVO, val accounts: List<String>) : SessionUpdateAccountsResponse()
         data class Error(val errorMessage: String) : SessionUpdateAccountsResponse()
     }
 
-    sealed class SessionUpdateNamespacesResponse : EngineDO(), SequenceLifecycle {
-        data class Result(val topic: TopicVO, val namespaces: List<Namespace>) : SessionUpdateNamespacesResponse()
+    internal sealed class SessionUpdateNamespacesResponse : EngineDO(), SequenceLifecycle {
+        data class Result(val topic: TopicVO, val namespaces: Map<String, Namespace.Session>) : SessionUpdateNamespacesResponse()
         data class Error(val errorMessage: String) : SessionUpdateNamespacesResponse()
     }
 
@@ -101,26 +123,24 @@ internal sealed class EngineDO {
         val topic: String,
         val peerAppMetaData: AppMetaData?,
         val accounts: List<String>,
-        val namespaces: List<Namespace>,
+        val namespaces: Map<String, Namespace.Session>,
     ) : EngineDO(), SequenceLifecycle
 
     internal data class PairingSettle(val topic: TopicVO, val metaData: AppMetaData?) : EngineDO(), SequenceLifecycle
     internal data class SessionUpdateAccounts(val topic: TopicVO, val accounts: List<String>) : EngineDO(), SequenceLifecycle
-    internal data class SessionUpdateNamespaces(val topic: TopicVO, val namespaces: List<Namespace>) : EngineDO(), SequenceLifecycle
+    internal data class SessionUpdateNamespaces(val topic: TopicVO, val namespaces: Map<String, Namespace.Session>) : EngineDO(), SequenceLifecycle
 
     internal data class SessionUpdateExpiry(
         override val topic: TopicVO,
         override val expiry: ExpiryVO,
-        val accounts: List<String>,
-        val namespaces: List<Namespace>,
+        val namespaces: Map<String, Namespace.Session>,
         val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, SequenceLifecycle
 
     internal data class Session(
         override val topic: TopicVO,
         override val expiry: ExpiryVO,
-        val accounts: List<String>,
-        val namespaces: List<Namespace>,
+        val namespaces: Map<String, Namespace.Session>,
         val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, SequenceLifecycle
 

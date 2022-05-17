@@ -31,10 +31,10 @@ UPDATE OR ABORT PairingDao
 SET expiry = ?, is_active = ?
 WHERE topic = ?;
 
--- updatePairingPeerMetadata:
--- UPDATE OR ABORT PairingDao
--- SET peer_metadata_id = ?
--- WHERE topic = ?;
+lastInsertedRow:
+SELECT id
+FROM PairingDao
+WHERE id = (SELECT MAX(id) FROM PairingDao);
 
 hasTopic:
 SELECT topic

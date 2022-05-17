@@ -2,9 +2,11 @@ package com.walletconnect.dapp.ui.connect.chain_select
 
 data class ChainSelectionUI(
     val chainName: String,
-    val parentChain: String,
-    val chainId: Int,
+    val chainNamespace: String,
+    val chainReference: Int,
     val icon: Int,
     val methods: List<String>,
     var isSelected: Boolean = false,
-)
+) {
+    val chainId = "${chainNamespace}:${chainReference}"
+}

@@ -9,9 +9,7 @@ import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.walletconnectv2.Database
 import com.walletconnect.walletconnectv2.core.model.type.enums.MetaDataType
-import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
-import com.walletconnect.walletconnectv2.storage.data.dao.NamespaceDao
-import com.walletconnect.walletconnectv2.storage.data.dao.SessionDao
+import com.walletconnect.walletconnectv2.storage.data.dao.*
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
 import org.koin.android.ext.koin.androidContext
@@ -43,7 +41,7 @@ internal fun storageModule(): Module = module {
         }
     }
 
-    single<EnumColumnAdapter<MetaDataType>> {
+    single<ColumnAdapter<MetaDataType, String>>(named("MetaDataType")) {
         EnumColumnAdapter()
     }
 
@@ -58,15 +56,17 @@ internal fun storageModule(): Module = module {
     single {
         Database(
             get(),
-            SessionDaoAdapter = SessionDao.Adapter(
-                accountsAdapter = get()
-            ),
             MetaDataDaoAdapter = MetaDataDao.Adapter(
                 iconsAdapter = get(),
-                typeAdapter = get()
+                typeAdapter = get(named("MetaDataType"))
             ),
             NamespaceDaoAdapter = NamespaceDao.Adapter(
-                chainsAdapter = get(),
+                accountsAdapter = get(),
+                methodsAdapter = get(),
+                eventsAdapter = get()
+            ),
+            NamespaceExtensionsDaoAdapter = NamespaceExtensionsDao.Adapter(
+                accountsAdapter = get(),
                 methodsAdapter = get(),
                 eventsAdapter = get()
             )
@@ -90,7 +90,15 @@ internal fun storageModule(): Module = module {
     }
 
     single {
-        SequenceStorageRepository(get(), get(), get(), get())
+        get<Database>().namespaceDaoQueries
+    }
+
+    single {
+        get<Database>().namespaceExtensionDaoQueries
+    }
+
+    single {
+        SequenceStorageRepository(get(), get(), get(), get(), get())
     }
 
     single {

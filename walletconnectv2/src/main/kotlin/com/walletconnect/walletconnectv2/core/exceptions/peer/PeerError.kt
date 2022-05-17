@@ -1,5 +1,5 @@
 package com.walletconnect.walletconnectv2.core.exceptions.peer
-
+// TODO: Cleanup
 sealed class PeerError {
     abstract val message: String
     abstract val code: Int
@@ -9,8 +9,18 @@ sealed class PeerError {
         override val code: Int = 1003
     }
 
+    data class InvalidUpdateNamespaceRequest(val sequence: String): PeerError() {
+        override val message: String = ""
+        override val code: Int = 1004
+    }
+
     data class InvalidUpdateExpiryRequest(val sequence: String) : PeerError() {
         override val message = "Invalid $sequence update expiry request"
+        override val code: Int = 1005
+    }
+
+    data class InvalidSessionProposeRequest(val topic: String, val errorMessage: String): PeerError() {
+        override val message: String = "Invalid Session Proposal on topic: $topic. Error Message: $errorMessage"
         override val code: Int = 1006
     }
 

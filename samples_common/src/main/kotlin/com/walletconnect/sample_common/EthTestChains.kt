@@ -108,12 +108,12 @@ fun getEthSignTypedData(account: String): String {
     """.trimIndent()
 }
 
-enum class EthTestChains(val chainName: String, val parentChain: String, val chainId: Int, @DrawableRes val icon: Int, val methods: List<String>, val order: Int) {
+enum class EthTestChains(val chainName: String, val chainNamespace: String, val chainReference: Int, @DrawableRes val icon: Int, val methods: List<String>, val order: Int) {
 
     ETHEREUM_KOVAN(
         chainName = "Ethereum Kovan",
-        parentChain = ETH_CHAIN,
-        chainId = 42,
+        chainNamespace = ETH_CHAIN,
+        chainReference = 42,
         icon = R.drawable.ic_ethereum,
         methods = defaultEthMethods,
         order = 1
@@ -121,8 +121,8 @@ enum class EthTestChains(val chainName: String, val parentChain: String, val cha
 
     OPTIMISM_KOVAN(
         chainName = "Optimism Kovan",
-        parentChain = ETH_CHAIN,
-        chainId = 69,
+        chainNamespace = ETH_CHAIN,
+        chainReference = 69,
         icon = R.drawable.ic_optimism,
         methods = defaultEthMethods,
         order = 2
@@ -130,8 +130,8 @@ enum class EthTestChains(val chainName: String, val parentChain: String, val cha
 
     POLYGON_MUMBAI(
         chainName = "Polygon Mumbai",
-        parentChain = ETH_CHAIN,
-        chainId = 80001,
+        chainNamespace = ETH_CHAIN,
+        chainReference = 80001,
         icon = R.drawable.ic_polygon,
         methods = defaultEthMethods,
         order = 3
@@ -139,8 +139,8 @@ enum class EthTestChains(val chainName: String, val parentChain: String, val cha
 
     ARBITRUM_RINKBY(
         chainName = "Arbitrum Rinkeby",
-        parentChain = ETH_CHAIN,
-        chainId = 421611,
+        chainNamespace = ETH_CHAIN,
+        chainReference = 421611,
         icon = R.drawable.ic_arbitrum,
         methods = defaultEthMethods,
         order = 4
@@ -148,8 +148,8 @@ enum class EthTestChains(val chainName: String, val parentChain: String, val cha
 
     CELO_ALFAJORES(
         chainName = "Celo Alfajores",
-        parentChain = ETH_CHAIN,
-        chainId = 44787,
+        chainNamespace = ETH_CHAIN,
+        chainReference = 44787,
         icon = R.drawable.ic_celo,
         methods = defaultEthMethods,
         order = 5

@@ -63,7 +63,7 @@ object WalletDelegate : WalletConnectClient.WalletDelegate {
         }
     }
 
-    override fun onSessionUpdateNamespacesResponse(sessionUpdateNamespacesResponse: WalletConnect.Model.SessionUpdateNamespacesResponse) {
+    override fun onSessionUpdateNamespacesResponse(sessionUpdateResponse: WalletConnect.Model.SessionUpdateResponse) {
         //TODO: handle update session namespaces response
     }
 

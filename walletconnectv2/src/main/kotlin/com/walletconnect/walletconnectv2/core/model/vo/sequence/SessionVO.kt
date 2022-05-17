@@ -10,7 +10,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.Session
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
-import com.walletconnect.walletconnectv2.engine.model.mapper.toNamespacesVO
+import com.walletconnect.walletconnectv2.engine.model.mapper.toMapOfNamespacesVOSession
 
 internal data class SessionVO(
     override val topic: TopicVO,
@@ -22,22 +22,21 @@ internal data class SessionVO(
     val selfMetaData: MetaDataVO? = null,
     val peerPublicKey: PublicKey? = null,
     val peerMetaData: MetaDataVO? = null,
-    val accounts: List<String> = emptyList(),
-    val namespaces: List<NamespaceVO>,
+    val namespaces: Map<String, NamespaceVO.Session>,
     val isAcknowledged: Boolean,
 ) : Sequence {
     val isPeerController: Boolean = peerPublicKey?.keyAsHex == controllerKey?.keyAsHex
     val isSelfController: Boolean = selfPublicKey.keyAsHex == controllerKey?.keyAsHex
 
     internal companion object {
+
         @JvmSynthetic
         internal fun createUnacknowledgedSession(
             sessionTopic: TopicVO,
             proposal: PairingParamsVO.SessionProposeParams,
             selfParticipant: SessionParticipantVO,
             sessionExpiry: Long,
-            accounts: List<String>,
-            namespaces: List<EngineDO.Namespace>,
+            namespaces: Map<String, EngineDO.Namespace.Session>
         ): SessionVO {
             return SessionVO(
                 sessionTopic,
@@ -49,8 +48,7 @@ internal data class SessionVO(
                 selfPublicKey = PublicKey(selfParticipant.publicKey),
                 selfMetaData = selfParticipant.metadata,
                 controllerKey = PublicKey(selfParticipant.publicKey),
-                accounts = accounts,
-                namespaces = namespaces.toNamespacesVO(),
+                namespaces = namespaces.toMapOfNamespacesVOSession(),
                 isAcknowledged = false
             )
         }
@@ -72,7 +70,6 @@ internal data class SessionVO(
                 selfPublicKey = selfPublicKey,
                 selfMetaData = selfMetadata,
                 controllerKey = PublicKey(settleParams.controller.publicKey),
-                accounts = settleParams.accounts,
                 namespaces = settleParams.namespaces,
                 isAcknowledged = true
             )

@@ -331,7 +331,7 @@ class WalletConnectClientIntegrationAndroidTest {
                             WalletConnect.Model.SessionState(accounts = listOf("eip155:8001:0x022c0c42a80bd19EA4cF0F94c4F9F96645759716"))
                         )
 
-                        WalletConnectClient.updateAccounts(updateParams)
+//                        WalletConnectClient.updateAccounts(updateParams)
                     }
                 }
 

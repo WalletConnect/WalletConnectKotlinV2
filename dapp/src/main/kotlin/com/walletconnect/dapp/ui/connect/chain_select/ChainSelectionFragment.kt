@@ -15,29 +15,26 @@ import com.walletconnect.dapp.databinding.FragmentChainSelectionBinding
 import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.dapp.ui.connect.ConnectViewModel
 import com.walletconnect.sample_common.viewBinding
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 class ChainSelectionFragment : Fragment(R.layout.fragment_chain_selection) {
     private val binding by viewBinding(FragmentChainSelectionBinding::bind)
     private val viewModel: ConnectViewModel by navGraphViewModels(R.id.connectGraph)
+    private val adapter by lazy { ChainSelectionAdapter(viewModel.listOfChainUI, viewModel::updateSelectedChainUI) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.rvChains.adapter = ChainSelectionAdapter(viewModel.listOfChainUI) { position, isChecked ->
-            viewModel.updateSelectedChainUI(position, isChecked)
-        }
+        binding.rvChains.adapter = adapter
 
         binding.btnConnect.setOnClickListener {
-            if (viewModel.listOfChainUI.any { it.isSelected }) {
-                if (WalletConnectClient.getListOfSettledPairings().isNotEmpty()) {
+            if (viewModel.anyChainsSelected()) {
+                if (viewModel.anySettledPairingExist()) {
                     findNavController().navigate(R.id.action_fragment_chain_selection_to_dialog_pairing_selection)
                 } else {
                     findNavController().navigate(R.id.action_fragment_chain_selection_to_dialog_pairing_generation)
                 }
-
             } else {
                 Toast.makeText(requireContext(), "Please select a chain", Toast.LENGTH_SHORT).show()
             }

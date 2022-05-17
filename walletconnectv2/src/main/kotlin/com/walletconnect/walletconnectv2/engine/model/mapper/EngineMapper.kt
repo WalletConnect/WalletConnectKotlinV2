@@ -45,7 +45,7 @@ internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): E
         description = this.proposer.metadata.description,
         url = this.proposer.metadata.url,
         icons = this.proposer.metadata.icons.map { URI(it) },
-        namespaces = this.namespaces.toListOfEngineNamespaces(),
+        requiredNamespaces = this.namespaces.toMapOfEngineNamespacesProposal(),
         proposerPublicKey = this.proposer.publicKey,
         accounts = listOf(),
         relayProtocol = relays.first().protocol,
@@ -79,7 +79,9 @@ internal fun SessionParamsVO.EventParams.toEngineDOSessionEvent(topic: TopicVO):
 @JvmSynthetic
 internal fun SessionVO.toEngineDOApprovedSessionVO(topic: TopicVO): EngineDO.Session =
     EngineDO.Session(
-        topic, expiry, accounts, namespaces.toListOfEngineNamespaces(),
+        topic,
+        expiry,
+        namespaces.toMapOfEngineNamespacesSession(),
         EngineDO.AppMetaData(
             selfMetaData?.name ?: String.Empty,
             selfMetaData?.description ?: String.Empty,
@@ -89,11 +91,11 @@ internal fun SessionVO.toEngineDOApprovedSessionVO(topic: TopicVO): EngineDO.Ses
 
 @JvmSynthetic
 internal fun SessionVO.toEngineDOApprovedSessionVO(): EngineDO.Session =
-    EngineDO.Session(topic, expiry, accounts, namespaces.toListOfEngineNamespaces(), selfMetaData?.toEngineDOAppMetaData())
+    EngineDO.Session(topic, expiry, namespaces.toMapOfEngineNamespacesSession(), selfMetaData?.toEngineDOAppMetaData())
 
 @JvmSynthetic
 internal fun SessionVO.toEngineDOSessionUpdateExpiry(expiryVO: ExpiryVO): EngineDO.SessionUpdateExpiry =
-    EngineDO.SessionUpdateExpiry(topic, expiryVO, accounts, namespaces.toListOfEngineNamespaces(), selfMetaData?.toEngineDOAppMetaData())
+    EngineDO.SessionUpdateExpiry(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfMetaData?.toEngineDOAppMetaData())
 
 @JvmSynthetic
 private fun MetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
@@ -105,38 +107,65 @@ internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.PairingSettle =
 
 @JvmSynthetic
 internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
-    EngineDO.SessionApproved(topic.value, peerMetaData?.toEngineDOMetaData(), accounts, namespaces.toListOfEngineNamespaces())
+    EngineDO.SessionApproved(
+        topic = topic.value,
+        peerAppMetaData = peerMetaData?.toEngineDOMetaData(),
+        accounts = namespaces.flatMap { (_, namespace) -> namespace.accounts },
+        namespaces = namespaces.toMapOfEngineNamespacesSession()
+    )
 
 @JvmSynthetic
 internal fun PairingParamsVO.SessionProposeParams.toSessionSettleParams(
     selfParticipant: SessionParticipantVO,
     sessionExpiry: Long,
-    accounts: List<String>,
-    namespaces: List<EngineDO.Namespace>,
+    namespaces: Map<String, EngineDO.Namespace.Session>,
 ): SessionParamsVO.SessionSettleParams =
     SessionParamsVO.SessionSettleParams(
         relay = RelayProtocolOptionsVO(relays.first().protocol, relays.first().data),
         controller = selfParticipant,
-        accounts = accounts,
-        namespaces = namespaces.toNamespacesVO(),
+        namespaces = namespaces.toMapOfNamespacesVOSession(),
         expiry = sessionExpiry)
 
 @JvmSynthetic
 internal fun toSessionProposeParams(
     relays: List<EngineDO.RelayProtocolOptions>?,
-    namespaces: List<EngineDO.Namespace>,
+    namespaces: Map<String, EngineDO.Namespace.Proposal>,
     selfPublicKey: PublicKey,
     metaData: EngineDO.AppMetaData,
 ) = PairingParamsVO.SessionProposeParams(
     relays = getSessionRelays(relays),
     proposer = SessionProposerVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO()),
-    namespaces = namespaces.toNamespacesVO()
+    namespaces = namespaces.toNamespacesVOProposal()
 )
 
 @JvmSynthetic
-internal fun List<EngineDO.Namespace>.toNamespacesVO(): List<NamespaceVO> = map { namespace ->
-    NamespaceVO(namespace.chains, namespace.methods, namespace.events)
+internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVOProposal(): Map<String, NamespaceVO.Proposal> = this.mapValues { (_, namespace) ->
+    NamespaceVO.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
+        NamespaceVO.Proposal.Extension(extension.chains, extension.methods, extension.events)
+    })
 }
+
+@JvmSynthetic
+internal fun Map<String, NamespaceVO.Proposal>.toMapOfEngineNamespacesProposal(): Map<String, EngineDO.Namespace.Proposal> = this.mapValues { (_, namespace) ->
+    EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
+        EngineDO.Namespace.Proposal.Extension(extension.chains, extension.methods, extension.events)
+    })
+}
+
+@JvmSynthetic
+internal fun Map<String, NamespaceVO.Session>.toMapOfEngineNamespacesSession(): Map<String, EngineDO.Namespace.Session> = this.mapValues { (_, namespaceVO) ->
+    EngineDO.Namespace.Session(namespaceVO.accounts, namespaceVO.methods, namespaceVO.events, namespaceVO.extensions?.map { extension ->
+        EngineDO.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
+    })
+}
+
+@JvmSynthetic
+internal fun Map<String, EngineDO.Namespace.Session>.toMapOfNamespacesVOSession(): Map<String, NamespaceVO.Session> = this.mapValues { (_, namespace) ->
+    NamespaceVO.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
+        NamespaceVO.Session.Extension(extension.accounts, extension.methods, extension.events)
+    })
+}
+
 
 @JvmSynthetic
 internal fun getSessionRelays(relays: List<EngineDO.RelayProtocolOptions>?): List<RelayProtocolOptionsVO> = relays?.map { relay ->
@@ -156,9 +185,3 @@ internal fun PairingParamsVO.SessionProposeParams.toSessionApproveParams(selfPub
     SessionParamsVO.ApprovalParams(
         relay = RelayProtocolOptionsVO(relays.first().protocol, relays.first().data),
         responderPublicKey = selfPublicKey.keyAsHex)
-
-@JvmSynthetic
-internal fun List<NamespaceVO>.toListOfEngineNamespaces(): List<EngineDO.Namespace> = map { namespaceVO ->
-    EngineDO.Namespace(namespaceVO.chains, namespaceVO.methods, namespaceVO.events)
-}
-

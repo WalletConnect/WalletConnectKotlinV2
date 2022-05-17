@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.onEach
 class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
     private val binding: FragmentSessionDetailsBinding by viewBinding(FragmentSessionDetailsBinding::bind)
     private val viewModel: SessionDetailsViewModel by viewModels()
-    private val chainAccountsAdapter by lazy { SessionDetailsAdapter(viewModel::updateAccounts) }
+    private val chainAccountsAdapter by lazy { SessionDetailsAdapter(viewModel::updateNamespace) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -95,10 +95,6 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
         return when (item.itemId) {
             R.id.ping -> {
                 viewModel.ping()
-                false
-            }
-            R.id.updateMethods -> {
-                viewModel.updateMethods()
                 false
             }
             else -> super.onOptionsItemSelected(item)

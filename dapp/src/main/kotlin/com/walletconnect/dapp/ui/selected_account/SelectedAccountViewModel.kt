@@ -27,6 +27,7 @@ class SelectedAccountViewModel : ViewModel() {
             .filterNotNull()
             .onEach { walletEvent ->
                 when (walletEvent) {
+                    // TODO: Replace with UpdateSessionNamespaces
                     is WalletConnect.Model.UpdatedSessionAccounts -> {
                         (uiState.value as? SelectedAccountUI.Content)?.let { currentState ->
                             val (updatedAccountAddress, updatedSelectedAccount) = walletEvent.accounts.map { updatedAccount ->
@@ -42,11 +43,6 @@ class SelectedAccountViewModel : ViewModel() {
 
                             _uiState.value = currentState.copy(account = updatedAccountAddress, selectedAccount = updatedSelectedAccount)
                         }
-                    }
-                    is WalletConnect.Model.SessionUpdateNamespacesResponse -> {
-//                        (uiState.value as? SelectedAccountUI.Content)?.copy(listOfMethods = walletEvent.methods)?.let { updatedState ->
-//                            _uiState.value = updatedState
-//                        }
                     }
                     is WalletConnect.Model.SessionRequestResponse -> {
                         val request = when (walletEvent.result) {
@@ -98,25 +94,25 @@ class SelectedAccountViewModel : ViewModel() {
         }
     }
 
-    fun fetchAccountDetails(selectedAccount: String) {
-//        val (parentChain, chainId, account) = selectedAccount.split(":")
-//        val chainDetails = EthTestChains.values().first {
-//            it.parentChain == parentChain && it.chainId == chainId.toInt()
-//        }
-//        val listOfMethods: List<String> = WalletConnectClient.getListOfSettledSessions().filter {
-//            it.topic == DappDelegate.selectedSessionTopic
-//        }.flatMap {
-//            it.methods
-//        }
-//
-//        viewModelScope.launch {
-//            _uiState.value = SelectedAccountUI.Content(
-//                icon = chainDetails.icon,
-//                chainName = chainDetails.chainName,
-//                account = account,
-//                listOfMethods = listOfMethods,
-//                selectedAccount = selectedAccount
-//            )
-//        }
+    fun fetchAccountDetails(selectedAccountInfo: String) {
+        val (chainNamespace, chainReference, account) = selectedAccountInfo.split(":")
+        val chainDetails = EthTestChains.values().first {
+            it.chainNamespace == chainNamespace && it.chainReference == chainReference.toInt()
+        }
+        val listOfMethods: List<String> = WalletConnectClient.getListOfSettledSessions().filter { session ->
+            session.topic == DappDelegate.selectedSessionTopic
+        }.flatMap { session ->
+            session.namespaces.values.flatMap { namespace -> namespace.methods }
+        }
+
+        viewModelScope.launch {
+            _uiState.value = SelectedAccountUI.Content(
+                icon = chainDetails.icon,
+                chainName = chainDetails.chainName,
+                account = account,
+                listOfMethods = listOfMethods,
+                selectedAccount = selectedAccountInfo
+            )
+        }
     }
 }

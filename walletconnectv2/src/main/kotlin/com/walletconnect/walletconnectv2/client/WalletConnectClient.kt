@@ -68,7 +68,7 @@ object WalletConnectClient {
                 when (event) {
                     is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
                     is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
-                    is EngineDO.SessionUpdateAccounts -> delegate.onSessionUpdateAccounts(event.toClientSessionsUpdateAccounts())
+//                    is EngineDO.SessionUpdateAccounts -> delegate.onSessionUpdateAccounts(event.toClientSessionsUpdateAccounts())
                     is EngineDO.SessionUpdateNamespaces -> delegate.onSessionUpdateNamespaces(event.toClientSessionsNamespaces())
                     is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                     is EngineDO.SessionUpdateExpiry -> delegate.onUpdateSessionExpiry(event.toClientSettledSession())
@@ -90,7 +90,7 @@ object WalletConnectClient {
         }
 
         return engineInteractor.proposeSequence(
-            connect.namespaces.toListOfEngineNamespaces(),
+            connect.namespaces.toMapOfEngineNamespacesProposal(),
             connect.relays?.toListEngineOfRelayProtocolOptions(),
             connect.pairingTopic,
             onProposedSequence = { proposedSequence -> onProposedSequence(proposedSequence.toClientProposedSequence()) },
@@ -114,8 +114,7 @@ object WalletConnectClient {
         }
 
         engineInteractor.approve(approve.proposerPublicKey,
-            approve.accounts,
-            approve.namespaces.toListOfEngineNamespaces())
+            approve.namespaces.toMapOfEngineNamespacesSession())
         { error -> onError(WalletConnect.Model.Error(error)) }
     }
 
@@ -129,6 +128,7 @@ object WalletConnectClient {
         { error -> onError(WalletConnect.Model.Error(error)) }
     }
 
+    // TODO: Needs testing
     @Throws(IllegalStateException::class, WalletConnectException::class)
     fun request(request: WalletConnect.Params.Request, onError: (WalletConnect.Model.Error) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
@@ -151,36 +151,40 @@ object WalletConnectClient {
         }
     }
 
+//    @Throws(IllegalStateException::class, WalletConnectException::class)
+//    fun updateAccounts(updateAccounts: WalletConnect.Params.UpdateAccounts, onError: (WalletConnect.Model.Error) -> Unit = {}) {
+//        check(::engineInteractor.isInitialized) {
+//            "WalletConnectClient needs to be initialized first using the initialize function"
+//        }
+//
+//        engineInteractor.updateSessionAccounts(updateAccounts.sessionTopic, updateAccounts.accounts) { error ->
+//            onError(WalletConnect.Model.Error(error))
+//        }
+//    }
+
+    // TODO: Needs testing after fixing session settlement validation
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun updateAccounts(updateAccounts: WalletConnect.Params.UpdateAccounts, onError: (WalletConnect.Model.Error) -> Unit = {}) {
+    fun update(updateNamespaces: WalletConnect.Params.UpdateNamespaces, onError: (WalletConnect.Model.Error) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.updateSessionAccounts(updateAccounts.sessionTopic, updateAccounts.accounts) { error ->
-            onError(WalletConnect.Model.Error(error))
-        }
-    }
-
-    @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun updateNamespaces(updateNamespaces: WalletConnect.Params.UpdateNamespaces, onError: (WalletConnect.Model.Error) -> Unit = {}) {
-        check(::engineInteractor.isInitialized) {
-            "WalletConnectClient needs to be initialized first using the initialize function"
-        }
-
-        engineInteractor.updateSessionNamespaces(updateNamespaces.sessionTopic, updateNamespaces.namespaces.toListOfEngineNamespaces())
+        engineInteractor.updateSessionNamespaces(updateNamespaces.sessionTopic, updateNamespaces.namespaces.toMapOfEngineNamespacesSession())
         { error -> onError(WalletConnect.Model.Error(error)) }
     }
 
+    // TODO: Needs review and completion
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun updateExpiry(updateExpiry: WalletConnect.Params.UpdateExpiry, onError: (Throwable) -> Unit = {}) {
+    fun extend(updateExpiry: WalletConnect.Params.UpdateExpiry, onError: (Throwable) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.updateSessionExpiry(updateExpiry.topic, updateExpiry.newExpiration) { error -> onError(error) }
+        // TODO: Verify that extend is implemented correctly
+        engineInteractor.extend(updateExpiry.topic) { error -> onError(error) }
     }
 
+    //TODO: needs testing
     @Throws(IllegalStateException::class, WalletConnectException::class)
     fun emit(emit: WalletConnect.Params.Emit, onError: (Throwable) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
@@ -252,7 +256,7 @@ object WalletConnectClient {
         //Responses
         fun onSessionSettleResponse(settleSessionResponse: WalletConnect.Model.SettledSessionResponse)
         fun onSessionUpdateAccountsResponse(sessionUpdateAccountsResponse: WalletConnect.Model.SessionUpdateAccountsResponse)
-        fun onSessionUpdateNamespacesResponse(sessionUpdateNamespacesResponse: WalletConnect.Model.SessionUpdateNamespacesResponse)
+        fun onSessionUpdateNamespacesResponse(sessionUpdateResponse: WalletConnect.Model.SessionUpdateResponse)
     }
 
     interface DappDelegate {

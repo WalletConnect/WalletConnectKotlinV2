@@ -36,11 +36,11 @@ internal fun EngineDO.SessionUpdateAccountsResponse.toClientUpdateSessionAccount
     }
 
 @JvmSynthetic
-internal fun EngineDO.SessionUpdateNamespacesResponse.toClientUpdateSessionNamespacesResponse(): WalletConnect.Model.SessionUpdateNamespacesResponse =
+internal fun EngineDO.SessionUpdateNamespacesResponse.toClientUpdateSessionNamespacesResponse(): WalletConnect.Model.SessionUpdateResponse =
     when (this) {
         is EngineDO.SessionUpdateNamespacesResponse.Result ->
-            WalletConnect.Model.SessionUpdateNamespacesResponse.Result(topic.value, namespaces.toListOfClientNamespaces())
-        is EngineDO.SessionUpdateNamespacesResponse.Error -> WalletConnect.Model.SessionUpdateNamespacesResponse.Error(errorMessage)
+            WalletConnect.Model.SessionUpdateResponse.Result(topic.value, namespaces.toMapOfClientNamespacesSession())
+        is EngineDO.SessionUpdateNamespacesResponse.Error -> WalletConnect.Model.SessionUpdateResponse.Error(errorMessage)
     }
 
 @JvmSynthetic
@@ -57,23 +57,9 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.M
         description,
         url,
         icons,
-        namespaces.toListOfClientNamespaces(),
+        requiredNamespaces.toMapOfClientNamespacesProposal(),
         proposerPublicKey,
         accounts,
-        relayProtocol,
-        relayData
-    )
-
-@JvmSynthetic
-internal fun WalletConnect.Model.SessionProposal.toEngineSessionProposal(accountList: List<String> = listOf()): EngineDO.SessionProposal =
-    EngineDO.SessionProposal(
-        name,
-        description,
-        url,
-        icons,
-        namespaces.toListOfEngineNamespaces(),
-        proposerPublicKey,
-        accountList,
         relayProtocol,
         relayData
     )
@@ -114,8 +100,7 @@ internal fun EngineDO.SessionEvent.toClientSessionEvent(): WalletConnect.Model.S
 internal fun EngineDO.Session.toClientSettledSession(): WalletConnect.Model.Session =
     WalletConnect.Model.Session(topic.value,
         expiry.seconds,
-        accounts,
-        namespaces.toListOfClientNamespaces(),
+        namespaces.toMapOfClientNamespacesSession(),
         peerAppMetaData?.toClientAppMetaData())
 
 @JvmSynthetic
@@ -123,8 +108,7 @@ internal fun EngineDO.SessionUpdateExpiry.toClientSettledSession(): WalletConnec
     WalletConnect.Model.Session(
         topic.value,
         expiry.seconds,
-        accounts,
-        namespaces.toListOfClientNamespaces(),
+        namespaces.toMapOfClientNamespacesSession(),
         peerAppMetaData?.toClientAppMetaData()
     )
 
@@ -134,7 +118,14 @@ internal fun EngineDO.SessionRejected.toClientSessionRejected(): WalletConnect.M
 
 @JvmSynthetic
 internal fun EngineDO.SessionApproved.toClientSessionApproved(): WalletConnect.Model.ApprovedSession =
-    WalletConnect.Model.ApprovedSession(topic, peerAppMetaData?.toClientAppMetaData(), namespaces.toListOfClientNamespaces(), accounts)
+    WalletConnect.Model.ApprovedSession(topic, peerAppMetaData?.toClientAppMetaData(), namespaces.toMapOfClientNamespacesSession(), accounts)
+
+@JvmSynthetic
+internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSession(): Map<String, WalletConnect.Model.Namespace.Session> = this.mapValues { (_, namespace) ->
+    WalletConnect.Model.Namespace.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
+        WalletConnect.Model.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
+    })
+}
 
 @JvmSynthetic
 internal fun WalletConnect.Model.AppMetaData.toEngineAppMetaData() = EngineDO.AppMetaData(name, description, url, icons)
@@ -156,7 +147,7 @@ internal fun EngineDO.SessionUpdateAccounts.toClientSessionsUpdateAccounts(): Wa
 
 @JvmSynthetic
 internal fun EngineDO.SessionUpdateNamespaces.toClientSessionsNamespaces(): WalletConnect.Model.UpdateSessionNamespaces =
-    WalletConnect.Model.UpdateSessionNamespaces(topic.value, namespaces.toListOfClientNamespaces())
+    WalletConnect.Model.UpdateSessionNamespaces(topic.value, namespaces.toMapOfClientNamespacesSession())
 
 @JvmSynthetic
 internal fun EngineDO.JsonRpcResponse.JsonRpcError.toClientJsonRpcError(): WalletConnect.Model.JsonRpcResponse.JsonRpcError =
@@ -182,13 +173,24 @@ internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): W
     WalletConnect.Model.SessionRequestResponse(topic, chainId, method, result.toClientJsonRpcResponse())
 
 @JvmSynthetic
-internal fun List<WalletConnect.Model.Namespace>.toListOfEngineNamespaces(): List<EngineDO.Namespace> = map { namespace ->
-    EngineDO.Namespace(namespace.chains, namespace.methods, namespace.events)
+internal fun Map<String, WalletConnect.Model.Namespace.Proposal>.toMapOfEngineNamespacesProposal(): Map<String, EngineDO.Namespace.Proposal> = mapValues { (_, namespace) ->
+    EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
+        EngineDO.Namespace.Proposal.Extension(extension.chains, extension.methods, extension.events)
+    })
 }
 
 @JvmSynthetic
-internal fun List<EngineDO.Namespace>.toListOfClientNamespaces(): List<WalletConnect.Model.Namespace> = map { namespace ->
-    WalletConnect.Model.Namespace(namespace.chains, namespace.methods, namespace.events)
+internal fun Map<String, EngineDO.Namespace.Proposal>.toMapOfClientNamespacesProposal(): Map<String, WalletConnect.Model.Namespace.Proposal> = mapValues { (_, namespace) ->
+    WalletConnect.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
+        WalletConnect.Model.Namespace.Proposal.Extension(extension.chains, extension.methods, extension.events)
+    })
+}
+
+@JvmSynthetic
+internal fun Map<String, WalletConnect.Model.Namespace.Session>.toMapOfEngineNamespacesSession(): Map<String, EngineDO.Namespace.Session> = mapValues { (_, namespace) ->
+    EngineDO.Namespace.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
+        EngineDO.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
+    })
 }
 
 @JvmSynthetic

@@ -16,8 +16,8 @@ sealed class SessionDetailsUI {
         data class ChainAccountInfo(
             val chainName: String,
             @DrawableRes val chainIcon: Int,
-            val parentChain: String,
-            val chainId: Int,
+            val chainNamespace: String,
+            val chainReference: Int,
             val listOfAccounts: List<Account>
         ) {
 

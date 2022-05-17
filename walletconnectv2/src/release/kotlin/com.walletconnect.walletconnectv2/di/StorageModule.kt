@@ -64,6 +64,10 @@ internal fun storageModule(): Module = module {
         }
     }
 
+    single<ColumnAdapter<MetaDataType, String>>(named("MetaDataType")) {
+        EnumColumnAdapter()
+    }
+
     single<KeyStore> {
         KeyStore.getInstance("AndroidKeyStore").apply {
             load(null)
@@ -178,12 +182,20 @@ internal fun storageModule(): Module = module {
     single {
         Database(
             get(),
-            SessionDaoAdapter = SessionDao.Adapter(
-                permissions_methodsAdapter = get(),
-                permissions_eventsAdapter = get(),
-                accountsAdapter = get()
+            MetaDataDaoAdapter = MetaDataDao.Adapter(
+                iconsAdapter = get(),
+                typeAdapter = get(named("MetaDataType"))
             ),
-            MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = get())
+            NamespaceDaoAdapter = NamespaceDao.Adapter(
+                accountsAdapter = get(),
+                methodsAdapter = get(),
+                eventsAdapter = get()
+            ),
+            NamespaceExtensionsDaoAdapter = NamespaceExtensionsDao.Adapter(
+                accountsAdapter = get(),
+                methodsAdapter = get(),
+                eventsAdapter = get()
+            )
         )
     }
 
@@ -204,7 +216,23 @@ internal fun storageModule(): Module = module {
     }
 
     single {
-        SequenceStorageRepository(get(), get(), get())
+        get<Database>().namespaceDaoQueries
+    }
+
+    single {
+        get<Database>().namespaceExtensionDaoQueries
+    }
+
+    single {
+        get<Database>().namespaceQueries
+    }
+
+    single {
+        get<Database>().namespaceExtensionQueries
+    }
+
+    single {
+        SequenceStorageRepository(get(), get(), get(), get())
     }
 
     single {

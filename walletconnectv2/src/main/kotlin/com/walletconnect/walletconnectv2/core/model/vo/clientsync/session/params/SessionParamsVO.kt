@@ -26,10 +26,8 @@ internal sealed class SessionParamsVO : ClientParams {
         val relay: RelayProtocolOptionsVO,
         @Json(name = "controller")
         val controller: SessionParticipantVO,
-        @Json(name = "accounts")
-        val accounts: List<String>,
         @Json(name = "namespaces")
-        val namespaces: List<NamespaceVO>,
+        val namespaces: Map<String, NamespaceVO.Session>,
         @Json(name = "expiry")
         val expiry: Long,
     ) : SessionParamsVO()
@@ -56,7 +54,7 @@ internal sealed class SessionParamsVO : ClientParams {
 
     internal class UpdateNamespacesParams(
         @Json(name = "namespaces")
-        val namespaces: List<NamespaceVO>,
+        val namespaces: Map<String, NamespaceVO.Session>,
     ) : SessionParamsVO()
 
     internal data class UpdateExpiryParams(
