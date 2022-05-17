@@ -36,6 +36,11 @@ SELECT id
 FROM PairingDao
 WHERE id = (SELECT MAX(id) FROM PairingDao);
 
+getPairingIdByTopic:
+SELECT id
+FROM PairingDao
+WHERE topic = ?;
+
 hasTopic:
 SELECT topic
 FROM PairingDao

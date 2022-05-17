@@ -86,7 +86,7 @@ internal fun WalletConnect.Model.JsonRpcResponse.JsonRpcError.toRpcErrorVO(): Js
     JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(code, message))
 
 @JvmSynthetic
-internal fun WalletConnect.Model.SessionEvent.toEngineEvent(chainId: String?): EngineDO.Event = EngineDO.Event(name, data, chainId)
+internal fun WalletConnect.Model.SessionEvent.toEngineEvent(chainId: String): EngineDO.Event = EngineDO.Event(name, data, chainId)
 
 @JvmSynthetic
 internal fun EngineDO.SessionDelete.toClientDeletedSession(): WalletConnect.Model.DeletedSession =

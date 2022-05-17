@@ -97,7 +97,18 @@ internal class SequenceStorageRepository(
 
     @JvmSynthetic
     fun updatePairingPeerMetadata(topic: TopicVO, metaData: MetaDataVO?) {
-        insertMetaDataForPairing(metaData, MetaDataType.PEER, topic.value)
+        metaData?.let {
+            val pairingId = pairingDaoQueries.getPairingIdByTopic(topic.value).executeAsOne()
+
+            metaDataDaoQueries.insertOrIgnoreMetaDataForPairing(
+                pairingId,
+                metaData.name,
+                metaData.description,
+                metaData.url,
+                metaData.icons,
+                MetaDataType.PEER
+            )
+        }
     }
 
     @JvmSynthetic
@@ -161,21 +172,6 @@ internal class SequenceStorageRepository(
     private fun insertMetaData(metaData: MetaDataVO?, metaDataType: MetaDataType, sessionId: Long) {
         metaData?.let {
             metaDataDaoQueries.insertOrIgnoreMetaData(
-                sessionId,
-                metaData.name,
-                metaData.description,
-                metaData.url,
-                metaData.icons,
-                metaDataType
-            )
-        }
-    }
-
-    private fun insertMetaDataForPairing(metaData: MetaDataVO?, metaDataType: MetaDataType, sessionTopic: String) {
-        metaData?.let {
-            val sessionId = sessionDaoQueries.getSessionIdByTopic(sessionTopic).executeAsOne()
-
-            metaDataDaoQueries.insertOrIgnoreMetaDataForPairing(
                 sessionId,
                 metaData.name,
                 metaData.description,

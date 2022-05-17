@@ -407,7 +407,6 @@ internal class EngineInteractor(
         scope.launch { _sequenceEvent.emit(payloadParams.toEngineDOSessionProposal()) }
     }
 
-    // TODO: Currently failing due to validation.
     private fun onSessionSettle(request: WCRequestVO, settleParams: SessionParamsVO.SessionSettleParams) {
         val sessionTopic = request.topic
         val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
@@ -500,29 +499,6 @@ internal class EngineInteractor(
         scope.launch { _sequenceEvent.emit(params.toEngineDOSessionEvent(request.topic)) }
     }
 
-//    private fun onSessionUpdateAccounts(request: WCRequestVO, params: SessionParamsVO.UpdateAccountsParams) {
-//        if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-//            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value))
-//            return
-//        }
-//
-//        val session: SessionVO = sequenceStorageRepository.getSessionByTopic(request.topic)
-//        if (!session.isPeerController) {
-//            relayer.respondWithError(request, PeerError.UnauthorizedUpdateAccountsRequest(Sequences.SESSION.name))
-//            return
-//        }
-//
-//        Validator.validateCAIP10(params.accounts) {
-//            relayer.respondWithError(request, PeerError.InvalidUpdateAccountsRequest(Sequences.SESSION.name))
-//            return@validateCAIP10
-//        }
-//
-//        sequenceStorageRepository.updateSessionWithAccounts(session.topic, params.accounts)
-//        relayer.respondWithSuccess(request)
-//
-//        scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateAccounts(request.topic, params.accounts)) }
-//    }
-
     // TODO: Needs testing and validate logic
     private fun onSessionUpdateNamespaces(request: WCRequestVO, params: SessionParamsVO.UpdateNamespacesParams) {
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
@@ -586,7 +562,6 @@ internal class EngineInteractor(
                 when (val params = response.params) {
                     is PairingParamsVO.SessionProposeParams -> onSessionProposalResponse(response, params)
                     is SessionParamsVO.SessionSettleParams -> onSessionSettleResponse(response)
-//                    is SessionParamsVO.UpdateAccountsParams -> onSessionUpdateAccountsResponse(response)
                     is SessionParamsVO.UpdateNamespacesParams -> onSessionUpdateNamespacesResponse(response)
                     is SessionParamsVO.SessionRequestParams -> onSessionRequestResponse(response, params)
                 }
@@ -638,23 +613,6 @@ internal class EngineInteractor(
             }
         }
     }
-
-//    private fun onSessionUpdateAccountsResponse(wcResponse: WCResponseVO) {
-//        val sessionTopic = wcResponse.topic
-//        if (!sequenceStorageRepository.isSessionValid(sessionTopic)) return
-//        val session = sequenceStorageRepository.getSessionByTopic(sessionTopic)
-//
-//        when (val response = wcResponse.response) {
-//            is JsonRpcResponseVO.JsonRpcResult -> {
-//                Logger.log("Session update accounts response received")
-//                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateAccountsResponse.Result(session.topic, session.accounts)) }
-//            }
-//            is JsonRpcResponseVO.JsonRpcError -> {
-//                Logger.error("Peer failed to update session accounts: ${response.error}")
-//                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateAccountsResponse.Error(response.errorMessage)) }
-//            }
-//        }
-//    }
 
     private fun onSessionUpdateNamespacesResponse(wcResponse: WCResponseVO) {
         val sessionTopic = wcResponse.topic

@@ -1,13 +1,8 @@
 package com.walletconnect.walletconnectv2.core.exceptions.peer
-// TODO: Cleanup
+
 sealed class PeerError {
     abstract val message: String
     abstract val code: Int
-
-    data class InvalidUpdateAccountsRequest(val sequence: String) : PeerError() {
-        override val message = "Invalid $sequence update accounts request"
-        override val code: Int = 1003
-    }
 
     data class InvalidUpdateNamespaceRequest(val sequence: String): PeerError() {
         override val message: String = ""
@@ -44,10 +39,10 @@ sealed class PeerError {
         override val code: Int = 3002
     }
 
-    data class UnauthorizedUpdateAccountsRequest(val sequence: String) : PeerError() {
-        override val message: String = "Unauthorized $sequence update accounts request"
-        override val code: Int = 3003
-    }
+//    data class UnauthorizedUpdateAccountsRequest(val sequence: String) : PeerError() {
+//        override val message: String = "Unauthorized $sequence update accounts request"
+//        override val code: Int = 3003
+//    }
 
     data class UnauthorizedUpdateNamespacesRequest(val sequence: String) : PeerError() {
         override val message: String = "Unauthorized $sequence update methods request"

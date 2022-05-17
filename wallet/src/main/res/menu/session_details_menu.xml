@@ -9,6 +9,6 @@
 
     <item
         android:id="@+id/updateMethods"
-        android:title="Update Methods"
+        android:title="Update Namespaces"
         app:showAsAction="never|withText" />
 </menu>

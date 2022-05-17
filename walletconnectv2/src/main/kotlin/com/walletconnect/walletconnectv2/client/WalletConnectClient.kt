@@ -50,7 +50,6 @@ object WalletConnectClient {
                     is EngineDO.SessionEvent -> delegate.onSessionEvent(event.toClientSessionEvent())
                     //Responses
                     is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
-                    is EngineDO.SessionUpdateAccountsResponse -> delegate.onSessionUpdateAccountsResponse(event.toClientUpdateSessionAccountsResponse())
                     is EngineDO.SessionUpdateNamespacesResponse -> delegate.onSessionUpdateNamespacesResponse(event.toClientUpdateSessionNamespacesResponse())
                 }
             }
@@ -68,7 +67,6 @@ object WalletConnectClient {
                 when (event) {
                     is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
                     is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
-//                    is EngineDO.SessionUpdateAccounts -> delegate.onSessionUpdateAccounts(event.toClientSessionsUpdateAccounts())
                     is EngineDO.SessionUpdateNamespaces -> delegate.onSessionUpdateNamespaces(event.toClientSessionsNamespaces())
                     is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                     is EngineDO.SessionUpdateExpiry -> delegate.onUpdateSessionExpiry(event.toClientSettledSession())
@@ -113,9 +111,9 @@ object WalletConnectClient {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.approve(approve.proposerPublicKey,
-            approve.namespaces.toMapOfEngineNamespacesSession())
-        { error -> onError(WalletConnect.Model.Error(error)) }
+        engineInteractor.approve(approve.proposerPublicKey, approve.namespaces.toMapOfEngineNamespacesSession()) { error ->
+            onError(WalletConnect.Model.Error(error))
+        }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
@@ -244,7 +242,6 @@ object WalletConnectClient {
 
         //Responses
         fun onSessionSettleResponse(settleSessionResponse: WalletConnect.Model.SettledSessionResponse)
-        fun onSessionUpdateAccountsResponse(sessionUpdateAccountsResponse: WalletConnect.Model.SessionUpdateAccountsResponse)
         fun onSessionUpdateNamespacesResponse(sessionUpdateResponse: WalletConnect.Model.SessionUpdateResponse)
     }
 

@@ -8,7 +8,6 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.Namespa
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
-import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.util.Time
 import java.net.URI
@@ -47,7 +46,7 @@ internal object Validator {
                 onNamespaceError(NAMESPACE_MISSING_ACCOUNTS_FOR_CHAINS_MESSAGE)
             } else if (!sessionNamespaces.all { (key, namespace) -> namespace.accounts.all { it.contains(key) } }) {
                 onNamespaceError(NAMESPACE_ACCOUNTS_MISSING_CHAIN_MESSAGE)
-            } else if (sessionNamespaces.keys.containsAll(proposalParams.namespaces.keys)) {
+            } else if (!sessionNamespaces.keys.containsAll(proposalParams.namespaces.keys)) {
                 onNamespaceError(NAMESPACE_KEYS_MISSING_MESSAGE)
             } else if (false) {
                 // TODO: 2.10 -> check that all extension chains and methods are included in either the super set or in extensions
@@ -75,7 +74,7 @@ internal object Validator {
                 onNamespaceError(NAMESPACE_MISSING_ACCOUNTS_FOR_CHAINS_MESSAGE)
             } else if (!sessionNamespaces.all { (key, namespace) -> namespace.accounts.all { it.contains(key) } }) {
                 onNamespaceError(NAMESPACE_ACCOUNTS_MISSING_CHAIN_MESSAGE)
-            } else if (sessionNamespaces.keys.containsAll(proposalParams.namespaces.keys)) {
+            } else if (!sessionNamespaces.keys.containsAll(proposalParams.namespaces.keys)) {
                 onNamespaceError(NAMESPACE_KEYS_MISSING_MESSAGE)
             } else if (false) {
                 // TODO: 2.10 -> check that all extension chains and methods are included in either the super set or in extensions
