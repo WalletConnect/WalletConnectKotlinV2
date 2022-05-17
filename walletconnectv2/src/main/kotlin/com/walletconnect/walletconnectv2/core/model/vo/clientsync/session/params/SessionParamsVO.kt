@@ -37,19 +37,14 @@ internal sealed class SessionParamsVO : ClientParams {
         @Json(name = "request")
         val request: SessionRequestVO,
         @Json(name = "chainId")
-        val chainId: String?,
+        val chainId: String,
     ) : SessionParamsVO()
 
     internal data class EventParams(
         @Json(name = "event")
         val event: SessionEventVO,
         @Json(name = "chainId")
-        val chainId: String?,
-    ) : SessionParamsVO()
-
-    internal class UpdateAccountsParams(
-        @Json(name = "accounts")
-        val accounts: List<String>,
+        val chainId: String,
     ) : SessionParamsVO()
 
     internal class UpdateNamespacesParams(
@@ -57,7 +52,7 @@ internal sealed class SessionParamsVO : ClientParams {
         val namespaces: Map<String, NamespaceVO.Session>,
     ) : SessionParamsVO()
 
-    internal data class UpdateExpiryParams(
+    internal data class ExtendParams(
         @Json(name = "expiry")
         val expiry: Long,
     ) : SessionParamsVO()

@@ -224,7 +224,7 @@ object WalletConnect {
 
         data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) : Params()
 
-        data class Request(val sessionTopic: String, val method: String, val params: String, val chainId: String?) : Params()
+        data class Request(val sessionTopic: String, val method: String, val params: String, val chainId: String) : Params()
 
         data class UpdateAccounts(val sessionTopic: String, val accounts: List<String>) : Params()
 
@@ -235,8 +235,8 @@ object WalletConnect {
 
         data class Ping(val topic: String) : Params()
 
-        data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String?) : Params()
+        data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String) : Params()
 
-        data class UpdateExpiry(val topic: String) : Params()
+        data class Extend(val topic: String) : Params()
     }
 }

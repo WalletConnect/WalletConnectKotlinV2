@@ -1,7 +1,6 @@
 package com.walletconnect.walletconnectv2.engine.model
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.core.model.type.Sequence
 import com.walletconnect.walletconnectv2.core.model.type.SequenceLifecycle
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
@@ -147,7 +146,7 @@ internal sealed class EngineDO {
     internal data class Event(
         val name: String,
         val data: String,
-        val chainId: String?,
+        val chainId: String,
     ) : EngineDO()
 
     internal data class AppMetaData(
@@ -184,6 +183,6 @@ internal sealed class EngineDO {
         val topic: String,
         val method: String,
         val params: String,
-        val chainId: String?,
+        val chainId: String,
     ) : EngineDO()
 }

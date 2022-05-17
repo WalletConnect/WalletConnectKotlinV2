@@ -151,17 +151,6 @@ object WalletConnectClient {
         }
     }
 
-//    @Throws(IllegalStateException::class, WalletConnectException::class)
-//    fun updateAccounts(updateAccounts: WalletConnect.Params.UpdateAccounts, onError: (WalletConnect.Model.Error) -> Unit = {}) {
-//        check(::engineInteractor.isInitialized) {
-//            "WalletConnectClient needs to be initialized first using the initialize function"
-//        }
-//
-//        engineInteractor.updateSessionAccounts(updateAccounts.sessionTopic, updateAccounts.accounts) { error ->
-//            onError(WalletConnect.Model.Error(error))
-//        }
-//    }
-
     // TODO: Needs testing after fixing session settlement validation
     @Throws(IllegalStateException::class, WalletConnectException::class)
     fun update(updateNamespaces: WalletConnect.Params.UpdateNamespaces, onError: (WalletConnect.Model.Error) -> Unit = {}) {
@@ -175,13 +164,13 @@ object WalletConnectClient {
 
     // TODO: Needs review and completion
     @Throws(IllegalStateException::class, WalletConnectException::class)
-    fun extend(updateExpiry: WalletConnect.Params.UpdateExpiry, onError: (Throwable) -> Unit = {}) {
+    fun extend(extend: WalletConnect.Params.Extend, onError: (Throwable) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
         // TODO: Verify that extend is implemented correctly
-        engineInteractor.extend(updateExpiry.topic) { error -> onError(error) }
+        engineInteractor.extend(extend.topic) { error -> onError(error) }
     }
 
     //TODO: needs testing

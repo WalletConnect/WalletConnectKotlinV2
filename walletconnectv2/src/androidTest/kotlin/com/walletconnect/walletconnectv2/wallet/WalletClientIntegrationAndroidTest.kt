@@ -508,7 +508,7 @@ class WalletConnectClientIntegrationAndroidTest {
 
                     if (response is WalletConnect.Model.SettledSessionResponse.Result) {
 
-                        val extend = WalletConnect.Params.UpdateExpiry(response.session.topic, 1646901496)
+                        val extend = WalletConnect.Params.Extend(response.session.topic, 1646901496)
                         WalletConnectClient.updateExpiry(extend)
                     }
                 }

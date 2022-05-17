@@ -33,7 +33,6 @@ import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageReposit
 import com.walletconnect.walletconnectv2.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import java.util.concurrent.TimeUnit
 
 internal class EngineInteractor(
     private val relayer: WalletConnectRelayer,
@@ -327,9 +326,10 @@ internal class EngineInteractor(
 //            throw WalletConnectException.InvalidExtendException(errorMessage)
 //        }
 
-        val newExpiration = TimeUnit.DAYS.toMillis(7)
+        val newExpiration = Expiration.activeSession //todo: 7days or date in 7 days
         sequenceStorageRepository.updateSessionExpiry(TopicVO(topic), newExpiration)
-        val sessionExtend = SessionSettlementVO.SessionUpdateExpiry(id = generateId(), params = SessionParamsVO.UpdateExpiryParams(expiry = newExpiration))
+        val sessionExtend =
+            SessionSettlementVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(expiry = newExpiration))
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionExtend,
             onSuccess = { Logger.error("Session extend sent successfully") },
             onFailure = { error ->
@@ -390,7 +390,7 @@ internal class EngineInteractor(
                     is SessionParamsVO.DeleteParams -> onSessionDelete(request, requestParams)
                     is SessionParamsVO.EventParams -> onSessionEvent(request, requestParams)
                     is SessionParamsVO.UpdateNamespacesParams -> onSessionUpdateNamespaces(request, requestParams)
-                    is SessionParamsVO.UpdateExpiryParams -> onSessionUpdateExpiry(request, requestParams)
+                    is SessionParamsVO.ExtendParams -> onSessionUpdateExpiry(request, requestParams)
                     is SessionParamsVO.PingParams, is PairingParamsVO.PingParams -> onPing(request)
                 }
             }
@@ -553,7 +553,7 @@ internal class EngineInteractor(
     }
 
     // TODO: Needs to be updated for extend
-    private fun onSessionUpdateExpiry(request: WCRequestVO, requestParams: SessionParamsVO.UpdateExpiryParams) {
+    private fun onSessionUpdateExpiry(request: WCRequestVO, requestParams: SessionParamsVO.ExtendParams) {
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
             relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value))
             return
