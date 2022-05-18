@@ -156,18 +156,17 @@ object WalletConnectClient {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.updateSessionNamespaces(updateNamespaces.sessionTopic, updateNamespaces.namespaces.toMapOfEngineNamespacesSession())
+        engineInteractor.updateSessionNamespaces(updateNamespaces.sessionTopic,
+            updateNamespaces.namespaces.toMapOfEngineNamespacesSession())
         { error -> onError(WalletConnect.Model.Error(error)) }
     }
 
-    // TODO: Needs review and completion
     @Throws(IllegalStateException::class, WalletConnectException::class)
     fun extend(extend: WalletConnect.Params.Extend, onError: (Throwable) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        // TODO: Verify that extend is implemented correctly
         engineInteractor.extend(extend.topic) { error -> onError(error) }
     }
 
