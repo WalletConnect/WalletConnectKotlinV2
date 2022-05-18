@@ -75,7 +75,7 @@ class SessionProposalViewModel : ViewModel() {
             proposalUri = sessionProposal.url,
             peerDescription = sessionProposal.description,
             chains = sessionProposal.requiredNamespaces.flatMap { it.value.chains }.joinToString("\n"),
-            methods = sessionProposal.requiredNamespaces.flatMap { it.value.chains }.joinToString("\n")
+            methods = sessionProposal.requiredNamespaces.flatMap { it.value.methods }.joinToString("\n")
         )
     }
 }

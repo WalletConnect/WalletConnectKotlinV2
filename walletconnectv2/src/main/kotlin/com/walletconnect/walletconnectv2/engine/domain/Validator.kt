@@ -24,7 +24,8 @@ internal object Validator {
             onNamespaceError(NAMESPACE_CHAINS_CAIP_2_MESSAGE)
         } else if (!namespaces.all { (key, namespace) -> namespace.chains.all { chain -> chain.contains(key, true) } }) {
             onNamespaceError(NAMESPACE_MISSING_PREFIX_MESSAGE)
-        } else if (!namespaces.values.filter { it.extensions != null }.flatMap { namespace -> namespace.extensions!!.map { it.chains } }.all { extChains -> extChains.isNotEmpty() }) {
+        } else if (!namespaces.values.filter { it.extensions != null }.flatMap { namespace -> namespace.extensions!!.map { it.chains } }
+                .all { extChains -> extChains.isNotEmpty() }) {
             onNamespaceError(NAMESPACE_EXTENSION_MISSING_CHAINS_MESSAGE)
         } else if (!namespaces.keys.all { namespaceKey -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) }) {
             onNamespaceError(NAMESPACE_EXTENSION_KEYS_CAIP_2_MESSAGE)
@@ -33,13 +34,19 @@ internal object Validator {
 
     // TODO: Verify validation is correct
     @JvmSynthetic
-    internal inline fun validateSessionNamespace(sessionNamespaces: Map<String, NamespaceVO.Session>, proposalParams: ClientParams, onNamespaceError: (String) -> Unit) {
+    internal inline fun validateSessionNamespace(
+        sessionNamespaces: Map<String, NamespaceVO.Session>,
+        proposalParams: ClientParams,
+        onNamespaceError: (String) -> Unit,
+    ) {
         if (proposalParams is PairingParamsVO.SessionProposeParams) {
             if (!sessionNamespaces.values.map { namespace -> namespace.accounts }.all { accounts -> accounts.isNotEmpty() }) {
                 onNamespaceError(NAMESPACE_MISSING_ACCOUNTS_MESSAGE)
-            } else if (!sessionNamespaces.values.flatMap { namespace -> namespace.accounts }.all { accounts -> isAccountIdValid(accounts) }) {
+            } else if (!sessionNamespaces.values.flatMap { namespace -> namespace.accounts }
+                    .all { accounts -> isAccountIdValid(accounts) }) {
                 onNamespaceError(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE)
-            } else if (!sessionNamespaces.values.flatMap { namespace -> namespace.methods }.containsAll(proposalParams.namespaces.values.flatMap { namespace -> namespace.methods })) {
+            } else if (!sessionNamespaces.values.flatMap { namespace -> namespace.methods }
+                    .containsAll(proposalParams.namespaces.values.flatMap { namespace -> namespace.methods })) {
                 onNamespaceError(NAMESPACE_MISSING_METHODS_MESSAGE)
             } else if (!sessionNamespaces.values.flatMap { namespace -> namespace.accounts.map { it.substringBeforeLast(":") } }
                     .containsAll(proposalParams.namespaces.values.flatMap { namespace -> namespace.chains })) {
@@ -62,15 +69,22 @@ internal object Validator {
 
     // TODO: Verify validation is correct
     @JvmSynthetic
-    internal inline fun validateSessionNamespaceUpdate(sessionNamespaces: Map<String, NamespaceVO.Session>, proposalParams: ClientParams, onNamespaceError: (String) -> Unit) {
+    internal inline fun validateSessionNamespaceUpdate(
+        sessionNamespaces: Map<String, NamespaceVO.Session>,
+        proposalParams: ClientParams,
+        onNamespaceError: (String) -> Unit,
+    ) {
         if (proposalParams is SessionParamsVO.UpdateNamespacesParams) {
             if (!sessionNamespaces.values.map { namespace -> namespace.accounts }.all { accounts -> accounts.isNotEmpty() }) {
                 onNamespaceError(NAMESPACE_MISSING_ACCOUNTS_MESSAGE)
-            } else if (!sessionNamespaces.values.flatMap { namespace -> namespace.accounts }.all { accounts -> isAccountIdValid(accounts) }) {
+            } else if (!sessionNamespaces.values.flatMap { namespace -> namespace.accounts }
+                    .all { accounts -> isAccountIdValid(accounts) }) {
                 onNamespaceError(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE)
-            } else if (!sessionNamespaces.values.flatMap { namespace -> namespace.methods }.containsAll(proposalParams.namespaces.values.flatMap { namespace -> namespace.methods })) {
+            } else if (!sessionNamespaces.values.flatMap { namespace -> namespace.methods }
+                    .containsAll(proposalParams.namespaces.values.flatMap { namespace -> namespace.methods })) {
                 onNamespaceError(NAMESPACE_MISSING_METHODS_MESSAGE)
-            } else if (!sessionNamespaces.values.flatMap { namespace -> namespace.accounts }.containsAll(proposalParams.namespaces.values.flatMap { namespace -> namespace.accounts })) {
+            } else if (!sessionNamespaces.values.flatMap { namespace -> namespace.accounts }
+                    .containsAll(proposalParams.namespaces.values.flatMap { namespace -> namespace.accounts })) {
                 onNamespaceError(NAMESPACE_MISSING_ACCOUNTS_FOR_CHAINS_MESSAGE)
             } else if (!sessionNamespaces.all { (key, namespace) -> namespace.accounts.all { it.contains(key) } }) {
                 onNamespaceError(NAMESPACE_ACCOUNTS_MISSING_CHAIN_MESSAGE)
@@ -89,28 +103,48 @@ internal object Validator {
     }
 
     @JvmSynthetic
-    internal inline fun validateChainIdWithMethodAuthorisation(chainId: String?, method: String, namespaces: Map<String, NamespaceVO.Session>, onInvalidChainId: (String) -> Unit) {
-        if (chainId == null ||
-            !namespaces.values.map { it.accounts to it.methods }.any { (accounts, methods) -> accounts.map { it.substringBeforeLast(":") }.contains(chainId) && methods.contains(method) } ||
-            !namespaces.values.filter { it.extensions != null }.map { namespace -> namespace.extensions!!.flatMap { it.accounts } to namespace.extensions.flatMap { it.methods } }
-                .any { (accounts, methods) -> accounts.map { it.substringBeforeLast(":") }.contains(chainId) && methods.contains(method) }
-        ) {
+    internal inline fun validateChainIdWithMethodAuthorisation(
+        chainId: String,
+        method: String,
+        namespaces: Map<String, NamespaceVO.Session>,
+        onInvalidChainId: (String) -> Unit,
+    ) {
+        if (!namespaces.values.map { it.accounts to it.methods }.any { (accounts, methods) ->
+                accounts.map { it.substringBeforeLast(":") }.contains(chainId) && methods.contains(method)
+            } ||
+            !namespaces.values.filter { it.extensions != null }
+                .map { namespace -> namespace.extensions!!.flatMap { it.accounts } to namespace.extensions.flatMap { it.methods } }
+                .any { (accounts, methods) ->
+                    accounts.map { it.substringBeforeLast(":") }.contains(chainId) && methods.contains(method)
+                }) {
             onInvalidChainId(UNAUTHORIZED_CHAIN_ID_OR_METHOD_MESSAGE)
         }
     }
 
     @JvmSynthetic
-    internal inline fun validateChainIdWithEventAuthorisation(chainId: String?, event: String, namespaces: Map<String, NamespaceVO.Session>, onInvalidChainId: (String) -> Unit) {
+    internal inline fun validateChainIdWithEventAuthorisation(
+        chainId: String?,
+        event: String,
+        namespaces: Map<String, NamespaceVO.Session>,
+        onInvalidChainId: (String) -> Unit,
+    ) {
         if (chainId == null ||
-            !namespaces.values.map { it.accounts to it.events }.any { (accounts, events) -> accounts.map { it.substringBeforeLast(":") }.contains(chainId) && events.contains(event) } ||
-            !namespaces.values.filter { it.extensions != null }.map { namespace -> namespace.extensions!!.flatMap { it.accounts } to namespace.extensions.flatMap { it.events } }.any { (accounts, events) -> accounts.map { it.substringBeforeLast(":") }.contains(chainId) && events.contains(event) }
+            !namespaces.values.map { it.accounts to it.events }
+                .any { (accounts, events) -> accounts.map { it.substringBeforeLast(":") }.contains(chainId) && events.contains(event) } ||
+            !namespaces.values.filter { it.extensions != null }
+                .map { namespace -> namespace.extensions!!.flatMap { it.accounts } to namespace.extensions.flatMap { it.events } }
+                .any { (accounts, events) -> accounts.map { it.substringBeforeLast(":") }.contains(chainId) && events.contains(event) }
         ) {
             onInvalidChainId(UNAUTHORIZED_CHAIN_ID_OR_EVENT_MESSAGE)
         }
     }
 
     @JvmSynthetic
-    internal fun validateChainIdAuthorization(chainId: String?, namespaces: Map<String, NamespaceVO.Session>, onInvalidChainId: (String) -> Unit) {
+    internal fun validateChainIdAuthorization(
+        chainId: String?,
+        namespaces: Map<String, NamespaceVO.Session>,
+        onInvalidChainId: (String) -> Unit,
+    ) {
 
 //        if (chainId == null || !true) {
 //            onInvalidChainId(UNAUTHORIZED_CHAIN_ID_MESSAGE)
@@ -118,7 +152,11 @@ internal object Validator {
     }
 
     @JvmSynthetic
-    internal fun validateMethodAuthorisation(namespaces: Map<String, NamespaceVO.Session>, method: String, onInvalidMethod: (String) -> Unit) {
+    internal fun validateMethodAuthorisation(
+        namespaces: Map<String, NamespaceVO.Session>,
+        method: String,
+        onInvalidMethod: (String) -> Unit,
+    ) {
 //        if (!namespaces.any { namespace -> namespace.methods.contains(method) }) {
 //            onInvalidMethod(UNAUTHORIZED_METHOD)
 //        }

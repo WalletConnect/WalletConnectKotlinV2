@@ -200,19 +200,19 @@ internal class EngineInteractor(
         }
     }
 
-    // TODO: Needs testing along with Validation logic testing
     internal fun sessionRequest(request: EngineDO.Request, onFailure: (Throwable) -> Unit) {
         if (!sequenceStorageRepository.isSessionValid(TopicVO(request.topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
 
         val namespaces: Map<String, NamespaceVO.Session> = sequenceStorageRepository.getSessionByTopic(TopicVO(request.topic)).namespaces
+        //TODO: Check after Szymon's corrections
+//        Validator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { errorMessage ->
+//            throw WalletConnectException.UnauthorizedMethodException(errorMessage)
+//        }
 
-        Validator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { errorMessage ->
-            throw WalletConnectException.UnauthorizedMethodException(errorMessage)
-        }
-
-        val params = SessionParamsVO.SessionRequestParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
+        val params =
+            SessionParamsVO.SessionRequestParams(request = SessionRequestVO(request.method, request.params), chainId = request.chainId)
         val sessionPayload = SessionSettlementVO.SessionRequest(id = generateId(), params = params)
 
         relayer.publishJsonRpcRequests(
@@ -455,15 +455,15 @@ internal class EngineInteractor(
             return
         }
 
-        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerMetaData: MetaDataVO?) = with(sequenceStorageRepository.getSessionByTopic(request.topic)) { namespaces to peerMetaData }
+        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerMetaData: MetaDataVO?) = with(sequenceStorageRepository.getSessionByTopic(
+            request.topic)) { namespaces to peerMetaData }
         val method = params.request.method
 
-        // TODO: Validate logic
-        Validator.validateChainIdWithMethodAuthorisation(params.chainId, method, sessionNamespaces) {
-            // TODO: Replace with PeerError related to namespaces
-            relayer.respondWithError(request, PeerError.UnauthorizedTargetChainId(params.chainId ?: String.Empty))
-            return
-        }
+        //TODO: Check after Szymon's corrections
+//        Validator.validateChainIdWithMethodAuthorisation(params.chainId, method, sessionNamespaces) {
+//            relayer.respondWithError(request, PeerError.InvalidUpdateNamespaceRequest(Sequences.SESSION.name))
+//            return
+//        }
 
         scope.launch { _sequenceEvent.emit(params.toEngineDOSessionRequest(request, sessionPeerMetaData)) }
     }

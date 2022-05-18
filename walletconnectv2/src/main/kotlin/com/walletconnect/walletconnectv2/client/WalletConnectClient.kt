@@ -126,7 +126,6 @@ object WalletConnectClient {
         { error -> onError(WalletConnect.Model.Error(error)) }
     }
 
-    // TODO: Needs testing
     @Throws(IllegalStateException::class, WalletConnectException::class)
     fun request(request: WalletConnect.Params.Request, onError: (WalletConnect.Model.Error) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {

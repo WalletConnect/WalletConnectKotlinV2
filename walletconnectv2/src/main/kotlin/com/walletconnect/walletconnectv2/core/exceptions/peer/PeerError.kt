@@ -5,7 +5,7 @@ sealed class PeerError {
     abstract val code: Int
 
     data class InvalidUpdateNamespaceRequest(val sequence: String) : PeerError() {
-        override val message: String = ""
+        override val message: String = "Invalid update $sequence namespace request"
         override val code: Int = 1004
     }
 
@@ -38,11 +38,6 @@ sealed class PeerError {
         override val message: String = "Unauthorized event name requested: $name"
         override val code: Int = 3002
     }
-
-//    data class UnauthorizedUpdateAccountsRequest(val sequence: String) : PeerError() {
-//        override val message: String = "Unauthorized $sequence update accounts request"
-//        override val code: Int = 3003
-//    }
 
     data class UnauthorizedUpdateNamespacesRequest(val sequence: String) : PeerError() {
         override val message: String = "Unauthorized $sequence update methods request"
