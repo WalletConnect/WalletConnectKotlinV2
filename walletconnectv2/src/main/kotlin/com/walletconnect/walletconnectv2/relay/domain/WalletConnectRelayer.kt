@@ -77,6 +77,8 @@ internal class WalletConnectRelayer(
     ) {
         val requestJson = serializer.serialize(payload)
 
+        Logger.error("Kobe; Publishing request: $requestJson")
+
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encodedRequest = serializer.encode(requestJson, topic)
             relay.publish(topic, encodedRequest, shouldPrompt(payload.method)) { result ->
@@ -96,6 +98,9 @@ internal class WalletConnectRelayer(
     ) {
         val jsonResponseDO = response.toRelayDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
+
+        Logger.error("Kobe; Publishing response: $responseJson")
+
         val encodedJson = serializer.encode(responseJson, topic)
 
         relay.publish(topic, encodedJson) { result ->
@@ -166,6 +171,8 @@ internal class WalletConnectRelayer(
                 .map { relayRequest ->
                     val decodedMessage = serializer.decode(relayRequest.message, relayRequest.subscriptionTopic)
                     val topic = relayRequest.subscriptionTopic
+
+                    Logger.error("Kobe; Peer message: $decodedMessage")
 
                     Pair(decodedMessage, topic)
                 }

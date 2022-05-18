@@ -131,7 +131,7 @@ internal class EngineInteractor(
         val request = sessionProposalRequest[proposerPublicKey]
             ?: throw WalletConnectException.CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
-        sequenceStorageRepository.deletePairing(request.topic)
+//        sequenceStorageRepository.deletePairing(request.topic)
         relayer.respondWithError(request, PeerError.Error(reason, code), onFailure = { error -> onFailure(error) })
     }
 
@@ -307,7 +307,6 @@ internal class EngineInteractor(
         )
     }
 
-    // TODO: Update Expiry logic to automatically extend to 30 days after proposal
     fun extend(topic: String, onFailure: (Throwable) -> Unit) {
         if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
@@ -321,7 +320,7 @@ internal class EngineInteractor(
             throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
-        val newExpiration = Expiration.activeSession
+        val newExpiration = session.expiry.seconds + Time.weekInSeconds
         sequenceStorageRepository.extendSession(TopicVO(topic), newExpiration)
         val sessionExtend =
             SessionSettlementVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(expiry = newExpiration))
