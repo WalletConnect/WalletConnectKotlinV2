@@ -85,9 +85,6 @@ internal class SequenceStorageRepository(
                 isActive
             )
         }
-
-        val insertedPairingId = pairingDaoQueries.lastInsertedRow().executeAsOne()
-        pairing.peerMetaData?.let { metaDataDaoQueries.insertOrIgnoreMetaData(insertedPairingId, it.name, it.description, it.url, it.icons, MetaDataType.PEER) }
     }
 
     @JvmSynthetic
@@ -98,10 +95,8 @@ internal class SequenceStorageRepository(
     @JvmSynthetic
     fun updatePairingPeerMetadata(topic: TopicVO, metaData: MetaDataVO?) {
         metaData?.let {
-            val pairingId = pairingDaoQueries.getPairingIdByTopic(topic.value).executeAsOne()
-
-            metaDataDaoQueries.insertOrIgnoreMetaDataForPairing(
-                pairingId,
+            metaDataDaoQueries.insertOrIgnoreMetaData(
+                topic.value,
                 metaData.name,
                 metaData.description,
                 metaData.url,
@@ -112,7 +107,6 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    // TODO: Delete?
     fun deletePairing(topic: TopicVO) {
         metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
         pairingDaoQueries.deletePairing(topic.value)
@@ -134,8 +128,8 @@ internal class SequenceStorageRepository(
         }
 
         val lastInsertedSessionId = sessionDaoQueries.lastInsertedRow().executeAsOne()
-        insertMetaData(session.selfMetaData, MetaDataType.SELF, lastInsertedSessionId)
-        insertMetaData(session.peerMetaData, MetaDataType.PEER, lastInsertedSessionId)
+        insertMetaData(session.selfMetaData, MetaDataType.SELF, session.topic)
+        insertMetaData(session.peerMetaData, MetaDataType.PEER, session.topic)
         insertNamespace(session.namespaces, lastInsertedSessionId)
     }
 
@@ -145,7 +139,7 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun updateSessionExpiry(topic: TopicVO, expiryInSeconds: Long) {
+    fun extendSession(topic: TopicVO, expiryInSeconds: Long) {
         sessionDaoQueries.updateSessionExpiry(expiryInSeconds, topic.value)
     }
 
@@ -169,10 +163,10 @@ internal class SequenceStorageRepository(
         sessionDaoQueries.deleteSession(topic.value)
     }
 
-    private fun insertMetaData(metaData: MetaDataVO?, metaDataType: MetaDataType, sessionId: Long) {
+    private fun insertMetaData(metaData: MetaDataVO?, metaDataType: MetaDataType, topic: TopicVO) {
         metaData?.let {
             metaDataDaoQueries.insertOrIgnoreMetaData(
-                sessionId,
+                topic.value,
                 metaData.name,
                 metaData.description,
                 metaData.url,

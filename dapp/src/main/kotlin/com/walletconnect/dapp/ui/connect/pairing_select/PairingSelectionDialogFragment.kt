@@ -1,6 +1,7 @@
 package com.walletconnect.dapp.ui.connect.pairing_select
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.fragment.app.DialogFragment
 import androidx.navigation.fragment.findNavController
@@ -20,6 +21,9 @@ class PairingSelectionDialogFragment : DialogFragment(R.layout.dialog_pairing_se
 
         val binding = DialogPairingSelectionBinding.bind(view).also { _binding = it }
         val pairings = WalletConnectClient.getListOfSettledPairings().mapNotNull { pairing ->
+
+            Log.e("kobe", "Pairing: $pairing")
+
             pairing.metaData?.let { metadata ->
                 metadata.icons.first() to metadata.name
             }

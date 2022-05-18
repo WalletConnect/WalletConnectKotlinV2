@@ -129,7 +129,7 @@ internal sealed class EngineDO {
     internal data class SessionUpdateAccounts(val topic: TopicVO, val accounts: List<String>) : EngineDO(), SequenceLifecycle
     internal data class SessionUpdateNamespaces(val topic: TopicVO, val namespaces: Map<String, Namespace.Session>) : EngineDO(), SequenceLifecycle
 
-    internal data class SessionUpdateExpiry(
+    internal data class SessionExtend(
         override val topic: TopicVO,
         override val expiry: ExpiryVO,
         val namespaces: Map<String, Namespace.Session>,

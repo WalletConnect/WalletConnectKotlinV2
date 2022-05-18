@@ -104,7 +104,7 @@ internal fun EngineDO.Session.toClientSettledSession(): WalletConnect.Model.Sess
         peerAppMetaData?.toClientAppMetaData())
 
 @JvmSynthetic
-internal fun EngineDO.SessionUpdateExpiry.toClientSettledSession(): WalletConnect.Model.Session =
+internal fun EngineDO.SessionExtend.toClientSettledSession(): WalletConnect.Model.Session =
     WalletConnect.Model.Session(
         topic.value,
         expiry.seconds,

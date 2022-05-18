@@ -104,7 +104,7 @@ internal class EngineInteractor(
         val symmetricKey: SecretKey = crypto.generateSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptionsVO()
         val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
-        val pairing = PairingVO.createPairing(pairingTopic, relay, walletConnectUri.toAbsoluteString())
+        val pairing = PairingVO.createInactivePairing(pairingTopic, relay, walletConnectUri.toAbsoluteString())
 
         sequenceStorageRepository.insertPairing(pairing)
         relayer.subscribe(pairingTopic)
@@ -120,7 +120,7 @@ internal class EngineInteractor(
             throw WalletConnectException.PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
         }
 
-        val pairing = PairingVO.createFromUri(walletConnectUri)
+        val pairing = PairingVO.createActivePairing(walletConnectUri)
         val symmetricKey = walletConnectUri.symKey
         crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
         sequenceStorageRepository.insertPairing(pairing)
@@ -321,13 +321,8 @@ internal class EngineInteractor(
             throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
-        // TODO: Do we still need validation?
-//        Validator.validateSessionExtend(newExpiration, session.expiry.seconds) { errorMessage ->
-//            throw WalletConnectException.InvalidExtendException(errorMessage)
-//        }
-
-        val newExpiration = Expiration.activeSession //todo: 7days or date in 7 days
-        sequenceStorageRepository.updateSessionExpiry(TopicVO(topic), newExpiration)
+        val newExpiration = Expiration.activeSession
+        sequenceStorageRepository.extendSession(TopicVO(topic), newExpiration)
         val sessionExtend =
             SessionSettlementVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(expiry = newExpiration))
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionExtend,
@@ -390,7 +385,7 @@ internal class EngineInteractor(
                     is SessionParamsVO.DeleteParams -> onSessionDelete(request, requestParams)
                     is SessionParamsVO.EventParams -> onSessionEvent(request, requestParams)
                     is SessionParamsVO.UpdateNamespacesParams -> onSessionUpdateNamespaces(request, requestParams)
-                    is SessionParamsVO.ExtendParams -> onSessionUpdateExpiry(request, requestParams)
+                    is SessionParamsVO.ExtendParams -> onSessionExtend(request, requestParams)
                     is SessionParamsVO.PingParams, is PairingParamsVO.PingParams -> onPing(request)
                 }
             }
@@ -528,28 +523,27 @@ internal class EngineInteractor(
         scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateNamespaces(request.topic, params.namespaces.toMapOfEngineNamespacesSession())) }
     }
 
-    // TODO: Needs to be updated for extend
-    private fun onSessionUpdateExpiry(request: WCRequestVO, requestParams: SessionParamsVO.ExtendParams) {
+    private fun onSessionExtend(request: WCRequestVO, requestParams: SessionParamsVO.ExtendParams) {
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
             relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value))
             return
         }
 
         val session = sequenceStorageRepository.getSessionByTopic(request.topic)
-        if (!session.isSelfController) {
-            relayer.respondWithError(request, PeerError.UnauthorizedUpdateExpiryRequest(Sequences.SESSION.name))
+        if (!session.isPeerController) {
+            relayer.respondWithError(request, PeerError.UnauthorizedSessionExtendRequest(Sequences.SESSION.name))
             return
         }
 
         val newExpiry = requestParams.expiry
         Validator.validateSessionExtend(newExpiry, session.expiry.seconds) {
-            relayer.respondWithError(request, PeerError.InvalidUpdateExpiryRequest(Sequences.SESSION.name))
+            relayer.respondWithError(request, PeerError.InvalidSessionExtendRequest(Sequences.SESSION.name))
             return
         }
 
-        sequenceStorageRepository.updateSessionExpiry(request.topic, newExpiry)
+        sequenceStorageRepository.extendSession(request.topic, newExpiry)
         relayer.respondWithSuccess(request)
-        scope.launch { _sequenceEvent.emit(session.toEngineDOSessionUpdateExpiry(ExpiryVO(newExpiry))) }
+        scope.launch { _sequenceEvent.emit(session.toEngineDOSessionExtend(ExpiryVO(newExpiry))) }
     }
 
     private fun onPing(request: WCRequestVO) {

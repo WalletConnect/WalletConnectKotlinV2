@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.onEach
 class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
     private val binding: FragmentSessionDetailsBinding by viewBinding(FragmentSessionDetailsBinding::bind)
     private val viewModel: SessionDetailsViewModel by viewModels()
-    private val chainAccountsAdapter by lazy { SessionDetailsAdapter(viewModel::updateNamespace) }
+    private val chainAccountsAdapter by lazy { SessionDetailsAdapter {} }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -77,8 +77,10 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
             .flowWithLifecycle(viewLifecycleOwner.lifecycle)
             .onEach { event ->
                 when (event) {
-                    is SampleWalletEvents.PingSuccess -> Toast.makeText(requireContext(), "Pinged Peer Successfully on Topic: ${event.topic}", Toast.LENGTH_SHORT).show()
-                    is SampleWalletEvents.PingError -> Toast.makeText(requireContext(), "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT).show()
+                    is SampleWalletEvents.PingSuccess ->
+                        Toast.makeText(requireContext(), "Pinged Peer Successfully on Topic: ${event.topic}", Toast.LENGTH_SHORT).show()
+                    is SampleWalletEvents.PingError -> Toast.makeText(requireContext(), "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT)
+                        .show()
                     is SampleWalletEvents.Disconnect -> findNavController().popBackStack()
                     else -> Unit
                 }
@@ -95,6 +97,14 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
         return when (item.itemId) {
             R.id.ping -> {
                 viewModel.ping()
+                false
+            }
+            R.id.extend -> {
+                viewModel.sessionExtend()
+                false
+            }
+            R.id.updateNamespaces -> {
+                viewModel.updateNamespace()
                 false
             }
             else -> super.onOptionsItemSelected(item)

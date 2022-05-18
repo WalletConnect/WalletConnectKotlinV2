@@ -1,5 +1,6 @@
 package com.walletconnect.dapp.domain
 
+import android.util.Log
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.CoroutineScope
@@ -36,13 +37,6 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         }
     }
 
-    // TODO: Remove
-    override fun onSessionUpdateAccounts(updatedSessionAccounts: WalletConnect.Model.UpdatedSessionAccounts) {
-        scope.launch {
-            _wcEventModels.emit(updatedSessionAccounts)
-        }
-    }
-
     override fun onSessionUpdateNamespaces(updatedSessionNamespaces: WalletConnect.Model.UpdateSessionNamespaces) {
         scope.launch {
             _wcEventModels.emit(updatedSessionNamespaces)
@@ -57,7 +51,8 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         }
     }
 
-    override fun onUpdateSessionExpiry(session: WalletConnect.Model.Session) {
+    override fun onSessionExtend(session: WalletConnect.Model.Session) {
+        Log.e("kobe", "onSessionExtend: $session")
         scope.launch {
             _wcEventModels.emit(session)
         }

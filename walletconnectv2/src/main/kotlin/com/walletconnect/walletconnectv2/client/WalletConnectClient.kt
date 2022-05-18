@@ -69,7 +69,7 @@ object WalletConnectClient {
                     is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
                     is EngineDO.SessionUpdateNamespaces -> delegate.onSessionUpdateNamespaces(event.toClientSessionsNamespaces())
                     is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
-                    is EngineDO.SessionUpdateExpiry -> delegate.onUpdateSessionExpiry(event.toClientSettledSession())
+                    is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientSettledSession())
                     //Responses
                     is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
                 }
@@ -248,9 +248,8 @@ object WalletConnectClient {
     interface DappDelegate {
         fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession)
-        fun onSessionUpdateAccounts(updatedSessionAccounts: WalletConnect.Model.UpdatedSessionAccounts)
         fun onSessionUpdateNamespaces(updatedSessionNamespaces: WalletConnect.Model.UpdateSessionNamespaces)
-        fun onUpdateSessionExpiry(session: WalletConnect.Model.Session)
+        fun onSessionExtend(session: WalletConnect.Model.Session)
         fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
 
         //Responses

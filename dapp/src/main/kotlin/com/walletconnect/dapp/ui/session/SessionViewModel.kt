@@ -59,11 +59,15 @@ class SessionViewModel : ViewModel() {
 
         WalletConnectClient.ping(pingParams, object : WalletConnect.Listeners.SessionPing {
             override fun onSuccess(pingSuccess: WalletConnect.Model.Ping.Success) {
-                _navigationEvents.tryEmit(SampleDappEvents.PingSuccess(pingSuccess.topic))
+                viewModelScope.launch {
+                    _navigationEvents.emit(SampleDappEvents.PingSuccess(pingSuccess.topic))
+                }
             }
 
             override fun onError(pingError: WalletConnect.Model.Ping.Error) {
-                _navigationEvents.tryEmit(SampleDappEvents.PingError)
+                viewModelScope.launch {
+                    _navigationEvents.emit(SampleDappEvents.PingError)
+                }
             }
         })
     }

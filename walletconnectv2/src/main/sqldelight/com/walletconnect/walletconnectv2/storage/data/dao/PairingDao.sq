@@ -15,7 +15,7 @@ VALUES (?,?,?,?,?,?);
 getListOfPairingDaos:
 SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, pd.is_active
 FROM PairingDao pd
-    LEFT JOIN MetaDataDao mdd_peer ON pd.id = mdd_peer.session_id;
+    LEFT JOIN MetaDataDao mdd_peer ON pd.topic = mdd_peer.sequence_topic;
 
 getPairingByTopic:
 SELECT topic, expiry, relay_protocol, relay_data, uri, is_active

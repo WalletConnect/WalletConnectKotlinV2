@@ -4,17 +4,17 @@ sealed class PeerError {
     abstract val message: String
     abstract val code: Int
 
-    data class InvalidUpdateNamespaceRequest(val sequence: String): PeerError() {
+    data class InvalidUpdateNamespaceRequest(val sequence: String) : PeerError() {
         override val message: String = ""
         override val code: Int = 1004
     }
 
-    data class InvalidUpdateExpiryRequest(val sequence: String) : PeerError() {
-        override val message = "Invalid $sequence update expiry request"
+    data class InvalidSessionExtendRequest(val sequence: String) : PeerError() {
+        override val message = "Invalid $sequence session extend request"
         override val code: Int = 1005
     }
 
-    data class InvalidSessionProposeRequest(val topic: String, val errorMessage: String): PeerError() {
+    data class InvalidSessionProposeRequest(val topic: String, val errorMessage: String) : PeerError() {
         override val message: String = "Invalid Session Proposal on topic: $topic. Error Message: $errorMessage"
         override val code: Int = 1006
     }
@@ -49,8 +49,8 @@ sealed class PeerError {
         override val code: Int = 3005
     }
 
-    data class UnauthorizedUpdateExpiryRequest(val sequence: String) : PeerError() {
-        override val message: String = "Unauthorized $sequence update expiry request"
+    data class UnauthorizedSessionExtendRequest(val sequence: String) : PeerError() {
+        override val message: String = "Unauthorized $sequence session extend request"
         override val code: Int = 3006
     }
 

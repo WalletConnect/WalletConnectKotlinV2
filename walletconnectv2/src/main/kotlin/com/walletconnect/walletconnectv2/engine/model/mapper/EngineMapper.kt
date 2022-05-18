@@ -94,8 +94,8 @@ internal fun SessionVO.toEngineDOApprovedSessionVO(): EngineDO.Session =
     EngineDO.Session(topic, expiry, namespaces.toMapOfEngineNamespacesSession(), selfMetaData?.toEngineDOAppMetaData())
 
 @JvmSynthetic
-internal fun SessionVO.toEngineDOSessionUpdateExpiry(expiryVO: ExpiryVO): EngineDO.SessionUpdateExpiry =
-    EngineDO.SessionUpdateExpiry(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfMetaData?.toEngineDOAppMetaData())
+internal fun SessionVO.toEngineDOSessionExtend(expiryVO: ExpiryVO): EngineDO.SessionExtend =
+    EngineDO.SessionExtend(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfMetaData?.toEngineDOAppMetaData())
 
 @JvmSynthetic
 private fun MetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
