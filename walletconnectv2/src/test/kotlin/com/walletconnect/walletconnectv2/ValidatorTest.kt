@@ -168,134 +168,111 @@ class ValidatorTest {
     }
 
     @Test
-    fun `Invalid Proposal Params on validateSessionNamespace`() {
-        val proposalParams: PairingParamsVO = mockk()
-        val namespaces: Map<String, NamespaceVO.Session> = mockk()
-        var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalParams) { errorMessage = it }
-        assertNotNull(errorMessage)
-        assertEquals(NAMESPACE_MISSING_PROPOSAL_MESSAGE, errorMessage)
-    }
-
-    @Test
-    fun `Invalid Proposal Params on validateSessionNamespaceUpdate`() {
-        val proposalParams: PairingParamsVO = mockk()
-        val namespaces: Map<String, NamespaceVO.Session> = mockk()
-        var errorMessage: String? = null
-        Validator.validateSessionNamespaceUpdate(namespaces, proposalParams) { errorMessage = it }
-        assertNotNull(errorMessage)
-        assertEquals(NAMESPACE_MISSING_PROPOSAL_MESSAGE, errorMessage)
-    }
-
-    @Test
     fun `Session Namespaces MUST NOT have accounts empty`() {
-        val proposalParams: PairingParamsVO.SessionProposeParams = mockk{
-            every { namespaces } returns mapOf(
-                COSMOS to NamespaceVO.Proposal(
-                    chains = emptyList(), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), extensions = null
-                )
+        val proposalNamespaces = mapOf(
+            COSMOS to NamespaceVO.Proposal(
+                chains = emptyList(), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), extensions = null
             )
-        }
-        val namespaces = mapOf(
+        )
+
+        val sessionNamespaces = mapOf(
             COSMOS to NamespaceVO.Session(
                 accounts = emptyList(), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), extensions = null
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalParams) { errorMessage = it }
+        Validator.validateSessionNamespace(sessionNamespaces, proposalNamespaces) { errorMessage = it }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_MISSING_ACCOUNTS_MESSAGE, errorMessage)
     }
 
     @Test
     fun `Session Namespaces addresses MUST be CAIP-10 compliant`() {
-        val proposalParams: PairingParamsVO.SessionProposeParams = mockk{
-            every { namespaces } returns mapOf(
-                EIP155 to NamespaceVO.Proposal(
-                    chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
-                )
+        val proposalNamespaces = mapOf(
+            EIP155 to NamespaceVO.Proposal(
+                chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
-        }
+        )
+
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
-                accounts = listOf("eip155:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb"), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
+                accounts = listOf("eip155:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb"),
+                methods = listOf(ETH_SIGN),
+                events = listOf(ACCOUNTS_CHANGED),
+                extensions = null
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalParams) { errorMessage = it }
+        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE, errorMessage)
     }
 
     @Test
     fun `Session Namespaces MUST approve all methods`() {
-        val proposalParams: PairingParamsVO.SessionProposeParams = mockk{
-            every { namespaces } returns mapOf(
-                EIP155 to NamespaceVO.Proposal(
-                    chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = emptyList(), extensions = null
-                )
+        val proposalNamespaces = mapOf(
+            EIP155 to NamespaceVO.Proposal(
+                chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = emptyList(), extensions = null
             )
-        }
+        )
+
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1), methods = emptyList(), events = emptyList(), extensions = null
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalParams) { errorMessage = it }
+        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_MISSING_METHODS_MESSAGE, errorMessage)
     }
 
     @Test
     fun `Session Namespaces MUST approve all events`() {
-        val proposalParams: PairingParamsVO.SessionProposeParams = mockk{
-            every { namespaces } returns mapOf(
-                EIP155 to NamespaceVO.Proposal(
-                    chains = listOf(ETHEREUM), methods = emptyList(), events = listOf(CHAIN_CHANGED), extensions = null
-                )
+        val proposalNamespaces = mapOf(
+            EIP155 to NamespaceVO.Proposal(
+                chains = listOf(ETHEREUM), methods = emptyList(), events = listOf(CHAIN_CHANGED), extensions = null
             )
-        }
+        )
+
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1), methods = emptyList(), events = emptyList(), extensions = null
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalParams) { errorMessage = it }
+        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_MISSING_EVENTS_MESSAGE, errorMessage)
     }
 
     @Test
     fun `Session Namespaces MUST contain at least one account in requested chains`() {
-        val proposalParams: PairingParamsVO.SessionProposeParams = mockk{
-            every { namespaces } returns mapOf(
-                EIP155 to NamespaceVO.Proposal(
-                    chains = listOf(ETHEREUM, OPTIMISM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
-                )
+        val proposalNamespaces = mapOf(
+            EIP155 to NamespaceVO.Proposal(
+                chains = listOf(ETHEREUM, OPTIMISM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
-        }
+        )
+
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalParams) { errorMessage = it }
+        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_MISSING_ACCOUNTS_FOR_CHAINS_MESSAGE, errorMessage)
     }
 
     @Test
     fun `Session Namespaces MAY contain multiple accounts for one chain`() {
-        val proposalParams: PairingParamsVO.SessionProposeParams = mockk{
-            every { namespaces } returns mapOf(
-                EIP155 to NamespaceVO.Proposal(
-                    chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
-                )
+        val proposalNamespaces = mapOf(
+            EIP155 to NamespaceVO.Proposal(
+                chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
-        }
+        )
+
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, ETHEREUM_2, ETHEREUM_3, ETHEREUM_4, ETHEREUM_5),
@@ -305,131 +282,142 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalParams) { errorMessage = it }
+        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it }
         assertNull(errorMessage)
     }
 
     @Test
     fun `Session Namespaces MAY extend methods and events of Proposal Namespaces`() {
-        val proposalParams: PairingParamsVO.SessionProposeParams = mockk{
-            every { namespaces } returns mapOf(
-                EIP155 to NamespaceVO.Proposal(
-                    chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
-                )
+        val proposalNamespaces = mapOf(
+            EIP155 to NamespaceVO.Proposal(
+                chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
-        }
+        )
+
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1),
                 methods = listOf(ETH_SIGN, PERSONAL_SIGN),
                 events = listOf(ACCOUNTS_CHANGED, SOME_EVENT),
-                extensions = null)
+                extensions = null
+            )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalParams) { errorMessage = it }
+        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it }
         assertNull(errorMessage)
     }
 
     @Test
     fun `All accounts in the namespace MUST contain the namespace prefix`() {
-        val proposalParams: PairingParamsVO.SessionProposeParams = mockk{
-            every { namespaces } returns mapOf(
-                EIP155 to NamespaceVO.Proposal(
-                    chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
-                )
+        val proposalNamespaces = mapOf(
+            EIP155 to NamespaceVO.Proposal(
+                chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
-        }
+        )
+
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, COSMOSHUB_4_1),
                 methods = listOf(ETH_SIGN),
                 events = listOf(ACCOUNTS_CHANGED),
-                extensions = null)
+                extensions = null
+            )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalParams) { errorMessage = it }
+        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE, errorMessage)
     }
 
     @Test
     fun `Session Namespaces MAY contain accounts from chains not defined in Proposal Namespaces`() {
-        val proposalParams: PairingParamsVO.SessionProposeParams = mockk{
-            every { namespaces } returns mapOf(
-                EIP155 to NamespaceVO.Proposal(
-                    chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
-                )
+        val proposalNamespaces = mapOf(
+            EIP155 to NamespaceVO.Proposal(
+                chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
-        }
+        )
+
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, KOVAN_1),
                 methods = listOf(ETH_SIGN),
                 events = listOf(ACCOUNTS_CHANGED),
-                extensions = null)
+                extensions = null
+            )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalParams) { errorMessage = it }
+        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it }
         assertNull(errorMessage)
     }
 
     @Test
     fun `Session Namespaces MUST have at least the same namespaces as the Proposal Namespaces`() {
-        val proposalParams: PairingParamsVO.SessionProposeParams = mockk{
-            every { namespaces } returns mapOf(
-                EIP155 to NamespaceVO.Proposal(
-                    chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
-                ),
-                COSMOS to NamespaceVO.Proposal(
-                    chains = listOf(COSMOSHUB_4), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), extensions = null
-                )
+        val proposalNamespaces = mapOf(
+            EIP155 to NamespaceVO.Proposal(
+                chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
+            ),
+            COSMOS to NamespaceVO.Proposal(
+                chains = listOf(COSMOSHUB_4), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), extensions = null
             )
-        }
+        )
+
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
                 methods = listOf(ETH_SIGN),
                 events = listOf(ACCOUNTS_CHANGED),
-                extensions = null)
+                extensions = null
+            )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalParams) { errorMessage = it }
+        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_KEYS_MISSING_MESSAGE, errorMessage)
     }
 
     @Test
     fun `Extensions MAY be merged into namespace`() {
-        val proposalParams: PairingParamsVO.SessionProposeParams = mockk{
-            every { namespaces } returns mapOf(
-                EIP155 to NamespaceVO.Proposal(
-                    chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED),
-                    extensions = listOf(NamespaceVO.Proposal.Extension(chains = listOf(MATIC), methods = listOf(PERSONAL_SIGN), events = emptyList()))
+        val proposalNamespaces = mapOf(
+            EIP155 to NamespaceVO.Proposal(
+                chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED),
+                extensions = listOf(
+                    NamespaceVO.Proposal.Extension(
+                        chains = listOf(MATIC),
+                        methods = listOf(PERSONAL_SIGN),
+                        events = emptyList()
+                    )
                 )
             )
-        }
+        )
+
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
                 methods = listOf(ETH_SIGN, PERSONAL_SIGN),
                 events = listOf(ACCOUNTS_CHANGED),
-                extensions = null)
+                extensions = null
+            )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalParams) { errorMessage = it }
+        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it }
         assertNull(errorMessage)
     }
 
     @Test
     fun `Session Namespaces extensions MAY extend methods and events of Proposal Namespaces extensions`() {
-        val proposalParams: PairingParamsVO.SessionProposeParams = mockk{
-            every { namespaces } returns mapOf(
-                EIP155 to NamespaceVO.Proposal(
-                    chains = listOf(MATIC, ETHEREUM), methods = emptyList(), events = listOf(CHAIN_CHANGED),
-                    extensions = listOf(NamespaceVO.Proposal.Extension(chains = listOf(MATIC), methods = listOf(ETH_SIGN), events = emptyList()))
+        val proposalNamespaces = mapOf(
+            EIP155 to NamespaceVO.Proposal(
+                chains = listOf(MATIC, ETHEREUM), methods = emptyList(), events = listOf(CHAIN_CHANGED),
+                extensions = listOf(
+                    NamespaceVO.Proposal.Extension(
+                        chains = listOf(MATIC),
+                        methods = listOf(ETH_SIGN),
+                        events = emptyList()
+                    )
                 )
             )
-        }
+        )
+
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
@@ -443,24 +431,23 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalParams) { errorMessage = it }
+        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it }
         assertNull(errorMessage)
     }
 
     @Test
     fun `Session Namespaces extensions MAY contain accounts from chains not defined in Proposal Namespaces extensions`() {
-        val proposalParams: PairingParamsVO.SessionProposeParams = mockk{
-            every { namespaces } returns mapOf(
-                EIP155 to NamespaceVO.Proposal(
-                    chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED),
-                    extensions = listOf(
-                        NamespaceVO.Proposal.Extension(
-                            chains = listOf(MATIC), methods = listOf(PERSONAL_SIGN), events = listOf(CHAIN_CHANGED)
-                        )
+        val proposalNamespaces = mapOf(
+            EIP155 to NamespaceVO.Proposal(
+                chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED),
+                extensions = listOf(
+                    NamespaceVO.Proposal.Extension(
+                        chains = listOf(MATIC), methods = listOf(PERSONAL_SIGN), events = listOf(CHAIN_CHANGED)
                     )
                 )
             )
-        }
+        )
+
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
@@ -474,19 +461,18 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalParams) { errorMessage = it }
+        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it }
         assertNull(errorMessage)
     }
 
     @Test
     fun `Session Namespaces MAY add extensions not defined in Proposal Namespaces extensions`() {
-        val proposalParams: PairingParamsVO.SessionProposeParams = mockk{
-            every { namespaces } returns mapOf(
-                EIP155 to NamespaceVO.Proposal(
-                    chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
-                )
+        val proposalNamespaces = mapOf(
+            EIP155 to NamespaceVO.Proposal(
+                chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
-        }
+        )
+
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
@@ -500,7 +486,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalParams) { errorMessage = it }
+        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it }
         assertNull(errorMessage)
     }
 
@@ -516,58 +502,6 @@ class ValidatorTest {
         Validator.isChainIdValid("cosmos:").apply { assertEquals(this, false) }
         Validator.isChainIdValid(":").apply { assertEquals(this, false) }
         Validator.isChainIdValid("123:123").apply { assertEquals(this, true) }
-    }
-
-
-    @Test
-    fun `check correct error message when accounts are empty and chainIds exists`() {
-        val accounts = listOf("")
-        val chains = listOf("as", "bc")
-        Validator.validateIfAccountsAreOnValidNetwork(accounts, chains) { errorMessage ->
-            assertEquals(errorMessage, UNAUTHORIZED_CHAIN_ID_MESSAGE)
-        }
-    }
-
-    @Test
-    fun `check correct error message when accounts are invalid`() {
-        val accounts = listOf("as11", "1234")
-        val chains = listOf("")
-        Validator.validateIfAccountsAreOnValidNetwork(accounts, chains) { errorMessage ->
-            assertEquals(errorMessage, UNAUTHORIZED_CHAIN_ID_MESSAGE)
-        }
-    }
-
-    @Test
-    fun `check correct error message when accounts are empty`() {
-        val accounts = listOf("", "")
-
-        Validator.validateCAIP10(accounts) { errorMessage ->
-            assertEquals(errorMessage, EMPTY_ACCOUNT_LIST_MESSAGE)
-        }
-    }
-
-    @Test
-    fun `check correct error message when accounts are unauthorized`() {
-        val accounts = listOf(
-            "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
-            "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
-        )
-        val chains = listOf("")
-        Validator.validateIfAccountsAreOnValidNetwork(accounts, chains) { errorMessage ->
-            assertEquals(errorMessage, UNAUTHORIZED_CHAIN_ID_MESSAGE)
-        }
-    }
-
-    @Test
-    fun `are accounts not empty test`() {
-        val result1 = Validator.areAccountsNotEmpty(emptyList())
-        assertEquals(result1, false)
-
-        val result2 = Validator.areAccountsNotEmpty(listOf(""))
-        assertEquals(result2, false)
-
-        val result3 = Validator.areAccountsNotEmpty(listOf("123"))
-        assertEquals(result3, true)
     }
 
     @Test
@@ -589,61 +523,14 @@ class ValidatorTest {
     }
 
     @Test
-    fun `are chain ids included in permissions`() {
-        Validator.areAccountsOnValidNetworks(emptyList(), emptyList()).apply { assertEquals(this, false) }
-        Validator.areAccountsOnValidNetworks(listOf(""), listOf("")).apply { assertEquals(this, false) }
-        Validator.areAccountsOnValidNetworks(listOf("as"), listOf("")).apply { assertEquals(this, false) }
-        Validator.areAccountsOnValidNetworks(listOf("as"), listOf("ss")).apply { assertEquals(this, false) }
-        Validator.areAccountsOnValidNetworks(
-            listOf(
-                "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
-                "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
-            ), listOf("ss", "aa")
-        ).apply { assertEquals(this, false) }
-
-        Validator.areAccountsOnValidNetworks(
-            listOf(
-                "bip122:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
-                "polkadot:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
-            ), listOf("bip122:000000000019d6689c085ae165831e93", "polkadot:b0a8d493285c2df73290dfb7e61f870f")
-        ).apply { assertEquals(this, false) }
-
-        Validator.areAccountsOnValidNetworks(
-            listOf(
-                "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
-                "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
-            ), listOf("bip122:000000000019d6689c085ae165831e93", "polkadot:b0a8d493285c2df73290dfb7e61f870f")
-        ).apply { assertEquals(this, true) }
-
-        Validator.areAccountsOnValidNetworks(
-            listOf(
-                "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6",
-                "polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy"
-            ), listOf("polkadot:b0a8d493285c2df73290dfb7e61f870f")
-        ).apply { assertEquals(this, false) }
-
-        Validator.areAccountsOnValidNetworks(
-            listOf(
-                "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6"
-            ), listOf("polkadot:b0a8d493285c2df73290dfb7e61f870f")
-        ).apply { assertEquals(this, false) }
-
-        Validator.areAccountsOnValidNetworks(
-            listOf(
-                "bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6"
-            ), listOf("bip122:000000000019d6689c085ae165831e93")
-        ).apply { assertEquals(this, true) }
-    }
-
-
-    @Test
     fun `Authorizing not approved event`() {
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1),
                 methods = listOf(ETH_SIGN),
                 events = listOf(CHAIN_CHANGED),
-                extensions = null)
+                extensions = null
+            )
         )
         var errorMessage: String? = null
         Validator.validateChainIdWithEventAuthorisation(ETHEREUM, ACCOUNTS_CHANGED, namespaces) { errorMessage = it }
@@ -658,7 +545,8 @@ class ValidatorTest {
                 accounts = listOf(ETHEREUM_1),
                 methods = listOf(ETH_SIGN),
                 events = listOf(CHAIN_CHANGED),
-                extensions = null)
+                extensions = null
+            )
         )
         var errorMessage: String? = null
         Validator.validateChainIdWithMethodAuthorisation(ETHEREUM, PERSONAL_SIGN, namespaces) { errorMessage = it }
@@ -673,7 +561,8 @@ class ValidatorTest {
                 accounts = listOf(ETHEREUM_1),
                 methods = listOf(ETH_SIGN),
                 events = listOf(CHAIN_CHANGED),
-                extensions = null)
+                extensions = null
+            )
         )
         var errorMessage: String? = null
         Validator.validateChainIdWithEventAuthorisation(OPTIMISM, CHAIN_CHANGED, namespaces) { errorMessage = it }
@@ -688,7 +577,8 @@ class ValidatorTest {
                 accounts = listOf(ETHEREUM_1),
                 methods = listOf(ETH_SIGN),
                 events = listOf(CHAIN_CHANGED),
-                extensions = null)
+                extensions = null
+            )
         )
         var errorMessage: String? = null
         Validator.validateChainIdWithMethodAuthorisation(OPTIMISM, ETH_SIGN, namespaces) { errorMessage = it }
@@ -703,7 +593,8 @@ class ValidatorTest {
                 accounts = listOf(ETHEREUM_1),
                 methods = listOf(ETH_SIGN),
                 events = listOf(CHAIN_CHANGED),
-                extensions = null)
+                extensions = null
+            )
         )
         var errorMessage: String? = null
         Validator.validateChainIdWithEventAuthorisation(ETHEREUM, CHAIN_CHANGED, namespaces) { errorMessage = it }
@@ -717,7 +608,8 @@ class ValidatorTest {
                 accounts = listOf(ETHEREUM_1),
                 methods = listOf(ETH_SIGN),
                 events = listOf(CHAIN_CHANGED),
-                extensions = null)
+                extensions = null
+            )
         )
         var errorMessage: String? = null
         Validator.validateChainIdWithMethodAuthorisation(ETHEREUM, ETH_SIGN, namespaces) { errorMessage = it }
@@ -727,19 +619,71 @@ class ValidatorTest {
     @Test
     fun `is event valid test`() {
         var event = EngineDO.Event("", "data", ETHEREUM)
+        var errorMessage: String? = null
         Validator.validateEvent(event) {
-            assertEquals(INVALID_EVENT_MESSAGE, it)
+            errorMessage = it
         }
+        assertEquals(INVALID_EVENT_MESSAGE, errorMessage)
 
-        event = EngineDO.Event("type", "", "")
-        Validator.validateEvent(event) {
-            assertEquals(INVALID_EVENT_MESSAGE, it)
-        }
 
-        event = EngineDO.Event("", "", "")
+        event = EngineDO.Event("someName", "", ETHEREUM)
+        errorMessage = null
         Validator.validateEvent(event) {
-            assertEquals(INVALID_EVENT_MESSAGE, it)
+            errorMessage = it
         }
+        assertEquals(INVALID_EVENT_MESSAGE, errorMessage)
+
+        event = EngineDO.Event("someName", "someData", "")
+        errorMessage = null
+        Validator.validateEvent(event) {
+            errorMessage = it
+        }
+        assertEquals(INVALID_EVENT_MESSAGE, errorMessage)
+
+        event = EngineDO.Event("someName", "someData", "1")
+        errorMessage = null
+        Validator.validateEvent(event) {
+            errorMessage = it
+        }
+        assertEquals(INVALID_EVENT_MESSAGE, errorMessage)
+    }
+
+    @Test
+    fun `is request valid test`() {
+        var request = EngineDO.Request("", "someMethod", "someParams", ETHEREUM)
+        var errorMessage: String? = null
+        Validator.validateRequest(request) {
+            errorMessage = it
+        }
+        assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
+
+        request = EngineDO.Request("someTopic", "", "someParams", ETHEREUM)
+        errorMessage = null
+        Validator.validateRequest(request) {
+            errorMessage = it
+        }
+        assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
+
+        request = EngineDO.Request("someTopic", "someMethod", "", ETHEREUM)
+        errorMessage = null
+        Validator.validateRequest(request) {
+            errorMessage = it
+        }
+        assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
+
+        request = EngineDO.Request("someTopic", "someMethod", "someParams", "")
+        errorMessage = null
+        Validator.validateRequest(request) {
+            errorMessage = it
+        }
+        assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
+
+        request = EngineDO.Request("someTopic", "someMethod", "someParams", "1")
+        errorMessage = null
+        Validator.validateRequest(request) {
+            errorMessage = it
+        }
+        assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
     }
 
     @Test

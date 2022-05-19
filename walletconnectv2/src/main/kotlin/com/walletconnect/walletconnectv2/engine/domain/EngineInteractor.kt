@@ -206,6 +206,10 @@ internal class EngineInteractor(
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
 
+        Validator.validateRequest(request) { errorMessage ->
+            throw WalletConnectException.InvalidRequestException(errorMessage)
+        }
+
         val namespaces: Map<String, NamespaceVO.Session> = sequenceStorageRepository.getSessionByTopic(TopicVO(request.topic)).namespaces
 
         Validator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { errorMessage ->
@@ -407,8 +411,14 @@ internal class EngineInteractor(
         val peerMetadata = settleParams.controller.metadata
         val proposal = sessionProposalRequest[selfPublicKey.keyAsHex] ?: return
 
-        // TODO: Validation is failing causing a crash
-        Validator.validateSessionNamespace(settleParams.namespaces, proposal.params) { errorMessage ->
+        if (proposal.params !is PairingParamsVO.SessionProposeParams) {
+            relayer.respondWithError(
+                request, PeerError.InvalidSessionProposeRequest(request.topic.value, NAMESPACE_MISSING_PROPOSAL_MESSAGE)
+            )
+            return
+        }
+
+        Validator.validateSessionNamespace(settleParams.namespaces, proposal.params.namespaces) { errorMessage ->
             relayer.respondWithError(request, PeerError.InvalidSessionProposeRequest(request.topic.value, errorMessage))
             return
         }
@@ -461,7 +471,7 @@ internal class EngineInteractor(
         // TODO: Validate logic
         Validator.validateChainIdWithMethodAuthorisation(params.chainId, method, sessionNamespaces) {
             // TODO: Replace with PeerError related to namespaces
-            relayer.respondWithError(request, PeerError.UnauthorizedTargetChainId(params.chainId ?: String.Empty))
+            relayer.respondWithError(request, PeerError.UnauthorizedTargetChainId(params.chainId))
             return
         }
 
@@ -508,10 +518,8 @@ internal class EngineInteractor(
             return
         }
 
-        // TODO: Validate logic
-        Validator.validateSessionNamespaceUpdate(session.namespaces, params) {
+        Validator.validateSessionNamespaceUpdate(params.namespaces) {
             relayer.respondWithError(request, PeerError.UnauthorizedUpdateNamespacesRequest(Sequences.SESSION.name))
-
             return
         }
 

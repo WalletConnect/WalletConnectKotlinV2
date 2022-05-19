@@ -32,13 +32,16 @@ internal const val NAMESPACE_MISSING_EVENTS_MESSAGE: String = "All events must b
 internal const val NAMESPACE_MISSING_ACCOUNTS_FOR_CHAINS_MESSAGE: String = "All chains must have at least one account"
 internal const val NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE: String = "Accounts must be defined in matching namespace"
 internal const val NAMESPACE_KEYS_MISSING_MESSAGE: String = "All namespaces must be approved"
+internal const val NAMESPACE_EXTENSION_MISSING_ACCOUNTS_MESSAGE: String = "Extension chains must not be empty"
+
 
 internal const val WRONG_ACCOUNT_ID_FORMAT_MESSAGE: String =
     "AccountIds does not follow the CAIP10 semantics. See: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-10.md"
 internal const val UNAUTHORIZED_CHAIN_ID_MESSAGE: String = "Unauthorized chain id"
 internal const val UNAUTHORIZED_CHAIN_ID_OR_METHOD_MESSAGE: String = "Unauthorized chain id or method"
 internal const val UNAUTHORIZED_CHAIN_ID_OR_EVENT_MESSAGE: String = "Unauthorized chain id or event"
-internal const val INVALID_EVENT_MESSAGE: String = "Event name and data fields cannot be empty"
+internal const val INVALID_EVENT_MESSAGE: String = "Event name and data fields cannot be empty. ChainId must be CAIP-2 compliant"
+internal const val INVALID_REQUEST_MESSAGE: String = "Request topic, method and params fields cannot be empty. ChainId must be CAIP-2 compliant"
 internal const val MALFORMED_PAIRING_URI_MESSAGE: String = "Pairing URI string is invalid."
 internal const val INVALID_EXTEND_TIME: String = "Extend time is out of range"
 internal const val NO_SESSION_PROPOSAL: String = "No session proposal for proposer publicKey: "
