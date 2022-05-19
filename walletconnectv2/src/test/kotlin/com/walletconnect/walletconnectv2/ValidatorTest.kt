@@ -27,13 +27,10 @@ import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.walletconnectv2.engine.domain.Validator
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.engine.model.mapper.toAbsoluteString
 import com.walletconnect.walletconnectv2.util.Time
-import io.mockk.every
-import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -492,33 +489,33 @@ class ValidatorTest {
 
     @Test
     fun `validate chain id against CAIP2 standard`() {
-        Validator.isChainIdValid("").apply { assertEquals(this, false) }
-        Validator.isChainIdValid("bip122:000000000019d6689c085ae165831e93").apply { assertEquals(this, true) }
-        Validator.isChainIdValid("cosmos:cosmoshub-2").apply { assertEquals(this, true) }
-        Validator.isChainIdValid("chainstd:23-33").apply { assertEquals(this, true) }
-        Validator.isChainIdValid("chainasdasdasdasdasdasdasdsastd:23-33").apply { assertEquals(this, false) }
-        Validator.isChainIdValid("cosmoscosmoshub-2").apply { assertEquals(this, false) }
-        Validator.isChainIdValid(":cosmoshub-2").apply { assertEquals(this, false) }
-        Validator.isChainIdValid("cosmos:").apply { assertEquals(this, false) }
-        Validator.isChainIdValid(":").apply { assertEquals(this, false) }
-        Validator.isChainIdValid("123:123").apply { assertEquals(this, true) }
+        Validator.isChainIdCAIP2Compliant("").apply { assertEquals(this, false) }
+        Validator.isChainIdCAIP2Compliant("bip122:000000000019d6689c085ae165831e93").apply { assertEquals(this, true) }
+        Validator.isChainIdCAIP2Compliant("cosmos:cosmoshub-2").apply { assertEquals(this, true) }
+        Validator.isChainIdCAIP2Compliant("chainstd:23-33").apply { assertEquals(this, true) }
+        Validator.isChainIdCAIP2Compliant("chainasdasdasdasdasdasdasdsastd:23-33").apply { assertEquals(this, false) }
+        Validator.isChainIdCAIP2Compliant("cosmoscosmoshub-2").apply { assertEquals(this, false) }
+        Validator.isChainIdCAIP2Compliant(":cosmoshub-2").apply { assertEquals(this, false) }
+        Validator.isChainIdCAIP2Compliant("cosmos:").apply { assertEquals(this, false) }
+        Validator.isChainIdCAIP2Compliant(":").apply { assertEquals(this, false) }
+        Validator.isChainIdCAIP2Compliant("123:123").apply { assertEquals(this, true) }
     }
 
     @Test
     fun `is chain id valid test`() {
-        Validator.isAccountIdValid("").apply { assertEquals(this, false) }
-        Validator.isAccountIdValid("1231:dadd").apply { assertEquals(this, false) }
-        Validator.isAccountIdValid("0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1").apply { assertEquals(this, false) }
-        Validator.isAccountIdValid("polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy")
+        Validator.isAccountIdCAIP10Compliant("").apply { assertEquals(this, false) }
+        Validator.isAccountIdCAIP10Compliant("1231:dadd").apply { assertEquals(this, false) }
+        Validator.isAccountIdCAIP10Compliant("0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1").apply { assertEquals(this, false) }
+        Validator.isAccountIdCAIP10Compliant("polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy")
             .apply { assertEquals(this, true) }
-        Validator.isAccountIdValid("polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuy:xw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy")
+        Validator.isAccountIdCAIP10Compliant("polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuy:xw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy")
             .apply { assertEquals(this, false) }
-        Validator.isAccountIdValid("polkadotb0a8d493285c2df73290dfb7e61f870f:b0a8d493285c2df73290dfb7e61f870f:5hmuy:xw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy")
+        Validator.isAccountIdCAIP10Compliant("polkadotb0a8d493285c2df73290dfb7e61f870f:b0a8d493285c2df73290dfb7e61f870f:5hmuy:xw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy")
             .apply { assertEquals(this, false) }
-        Validator.isAccountIdValid("::").apply { assertEquals(this, false) }
-        Validator.isAccountIdValid("a:s:d").apply { assertEquals(this, false) }
-        Validator.isAccountIdValid("a:s").apply { assertEquals(this, false) }
-        Validator.isAccountIdValid("chainstd:8c3444cf8970a9e41a706fab93e337a6c4:6d9b0b4b9994e8a6afbd3dc3ed983cd51c755afb27cd1dc7825ef59c134a39f7")
+        Validator.isAccountIdCAIP10Compliant("::").apply { assertEquals(this, false) }
+        Validator.isAccountIdCAIP10Compliant("a:s:d").apply { assertEquals(this, false) }
+        Validator.isAccountIdCAIP10Compliant("a:s").apply { assertEquals(this, false) }
+        Validator.isAccountIdCAIP10Compliant("chainstd:8c3444cf8970a9e41a706fab93e337a6c4:6d9b0b4b9994e8a6afbd3dc3ed983cd51c755afb27cd1dc7825ef59c134a39f7")
             .apply { assertEquals(this, false) }
     }
 
@@ -652,35 +649,35 @@ class ValidatorTest {
     fun `is request valid test`() {
         var request = EngineDO.Request("", "someMethod", "someParams", ETHEREUM)
         var errorMessage: String? = null
-        Validator.validateRequest(request) {
+        Validator.validateSessionRequest(request) {
             errorMessage = it
         }
         assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
 
         request = EngineDO.Request("someTopic", "", "someParams", ETHEREUM)
         errorMessage = null
-        Validator.validateRequest(request) {
+        Validator.validateSessionRequest(request) {
             errorMessage = it
         }
         assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
 
         request = EngineDO.Request("someTopic", "someMethod", "", ETHEREUM)
         errorMessage = null
-        Validator.validateRequest(request) {
+        Validator.validateSessionRequest(request) {
             errorMessage = it
         }
         assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
 
         request = EngineDO.Request("someTopic", "someMethod", "someParams", "")
         errorMessage = null
-        Validator.validateRequest(request) {
+        Validator.validateSessionRequest(request) {
             errorMessage = it
         }
         assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
 
         request = EngineDO.Request("someTopic", "someMethod", "someParams", "1")
         errorMessage = null
-        Validator.validateRequest(request) {
+        Validator.validateSessionRequest(request) {
             errorMessage = it
         }
         assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)

@@ -223,7 +223,6 @@ internal class SequenceStorageRepository(
         )
     }
 
-    // TODO: Validate this works
     private fun mapSessionDaoToSessionVO(
         id: Long,
         topic: String,

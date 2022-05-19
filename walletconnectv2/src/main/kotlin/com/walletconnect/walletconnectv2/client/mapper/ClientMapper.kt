@@ -29,13 +29,6 @@ internal fun EngineDO.SettledSessionResponse.toClientSettledSessionResponse(): W
     }
 
 @JvmSynthetic
-internal fun EngineDO.SessionUpdateAccountsResponse.toClientUpdateSessionAccountsResponse(): WalletConnect.Model.SessionUpdateAccountsResponse =
-    when (this) {
-        is EngineDO.SessionUpdateAccountsResponse.Result -> WalletConnect.Model.SessionUpdateAccountsResponse.Result(topic.value, accounts)
-        is EngineDO.SessionUpdateAccountsResponse.Error -> WalletConnect.Model.SessionUpdateAccountsResponse.Error(errorMessage)
-    }
-
-@JvmSynthetic
 internal fun EngineDO.SessionUpdateNamespacesResponse.toClientUpdateSessionNamespacesResponse(): WalletConnect.Model.SessionUpdateResponse =
     when (this) {
         is EngineDO.SessionUpdateNamespacesResponse.Result ->
@@ -142,12 +135,8 @@ internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toClientJsonRpcResult(): Wal
     WalletConnect.Model.JsonRpcResponse.JsonRpcResult(id, result)
 
 @JvmSynthetic
-internal fun EngineDO.SessionUpdateAccounts.toClientSessionsUpdateAccounts(): WalletConnect.Model.UpdatedSessionAccounts =
-    WalletConnect.Model.UpdatedSessionAccounts(topic.value, accounts)
-
-@JvmSynthetic
-internal fun EngineDO.SessionUpdateNamespaces.toClientSessionsNamespaces(): WalletConnect.Model.UpdateSessionNamespaces =
-    WalletConnect.Model.UpdateSessionNamespaces(topic.value, namespaces.toMapOfClientNamespacesSession())
+internal fun EngineDO.SessionUpdateNamespaces.toClientSessionsNamespaces(): WalletConnect.Model.UpdateSession =
+    WalletConnect.Model.UpdateSession(topic.value, namespaces.toMapOfClientNamespacesSession())
 
 @JvmSynthetic
 internal fun EngineDO.JsonRpcResponse.JsonRpcError.toClientJsonRpcError(): WalletConnect.Model.JsonRpcResponse.JsonRpcError =

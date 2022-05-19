@@ -27,22 +27,22 @@ class SelectedAccountViewModel : ViewModel() {
             .filterNotNull()
             .onEach { walletEvent ->
                 when (walletEvent) {
-                    // TODO: Replace with UpdateSessionNamespaces
-                    is WalletConnect.Model.UpdatedSessionAccounts -> {
-                        (uiState.value as? SelectedAccountUI.Content)?.let { currentState ->
-                            val (updatedAccountAddress, updatedSelectedAccount) = walletEvent.accounts.map { updatedAccount ->
-                                val (parentChain, chainId, accountAddress) = updatedAccount.split(":")
-                                Triple(parentChain, chainId, accountAddress)
-                            }.first { (parentChain, chainId, _) ->
-                                val (currentParentChain, currentChainId, _) = currentState.selectedAccount.split(":")
-
-                                parentChain == currentParentChain && chainId == currentChainId
-                            }.let { (parentChain, chainId, accountAddress) ->
-                                accountAddress to "$parentChain:$chainId:$accountAddress"
-                            }
-
-                            _uiState.value = currentState.copy(account = updatedAccountAddress, selectedAccount = updatedSelectedAccount)
-                        }
+                    is WalletConnect.Model.UpdateSession -> {
+                        //todo: fix session update
+//                        (uiState.value as? SelectedAccountUI.Content)?.let { currentState ->
+//                            val (updatedAccountAddress, updatedSelectedAccount) = walletEvent.namespaces.accounts.map { updatedAccount ->
+//                                val (parentChain, chainId, accountAddress) = updatedAccount.split(":")
+//                                Triple(parentChain, chainId, accountAddress)
+//                            }.first { (parentChain, chainId, _) ->
+//                                val (currentParentChain, currentChainId, _) = currentState.selectedAccount.split(":")
+//
+//                                parentChain == currentParentChain && chainId == currentChainId
+//                            }.let { (parentChain, chainId, accountAddress) ->
+//                                accountAddress to "$parentChain:$chainId:$accountAddress"
+//                            }
+//
+//                            _uiState.value = currentState.copy(account = updatedAccountAddress, selectedAccount = updatedSelectedAccount)
+//                        }
                     }
                     is WalletConnect.Model.SessionRequestResponse -> {
                         val request = when (walletEvent.result) {

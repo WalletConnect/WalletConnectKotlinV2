@@ -50,7 +50,7 @@ object WalletConnectClient {
                     is EngineDO.SessionEvent -> delegate.onSessionEvent(event.toClientSessionEvent())
                     //Responses
                     is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
-                    is EngineDO.SessionUpdateNamespacesResponse -> delegate.onSessionUpdateNamespacesResponse(event.toClientUpdateSessionNamespacesResponse())
+                    is EngineDO.SessionUpdateNamespacesResponse -> delegate.onSessionUpdateResponse(event.toClientUpdateSessionNamespacesResponse())
                 }
             }
         }
@@ -67,7 +67,7 @@ object WalletConnectClient {
                 when (event) {
                     is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
                     is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
-                    is EngineDO.SessionUpdateNamespaces -> delegate.onSessionUpdateNamespaces(event.toClientSessionsNamespaces())
+                    is EngineDO.SessionUpdateNamespaces -> delegate.onSessionUpdate(event.toClientSessionsNamespaces())
                     is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                     is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientSettledSession())
                     //Responses
@@ -91,8 +91,8 @@ object WalletConnectClient {
             connect.namespaces.toMapOfEngineNamespacesProposal(),
             connect.relays?.toListEngineOfRelayProtocolOptions(),
             connect.pairingTopic,
-            onProposedSequence = { proposedSequence -> onProposedSequence(proposedSequence.toClientProposedSequence()) },
-            onFailure = { error -> onFailure(WalletConnect.Model.Error(error)) }
+            { proposedSequence -> onProposedSequence(proposedSequence.toClientProposedSequence()) },
+            { error -> onFailure(WalletConnect.Model.Error(error)) }
         )
     }
 
@@ -148,16 +148,14 @@ object WalletConnectClient {
         }
     }
 
-    // TODO: Needs testing after fixing session settlement validation
     @Throws(IllegalStateException::class, WalletConnectException::class)
     fun update(updateNamespaces: WalletConnect.Params.UpdateNamespaces, onError: (WalletConnect.Model.Error) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
             "WalletConnectClient needs to be initialized first using the initialize function"
         }
 
-        engineInteractor.updateSessionNamespaces(updateNamespaces.sessionTopic,
-            updateNamespaces.namespaces.toMapOfEngineNamespacesSession())
-        { error -> onError(WalletConnect.Model.Error(error)) }
+        engineInteractor.updateSession(updateNamespaces.sessionTopic,
+            updateNamespaces.namespaces.toMapOfEngineNamespacesSession()) { error -> onError(WalletConnect.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)
@@ -169,7 +167,6 @@ object WalletConnectClient {
         engineInteractor.extend(extend.topic) { error -> onError(error) }
     }
 
-    //TODO: needs testing
     @Throws(IllegalStateException::class, WalletConnectException::class)
     fun emit(emit: WalletConnect.Params.Emit, onError: (Throwable) -> Unit = {}) {
         check(::engineInteractor.isInitialized) {
@@ -240,13 +237,13 @@ object WalletConnectClient {
 
         //Responses
         fun onSessionSettleResponse(settleSessionResponse: WalletConnect.Model.SettledSessionResponse)
-        fun onSessionUpdateNamespacesResponse(sessionUpdateResponse: WalletConnect.Model.SessionUpdateResponse)
+        fun onSessionUpdateResponse(sessionUpdateResponse: WalletConnect.Model.SessionUpdateResponse)
     }
 
     interface DappDelegate {
         fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession)
-        fun onSessionUpdateNamespaces(updatedSessionNamespaces: WalletConnect.Model.UpdateSessionNamespaces)
+        fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdateSession)
         fun onSessionExtend(session: WalletConnect.Model.Session)
         fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
 

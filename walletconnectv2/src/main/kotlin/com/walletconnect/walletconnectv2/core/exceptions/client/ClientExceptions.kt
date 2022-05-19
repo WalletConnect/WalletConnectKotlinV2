@@ -6,7 +6,6 @@ sealed class WalletConnectException(override val message: String?) : Exception(m
     class UnauthorizedPeerException(override val message: String?) : WalletConnectException(message)
     class UnauthorizedMethodException(override val message: String?) : WalletConnectException(message)
     class UnauthorizedEventException(override val message: String?) : WalletConnectException(message)
-    class UnauthorizedChainIdException(override val message: String?) : WalletConnectException(message)
 
     class InvalidNamespaceException(override val message: String?) : WalletConnectException(message)
     class InvalidProjectIdException(override val message: String?) : WalletConnectException(message)

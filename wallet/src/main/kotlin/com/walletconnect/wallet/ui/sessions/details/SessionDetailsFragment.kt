@@ -107,9 +107,8 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
                 viewModel.updateNamespace()
                 false
             }
-            //todo: remove once everything works
             R.id.emit -> {
-                viewModel.updateNamespace()
+                viewModel.emitEvent()
                 false
             }
             else -> super.onOptionsItemSelected(item)

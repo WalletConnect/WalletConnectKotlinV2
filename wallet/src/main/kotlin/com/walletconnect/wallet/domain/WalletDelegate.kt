@@ -57,11 +57,10 @@ object WalletDelegate : WalletConnectClient.WalletDelegate {
         }
     }
 
-    override fun onSessionUpdateNamespacesResponse(sessionUpdateResponse: WalletConnect.Model.SessionUpdateResponse) {
-        //TODO: handle update session namespaces response
-//        scope.launch {
-//            _wcEventModels.emit(sessionUpdateAccountsResponse)
-//        }
+    override fun onSessionUpdateResponse(sessionUpdateResponse: WalletConnect.Model.SessionUpdateResponse) {
+        scope.launch {
+            _wcEventModels.emit(sessionUpdateResponse)
+        }
     }
 
     fun setSelectedAccount(selectedChainAddressId: Int) {

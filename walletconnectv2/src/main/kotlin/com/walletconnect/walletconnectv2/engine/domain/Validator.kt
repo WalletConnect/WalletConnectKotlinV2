@@ -12,22 +12,6 @@ import java.net.URISyntaxException
 
 internal object Validator {
 
-    private fun areProposalNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
-        namespaces.keys.all { namespaceKey -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) }
-
-    private fun areChainsNotEmpty(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
-        namespaces.values.map { namespace -> namespace.chains }.all { chains -> chains.isNotEmpty() }
-
-    private fun areChainIdsValid(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
-        namespaces.values.flatMap { namespace -> namespace.chains }.all { chain -> isChainIdValid(chain) }
-
-    private fun areChainsInMatchingNamespace(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
-        namespaces.all { (key, namespace) -> namespace.chains.all { chain -> chain.contains(key, true) } }
-
-    private fun areExtensionChainsNotEmpty(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
-        namespaces.values.filter { it.extensions != null }.flatMap { namespace -> namespace.extensions!!.map { it.chains } }
-            .all { extChain -> extChain.isNotEmpty() }
-
     @JvmSynthetic
     internal inline fun validateProposalNamespace(namespaces: Map<String, NamespaceVO.Proposal>, onNamespaceError: (String) -> Unit) {
         when {
@@ -39,128 +23,11 @@ internal object Validator {
         }
     }
 
-    private fun areAllProposalNamespacesApproved(
-        sessionNamespaces: Map<String, NamespaceVO.Session>,
-        proposalNamespaces: Map<String, NamespaceVO.Proposal>
-    ): Boolean = sessionNamespaces.keys.containsAll(proposalNamespaces.keys)
-
-    private fun areAccountsNotEmpty(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
-        sessionNamespaces.values.map { namespace -> namespace.accounts }.all { accounts -> accounts.isNotEmpty() }
-
-    private fun areAccountIdsValid(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
-        sessionNamespaces.values.flatMap { namespace -> namespace.accounts }.all { accounts -> isAccountIdValid(accounts) }
-
-    private fun allApprovedMethodsWithChains(namespaces: Map<String, NamespaceVO.Session>): Map<String, List<String>> =
-        namespaces.values.flatMap { namespace ->
-            namespace.methods.map { method ->
-                method to namespace.accounts.map { getChainFromAccount(it) }
-            }.toMutableList().apply {
-                if (namespace.extensions != null) {
-                    addAll(namespace.extensions.flatMap { extension ->
-                        extension.methods.map { method ->
-                            method to namespace.accounts.map { getChainFromAccount(it) }
-                        }
-                    })
-                }
-            }
-        }.toMap()
-
-    private fun allRequiredMethodsWithChains(namespaces: Map<String, NamespaceVO.Proposal>): Map<String, List<String>> =
-        namespaces.values.flatMap { namespace ->
-            namespace.methods.map { method ->
-                method to namespace.chains
-            }.toMutableList().apply {
-                if (namespace.extensions != null) {
-                    addAll(namespace.extensions.flatMap { extension ->
-                        extension.methods.map { method ->
-                            method to namespace.chains
-                        }
-                    })
-                }
-            }
-        }.toMap()
-
-    private fun areAllMethodsApproved(
-        sessionNamespaces: Map<String, NamespaceVO.Session>,
-        proposalNamespaces: Map<String, NamespaceVO.Proposal>
-    ): Boolean {
-        val allApprovedMethodsWithChains = allApprovedMethodsWithChains(sessionNamespaces)
-        val allRequiredMethodsWithChains = allRequiredMethodsWithChains(proposalNamespaces)
-
-        allRequiredMethodsWithChains.forEach { (method, chainsRequested) ->
-            val chainsApproved = allApprovedMethodsWithChains[method] ?: return false
-            if (!chainsApproved.containsAll(chainsRequested)) {
-                return false
-            }
-        }
-        return true
-    }
-
-    private fun allApprovedEventsWithChains(namespaces: Map<String, NamespaceVO.Session>): Map<String, List<String>> =
-        namespaces.values.flatMap { namespace ->
-            namespace.events.map { event ->
-                event to namespace.accounts.map { getChainFromAccount(it) }
-            }.toMutableList().apply {
-                if (namespace.extensions != null) {
-                    addAll(namespace.extensions.flatMap { extension ->
-                        extension.events.map { event ->
-                            event to namespace.accounts.map { getChainFromAccount(it) }
-                        }
-                    })
-                }
-            }
-        }.toMap()
-
-    private fun allRequiredEventsWithChains(namespaces: Map<String, NamespaceVO.Proposal>): Map<String, List<String>> =
-        namespaces.values.flatMap { namespace ->
-            namespace.events.map { event ->
-                event to namespace.chains
-            }.toMutableList().apply {
-                if (namespace.extensions != null) {
-                    addAll(namespace.extensions.flatMap { extension ->
-                        extension.events.map { event ->
-                            event to namespace.chains
-                        }
-                    })
-                }
-            }
-        }.toMap()
-
-    private fun areAllEventsApproved(
-        sessionNamespaces: Map<String, NamespaceVO.Session>,
-        proposalNamespaces: Map<String, NamespaceVO.Proposal>
-    ): Boolean {
-        val allApprovedEventsWithChains = allApprovedEventsWithChains(sessionNamespaces)
-        val allRequiredEventsWithChains = allRequiredEventsWithChains(proposalNamespaces)
-
-        allRequiredEventsWithChains.forEach { (method, chainsRequested) ->
-            val chainsApproved = allApprovedEventsWithChains[method] ?: return false
-            if (!chainsApproved.containsAll(chainsRequested)) {
-                return false
-            }
-        }
-        return true
-    }
-
-    private fun areAllChainsApprovedWithAtLeastOneAccount(
-        sessionNamespaces: Map<String, NamespaceVO.Session>,
-        proposalNamespaces: Map<String, NamespaceVO.Proposal>
-    ): Boolean =
-        sessionNamespaces.values.flatMap { namespace -> namespace.accounts.map { it.substringBeforeLast(":") } }
-            .containsAll(proposalNamespaces.values.flatMap { namespace -> namespace.chains })
-
-    private fun areAccountsInMatchingNamespace(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
-        sessionNamespaces.all { (key, namespace) -> namespace.accounts.all { it.contains(key) } }
-
-    private fun areExtensionAccountsNotEmpty(namespaces: Map<String, NamespaceVO.Session>): Boolean =
-        namespaces.values.filter { it.extensions != null }.flatMap { namespace -> namespace.extensions!!.map { it.accounts } }
-            .all { extAccount -> extAccount.isNotEmpty() }
-
     @JvmSynthetic
     internal inline fun validateSessionNamespace(
         sessionNamespaces: Map<String, NamespaceVO.Session>,
         proposalNamespaces: Map<String, NamespaceVO.Proposal>,
-        onNamespaceError: (String) -> Unit
+        onNamespaceError: (String) -> Unit,
     ) {
         when {
             !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) -> onNamespaceError(NAMESPACE_KEYS_MISSING_MESSAGE)
@@ -175,13 +42,10 @@ internal object Validator {
         }
     }
 
-    private fun areSessionNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO.Session>): Boolean =
-        namespaces.keys.all { namespaceKey -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) }
-
     @JvmSynthetic
     internal inline fun validateSessionNamespaceUpdate(
         sessionNamespaces: Map<String, NamespaceVO.Session>,
-        onNamespaceError: (String) -> Unit
+        onNamespaceError: (String) -> Unit,
     ) {
         when {
             !areSessionNamespacesKeysProperlyFormatted(sessionNamespaces) -> onNamespaceError(NAMESPACE_EXTENSION_KEYS_CAIP_2_MESSAGE)
@@ -197,7 +61,7 @@ internal object Validator {
         chainId: String,
         method: String,
         namespaces: Map<String, NamespaceVO.Session>,
-        onInvalidChainId: (String) -> Unit
+        onInvalidChainId: (String) -> Unit,
     ) {
         allApprovedMethodsWithChains(namespaces).also { allApprovedMethodsWithChains ->
             if (allApprovedMethodsWithChains[method] == null || !allApprovedMethodsWithChains[method]!!.contains(chainId)) {
@@ -211,7 +75,7 @@ internal object Validator {
         chainId: String,
         event: String,
         namespaces: Map<String, NamespaceVO.Session>,
-        onInvalidChainId: (String) -> Unit
+        onInvalidChainId: (String) -> Unit,
     ) {
         allApprovedEventsWithChains(namespaces).also { allApprovedMethodsWithChains ->
             if (allApprovedMethodsWithChains[event] == null || !allApprovedMethodsWithChains[event]!!.contains(chainId)) {
@@ -221,9 +85,9 @@ internal object Validator {
     }
 
     @JvmSynthetic
-    internal fun validateRequest(request: EngineDO.Request, onInvalidRequest: (String) -> Unit) {
+    internal fun validateSessionRequest(request: EngineDO.Request, onInvalidRequest: (String) -> Unit) {
         if (request.params.isEmpty() || request.method.isEmpty() || request.chainId.isEmpty() ||
-            request.topic.isEmpty() || !isChainIdValid(request.chainId)
+            request.topic.isEmpty() || !isChainIdCAIP2Compliant(request.chainId)
         ) {
             onInvalidRequest(INVALID_REQUEST_MESSAGE)
         }
@@ -232,7 +96,7 @@ internal object Validator {
 
     @JvmSynthetic
     internal fun validateEvent(event: EngineDO.Event, onInvalidEvent: (String) -> Unit) {
-        if (event.data.isEmpty() || event.name.isEmpty() || event.chainId.isEmpty() || !isChainIdValid(event.chainId)) {
+        if (event.data.isEmpty() || event.name.isEmpty() || event.chainId.isEmpty() || !isChainIdCAIP2Compliant(event.chainId)) {
             onInvalidEvent(INVALID_EVENT_MESSAGE)
         }
     }
@@ -284,8 +148,140 @@ internal object Validator {
         )
     }
 
+    private fun areProposalNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
+        namespaces.keys.all { namespaceKey -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) }
+
+    private fun areChainsNotEmpty(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
+        namespaces.values.map { namespace -> namespace.chains }.all { chains -> chains.isNotEmpty() }
+
+    private fun areChainIdsValid(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
+        namespaces.values.flatMap { namespace -> namespace.chains }.all { chain -> isChainIdCAIP2Compliant(chain) }
+
+    private fun areChainsInMatchingNamespace(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
+        namespaces.all { (key, namespace) -> namespace.chains.all { chain -> chain.contains(key, true) } }
+
+    private fun areExtensionChainsNotEmpty(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
+        namespaces.values.filter { it.extensions != null }.flatMap { namespace -> namespace.extensions!!.map { it.chains } }
+            .all { extChain -> extChain.isNotEmpty() }
+
+    private fun areAllProposalNamespacesApproved(
+        sessionNamespaces: Map<String, NamespaceVO.Session>,
+        proposalNamespaces: Map<String, NamespaceVO.Proposal>,
+    ): Boolean = sessionNamespaces.keys.containsAll(proposalNamespaces.keys)
+
+    private fun areAccountsNotEmpty(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
+        sessionNamespaces.values.map { namespace -> namespace.accounts }.all { accounts -> accounts.isNotEmpty() }
+
+    private fun areAccountIdsValid(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
+        sessionNamespaces.values.flatMap { namespace -> namespace.accounts }.all { accounts -> isAccountIdCAIP10Compliant(accounts) }
+
+    private fun allApprovedMethodsWithChains(namespaces: Map<String, NamespaceVO.Session>): Map<String, List<String>> =
+        namespaces.values.flatMap { namespace ->
+            namespace.methods.map { method ->
+                method to namespace.accounts.map { getChainFromAccount(it) }
+            }.toMutableList().apply {
+                if (namespace.extensions != null) {
+                    addAll(namespace.extensions.flatMap { extension ->
+                        extension.methods.map { method ->
+                            method to namespace.accounts.map { getChainFromAccount(it) }
+                        }
+                    })
+                }
+            }
+        }.toMap()
+
+    private fun allRequiredMethodsWithChains(namespaces: Map<String, NamespaceVO.Proposal>): Map<String, List<String>> =
+        namespaces.values.flatMap { namespace ->
+            namespace.methods.map { method ->
+                method to namespace.chains
+            }.toMutableList().apply {
+                if (namespace.extensions != null) {
+                    addAll(namespace.extensions.flatMap { extension ->
+                        extension.methods.map { method -> method to namespace.chains }
+                    })
+                }
+            }
+        }.toMap()
+
+    private fun areAllMethodsApproved(
+        sessionNamespaces: Map<String, NamespaceVO.Session>,
+        proposalNamespaces: Map<String, NamespaceVO.Proposal>,
+    ): Boolean {
+        val allApprovedMethodsWithChains = allApprovedMethodsWithChains(sessionNamespaces)
+        val allRequiredMethodsWithChains = allRequiredMethodsWithChains(proposalNamespaces)
+
+        allRequiredMethodsWithChains.forEach { (method, chainsRequested) ->
+            val chainsApproved = allApprovedMethodsWithChains[method] ?: return false
+            if (!chainsApproved.containsAll(chainsRequested)) {
+                return false
+            }
+        }
+        return true
+    }
+
+    private fun allApprovedEventsWithChains(namespaces: Map<String, NamespaceVO.Session>): Map<String, List<String>> =
+        namespaces.values.flatMap { namespace ->
+            namespace.events.map { event ->
+                event to namespace.accounts.map { getChainFromAccount(it) }
+            }.toMutableList().apply {
+                if (namespace.extensions != null) {
+                    addAll(namespace.extensions.flatMap { extension ->
+                        extension.events.map { event ->
+                            event to namespace.accounts.map { getChainFromAccount(it) }
+                        }
+                    })
+                }
+            }
+        }.toMap()
+
+    private fun allRequiredEventsWithChains(namespaces: Map<String, NamespaceVO.Proposal>): Map<String, List<String>> =
+        namespaces.values.flatMap { namespace ->
+            namespace.events.map { event ->
+                event to namespace.chains
+            }.toMutableList().apply {
+                if (namespace.extensions != null) {
+                    addAll(namespace.extensions.flatMap { extension ->
+                        extension.events.map { event -> event to namespace.chains }
+                    })
+                }
+            }
+        }.toMap()
+
+    private fun areAllEventsApproved(
+        sessionNamespaces: Map<String, NamespaceVO.Session>,
+        proposalNamespaces: Map<String, NamespaceVO.Proposal>,
+    ): Boolean {
+        val allApprovedEventsWithChains = allApprovedEventsWithChains(sessionNamespaces)
+        val allRequiredEventsWithChains = allRequiredEventsWithChains(proposalNamespaces)
+
+        allRequiredEventsWithChains.forEach { (method, chainsRequested) ->
+            val chainsApproved = allApprovedEventsWithChains[method] ?: return false
+            if (!chainsApproved.containsAll(chainsRequested)) {
+                return false
+            }
+        }
+        return true
+    }
+
+    private fun areAllChainsApprovedWithAtLeastOneAccount(
+        sessionNamespaces: Map<String, NamespaceVO.Session>,
+        proposalNamespaces: Map<String, NamespaceVO.Proposal>,
+    ): Boolean =
+        sessionNamespaces.values.flatMap { namespace -> namespace.accounts.map { it.substringBeforeLast(":") } }
+            .containsAll(proposalNamespaces.values.flatMap { namespace -> namespace.chains })
+
+    private fun areAccountsInMatchingNamespace(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
+        sessionNamespaces.all { (key, namespace) -> namespace.accounts.all { it.contains(key) } }
+
+    private fun areExtensionAccountsNotEmpty(namespaces: Map<String, NamespaceVO.Session>): Boolean =
+        namespaces.values.filter { it.extensions != null }.flatMap { namespace -> namespace.extensions!!.map { it.accounts } }
+            .all { extAccount -> extAccount.isNotEmpty() }
+
+    private fun areSessionNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO.Session>): Boolean =
+        namespaces.keys.all { namespaceKey -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) }
+
     @JvmSynthetic
-    internal fun isChainIdValid(chainId: String): Boolean {
+    internal fun isChainIdCAIP2Compliant(chainId: String): Boolean {
         val elements: List<String> = chainId.split(":")
         if (elements.isEmpty() || elements.size != 2) return false
         val (namespace: String, reference: String) = elements
@@ -293,7 +289,7 @@ internal object Validator {
     }
 
     @JvmSynthetic
-    internal fun isAccountIdValid(accountId: String): Boolean {
+    internal fun isAccountIdCAIP10Compliant(accountId: String): Boolean {
         val elements = accountId.split(":")
         if (elements.isEmpty() || elements.size != 3) return false
         val (namespace: String, reference: String, accountAddress: String) = elements

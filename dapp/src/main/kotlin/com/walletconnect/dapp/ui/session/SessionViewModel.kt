@@ -22,9 +22,10 @@ class SessionViewModel : ViewModel() {
             .filterNotNull()
             .onEach { walletEvent ->
                 when (walletEvent) {
-                    is WalletConnect.Model.UpdatedSessionAccounts -> {
-                        val listOfAccounts = getListOfAccounts(walletEvent.topic)
-                        _sessionUI.value = listOfAccounts
+                    is WalletConnect.Model.UpdateSession -> {
+                        //todo: fix session update
+//                        val listOfAccounts = getListOfAccounts(walletEvent.topic)
+//                        _sessionUI.value = listOfAccounts
                     }
                     is WalletConnect.Model.DeletedSession -> {
                         _navigationEvents.emit(SampleDappEvents.Disconnect)

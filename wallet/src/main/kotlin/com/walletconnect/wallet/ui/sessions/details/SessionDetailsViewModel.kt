@@ -25,7 +25,7 @@ class SessionDetailsViewModel : ViewModel() {
         WalletDelegate.wcEventModels
             .onEach { wcModel: WalletConnect.Model? ->
                 when (wcModel) {
-                    is WalletConnect.Model.SessionUpdateAccountsResponse.Result -> {
+                    is WalletConnect.Model.SessionUpdateResponse.Result -> {
                         // TODO: Update UI once state synchronization
                         SampleWalletEvents.NoAction
                     }
@@ -108,11 +108,9 @@ class SessionDetailsViewModel : ViewModel() {
         }
     }
 
-    //todo: remove once everything works
     fun emitEvent() {
         selectedSessionTopic?.let {
-
-
+            //Hardcoded data for test purposes
             val extend = WalletConnect.Params.Emit(it, WalletConnect.Model.SessionEvent("testEvent", "testData"), "eip155:42")
             WalletConnectClient.emit(extend) { error -> Log.d("Error", "Extend session error: $error") }
         }
@@ -158,13 +156,20 @@ class SessionDetailsViewModel : ViewModel() {
 //                        extensions = null)
 //                }.toMap()
 
-        selectedSessionTopic?.let {
-
-            //todo: hardcode the namespaces structure
+        selectedSessionTopic?.let { topic ->
+            //hardcoded the namespaces structure
             val namespaces: Map<String, WalletConnect.Model.Namespace.Session> =
-                mapOf("1" to WalletConnect.Model.Namespace.Session(listOf(), listOf(), listOf(), listOf()))
-
-            val update = WalletConnect.Params.UpdateNamespaces(sessionTopic = it, namespaces = namespaces)
+                mapOf("eip155" to WalletConnect.Model.Namespace.Session(
+                    accounts =
+                    listOf("eip155:4:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62", "eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb"),
+                    methods = listOf("eth_sign", "eth_sendTransaction"),
+                    events = listOf("new_testEvent"),
+                    extensions = listOf(WalletConnect.Model.Namespace.Session.Extension(
+                        accounts = listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb"),
+                        methods = listOf("ethMain_sign"),
+                        events = listOf("ethMain_event")
+                    ))))
+            val update = WalletConnect.Params.UpdateNamespaces(sessionTopic = topic, namespaces = namespaces)
 
             WalletConnectClient.update(update) { error -> Log.d("Error", "Sending update error: $error") }
         }

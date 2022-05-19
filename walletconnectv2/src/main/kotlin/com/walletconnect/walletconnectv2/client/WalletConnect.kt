@@ -70,11 +70,6 @@ object WalletConnect {
             data class Error(val errorMessage: String) : SettledSessionResponse()
         }
 
-        sealed class SessionUpdateAccountsResponse : Model() {
-            data class Result(val topic: String, val accounts: List<String>) : SessionUpdateAccountsResponse()
-            data class Error(val errorMessage: String) : SessionUpdateAccountsResponse()
-        }
-
         sealed class SessionUpdateResponse : Model() {
             data class Result(val topic: String, val namespaces: Map<String, Namespace.Session>) : SessionUpdateResponse()
             data class Error(val errorMessage: String) : SessionUpdateResponse()
@@ -94,9 +89,7 @@ object WalletConnect {
 
         data class Blockchain(val chains: List<String>) : Model()
 
-        data class UpdatedSessionAccounts(val topic: String, val accounts: List<String>) : Model()
-
-        data class UpdateSessionNamespaces(val topic: String, val namespaces: Map<String, Namespace.Session>) : Model()
+        data class UpdateSession(val topic: String, val namespaces: Map<String, Namespace.Session>) : Model()
 
         data class ApprovedSession(
             val topic: String,
