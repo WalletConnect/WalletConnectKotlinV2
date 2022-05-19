@@ -32,7 +32,7 @@ class DappSampleActivity : AppCompatActivity(R.layout.activity_dapp) {
         DappDelegate.selectedSessionTopic?.let {
             val disconnectParams = WalletConnect.Params.Disconnect(sessionTopic = it, reason = "shutdown", reasonCode = 400)
             WalletConnectClient.disconnect(disconnectParams){ error ->
-                Log.e(tag(this), error.error.stackTraceToString())
+                Log.e(tag(this), error.throwable.stackTraceToString())
             }
         }
     }

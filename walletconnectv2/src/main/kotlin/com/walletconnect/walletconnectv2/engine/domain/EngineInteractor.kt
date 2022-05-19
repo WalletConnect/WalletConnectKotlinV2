@@ -2,7 +2,7 @@ package com.walletconnect.walletconnectv2.engine.domain
 
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
 import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
-import com.walletconnect.walletconnectv2.core.model.type.SequenceLifecycle
+import com.walletconnect.walletconnectv2.core.model.type.EngineEvent
 import com.walletconnect.walletconnectv2.core.model.type.enums.Sequences
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
@@ -38,8 +38,8 @@ internal class EngineInteractor(
     private val sequenceStorageRepository: SequenceStorageRepository,
     private val metaData: EngineDO.AppMetaData,
 ) {
-    private val _sequenceEvent: MutableSharedFlow<SequenceLifecycle> = MutableSharedFlow()
-    val sequenceEvent: SharedFlow<SequenceLifecycle> = _sequenceEvent
+    private val _sequenceEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
+    val sequenceEvent: SharedFlow<EngineEvent> = _sequenceEvent
     private val sessionProposalRequest: MutableMap<String, WCRequestVO> = mutableMapOf()
 
     init {
@@ -784,7 +784,7 @@ internal class EngineInteractor(
     private fun resubscribeToSequences() {
         relayer.isConnectionAvailable
             .onEach { isAvailable ->
-                _sequenceEvent.emit(EngineDO.NetworkState(isAvailable))
+                _sequenceEvent.emit(EngineDO.ConnectionState(isAvailable))
             }
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {

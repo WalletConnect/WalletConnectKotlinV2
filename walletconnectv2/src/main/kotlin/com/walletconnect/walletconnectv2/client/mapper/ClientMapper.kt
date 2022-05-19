@@ -202,5 +202,5 @@ internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): W
 
 
 @JvmSynthetic
-internal fun EngineDO.NetworkState.toClientNetworkState(): WalletConnect.Model.NetworkState =
-    WalletConnect.Model.NetworkState(isAvailable)
+internal fun EngineDO.ConnectionState.toClientConnectionState(): WalletConnect.Model.ConnectionState =
+    WalletConnect.Model.ConnectionState(isAvailable)

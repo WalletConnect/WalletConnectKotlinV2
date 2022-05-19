@@ -51,7 +51,7 @@ internal class RelayerInteractorTest {
             RelayerInteractor(relay, serializer, jsonRpcHistory, networkState),
             recordPrivateCalls = true
         ) {
-            every { ensureConnectionWorking() } answers { }
+            every { checkConnectionWorking() } answers { }
         }
 
     private val topicVO = TopicVO("mockkTopic")

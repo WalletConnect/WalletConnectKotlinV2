@@ -41,14 +41,12 @@ internal class RelayerInteractor(
     private val _peerResponse: MutableSharedFlow<WCResponseVO> = MutableSharedFlow()
     val peerResponse: SharedFlow<WCResponseVO> = _peerResponse
 
-    private val _isNetworkAvailable = networkState.isAvailable
-    private val _isWSSConnectionOpened = MutableStateFlow(false)
+    private val _isNetworkAvailable: StateFlow<Boolean> = networkState.isAvailable
+    private val _isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    val isConnectionAvailable: StateFlow<Boolean> = combine(
-        _isWSSConnectionOpened,
-        _isNetworkAvailable
-    ) { wws, internet -> wws && internet }
-        .stateIn(scope, SharingStarted.Eagerly, false)
+    val isConnectionAvailable: StateFlow<Boolean> =
+        combine(_isWSSConnectionOpened, _isNetworkAvailable) { wss, internet -> wss && internet }
+            .stateIn(scope, SharingStarted.Eagerly, false)
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error("Exception handler: $exception") }
@@ -77,7 +75,7 @@ internal class RelayerInteractor(
         manageSubscriptions()
     }
 
-    internal fun ensureConnectionWorking() {
+    internal fun checkConnectionWorking() {
         if (!isConnectionAvailable.value) {
             throw WalletConnectException.MissingInternetConnectionException("No connection available")
         }
@@ -89,9 +87,8 @@ internal class RelayerInteractor(
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
+        checkConnectionWorking()
         val requestJson = serializer.serialize(payload)
-
-        ensureConnectionWorking()
 
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encodedRequest = serializer.encode(requestJson, topic)
@@ -110,11 +107,10 @@ internal class RelayerInteractor(
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
+        checkConnectionWorking()
         val jsonResponseDO = response.toRelayerDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
         val encodedJson = serializer.encode(responseJson, topic)
-
-        ensureConnectionWorking()
 
         relay.publish(topic.value, encodedJson) { result ->
             result.fold(
@@ -148,9 +144,8 @@ internal class RelayerInteractor(
             })
     }
 
-    // leave for time being
     internal fun subscribe(topic: TopicVO) {
-        ensureConnectionWorking()
+        checkConnectionWorking()
         relay.subscribe(topic.value) { result ->
             result.fold(
                 onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result },
@@ -160,7 +155,7 @@ internal class RelayerInteractor(
     }
 
     internal fun unsubscribe(topic: TopicVO) {
-        ensureConnectionWorking()
+        checkConnectionWorking()
         if (subscriptions.contains(topic.value)) {
             val subscriptionId = SubscriptionIdVO(subscriptions[topic.value].toString())
             relay.unsubscribe(topic.value, subscriptionId.id) { result ->

@@ -40,7 +40,7 @@ class DappSampleApplication : Application() {
         )
 
         WalletConnectClient.initialize(initString) { error ->
-            Log.e(tag(this), error.error.stackTraceToString())
+            Log.e(tag(this), error.throwable.stackTraceToString())
         }
     }
 }

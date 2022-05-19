@@ -18,8 +18,7 @@ internal class NetworkState(context: Context) {
     }
 
     init {
-        val conManager: ConnectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        conManager.registerDefaultNetworkCallback(callback)
+        (context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager).registerDefaultNetworkCallback(callback)
     }
 }
 

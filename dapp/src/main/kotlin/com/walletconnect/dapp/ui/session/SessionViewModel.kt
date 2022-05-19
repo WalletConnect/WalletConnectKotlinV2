@@ -80,7 +80,7 @@ class SessionViewModel : ViewModel() {
             )
 
             WalletConnectClient.disconnect(disconnectParams) { error ->
-                Log.e(tag(this), error.error.stackTraceToString())
+                Log.e(tag(this), error.throwable.stackTraceToString())
             }
             DappDelegate.deselectAccountDetails()
         }

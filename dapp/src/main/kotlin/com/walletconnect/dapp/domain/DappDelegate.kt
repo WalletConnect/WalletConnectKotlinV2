@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import org.koin.core.logger.Logger
 
 object DappDelegate : WalletConnectClient.DappDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -23,7 +22,7 @@ object DappDelegate : WalletConnectClient.DappDelegate {
 
     init {
         WalletConnectClient.setDappDelegate(this){ error ->
-            Log.e(tag(this), error.error.stackTraceToString())
+            Log.e(tag(this), error.throwable.stackTraceToString())
         }
     }
 
@@ -83,7 +82,7 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         selectedSessionTopic = null
     }
 
-    override fun onNetworkStateChange(state: WalletConnect.Model.NetworkState) {
-        Log.d(tag(this), "onNetworkStateChange($state)")
+    override fun onConnectionStateChange(state: WalletConnect.Model.ConnectionState) {
+        Log.d(tag(this), "onConnectionStateChange($state)")
     }
 }
