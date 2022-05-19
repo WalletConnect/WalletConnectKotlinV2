@@ -21,9 +21,7 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         private set
 
     init {
-        WalletConnectClient.setDappDelegate(this){ error ->
-            Log.e(tag(this), error.throwable.stackTraceToString())
-        }
+        WalletConnectClient.setDappDelegate(this)
     }
 
     override fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession) {

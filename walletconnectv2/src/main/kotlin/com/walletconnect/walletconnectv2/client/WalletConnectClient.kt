@@ -39,61 +39,46 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class)
-    private fun checkEngineInitialization() {
-        check(::engineInteractor.isInitialized) {
-            "WalletConnectClient needs to be initialized first using the initialize function"
+    fun setWalletDelegate(delegate: WalletDelegate) {
+        checkEngineInitialization()
+        scope.launch {
+            engineInteractor.sequenceEvent.collect { event ->
+                when (event) {
+                    is EngineDO.SessionProposal -> delegate.onSessionProposal(event.toClientSessionProposal())
+                    is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
+                    is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
+                    is EngineDO.SessionEvent -> delegate.onSessionEvent(event.toClientSessionEvent())
+                    //Responses
+                    is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
+                    is EngineDO.SessionUpdateAccountsResponse -> delegate.onSessionUpdateAccountsResponse(event.toClientUpdateSessionAccountsResponse())
+                    is EngineDO.SessionUpdateMethodsResponse -> delegate.onSessionUpdateMethodsResponse(event.toClientUpdateSessionMethodsResponse())
+                    is EngineDO.SessionUpdateEventsResponse -> delegate.onSessionUpdateEventsResponse(event.toClientUpdateSessionEventsResponse())
+                    //Utils
+                    is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
+                }
+            }
         }
     }
 
     @Throws(IllegalStateException::class)
-    fun setWalletDelegate(delegate: WalletDelegate, onError: (WalletConnect.Model.Error) -> Unit) {
-        checkEngineInitialization()
-        try {
-            scope.launch {
-                engineInteractor.sequenceEvent.collect { event ->
-                    when (event) {
-                        is EngineDO.SessionProposal -> delegate.onSessionProposal(event.toClientSessionProposal())
-                        is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
-                        is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
-                        is EngineDO.SessionEvent -> delegate.onSessionEvent(event.toClientSessionEvent())
-                        //Responses
-                        is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
-                        is EngineDO.SessionUpdateAccountsResponse -> delegate.onSessionUpdateAccountsResponse(event.toClientUpdateSessionAccountsResponse())
-                        is EngineDO.SessionUpdateMethodsResponse -> delegate.onSessionUpdateMethodsResponse(event.toClientUpdateSessionMethodsResponse())
-                        is EngineDO.SessionUpdateEventsResponse -> delegate.onSessionUpdateEventsResponse(event.toClientUpdateSessionEventsResponse())
-                        //Utils
-                        is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
-                    }
+    fun setDappDelegate(delegate: DappDelegate) {
+    checkEngineInitialization()
+        scope.launch {
+            engineInteractor.sequenceEvent.collect { event ->
+                when (event) {
+                    is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
+                    is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
+                    is EngineDO.SessionUpdateAccounts -> delegate.onSessionUpdateAccounts(event.toClientSessionsUpdateAccounts())
+                    is EngineDO.SessionUpdateMethods -> delegate.onSessionUpdateMethods(event.toClientSessionsUpdateMethods())
+                    is EngineDO.SessionUpdateEvents -> delegate.onSessionUpdateEvents(event.toClientSessionsUpdateEvents())
+                    is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
+                    is EngineDO.SessionUpdateExpiry -> delegate.onUpdateSessionExpiry(event.toClientSettledSession())
+                    //Responses
+                    is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
+                    //Utils
+                    is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
                 }
             }
-        } catch (error: Exception) {
-            onError(WalletConnect.Model.Error(error))
-        }
-    }
-
-    @Throws(IllegalStateException::class)
-    fun setDappDelegate(delegate: DappDelegate, onError: (WalletConnect.Model.Error) -> Unit) {
-        checkEngineInitialization()
-        try {
-            scope.launch {
-                engineInteractor.sequenceEvent.collect { event ->
-                    when (event) {
-                        is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
-                        is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
-                        is EngineDO.SessionUpdateAccounts -> delegate.onSessionUpdateAccounts(event.toClientSessionsUpdateAccounts())
-                        is EngineDO.SessionUpdateMethods -> delegate.onSessionUpdateMethods(event.toClientSessionsUpdateMethods())
-                        is EngineDO.SessionUpdateEvents -> delegate.onSessionUpdateEvents(event.toClientSessionsUpdateEvents())
-                        is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
-                        is EngineDO.SessionUpdateExpiry -> delegate.onUpdateSessionExpiry(event.toClientSettledSession())
-                        //Responses
-                        is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
-                        //Utils
-                        is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
-                    }
-                }
-            }
-        } catch (error: Exception) {
-            onError(WalletConnect.Model.Error(error))
         }
     }
 
@@ -310,5 +295,13 @@ object WalletConnectClient {
 
         // Utils
         fun onConnectionStateChange(state: WalletConnect.Model.ConnectionState)
+    }
+
+
+    @Throws(IllegalStateException::class)
+    private fun checkEngineInitialization() {
+        check(::engineInteractor.isInitialized) {
+            "WalletConnectClient needs to be initialized first using the initialize function"
+        }
     }
 }
