@@ -20,7 +20,7 @@ internal const val WRONG_CHAIN_ID_FORMAT_MESSAGE: String =
 
 internal const val NAMESPACE_MISSING_CHAINS_MESSAGE: String = "Chains must not be empty"
 internal const val NAMESPACE_CHAINS_CAIP_2_MESSAGE: String = "Chains must be CAIP-2 compliant"
-internal const val NAMESPACE_MISSING_PREFIX_MESSAGE: String = "Chains must be defined in matching namespace"
+internal const val NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE: String = "Chains must be defined in matching namespace"
 internal const val NAMESPACE_EXTENSION_MISSING_CHAINS_MESSAGE: String = "Extension chains must not be empty"
 internal const val NAMESPACE_EXTENSION_KEYS_CAIP_2_MESSAGE: String = "Namespace formatting must match CAIP-2"
 
@@ -28,11 +28,10 @@ internal const val NAMESPACE_MISSING_PROPOSAL_MESSAGE: String = "No proposal for
 internal const val NAMESPACE_MISSING_ACCOUNTS_MESSAGE: String = "Accounts must not be empty"
 internal const val NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE: String = "Accounts must be CAIP-10 compliant"
 internal const val NAMESPACE_MISSING_METHODS_MESSAGE: String = "All methods must be approved"
+internal const val NAMESPACE_MISSING_EVENTS_MESSAGE: String = "All events must be approved"
 internal const val NAMESPACE_MISSING_ACCOUNTS_FOR_CHAINS_MESSAGE: String = "All chains must have at least one account"
-internal const val NAMESPACE_ACCOUNTS_MISSING_CHAIN_MESSAGE: String = "Accounts must be defined in matching namespace"
+internal const val NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE: String = "Accounts must be defined in matching namespace"
 internal const val NAMESPACE_KEYS_MISSING_MESSAGE: String = "All namespaces must be approved"
-internal const val NAMESPACE_EXTENSION_METHODS_MISSING_MESSAGE: String = "All methods must be approved"
-internal const val NAMESPACE_EXTENSION_EVENTS_MISSING_MESSAGE: String = "All events must be approved"
 
 internal const val WRONG_ACCOUNT_ID_FORMAT_MESSAGE: String =
     "AccountIds does not follow the CAIP10 semantics. See: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-10.md"
