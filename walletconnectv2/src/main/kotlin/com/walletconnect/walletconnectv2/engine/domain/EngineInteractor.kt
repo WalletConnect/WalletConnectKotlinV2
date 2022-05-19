@@ -220,6 +220,9 @@ internal class EngineInteractor(
         }
 
         //todo: validate session request payload
+        Validator.validateRequest(request) { errorMessage ->
+            throw WalletConnectException.InvalidRequestException(errorMessage)
+        }
 
         val namespaces: Map<String, NamespaceVO.Session> = sequenceStorageRepository.getSessionByTopic(TopicVO(request.topic)).namespaces
         //todo: namespacesValidation
@@ -300,7 +303,7 @@ internal class EngineInteractor(
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        Validator.validateEventPayload(event) { errorMessage ->
+        Validator.validateEvent(event) { errorMessage ->
             throw WalletConnectException.InvalidEventException(errorMessage)
         }
 
@@ -421,16 +424,23 @@ internal class EngineInteractor(
         val sessionTopic = request.topic
         val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
         val peerMetadata = settleParams.controller.metadata
-        val proposalRequest = sessionProposalRequest[selfPublicKey.keyAsHex] ?: return
-        val proposal = proposalRequest.params as PairingParamsVO.SessionProposeParams
+        val proposal = sessionProposalRequest[selfPublicKey.keyAsHex] ?: return
+//        val proposal = proposalRequest.params as PairingParamsVO.SessionProposeParams
+
+        if (proposal.params !is PairingParamsVO.SessionProposeParams) {
+            relayer.respondWithError(
+                request, PeerError.InvalidSessionProposeRequest(request.topic.value, NAMESPACE_MISSING_PROPOSAL_MESSAGE)
+            )
+            return
+        }
 
         //todo: namespacesValidation
-        Validator.validateSessionNamespace(settleParams.namespaces, proposal.namespaces) { errorMessage ->
+        Validator.validateSessionNamespace(settleParams.namespaces, proposal.params.namespaces) { errorMessage ->
             relayer.respondWithError(request, PeerError.InvalidSessionSettleRequest(errorMessage))
             return
         }
 
-        sequenceStorageRepository.updatePairingPeerMetadata(proposalRequest.topic, peerMetadata)
+        sequenceStorageRepository.updatePairingPeerMetadata(proposal.topic, peerMetadata)
         sessionProposalRequest.remove(selfPublicKey.keyAsHex)
 
         val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toMetaDataVO())
@@ -525,7 +535,7 @@ internal class EngineInteractor(
         }
 
         //todo: namespacesValidation
-        Validator.validateSessionNamespaceUpdate(session.namespaces, params) { errorMessage ->
+        Validator.validateSessionNamespaceUpdate(params.namespaces) { errorMessage ->
             relayer.respondWithError(request, PeerError.InvalidUpdateNamespaceRequest(errorMessage))
             return
         }
