@@ -17,6 +17,7 @@ object WalletConnect {
 
     sealed class Model {
 
+        //TODO: Consider adding WalletConnectException instead of Throwable.
         data class Error(val throwable: Throwable) : Model()
 
         sealed class ProposedSequence {
