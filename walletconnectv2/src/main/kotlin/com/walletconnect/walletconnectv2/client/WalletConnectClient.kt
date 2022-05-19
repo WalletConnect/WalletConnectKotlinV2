@@ -86,12 +86,14 @@ object WalletConnectClient {
         }
     }
 
-    fun openConnection(onError: (String) -> Unit) {
-        relay.connect { errorMessage -> onError(errorMessage) }
-    }
+    object WebSocket {
+        fun open(onError: (String) -> Unit) {
+            relay.connect { errorMessage -> onError(errorMessage) }
+        }
 
-    fun closeConnection(onError: (String) -> Unit) {
-        relay.disconnect { errorMessage -> onError(errorMessage) }
+        fun close(onError: (String) -> Unit) {
+            relay.disconnect { errorMessage -> onError(errorMessage) }
+        }
     }
 
     @Throws(IllegalStateException::class, WalletConnectException::class)

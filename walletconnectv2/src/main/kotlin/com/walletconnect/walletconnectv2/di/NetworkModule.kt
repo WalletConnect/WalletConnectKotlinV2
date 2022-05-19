@@ -27,7 +27,7 @@ internal fun networkModule(serverUrl: String, relay: Relay?, connectionType: Con
 
     fun provideLifecycle(application: Application, connectionController: ConnectionController): Lifecycle {
         return if (connectionType == ConnectionType.MANUAL) {
-            ManualConnectionLifecycle(connectionController = connectionController, lifecycleRegistry = LifecycleRegistry())
+            ManualConnectionLifecycle(connectionController, LifecycleRegistry())
         } else {
             AndroidLifecycle.ofApplicationForeground(application)
         }
@@ -74,5 +74,5 @@ internal fun networkModule(serverUrl: String, relay: Relay?, connectionType: Con
 
     single { get<Scarlet>().create(RelayService::class.java) }
 
-    single { relay ?: RelayClient(connectionController = get(), relay = get()) }
+    single { relay ?: RelayClient(get(), get()) }
 }
