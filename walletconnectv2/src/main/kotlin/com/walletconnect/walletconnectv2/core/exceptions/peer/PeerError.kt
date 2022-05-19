@@ -4,13 +4,30 @@ sealed class PeerError {
     abstract val message: String
     abstract val code: Int
 
-    data class InvalidUpdateNamespaceRequest(val sequence: String) : PeerError() {
-        override val message: String = "Invalid update $sequence namespace request"
+    //Validation errors
+
+    data class InvalidSessionRequest(val reason: String) : PeerError() {
+        override val message: String = "Invalid session request: $reason"
+        override val code: Int = 1001
+    }
+
+    data class InvalidEventRequest(val reason: String) : PeerError() {
+        override val message: String = "Invalid event request: $reason"
+        override val code: Int = 1002
+    }
+
+    data class InvalidUpdateNamespaceRequest(val reason: String) : PeerError() {
+        override val message: String = "Invalid update namespace request: $reason"
+        override val code: Int = 1003
+    }
+
+    data class InvalidSessionExtendRequest(val reason: String) : PeerError() {
+        override val message = "Invalid session extend request: $reason"
         override val code: Int = 1004
     }
 
-    data class InvalidSessionExtendRequest(val sequence: String) : PeerError() {
-        override val message = "Invalid $sequence session extend request"
+    data class InvalidSessionSettleRequest(val reason: String) : PeerError() {
+        override val message: String = "Invalid session settle request: $reason"
         override val code: Int = 1005
     }
 
@@ -19,34 +36,33 @@ sealed class PeerError {
         override val code: Int = 1006
     }
 
-    data class NoMatchingTopic(val sequence: String, val topic: String) : PeerError() {
-        override val message: String = "No matching $sequence with topic: $topic"
-        override val code: Int = 1301
-    }
+    //Authorization errors
 
-    data class UnauthorizedTargetChainId(val chainId: String) : PeerError() {
-        override val message: String = "Unauthorized Target ChainId Requested: $chainId"
-        override val code: Int = 3000
-    }
-
-    data class UnauthorizedJsonRpcMethod(val method: String) : PeerError() {
-        override val message: String = "Unauthorized JSON-RPC Method Requested: $method"
+    data class UnauthorizedSessionRequest(val reason: String) : PeerError() {
+        override val message: String = "Unauthorized session request: $reason"
         override val code: Int = 3001
     }
 
-    data class UnauthorizedEventRequest(val name: String) : PeerError() {
-        override val message: String = "Unauthorized event name requested: $name"
+    data class UnauthorizedEventRequest(val reason: String) : PeerError() {
+        override val message: String = "Unauthorized event request: $reason"
         override val code: Int = 3002
     }
 
     data class UnauthorizedUpdateNamespacesRequest(val sequence: String) : PeerError() {
-        override val message: String = "Unauthorized $sequence update methods request"
-        override val code: Int = 3005
+        override val message: String = "Unauthorized update $sequence namespace request"
+        override val code: Int = 3003
     }
 
     data class UnauthorizedSessionExtendRequest(val sequence: String) : PeerError() {
-        override val message: String = "Unauthorized $sequence session extend request"
-        override val code: Int = 3006
+        override val message: String = "Unauthorized $sequence extend request"
+        override val code: Int = 3004
+    }
+
+    //Uncategorized errors
+
+    data class NoMatchingTopic(val sequence: String, val topic: String) : PeerError() {
+        override val message: String = "No matching $sequence with topic: $topic"
+        override val code: Int = 1301
     }
 
     data class Error(val reason: String, val errorCode: Int) : PeerError() {

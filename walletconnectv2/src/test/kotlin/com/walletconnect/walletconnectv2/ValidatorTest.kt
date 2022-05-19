@@ -727,17 +727,17 @@ class ValidatorTest {
     @Test
     fun `is event valid test`() {
         var event = EngineDO.Event("", "data", ETHEREUM)
-        Validator.validateEvent(event) {
+        Validator.validateEventPayload(event) {
             assertEquals(INVALID_EVENT_MESSAGE, it)
         }
 
         event = EngineDO.Event("type", "", "")
-        Validator.validateEvent(event) {
+        Validator.validateEventPayload(event) {
             assertEquals(INVALID_EVENT_MESSAGE, it)
         }
 
         event = EngineDO.Event("", "", "")
-        Validator.validateEvent(event) {
+        Validator.validateEventPayload(event) {
             assertEquals(INVALID_EVENT_MESSAGE, it)
         }
     }

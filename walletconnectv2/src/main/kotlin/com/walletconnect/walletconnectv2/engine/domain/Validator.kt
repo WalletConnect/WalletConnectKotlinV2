@@ -6,7 +6,6 @@ import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
-import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.util.Time
@@ -14,6 +13,62 @@ import java.net.URI
 import java.net.URISyntaxException
 
 internal object Validator {
+
+    @JvmSynthetic
+    internal inline fun validateProposalNamespace(namespaces: Map<String, NamespaceVO.Proposal>, onNamespaceError: (String) -> Unit) {
+        when {
+            !areNamespacesKeysProperlyFormatted(namespaces) -> onNamespaceError(NAMESPACE_EXTENSION_KEYS_CAIP_2_MESSAGE)
+            !areChainsNotEmpty(namespaces) -> onNamespaceError(NAMESPACE_MISSING_CHAINS_MESSAGE)
+            !areChainIdsValid(namespaces) -> onNamespaceError(NAMESPACE_CHAINS_CAIP_2_MESSAGE)
+            !areChainsInMatchingNamespace(namespaces) -> onNamespaceError(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE)
+            !areExtensionChainsNotEmpty(namespaces) -> onNamespaceError(NAMESPACE_EXTENSION_MISSING_CHAINS_MESSAGE)
+        }
+    }
+
+//    @JvmSynthetic
+//    internal inline fun validateSessionNamespace(
+//        sessionNamespaces: Map<String, NamespaceVO.Session>,
+//        clientParams: ClientParams,
+//        onNamespaceError: (String) -> Unit,
+//    ) {
+//        if (clientParams is PairingParamsVO.SessionProposeParams) {
+//            validateSessionNamespace(sessionNamespaces, clientParams.namespaces, onNamespaceError)
+//        } else {
+//            onNamespaceError(NAMESPACE_MISSING_PROPOSAL_MESSAGE)
+//        }
+//    }
+
+    @JvmSynthetic
+    internal inline fun validateSessionNamespace(
+        sessionNamespaces: Map<String, NamespaceVO.Session>,
+        proposalNamespaces: Map<String, NamespaceVO.Proposal>,
+        onNamespaceError: (String) -> Unit,
+    ) {
+        when {
+            !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) -> onNamespaceError(NAMESPACE_KEYS_MISSING_MESSAGE)
+            !areAccountsNotEmpty(sessionNamespaces) -> onNamespaceError(NAMESPACE_MISSING_ACCOUNTS_MESSAGE)
+            !areAccountIdsValid(sessionNamespaces) -> onNamespaceError(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE)
+            !areAllChainsApprovedWithAtLeastOneAccount(sessionNamespaces, proposalNamespaces) ->
+                onNamespaceError(NAMESPACE_MISSING_ACCOUNTS_FOR_CHAINS_MESSAGE)
+            !areAllMethodsApproved(sessionNamespaces, proposalNamespaces) -> onNamespaceError(NAMESPACE_MISSING_METHODS_MESSAGE)
+            !areAllEventsApproved(sessionNamespaces, proposalNamespaces) -> onNamespaceError(NAMESPACE_MISSING_EVENTS_MESSAGE)
+            !areAccountsInMatchingNamespace(sessionNamespaces) -> onNamespaceError(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE)
+        }
+    }
+
+    @JvmSynthetic
+    internal inline fun validateSessionNamespaceUpdate(
+        sessionNamespaces: Map<String, NamespaceVO.Session>,
+        clientParams: ClientParams,
+        onNamespaceError: (String) -> Unit,
+    ) {
+        if (clientParams is SessionParamsVO.UpdateNamespacesParams) {
+            //TODO: how to validate minimal requirements of proposal namespaces? We should store ProposalNamespaces as well in SessionVO
+//            validateSessionNamespace(sessionNamespaces, clientParams.namespaces, onNamespaceError)
+        } else {
+            onNamespaceError(NAMESPACE_MISSING_PROPOSAL_MESSAGE)
+        }
+    }
 
     private fun areNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
         namespaces.keys.all { namespaceKey -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) }
@@ -30,18 +85,6 @@ internal object Validator {
     private fun areExtensionChainsNotEmpty(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
         namespaces.values.filter { it.extensions != null }.flatMap { namespace -> namespace.extensions!!.map { it.chains } }
             .all { extChains -> extChains.isNotEmpty() }
-
-    //todo: add on Dapp side before sending session proposal
-    @JvmSynthetic
-    internal inline fun validateProposalNamespace(namespaces: Map<String, NamespaceVO.Proposal>, onNamespaceError: (String) -> Unit) {
-        when {
-            !areNamespacesKeysProperlyFormatted(namespaces) -> onNamespaceError(NAMESPACE_EXTENSION_KEYS_CAIP_2_MESSAGE)
-            !areChainsNotEmpty(namespaces) -> onNamespaceError(NAMESPACE_MISSING_CHAINS_MESSAGE)
-            !areChainIdsValid(namespaces) -> onNamespaceError(NAMESPACE_CHAINS_CAIP_2_MESSAGE)
-            !areChainsInMatchingNamespace(namespaces) -> onNamespaceError(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE)
-            !areExtensionChainsNotEmpty(namespaces) -> onNamespaceError(NAMESPACE_EXTENSION_MISSING_CHAINS_MESSAGE)
-        }
-    }
 
     private fun areAllProposalNamespacesApproved(
         sessionNamespaces: Map<String, NamespaceVO.Session>,
@@ -143,51 +186,6 @@ internal object Validator {
     private fun areAccountsInMatchingNamespace(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
         sessionNamespaces.all { (key, namespace) -> namespace.accounts.all { it.contains(key) } }
 
-    @JvmSynthetic
-    private inline fun validateSessionNamespace(
-        sessionNamespaces: Map<String, NamespaceVO.Session>,
-        proposalNamespaces: Map<String, NamespaceVO.Proposal>,
-        onNamespaceError: (String) -> Unit,
-    ) {
-        when {
-            !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) -> onNamespaceError(NAMESPACE_KEYS_MISSING_MESSAGE)
-            !areAccountsNotEmpty(sessionNamespaces) -> onNamespaceError(NAMESPACE_MISSING_ACCOUNTS_MESSAGE)
-            !areAccountIdsValid(sessionNamespaces) -> onNamespaceError(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE)
-            !areAllChainsApprovedWithAtLeastOneAccount(sessionNamespaces, proposalNamespaces) ->
-                onNamespaceError(NAMESPACE_MISSING_ACCOUNTS_FOR_CHAINS_MESSAGE)
-            !areAllMethodsApproved(sessionNamespaces, proposalNamespaces) -> onNamespaceError(NAMESPACE_MISSING_METHODS_MESSAGE)
-            !areAllEventsApproved(sessionNamespaces, proposalNamespaces) -> onNamespaceError(NAMESPACE_MISSING_EVENTS_MESSAGE)
-            !areAccountsInMatchingNamespace(sessionNamespaces) -> onNamespaceError(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE)
-        }
-    }
-
-    @JvmSynthetic
-    internal inline fun validateSessionNamespace(
-        sessionNamespaces: Map<String, NamespaceVO.Session>,
-        clientParams: ClientParams,
-        onNamespaceError: (String) -> Unit,
-    ) {
-        if (clientParams is PairingParamsVO.SessionProposeParams) {
-            validateSessionNamespace(sessionNamespaces, clientParams.namespaces, onNamespaceError)
-        } else {
-            onNamespaceError(NAMESPACE_MISSING_PROPOSAL_MESSAGE)
-        }
-    }
-
-    @JvmSynthetic
-    internal inline fun validateSessionNamespaceUpdate(
-        sessionNamespaces: Map<String, NamespaceVO.Session>,
-        clientParams: ClientParams,
-        onNamespaceError: (String) -> Unit,
-    ) {
-        if (clientParams is SessionParamsVO.UpdateNamespacesParams) {
-            //TODO: how to validate minimal requirements of proposal namespaces? We should store ProposalNamespaces as well in SessionVO
-//            validateSessionNamespace(sessionNamespaces, clientParams.namespaces, onNamespaceError)
-        } else {
-            onNamespaceError(NAMESPACE_MISSING_PROPOSAL_MESSAGE)
-        }
-    }
-
 
     @JvmSynthetic
     internal inline fun validateChainIdWithMethodAuthorisation(
@@ -241,7 +239,7 @@ internal object Validator {
 
     //TODO: What was it for? Since we are using this in emit() to validate event, shouldn't there be the same logic for sessionRequest()?
     @JvmSynthetic
-    internal fun validateEvent(event: EngineDO.Event, onInvalidEvent: (String) -> Unit) {
+    internal fun validateEventPayload(event: EngineDO.Event, onInvalidEvent: (String) -> Unit) {
         if (event.data.isEmpty() || event.name.isEmpty() || event.chainId.isEmpty()) {
             onInvalidEvent(INVALID_EVENT_MESSAGE)
         }
