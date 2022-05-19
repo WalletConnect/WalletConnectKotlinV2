@@ -101,10 +101,20 @@ class SessionDetailsViewModel : ViewModel() {
         }
     }
 
-    fun sessionExtend() {
+    fun extendSession() {
         selectedSessionTopic?.let {
             val extend = WalletConnect.Params.Extend(it)
             WalletConnectClient.extend(extend) { error -> Log.d("Error", "Extend session error: $error") }
+        }
+    }
+
+    //todo: remove once everything works
+    fun emitEvent() {
+        selectedSessionTopic?.let {
+
+
+            val extend = WalletConnect.Params.Emit(it, WalletConnect.Model.SessionEvent("testEvent", "testData"), "eip155:42")
+            WalletConnectClient.emit(extend) { error -> Log.d("Error", "Extend session error: $error") }
         }
     }
 

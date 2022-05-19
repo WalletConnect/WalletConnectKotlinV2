@@ -100,10 +100,15 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
                 false
             }
             R.id.extend -> {
-                viewModel.sessionExtend()
+                viewModel.extendSession()
                 false
             }
             R.id.updateNamespaces -> {
+                viewModel.updateNamespace()
+                false
+            }
+            //todo: remove once everything works
+            R.id.emit -> {
                 viewModel.updateNamespace()
                 false
             }

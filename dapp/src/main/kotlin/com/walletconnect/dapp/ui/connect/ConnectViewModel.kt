@@ -62,7 +62,7 @@ class ConnectViewModel : ViewModel() {
                 key to WalletConnect.Model.Namespace.Proposal(
                     chains = selectedChains.map { it.chainId },
                     methods = selectedChains.flatMap { it.methods }.distinct(),
-                    events = emptyList(),
+                    events = listOf("testEvent"),
                     extensions = null
                 )
             }.toMap()
