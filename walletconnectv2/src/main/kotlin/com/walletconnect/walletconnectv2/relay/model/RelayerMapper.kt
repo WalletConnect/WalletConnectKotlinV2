@@ -1,4 +1,4 @@
-package com.walletconnect.walletconnectv2.relay.model.mapper
+package com.walletconnect.walletconnectv2.relay.model
 
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
@@ -7,25 +7,24 @@ import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcHistoryVO
 import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.WCResponseVO
-import com.walletconnect.walletconnectv2.relay.model.RelayDO
 
 @JvmSynthetic
-internal fun JsonRpcResponseVO.toRelayDOJsonRpcResponse(): RelayDO.JsonRpcResponse =
+internal fun JsonRpcResponseVO.toRelayerDOJsonRpcResponse(): RelayerDO.JsonRpcResponse =
     when (this) {
-        is JsonRpcResponseVO.JsonRpcResult -> toRelayDOJsonRpcResult()
-        is JsonRpcResponseVO.JsonRpcError -> toRelayDORpcError()
+        is JsonRpcResponseVO.JsonRpcResult -> toRelayerDOJsonRpcResult()
+        is JsonRpcResponseVO.JsonRpcError -> toRelayerDORpcError()
     }
 
 @JvmSynthetic
-internal fun JsonRpcResponseVO.JsonRpcResult.toRelayDOJsonRpcResult(): RelayDO.JsonRpcResponse.JsonRpcResult =
-    RelayDO.JsonRpcResponse.JsonRpcResult(id, result = result)
+internal fun JsonRpcResponseVO.JsonRpcResult.toRelayerDOJsonRpcResult(): RelayerDO.JsonRpcResponse.JsonRpcResult =
+    RelayerDO.JsonRpcResponse.JsonRpcResult(id, result = result)
 
 @JvmSynthetic
-internal fun JsonRpcResponseVO.JsonRpcError.toRelayDORpcError(): RelayDO.JsonRpcResponse.JsonRpcError =
-    RelayDO.JsonRpcResponse.JsonRpcError(id, error = RelayDO.JsonRpcResponse.Error(error.code, error.message))
+internal fun JsonRpcResponseVO.JsonRpcError.toRelayerDORpcError(): RelayerDO.JsonRpcResponse.JsonRpcError =
+    RelayerDO.JsonRpcResponse.JsonRpcError(id, error = RelayerDO.JsonRpcResponse.Error(error.code, error.message))
 
 @JvmSynthetic
-internal fun RelayDO.JsonRpcResponse.JsonRpcError.toJsonRpcErrorVO(): JsonRpcResponseVO.JsonRpcError =
+internal fun RelayerDO.JsonRpcResponse.JsonRpcError.toJsonRpcErrorVO(): JsonRpcResponseVO.JsonRpcError =
     JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(error.code, error.message))
 
 @JvmSynthetic

@@ -3,9 +3,9 @@ package com.walletconnect.walletconnectv2.relay.model
 import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.core.model.type.SerializableJsonRpc
 
-internal sealed class RelayDO {
+internal sealed class RelayerDO {
 
-    internal sealed class JsonRpcResponse : RelayDO(), SerializableJsonRpc {
+    internal sealed class JsonRpcResponse : RelayerDO(), SerializableJsonRpc {
         abstract val id: Long
 
         @JsonClass(generateAdapter = false)
@@ -32,5 +32,5 @@ internal sealed class RelayDO {
         val id: Long,
         val jsonrpc: String,
         val method: String
-    ) : RelayDO()
+    ) : RelayerDO()
 }

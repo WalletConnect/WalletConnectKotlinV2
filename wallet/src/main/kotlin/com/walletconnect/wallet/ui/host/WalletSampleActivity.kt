@@ -39,7 +39,8 @@ class WalletSampleActivity : AppCompatActivity() {
                 when (event) {
                     is SampleWalletEvents.SessionProposal -> navController.navigate(R.id.action_global_to_session_proposal)
                     is SampleWalletEvents.SessionRequest -> {
-                        navController.navigate(R.id.action_global_to_session_request, bundleOf(SESSION_REQUEST_KEY to event.arrayOfArgs, SESSION_REQUEST_ARGS_NUM_KEY to event.numOfArgs))
+                        navController.navigate(R.id.action_global_to_session_request,
+                            bundleOf(SESSION_REQUEST_KEY to event.arrayOfArgs, SESSION_REQUEST_ARGS_NUM_KEY to event.numOfArgs))
                     }
                     else -> Unit
                 }

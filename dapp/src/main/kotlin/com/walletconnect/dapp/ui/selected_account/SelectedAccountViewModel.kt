@@ -85,7 +85,7 @@ class SelectedAccountViewModel : ViewModel() {
 
             WalletConnectClient.request(requestParams) {
                 viewModelScope.launch {
-                    _event.emit(SampleDappEvents.RequestError(it.error.localizedMessage ?: "Error trying to send request"))
+                    _event.emit(SampleDappEvents.RequestError(it.throwable.localizedMessage ?: "Error trying to send request"))
                 }
             }
 

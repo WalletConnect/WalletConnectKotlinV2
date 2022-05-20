@@ -2,7 +2,7 @@ package com.walletconnect.walletconnectv2.engine.model
 
 import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.core.model.type.Sequence
-import com.walletconnect.walletconnectv2.core.model.type.SequenceLifecycle
+import com.walletconnect.walletconnectv2.core.model.type.EngineEvent
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
@@ -20,7 +20,7 @@ internal sealed class EngineDO {
         val topic: TopicVO,
         val symKey: SecretKey,
         val relay: RelayProtocolOptionsVO,
-        val version: String = "2",
+        val version: String = "2"
     ) : EngineDO()
 
     internal data class SessionProposal(
@@ -33,7 +33,7 @@ internal sealed class EngineDO {
         val accounts: List<String>,
         val relayProtocol: String,
         val relayData: String?,
-    ) : EngineDO(), SequenceLifecycle
+    ) : EngineDO(), EngineEvent
 
     internal sealed class Namespace: EngineDO() {
 
@@ -65,7 +65,7 @@ internal sealed class EngineDO {
         val chainId: String?,
         val peerAppMetaData: AppMetaData?,
         val request: JSONRPCRequest,
-    ) : EngineDO(), SequenceLifecycle {
+    ) : EngineDO(), EngineEvent {
 
         internal data class JSONRPCRequest(
             val id: Long,
@@ -79,36 +79,37 @@ internal sealed class EngineDO {
         val chainId: String?,
         val method: String,
         val result: JsonRpcResponse,
-    ) : EngineDO(), SequenceLifecycle
+    ) : EngineDO(), EngineEvent
 
     internal data class SessionDelete(
         val topic: String,
         val reason: String,
-    ) : EngineDO(), SequenceLifecycle
+    ) : EngineDO(), EngineEvent
 
     internal data class DeletedPairing(
         val topic: String,
         val reason: String,
-    ) : EngineDO(), SequenceLifecycle
+    ) : EngineDO(), EngineEvent
 
     internal data class SessionEvent(
         val topic: String,
         val name: String,
         val data: String,
         val chainId: String?,
-    ) : EngineDO(), SequenceLifecycle
+    ) : EngineDO(), EngineEvent
 
-    internal sealed class SettledSessionResponse : EngineDO(), SequenceLifecycle {
+   internal sealed class SettledSessionResponse : EngineDO(), EngineEvent {
         data class Result(val settledSession: Session) : SettledSessionResponse()
         data class Error(val errorMessage: String) : SettledSessionResponse()
     }
 
-    internal sealed class SessionUpdateAccountsResponse : EngineDO(), SequenceLifecycle {
+    //todo: remove
+    internal sealed class SessionUpdateAccountsResponse : EngineDO(), EngineEvent {
         data class Result(val topic: TopicVO, val accounts: List<String>) : SessionUpdateAccountsResponse()
         data class Error(val errorMessage: String) : SessionUpdateAccountsResponse()
     }
 
-    internal sealed class SessionUpdateNamespacesResponse : EngineDO(), SequenceLifecycle {
+    internal sealed class SessionUpdateNamespacesResponse : EngineDO(), EngineEvent {
         data class Result(val topic: TopicVO, val namespaces: Map<String, Namespace.Session>) : SessionUpdateNamespacesResponse()
         data class Error(val errorMessage: String) : SessionUpdateNamespacesResponse()
     }
@@ -116,32 +117,32 @@ internal sealed class EngineDO {
     internal data class SessionRejected(
         val topic: String,
         val reason: String,
-    ) : EngineDO(), SequenceLifecycle
+    ) : EngineDO(), EngineEvent
 
     internal data class SessionApproved(
         val topic: String,
         val peerAppMetaData: AppMetaData?,
         val accounts: List<String>,
         val namespaces: Map<String, Namespace.Session>,
-    ) : EngineDO(), SequenceLifecycle
+    ) : EngineDO(), EngineEvent
 
-    internal data class PairingSettle(val topic: TopicVO, val metaData: AppMetaData?) : EngineDO(), SequenceLifecycle
-    internal data class SessionUpdateAccounts(val topic: TopicVO, val accounts: List<String>) : EngineDO(), SequenceLifecycle
-    internal data class SessionUpdateNamespaces(val topic: TopicVO, val namespaces: Map<String, Namespace.Session>) : EngineDO(), SequenceLifecycle
+    internal data class PairingSettle(val topic: TopicVO, val metaData: AppMetaData?) : EngineDO(), EngineEvent
+    internal data class SessionUpdateAccounts(val topic: TopicVO, val accounts: List<String>) : EngineDO(), EngineEvent
+    internal data class SessionUpdateNamespaces(val topic: TopicVO, val namespaces: Map<String, Namespace.Session>) : EngineDO(), EngineEvent
 
     internal data class SessionExtend(
         override val topic: TopicVO,
         override val expiry: ExpiryVO,
         val namespaces: Map<String, Namespace.Session>,
         val peerAppMetaData: AppMetaData?,
-    ) : EngineDO(), Sequence, SequenceLifecycle
+    ) : EngineDO(), Sequence, EngineEvent
 
     internal data class Session(
         override val topic: TopicVO,
         override val expiry: ExpiryVO,
         val namespaces: Map<String, Namespace.Session>,
         val peerAppMetaData: AppMetaData?,
-    ) : EngineDO(), Sequence, SequenceLifecycle
+    ) : EngineDO(), Sequence, EngineEvent
 
     internal data class Event(
         val name: String,
@@ -155,6 +156,10 @@ internal sealed class EngineDO {
         val url: String,
         val icons: List<String>,
     ) : EngineDO()
+
+    internal data class ConnectionState(
+        val isAvailable: Boolean
+    ) : EngineDO(), EngineEvent
 
     internal sealed class JsonRpcResponse : EngineDO() {
         abstract val id: Long

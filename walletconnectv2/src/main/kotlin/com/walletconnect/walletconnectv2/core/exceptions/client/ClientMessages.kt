@@ -32,3 +32,5 @@ internal const val MALFORMED_PAIRING_URI_MESSAGE: String = "Pairing URI string i
 internal const val INVALID_EXTEND_TIME: String = "Extend time is out of range"
 internal const val NO_SESSION_PROPOSAL: String = "No session proposal for proposer publicKey: "
 internal const val UNAUTHORIZED_METHOD: String = "Unauthorized method"
+
+internal const val WRONG_CONNECTION_TYPE: String = "Wrong connection type. Please, choose manual connection on initialisation."
