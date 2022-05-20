@@ -430,7 +430,7 @@ internal class EngineInteractor(
             return
         }
 
-        sequenceStorageRepository.updatePairingPeerMetadata(proposal.topic, peerMetadata)
+        sequenceStorageRepository.upsertPairingPeerMetadata(proposal.topic, peerMetadata)
         sessionProposalRequest.remove(selfPublicKey.keyAsHex)
 
         val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toMetaDataVO())

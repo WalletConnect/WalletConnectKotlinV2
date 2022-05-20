@@ -13,8 +13,18 @@ CREATE TABLE MetaDataDao(
 );
 
 insertOrAbortMetaData:
-INSERT OR ABORT INTO MetaDataDao(sequence_topic, name, description, url, icons, type)
+INSERT INTO MetaDataDao(sequence_topic, name, description, url, icons, type)
 VALUES (?, ?, ?, ?, ?, ?);
+
+updateOrAbortMetaData:
+UPDATE MetaDataDao
+SET name = ?, description = ?, url = ?, icons = ?, type = ?
+WHERE sequence_topic = ?;
+
+getByTopic:
+SELECT id
+FROM MetaDataDao
+WHERE sequence_topic = ?;
 
 deleteMetaDataFromTopic:
 DELETE FROM MetaDataDao

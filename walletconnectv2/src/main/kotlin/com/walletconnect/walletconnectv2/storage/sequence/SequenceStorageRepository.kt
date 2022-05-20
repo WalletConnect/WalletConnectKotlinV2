@@ -93,15 +93,24 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun updatePairingPeerMetadata(topic: TopicVO, metaData: MetaDataVO?) {
-        metaData?.let {
+    fun upsertPairingPeerMetadata(topic: TopicVO, metaData: MetaDataVO) {
+        if (metaDataDaoQueries.getByTopic(topic.value).executeAsOneOrNull() == null) {
             metaDataDaoQueries.insertOrAbortMetaData(
                 topic.value,
                 metaData.name,
                 metaData.description,
                 metaData.url,
                 metaData.icons,
-                MetaDataType.PEER
+                MetaDataType.PEER,
+            )
+        } else {
+            metaDataDaoQueries.updateOrAbortMetaData(
+                metaData.name,
+                metaData.description,
+                metaData.url,
+                metaData.icons,
+                MetaDataType.PEER,
+                topic.value
             )
         }
     }
