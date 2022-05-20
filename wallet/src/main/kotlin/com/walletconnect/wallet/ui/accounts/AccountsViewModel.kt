@@ -1,7 +1,9 @@
 package com.walletconnect.wallet.ui.accounts
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.walletconnect.sample_common.EthTestChains
+import com.walletconnect.sample_common.tag
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAccounts1
 import com.walletconnect.wallet.domain.mapOfAccounts2
@@ -18,7 +20,7 @@ class AccountsViewModel : ViewModel() {
 
     fun pair(pairingUri: String) {
         val pairingParams = WalletConnect.Params.Pair(pairingUri)
-        WalletConnectClient.pair(pairingParams)
+        WalletConnectClient.pair(pairingParams) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
 
         val selectedAccountInfoSet: Set<Pair<String, String>> = _accountUI.value.first { it.isSelected }.chainAddressList.map { it.chainName to it.accountAddress }.toSet()
         val allAccountsMappedToUIDomainSetWAccountId: Map<Set<Pair<String, String>>, Int> = mapOfAllAccounts.map { (accountsId: Int, mapOfAccounts: Map<EthTestChains, String>) ->

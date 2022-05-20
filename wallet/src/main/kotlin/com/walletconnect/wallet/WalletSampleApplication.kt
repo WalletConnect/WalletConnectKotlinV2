@@ -1,8 +1,10 @@
 package com.walletconnect.wallet
 
 import android.app.Application
+import android.util.Log
 import com.walletconnect.sample_common.PROJECT_ID
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
+import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 
@@ -38,6 +40,8 @@ class WalletSampleApplication : Application() {
             )
         )
 
-        WalletConnectClient.initialize(initString)
+        WalletConnectClient.initialize(initString) { error ->
+            Log.e(tag(this), error.throwable.stackTraceToString())
+        }
     }
 }
