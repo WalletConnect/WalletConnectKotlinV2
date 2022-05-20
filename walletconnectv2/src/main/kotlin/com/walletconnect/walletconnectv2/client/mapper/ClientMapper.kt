@@ -208,3 +208,7 @@ internal fun WalletConnect.ConnectionType.toRelayConnectionType(): ConnectionTyp
         WalletConnect.ConnectionType.MANUAL -> ConnectionType.MANUAL
     }
 }
+
+@JvmSynthetic
+internal fun EngineDO.ConnectionState.toClientConnectionState(): WalletConnect.Model.ConnectionState =
+    WalletConnect.Model.ConnectionState(isAvailable)

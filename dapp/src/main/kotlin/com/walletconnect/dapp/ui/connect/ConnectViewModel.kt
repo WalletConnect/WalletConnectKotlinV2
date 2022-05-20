@@ -74,6 +74,6 @@ class ConnectViewModel : ViewModel() {
                     onProposedSequence(proposedSequence)
                 }
             },
-            onFailure = { error -> Log.e(tag(this@ConnectViewModel), error.error.stackTraceToString()) })
+            onError = { error -> Log.e(tag(this@ConnectViewModel), error.throwable.stackTraceToString()) })
     }
 }

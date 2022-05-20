@@ -37,7 +37,7 @@ class SessionProposalViewModel : ViewModel() {
                 )
 
                 WalletConnectClient.approveSession(approveProposal) { error ->
-                    Log.e(tag(this@SessionProposalViewModel), error.error.stackTraceToString())
+                    Log.e(tag(this@SessionProposalViewModel), error.throwable.stackTraceToString())
                 }
 
                 WalletDelegate.clearCache()

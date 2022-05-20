@@ -1,10 +1,12 @@
 package com.walletconnect.dapp.ui.session
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.sample_common.EthTestChains
+import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.flow.*
@@ -77,7 +79,9 @@ class SessionViewModel : ViewModel() {
                 reasonCode = 400
             )
 
-            WalletConnectClient.disconnect(disconnectParams)
+            WalletConnectClient.disconnect(disconnectParams) { error ->
+                Log.e(tag(this), error.throwable.stackTraceToString())
+            }
             DappDelegate.deselectAccountDetails()
         }
 

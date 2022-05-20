@@ -1,9 +1,10 @@
 package com.walletconnect.walletconnectv2.di
 
+import com.walletconnect.walletconnectv2.util.NetworkState
 import com.walletconnect.walletconnectv2.relay.Codec
 import com.walletconnect.walletconnectv2.relay.data.codec.ChaChaPolyCodec
 import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
-import com.walletconnect.walletconnectv2.relay.domain.WalletConnectRelayer
+import com.walletconnect.walletconnectv2.relay.domain.RelayerInteractor
 import org.koin.dsl.module
 
 @JvmSynthetic
@@ -18,6 +19,10 @@ internal fun relayerModule() = module {
     }
 
     single {
-        WalletConnectRelayer(get(), get(), get())
+        NetworkState(get())
+    }
+
+    single {
+        RelayerInteractor(get(), get(), get(), get())
     }
 }

@@ -23,15 +23,17 @@ import com.walletconnect.walletconnectv2.relay.model.toRelayerDOJsonRpcResponse
 import com.walletconnect.walletconnectv2.relay.model.toWCResponse
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.util.Logger
+import com.walletconnect.walletconnectv2.util.NetworkState
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.net.HttpURLConnection
 
-internal class WalletConnectRelayer(
+internal class RelayerInteractor(
     private val relay: Relay,
     private val serializer: JsonRpcSerializer,
     private val jsonRpcHistory: JsonRpcHistory,
+    networkState: NetworkState,
 ) {
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequestVO> = MutableSharedFlow()
     internal val clientSyncJsonRpc: SharedFlow<WCRequestVO> = _clientSyncJsonRpc
@@ -39,8 +41,12 @@ internal class WalletConnectRelayer(
     private val _peerResponse: MutableSharedFlow<WCResponseVO> = MutableSharedFlow()
     val peerResponse: SharedFlow<WCResponseVO> = _peerResponse
 
-    private val _isConnectionOpened = MutableStateFlow(false)
-    val isConnectionOpened: StateFlow<Boolean> = _isConnectionOpened
+    private val _isNetworkAvailable: StateFlow<Boolean> = networkState.isAvailable
+    private val _isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
+    val isConnectionAvailable: StateFlow<Boolean> =
+        combine(_isWSSConnectionOpened, _isNetworkAvailable) { wss, internet -> wss && internet }
+            .stateIn(scope, SharingStarted.Eagerly, false)
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error("Exception handler: $exception") }
@@ -60,7 +66,7 @@ internal class WalletConnectRelayer(
         get() = relay.eventsFlow
             .onEach { event: WalletConnect.Model.Relay.Event ->
                 Logger.log("$event")
-                setIsConnectionOpen(event)
+                setIsWSSConnectionOpened(event)
             }
             .filterIsInstance<WalletConnect.Model.Relay.Event.OnConnectionFailed>()
             .map { error -> error.throwable.toWalletConnectException }
@@ -69,12 +75,19 @@ internal class WalletConnectRelayer(
         manageSubscriptions()
     }
 
+    internal fun checkConnectionWorking() {
+        if (!isConnectionAvailable.value) {
+            throw WalletConnectException.MissingInternetConnectionException("No connection available")
+        }
+    }
+
     internal fun publishJsonRpcRequests(
         topic: TopicVO,
         payload: SettlementSequence<*>,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
+        checkConnectionWorking()
         val requestJson = serializer.serialize(payload)
 
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
@@ -94,6 +107,7 @@ internal class WalletConnectRelayer(
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
+        checkConnectionWorking()
         val jsonResponseDO = response.toRelayerDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
         val encodedJson = serializer.encode(responseJson, topic)
@@ -131,6 +145,7 @@ internal class WalletConnectRelayer(
     }
 
     internal fun subscribe(topic: TopicVO) {
+        checkConnectionWorking()
         relay.subscribe(topic.value) { result ->
             result.fold(
                 onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result },
@@ -140,6 +155,7 @@ internal class WalletConnectRelayer(
     }
 
     internal fun unsubscribe(topic: TopicVO) {
+        checkConnectionWorking()
         if (subscriptions.contains(topic.value)) {
             val subscriptionId = SubscriptionIdVO(subscriptions[topic.value].toString())
             relay.unsubscribe(topic.value, subscriptionId.id) { result ->
@@ -212,11 +228,11 @@ internal class WalletConnectRelayer(
         }
     }
 
-    private fun setIsConnectionOpen(event: WalletConnect.Model.Relay.Event) {
+    private fun setIsWSSConnectionOpened(event: WalletConnect.Model.Relay.Event) {
         if (event is WalletConnect.Model.Relay.Event.OnConnectionOpened<*>) {
-            _isConnectionOpened.compareAndSet(expect = false, update = true)
+            _isWSSConnectionOpened.compareAndSet(expect = false, update = true)
         } else if (event is WalletConnect.Model.Relay.Event.OnConnectionClosed || event is WalletConnect.Model.Relay.Event.OnConnectionFailed) {
-            _isConnectionOpened.compareAndSet(expect = true, update = false)
+            _isWSSConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }
 
