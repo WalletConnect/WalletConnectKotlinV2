@@ -162,16 +162,24 @@ class SessionDetailsViewModel : ViewModel() {
         selectedSessionTopic?.let { topic ->
             //hardcoded the namespaces structure
             val namespaces: Map<String, WalletConnect.Model.Namespace.Session> =
-                mapOf("eip155" to WalletConnect.Model.Namespace.Session(
-                    accounts =
-                    listOf("eip155:4:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62", "eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb"),
-                    methods = listOf("eth_sign", "eth_sendTransaction"),
-                    events = listOf("new_testEvent"),
-                    extensions = listOf(WalletConnect.Model.Namespace.Session.Extension(
-                        accounts = listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb"),
-                        methods = listOf("ethMain_sign"),
-                        events = listOf("ethMain_event")
-                    ))))
+                mapOf(
+                    "eip155" to WalletConnect.Model.Namespace.Session(
+                        accounts =
+                        listOf(
+                            "eip155:4:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62",
+                            "eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb"
+                        ),
+                        methods = listOf("eth_sign", "eth_sendTransaction"),
+                        events = listOf("new_testEvent"),
+                        extensions = listOf(
+                            WalletConnect.Model.Namespace.Session.Extension(
+                                accounts = listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb"),
+                                methods = listOf("ethMain_sign"),
+                                events = listOf("ethMain_event")
+                            )
+                        )
+                    )
+                )
             val update = WalletConnect.Params.UpdateNamespaces(sessionTopic = topic, namespaces = namespaces)
 
             WalletConnectClient.update(update) { error -> Log.d("Error", "Sending update error: $error") }
@@ -182,45 +190,46 @@ class SessionDetailsViewModel : ViewModel() {
 //        viewModelScope.launch {
 //            _uiState.emit(updatedUIState)
 //        }
-}
 
-private fun filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession: WalletConnect.Model.Session): List<SessionDetailsUI.Content.ChainAccountInfo> =
-    mapOfAllAccounts.values
-        .flatMap { accountsMap: Map<EthTestChains, String> ->
-            val accountsMapID = mapOfAllAccounts.entries.associate { it.value to it.key }.getValue(accountsMap)
-            accountsMap.toList().map { (ethChain, accountAddress) -> Triple(ethChain, accountAddress, accountsMapID) }
-        }
-        .filter { (ethChain: EthTestChains, _, _) ->
-            val listOfParentChainsWChainId = selectedSession.namespaces.values.flatMap { it.accounts }.map {
-                val (chainNamespace, chainReference, _) = it.split(":")
-                "$chainNamespace:$chainReference"
+
+    private fun filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession: WalletConnect.Model.Session): List<SessionDetailsUI.Content.ChainAccountInfo> =
+        mapOfAllAccounts.values
+            .flatMap { accountsMap: Map<EthTestChains, String> ->
+                val accountsMapID = mapOfAllAccounts.entries.associate { it.value to it.key }.getValue(accountsMap)
+                accountsMap.toList().map { (ethChain, accountAddress) -> Triple(ethChain, accountAddress, accountsMapID) }
             }
-
-            "${ethChain.chainNamespace}:${ethChain.chainReference}" in listOfParentChainsWChainId
-        }
-        .sortedBy { (ethChain: EthTestChains, _, _) -> ethChain.order }
-        .groupBy { (ethChain: EthTestChains, _: String, _: Int) -> ethChain }.values
-        .map { it: List<Triple<EthTestChains, String, Int>> ->
-            val chainDetails: EthTestChains = it.first().first
-            val chainName = chainDetails.chainName
-            val chainIcon = chainDetails.icon
-            val parentChain = chainDetails.chainNamespace
-            val chainId = chainDetails.chainReference
-
-            val listOfAccounts: List<SessionDetailsUI.Content.ChainAccountInfo.Account> =
-                it.map { (ethChain: EthTestChains, accountAddress: String, accountsMapId: Int) ->
-                    val isSelected =
-                        "${ethChain.chainNamespace}:${ethChain.chainReference}:$accountAddress" in selectedSession.namespaces.values.flatMap { it.accounts }
-                    val addressTitle = "$accountAddress-Account $accountsMapId"
-
-                    SessionDetailsUI.Content.ChainAccountInfo.Account(isSelected, addressTitle, accountAddress)
+            .filter { (ethChain: EthTestChains, _, _) ->
+                val listOfParentChainsWChainId = selectedSession.namespaces.values.flatMap { it.accounts }.map {
+                    val (chainNamespace, chainReference, _) = it.split(":")
+                    "$chainNamespace:$chainReference"
                 }
 
-            SessionDetailsUI.Content.ChainAccountInfo(
-                chainName = chainName,
-                chainIcon = chainIcon,
-                chainNamespace = parentChain,
-                chainReference = chainId,
-                listOfAccounts = listOfAccounts
-            )
-        }
+                "${ethChain.chainNamespace}:${ethChain.chainReference}" in listOfParentChainsWChainId
+            }
+            .sortedBy { (ethChain: EthTestChains, _, _) -> ethChain.order }
+            .groupBy { (ethChain: EthTestChains, _: String, _: Int) -> ethChain }.values
+            .map { it: List<Triple<EthTestChains, String, Int>> ->
+                val chainDetails: EthTestChains = it.first().first
+                val chainName = chainDetails.chainName
+                val chainIcon = chainDetails.icon
+                val parentChain = chainDetails.chainNamespace
+                val chainId = chainDetails.chainReference
+
+                val listOfAccounts: List<SessionDetailsUI.Content.ChainAccountInfo.Account> =
+                    it.map { (ethChain: EthTestChains, accountAddress: String, accountsMapId: Int) ->
+                        val isSelected =
+                            "${ethChain.chainNamespace}:${ethChain.chainReference}:$accountAddress" in selectedSession.namespaces.values.flatMap { it.accounts }
+                        val addressTitle = "$accountAddress-Account $accountsMapId"
+
+                        SessionDetailsUI.Content.ChainAccountInfo.Account(isSelected, addressTitle, accountAddress)
+                    }
+
+                SessionDetailsUI.Content.ChainAccountInfo(
+                    chainName = chainName,
+                    chainIcon = chainIcon,
+                    chainNamespace = parentChain,
+                    chainReference = chainId,
+                    listOfAccounts = listOfAccounts
+                )
+            }
+}

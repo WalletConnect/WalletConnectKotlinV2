@@ -43,7 +43,6 @@ internal class JsonRpcSerializer(
             JsonRpcMethod.WC_SESSION_DELETE -> tryDeserialize<SessionSettlementVO.SessionDelete>(json)?.params
             JsonRpcMethod.WC_SESSION_PING -> tryDeserialize<SessionSettlementVO.SessionPing>(json)?.params
             JsonRpcMethod.WC_SESSION_EVENT -> tryDeserialize<SessionSettlementVO.SessionEvent>(json)?.params
-//            JsonRpcMethod.WC_SESSION_UPDATE_ACCOUNTS -> tryDeserialize<SessionSettlementVO.SessionUpdateAccounts>(json)?.params
             JsonRpcMethod.WC_SESSION_UPDATE -> tryDeserialize<SessionSettlementVO.SessionUpdateNamespaces>(json)?.params
             JsonRpcMethod.WC_SESSION_EXTEND -> tryDeserialize<SessionSettlementVO.SessionExtend>(json)?.params
             else -> null
@@ -56,7 +55,6 @@ internal class JsonRpcSerializer(
             is PairingSettlementVO.PairingDelete -> trySerialize(payload)
             is SessionSettlementVO.SessionPing -> trySerialize(payload)
             is SessionSettlementVO.SessionEvent -> trySerialize(payload)
-//            is SessionSettlementVO.SessionUpdateAccounts -> trySerialize(payload)
             is SessionSettlementVO.SessionUpdateNamespaces -> trySerialize(payload)
             is SessionSettlementVO.SessionExtend -> trySerialize(payload)
             is SessionSettlementVO.SessionRequest -> trySerialize(payload)

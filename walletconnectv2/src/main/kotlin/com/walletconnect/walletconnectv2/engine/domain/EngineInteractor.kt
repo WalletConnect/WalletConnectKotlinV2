@@ -468,8 +468,8 @@ internal class EngineInteractor(
 
     private fun onSessionRequest(request: WCRequestVO, params: SessionParamsVO.SessionRequestParams) {
         Validator.validateSessionRequest(params.toEngineDORequest(request.topic)) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidSessionRequest(errorMessage))
-            return@validateSessionRequest
+            relayer.respondWithError(request, PeerError.InvalidMethod(errorMessage))
+            return
         }
 
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
@@ -482,7 +482,7 @@ internal class EngineInteractor(
 
         val method = params.request.method
         Validator.validateChainIdWithMethodAuthorisation(params.chainId, method, sessionNamespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.UnauthorizedSessionRequest(errorMessage))
+            relayer.respondWithError(request, PeerError.UnauthorizedMethod(errorMessage))
             return
         }
 
@@ -491,8 +491,8 @@ internal class EngineInteractor(
 
     private fun onSessionEvent(request: WCRequestVO, params: SessionParamsVO.EventParams) {
         Validator.validateEvent(params.toEngineDOEvent()) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidEventRequest(errorMessage))
-            return@validateEvent
+            relayer.respondWithError(request, PeerError.InvalidEvent(errorMessage))
+            return
         }
 
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
@@ -508,7 +508,7 @@ internal class EngineInteractor(
 
         val event = params.event
         Validator.validateChainIdWithEventAuthorisation(params.chainId, event.name, session.namespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.UnauthorizedEventRequest(errorMessage))
+            relayer.respondWithError(request, PeerError.UnauthorizedEvent(errorMessage))
             return
         }
 
@@ -524,12 +524,12 @@ internal class EngineInteractor(
 
         val session: SessionVO = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (!session.isPeerController) {
-            relayer.respondWithError(request, PeerError.UnauthorizedUpdateNamespacesRequest(Sequences.SESSION.name))
+            relayer.respondWithError(request, PeerError.UnauthorizedUpdateRequest(Sequences.SESSION.name))
             return
         }
 
         Validator.validateSessionNamespaceUpdate(params.namespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidUpdateNamespaceRequest(errorMessage))
+            relayer.respondWithError(request, PeerError.InvalidUpdateRequest(errorMessage))
             return
         }
 
@@ -550,13 +550,13 @@ internal class EngineInteractor(
 
         val session = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (!session.isPeerController) {
-            relayer.respondWithError(request, PeerError.UnauthorizedSessionExtendRequest(Sequences.SESSION.name))
+            relayer.respondWithError(request, PeerError.UnauthorizedExtendRequest(Sequences.SESSION.name))
             return
         }
 
         val newExpiry = requestParams.expiry
         Validator.validateSessionExtend(newExpiry, session.expiry.seconds) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidSessionExtendRequest(errorMessage))
+            relayer.respondWithError(request, PeerError.InvalidExtendRequest(errorMessage))
             return
         }
 

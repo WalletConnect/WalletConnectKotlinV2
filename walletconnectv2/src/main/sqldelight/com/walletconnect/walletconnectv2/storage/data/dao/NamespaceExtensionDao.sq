@@ -3,14 +3,14 @@ import kotlin.collections.List;
 CREATE TABLE NamespaceExtensionsDao(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     namespace_key TEXT NOT NULL,
-    session_id INTEGER UNIQUE NOT NULL,
+    session_id INTEGER NOT NULL,
     accounts TEXT AS List<String> NOT NULL,
     methods TEXT AS List<String> NOT NULL,
     events TEXT AS List<String>  NOT NULL
 );
 
-insertNamespaceExtension:
-INSERT OR IGNORE INTO NamespaceExtensionsDao(namespace_key, session_id, accounts, methods, events)
+insertOrAbortNamespaceExtension:
+INSERT OR ABORT INTO NamespaceExtensionsDao(namespace_key, session_id, accounts, methods, events)
 VALUES (?, ?, ?, ?, ?);
 
 deleteNamespacesExtensionsByTopic:

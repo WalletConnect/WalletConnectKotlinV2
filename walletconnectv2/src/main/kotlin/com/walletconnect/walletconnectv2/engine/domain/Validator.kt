@@ -85,7 +85,7 @@ internal object Validator {
     }
 
     @JvmSynthetic
-    internal fun validateSessionRequest(request: EngineDO.Request, onInvalidRequest: (String) -> Unit) {
+    internal inline fun validateSessionRequest(request: EngineDO.Request, onInvalidRequest: (String) -> Unit) {
         if (request.params.isEmpty() || request.method.isEmpty() || request.chainId.isEmpty() ||
             request.topic.isEmpty() || !isChainIdCAIP2Compliant(request.chainId)
         ) {
@@ -95,7 +95,7 @@ internal object Validator {
 
 
     @JvmSynthetic
-    internal fun validateEvent(event: EngineDO.Event, onInvalidEvent: (String) -> Unit) {
+    internal inline fun validateEvent(event: EngineDO.Event, onInvalidEvent: (String) -> Unit) {
         if (event.data.isEmpty() || event.name.isEmpty() || event.chainId.isEmpty() || !isChainIdCAIP2Compliant(event.chainId)) {
             onInvalidEvent(INVALID_EVENT_MESSAGE)
         }

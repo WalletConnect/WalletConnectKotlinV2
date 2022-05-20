@@ -262,7 +262,7 @@ object WalletConnectClient {
     interface DappDelegate {
         fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession)
-        fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdateSession)
+        fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdatedSession)
         fun onSessionExtend(session: WalletConnect.Model.Session)
         fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
 

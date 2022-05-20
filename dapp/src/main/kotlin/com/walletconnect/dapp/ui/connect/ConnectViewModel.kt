@@ -11,6 +11,7 @@ import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -27,8 +28,8 @@ class ConnectViewModel : ViewModel() {
         }
     val listOfChainUI: List<ChainSelectionUI> = _listOfChainUI
 
-    private val _navigation = MutableSharedFlow<SampleDappEvents>()
-    val navigation: SharedFlow<SampleDappEvents> = _navigation.asSharedFlow()
+    private val _navigation = Channel<SampleDappEvents>(Channel.BUFFERED)
+    val navigation: Flow<SampleDappEvents> = _navigation.receiveAsFlow()
 
     init {
         DappDelegate.wcEventModels.map { walletEvent: WalletConnect.Model? ->
@@ -38,7 +39,7 @@ class ConnectViewModel : ViewModel() {
                 else -> SampleDappEvents.NoAction
             }
         }.onEach { event ->
-            _navigation.emit(event)
+            _navigation.trySend(event)
         }.launchIn(viewModelScope)
     }
 

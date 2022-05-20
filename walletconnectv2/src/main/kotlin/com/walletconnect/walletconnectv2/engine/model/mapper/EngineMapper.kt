@@ -47,7 +47,6 @@ internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): E
         icons = this.proposer.metadata.icons.map { URI(it) },
         requiredNamespaces = this.namespaces.toMapOfEngineNamespacesProposal(),
         proposerPublicKey = this.proposer.publicKey,
-        accounts = listOf(),
         relayProtocol = relays.first().protocol,
         relayData = relays.first().data
     )

@@ -2,9 +2,7 @@ package com.walletconnect.walletconnectv2.client
 
 import android.app.Application
 import android.net.Uri
-import com.walletconnect.walletconnectv2.core.exceptions.client.WalletConnectException
 import com.walletconnect.walletconnectv2.network.Relay
-import com.walletconnect.walletconnectv2.network.data.connection.ConnectionType
 import java.net.URI
 
 object WalletConnect {
@@ -37,7 +35,6 @@ object WalletConnect {
             val icons: List<URI>,
             val requiredNamespaces: Map<String, Namespace.Proposal>,
             val proposerPublicKey: String,
-            val accounts: List<String>,
             val relayProtocol: String,
             val relayData: String?,
         ) : Model()
@@ -97,7 +94,7 @@ object WalletConnect {
 
         data class Blockchain(val chains: List<String>) : Model()
 
-        data class UpdateSession(val topic: String, val namespaces: Map<String, Namespace.Session>) : Model()
+        data class UpdatedSession(val topic: String, val namespaces: Map<String, Namespace.Session>) : Model()
 
         data class ApprovedSession(
             val topic: String,
@@ -389,8 +386,6 @@ object WalletConnect {
         data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) : Params()
 
         data class Request(val sessionTopic: String, val method: String, val params: String, val chainId: String) : Params()
-
-        data class UpdateAccounts(val sessionTopic: String, val accounts: List<String>) : Params()
 
         data class UpdateNamespaces(
             val sessionTopic: String,

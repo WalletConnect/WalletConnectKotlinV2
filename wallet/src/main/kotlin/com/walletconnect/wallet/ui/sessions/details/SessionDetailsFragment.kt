@@ -27,7 +27,11 @@ import kotlinx.coroutines.flow.onEach
 class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
     private val binding: FragmentSessionDetailsBinding by viewBinding(FragmentSessionDetailsBinding::bind)
     private val viewModel: SessionDetailsViewModel by viewModels()
-    private val chainAccountsAdapter by lazy { SessionDetailsAdapter {} }
+    private val chainAccountsAdapter by lazy {
+        SessionDetailsAdapter {
+            //TODO Call sessionUpdate but only change account
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -103,14 +107,15 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
                 viewModel.extendSession()
                 false
             }
-            R.id.updateNamespaces -> {
-                viewModel.updateNamespace()
-                false
-            }
-            R.id.emit -> {
-                viewModel.emitEvent()
-                false
-            }
+//            TODO: Add it once again with Sample Dapp update after namespace refactor
+//            R.id.updateNamespaces -> {
+//                viewModel.updateNamespace()
+//                false
+//            }
+//            R.id.emit -> {
+//                viewModel.emitEvent()
+//                false
+//            }
             else -> super.onOptionsItemSelected(item)
         }
     }

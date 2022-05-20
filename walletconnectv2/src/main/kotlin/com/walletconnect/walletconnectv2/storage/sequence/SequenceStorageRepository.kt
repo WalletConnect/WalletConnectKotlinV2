@@ -95,7 +95,7 @@ internal class SequenceStorageRepository(
     @JvmSynthetic
     fun updatePairingPeerMetadata(topic: TopicVO, metaData: MetaDataVO?) {
         metaData?.let {
-            metaDataDaoQueries.insertOrIgnoreMetaData(
+            metaDataDaoQueries.insertOrAbortMetaData(
                 topic.value,
                 metaData.name,
                 metaData.description,
@@ -112,6 +112,7 @@ internal class SequenceStorageRepository(
         pairingDaoQueries.deletePairing(topic.value)
     }
 
+    @Synchronized
     @JvmSynthetic
     fun insertSession(session: SessionVO) {
         with(session) {
@@ -165,7 +166,7 @@ internal class SequenceStorageRepository(
 
     private fun insertMetaData(metaData: MetaDataVO?, metaDataType: MetaDataType, topic: TopicVO) {
         metaData?.let {
-            metaDataDaoQueries.insertOrIgnoreMetaData(
+            metaDataDaoQueries.insertOrAbortMetaData(
                 topic.value,
                 metaData.name,
                 metaData.description,
@@ -178,10 +179,16 @@ internal class SequenceStorageRepository(
 
     private fun insertNamespace(namespaces: Map<String, NamespaceVO.Session>, sessionId: Long) {
         namespaces.forEach { key, (accounts: List<String>, methods: List<String>, events: List<String>, extensions: List<NamespaceVO.Session.Extension>?) ->
-            namespaceDaoQueries.insertNamespace(sessionId, key, accounts, methods, events)
+            namespaceDaoQueries.insertOrAbortNamespace(sessionId, key, accounts, methods, events)
 
             extensions?.forEach { extension ->
-                extensionsDaoQueries.insertNamespaceExtension(key, sessionId, extension.accounts, extension.methods, extension.events)
+                extensionsDaoQueries.insertOrAbortNamespaceExtension(
+                    key,
+                    sessionId,
+                    extension.accounts,
+                    extension.methods,
+                    extension.events
+                )
             }
         }
     }
@@ -255,9 +262,10 @@ internal class SequenceStorageRepository(
         }
 
         val namespaces: Map<String, NamespaceVO.Session> = namespaceDaoQueries.getNamespaces(id) { key, accounts, methods, events ->
-            val extensions: List<NamespaceVO.Session.Extension>? = extensionsDaoQueries.getNamespaceExtensionByNamespaceKeyAndSessionId(key, id) { extAccounts, extMethods, extEvents ->
-                NamespaceVO.Session.Extension(extAccounts, extMethods, extEvents)
-            }.executeAsList().takeIf { it.isNotEmpty() }
+            val extensions: List<NamespaceVO.Session.Extension>? =
+                extensionsDaoQueries.getNamespaceExtensionByNamespaceKeyAndSessionId(key, id) { extAccounts, extMethods, extEvents ->
+                    NamespaceVO.Session.Extension(extAccounts, extMethods, extEvents)
+                }.executeAsList().takeIf { it.isNotEmpty() }
 
             key to NamespaceVO.Session(accounts, methods, events, extensions)
         }.executeAsList().toMap()

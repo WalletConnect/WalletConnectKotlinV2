@@ -15,7 +15,7 @@ VALUES (?,?,?,?,?,?);
 getListOfPairingDaos:
 SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, pd.is_active
 FROM PairingDao pd
-    LEFT JOIN MetaDataDao mdd_peer ON pd.topic = mdd_peer.sequence_topic;
+    LEFT JOIN MetaDataDao mdd_peer ON pd.topic = mdd_peer.sequence_topic AND mdd_peer.type = "PEER";
 
 getPairingByTopic:
 SELECT topic, expiry, relay_protocol, relay_data, uri, is_active
@@ -29,16 +29,6 @@ WHERE ? = topic;
 activatePairing:
 UPDATE OR ABORT PairingDao
 SET expiry = ?, is_active = ?
-WHERE topic = ?;
-
-lastInsertedRow:
-SELECT id
-FROM PairingDao
-WHERE id = (SELECT MAX(id) FROM PairingDao);
-
-getPairingIdByTopic:
-SELECT id
-FROM PairingDao
 WHERE topic = ?;
 
 hasTopic:

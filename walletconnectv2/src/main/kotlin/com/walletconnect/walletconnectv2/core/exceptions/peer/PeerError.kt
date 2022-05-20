@@ -6,56 +6,56 @@ sealed class PeerError {
 
     //Validation errors
 
-    data class InvalidSessionRequest(val reason: String) : PeerError() {
+    data class InvalidMethod(val reason: String) : PeerError() {
         override val message: String = "Invalid session request: $reason"
         override val code: Int = 1001
     }
 
-    data class InvalidEventRequest(val reason: String) : PeerError() {
+    data class InvalidEvent(val reason: String) : PeerError() {
         override val message: String = "Invalid event request: $reason"
         override val code: Int = 1002
     }
 
-    data class InvalidUpdateNamespaceRequest(val reason: String) : PeerError() {
+    data class InvalidUpdateRequest(val reason: String) : PeerError() {
         override val message: String = "Invalid update namespace request: $reason"
-        override val code: Int = 1003
+        override val code: Int = 1004
     }
 
-    data class InvalidSessionExtendRequest(val reason: String) : PeerError() {
+    data class InvalidExtendRequest(val reason: String) : PeerError() {
         override val message = "Invalid session extend request: $reason"
-        override val code: Int = 1004
+        override val code: Int = 1005
     }
 
     data class InvalidSessionSettleRequest(val reason: String) : PeerError() {
         override val message: String = "Invalid session settle request: $reason"
-        override val code: Int = 1005
+        override val code: Int = 1006
     }
 
     data class InvalidSessionProposeRequest(val topic: String, val errorMessage: String) : PeerError() {
         override val message: String = "Invalid Session Proposal on topic: $topic. Error Message: $errorMessage"
-        override val code: Int = 1006
+        override val code: Int = 1007
     }
 
     //Authorization errors
 
-    data class UnauthorizedSessionRequest(val reason: String) : PeerError() {
+    data class UnauthorizedMethod(val reason: String) : PeerError() {
         override val message: String = "Unauthorized session request: $reason"
         override val code: Int = 3001
     }
 
-    data class UnauthorizedEventRequest(val reason: String) : PeerError() {
+    data class UnauthorizedEvent(val reason: String) : PeerError() {
         override val message: String = "Unauthorized event request: $reason"
         override val code: Int = 3002
     }
 
-    data class UnauthorizedUpdateNamespacesRequest(val sequence: String) : PeerError() {
+    data class UnauthorizedUpdateRequest(val sequence: String) : PeerError() {
         override val message: String = "Unauthorized update $sequence namespace request"
-        override val code: Int = 3003
+        override val code: Int = 3004
     }
 
-    data class UnauthorizedSessionExtendRequest(val sequence: String) : PeerError() {
+    data class UnauthorizedExtendRequest(val sequence: String) : PeerError() {
         override val message: String = "Unauthorized $sequence extend request"
-        override val code: Int = 3004
+        override val code: Int = 3005
     }
 
     //Uncategorized errors

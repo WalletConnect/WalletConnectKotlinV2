@@ -38,7 +38,7 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         }
     }
 
-    override fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdateSession) {
+    override fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdatedSession) {
         scope.launch {
             _wcEventModels.emit(updatedSession)
         }

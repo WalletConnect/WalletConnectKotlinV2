@@ -2,15 +2,16 @@ import kotlin.collections.List;
 
 CREATE TABLE NamespaceDao(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    session_id INTEGER UNIQUE NOT NULL,
+    session_id INTEGER NOT NULL,
     key TEXT NOT NULL,
     accounts TEXT AS List<String> NOT NULL,
     methods TEXT AS List<String> NOT NULL,
-    events TEXT AS List<String> NOT NULL
+    events TEXT AS List<String> NOT NULL,
+    UNIQUE(session_id, key)
 );
 
-insertNamespace:
-INSERT OR IGNORE INTO NamespaceDao(session_id, key, accounts, methods, events)
+insertOrAbortNamespace:
+INSERT OR ABORT INTO NamespaceDao(session_id, key, accounts, methods, events)
 VALUES (?, ?, ?, ?, ?);
 
 deleteNamespacesByTopic:

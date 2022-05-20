@@ -3,22 +3,19 @@ import kotlin.collections.List;
 
 CREATE TABLE MetaDataDao(
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-	sequence_topic TEXT UNIQUE NOT NULL,
+	sequence_topic TEXT NOT NULL,
   	name TEXT NOT NULL,
   	description TEXT NOT NULL,
   	url TEXT NOT NULL,
   	icons TEXT AS List<String> NOT NULL,
-  	type TEXT AS MetaDataType NOT NULL
+  	type TEXT AS MetaDataType NOT NULL,
+  	UNIQUE(sequence_topic, type)
 );
 
-insertOrIgnoreMetaData:
-INSERT OR IGNORE INTO MetaDataDao(sequence_topic, name, description, url, icons, type)
+insertOrAbortMetaData:
+INSERT OR ABORT INTO MetaDataDao(sequence_topic, name, description, url, icons, type)
 VALUES (?, ?, ?, ?, ?, ?);
 
 deleteMetaDataFromTopic:
 DELETE FROM MetaDataDao
-WHERE sequence_topic = (
-   SELECT id
-   FROM SessionDao
-   WHERE topic = ?
-);
+WHERE sequence_topic = ?;

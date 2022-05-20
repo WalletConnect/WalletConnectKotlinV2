@@ -27,7 +27,7 @@ class SelectedAccountViewModel : ViewModel() {
             .filterNotNull()
             .onEach { walletEvent ->
                 when (walletEvent) {
-                    is WalletConnect.Model.UpdateSession -> {
+                    is WalletConnect.Model.UpdatedSession -> {
                         //todo: fix session update
 //                        (uiState.value as? SelectedAccountUI.Content)?.let { currentState ->
 //                            val (updatedAccountAddress, updatedSelectedAccount) = walletEvent.namespaces.accounts.map { updatedAccount ->

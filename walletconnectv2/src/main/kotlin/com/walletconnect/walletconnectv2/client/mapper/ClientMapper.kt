@@ -53,7 +53,6 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): WalletConnect.M
         icons,
         requiredNamespaces.toMapOfClientNamespacesProposal(),
         proposerPublicKey,
-        accounts,
         relayProtocol,
         relayData
     )
@@ -136,8 +135,8 @@ internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toClientJsonRpcResult(): Wal
     WalletConnect.Model.JsonRpcResponse.JsonRpcResult(id, result)
 
 @JvmSynthetic
-internal fun EngineDO.SessionUpdateNamespaces.toClientSessionsNamespaces(): WalletConnect.Model.UpdateSession =
-    WalletConnect.Model.UpdateSession(topic.value, namespaces.toMapOfClientNamespacesSession())
+internal fun EngineDO.SessionUpdateNamespaces.toClientSessionsNamespaces(): WalletConnect.Model.UpdatedSession =
+    WalletConnect.Model.UpdatedSession(topic.value, namespaces.toMapOfClientNamespacesSession())
 
 @JvmSynthetic
 internal fun EngineDO.JsonRpcResponse.JsonRpcError.toClientJsonRpcError(): WalletConnect.Model.JsonRpcResponse.JsonRpcError =

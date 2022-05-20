@@ -30,7 +30,6 @@ internal sealed class EngineDO {
         val icons: List<URI>,
         val requiredNamespaces: Map<String, Namespace.Proposal>,
         val proposerPublicKey: String,
-        val accounts: List<String>,
         val relayProtocol: String,
         val relayData: String?,
     ) : EngineDO(), EngineEvent

@@ -24,7 +24,7 @@ class SessionViewModel : ViewModel() {
             .filterNotNull()
             .onEach { walletEvent ->
                 when (walletEvent) {
-                    is WalletConnect.Model.UpdateSession -> {
+                    is WalletConnect.Model.UpdatedSession -> {
                         //todo: fix session update
 //                        val listOfAccounts = getListOfAccounts(walletEvent.topic)
 //                        _sessionUI.value = listOfAccounts
