@@ -9,7 +9,7 @@ import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.DialogPairingSelectionBinding
 import com.walletconnect.dapp.ui.connect.ConnectViewModel
 import com.walletconnect.sample_common.BottomVerticalSpaceItemDecoration
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AuthClient
 
 class PairingSelectionDialogFragment : DialogFragment(R.layout.dialog_pairing_selection) {
     private val viewModel: ConnectViewModel by navGraphViewModels(R.id.connectGraph)
@@ -19,7 +19,7 @@ class PairingSelectionDialogFragment : DialogFragment(R.layout.dialog_pairing_se
         super.onViewCreated(view, savedInstanceState)
 
         val binding = DialogPairingSelectionBinding.bind(view).also { _binding = it }
-        val pairings = WalletConnectClient.getListOfSettledPairings().mapNotNull { pairing ->
+        val pairings = AuthClient.getListOfSettledPairings().mapNotNull { pairing ->
             pairing.metaData?.let { metadata -> metadata.icons.first() to metadata.name }
         }
 

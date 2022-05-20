@@ -7,7 +7,7 @@ import com.walletconnect.sample_common.tag
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAllAccounts
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AuthClient
 
 class SessionProposalViewModel : ViewModel() {
 
@@ -43,7 +43,7 @@ class SessionProposalViewModel : ViewModel() {
                 namespaces = sessionNamespaces
             )
 
-            WalletConnectClient.approveSession(approveProposal) { error ->
+            AuthClient.approveSession(approveProposal) { error ->
                 Log.e(tag(this@SessionProposalViewModel), error.throwable.stackTraceToString())
             }
 
@@ -60,7 +60,7 @@ class SessionProposalViewModel : ViewModel() {
                 code = 406
             )
 
-            WalletConnectClient.rejectSession(reject) { error ->
+            AuthClient.rejectSession(reject) { error ->
                 Log.d(tag(this@SessionProposalViewModel), "sending reject error: $error")
             }
 

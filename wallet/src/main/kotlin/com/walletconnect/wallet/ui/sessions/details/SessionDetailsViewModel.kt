@@ -9,7 +9,7 @@ import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAllAccounts
 import com.walletconnect.wallet.ui.SampleWalletEvents
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AuthClient
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -41,7 +41,7 @@ class SessionDetailsViewModel : ViewModel() {
     }
 
     fun getSessionDetails(sessionTopic: String) {
-        val state = WalletConnectClient.getListOfSettledSessions().find { it.topic == sessionTopic }?.let { selectedSession ->
+        val state = AuthClient.getListOfSettledSessions().find { it.topic == sessionTopic }?.let { selectedSession ->
             selectedSessionTopic = sessionTopic
 
             val listOfChainAccountInfo = filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession)
@@ -71,7 +71,7 @@ class SessionDetailsViewModel : ViewModel() {
                 reasonCode = 1000
             )
 
-            WalletConnectClient.disconnect(disconnect) { error ->
+            AuthClient.disconnect(disconnect) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
             selectedSessionTopic = null
@@ -85,7 +85,7 @@ class SessionDetailsViewModel : ViewModel() {
     fun ping() {
         selectedSessionTopic?.let {
             val ping = WalletConnect.Params.Ping(it)
-            WalletConnectClient.ping(ping, object : WalletConnect.Listeners.SessionPing {
+            AuthClient.ping(ping, object : WalletConnect.Listeners.SessionPing {
 
                 override fun onSuccess(pingSuccess: WalletConnect.Model.Ping.Success) {
                     viewModelScope.launch() {
@@ -107,7 +107,7 @@ class SessionDetailsViewModel : ViewModel() {
     fun extendSession() {
         selectedSessionTopic?.let {
             val extend = WalletConnect.Params.Extend(it)
-            WalletConnectClient.extend(extend) { error -> Log.d("Error", "Extend session error: $error") }
+            AuthClient.extend(extend) { error -> Log.d("Error", "Extend session error: $error") }
         }
     }
 
@@ -115,7 +115,7 @@ class SessionDetailsViewModel : ViewModel() {
         selectedSessionTopic?.let {
             //Hardcoded data for test purposes
             val extend = WalletConnect.Params.Emit(it, WalletConnect.Model.SessionEvent("testEvent", "testData"), "eip155:42")
-            WalletConnectClient.emit(extend) { error -> Log.d("Error", "Extend session error: $error") }
+            AuthClient.emit(extend) { error -> Log.d("Error", "Extend session error: $error") }
         }
     }
 
@@ -182,7 +182,7 @@ class SessionDetailsViewModel : ViewModel() {
                 )
             val update = WalletConnect.Params.UpdateNamespaces(sessionTopic = topic, namespaces = namespaces)
 
-            WalletConnectClient.update(update) { error -> Log.d("Error", "Sending update error: $error") }
+            AuthClient.update(update) { error -> Log.d("Error", "Sending update error: $error") }
         }
     }
 

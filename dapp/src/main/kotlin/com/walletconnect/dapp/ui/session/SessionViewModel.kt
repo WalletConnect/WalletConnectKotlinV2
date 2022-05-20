@@ -8,7 +8,7 @@ import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.sample_common.EthTestChains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AuthClient
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -39,7 +39,7 @@ class SessionViewModel : ViewModel() {
     }
 
     private fun getListOfAccounts(topic: String? = null): List<SessionUI> {
-        return WalletConnectClient.getListOfSettledSessions().filter {
+        return AuthClient.getListOfSettledSessions().filter {
             if (topic != null) {
                 it.topic == topic
             } else {
@@ -60,7 +60,7 @@ class SessionViewModel : ViewModel() {
     fun ping() {
         val pingParams = WalletConnect.Params.Ping(topic = requireNotNull(DappDelegate.selectedSessionTopic))
 
-        WalletConnectClient.ping(pingParams, object : WalletConnect.Listeners.SessionPing {
+        AuthClient.ping(pingParams, object : WalletConnect.Listeners.SessionPing {
             override fun onSuccess(pingSuccess: WalletConnect.Model.Ping.Success) {
                 viewModelScope.launch {
                     _navigationEvents.emit(SampleDappEvents.PingSuccess(pingSuccess.topic))
@@ -83,7 +83,7 @@ class SessionViewModel : ViewModel() {
                 reasonCode = 400
             )
 
-            WalletConnectClient.disconnect(disconnectParams) { error ->
+            AuthClient.disconnect(disconnectParams) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
             DappDelegate.deselectAccountDetails()

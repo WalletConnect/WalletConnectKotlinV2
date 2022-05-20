@@ -9,7 +9,7 @@ import com.walletconnect.dapp.ui.connect.chain_select.ChainSelectionUI
 import com.walletconnect.sample_common.EthTestChains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AuthClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
@@ -49,13 +49,13 @@ class ConnectViewModel : ViewModel() {
 
     fun anyChainsSelected(): Boolean = listOfChainUI.any { it.isSelected }
 
-    fun anySettledPairingExist(): Boolean = WalletConnectClient.getListOfSettledPairings().isNotEmpty()
+    fun anySettledPairingExist(): Boolean = AuthClient.getListOfSettledPairings().isNotEmpty()
 
     fun connectToWallet(pairingTopicPosition: Int = -1, onProposedSequence: (WalletConnect.Model.ProposedSequence) -> Unit = {}) {
         var pairingTopic: String? = null
 
         if (pairingTopicPosition > -1) {
-            pairingTopic = WalletConnectClient.getListOfSettledPairings()[pairingTopicPosition].topic
+            pairingTopic = AuthClient.getListOfSettledPairings()[pairingTopicPosition].topic
         }
 
         val namespaces: Map<String, WalletConnect.Model.Namespace.Proposal> =
@@ -72,7 +72,7 @@ class ConnectViewModel : ViewModel() {
             namespaces = namespaces,
             pairingTopic = pairingTopic)
 
-        WalletConnectClient.connect(connectParams,
+        AuthClient.connect(connectParams,
             onProposedSequence = { proposedSequence ->
                 viewModelScope.launch(Dispatchers.Main) {
                     onProposedSequence(proposedSequence)

@@ -11,7 +11,7 @@ import com.walletconnect.sample_common.getEthSendTransaction
 import com.walletconnect.sample_common.getEthSignTypedData
 import com.walletconnect.sample_common.getPersonalSignBody
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AuthClient
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -83,7 +83,7 @@ class SelectedAccountViewModel : ViewModel() {
                 chainId = "$parentChain:$chainId"
             )
 
-            WalletConnectClient.request(requestParams) {
+            AuthClient.request(requestParams) {
                 viewModelScope.launch {
                     _event.emit(SampleDappEvents.RequestError(it.throwable.localizedMessage ?: "Error trying to send request"))
                 }
@@ -99,7 +99,7 @@ class SelectedAccountViewModel : ViewModel() {
         val chainDetails = EthTestChains.values().first {
             it.chainNamespace == chainNamespace && it.chainReference == chainReference.toInt()
         }
-        val listOfMethods: List<String> = WalletConnectClient.getListOfSettledSessions().filter { session ->
+        val listOfMethods: List<String> = AuthClient.getListOfSettledSessions().filter { session ->
             session.topic == DappDelegate.selectedSessionTopic
         }.flatMap { session ->
             session.namespaces.values.flatMap { namespace -> namespace.methods }
