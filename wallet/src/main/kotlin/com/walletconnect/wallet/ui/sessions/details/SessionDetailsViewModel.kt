@@ -9,7 +9,7 @@ import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAllAccounts
 import com.walletconnect.wallet.ui.SampleWalletEvents
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AuthClient
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -26,7 +26,7 @@ class SessionDetailsViewModel : ViewModel() {
         WalletDelegate.wcEventModels
             .onEach { wcModel: WalletConnect.Model? ->
                 when (wcModel) {
-                    is WalletConnect.Model.SessionUpdateAccountsResponse.Result -> {
+                    is WalletConnect.Model.SessionUpdateResponse.Result -> {
                         // TODO: Update UI once state synchronization
                         SampleWalletEvents.NoAction
                     }
@@ -41,7 +41,7 @@ class SessionDetailsViewModel : ViewModel() {
     }
 
     fun getSessionDetails(sessionTopic: String) {
-        val state = WalletConnectClient.getListOfSettledSessions().find { it.topic == sessionTopic }?.let { selectedSession ->
+        val state = AuthClient.getListOfSettledSessions().find { it.topic == sessionTopic }?.let { selectedSession ->
             selectedSessionTopic = sessionTopic
 
             val listOfChainAccountInfo = filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession)
@@ -52,7 +52,7 @@ class SessionDetailsViewModel : ViewModel() {
                 url = selectedSessionPeerData.url,
                 description = selectedSessionPeerData.description,
                 listOfChainAccountInfo = listOfChainAccountInfo,
-                methods = selectedSession.methods.joinToString("\n")
+                methods = selectedSession.namespaces.values.flatMap { it.methods }.joinToString("\n")
             )
 
             uiState
@@ -71,7 +71,7 @@ class SessionDetailsViewModel : ViewModel() {
                 reasonCode = 1000
             )
 
-            WalletConnectClient.disconnect(disconnect) { error ->
+            AuthClient.disconnect(disconnect) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
             selectedSessionTopic = null
@@ -85,7 +85,7 @@ class SessionDetailsViewModel : ViewModel() {
     fun ping() {
         selectedSessionTopic?.let {
             val ping = WalletConnect.Params.Ping(it)
-            WalletConnectClient.ping(ping, object : WalletConnect.Listeners.SessionPing {
+            AuthClient.ping(ping, object : WalletConnect.Listeners.SessionPing {
 
                 override fun onSuccess(pingSuccess: WalletConnect.Model.Ping.Success) {
                     viewModelScope.launch() {
@@ -104,57 +104,93 @@ class SessionDetailsViewModel : ViewModel() {
         }
     }
 
-    fun updateAccounts(newUpdatedAccount: SessionDetailsUI.Content.ChainAccountInfo.Account) {
-        (_uiState.value as? SessionDetailsUI.Content)?.let { sessionDetails ->
-            val listOfChainAccountInfo: List<SessionDetailsUI.Content.ChainAccountInfo> = sessionDetails.listOfChainAccountInfo.map { chainAccountInfo ->
-                if (chainAccountInfo.listOfAccounts.any { it.addressTitle == newUpdatedAccount.addressTitle }) {
-                    val listOfAccounts: List<SessionDetailsUI.Content.ChainAccountInfo.Account> = chainAccountInfo.listOfAccounts.map { account ->
-                        if (account.addressTitle == newUpdatedAccount.addressTitle) {
-                            account.copy(isSelected = true)
-                        } else {
-                            account.copy(isSelected = false)
-                        }
-                    }
-
-                    chainAccountInfo.copy(listOfAccounts = listOfAccounts)
-                } else {
-                    chainAccountInfo
-                }
-            }
-
-            val listOfSelectedAccounts = listOfChainAccountInfo.flatMap { chainAccountInfo ->
-                chainAccountInfo.listOfAccounts.filter { it.isSelected }.map { account ->
-                    "${chainAccountInfo.parentChain}:${chainAccountInfo.chainId}:${account.accountAddress}"
-                }
-            }
-            selectedSessionTopic?.let {
-                val update = WalletConnect.Params.UpdateAccounts(sessionTopic = it, accounts = listOfSelectedAccounts)
-
-                WalletConnectClient.updateAccounts(update) { error -> Log.d("Error", "sending update error: $error") }
-            }
+    fun extendSession() {
+        selectedSessionTopic?.let {
+            val extend = WalletConnect.Params.Extend(it)
+            AuthClient.extend(extend) { error -> Log.d("Error", "Extend session error: $error") }
         }
+    }
 
-        // TODO: Once state sync is complete, replace updating UI from VM with event from WalletDelegate - SessionUpdateResponse
+    fun emitEvent() {
+        selectedSessionTopic?.let {
+            //Hardcoded data for test purposes
+            val extend = WalletConnect.Params.Emit(it, WalletConnect.Model.SessionEvent("testEvent", "testData"), "eip155:42")
+            AuthClient.emit(extend) { error -> Log.d("Error", "Extend session error: $error") }
+        }
+    }
+
+    fun updateNamespace() {
+        //todo: commented and hardcoded new namespaces
+//        (_uiState.value as? SessionDetailsUI.Content)?.let { sessionDetails ->
+//            val listOfChainAccountInfo: List<SessionDetailsUI.Content.ChainAccountInfo> =
+//                sessionDetails.listOfChainAccountInfo.map { chainAccountInfo ->
+//                    if (chainAccountInfo.listOfAccounts.any { it.addressTitle == newUpdatedAccount.addressTitle }) {
+//                        val listOfAccounts: List<SessionDetailsUI.Content.ChainAccountInfo.Account> =
+//                            chainAccountInfo.listOfAccounts.map { account ->
+//                                if (account.addressTitle == newUpdatedAccount.addressTitle) {
+//                                    account.copy(isSelected = true)
+//                                } else {
+//                                    account.copy(isSelected = false)
+//                                }
+//                            }
+//
+//                        chainAccountInfo.copy(listOfAccounts = listOfAccounts)
+//                    } else {
+//                        chainAccountInfo
+//                    }
+//                }
+//
+//            val namespaces: Map<String, WalletConnect.Model.Namespace.Session> =
+//                listOfChainAccountInfo.map { chainAccountInfo: SessionDetailsUI.Content.ChainAccountInfo ->
+//                    chainAccountInfo.chainNamespace to chainAccountInfo.listOfAccounts.filter { it.isSelected }
+//                        .map { account: SessionDetailsUI.Content.ChainAccountInfo.Account ->
+//                            "${chainAccountInfo.chainNamespace}:${chainAccountInfo.chainReference}:${account.accountAddress}"
+//                        }
+//                }.groupBy { (chainNamespace, _) ->
+//                    chainNamespace
+//                }.map { (chainNamespace: String, accountDetails: List<Pair<String, List<String>>>) ->
+//                    val accounts: List<String> = accountDetails.flatMap { it.second }
+//                    val methods: List<String> = listOf("eth_sign")
+//                    val events: List<String> = emptyList()
+//
+//                    chainNamespace to WalletConnect.Model.Namespace.Session(accounts = accounts,
+//                        methods = methods,
+//                        events = events,
+//                        extensions = null)
+//                }.toMap()
+
+        selectedSessionTopic?.let { topic ->
+            //hardcoded the namespaces structure
+            val namespaces: Map<String, WalletConnect.Model.Namespace.Session> =
+                mapOf(
+                    "eip155" to WalletConnect.Model.Namespace.Session(
+                        accounts =
+                        listOf(
+                            "eip155:4:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62",
+                            "eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb"
+                        ),
+                        methods = listOf("eth_sign", "eth_sendTransaction"),
+                        events = listOf("new_testEvent"),
+                        extensions = listOf(
+                            WalletConnect.Model.Namespace.Session.Extension(
+                                accounts = listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb"),
+                                methods = listOf("ethMain_sign"),
+                                events = listOf("ethMain_event")
+                            )
+                        )
+                    )
+                )
+            val update = WalletConnect.Params.UpdateNamespaces(sessionTopic = topic, namespaces = namespaces)
+
+            AuthClient.update(update) { error -> Log.d("Error", "Sending update error: $error") }
+        }
+    }
+
+    // TODO: Once state sync is complete, replace updating UI from VM with event from WalletDelegate - SessionUpdateResponse
 //        viewModelScope.launch {
 //            _uiState.emit(updatedUIState)
 //        }
-    }
 
-    fun updateMethods() {
-        val updatedState = (_uiState.value as? SessionDetailsUI.Content)?.let { sessionDetails ->
-            selectedSessionTopic?.let { sessionTopic ->
-                val upgrade = WalletConnect.Params.UpdateMethods(sessionTopic = sessionTopic, methods = listOf("eth_sign"))
-                WalletConnectClient.updateMethods(upgrade) { error -> Log.d("Error", "sending upgrade error: $error") }
-            }
-
-            sessionDetails.copy(methods = "eth_sign")
-        }
-
-        // TODO: Once state sync is complete, replace updating UI from VM with event from WalletDelegate - onSessionUpgradeResponse
-        viewModelScope.launch {
-            _uiState.emit(updatedState)
-        }
-    }
 
     private fun filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession: WalletConnect.Model.Session): List<SessionDetailsUI.Content.ChainAccountInfo> =
         mapOfAllAccounts.values
@@ -163,12 +199,12 @@ class SessionDetailsViewModel : ViewModel() {
                 accountsMap.toList().map { (ethChain, accountAddress) -> Triple(ethChain, accountAddress, accountsMapID) }
             }
             .filter { (ethChain: EthTestChains, _, _) ->
-                val listOfParentChainsWChainId = selectedSession.accounts.map {
-                    val (parentChain, chainId, account) = it.split(":")
-                    "$parentChain:$chainId"
+                val listOfParentChainsWChainId = selectedSession.namespaces.values.flatMap { it.accounts }.map {
+                    val (chainNamespace, chainReference, _) = it.split(":")
+                    "$chainNamespace:$chainReference"
                 }
 
-                "${ethChain.parentChain}:${ethChain.chainId}" in listOfParentChainsWChainId
+                "${ethChain.chainNamespace}:${ethChain.chainReference}" in listOfParentChainsWChainId
             }
             .sortedBy { (ethChain: EthTestChains, _, _) -> ethChain.order }
             .groupBy { (ethChain: EthTestChains, _: String, _: Int) -> ethChain }.values
@@ -176,21 +212,23 @@ class SessionDetailsViewModel : ViewModel() {
                 val chainDetails: EthTestChains = it.first().first
                 val chainName = chainDetails.chainName
                 val chainIcon = chainDetails.icon
-                val parentChain = chainDetails.parentChain
-                val chainId = chainDetails.chainId
+                val parentChain = chainDetails.chainNamespace
+                val chainId = chainDetails.chainReference
 
-                val listOfAccounts: List<SessionDetailsUI.Content.ChainAccountInfo.Account> = it.map { (ethChain: EthTestChains, accountAddress: String, accountsMapId: Int) ->
-                    val isSelected = "${ethChain.parentChain}:${ethChain.chainId}:$accountAddress" in selectedSession.accounts
-                    val addressTitle = "$accountAddress-Account $accountsMapId"
+                val listOfAccounts: List<SessionDetailsUI.Content.ChainAccountInfo.Account> =
+                    it.map { (ethChain: EthTestChains, accountAddress: String, accountsMapId: Int) ->
+                        val isSelected =
+                            "${ethChain.chainNamespace}:${ethChain.chainReference}:$accountAddress" in selectedSession.namespaces.values.flatMap { it.accounts }
+                        val addressTitle = "$accountAddress-Account $accountsMapId"
 
-                    SessionDetailsUI.Content.ChainAccountInfo.Account(isSelected, addressTitle, accountAddress)
-                }
+                        SessionDetailsUI.Content.ChainAccountInfo.Account(isSelected, addressTitle, accountAddress)
+                    }
 
                 SessionDetailsUI.Content.ChainAccountInfo(
                     chainName = chainName,
                     chainIcon = chainIcon,
-                    parentChain = parentChain,
-                    chainId = chainId,
+                    chainNamespace = parentChain,
+                    chainReference = chainId,
                     listOfAccounts = listOfAccounts
                 )
             }

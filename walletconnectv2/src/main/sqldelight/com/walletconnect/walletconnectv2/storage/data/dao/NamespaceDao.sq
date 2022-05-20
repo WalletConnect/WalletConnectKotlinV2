@@ -1,0 +1,28 @@
+import kotlin.collections.List;
+
+CREATE TABLE NamespaceDao(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    session_id INTEGER NOT NULL,
+    key TEXT NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String> NOT NULL,
+    UNIQUE(session_id, key)
+);
+
+insertOrAbortNamespace:
+INSERT OR ABORT INTO NamespaceDao(session_id, key, accounts, methods, events)
+VALUES (?, ?, ?, ?, ?);
+
+deleteNamespacesByTopic:
+DELETE FROM NamespaceDao
+WHERE session_id = (
+   SELECT id
+   FROM SessionDao
+   WHERE topic = ?
+);
+
+getNamespaces:
+SELECT key, accounts, methods, events
+FROM NamespaceDao
+WHERE session_id = ?;

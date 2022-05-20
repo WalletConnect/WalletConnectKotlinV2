@@ -2,7 +2,6 @@ CREATE TABLE PairingDao (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     topic TEXT UNIQUE NOT NULL,
     expiry INTEGER NOT NULL,
-    peer_metadata_id INTEGER,
     relay_protocol TEXT NOT NULL,
     relay_data TEXT,
     uri TEXT NOT NULL,
@@ -16,7 +15,7 @@ VALUES (?,?,?,?,?,?);
 getListOfPairingDaos:
 SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, pd.is_active
 FROM PairingDao pd
-    LEFT JOIN MetaDataDao mdd_peer ON pd.peer_metadata_id = mdd_peer.id;
+    LEFT JOIN MetaDataDao mdd_peer ON pd.topic = mdd_peer.sequence_topic AND mdd_peer.type = "PEER";
 
 getPairingByTopic:
 SELECT topic, expiry, relay_protocol, relay_data, uri, is_active
@@ -30,11 +29,6 @@ WHERE ? = topic;
 activatePairing:
 UPDATE OR ABORT PairingDao
 SET expiry = ?, is_active = ?
-WHERE topic = ?;
-
-updatePairingPeerMetadata:
-UPDATE OR ABORT PairingDao
-SET peer_metadata_id = ?
 WHERE topic = ?;
 
 hasTopic:

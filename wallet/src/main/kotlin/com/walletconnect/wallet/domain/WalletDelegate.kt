@@ -3,7 +3,7 @@ package com.walletconnect.wallet.domain
 import android.util.Log
 import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AuthClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
-object WalletDelegate : WalletConnectClient.WalletDelegate {
+object WalletDelegate : AuthClient.WalletDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcEventModels: MutableSharedFlow<WalletConnect.Model?> = MutableSharedFlow(1)
     val wcEventModels: SharedFlow<WalletConnect.Model?> = _wcEventModels
@@ -22,7 +22,7 @@ object WalletDelegate : WalletConnectClient.WalletDelegate {
         private set
 
     init {
-        WalletConnectClient.setWalletDelegate(this)
+        AuthClient.setWalletDelegate(this)
     }
 
     override fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal) {
@@ -59,21 +59,9 @@ object WalletDelegate : WalletConnectClient.WalletDelegate {
         }
     }
 
-    override fun onSessionUpdateAccountsResponse(sessionUpdateAccountsResponse: WalletConnect.Model.SessionUpdateAccountsResponse) {
+    override fun onSessionUpdateResponse(sessionUpdateResponse: WalletConnect.Model.SessionUpdateResponse) {
         scope.launch {
-            _wcEventModels.emit(sessionUpdateAccountsResponse)
-        }
-    }
-
-    override fun onSessionUpdateMethodsResponse(sessionUpdateMethodsResponse: WalletConnect.Model.SessionUpdateMethodsResponse) {
-        scope.launch {
-            _wcEventModels.emit(sessionUpdateMethodsResponse)
-        }
-    }
-
-    override fun onSessionUpdateEventsResponse(sessionUpdateEventsResponse: WalletConnect.Model.SessionUpdateEventsResponse) {
-        scope.launch {
-            _wcEventModels.emit(sessionUpdateEventsResponse)
+            _wcEventModels.emit(sessionUpdateResponse)
         }
     }
 

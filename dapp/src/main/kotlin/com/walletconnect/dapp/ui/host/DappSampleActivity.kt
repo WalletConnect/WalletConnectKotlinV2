@@ -9,7 +9,7 @@ import com.walletconnect.dapp.R
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AuthClient
 
 class DappSampleActivity : AppCompatActivity(R.layout.activity_dapp) {
     private val navHostFragment by lazy {
@@ -31,7 +31,7 @@ class DappSampleActivity : AppCompatActivity(R.layout.activity_dapp) {
 
         DappDelegate.selectedSessionTopic?.let {
             val disconnectParams = WalletConnect.Params.Disconnect(sessionTopic = it, reason = "shutdown", reasonCode = 400)
-            WalletConnectClient.disconnect(disconnectParams){ error ->
+            AuthClient.disconnect(disconnectParams){ error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
         }

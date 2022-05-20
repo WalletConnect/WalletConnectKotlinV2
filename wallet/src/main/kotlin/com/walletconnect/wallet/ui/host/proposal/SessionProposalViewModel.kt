@@ -7,7 +7,7 @@ import com.walletconnect.sample_common.tag
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAllAccounts
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AuthClient
 
 class SessionProposalViewModel : ViewModel() {
 
@@ -22,26 +22,32 @@ class SessionProposalViewModel : ViewModel() {
 
     fun approve() {
         if (WalletDelegate.sessionProposal != null && WalletDelegate.selectedChainAddressId in mapOfAllAccounts.keys) {
-            val selectedAccounts = mapOfAllAccounts[WalletDelegate.selectedChainAddressId] ?: throw Exception("Can't find account")
-            requireNotNull(WalletDelegate.sessionProposal).let { sessionProposal ->
-                val accounts: List<String> = selectedAccounts.filter { (chain: EthTestChains, _) ->
-                    "${chain.parentChain}:${chain.chainId}" in sessionProposal.chains
-                }.map { (chain: EthTestChains, accountAddress: String) ->
-                    "${chain.parentChain}:${chain.chainId}:${accountAddress}"
+            val selectedAccounts: Map<EthTestChains, String> = mapOfAllAccounts[WalletDelegate.selectedChainAddressId] ?: throw Exception("Can't find account")
+            val sessionProposal: WalletConnect.Model.SessionProposal = requireNotNull(WalletDelegate.sessionProposal)
+            val sessionNamespaces: Map<String, WalletConnect.Model.Namespace.Session> = selectedAccounts.filter { (chain: EthTestChains, _) ->
+                "${chain.chainNamespace}:${chain.chainReference}" in sessionProposal.requiredNamespaces.values.flatMap { it.chains }
+            }.toList().groupBy { (chain: EthTestChains, _: String) ->
+                chain.chainNamespace
+            }.map { (namespaceKey: String, chainData: List<Pair<EthTestChains, String>>) ->
+                val accounts = chainData.map { (chain: EthTestChains, accountAddress: String) ->
+                    "${chain.chainNamespace}:${chain.chainReference}:${accountAddress}"
                 }
-                val approveProposal = WalletConnect.Params.Approve(
-                    proposerPublicKey = sessionProposal.proposerPublicKey,
-                    accounts = accounts,
-                    methods = sessionProposal.methods,
-                    events = sessionProposal.events
-                )
+                val methods = sessionProposal.requiredNamespaces.values.flatMap { it.methods }
+                val events = sessionProposal.requiredNamespaces.values.flatMap { it.events }
 
-                WalletConnectClient.approveSession(approveProposal) { error ->
-                    Log.e(tag(this@SessionProposalViewModel), error.throwable.stackTraceToString())
-                }
+                namespaceKey to WalletConnect.Model.Namespace.Session(accounts = accounts, methods = methods, events = events, extensions = null)
+            }.toMap()
 
-                WalletDelegate.clearCache()
+            val approveProposal = WalletConnect.Params.Approve(
+                proposerPublicKey = sessionProposal.proposerPublicKey,
+                namespaces = sessionNamespaces
+            )
+
+            AuthClient.approveSession(approveProposal) { error ->
+                Log.e(tag(this@SessionProposalViewModel), error.throwable.stackTraceToString())
             }
+
+            WalletDelegate.clearCache()
         }
     }
 
@@ -54,7 +60,7 @@ class SessionProposalViewModel : ViewModel() {
                 code = 406
             )
 
-            WalletConnectClient.rejectSession(reject) { error ->
+            AuthClient.rejectSession(reject) { error ->
                 Log.d(tag(this@SessionProposalViewModel), "sending reject error: $error")
             }
 
@@ -68,8 +74,8 @@ class SessionProposalViewModel : ViewModel() {
             peerName = sessionProposal.name,
             proposalUri = sessionProposal.url,
             peerDescription = sessionProposal.description,
-            chains = sessionProposal.chains.joinToString("\n"),
-            methods = sessionProposal.methods.joinToString("\n")
+            chains = sessionProposal.requiredNamespaces.flatMap { it.value.chains }.joinToString("\n"),
+            methods = sessionProposal.requiredNamespaces.flatMap { it.value.methods }.joinToString("\n")
         )
     }
 }

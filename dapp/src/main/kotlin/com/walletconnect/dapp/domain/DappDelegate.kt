@@ -3,7 +3,7 @@ package com.walletconnect.dapp.domain
 import android.util.Log
 import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AuthClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
-object DappDelegate : WalletConnectClient.DappDelegate {
+object DappDelegate : AuthClient.DappDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcEventModels: MutableSharedFlow<WalletConnect.Model?> = MutableSharedFlow()
     val wcEventModels: SharedFlow<WalletConnect.Model?> =  _wcEventModels.asSharedFlow()
@@ -21,7 +21,7 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         private set
 
     init {
-        WalletConnectClient.setDappDelegate(this)
+        AuthClient.setDappDelegate(this)
     }
 
     override fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession) {
@@ -38,21 +38,9 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         }
     }
 
-    override fun onSessionUpdateAccounts(updatedSessionAccounts: WalletConnect.Model.UpdatedSessionAccounts) {
+    override fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdatedSession) {
         scope.launch {
-            _wcEventModels.emit(updatedSessionAccounts)
-        }
-    }
-
-    override fun onSessionUpdateMethods(updatedSessionMethods: WalletConnect.Model.UpdatedSessionMethods) {
-        scope.launch {
-            _wcEventModels.emit(updatedSessionMethods)
-        }
-    }
-
-    override fun onSessionUpdateEvents(updatedSessionEvents: WalletConnect.Model.UpdatedSessionEvents) {
-        scope.launch {
-            _wcEventModels.emit(updatedSessionEvents)
+            _wcEventModels.emit(updatedSession)
         }
     }
 
@@ -64,7 +52,7 @@ object DappDelegate : WalletConnectClient.DappDelegate {
         }
     }
 
-    override fun onUpdateSessionExpiry(session: WalletConnect.Model.Session) {
+    override fun onSessionExtend(session: WalletConnect.Model.Session) {
         scope.launch {
             _wcEventModels.emit(session)
         }

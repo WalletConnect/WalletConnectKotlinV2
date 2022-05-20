@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 
-object WalletConnectClient {
+object AuthClient {
 
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var engineInteractor: EngineInteractor
@@ -51,9 +51,7 @@ object WalletConnectClient {
                     is EngineDO.SessionEvent -> delegate.onSessionEvent(event.toClientSessionEvent())
                     //Responses
                     is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
-                    is EngineDO.SessionUpdateAccountsResponse -> delegate.onSessionUpdateAccountsResponse(event.toClientUpdateSessionAccountsResponse())
-                    is EngineDO.SessionUpdateMethodsResponse -> delegate.onSessionUpdateMethodsResponse(event.toClientUpdateSessionMethodsResponse())
-                    is EngineDO.SessionUpdateEventsResponse -> delegate.onSessionUpdateEventsResponse(event.toClientUpdateSessionEventsResponse())
+                    is EngineDO.SessionUpdateNamespacesResponse -> delegate.onSessionUpdateResponse(event.toClientUpdateSessionNamespacesResponse())
                     //Utils
                     is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
                 }
@@ -63,17 +61,15 @@ object WalletConnectClient {
 
     @Throws(IllegalStateException::class)
     fun setDappDelegate(delegate: DappDelegate) {
-    checkEngineInitialization()
+        checkEngineInitialization()
         scope.launch {
             engineInteractor.sequenceEvent.collect { event ->
                 when (event) {
                     is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
                     is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
-                    is EngineDO.SessionUpdateAccounts -> delegate.onSessionUpdateAccounts(event.toClientSessionsUpdateAccounts())
-                    is EngineDO.SessionUpdateMethods -> delegate.onSessionUpdateMethods(event.toClientSessionsUpdateMethods())
-                    is EngineDO.SessionUpdateEvents -> delegate.onSessionUpdateEvents(event.toClientSessionsUpdateEvents())
+                    is EngineDO.SessionUpdateNamespaces -> delegate.onSessionUpdate(event.toClientSessionsNamespaces())
                     is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
-                    is EngineDO.SessionUpdateExpiry -> delegate.onUpdateSessionExpiry(event.toClientSettledSession())
+                    is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientSettledSession())
                     //Responses
                     is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
                     //Utils
@@ -96,14 +92,16 @@ object WalletConnectClient {
     @Throws(IllegalStateException::class)
     fun connect(
         connect: WalletConnect.Params.Connect, onProposedSequence: (WalletConnect.Model.ProposedSequence) -> Unit,
-        onError: (WalletConnect.Model.Error) -> Unit
+        onError: (WalletConnect.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
         try {
             engineInteractor.proposeSequence(
-                connect.chains, connect.methods, connect.events, connect.pairingTopic,
-                onProposedSequence = { proposedSequence -> onProposedSequence(proposedSequence.toClientProposedSequence()) },
-                onFailure = { error -> onError(WalletConnect.Model.Error(error)) }
+                connect.namespaces.toMapOfEngineNamespacesProposal(),
+                connect.relays?.toListEngineOfRelayProtocolOptions(),
+                connect.pairingTopic,
+                { proposedSequence -> onProposedSequence(proposedSequence.toClientProposedSequence()) },
+                { error -> onError(WalletConnect.Model.Error(error)) }
             )
         } catch (error: Exception) {
             onError(WalletConnect.Model.Error(error))
@@ -124,7 +122,7 @@ object WalletConnectClient {
     fun approveSession(approve: WalletConnect.Params.Approve, onError: (WalletConnect.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.approve(approve.proposerPublicKey, approve.accounts, approve.methods, approve.events) { error ->
+            engineInteractor.approve(approve.proposerPublicKey, approve.namespaces.toMapOfEngineNamespacesSession()) { error ->
                 onError(WalletConnect.Model.Error(error))
             }
         } catch (error: Exception) {
@@ -145,18 +143,6 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class)
-    fun respond(response: WalletConnect.Params.Response, onError: (WalletConnect.Model.Error) -> Unit) {
-        checkEngineInitialization()
-        try {
-            engineInteractor.respondSessionRequest(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponseVO()) { error ->
-                onError(WalletConnect.Model.Error(error))
-            }
-        } catch (error: Exception) {
-            onError(WalletConnect.Model.Error(error))
-        }
-    }
-
-    @Throws(IllegalStateException::class)
     fun request(request: WalletConnect.Params.Request, onError: (WalletConnect.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
@@ -169,10 +155,10 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class)
-    fun updateAccounts(updateAccounts: WalletConnect.Params.UpdateAccounts, onError: (WalletConnect.Model.Error) -> Unit) {
+    fun respond(response: WalletConnect.Params.Response, onError: (WalletConnect.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.updateSessionAccounts(updateAccounts.sessionTopic, updateAccounts.accounts) { error ->
+            engineInteractor.respondSessionRequest(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponseVO()) { error ->
                 onError(WalletConnect.Model.Error(error))
             }
         } catch (error: Exception) {
@@ -181,36 +167,21 @@ object WalletConnectClient {
     }
 
     @Throws(IllegalStateException::class)
-    fun updateMethods(updateMethods: WalletConnect.Params.UpdateMethods, onError: (WalletConnect.Model.Error) -> Unit) {
+    fun update(updateNamespaces: WalletConnect.Params.UpdateNamespaces, onError: (WalletConnect.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.updateSessionMethods(updateMethods.sessionTopic, updateMethods.methods) { error ->
-                onError(WalletConnect.Model.Error(error))
-            }
+            engineInteractor.updateSession(updateNamespaces.sessionTopic, updateNamespaces.namespaces.toMapOfEngineNamespacesSession())
+            { error -> onError(WalletConnect.Model.Error(error)) }
         } catch (error: Exception) {
             onError(WalletConnect.Model.Error(error))
         }
     }
 
     @Throws(IllegalStateException::class)
-    fun updateEvents(updateEvents: WalletConnect.Params.UpdateEvents, onError: (WalletConnect.Model.Error) -> Unit) {
+    fun extend(extend: WalletConnect.Params.Extend, onError: (WalletConnect.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.updateSessionEvents(updateEvents.sessionTopic, updateEvents.events) { error ->
-                onError(WalletConnect.Model.Error(error))
-            }
-        } catch (error: Exception) {
-            onError(WalletConnect.Model.Error(error))
-        }
-    }
-
-    @Throws(IllegalStateException::class)
-    fun updateExpiry(updateExpiry: WalletConnect.Params.UpdateExpiry, onError: (WalletConnect.Model.Error) -> Unit) {
-        checkEngineInitialization()
-        try {
-            engineInteractor.updateSessionExpiry(updateExpiry.topic, updateExpiry.newExpiration) { error ->
-                onError(WalletConnect.Model.Error(error))
-            }
+            engineInteractor.extend(extend.topic) { error -> onError(WalletConnect.Model.Error(error)) }
         } catch (error: Exception) {
             onError(WalletConnect.Model.Error(error))
         }
@@ -220,9 +191,7 @@ object WalletConnectClient {
     fun emit(emit: WalletConnect.Params.Emit, onError: (WalletConnect.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.emit(emit.topic, emit.event.toEngineEvent(emit.chainId)) { error ->
-                onError(WalletConnect.Model.Error(error))
-            }
+            engineInteractor.emit(emit.topic, emit.event.toEngineEvent(emit.chainId)) { error -> onError(WalletConnect.Model.Error(error)) }
         } catch (error: Exception) {
             onError(WalletConnect.Model.Error(error))
         }
@@ -284,9 +253,7 @@ object WalletConnectClient {
 
         //Responses
         fun onSessionSettleResponse(settleSessionResponse: WalletConnect.Model.SettledSessionResponse)
-        fun onSessionUpdateAccountsResponse(sessionUpdateAccountsResponse: WalletConnect.Model.SessionUpdateAccountsResponse)
-        fun onSessionUpdateMethodsResponse(sessionUpdateMethodsResponse: WalletConnect.Model.SessionUpdateMethodsResponse)
-        fun onSessionUpdateEventsResponse(sessionUpdateEventsResponse: WalletConnect.Model.SessionUpdateEventsResponse)
+        fun onSessionUpdateResponse(sessionUpdateResponse: WalletConnect.Model.SessionUpdateResponse)
 
         //Utils
         fun onConnectionStateChange(state: WalletConnect.Model.ConnectionState)
@@ -295,10 +262,8 @@ object WalletConnectClient {
     interface DappDelegate {
         fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession)
-        fun onSessionUpdateAccounts(updatedSessionAccounts: WalletConnect.Model.UpdatedSessionAccounts)
-        fun onSessionUpdateMethods(updatedSessionMethods: WalletConnect.Model.UpdatedSessionMethods)
-        fun onSessionUpdateEvents(updatedSessionEvents: WalletConnect.Model.UpdatedSessionEvents)
-        fun onUpdateSessionExpiry(session: WalletConnect.Model.Session)
+        fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdatedSession)
+        fun onSessionExtend(session: WalletConnect.Model.Session)
         fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
 
         //Responses
@@ -307,7 +272,6 @@ object WalletConnectClient {
         // Utils
         fun onConnectionStateChange(state: WalletConnect.Model.ConnectionState)
     }
-
 
     @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {

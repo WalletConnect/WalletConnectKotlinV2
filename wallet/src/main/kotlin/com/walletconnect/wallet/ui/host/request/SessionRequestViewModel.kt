@@ -7,7 +7,7 @@ import com.walletconnect.sample_common.tag
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.ui.SampleWalletEvents
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AuthClient
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -41,7 +41,7 @@ class SessionRequestViewModel : ViewModel() {
                 )
             )
 
-            WalletConnectClient.respond(result) { error ->
+            AuthClient.respond(result) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
         }
@@ -62,7 +62,7 @@ class SessionRequestViewModel : ViewModel() {
                 )
             )
 
-            WalletConnectClient.respond(result) { error ->
+            AuthClient.respond(result) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
         }

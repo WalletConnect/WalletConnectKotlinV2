@@ -71,7 +71,7 @@ class SessionDetailsAdapter(private val updateOnSelection: (SessionDetailsUI.Con
                 oldItem == newItem
 
             override fun areContentsTheSame(oldItem: SessionDetailsUI.Content.ChainAccountInfo, newItem: SessionDetailsUI.Content.ChainAccountInfo): Boolean =
-                oldItem.parentChain == newItem.parentChain && oldItem.chainId == newItem.chainId && oldItem.listOfAccounts.containsAll(newItem.listOfAccounts)
+                oldItem.chainNamespace == newItem.chainNamespace && oldItem.chainReference == newItem.chainReference && oldItem.listOfAccounts.containsAll(newItem.listOfAccounts)
         }
     }
 }

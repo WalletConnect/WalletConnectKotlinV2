@@ -21,7 +21,7 @@ internal data class PairingVO(
 
     companion object {
 
-        internal fun createPairing(topic: TopicVO, relay: RelayProtocolOptionsVO, uri: String): PairingVO {
+        internal fun createInactivePairing(topic: TopicVO, relay: RelayProtocolOptionsVO, uri: String): PairingVO {
             return PairingVO(
                 topic,
                 ExpiryVO(Expiration.inactivePairing),
@@ -32,7 +32,7 @@ internal data class PairingVO(
             )
         }
 
-        internal fun createFromUri(uri: EngineDO.WalletConnectUri): PairingVO {
+        internal fun createActivePairing(uri: EngineDO.WalletConnectUri): PairingVO {
             return PairingVO(
                 uri.topic,
                 ExpiryVO(Expiration.activePairing),

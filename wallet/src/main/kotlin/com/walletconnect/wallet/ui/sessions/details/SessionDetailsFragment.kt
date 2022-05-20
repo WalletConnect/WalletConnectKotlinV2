@@ -27,7 +27,11 @@ import kotlinx.coroutines.flow.onEach
 class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
     private val binding: FragmentSessionDetailsBinding by viewBinding(FragmentSessionDetailsBinding::bind)
     private val viewModel: SessionDetailsViewModel by viewModels()
-    private val chainAccountsAdapter by lazy { SessionDetailsAdapter(viewModel::updateAccounts) }
+    private val chainAccountsAdapter by lazy {
+        SessionDetailsAdapter {
+            //TODO Call sessionUpdate but only change account
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -77,8 +81,10 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
             .flowWithLifecycle(viewLifecycleOwner.lifecycle)
             .onEach { event ->
                 when (event) {
-                    is SampleWalletEvents.PingSuccess -> Toast.makeText(requireContext(), "Pinged Peer Successfully on Topic: ${event.topic}", Toast.LENGTH_SHORT).show()
-                    is SampleWalletEvents.PingError -> Toast.makeText(requireContext(), "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT).show()
+                    is SampleWalletEvents.PingSuccess ->
+                        Toast.makeText(requireContext(), "Pinged Peer Successfully on Topic: ${event.topic}", Toast.LENGTH_SHORT).show()
+                    is SampleWalletEvents.PingError -> Toast.makeText(requireContext(), "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT)
+                        .show()
                     is SampleWalletEvents.Disconnect -> findNavController().popBackStack()
                     else -> Unit
                 }
@@ -97,10 +103,19 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
                 viewModel.ping()
                 false
             }
-            R.id.updateMethods -> {
-                viewModel.updateMethods()
+            R.id.extend -> {
+                viewModel.extendSession()
                 false
             }
+//            TODO: Add it once again with Sample Dapp update after namespace refactor
+//            R.id.updateNamespaces -> {
+//                viewModel.updateNamespace()
+//                false
+//            }
+//            R.id.emit -> {
+//                viewModel.emitEvent()
+//                false
+//            }
             else -> super.onOptionsItemSelected(item)
         }
     }

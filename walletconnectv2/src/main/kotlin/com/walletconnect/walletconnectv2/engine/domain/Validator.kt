@@ -3,8 +3,8 @@ package com.walletconnect.walletconnectv2.engine.domain
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
 import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
-import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
 import com.walletconnect.walletconnectv2.util.Time
 import java.net.URI
@@ -12,70 +12,97 @@ import java.net.URISyntaxException
 
 internal object Validator {
 
-    internal fun validateMethods(methods: List<String>, onInvalidJsonRpc: (String) -> Unit) {
-        if (!areMethodsValid(methods)) {
-            onInvalidJsonRpc(EMPTY_RPC_METHODS_LIST_MESSAGE)
-        }
-    }
-
-    internal fun validateEvents(events: List<String>, onInvalidEvents: (String) -> Unit) {
-        if (!areEventsValid(events)) {
-            onInvalidEvents(INVALID_EVENTS_MESSAGE)
-        }
-    }
-
-    internal fun validateCAIP2(chains: List<String>, onInvalidChains: (String) -> Unit) {
+    @JvmSynthetic
+    internal inline fun validateProposalNamespace(namespaces: Map<String, NamespaceVO.Proposal>, onNamespaceError: (String) -> Unit) {
         when {
-            !isBlockchainValid(chains) -> onInvalidChains(EMPTY_CHAIN_LIST_MESSAGE)
-            chains.any { chainId -> !isChainIdValid(chainId) } -> onInvalidChains(WRONG_CHAIN_ID_FORMAT_MESSAGE)
+            !areProposalNamespacesKeysProperlyFormatted(namespaces) -> onNamespaceError(NAMESPACE_EXTENSION_KEYS_CAIP_2_MESSAGE)
+            !areChainsNotEmpty(namespaces) -> onNamespaceError(NAMESPACE_MISSING_CHAINS_MESSAGE)
+            !areChainIdsValid(namespaces) -> onNamespaceError(NAMESPACE_CHAINS_CAIP_2_MESSAGE)
+            !areChainsInMatchingNamespace(namespaces) -> onNamespaceError(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE)
+            !areExtensionChainsNotEmpty(namespaces) -> onNamespaceError(NAMESPACE_EXTENSION_MISSING_CHAINS_MESSAGE)
         }
     }
 
-    internal fun validateIfAccountsAreOnValidNetwork(accounts: List<String>, chains: List<String>, onInvalidAccounts: (String) -> Unit) {
-        if (!areAccountsOnValidNetworks(accounts, chains)) {
-            onInvalidAccounts(UNAUTHORIZED_CHAIN_ID_MESSAGE)
-        }
-    }
-
-    internal fun validateCAIP10(chains: List<String>, onInvalidAccounts: (String) -> Unit) {
+    @JvmSynthetic
+    internal inline fun validateSessionNamespace(
+        sessionNamespaces: Map<String, NamespaceVO.Session>,
+        proposalNamespaces: Map<String, NamespaceVO.Proposal>,
+        onNamespaceError: (String) -> Unit,
+    ) {
         when {
-            !areAccountsNotEmpty(chains) -> onInvalidAccounts(EMPTY_ACCOUNT_LIST_MESSAGE)
-            chains.any { accountId -> !isAccountIdValid(accountId) } -> onInvalidAccounts(WRONG_ACCOUNT_ID_FORMAT_MESSAGE)
+            !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) -> onNamespaceError(NAMESPACE_KEYS_MISSING_MESSAGE)
+            !areAccountsNotEmpty(sessionNamespaces) -> onNamespaceError(NAMESPACE_MISSING_ACCOUNTS_MESSAGE)
+            !areAccountIdsValid(sessionNamespaces) -> onNamespaceError(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE)
+            !areAllChainsApprovedWithAtLeastOneAccount(sessionNamespaces, proposalNamespaces) ->
+                onNamespaceError(NAMESPACE_MISSING_ACCOUNTS_FOR_CHAINS_MESSAGE)
+            !areAllMethodsApproved(sessionNamespaces, proposalNamespaces) -> onNamespaceError(NAMESPACE_MISSING_METHODS_MESSAGE)
+            !areAllEventsApproved(sessionNamespaces, proposalNamespaces) -> onNamespaceError(NAMESPACE_MISSING_EVENTS_MESSAGE)
+            !areAccountsInMatchingNamespace(sessionNamespaces) -> onNamespaceError(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE)
+            !areExtensionAccountsNotEmpty(sessionNamespaces) -> onNamespaceError(NAMESPACE_EXTENSION_MISSING_ACCOUNTS_MESSAGE)
         }
     }
 
-    internal fun isBlockchainValid(chains: List<String>): Boolean =
-        chains.isNotEmpty() && chains.any { chain -> chain.isNotEmpty() }
-
-    internal fun validateEvent(event: EngineDO.Event, onInvalidEvent: (String) -> Unit) {
-        if (event.data.isEmpty() || event.name.isEmpty() || event.chainId != null && event.chainId.isEmpty()) {
-            onInvalidEvent(INVALID_EVENT_MESSAGE)
+    @JvmSynthetic
+    internal inline fun validateSessionNamespaceUpdate(
+        sessionNamespaces: Map<String, NamespaceVO.Session>,
+        onNamespaceError: (String) -> Unit,
+    ) {
+        when {
+            !areSessionNamespacesKeysProperlyFormatted(sessionNamespaces) -> onNamespaceError(NAMESPACE_EXTENSION_KEYS_CAIP_2_MESSAGE)
+            !areAccountsNotEmpty(sessionNamespaces) -> onNamespaceError(NAMESPACE_MISSING_ACCOUNTS_MESSAGE)
+            !areAccountIdsValid(sessionNamespaces) -> onNamespaceError(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE)
+            !areAccountsInMatchingNamespace(sessionNamespaces) -> onNamespaceError(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE)
+            !areExtensionAccountsNotEmpty(sessionNamespaces) -> onNamespaceError(NAMESPACE_EXTENSION_MISSING_ACCOUNTS_MESSAGE)
         }
     }
 
-    internal fun validateEventAuthorization(session: SessionVO, eventName: String, onUnauthorizedEvent: (String) -> Unit) {
-        if (!session.isSelfController && !session.events.contains(eventName)) {
-            onUnauthorizedEvent(UNAUTHORIZED_EVENT_TYPE_MESSAGE)
-        }
-    }
-
-    internal fun validateChainIdAuthorization(chainId: String?, chains: List<String>, onInvalidChainId: (String) -> Unit) {
-        if (chainId != null && !chains.contains(chainId)) {
-            onInvalidChainId(UNAUTHORIZED_CHAIN_ID_MESSAGE)
-        }
-    }
-
-    internal fun validateProposalFields(sessionProposal: EngineDO.SessionProposal, onInvalidProposal: (String) -> Unit) {
-        with(sessionProposal) {
-            if (name.isEmpty() || description.isEmpty() || url.isEmpty() || icons.isEmpty() || chains.isEmpty() ||
-                methods.isEmpty() || proposerPublicKey.isEmpty() || relayProtocol.isEmpty()
-            ) {
-                onInvalidProposal(INVALID_SESSION_PROPOSAL_MESSAGE)
+    @JvmSynthetic
+    internal inline fun validateChainIdWithMethodAuthorisation(
+        chainId: String,
+        method: String,
+        namespaces: Map<String, NamespaceVO.Session>,
+        onInvalidChainId: (String) -> Unit,
+    ) {
+        allApprovedMethodsWithChains(namespaces).also { allApprovedMethodsWithChains ->
+            if (allApprovedMethodsWithChains[method] == null || !allApprovedMethodsWithChains[method]!!.contains(chainId)) {
+                onInvalidChainId(UNAUTHORIZED_CHAIN_ID_OR_METHOD_MESSAGE)
             }
         }
     }
 
-    internal fun validateSessionExtend(newExpiry: Long, currentExpiry: Long, onInvalidExtend: (String) -> Unit) {
+    @JvmSynthetic
+    internal inline fun validateChainIdWithEventAuthorisation(
+        chainId: String,
+        event: String,
+        namespaces: Map<String, NamespaceVO.Session>,
+        onInvalidChainId: (String) -> Unit,
+    ) {
+        allApprovedEventsWithChains(namespaces).also { allApprovedMethodsWithChains ->
+            if (allApprovedMethodsWithChains[event] == null || !allApprovedMethodsWithChains[event]!!.contains(chainId)) {
+                onInvalidChainId(UNAUTHORIZED_CHAIN_ID_OR_EVENT_MESSAGE)
+            }
+        }
+    }
+
+    @JvmSynthetic
+    internal inline fun validateSessionRequest(request: EngineDO.Request, onInvalidRequest: (String) -> Unit) {
+        if (request.params.isEmpty() || request.method.isEmpty() || request.chainId.isEmpty() ||
+            request.topic.isEmpty() || !isChainIdCAIP2Compliant(request.chainId)
+        ) {
+            onInvalidRequest(INVALID_REQUEST_MESSAGE)
+        }
+    }
+
+
+    @JvmSynthetic
+    internal inline fun validateEvent(event: EngineDO.Event, onInvalidEvent: (String) -> Unit) {
+        if (event.data.isEmpty() || event.name.isEmpty() || event.chainId.isEmpty() || !isChainIdCAIP2Compliant(event.chainId)) {
+            onInvalidEvent(INVALID_EVENT_MESSAGE)
+        }
+    }
+
+    @JvmSynthetic
+    internal inline fun validateSessionExtend(newExpiry: Long, currentExpiry: Long, onInvalidExtend: (String) -> Unit) {
         val extendedExpiry = newExpiry - currentExpiry
         val maxExpiry = Time.weekInSeconds
 
@@ -84,6 +111,7 @@ internal object Validator {
         }
     }
 
+    @JvmSynthetic
     internal fun validateWCUri(uri: String): EngineDO.WalletConnectUri? {
         if (!uri.startsWith("wc:")) return null
         val properUriString = when {
@@ -120,24 +148,148 @@ internal object Validator {
         )
     }
 
-    internal fun areMethodsValid(methods: List<String>): Boolean =
-        methods.isNotEmpty() && methods.all { method -> method.isNotEmpty() }
+    private fun areProposalNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
+        namespaces.keys.all { namespaceKey -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) }
 
-    internal fun areEventsValid(events: List<String>): Boolean =
-        events.isNotEmpty() && events.any { type -> type.isNotEmpty() }
+    private fun areChainsNotEmpty(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
+        namespaces.values.map { namespace -> namespace.chains }.all { chains -> chains.isNotEmpty() }
 
-    internal fun isChainIdValid(chainId: String): Boolean {
+    private fun areChainIdsValid(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
+        namespaces.values.flatMap { namespace -> namespace.chains }.all { chain -> isChainIdCAIP2Compliant(chain) }
+
+    private fun areChainsInMatchingNamespace(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
+        namespaces.all { (key, namespace) -> namespace.chains.all { chain -> chain.contains(key, true) } }
+
+    private fun areExtensionChainsNotEmpty(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
+        namespaces.values.filter { it.extensions != null }.flatMap { namespace -> namespace.extensions!!.map { it.chains } }
+            .all { extChain -> extChain.isNotEmpty() }
+
+    private fun areAllProposalNamespacesApproved(
+        sessionNamespaces: Map<String, NamespaceVO.Session>,
+        proposalNamespaces: Map<String, NamespaceVO.Proposal>,
+    ): Boolean = sessionNamespaces.keys.containsAll(proposalNamespaces.keys)
+
+    private fun areAccountsNotEmpty(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
+        sessionNamespaces.values.map { namespace -> namespace.accounts }.all { accounts -> accounts.isNotEmpty() }
+
+    private fun areAccountIdsValid(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
+        sessionNamespaces.values.flatMap { namespace -> namespace.accounts }.all { accounts -> isAccountIdCAIP10Compliant(accounts) }
+
+    private fun allApprovedMethodsWithChains(namespaces: Map<String, NamespaceVO.Session>): Map<String, List<String>> =
+        namespaces.values.flatMap { namespace ->
+            namespace.methods.map { method ->
+                method to namespace.accounts.map { getChainFromAccount(it) }
+            }.toMutableList().apply {
+                if (namespace.extensions != null) {
+                    addAll(namespace.extensions.flatMap { extension ->
+                        extension.methods.map { method ->
+                            method to namespace.accounts.map { getChainFromAccount(it) }
+                        }
+                    })
+                }
+            }
+        }.toMap()
+
+    private fun allRequiredMethodsWithChains(namespaces: Map<String, NamespaceVO.Proposal>): Map<String, List<String>> =
+        namespaces.values.flatMap { namespace ->
+            namespace.methods.map { method ->
+                method to namespace.chains
+            }.toMutableList().apply {
+                if (namespace.extensions != null) {
+                    addAll(namespace.extensions.flatMap { extension ->
+                        extension.methods.map { method -> method to namespace.chains }
+                    })
+                }
+            }
+        }.toMap()
+
+    private fun areAllMethodsApproved(
+        sessionNamespaces: Map<String, NamespaceVO.Session>,
+        proposalNamespaces: Map<String, NamespaceVO.Proposal>,
+    ): Boolean {
+        val allApprovedMethodsWithChains = allApprovedMethodsWithChains(sessionNamespaces)
+        val allRequiredMethodsWithChains = allRequiredMethodsWithChains(proposalNamespaces)
+
+        allRequiredMethodsWithChains.forEach { (method, chainsRequested) ->
+            val chainsApproved = allApprovedMethodsWithChains[method] ?: return false
+            if (!chainsApproved.containsAll(chainsRequested)) {
+                return false
+            }
+        }
+        return true
+    }
+
+    private fun allApprovedEventsWithChains(namespaces: Map<String, NamespaceVO.Session>): Map<String, List<String>> =
+        namespaces.values.flatMap { namespace ->
+            namespace.events.map { event ->
+                event to namespace.accounts.map { getChainFromAccount(it) }
+            }.toMutableList().apply {
+                if (namespace.extensions != null) {
+                    addAll(namespace.extensions.flatMap { extension ->
+                        extension.events.map { event ->
+                            event to namespace.accounts.map { getChainFromAccount(it) }
+                        }
+                    })
+                }
+            }
+        }.toMap()
+
+    private fun allRequiredEventsWithChains(namespaces: Map<String, NamespaceVO.Proposal>): Map<String, List<String>> =
+        namespaces.values.flatMap { namespace ->
+            namespace.events.map { event ->
+                event to namespace.chains
+            }.toMutableList().apply {
+                if (namespace.extensions != null) {
+                    addAll(namespace.extensions.flatMap { extension ->
+                        extension.events.map { event -> event to namespace.chains }
+                    })
+                }
+            }
+        }.toMap()
+
+    private fun areAllEventsApproved(
+        sessionNamespaces: Map<String, NamespaceVO.Session>,
+        proposalNamespaces: Map<String, NamespaceVO.Proposal>,
+    ): Boolean {
+        val allApprovedEventsWithChains = allApprovedEventsWithChains(sessionNamespaces)
+        val allRequiredEventsWithChains = allRequiredEventsWithChains(proposalNamespaces)
+
+        allRequiredEventsWithChains.forEach { (method, chainsRequested) ->
+            val chainsApproved = allApprovedEventsWithChains[method] ?: return false
+            if (!chainsApproved.containsAll(chainsRequested)) {
+                return false
+            }
+        }
+        return true
+    }
+
+    private fun areAllChainsApprovedWithAtLeastOneAccount(
+        sessionNamespaces: Map<String, NamespaceVO.Session>,
+        proposalNamespaces: Map<String, NamespaceVO.Proposal>,
+    ): Boolean =
+        sessionNamespaces.values.flatMap { namespace -> namespace.accounts.map { it.substringBeforeLast(":") } }
+            .containsAll(proposalNamespaces.values.flatMap { namespace -> namespace.chains })
+
+    private fun areAccountsInMatchingNamespace(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
+        sessionNamespaces.all { (key, namespace) -> namespace.accounts.all { it.contains(key) } }
+
+    private fun areExtensionAccountsNotEmpty(namespaces: Map<String, NamespaceVO.Session>): Boolean =
+        namespaces.values.filter { it.extensions != null }.flatMap { namespace -> namespace.extensions!!.map { it.accounts } }
+            .all { extAccount -> extAccount.isNotEmpty() }
+
+    private fun areSessionNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO.Session>): Boolean =
+        namespaces.keys.all { namespaceKey -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) }
+
+    @JvmSynthetic
+    internal fun isChainIdCAIP2Compliant(chainId: String): Boolean {
         val elements: List<String> = chainId.split(":")
         if (elements.isEmpty() || elements.size != 2) return false
-        val namespace = elements[0]
-        val reference = elements[1]
+        val (namespace: String, reference: String) = elements
         return NAMESPACE_REGEX.toRegex().matches(namespace) && REFERENCE_REGEX.toRegex().matches(reference)
     }
 
-    internal fun areAccountsNotEmpty(accounts: List<String>): Boolean =
-        accounts.isNotEmpty() && accounts.all { method -> method.isNotEmpty() }
-
-    internal fun isAccountIdValid(accountId: String): Boolean {
+    @JvmSynthetic
+    internal fun isAccountIdCAIP10Compliant(accountId: String): Boolean {
         val elements = accountId.split(":")
         if (elements.isEmpty() || elements.size != 3) return false
         val (namespace: String, reference: String, accountAddress: String) = elements
@@ -147,30 +299,13 @@ internal object Validator {
                 ACCOUNT_ADDRESS_REGEX.toRegex().matches(accountAddress)
     }
 
-    internal fun areAccountsOnValidNetworks(accountIds: List<String>, chains: List<String>): Boolean {
-        if (!areAccountsNotEmpty(accountIds) || chains.isEmpty()) return false
-        accountIds.forEach { accountId ->
-            val elements = accountId.split(":")
-            if (elements.isEmpty() || elements.size != 3) return false
-            val (namespace: String, reference: String, _) = elements
-            val chainId = "$namespace:$reference"
-            if (!chains.contains(chainId)) return false
-        }
-        return true
-    }
+    @JvmSynthetic
+    internal fun getChainFromAccount(accountId: String): String {
+        val elements = accountId.split(":")
+        if (elements.isEmpty() || elements.size != 3) return accountId
+        val (namespace: String, reference: String, accountAddress: String) = elements
 
-    private fun splitAccountId(elements: List<String>): Triple<String, String, String> {
-        val namespace = elements[0]
-        val reference = elements[1]
-        val accountAddress = elements[2]
-        return Triple(namespace, reference, accountAddress)
-    }
-
-    fun getChainIds(accountIds: List<String>): List<String> {
-        return accountIds.map { accountId ->
-            val (namespace: String, reference: String, _) = accountId.split(":")
-            "$namespace:$reference"
-        }
+        return "$namespace:$reference"
     }
 
     private const val NAMESPACE_REGEX: String = "^[-a-z0-9]{3,8}$"

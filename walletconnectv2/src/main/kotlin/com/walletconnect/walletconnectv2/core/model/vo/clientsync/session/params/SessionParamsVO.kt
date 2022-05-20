@@ -3,6 +3,7 @@ package com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.param
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.payload.SessionEventVO
@@ -25,12 +26,8 @@ internal sealed class SessionParamsVO : ClientParams {
         val relay: RelayProtocolOptionsVO,
         @Json(name = "controller")
         val controller: SessionParticipantVO,
-        @Json(name = "accounts")
-        val accounts: List<String>,
-        @Json(name = "methods")
-        val methods: List<String>,
-        @Json(name = "events")
-        val events: List<String>,
+        @Json(name = "namespaces")
+        val namespaces: Map<String, NamespaceVO.Session>,
         @Json(name = "expiry")
         val expiry: Long,
     ) : SessionParamsVO()
@@ -40,7 +37,24 @@ internal sealed class SessionParamsVO : ClientParams {
         @Json(name = "request")
         val request: SessionRequestVO,
         @Json(name = "chainId")
-        val chainId: String?,
+        val chainId: String,
+    ) : SessionParamsVO()
+
+    internal data class EventParams(
+        @Json(name = "event")
+        val event: SessionEventVO,
+        @Json(name = "chainId")
+        val chainId: String,
+    ) : SessionParamsVO()
+
+    internal class UpdateNamespacesParams(
+        @Json(name = "namespaces")
+        val namespaces: Map<String, NamespaceVO.Session>,
+    ) : SessionParamsVO()
+
+    internal data class ExtendParams(
+        @Json(name = "expiry")
+        val expiry: Long,
     ) : SessionParamsVO()
 
     @JsonClass(generateAdapter = true)
@@ -53,31 +67,4 @@ internal sealed class SessionParamsVO : ClientParams {
 
     @Suppress("CanSealedSubClassBeObject")
     internal class PingParams : SessionParamsVO()
-
-    internal data class EventParams(
-        @Json(name = "event")
-        val event: SessionEventVO,
-        @Json(name = "chainId")
-        val chainId: String?,
-    ) : SessionParamsVO()
-
-    internal class UpdateEventsParams(
-        @Json(name = "events")
-        val events: List<String>,
-    ) : SessionParamsVO()
-
-    internal class UpdateAccountsParams(
-        @Json(name = "accounts")
-        val accounts: List<String>,
-    ) : SessionParamsVO()
-
-    internal class UpdateMethodsParams(
-        @Json(name = "methods")
-        val methods: List<String>,
-    ) : SessionParamsVO()
-
-    internal data class UpdateExpiryParams(
-        @Json(name = "expiry")
-        val expiry: Long,
-    ) : SessionParamsVO()
 }

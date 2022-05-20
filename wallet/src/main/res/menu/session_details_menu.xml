@@ -7,8 +7,18 @@
         android:title="Ping"
         app:showAsAction="never|withText" />
 
+<!--    <item-->
+<!--        android:id="@+id/updateNamespaces"-->
+<!--        android:title="Update Namespaces"-->
+<!--        app:showAsAction="never|withText" />-->
+
     <item
-        android:id="@+id/updateMethods"
-        android:title="Update Methods"
+        android:id="@+id/extend"
+        android:title="Extend"
         app:showAsAction="never|withText" />
+
+<!--    <item-->
+<!--        android:id="@+id/emit"-->
+<!--        android:title="Emit"-->
+<!--        app:showAsAction="never|withText" />-->
 </menu>

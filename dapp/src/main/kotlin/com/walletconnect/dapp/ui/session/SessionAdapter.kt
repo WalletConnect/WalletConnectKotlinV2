@@ -24,7 +24,7 @@ class SessionAdapter(private val onAccountSelected: (String) -> Unit) : ListAdap
         holder.binding.tvAccountName.text = sessionUI.name
         holder.binding.tvAccountAddress.text = sessionUI.address
         holder.binding.root.setOnClickListener {
-            onAccountSelected("${sessionUI.parentChain}:${sessionUI.chainId}:${sessionUI.address}")
+            onAccountSelected("${sessionUI.chainNamespace}:${sessionUI.chainReference}:${sessionUI.address}")
         }
     }
 
@@ -40,8 +40,8 @@ class SessionAdapter(private val onAccountSelected: (String) -> Unit) : ListAdap
                 oldItem.icon == newItem.icon &&
                         oldItem.name == newItem.name &&
                         oldItem.address == newItem.address &&
-                        oldItem.parentChain == newItem.parentChain &&
-                        oldItem.chainId == newItem.chainId
+                        oldItem.chainNamespace == newItem.chainNamespace &&
+                        oldItem.chainReference == newItem.chainReference
         }
     }
 }

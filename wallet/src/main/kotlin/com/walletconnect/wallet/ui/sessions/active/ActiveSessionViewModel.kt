@@ -3,7 +3,7 @@ package com.walletconnect.wallet.ui.sessions.active
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.wallet.domain.WalletDelegate
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AuthClient
 import kotlinx.coroutines.flow.*
 
 class ActiveSessionViewModel : ViewModel() {
@@ -14,7 +14,7 @@ class ActiveSessionViewModel : ViewModel() {
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), getLatestActiveSessions())
 
     private fun getLatestActiveSessions(): List<ActiveSessionUI> {
-        return WalletConnectClient.getListOfSettledSessions().filter { wcSession ->
+        return AuthClient.getListOfSettledSessions().filter { wcSession ->
             wcSession.metaData != null
         }.map { wcSession ->
             ActiveSessionUI(

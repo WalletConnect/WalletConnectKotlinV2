@@ -9,13 +9,10 @@ import com.walletconnect.dapp.ui.connect.chain_select.ChainSelectionUI
 import com.walletconnect.sample_common.EthTestChains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AuthClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class ConnectViewModel : ViewModel() {
@@ -23,7 +20,7 @@ class ConnectViewModel : ViewModel() {
         get() {
             return if (field.isEmpty()) {
                 EthTestChains.values().mapTo(field) {
-                    ChainSelectionUI(it.chainName, it.parentChain, it.chainId, it.icon, it.methods)
+                    ChainSelectionUI(it.chainName, it.chainNamespace, it.chainReference, it.icon, it.methods)
                 }
             } else {
                 field
@@ -31,8 +28,8 @@ class ConnectViewModel : ViewModel() {
         }
     val listOfChainUI: List<ChainSelectionUI> = _listOfChainUI
 
-    private val navigationChannel = Channel<SampleDappEvents>(Channel.BUFFERED)
-    val navigation = navigationChannel.receiveAsFlow()
+    private val _navigation = Channel<SampleDappEvents>(Channel.BUFFERED)
+    val navigation: Flow<SampleDappEvents> = _navigation.receiveAsFlow()
 
     init {
         DappDelegate.wcEventModels.map { walletEvent: WalletConnect.Model? ->
@@ -42,7 +39,7 @@ class ConnectViewModel : ViewModel() {
                 else -> SampleDappEvents.NoAction
             }
         }.onEach { event ->
-            navigationChannel.trySend(event)
+            _navigation.trySend(event)
         }.launchIn(viewModelScope)
     }
 
@@ -50,25 +47,32 @@ class ConnectViewModel : ViewModel() {
         _listOfChainUI[position].isSelected = isChecked
     }
 
+    fun anyChainsSelected(): Boolean = listOfChainUI.any { it.isSelected }
+
+    fun anySettledPairingExist(): Boolean = AuthClient.getListOfSettledPairings().isNotEmpty()
+
     fun connectToWallet(pairingTopicPosition: Int = -1, onProposedSequence: (WalletConnect.Model.ProposedSequence) -> Unit = {}) {
         var pairingTopic: String? = null
 
         if (pairingTopicPosition > -1) {
-            pairingTopic = WalletConnectClient.getListOfSettledPairings()[pairingTopicPosition].topic
+            pairingTopic = AuthClient.getListOfSettledPairings()[pairingTopicPosition].topic
         }
 
-        val selectedChains: List<ChainSelectionUI> = listOfChainUI.filter { it.isSelected }
-        val chains = selectedChains.map { "${it.parentChain}:${it.chainId}" }
-        val methods = selectedChains.flatMap { it.methods }.distinct()
+        val namespaces: Map<String, WalletConnect.Model.Namespace.Proposal> =
+            listOfChainUI.filter { it.isSelected }.groupBy { it.chainNamespace }.map { (key: String, selectedChains: List<ChainSelectionUI>) ->
+                key to WalletConnect.Model.Namespace.Proposal(
+                    chains = selectedChains.map { it.chainId },
+                    methods = selectedChains.flatMap { it.methods }.distinct(),
+                    events = listOf("testEvent"),
+                    extensions = null
+                )
+            }.toMap()
 
         val connectParams = WalletConnect.Params.Connect(
-            chains = chains,
-            methods = methods,
-            events = listOf(),
-            pairingTopic = pairingTopic
-        )
+            namespaces = namespaces,
+            pairingTopic = pairingTopic)
 
-        WalletConnectClient.connect(connectParams,
+        AuthClient.connect(connectParams,
             onProposedSequence = { proposedSequence ->
                 viewModelScope.launch(Dispatchers.Main) {
                     onProposedSequence(proposedSequence)

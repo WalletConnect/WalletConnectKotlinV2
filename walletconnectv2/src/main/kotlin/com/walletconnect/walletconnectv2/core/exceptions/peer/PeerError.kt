@@ -1,75 +1,68 @@
 package com.walletconnect.walletconnectv2.core.exceptions.peer
 
-import com.walletconnect.walletconnectv2.core.model.type.enums.ControllerType
-
 sealed class PeerError {
     abstract val message: String
     abstract val code: Int
 
-    data class InvalidUpdateAccountsRequest(val sequence: String) : PeerError() {
-        override val message = "Invalid $sequence update accounts request"
-        override val code: Int = 1003
+    //Validation errors
+
+    data class InvalidMethod(val reason: String) : PeerError() {
+        override val message: String = "Invalid session request: $reason"
+        override val code: Int = 1001
     }
 
-    data class InvalidUpdateMethodsRequest(val sequence: String) : PeerError() {
-        override val message = "Invalid $sequence update methods request"
+    data class InvalidEvent(val reason: String) : PeerError() {
+        override val message: String = "Invalid event request: $reason"
+        override val code: Int = 1002
+    }
+
+    data class InvalidUpdateRequest(val reason: String) : PeerError() {
+        override val message: String = "Invalid update namespace request: $reason"
         override val code: Int = 1004
     }
 
-    data class InvalidUpdateEventsRequest(val sequence: String) : PeerError() {
-        override val message = "Invalid $sequence update events request"
+    data class InvalidExtendRequest(val reason: String) : PeerError() {
+        override val message = "Invalid session extend request: $reason"
         override val code: Int = 1005
     }
 
-    data class InvalidUpdateExpiryRequest(val sequence: String) : PeerError() {
-        override val message = "Invalid $sequence update expiry request"
+    data class InvalidSessionSettleRequest(val reason: String) : PeerError() {
+        override val message: String = "Invalid session settle request: $reason"
         override val code: Int = 1006
     }
+
+    data class InvalidSessionProposeRequest(val topic: String, val errorMessage: String) : PeerError() {
+        override val message: String = "Invalid Session Proposal on topic: $topic. Error Message: $errorMessage"
+        override val code: Int = 1007
+    }
+
+    //Authorization errors
+
+    data class UnauthorizedMethod(val reason: String) : PeerError() {
+        override val message: String = "Unauthorized session request: $reason"
+        override val code: Int = 3001
+    }
+
+    data class UnauthorizedEvent(val reason: String) : PeerError() {
+        override val message: String = "Unauthorized event request: $reason"
+        override val code: Int = 3002
+    }
+
+    data class UnauthorizedUpdateRequest(val sequence: String) : PeerError() {
+        override val message: String = "Unauthorized update $sequence namespace request"
+        override val code: Int = 3004
+    }
+
+    data class UnauthorizedExtendRequest(val sequence: String) : PeerError() {
+        override val message: String = "Unauthorized $sequence extend request"
+        override val code: Int = 3005
+    }
+
+    //Uncategorized errors
 
     data class NoMatchingTopic(val sequence: String, val topic: String) : PeerError() {
         override val message: String = "No matching $sequence with topic: $topic"
         override val code: Int = 1301
-    }
-
-    data class UnauthorizedTargetChainId(val chainId: String) : PeerError() {
-        override val message: String = "Unauthorized Target ChainId Requested: $chainId"
-        override val code: Int = 3000
-    }
-
-    data class UnauthorizedJsonRpcMethod(val method: String) : PeerError() {
-        override val message: String = "Unauthorized JSON-RPC Method Requested: $method"
-        override val code: Int = 3001
-    }
-
-    data class UnauthorizedEventRequest(val name: String) : PeerError() {
-        override val message: String = "Unauthorized event name requested: $name"
-        override val code: Int = 3002
-    }
-
-    data class UnauthorizedUpdateAccountsRequest(val sequence: String) : PeerError() {
-        override val message: String = "Unauthorized $sequence update accounts request"
-        override val code: Int = 3003
-    }
-
-    data class UnauthorizedUpdateEventsRequest(val sequence: String) : PeerError() {
-        override val message: String = "Unauthorized $sequence update accounts request"
-        override val code: Int = 3004
-    }
-
-    data class UnauthorizedUpdateMethodsRequest(val sequence: String) : PeerError() {
-        override val message: String = "Unauthorized $sequence update methods request"
-        override val code: Int = 3005
-    }
-
-    data class UnauthorizedUpdateExpiryRequest(val sequence: String) : PeerError() {
-        override val message: String = "Unauthorized $sequence update expiry request"
-        override val code: Int = 3006
-    }
-
-    data class UnauthorizedMatchingController(val isController: Boolean) : PeerError() {
-        private val peerType: String = if (isController) ControllerType.CONTROLLER.type else ControllerType.NON_CONTROLLER.type
-        override val message: String = "Unauthorized: peer is also $peerType"
-        override val code: Int = 3100
     }
 
     data class Error(val reason: String, val errorCode: Int) : PeerError() {

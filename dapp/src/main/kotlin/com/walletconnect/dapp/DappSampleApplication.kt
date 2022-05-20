@@ -6,7 +6,7 @@ import com.walletconnect.sample_common.PROJECT_ID
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.walletconnectv2.client.AuthClient
 
 class DappSampleApplication : Application() {
 
@@ -39,7 +39,7 @@ class DappSampleApplication : Application() {
             )
         )
 
-        WalletConnectClient.initialize(initString) { error ->
+        AuthClient.initialize(initString) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
     }
