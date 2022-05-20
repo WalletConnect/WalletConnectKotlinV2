@@ -13,7 +13,7 @@ CREATE TABLE MetaDataDao(
 );
 
 insertOrAbortMetaData:
-INSERT INTO MetaDataDao(sequence_topic, name, description, url, icons, type)
+INSERT OR ABORT INTO MetaDataDao(sequence_topic, name, description, url, icons, type)
 VALUES (?, ?, ?, ?, ?, ?);
 
 updateOrAbortMetaData:
