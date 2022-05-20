@@ -1,5 +1,7 @@
 package com.walletconnect.wallet.domain
 
+import android.util.Log
+import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.CoroutineScope
@@ -73,6 +75,10 @@ object WalletDelegate : WalletConnectClient.WalletDelegate {
         scope.launch {
             _wcEventModels.emit(sessionUpdateEventsResponse)
         }
+    }
+
+    override fun onConnectionStateChange(state: WalletConnect.Model.ConnectionState) {
+        Log.d(tag(this), "onConnectionStateChange($state)")
     }
 
     fun setSelectedAccount(selectedChainAddressId: Int) {

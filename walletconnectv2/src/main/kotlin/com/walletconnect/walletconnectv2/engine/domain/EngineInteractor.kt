@@ -482,6 +482,7 @@ internal class EngineInteractor(
         val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
         val peerMetadata = settleParams.controller.metadata
         val proposal = sessionProposalRequest[selfPublicKey.keyAsHex] ?: return
+
         sequenceStorageRepository.updatePairingPeerMetadata(proposal.topic, peerMetadata)
         sessionProposalRequest.remove(selfPublicKey.keyAsHex)
 

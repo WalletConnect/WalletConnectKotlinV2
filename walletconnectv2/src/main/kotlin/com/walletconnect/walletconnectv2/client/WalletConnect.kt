@@ -4,6 +4,7 @@ import android.app.Application
 import android.net.Uri
 import com.walletconnect.walletconnectv2.core.exceptions.client.WalletConnectException
 import com.walletconnect.walletconnectv2.network.Relay
+import com.walletconnect.walletconnectv2.network.data.connection.ConnectionType
 import java.net.URI
 
 object WalletConnect {
@@ -13,6 +14,10 @@ object WalletConnect {
             fun onSuccess(pingSuccess: Model.Ping.Success)
             fun onError(pingError: Model.Ping.Error)
         }
+    }
+
+    enum class ConnectionType {
+        AUTOMATIC, MANUAL
     }
 
     sealed class Model {
@@ -170,27 +175,27 @@ object WalletConnect {
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
                         val method: String = "waku_publish",
-                        val params: Params
+                        val params: Params,
                     ) : Publish() {
 
                         data class Params(
                             val topic: String,
                             val message: String,
                             val ttl: Long,
-                            val prompt: Boolean?
+                            val prompt: Boolean?,
                         )
                     }
 
                     data class Acknowledgement(
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
-                        val result: Boolean
+                        val result: Boolean,
                     ) : Publish()
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
                         val error: WalletConnect.Model.Relay.Error,
-                        override val id: Long
+                        override val id: Long,
                     ) : Publish()
                 }
 
@@ -200,24 +205,24 @@ object WalletConnect {
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
                         val method: String = "waku_subscribe",
-                        val params: Params
+                        val params: Params,
                     ) : Subscribe() {
 
                         data class Params(
-                            val topic: String
+                            val topic: String,
                         )
                     }
 
                     data class Acknowledgement(
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
-                        val result: String
+                        val result: String,
                     ) : Subscribe()
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
                         val error: WalletConnect.Model.Relay.Error,
-                        override val id: Long
+                        override val id: Long,
                     ) : Subscribe()
                 }
 
@@ -227,7 +232,7 @@ object WalletConnect {
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
                         val method: String = "waku_subscription",
-                        val params: Params
+                        val params: Params,
                     ) : Subscription() {
 
                         val subscriptionTopic: String = params.subscriptionData.topic
@@ -235,12 +240,12 @@ object WalletConnect {
 
                         data class Params(
                             val subscriptionId: String,
-                            val subscriptionData: SubscriptionData
+                            val subscriptionData: SubscriptionData,
                         ) {
 
                             data class SubscriptionData(
                                 val topic: String,
-                                val message: String
+                                val message: String,
                             )
                         }
                     }
@@ -248,13 +253,13 @@ object WalletConnect {
                     data class Acknowledgement(
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
-                        val result: Boolean
+                        val result: Boolean,
                     ) : Subscription()
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
                         val error: WalletConnect.Model.Relay.Error,
-                        override val id: Long
+                        override val id: Long,
                     ) : Subscription()
                 }
 
@@ -264,25 +269,25 @@ object WalletConnect {
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
                         val method: String = "waku_unsubscribe",
-                        val params: Params
+                        val params: Params,
                     ) : Unsubscribe() {
 
                         data class Params(
                             val topic: String,
-                            val subscriptionId: String
+                            val subscriptionId: String,
                         )
                     }
 
                     data class Acknowledgement(
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
-                        val result: Boolean
+                        val result: Boolean,
                     ) : Unsubscribe()
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
                         val error: WalletConnect.Model.Relay.Error,
-                        override val id: Long
+                        override val id: Long,
                     ) : Unsubscribe()
                 }
             }
@@ -297,6 +302,7 @@ object WalletConnect {
             sealed class Event : Relay() {
                 data class OnConnectionOpened<out WEB_SOCKET : Any>(val webSocket: WEB_SOCKET) :
                     Event()
+
                 data class OnMessageReceived(val message: Message) : Event()
                 data class OnConnectionClosing(val shutdownReason: ShutdownReason) : Event()
                 data class OnConnectionClosed(val shutdownReason: ShutdownReason) : Event()
@@ -318,7 +324,8 @@ object WalletConnect {
         data class Init internal constructor(
             val application: Application,
             val metadata: Model.AppMetaData,
-            val relay: Relay? = null
+            val relay: Relay? = null,
+            val connectionType: ConnectionType,
         ) : Params() {
             internal lateinit var serverUrl: String
 
@@ -328,8 +335,9 @@ object WalletConnect {
                 hostName: String,
                 projectId: String,
                 metadata: Model.AppMetaData,
-                relay: Relay? = null
-            ) : this(application, metadata, relay) {
+                relay: Relay? = null,
+                connectionType: ConnectionType = ConnectionType.AUTOMATIC,
+            ) : this(application, metadata, relay, connectionType) {
                 val relayServerUrl = Uri.Builder().scheme((if (useTls) "wss" else "ws"))
                     .authority(hostName)
                     .appendQueryParameter("projectId", projectId)
@@ -347,8 +355,9 @@ object WalletConnect {
                 application: Application,
                 relayServerUrl: String,
                 metadata: Model.AppMetaData,
-                relay: Relay? = null
-            ) : this(application, metadata, relay) {
+                relay: Relay? = null,
+                connectionType: ConnectionType = ConnectionType.AUTOMATIC,
+            ) : this(application, metadata, relay, connectionType) {
                 require(relayServerUrl.isValidRelayServerUrl()) {
                     "Check the schema and projectId parameter of the Server Url"
                 }

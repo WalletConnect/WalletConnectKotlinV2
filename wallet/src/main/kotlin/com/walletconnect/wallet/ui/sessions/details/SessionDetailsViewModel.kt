@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.sample_common.EthTestChains
+import com.walletconnect.sample_common.tag
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAllAccounts
 import com.walletconnect.wallet.ui.SampleWalletEvents
@@ -70,7 +71,9 @@ class SessionDetailsViewModel : ViewModel() {
                 reasonCode = 1000
             )
 
-            WalletConnectClient.disconnect(disconnect)
+            WalletConnectClient.disconnect(disconnect) { error ->
+                Log.e(tag(this), error.throwable.stackTraceToString())
+            }
             selectedSessionTopic = null
         }
 

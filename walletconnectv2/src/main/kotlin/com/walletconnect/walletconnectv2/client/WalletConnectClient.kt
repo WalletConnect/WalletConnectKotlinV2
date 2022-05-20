@@ -13,6 +13,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 
 object WalletConnectClient {
+
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var engineInteractor: EngineInteractor
     private lateinit var relay: Relay
@@ -26,7 +27,7 @@ object WalletConnectClient {
                 modules(
                     commonModule(),
                     cryptoManager(),
-                    networkModule(serverUrl, relay),
+                    networkModule(serverUrl, relay, connectionType.toRelayConnectionType()),
                     relayerModule(),
                     storageModule(),
                     engineModule(metadata)
@@ -79,6 +80,16 @@ object WalletConnectClient {
                     is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
                 }
             }
+        }
+    }
+
+    object WebSocket {
+        fun open(onError: (String) -> Unit) {
+            relay.connect { errorMessage -> onError(errorMessage) }
+        }
+
+        fun close(onError: (String) -> Unit) {
+            relay.disconnect { errorMessage -> onError(errorMessage) }
         }
     }
 

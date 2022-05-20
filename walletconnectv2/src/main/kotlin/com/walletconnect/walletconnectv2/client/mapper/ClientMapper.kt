@@ -4,6 +4,7 @@ import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.walletconnectv2.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
+import com.walletconnect.walletconnectv2.network.data.connection.ConnectionType
 
 //TODO: Provide VO objects for engine classes. Remove using the EngineDO object in the client layer
 
@@ -200,6 +201,13 @@ internal fun List<PendingRequestVO>.mapToPendingRequests(): List<WalletConnect.M
 internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): WalletConnect.Model.SessionRequestResponse =
     WalletConnect.Model.SessionRequestResponse(topic, chainId, method, result.toClientJsonRpcResponse())
 
+@JvmSynthetic
+internal fun WalletConnect.ConnectionType.toRelayConnectionType(): ConnectionType {
+    return when (this) {
+        WalletConnect.ConnectionType.AUTOMATIC -> ConnectionType.AUTOMATIC
+        WalletConnect.ConnectionType.MANUAL -> ConnectionType.MANUAL
+    }
+}
 
 @JvmSynthetic
 internal fun EngineDO.ConnectionState.toClientConnectionState(): WalletConnect.Model.ConnectionState =
