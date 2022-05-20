@@ -1,5 +1,7 @@
 package com.walletconnect.dapp.domain
 
+import android.util.Log
+import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.WalletConnectClient
 import kotlinx.coroutines.CoroutineScope
@@ -13,7 +15,7 @@ import kotlinx.coroutines.launch
 object DappDelegate : WalletConnectClient.DappDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcEventModels: MutableSharedFlow<WalletConnect.Model?> = MutableSharedFlow()
-    val wcEventModels: SharedFlow<WalletConnect.Model?> = _wcEventModels.asSharedFlow()
+    val wcEventModels: SharedFlow<WalletConnect.Model?> =  _wcEventModels.asSharedFlow()
 
     var selectedSessionTopic: String? = null
         private set
@@ -76,5 +78,9 @@ object DappDelegate : WalletConnectClient.DappDelegate {
 
     fun deselectAccountDetails() {
         selectedSessionTopic = null
+    }
+
+    override fun onConnectionStateChange(state: WalletConnect.Model.ConnectionState) {
+        Log.d(tag(this), "onConnectionStateChange($state)")
     }
 }

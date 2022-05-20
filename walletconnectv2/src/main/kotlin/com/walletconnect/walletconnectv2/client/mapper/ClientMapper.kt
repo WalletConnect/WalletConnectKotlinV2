@@ -199,3 +199,8 @@ internal fun List<PendingRequestVO>.mapToPendingRequests(): List<WalletConnect.M
 @JvmSynthetic
 internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): WalletConnect.Model.SessionRequestResponse =
     WalletConnect.Model.SessionRequestResponse(topic, chainId, method, result.toClientJsonRpcResponse())
+
+
+@JvmSynthetic
+internal fun EngineDO.ConnectionState.toClientConnectionState(): WalletConnect.Model.ConnectionState =
+    WalletConnect.Model.ConnectionState(isAvailable)

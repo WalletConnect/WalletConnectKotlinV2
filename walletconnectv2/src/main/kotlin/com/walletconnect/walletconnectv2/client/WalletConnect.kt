@@ -2,6 +2,7 @@ package com.walletconnect.walletconnectv2.client
 
 import android.app.Application
 import android.net.Uri
+import com.walletconnect.walletconnectv2.core.exceptions.client.WalletConnectException
 import com.walletconnect.walletconnectv2.network.Relay
 import java.net.URI
 
@@ -16,7 +17,8 @@ object WalletConnect {
 
     sealed class Model {
 
-        data class Error(val error: Throwable) : Model()
+        //TODO: Consider adding WalletConnectException instead of Throwable.
+        data class Error(val throwable: Throwable) : Model()
 
         sealed class ProposedSequence {
             class Pairing(val uri: String) : ProposedSequence()
@@ -151,6 +153,10 @@ object WalletConnect {
             val method: String,
             val chainId: String?,
             val params: String,
+        ) : Model()
+
+        data class ConnectionState(
+            val isAvailable: Boolean
         ) : Model()
 
         sealed class Relay : Model() {
