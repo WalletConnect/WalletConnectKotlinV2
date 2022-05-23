@@ -4,6 +4,8 @@ import com.walletconnect.sample_common.EthTestChains
 
 const val ACCOUNTS_1_ID = 1
 val mapOfAccounts1: Map<EthTestChains, String> = mapOf(
+    EthTestChains.ETHEREUM_MAIN to "0x022c0c42a80bd19EA4cF0F94c4F9F96645759716",
+    EthTestChains.POLYGON_MATIC to "0x022c0c42a80bd19EA4cF0F94c4F9F96645759716",
     EthTestChains.ETHEREUM_KOVAN to "0x022c0c42a80bd19EA4cF0F94c4F9F96645759716",
     EthTestChains.OPTIMISM_KOVAN to "0xf5de760f2e916647fd766b4ad9e85ff943ce3a2b",
     EthTestChains.POLYGON_MUMBAI to "0x5A9D8a83fF2a032123954174280Af60B6fa32781",
@@ -13,6 +15,8 @@ val mapOfAccounts1: Map<EthTestChains, String> = mapOf(
 
 const val ACCOUNTS_2_ID = 2
 val mapOfAccounts2: Map<EthTestChains, String> = mapOf(
+    EthTestChains.ETHEREUM_MAIN to "0x022c0c42a80bd19EA4cF0F94c4F9F96645759716",
+    EthTestChains.POLYGON_MATIC to "0x022c0c42a80bd19EA4cF0F94c4F9F96645759716",
     EthTestChains.ETHEREUM_KOVAN to "0x5496858C1f2f469Eb6A6D378C332e7a4E1dc1B4D",
     EthTestChains.OPTIMISM_KOVAN to "0xe16821547bb816ea3f25c67c15a634b104695a32",
     EthTestChains.POLYGON_MUMBAI to "0x5496858C1f2f469Eb6A6D378C332e7a4E1dc1B4D",
