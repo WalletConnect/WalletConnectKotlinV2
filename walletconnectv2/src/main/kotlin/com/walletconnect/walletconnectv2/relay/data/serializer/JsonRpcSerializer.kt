@@ -14,22 +14,22 @@ import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.Logger
 
 internal class JsonRpcSerializer(
-    private val authenticatedEncryptionCodec: Codec,
+    private val chaChaPolyCodec: Codec,
     private val crypto: CryptoRepository,
     private val moshi: Moshi,
 ) {
 
-    internal fun encode(payload: String, topic: TopicVO): String {
+    internal fun encrypt(payload: String, topic: TopicVO): String {
         val symmetricKey = crypto.getSymmetricKey(topic)
-        return authenticatedEncryptionCodec.encrypt(payload, symmetricKey)
+        return chaChaPolyCodec.encrypt(payload, symmetricKey)
     }
 
-    internal fun decode(message: String, topic: TopicVO): String {
+    internal fun decrypt(message: String, topic: TopicVO): String {
         return try {
             val symmetricKey = crypto.getSymmetricKey(topic)
-            authenticatedEncryptionCodec.decrypt(message, symmetricKey)
+            chaChaPolyCodec.decrypt(message, symmetricKey)
         } catch (e: Exception) {
-            Logger.error("Decoding error: ${e.message}")
+            Logger.error("Decrypting error: ${e.message}")
             String.Empty
         }
     }
