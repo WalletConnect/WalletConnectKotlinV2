@@ -13,7 +13,6 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 
 object AuthClient {
-
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var engineInteractor: EngineInteractor
     private lateinit var relay: Relay

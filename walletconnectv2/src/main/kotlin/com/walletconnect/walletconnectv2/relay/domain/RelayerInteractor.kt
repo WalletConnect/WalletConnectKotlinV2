@@ -16,11 +16,7 @@ import com.walletconnect.walletconnectv2.core.model.vo.sync.WCResponseVO
 import com.walletconnect.walletconnectv2.core.scope.scope
 import com.walletconnect.walletconnectv2.network.Relay
 import com.walletconnect.walletconnectv2.relay.data.serializer.JsonRpcSerializer
-import com.walletconnect.walletconnectv2.relay.model.RelayerDO
-import com.walletconnect.walletconnectv2.relay.model.toJsonRpcErrorVO
-import com.walletconnect.walletconnectv2.relay.model.toPendingRequestVO
-import com.walletconnect.walletconnectv2.relay.model.toRelayerDOJsonRpcResponse
-import com.walletconnect.walletconnectv2.relay.model.toWCResponse
+import com.walletconnect.walletconnectv2.relay.model.*
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.util.Logger
 import com.walletconnect.walletconnectv2.util.NetworkState
@@ -91,7 +87,7 @@ internal class RelayerInteractor(
         val requestJson = serializer.serialize(payload)
 
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
-            val encodedRequest = serializer.encode(requestJson, topic)
+            val encodedRequest = serializer.encrypt(requestJson, topic)
             relay.publish(topic.value, encodedRequest, shouldPrompt(payload.method)) { result ->
                 result.fold(
                     onSuccess = { onSuccess() },
@@ -110,7 +106,7 @@ internal class RelayerInteractor(
         checkConnectionWorking()
         val jsonResponseDO = response.toRelayerDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
-        val encodedJson = serializer.encode(responseJson, topic)
+        val encodedJson = serializer.encrypt(responseJson, topic)
 
         relay.publish(topic.value, encodedJson) { result ->
             result.fold(
@@ -181,7 +177,7 @@ internal class RelayerInteractor(
             relay.subscriptionRequest
                 .map { relayRequest ->
                     val topic = TopicVO(relayRequest.subscriptionTopic)
-                    val decodedMessage = serializer.decode(relayRequest.message, topic)
+                    val decodedMessage = serializer.decrypt(relayRequest.message, topic)
 
                     Pair(decodedMessage, topic)
                 }
@@ -196,14 +192,14 @@ internal class RelayerInteractor(
             handleJsonRpcResult(result)
         } ?: serializer.tryDeserialize<RelayerDO.JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
             handleJsonRpcError(error)
-        } ?: Logger.error("WalletConnectRelay: Received unknown object type")
+        } ?: Logger.error("RelayerInteractor: Received unknown object type")
     }
 
     private suspend fun handleRequest(clientJsonRpc: RelayerDO.ClientJsonRpc, topic: TopicVO, decryptedMessage: String) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(WCRequestVO(topic, clientJsonRpc.id, clientJsonRpc.method, params))
-            } ?: Logger.error("WalletConnectRelay: Unknown request params")
+            } ?: Logger.error("RelayerInteractor: Unknown request params")
         }
     }
 
@@ -214,7 +210,7 @@ internal class RelayerInteractor(
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 val responseVO = JsonRpcResponseVO.JsonRpcResult(jsonRpcResult.id, result = jsonRpcResult.result)
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(responseVO, params))
-            } ?: Logger.error("WalletConnectRelay: Unknown result params")
+            } ?: Logger.error("RelayerInteractor: Unknown result params")
         }
     }
 
@@ -224,7 +220,7 @@ internal class RelayerInteractor(
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(jsonRpcError.toJsonRpcErrorVO(), params))
-            } ?: Logger.error("WalletConnectRelay: Unknown error params")
+            } ?: Logger.error("RelayerInteractor: Unknown error params")
         }
     }
 
