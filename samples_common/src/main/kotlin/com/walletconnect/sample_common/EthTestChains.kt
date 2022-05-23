@@ -3,6 +3,7 @@ package com.walletconnect.sample_common
 import androidx.annotation.DrawableRes
 
 private const val ETH_CHAIN = "eip155"
+
 // Commented out other methods due to wallet not understanding request
 // TODO: Fix other RPC methods
 private val defaultEthMethods: List<String> = listOf(
@@ -13,7 +14,8 @@ private val defaultEthMethods: List<String> = listOf(
 
 
 fun getPersonalSignBody(account: String): String {
-    val msg = "My email is john@doe.com - ${System.currentTimeMillis()}".encodeToByteArray().joinToString(separator = "", prefix = "0x") { eachByte -> "%02x".format(eachByte) }
+    val msg = "My email is john@doe.com - ${System.currentTimeMillis()}".encodeToByteArray()
+        .joinToString(separator = "", prefix = "0x") { eachByte -> "%02x".format(eachByte) }
     return "[\"$msg\", \"$account\"]"
 }
 
@@ -108,7 +110,32 @@ fun getEthSignTypedData(account: String): String {
     """.trimIndent()
 }
 
-enum class EthTestChains(val chainName: String, val chainNamespace: String, val chainReference: Int, @DrawableRes val icon: Int, val methods: List<String>, val order: Int) {
+enum class EthTestChains(
+    val chainName: String,
+    val chainNamespace: String,
+    val chainReference: Int,
+    @DrawableRes val icon: Int,
+    val methods: List<String>,
+    val order: Int,
+) {
+
+    ETHEREUM_MAIN(
+        chainName = "Ethereum",
+        chainNamespace = ETH_CHAIN,
+        chainReference = 1,
+        icon = R.drawable.ic_ethereum,
+        methods = defaultEthMethods,
+        order = 1
+    ),
+
+    POLYGON_MATIC(
+        chainName = "Polygon Matic",
+        chainNamespace = ETH_CHAIN,
+        chainReference = 137,
+        icon = R.drawable.ic_polygon,
+        methods = defaultEthMethods,
+        order = 1
+    ),
 
     ETHEREUM_KOVAN(
         chainName = "Ethereum Kovan",
