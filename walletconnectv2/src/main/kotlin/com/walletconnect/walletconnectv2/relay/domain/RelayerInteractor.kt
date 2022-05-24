@@ -86,6 +86,8 @@ internal class RelayerInteractor(
         checkConnectionWorking()
         val requestJson = serializer.serialize(payload)
 
+        Logger.error("Publish request: $requestJson")
+
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encodedRequest = serializer.encrypt(requestJson, topic)
             relay.publish(topic.value, encodedRequest, shouldPrompt(payload.method)) { result ->
@@ -106,6 +108,9 @@ internal class RelayerInteractor(
         checkConnectionWorking()
         val jsonResponseDO = response.toRelayerDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
+
+        Logger.error("Publish response: $responseJson")
+
         val encodedJson = serializer.encrypt(responseJson, topic)
 
         relay.publish(topic.value, encodedJson) { result ->
@@ -178,6 +183,8 @@ internal class RelayerInteractor(
                 .map { relayRequest ->
                     val topic = TopicVO(relayRequest.subscriptionTopic)
                     val decodedMessage = serializer.decrypt(relayRequest.message, topic)
+
+                    Logger.error("Peer message: $decodedMessage")
 
                     Pair(decodedMessage, topic)
                 }
