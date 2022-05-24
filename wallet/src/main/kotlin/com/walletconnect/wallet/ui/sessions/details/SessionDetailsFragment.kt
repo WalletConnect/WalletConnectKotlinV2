@@ -27,9 +27,9 @@ import kotlinx.coroutines.flow.onEach
 class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
     private val binding: FragmentSessionDetailsBinding by viewBinding(FragmentSessionDetailsBinding::bind)
     private val viewModel: SessionDetailsViewModel by viewModels()
-    private val chainAccountsAdapter by lazy {
+    private val sessionDetailsAdapter by lazy {
         SessionDetailsAdapter {
-            //TODO Call sessionUpdate but only change account
+            //TODO Remove this callback
         }
     }
 
@@ -49,7 +49,7 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
                 val dividerDrawable = AppCompatResources.getDrawable(requireContext(), R.drawable.drawable_divider)!!
                 setDrawable(dividerDrawable)
             })
-            adapter = chainAccountsAdapter
+            adapter = sessionDetailsAdapter
         }
 
         viewModel.uiState
@@ -67,11 +67,12 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
                         binding.tvPeerUrl.text = sessionDetailsUI.url
                         binding.tvPeerDescription.text = sessionDetailsUI.description
                         binding.tvMethods.text = sessionDetailsUI.methods
+                        binding.tvEvents.text = sessionDetailsUI.events
                         binding.btnDelete.setOnClickListener {
                             viewModel.deleteSession()
                         }
 
-                        chainAccountsAdapter.submitList(sessionDetailsUI.listOfChainAccountInfo)
+                        sessionDetailsAdapter.submitList(sessionDetailsUI.listOfChainAccountInfo)
                     }
                 }
             }
@@ -107,15 +108,14 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
                 viewModel.extendSession()
                 false
             }
-//            TODO: Add it once again with Sample Dapp update after namespace refactor
-//            R.id.updateNamespaces -> {
-//                viewModel.updateNamespace()
-//                false
-//            }
-//            R.id.emit -> {
-//                viewModel.emitEvent()
-//                false
-//            }
+            R.id.update -> {
+                viewModel.updateNamespaces()
+                false
+            }
+            R.id.emit -> {
+                viewModel.emitEvent()
+                false
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }

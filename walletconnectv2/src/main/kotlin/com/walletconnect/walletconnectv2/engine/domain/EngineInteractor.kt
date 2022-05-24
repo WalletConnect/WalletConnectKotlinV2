@@ -205,7 +205,7 @@ internal class EngineInteractor(
         sequenceStorageRepository.insertNamespacesByTopic(topic, namespaces.toMapOfNamespacesVOSession())
 
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateMethods,
-            onSuccess = { Logger.log("Update methods sent successfully") },
+            onSuccess = { Logger.log("Update sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending session update error: $error")
                 onFailure(error)
@@ -300,11 +300,16 @@ internal class EngineInteractor(
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
+        val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
+        if (!session.isSelfController) {
+            throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_EMIT_MESSAGE)
+        }
+
         Validator.validateEvent(event) { errorMessage ->
             throw WalletConnectException.InvalidEventException(errorMessage)
         }
 
-        val namespaces = sequenceStorageRepository.getSessionByTopic(TopicVO(topic)).namespaces
+        val namespaces = session.namespaces
         Validator.validateChainIdWithEventAuthorisation(event.chainId, event.name, namespaces) { errorMessage ->
             throw WalletConnectException.UnauthorizedEventException(errorMessage)
         }
@@ -636,8 +641,12 @@ internal class EngineInteractor(
             is JsonRpcResponseVO.JsonRpcResult -> {
                 Logger.log("Session update namespaces response received")
                 scope.launch {
-                    _sequenceEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Result(session.topic,
-                        session.namespaces.toMapOfEngineNamespacesSession()))
+                    _sequenceEvent.emit(
+                        EngineDO.SessionUpdateNamespacesResponse.Result(
+                            session.topic,
+                            session.namespaces.toMapOfEngineNamespacesSession()
+                        )
+                    )
                 }
             }
             is JsonRpcResponseVO.JsonRpcError -> {

@@ -6,6 +6,7 @@ data class ChainSelectionUI(
     val chainReference: Int,
     val icon: Int,
     val methods: List<String>,
+    val events: List<String>,
     var isSelected: Boolean = false,
 ) {
     val chainId = "${chainNamespace}:${chainReference}"

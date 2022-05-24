@@ -2,7 +2,7 @@ package com.walletconnect.wallet.ui.host.proposal
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.walletconnect.sample_common.EthTestChains
+import com.walletconnect.sample_common.EthChains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAllAccounts
@@ -22,14 +22,14 @@ class SessionProposalViewModel : ViewModel() {
 
     fun approve() {
         if (WalletDelegate.sessionProposal != null && WalletDelegate.selectedChainAddressId in mapOfAllAccounts.keys) {
-            val selectedAccounts: Map<EthTestChains, String> = mapOfAllAccounts[WalletDelegate.selectedChainAddressId] ?: throw Exception("Can't find account")
+            val selectedAccounts: Map<EthChains, String> = mapOfAllAccounts[WalletDelegate.selectedChainAddressId] ?: throw Exception("Can't find account")
             val sessionProposal: Sign.Model.SessionProposal = requireNotNull(WalletDelegate.sessionProposal)
-            val sessionNamespaces: Map<String, Sign.Model.Namespace.Session> = selectedAccounts.filter { (chain: EthTestChains, _) ->
+            val sessionNamespaces: Map<String, Sign.Model.Namespace.Session> = selectedAccounts.filter { (chain: EthChains, _) ->
                 "${chain.chainNamespace}:${chain.chainReference}" in sessionProposal.requiredNamespaces.values.flatMap { it.chains }
-            }.toList().groupBy { (chain: EthTestChains, _: String) ->
+            }.toList().groupBy { (chain: EthChains, _: String) ->
                 chain.chainNamespace
-            }.map { (namespaceKey: String, chainData: List<Pair<EthTestChains, String>>) ->
-                val accounts = chainData.map { (chain: EthTestChains, accountAddress: String) ->
+            }.map { (namespaceKey: String, chainData: List<Pair<EthChains, String>>) ->
+                val accounts = chainData.map { (chain: EthChains, accountAddress: String) ->
                     "${chain.chainNamespace}:${chain.chainReference}:${accountAddress}"
                 }
                 val methods = sessionProposal.requiredNamespaces.values.flatMap { it.methods }
@@ -75,7 +75,8 @@ class SessionProposalViewModel : ViewModel() {
             proposalUri = sessionProposal.url,
             peerDescription = sessionProposal.description,
             chains = sessionProposal.requiredNamespaces.flatMap { it.value.chains }.joinToString("\n"),
-            methods = sessionProposal.requiredNamespaces.flatMap { it.value.methods }.joinToString("\n")
+            methods = sessionProposal.requiredNamespaces.flatMap { it.value.methods }.joinToString("\n"),
+            events = sessionProposal.requiredNamespaces.flatMap { it.value.events }.joinToString("\n")
         )
     }
 }

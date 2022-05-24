@@ -45,6 +45,11 @@
             app:destination="@id/fragment_session"
             app:popUpTo="@id/fragment_chain_selection"
             app:popUpToInclusive="false" />
+
+        <action
+            android:id="@+id/action_global_fragment_chain_selection"
+            app:destination="@id/fragment_chain_selection" />
+
     </navigation>
 
     <fragment

@@ -47,7 +47,6 @@ object SignClient {
                     is EngineDO.SessionProposal -> delegate.onSessionProposal(event.toClientSessionProposal())
                     is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
                     is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
-                    is EngineDO.SessionEvent -> delegate.onSessionEvent(event.toClientSessionEvent())
                     //Responses
                     is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
                     is EngineDO.SessionUpdateNamespacesResponse -> delegate.onSessionUpdateResponse(event.toClientUpdateSessionNamespacesResponse())
@@ -68,6 +67,7 @@ object SignClient {
                     is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
                     is EngineDO.SessionUpdateNamespaces -> delegate.onSessionUpdate(event.toClientSessionsNamespaces())
                     is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
+                    is EngineDO.SessionEvent -> delegate.onSessionEvent(event.toClientSessionEvent())
                     is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientSettledSession())
                     //Responses
                     is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
@@ -248,7 +248,6 @@ object SignClient {
         fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal)
         fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest)
         fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
-        fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent)
 
         //Responses
         fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse)
@@ -262,6 +261,7 @@ object SignClient {
         fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession)
         fun onSessionUpdate(updatedSession: Sign.Model.UpdatedSession)
+        fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent)
         fun onSessionExtend(session: Sign.Model.Session)
         fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
 

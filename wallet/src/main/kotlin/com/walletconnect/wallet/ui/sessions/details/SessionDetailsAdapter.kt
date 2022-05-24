@@ -37,6 +37,7 @@ class SessionDetailsAdapter(private val updateOnSelection: (SessionDetailsUI.Con
                     val layoutInflater = LayoutInflater.from(holder.binding.root.context)
                     val drawable = BitmapDrawable(holder.binding.root.context.resources, resource)
 
+                    //fixme: Needs whole view rework. Base view on JS Wallet.
                     chainAccountInfo.listOfAccounts.onEach { account ->
                         val radioButton = ListItemSelectedAccountBinding.inflate(layoutInflater).root.apply {
                             id = View.generateViewId()
