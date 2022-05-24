@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.walletconnect.sample_common.tag
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.ui.SampleWalletEvents
-import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.AuthClient
+import com.walletconnect.walletconnectv2.client.Sign
+import com.walletconnect.walletconnectv2.client.SignClient
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -32,16 +32,16 @@ class SessionRequestViewModel : ViewModel() {
 
     fun reject() {
         (uiState.value as? SessionRequestUI.Content)?.let { sessionRequest ->
-            val result = WalletConnect.Params.Response(
+            val result = Sign.Params.Response(
                 sessionTopic = sessionRequest.topic,
-                jsonRpcResponse = WalletConnect.Model.JsonRpcResponse.JsonRpcError(
+                jsonRpcResponse = Sign.Model.JsonRpcResponse.JsonRpcError(
                     id = sessionRequest.requestId,
                     code = 500,
                     message = "Kotlin Wallet Error"
                 )
             )
 
-            AuthClient.respond(result) { error ->
+            SignClient.respond(result) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
         }
@@ -54,15 +54,15 @@ class SessionRequestViewModel : ViewModel() {
 
     fun approve() {
         (uiState.value as? SessionRequestUI.Content)?.let { sessionRequest ->
-            val result = WalletConnect.Params.Response(
+            val result = Sign.Params.Response(
                 sessionTopic = sessionRequest.topic,
-                jsonRpcResponse = WalletConnect.Model.JsonRpcResponse.JsonRpcResult(
+                jsonRpcResponse = Sign.Model.JsonRpcResponse.JsonRpcResult(
                     sessionRequest.requestId,
                     "0xa3f20717a250c2b0b729b7e5becbff67fdaef7e0699da4de7ca5895b02a170a12d887fd3b17bfdce3481f10bea41f45ba9f709d39ce8325427b57afcfc994cee1b"
                 )
             )
 
-            AuthClient.respond(result) { error ->
+            SignClient.respond(result) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
         }

@@ -5,8 +5,8 @@ import android.util.Log
 import com.walletconnect.sample_common.PROJECT_ID
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample_common.tag
-import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.AuthClient
+import com.walletconnect.walletconnectv2.client.Sign
+import com.walletconnect.walletconnectv2.client.SignClient
 
 class WalletSampleApplication : Application() {
 
@@ -29,10 +29,10 @@ class WalletSampleApplication : Application() {
 //        )
 
         // Sample of how to use a URI to initialize the WalletConnect SDK
-        val initString = WalletConnect.Params.Init(
+        val initString = Sign.Params.Init(
             application = this,
             relayServerUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=$PROJECT_ID",   //TODO: register at https://walletconnect.com/register to get a project ID
-            metadata = WalletConnect.Model.AppMetaData(
+            metadata = Sign.Model.AppMetaData(
                 name = "Kotlin Wallet",
                 description = "Wallet description",
                 url = "example.wallet",
@@ -40,7 +40,7 @@ class WalletSampleApplication : Application() {
             )
         )
 
-        AuthClient.initialize(initString) { error ->
+        SignClient.initialize(initString) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
     }
