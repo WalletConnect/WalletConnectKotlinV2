@@ -2,7 +2,7 @@
 
 # **WalletConnect V2 - Kotlin**
 
-Kotlin implementation of WalletConnect v2 protocol for Android applications.
+Kotlin implementation of WalletConnect v2 Sign protocol for Android applications.
 
 [![](https://jitpack.io/v/WalletConnect/WalletConnectKotlinV2.svg)](https://jitpack.io/#WalletConnect/WalletConnectKotlinV2)
 
