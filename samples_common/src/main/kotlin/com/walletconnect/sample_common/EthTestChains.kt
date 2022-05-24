@@ -4,15 +4,12 @@ import androidx.annotation.DrawableRes
 
 private const val ETH_CHAIN = "eip155"
 
-// Commented out other methods due to wallet not understanding request
-// TODO: Fix other RPC methods
 private val defaultEthMethods: List<String> = listOf(
     "eth_sendTransaction",
     "personal_sign",
     "eth_sign",
     "eth_signTypedData"
 )
-
 
 fun getPersonalSignBody(account: String): String {
     val msg = "My email is john@doe.com - ${System.currentTimeMillis()}".encodeToByteArray()
