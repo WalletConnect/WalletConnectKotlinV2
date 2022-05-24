@@ -8,8 +8,8 @@ import com.walletconnect.sample_common.tag
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAllAccounts
 import com.walletconnect.wallet.ui.SampleWalletEvents
-import com.walletconnect.walletconnectv2.client.WalletConnect
 import com.walletconnect.walletconnectv2.client.AuthClient
+import com.walletconnect.walletconnectv2.client.WalletConnect
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -180,7 +180,7 @@ class SessionDetailsViewModel : ViewModel() {
                         )
                     )
                 )
-            val update = WalletConnect.Params.UpdateNamespaces(sessionTopic = topic, namespaces = namespaces)
+            val update = WalletConnect.Params.Update(sessionTopic = topic, namespaces = namespaces)
 
             AuthClient.update(update) { error -> Log.d("Error", "Sending update error: $error") }
         }

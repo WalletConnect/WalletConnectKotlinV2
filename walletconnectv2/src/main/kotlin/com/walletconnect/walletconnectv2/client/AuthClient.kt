@@ -166,10 +166,10 @@ object AuthClient {
     }
 
     @Throws(IllegalStateException::class)
-    fun update(updateNamespaces: WalletConnect.Params.UpdateNamespaces, onError: (WalletConnect.Model.Error) -> Unit) {
+    fun update(updateParams: WalletConnect.Params.Update, onError: (WalletConnect.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.updateSession(updateNamespaces.sessionTopic, updateNamespaces.namespaces.toMapOfEngineNamespacesSession())
+            engineInteractor.updateSession(updateParams.sessionTopic, updateParams.namespaces.toMapOfEngineNamespacesSession())
             { error -> onError(WalletConnect.Model.Error(error)) }
         } catch (error: Exception) {
             onError(WalletConnect.Model.Error(error))
