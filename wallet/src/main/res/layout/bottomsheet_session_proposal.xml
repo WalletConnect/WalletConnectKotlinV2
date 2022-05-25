@@ -141,8 +141,8 @@
         android:id="@+id/btnReject"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
         android:backgroundTint="@android:color/holo_red_light"
         android:text="Reject"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -159,10 +159,10 @@
         android:layout_marginStart="16dp"
         android:backgroundTint="@android:color/holo_blue_dark"
         android:text="Approve"
-        app:layout_constraintTop_toTopOf="@id/btnReject"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/glEnd"
         app:layout_constraintHorizontal_weight="1"
-        app:layout_constraintStart_toEndOf="@id/btnReject" />
+        app:layout_constraintStart_toEndOf="@id/btnReject"
+        app:layout_constraintTop_toTopOf="@id/btnReject" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

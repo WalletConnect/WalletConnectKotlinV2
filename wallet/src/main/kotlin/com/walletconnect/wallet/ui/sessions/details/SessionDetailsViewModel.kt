@@ -235,22 +235,19 @@ class SessionDetailsViewModel : ViewModel() {
         selectedSession.namespaces.values.flatMap { namespace ->
             namespace.events.map { event ->
                 event to namespace.accounts.map { getChainFromAccount(it) }
-            }.toMutableList().apply {
-                if (namespace.extensions != null) {
-                    addAll(namespace.extensions!!.flatMap { extension ->
-                        extension.events.map { event ->
-                            event to namespace.accounts.map { getChainFromAccount(it) }
-                        }
-                    })
-                }
-            }
+            }.plus(
+                namespace.extensions?.flatMap { extension ->
+                    extension.events.map { event ->
+                        event to namespace.accounts.map { getChainFromAccount(it) }
+                    }
+                } ?: emptyList()
+            )
         }.toMap()
 
-    @JvmSynthetic
     private fun getChainFromAccount(accountId: String): String {
         val elements = accountId.split(":")
         if (elements.isEmpty() || elements.size != 3) return accountId
-        val (namespace: String, reference: String, accountAddress: String) = elements
+        val (namespace: String, reference: String, _: String) = elements
 
         return "$namespace:$reference"
     }
