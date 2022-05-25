@@ -28,7 +28,7 @@ class WalletSampleApplication : Application() {
 //        )
 //        )
 
-        // Sample of how to use a URI to initialize the WalletConnect SDK
+        // Sample of how to use a URI to initialize the WalletConnect Sign SDK
         val initString = Sign.Params.Init(
             application = this,
             relayServerUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=$PROJECT_ID",   //TODO: register at https://walletconnect.com/register to get a project ID
