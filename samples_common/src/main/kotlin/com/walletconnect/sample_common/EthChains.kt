@@ -4,6 +4,8 @@ import androidx.annotation.DrawableRes
 
 private const val ETH_CHAIN = "eip155"
 
+private val defaultEthEvents: List<String> = listOf("chainChanged", "accountChanged")
+
 private val defaultEthMethods: List<String> = listOf(
     "eth_sendTransaction",
     "personal_sign",
@@ -31,12 +33,13 @@ fun getEthSignTypedData(account: String): String {
     return "[\"$account\",[\"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826\",{\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"Person\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"wallet\",\"type\":\"address\"}],\"Mail\":[{\"name\":\"from\",\"type\":\"Person\"},{\"name\": \"to\",\"type\":\"Person\"},{\"name\":\"contents\",\"type\":\"string\"}]},\"primaryType\":\"Mail\",\"domain\":{\"name\":\"Ether Mail\",\"version\":\"1\",\"chainId\":\"1\",\"verifyingContract\":\"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC\"},\"message\":{\"from\": {\"name\":\"Cow\",\"wallet\":\"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826\"},\"to\":{\"name\":\"Bob\",\"wallet\":\"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB\"},\"contents\":\"Hello, Bob!\"}}]]"
 }
 
-enum class EthTestChains(
+enum class EthChains(
     val chainName: String,
     val chainNamespace: String,
     val chainReference: Int,
     @DrawableRes val icon: Int,
     val methods: List<String>,
+    val events: List<String>,
     val order: Int,
 ) {
 
@@ -46,6 +49,7 @@ enum class EthTestChains(
         chainReference = 1,
         icon = R.drawable.ic_ethereum,
         methods = defaultEthMethods,
+        events = defaultEthEvents,
         order = 1
     ),
 
@@ -55,7 +59,8 @@ enum class EthTestChains(
         chainReference = 137,
         icon = R.drawable.ic_polygon,
         methods = defaultEthMethods,
-        order = 1
+        events = defaultEthEvents,
+        order = 2
     ),
 
     ETHEREUM_KOVAN(
@@ -64,7 +69,8 @@ enum class EthTestChains(
         chainReference = 42,
         icon = R.drawable.ic_ethereum,
         methods = defaultEthMethods,
-        order = 1
+        events = defaultEthEvents,
+        order = 3
     ),
 
     OPTIMISM_KOVAN(
@@ -73,7 +79,8 @@ enum class EthTestChains(
         chainReference = 69,
         icon = R.drawable.ic_optimism,
         methods = defaultEthMethods,
-        order = 2
+        events = defaultEthEvents,
+        order = 4
     ),
 
     POLYGON_MUMBAI(
@@ -82,7 +89,8 @@ enum class EthTestChains(
         chainReference = 80001,
         icon = R.drawable.ic_polygon,
         methods = defaultEthMethods,
-        order = 3
+        events = defaultEthEvents,
+        order = 5
     ),
 
     ARBITRUM_RINKBY(
@@ -91,7 +99,8 @@ enum class EthTestChains(
         chainReference = 421611,
         icon = R.drawable.ic_arbitrum,
         methods = defaultEthMethods,
-        order = 4
+        events = defaultEthEvents,
+        order = 6
     ),
 
     CELO_ALFAJORES(
@@ -100,6 +109,7 @@ enum class EthTestChains(
         chainReference = 44787,
         icon = R.drawable.ic_celo,
         methods = defaultEthMethods,
-        order = 5
+        events = defaultEthEvents,
+        order = 7
     )
 }

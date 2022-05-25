@@ -223,28 +223,24 @@ internal object Validator {
         namespaces.values.flatMap { namespace ->
             namespace.events.map { event ->
                 event to namespace.accounts.map { getChainFromAccount(it) }
-            }.toMutableList().apply {
-                if (namespace.extensions != null) {
-                    addAll(namespace.extensions.flatMap { extension ->
-                        extension.events.map { event ->
-                            event to namespace.accounts.map { getChainFromAccount(it) }
-                        }
-                    })
-                }
-            }
+            }.plus(
+                namespace.extensions?.flatMap { extension ->
+                    extension.events.map { event ->
+                        event to namespace.accounts.map { getChainFromAccount(it) }
+                    }
+                } ?: emptyList()
+            )
         }.toMap()
 
     private fun allRequiredEventsWithChains(namespaces: Map<String, NamespaceVO.Proposal>): Map<String, List<String>> =
         namespaces.values.flatMap { namespace ->
             namespace.events.map { event ->
                 event to namespace.chains
-            }.toMutableList().apply {
-                if (namespace.extensions != null) {
-                    addAll(namespace.extensions.flatMap { extension ->
-                        extension.events.map { event -> event to namespace.chains }
-                    })
-                }
-            }
+            }.plus(
+                namespace.extensions?.flatMap { extension ->
+                    extension.events.map { event -> event to namespace.chains }
+                } ?: emptyList()
+            )
         }.toMap()
 
     private fun areAllEventsApproved(

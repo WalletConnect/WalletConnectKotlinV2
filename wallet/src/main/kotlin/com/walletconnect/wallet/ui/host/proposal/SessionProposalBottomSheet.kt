@@ -35,6 +35,7 @@ class SessionProposalBottomSheet : BottomSheetDialogFragment() {
             tvProposalUri.text = sessionProposal.proposalUri
             tvChains.text = sessionProposal.chains
             tvMethods.text = sessionProposal.methods
+            tvEvents.text = sessionProposal.events
         }, {
             Toast.makeText(requireContext(), "Unable to find proposed Session", Toast.LENGTH_SHORT).show()
             findNavController().popBackStack()

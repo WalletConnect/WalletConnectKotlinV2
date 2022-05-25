@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.dapp.ui.connect.chain_select.ChainSelectionUI
-import com.walletconnect.sample_common.EthTestChains
+import com.walletconnect.sample_common.EthChains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.Sign
 import com.walletconnect.walletconnectv2.client.SignClient
@@ -19,8 +19,8 @@ class ConnectViewModel : ViewModel() {
     private val _listOfChainUI: MutableList<ChainSelectionUI> = mutableListOf()
         get() {
             return if (field.isEmpty()) {
-                EthTestChains.values().mapTo(field) {
-                    ChainSelectionUI(it.chainName, it.chainNamespace, it.chainReference, it.icon, it.methods)
+                EthChains.values().mapTo(field) {
+                    ChainSelectionUI(it.chainName, it.chainNamespace, it.chainReference, it.icon, it.methods, it.events)
                 }
             } else {
                 field
@@ -59,18 +59,22 @@ class ConnectViewModel : ViewModel() {
         }
 
         val namespaces: Map<String, Sign.Model.Namespace.Proposal> =
-            listOfChainUI.filter { it.isSelected }.groupBy { it.chainNamespace }.map { (key: String, selectedChains: List<ChainSelectionUI>) ->
-                key to Sign.Model.Namespace.Proposal(
-                    chains = selectedChains.map { it.chainId },
-                    methods = selectedChains.flatMap { it.methods }.distinct(),
-                    events = listOf("testEvent"),
-                    extensions = null
-                )
-            }.toMap()
+            listOfChainUI
+                .filter { it.isSelected }
+                .groupBy { it.chainNamespace }
+                .map { (key: String, selectedChains: List<ChainSelectionUI>) ->
+                    key to Sign.Model.Namespace.Proposal(
+                        chains = selectedChains.map { it.chainId },
+                        methods = selectedChains.flatMap { it.methods }.distinct(),
+                        events = selectedChains.flatMap { it.events }.distinct(),
+                        extensions = null
+                    )
+                }.toMap()
 
         val connectParams = Sign.Params.Connect(
             namespaces = namespaces,
-            pairingTopic = pairingTopic)
+            pairingTopic = pairingTopic
+        )
 
         SignClient.connect(connectParams,
             onProposedSequence = { proposedSequence ->
@@ -78,6 +82,9 @@ class ConnectViewModel : ViewModel() {
                     onProposedSequence(proposedSequence)
                 }
             },
-            onError = { error -> Log.e(tag(this@ConnectViewModel), error.throwable.stackTraceToString()) })
+            onError = { error ->
+                Log.e(tag(this@ConnectViewModel), error.throwable.stackTraceToString())
+            }
+        )
     }
 }

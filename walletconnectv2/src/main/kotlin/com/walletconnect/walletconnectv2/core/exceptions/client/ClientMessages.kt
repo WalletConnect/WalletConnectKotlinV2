@@ -6,6 +6,8 @@ internal const val UNAUTHORIZED_UPDATE_MESSAGE: String =
     "The update() was called by the unauthorized peer. Must be called by controller client."
 internal const val UNAUTHORIZED_EXTEND_MESSAGE: String =
     "The extend() was called by the unauthorized peer. Must be called by controller client."
+internal const val UNAUTHORIZED_EMIT_MESSAGE: String =
+    "The emit() was called by the unauthorized peer. Must be called by controller client."
 internal const val SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE: String = "Session is not acknowledged, topic: "
 
 internal const val NAMESPACE_MISSING_CHAINS_MESSAGE: String = "Chains must not be empty"

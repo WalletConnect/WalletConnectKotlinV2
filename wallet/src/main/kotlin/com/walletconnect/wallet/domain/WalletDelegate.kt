@@ -45,11 +45,6 @@ object WalletDelegate : SignClient.WalletDelegate {
         }
     }
 
-    override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {
-        scope.launch {
-            _wcEventModels.emit(sessionEvent)
-        }
-    }
 
     override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {
         sessionProposal = null

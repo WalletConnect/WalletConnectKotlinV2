@@ -19,4 +19,6 @@ sealed class SampleDappEvents {
     data class RequestError(val exceptionMsg: String) : SampleDappEvents()
 
     object NoAction : SampleDappEvents()
+
+    data class SessionEvent(val name: String, val data: String): SampleDappEvents()
 }
