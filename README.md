@@ -69,8 +69,7 @@ SignClient.initalize(init)
 The wallet client will always be responsible for exposing accounts (CAPI10 compatible) to a Dapp and therefore is also in charge of signing.
 To initialize the Sign client, create a `Sign.Params.Init` object in the Android Application class. The Init object will need the
 application class, the Project ID, and the apps's AppMetaData. The `Sign.Params.Init` object will then be passed to the `SignClient`
-initialize function. `Sign.Params.Init`
-also allows for custom URLs by passing URL string into the `hostName`property.
+initialize function. `Sign.Params.Init` also allows for custom URLs by passing URL string into the `hostName`property.
 
 We allow developers to choose between the `Sign.ConnectionType.MANUAL`and`Sign.ConnectionType.AUTOMATIC`connection type. The default
 one(`Sign.ConnectionType.AUTOMATIC`) disconnects wss connection when app enters background and reconnects when app is brought back to the
@@ -157,7 +156,7 @@ To send an approval, pass a Proposer's Public Key along with the map of namespac
 val proposerPublicKey: String = /*Proposer publicKey from SessionProposal object*/
 val rejectionReason: String = /*The reason for rejecting the Session Proposal*/
 val rejectionCode: String = /*The code for rejecting the Session Proposal*/
-    For reference use CAIP -25: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-25.md
+For reference use CAIP -25: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-25.md
 
 val rejectParams: Sign.Params.Reject = Reject(proposerPublicKey, rejectionReason, rejectionCode)
 SignClient.rejectSession(rejectParams) { error -> /*callback for error while rejecting a session*/ }
@@ -174,7 +173,7 @@ the `SignClient.rejectSession` function.
 val disconnectionReason: String = /*The reason for disconnecting the Session*/
 val disconnectionCode: String = /*The code for for disconnecting the Session*/
 val sessionTopic: String = /*Topic from the Session*/
-    For reference use CAIP -25: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-25.md
+For reference use CAIP -25: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-25.md
 val disconnectParams = Sign.Params.Disconnect(sessionTopic, disconnectionReason, disconnectionCode)
 
 SignClient.disconnect(disconnectParams) { error -> /*callback for error while disconnecting a session*/ }
@@ -330,9 +329,7 @@ val namespaces: Map<String, Sign.Model.Namespaces.Proposal> = mapOf(namespace, S
 val pairingTopic: String? =  /* Optional parameter, use it when the pairing between peers is already established*/
 val connectParams = WalletConnect.Params.Connect(namespaces, pairingTopic)
 
-fun SignClient.connect(connectParams, {
-    proposedSequence -> /*callback that returns the WalletConnect.Model.ProposedSequence*/
-},{ error -> /*callback for error while sending session proposal*/ })
+fun SignClient.connect(connectParams, { proposedSequence -> /*callback that returns the WalletConnect.Model.ProposedSequence*/ }, { error -> /*callback for error while sending session proposal*/ })
 ```
 
 The `SignClient.connect` asynchronously exposes the pairing URI that is shared with wallet out of bound, as qr code or mobile linking. The
