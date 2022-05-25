@@ -113,7 +113,7 @@ val walletDelegate = object : SignClient.WalletDelegate {
 SignClient.setWalletDelegate(walletDelegate)
 ```
 
-The SignClient needs a `SignClient.WalletDelegate` passed to it for it to be able to expose asynchronously updates sent from the Dapp.
+The SignClient needs a `SignClient.WalletDelegate` passed to it for it to be able to expose asynchronous updates sent from the Dapp.
 
 &nbsp;
 
