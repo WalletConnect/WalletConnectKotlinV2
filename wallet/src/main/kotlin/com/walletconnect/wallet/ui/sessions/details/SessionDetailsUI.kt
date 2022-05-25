@@ -10,14 +10,15 @@ sealed class SessionDetailsUI {
         val url: String,
         val description: String,
         val listOfChainAccountInfo: List<ChainAccountInfo>,
-        val methods: String
+        val methods: String,
+        val events: String,
     ): SessionDetailsUI() {
 
         data class ChainAccountInfo(
             val chainName: String,
             @DrawableRes val chainIcon: Int,
-            val parentChain: String,
-            val chainId: Int,
+            val chainNamespace: String,
+            val chainReference: Int,
             val listOfAccounts: List<Account>
         ) {
 

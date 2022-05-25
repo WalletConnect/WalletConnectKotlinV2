@@ -1,16 +1,14 @@
 package com.walletconnect.dapp.ui.selected_account
 
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
-import com.walletconnect.sample_common.EthTestChains
-import com.walletconnect.sample_common.getEthSendTransaction
-import com.walletconnect.sample_common.getEthSignTypedData
-import com.walletconnect.sample_common.getPersonalSignBody
-import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.sample_common.*
+import com.walletconnect.walletconnectv2.client.Sign
+import com.walletconnect.walletconnectv2.client.SignClient
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -26,42 +24,26 @@ class SelectedAccountViewModel : ViewModel() {
             .filterNotNull()
             .onEach { walletEvent ->
                 when (walletEvent) {
-                    is WalletConnect.Model.UpdatedSessionAccounts -> {
+                    is Sign.Model.UpdatedSession -> {
                         (uiState.value as? SelectedAccountUI.Content)?.let { currentState ->
-                            val (updatedAccountAddress, updatedSelectedAccount) = walletEvent.accounts.map { updatedAccount ->
-                                val (parentChain, chainId, accountAddress) = updatedAccount.split(":")
-                                Triple(parentChain, chainId, accountAddress)
-                            }.first { (parentChain, chainId, _) ->
-                                val (currentParentChain, currentChainId, _) = currentState.selectedAccount.split(":")
-
-                                parentChain == currentParentChain && chainId == currentChainId
-                            }.let { (parentChain, chainId, accountAddress) ->
-                                accountAddress to "$parentChain:$chainId:$accountAddress"
-                            }
-
-                            _uiState.value = currentState.copy(account = updatedAccountAddress, selectedAccount = updatedSelectedAccount)
+                            fetchAccountDetails(currentState.selectedAccount)
                         }
                     }
-                    is WalletConnect.Model.UpdatedSessionMethods -> {
-                        (uiState.value as? SelectedAccountUI.Content)?.copy(listOfMethods = walletEvent.methods)?.let { updatedState ->
-                            _uiState.value = updatedState
-                        }
-                    }
-                    is WalletConnect.Model.SessionRequestResponse -> {
+                    is Sign.Model.SessionRequestResponse -> {
                         val request = when (walletEvent.result) {
-                            is WalletConnect.Model.JsonRpcResponse.JsonRpcResult -> {
-                                val successResult = (walletEvent.result as WalletConnect.Model.JsonRpcResponse.JsonRpcResult)
+                            is Sign.Model.JsonRpcResponse.JsonRpcResult -> {
+                                val successResult = (walletEvent.result as Sign.Model.JsonRpcResponse.JsonRpcResult)
                                 SampleDappEvents.RequestSuccess(successResult.result)
                             }
-                            is WalletConnect.Model.JsonRpcResponse.JsonRpcError -> {
-                                val errorResult = (walletEvent.result as WalletConnect.Model.JsonRpcResponse.JsonRpcError)
+                            is Sign.Model.JsonRpcResponse.JsonRpcError -> {
+                                val errorResult = (walletEvent.result as Sign.Model.JsonRpcResponse.JsonRpcError)
                                 SampleDappEvents.RequestPeerError("Error Message: ${errorResult.message}\n Error Code: ${errorResult.code}")
                             }
                         }
 
                         _event.emit(request)
                     }
-                    is WalletConnect.Model.DeletedSession -> {
+                    is Sign.Model.DeletedSession -> {
                         _event.emit(SampleDappEvents.Disconnect)
                     }
                     else -> Unit
@@ -75,38 +57,40 @@ class SelectedAccountViewModel : ViewModel() {
             val (parentChain, chainId, account) = currentState.selectedAccount.split(":")
             val params: String = when {
                 method.equals("personal_sign", true) -> getPersonalSignBody(account)
+                method.equals("eth_sign", true) -> getEthSignBody(account)
                 method.equals("eth_sendTransaction", true) -> getEthSendTransaction(account)
                 method.equals("eth_signTypedData", true) -> getEthSignTypedData(account)
                 else -> "[]"
             }
-            val requestParams = WalletConnect.Params.Request(
+            val requestParams = Sign.Params.Request(
                 sessionTopic = requireNotNull(DappDelegate.selectedSessionTopic),
                 method = method,
                 params = params, // stringified JSON
                 chainId = "$parentChain:$chainId"
             )
 
-            WalletConnectClient.request(requestParams) {
+            SignClient.request(requestParams) {
                 viewModelScope.launch {
-                    _event.emit(SampleDappEvents.RequestError(it.error.localizedMessage ?: "Error trying to send request"))
+                    _event.emit(SampleDappEvents.RequestError(it.throwable.localizedMessage ?: "Error trying to send request"))
                 }
             }
 
-            //TODO: Uncomment once refactor merged in
-//        val sessionRequestDeepLinkUri = "wc:/${requireNotNull(DappDelegate.selectedSessionTopic)}".toUri()
-//        sendSessionRequestDeepLink(sessionRequestDeepLinkUri)
+            val sessionRequestDeepLinkUri = "wc:/${requestParams.sessionTopic})}/request".toUri()
+            sendSessionRequestDeepLink(sessionRequestDeepLinkUri)
         }
     }
 
-    fun fetchAccountDetails(selectedAccount: String) {
-        val (parentChain, chainId, account) = selectedAccount.split(":")
-        val chainDetails = EthTestChains.values().first {
-            it.parentChain == parentChain && it.chainId == chainId.toInt()
+    fun fetchAccountDetails(selectedAccountInfo: String) {
+        val (chainNamespace, chainReference, account) = selectedAccountInfo.split(":")
+        val chainDetails = EthChains.values().first {
+            it.chainNamespace == chainNamespace && it.chainReference == chainReference.toInt()
         }
-        val listOfMethods: List<String> = WalletConnectClient.getListOfSettledSessions().filter {
-            it.topic == DappDelegate.selectedSessionTopic
-        }.flatMap {
-            it.methods
+        val listOfMethods: List<String> = SignClient.getListOfSettledSessions().filter { session ->
+            session.topic == DappDelegate.selectedSessionTopic
+        }.flatMap { session ->
+            session.namespaces
+                .filter { (key, _) -> key == chainNamespace }
+                .values.flatMap { namespace -> namespace.methods }
         }
 
         viewModelScope.launch {
@@ -115,7 +99,7 @@ class SelectedAccountViewModel : ViewModel() {
                 chainName = chainDetails.chainName,
                 account = account,
                 listOfMethods = listOfMethods,
-                selectedAccount = selectedAccount
+                selectedAccount = selectedAccountInfo
             )
         }
     }

@@ -5,9 +5,12 @@ import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.MetaDataVO
+import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.params.SessionParamsVO
+import com.walletconnect.walletconnectv2.engine.model.EngineDO
+import com.walletconnect.walletconnectv2.engine.model.mapper.toMapOfNamespacesVOSession
 
 internal data class SessionVO(
     override val topic: TopicVO,
@@ -19,14 +22,11 @@ internal data class SessionVO(
     val selfMetaData: MetaDataVO? = null,
     val peerPublicKey: PublicKey? = null,
     val peerMetaData: MetaDataVO? = null,
-    val accounts: List<String> = emptyList(),
-    val methods: List<String>,
-    val events: List<String>,
+    val namespaces: Map<String, NamespaceVO.Session>,
     val isAcknowledged: Boolean,
 ) : Sequence {
     val isPeerController: Boolean = peerPublicKey?.keyAsHex == controllerKey?.keyAsHex
     val isSelfController: Boolean = selfPublicKey.keyAsHex == controllerKey?.keyAsHex
-    val chains: List<String> get() = getChainIds(accounts)
 
     internal companion object {
 
@@ -36,9 +36,7 @@ internal data class SessionVO(
             proposal: PairingParamsVO.SessionProposeParams,
             selfParticipant: SessionParticipantVO,
             sessionExpiry: Long,
-            accounts: List<String>,
-            methods: List<String>,
-            events: List<String>,
+            namespaces: Map<String, EngineDO.Namespace.Session>
         ): SessionVO {
             return SessionVO(
                 sessionTopic,
@@ -50,9 +48,7 @@ internal data class SessionVO(
                 selfPublicKey = PublicKey(selfParticipant.publicKey),
                 selfMetaData = selfParticipant.metadata,
                 controllerKey = PublicKey(selfParticipant.publicKey),
-                methods = methods,
-                events = events,
-                accounts = accounts,
+                namespaces = namespaces.toMapOfNamespacesVOSession(),
                 isAcknowledged = false
             )
         }
@@ -74,15 +70,9 @@ internal data class SessionVO(
                 selfPublicKey = selfPublicKey,
                 selfMetaData = selfMetadata,
                 controllerKey = PublicKey(settleParams.controller.publicKey),
-                methods = settleParams.methods,
-                events = settleParams.events,
-                accounts = settleParams.accounts,
+                namespaces = settleParams.namespaces,
                 isAcknowledged = true
             )
-        }
-
-        fun getChainIds(accountIds: List<String>): List<String> {
-            return accountIds.map { accountId -> accountId.split(":").take(2).joinToString(":") }
         }
     }
 }

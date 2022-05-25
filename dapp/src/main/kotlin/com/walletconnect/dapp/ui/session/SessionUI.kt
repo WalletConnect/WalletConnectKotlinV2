@@ -4,6 +4,6 @@ data class SessionUI(
     val icon: Int,
     val name: String,
     val address: String,
-    val parentChain: String,
-    val chainId: Int,
+    val chainNamespace: String,
+    val chainReference: Int,
 )

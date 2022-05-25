@@ -8,11 +8,14 @@ import android.util.Base64
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.squareup.sqldelight.ColumnAdapter
+import com.squareup.sqldelight.EnumColumnAdapter
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.walletconnectv2.Database
+import com.walletconnect.walletconnectv2.core.model.type.enums.MetaDataType
 import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
-import com.walletconnect.walletconnectv2.storage.data.dao.SessionDao
+import com.walletconnect.walletconnectv2.storage.data.dao.NamespaceDao
+import com.walletconnect.walletconnectv2.storage.data.dao.NamespaceExtensionsDao
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
 import com.walletconnect.walletconnectv2.util.randomBytes
@@ -62,6 +65,10 @@ internal fun storageModule(): Module = module {
 
             override fun encode(value: List<String>) = value.joinToString(separator = ",")
         }
+    }
+
+    single<ColumnAdapter<MetaDataType, String>>(named("MetaDataType")) {
+        EnumColumnAdapter()
     }
 
     single<KeyStore> {
@@ -178,12 +185,20 @@ internal fun storageModule(): Module = module {
     single {
         Database(
             get(),
-            SessionDaoAdapter = SessionDao.Adapter(
-                permissions_methodsAdapter = get(),
-                permissions_eventsAdapter = get(),
-                accountsAdapter = get()
+            MetaDataDaoAdapter = MetaDataDao.Adapter(
+                iconsAdapter = get(),
+                typeAdapter = get(named("MetaDataType"))
             ),
-            MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = get())
+            NamespaceDaoAdapter = NamespaceDao.Adapter(
+                accountsAdapter = get(),
+                methodsAdapter = get(),
+                eventsAdapter = get()
+            ),
+            NamespaceExtensionsDaoAdapter = NamespaceExtensionsDao.Adapter(
+                accountsAdapter = get(),
+                methodsAdapter = get(),
+                eventsAdapter = get()
+            )
         )
     }
 
@@ -204,7 +219,15 @@ internal fun storageModule(): Module = module {
     }
 
     single {
-        SequenceStorageRepository(get(), get(), get())
+        get<Database>().namespaceDaoQueries
+    }
+
+    single {
+        get<Database>().namespaceExtensionDaoQueries
+    }
+
+    single {
+        SequenceStorageRepository(get(), get(), get(), get(), get())
     }
 
     single {

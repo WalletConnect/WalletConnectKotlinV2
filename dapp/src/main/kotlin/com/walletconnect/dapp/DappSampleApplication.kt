@@ -1,10 +1,12 @@
 package com.walletconnect.dapp
 
 import android.app.Application
+import android.util.Log
 import com.walletconnect.sample_common.PROJECT_ID
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
-import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.WalletConnectClient
+import com.walletconnect.sample_common.tag
+import com.walletconnect.walletconnectv2.client.Sign
+import com.walletconnect.walletconnectv2.client.SignClient
 
 class DappSampleApplication : Application() {
 
@@ -26,10 +28,10 @@ class DappSampleApplication : Application() {
 //        )
 
         // Sample of how to use a URI to initialize the WalletConnect SDK
-        val initString = WalletConnect.Params.Init(
+        val initString = Sign.Params.Init(
             application = this,
             relayServerUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=$PROJECT_ID",   //TODO: register at https://walletconnect.com/register to get a project ID
-            metadata = WalletConnect.Model.AppMetaData(
+            metadata = Sign.Model.AppMetaData(
                 name = "Kotlin Dapp",
                 description = "Dapp description",
                 url = "example.dapp",
@@ -37,6 +39,8 @@ class DappSampleApplication : Application() {
             )
         )
 
-        WalletConnectClient.initialize(initString)
+        SignClient.initialize(initString) { error ->
+            Log.e(tag(this), error.throwable.stackTraceToString())
+        }
     }
 }

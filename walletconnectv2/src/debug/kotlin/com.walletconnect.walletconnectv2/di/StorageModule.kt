@@ -4,11 +4,12 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import com.squareup.sqldelight.ColumnAdapter
+import com.squareup.sqldelight.EnumColumnAdapter
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.walletconnectv2.Database
-import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
-import com.walletconnect.walletconnectv2.storage.data.dao.SessionDao
+import com.walletconnect.walletconnectv2.core.model.type.enums.MetaDataType
+import com.walletconnect.walletconnectv2.storage.data.dao.*
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
 import org.koin.android.ext.koin.androidContext
@@ -30,7 +31,7 @@ internal fun storageModule(): Module = module {
         object : ColumnAdapter<List<String>, String> {
 
             override fun decode(databaseValue: String) =
-                if (databaseValue.isEmpty()) {
+                if (databaseValue.isBlank()) {
                     listOf()
                 } else {
                     databaseValue.split(",")
@@ -38,6 +39,10 @@ internal fun storageModule(): Module = module {
 
             override fun encode(value: List<String>) = value.joinToString(separator = ",")
         }
+    }
+
+    single<ColumnAdapter<MetaDataType, String>>(named("MetaDataType")) {
+        EnumColumnAdapter()
     }
 
     single<SqlDriver> {
@@ -51,12 +56,20 @@ internal fun storageModule(): Module = module {
     single {
         Database(
             get(),
-            SessionDaoAdapter = SessionDao.Adapter(
-                accountsAdapter = get(),
-                permissions_methodsAdapter = get(),
-                permissions_eventsAdapter = get()
+            MetaDataDaoAdapter = MetaDataDao.Adapter(
+                iconsAdapter = get(),
+                typeAdapter = get(named("MetaDataType"))
             ),
-            MetaDataDaoAdapter = MetaDataDao.Adapter(iconsAdapter = get())
+            NamespaceDaoAdapter = NamespaceDao.Adapter(
+                accountsAdapter = get(),
+                methodsAdapter = get(),
+                eventsAdapter = get()
+            ),
+            NamespaceExtensionsDaoAdapter = NamespaceExtensionsDao.Adapter(
+                accountsAdapter = get(),
+                methodsAdapter = get(),
+                eventsAdapter = get()
+            )
         )
     }
 
@@ -77,7 +90,15 @@ internal fun storageModule(): Module = module {
     }
 
     single {
-        SequenceStorageRepository(get(), get(), get())
+        get<Database>().namespaceDaoQueries
+    }
+
+    single {
+        get<Database>().namespaceExtensionDaoQueries
+    }
+
+    single {
+        SequenceStorageRepository(get(), get(), get(), get(), get())
     }
 
     single {

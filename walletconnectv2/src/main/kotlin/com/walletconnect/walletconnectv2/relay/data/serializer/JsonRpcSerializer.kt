@@ -9,27 +9,27 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.pairing.Pairin
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.session.SessionSettlementVO
 import com.walletconnect.walletconnectv2.crypto.CryptoRepository
 import com.walletconnect.walletconnectv2.relay.Codec
-import com.walletconnect.walletconnectv2.relay.model.RelayDO
+import com.walletconnect.walletconnectv2.relay.model.RelayerDO
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.Logger
 
 internal class JsonRpcSerializer(
-    private val authenticatedEncryptionCodec: Codec,
+    private val chaChaPolyCodec: Codec,
     private val crypto: CryptoRepository,
     private val moshi: Moshi,
 ) {
 
-    internal fun encode(payload: String, topic: TopicVO): String {
+    internal fun encrypt(payload: String, topic: TopicVO): String {
         val symmetricKey = crypto.getSymmetricKey(topic)
-        return authenticatedEncryptionCodec.encrypt(payload, symmetricKey)
+        return chaChaPolyCodec.encrypt(payload, symmetricKey)
     }
 
-    internal fun decode(message: String, topic: TopicVO): String {
+    internal fun decrypt(message: String, topic: TopicVO): String {
         return try {
             val symmetricKey = crypto.getSymmetricKey(topic)
-            authenticatedEncryptionCodec.decrypt(message, symmetricKey)
+            chaChaPolyCodec.decrypt(message, symmetricKey)
         } catch (e: Exception) {
-            Logger.error("Decoding error: ${e.message}")
+            Logger.error("Decrypting error: ${e.message}")
             String.Empty
         }
     }
@@ -43,10 +43,8 @@ internal class JsonRpcSerializer(
             JsonRpcMethod.WC_SESSION_DELETE -> tryDeserialize<SessionSettlementVO.SessionDelete>(json)?.params
             JsonRpcMethod.WC_SESSION_PING -> tryDeserialize<SessionSettlementVO.SessionPing>(json)?.params
             JsonRpcMethod.WC_SESSION_EVENT -> tryDeserialize<SessionSettlementVO.SessionEvent>(json)?.params
-            JsonRpcMethod.WC_SESSION_UPDATE_EVENTS -> tryDeserialize<SessionSettlementVO.SessionUpdateEvents>(json)?.params
-            JsonRpcMethod.WC_SESSION_UPDATE_ACCOUNTS -> tryDeserialize<SessionSettlementVO.SessionUpdateAccounts>(json)?.params
-            JsonRpcMethod.WC_SESSION_UPDATE_METHODS -> tryDeserialize<SessionSettlementVO.SessionUpdateMethods>(json)?.params
-            JsonRpcMethod.WC_SESSION_UPDATE_EXPIRY -> tryDeserialize<SessionSettlementVO.SessionUpdateExpiry>(json)?.params
+            JsonRpcMethod.WC_SESSION_UPDATE -> tryDeserialize<SessionSettlementVO.SessionUpdateNamespaces>(json)?.params
+            JsonRpcMethod.WC_SESSION_EXTEND -> tryDeserialize<SessionSettlementVO.SessionExtend>(json)?.params
             else -> null
         }
 
@@ -57,15 +55,13 @@ internal class JsonRpcSerializer(
             is PairingSettlementVO.PairingDelete -> trySerialize(payload)
             is SessionSettlementVO.SessionPing -> trySerialize(payload)
             is SessionSettlementVO.SessionEvent -> trySerialize(payload)
-            is SessionSettlementVO.SessionUpdateAccounts -> trySerialize(payload)
-            is SessionSettlementVO.SessionUpdateMethods -> trySerialize(payload)
-            is SessionSettlementVO.SessionUpdateEvents -> trySerialize(payload)
-            is SessionSettlementVO.SessionUpdateExpiry -> trySerialize(payload)
+            is SessionSettlementVO.SessionUpdateNamespaces -> trySerialize(payload)
+            is SessionSettlementVO.SessionExtend -> trySerialize(payload)
             is SessionSettlementVO.SessionRequest -> trySerialize(payload)
             is SessionSettlementVO.SessionDelete -> trySerialize(payload)
             is SessionSettlementVO.SessionSettle -> trySerialize(payload)
-            is RelayDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
-            is RelayDO.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
+            is RelayerDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
+            is RelayerDO.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             else -> String.Empty
         }
 

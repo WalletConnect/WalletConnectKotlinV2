@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.onEach
 class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
     private val binding: FragmentSessionDetailsBinding by viewBinding(FragmentSessionDetailsBinding::bind)
     private val viewModel: SessionDetailsViewModel by viewModels()
-    private val chainAccountsAdapter by lazy { SessionDetailsAdapter(viewModel::updateAccounts) }
+    private val sessionDetailsAdapter = SessionDetailsAdapter()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -45,7 +45,7 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
                 val dividerDrawable = AppCompatResources.getDrawable(requireContext(), R.drawable.drawable_divider)!!
                 setDrawable(dividerDrawable)
             })
-            adapter = chainAccountsAdapter
+            adapter = sessionDetailsAdapter
         }
 
         viewModel.uiState
@@ -63,11 +63,12 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
                         binding.tvPeerUrl.text = sessionDetailsUI.url
                         binding.tvPeerDescription.text = sessionDetailsUI.description
                         binding.tvMethods.text = sessionDetailsUI.methods
+                        binding.tvEvents.text = sessionDetailsUI.events
                         binding.btnDelete.setOnClickListener {
                             viewModel.deleteSession()
                         }
 
-                        chainAccountsAdapter.submitList(sessionDetailsUI.listOfChainAccountInfo)
+                        sessionDetailsAdapter.submitList(sessionDetailsUI.listOfChainAccountInfo)
                     }
                 }
             }
@@ -77,8 +78,10 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
             .flowWithLifecycle(viewLifecycleOwner.lifecycle)
             .onEach { event ->
                 when (event) {
-                    is SampleWalletEvents.PingSuccess -> Toast.makeText(requireContext(), "Pinged Peer Successfully on Topic: ${event.topic}", Toast.LENGTH_SHORT).show()
-                    is SampleWalletEvents.PingError -> Toast.makeText(requireContext(), "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT).show()
+                    is SampleWalletEvents.PingSuccess ->
+                        Toast.makeText(requireContext(), "Pinged Peer Successfully on Topic: ${event.topic}", Toast.LENGTH_SHORT).show()
+                    is SampleWalletEvents.PingError -> Toast.makeText(requireContext(), "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT)
+                        .show()
                     is SampleWalletEvents.Disconnect -> findNavController().popBackStack()
                     else -> Unit
                 }
@@ -97,8 +100,16 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
                 viewModel.ping()
                 false
             }
-            R.id.updateMethods -> {
-                viewModel.updateMethods()
+            R.id.extend -> {
+                viewModel.extendSession()
+                false
+            }
+            R.id.update -> {
+                viewModel.updateNamespaces()
+                false
+            }
+            R.id.emit -> {
+                viewModel.emitEvent()
                 false
             }
             else -> super.onOptionsItemSelected(item)

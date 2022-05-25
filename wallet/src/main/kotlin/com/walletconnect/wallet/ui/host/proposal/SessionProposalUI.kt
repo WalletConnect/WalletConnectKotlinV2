@@ -7,4 +7,5 @@ data class SessionProposalUI(
     val peerDescription: String,
     val chains: String,
     val methods: String,
+    val events: String,
 )

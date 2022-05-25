@@ -2,8 +2,10 @@
 <CheckBox xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/cbChain"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="65dp"
+    android:background="@drawable/background_list_item"
+    android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
     tools:drawablePadding="8dp"
     tools:drawableStart="@drawable/ic_ethereum"
     tools:text="Ethereum Kovan" />
