@@ -8,8 +8,8 @@ import androidx.navigation.ui.NavigationUI
 import com.walletconnect.dapp.R
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.sample_common.tag
-import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.AuthClient
+import com.walletconnect.walletconnectv2.client.Sign
+import com.walletconnect.walletconnectv2.client.SignClient
 
 class DappSampleActivity : AppCompatActivity(R.layout.activity_dapp) {
     private val navHostFragment by lazy {
@@ -30,8 +30,8 @@ class DappSampleActivity : AppCompatActivity(R.layout.activity_dapp) {
         super.onDestroy()
 
         DappDelegate.selectedSessionTopic?.let {
-            val disconnectParams = WalletConnect.Params.Disconnect(sessionTopic = it, reason = "shutdown", reasonCode = 400)
-            AuthClient.disconnect(disconnectParams){ error ->
+            val disconnectParams = Sign.Params.Disconnect(sessionTopic = it, reason = "shutdown", reasonCode = 400)
+            SignClient.disconnect(disconnectParams){ error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
         }

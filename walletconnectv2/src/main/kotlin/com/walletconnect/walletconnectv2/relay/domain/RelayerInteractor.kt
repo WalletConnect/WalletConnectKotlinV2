@@ -1,6 +1,6 @@
 package com.walletconnect.walletconnectv2.relay.domain
 
-import com.walletconnect.walletconnectv2.client.WalletConnect
+import com.walletconnect.walletconnectv2.client.Sign
 import com.walletconnect.walletconnectv2.core.exceptions.client.WalletConnectException
 import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
 import com.walletconnect.walletconnectv2.core.model.type.ClientParams
@@ -60,11 +60,11 @@ internal class RelayerInteractor(
 
     val initializationErrorsFlow: Flow<WalletConnectException>
         get() = relay.eventsFlow
-            .onEach { event: WalletConnect.Model.Relay.Event ->
+            .onEach { event: Sign.Model.Relay.Event ->
                 Logger.log("$event")
                 setIsWSSConnectionOpened(event)
             }
-            .filterIsInstance<WalletConnect.Model.Relay.Event.OnConnectionFailed>()
+            .filterIsInstance<Sign.Model.Relay.Event.OnConnectionFailed>()
             .map { error -> error.throwable.toWalletConnectException }
 
     init {
@@ -224,10 +224,10 @@ internal class RelayerInteractor(
         }
     }
 
-    private fun setIsWSSConnectionOpened(event: WalletConnect.Model.Relay.Event) {
-        if (event is WalletConnect.Model.Relay.Event.OnConnectionOpened<*>) {
+    private fun setIsWSSConnectionOpened(event: Sign.Model.Relay.Event) {
+        if (event is Sign.Model.Relay.Event.OnConnectionOpened<*>) {
             _isWSSConnectionOpened.compareAndSet(expect = false, update = true)
-        } else if (event is WalletConnect.Model.Relay.Event.OnConnectionClosed || event is WalletConnect.Model.Relay.Event.OnConnectionFailed) {
+        } else if (event is Sign.Model.Relay.Event.OnConnectionClosed || event is Sign.Model.Relay.Event.OnConnectionFailed) {
             _isWSSConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }

@@ -7,8 +7,8 @@ import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.sample_common.EthTestChains
 import com.walletconnect.sample_common.tag
-import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.AuthClient
+import com.walletconnect.walletconnectv2.client.Sign
+import com.walletconnect.walletconnectv2.client.SignClient
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -24,12 +24,12 @@ class SessionViewModel : ViewModel() {
             .filterNotNull()
             .onEach { walletEvent ->
                 when (walletEvent) {
-                    is WalletConnect.Model.UpdatedSession -> {
+                    is Sign.Model.UpdatedSession -> {
                         //todo: fix session update
 //                        val listOfAccounts = getListOfAccounts(walletEvent.topic)
 //                        _sessionUI.value = listOfAccounts
                     }
-                    is WalletConnect.Model.DeletedSession -> {
+                    is Sign.Model.DeletedSession -> {
                         _navigationEvents.emit(SampleDappEvents.Disconnect)
                     }
                     else -> Unit
@@ -39,7 +39,7 @@ class SessionViewModel : ViewModel() {
     }
 
     private fun getListOfAccounts(topic: String? = null): List<SessionUI> {
-        return AuthClient.getListOfSettledSessions().filter {
+        return SignClient.getListOfSettledSessions().filter {
             if (topic != null) {
                 it.topic == topic
             } else {
@@ -58,16 +58,16 @@ class SessionViewModel : ViewModel() {
     }
 
     fun ping() {
-        val pingParams = WalletConnect.Params.Ping(topic = requireNotNull(DappDelegate.selectedSessionTopic))
+        val pingParams = Sign.Params.Ping(topic = requireNotNull(DappDelegate.selectedSessionTopic))
 
-        AuthClient.ping(pingParams, object : WalletConnect.Listeners.SessionPing {
-            override fun onSuccess(pingSuccess: WalletConnect.Model.Ping.Success) {
+        SignClient.ping(pingParams, object : Sign.Listeners.SessionPing {
+            override fun onSuccess(pingSuccess: Sign.Model.Ping.Success) {
                 viewModelScope.launch {
                     _navigationEvents.emit(SampleDappEvents.PingSuccess(pingSuccess.topic))
                 }
             }
 
-            override fun onError(pingError: WalletConnect.Model.Ping.Error) {
+            override fun onError(pingError: Sign.Model.Ping.Error) {
                 viewModelScope.launch {
                     _navigationEvents.emit(SampleDappEvents.PingError)
                 }
@@ -77,13 +77,13 @@ class SessionViewModel : ViewModel() {
 
     fun disconnect() {
         if (DappDelegate.selectedSessionTopic != null) {
-            val disconnectParams = WalletConnect.Params.Disconnect(
+            val disconnectParams = Sign.Params.Disconnect(
                 sessionTopic = requireNotNull(DappDelegate.selectedSessionTopic),
                 reason = "Disconnect Clicked",
                 reasonCode = 400
             )
 
-            AuthClient.disconnect(disconnectParams) { error ->
+            SignClient.disconnect(disconnectParams) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
             DappDelegate.deselectAccountDetails()

@@ -7,8 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.sample_common.*
-import com.walletconnect.walletconnectv2.client.AuthClient
-import com.walletconnect.walletconnectv2.client.WalletConnect
+import com.walletconnect.walletconnectv2.client.Sign
+import com.walletconnect.walletconnectv2.client.SignClient
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -24,7 +24,7 @@ class SelectedAccountViewModel : ViewModel() {
             .filterNotNull()
             .onEach { walletEvent ->
                 when (walletEvent) {
-                    is WalletConnect.Model.UpdatedSession -> {
+                    is Sign.Model.UpdatedSession -> {
                         //todo: fix session update
 //                        (uiState.value as? SelectedAccountUI.Content)?.let { currentState ->
 //                            val (updatedAccountAddress, updatedSelectedAccount) = walletEvent.namespaces.accounts.map { updatedAccount ->
@@ -41,21 +41,21 @@ class SelectedAccountViewModel : ViewModel() {
 //                            _uiState.value = currentState.copy(account = updatedAccountAddress, selectedAccount = updatedSelectedAccount)
 //                        }
                     }
-                    is WalletConnect.Model.SessionRequestResponse -> {
+                    is Sign.Model.SessionRequestResponse -> {
                         val request = when (walletEvent.result) {
-                            is WalletConnect.Model.JsonRpcResponse.JsonRpcResult -> {
-                                val successResult = (walletEvent.result as WalletConnect.Model.JsonRpcResponse.JsonRpcResult)
+                            is Sign.Model.JsonRpcResponse.JsonRpcResult -> {
+                                val successResult = (walletEvent.result as Sign.Model.JsonRpcResponse.JsonRpcResult)
                                 SampleDappEvents.RequestSuccess(successResult.result)
                             }
-                            is WalletConnect.Model.JsonRpcResponse.JsonRpcError -> {
-                                val errorResult = (walletEvent.result as WalletConnect.Model.JsonRpcResponse.JsonRpcError)
+                            is Sign.Model.JsonRpcResponse.JsonRpcError -> {
+                                val errorResult = (walletEvent.result as Sign.Model.JsonRpcResponse.JsonRpcError)
                                 SampleDappEvents.RequestPeerError("Error Message: ${errorResult.message}\n Error Code: ${errorResult.code}")
                             }
                         }
 
                         _event.emit(request)
                     }
-                    is WalletConnect.Model.DeletedSession -> {
+                    is Sign.Model.DeletedSession -> {
                         _event.emit(SampleDappEvents.Disconnect)
                     }
                     else -> Unit
@@ -74,14 +74,14 @@ class SelectedAccountViewModel : ViewModel() {
                 method.equals("eth_signTypedData", true) -> getEthSignTypedData(account)
                 else -> "[]"
             }
-            val requestParams = WalletConnect.Params.Request(
+            val requestParams = Sign.Params.Request(
                 sessionTopic = requireNotNull(DappDelegate.selectedSessionTopic),
                 method = method,
                 params = params, // stringified JSON
                 chainId = "$parentChain:$chainId"
             )
 
-            AuthClient.request(requestParams) {
+            SignClient.request(requestParams) {
                 viewModelScope.launch {
                     _event.emit(SampleDappEvents.RequestError(it.throwable.localizedMessage ?: "Error trying to send request"))
                 }
@@ -97,7 +97,7 @@ class SelectedAccountViewModel : ViewModel() {
         val chainDetails = EthTestChains.values().first {
             it.chainNamespace == chainNamespace && it.chainReference == chainReference.toInt()
         }
-        val listOfMethods: List<String> = AuthClient.getListOfSettledSessions().filter { session ->
+        val listOfMethods: List<String> = SignClient.getListOfSettledSessions().filter { session ->
             session.topic == DappDelegate.selectedSessionTopic
         }.flatMap { session ->
             session.namespaces.values.flatMap { namespace -> namespace.methods }
