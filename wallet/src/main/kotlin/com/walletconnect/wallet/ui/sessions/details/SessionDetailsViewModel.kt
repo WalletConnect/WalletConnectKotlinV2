@@ -147,37 +147,30 @@ class SessionDetailsViewModel : ViewModel() {
         // How it should be: User can toggle every account, method, event and then call this method with state to be updated
         selectedSessionTopic?.let { topic ->
             SignClient.getListOfSettledSessions().find { it.topic == topic }?.let { selectedSession ->
-                selectedSession.namespaces.let { namespaces ->
-                    namespaces.keys.firstOrNull()?.let { key ->
-                        namespaces[key]!!.let { namespace ->
-                            val secondAccount = namespace.accounts.firstOrNull()?.let { account ->
-                                val (chainNamespace, chainReference, _) = account.split(":")
-                                mapOfAccounts2
-                                    .filter { (ethChain, _) -> ethChain.chainNamespace == chainNamespace && ethChain.chainReference == chainReference.toInt() }
-                                    .map { (ethChain, address) -> "${ethChain.chainNamespace}:${ethChain.chainReference}:${address}" }
-                                    .firstOrNull()
-                            }
-                            val accounts: MutableList<String> = namespace.accounts.toMutableList()
-                            if(!accounts.contains(secondAccount) && secondAccount != null) {
-                                accounts.add(secondAccount)
-                            }
-
-                            val methods: MutableList<String> = namespace.methods.toMutableList()
-                            if(!methods.contains(anotherEthMethod)) {
-                                methods.add(anotherEthMethod)
-                            }
-
-                            val events: MutableList<String> = namespace.events.toMutableList()
-                            if(!events.contains(anotherEvent)) {
-                                events.add(anotherEvent)
-                            }
-
-                            val expandedNamespaces = mapOf( key to Sign.Model.Namespace.Session(accounts, methods, events, null))
-                            val update = Sign.Params.UpdateNamespaces(sessionTopic = topic, namespaces = expandedNamespaces)
-                            SignClient.update(update) { error -> Log.d("Error", "Sending update error: $error") }
-                            return
-                        }
+                selectedSession.namespaces.firstNotNullOf { it }.let { (key, namespace) ->
+                    val secondAccount = namespace.accounts.firstOrNull()?.let { account ->
+                        val (chainNamespace, chainReference, _) = account.split(":")
+                        mapOfAccounts2
+                            .filter { (ethChain, _) -> ethChain.chainNamespace == chainNamespace && ethChain.chainReference == chainReference.toInt() }
+                            .map { (ethChain, address) -> "${ethChain.chainNamespace}:${ethChain.chainReference}:${address}" }
+                            .firstOrNull()
                     }
+                    val accounts: MutableList<String> = namespace.accounts.toMutableList()
+                    if (!accounts.contains(secondAccount) && secondAccount != null) {
+                        accounts.add(secondAccount)
+                    }
+                    val methods: MutableList<String> = namespace.methods.toMutableList()
+                    if (!methods.contains(anotherEthMethod)) {
+                        methods.add(anotherEthMethod)
+                    }
+                    val events: MutableList<String> = namespace.events.toMutableList()
+                    if (!events.contains(anotherEvent)) {
+                        events.add(anotherEvent)
+                    }
+                    val expandedNamespaces = mapOf(key to Sign.Model.Namespace.Session(accounts, methods, events, null))
+                    val update = Sign.Params.UpdateNamespaces(sessionTopic = topic, namespaces = expandedNamespaces)
+                    SignClient.update(update) { error -> Log.d("Error", "Sending update error: $error") }
+                    return
                 }
             }
         }
