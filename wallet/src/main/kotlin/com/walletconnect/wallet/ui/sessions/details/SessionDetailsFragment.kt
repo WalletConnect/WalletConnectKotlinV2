@@ -27,11 +27,7 @@ import kotlinx.coroutines.flow.onEach
 class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
     private val binding: FragmentSessionDetailsBinding by viewBinding(FragmentSessionDetailsBinding::bind)
     private val viewModel: SessionDetailsViewModel by viewModels()
-    private val sessionDetailsAdapter by lazy {
-        SessionDetailsAdapter {
-            //TODO Remove this callback
-        }
-    }
+    private val sessionDetailsAdapter = SessionDetailsAdapter()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

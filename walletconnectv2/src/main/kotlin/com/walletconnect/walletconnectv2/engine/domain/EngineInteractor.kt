@@ -506,6 +506,10 @@ internal class EngineInteractor(
         }
 
         val session = sequenceStorageRepository.getSessionByTopic(request.topic)
+        if (!session.isPeerController) {
+            relayer.respondWithError(request, PeerError.UnauthorizedEventEmit(Sequences.SESSION.name))
+            return
+        }
         if (!session.isAcknowledged) {
             relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value))
             return

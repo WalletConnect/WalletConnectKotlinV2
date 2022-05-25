@@ -6,7 +6,6 @@ import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.RadioButton
 import android.widget.RadioGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -17,8 +16,7 @@ import com.bumptech.glide.request.transition.Transition
 import com.walletconnect.wallet.databinding.ListItemChainAccountBinding
 import com.walletconnect.wallet.databinding.ListItemSelectedAccountBinding
 
-class SessionDetailsAdapter(private val updateOnSelection: (SessionDetailsUI.Content.ChainAccountInfo.Account) -> Unit) :
-    ListAdapter<SessionDetailsUI.Content.ChainAccountInfo, SessionDetailsAdapter.ViewHolder>(DIFF_UTIL) {
+class SessionDetailsAdapter : ListAdapter<SessionDetailsUI.Content.ChainAccountInfo, SessionDetailsAdapter.ViewHolder>(DIFF_UTIL) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(ListItemChainAccountBinding.inflate(LayoutInflater.from(parent.context), parent, false))
@@ -44,19 +42,13 @@ class SessionDetailsAdapter(private val updateOnSelection: (SessionDetailsUI.Con
                             setCompoundDrawablesWithIntrinsicBounds(drawable, null, null, null)
                             isChecked = account.isSelected
                             text = account.addressTitle
-                            layoutParams = RadioGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                                setMargins(0, 0, 0, 16)
-                            }
+                            layoutParams =
+                                RadioGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                                    setMargins(0, 0, 0, 16)
+                                }
                         }
 
                         holder.binding.rgAccounts.addView(radioButton)
-                    }
-
-                    holder.binding.rgAccounts.setOnCheckedChangeListener { radioGroup, childViewId ->
-                        val radioButton: RadioButton? = radioGroup.findViewById(childViewId)
-                        chainAccountInfo.listOfAccounts.find { it.addressTitle == radioButton?.text.toString() }?.let { selectedAccount ->
-                            updateOnSelection(selectedAccount)
-                        }
                     }
                 }
 
@@ -68,11 +60,17 @@ class SessionDetailsAdapter(private val updateOnSelection: (SessionDetailsUI.Con
 
     private companion object {
         val DIFF_UTIL = object : DiffUtil.ItemCallback<SessionDetailsUI.Content.ChainAccountInfo>() {
-            override fun areItemsTheSame(oldItem: SessionDetailsUI.Content.ChainAccountInfo, newItem: SessionDetailsUI.Content.ChainAccountInfo): Boolean =
-                oldItem == newItem
+            override fun areItemsTheSame(
+                oldItem: SessionDetailsUI.Content.ChainAccountInfo,
+                newItem: SessionDetailsUI.Content.ChainAccountInfo
+            ): Boolean = oldItem == newItem
 
-            override fun areContentsTheSame(oldItem: SessionDetailsUI.Content.ChainAccountInfo, newItem: SessionDetailsUI.Content.ChainAccountInfo): Boolean =
-                oldItem.chainNamespace == newItem.chainNamespace && oldItem.chainReference == newItem.chainReference && oldItem.listOfAccounts.containsAll(newItem.listOfAccounts)
+            override fun areContentsTheSame(
+                oldItem: SessionDetailsUI.Content.ChainAccountInfo,
+                newItem: SessionDetailsUI.Content.ChainAccountInfo
+            ): Boolean = oldItem.chainNamespace == newItem.chainNamespace
+                    && oldItem.chainReference == newItem.chainReference
+                    && oldItem.listOfAccounts.containsAll(newItem.listOfAccounts)
         }
     }
 }

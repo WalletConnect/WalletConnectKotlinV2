@@ -6,8 +6,6 @@ private const val ETH_CHAIN = "eip155"
 
 private val defaultEthEvents: List<String> = listOf("chainChanged", "accountChanged")
 
-// Commented out other methods due to wallet not understanding request
-// TODO: Fix other RPC methods
 private val defaultEthMethods: List<String> = listOf(
     "eth_sendTransaction",
     "personal_sign",
