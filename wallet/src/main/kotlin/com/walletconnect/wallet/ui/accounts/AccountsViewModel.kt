@@ -8,8 +8,8 @@ import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAccounts1
 import com.walletconnect.wallet.domain.mapOfAccounts2
 import com.walletconnect.wallet.domain.mapOfAllAccounts
-import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.AuthClient
+import com.walletconnect.walletconnectv2.client.Sign
+import com.walletconnect.walletconnectv2.client.SignClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,8 +19,8 @@ class AccountsViewModel : ViewModel() {
     val accountUI: StateFlow<List<AccountsUI>> = _accountUI.asStateFlow()
 
     fun pair(pairingUri: String) {
-        val pairingParams = WalletConnect.Params.Pair(pairingUri)
-        AuthClient.pair(pairingParams) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
+        val pairingParams = Sign.Params.Pair(pairingUri)
+        SignClient.pair(pairingParams) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
 
         val selectedAccountInfoSet: Set<Pair<String, String>> = _accountUI.value.first { it.isSelected }.chainAddressList.map { it.chainName to it.accountAddress }.toSet()
         val allAccountsMappedToUIDomainSetWAccountId: Map<Set<Pair<String, String>>, Int> = mapOfAllAccounts.map { (accountsId: Int, mapOfAccounts: Map<EthTestChains, String>) ->

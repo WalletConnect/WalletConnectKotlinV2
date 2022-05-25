@@ -12,12 +12,12 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 
-object AuthClient {
+object SignClient {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var engineInteractor: EngineInteractor
     private lateinit var relay: Relay
 
-    fun initialize(initial: WalletConnect.Params.Init, onError: (WalletConnect.Model.Error) -> Unit) {
+    fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
         with(initial) {
             // TODO: re-init scope
             // TODO: add logic to check hostName for ws/wss scheme with and without ://
@@ -34,7 +34,7 @@ object AuthClient {
             }
         }
         engineInteractor = wcKoinApp.koin.get()
-        engineInteractor.handleInitializationErrors { error -> onError(WalletConnect.Model.Error(error)) }
+        engineInteractor.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
         relay = wcKoinApp.koin.get()
     }
 
@@ -90,8 +90,8 @@ object AuthClient {
 
     @Throws(IllegalStateException::class)
     fun connect(
-        connect: WalletConnect.Params.Connect, onProposedSequence: (WalletConnect.Model.ProposedSequence) -> Unit,
-        onError: (WalletConnect.Model.Error) -> Unit,
+        connect: Sign.Params.Connect, onProposedSequence: (Sign.Model.ProposedSequence) -> Unit,
+        onError: (Sign.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
         try {
@@ -100,140 +100,140 @@ object AuthClient {
                 connect.relays?.toListEngineOfRelayProtocolOptions(),
                 connect.pairingTopic,
                 { proposedSequence -> onProposedSequence(proposedSequence.toClientProposedSequence()) },
-                { error -> onError(WalletConnect.Model.Error(error)) }
+                { error -> onError(Sign.Model.Error(error)) }
             )
         } catch (error: Exception) {
-            onError(WalletConnect.Model.Error(error))
+            onError(Sign.Model.Error(error))
         }
     }
 
     @Throws(IllegalStateException::class)
-    fun pair(pair: WalletConnect.Params.Pair, onError: (WalletConnect.Model.Error) -> Unit) {
+    fun pair(pair: Sign.Params.Pair, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
             engineInteractor.pair(pair.uri)
         } catch (error: Exception) {
-            onError(WalletConnect.Model.Error(error))
+            onError(Sign.Model.Error(error))
         }
     }
 
     @Throws(IllegalStateException::class)
-    fun approveSession(approve: WalletConnect.Params.Approve, onError: (WalletConnect.Model.Error) -> Unit) {
+    fun approveSession(approve: Sign.Params.Approve, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
             engineInteractor.approve(approve.proposerPublicKey, approve.namespaces.toMapOfEngineNamespacesSession()) { error ->
-                onError(WalletConnect.Model.Error(error))
+                onError(Sign.Model.Error(error))
             }
         } catch (error: Exception) {
-            onError(WalletConnect.Model.Error(error))
+            onError(Sign.Model.Error(error))
         }
     }
 
     @Throws(IllegalStateException::class)
-    fun rejectSession(reject: WalletConnect.Params.Reject, onError: (WalletConnect.Model.Error) -> Unit) {
+    fun rejectSession(reject: Sign.Params.Reject, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
             engineInteractor.reject(reject.proposerPublicKey, reject.reason, reject.code) { error ->
-                onError(WalletConnect.Model.Error(error))
+                onError(Sign.Model.Error(error))
             }
         } catch (error: Exception) {
-            onError(WalletConnect.Model.Error(error))
+            onError(Sign.Model.Error(error))
         }
     }
 
     @Throws(IllegalStateException::class)
-    fun request(request: WalletConnect.Params.Request, onError: (WalletConnect.Model.Error) -> Unit) {
+    fun request(request: Sign.Params.Request, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
             engineInteractor.sessionRequest(request.toEngineDORequest()) { error ->
-                onError(WalletConnect.Model.Error(error))
+                onError(Sign.Model.Error(error))
             }
         } catch (error: Exception) {
-            onError(WalletConnect.Model.Error(error))
+            onError(Sign.Model.Error(error))
         }
     }
 
     @Throws(IllegalStateException::class)
-    fun respond(response: WalletConnect.Params.Response, onError: (WalletConnect.Model.Error) -> Unit) {
+    fun respond(response: Sign.Params.Response, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
             engineInteractor.respondSessionRequest(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponseVO()) { error ->
-                onError(WalletConnect.Model.Error(error))
+                onError(Sign.Model.Error(error))
             }
         } catch (error: Exception) {
-            onError(WalletConnect.Model.Error(error))
+            onError(Sign.Model.Error(error))
         }
     }
 
     @Throws(IllegalStateException::class)
-    fun update(updateParams: WalletConnect.Params.Update, onError: (WalletConnect.Model.Error) -> Unit) {
+    fun update(updateNamespaces: Sign.Params.UpdateNamespaces, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.updateSession(updateParams.sessionTopic, updateParams.namespaces.toMapOfEngineNamespacesSession())
-            { error -> onError(WalletConnect.Model.Error(error)) }
+            engineInteractor.updateSession(updateNamespaces.sessionTopic, updateNamespaces.namespaces.toMapOfEngineNamespacesSession())
+            { error -> onError(Sign.Model.Error(error)) }
         } catch (error: Exception) {
-            onError(WalletConnect.Model.Error(error))
+            onError(Sign.Model.Error(error))
         }
     }
 
     @Throws(IllegalStateException::class)
-    fun extend(extend: WalletConnect.Params.Extend, onError: (WalletConnect.Model.Error) -> Unit) {
+    fun extend(extend: Sign.Params.Extend, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.extend(extend.topic) { error -> onError(WalletConnect.Model.Error(error)) }
+            engineInteractor.extend(extend.topic) { error -> onError(Sign.Model.Error(error)) }
         } catch (error: Exception) {
-            onError(WalletConnect.Model.Error(error))
+            onError(Sign.Model.Error(error))
         }
     }
 
     @Throws(IllegalStateException::class)
-    fun emit(emit: WalletConnect.Params.Emit, onError: (WalletConnect.Model.Error) -> Unit) {
+    fun emit(emit: Sign.Params.Emit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.emit(emit.topic, emit.event.toEngineEvent(emit.chainId)) { error -> onError(WalletConnect.Model.Error(error)) }
+            engineInteractor.emit(emit.topic, emit.event.toEngineEvent(emit.chainId)) { error -> onError(Sign.Model.Error(error)) }
         } catch (error: Exception) {
-            onError(WalletConnect.Model.Error(error))
+            onError(Sign.Model.Error(error))
         }
     }
 
     @Throws(IllegalStateException::class)
-    fun ping(ping: WalletConnect.Params.Ping, sessionPing: WalletConnect.Listeners.SessionPing? = null) {
+    fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing? = null) {
         checkEngineInitialization()
         try {
             engineInteractor.ping(
                 ping.topic,
-                { topic -> sessionPing?.onSuccess(WalletConnect.Model.Ping.Success(topic)) },
-                { error -> sessionPing?.onError(WalletConnect.Model.Ping.Error(error)) }
+                { topic -> sessionPing?.onSuccess(Sign.Model.Ping.Success(topic)) },
+                { error -> sessionPing?.onError(Sign.Model.Ping.Error(error)) }
             )
         } catch (error: Exception) {
-            sessionPing?.onError(WalletConnect.Model.Ping.Error(error))
+            sessionPing?.onError(Sign.Model.Ping.Error(error))
         }
     }
 
     @Throws(IllegalStateException::class)
-    fun disconnect(disconnect: WalletConnect.Params.Disconnect, onError: (WalletConnect.Model.Error) -> Unit) {
+    fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
             engineInteractor.disconnect(disconnect.sessionTopic, disconnect.reason, disconnect.reasonCode)
         } catch (error: Exception) {
-            onError(WalletConnect.Model.Error(error))
+            onError(Sign.Model.Error(error))
         }
     }
 
     @Throws(IllegalStateException::class)
-    fun getListOfSettledSessions(): List<WalletConnect.Model.Session> {
+    fun getListOfSettledSessions(): List<Sign.Model.Session> {
         checkEngineInitialization()
         return engineInteractor.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
     }
 
     @Throws(IllegalStateException::class)
-    fun getListOfSettledPairings(): List<WalletConnect.Model.Pairing> {
+    fun getListOfSettledPairings(): List<Sign.Model.Pairing> {
         checkEngineInitialization()
         return engineInteractor.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing)
     }
 
     @Throws(IllegalStateException::class)
-    fun getPendingRequests(topic: String): List<WalletConnect.Model.PendingRequest> {
+    fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest> {
         checkEngineInitialization()
         return engineInteractor.getPendingRequests(TopicVO(topic)).mapToPendingRequests()
     }
@@ -245,31 +245,31 @@ object AuthClient {
 //    }
 
     interface WalletDelegate {
-        fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal)
-        fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest)
-        fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
-        fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent)
+        fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal)
+        fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest)
+        fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
+        fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent)
 
         //Responses
-        fun onSessionSettleResponse(settleSessionResponse: WalletConnect.Model.SettledSessionResponse)
-        fun onSessionUpdateResponse(sessionUpdateResponse: WalletConnect.Model.SessionUpdateResponse)
+        fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse)
+        fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse)
 
         //Utils
-        fun onConnectionStateChange(state: WalletConnect.Model.ConnectionState)
+        fun onConnectionStateChange(state: Sign.Model.ConnectionState)
     }
 
     interface DappDelegate {
-        fun onSessionApproved(approvedSession: WalletConnect.Model.ApprovedSession)
-        fun onSessionRejected(rejectedSession: WalletConnect.Model.RejectedSession)
-        fun onSessionUpdate(updatedSession: WalletConnect.Model.UpdatedSession)
-        fun onSessionExtend(session: WalletConnect.Model.Session)
-        fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession)
+        fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession)
+        fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession)
+        fun onSessionUpdate(updatedSession: Sign.Model.UpdatedSession)
+        fun onSessionExtend(session: Sign.Model.Session)
+        fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
 
         //Responses
-        fun onSessionRequestResponse(response: WalletConnect.Model.SessionRequestResponse)
+        fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse)
 
         // Utils
-        fun onConnectionStateChange(state: WalletConnect.Model.ConnectionState)
+        fun onConnectionStateChange(state: Sign.Model.ConnectionState)
     }
 
     @Throws(IllegalStateException::class)

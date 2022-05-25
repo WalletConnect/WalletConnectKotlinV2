@@ -8,8 +8,8 @@ import com.walletconnect.sample_common.tag
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAllAccounts
 import com.walletconnect.wallet.ui.SampleWalletEvents
-import com.walletconnect.walletconnectv2.client.AuthClient
-import com.walletconnect.walletconnectv2.client.WalletConnect
+import com.walletconnect.walletconnectv2.client.Sign
+import com.walletconnect.walletconnectv2.client.SignClient
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -24,13 +24,13 @@ class SessionDetailsViewModel : ViewModel() {
 
     init {
         WalletDelegate.wcEventModels
-            .onEach { wcModel: WalletConnect.Model? ->
+            .onEach { wcModel: Sign.Model? ->
                 when (wcModel) {
-                    is WalletConnect.Model.SessionUpdateResponse.Result -> {
+                    is Sign.Model.SessionUpdateResponse.Result -> {
                         // TODO: Update UI once state synchronization
                         SampleWalletEvents.NoAction
                     }
-                    is WalletConnect.Model.DeletedSession.Success -> {
+                    is Sign.Model.DeletedSession.Success -> {
                         selectedSessionTopic = null
                         _sessionDetails.emit(SampleWalletEvents.Disconnect)
                     }
@@ -41,11 +41,11 @@ class SessionDetailsViewModel : ViewModel() {
     }
 
     fun getSessionDetails(sessionTopic: String) {
-        val state = AuthClient.getListOfSettledSessions().find { it.topic == sessionTopic }?.let { selectedSession ->
+        val state = SignClient.getListOfSettledSessions().find { it.topic == sessionTopic }?.let { selectedSession ->
             selectedSessionTopic = sessionTopic
 
             val listOfChainAccountInfo = filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession)
-            val selectedSessionPeerData: WalletConnect.Model.AppMetaData = requireNotNull(selectedSession.metaData)
+            val selectedSessionPeerData: Sign.Model.AppMetaData = requireNotNull(selectedSession.metaData)
             val uiState = SessionDetailsUI.Content(
                 icon = selectedSessionPeerData.icons.first(),
                 name = selectedSessionPeerData.name,
@@ -65,13 +65,13 @@ class SessionDetailsViewModel : ViewModel() {
 
     fun deleteSession() {
         selectedSessionTopic?.let {
-            val disconnect = WalletConnect.Params.Disconnect(
+            val disconnect = Sign.Params.Disconnect(
                 sessionTopic = it,
                 reason = "User disconnected Session",
                 reasonCode = 1000
             )
 
-            AuthClient.disconnect(disconnect) { error ->
+            SignClient.disconnect(disconnect) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
             selectedSessionTopic = null
@@ -84,16 +84,16 @@ class SessionDetailsViewModel : ViewModel() {
 
     fun ping() {
         selectedSessionTopic?.let {
-            val ping = WalletConnect.Params.Ping(it)
-            AuthClient.ping(ping, object : WalletConnect.Listeners.SessionPing {
+            val ping = Sign.Params.Ping(it)
+            SignClient.ping(ping, object : Sign.Listeners.SessionPing {
 
-                override fun onSuccess(pingSuccess: WalletConnect.Model.Ping.Success) {
+                override fun onSuccess(pingSuccess: Sign.Model.Ping.Success) {
                     viewModelScope.launch() {
                         _sessionDetails.emit(SampleWalletEvents.PingSuccess(pingSuccess.topic, System.currentTimeMillis()))
                     }
                 }
 
-                override fun onError(pingError: WalletConnect.Model.Ping.Error) {
+                override fun onError(pingError: Sign.Model.Ping.Error) {
                     viewModelScope.launch {
                         _sessionDetails.emit(SampleWalletEvents.PingError(System.currentTimeMillis()))
                     }
@@ -106,16 +106,16 @@ class SessionDetailsViewModel : ViewModel() {
 
     fun extendSession() {
         selectedSessionTopic?.let {
-            val extend = WalletConnect.Params.Extend(it)
-            AuthClient.extend(extend) { error -> Log.d("Error", "Extend session error: $error") }
+            val extend = Sign.Params.Extend(it)
+            SignClient.extend(extend) { error -> Log.d("Error", "Extend session error: $error") }
         }
     }
 
     fun emitEvent() {
         selectedSessionTopic?.let {
             //Hardcoded data for test purposes
-            val extend = WalletConnect.Params.Emit(it, WalletConnect.Model.SessionEvent("testEvent", "testData"), "eip155:42")
-            AuthClient.emit(extend) { error -> Log.d("Error", "Extend session error: $error") }
+            val extend = Sign.Params.Emit(it, Sign.Model.SessionEvent("testEvent", "testData"), "eip155:42")
+            SignClient.emit(extend) { error -> Log.d("Error", "Extend session error: $error") }
         }
     }
 
@@ -161,9 +161,9 @@ class SessionDetailsViewModel : ViewModel() {
 
         selectedSessionTopic?.let { topic ->
             //hardcoded the namespaces structure
-            val namespaces: Map<String, WalletConnect.Model.Namespace.Session> =
+            val namespaces: Map<String, Sign.Model.Namespace.Session> =
                 mapOf(
-                    "eip155" to WalletConnect.Model.Namespace.Session(
+                    "eip155" to Sign.Model.Namespace.Session(
                         accounts =
                         listOf(
                             "eip155:4:0xa0A6c118b1B25207A8A764E1CAe1635339bedE62",
@@ -172,7 +172,7 @@ class SessionDetailsViewModel : ViewModel() {
                         methods = listOf("eth_sign", "eth_sendTransaction"),
                         events = listOf("new_testEvent"),
                         extensions = listOf(
-                            WalletConnect.Model.Namespace.Session.Extension(
+                            Sign.Model.Namespace.Session.Extension(
                                 accounts = listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb"),
                                 methods = listOf("ethMain_sign"),
                                 events = listOf("ethMain_event")
@@ -180,9 +180,9 @@ class SessionDetailsViewModel : ViewModel() {
                         )
                     )
                 )
-            val update = WalletConnect.Params.Update(sessionTopic = topic, namespaces = namespaces)
+            val update = Sign.Params.UpdateNamespaces(sessionTopic = topic, namespaces = namespaces)
 
-            AuthClient.update(update) { error -> Log.d("Error", "Sending update error: $error") }
+            SignClient.update(update) { error -> Log.d("Error", "Sending update error: $error") }
         }
     }
 
@@ -192,7 +192,7 @@ class SessionDetailsViewModel : ViewModel() {
 //        }
 
 
-    private fun filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession: WalletConnect.Model.Session): List<SessionDetailsUI.Content.ChainAccountInfo> =
+    private fun filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession: Sign.Model.Session): List<SessionDetailsUI.Content.ChainAccountInfo> =
         mapOfAllAccounts.values
             .flatMap { accountsMap: Map<EthTestChains, String> ->
                 val accountsMapID = mapOfAllAccounts.entries.associate { it.value to it.key }.getValue(accountsMap)

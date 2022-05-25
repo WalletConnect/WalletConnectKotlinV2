@@ -15,7 +15,7 @@ import com.walletconnect.dapp.databinding.DialogConnectUriBinding
 import com.walletconnect.dapp.ui.connect.ConnectViewModel
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sample_common.viewBinding
-import com.walletconnect.walletconnectv2.client.WalletConnect
+import com.walletconnect.walletconnectv2.client.Sign
 import net.glxn.qrgen.android.QRCode
 
 class PairingGenerationDialogFragment : DialogFragment(R.layout.dialog_connect_uri) {
@@ -28,7 +28,7 @@ class PairingGenerationDialogFragment : DialogFragment(R.layout.dialog_connect_u
         dialog?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 
         viewModel.connectToWallet { proposedSequence ->
-            if (proposedSequence is WalletConnect.Model.ProposedSequence.Pairing) {
+            if (proposedSequence is Sign.Model.ProposedSequence.Pairing) {
                 val pairingUri = proposedSequence.uri.also {
                     Log.e(tag(this@PairingGenerationDialogFragment), it)
                 }

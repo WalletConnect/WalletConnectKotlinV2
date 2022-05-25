@@ -1,14 +1,5 @@
 package com.walletconnect.walletconnectv2.wallet
 
-import androidx.test.core.app.ApplicationProvider
-import com.walletconnect.walletconnectv2.WCIntegrationActivityScenarioRule
-import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.AuthClient
-import com.walletconnect.walletconnectv2.util.Logger
-import com.walletconnect.walletconnectv2.utils.IntegrationTestApplication
-import org.junit.Rule
-import org.junit.jupiter.api.Test
-
 //fixme
 class AuthClientIntegrationAndroidTest {
 //    @get:Rule
