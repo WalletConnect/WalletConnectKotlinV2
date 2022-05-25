@@ -166,10 +166,10 @@ object SignClient {
     }
 
     @Throws(IllegalStateException::class)
-    fun update(updateNamespaces: Sign.Params.UpdateNamespaces, onError: (Sign.Model.Error) -> Unit) {
+    fun update(update: Sign.Params.Update, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.updateSession(updateNamespaces.sessionTopic, updateNamespaces.namespaces.toMapOfEngineNamespacesSession())
+            engineInteractor.updateSession(update.sessionTopic, update.namespaces.toMapOfEngineNamespacesSession())
             { error -> onError(Sign.Model.Error(error)) }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))

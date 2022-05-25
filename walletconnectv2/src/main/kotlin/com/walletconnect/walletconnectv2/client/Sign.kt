@@ -386,7 +386,7 @@ object Sign {
 
         data class Request(val sessionTopic: String, val method: String, val params: String, val chainId: String) : Params()
 
-        data class UpdateNamespaces(
+        data class Update(
             val sessionTopic: String,
             val namespaces: Map<String, Model.Namespace.Session>,
         ) : Params()
