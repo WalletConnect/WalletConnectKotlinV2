@@ -123,14 +123,14 @@ class SessionDetailsViewModel : ViewModel() {
         // Right now: Emits first alphabetical event
         // How it should be: User should be able to emit desired event
         selectedSessionTopic?.let { topic ->
-            AuthClient.getListOfSettledSessions().find { it.topic == topic }?.let { selectedSession ->
+            SignClient.getListOfSettledSessions().find { it.topic == topic }?.let { selectedSession ->
                 allApprovedEventsWithChains(selectedSession)
                     .filter { (_, chains) -> chains.isNotEmpty() }
                     .let { eventWithChains ->
                         eventWithChains.keys.minOrNull()?.let { event ->
                             eventWithChains[event]!!.first().let { chain ->
-                                WalletConnect.Params.Emit(topic, WalletConnect.Model.SessionEvent(event, "dummyData"), chain).let { sessionEvent ->
-                                    AuthClient.emit(sessionEvent) { error -> Log.d("Error", "Extend session error: $error") }
+                                Sign.Params.Emit(topic, Sign.Model.SessionEvent(event, "dummyData"), chain).let { sessionEvent ->
+                                    SignClient.emit(sessionEvent) { error -> Log.d("Error", "Extend session error: $error") }
                                     return // So as not to log error below
                                 }
                             }
@@ -146,7 +146,7 @@ class SessionDetailsViewModel : ViewModel() {
         // Right now: Expand first (right now there's only eip155) namespace with another account, event and method. Works only once
         // How it should be: User can toggle every account, method, event and then call this method with state to be updated
         selectedSessionTopic?.let { topic ->
-            AuthClient.getListOfSettledSessions().find { it.topic == topic }?.let { selectedSession ->
+            SignClient.getListOfSettledSessions().find { it.topic == topic }?.let { selectedSession ->
                 selectedSession.namespaces.let { namespaces ->
                     namespaces.keys.firstOrNull()?.let { key ->
                         namespaces[key]!!.let { namespace ->
@@ -172,9 +172,9 @@ class SessionDetailsViewModel : ViewModel() {
                                 events.add(anotherEvent)
                             }
 
-                            val expandedNamespaces = mapOf( key to WalletConnect.Model.Namespace.Session(accounts, methods, events, null))
-                            val update = WalletConnect.Params.UpdateNamespaces(sessionTopic = topic, namespaces = expandedNamespaces)
-                            AuthClient.update(update) { error -> Log.d("Error", "Sending update error: $error") }
+                            val expandedNamespaces = mapOf( key to Sign.Model.Namespace.Session(accounts, methods, events, null))
+                            val update = Sign.Params.UpdateNamespaces(sessionTopic = topic, namespaces = expandedNamespaces)
+                            SignClient.update(update) { error -> Log.d("Error", "Sending update error: $error") }
                             return
                         }
                     }
@@ -231,7 +231,7 @@ class SessionDetailsViewModel : ViewModel() {
                 )
             }
 
-    private fun allApprovedEventsWithChains(selectedSession: WalletConnect.Model.Session): Map<String, List<String>> =
+    private fun allApprovedEventsWithChains(selectedSession: Sign.Model.Session): Map<String, List<String>> =
         selectedSession.namespaces.values.flatMap { namespace ->
             namespace.events.map { event ->
                 event to namespace.accounts.map { getChainFromAccount(it) }

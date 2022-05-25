@@ -261,7 +261,7 @@ object SignClient {
         fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession)
         fun onSessionUpdate(updatedSession: Sign.Model.UpdatedSession)
-        fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent)
+        fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent)
         fun onSessionExtend(session: Sign.Model.Session)
         fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
 

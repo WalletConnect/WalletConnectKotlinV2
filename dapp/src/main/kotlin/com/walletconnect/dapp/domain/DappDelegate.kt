@@ -44,7 +44,7 @@ object DappDelegate : SignClient.DappDelegate {
         }
     }
 
-    override fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent) {
+    override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {
         scope.launch {
             _wcEventModels.emit(sessionEvent)
         }
