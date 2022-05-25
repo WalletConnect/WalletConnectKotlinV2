@@ -25,21 +25,9 @@ class SelectedAccountViewModel : ViewModel() {
             .onEach { walletEvent ->
                 when (walletEvent) {
                     is Sign.Model.UpdatedSession -> {
-                        //todo: fix session update
-//                        (uiState.value as? SelectedAccountUI.Content)?.let { currentState ->
-//                            val (updatedAccountAddress, updatedSelectedAccount) = walletEvent.namespaces.accounts.map { updatedAccount ->
-//                                val (parentChain, chainId, accountAddress) = updatedAccount.split(":")
-//                                Triple(parentChain, chainId, accountAddress)
-//                            }.first { (parentChain, chainId, _) ->
-//                                val (currentParentChain, currentChainId, _) = currentState.selectedAccount.split(":")
-//
-//                                parentChain == currentParentChain && chainId == currentChainId
-//                            }.let { (parentChain, chainId, accountAddress) ->
-//                                accountAddress to "$parentChain:$chainId:$accountAddress"
-//                            }
-//
-//                            _uiState.value = currentState.copy(account = updatedAccountAddress, selectedAccount = updatedSelectedAccount)
-//                        }
+                        (uiState.value as? SelectedAccountUI.Content)?.let { currentState ->
+                            fetchAccountDetails(currentState.selectedAccount)
+                        }
                     }
                     is Sign.Model.SessionRequestResponse -> {
                         val request = when (walletEvent.result) {
@@ -94,13 +82,15 @@ class SelectedAccountViewModel : ViewModel() {
 
     fun fetchAccountDetails(selectedAccountInfo: String) {
         val (chainNamespace, chainReference, account) = selectedAccountInfo.split(":")
-        val chainDetails = EthTestChains.values().first {
+        val chainDetails = EthChains.values().first {
             it.chainNamespace == chainNamespace && it.chainReference == chainReference.toInt()
         }
         val listOfMethods: List<String> = SignClient.getListOfSettledSessions().filter { session ->
             session.topic == DappDelegate.selectedSessionTopic
         }.flatMap { session ->
-            session.namespaces.values.flatMap { namespace -> namespace.methods }
+            session.namespaces
+                .filter { (key, _) -> key == chainNamespace }
+                .values.flatMap { namespace -> namespace.methods }
         }
 
         viewModelScope.launch {

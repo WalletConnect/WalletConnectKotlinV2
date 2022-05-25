@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
-import com.walletconnect.sample_common.EthTestChains
+import com.walletconnect.sample_common.EthChains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.walletconnectv2.client.Sign
 import com.walletconnect.walletconnectv2.client.SignClient
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class SessionViewModel : ViewModel() {
-    private val _sessionUI: MutableStateFlow<List<SessionUI>> = MutableStateFlow(getListOfAccounts())
+    private val _sessionUI: MutableStateFlow<List<SessionUI>> = MutableStateFlow(getSessions())
     val uiState: StateFlow<List<SessionUI>> = _sessionUI.asStateFlow()
 
     private val _navigationEvents: MutableSharedFlow<SampleDappEvents> = MutableSharedFlow()
@@ -25,9 +25,7 @@ class SessionViewModel : ViewModel() {
             .onEach { walletEvent ->
                 when (walletEvent) {
                     is Sign.Model.UpdatedSession -> {
-                        //todo: fix session update
-//                        val listOfAccounts = getListOfAccounts(walletEvent.topic)
-//                        _sessionUI.value = listOfAccounts
+                        _sessionUI.value = getSessions(walletEvent.topic)
                     }
                     is Sign.Model.DeletedSession -> {
                         _navigationEvents.emit(SampleDappEvents.Disconnect)
@@ -38,7 +36,7 @@ class SessionViewModel : ViewModel() {
 
     }
 
-    private fun getListOfAccounts(topic: String? = null): List<SessionUI> {
+    private fun getSessions(topic: String? = null): List<SessionUI> {
         return SignClient.getListOfSettledSessions().filter {
             if (topic != null) {
                 it.topic == topic
@@ -49,7 +47,7 @@ class SessionViewModel : ViewModel() {
             settledSession.namespaces.values.flatMap { it.accounts }
         }.map { caip10Account ->
             val (chainNamespace, chainReference, account) = caip10Account.split(":")
-            val chain = EthTestChains.values().first { chain ->
+            val chain = EthChains.values().first { chain ->
                 chain.chainNamespace == chainNamespace && chain.chainReference == chainReference.toInt()
             }
 

@@ -5,7 +5,7 @@ CREATE TABLE PairingDao (
     relay_protocol TEXT NOT NULL,
     relay_data TEXT,
     uri TEXT NOT NULL,
-    is_active  INTEGER AS Boolean NOT NULL
+    is_active INTEGER AS Boolean NOT NULL
 );
 
 insertPairing:

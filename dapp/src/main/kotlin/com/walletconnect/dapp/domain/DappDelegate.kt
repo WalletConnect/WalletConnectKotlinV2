@@ -44,6 +44,12 @@ object DappDelegate : SignClient.DappDelegate {
         }
     }
 
+    override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {
+        scope.launch {
+            _wcEventModels.emit(sessionEvent)
+        }
+    }
+
     override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
         deselectAccountDetails()
 
