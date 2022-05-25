@@ -43,14 +43,12 @@ val appMetaData = Sign.Model.AppMetaData(
     icons = listOfIconUrlStrings
 )
 
-val connectionType = Sign.ConnectionType.AUTOMATIC or WalletConnect.ConnectionType.MANUAL
-val relay: Relay? = /*you can to pass your own Relay interface, which is responsible for networking*/
+val connectionType = Sign.ConnectionType.AUTOMATIC or Sign.ConnectionType.MANUAL
 
 val init = Sign.Params.Init(
     application = application,
     relayServerUrl = /*websocket server with scheme, authority, and projectId as query parameter*/
     appMetaData = appMetaData,
-    relay = relay, //optional
     connectionType = connectionType
 )
 
@@ -62,7 +60,6 @@ val init = Sign.Params.Init(
     hostName = /*websocket server with scheme and authority*/,
     projectId = /*projectId*/,
     appMetaData = appMetaData,
-    relay = relay, //optional
     connectionType = connectionType
 )
 
@@ -70,17 +67,14 @@ SignClient.initalize(init)
 ```
 
 The wallet client will always be responsible for exposing accounts (CAPI10 compatible) to a Dapp and therefore is also in charge of signing.
-To initialize the WalletConnect client, create a `WalletConnect.Params.Init` object in the Android Application class. The Init object will
-need the application class, the Project ID, and the apps's AppMetaData.
+To initialize the Sign client, create a `Sign.Params.Init` object in the Android Application class. The Init object will need the
+application class, the Project ID, and the apps's AppMetaData. The `Sign.Params.Init` object will then be passed to the `SignClient`
+initialize function. `Sign.Params.Init`
+also allows for custom URLs by passing URL string into the `hostName`property.
 
-The `WalletConnect.Params.Init` object will then be passed to the `WalletConnectClient` initialize function. `WalletConnect.Params.Init`
-also allows for custom URLs by passing URL string into the `hostName`property. What's more we allow developers to choose between
-the `WalletConnect.ConnectionType.MANUAL`and`WalletConnect.ConnectionType.AUTOMATIC`connection type.
-
-The default one(`WalletConnect.ConnectionType.AUTOMATIC`) disconnects wss connection when app enters background and reconnects when app is
-brought back to the foreground.
-
-The `WalletConnect.ConnectionType.MANUAL` allows developers to control when to open WebSocket connection and when to close it.
+We allow developers to choose between the `Sign.ConnectionType.MANUAL`and`Sign.ConnectionType.AUTOMATIC`connection type. The default
+one(`Sign.ConnectionType.AUTOMATIC`) disconnects wss connection when app enters background and reconnects when app is brought back to the
+foreground. The `Sign.ConnectionType.MANUAL` allows developers to control when to open WebSocket connection and when to close it.
 Accordingly, `SignClient.WebSocket.open()` and `SignClient.WebSocket.close()`.
 
 Above, there are two example on how to create the initalizing parameters.
@@ -103,10 +97,6 @@ val walletDelegate = object : SignClient.WalletDelegate {
 
     override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
         // Triggered when the session is deleted by the peer
-    }
-
-    override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {
-        // Triggered when the peer emits events that match the list of events agreed upon session settlement
     }
 
     override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {
@@ -147,17 +137,17 @@ semantics.
 
 ```kotlin
 val proposerPublicKey: String = /*Proposer publicKey from SessionProposal object*/
-val namespaceKey = /*Namespace identifier*/
+val namespace = /*Namespace identifier, see for reference: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-2.md#syntax*/
 val accounts: List<String> = /*List of accounts on chains*/
 val methods: List<String> = /*List of methods that wallet approves*/
 val events: List<String> = /*List of events that wallet approves*/
-val namespaces: Map<String, Sign.Model.Namespaces.Session> = mapOf(namespaceKey, Sign.Model.Namespaces.Session(accounts, methods, events))
+val namespaces: Map<String, Sign.Model.Namespaces.Session> = mapOf(namespace, Sign.Model.Namespaces.Session(accounts, methods, events))
 
 val approveParams: Sign.Params.Approve = Sign.Params.Approve(proposerPublicKey, namespaces)
 SignClient.approveSession(approveParams) { error -> /*callback for error while approving a session*/ }
 ```
 
-To send an approval, pass a Proposer's Public Key along with the list of namespaces to the `SignClient.approveSession` function.
+To send an approval, pass a Proposer's Public Key along with the map of namespaces to the `SignClient.approveSession` function.
 
 &nbsp;
 
@@ -225,18 +215,22 @@ request ID along with the rejection data to the `SignClient.respond` function.
 
 ### **Session Update**
 
+NOTE: addresses provided in `accounts` array should follow [CAPI10](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-10.md)
+semantics.
+
 ```kotlin
 val sessionTopic: String = /*Topic of Session*/
+val namespace = /*Namespace identifier, see for reference: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-2.md#syntax*/
 val accounts: List<String> = /*List of accounts on chains*/
 val methods: List<String> = /*List of methods that wallet approves*/
 val events: List<String> = /*List of events that wallet approves*/
-val namespaces: Map<String, Sign.Model.Namespaces.Session> = mapOf(namespaceKey, Sign.Model.Namespaces.Session(accounts, methods, events))
+val namespaces: Map<String, Sign.Model.Namespaces.Session> = mapOf(namespace, Sign.Model.Namespaces.Session(accounts, methods, events))
 val updateParams = Sign.Params.Update(sessionTopic, namespaces)
 
 SignClient.update(updateParams) { error -> /*callback for error while sending session update*/ }
 ```
 
-To update a session with namespaces, create a `Sing.Params.Update` object with the session's topic and namespaces to update session with
+To update a session with namespaces, submit a `Sing.Params.Update` object with the session's topic and namespaces to update session with
 to `SignClient.Update`.
 
 &nbsp;
@@ -299,7 +293,11 @@ val dappDelegate = object : SignClient.DappDelegate {
     }
 
     fun onSessionExtend(session: WalletConnect.Model.Session) {
-        // Triggered when Dapp receives the session extend
+        // Triggered when Dapp receives the session extend from wallet
+    }
+
+    override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {
+        // Triggered when the peer emits events that match the list of events agreed upon session settlement
     }
 
     fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
@@ -324,11 +322,11 @@ The SignClient needs a `SignClient.DappDelegate` passed to it for it to be able 
 ### **Connect**
 
 ```kotlin
-val namespaceKey = /*Namespace identifier*/
+val namespace = /*Namespace identifier, see for reference: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-2.md#syntax*/
 val chains: List<String> = /*List of chains that wallet will be requested for*/
 val methods: List<String> = /*List of methods that wallet will be requested for*/
 val events: List<String> = /*List of events that wallet will be requested for*/
-val namespaces: Map<String, Sign.Model.Namespaces.Proposal> = mapOf(namespaceKey, Sign.Model.Namespaces.Proposal(accounts, methods, events))
+val namespaces: Map<String, Sign.Model.Namespaces.Proposal> = mapOf(namespace, Sign.Model.Namespaces.Proposal(accounts, methods, events))
 val pairingTopic: String? =  /* Optional parameter, use it when the pairing between peers is already established*/
 val connectParams = WalletConnect.Params.Connect(namespaces, pairingTopic)
 
