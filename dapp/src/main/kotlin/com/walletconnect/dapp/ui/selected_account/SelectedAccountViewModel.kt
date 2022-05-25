@@ -6,10 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
-import com.walletconnect.sample_common.EthTestChains
-import com.walletconnect.sample_common.getEthSendTransaction
-import com.walletconnect.sample_common.getEthSignTypedData
-import com.walletconnect.sample_common.getPersonalSignBody
+import com.walletconnect.sample_common.*
 import com.walletconnect.walletconnectv2.client.Sign
 import com.walletconnect.walletconnectv2.client.SignClient
 import kotlinx.coroutines.flow.*
@@ -72,6 +69,7 @@ class SelectedAccountViewModel : ViewModel() {
             val (parentChain, chainId, account) = currentState.selectedAccount.split(":")
             val params: String = when {
                 method.equals("personal_sign", true) -> getPersonalSignBody(account)
+                method.equals("eth_sign", true) -> getEthSignBody(account)
                 method.equals("eth_sendTransaction", true) -> getEthSendTransaction(account)
                 method.equals("eth_signTypedData", true) -> getEthSignTypedData(account)
                 else -> "[]"
