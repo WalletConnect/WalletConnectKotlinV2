@@ -16,7 +16,7 @@ Kotlin implementation of WalletConnect v2 Sign protocol for Android applications
 * [Installation guide](https://docs.walletconnect.com/2.0/kotlin/sign/installation)
 * [Usage guide](https://docs.walletconnect.com/2.0/kotlin/sign/usage)
 * [Protocol specification](https://github.com/WalletConnect/walletconnect-specs)
-* [Beginner Guide to WalletConnect v2.0 Sign Protocol]
+* Beginner Guide to WalletConnect v2.0 Sign Protocol
 
 &nbsp;
 
