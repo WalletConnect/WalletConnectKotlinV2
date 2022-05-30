@@ -4,7 +4,7 @@ import kotlin.collections.List;
 -- PairingDao
 ALTER TABLE PairingDao RENAME TO PairingDaoBak;
 
-CREATE TABLE PairingDao (
+CREATE TABLE IF NOT EXISTS PairingDao (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     topic TEXT UNIQUE NOT NULL,
     expiry INTEGER NOT NULL,
@@ -14,12 +14,12 @@ CREATE TABLE PairingDao (
     is_active INTEGER AS Boolean NOT NULL
 );
 
-DROP TABLE PairingDaoBak;
+DROP TABLE IF EXISTS PairingDaoBak;
 
 -- SessionDao
 ALTER TABLE SessionDao RENAME TO SessionDaoBak;
 
-CREATE TABLE SessionDao(
+CREATE TABLE IF NOT EXISTS  SessionDao(
    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
    topic TEXT UNIQUE NOT NULL,
    expiry INTEGER NOT NULL,
@@ -31,12 +31,12 @@ CREATE TABLE SessionDao(
    is_acknowledged INTEGER AS Boolean NOT NULL
 );
 
-DROP TABLE SessionDaoBak;
+DROP TABLE IF EXISTS SessionDaoBak;
 
 -- MetaDataDao
 ALTER TABLE MetaDataDao RENAME TO MetaDataDaoBak;
 
-CREATE TABLE MetaDataDao(
+CREATE TABLE IF NOT EXISTS MetaDataDao(
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	sequence_topic TEXT NOT NULL,
   	name TEXT NOT NULL,
@@ -47,12 +47,12 @@ CREATE TABLE MetaDataDao(
   	UNIQUE(sequence_topic, type)
 );
 
-DROP TABLE MetaDataDaoBak;
+DROP TABLE IF EXISTS MetaDataDaoBak;
 
 -- JsonRpcHistoryDao
 ALTER TABLE JsonRpcHistoryDao RENAME TO JsonRpcHistoryDaoBak;
 
-CREATE TABLE JsonRpcHistoryDao(
+CREATE TABLE IF NOT EXISTS JsonRpcHistoryDao(
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   request_id INTEGER UNIQUE NOT NULL,
   topic TEXT NOT NULL,
@@ -61,10 +61,10 @@ CREATE TABLE JsonRpcHistoryDao(
   response TEXT AS String
 );
 
-DROP TABLE JsonRpcHistoryDaoBak;
+DROP TABLE IF EXISTS JsonRpcHistoryDaoBak;
 
 -- NamespaceDao
-CREATE TABLE NamespaceDao(
+CREATE TABLE IF NOT EXISTS NamespaceDao(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     session_id INTEGER NOT NULL,
     key TEXT NOT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE NamespaceDao(
 );
 
 -- NamespaceExtensionsDao
-CREATE TABLE NamespaceExtensionsDao(
+CREATE TABLE IF NOT EXISTS NamespaceExtensionsDao(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     namespace_key TEXT NOT NULL,
     session_id INTEGER NOT NULL,
@@ -85,4 +85,4 @@ CREATE TABLE NamespaceExtensionsDao(
 );
 
 -- android_metadata
-DROP TABLE android_metadata;
+DROP TABLE IF EXISTS android_metadata;
