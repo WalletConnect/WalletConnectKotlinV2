@@ -7,8 +7,8 @@ CREATE TABLE JsonRpcHistoryDao(
   response TEXT AS String
 );
 
-insertJsonRpcHistory:
-INSERT OR IGNORE INTO JsonRpcHistoryDao (request_id, topic, method, body)
+insertOrAbortJsonRpcHistory:
+INSERT OR ABORT INTO JsonRpcHistoryDao (request_id, topic, method, body)
 VALUES (?, ?, ?, ?);
 
 updateJsonRpcHistory:

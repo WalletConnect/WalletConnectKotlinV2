@@ -1,5 +1,7 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
+import android.database.sqlite.SQLiteConstraintException
+import android.util.Log
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
 import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
 import com.walletconnect.walletconnectv2.core.model.type.EngineEvent
@@ -97,21 +99,28 @@ internal class EngineInteractor(
 
             proposeSession(TopicVO(pairingTopic), listOf(relay), EngineDO.ProposedSequence.Session)
         } else {
-            proposePairing(::proposeSession)
+            proposePairing(::proposeSession, onFailure)
         }
     }
 
-    private fun proposePairing(proposedSession: (TopicVO, List<EngineDO.RelayProtocolOptions>?, EngineDO.ProposedSequence) -> Unit) {
+    private fun proposePairing(proposedSession: (TopicVO, List<EngineDO.RelayProtocolOptions>?, EngineDO.ProposedSequence) -> Unit, onFailure: (Throwable) -> Unit) {
         val pairingTopic: TopicVO = generateTopic()
         val symmetricKey: SecretKey = crypto.generateSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptionsVO()
         val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
         val pairing = PairingVO.createInactivePairing(pairingTopic, relay, walletConnectUri.toAbsoluteString())
 
-        sequenceStorageRepository.insertPairing(pairing)
-        relayer.subscribe(pairingTopic)
+        try {
+            sequenceStorageRepository.insertPairing(pairing)
+            relayer.subscribe(pairingTopic)
 
-        proposedSession(pairingTopic, null, EngineDO.ProposedSequence.Pairing(walletConnectUri.toAbsoluteString()))
+            proposedSession(pairingTopic, null, EngineDO.ProposedSequence.Pairing(walletConnectUri.toAbsoluteString()))
+        } catch (e: SQLiteConstraintException) {
+            crypto.removeKeys(pairingTopic.value)
+            relayer.unsubscribe(pairingTopic)
+
+            onFailure(e)
+        }
     }
 
     internal fun pair(uri: String) {
@@ -125,8 +134,16 @@ internal class EngineInteractor(
         val pairing = PairingVO.createActivePairing(walletConnectUri)
         val symmetricKey = walletConnectUri.symKey
         crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
-        sequenceStorageRepository.insertPairing(pairing)
-        relayer.subscribe(pairing.topic)
+
+        try {
+            sequenceStorageRepository.insertPairing(pairing)
+            relayer.subscribe(pairing.topic)
+        } catch (e: SQLiteConstraintException) {
+            crypto.removeKeys(walletConnectUri.topic.value)
+            relayer.unsubscribe(pairing.topic)
+        } finally {
+            throw WalletConnectException.GenericException("Error trying to create pairing. Validate URI")
+        }
     }
 
     internal fun reject(proposerPublicKey: String, reason: String, code: Int, onFailure: (Throwable) -> Unit = {}) {
@@ -143,18 +160,22 @@ internal class EngineInteractor(
     ) {
         fun sessionSettle(
             proposal: PairingParamsVO.SessionProposeParams,
-            sessionTopic: TopicVO,
-            onFailure: (Throwable) -> Unit,
+            sessionTopic: TopicVO
         ) {
             val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
             val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO())
             val sessionExpiry = Expiration.activeSession
             val session = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces)
-            sequenceStorageRepository.insertSession(session)
-            val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
-            val sessionSettle = SessionSettlementVO.SessionSettle(id = generateId(), params = params)
 
-            relayer.publishJsonRpcRequests(sessionTopic, sessionSettle, onFailure = { error -> onFailure(error) })
+            try {
+                sequenceStorageRepository.insertSession(session)
+                val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
+                val sessionSettle = SessionSettlementVO.SessionSettle(id = generateId(), params = params)
+
+                relayer.publishJsonRpcRequests(sessionTopic, sessionSettle, onFailure = { error -> onFailure(error) })
+            } catch (e: SQLiteConstraintException) {
+                onFailure(e)
+            }
         }
 
         val request = sessionProposalRequest[proposerPublicKey]
@@ -173,7 +194,7 @@ internal class EngineInteractor(
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
         relayer.respondWithParams(request, approvalParams)
 
-        sessionSettle(proposal, sessionTopic) { error -> onFailure(error) }
+        sessionSettle(proposal, sessionTopic)
     }
 
     internal fun updateSession(
@@ -430,14 +451,19 @@ internal class EngineInteractor(
             return
         }
 
-        sequenceStorageRepository.upsertPairingPeerMetadata(proposal.topic, peerMetadata)
-        sessionProposalRequest.remove(selfPublicKey.keyAsHex)
+        try {
+            val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toMetaDataVO())
 
-        val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toMetaDataVO())
-        sequenceStorageRepository.insertSession(session)
-        relayer.respondWithSuccess(request)
+            sequenceStorageRepository.upsertPairingPeerMetadata(proposal.topic, peerMetadata)
+            sessionProposalRequest.remove(selfPublicKey.keyAsHex)
+            sequenceStorageRepository.insertSession(session)
+            relayer.respondWithSuccess(request)
 
-        scope.launch { _sequenceEvent.emit(session.toSessionApproved()) }
+            scope.launch { _sequenceEvent.emit(session.toSessionApproved()) }
+        } catch (e: SQLiteConstraintException) {
+            relayer.respondWithError(request, PeerError.Error(e.stackTraceToString(), 400))
+            return
+        }
     }
 
     private fun onPairingDelete(request: WCRequestVO, params: PairingParamsVO.DeleteParams) {

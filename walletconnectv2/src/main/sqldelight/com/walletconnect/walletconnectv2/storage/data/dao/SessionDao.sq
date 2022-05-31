@@ -12,8 +12,8 @@ CREATE TABLE SessionDao(
    is_acknowledged INTEGER AS Boolean NOT NULL
 );
 
-insertSession:
-INSERT OR IGNORE INTO SessionDao(topic, expiry, relay_protocol, relay_data, controller_key, self_participant, peer_participant, is_acknowledged)
+insertOrAbortSession:
+INSERT OR ABORT INTO SessionDao(topic, expiry, relay_protocol, relay_data, controller_key, self_participant, peer_participant, is_acknowledged)
 VALUES (?,  ?, ?,?, ?, ?, ?, ?);
 
 lastInsertedRow:

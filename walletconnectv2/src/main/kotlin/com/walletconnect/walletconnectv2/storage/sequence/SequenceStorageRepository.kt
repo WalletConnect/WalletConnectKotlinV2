@@ -1,5 +1,6 @@
 package com.walletconnect.walletconnectv2.storage.sequence
 
+import android.database.sqlite.SQLiteConstraintException
 import com.walletconnect.walletconnectv2.core.model.type.enums.MetaDataType
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
@@ -18,7 +19,7 @@ internal class SequenceStorageRepository(
     private val sessionDaoQueries: SessionDaoQueries,
     private val metaDataDaoQueries: MetaDataDaoQueries,
     private val namespaceDaoQueries: NamespaceDaoQueries,
-    private val extensionsDaoQueries: NamespaceExtensionDaoQueries
+    private val extensionsDaoQueries: NamespaceExtensionDaoQueries,
 ) {
 
     @JvmSynthetic
@@ -37,8 +38,11 @@ internal class SequenceStorageRepository(
         val hasTopic = sessionDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
 
         return if (hasTopic) {
-            val expiry = sessionDaoQueries.getExpiry(topic.value).executeAsOneOrNull()
-            expiry?.let { verifyExpiry(it, topic) { sessionDaoQueries.deleteSession(topic.value) } } ?: false
+            sessionDaoQueries.getExpiry(topic.value).executeAsOneOrNull()?.let {
+                verifyExpiry(it, topic) {
+                    sessionDaoQueries.deleteSession(topic.value)
+                }
+            } ?: false
         } else {
             false
         }
@@ -48,35 +52,36 @@ internal class SequenceStorageRepository(
     fun isPairingValid(topic: TopicVO): Boolean {
         val hasTopic = pairingDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
 
-        if (hasTopic) {
+        return if (hasTopic) {
             val expiry = pairingDaoQueries.getExpiry(topic.value).executeAsOne()
-            return verifyExpiry(expiry, topic) { pairingDaoQueries.deletePairing(topic.value) }
+            verifyExpiry(expiry, topic) { pairingDaoQueries.deletePairing(topic.value) }
+        } else {
+            false
         }
-        return false
     }
 
     @JvmSynthetic
     fun getPairingByTopic(topic: TopicVO): PairingVO =
-        pairingDaoQueries.getPairingByTopic(topic.value).executeAsOne()
-            .let { entity ->
-                PairingVO(
-                    topic = TopicVO(entity.topic),
-                    expiry = ExpiryVO(entity.expiry),
-                    uri = entity.uri,
-                    relayProtocol = entity.relay_protocol,
-                    relayData = entity.relay_data,
-                    isActive = entity.is_active
-                )
-            }
+        pairingDaoQueries.getPairingByTopic(topic.value).executeAsOne().let { entity ->
+            PairingVO(
+                topic = TopicVO(entity.topic),
+                expiry = ExpiryVO(entity.expiry),
+                uri = entity.uri,
+                relayProtocol = entity.relay_protocol,
+                relayData = entity.relay_data,
+                isActive = entity.is_active
+            )
+        }
 
     @JvmSynthetic
     fun getSessionByTopic(topic: TopicVO): SessionVO =
         sessionDaoQueries.getSessionByTopic(topic.value, mapper = this@SequenceStorageRepository::mapSessionDaoToSessionVO).executeAsOne()
 
     @JvmSynthetic
+    @Throws(SQLiteConstraintException::class)
     fun insertPairing(pairing: PairingVO) {
         with(pairing) {
-            pairingDaoQueries.insertPairing(
+            pairingDaoQueries.insertOrAbortPairing(
                 topic.value,
                 expiry.seconds,
                 relayProtocol,
@@ -93,16 +98,10 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
+    @Throws(SQLiteConstraintException::class)
     fun upsertPairingPeerMetadata(topic: TopicVO, metaData: MetaDataVO) {
         if (metaDataDaoQueries.getByTopic(topic.value).executeAsOneOrNull() == null) {
-            metaDataDaoQueries.insertOrAbortMetaData(
-                topic.value,
-                metaData.name,
-                metaData.description,
-                metaData.url,
-                metaData.icons,
-                MetaDataType.PEER,
-            )
+            insertMetaData(metaData, MetaDataType.PEER, topic)
         } else {
             metaDataDaoQueries.updateOrAbortMetaData(
                 metaData.name,
@@ -123,9 +122,10 @@ internal class SequenceStorageRepository(
 
     @Synchronized
     @JvmSynthetic
+    @Throws(SQLiteConstraintException::class)
     fun insertSession(session: SessionVO) {
         with(session) {
-            sessionDaoQueries.insertSession(
+            sessionDaoQueries.insertOrAbortSession(
                 topic = topic.value,
                 expiry = expiry.seconds,
                 self_participant = selfPublicKey.keyAsHex,
@@ -160,6 +160,7 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
+    @Throws(SQLiteConstraintException::class)
     fun insertNamespacesByTopic(topic: String, namespaces: Map<String, NamespaceVO.Session>) {
         val sessionId = sessionDaoQueries.getSessionIdByTopic(topic).executeAsOne()
         insertNamespace(namespaces, sessionId)
@@ -173,6 +174,7 @@ internal class SequenceStorageRepository(
         sessionDaoQueries.deleteSession(topic.value)
     }
 
+    @Throws(SQLiteConstraintException::class)
     private fun insertMetaData(metaData: MetaDataVO?, metaDataType: MetaDataType, topic: TopicVO) {
         metaData?.let {
             metaDataDaoQueries.insertOrAbortMetaData(
@@ -186,6 +188,7 @@ internal class SequenceStorageRepository(
         }
     }
 
+    @Throws(SQLiteConstraintException::class)
     private fun insertNamespace(namespaces: Map<String, NamespaceVO.Session>, sessionId: Long) {
         namespaces.forEach { key, (accounts: List<String>, methods: List<String>, events: List<String>, extensions: List<NamespaceVO.Session.Extension>?) ->
             namespaceDaoQueries.insertOrAbortNamespace(sessionId, key, accounts, methods, events)
@@ -203,7 +206,9 @@ internal class SequenceStorageRepository(
     }
 
     private fun verifyExpiry(expiry: Long, topic: TopicVO, deleteSequence: () -> Unit): Boolean {
-        return if (ExpiryVO(expiry).isSequenceValid()) true else {
+        return if (ExpiryVO(expiry).isSequenceValid()) {
+            true
+        } else {
             deleteSequence()
             onSequenceExpired(topic)
             false

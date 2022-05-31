@@ -12,7 +12,7 @@ internal class JsonRpcHistory(private val sharedPreferences: SharedPreferences, 
 
     fun setRequest(requestId: Long, topic: TopicVO, method: String, payload: String): Boolean {
         return if (jsonRpcHistoryQueries.doesJsonRpcNotExist(requestId).executeAsOne()) {
-            jsonRpcHistoryQueries.insertJsonRpcHistory(requestId, topic.value, method, payload)
+            jsonRpcHistoryQueries.insertOrAbortJsonRpcHistory(requestId, topic.value, method, payload)
             jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOne() > 0L
         } else {
             Logger.log("Duplicated JsonRpc RequestId: $requestId")
