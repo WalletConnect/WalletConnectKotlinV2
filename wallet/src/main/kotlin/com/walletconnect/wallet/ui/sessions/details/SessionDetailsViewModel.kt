@@ -168,7 +168,7 @@ class SessionDetailsViewModel : ViewModel() {
                         events.add(anotherEvent)
                     }
                     val expandedNamespaces = mapOf(key to Sign.Model.Namespace.Session(accounts, methods, events, null))
-                    val update = Sign.Params.UpdateNamespaces(sessionTopic = topic, namespaces = expandedNamespaces)
+                    val update = Sign.Params.Update(sessionTopic = topic, namespaces = expandedNamespaces)
                     SignClient.update(update) { error -> Log.d("Error", "Sending update error: $error") }
                     return
                 }
