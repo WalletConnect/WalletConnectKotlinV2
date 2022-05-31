@@ -58,6 +58,11 @@ sealed class PeerError {
         override val code: Int = 3005
     }
 
+    data class UnauthorizedEventEmit(val sequence: String) : PeerError() {
+        override val message: String = "Unauthorized $sequence event emit"
+        override val code: Int = 3006
+    }
+
     //Uncategorized errors
 
     data class NoMatchingTopic(val sequence: String, val topic: String) : PeerError() {

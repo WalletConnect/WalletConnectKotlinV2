@@ -2,14 +2,14 @@
 
 package com.walletconnect.walletconnectv2.network
 
-import com.walletconnect.walletconnectv2.client.WalletConnect
+import com.walletconnect.walletconnectv2.client.Sign
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 
 interface Relay {
-    val eventsFlow: SharedFlow<WalletConnect.Model.Relay.Event>
+    val eventsFlow: SharedFlow<Sign.Model.Relay.Event>
 
-    val subscriptionRequest: Flow<WalletConnect.Model.Relay.Call.Subscription.Request>
+    val subscriptionRequest: Flow<Sign.Model.Relay.Call.Subscription.Request>
 
     fun connect(onError: (String) -> Unit)
 
@@ -19,14 +19,14 @@ interface Relay {
         topic: String,
         message: String,
         prompt: Boolean = false,
-        onResult: (Result<WalletConnect.Model.Relay.Call.Publish.Acknowledgement>) -> Unit = {},
+        onResult: (Result<Sign.Model.Relay.Call.Publish.Acknowledgement>) -> Unit = {},
     )
 
-    fun subscribe(topic: String, onResult: (Result<WalletConnect.Model.Relay.Call.Subscribe.Acknowledgement>) -> Unit)
+    fun subscribe(topic: String, onResult: (Result<Sign.Model.Relay.Call.Subscribe.Acknowledgement>) -> Unit)
 
     fun unsubscribe(
         topic: String,
         subscriptionId: String,
-        onResult: (Result<WalletConnect.Model.Relay.Call.Unsubscribe.Acknowledgement>) -> Unit,
+        onResult: (Result<Sign.Model.Relay.Call.Unsubscribe.Acknowledgement>) -> Unit,
     )
 }

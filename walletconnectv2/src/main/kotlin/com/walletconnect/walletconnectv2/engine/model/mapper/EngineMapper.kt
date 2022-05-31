@@ -76,21 +76,17 @@ internal fun SessionParamsVO.EventParams.toEngineDOSessionEvent(topic: TopicVO):
     EngineDO.SessionEvent(topic.value, event.name, event.data.toString(), chainId)
 
 @JvmSynthetic
-internal fun SessionVO.toEngineDOApprovedSessionVO(topic: TopicVO): EngineDO.Session =
+internal fun SessionVO.toEngineDOApprovedSessionVO(): EngineDO.Session =
     EngineDO.Session(
         topic,
         expiry,
         namespaces.toMapOfEngineNamespacesSession(),
         EngineDO.AppMetaData(
-            selfMetaData?.name ?: String.Empty,
-            selfMetaData?.description ?: String.Empty,
-            selfMetaData?.url ?: String.Empty,
-            selfMetaData?.icons?.map { iconUri -> iconUri } ?: listOf())
+            peerMetaData?.name ?: String.Empty,
+            peerMetaData?.description ?: String.Empty,
+            peerMetaData?.url ?: String.Empty,
+            peerMetaData?.icons?.map { iconUri -> iconUri } ?: listOf())
     )
-
-@JvmSynthetic
-internal fun SessionVO.toEngineDOApprovedSessionVO(): EngineDO.Session =
-    EngineDO.Session(topic, expiry, namespaces.toMapOfEngineNamespacesSession(), selfMetaData?.toEngineDOAppMetaData())
 
 @JvmSynthetic
 internal fun SessionVO.toEngineDOSessionExtend(expiryVO: ExpiryVO): EngineDO.SessionExtend =

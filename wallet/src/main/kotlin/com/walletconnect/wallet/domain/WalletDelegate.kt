@@ -2,8 +2,8 @@ package com.walletconnect.wallet.domain
 
 import android.util.Log
 import com.walletconnect.sample_common.tag
-import com.walletconnect.walletconnectv2.client.WalletConnect
-import com.walletconnect.walletconnectv2.client.AuthClient
+import com.walletconnect.walletconnectv2.client.Sign
+import com.walletconnect.walletconnectv2.client.SignClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -11,21 +11,21 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
-object WalletDelegate : AuthClient.WalletDelegate {
+object WalletDelegate : SignClient.WalletDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val _wcEventModels: MutableSharedFlow<WalletConnect.Model?> = MutableSharedFlow(1)
-    val wcEventModels: SharedFlow<WalletConnect.Model?> = _wcEventModels
+    private val _wcEventModels: MutableSharedFlow<Sign.Model?> = MutableSharedFlow(1)
+    val wcEventModels: SharedFlow<Sign.Model?> = _wcEventModels
 
-    var sessionProposal: WalletConnect.Model.SessionProposal? = null
+    var sessionProposal: Sign.Model.SessionProposal? = null
         private set
     var selectedChainAddressId: Int = 1
         private set
 
     init {
-        AuthClient.setWalletDelegate(this)
+        SignClient.setWalletDelegate(this)
     }
 
-    override fun onSessionProposal(sessionProposal: WalletConnect.Model.SessionProposal) {
+    override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
         this.sessionProposal = sessionProposal
 
         scope.launch {
@@ -33,25 +33,20 @@ object WalletDelegate : AuthClient.WalletDelegate {
         }
     }
 
-    override fun onSessionRequest(sessionRequest: WalletConnect.Model.SessionRequest) {
+    override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
         scope.launch {
             _wcEventModels.emit(sessionRequest)
         }
     }
 
-    override fun onSessionDelete(deletedSession: WalletConnect.Model.DeletedSession) {
+    override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
         scope.launch {
             _wcEventModels.emit(deletedSession)
         }
     }
 
-    override fun onSessionEvent(sessionEvent: WalletConnect.Model.SessionEvent) {
-        scope.launch {
-            _wcEventModels.emit(sessionEvent)
-        }
-    }
 
-    override fun onSessionSettleResponse(settleSessionResponse: WalletConnect.Model.SettledSessionResponse) {
+    override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {
         sessionProposal = null
 
         scope.launch {
@@ -59,13 +54,13 @@ object WalletDelegate : AuthClient.WalletDelegate {
         }
     }
 
-    override fun onSessionUpdateResponse(sessionUpdateResponse: WalletConnect.Model.SessionUpdateResponse) {
+    override fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse) {
         scope.launch {
             _wcEventModels.emit(sessionUpdateResponse)
         }
     }
 
-    override fun onConnectionStateChange(state: WalletConnect.Model.ConnectionState) {
+    override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
         Log.d(tag(this), "onConnectionStateChange($state)")
     }
 

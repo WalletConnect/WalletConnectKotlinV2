@@ -5,7 +5,7 @@ import android.net.Uri
 import com.walletconnect.walletconnectv2.network.Relay
 import java.net.URI
 
-object WalletConnect {
+object Sign {
 
     sealed interface Listeners {
         interface SessionPing : Listeners {
@@ -20,7 +20,6 @@ object WalletConnect {
 
     sealed class Model {
 
-        //TODO: Consider adding WalletConnectException instead of Throwable.
         data class Error(val throwable: Throwable) : Model()
 
         sealed class ProposedSequence {
@@ -187,7 +186,7 @@ object WalletConnect {
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
-                        val error: WalletConnect.Model.Relay.Error,
+                        val error: Sign.Model.Relay.Error,
                         override val id: Long,
                     ) : Publish()
                 }
@@ -214,7 +213,7 @@ object WalletConnect {
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
-                        val error: WalletConnect.Model.Relay.Error,
+                        val error: Sign.Model.Relay.Error,
                         override val id: Long,
                     ) : Subscribe()
                 }
@@ -251,7 +250,7 @@ object WalletConnect {
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
-                        val error: WalletConnect.Model.Relay.Error,
+                        val error: Sign.Model.Relay.Error,
                         override val id: Long,
                     ) : Subscription()
                 }
@@ -279,7 +278,7 @@ object WalletConnect {
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
-                        val error: WalletConnect.Model.Relay.Error,
+                        val error: Sign.Model.Relay.Error,
                         override val id: Long,
                     ) : Unsubscribe()
                 }
@@ -387,7 +386,7 @@ object WalletConnect {
 
         data class Request(val sessionTopic: String, val method: String, val params: String, val chainId: String) : Params()
 
-        data class UpdateNamespaces(
+        data class Update(
             val sessionTopic: String,
             val namespaces: Map<String, Model.Namespace.Session>,
         ) : Params()

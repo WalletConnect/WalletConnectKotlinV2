@@ -14,6 +14,7 @@ import com.walletconnect.dapp.R
 import com.walletconnect.dapp.databinding.FragmentChainSelectionBinding
 import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.dapp.ui.connect.ConnectViewModel
+import com.walletconnect.sample_common.BottomVerticalSpaceItemDecoration
 import com.walletconnect.sample_common.viewBinding
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -21,12 +22,15 @@ import kotlinx.coroutines.flow.onEach
 class ChainSelectionFragment : Fragment(R.layout.fragment_chain_selection) {
     private val binding by viewBinding(FragmentChainSelectionBinding::bind)
     private val viewModel: ConnectViewModel by navGraphViewModels(R.id.connectGraph)
-    private val adapter by lazy { ChainSelectionAdapter(viewModel.listOfChainUI, viewModel::updateSelectedChainUI) }
+    private val chainSelectionAdapter by lazy { ChainSelectionAdapter(viewModel.listOfChainUI, viewModel::updateSelectedChainUI) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.rvChains.adapter = adapter
+        with(binding.rvChains){
+            adapter = chainSelectionAdapter
+            addItemDecoration(BottomVerticalSpaceItemDecoration(24))
+        }
 
         binding.btnConnect.setOnClickListener {
             if (viewModel.anyChainsSelected()) {
@@ -45,7 +49,10 @@ class ChainSelectionFragment : Fragment(R.layout.fragment_chain_selection) {
             .onEach { events ->
                 when (events) {
                     is SampleDappEvents.SessionApproved -> findNavController().navigate(R.id.action_global_fragment_session)
-                    is SampleDappEvents.SessionRejected -> Snackbar.make(binding.root, "Session was Rejected", Snackbar.LENGTH_LONG).show()
+                    is SampleDappEvents.SessionRejected -> {
+                        findNavController().navigate(R.id.action_global_fragment_chain_selection)
+                        Snackbar.make(binding.root, "Session was Rejected", Snackbar.LENGTH_LONG).show()
+                    }
                     else -> Unit
                 }
             }
