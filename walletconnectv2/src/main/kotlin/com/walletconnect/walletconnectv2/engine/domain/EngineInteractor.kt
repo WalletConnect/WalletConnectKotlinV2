@@ -1,7 +1,6 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
-import android.database.sqlite.SQLiteConstraintException
-import android.util.Log
+import android.database.sqlite.SQLiteException
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
 import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
 import com.walletconnect.walletconnectv2.core.model.type.EngineEvent
@@ -115,7 +114,7 @@ internal class EngineInteractor(
             relayer.subscribe(pairingTopic)
 
             proposedSession(pairingTopic, null, EngineDO.ProposedSequence.Pairing(walletConnectUri.toAbsoluteString()))
-        } catch (e: SQLiteConstraintException) {
+        } catch (e: SQLiteException) {
             crypto.removeKeys(pairingTopic.value)
             relayer.unsubscribe(pairingTopic)
 
@@ -138,7 +137,7 @@ internal class EngineInteractor(
         try {
             sequenceStorageRepository.insertPairing(pairing)
             relayer.subscribe(pairing.topic)
-        } catch (e: SQLiteConstraintException) {
+        } catch (e: SQLiteException) {
             crypto.removeKeys(walletConnectUri.topic.value)
             relayer.unsubscribe(pairing.topic)
         } finally {
@@ -160,7 +159,7 @@ internal class EngineInteractor(
     ) {
         fun sessionSettle(
             proposal: PairingParamsVO.SessionProposeParams,
-            sessionTopic: TopicVO
+            sessionTopic: TopicVO,
         ) {
             val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
             val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO())
@@ -173,7 +172,7 @@ internal class EngineInteractor(
                 val sessionSettle = SessionSettlementVO.SessionSettle(id = generateId(), params = params)
 
                 relayer.publishJsonRpcRequests(sessionTopic, sessionSettle, onFailure = { error -> onFailure(error) })
-            } catch (e: SQLiteConstraintException) {
+            } catch (e: SQLiteException) {
                 onFailure(e)
             }
         }
@@ -222,16 +221,18 @@ internal class EngineInteractor(
 
         val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
         val sessionUpdateMethods = SessionSettlementVO.SessionUpdateNamespaces(id = generateId(), params = params)
-        sequenceStorageRepository.deleteNamespaces(topic)
-        sequenceStorageRepository.insertNamespacesByTopic(topic, namespaces.toMapOfNamespacesVOSession())
 
-        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateMethods,
-            onSuccess = { Logger.log("Update sent successfully") },
-            onFailure = { error ->
-                Logger.error("Sending session update error: $error")
-                onFailure(error)
-            }
-        )
+        sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(topic, namespaces.toMapOfNamespacesVOSession(), onSuccess = {
+            relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateMethods,
+                onSuccess = { Logger.log("Update sent successfully") },
+                onFailure = { error ->
+                    Logger.error("Sending session update error: $error")
+                    onFailure(error)
+                }
+            )
+        }, onFailure = {
+            onFailure(WalletConnectException.GenericException("Error updating namespaces"))
+        })
     }
 
     internal fun sessionRequest(request: EngineDO.Request, onFailure: (Throwable) -> Unit) {
@@ -465,7 +466,7 @@ internal class EngineInteractor(
             relayer.respondWithSuccess(request)
 
             scope.launch { _sequenceEvent.emit(session.toSessionApproved()) }
-        } catch (e: SQLiteConstraintException) {
+        } catch (e: SQLiteException) {
             relayer.respondWithError(request, PeerError.Error(e.stackTraceToString(), 400))
             return
         }
@@ -568,13 +569,15 @@ internal class EngineInteractor(
             return
         }
 
-        sequenceStorageRepository.deleteNamespaces(session.topic.value)
-        sequenceStorageRepository.insertNamespacesByTopic(session.topic.value, params.namespaces)
-        relayer.respondWithSuccess(request)
+        sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, params.namespaces, onSuccess = {
+            relayer.respondWithSuccess(request)
 
-        scope.launch {
-            _sequenceEvent.emit(EngineDO.SessionUpdateNamespaces(request.topic, params.namespaces.toMapOfEngineNamespacesSession()))
-        }
+            scope.launch {
+                _sequenceEvent.emit(EngineDO.SessionUpdateNamespaces(request.topic, params.namespaces.toMapOfEngineNamespacesSession()))
+            }
+        }, onFailure = {
+            relayer.respondWithError(request, PeerError.InvalidUpdateRequest("Namespace update failed"))
+        })
     }
 
     private fun onSessionExtend(request: WCRequestVO, requestParams: SessionParamsVO.ExtendParams) {
