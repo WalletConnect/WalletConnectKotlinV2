@@ -94,6 +94,7 @@ object SignClient {
         onError: (Sign.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
+
         try {
             engineInteractor.proposeSequence(
                 connect.namespaces.toMapOfEngineNamespacesProposal(),

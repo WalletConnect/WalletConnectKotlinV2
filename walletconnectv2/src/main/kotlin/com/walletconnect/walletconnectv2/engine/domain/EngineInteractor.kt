@@ -448,14 +448,16 @@ internal class EngineInteractor(
         val proposal = sessionProposalRequest[selfPublicKey.keyAsHex] ?: return
 
         if (proposal.params !is PairingParamsVO.SessionProposeParams) {
-            relayer.respondWithError(request, PeerError.InvalidSessionSettleRequest(NAMESPACE_MISSING_PROPOSAL_MESSAGE))
+            relayer.respondWithError(request, PeerError.SessionSettlementFailed(NAMESPACE_MISSING_PROPOSAL_MESSAGE))
             return
         }
 
         Validator.validateSessionNamespace(settleParams.namespaces, proposal.params.namespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidSessionSettleRequest(errorMessage))
+            relayer.respondWithError(request, PeerError.SessionSettlementFailed(errorMessage))
             return
         }
+
+        val tempProposalRequest = sessionProposalRequest.getValue(selfPublicKey.keyAsHex)
 
         try {
             val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toMetaDataVO())
@@ -467,7 +469,9 @@ internal class EngineInteractor(
 
             scope.launch { _sequenceEvent.emit(session.toSessionApproved()) }
         } catch (e: SQLiteException) {
-            relayer.respondWithError(request, PeerError.Error(e.stackTraceToString(), 400))
+            sessionProposalRequest[selfPublicKey.keyAsHex] = tempProposalRequest
+            sequenceStorageRepository.deleteSession(sessionTopic)
+            relayer.respondWithError(request, PeerError.SessionSettlementFailed(e.message ?: ""))
             return
         }
     }
