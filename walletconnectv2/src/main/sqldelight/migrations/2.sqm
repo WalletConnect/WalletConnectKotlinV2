@@ -4,13 +4,14 @@ import kotlin.collections.List;
 ALTER TABLE NamespaceDao RENAME TO NamespaceDaoBak;
 
 CREATE TABLE IF NOT EXISTS NamespaceDao(
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    session_id INTEGER NOT NULL,
-    key TEXT NOT NULL,
-    accounts TEXT AS List<String> NOT NULL,
-    methods TEXT AS List<String> NOT NULL,
-    events TEXT AS List<String> NOT NULL,
-    UNIQUE(session_id, key)
+   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+   session_id INTEGER NOT NULL,
+   key TEXT NOT NULL,
+   accounts TEXT AS List<String> NOT NULL,
+   methods TEXT AS List<String> NOT NULL,
+   events TEXT AS List<String> NOT NULL,
+   request_id INTEGER NOT NULL,
+   UNIQUE(session_id, key)
 );
 
 DROP TABLE NamespaceDaoBak;
