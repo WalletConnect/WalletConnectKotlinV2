@@ -388,10 +388,16 @@ internal class SequenceStorageRepository(
         methods: List<String>,
         events: List<String>
     ): Pair<String, NamespaceVO.Session> {
-        return key to NamespaceVO.Session(accounts, methods, events, null)
+        val extensions = tempExtensionsDaoQueries.getNamespaceExtensionByNamespaceKeyAndSessionId(key, sessionId, mapper = ::mapTempNamespaceExtensionToNamespaceExtensionVO).executeAsList().takeIf { extensions -> extensions.isNotEmpty() }
+
+        return key to NamespaceVO.Session(accounts, methods, events, extensions)
     }
 
-    private fun mapTempNamespaceExtensionToNamespaceExtensionVO() {
-
+    private fun mapTempNamespaceExtensionToNamespaceExtensionVO(
+        accounts: List<String>,
+        methods: List<String>,
+        events: List<String>
+    ): NamespaceVO.Session.Extension {
+        return NamespaceVO.Session.Extension(accounts, methods, events)
     }
 }

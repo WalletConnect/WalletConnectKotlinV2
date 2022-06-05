@@ -27,8 +27,3 @@ getNamespaceExtensionByNamespaceKeyAndSessionId:
 SELECT accounts, methods, events
 FROM TempNamespaceExtensionsDao
 WHERE namespace_key = ? AND session_id = ?;
-
-getNamespacesByRequestId:
-SELECT session_id, topic, key, accounts, methods, events
-FROM TempNamespaceDao
-WHERE request_id = ?;
