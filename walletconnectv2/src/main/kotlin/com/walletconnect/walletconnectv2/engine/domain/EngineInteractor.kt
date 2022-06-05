@@ -1,6 +1,7 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
 import android.database.sqlite.SQLiteException
+import android.util.Log
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
 import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
 import com.walletconnect.walletconnectv2.core.model.type.EngineEvent
@@ -158,6 +159,7 @@ internal class EngineInteractor(
         onFailure: (Throwable) -> Unit = {},
     ) {
         fun sessionSettle(
+            requestId: Long,
             proposal: PairingParamsVO.SessionProposeParams,
             sessionTopic: TopicVO,
         ) {
@@ -167,7 +169,7 @@ internal class EngineInteractor(
             val session = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces)
 
             try {
-                sequenceStorageRepository.insertSession(session)
+                sequenceStorageRepository.insertSession(session, requestId)
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
                 val sessionSettle = SessionSettlementVO.SessionSettle(id = generateId(), params = params)
 
@@ -193,10 +195,10 @@ internal class EngineInteractor(
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
         relayer.respondWithParams(request, approvalParams)
 
-        sessionSettle(proposal, sessionTopic)
+        sessionSettle(request.id, proposal, sessionTopic)
     }
 
-    internal fun updateSession(
+    internal fun updateNamespace(
         topic: String,
         namespaces: Map<String, EngineDO.Namespace.Session>,
         onFailure: (Throwable) -> Unit,
@@ -222,7 +224,7 @@ internal class EngineInteractor(
         val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
         val sessionUpdateMethods = SessionSettlementVO.SessionUpdateNamespaces(id = generateId(), params = params)
 
-        sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(topic, namespaces.toMapOfNamespacesVOSession(), onSuccess = {
+        sequenceStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdateMethods.id, onSuccess = {
             relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateMethods,
                 onSuccess = { Logger.log("Update sent successfully") },
                 onFailure = { error ->
@@ -464,7 +466,7 @@ internal class EngineInteractor(
 
             sequenceStorageRepository.upsertPairingPeerMetadata(proposal.topic, peerMetadata)
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
-            sequenceStorageRepository.insertSession(session)
+            sequenceStorageRepository.insertSession(session, request.id)
             relayer.respondWithSuccess(request)
 
             scope.launch { _sequenceEvent.emit(session.toSessionApproved()) }
@@ -573,14 +575,19 @@ internal class EngineInteractor(
             return
         }
 
-        sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, params.namespaces, onSuccess = {
+        val timestamp = request.id / 1000
+        if (!sequenceStorageRepository.isUpdatedNamespaceValid(session.topic.value, timestamp)) {
+            relayer.respondWithError(request, PeerError.InvalidUpdateRequest("Update Namespace Request ID too old"))
+        }
+
+        sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, params.namespaces, request.id, onSuccess = {
             relayer.respondWithSuccess(request)
 
             scope.launch {
                 _sequenceEvent.emit(EngineDO.SessionUpdateNamespaces(request.topic, params.namespaces.toMapOfEngineNamespacesSession()))
             }
         }, onFailure = {
-            relayer.respondWithError(request, PeerError.InvalidUpdateRequest("Namespace update failed"))
+            relayer.respondWithError(request, PeerError.InvalidUpdateRequest("Updating Namespace Failed. Review Namespace structure"))
         })
     }
 
@@ -673,18 +680,29 @@ internal class EngineInteractor(
         val sessionTopic = wcResponse.topic
         if (!sequenceStorageRepository.isSessionValid(sessionTopic)) return
         val session = sequenceStorageRepository.getSessionByTopic(sessionTopic)
+        val timestamp = wcResponse.response.id / 1000
+        if (!sequenceStorageRepository.isUpdatedNamespaceResponseValid(session.topic.value, timestamp)) return
 
         when (val response = wcResponse.response) {
             is JsonRpcResponseVO.JsonRpcResult -> {
                 Logger.log("Session update namespaces response received")
-                scope.launch {
-                    _sequenceEvent.emit(
-                        EngineDO.SessionUpdateNamespacesResponse.Result(
-                            session.topic,
-                            session.namespaces.toMapOfEngineNamespacesSession()
+
+                val updatedNamespace = sequenceStorageRepository.getTempNamespaces(session.topic.value, wcResponse.response.id)
+                sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, updatedNamespace, wcResponse.response.id, onSuccess = {
+
+                    sequenceStorageRepository.markTempNamespaceProcessed(session.topic.value, wcResponse.response.id)
+
+                    scope.launch {
+                        _sequenceEvent.emit(
+                            EngineDO.SessionUpdateNamespacesResponse.Result(
+                                session.topic,
+                                session.namespaces.toMapOfEngineNamespacesSession()
+                            )
                         )
-                    )
-                }
+                    }
+                }, onFailure = {
+                    scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error("Unable to ")) }
+                })
             }
             is JsonRpcResponseVO.JsonRpcError -> {
                 Logger.error("Peer failed to update session namespaces: ${response.error}")

@@ -133,6 +133,7 @@ object SignClient {
     @Throws(IllegalStateException::class)
     fun rejectSession(reject: Sign.Params.Reject, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
+
         try {
             engineInteractor.reject(reject.proposerPublicKey, reject.reason, reject.code) { error ->
                 onError(Sign.Model.Error(error))
@@ -145,6 +146,7 @@ object SignClient {
     @Throws(IllegalStateException::class)
     fun request(request: Sign.Params.Request, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
+
         try {
             engineInteractor.sessionRequest(request.toEngineDORequest()) { error ->
                 onError(Sign.Model.Error(error))
@@ -157,6 +159,7 @@ object SignClient {
     @Throws(IllegalStateException::class)
     fun respond(response: Sign.Params.Response, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
+
         try {
             engineInteractor.respondSessionRequest(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponseVO()) { error ->
                 onError(Sign.Model.Error(error))
@@ -169,8 +172,9 @@ object SignClient {
     @Throws(IllegalStateException::class)
     fun update(update: Sign.Params.Update, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
+
         try {
-            engineInteractor.updateSession(update.sessionTopic, update.namespaces.toMapOfEngineNamespacesSession())
+            engineInteractor.updateNamespace(update.sessionTopic, update.namespaces.toMapOfEngineNamespacesSession())
             { error -> onError(Sign.Model.Error(error)) }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))

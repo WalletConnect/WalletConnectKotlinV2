@@ -1,0 +1,56 @@
+import kotlin.collections.List;
+
+-- NamespaceDao
+ALTER TABLE NamespaceDao RENAME TO NamespaceDaoBak;
+
+CREATE TABLE IF NOT EXISTS NamespaceDao(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    session_id INTEGER NOT NULL,
+    key TEXT NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String> NOT NULL,
+    UNIQUE(session_id, key)
+);
+
+DROP TABLE NamespaceDaoBak;
+
+-- NamespaceExtensionsDao
+ALTER TABLE NamespaceExtensionsDao RENAME TO NamespaceExtensionsDaoBak;
+
+CREATE TABLE IF NOT EXISTS NamespaceExtensionsDao(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    namespace_key TEXT NOT NULL,
+    session_id INTEGER NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String>  NOT NULL
+);
+
+DROP TABLE NamespaceExtensionsDaoBak;
+
+-- TempNamespaceDao
+CREATE TABLE TempNamespaceDao(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    session_id INTEGER NOT NULL,
+    topic TEXT NOT NULL,
+    key TEXT NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String> NOT NULL,
+    request_id INTEGER NOT NULL,
+    isProcessed INTEGER DEFAULT 0,
+    UNIQUE(session_id, key)
+);
+
+-- TempNamespaceExtensionsDao
+CREATE TABLE TempNamespaceExtensionsDao(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    namespace_key TEXT NOT NULL,
+    session_id INTEGER NOT NULL,
+    topic TEXT NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String>  NOT NULL,
+    request_id INTEGER NOT NULL
+);
