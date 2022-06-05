@@ -1,0 +1,34 @@
+import kotlin.collections.List;
+
+CREATE TABLE TempNamespaceExtensionsDao(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    namespace_key TEXT NOT NULL,
+    session_id INTEGER NOT NULL,
+    topic TEXT NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String>  NOT NULL,
+    request_id INTEGER NOT NULL
+);
+
+insertOrAbortNamespaceExtension:
+INSERT OR ABORT INTO TempNamespaceExtensionsDao(namespace_key, session_id, topic, accounts, methods, events, request_id)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteNamespacesExtensionsByTopic:
+DELETE FROM TempNamespaceExtensionsDao
+WHERE session_id = (
+   SELECT id
+   FROM SessionDao
+   WHERE topic = ?
+);
+
+getNamespaceExtensionByNamespaceKeyAndSessionId:
+SELECT accounts, methods, events
+FROM TempNamespaceExtensionsDao
+WHERE namespace_key = ? AND session_id = ?;
+
+getNamespacesByRequestId:
+SELECT session_id, topic, key, accounts, methods, events
+FROM TempNamespaceDao
+WHERE request_id = ?;
