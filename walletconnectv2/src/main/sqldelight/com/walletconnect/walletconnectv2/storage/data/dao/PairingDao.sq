@@ -8,8 +8,8 @@ CREATE TABLE PairingDao (
     is_active INTEGER AS Boolean NOT NULL
 );
 
-insertPairing:
-INSERT OR IGNORE INTO PairingDao(topic, expiry, relay_protocol,  relay_data, uri, is_active)
+insertOrAbortPairing:
+INSERT OR ABORT INTO PairingDao(topic, expiry, relay_protocol,  relay_data, uri, is_active)
 VALUES (?,?,?,?,?,?);
 
 getListOfPairingDaos:

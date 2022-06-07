@@ -7,15 +7,21 @@ import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcHistoryVO
 import com.walletconnect.walletconnectv2.storage.data.dao.JsonRpcHistoryQueries
 import com.walletconnect.walletconnectv2.util.Logger
+import java.sql.SQLException
 
 internal class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private val jsonRpcHistoryQueries: JsonRpcHistoryQueries) {
 
     fun setRequest(requestId: Long, topic: TopicVO, method: String, payload: String): Boolean {
-        return if (jsonRpcHistoryQueries.doesJsonRpcNotExist(requestId).executeAsOne()) {
-            jsonRpcHistoryQueries.insertJsonRpcHistory(requestId, topic.value, method, payload)
-            jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOne() > 0L
-        } else {
-            Logger.log("Duplicated JsonRpc RequestId: $requestId")
+        return try {
+            if (jsonRpcHistoryQueries.doesJsonRpcNotExist(requestId).executeAsOne()) {
+                jsonRpcHistoryQueries.insertOrAbortJsonRpcHistory(requestId, topic.value, method, payload)
+                jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOne() > 0L
+            } else {
+                Logger.log("Duplicated JsonRpc RequestId: $requestId")
+                false
+            }
+        } catch (e: Exception) {
+            Logger.error(e)
             false
         }
     }
