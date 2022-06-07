@@ -45,7 +45,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun setWalletDelegate(delegate: SignInterface.WalletDelegate) {
         checkEngineInitialization()
         scope.launch {
-            engineInteractor.sequenceEvent.collect { event ->
+            engineInteractor.engineEvent.collect { event ->
                 when (event) {
                     is EngineDO.SessionProposal -> delegate.onSessionProposal(event.toClientSessionProposal())
                     is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
@@ -64,7 +64,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun setDappDelegate(delegate: SignInterface.DappDelegate) {
         checkEngineInitialization()
         scope.launch {
-            engineInteractor.sequenceEvent.collect { event ->
+            engineInteractor.engineEvent.collect { event ->
                 when (event) {
                     is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
                     is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())

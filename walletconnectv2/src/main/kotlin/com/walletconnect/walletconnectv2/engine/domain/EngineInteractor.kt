@@ -41,8 +41,8 @@ internal class EngineInteractor(
     private val sequenceStorageRepository: SequenceStorageRepository,
     private val metaData: EngineDO.AppMetaData,
 ) {
-    private val _sequenceEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
-    val sequenceEvent: SharedFlow<EngineEvent> = _sequenceEvent
+    private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
+    val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
     private val sessionProposalRequest: MutableMap<String, WCRequestVO> = mutableMapOf()
 
     init {
@@ -438,7 +438,7 @@ internal class EngineInteractor(
         }
 
         sessionProposalRequest[payloadParams.proposer.publicKey] = request
-        scope.launch { _sequenceEvent.emit(payloadParams.toEngineDOSessionProposal()) }
+        scope.launch { _engineEvent.emit(payloadParams.toEngineDOSessionProposal()) }
     }
 
     private fun onSessionSettle(request: WCRequestVO, settleParams: SessionParamsVO.SessionSettleParams) {
@@ -467,7 +467,7 @@ internal class EngineInteractor(
             sequenceStorageRepository.insertSession(session)
             relayer.respondWithSuccess(request)
 
-            scope.launch { _sequenceEvent.emit(session.toSessionApproved()) }
+            scope.launch { _engineEvent.emit(session.toSessionApproved()) }
         } catch (e: SQLiteException) {
             sessionProposalRequest[selfPublicKey.keyAsHex] = tempProposalRequest
             sequenceStorageRepository.deleteSession(sessionTopic)
@@ -486,7 +486,7 @@ internal class EngineInteractor(
         relayer.unsubscribe(request.topic)
         sequenceStorageRepository.deletePairing(request.topic)
 
-        scope.launch { _sequenceEvent.emit(EngineDO.DeletedPairing(request.topic.value, params.message)) }
+        scope.launch { _engineEvent.emit(EngineDO.DeletedPairing(request.topic.value, params.message)) }
     }
 
     private fun onSessionDelete(request: WCRequestVO, params: SessionParamsVO.DeleteParams) {
@@ -499,7 +499,7 @@ internal class EngineInteractor(
         sequenceStorageRepository.deleteSession(request.topic)
         relayer.unsubscribe(request.topic)
 
-        scope.launch { _sequenceEvent.emit(params.toEngineDoDeleteSession(request.topic)) }
+        scope.launch { _engineEvent.emit(params.toEngineDoDeleteSession(request.topic)) }
     }
 
     private fun onSessionRequest(request: WCRequestVO, params: SessionParamsVO.SessionRequestParams) {
@@ -522,7 +522,7 @@ internal class EngineInteractor(
             return
         }
 
-        scope.launch { _sequenceEvent.emit(params.toEngineDOSessionRequest(request, sessionPeerMetaData)) }
+        scope.launch { _engineEvent.emit(params.toEngineDOSessionRequest(request, sessionPeerMetaData)) }
     }
 
     private fun onSessionEvent(request: WCRequestVO, params: SessionParamsVO.EventParams) {
@@ -553,7 +553,7 @@ internal class EngineInteractor(
         }
 
         relayer.respondWithSuccess(request)
-        scope.launch { _sequenceEvent.emit(params.toEngineDOSessionEvent(request.topic)) }
+        scope.launch { _engineEvent.emit(params.toEngineDOSessionEvent(request.topic)) }
     }
 
     private fun onSessionUpdateNamespaces(request: WCRequestVO, params: SessionParamsVO.UpdateNamespacesParams) {
@@ -577,7 +577,7 @@ internal class EngineInteractor(
             relayer.respondWithSuccess(request)
 
             scope.launch {
-                _sequenceEvent.emit(EngineDO.SessionUpdateNamespaces(request.topic, params.namespaces.toMapOfEngineNamespacesSession()))
+                _engineEvent.emit(EngineDO.SessionUpdateNamespaces(request.topic, params.namespaces.toMapOfEngineNamespacesSession()))
             }
         }, onFailure = {
             relayer.respondWithError(request, PeerError.InvalidUpdateRequest("Namespace update failed"))
@@ -604,7 +604,7 @@ internal class EngineInteractor(
 
         sequenceStorageRepository.extendSession(request.topic, newExpiry)
         relayer.respondWithSuccess(request)
-        scope.launch { _sequenceEvent.emit(session.toEngineDOSessionExtend(ExpiryVO(newExpiry))) }
+        scope.launch { _engineEvent.emit(session.toEngineDOSessionExtend(ExpiryVO(newExpiry))) }
     }
 
     private fun onPing(request: WCRequestVO) {
@@ -644,7 +644,7 @@ internal class EngineInteractor(
             is JsonRpcResponseVO.JsonRpcError -> {
                 if (!pairing.isActive) sequenceStorageRepository.deletePairing(pairingTopic)
                 Logger.log("Session proposal reject received: ${response.error}")
-                scope.launch { _sequenceEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
+                scope.launch { _engineEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
             }
         }
     }
@@ -658,7 +658,7 @@ internal class EngineInteractor(
             is JsonRpcResponseVO.JsonRpcResult -> {
                 Logger.log("Session settle success received")
                 sequenceStorageRepository.acknowledgeSession(sessionTopic)
-                scope.launch { _sequenceEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDOApprovedSessionVO())) }
+                scope.launch { _engineEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDOApprovedSessionVO())) }
             }
             is JsonRpcResponseVO.JsonRpcError -> {
                 Logger.error("Peer failed to settle session: ${wcResponse.response.errorMessage}")
@@ -678,7 +678,7 @@ internal class EngineInteractor(
             is JsonRpcResponseVO.JsonRpcResult -> {
                 Logger.log("Session update namespaces response received")
                 scope.launch {
-                    _sequenceEvent.emit(
+                    _engineEvent.emit(
                         EngineDO.SessionUpdateNamespacesResponse.Result(
                             session.topic,
                             session.namespaces.toMapOfEngineNamespacesSession()
@@ -688,7 +688,7 @@ internal class EngineInteractor(
             }
             is JsonRpcResponseVO.JsonRpcError -> {
                 Logger.error("Peer failed to update session namespaces: ${response.error}")
-                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error(response.errorMessage)) }
+                scope.launch { _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error(response.errorMessage)) }
             }
         }
     }
@@ -699,13 +699,13 @@ internal class EngineInteractor(
             is JsonRpcResponseVO.JsonRpcError -> response.response.toEngineJsonRpcError()
         }
         val method = params.request.method
-        scope.launch { _sequenceEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
+        scope.launch { _engineEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
     }
 
     private fun resubscribeToSequences() {
         relayer.isConnectionAvailable
             .onEach { isAvailable ->
-                _sequenceEvent.emit(EngineDO.ConnectionState(isAvailable))
+                _engineEvent.emit(EngineDO.ConnectionState(isAvailable))
             }
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
