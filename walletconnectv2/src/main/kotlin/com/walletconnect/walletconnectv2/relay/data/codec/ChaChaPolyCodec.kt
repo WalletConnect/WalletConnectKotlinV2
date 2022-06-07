@@ -13,11 +13,8 @@ import java.nio.ByteBuffer
 internal class ChaChaPolyCodec : Codec {
 
     override fun encrypt(message: String, key: Key): String {
-        //todo add try/catch
-
         val input = message.toByteArray(Charsets.UTF_8)
         val nonceBytes = randomBytes(NONCE_SIZE)
-
         val cha20Poly1305 = ChaCha20Poly1305()
         val params = ParametersWithIV(KeyParameter(key.keyAsHex.hexToBytes()), nonceBytes)
         cha20Poly1305.init(true, params)
@@ -52,8 +49,6 @@ internal class ChaChaPolyCodec : Codec {
     }
 
     companion object {
-        private const val CHA_CHA_POLY = "ChaCha20-Poly1305"
-        private const val CHA_CHA_20 = "ChaCha20"
         private const val NONCE_SIZE = 12
     }
 }
