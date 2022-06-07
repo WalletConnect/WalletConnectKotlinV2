@@ -17,7 +17,7 @@ internal class ChaChaPolyCodec : Codec {
         val nonceBytes = randomBytes(NONCE_SIZE)
         val cha20Poly1305 = ChaCha20Poly1305()
         val params = ParametersWithIV(KeyParameter(key.keyAsHex.hexToBytes()), nonceBytes)
-        cha20Poly1305.init(true, params)
+        cha20Poly1305.init(true, params) //note: in the debugging mode code throws InvalidArgumentException but it doesn't affects the final method execution
         val cipherText = ByteArray(cha20Poly1305.getOutputSize(input.size))
         val outputSize = cha20Poly1305.processBytes(input, 0, input.size, cipherText, 0)
         cha20Poly1305.doFinal(cipherText, outputSize)
@@ -40,7 +40,7 @@ internal class ChaChaPolyCodec : Codec {
 
         val cha20Poly1305 = ChaCha20Poly1305()
         val params = ParametersWithIV(KeyParameter(key.keyAsHex.hexToBytes()), nonce)
-        cha20Poly1305.init(false, params)
+        cha20Poly1305.init(false, params) //note: in the debugging mode code throws InvalidArgumentException but it doesn't affects the final method execution
         val cipherText = ByteArray(cha20Poly1305.getOutputSize(encryptedText.size))
         val outputSize = cha20Poly1305.processBytes(encryptedText, 0, encryptedText.size, cipherText, 0)
         cha20Poly1305.doFinal(cipherText, outputSize)
