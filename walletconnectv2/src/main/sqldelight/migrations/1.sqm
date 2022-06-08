@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS PairingDao (
     is_active INTEGER AS Boolean NOT NULL
 );
 
-DROP TABLE PairingDaoBak;
+DROP TABLE IF EXISTS PairingDaoBak;
 
 -- SessionDao
 ALTER TABLE SessionDao RENAME TO SessionDaoBak;
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS  SessionDao(
    is_acknowledged INTEGER AS Boolean NOT NULL
 );
 
-DROP TABLE SessionDaoBak;
+DROP TABLE IF EXISTS SessionDaoBak;
 
 -- MetaDataDao
 ALTER TABLE MetaDataDao RENAME TO MetaDataDaoBak;
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS MetaDataDao(
   	UNIQUE(sequence_topic, type)
 );
 
-DROP TABLE MetaDataDaoBak;
+DROP TABLE IF EXISTS MetaDataDaoBak;
 
 -- JsonRpcHistoryDao
 ALTER TABLE JsonRpcHistoryDao RENAME TO JsonRpcHistoryDaoBak;
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS JsonRpcHistoryDao(
   response TEXT AS String
 );
 
-DROP TABLE JsonRpcHistoryDaoBak;
+DROP TABLE IF EXISTS JsonRpcHistoryDaoBak;
 
 -- NamespaceDao
 CREATE TABLE IF NOT EXISTS NamespaceDao(
@@ -85,4 +85,4 @@ CREATE TABLE IF NOT EXISTS NamespaceExtensionsDao(
 );
 
 -- android_metadata
-DROP TABLE android_metadata;
+DROP TABLE IF EXISTS android_metadata;
