@@ -12,10 +12,12 @@ import java.nio.ByteBuffer
 
 internal class ChaChaPolyCodec : Codec {
 
+    private val cha20Poly1305 = ChaCha20Poly1305()
+
     override fun encrypt(message: String, key: Key): String {
         val input = message.toByteArray(Charsets.UTF_8)
         val nonceBytes = randomBytes(NONCE_SIZE)
-        val cha20Poly1305 = ChaCha20Poly1305()
+
         val params = ParametersWithIV(KeyParameter(key.keyAsHex.hexToBytes()), nonceBytes)
         cha20Poly1305.init(true, params) //note: in the debugging mode code throws InvalidArgumentException but it doesn't affects the final method execution
         val cipherText = ByteArray(cha20Poly1305.getOutputSize(input.size))
@@ -38,7 +40,6 @@ internal class ChaChaPolyCodec : Codec {
         byteBuffer.get(nonce)
         byteBuffer.get(encryptedText)
 
-        val cha20Poly1305 = ChaCha20Poly1305()
         val params = ParametersWithIV(KeyParameter(key.keyAsHex.hexToBytes()), nonce)
         cha20Poly1305.init(false, params) //note: in the debugging mode code throws InvalidArgumentException but it doesn't affects the final method execution
         val cipherText = ByteArray(cha20Poly1305.getOutputSize(encryptedText.size))
