@@ -29,16 +29,11 @@ internal object Validator {
     @JvmSynthetic
     internal inline fun validateProposalNamespace(namespaces: Map<String, NamespaceVO.Proposal>, onError: (PeerError) -> Unit) {
         when {
-            !areProposalNamespacesKeysProperlyFormatted(namespaces) ->
-                onError(PeerError.UnsupportedNamespaceKey)
-            !areChainsNotEmpty(namespaces) ->
-                onError(PeerError.UnsupportedChains(NAMESPACE_CHAINS_MISSING_MESSAGE))
-            !areChainIdsValid(namespaces) ->
-                onError(PeerError.UnsupportedChains(NAMESPACE_CHAINS_CAIP_2_MESSAGE))
-            !areChainsInMatchingNamespace(namespaces) ->
-                onError(PeerError.UnsupportedChains(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE))
-            !areExtensionChainsNotEmpty(namespaces) ->
-                onError(PeerError.UnsupportedChains(NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE))
+            !areProposalNamespacesKeysProperlyFormatted(namespaces) -> onError(PeerError.UnsupportedNamespaceKey)
+            !areChainsNotEmpty(namespaces) -> onError(PeerError.UnsupportedChains(NAMESPACE_CHAINS_MISSING_MESSAGE))
+            !areChainIdsValid(namespaces) -> onError(PeerError.UnsupportedChains(NAMESPACE_CHAINS_CAIP_2_MESSAGE))
+            !areChainsInMatchingNamespace(namespaces) -> onError(PeerError.UnsupportedChains(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE))
+            !areExtensionChainsNotEmpty(namespaces) -> onError(PeerError.UnsupportedChains(NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE))
         }
     }
 
@@ -49,22 +44,17 @@ internal object Validator {
         onError: (PeerError) -> Unit,
     ) {
         when {
-            !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) ->
-                onError(PeerError.UserRejected)
-            !areAccountsNotEmpty(sessionNamespaces) ->
-                onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
-            !areAccountIdsValid(sessionNamespaces) ->
-                onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
+            !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) -> onError(PeerError.UserRejected)
+            !areAccountsNotEmpty(sessionNamespaces) -> onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
+            !areAccountIdsValid(sessionNamespaces) -> onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
             !areAllChainsApprovedWithAtLeastOneAccount(sessionNamespaces, proposalNamespaces) ->
                 onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE))
-            !areAllMethodsApproved(sessionNamespaces, proposalNamespaces) ->
-                onError(PeerError.UserRejectedMethods)
-            !areAllEventsApproved(sessionNamespaces, proposalNamespaces) ->
-                onError(PeerError.UserRejectedEvents)
+            !areAllMethodsApproved(sessionNamespaces, proposalNamespaces) -> onError(PeerError.UserRejectedMethods)
+            !areAllEventsApproved(sessionNamespaces, proposalNamespaces) -> onError(PeerError.UserRejectedEvents)
             !areAccountsInMatchingNamespace(sessionNamespaces) ->
                 onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
-            !areExtensionAccountsNotEmpty(sessionNamespaces) ->
-                onError(PeerError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
+            !areExtensionAccountsNotEmpty(sessionNamespaces) -> onError(
+                PeerError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
         }
     }
 
@@ -74,12 +64,9 @@ internal object Validator {
         onError: (PeerError) -> Unit,
     ) {
         when {
-            !areSessionNamespacesKeysProperlyFormatted(sessionNamespaces) ->
-                onError(PeerError.UnsupportedNamespaceKey)
-            !areAccountsNotEmpty(sessionNamespaces) ->
-                onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
-            !areAccountIdsValid(sessionNamespaces) ->
-                onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
+            !areSessionNamespacesKeysProperlyFormatted(sessionNamespaces) -> onError(PeerError.UnsupportedNamespaceKey)
+            !areAccountsNotEmpty(sessionNamespaces) -> onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
+            !areAccountIdsValid(sessionNamespaces) -> onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
             !areAccountsInMatchingNamespace(sessionNamespaces) ->
                 onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
             !areExtensionAccountsNotEmpty(sessionNamespaces) ->
