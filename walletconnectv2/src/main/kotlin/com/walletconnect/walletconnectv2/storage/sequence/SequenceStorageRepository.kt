@@ -1,7 +1,6 @@
 package com.walletconnect.walletconnectv2.storage.sequence
 
 import android.database.sqlite.SQLiteException
-import android.util.Log
 import com.walletconnect.walletconnectv2.core.model.type.enums.MetaDataType
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.PublicKey
