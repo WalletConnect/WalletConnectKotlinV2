@@ -7,7 +7,6 @@ import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.jsonRpc.JsonRpcHistoryVO
 import com.walletconnect.walletconnectv2.storage.data.dao.JsonRpcHistoryQueries
 import com.walletconnect.walletconnectv2.util.Logger
-import java.sql.SQLException
 
 internal class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private val jsonRpcHistoryQueries: JsonRpcHistoryQueries) {
 

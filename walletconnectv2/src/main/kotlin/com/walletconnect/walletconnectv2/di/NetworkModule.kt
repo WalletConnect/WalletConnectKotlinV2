@@ -1,7 +1,5 @@
 package com.walletconnect.walletconnectv2.di
 
-import android.app.Application
-import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import com.tinder.scarlet.lifecycle.android.AndroidLifecycle

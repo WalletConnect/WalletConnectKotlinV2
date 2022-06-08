@@ -1,7 +1,8 @@
 package com.walletconnect.walletconnectv2.util
 
 import android.content.Context
-import android.net.*
+import android.net.ConnectivityManager
+import android.net.Network
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

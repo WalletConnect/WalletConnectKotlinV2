@@ -1,6 +1,5 @@
 package com.walletconnect.walletconnectv2.relay.domain
 
-import android.util.Log
 import com.walletconnect.walletconnectv2.client.Sign
 import com.walletconnect.walletconnectv2.core.exceptions.client.WalletConnectException
 import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
