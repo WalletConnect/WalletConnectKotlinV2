@@ -1,6 +1,20 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
-import com.walletconnect.walletconnectv2.core.exceptions.client.*
+import com.walletconnect.walletconnectv2.core.exceptions.INVALID_EVENT_MESSAGE
+import com.walletconnect.walletconnectv2.core.exceptions.INVALID_EXTEND_TIME
+import com.walletconnect.walletconnectv2.core.exceptions.INVALID_REQUEST_MESSAGE
+import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE
+import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE
+import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_ACCOUNTS_MISSING_MESSAGE
+import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE
+import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_CHAINS_CAIP_2_MESSAGE
+import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_CHAINS_MISSING_MESSAGE
+import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE
+import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE
+import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE
+import com.walletconnect.walletconnectv2.core.exceptions.UNAUTHORIZED_CHAIN_ID_OR_EVENT_MESSAGE
+import com.walletconnect.walletconnectv2.core.exceptions.UNAUTHORIZED_CHAIN_ID_OR_METHOD_MESSAGE
+import com.walletconnect.walletconnectv2.core.exceptions.peer.*
 import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
@@ -13,13 +27,18 @@ import java.net.URISyntaxException
 internal object Validator {
 
     @JvmSynthetic
-    internal inline fun validateProposalNamespace(namespaces: Map<String, NamespaceVO.Proposal>, onNamespaceError: (String) -> Unit) {
+    internal inline fun validateProposalNamespace(namespaces: Map<String, NamespaceVO.Proposal>, onError: (PeerError) -> Unit) {
         when {
-            !areProposalNamespacesKeysProperlyFormatted(namespaces) -> onNamespaceError(NAMESPACE_EXTENSION_KEYS_CAIP_2_MESSAGE)
-            !areChainsNotEmpty(namespaces) -> onNamespaceError(NAMESPACE_MISSING_CHAINS_MESSAGE)
-            !areChainIdsValid(namespaces) -> onNamespaceError(NAMESPACE_CHAINS_CAIP_2_MESSAGE)
-            !areChainsInMatchingNamespace(namespaces) -> onNamespaceError(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE)
-            !areExtensionChainsNotEmpty(namespaces) -> onNamespaceError(NAMESPACE_EXTENSION_MISSING_CHAINS_MESSAGE)
+            !areProposalNamespacesKeysProperlyFormatted(namespaces) ->
+                onError(PeerError.UnsupportedNamespaceKey)
+            !areChainsNotEmpty(namespaces) ->
+                onError(PeerError.UnsupportedChains(NAMESPACE_CHAINS_MISSING_MESSAGE))
+            !areChainIdsValid(namespaces) ->
+                onError(PeerError.UnsupportedChains(NAMESPACE_CHAINS_CAIP_2_MESSAGE))
+            !areChainsInMatchingNamespace(namespaces) ->
+                onError(PeerError.UnsupportedChains(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE))
+            !areExtensionChainsNotEmpty(namespaces) ->
+                onError(PeerError.UnsupportedChains(NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE))
         }
     }
 
@@ -27,32 +46,44 @@ internal object Validator {
     internal inline fun validateSessionNamespace(
         sessionNamespaces: Map<String, NamespaceVO.Session>,
         proposalNamespaces: Map<String, NamespaceVO.Proposal>,
-        onNamespaceError: (String) -> Unit,
+        onError: (PeerError) -> Unit,
     ) {
         when {
-            !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) -> onNamespaceError(NAMESPACE_KEYS_MISSING_MESSAGE)
-            !areAccountsNotEmpty(sessionNamespaces) -> onNamespaceError(NAMESPACE_MISSING_ACCOUNTS_MESSAGE)
-            !areAccountIdsValid(sessionNamespaces) -> onNamespaceError(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE)
+            !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) ->
+                onError(PeerError.UserRejected)
+            !areAccountsNotEmpty(sessionNamespaces) ->
+                onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
+            !areAccountIdsValid(sessionNamespaces) ->
+                onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
             !areAllChainsApprovedWithAtLeastOneAccount(sessionNamespaces, proposalNamespaces) ->
-                onNamespaceError(NAMESPACE_MISSING_ACCOUNTS_FOR_CHAINS_MESSAGE)
-            !areAllMethodsApproved(sessionNamespaces, proposalNamespaces) -> onNamespaceError(NAMESPACE_MISSING_METHODS_MESSAGE)
-            !areAllEventsApproved(sessionNamespaces, proposalNamespaces) -> onNamespaceError(NAMESPACE_MISSING_EVENTS_MESSAGE)
-            !areAccountsInMatchingNamespace(sessionNamespaces) -> onNamespaceError(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE)
-            !areExtensionAccountsNotEmpty(sessionNamespaces) -> onNamespaceError(NAMESPACE_EXTENSION_MISSING_ACCOUNTS_MESSAGE)
+                onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE))
+            !areAllMethodsApproved(sessionNamespaces, proposalNamespaces) ->
+                onError(PeerError.UserRejectedMethods)
+            !areAllEventsApproved(sessionNamespaces, proposalNamespaces) ->
+                onError(PeerError.UserRejectedEvents)
+            !areAccountsInMatchingNamespace(sessionNamespaces) ->
+                onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
+            !areExtensionAccountsNotEmpty(sessionNamespaces) ->
+                onError(PeerError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
         }
     }
 
     @JvmSynthetic
     internal inline fun validateSessionNamespaceUpdate(
         sessionNamespaces: Map<String, NamespaceVO.Session>,
-        onNamespaceError: (String) -> Unit,
+        onError: (PeerError) -> Unit,
     ) {
         when {
-            !areSessionNamespacesKeysProperlyFormatted(sessionNamespaces) -> onNamespaceError(NAMESPACE_EXTENSION_KEYS_CAIP_2_MESSAGE)
-            !areAccountsNotEmpty(sessionNamespaces) -> onNamespaceError(NAMESPACE_MISSING_ACCOUNTS_MESSAGE)
-            !areAccountIdsValid(sessionNamespaces) -> onNamespaceError(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE)
-            !areAccountsInMatchingNamespace(sessionNamespaces) -> onNamespaceError(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE)
-            !areExtensionAccountsNotEmpty(sessionNamespaces) -> onNamespaceError(NAMESPACE_EXTENSION_MISSING_ACCOUNTS_MESSAGE)
+            !areSessionNamespacesKeysProperlyFormatted(sessionNamespaces) ->
+                onError(PeerError.UnsupportedNamespaceKey)
+            !areAccountsNotEmpty(sessionNamespaces) ->
+                onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
+            !areAccountIdsValid(sessionNamespaces) ->
+                onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
+            !areAccountsInMatchingNamespace(sessionNamespaces) ->
+                onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
+            !areExtensionAccountsNotEmpty(sessionNamespaces) ->
+                onError(PeerError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
         }
     }
 
@@ -134,8 +165,7 @@ internal object Validator {
         mapOfQueryParameters["relay-protocol"]?.let { relayProtocol = it } ?: return null
         if (relayProtocol.isEmpty()) return null
 
-        var relayData: String? = ""
-        relayData = mapOfQueryParameters["relay-data"]
+        val relayData: String? = mapOfQueryParameters["relay-data"]
 
         var symKey = ""
         mapOfQueryParameters["symKey"]?.let { symKey = it } ?: return null
@@ -299,7 +329,7 @@ internal object Validator {
     internal fun getChainFromAccount(accountId: String): String {
         val elements = accountId.split(":")
         if (elements.isEmpty() || elements.size != 3) return accountId
-        val (namespace: String, reference: String, accountAddress: String) = elements
+        val (namespace: String, reference: String, _: String) = elements
 
         return "$namespace:$reference"
     }

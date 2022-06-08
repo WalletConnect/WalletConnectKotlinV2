@@ -1,6 +1,7 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.walletconnectv2.core.exceptions.*
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
 import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
 import com.walletconnect.walletconnectv2.core.model.type.EngineEvent
@@ -68,8 +69,8 @@ internal class EngineInteractor(
             proposedRelays: List<EngineDO.RelayProtocolOptions>?,
             proposedSequence: EngineDO.ProposedSequence,
         ) {
-            Validator.validateProposalNamespace(namespaces.toNamespacesVOProposal()) { errorMessage ->
-                throw WalletConnectException.InvalidNamespaceException(errorMessage)
+            Validator.validateProposalNamespace(namespaces.toNamespacesVOProposal()) { peerError ->
+                throw WalletConnectException.InvalidNamespaceException(peerError.message)
             }
 
             val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -182,8 +183,8 @@ internal class EngineInteractor(
         sessionProposalRequest.remove(proposerPublicKey)
         val proposal = request.params as PairingParamsVO.SessionProposeParams
 
-        Validator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), proposal.namespaces) { errorMessage ->
-            throw WalletConnectException.InvalidNamespaceException(errorMessage)
+        Validator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), proposal.namespaces) { peerError ->
+            throw WalletConnectException.InvalidNamespaceException(peerError.message)
         }
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -215,8 +216,8 @@ internal class EngineInteractor(
             throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
-        Validator.validateSessionNamespaceUpdate(namespaces.toMapOfNamespacesVOSession()) { errorMessage ->
-            throw WalletConnectException.InvalidNamespaceException(errorMessage)
+        Validator.validateSessionNamespaceUpdate(namespaces.toMapOfNamespacesVOSession()) { peerError ->
+            throw WalletConnectException.InvalidNamespaceException(peerError.message)
         }
 
         val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
@@ -372,12 +373,12 @@ internal class EngineInteractor(
             })
     }
 
-    internal fun disconnect(topic: String, reason: String, code: Int) {
+    internal fun disconnect(topic: String) {
         if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        val deleteParams = SessionParamsVO.DeleteParams(message = reason, code = code)
+        val deleteParams = SessionParamsVO.DeleteParams(PeerError.UserDisconnected.code, PeerError.UserDisconnected.message)
         val sessionDelete = SessionSettlementVO.SessionDelete(id = generateId(), params = deleteParams)
         sequenceStorageRepository.deleteSession(TopicVO(topic))
 
@@ -432,8 +433,8 @@ internal class EngineInteractor(
     }
 
     private fun onSessionPropose(request: WCRequestVO, payloadParams: PairingParamsVO.SessionProposeParams) {
-        Validator.validateProposalNamespace(payloadParams.namespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidSessionProposeRequest(request.topic.value, errorMessage))
+        Validator.validateProposalNamespace(payloadParams.namespaces) { peerError ->
+            relayer.respondWithError(request, peerError)
             return
         }
 
@@ -452,8 +453,8 @@ internal class EngineInteractor(
             return
         }
 
-        Validator.validateSessionNamespace(settleParams.namespaces, proposal.params.namespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.SessionSettlementFailed(errorMessage))
+        Validator.validateSessionNamespace(settleParams.namespaces, proposal.params.namespaces) { peerError ->
+            relayer.respondWithError(request, peerError)
             return
         }
 
@@ -471,7 +472,7 @@ internal class EngineInteractor(
         } catch (e: SQLiteException) {
             sessionProposalRequest[selfPublicKey.keyAsHex] = tempProposalRequest
             sequenceStorageRepository.deleteSession(sessionTopic)
-            relayer.respondWithError(request, PeerError.SessionSettlementFailed(e.message ?: ""))
+            relayer.respondWithError(request, PeerError.SessionSettlementFailed(e.message ?: String.Empty))
             return
         }
     }
@@ -568,8 +569,8 @@ internal class EngineInteractor(
             return
         }
 
-        Validator.validateSessionNamespaceUpdate(params.namespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidUpdateRequest(errorMessage))
+        Validator.validateSessionNamespaceUpdate(params.namespaces) { peerError ->
+            relayer.respondWithError(request, PeerError.InvalidUpdateRequest(peerError.message))
             return
         }
 

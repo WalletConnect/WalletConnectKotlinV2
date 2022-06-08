@@ -1,6 +1,9 @@
 package com.walletconnect.walletconnectv2.core.exceptions.peer
 
-sealed class PeerError {
+import com.walletconnect.walletconnectv2.core.exceptions.*
+
+
+internal sealed class PeerError {
     abstract val message: String
     abstract val code: Int
 
@@ -24,11 +27,6 @@ sealed class PeerError {
     data class InvalidExtendRequest(val reason: String) : PeerError() {
         override val message = "Invalid session extend request: $reason"
         override val code: Int = 1004
-    }
-
-    data class InvalidSessionProposeRequest(val topic: String, val errorMessage: String) : PeerError() {
-        override val message: String = "Invalid Session Proposal on topic: $topic. Error Message: $errorMessage"
-        override val code: Int = 1007
     }
 
     //Authorization errors
@@ -60,23 +58,22 @@ sealed class PeerError {
 
     //Rejected errors
 
-    class UserRejected : PeerError() {
-        override val message: String = "User Rejected"
+    object UserRejected : PeerError() {
+        override val message: String = NAMESPACE_KEYS_MISSING_MESSAGE
         override val code: Int = 5000
     }
 
-    class UserRejectedChains : PeerError() {
-        override val message: String = "User Rejected Chains"
+    data class UserRejectedChains(override val message: String) : PeerError() {
         override val code: Int = 5001
     }
 
-    class UserRejectedMethods : PeerError() {
-        override val message: String = "User Rejected Methods"
+    object UserRejectedMethods : PeerError() {
+        override val message: String = NAMESPACE_METHODS_MISSING_MESSAGE
         override val code: Int = 5002
     }
 
-    class UserRejectedEvents : PeerError() {
-        override val message: String = "User Rejected Events"
+    object UserRejectedEvents : PeerError() {
+        override val message: String = NAMESPACE_EVENTS_MISSING_MESSAGE
         override val code: Int = 5003
     }
 
@@ -87,18 +84,29 @@ sealed class PeerError {
         override val code: Int = 1301
     }
 
-    class UserDisconnected : PeerError() {
-        override val message: String = "User disconnected"
+    object UserDisconnected : PeerError() {
+        override val message: String = DISCONNECT_MESSAGE
         override val code: Int = 6000
     }
 
     data class SessionSettlementFailed(val reason: String) : PeerError() {
         override val message: String = "Invalid Session Settle Request: $reason"
-        override val code: Int = 6001
+        override val code: Int = 7000
     }
 
     data class Error(val reason: String, val errorCode: Int) : PeerError() {
         override val message: String = reason
         override val code: Int = errorCode
+    }
+
+    //Namespaces validation
+
+    object UnsupportedNamespaceKey : PeerError() {
+        override val message: String = NAMESPACE_KEYS_CAIP_2_MESSAGE
+        override val code: Int = 5104
+    }
+
+    data class UnsupportedChains(override val message: String) : PeerError() {
+        override val code: Int = 5100
     }
 }

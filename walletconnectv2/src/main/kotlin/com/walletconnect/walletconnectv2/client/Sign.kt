@@ -186,7 +186,7 @@ object Sign {
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
-                        val error: Sign.Model.Relay.Error,
+                        val error: Error,
                         override val id: Long,
                     ) : Publish()
                 }
@@ -213,7 +213,7 @@ object Sign {
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
-                        val error: Sign.Model.Relay.Error,
+                        val error: Error,
                         override val id: Long,
                     ) : Subscribe()
                 }
@@ -250,7 +250,7 @@ object Sign {
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
-                        val error: Sign.Model.Relay.Error,
+                        val error: Error,
                         override val id: Long,
                     ) : Subscription()
                 }
@@ -278,7 +278,7 @@ object Sign {
 
                     data class JsonRpcError(
                         override val jsonrpc: String = "2.0",
-                        val error: Sign.Model.Relay.Error,
+                        val error: Error,
                         override val id: Long,
                     ) : Unsubscribe()
                 }
@@ -380,7 +380,7 @@ object Sign {
 
         data class Reject(val proposerPublicKey: String, val reason: String, val code: Int) : Params()
 
-        data class Disconnect(val sessionTopic: String, val reason: String, val reasonCode: Int) : Params()
+        data class Disconnect(val sessionTopic: String) : Params()
 
         data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) : Params()
 

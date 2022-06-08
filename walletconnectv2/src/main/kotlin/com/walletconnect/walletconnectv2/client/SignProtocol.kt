@@ -207,7 +207,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.disconnect(disconnect.sessionTopic, disconnect.reason, disconnect.reasonCode)
+            engineInteractor.disconnect(disconnect.sessionTopic)
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
