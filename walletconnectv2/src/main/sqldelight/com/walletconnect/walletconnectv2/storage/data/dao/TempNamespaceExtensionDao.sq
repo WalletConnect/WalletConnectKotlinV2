@@ -15,15 +15,11 @@ insertOrAbortNamespaceExtension:
 INSERT OR ABORT INTO TempNamespaceExtensionsDao(namespace_key, session_id, topic, accounts, methods, events, request_id)
 VALUES (?, ?, ?, ?, ?, ?, ?);
 
-deleteNamespacesExtensionsByTopic:
-DELETE FROM TempNamespaceExtensionsDao
-WHERE session_id = (
-   SELECT id
-   FROM SessionDao
-   WHERE topic = ?
-);
-
 getNamespaceExtensionByNamespaceKeyAndSessionId:
 SELECT accounts, methods, events
 FROM TempNamespaceExtensionsDao
 WHERE namespace_key = ? AND session_id = ?;
+
+deleteTempNamespacesExtensionByTopic:
+DELETE FROM TempNamespaceExtensionsDao
+WHERE topic = ?;

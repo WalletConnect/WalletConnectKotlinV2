@@ -253,6 +253,8 @@ internal class SequenceStorageRepository(
         metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
         namespaceDaoQueries.deleteNamespacesByTopic(topic.value)
         extensionsDaoQueries.deleteNamespacesExtensionsByTopic(topic.value)
+        tempNamespaceDaoQueries.deleteTempNamespacesByTopic(topic.value)
+        tempExtensionsDaoQueries.deleteTempNamespacesExtensionByTopic(topic.value)
         sessionDaoQueries.deleteSession(topic.value)
     }
 
