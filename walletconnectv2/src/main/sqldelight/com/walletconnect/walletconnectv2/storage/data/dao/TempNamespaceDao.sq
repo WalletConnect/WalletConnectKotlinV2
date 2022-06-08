@@ -31,3 +31,7 @@ markNamespaceProcessed:
 UPDATE TempNamespaceDao
 SET isProcessed = 1
 WHERE topic = ? AND request_id = ?;
+
+deleteTempNamespacesByTopic:
+DELETE FROM TempNamespaceDao
+WHERE topic = ?;
