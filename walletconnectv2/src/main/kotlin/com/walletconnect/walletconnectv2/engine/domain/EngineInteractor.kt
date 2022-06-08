@@ -700,7 +700,7 @@ internal class EngineInteractor(
                         )
                     }
                 }, onFailure = {
-                    scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error("Unable to ")) }
+                    scope.launch { _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error("Unable to ")) }
                 })
             }
             is JsonRpcResponseVO.JsonRpcError -> {

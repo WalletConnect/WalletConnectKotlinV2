@@ -162,7 +162,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun update(update: Sign.Params.Update, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.updateSession(update.sessionTopic, update.namespaces.toMapOfEngineNamespacesSession())
+            engineInteractor.updateNamespace(update.sessionTopic, update.namespaces.toMapOfEngineNamespacesSession())
             { error -> onError(Sign.Model.Error(error)) }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
