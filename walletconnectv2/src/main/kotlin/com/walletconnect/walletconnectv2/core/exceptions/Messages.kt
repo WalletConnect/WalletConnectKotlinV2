@@ -26,8 +26,8 @@ internal const val NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE: String = "Account
 internal const val NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE: String = "Extension accounts must not be empty"
 internal const val NAMESPACE_KEYS_MISSING_MESSAGE: String = "All namespaces must be approved"
 
-internal const val UNAUTHORIZED_CHAIN_ID_OR_METHOD_MESSAGE: String = "Unauthorized chain id or method"
-internal const val UNAUTHORIZED_CHAIN_ID_OR_EVENT_MESSAGE: String = "Unauthorized chain id or event"
+internal const val UNAUTHORIZED_METHOD_MESSAGE: String = "Unauthorized method is not authorized for given chain"
+internal const val UNAUTHORIZED_EVENT_MESSAGE: String = "Unauthorized event is not authorized for given chain"
 internal const val INVALID_EVENT_MESSAGE: String = "Event name and data fields cannot be empty. ChainId must be CAIP-2 compliant"
 internal const val INVALID_REQUEST_MESSAGE: String = "Request topic, method and params fields cannot be empty. ChainId must be CAIP-2 compliant"
 internal const val MALFORMED_PAIRING_URI_MESSAGE: String = "Pairing URI string is invalid."

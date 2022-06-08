@@ -530,9 +530,9 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateChainIdWithEventAuthorisation(ETHEREUM, ACCOUNTS_CHANGED, namespaces) { errorMessage = it }
+        Validator.validateChainIdWithEventAuthorisation(ETHEREUM, ACCOUNTS_CHANGED, namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
-        assertEquals(UNAUTHORIZED_CHAIN_ID_OR_EVENT_MESSAGE, errorMessage)
+        assertEquals(UNAUTHORIZED_EVENT_MESSAGE, errorMessage)
     }
 
     @Test
@@ -546,9 +546,9 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateChainIdWithMethodAuthorisation(ETHEREUM, PERSONAL_SIGN, namespaces) { errorMessage = it }
+        Validator.validateChainIdWithMethodAuthorisation(ETHEREUM, PERSONAL_SIGN, namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
-        assertEquals(UNAUTHORIZED_CHAIN_ID_OR_METHOD_MESSAGE, errorMessage)
+        assertEquals(UNAUTHORIZED_METHOD_MESSAGE, errorMessage)
     }
 
     @Test
@@ -562,9 +562,9 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateChainIdWithEventAuthorisation(OPTIMISM, CHAIN_CHANGED, namespaces) { errorMessage = it }
+        Validator.validateChainIdWithEventAuthorisation(OPTIMISM, CHAIN_CHANGED, namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
-        assertEquals(UNAUTHORIZED_CHAIN_ID_OR_EVENT_MESSAGE, errorMessage)
+        assertEquals(UNAUTHORIZED_EVENT_MESSAGE, errorMessage)
     }
 
     @Test
@@ -578,9 +578,9 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateChainIdWithMethodAuthorisation(OPTIMISM, ETH_SIGN, namespaces) { errorMessage = it }
+        Validator.validateChainIdWithMethodAuthorisation(OPTIMISM, ETH_SIGN, namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
-        assertEquals(UNAUTHORIZED_CHAIN_ID_OR_METHOD_MESSAGE, errorMessage)
+        assertEquals(UNAUTHORIZED_METHOD_MESSAGE, errorMessage)
     }
 
     @Test
@@ -594,7 +594,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateChainIdWithEventAuthorisation(ETHEREUM, CHAIN_CHANGED, namespaces) { errorMessage = it }
+        Validator.validateChainIdWithEventAuthorisation(ETHEREUM, CHAIN_CHANGED, namespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -609,7 +609,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateChainIdWithMethodAuthorisation(ETHEREUM, ETH_SIGN, namespaces) { errorMessage = it }
+        Validator.validateChainIdWithMethodAuthorisation(ETHEREUM, ETH_SIGN, namespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -618,7 +618,7 @@ class ValidatorTest {
         var event = EngineDO.Event("", "data", ETHEREUM)
         var errorMessage: String? = null
         Validator.validateEvent(event) {
-            errorMessage = it
+            errorMessage = it.message
         }
         assertEquals(INVALID_EVENT_MESSAGE, errorMessage)
 
@@ -626,21 +626,21 @@ class ValidatorTest {
         event = EngineDO.Event("someName", "", ETHEREUM)
         errorMessage = null
         Validator.validateEvent(event) {
-            errorMessage = it
+            errorMessage = it.message
         }
         assertEquals(INVALID_EVENT_MESSAGE, errorMessage)
 
         event = EngineDO.Event("someName", "someData", "")
         errorMessage = null
         Validator.validateEvent(event) {
-            errorMessage = it
+            errorMessage = it.message
         }
         assertEquals(INVALID_EVENT_MESSAGE, errorMessage)
 
         event = EngineDO.Event("someName", "someData", "1")
         errorMessage = null
         Validator.validateEvent(event) {
-            errorMessage = it
+            errorMessage = it.message
         }
         assertEquals(INVALID_EVENT_MESSAGE, errorMessage)
     }
@@ -650,35 +650,35 @@ class ValidatorTest {
         var request = EngineDO.Request("", "someMethod", "someParams", ETHEREUM)
         var errorMessage: String? = null
         Validator.validateSessionRequest(request) {
-            errorMessage = it
+            errorMessage = it.message
         }
         assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
 
         request = EngineDO.Request("someTopic", "", "someParams", ETHEREUM)
         errorMessage = null
         Validator.validateSessionRequest(request) {
-            errorMessage = it
+            errorMessage = it.message
         }
         assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
 
         request = EngineDO.Request("someTopic", "someMethod", "", ETHEREUM)
         errorMessage = null
         Validator.validateSessionRequest(request) {
-            errorMessage = it
+            errorMessage = it.message
         }
         assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
 
         request = EngineDO.Request("someTopic", "someMethod", "someParams", "")
         errorMessage = null
         Validator.validateSessionRequest(request) {
-            errorMessage = it
+            errorMessage = it.message
         }
         assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
 
         request = EngineDO.Request("someTopic", "someMethod", "someParams", "1")
         errorMessage = null
         Validator.validateSessionRequest(request) {
-            errorMessage = it
+            errorMessage = it.message
         }
         assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
     }
@@ -764,7 +764,7 @@ class ValidatorTest {
         val newExpiry: Long = 1647765496 //20.03
 
         Validator.validateSessionExtend(newExpiry, currentExpiry) {
-            assertEquals(INVALID_EXTEND_TIME, it)
+            assertEquals(INVALID_EXTEND_TIME, it.message)
         }
     }
 
@@ -774,7 +774,7 @@ class ValidatorTest {
         val newExpiry: Long = 1646555896 //06.03
 
         Validator.validateSessionExtend(newExpiry, currentExpiry) {
-            assertEquals(INVALID_EXTEND_TIME, it)
+            assertEquals(INVALID_EXTEND_TIME, it.message)
         }
     }
 

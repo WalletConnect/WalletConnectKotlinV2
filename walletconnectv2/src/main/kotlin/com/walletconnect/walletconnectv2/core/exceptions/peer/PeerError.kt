@@ -58,8 +58,7 @@ internal sealed class PeerError {
 
     //Rejected errors
 
-    object UserRejected : PeerError() {
-        override val message: String = NAMESPACE_KEYS_MISSING_MESSAGE
+    data class UserRejected(override val message: String) : PeerError() {
         override val code: Int = 5000
     }
 
@@ -67,13 +66,11 @@ internal sealed class PeerError {
         override val code: Int = 5001
     }
 
-    object UserRejectedMethods : PeerError() {
-        override val message: String = NAMESPACE_METHODS_MISSING_MESSAGE
+    data class UserRejectedMethods(override val message: String) : PeerError() {
         override val code: Int = 5002
     }
 
-    object UserRejectedEvents : PeerError() {
-        override val message: String = NAMESPACE_EVENTS_MISSING_MESSAGE
+    data class UserRejectedEvents(override val message: String) : PeerError() {
         override val code: Int = 5003
     }
 
@@ -82,11 +79,6 @@ internal sealed class PeerError {
     data class NoMatchingTopic(val sequence: String, val topic: String) : PeerError() {
         override val message: String = "No matching $sequence with topic: $topic"
         override val code: Int = 1301
-    }
-
-    object UserDisconnected : PeerError() {
-        override val message: String = DISCONNECT_MESSAGE
-        override val code: Int = 6000
     }
 
     data class SessionSettlementFailed(val reason: String) : PeerError() {
@@ -101,8 +93,7 @@ internal sealed class PeerError {
 
     //Namespaces validation
 
-    object UnsupportedNamespaceKey : PeerError() {
-        override val message: String = NAMESPACE_KEYS_CAIP_2_MESSAGE
+    data class UnsupportedNamespaceKey(override val message: String) : PeerError() {
         override val code: Int = 5104
     }
 

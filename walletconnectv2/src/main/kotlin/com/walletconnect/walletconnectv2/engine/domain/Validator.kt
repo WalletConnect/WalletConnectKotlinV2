@@ -1,8 +1,5 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
-import com.walletconnect.walletconnectv2.core.exceptions.INVALID_EVENT_MESSAGE
-import com.walletconnect.walletconnectv2.core.exceptions.INVALID_EXTEND_TIME
-import com.walletconnect.walletconnectv2.core.exceptions.INVALID_REQUEST_MESSAGE
 import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE
 import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE
 import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_ACCOUNTS_MISSING_MESSAGE
@@ -12,14 +9,12 @@ import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_CHAINS_MISSIN
 import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE
 import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE
 import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE
-import com.walletconnect.walletconnectv2.core.exceptions.UNAUTHORIZED_CHAIN_ID_OR_EVENT_MESSAGE
-import com.walletconnect.walletconnectv2.core.exceptions.UNAUTHORIZED_CHAIN_ID_OR_METHOD_MESSAGE
-import com.walletconnect.walletconnectv2.core.exceptions.peer.*
 import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.walletconnectv2.engine.model.EngineDO
+import com.walletconnect.walletconnectv2.engine.model.ValidationError
 import com.walletconnect.walletconnectv2.util.Time
 import java.net.URI
 import java.net.URISyntaxException
@@ -27,13 +22,13 @@ import java.net.URISyntaxException
 internal object Validator {
 
     @JvmSynthetic
-    internal inline fun validateProposalNamespace(namespaces: Map<String, NamespaceVO.Proposal>, onError: (PeerError) -> Unit) {
+    internal inline fun validateProposalNamespace(namespaces: Map<String, NamespaceVO.Proposal>, onError: (ValidationError) -> Unit) {
         when {
-            !areProposalNamespacesKeysProperlyFormatted(namespaces) -> onError(PeerError.UnsupportedNamespaceKey)
-            !areChainsNotEmpty(namespaces) -> onError(PeerError.UnsupportedChains(NAMESPACE_CHAINS_MISSING_MESSAGE))
-            !areChainIdsValid(namespaces) -> onError(PeerError.UnsupportedChains(NAMESPACE_CHAINS_CAIP_2_MESSAGE))
-            !areChainsInMatchingNamespace(namespaces) -> onError(PeerError.UnsupportedChains(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE))
-            !areExtensionChainsNotEmpty(namespaces) -> onError(PeerError.UnsupportedChains(NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE))
+            !areProposalNamespacesKeysProperlyFormatted(namespaces) -> onError(ValidationError.UnsupportedNamespaceKey)
+            !areChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_MISSING_MESSAGE))
+            !areChainIdsValid(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_CAIP_2_MESSAGE))
+            !areChainsInMatchingNamespace(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE))
+            !areExtensionChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE))
         }
     }
 
@@ -41,36 +36,36 @@ internal object Validator {
     internal inline fun validateSessionNamespace(
         sessionNamespaces: Map<String, NamespaceVO.Session>,
         proposalNamespaces: Map<String, NamespaceVO.Proposal>,
-        onError: (PeerError) -> Unit,
+        onError: (ValidationError) -> Unit,
     ) {
         when {
-            !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) -> onError(PeerError.UserRejected)
-            !areAccountsNotEmpty(sessionNamespaces) -> onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
-            !areAccountIdsValid(sessionNamespaces) -> onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
+            !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejected)
+            !areAccountsNotEmpty(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
+            !areAccountIdsValid(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
             !areAllChainsApprovedWithAtLeastOneAccount(sessionNamespaces, proposalNamespaces) ->
-                onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE))
-            !areAllMethodsApproved(sessionNamespaces, proposalNamespaces) -> onError(PeerError.UserRejectedMethods)
-            !areAllEventsApproved(sessionNamespaces, proposalNamespaces) -> onError(PeerError.UserRejectedEvents)
+                onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE))
+            !areAllMethodsApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejectedMethods)
+            !areAllEventsApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejectedEvents)
             !areAccountsInMatchingNamespace(sessionNamespaces) ->
-                onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
+                onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
             !areExtensionAccountsNotEmpty(sessionNamespaces) -> onError(
-                PeerError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
+                ValidationError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
         }
     }
 
     @JvmSynthetic
     internal inline fun validateSessionNamespaceUpdate(
         sessionNamespaces: Map<String, NamespaceVO.Session>,
-        onError: (PeerError) -> Unit,
+        onError: (ValidationError) -> Unit,
     ) {
         when {
-            !areSessionNamespacesKeysProperlyFormatted(sessionNamespaces) -> onError(PeerError.UnsupportedNamespaceKey)
-            !areAccountsNotEmpty(sessionNamespaces) -> onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
-            !areAccountIdsValid(sessionNamespaces) -> onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
+            !areSessionNamespacesKeysProperlyFormatted(sessionNamespaces) -> onError(ValidationError.UnsupportedNamespaceKey)
+            !areAccountsNotEmpty(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
+            !areAccountIdsValid(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
             !areAccountsInMatchingNamespace(sessionNamespaces) ->
-                onError(PeerError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
+                onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
             !areExtensionAccountsNotEmpty(sessionNamespaces) ->
-                onError(PeerError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
+                onError(ValidationError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
         }
     }
 
@@ -79,11 +74,11 @@ internal object Validator {
         chainId: String,
         method: String,
         namespaces: Map<String, NamespaceVO.Session>,
-        onInvalidChainId: (String) -> Unit,
+        onError: (ValidationError) -> Unit,
     ) {
         allApprovedMethodsWithChains(namespaces).also { allApprovedMethodsWithChains ->
             if (allApprovedMethodsWithChains[method] == null || !allApprovedMethodsWithChains[method]!!.contains(chainId)) {
-                onInvalidChainId(UNAUTHORIZED_CHAIN_ID_OR_METHOD_MESSAGE)
+                onError(ValidationError.UnauthorizedMethod)
             }
         }
     }
@@ -93,39 +88,39 @@ internal object Validator {
         chainId: String,
         event: String,
         namespaces: Map<String, NamespaceVO.Session>,
-        onInvalidChainId: (String) -> Unit,
+        onError: (ValidationError) -> Unit,
     ) {
         allApprovedEventsWithChains(namespaces).also { allApprovedMethodsWithChains ->
             if (allApprovedMethodsWithChains[event] == null || !allApprovedMethodsWithChains[event]!!.contains(chainId)) {
-                onInvalidChainId(UNAUTHORIZED_CHAIN_ID_OR_EVENT_MESSAGE)
+                onError(ValidationError.UnauthorizedEvent)
             }
         }
     }
 
     @JvmSynthetic
-    internal inline fun validateSessionRequest(request: EngineDO.Request, onInvalidRequest: (String) -> Unit) {
+    internal inline fun validateSessionRequest(request: EngineDO.Request, onError: (ValidationError) -> Unit) {
         if (request.params.isEmpty() || request.method.isEmpty() || request.chainId.isEmpty() ||
             request.topic.isEmpty() || !isChainIdCAIP2Compliant(request.chainId)
         ) {
-            onInvalidRequest(INVALID_REQUEST_MESSAGE)
+            onError(ValidationError.InvalidSessionRequest)
         }
     }
 
 
     @JvmSynthetic
-    internal inline fun validateEvent(event: EngineDO.Event, onInvalidEvent: (String) -> Unit) {
+    internal inline fun validateEvent(event: EngineDO.Event, onError: (ValidationError) -> Unit) {
         if (event.data.isEmpty() || event.name.isEmpty() || event.chainId.isEmpty() || !isChainIdCAIP2Compliant(event.chainId)) {
-            onInvalidEvent(INVALID_EVENT_MESSAGE)
+            onError(ValidationError.InvalidEvent)
         }
     }
 
     @JvmSynthetic
-    internal inline fun validateSessionExtend(newExpiry: Long, currentExpiry: Long, onInvalidExtend: (String) -> Unit) {
+    internal inline fun validateSessionExtend(newExpiry: Long, currentExpiry: Long, onError: (ValidationError) -> Unit) {
         val extendedExpiry = newExpiry - currentExpiry
         val maxExpiry = Time.weekInSeconds
 
         if (newExpiry <= currentExpiry || extendedExpiry > maxExpiry) {
-            onInvalidExtend(INVALID_EXTEND_TIME)
+            onError(ValidationError.InvalidExtendRequest)
         }
     }
 
