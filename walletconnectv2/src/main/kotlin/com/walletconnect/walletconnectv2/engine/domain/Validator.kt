@@ -1,14 +1,6 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
-import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE
-import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE
-import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_ACCOUNTS_MISSING_MESSAGE
-import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE
-import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_CHAINS_CAIP_2_MESSAGE
-import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_CHAINS_MISSING_MESSAGE
-import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE
-import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE
-import com.walletconnect.walletconnectv2.core.exceptions.NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE
+import com.walletconnect.walletconnectv2.core.exceptions.*
 import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO

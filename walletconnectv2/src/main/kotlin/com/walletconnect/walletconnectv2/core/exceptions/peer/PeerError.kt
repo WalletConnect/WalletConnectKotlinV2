@@ -1,8 +1,5 @@
 package com.walletconnect.walletconnectv2.core.exceptions.peer
 
-import com.walletconnect.walletconnectv2.core.exceptions.*
-
-
 internal sealed class PeerError {
     abstract val message: String
     abstract val code: Int

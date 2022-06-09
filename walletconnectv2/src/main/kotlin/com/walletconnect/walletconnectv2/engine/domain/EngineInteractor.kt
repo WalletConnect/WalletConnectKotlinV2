@@ -187,8 +187,8 @@ internal class EngineInteractor(
         sessionProposalRequest.remove(proposerPublicKey)
         val proposal = request.params as PairingParamsVO.SessionProposeParams
 
-        Validator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), proposal.namespaces) { peerError ->
-            throw WalletConnectException.InvalidNamespaceException(peerError.message)
+        Validator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), proposal.namespaces) { error ->
+            throw WalletConnectException.InvalidNamespaceException(error.message)
         }
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -220,8 +220,8 @@ internal class EngineInteractor(
             throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
-        Validator.validateSessionNamespaceUpdate(namespaces.toMapOfNamespacesVOSession()) { peerError ->
-            throw WalletConnectException.InvalidNamespaceException(peerError.message)
+        Validator.validateSessionNamespaceUpdate(namespaces.toMapOfNamespacesVOSession()) { error ->
+            throw WalletConnectException.InvalidNamespaceException(error.message)
         }
 
         val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
@@ -573,8 +573,8 @@ internal class EngineInteractor(
             return
         }
 
-        Validator.validateSessionNamespaceUpdate(params.namespaces) { peerError ->
-            relayer.respondWithError(request, PeerError.InvalidUpdateRequest(peerError.message))
+        Validator.validateSessionNamespaceUpdate(params.namespaces) { error ->
+            relayer.respondWithError(request, PeerError.InvalidUpdateRequest(error.message))
             return
         }
 
