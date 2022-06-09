@@ -8,7 +8,7 @@ Kotlin implementation of WalletConnect v2 Sign protocol for Android applications
 
 ## Requirements
 
-* Android min SDK 24
+* Android min SDK 23
 * Java 11
 
 ## Documentation and usage
