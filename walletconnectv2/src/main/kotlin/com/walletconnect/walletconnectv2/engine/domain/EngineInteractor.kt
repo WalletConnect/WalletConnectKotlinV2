@@ -197,7 +197,7 @@ internal class EngineInteractor(
         sessionSettle(request.id, proposal, sessionTopic)
     }
 
-    internal fun updateNamespace(
+    internal fun updateSession(
         topic: String,
         namespaces: Map<String, EngineDO.Namespace.Session>,
         onFailure: (Throwable) -> Unit,
@@ -221,10 +221,10 @@ internal class EngineInteractor(
         }
 
         val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
-        val sessionUpdateMethods = SessionSettlementVO.SessionUpdateNamespaces(id = generateId(), params = params)
+        val sessionUpdate = SessionSettlementVO.SessionUpdate(id = generateId(), params = params)
 
-        sequenceStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdateMethods.id, onSuccess = {
-            relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateMethods,
+        sequenceStorageRepository.insertUnAckNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id, onSuccess = {
+            relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdate,
                 onSuccess = { Logger.log("Update sent successfully") },
                 onFailure = { error ->
                     Logger.error("Sending session update error: $error")
@@ -574,8 +574,7 @@ internal class EngineInteractor(
             return
         }
 
-        val timestamp = request.id / 1000
-        if (!sequenceStorageRepository.isUpdatedNamespaceValid(session.topic.value, timestamp)) {
+        if (!sequenceStorageRepository.isUpdatedNamespaceValid(session.topic.value, request.id.extractTimestamp())) {
             relayer.respondWithError(request, PeerError.InvalidUpdateRequest("Update Namespace Request ID too old"))
         }
 
@@ -679,17 +678,16 @@ internal class EngineInteractor(
         val sessionTopic = wcResponse.topic
         if (!sequenceStorageRepository.isSessionValid(sessionTopic)) return
         val session = sequenceStorageRepository.getSessionByTopic(sessionTopic)
-        val timestamp = wcResponse.response.id / 1000
-        if (!sequenceStorageRepository.isUpdatedNamespaceResponseValid(session.topic.value, timestamp)) return
+        if (!sequenceStorageRepository.isUpdatedNamespaceResponseValid(session.topic.value, wcResponse.response.id.extractTimestamp())) return
 
         when (val response = wcResponse.response) {
             is JsonRpcResponseVO.JsonRpcResult -> {
                 Logger.log("Session update namespaces response received")
 
-                val updatedNamespace = sequenceStorageRepository.getTempNamespaces(session.topic.value, wcResponse.response.id)
+                val updatedNamespace = sequenceStorageRepository.getUnAckNamespaces(session.topic.value, wcResponse.response.id)
                 sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, updatedNamespace, wcResponse.response.id, onSuccess = {
 
-                    sequenceStorageRepository.markTempNamespaceProcessed(session.topic.value, wcResponse.response.id)
+                    sequenceStorageRepository.markUnAckNamespaceAcknowledged(session.topic.value, wcResponse.response.id)
 
                     scope.launch {
                         _engineEvent.emit(

@@ -156,7 +156,7 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun insertTempNamespaces(topic: String, namespaces: Map<String, NamespaceVO.Session>, requestId: Long, onSuccess: () -> Unit, onFailure: () -> Unit) {
+    fun insertUnAckNamespaces(topic: String, namespaces: Map<String, NamespaceVO.Session>, requestId: Long, onSuccess: () -> Unit, onFailure: () -> Unit) {
         val sessionId = sessionDaoQueries.getSessionIdByTopic(topic).executeAsOne()
 
         tempNamespaceDaoQueries.transaction namespace@{
@@ -189,7 +189,7 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun getTempNamespaces(topic: String, requestId: Long): Map<String, NamespaceVO.Session> {
+    fun getUnAckNamespaces(topic: String, requestId: Long): Map<String, NamespaceVO.Session> {
         return tempNamespaceDaoQueries.getTempNamespacesByRequestIdAndTopic(topic, requestId, mapper = ::mapTempNamespaceToNamespaceVO).executeAsList().let { listOfMappedTempNamespaces ->
             val mapOfTempNamespace = listOfMappedTempNamespaces.associate { (key, namespace) ->
                 key to namespace
@@ -243,8 +243,8 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun markTempNamespaceProcessed(topic: String, requestId: Long) {
-        tempNamespaceDaoQueries.markNamespaceProcessed(topic, requestId)
+    fun markUnAckNamespaceAcknowledged(topic: String, requestId: Long) {
+        tempNamespaceDaoQueries.markNamespaceAcknowledged(topic, requestId)
     }
 
     @JvmSynthetic

@@ -17,21 +17,10 @@ CREATE TABLE IF NOT EXISTS NamespaceDao(
 DROP TABLE NamespaceDaoBak;
 
 -- NamespaceExtensionsDao
-ALTER TABLE NamespaceExtensionsDao RENAME TO NamespaceExtensionsDaoBak;
-
-CREATE TABLE IF NOT EXISTS NamespaceExtensionsDao(
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    namespace_key TEXT NOT NULL,
-    session_id INTEGER NOT NULL,
-    accounts TEXT AS List<String> NOT NULL,
-    methods TEXT AS List<String> NOT NULL,
-    events TEXT AS List<String>  NOT NULL
-);
-
-DROP TABLE NamespaceExtensionsDaoBak;
+DELETE FROM NamespaceExtensionsDao;
 
 -- TempNamespaceDao
-CREATE TABLE TempNamespaceDao(
+CREATE TABLE IF NOT EXISTS TempNamespaceDao(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     session_id INTEGER NOT NULL,
     topic TEXT NOT NULL,
@@ -40,12 +29,12 @@ CREATE TABLE TempNamespaceDao(
     methods TEXT AS List<String> NOT NULL,
     events TEXT AS List<String> NOT NULL,
     request_id INTEGER NOT NULL,
-    isProcessed INTEGER DEFAULT 0,
+    isAcknowledged INTEGER DEFAULT 0,
     UNIQUE(session_id, key)
 );
 
 -- TempNamespaceExtensionsDao
-CREATE TABLE TempNamespaceExtensionsDao(
+CREATE TABLE IF NOT EXISTS TempNamespaceExtensionsDao(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     namespace_key TEXT NOT NULL,
     session_id INTEGER NOT NULL,

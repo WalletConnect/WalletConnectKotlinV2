@@ -9,7 +9,7 @@ CREATE TABLE TempNamespaceDao(
     methods TEXT AS List<String> NOT NULL,
     events TEXT AS List<String> NOT NULL,
     request_id INTEGER NOT NULL,
-    isProcessed INTEGER DEFAULT 0,
+    isAcknowledged INTEGER DEFAULT 0,
     UNIQUE(session_id, key)
 );
 
@@ -25,11 +25,11 @@ WHERE topic = ? AND request_id = ?;
 isUpdateNamespaceRequestValid:
 SELECT COUNT(*) = 0
 FROM TempNamespaceDao
-WHERE topic = ? AND request_id / 1000 >= ? AND isProcessed = 1;
+WHERE topic = ? AND request_id / 1000 >= ? AND isAcknowledged = 1;
 
-markNamespaceProcessed:
+markNamespaceAcknowledged:
 UPDATE TempNamespaceDao
-SET isProcessed = 1
+SET isAcknowledged = 1
 WHERE topic = ? AND request_id = ?;
 
 deleteTempNamespacesByTopic:
