@@ -52,3 +52,6 @@ private fun getHexPrefix(input: String): String =
     }
 
 private fun containsHexPrefix(input: String): Boolean = input.startsWith("0x")
+
+@JvmSynthetic
+internal fun Long.extractTimestamp() = this / 1000

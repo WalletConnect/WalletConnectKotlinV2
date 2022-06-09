@@ -20,6 +20,8 @@ internal class SequenceStorageRepository(
     private val metaDataDaoQueries: MetaDataDaoQueries,
     private val namespaceDaoQueries: NamespaceDaoQueries,
     private val extensionsDaoQueries: NamespaceExtensionDaoQueries,
+    private val tempNamespaceDaoQueries: TempNamespaceDaoQueries,
+    private val tempExtensionsDaoQueries: TempNamespaceExtensionDaoQueries
 ) {
 
     @JvmSynthetic
@@ -123,7 +125,7 @@ internal class SequenceStorageRepository(
     @Synchronized
     @JvmSynthetic
     @Throws(SQLiteException::class)
-    fun insertSession(session: SessionVO) {
+    fun insertSession(session: SessionVO, requestId: Long) {
         with(session) {
             sessionDaoQueries.insertOrAbortSession(
                 topic = topic.value,
@@ -140,7 +142,7 @@ internal class SequenceStorageRepository(
         val lastInsertedSessionId = sessionDaoQueries.lastInsertedRow().executeAsOne()
         insertMetaData(session.selfMetaData, MetaDataType.SELF, session.topic)
         insertMetaData(session.peerMetaData, MetaDataType.PEER, session.topic)
-        insertNamespace(session.namespaces, lastInsertedSessionId)
+        insertNamespace(session.namespaces, lastInsertedSessionId, requestId)
     }
 
     @JvmSynthetic
@@ -154,7 +156,51 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun deleteNamespaceAndInsertNewNamespace(topic: String, namespaces: Map<String, NamespaceVO.Session>, onSuccess: () -> Unit, onFailure: () -> Unit) {
+    fun insertUnAckNamespaces(topic: String, namespaces: Map<String, NamespaceVO.Session>, requestId: Long, onSuccess: () -> Unit, onFailure: () -> Unit) {
+        val sessionId = sessionDaoQueries.getSessionIdByTopic(topic).executeAsOne()
+
+        tempNamespaceDaoQueries.transaction namespace@{
+            afterRollback { onFailure() }
+
+            namespaces.forEach { key, (accounts: List<String>, methods: List<String>, events: List<String>, _: List<NamespaceVO.Session.Extension>?) ->
+                tempNamespaceDaoQueries.insertOrAbortNamespace(sessionId, topic, key, accounts, methods, events, requestId)
+            }
+
+            tempExtensionsDaoQueries.transaction {
+                afterRollback { this@namespace.rollback() }
+
+                namespaces.mapValues { (_, namespace) -> namespace.extensions }.forEach { (key, listOfExtensions) ->
+                    listOfExtensions?.forEach { extension ->
+                        tempExtensionsDaoQueries.insertOrAbortNamespaceExtension(
+                            key,
+                            sessionId,
+                            topic,
+                            extension.accounts,
+                            extension.methods,
+                            extension.events,
+                            requestId
+                        )
+                    }
+                }
+
+                afterCommit { onSuccess() }
+            }
+        }
+    }
+
+    @JvmSynthetic
+    fun getUnAckNamespaces(topic: String, requestId: Long): Map<String, NamespaceVO.Session> {
+        return tempNamespaceDaoQueries.getTempNamespacesByRequestIdAndTopic(topic, requestId, mapper = ::mapTempNamespaceToNamespaceVO).executeAsList().let { listOfMappedTempNamespaces ->
+            val mapOfTempNamespace = listOfMappedTempNamespaces.associate { (key, namespace) ->
+                key to namespace
+            }
+
+            mapOfTempNamespace
+        }
+    }
+
+    @JvmSynthetic
+    fun deleteNamespaceAndInsertNewNamespace(topic: String, namespaces: Map<String, NamespaceVO.Session>, requestID: Long, onSuccess: () -> Unit, onFailure: () -> Unit) {
         val sessionId = sessionDaoQueries.getSessionIdByTopic(topic).executeAsOne()
 
         namespaceDaoQueries.transaction namespace@{
@@ -162,7 +208,7 @@ internal class SequenceStorageRepository(
 
             namespaceDaoQueries.deleteNamespacesByTopic(topic)
             namespaces.forEach { key, (accounts: List<String>, methods: List<String>, events: List<String>, _: List<NamespaceVO.Session.Extension>?) ->
-                namespaceDaoQueries.insertOrAbortNamespace(sessionId, key, accounts, methods, events)
+                namespaceDaoQueries.insertOrAbortNamespace(sessionId, key, accounts, methods, events, requestID)
             }
 
             extensionsDaoQueries.transaction {
@@ -187,10 +233,27 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
+    fun isUpdatedNamespaceValid(topic: String, timestamp: Long): Boolean {
+        return namespaceDaoQueries.isUpdateNamespaceRequestValid(timestamp, topic).executeAsOneOrNull() ?: false
+    }
+
+    @JvmSynthetic
+    fun isUpdatedNamespaceResponseValid(topic: String, timestamp: Long): Boolean {
+        return tempNamespaceDaoQueries.isUpdateNamespaceRequestValid(topic, timestamp).executeAsOneOrNull() ?: false
+    }
+
+    @JvmSynthetic
+    fun markUnAckNamespaceAcknowledged(topic: String, requestId: Long) {
+        tempNamespaceDaoQueries.markNamespaceAcknowledged(topic, requestId)
+    }
+
+    @JvmSynthetic
     fun deleteSession(topic: TopicVO) {
         metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
         namespaceDaoQueries.deleteNamespacesByTopic(topic.value)
         extensionsDaoQueries.deleteNamespacesExtensionsByTopic(topic.value)
+        tempNamespaceDaoQueries.deleteTempNamespacesByTopic(topic.value)
+        tempExtensionsDaoQueries.deleteTempNamespacesExtensionByTopic(topic.value)
         sessionDaoQueries.deleteSession(topic.value)
     }
 
@@ -209,9 +272,9 @@ internal class SequenceStorageRepository(
     }
 
     @Throws(SQLiteException::class)
-    private fun insertNamespace(namespaces: Map<String, NamespaceVO.Session>, sessionId: Long) {
+    private fun insertNamespace(namespaces: Map<String, NamespaceVO.Session>, sessionId: Long, requestId: Long) {
         namespaces.forEach { key, (accounts: List<String>, methods: List<String>, events: List<String>, extensions: List<NamespaceVO.Session.Extension>?) ->
-            namespaceDaoQueries.insertOrAbortNamespace(sessionId, key, accounts, methods, events)
+            namespaceDaoQueries.insertOrAbortNamespace(sessionId, key, accounts, methods, events, requestId)
 
             extensions?.forEach { extension ->
                 extensionsDaoQueries.insertOrAbortNamespaceExtension(
@@ -317,5 +380,25 @@ internal class SequenceStorageRepository(
             namespaces = namespaces,
             isAcknowledged = is_acknowledged
         )
+    }
+
+    private fun mapTempNamespaceToNamespaceVO(
+        sessionId: Long,
+        key: String,
+        accounts: List<String>,
+        methods: List<String>,
+        events: List<String>
+    ): Pair<String, NamespaceVO.Session> {
+        val extensions = tempExtensionsDaoQueries.getNamespaceExtensionByNamespaceKeyAndSessionId(key, sessionId, mapper = ::mapTempNamespaceExtensionToNamespaceExtensionVO).executeAsList().takeIf { extensions -> extensions.isNotEmpty() }
+
+        return key to NamespaceVO.Session(accounts, methods, events, extensions)
+    }
+
+    private fun mapTempNamespaceExtensionToNamespaceExtensionVO(
+        accounts: List<String>,
+        methods: List<String>,
+        events: List<String>
+    ): NamespaceVO.Session.Extension {
+        return NamespaceVO.Session.Extension(accounts, methods, events)
     }
 }

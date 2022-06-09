@@ -69,6 +69,16 @@ internal fun storageModule(): Module = module {
                 accountsAdapter = get(),
                 methodsAdapter = get(),
                 eventsAdapter = get()
+            ),
+            TempNamespaceDaoAdapter = TempNamespaceDao.Adapter(
+                accountsAdapter = get(),
+                methodsAdapter = get(),
+                eventsAdapter = get()
+            ),
+            TempNamespaceExtensionsDaoAdapter = TempNamespaceExtensionsDao.Adapter(
+                accountsAdapter = get(),
+                methodsAdapter = get(),
+                eventsAdapter = get()
             )
         )
     }
@@ -98,7 +108,15 @@ internal fun storageModule(): Module = module {
     }
 
     single {
-        SequenceStorageRepository(get(), get(), get(), get(), get())
+        get<Database>().tempNamespaceDaoQueries
+    }
+
+    single {
+        get<Database>().tempNamespaceExtensionDaoQueries
+    }
+
+    single {
+        SequenceStorageRepository(get(), get(), get(), get(), get(), get(), get())
     }
 
     single {
