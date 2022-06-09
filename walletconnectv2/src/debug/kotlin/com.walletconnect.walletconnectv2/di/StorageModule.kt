@@ -12,8 +12,6 @@ import com.walletconnect.walletconnectv2.core.model.type.enums.MetaDataType
 import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
 import com.walletconnect.walletconnectv2.storage.data.dao.NamespaceDao
 import com.walletconnect.walletconnectv2.storage.data.dao.NamespaceExtensionsDao
-import com.walletconnect.walletconnectv2.storage.data.dao.TempNamespaceDao
-import com.walletconnect.walletconnectv2.storage.data.dao.TempNamespaceExtensionsDao
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
 import org.koin.android.ext.koin.androidContext
