@@ -1,8 +1,10 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.walletconnectv2.core.exceptions.*
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
 import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
+import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerReason
 import com.walletconnect.walletconnectv2.core.model.type.EngineEvent
 import com.walletconnect.walletconnectv2.core.model.type.enums.Sequences
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
@@ -68,8 +70,8 @@ internal class EngineInteractor(
             proposedRelays: List<EngineDO.RelayProtocolOptions>?,
             proposedSequence: EngineDO.ProposedSequence,
         ) {
-            Validator.validateProposalNamespace(namespaces.toNamespacesVOProposal()) { errorMessage ->
-                throw WalletConnectException.InvalidNamespaceException(errorMessage)
+            Validator.validateProposalNamespace(namespaces.toNamespacesVOProposal()) { error ->
+                throw WalletConnectException.InvalidNamespaceException(error.message)
             }
 
             val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -102,7 +104,10 @@ internal class EngineInteractor(
         }
     }
 
-    private fun proposePairing(proposedSession: (TopicVO, List<EngineDO.RelayProtocolOptions>?, EngineDO.ProposedSequence) -> Unit, onFailure: (Throwable) -> Unit) {
+    private fun proposePairing(
+        proposedSession: (TopicVO, List<EngineDO.RelayProtocolOptions>?, EngineDO.ProposedSequence) -> Unit,
+        onFailure: (Throwable) -> Unit
+    ) {
         val pairingTopic: TopicVO = generateTopic()
         val symmetricKey: SecretKey = crypto.generateSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptionsVO()
@@ -183,8 +188,8 @@ internal class EngineInteractor(
         sessionProposalRequest.remove(proposerPublicKey)
         val proposal = request.params as PairingParamsVO.SessionProposeParams
 
-        Validator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), proposal.namespaces) { errorMessage ->
-            throw WalletConnectException.InvalidNamespaceException(errorMessage)
+        Validator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), proposal.namespaces) { error ->
+            throw WalletConnectException.InvalidNamespaceException(error.message)
         }
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -216,8 +221,8 @@ internal class EngineInteractor(
             throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
-        Validator.validateSessionNamespaceUpdate(namespaces.toMapOfNamespacesVOSession()) { errorMessage ->
-            throw WalletConnectException.InvalidNamespaceException(errorMessage)
+        Validator.validateSessionNamespaceUpdate(namespaces.toMapOfNamespacesVOSession()) { error ->
+            throw WalletConnectException.InvalidNamespaceException(error.message)
         }
 
         val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
@@ -241,13 +246,13 @@ internal class EngineInteractor(
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
 
-        Validator.validateSessionRequest(request) { errorMessage ->
-            throw WalletConnectException.InvalidRequestException(errorMessage)
+        Validator.validateSessionRequest(request) { error ->
+            throw WalletConnectException.InvalidRequestException(error.message)
         }
 
         val namespaces: Map<String, NamespaceVO.Session> = sequenceStorageRepository.getSessionByTopic(TopicVO(request.topic)).namespaces
-        Validator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { errorMessage ->
-            throw WalletConnectException.UnauthorizedMethodException(errorMessage)
+        Validator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { error ->
+            throw WalletConnectException.UnauthorizedMethodException(error.message)
         }
 
         val params = SessionParamsVO.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
@@ -328,13 +333,13 @@ internal class EngineInteractor(
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_EMIT_MESSAGE)
         }
 
-        Validator.validateEvent(event) { errorMessage ->
-            throw WalletConnectException.InvalidEventException(errorMessage)
+        Validator.validateEvent(event) { error ->
+            throw WalletConnectException.InvalidEventException(error.message)
         }
 
         val namespaces = session.namespaces
-        Validator.validateChainIdWithEventAuthorisation(event.chainId, event.name, namespaces) { errorMessage ->
-            throw WalletConnectException.UnauthorizedEventException(errorMessage)
+        Validator.validateChainIdWithEventAuthorisation(event.chainId, event.name, namespaces) { error ->
+            throw WalletConnectException.UnauthorizedEventException(error.message)
         }
 
         val eventParams = SessionParamsVO.EventParams(SessionEventVO(event.name, event.data), event.chainId)
@@ -373,12 +378,12 @@ internal class EngineInteractor(
             })
     }
 
-    internal fun disconnect(topic: String, reason: String, code: Int) {
+    internal fun disconnect(topic: String) {
         if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        val deleteParams = SessionParamsVO.DeleteParams(message = reason, code = code)
+        val deleteParams = SessionParamsVO.DeleteParams(PeerReason.UserDisconnected.code, PeerReason.UserDisconnected.message)
         val sessionDelete = SessionSettlementVO.SessionDelete(id = generateId(), params = deleteParams)
         sequenceStorageRepository.deleteSession(TopicVO(topic))
 
@@ -433,8 +438,8 @@ internal class EngineInteractor(
     }
 
     private fun onSessionPropose(request: WCRequestVO, payloadParams: PairingParamsVO.SessionProposeParams) {
-        Validator.validateProposalNamespace(payloadParams.namespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidSessionProposeRequest(request.topic.value, errorMessage))
+        Validator.validateProposalNamespace(payloadParams.namespaces) { error ->
+            relayer.respondWithError(request, error.toPeerError())
             return
         }
 
@@ -453,8 +458,8 @@ internal class EngineInteractor(
             return
         }
 
-        Validator.validateSessionNamespace(settleParams.namespaces, proposal.params.namespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.SessionSettlementFailed(errorMessage))
+        Validator.validateSessionNamespace(settleParams.namespaces, proposal.params.namespaces) { error ->
+            relayer.respondWithError(request, error.toPeerError())
             return
         }
 
@@ -472,7 +477,7 @@ internal class EngineInteractor(
         } catch (e: SQLiteException) {
             sessionProposalRequest[selfPublicKey.keyAsHex] = tempProposalRequest
             sequenceStorageRepository.deleteSession(sessionTopic)
-            relayer.respondWithError(request, PeerError.SessionSettlementFailed(e.message ?: ""))
+            relayer.respondWithError(request, PeerError.SessionSettlementFailed(e.message ?: String.Empty))
             return
         }
     }
@@ -504,8 +509,8 @@ internal class EngineInteractor(
     }
 
     private fun onSessionRequest(request: WCRequestVO, params: SessionParamsVO.SessionRequestParams) {
-        Validator.validateSessionRequest(params.toEngineDORequest(request.topic)) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidMethod(errorMessage))
+        Validator.validateSessionRequest(params.toEngineDORequest(request.topic)) { error ->
+            relayer.respondWithError(request, error.toPeerError())
             return
         }
 
@@ -518,8 +523,8 @@ internal class EngineInteractor(
             with(sequenceStorageRepository.getSessionByTopic(request.topic)) { namespaces to peerMetaData }
 
         val method = params.request.method
-        Validator.validateChainIdWithMethodAuthorisation(params.chainId, method, sessionNamespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.UnauthorizedMethod(errorMessage))
+        Validator.validateChainIdWithMethodAuthorisation(params.chainId, method, sessionNamespaces) { error ->
+            relayer.respondWithError(request, error.toPeerError())
             return
         }
 
@@ -527,8 +532,8 @@ internal class EngineInteractor(
     }
 
     private fun onSessionEvent(request: WCRequestVO, params: SessionParamsVO.EventParams) {
-        Validator.validateEvent(params.toEngineDOEvent()) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidEvent(errorMessage))
+        Validator.validateEvent(params.toEngineDOEvent()) { error ->
+            relayer.respondWithError(request, error.toPeerError())
             return
         }
 
@@ -548,8 +553,8 @@ internal class EngineInteractor(
         }
 
         val event = params.event
-        Validator.validateChainIdWithEventAuthorisation(params.chainId, event.name, session.namespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.UnauthorizedEvent(errorMessage))
+        Validator.validateChainIdWithEventAuthorisation(params.chainId, event.name, session.namespaces) { error ->
+            relayer.respondWithError(request, error.toPeerError())
             return
         }
 
@@ -569,8 +574,8 @@ internal class EngineInteractor(
             return
         }
 
-        Validator.validateSessionNamespaceUpdate(params.namespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidUpdateRequest(errorMessage))
+        Validator.validateSessionNamespaceUpdate(params.namespaces) { error ->
+            relayer.respondWithError(request, PeerError.InvalidUpdateRequest(error.message))
             return
         }
 
@@ -602,8 +607,8 @@ internal class EngineInteractor(
         }
 
         val newExpiry = requestParams.expiry
-        Validator.validateSessionExtend(newExpiry, session.expiry.seconds) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidExtendRequest(errorMessage))
+        Validator.validateSessionExtend(newExpiry, session.expiry.seconds) { error ->
+            relayer.respondWithError(request, error.toPeerError())
             return
         }
 

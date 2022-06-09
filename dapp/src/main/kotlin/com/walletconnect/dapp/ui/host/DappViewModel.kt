@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.*
 
 class DappViewModel : ViewModel() {
 
-    val emittedEvents: Flow<SampleDappEvents>  = DappDelegate.wcEventModels.map { walletEvent: Sign.Model? ->
+    val emittedEvents: Flow<SampleDappEvents> = DappDelegate.wcEventModels.map { walletEvent: Sign.Model? ->
         when (walletEvent) {
             is Sign.Model.SessionEvent -> SampleDappEvents.SessionEvent(name = walletEvent.name, data = walletEvent.data)
             else -> SampleDappEvents.NoAction
@@ -21,7 +21,7 @@ class DappViewModel : ViewModel() {
 
     fun disconnect() {
         DappDelegate.selectedSessionTopic?.let {
-            val disconnectParams = Sign.Params.Disconnect(sessionTopic = it, reason = "shutdown", reasonCode = 400)
+            val disconnectParams = Sign.Params.Disconnect(sessionTopic = it)
             SignClient.disconnect(disconnectParams) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }

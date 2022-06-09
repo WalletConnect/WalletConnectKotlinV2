@@ -1,7 +1,7 @@
 package com.walletconnect.walletconnectv2.network.data.client
 
 import com.walletconnect.walletconnectv2.client.Sign
-import com.walletconnect.walletconnectv2.core.exceptions.client.WRONG_CONNECTION_TYPE
+import com.walletconnect.walletconnectv2.core.exceptions.WRONG_CONNECTION_TYPE
 import com.walletconnect.walletconnectv2.core.model.vo.SubscriptionIdVO
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO
 import com.walletconnect.walletconnectv2.core.scope.scope

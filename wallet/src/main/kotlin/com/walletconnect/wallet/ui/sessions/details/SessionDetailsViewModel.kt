@@ -72,11 +72,7 @@ class SessionDetailsViewModel : ViewModel() {
 
     fun deleteSession() {
         selectedSessionTopic?.let {
-            val disconnect = Sign.Params.Disconnect(
-                sessionTopic = it,
-                reason = "User disconnected Session",
-                reasonCode = 1000
-            )
+            val disconnect = Sign.Params.Disconnect(sessionTopic = it)
 
             SignClient.disconnect(disconnect) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
