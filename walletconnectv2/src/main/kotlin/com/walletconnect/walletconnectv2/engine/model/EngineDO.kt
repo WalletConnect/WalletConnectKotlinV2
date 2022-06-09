@@ -1,8 +1,8 @@
 package com.walletconnect.walletconnectv2.engine.model
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.walletconnectv2.core.model.type.Sequence
 import com.walletconnect.walletconnectv2.core.model.type.EngineEvent
+import com.walletconnect.walletconnectv2.core.model.type.Sequence
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
 import com.walletconnect.walletconnectv2.core.model.vo.SecretKey
 import com.walletconnect.walletconnectv2.core.model.vo.TopicVO

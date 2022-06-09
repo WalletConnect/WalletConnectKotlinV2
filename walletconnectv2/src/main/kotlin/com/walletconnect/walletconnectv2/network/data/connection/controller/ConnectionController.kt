@@ -3,14 +3,13 @@ package com.walletconnect.walletconnectv2.network.data.connection.controller
 import com.walletconnect.walletconnectv2.network.data.connection.ConnectionEvent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 internal sealed class ConnectionController {
 
     internal class Manual : ConnectionController() {
-
         private val _connectionEvent: MutableStateFlow<ConnectionEvent> = MutableStateFlow(ConnectionEvent.DISCONNECT)
-
-        val connectionEventFlow: StateFlow<ConnectionEvent> = _connectionEvent
+        val connectionEventFlow: StateFlow<ConnectionEvent> = _connectionEvent.asStateFlow()
 
         fun connect() {
             _connectionEvent.value = ConnectionEvent.CONNECT

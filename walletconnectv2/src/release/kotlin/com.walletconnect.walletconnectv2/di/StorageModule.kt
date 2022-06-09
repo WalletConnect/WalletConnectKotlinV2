@@ -13,9 +13,7 @@ import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.walletconnectv2.Database
 import com.walletconnect.walletconnectv2.core.model.type.enums.MetaDataType
-import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
-import com.walletconnect.walletconnectv2.storage.data.dao.NamespaceDao
-import com.walletconnect.walletconnectv2.storage.data.dao.NamespaceExtensionsDao
+import com.walletconnect.walletconnectv2.storage.data.dao.*
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
 import com.walletconnect.walletconnectv2.util.randomBytes
@@ -198,6 +196,16 @@ internal fun storageModule(): Module = module {
                 accountsAdapter = get(),
                 methodsAdapter = get(),
                 eventsAdapter = get()
+            ),
+            TempNamespaceDaoAdapter = TempNamespaceDao.Adapter(
+                accountsAdapter = get(),
+                methodsAdapter = get(),
+                eventsAdapter = get()
+            ),
+            TempNamespaceExtensionsDaoAdapter = TempNamespaceExtensionsDao.Adapter(
+                accountsAdapter = get(),
+                methodsAdapter = get(),
+                eventsAdapter = get()
             )
         )
     }
@@ -227,7 +235,15 @@ internal fun storageModule(): Module = module {
     }
 
     single {
-        SequenceStorageRepository(get(), get(), get(), get(), get())
+        get<Database>().tempNamespaceDaoQueries
+    }
+
+    single {
+        get<Database>().tempNamespaceExtensionDaoQueries
+    }
+
+    single {
+        SequenceStorageRepository(get(), get(), get(), get(), get(), get(), get())
     }
 
     single {

@@ -1,7 +1,5 @@
 package com.walletconnect.walletconnectv2.di
 
-import android.app.Application
-import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
@@ -25,22 +23,6 @@ internal fun networkModule(serverUrl: String, relay: Relay?, connectionType: Con
     val TIMEOUT_TIME = 5000L
     val DEFAULT_BACKOFF_MINUTES = 5L
 
-    fun provideLifecycle(application: Application, connectionController: ConnectionController): Lifecycle {
-        return if (connectionType == ConnectionType.MANUAL) {
-            ManualConnectionLifecycle(connectionController, LifecycleRegistry())
-        } else {
-            AndroidLifecycle.ofApplicationForeground(application)
-        }
-    }
-
-    fun provideLifecycleController(): ConnectionController {
-        return if (connectionType == ConnectionType.MANUAL) {
-            ConnectionController.Manual()
-        } else {
-            ConnectionController.Automatic
-        }
-    }
-
     single { MoshiMessageAdapter.Factory(get()) }
 
     single { FlowStreamAdapter.Factory() }
@@ -55,11 +37,19 @@ internal fun networkModule(serverUrl: String, relay: Relay?, connectionType: Con
     }
 
     single {
-        provideLifecycleController()
+        if (connectionType == ConnectionType.MANUAL) {
+            ConnectionController.Manual()
+        } else {
+            ConnectionController.Automatic
+        }
     }
 
     single {
-        provideLifecycle(application = androidApplication(), connectionController = get())
+        if (connectionType == ConnectionType.MANUAL) {
+            ManualConnectionLifecycle(get(), LifecycleRegistry())
+        } else {
+            AndroidLifecycle.ofApplicationForeground(androidApplication())
+        }
     }
 
     single {

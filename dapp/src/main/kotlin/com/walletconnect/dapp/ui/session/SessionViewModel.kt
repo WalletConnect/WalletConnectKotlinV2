@@ -75,11 +75,7 @@ class SessionViewModel : ViewModel() {
 
     fun disconnect() {
         if (DappDelegate.selectedSessionTopic != null) {
-            val disconnectParams = Sign.Params.Disconnect(
-                sessionTopic = requireNotNull(DappDelegate.selectedSessionTopic),
-                reason = "Disconnect Clicked",
-                reasonCode = 400
-            )
+            val disconnectParams = Sign.Params.Disconnect(sessionTopic = requireNotNull(DappDelegate.selectedSessionTopic))
 
             SignClient.disconnect(disconnectParams) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())

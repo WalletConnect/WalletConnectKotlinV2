@@ -4,27 +4,29 @@ import com.walletconnect.walletconnectv2.core.model.vo.Key
 import com.walletconnect.walletconnectv2.relay.Codec
 import com.walletconnect.walletconnectv2.util.hexToBytes
 import com.walletconnect.walletconnectv2.util.randomBytes
+import org.bouncycastle.crypto.modes.ChaCha20Poly1305
+import org.bouncycastle.crypto.params.KeyParameter
+import org.bouncycastle.crypto.params.ParametersWithIV
 import org.bouncycastle.util.encoders.Base64
 import java.nio.ByteBuffer
-import java.security.spec.AlgorithmParameterSpec
-import javax.crypto.Cipher
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.SecretKeySpec
 
 internal class ChaChaPolyCodec : Codec {
 
-    override fun encrypt(message: String, key: Key): String {
-        val data = message.toByteArray(Charsets.UTF_8)
-        val nonceBytes = randomBytes(NONCE_SIZE)
-        val cipher: Cipher = Cipher.getInstance(CHA_CHA_POLY)
-        val ivParameterSpec: AlgorithmParameterSpec = IvParameterSpec(nonceBytes)
-        val keySpec = SecretKeySpec(key.keyAsHex.hexToBytes(), CHA_CHA_20)
-        cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParameterSpec)
-        val cipherTextInBytes: ByteArray = cipher.doFinal(data)
+    private val cha20Poly1305 = ChaCha20Poly1305()
 
-        val output: ByteArray = ByteBuffer.allocate(cipherTextInBytes.size + NONCE_SIZE)
+    override fun encrypt(message: String, key: Key): String {
+        val input = message.toByteArray(Charsets.UTF_8)
+        val nonceBytes = randomBytes(NONCE_SIZE)
+
+        val params = ParametersWithIV(KeyParameter(key.keyAsHex.hexToBytes()), nonceBytes)
+        cha20Poly1305.init(true, params) //note: in the debugging mode code throws InvalidArgumentException but it doesn't affects the final method execution
+        val cipherText = ByteArray(cha20Poly1305.getOutputSize(input.size))
+        val outputSize = cha20Poly1305.processBytes(input, 0, input.size, cipherText, 0)
+        cha20Poly1305.doFinal(cipherText, outputSize)
+
+        val output: ByteArray = ByteBuffer.allocate(cipherText.size + NONCE_SIZE)
             .put(nonceBytes)
-            .put(cipherTextInBytes)
+            .put(cipherText)
             .array()
 
         return Base64.toBase64String(output)
@@ -38,18 +40,16 @@ internal class ChaChaPolyCodec : Codec {
         byteBuffer.get(nonce)
         byteBuffer.get(encryptedText)
 
-        val ivParameterSpec: AlgorithmParameterSpec = IvParameterSpec(nonce)
-        val keySpec = SecretKeySpec(key.keyAsHex.hexToBytes(), CHA_CHA_20)
-        val cipher = Cipher.getInstance(CHA_CHA_POLY)
-        cipher.init(Cipher.DECRYPT_MODE, keySpec, ivParameterSpec)
-        val message = cipher.doFinal(encryptedText)
+        val params = ParametersWithIV(KeyParameter(key.keyAsHex.hexToBytes()), nonce)
+        cha20Poly1305.init(false, params) //note: in the debugging mode code throws InvalidArgumentException but it doesn't affects the final method execution
+        val cipherText = ByteArray(cha20Poly1305.getOutputSize(encryptedText.size))
+        val outputSize = cha20Poly1305.processBytes(encryptedText, 0, encryptedText.size, cipherText, 0)
+        cha20Poly1305.doFinal(cipherText, outputSize)
 
-        return String(message, Charsets.UTF_8)
+        return String(cipherText, Charsets.UTF_8)
     }
 
     companion object {
-        private const val CHA_CHA_POLY = "ChaCha20-Poly1305"
-        private const val CHA_CHA_20 = "ChaCha20"
         private const val NONCE_SIZE = 12
     }
 }

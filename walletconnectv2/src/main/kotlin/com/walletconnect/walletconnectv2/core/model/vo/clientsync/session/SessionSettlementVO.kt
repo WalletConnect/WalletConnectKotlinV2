@@ -73,7 +73,7 @@ internal sealed class SessionSettlementVO : SettlementSequence<SessionParamsVO> 
     ) : SessionSettlementVO()
 
     @JsonClass(generateAdapter = true)
-    internal data class SessionUpdateNamespaces(
+    internal data class SessionUpdate(
         @Json(name = "id")
         override val id: Long,
         @Json(name = "jsonrpc")

@@ -1,7 +1,10 @@
 package com.walletconnect.walletconnectv2.engine.domain
 
+import android.database.sqlite.SQLiteException
+import com.walletconnect.walletconnectv2.core.exceptions.*
 import com.walletconnect.walletconnectv2.core.exceptions.client.*
 import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerError
+import com.walletconnect.walletconnectv2.core.exceptions.peer.PeerReason
 import com.walletconnect.walletconnectv2.core.model.type.EngineEvent
 import com.walletconnect.walletconnectv2.core.model.type.enums.Sequences
 import com.walletconnect.walletconnectv2.core.model.vo.ExpiryVO
@@ -40,8 +43,8 @@ internal class EngineInteractor(
     private val sequenceStorageRepository: SequenceStorageRepository,
     private val metaData: EngineDO.AppMetaData,
 ) {
-    private val _sequenceEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
-    val sequenceEvent: SharedFlow<EngineEvent> = _sequenceEvent
+    private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
+    val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
     private val sessionProposalRequest: MutableMap<String, WCRequestVO> = mutableMapOf()
 
     init {
@@ -67,8 +70,8 @@ internal class EngineInteractor(
             proposedRelays: List<EngineDO.RelayProtocolOptions>?,
             proposedSequence: EngineDO.ProposedSequence,
         ) {
-            Validator.validateProposalNamespace(namespaces.toNamespacesVOProposal()) { errorMessage ->
-                throw WalletConnectException.InvalidNamespaceException(errorMessage)
+            Validator.validateProposalNamespace(namespaces.toNamespacesVOProposal()) { error ->
+                throw WalletConnectException.InvalidNamespaceException(error.message)
             }
 
             val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -97,21 +100,31 @@ internal class EngineInteractor(
 
             proposeSession(TopicVO(pairingTopic), listOf(relay), EngineDO.ProposedSequence.Session)
         } else {
-            proposePairing(::proposeSession)
+            proposePairing(::proposeSession, onFailure)
         }
     }
 
-    private fun proposePairing(proposedSession: (TopicVO, List<EngineDO.RelayProtocolOptions>?, EngineDO.ProposedSequence) -> Unit) {
+    private fun proposePairing(
+        proposedSession: (TopicVO, List<EngineDO.RelayProtocolOptions>?, EngineDO.ProposedSequence) -> Unit,
+        onFailure: (Throwable) -> Unit
+    ) {
         val pairingTopic: TopicVO = generateTopic()
         val symmetricKey: SecretKey = crypto.generateSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptionsVO()
         val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
         val pairing = PairingVO.createInactivePairing(pairingTopic, relay, walletConnectUri.toAbsoluteString())
 
-        sequenceStorageRepository.insertPairing(pairing)
-        relayer.subscribe(pairingTopic)
+        try {
+            sequenceStorageRepository.insertPairing(pairing)
+            relayer.subscribe(pairingTopic)
 
-        proposedSession(pairingTopic, null, EngineDO.ProposedSequence.Pairing(walletConnectUri.toAbsoluteString()))
+            proposedSession(pairingTopic, null, EngineDO.ProposedSequence.Pairing(walletConnectUri.toAbsoluteString()))
+        } catch (e: SQLiteException) {
+            crypto.removeKeys(pairingTopic.value)
+            relayer.unsubscribe(pairingTopic)
+
+            onFailure(e)
+        }
     }
 
     internal fun pair(uri: String) {
@@ -125,8 +138,16 @@ internal class EngineInteractor(
         val pairing = PairingVO.createActivePairing(walletConnectUri)
         val symmetricKey = walletConnectUri.symKey
         crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
-        sequenceStorageRepository.insertPairing(pairing)
-        relayer.subscribe(pairing.topic)
+
+        try {
+            sequenceStorageRepository.insertPairing(pairing)
+            relayer.subscribe(pairing.topic)
+        } catch (e: SQLiteException) {
+            crypto.removeKeys(walletConnectUri.topic.value)
+            relayer.unsubscribe(pairing.topic)
+        } finally {
+            throw WalletConnectException.GenericException("Error trying to create pairing. Validate URI")
+        }
     }
 
     internal fun reject(proposerPublicKey: String, reason: String, code: Int, onFailure: (Throwable) -> Unit = {}) {
@@ -142,19 +163,24 @@ internal class EngineInteractor(
         onFailure: (Throwable) -> Unit = {},
     ) {
         fun sessionSettle(
+            requestId: Long,
             proposal: PairingParamsVO.SessionProposeParams,
             sessionTopic: TopicVO,
-            onFailure: (Throwable) -> Unit,
         ) {
             val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
             val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO())
             val sessionExpiry = Expiration.activeSession
             val session = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces)
-            sequenceStorageRepository.insertSession(session)
-            val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
-            val sessionSettle = SessionSettlementVO.SessionSettle(id = generateId(), params = params)
 
-            relayer.publishJsonRpcRequests(sessionTopic, sessionSettle, onFailure = { error -> onFailure(error) })
+            try {
+                sequenceStorageRepository.insertSession(session, requestId)
+                val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
+                val sessionSettle = SessionSettlementVO.SessionSettle(id = generateId(), params = params)
+
+                relayer.publishJsonRpcRequests(sessionTopic, sessionSettle, onFailure = { error -> onFailure(error) })
+            } catch (e: SQLiteException) {
+                onFailure(e)
+            }
         }
 
         val request = sessionProposalRequest[proposerPublicKey]
@@ -162,8 +188,8 @@ internal class EngineInteractor(
         sessionProposalRequest.remove(proposerPublicKey)
         val proposal = request.params as PairingParamsVO.SessionProposeParams
 
-        Validator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), proposal.namespaces) { errorMessage ->
-            throw WalletConnectException.InvalidNamespaceException(errorMessage)
+        Validator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), proposal.namespaces) { error ->
+            throw WalletConnectException.InvalidNamespaceException(error.message)
         }
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -173,7 +199,7 @@ internal class EngineInteractor(
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
         relayer.respondWithParams(request, approvalParams)
 
-        sessionSettle(proposal, sessionTopic) { error -> onFailure(error) }
+        sessionSettle(request.id, proposal, sessionTopic)
     }
 
     internal fun updateSession(
@@ -195,22 +221,24 @@ internal class EngineInteractor(
             throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
-        Validator.validateSessionNamespaceUpdate(namespaces.toMapOfNamespacesVOSession()) { errorMessage ->
-            throw WalletConnectException.InvalidNamespaceException(errorMessage)
+        Validator.validateSessionNamespaceUpdate(namespaces.toMapOfNamespacesVOSession()) { error ->
+            throw WalletConnectException.InvalidNamespaceException(error.message)
         }
 
         val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
-        val sessionUpdateMethods = SessionSettlementVO.SessionUpdateNamespaces(id = generateId(), params = params)
-        sequenceStorageRepository.deleteNamespaces(topic)
-        sequenceStorageRepository.insertNamespacesByTopic(topic, namespaces.toMapOfNamespacesVOSession())
+        val sessionUpdate = SessionSettlementVO.SessionUpdate(id = generateId(), params = params)
 
-        relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdateMethods,
-            onSuccess = { Logger.log("Update sent successfully") },
-            onFailure = { error ->
-                Logger.error("Sending session update error: $error")
-                onFailure(error)
-            }
-        )
+        sequenceStorageRepository.insertUnAckNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id, onSuccess = {
+            relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdate,
+                onSuccess = { Logger.log("Update sent successfully") },
+                onFailure = { error ->
+                    Logger.error("Sending session update error: $error")
+                    onFailure(error)
+                }
+            )
+        }, onFailure = {
+            onFailure(WalletConnectException.GenericException("Error updating namespaces"))
+        })
     }
 
     internal fun sessionRequest(request: EngineDO.Request, onFailure: (Throwable) -> Unit) {
@@ -218,13 +246,13 @@ internal class EngineInteractor(
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
 
-        Validator.validateSessionRequest(request) { errorMessage ->
-            throw WalletConnectException.InvalidRequestException(errorMessage)
+        Validator.validateSessionRequest(request) { error ->
+            throw WalletConnectException.InvalidRequestException(error.message)
         }
 
         val namespaces: Map<String, NamespaceVO.Session> = sequenceStorageRepository.getSessionByTopic(TopicVO(request.topic)).namespaces
-        Validator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { errorMessage ->
-            throw WalletConnectException.UnauthorizedMethodException(errorMessage)
+        Validator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { error ->
+            throw WalletConnectException.UnauthorizedMethodException(error.message)
         }
 
         val params = SessionParamsVO.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
@@ -305,13 +333,13 @@ internal class EngineInteractor(
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_EMIT_MESSAGE)
         }
 
-        Validator.validateEvent(event) { errorMessage ->
-            throw WalletConnectException.InvalidEventException(errorMessage)
+        Validator.validateEvent(event) { error ->
+            throw WalletConnectException.InvalidEventException(error.message)
         }
 
         val namespaces = session.namespaces
-        Validator.validateChainIdWithEventAuthorisation(event.chainId, event.name, namespaces) { errorMessage ->
-            throw WalletConnectException.UnauthorizedEventException(errorMessage)
+        Validator.validateChainIdWithEventAuthorisation(event.chainId, event.name, namespaces) { error ->
+            throw WalletConnectException.UnauthorizedEventException(error.message)
         }
 
         val eventParams = SessionParamsVO.EventParams(SessionEventVO(event.name, event.data), event.chainId)
@@ -350,12 +378,12 @@ internal class EngineInteractor(
             })
     }
 
-    internal fun disconnect(topic: String, reason: String, code: Int) {
+    internal fun disconnect(topic: String) {
         if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        val deleteParams = SessionParamsVO.DeleteParams(message = reason, code = code)
+        val deleteParams = SessionParamsVO.DeleteParams(PeerReason.UserDisconnected.code, PeerReason.UserDisconnected.message)
         val sessionDelete = SessionSettlementVO.SessionDelete(id = generateId(), params = deleteParams)
         sequenceStorageRepository.deleteSession(TopicVO(topic))
 
@@ -410,13 +438,13 @@ internal class EngineInteractor(
     }
 
     private fun onSessionPropose(request: WCRequestVO, payloadParams: PairingParamsVO.SessionProposeParams) {
-        Validator.validateProposalNamespace(payloadParams.namespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidSessionProposeRequest(request.topic.value, errorMessage))
+        Validator.validateProposalNamespace(payloadParams.namespaces) { error ->
+            relayer.respondWithError(request, error.toPeerError())
             return
         }
 
         sessionProposalRequest[payloadParams.proposer.publicKey] = request
-        scope.launch { _sequenceEvent.emit(payloadParams.toEngineDOSessionProposal()) }
+        scope.launch { _engineEvent.emit(payloadParams.toEngineDOSessionProposal()) }
     }
 
     private fun onSessionSettle(request: WCRequestVO, settleParams: SessionParamsVO.SessionSettleParams) {
@@ -426,23 +454,32 @@ internal class EngineInteractor(
         val proposal = sessionProposalRequest[selfPublicKey.keyAsHex] ?: return
 
         if (proposal.params !is PairingParamsVO.SessionProposeParams) {
-            relayer.respondWithError(request, PeerError.InvalidSessionSettleRequest(NAMESPACE_MISSING_PROPOSAL_MESSAGE))
+            relayer.respondWithError(request, PeerError.SessionSettlementFailed(NAMESPACE_MISSING_PROPOSAL_MESSAGE))
             return
         }
 
-        Validator.validateSessionNamespace(settleParams.namespaces, proposal.params.namespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidSessionSettleRequest(errorMessage))
+        Validator.validateSessionNamespace(settleParams.namespaces, proposal.params.namespaces) { error ->
+            relayer.respondWithError(request, error.toPeerError())
             return
         }
 
-        sequenceStorageRepository.upsertPairingPeerMetadata(proposal.topic, peerMetadata)
-        sessionProposalRequest.remove(selfPublicKey.keyAsHex)
+        val tempProposalRequest = sessionProposalRequest.getValue(selfPublicKey.keyAsHex)
 
-        val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toMetaDataVO())
-        sequenceStorageRepository.insertSession(session)
-        relayer.respondWithSuccess(request)
+        try {
+            val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toMetaDataVO())
 
-        scope.launch { _sequenceEvent.emit(session.toSessionApproved()) }
+            sequenceStorageRepository.upsertPairingPeerMetadata(proposal.topic, peerMetadata)
+            sessionProposalRequest.remove(selfPublicKey.keyAsHex)
+            sequenceStorageRepository.insertSession(session, request.id)
+            relayer.respondWithSuccess(request)
+
+            scope.launch { _engineEvent.emit(session.toSessionApproved()) }
+        } catch (e: SQLiteException) {
+            sessionProposalRequest[selfPublicKey.keyAsHex] = tempProposalRequest
+            sequenceStorageRepository.deleteSession(sessionTopic)
+            relayer.respondWithError(request, PeerError.SessionSettlementFailed(e.message ?: String.Empty))
+            return
+        }
     }
 
     private fun onPairingDelete(request: WCRequestVO, params: PairingParamsVO.DeleteParams) {
@@ -455,7 +492,7 @@ internal class EngineInteractor(
         relayer.unsubscribe(request.topic)
         sequenceStorageRepository.deletePairing(request.topic)
 
-        scope.launch { _sequenceEvent.emit(EngineDO.DeletedPairing(request.topic.value, params.message)) }
+        scope.launch { _engineEvent.emit(EngineDO.DeletedPairing(request.topic.value, params.message)) }
     }
 
     private fun onSessionDelete(request: WCRequestVO, params: SessionParamsVO.DeleteParams) {
@@ -468,12 +505,12 @@ internal class EngineInteractor(
         sequenceStorageRepository.deleteSession(request.topic)
         relayer.unsubscribe(request.topic)
 
-        scope.launch { _sequenceEvent.emit(params.toEngineDoDeleteSession(request.topic)) }
+        scope.launch { _engineEvent.emit(params.toEngineDoDeleteSession(request.topic)) }
     }
 
     private fun onSessionRequest(request: WCRequestVO, params: SessionParamsVO.SessionRequestParams) {
-        Validator.validateSessionRequest(params.toEngineDORequest(request.topic)) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidMethod(errorMessage))
+        Validator.validateSessionRequest(params.toEngineDORequest(request.topic)) { error ->
+            relayer.respondWithError(request, error.toPeerError())
             return
         }
 
@@ -486,17 +523,17 @@ internal class EngineInteractor(
             with(sequenceStorageRepository.getSessionByTopic(request.topic)) { namespaces to peerMetaData }
 
         val method = params.request.method
-        Validator.validateChainIdWithMethodAuthorisation(params.chainId, method, sessionNamespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.UnauthorizedMethod(errorMessage))
+        Validator.validateChainIdWithMethodAuthorisation(params.chainId, method, sessionNamespaces) { error ->
+            relayer.respondWithError(request, error.toPeerError())
             return
         }
 
-        scope.launch { _sequenceEvent.emit(params.toEngineDOSessionRequest(request, sessionPeerMetaData)) }
+        scope.launch { _engineEvent.emit(params.toEngineDOSessionRequest(request, sessionPeerMetaData)) }
     }
 
     private fun onSessionEvent(request: WCRequestVO, params: SessionParamsVO.EventParams) {
-        Validator.validateEvent(params.toEngineDOEvent()) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidEvent(errorMessage))
+        Validator.validateEvent(params.toEngineDOEvent()) { error ->
+            relayer.respondWithError(request, error.toPeerError())
             return
         }
 
@@ -516,13 +553,13 @@ internal class EngineInteractor(
         }
 
         val event = params.event
-        Validator.validateChainIdWithEventAuthorisation(params.chainId, event.name, session.namespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.UnauthorizedEvent(errorMessage))
+        Validator.validateChainIdWithEventAuthorisation(params.chainId, event.name, session.namespaces) { error ->
+            relayer.respondWithError(request, error.toPeerError())
             return
         }
 
         relayer.respondWithSuccess(request)
-        scope.launch { _sequenceEvent.emit(params.toEngineDOSessionEvent(request.topic)) }
+        scope.launch { _engineEvent.emit(params.toEngineDOSessionEvent(request.topic)) }
     }
 
     private fun onSessionUpdateNamespaces(request: WCRequestVO, params: SessionParamsVO.UpdateNamespacesParams) {
@@ -537,18 +574,24 @@ internal class EngineInteractor(
             return
         }
 
-        Validator.validateSessionNamespaceUpdate(params.namespaces) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidUpdateRequest(errorMessage))
+        Validator.validateSessionNamespaceUpdate(params.namespaces) { error ->
+            relayer.respondWithError(request, PeerError.InvalidUpdateRequest(error.message))
             return
         }
 
-        sequenceStorageRepository.deleteNamespaces(session.topic.value)
-        sequenceStorageRepository.insertNamespacesByTopic(session.topic.value, params.namespaces)
-        relayer.respondWithSuccess(request)
-
-        scope.launch {
-            _sequenceEvent.emit(EngineDO.SessionUpdateNamespaces(request.topic, params.namespaces.toMapOfEngineNamespacesSession()))
+        if (!sequenceStorageRepository.isUpdatedNamespaceValid(session.topic.value, request.id.extractTimestamp())) {
+            relayer.respondWithError(request, PeerError.InvalidUpdateRequest("Update Namespace Request ID too old"))
         }
+
+        sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, params.namespaces, request.id, onSuccess = {
+            relayer.respondWithSuccess(request)
+
+            scope.launch {
+                _engineEvent.emit(EngineDO.SessionUpdateNamespaces(request.topic, params.namespaces.toMapOfEngineNamespacesSession()))
+            }
+        }, onFailure = {
+            relayer.respondWithError(request, PeerError.InvalidUpdateRequest("Updating Namespace Failed. Review Namespace structure"))
+        })
     }
 
     private fun onSessionExtend(request: WCRequestVO, requestParams: SessionParamsVO.ExtendParams) {
@@ -564,14 +607,14 @@ internal class EngineInteractor(
         }
 
         val newExpiry = requestParams.expiry
-        Validator.validateSessionExtend(newExpiry, session.expiry.seconds) { errorMessage ->
-            relayer.respondWithError(request, PeerError.InvalidExtendRequest(errorMessage))
+        Validator.validateSessionExtend(newExpiry, session.expiry.seconds) { error ->
+            relayer.respondWithError(request, error.toPeerError())
             return
         }
 
         sequenceStorageRepository.extendSession(request.topic, newExpiry)
         relayer.respondWithSuccess(request)
-        scope.launch { _sequenceEvent.emit(session.toEngineDOSessionExtend(ExpiryVO(newExpiry))) }
+        scope.launch { _engineEvent.emit(session.toEngineDOSessionExtend(ExpiryVO(newExpiry))) }
     }
 
     private fun onPing(request: WCRequestVO) {
@@ -611,7 +654,7 @@ internal class EngineInteractor(
             is JsonRpcResponseVO.JsonRpcError -> {
                 if (!pairing.isActive) sequenceStorageRepository.deletePairing(pairingTopic)
                 Logger.log("Session proposal reject received: ${response.error}")
-                scope.launch { _sequenceEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
+                scope.launch { _engineEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
             }
         }
     }
@@ -625,7 +668,7 @@ internal class EngineInteractor(
             is JsonRpcResponseVO.JsonRpcResult -> {
                 Logger.log("Session settle success received")
                 sequenceStorageRepository.acknowledgeSession(sessionTopic)
-                scope.launch { _sequenceEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDOApprovedSessionVO())) }
+                scope.launch { _engineEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDOApprovedSessionVO())) }
             }
             is JsonRpcResponseVO.JsonRpcError -> {
                 Logger.error("Peer failed to settle session: ${wcResponse.response.errorMessage}")
@@ -640,22 +683,32 @@ internal class EngineInteractor(
         val sessionTopic = wcResponse.topic
         if (!sequenceStorageRepository.isSessionValid(sessionTopic)) return
         val session = sequenceStorageRepository.getSessionByTopic(sessionTopic)
+        if (!sequenceStorageRepository.isUpdatedNamespaceResponseValid(session.topic.value, wcResponse.response.id.extractTimestamp())) return
 
         when (val response = wcResponse.response) {
             is JsonRpcResponseVO.JsonRpcResult -> {
                 Logger.log("Session update namespaces response received")
-                scope.launch {
-                    _sequenceEvent.emit(
-                        EngineDO.SessionUpdateNamespacesResponse.Result(
-                            session.topic,
-                            session.namespaces.toMapOfEngineNamespacesSession()
+
+                val updatedNamespace = sequenceStorageRepository.getUnAckNamespaces(session.topic.value, wcResponse.response.id)
+                sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, updatedNamespace, wcResponse.response.id, onSuccess = {
+
+                    sequenceStorageRepository.markUnAckNamespaceAcknowledged(session.topic.value, wcResponse.response.id)
+
+                    scope.launch {
+                        _engineEvent.emit(
+                            EngineDO.SessionUpdateNamespacesResponse.Result(
+                                session.topic,
+                                session.namespaces.toMapOfEngineNamespacesSession()
+                            )
                         )
-                    )
-                }
+                    }
+                }, onFailure = {
+                    scope.launch { _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error("Unable to ")) }
+                })
             }
             is JsonRpcResponseVO.JsonRpcError -> {
                 Logger.error("Peer failed to update session namespaces: ${response.error}")
-                scope.launch { _sequenceEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error(response.errorMessage)) }
+                scope.launch { _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error(response.errorMessage)) }
             }
         }
     }
@@ -666,13 +719,13 @@ internal class EngineInteractor(
             is JsonRpcResponseVO.JsonRpcError -> response.response.toEngineJsonRpcError()
         }
         val method = params.request.method
-        scope.launch { _sequenceEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
+        scope.launch { _engineEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
     }
 
     private fun resubscribeToSequences() {
         relayer.isConnectionAvailable
             .onEach { isAvailable ->
-                _sequenceEvent.emit(EngineDO.ConnectionState(isAvailable))
+                _engineEvent.emit(EngineDO.ConnectionState(isAvailable))
             }
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
