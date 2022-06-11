@@ -2,9 +2,13 @@ name: Android Test and deployja
 
 on:
   push:
-    branches: [ develop ]
+    branches:
+      - develop
+      - master
   pull_request:
-    branches: [ develop ]
+    branches:
+      - develop
+      - master
 
 jobs:
   unit_tests:
