@@ -1,4 +1,4 @@
-name: Android Test and deploy
+name: Android Test and deployja
 
 on:
   push:
@@ -8,10 +8,13 @@ on:
 
 jobs:
   unit_tests:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
       - name: Unit tests
         run: ./gradlew walletconnectv2:test
 #  android_tests:
