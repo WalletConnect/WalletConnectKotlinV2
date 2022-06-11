@@ -2,7 +2,9 @@ name: Android Test and deployja
 
 on:
   push:
-    branches: [ develop ci/master-merge-fix ]
+    branches:
+      - develop
+      - ci/master-merge-fix
   pull_request:
     branches: [ develop ]
 
