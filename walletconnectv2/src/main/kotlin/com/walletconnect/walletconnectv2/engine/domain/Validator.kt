@@ -40,8 +40,8 @@ internal object Validator {
             !areAllEventsApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejectedEvents)
             !areAccountsInMatchingNamespace(sessionNamespaces) ->
                 onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
-            !areExtensionAccountsNotEmpty(sessionNamespaces) -> onError(
-                ValidationError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
+            !areExtensionAccountsNotEmpty(sessionNamespaces) ->
+                onError(ValidationError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
         }
     }
 

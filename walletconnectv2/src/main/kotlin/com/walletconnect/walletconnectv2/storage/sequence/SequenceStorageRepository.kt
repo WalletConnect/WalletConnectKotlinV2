@@ -9,7 +9,15 @@ import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.MetaDat
 import com.walletconnect.walletconnectv2.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.PairingVO
 import com.walletconnect.walletconnectv2.core.model.vo.sequence.SessionVO
-import com.walletconnect.walletconnectv2.storage.data.dao.*
+import com.walletconnect.walletconnectv2.storage.data.dao.metadata.MetaDataDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.dao.namespace.NamespaceDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.dao.namespace.NamespaceExtensionDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.dao.pairing.PairingDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.dao.session.SessionDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.proposalnamespace.ProposalNamespaceDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.proposalnamespace.ProposalNamespaceExtensionDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.temp.TempNamespaceDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.temp.TempNamespaceExtensionDaoQueries
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.isSequenceValid
 
@@ -20,8 +28,10 @@ internal class SequenceStorageRepository(
     private val metaDataDaoQueries: MetaDataDaoQueries,
     private val namespaceDaoQueries: NamespaceDaoQueries,
     private val extensionsDaoQueries: NamespaceExtensionDaoQueries,
+    private val proposalNamespaceDaoQueries: ProposalNamespaceDaoQueries,
+    private val proposalExtensionsDaoQueries: ProposalNamespaceExtensionDaoQueries,
     private val tempNamespaceDaoQueries: TempNamespaceDaoQueries,
-    private val tempExtensionsDaoQueries: TempNamespaceExtensionDaoQueries
+    private val tempExtensionsDaoQueries: TempNamespaceExtensionDaoQueries,
 ) {
 
     @JvmSynthetic
@@ -156,7 +166,13 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun insertUnAckNamespaces(topic: String, namespaces: Map<String, NamespaceVO.Session>, requestId: Long, onSuccess: () -> Unit, onFailure: () -> Unit) {
+    fun insertUnAckNamespaces(
+        topic: String,
+        namespaces: Map<String, NamespaceVO.Session>,
+        requestId: Long,
+        onSuccess: () -> Unit,
+        onFailure: () -> Unit,
+    ) {
         val sessionId = sessionDaoQueries.getSessionIdByTopic(topic).executeAsOne()
 
         tempNamespaceDaoQueries.transaction namespace@{
@@ -190,17 +206,24 @@ internal class SequenceStorageRepository(
 
     @JvmSynthetic
     fun getUnAckNamespaces(topic: String, requestId: Long): Map<String, NamespaceVO.Session> {
-        return tempNamespaceDaoQueries.getTempNamespacesByRequestIdAndTopic(topic, requestId, mapper = ::mapTempNamespaceToNamespaceVO).executeAsList().let { listOfMappedTempNamespaces ->
-            val mapOfTempNamespace = listOfMappedTempNamespaces.associate { (key, namespace) ->
-                key to namespace
-            }
+        return tempNamespaceDaoQueries.getTempNamespacesByRequestIdAndTopic(topic, requestId, mapper = ::mapTempNamespaceToNamespaceVO)
+            .executeAsList().let { listOfMappedTempNamespaces ->
+                val mapOfTempNamespace = listOfMappedTempNamespaces.associate { (key, namespace) ->
+                    key to namespace
+                }
 
-            mapOfTempNamespace
-        }
+                mapOfTempNamespace
+            }
     }
 
     @JvmSynthetic
-    fun deleteNamespaceAndInsertNewNamespace(topic: String, namespaces: Map<String, NamespaceVO.Session>, requestID: Long, onSuccess: () -> Unit, onFailure: () -> Unit) {
+    fun deleteNamespaceAndInsertNewNamespace(
+        topic: String,
+        namespaces: Map<String, NamespaceVO.Session>,
+        requestID: Long,
+        onSuccess: () -> Unit,
+        onFailure: () -> Unit,
+    ) {
         val sessionId = sessionDaoQueries.getSessionIdByTopic(topic).executeAsOne()
 
         namespaceDaoQueries.transaction namespace@{
@@ -367,6 +390,19 @@ internal class SequenceStorageRepository(
             key to NamespaceVO.Session(accounts, methods, events, extensions)
         }.executeAsList().toMap()
 
+        val proposalNamespaces: Map<String, NamespaceVO.Proposal> =
+            proposalNamespaceDaoQueries.getProposalNamespaces(id) { key, chains, methods, events ->
+
+                val extensions: List<NamespaceVO.Proposal.Extension>? =
+                    proposalExtensionsDaoQueries.getProposalNamespaceExtensionByKeyAndSessionId(key, id)
+                    { extAccounts, extMethods, extEvents -> NamespaceVO.Proposal.Extension(extAccounts, extMethods, extEvents) }
+                        .executeAsList()
+                        .takeIf { listOfNamespaceExtensions -> listOfNamespaceExtensions.isNotEmpty() }
+
+                key to NamespaceVO.Proposal(chains, methods, events, extensions)
+
+            }.executeAsList().toMap()
+
         return SessionVO(
             topic = TopicVO(topic),
             expiry = ExpiryVO(expiry),
@@ -378,6 +414,7 @@ internal class SequenceStorageRepository(
             relayProtocol = relay_protocol,
             relayData = relay_data,
             namespaces = namespaces,
+            proposalNamespaces = proposalNamespaces,
             isAcknowledged = is_acknowledged
         )
     }
@@ -387,9 +424,11 @@ internal class SequenceStorageRepository(
         key: String,
         accounts: List<String>,
         methods: List<String>,
-        events: List<String>
+        events: List<String>,
     ): Pair<String, NamespaceVO.Session> {
-        val extensions = tempExtensionsDaoQueries.getNamespaceExtensionByNamespaceKeyAndSessionId(key, sessionId, mapper = ::mapTempNamespaceExtensionToNamespaceExtensionVO).executeAsList().takeIf { extensions -> extensions.isNotEmpty() }
+        val extensions = tempExtensionsDaoQueries.getNamespaceExtensionByNamespaceKeyAndSessionId(key,
+            sessionId,
+            mapper = ::mapTempNamespaceExtensionToNamespaceExtensionVO).executeAsList().takeIf { extensions -> extensions.isNotEmpty() }
 
         return key to NamespaceVO.Session(accounts, methods, events, extensions)
     }
@@ -397,7 +436,7 @@ internal class SequenceStorageRepository(
     private fun mapTempNamespaceExtensionToNamespaceExtensionVO(
         accounts: List<String>,
         methods: List<String>,
-        events: List<String>
+        events: List<String>,
     ): NamespaceVO.Session.Extension {
         return NamespaceVO.Session.Extension(accounts, methods, events)
     }

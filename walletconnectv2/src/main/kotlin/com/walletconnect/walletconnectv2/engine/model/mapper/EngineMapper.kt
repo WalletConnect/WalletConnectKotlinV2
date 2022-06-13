@@ -167,7 +167,6 @@ internal fun Map<String, EngineDO.Namespace.Session>.toMapOfNamespacesVOSession(
         })
     }
 
-
 @JvmSynthetic
 internal fun getSessionRelays(relays: List<EngineDO.RelayProtocolOptions>?): List<RelayProtocolOptionsVO> = relays?.map { relay ->
     RelayProtocolOptionsVO(relay.protocol, relay.data)

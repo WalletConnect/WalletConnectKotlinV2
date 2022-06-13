@@ -23,6 +23,7 @@ internal data class SessionVO(
     val peerPublicKey: PublicKey? = null,
     val peerMetaData: MetaDataVO? = null,
     val namespaces: Map<String, NamespaceVO.Session>,
+    val proposalNamespaces: Map<String, NamespaceVO.Proposal>,
     val isAcknowledged: Boolean,
 ) : Sequence {
     val isPeerController: Boolean = peerPublicKey?.keyAsHex == controllerKey?.keyAsHex
@@ -49,6 +50,7 @@ internal data class SessionVO(
                 selfMetaData = selfParticipant.metadata,
                 controllerKey = PublicKey(selfParticipant.publicKey),
                 namespaces = namespaces.toMapOfNamespacesVOSession(),
+                proposalNamespaces = proposal.namespaces,
                 isAcknowledged = false
             )
         }
@@ -59,6 +61,7 @@ internal data class SessionVO(
             settleParams: SessionParamsVO.SessionSettleParams,
             selfPublicKey: PublicKey,
             selfMetadata: MetaDataVO,
+            proposalNamespaces: Map<String, NamespaceVO.Proposal>
         ): SessionVO {
             return SessionVO(
                 sessionTopic,
@@ -71,6 +74,7 @@ internal data class SessionVO(
                 selfMetaData = selfMetadata,
                 controllerKey = PublicKey(settleParams.controller.publicKey),
                 namespaces = settleParams.namespaces,
+                proposalNamespaces = proposalNamespaces,
                 isAcknowledged = true
             )
         }
