@@ -2,16 +2,19 @@ name: Android Test and deploy
 
 on:
   push:
-    branches: [ develop ]
+    branches:
+      - develop
+      - master
   pull_request:
-    branches: [ develop ]
+    branches:
+      - develop
+      - master
 
 jobs:
   unit_tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
       - name: Unit tests
         run: ./gradlew walletconnectv2:test
 #  android_tests:
