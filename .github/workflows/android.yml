@@ -1,4 +1,4 @@
-name: Android Test and deployja
+name: Android Test and deploy
 
 on:
   push:
