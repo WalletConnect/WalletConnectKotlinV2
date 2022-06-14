@@ -1,9 +1,13 @@
 rootProject.name = "WalletConnect"
 
-val signModules = mapOf("sign" to listOf("dapp", "samples_common", "wallet", "walletconnectv2"))
-val chatModules = mapOf("chat" to emptyList<String>())
+include(":showcase")
 
-(signModules /*+ chatModules*/).forEach { (projectDirName, listOfModules) ->
+val wcModules = mapOf(
+    "signSDK" to listOf("dapp", "samples_common", "wallet", "sign"),
+    "chatSDK" to listOf("chat", "chatsample")
+)
+
+wcModules.forEach { (projectDirName, listOfModules) ->
     listOfModules.forEach { moduleName ->
         include(":$moduleName")
     }
