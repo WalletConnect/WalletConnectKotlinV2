@@ -153,6 +153,7 @@ internal class SequenceStorageRepository(
         insertMetaData(session.selfMetaData, MetaDataType.SELF, session.topic)
         insertMetaData(session.peerMetaData, MetaDataType.PEER, session.topic)
         insertNamespace(session.namespaces, lastInsertedSessionId, requestId)
+        insertProposalNamespace(session.proposalNamespaces, lastInsertedSessionId)
     }
 
     @JvmSynthetic
@@ -275,6 +276,8 @@ internal class SequenceStorageRepository(
         metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
         namespaceDaoQueries.deleteNamespacesByTopic(topic.value)
         extensionsDaoQueries.deleteNamespacesExtensionsByTopic(topic.value)
+        proposalNamespaceDaoQueries.deleteProposalNamespacesByTopic(topic.value)
+        proposalExtensionsDaoQueries.deleteProposalNamespacesExtensionsByTopic(topic.value)
         tempNamespaceDaoQueries.deleteTempNamespacesByTopic(topic.value)
         tempExtensionsDaoQueries.deleteTempNamespacesExtensionByTopic(topic.value)
         sessionDaoQueries.deleteSession(topic.value)
@@ -304,6 +307,24 @@ internal class SequenceStorageRepository(
                     key,
                     sessionId,
                     extension.accounts,
+                    extension.methods,
+                    extension.events
+                )
+            }
+        }
+    }
+
+    @Throws(SQLiteException::class)
+    private fun insertProposalNamespace(namespaces: Map<String, NamespaceVO.Proposal>, sessionId: Long) {
+        namespaces.forEach { key, (chains: List<String>, methods: List<String>, events: List<String>, extensions: List<NamespaceVO.Proposal.Extension>?) ->
+
+            proposalNamespaceDaoQueries.insertOrAbortProposalNamespace(sessionId, key, chains, methods, events)
+
+            extensions?.forEach { extension ->
+                proposalExtensionsDaoQueries.insertOrAbortProposalNamespaceExtension(
+                    key,
+                    sessionId,
+                    extension.chains,
                     extension.methods,
                     extension.events
                 )

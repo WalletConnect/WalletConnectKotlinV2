@@ -223,7 +223,7 @@ internal class EngineInteractor(
         }
 
         //todo: check namespaces against proposal namespaces
-        Validator.validateSessionNamespaceUpdate(namespaces.toMapOfNamespacesVOSession()) { error ->
+        Validator.validateSessionNamespaceUpdate(namespaces.toMapOfNamespacesVOSession(), session.proposalNamespaces) { error ->
             throw WalletConnectException.InvalidNamespaceException(error.message)
         }
 
@@ -579,7 +579,7 @@ internal class EngineInteractor(
         }
 
         //todo: check namespaces against proposal namespaces
-        Validator.validateSessionNamespaceUpdate(params.namespaces) { error ->
+        Validator.validateSessionNamespaceUpdate(params.namespaces, session.proposalNamespaces) { error ->
             relayer.respondWithError(request, PeerError.InvalidUpdateRequest(error.message))
             return
         }
