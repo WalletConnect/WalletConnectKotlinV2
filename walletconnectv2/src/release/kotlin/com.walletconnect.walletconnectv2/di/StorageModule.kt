@@ -13,7 +13,6 @@ import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.walletconnectv2.Database
 import com.walletconnect.walletconnectv2.core.model.type.enums.MetaDataType
-import com.walletconnect.walletconnectv2.storage.data.dao.*
 import com.walletconnect.walletconnectv2.storage.data.dao.metadata.MetaDataDao
 import com.walletconnect.walletconnectv2.storage.data.dao.namespace.NamespaceDao
 import com.walletconnect.walletconnectv2.storage.data.dao.namespace.NamespaceExtensionsDao

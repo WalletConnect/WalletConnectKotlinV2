@@ -13,11 +13,11 @@ import com.walletconnect.walletconnectv2.storage.data.dao.metadata.MetaDataDaoQu
 import com.walletconnect.walletconnectv2.storage.data.dao.namespace.NamespaceDaoQueries
 import com.walletconnect.walletconnectv2.storage.data.dao.namespace.NamespaceExtensionDaoQueries
 import com.walletconnect.walletconnectv2.storage.data.dao.pairing.PairingDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.dao.proposalnamespace.ProposalNamespaceDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.dao.proposalnamespace.ProposalNamespaceExtensionDaoQueries
 import com.walletconnect.walletconnectv2.storage.data.dao.session.SessionDaoQueries
-import com.walletconnect.walletconnectv2.storage.data.proposalnamespace.ProposalNamespaceDaoQueries
-import com.walletconnect.walletconnectv2.storage.data.proposalnamespace.ProposalNamespaceExtensionDaoQueries
-import com.walletconnect.walletconnectv2.storage.data.temp.TempNamespaceDaoQueries
-import com.walletconnect.walletconnectv2.storage.data.temp.TempNamespaceExtensionDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.dao.temp.TempNamespaceDaoQueries
+import com.walletconnect.walletconnectv2.storage.data.dao.temp.TempNamespaceExtensionDaoQueries
 import com.walletconnect.walletconnectv2.util.Empty
 import com.walletconnect.walletconnectv2.util.isSequenceValid
 
