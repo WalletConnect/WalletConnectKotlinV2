@@ -469,7 +469,8 @@ internal class EngineInteractor(
         val tempProposalRequest = sessionProposalRequest.getValue(selfPublicKey.keyAsHex)
 
         try {
-            val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toMetaDataVO(), proposalNamespaces)
+            val session =
+                SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toMetaDataVO(), proposalNamespaces)
 
             sequenceStorageRepository.upsertPairingPeerMetadata(proposal.topic, peerMetadata)
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
@@ -686,9 +687,9 @@ internal class EngineInteractor(
         val sessionTopic = wcResponse.topic
         if (!sequenceStorageRepository.isSessionValid(sessionTopic)) return
         val session = sequenceStorageRepository.getSessionByTopic(sessionTopic)
-        if (!sequenceStorageRepository.isUpdatedNamespaceResponseValid(session.topic.value,
-                wcResponse.response.id.extractTimestamp())
-        ) return
+        if (!sequenceStorageRepository.isUpdatedNamespaceResponseValid(session.topic.value, wcResponse.response.id.extractTimestamp())) {
+            return
+        }
 
         when (val response = wcResponse.response) {
             is JsonRpcResponseVO.JsonRpcResult -> {
@@ -704,15 +705,13 @@ internal class EngineInteractor(
 
                         scope.launch {
                             _engineEvent.emit(
-                                EngineDO.SessionUpdateNamespacesResponse.Result(
-                                    session.topic,
-                                    session.namespaces.toMapOfEngineNamespacesSession()
-                                )
+                                EngineDO.SessionUpdateNamespacesResponse.Result(session.topic,
+                                    session.namespaces.toMapOfEngineNamespacesSession())
                             )
                         }
                     },
                     onFailure = {
-                        scope.launch { _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error("Unable to ")) }
+                        scope.launch { _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error("Unable to update the session")) }
                     })
             }
             is JsonRpcResponseVO.JsonRpcError -> {
