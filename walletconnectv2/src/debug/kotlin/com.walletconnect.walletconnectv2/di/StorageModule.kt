@@ -9,11 +9,13 @@ import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.walletconnectv2.Database
 import com.walletconnect.walletconnectv2.core.model.type.enums.MetaDataType
-import com.walletconnect.walletconnectv2.storage.data.dao.MetaDataDao
-import com.walletconnect.walletconnectv2.storage.data.dao.NamespaceDao
-import com.walletconnect.walletconnectv2.storage.data.dao.NamespaceExtensionsDao
-import com.walletconnect.walletconnectv2.storage.data.dao.TempNamespaceDao
-import com.walletconnect.walletconnectv2.storage.data.dao.TempNamespaceExtensionsDao
+import com.walletconnect.walletconnectv2.storage.data.dao.metadata.MetaDataDao
+import com.walletconnect.walletconnectv2.storage.data.dao.namespace.NamespaceDao
+import com.walletconnect.walletconnectv2.storage.data.dao.namespace.NamespaceExtensionsDao
+import com.walletconnect.walletconnectv2.storage.data.dao.proposalnamespace.ProposalNamespaceDao
+import com.walletconnect.walletconnectv2.storage.data.dao.proposalnamespace.ProposalNamespaceExtensionsDao
+import com.walletconnect.walletconnectv2.storage.data.dao.temp.TempNamespaceDao
+import com.walletconnect.walletconnectv2.storage.data.dao.temp.TempNamespaceExtensionsDao
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
 import org.koin.android.ext.koin.androidContext
@@ -83,6 +85,16 @@ internal fun storageModule(): Module = module {
                 accountsAdapter = get(),
                 methodsAdapter = get(),
                 eventsAdapter = get()
+            ),
+            ProposalNamespaceDaoAdapter = ProposalNamespaceDao.Adapter(
+                chainsAdapter = get(),
+                methodsAdapter = get(),
+                eventsAdapter = get()
+            ),
+            ProposalNamespaceExtensionsDaoAdapter = ProposalNamespaceExtensionsDao.Adapter(
+                chainsAdapter = get(),
+                methodsAdapter = get(),
+                eventsAdapter = get()
             )
         )
     }
@@ -120,7 +132,15 @@ internal fun storageModule(): Module = module {
     }
 
     single {
-        SequenceStorageRepository(get(), get(), get(), get(), get(), get(), get())
+        get<Database>().proposalNamespaceDaoQueries
+    }
+
+    single {
+        get<Database>().proposalNamespaceExtensionDaoQueries
+    }
+
+    single {
+        SequenceStorageRepository(get(), get(), get(), get(), get(), get(), get(), get(), get())
     }
 
     single {

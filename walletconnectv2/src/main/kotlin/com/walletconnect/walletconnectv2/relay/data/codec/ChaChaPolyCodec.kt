@@ -42,11 +42,11 @@ internal class ChaChaPolyCodec : Codec {
 
         val params = ParametersWithIV(KeyParameter(key.keyAsHex.hexToBytes()), nonce)
         cha20Poly1305.init(false, params) //note: in the debugging mode code throws InvalidArgumentException but it doesn't affects the final method execution
-        val cipherText = ByteArray(cha20Poly1305.getOutputSize(encryptedText.size))
-        val outputSize = cha20Poly1305.processBytes(encryptedText, 0, encryptedText.size, cipherText, 0)
-        cha20Poly1305.doFinal(cipherText, outputSize)
+        val cipherTextByteArray = ByteArray(cha20Poly1305.getOutputSize(encryptedText.size))
+        val outputSize = cha20Poly1305.processBytes(encryptedText, 0, encryptedText.size, cipherTextByteArray, 0)
+        cha20Poly1305.doFinal(cipherTextByteArray, outputSize)
 
-        return String(cipherText, Charsets.UTF_8)
+        return String(cipherTextByteArray, Charsets.UTF_8)
     }
 
     companion object {

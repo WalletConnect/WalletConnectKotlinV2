@@ -31,31 +31,16 @@ internal object Validator {
         onError: (ValidationError) -> Unit,
     ) {
         when {
+            !areSessionNamespacesKeysProperlyFormatted(sessionNamespaces) -> onError(ValidationError.UnsupportedNamespaceKey)
             !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejected)
             !areAccountsNotEmpty(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
             !areAccountIdsValid(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
+            !areAccountsInMatchingNamespace(sessionNamespaces) ->
+                onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
             !areAllChainsApprovedWithAtLeastOneAccount(sessionNamespaces, proposalNamespaces) ->
                 onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE))
             !areAllMethodsApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejectedMethods)
             !areAllEventsApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejectedEvents)
-            !areAccountsInMatchingNamespace(sessionNamespaces) ->
-                onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
-            !areExtensionAccountsNotEmpty(sessionNamespaces) -> onError(
-                ValidationError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
-        }
-    }
-
-    @JvmSynthetic
-    internal inline fun validateSessionNamespaceUpdate(
-        sessionNamespaces: Map<String, NamespaceVO.Session>,
-        onError: (ValidationError) -> Unit,
-    ) {
-        when {
-            !areSessionNamespacesKeysProperlyFormatted(sessionNamespaces) -> onError(ValidationError.UnsupportedNamespaceKey)
-            !areAccountsNotEmpty(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
-            !areAccountIdsValid(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
-            !areAccountsInMatchingNamespace(sessionNamespaces) ->
-                onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
             !areExtensionAccountsNotEmpty(sessionNamespaces) ->
                 onError(ValidationError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
         }
