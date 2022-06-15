@@ -31,8 +31,8 @@ internal object Validator {
         onError: (ValidationError) -> Unit,
     ) {
         when {
-            !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejected)
             !areSessionNamespacesKeysProperlyFormatted(sessionNamespaces) -> onError(ValidationError.UnsupportedNamespaceKey)
+            !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejected)
             !areAccountsNotEmpty(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
             !areAccountIdsValid(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
             !areAccountsInMatchingNamespace(sessionNamespaces) ->
