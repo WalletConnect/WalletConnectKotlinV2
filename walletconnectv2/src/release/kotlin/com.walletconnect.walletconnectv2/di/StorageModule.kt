@@ -16,10 +16,10 @@ import com.walletconnect.walletconnectv2.core.model.type.enums.MetaDataType
 import com.walletconnect.walletconnectv2.storage.data.dao.metadata.MetaDataDao
 import com.walletconnect.walletconnectv2.storage.data.dao.namespace.NamespaceDao
 import com.walletconnect.walletconnectv2.storage.data.dao.namespace.NamespaceExtensionsDao
-import com.walletconnect.walletconnectv2.storage.data.proposalnamespace.ProposalNamespaceDao
-import com.walletconnect.walletconnectv2.storage.data.proposalnamespace.ProposalNamespaceExtensionsDao
-import com.walletconnect.walletconnectv2.storage.data.temp.TempNamespaceDao
-import com.walletconnect.walletconnectv2.storage.data.temp.TempNamespaceExtensionsDao
+import com.walletconnect.walletconnectv2.storage.data.dao.proposalnamespace.ProposalNamespaceDao
+import com.walletconnect.walletconnectv2.storage.data.dao.proposalnamespace.ProposalNamespaceExtensionsDao
+import com.walletconnect.walletconnectv2.storage.data.dao.temp.TempNamespaceDao
+import com.walletconnect.walletconnectv2.storage.data.dao.temp.TempNamespaceExtensionsDao
 import com.walletconnect.walletconnectv2.storage.history.JsonRpcHistory
 import com.walletconnect.walletconnectv2.storage.sequence.SequenceStorageRepository
 import com.walletconnect.walletconnectv2.util.randomBytes
@@ -45,7 +45,7 @@ internal fun storageModule(): Module = module {
         MasterKeys.getOrCreate(keyGenParameterSpec)
     }
 
-    single<SharedPreferences>(named(DITags.RPC_STORE)) {
+    single(named(DITags.RPC_STORE)) {
         val sharedPrefsFile = "wc_rpc_store"
 
         EncryptedSharedPreferences.create(
