@@ -222,8 +222,7 @@ internal class EngineInteractor(
             throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
-        //todo: check namespaces against proposal namespaces
-        Validator.validateSessionNamespaceUpdate(namespaces.toMapOfNamespacesVOSession(), session.proposalNamespaces) { error ->
+        Validator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), session.proposalNamespaces) { error ->
             throw WalletConnectException.InvalidNamespaceException(error.message)
         }
 
@@ -578,8 +577,7 @@ internal class EngineInteractor(
             return
         }
 
-        //todo: check namespaces against proposal namespaces
-        Validator.validateSessionNamespaceUpdate(params.namespaces, session.proposalNamespaces) { error ->
+        Validator.validateSessionNamespace(params.namespaces, session.proposalNamespaces) { error ->
             relayer.respondWithError(request, PeerError.InvalidUpdateRequest(error.message))
             return
         }

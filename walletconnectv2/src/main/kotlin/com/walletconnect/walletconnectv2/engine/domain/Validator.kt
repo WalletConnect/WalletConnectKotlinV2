@@ -32,27 +32,6 @@ internal object Validator {
     ) {
         when {
             !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejected)
-            !areAccountsNotEmpty(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
-            !areAccountIdsValid(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
-            !areAllChainsApprovedWithAtLeastOneAccount(sessionNamespaces, proposalNamespaces) ->
-                onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE))
-            !areAllMethodsApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejectedMethods)
-            !areAllEventsApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejectedEvents)
-            !areAccountsInMatchingNamespace(sessionNamespaces) ->
-                onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
-            !areExtensionAccountsNotEmpty(sessionNamespaces) ->
-                onError(ValidationError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
-        }
-    }
-
-    @JvmSynthetic
-    internal inline fun validateSessionNamespaceUpdate(
-        sessionNamespaces: Map<String, NamespaceVO.Session>,
-        proposalNamespaces: Map<String, NamespaceVO.Proposal>,
-        onError: (ValidationError) -> Unit,
-    ) {
-        when {
-            !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejected)
             !areSessionNamespacesKeysProperlyFormatted(sessionNamespaces) -> onError(ValidationError.UnsupportedNamespaceKey)
             !areAccountsNotEmpty(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
             !areAccountIdsValid(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))

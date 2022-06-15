@@ -402,27 +402,8 @@ internal class SequenceStorageRepository(
             null
         }
 
-        val namespaces: Map<String, NamespaceVO.Session> = namespaceDaoQueries.getNamespaces(id) { key, accounts, methods, events ->
-            val extensions: List<NamespaceVO.Session.Extension>? =
-                extensionsDaoQueries.getNamespaceExtensionByNamespaceKeyAndSessionId(key, id) { extAccounts, extMethods, extEvents ->
-                    NamespaceVO.Session.Extension(extAccounts, extMethods, extEvents)
-                }.executeAsList().takeIf { listOfNamespaceExtensions -> listOfNamespaceExtensions.isNotEmpty() }
-
-            key to NamespaceVO.Session(accounts, methods, events, extensions)
-        }.executeAsList().toMap()
-
-        val proposalNamespaces: Map<String, NamespaceVO.Proposal> =
-            proposalNamespaceDaoQueries.getProposalNamespaces(id) { key, chains, methods, events ->
-
-                val extensions: List<NamespaceVO.Proposal.Extension>? =
-                    proposalExtensionsDaoQueries.getProposalNamespaceExtensionByKeyAndSessionId(key, id)
-                    { extAccounts, extMethods, extEvents -> NamespaceVO.Proposal.Extension(extAccounts, extMethods, extEvents) }
-                        .executeAsList()
-                        .takeIf { listOfNamespaceExtensions -> listOfNamespaceExtensions.isNotEmpty() }
-
-                key to NamespaceVO.Proposal(chains, methods, events, extensions)
-
-            }.executeAsList().toMap()
+        val sessionNamespaces: Map<String, NamespaceVO.Session> = getSessionNamespaces(id)
+        val proposalNamespaces: Map<String, NamespaceVO.Proposal> = getProposalNamespaces(id)
 
         return SessionVO(
             topic = TopicVO(topic),
@@ -434,10 +415,37 @@ internal class SequenceStorageRepository(
             controllerKey = PublicKey(controller_key ?: String.Empty),
             relayProtocol = relay_protocol,
             relayData = relay_data,
-            namespaces = namespaces,
+            namespaces = sessionNamespaces,
             proposalNamespaces = proposalNamespaces,
             isAcknowledged = is_acknowledged
         )
+    }
+
+    private fun getProposalNamespaces(id: Long): Map<String, NamespaceVO.Proposal> {
+        return proposalNamespaceDaoQueries.getProposalNamespaces(id) { key, chains, methods, events ->
+
+            val extensions: List<NamespaceVO.Proposal.Extension>? =
+                proposalExtensionsDaoQueries.getProposalNamespaceExtensionByKeyAndSessionId(key, id)
+                { extAccounts, extMethods, extEvents -> NamespaceVO.Proposal.Extension(extAccounts, extMethods, extEvents) }
+                    .executeAsList()
+                    .takeIf { listOfNamespaceExtensions -> listOfNamespaceExtensions.isNotEmpty() }
+
+            key to NamespaceVO.Proposal(chains, methods, events, extensions)
+
+        }.executeAsList().toMap()
+    }
+
+    private fun getSessionNamespaces(id: Long): Map<String, NamespaceVO.Session> {
+        return namespaceDaoQueries.getNamespaces(id) { key, accounts, methods, events ->
+            val extensions: List<NamespaceVO.Session.Extension>? =
+                extensionsDaoQueries.getNamespaceExtensionByNamespaceKeyAndSessionId(key, id)
+                { extAccounts, extMethods, extEvents -> NamespaceVO.Session.Extension(extAccounts, extMethods, extEvents) }
+                    .executeAsList()
+                    .takeIf { listOfNamespaceExtensions -> listOfNamespaceExtensions.isNotEmpty() }
+
+            key to NamespaceVO.Session(accounts, methods, events, extensions)
+
+        }.executeAsList().toMap()
     }
 
     private fun mapTempNamespaceToNamespaceVO(
@@ -447,8 +455,7 @@ internal class SequenceStorageRepository(
         methods: List<String>,
         events: List<String>,
     ): Pair<String, NamespaceVO.Session> {
-        val extensions = tempExtensionsDaoQueries.getNamespaceExtensionByNamespaceKeyAndSessionId(key,
-            sessionId,
+        val extensions = tempExtensionsDaoQueries.getNamespaceExtensionByNamespaceKeyAndSessionId(key, sessionId,
             mapper = ::mapTempNamespaceExtensionToNamespaceExtensionVO).executeAsList().takeIf { extensions -> extensions.isNotEmpty() }
 
         return key to NamespaceVO.Session(accounts, methods, events, extensions)
