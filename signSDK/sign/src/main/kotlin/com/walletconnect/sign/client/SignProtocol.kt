@@ -241,7 +241,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {
         check(::engineInteractor.isInitialized) {
-            "WalletConnectClient needs to be initialized first using the initialize function"
+            "SignClient needs to be initialized first using the initialize function"
         }
     }
 }
