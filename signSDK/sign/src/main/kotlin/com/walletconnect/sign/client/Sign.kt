@@ -166,7 +166,7 @@ object Sign {
                     data class Request(
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
-                        val method: String = "waku_publish",
+                        val method: String = "iridium_publish",
                         val params: Params,
                     ) : Publish() {
 
@@ -196,7 +196,7 @@ object Sign {
                     data class Request(
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
-                        val method: String = "waku_subscribe",
+                        val method: String = "iridium_subscribe",
                         val params: Params,
                     ) : Subscribe() {
 
@@ -223,7 +223,7 @@ object Sign {
                     data class Request(
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
-                        val method: String = "waku_subscription",
+                        val method: String = "iridium_subscription",
                         val params: Params,
                     ) : Subscription() {
 
@@ -260,7 +260,7 @@ object Sign {
                     data class Request(
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
-                        val method: String = "waku_unsubscribe",
+                        val method: String = "iridium_unsubscribe",
                         val params: Params,
                     ) : Unsubscribe() {
 
@@ -292,9 +292,7 @@ object Sign {
             }
 
             sealed class Event : Relay() {
-                data class OnConnectionOpened<out WEB_SOCKET : Any>(val webSocket: WEB_SOCKET) :
-                    Event()
-
+                data class OnConnectionOpened<out WEB_SOCKET : Any>(val webSocket: WEB_SOCKET) : Event()
                 data class OnMessageReceived(val message: Message) : Event()
                 data class OnConnectionClosing(val shutdownReason: ShutdownReason) : Event()
                 data class OnConnectionClosed(val shutdownReason: ShutdownReason) : Event()

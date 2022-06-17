@@ -23,7 +23,7 @@ internal class RelayerDOJsonRpcResponseJsonRpcResultJsonAdapterTest {
         val adapter = moshi.adapter(RelayerDO.JsonRpcResponse.JsonRpcResult::class.java)
         val metadata = MetaDataVO("name", "desc", "url", listOf("icon"))
         val approvalParams =
-            SessionParamsVO.ApprovalParams(relay = RelayProtocolOptionsVO("waku"), responderPublicKey = "124")
+            SessionParamsVO.ApprovalParams(relay = RelayProtocolOptionsVO("iridium"), responderPublicKey = "124")
         val jsonResult = RelayerDO.JsonRpcResponse.JsonRpcResult(
             id = 1L,
             jsonrpc = "2.0",
@@ -48,7 +48,7 @@ internal class RelayerDOJsonRpcResponseJsonRpcResultJsonAdapterTest {
 
         val metadata = MetaDataVO("name", "desc", "url", listOf("icon"))
         val approvalParamsJsonResult = RelayerDO.JsonRpcResponse.JsonRpcResult(id = 11L,
-            result = SessionParamsVO.ApprovalParams(relay = RelayProtocolOptionsVO("waku"), responderPublicKey = "124"))
+            result = SessionParamsVO.ApprovalParams(relay = RelayProtocolOptionsVO("iridium"), responderPublicKey = "124"))
         val resultString = moshi.adapter(RelayerDO.JsonRpcResponse.JsonRpcResult::class.java).toJson(approvalParamsJsonResult)
         val result = adapter.fromJson(resultString)
         result is RelayerDO.JsonRpcResponse.JsonRpcResult
