@@ -52,6 +52,7 @@ internal class EngineInteractor(
         setupSequenceExpiration()
         collectJsonRpcRequests()
         collectJsonRpcResponses()
+        collectInternalErrors()
     }
 
     fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
@@ -355,7 +356,7 @@ internal class EngineInteractor(
         )
     }
 
-    fun extend(topic: String, onFailure: (Throwable) -> Unit) {
+    internal fun extend(topic: String, onFailure: (Throwable) -> Unit) {
         if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -436,6 +437,12 @@ internal class EngineInteractor(
                 }
             }
         }
+    }
+
+    private fun collectInternalErrors() {
+        relayer.internalErrors.onEach { exception ->
+            _engineEvent.emit(EngineDO.InternalError(exception))
+        }.launchIn(scope)
     }
 
     private fun onSessionPropose(request: WCRequestVO, payloadParams: PairingParamsVO.SessionProposeParams) {

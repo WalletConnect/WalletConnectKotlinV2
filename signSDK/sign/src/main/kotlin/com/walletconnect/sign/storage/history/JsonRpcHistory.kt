@@ -16,7 +16,7 @@ internal class JsonRpcHistory(private val sharedPreferences: SharedPreferences, 
                 jsonRpcHistoryQueries.insertOrAbortJsonRpcHistory(requestId, topic.value, method, payload)
                 jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOne() > 0L
             } else {
-                Logger.log("Duplicated JsonRpc RequestId: $requestId")
+                Logger.error("Duplicated JsonRpc RequestId: $requestId")
                 false
             }
         } catch (e: Exception) {

@@ -77,4 +77,8 @@ object DappDelegate : SignClient.DappDelegate {
     override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
         Log.d(tag(this), "onConnectionStateChange($state)")
     }
+
+    override fun onError(error: Sign.Model.Error) {
+        Log.d(tag(this), error.throwable.stackTraceToString())
+    }
 }

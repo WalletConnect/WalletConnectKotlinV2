@@ -1,15 +1,19 @@
 package com.walletconnect.sign.engine.model
 
 import com.squareup.moshi.JsonClass
+import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.model.type.EngineEvent
 import com.walletconnect.sign.core.model.type.Sequence
 import com.walletconnect.sign.core.model.vo.ExpiryVO
 import com.walletconnect.sign.core.model.vo.SecretKey
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
+import java.lang.Exception
 import java.net.URI
 
 internal sealed class EngineDO {
+
+    internal class InternalError(val exception: WalletConnectException.InternalError): EngineDO(), EngineEvent
 
     internal sealed class ProposedSequence {
         class Pairing(val uri: String) : ProposedSequence()
