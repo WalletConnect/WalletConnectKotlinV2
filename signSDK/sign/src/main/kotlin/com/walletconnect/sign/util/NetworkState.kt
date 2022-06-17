@@ -14,11 +14,8 @@ internal class NetworkState(context: Context) {
     private val _isWiFiAvailable = MutableStateFlow(false)
     private val _isCellularAvailable = MutableStateFlow(false)
 
-    val isAvailable: StateFlow<Boolean> = combine(_isWiFiAvailable, _isCellularAvailable) { wifi, cellular ->
-        if (!wifi && !cellular) false
-        else if (wifi) true
-        else cellular
-    }.stateIn(scope, SharingStarted.Eagerly, false)
+    val isAvailable: StateFlow<Boolean> = combine(_isWiFiAvailable, _isCellularAvailable)
+    { wifi, cellular -> !(!wifi && !cellular) }.stateIn(scope, SharingStarted.Eagerly, false)
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
 
@@ -54,7 +51,6 @@ internal class NetworkState(context: Context) {
     init {
         val request = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
             .build()
