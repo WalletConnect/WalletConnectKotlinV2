@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.crypto.data.keystore
 
 import android.content.SharedPreferences

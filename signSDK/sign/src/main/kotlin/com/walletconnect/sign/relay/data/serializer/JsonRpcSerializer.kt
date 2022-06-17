@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.relay.data.serializer
 
 import com.squareup.moshi.Moshi

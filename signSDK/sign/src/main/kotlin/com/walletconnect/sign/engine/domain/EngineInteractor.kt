@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException

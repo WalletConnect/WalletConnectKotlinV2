@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.crypto.data.repository
 
 import com.walletconnect.sign.core.model.vo.PrivateKey
