@@ -5,6 +5,7 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.sign.core.adapters.SubscriptionIdAdapter
 import com.walletconnect.sign.core.adapters.TopicAdapter
 import com.walletconnect.sign.core.adapters.TtlAdapter
+import com.walletconnect.sign.core.model.utils.JsonRpcRelay
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.TtlVO
@@ -23,7 +24,7 @@ internal sealed class RelayDTO {
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
-            val method: String = "iridium_publish",
+            val method: String = JsonRpcRelay.IRIDIUM_PUBLISH,
             @Json(name = "params")
             val params: Params
         ) : Publish() {
@@ -71,7 +72,7 @@ internal sealed class RelayDTO {
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
-            val method: String = "iridium_subscribe",
+            val method: String = JsonRpcRelay.IRIDIUM_SUBSCRIBE,
             @Json(name = "params")
             val params: Params
         ) : Subscribe() {
@@ -113,7 +114,7 @@ internal sealed class RelayDTO {
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
-            val method: String = "iridium_subscription",
+            val method: String = JsonRpcRelay.IRIDIUM_SUBSCRIPTION,
             @Json(name = "params")
             val params: Params
         ) : Subscription() {
@@ -168,7 +169,7 @@ internal sealed class RelayDTO {
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
-            val method: String = "iridium_unsubscribe",
+            val method: String = JsonRpcRelay.IRIDIUM_UNSUBSCRIBE,
             @Json(name = "params")
             val params: Params
         ) : Unsubscribe() {

@@ -2,6 +2,7 @@ package com.walletconnect.sign.client
 
 import android.app.Application
 import android.net.Uri
+import com.walletconnect.sign.core.model.utils.JsonRpcRelay
 import com.walletconnect.sign.network.Relay
 import java.net.URI
 
@@ -166,7 +167,7 @@ object Sign {
                     data class Request(
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
-                        val method: String = "iridium_publish",
+                        val method: String = JsonRpcRelay.IRIDIUM_PUBLISH,
                         val params: Params,
                     ) : Publish() {
 
@@ -196,7 +197,7 @@ object Sign {
                     data class Request(
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
-                        val method: String = "iridium_subscribe",
+                        val method: String = JsonRpcRelay.IRIDIUM_SUBSCRIBE,
                         val params: Params,
                     ) : Subscribe() {
 
@@ -223,7 +224,7 @@ object Sign {
                     data class Request(
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
-                        val method: String = "iridium_subscription",
+                        val method: String = JsonRpcRelay.IRIDIUM_SUBSCRIPTION,
                         val params: Params,
                     ) : Subscription() {
 
@@ -260,7 +261,7 @@ object Sign {
                     data class Request(
                         override val id: Long,
                         override val jsonrpc: String = "2.0",
-                        val method: String = "iridium_unsubscribe",
+                        val method: String = JsonRpcRelay.IRIDIUM_UNSUBSCRIBE,
                         val params: Params,
                     ) : Unsubscribe() {
 
