@@ -4,7 +4,7 @@ import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.scope.scope
 import com.walletconnect.sign.di.*
-import com.walletconnect.sign.engine.domain.EngineInteractor
+import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.network.Relay
 import kotlinx.coroutines.flow.collect
@@ -14,7 +14,7 @@ import org.koin.core.KoinApplication
 
 internal class SignProtocol : SignInterface, SignInterface.Websocket {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
-    private lateinit var engineInteractor: EngineInteractor
+    private lateinit var signEngine: SignEngine
     override val relay: Relay by lazy { wcKoinApp.koin.get() }
 
     companion object  {
@@ -37,15 +37,15 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                 )
             }
         }
-        engineInteractor = wcKoinApp.koin.get()
-        engineInteractor.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
+        signEngine = wcKoinApp.koin.get()
+        signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun setWalletDelegate(delegate: SignInterface.WalletDelegate) {
         checkEngineInitialization()
         scope.launch {
-            engineInteractor.engineEvent.collect { event ->
+            signEngine.engineEvent.collect { event ->
                 when (event) {
                     is EngineDO.SessionProposal -> delegate.onSessionProposal(event.toClientSessionProposal())
                     is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
@@ -64,7 +64,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun setDappDelegate(delegate: SignInterface.DappDelegate) {
         checkEngineInitialization()
         scope.launch {
-            engineInteractor.engineEvent.collect { event ->
+            signEngine.engineEvent.collect { event ->
                 when (event) {
                     is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
                     is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
@@ -88,7 +88,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     ) {
         checkEngineInitialization()
         try {
-            engineInteractor.proposeSequence(
+            signEngine.proposeSequence(
                 connect.namespaces.toMapOfEngineNamespacesProposal(),
                 connect.relays?.toListEngineOfRelayProtocolOptions(),
                 connect.pairingTopic,
@@ -104,7 +104,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun pair(pair: Sign.Params.Pair, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.pair(pair.uri)
+            signEngine.pair(pair.uri)
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
@@ -114,7 +114,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun approveSession(approve: Sign.Params.Approve, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.approve(approve.proposerPublicKey, approve.namespaces.toMapOfEngineNamespacesSession()) { error ->
+            signEngine.approve(approve.proposerPublicKey, approve.namespaces.toMapOfEngineNamespacesSession()) { error ->
                 onError(Sign.Model.Error(error))
             }
         } catch (error: Exception) {
@@ -126,7 +126,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun rejectSession(reject: Sign.Params.Reject, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.reject(reject.proposerPublicKey, reject.reason, reject.code) { error ->
+            signEngine.reject(reject.proposerPublicKey, reject.reason, reject.code) { error ->
                 onError(Sign.Model.Error(error))
             }
         } catch (error: Exception) {
@@ -138,7 +138,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun request(request: Sign.Params.Request, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.sessionRequest(request.toEngineDORequest()) { error ->
+            signEngine.sessionRequest(request.toEngineDORequest()) { error ->
                 onError(Sign.Model.Error(error))
             }
         } catch (error: Exception) {
@@ -150,7 +150,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun respond(response: Sign.Params.Response, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.respondSessionRequest(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponseVO()) { error ->
+            signEngine.respondSessionRequest(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponseVO()) { error ->
                 onError(Sign.Model.Error(error))
             }
         } catch (error: Exception) {
@@ -162,7 +162,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun update(update: Sign.Params.Update, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.updateSession(update.sessionTopic, update.namespaces.toMapOfEngineNamespacesSession())
+            signEngine.updateSession(update.sessionTopic, update.namespaces.toMapOfEngineNamespacesSession())
             { error -> onError(Sign.Model.Error(error)) }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
@@ -173,7 +173,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun extend(extend: Sign.Params.Extend, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.extend(extend.topic) { error -> onError(Sign.Model.Error(error)) }
+            signEngine.extend(extend.topic) { error -> onError(Sign.Model.Error(error)) }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
@@ -183,7 +183,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun emit(emit: Sign.Params.Emit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.emit(emit.topic, emit.event.toEngineEvent(emit.chainId)) { error -> onError(Sign.Model.Error(error)) }
+            signEngine.emit(emit.topic, emit.event.toEngineEvent(emit.chainId)) { error -> onError(Sign.Model.Error(error)) }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
@@ -193,7 +193,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing?) {
         checkEngineInitialization()
         try {
-            engineInteractor.ping(
+            signEngine.ping(
                 ping.topic,
                 { topic -> sessionPing?.onSuccess(Sign.Model.Ping.Success(topic)) },
                 { error -> sessionPing?.onError(Sign.Model.Ping.Error(error)) }
@@ -207,7 +207,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            engineInteractor.disconnect(disconnect.sessionTopic)
+            signEngine.disconnect(disconnect.sessionTopic)
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
@@ -216,19 +216,19 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     @Throws(IllegalStateException::class)
     override fun getListOfSettledSessions(): List<Sign.Model.Session> {
         checkEngineInitialization()
-        return engineInteractor.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
+        return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
     }
 
     @Throws(IllegalStateException::class)
     override fun getListOfSettledPairings(): List<Sign.Model.Pairing> {
         checkEngineInitialization()
-        return engineInteractor.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing)
+        return signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing)
     }
 
     @Throws(IllegalStateException::class)
     override fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest> {
         checkEngineInitialization()
-        return engineInteractor.getPendingRequests(TopicVO(topic)).mapToPendingRequests()
+        return signEngine.getPendingRequests(TopicVO(topic)).mapToPendingRequests()
     }
 
     // TODO: Uncomment once reinit scope logic is added
@@ -240,7 +240,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
 
     @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {
-        check(::engineInteractor.isInitialized) {
+        check(::signEngine.isInitialized) {
             "SignClient needs to be initialized first using the initialize function"
         }
     }
