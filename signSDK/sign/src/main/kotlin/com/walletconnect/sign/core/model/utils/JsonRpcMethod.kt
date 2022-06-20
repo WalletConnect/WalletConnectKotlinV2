@@ -18,10 +18,8 @@ internal object JsonRpcMethod {
     const val WC_SESSION_PING: String = "wc_sessionPing"
     @get:JvmSynthetic
     const val WC_SESSION_EVENT: String = "wc_sessionEvent"
-
     @get:JvmSynthetic
     const val WC_SESSION_UPDATE: String = "wc_sessionUpdate"
-
     @get:JvmSynthetic
     const val WC_SESSION_EXTEND: String = "wc_sessionExtend"
 }
