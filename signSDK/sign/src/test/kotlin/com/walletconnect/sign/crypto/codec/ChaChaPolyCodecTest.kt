@@ -1,11 +1,10 @@
 package com.walletconnect.sign.crypto.codec
 
 import com.walletconnect.sign.core.model.vo.SecretKey
-import com.walletconnect.sign.relay.data.codec.ChaChaPolyCodec
+import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
 import com.walletconnect.sign.util.Empty
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import java.lang.Exception
 import kotlin.test.assertEquals
 
 class ChaChaPolyCodecTest {

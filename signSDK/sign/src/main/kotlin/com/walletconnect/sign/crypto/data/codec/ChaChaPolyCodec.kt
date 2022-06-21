@@ -1,10 +1,10 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.relay.data.codec
+package com.walletconnect.sign.crypto.data.codec
 
 import com.walletconnect.sign.core.model.vo.Key
-import com.walletconnect.sign.relay.Codec
-import com.walletconnect.walletconnectv2.util.Empty
+import com.walletconnect.sign.crypto.Codec
+import com.walletconnect.sign.util.Empty
 import com.walletconnect.sign.util.hexToBytes
 import com.walletconnect.sign.util.randomBytes
 import org.bouncycastle.crypto.modes.ChaCha20Poly1305
@@ -41,7 +41,7 @@ internal class ChaChaPolyCodec : Codec {
 
         return when (envelopeType){
             EnvelopeTypes.TYPE_0 -> decryptType0(cipherTextBytes, key)
-            EnvelopeTypes.TYPE_1 -> decryptType1(cipherTextBytes)
+            EnvelopeTypes.TYPE_1 -> decryptType1(cipherTextBytes, key)
             else -> String.Empty
         }
     }
@@ -65,7 +65,7 @@ internal class ChaChaPolyCodec : Codec {
     }
 
 
-    private fun decryptType1(cipherTextBytes: ByteArray): String {
+    private fun decryptType1(cipherTextBytes: ByteArray, key: Key): String {
         val encryptedText = ByteArray(cipherTextBytes.size - NONCE_SIZE - KEY_SIZE - EnvelopeTypes.SIZE)
         val nonce = ByteArray(NONCE_SIZE)
         val envelopeType = ByteArray(EnvelopeTypes.SIZE)

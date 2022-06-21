@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.relay.data.serializer
+package com.walletconnect.sign.relay.data
 
 import com.squareup.moshi.Moshi
 import com.walletconnect.sign.core.model.type.ClientParams
@@ -9,8 +9,8 @@ import com.walletconnect.sign.core.model.utils.JsonRpcMethod
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.pairing.PairingSettlementVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.SessionSettlementVO
+import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.sign.crypto.CryptoRepository
-import com.walletconnect.sign.relay.Codec
 import com.walletconnect.sign.relay.model.RelayerDO
 import com.walletconnect.sign.util.Empty
 import com.walletconnect.sign.util.Logger
@@ -26,7 +26,7 @@ internal class JsonRpcSerializer(
         return chaChaPolyCodec.encrypt(payload, symmetricKey)
     }
 
-    internal fun decrypt(message: String, topic: TopicVO): String {
+    internal fun decrypt(message: String, topic: TopicVO): String { //add optional receiverPublicKey which is used in DH with senderPublicKey
         return try {
             val symmetricKey = crypto.getSymmetricKey(topic)
             chaChaPolyCodec.decrypt(message, symmetricKey)

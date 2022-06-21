@@ -1,4 +1,4 @@
-package com.walletconnect.sign.relay
+package com.walletconnect.sign.crypto
 
 import com.walletconnect.sign.core.model.vo.Key
 

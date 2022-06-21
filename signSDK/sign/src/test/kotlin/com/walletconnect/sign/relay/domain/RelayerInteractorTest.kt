@@ -10,7 +10,7 @@ import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
 import com.walletconnect.sign.network.Relay
 import com.walletconnect.sign.network.model.RelayDTO
-import com.walletconnect.sign.relay.data.serializer.JsonRpcSerializer
+import com.walletconnect.sign.relay.data.JsonRpcSerializer
 import com.walletconnect.sign.storage.history.JsonRpcHistory
 import com.walletconnect.sign.util.Empty
 import com.walletconnect.sign.util.Logger
