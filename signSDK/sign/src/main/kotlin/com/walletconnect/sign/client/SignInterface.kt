@@ -14,7 +14,9 @@ interface SignInterface {
 
         //Utils
         fun onConnectionStateChange(state: Sign.Model.ConnectionState)
+        fun onError(error: Sign.Model.Error)
     }
+
     interface DappDelegate {
         fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession)
@@ -28,6 +30,7 @@ interface SignInterface {
 
         // Utils
         fun onConnectionStateChange(state: Sign.Model.ConnectionState)
+        fun onError(error: Sign.Model.Error)
     }
 
     fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit)

@@ -64,6 +64,10 @@ object WalletDelegate : SignClient.WalletDelegate {
         Log.d(tag(this), "onConnectionStateChange($state)")
     }
 
+    override fun onError(error: Sign.Model.Error) {
+        Log.e(tag(this), error.throwable.stackTraceToString())
+    }
+
     fun setSelectedAccount(selectedChainAddressId: Int) {
         this.selectedChainAddressId = selectedChainAddressId
     }
