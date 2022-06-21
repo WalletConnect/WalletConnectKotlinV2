@@ -93,15 +93,18 @@ internal class RelayerInteractor(
     ) {
         checkConnectionWorking()
         val requestJson = serializer.serialize(payload)
+
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
-
-            val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, EnvelopeType.ZERO)
-
-            relay.publish(topic.value, encryptedRequest, shouldPrompt(payload.method)) { result ->
-                result.fold(
-                    onSuccess = { onSuccess() },
-                    onFailure = { error -> onFailure(error) }
-                )
+            try {
+                val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, EnvelopeType.ZERO)
+                relay.publish(topic.value, encryptedRequest, shouldPrompt(payload.method)) { result ->
+                    result.fold(
+                        onSuccess = { onSuccess() },
+                        onFailure = { error -> onFailure(error) }
+                    )
+                }
+            } catch (e: WalletConnectException) {
+                onFailure(e)
             }
         }
     }
@@ -116,16 +119,19 @@ internal class RelayerInteractor(
         val jsonResponseDO = response.toRelayerDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
 
-        val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, EnvelopeType.ZERO)
-
-        relay.publish(topic.value, encryptedResponse) { result ->
-            result.fold(
-                onSuccess = {
-                    jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
-                    onSuccess()
-                },
-                onFailure = { error -> onFailure(error) }
-            )
+        try {
+            val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, EnvelopeType.ZERO)
+            relay.publish(topic.value, encryptedResponse) { result ->
+                result.fold(
+                    onSuccess = {
+                        jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
+                        onSuccess()
+                    },
+                    onFailure = { error -> onFailure(error) }
+                )
+            }
+        } catch (e: WalletConnectException) {
+            onFailure(e)
         }
     }
 
@@ -187,6 +193,8 @@ internal class RelayerInteractor(
             relay.subscriptionRequest
                 .map { relayRequest ->
                     val topic = TopicVO(relayRequest.subscriptionTopic)
+
+                    //todo: will error be handled in exceptionHandler
                     val message = chaChaPolyCodec.decrypt(topic, relayRequest.message)
 
                     Pair(message, topic)
