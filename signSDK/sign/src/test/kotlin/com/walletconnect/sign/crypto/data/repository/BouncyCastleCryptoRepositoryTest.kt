@@ -58,7 +58,6 @@ internal class BouncyCastleCryptoRepositoryTest {
         assert(topic.value.length == 64)
 
         assertEquals("2c03712132ad2f85adc472a2242e608d67bfecd4362d05012d69a89143fecd16", topic.value)
-//        assertEquals("0653ca620c7b4990392e1c53c4a51c14a2840cd20f0f1524cf435b17b6fe988c", sharedKey.keyAsHex)
     }
 
     @Test
