@@ -11,11 +11,11 @@ import org.koin.dsl.module
 internal fun relayerModule() = module {
 
     single<Codec> {
-        ChaChaPolyCodec()
+        ChaChaPolyCodec(get())
     }
 
     single {
-        JsonRpcSerializer(get(), get(), get())
+        JsonRpcSerializer(get())
     }
 
     single {
@@ -23,6 +23,6 @@ internal fun relayerModule() = module {
     }
 
     single {
-        RelayerInteractor(get(), get(), get(), get())
+        RelayerInteractor(get(), get(), get(), get(), get())
     }
 }

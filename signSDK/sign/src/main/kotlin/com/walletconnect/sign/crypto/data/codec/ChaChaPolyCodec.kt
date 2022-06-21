@@ -2,9 +2,15 @@
 
 package com.walletconnect.sign.crypto.data.codec
 
-import com.walletconnect.sign.core.model.vo.Key
+import com.walletconnect.sign.core.exceptions.client.WalletConnectException
+import com.walletconnect.sign.core.model.type.enums.EnvelopeType
+import com.walletconnect.sign.core.model.vo.PublicKey
+import com.walletconnect.sign.core.model.vo.SymmetricKey
+import com.walletconnect.sign.core.model.vo.TopicVO
+import com.walletconnect.sign.core.model.vo.sync.ParticipantsVO
 import com.walletconnect.sign.crypto.Codec
-import com.walletconnect.sign.util.Empty
+import com.walletconnect.sign.crypto.KeyManagementRepository
+import com.walletconnect.sign.util.bytesToHex
 import com.walletconnect.sign.util.hexToBytes
 import com.walletconnect.sign.util.randomBytes
 import org.bouncycastle.crypto.modes.ChaCha20Poly1305
@@ -13,87 +19,141 @@ import org.bouncycastle.crypto.params.ParametersWithIV
 import org.bouncycastle.util.encoders.Base64
 import java.nio.ByteBuffer
 
-internal class ChaChaPolyCodec : Codec {
+/* Note:
+* The cha20Poly1305.init() throws InvalidArgumentException in the debugging mode code but it doesn't affects the final method execution
+* EnvelopeType.ZERO -> tp + iv + sb
+* EnvelopeType.ONE -> tp + pk + iv + sb
+ */
+
+internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagementRepository) : Codec {
 
     private val cha20Poly1305 = ChaCha20Poly1305()
 
-    override fun encrypt(message: String, key: Key): String {
-        val input = message.toByteArray(Charsets.UTF_8)
+    @Throws(
+        WalletConnectException.UnknownEnvelopeTypeException::class,
+        WalletConnectException.MissingParticipantsException::class
+    )
+    override fun encrypt(topic: TopicVO, jsonRpcPayload: String, envelopeType: EnvelopeType, participants: ParticipantsVO?): String {
+        val input = jsonRpcPayload.toByteArray(Charsets.UTF_8)
         val nonceBytes = randomBytes(NONCE_SIZE)
 
-        val params = ParametersWithIV(KeyParameter(key.keyAsHex.hexToBytes()), nonceBytes)
-        cha20Poly1305.init(true, params) //note: in the debugging mode code throws InvalidArgumentException but it doesn't affects the final method execution
-        val cipherText = ByteArray(cha20Poly1305.getOutputSize(input.size))
-        val outputSize = cha20Poly1305.processBytes(input, 0, input.size, cipherText, 0)
-        cha20Poly1305.doFinal(cipherText, outputSize)
-
-        val output: ByteArray = ByteBuffer.allocate(cipherText.size + NONCE_SIZE)
-            .put(nonceBytes)
-            .put(cipherText)
-            .array()
-
-        return Base64.toBase64String(output)
-    }
-
-    override fun decrypt(cipherText: String, key: Key): String {
-        val cipherTextBytes = Base64.decode(cipherText)
-        val envelopeType = cipherTextBytes[0]
-
-        return when (envelopeType){
-            EnvelopeTypes.TYPE_0 -> decryptType0(cipherTextBytes, key)
-            EnvelopeTypes.TYPE_1 -> decryptType1(cipherTextBytes, key)
-            else -> String.Empty
+        return when (envelopeType.id) {
+            EnvelopeType.ZERO.id -> encryptEnvelopeType0(topic, nonceBytes, input, envelopeType)
+            EnvelopeType.ONE.id -> encryptEnvelopeType1(participants, nonceBytes, input, envelopeType)
+            else -> throw WalletConnectException.UnknownEnvelopeTypeException("Unknown envelope type: ${envelopeType.id}")
         }
     }
 
-    private fun decryptType0(cipherTextBytes: ByteArray, key: Key): String {
-        val encryptedText = ByteArray(cipherTextBytes.size - NONCE_SIZE - EnvelopeTypes.SIZE)
-        val nonce = ByteArray(NONCE_SIZE)
-        val envelopeType = ByteArray(EnvelopeTypes.SIZE)
-        val byteBuffer: ByteBuffer = ByteBuffer.wrap(cipherTextBytes)
-        byteBuffer.get(envelopeType)
-        byteBuffer.get(nonce)
-        byteBuffer.get(encryptedText)
+    @Throws(
+        WalletConnectException.UnknownEnvelopeTypeException::class,
+        WalletConnectException.MissingReceiverPublicKeyException::class
+    )
+    override fun decrypt(topic: TopicVO, encryptedPayload: String, receiverPublicKey: PublicKey?): String {
+        val encryptedPayloadBytes = Base64.decode(encryptedPayload)
 
-        val params = ParametersWithIV(KeyParameter(key.keyAsHex.hexToBytes()), nonce)
-        cha20Poly1305.init(false, params) //note: in the debugging mode code throws InvalidArgumentException but it doesn't affects the final method execution
-        val cipherTextByteArray = ByteArray(cha20Poly1305.getOutputSize(encryptedText.size))
-        val outputSize = cha20Poly1305.processBytes(encryptedText, 0, encryptedText.size, cipherTextByteArray, 0)
-        cha20Poly1305.doFinal(cipherTextByteArray, outputSize)
-
-        return String(cipherTextByteArray, Charsets.UTF_8)
+        return when (val envelopeType = encryptedPayloadBytes.envelopeType) {
+            EnvelopeType.ZERO.id -> decryptType0(topic, encryptedPayloadBytes)
+            EnvelopeType.ONE.id -> decryptType1(encryptedPayloadBytes, receiverPublicKey)
+            else -> throw WalletConnectException.UnknownEnvelopeTypeException("Unknown envelope type: $envelopeType")
+        }
     }
 
-
-    private fun decryptType1(cipherTextBytes: ByteArray, key: Key): String {
-        val encryptedText = ByteArray(cipherTextBytes.size - NONCE_SIZE - KEY_SIZE - EnvelopeTypes.SIZE)
+    private fun decryptType0(topic: TopicVO, encryptedPayloadBytes: ByteArray): String {
+        val envelopeType = ByteArray(ENVELOPE_TYPE_SIZE)
         val nonce = ByteArray(NONCE_SIZE)
-        val envelopeType = ByteArray(EnvelopeTypes.SIZE)
+        val encryptedMessageBytes = ByteArray(encryptedPayloadBytes.size - NONCE_SIZE - ENVELOPE_TYPE_SIZE)
+
+        //tp + iv + sb
+        val byteBuffer: ByteBuffer = ByteBuffer.wrap(encryptedPayloadBytes)
+        byteBuffer.get(envelopeType)
+        byteBuffer.get(nonce)
+        byteBuffer.get(encryptedMessageBytes)
+
+        val symmetricKey = keyManagementRepository.getSymmetricKey(topic)
+        val decryptedTextBytes = decryptPayload(symmetricKey, nonce, encryptedMessageBytes)
+
+        return String(decryptedTextBytes, Charsets.UTF_8)
+    }
+
+    private fun decryptType1(encryptedPayloadBytes: ByteArray, receiverPublicKey: PublicKey?): String {
+        if (receiverPublicKey == null) throw WalletConnectException.MissingReceiverPublicKeyException("Missing receiver public key")
+
+        val envelopeType = ByteArray(ENVELOPE_TYPE_SIZE)
+        val nonce = ByteArray(NONCE_SIZE)
         val publicKey = ByteArray(KEY_SIZE)
-        val byteBuffer: ByteBuffer = ByteBuffer.wrap(cipherTextBytes)
+        val encryptedMessageBytes = ByteArray(encryptedPayloadBytes.size - NONCE_SIZE - KEY_SIZE - ENVELOPE_TYPE_SIZE)
+
+        //tp + pk + iv + sb
+        val byteBuffer: ByteBuffer = ByteBuffer.wrap(encryptedPayloadBytes)
         byteBuffer.get(envelopeType)
         byteBuffer.get(publicKey)
         byteBuffer.get(nonce)
-        byteBuffer.get(encryptedText)
+        byteBuffer.get(encryptedMessageBytes)
 
-        val params = ParametersWithIV(KeyParameter(key.keyAsHex.hexToBytes()), nonce)
-        cha20Poly1305.init(false, params) //note: in the debugging mode code throws InvalidArgumentException but it doesn't affects the final method execution
-        val cipherTextByteArray = ByteArray(cha20Poly1305.getOutputSize(encryptedText.size))
-        val outputSize = cha20Poly1305.processBytes(encryptedText, 0, encryptedText.size, cipherTextByteArray, 0)
-        cha20Poly1305.doFinal(cipherTextByteArray, outputSize)
+        val peer = PublicKey(publicKey.bytesToHex())
+        val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(receiverPublicKey, peer)
+        val decryptedTextBytes = decryptPayload(symmetricKey, nonce, encryptedMessageBytes)
 
-        return String(cipherTextByteArray, Charsets.UTF_8)
+        return String(decryptedTextBytes, Charsets.UTF_8)
     }
 
-    private object EnvelopeTypes {
-        const val TYPE_0: Byte = 0
-        const val TYPE_1: Byte = 1
+    private fun encryptEnvelopeType0(topic: TopicVO, nonceBytes: ByteArray, input: ByteArray, envelopeType: EnvelopeType): String {
+        val symmetricKey = keyManagementRepository.getSymmetricKey(topic)
+        val cipherBytes = encryptPayload(symmetricKey, nonceBytes, input)
+        val payloadSize = cipherBytes.size + NONCE_SIZE + ENVELOPE_TYPE_SIZE
 
-        const val SIZE = 1
+        //tp + iv + sb
+        val encryptedPayloadBytes = ByteBuffer.allocate(payloadSize)
+            .put(envelopeType.id).put(nonceBytes).put(cipherBytes)
+            .array()
+
+        return Base64.toBase64String(encryptedPayloadBytes)
+    }
+
+    private fun encryptEnvelopeType1(
+        participants: ParticipantsVO?,
+        nonceBytes: ByteArray,
+        input: ByteArray,
+        envelopeType: EnvelopeType,
+    ): String {
+        if (participants == null) throw WalletConnectException.MissingParticipantsException("Missing participants when encrypting envelope type 1")
+        val self = participants.senderPublicKey
+        val selfBytes = self.keyAsHex.hexToBytes()
+        val peer = participants.receiverPublicKey
+        val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(self, peer)
+        val cipherBytes = encryptPayload(symmetricKey, nonceBytes, input)
+        val payloadSize = cipherBytes.size + NONCE_SIZE + ENVELOPE_TYPE_SIZE + selfBytes.size
+
+        //tp + pk + iv + sb
+        val encryptedPayloadBytes = ByteBuffer.allocate(payloadSize)
+            .put(envelopeType.id).put(selfBytes).put(nonceBytes).put(cipherBytes)
+            .array()
+
+        return Base64.toBase64String(encryptedPayloadBytes)
+    }
+
+    private fun encryptPayload(key: SymmetricKey, nonce: ByteArray, input: ByteArray): ByteArray {
+        val params = ParametersWithIV(KeyParameter(key.keyAsHex.hexToBytes()), nonce)
+        cha20Poly1305.init(true, params)
+        val cipherBytes = ByteArray(cha20Poly1305.getOutputSize(input.size))
+        val outputSize = cha20Poly1305.processBytes(input, 0, input.size, cipherBytes, 0)
+        cha20Poly1305.doFinal(cipherBytes, outputSize)
+        return cipherBytes
+    }
+
+    private fun decryptPayload(key: SymmetricKey, nonce: ByteArray, input: ByteArray): ByteArray {
+        val params = ParametersWithIV(KeyParameter(key.keyAsHex.hexToBytes()), nonce)
+        cha20Poly1305.init(false, params)
+        val decryptedTextBytes = ByteArray(cha20Poly1305.getOutputSize(input.size))
+        val outputSize = cha20Poly1305.processBytes(input, 0, input.size, decryptedTextBytes, 0)
+        cha20Poly1305.doFinal(decryptedTextBytes, outputSize)
+        return decryptedTextBytes
     }
 
     companion object {
         private const val NONCE_SIZE = 12
-        private const val KEY_SIZE = 64
+        private const val KEY_SIZE = 32
+        private const val ENVELOPE_TYPE_SIZE = 1
+        private val ByteArray.envelopeType: Byte get() = this[0]
     }
 }

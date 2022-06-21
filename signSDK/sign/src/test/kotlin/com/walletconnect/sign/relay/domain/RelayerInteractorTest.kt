@@ -34,7 +34,7 @@ internal class RelayerInteractorTest {
 
     private val serializer: JsonRpcSerializer = mockk {
         every { serialize(any()) } returns String.Empty
-        every { encrypt(any(), any()) } returns String.Empty
+        every { encode(any(), any(), any(), any()) } returns String.Empty
     }
 
     private val jsonRpcHistory: JsonRpcHistory = mockk {
