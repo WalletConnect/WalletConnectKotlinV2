@@ -1,6 +1,15 @@
 package com.walletconnect.chat.client
 
+import com.walletconnect.chat.copiedFromSign.core.scope.scope
+import com.walletconnect.chat.copiedFromSign.di.cryptoManager
+import com.walletconnect.chat.core.model.vo.AccountId
+import com.walletconnect.chat.core.model.vo.EventsVO
+import com.walletconnect.chat.di.engineModule
+import com.walletconnect.chat.di.keyServerModule
 import com.walletconnect.chat.engine.domain.ChatEngine
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 
 internal class ChatProtocol : ChatInterface {
@@ -14,20 +23,56 @@ internal class ChatProtocol : ChatInterface {
 
     @Throws(IllegalStateException::class)
     override fun initialize(init: Chat.Params.Init, onError: (Chat.Model.Error) -> Unit) {
+        with(init) {
+            wcKoinApp.run {
+                androidContext(application)
+                modules(
+                    cryptoManager(), // TODO: Maybe rename to cryptoModule?
+                    keyServerModule(keyServerUrl),
+                    engineModule()
+                )
+            }
+        }
+
+        chatEngine = wcKoinApp.koin.get()
+    }
+
+    override fun setChatDelegate(delegate: ChatInterface.ChatDelegate) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        scope.launch {
+            chatEngine.events.collect { event ->
+                when (event) {
+                    is EventsVO.OnInvite -> TODO()
+                    is EventsVO.OnJoined -> TODO()
+                    is EventsVO.OnLeft -> TODO()
+                    is EventsVO.OnMessage -> TODO()
+                }
+            }
+        }
     }
 
     @Throws(IllegalStateException::class)
-    override fun register(register: Chat.Params.Register, onError: (Chat.Model.Error) -> Unit) {
+    override fun register(register: Chat.Params.Register, listener: Chat.Listeners.Register) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        chatEngine.registerAccount(
+            AccountId(register.account),
+            { publicKey -> listener.onSuccess(publicKey) },
+            { throwable -> listener.onError(Chat.Model.Error(throwable)) },
+            register.private ?: false
+        )
     }
 
     @Throws(IllegalStateException::class)
-    override fun resolve(resolve: Chat.Params.Resolve, onError: (Chat.Model.Error) -> Unit) {
+    override fun resolve(resolve: Chat.Params.Resolve, listener: Chat.Listeners.Resolve) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        chatEngine.resolveAccount(
+            AccountId(resolve.account),
+            { publicKey -> listener.onSuccess(publicKey) },
+            { throwable -> listener.onError(Chat.Model.Error(throwable)) }
+        )
     }
 
     @Throws(IllegalStateException::class)
@@ -92,8 +137,8 @@ internal class ChatProtocol : ChatInterface {
 
     @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {
-//        check(::engineInteractor.isInitialized) {
-//            "ChatClient needs to be initialized first using the initialize function"
-//        }
+        check(::chatEngine.isInitialized) {
+            "ChatClient needs to be initialized first using the initialize function"
+        }
     }
 }

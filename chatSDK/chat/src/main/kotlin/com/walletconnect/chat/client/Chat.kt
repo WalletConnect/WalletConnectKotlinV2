@@ -4,13 +4,24 @@ import android.app.Application
 
 object Chat {
 
+    sealed interface Listeners {
+        interface Resolve : Listeners {
+            fun onSuccess(publicKey: String)
+            fun onError(error: Model.Error)
+        }
+        interface Register : Listeners {
+            fun onSuccess(publicKey: String)
+            fun onError(error: Model.Error)
+        }
+    }
+
     sealed class Model {
         data class Error(val throwable: Throwable) : Model() // TODO: Should this be extracted to core for easier error handling?
 
         data class Invite(
             val account: String,
             val message: String,
-            val signature: String? = "", // TODO: Extract String.Empty to core module and use it here
+            val signature: String? = null
         ) : Model()
 
         data class Media(
@@ -19,13 +30,21 @@ object Chat {
         ) : Model()
 
         data class Thread(
-            // TODO: Define structure in specs
             val topic: String,
+            val selfAccount: String,
+            val peerAccount: String,
         ) : Model()
 
         data class Message(
-            // TODO: Define structure in specs
             val message: String,
+            val authorAccount: String,
+            val timestamp: Long,
+            val media: Media,
+        ) : Model()
+
+        data class AccountIdWithPublicKey(
+            val account: String,
+            val publicKey: String,
         ) : Model()
 
         sealed class Events : Model() {
@@ -33,14 +52,14 @@ object Chat {
 
             data class OnJoined(val topic: String) : Events()
 
-            data class OnMessage(val topic: String, val message: String) : Events()
+            data class OnMessage(val topic: String, val message: Message) : Events()
 
             data class OnLeft(val topic: String) : Events()
         }
     }
 
     sealed class Params {
-        data class Init(val application: Application) : Params()
+        data class Init(val application: Application, val keyServerUrl: String) : Params()
 
         data class Register(val account: String, val private: Boolean? = false) : Params()
 

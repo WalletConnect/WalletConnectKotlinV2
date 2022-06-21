@@ -12,4 +12,7 @@ internal interface KeyStore {
     fun getKeys(tag: String): Pair<String, String>
 
     fun deleteKeys(tag: String)
+
+    // Added with Chat SDK
+    fun getInviteKeys(): Pair<String, String>
 }

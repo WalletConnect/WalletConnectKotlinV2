@@ -2,7 +2,7 @@ package com.walletconnect.wallet
 
 import android.app.Application
 import android.util.Log
-import com.walletconnect.sample_common.PROJECT_ID
+import com.walletconnect.sample_common.BuildConfig
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
@@ -31,7 +31,8 @@ class WalletSampleApplication : Application() {
         // Sample of how to use a URI to initialize the WalletConnect Sign SDK
         val initString = Sign.Params.Init(
             application = this,
-            relayServerUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=$PROJECT_ID",   //TODO: register at https://walletconnect.com/register to get a project ID
+            relayServerUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}",
+            //TODO: register at https://walletconnect.com/register to get a project ID
             metadata = Sign.Model.AppMetaData(
                 name = "Kotlin Wallet",
                 description = "Wallet description",
