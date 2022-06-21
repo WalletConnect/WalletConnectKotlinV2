@@ -197,14 +197,14 @@ internal class RelayerInteractor(
             handleJsonRpcResult(result)
         } ?: serializer.tryDeserialize<RelayerDO.JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
             handleJsonRpcError(error)
-        } ?: Logger.error("RelayerInteractor: Received unknown object type")
+        } ?: handleError("RelayerInteractor: Received unknown object type")
     }
 
     private suspend fun handleRequest(clientJsonRpc: RelayerDO.ClientJsonRpc, topic: TopicVO, decryptedMessage: String) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(WCRequestVO(topic, clientJsonRpc.id, clientJsonRpc.method, params))
-            } ?: Logger.error("RelayerInteractor: Unknown request params")
+            } ?: handleError("RelayerInteractor: Unknown request params")
         }
     }
 
