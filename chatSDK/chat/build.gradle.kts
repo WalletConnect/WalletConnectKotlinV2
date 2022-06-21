@@ -37,4 +37,5 @@ dependencies {
     security()
     jUnit5()
     androidXTest()
+    navigationComponent()
 }
