@@ -39,7 +39,7 @@ import com.walletconnect.sign.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
-internal class EngineInteractor(
+internal class SignEngine(
     private val relayer: RelayerInteractor,
     private val crypto: CryptoRepository,
     private val sequenceStorageRepository: SequenceStorageRepository,
