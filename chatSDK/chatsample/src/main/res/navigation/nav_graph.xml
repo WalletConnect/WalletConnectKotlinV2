@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/threadsGraph">
+
+    <navigation
+        android:id="@+id/threadsGraph"
+        app:startDestination="@id/threadsFragment">
+        <fragment
+            android:id="@+id/threadsFragment"
+            android:name="com.walletconnect.chatsample.ui.threads.ThreadsFragment"
+            android:label="Chat"
+            tools:layout="@layout/fragment_threads">
+            <action
+                android:id="@+id/action_threadsFragment_to_threadInviteDialogFragment"
+                app:destination="@id/threadInviteDialogFragment" />
+        </fragment>
+        <dialog
+            android:id="@+id/threadInviteDialogFragment"
+            android:name="com.walletconnect.chatsample.ui.threads.thread_invite.ThreadInviteBottomSheet"
+            android:label="New Chat"
+            tools:layout="@layout/bottom_sheet_thread_invite" />
+        <action
+            android:id="@+id/action_global_messagesFragment"
+            app:destination="@id/messagesFragment">
+
+            <argument
+                android:name="@string/selected_thread"
+                app:argType="string"
+                app:nullable="false" />
+        </action>
+        <action
+            android:id="@+id/action_global_invitesFragment"
+            app:destination="@id/invitesFragment">
+            <argument
+                android:name="@string/selected_invite"
+                app:argType="string"
+                app:nullable="false" />
+        </action>
+    </navigation>
+    <fragment
+        android:id="@+id/invitesFragment"
+        android:name="com.walletconnect.chatsample.ui.invites.InvitesFragment"
+        android:label="Chat Requests"
+        tools:layout="@layout/fragment_invites">
+        <action
+            android:id="@+id/action_invitesFragment_to_threadsGraph"
+            app:destination="@id/threadsGraph"
+            app:popUpTo="@id/threadsFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/messagesFragment"
+        android:name="com.walletconnect.chatsample.ui.messages.MessagesFragment"
+        android:label="Messages"
+        tools:layout="@layout/fragment_messages">
+        <action
+            android:id="@+id/action_messagesFragment_to_threadsGraph"
+            app:destination="@id/threadsGraph"
+            app:popUpTo="@id/threadsFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+
+</navigation>

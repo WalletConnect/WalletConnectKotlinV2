@@ -7,7 +7,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.launch
 
 object ChatDelegate : ChatClient.ChatDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
