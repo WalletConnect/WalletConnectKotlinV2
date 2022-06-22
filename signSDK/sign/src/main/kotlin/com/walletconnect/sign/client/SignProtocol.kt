@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.client
 
 import com.walletconnect.sign.client.mapper.*

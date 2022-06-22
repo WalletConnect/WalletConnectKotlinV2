@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.relay.domain
 
 import com.walletconnect.sign.client.Sign

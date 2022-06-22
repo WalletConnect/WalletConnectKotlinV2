@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.relay.data.codec
 
 import com.walletconnect.sign.core.model.vo.Key
