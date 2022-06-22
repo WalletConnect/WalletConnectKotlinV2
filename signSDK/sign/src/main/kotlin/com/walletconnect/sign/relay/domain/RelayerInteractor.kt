@@ -32,10 +32,13 @@ internal class RelayerInteractor(
     networkState: NetworkState,
 ) {
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequestVO> = MutableSharedFlow()
-    internal val clientSyncJsonRpc: SharedFlow<WCRequestVO> = _clientSyncJsonRpc
+    val clientSyncJsonRpc: SharedFlow<WCRequestVO> = _clientSyncJsonRpc.asSharedFlow()
 
     private val _peerResponse: MutableSharedFlow<WCResponseVO> = MutableSharedFlow()
-    val peerResponse: SharedFlow<WCResponseVO> = _peerResponse
+    val peerResponse: SharedFlow<WCResponseVO> = _peerResponse.asSharedFlow()
+
+    private val _internalErrors = MutableSharedFlow<WalletConnectException.InternalError>()
+    val internalErrors: SharedFlow<WalletConnectException.InternalError> = _internalErrors.asSharedFlow()
 
     private val _isNetworkAvailable: StateFlow<Boolean> = networkState.isAvailable
     private val _isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -192,14 +195,14 @@ internal class RelayerInteractor(
             handleJsonRpcResult(result)
         } ?: serializer.tryDeserialize<RelayerDO.JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
             handleJsonRpcError(error)
-        } ?: Logger.error("RelayerInteractor: Received unknown object type")
+        } ?: handleError("RelayerInteractor: Received unknown object type")
     }
 
     private suspend fun handleRequest(clientJsonRpc: RelayerDO.ClientJsonRpc, topic: TopicVO, decryptedMessage: String) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(WCRequestVO(topic, clientJsonRpc.id, clientJsonRpc.method, params))
-            } ?: Logger.error("RelayerInteractor: Unknown request params")
+            } ?: handleError("RelayerInteractor: Unknown request params")
         }
     }
 
@@ -210,7 +213,7 @@ internal class RelayerInteractor(
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 val responseVO = JsonRpcResponseVO.JsonRpcResult(jsonRpcResult.id, result = jsonRpcResult.result)
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(responseVO, params))
-            } ?: Logger.error("RelayerInteractor: Unknown result params")
+            } ?: handleError("RelayerInteractor: Unknown result params")
         }
     }
 
@@ -220,7 +223,7 @@ internal class RelayerInteractor(
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(jsonRpcError.toJsonRpcErrorVO(), params))
-            } ?: Logger.error("RelayerInteractor: Unknown error params")
+            } ?: handleError("RelayerInteractor: Unknown error params")
         }
     }
 
@@ -232,6 +235,12 @@ internal class RelayerInteractor(
         }
     }
 
-    private fun shouldPrompt(method: String): Boolean =
-        method == JsonRpcMethod.WC_SESSION_REQUEST || method == JsonRpcMethod.WC_SESSION_PROPOSE
+    private fun shouldPrompt(method: String): Boolean = method == JsonRpcMethod.WC_SESSION_REQUEST || method == JsonRpcMethod.WC_SESSION_PROPOSE
+
+    private fun handleError(errorMessage: String) {
+        Logger.error(errorMessage)
+        scope.launch {
+            _internalErrors.emit(WalletConnectException.InternalError(errorMessage))
+        }
+    }
 }

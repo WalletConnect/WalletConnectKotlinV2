@@ -3,7 +3,7 @@ package com.walletconnect.sign.relay
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @ExperimentalCoroutinesApi
-internal class WakuRelayRepositoryTest {
+internal class RelayRepositoryTest {
 
 //    @get:Rule
 //    val coroutineTestRule = CoroutineTestRule()

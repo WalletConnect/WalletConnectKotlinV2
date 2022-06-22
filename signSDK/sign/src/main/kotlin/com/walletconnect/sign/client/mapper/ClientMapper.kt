@@ -198,3 +198,7 @@ internal fun Sign.ConnectionType.toRelayConnectionType(): ConnectionType {
 @JvmSynthetic
 internal fun EngineDO.ConnectionState.toClientConnectionState(): Sign.Model.ConnectionState =
     Sign.Model.ConnectionState(isAvailable)
+
+@JvmSynthetic
+internal fun EngineDO.InternalError.toClientError(): Sign.Model.Error =
+    Sign.Model.Error(this.exception)
