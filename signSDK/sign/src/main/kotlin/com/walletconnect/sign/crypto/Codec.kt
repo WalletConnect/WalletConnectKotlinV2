@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.crypto
 
 import com.walletconnect.sign.core.model.type.enums.EnvelopeType

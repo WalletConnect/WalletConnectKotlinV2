@@ -150,10 +150,10 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         return decryptedTextBytes
     }
 
-    companion object {
-        private const val NONCE_SIZE = 12
-        private const val KEY_SIZE = 32
-        private const val ENVELOPE_TYPE_SIZE = 1
-        private val ByteArray.envelopeType: Byte get() = this[0]
+    private companion object {
+        const val NONCE_SIZE = 12
+        const val KEY_SIZE = 32
+        const val ENVELOPE_TYPE_SIZE = 1
+        val ByteArray.envelopeType: Byte get() = this[0]
     }
 }
