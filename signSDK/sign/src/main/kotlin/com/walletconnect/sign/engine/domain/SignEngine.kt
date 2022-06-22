@@ -149,7 +149,7 @@ internal class SignEngine(
             crypto.removeKeys(walletConnectUri.topic.value)
             relayer.unsubscribe(pairing.topic)
         } finally {
-            throw WalletConnectException.GenericException("Error trying to create pairing. Validate URI")
+            throw WalletConnectException.GenericException("Error trying to pair with the other peer.")
         }
     }
 
@@ -594,6 +594,7 @@ internal class SignEngine(
 
         if (!sequenceStorageRepository.isUpdatedNamespaceValid(session.topic.value, request.id.extractTimestamp())) {
             relayer.respondWithError(request, PeerError.InvalidUpdateRequest("Update Namespace Request ID too old"))
+            return
         }
 
         sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, params.namespaces, request.id, onSuccess = {
