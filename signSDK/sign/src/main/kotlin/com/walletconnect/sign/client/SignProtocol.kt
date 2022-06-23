@@ -21,6 +21,10 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
         val instance = SignProtocol()
     }
 
+    init {
+        wcKoinApp.modules(jwtModule())
+    }
+
     override fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
         with(initial) {
             // TODO: re-init scope
@@ -28,6 +32,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
             wcKoinApp.run {
                 androidContext(application)
                 modules(
+                    jwtModule(),
                     commonModule(),
                     cryptoManager(),
                     networkModule(serverUrl, relay, connectionType.toRelayConnectionType()),

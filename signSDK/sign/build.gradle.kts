@@ -62,6 +62,7 @@ dependencies {
     sqlDelight()
     security()
     koin()
+    retrofit()
     implementation("com.github.multiformats:java-multibase:1.1.0")  //https://mvnrepository.com/artifact/com.github.multiformats/java-multibase/1.1.0 vulnerability detected with library
 
     androidXTest()
