@@ -16,11 +16,11 @@ internal class BouncyCastleCryptoRepositoryTest {
     private val publicKey = PublicKey("590c2c627be7af08597091ff80dd41f7fa28acd10ef7191d7e830e116d3a186a")
     private val privateKey = PrivateKey("36bf507903537de91f5e573666eaa69b1fa313974f23b2b59645f20fea505854")
     private val keyChain: KeyStore = KeyChainMock()
-    private val sut = spyk(BouncyCastleCryptoRepository(keyChain), recordPrivateCalls = true)
+    private val sut = spyk(BouncyCastleKeyManagementRepository(keyChain), recordPrivateCalls = true)
     private val topicVO = TopicVO("topic")
 
     @BeforeEach
-    fun setUp(){
+    fun setUp() {
         sut.setKeyPair(publicKey, privateKey)
     }
 
@@ -32,13 +32,11 @@ internal class BouncyCastleCryptoRepositoryTest {
 
     @Test
     fun `Generate shared key test`() {
-        val result = sut.getSharedKey(
-            PrivateKey("1fb63fca5c6ac731246f2f069d3bc2454345d5208254aa8ea7bffc6d110c8862"),
-            publicKey
-        )
+        val peerKey = PublicKey("1fb63fca5c6ac731246f2f069d3bc2454345d5208254aa8ea7bffc6d110c8862")
+        val result = sut.generateSymmetricKeyFromKeyAgreement(publicKey, peerKey)
 
-        assert(result.length == 64)
-        assertEquals("9c87e48e69b33a613907515bcd5b1b4cc10bbaf15167b19804b00f0a9217e607", result.lowercase())
+        assert(result.keyAsHex.length == 64)
+        assertEquals("b6382630866cb15f6ad2858d0ed8857029b0a7d0655bdf7a43b2bca86f6d966d", result.keyAsHex.lowercase())
     }
 
     @Test
@@ -54,14 +52,12 @@ internal class BouncyCastleCryptoRepositoryTest {
     @Test
     fun `Generate a shared key and return a Topic object`() {
         val peerKey = PublicKey("ff7a7d5767c362b0a17ad92299ebdb7831dcbd9a56959c01368c7404543b3342")
-        val (sharedKey, topic) = sut.generateTopicAndSharedKey(publicKey, peerKey)
+        val topic = sut.generateTopicFromKeyAgreement(publicKey, peerKey)
 
         assert(topic.value.isNotBlank())
         assert(topic.value.length == 64)
-        assert(sharedKey.keyAsHex.length == 64)
 
         assertEquals("2c03712132ad2f85adc472a2242e608d67bfecd4362d05012d69a89143fecd16", topic.value)
-        assertEquals("0653ca620c7b4990392e1c53c4a51c14a2840cd20f0f1524cf435b17b6fe988c", sharedKey.keyAsHex)
     }
 
     @Test

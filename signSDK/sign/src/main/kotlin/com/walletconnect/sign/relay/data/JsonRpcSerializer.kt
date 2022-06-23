@@ -1,40 +1,17 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.relay.data.serializer
+package com.walletconnect.sign.relay.data
 
 import com.squareup.moshi.Moshi
 import com.walletconnect.sign.core.model.type.ClientParams
 import com.walletconnect.sign.core.model.type.SerializableJsonRpc
 import com.walletconnect.sign.core.model.utils.JsonRpcMethod
-import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.pairing.PairingSettlementVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.SessionSettlementVO
-import com.walletconnect.sign.crypto.CryptoRepository
-import com.walletconnect.sign.relay.Codec
 import com.walletconnect.sign.relay.model.RelayerDO
 import com.walletconnect.sign.util.Empty
-import com.walletconnect.sign.util.Logger
 
-internal class JsonRpcSerializer(
-    private val chaChaPolyCodec: Codec,
-    private val crypto: CryptoRepository,
-    private val moshi: Moshi,
-) {
-
-    internal fun encrypt(payload: String, topic: TopicVO): String {
-        val symmetricKey = crypto.getSymmetricKey(topic)
-        return chaChaPolyCodec.encrypt(payload, symmetricKey)
-    }
-
-    internal fun decrypt(message: String, topic: TopicVO): String {
-        return try {
-            val symmetricKey = crypto.getSymmetricKey(topic)
-            chaChaPolyCodec.decrypt(message, symmetricKey)
-        } catch (e: Exception) {
-            Logger.error("Decrypting error: ${e.message}")
-            String.Empty
-        }
-    }
+internal class JsonRpcSerializer(private val moshi: Moshi) {
 
     internal fun deserialize(method: String, json: String): ClientParams? =
         when (method) {
