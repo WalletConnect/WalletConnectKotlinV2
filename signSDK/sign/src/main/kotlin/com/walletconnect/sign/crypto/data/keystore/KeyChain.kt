@@ -42,9 +42,4 @@ internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyS
         val publicKeyByteArray = concatKeysByteArray.sliceArray((concatKeysByteArray.size / 2) until concatKeysByteArray.size)
         return privateKeyByteArray.bytesToHex() to publicKeyByteArray.bytesToHex()
     }
-
-    //Added with Chat SDK
-    override fun getInviteKeys(): Pair<String, String> {
-        TODO("Not yet implemented")
-    }
 }
