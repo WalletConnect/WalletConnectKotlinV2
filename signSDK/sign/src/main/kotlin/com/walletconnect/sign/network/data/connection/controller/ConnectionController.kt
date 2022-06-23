@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.network.data.connection.controller
 
 import com.walletconnect.sign.network.data.connection.ConnectionEvent

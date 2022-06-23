@@ -9,11 +9,11 @@ internal class KeyChainMock : KeyStore {
 
     private val mapOfKeys = mutableMapOf<String, String>()
 
-    override fun setSecretKey(tag: String, key: Key) {
+    override fun setSymmetricKey(tag: String, key: Key) {
         mapOfKeys[tag] = key.keyAsHex
     }
 
-    override fun getSecretKey(tag: String): String {
+    override fun getSymmetricKey(tag: String): String {
         return mapOfKeys[tag] ?: ""
     }
 

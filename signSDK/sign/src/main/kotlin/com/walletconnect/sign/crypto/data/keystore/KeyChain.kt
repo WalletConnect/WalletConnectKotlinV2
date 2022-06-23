@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.crypto.data.keystore
 
 import android.content.SharedPreferences
@@ -9,11 +11,11 @@ import com.walletconnect.sign.util.hexToBytes
 
 internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyStore {
 
-    override fun setSecretKey(tag: String, key: Key) {
+    override fun setSymmetricKey(tag: String, key: Key) {
         sharedPreferences.edit().putString(tag, key.keyAsHex).apply()
     }
 
-    override fun getSecretKey(tag: String): String {
+    override fun getSymmetricKey(tag: String): String {
         return sharedPreferences.getString(tag, String.Empty) ?: String.Empty
     }
 

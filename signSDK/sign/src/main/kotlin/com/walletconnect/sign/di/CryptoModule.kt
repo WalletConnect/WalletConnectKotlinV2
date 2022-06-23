@@ -2,10 +2,10 @@ package com.walletconnect.sign.di
 
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
-import com.walletconnect.sign.crypto.CryptoRepository
+import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.crypto.KeyStore
 import com.walletconnect.sign.crypto.data.keystore.KeyChain
-import com.walletconnect.sign.crypto.data.repository.BouncyCastleCryptoRepository
+import com.walletconnect.sign.crypto.data.repository.BouncyCastleKeyManagementRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -28,5 +28,5 @@ internal fun cryptoManager() = module {
 
     single<KeyStore> { KeyChain(get(named(DITags.KEY_STORE))) }
 
-    single<CryptoRepository> { BouncyCastleCryptoRepository(get()) }
+    single<KeyManagementRepository> { BouncyCastleKeyManagementRepository(get()) }
 }

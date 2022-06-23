@@ -1,11 +1,11 @@
 package com.walletconnect.chat.client
 
-import com.walletconnect.chat.engine.domain.EngineInteractor
+import com.walletconnect.chat.engine.domain.ChatEngine
 import org.koin.core.KoinApplication
 
 internal class ChatProtocol : ChatInterface {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
-    private lateinit var engineInteractor: EngineInteractor
+    private lateinit var chatEngine: ChatEngine
 //    override val relay: Relay by lazy { wcKoinApp.koin.get() } TODO: Figure out how to get relay here
 
     companion object {

@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
@@ -9,7 +11,7 @@ import com.walletconnect.sign.core.model.type.EngineEvent
 import com.walletconnect.sign.core.model.type.enums.Sequences
 import com.walletconnect.sign.core.model.vo.ExpiryVO
 import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.SecretKey
+import com.walletconnect.sign.core.model.vo.SymmetricKey
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
@@ -28,7 +30,7 @@ import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
 import com.walletconnect.sign.core.model.vo.sync.WCResponseVO
 import com.walletconnect.sign.core.scope.scope
-import com.walletconnect.sign.crypto.CryptoRepository
+import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.*
 import com.walletconnect.sign.relay.domain.RelayerInteractor
@@ -39,7 +41,7 @@ import kotlinx.coroutines.flow.*
 
 internal class SignEngine(
     private val relayer: RelayerInteractor,
-    private val crypto: CryptoRepository,
+    private val crypto: KeyManagementRepository,
     private val sequenceStorageRepository: SequenceStorageRepository,
     private val metaData: EngineDO.AppMetaData,
 ) {
@@ -110,7 +112,7 @@ internal class SignEngine(
         onFailure: (Throwable) -> Unit,
     ) {
         val pairingTopic: TopicVO = generateTopic()
-        val symmetricKey: SecretKey = crypto.generateSymmetricKey(pairingTopic)
+        val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptionsVO()
         val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
         val pairing = PairingVO.createInactivePairing(pairingTopic, relay, walletConnectUri.toAbsoluteString())
@@ -147,7 +149,7 @@ internal class SignEngine(
             crypto.removeKeys(walletConnectUri.topic.value)
             relayer.unsubscribe(pairing.topic)
         } finally {
-            throw WalletConnectException.GenericException("Error trying to create pairing. Validate URI")
+            throw WalletConnectException.GenericException("Error trying to pair with the other peer.")
         }
     }
 
@@ -195,7 +197,7 @@ internal class SignEngine(
         }
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
-        val (_, sessionTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, PublicKey(proposerPublicKey))
+        val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(proposerPublicKey))
         relayer.subscribe(sessionTopic)
 
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
@@ -592,6 +594,7 @@ internal class SignEngine(
 
         if (!sequenceStorageRepository.isUpdatedNamespaceValid(session.topic.value, request.id.extractTimestamp())) {
             relayer.respondWithError(request, PeerError.InvalidUpdateRequest("Update Namespace Request ID too old"))
+            return
         }
 
         sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, params.namespaces, request.id, onSuccess = {
@@ -659,7 +662,7 @@ internal class SignEngine(
                 val selfPublicKey = PublicKey(params.proposer.publicKey)
                 val approveParams = response.result as SessionParamsVO.ApprovalParams
                 val responderPublicKey = PublicKey(approveParams.responderPublicKey)
-                val (_, sessionTopic) = crypto.generateTopicAndSharedKey(selfPublicKey, responderPublicKey)
+                val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
                 relayer.subscribe(sessionTopic)
             }
             is JsonRpcResponseVO.JsonRpcError -> {

@@ -8,9 +8,10 @@ import com.walletconnect.sign.core.model.type.SettlementSequence
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
+import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
 import com.walletconnect.sign.network.Relay
 import com.walletconnect.sign.network.model.RelayDTO
-import com.walletconnect.sign.relay.data.serializer.JsonRpcSerializer
+import com.walletconnect.sign.relay.data.JsonRpcSerializer
 import com.walletconnect.sign.storage.history.JsonRpcHistory
 import com.walletconnect.sign.util.Empty
 import com.walletconnect.sign.util.Logger
@@ -28,13 +29,16 @@ import kotlin.test.assertFalse
 @ExperimentalCoroutinesApi
 internal class RelayerInteractorTest {
 
+    private val chaChaPolyCodec: ChaChaPolyCodec = mockk {
+        every { encrypt(any(), any(), any(), any()) } returns String.Empty
+    }
+
     private val relay: Relay = mockk {
         every { subscriptionRequest } returns flow { }
     }
 
     private val serializer: JsonRpcSerializer = mockk {
         every { serialize(any()) } returns String.Empty
-        every { encrypt(any(), any()) } returns String.Empty
     }
 
     private val jsonRpcHistory: JsonRpcHistory = mockk {
@@ -48,7 +52,7 @@ internal class RelayerInteractorTest {
 
     private val sut =
         spyk(
-            RelayerInteractor(relay, serializer, jsonRpcHistory, networkState),
+            RelayerInteractor(relay, serializer, chaChaPolyCodec, jsonRpcHistory, networkState),
             recordPrivateCalls = true
         ) {
             every { checkConnectionWorking() } answers { }
@@ -232,7 +236,7 @@ internal class RelayerInteractorTest {
     }
 
     @Test
-    fun `IsConnectionOpened initial value is false`() = runBlockingTest{
+    fun `IsConnectionOpened initial value is false`() = runBlockingTest {
         assertFalse(sut.isConnectionAvailable.first())
     }
 }

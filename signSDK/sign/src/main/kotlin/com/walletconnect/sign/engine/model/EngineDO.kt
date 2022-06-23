@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.engine.model
 
 import com.squareup.moshi.JsonClass
@@ -5,7 +7,7 @@ import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.model.type.EngineEvent
 import com.walletconnect.sign.core.model.type.Sequence
 import com.walletconnect.sign.core.model.vo.ExpiryVO
-import com.walletconnect.sign.core.model.vo.SecretKey
+import com.walletconnect.sign.core.model.vo.SymmetricKey
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import java.net.URI
@@ -21,7 +23,7 @@ internal sealed class EngineDO {
 
     internal class WalletConnectUri(
         val topic: TopicVO,
-        val symKey: SecretKey,
+        val symKey: SymmetricKey,
         val relay: RelayProtocolOptionsVO,
         val version: String = "2"
     ) : EngineDO()
