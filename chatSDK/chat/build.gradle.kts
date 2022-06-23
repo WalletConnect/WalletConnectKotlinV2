@@ -35,4 +35,6 @@ dependencies {
     coroutines()
     bouncyCastle()
     security()
+    jUnit5()
+    androidXTest()
 }
