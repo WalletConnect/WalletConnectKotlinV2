@@ -10,14 +10,18 @@ import android.net.NetworkRequest
 import com.walletconnect.sign.core.scope.scope
 import kotlinx.coroutines.flow.*
 
-internal class NetworkState(context: Context) {
+private enum class Transport {
+    UNKNOWN, CELLULAR, WIFI
+}
 
+internal class NetworkState(context: Context) {
     private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     private val _isWiFiAvailable = MutableStateFlow(false)
     private val _isCellularAvailable = MutableStateFlow(false)
+    private var currentTransport: Transport = Transport.UNKNOWN
 
     val isAvailable: StateFlow<Boolean> = combine(_isWiFiAvailable, _isCellularAvailable)
-    { wifi, cellular -> !(!wifi && !cellular) }.stateIn(scope, SharingStarted.Eagerly, false)
+    { wifi, cellular -> wifi || cellular }.stateIn(scope, SharingStarted.Eagerly, false)
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
 
@@ -35,17 +39,23 @@ internal class NetworkState(context: Context) {
             }
         }
 
+        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+            super.onCapabilitiesChanged(network, networkCapabilities)
+
+            currentTransport = when {
+                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> Transport.WIFI
+                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> Transport.CELLULAR
+                else -> Transport.UNKNOWN
+            }
+        }
+
         override fun onLost(network: Network) {
+            if (currentTransport == Transport.WIFI) {
+                _isWiFiAvailable.compareAndSet(expect = true, update = false)
+            }
 
-            connectivityManager.getNetworkCapabilities(network)?.let { capabilities ->
-
-                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                    _isWiFiAvailable.compareAndSet(expect = true, update = false)
-                }
-
-                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-                    _isCellularAvailable.compareAndSet(expect = true, update = false)
-                }
+            if (currentTransport == Transport.CELLULAR) {
+                _isCellularAvailable.compareAndSet(expect = true, update = false)
             }
         }
     }
