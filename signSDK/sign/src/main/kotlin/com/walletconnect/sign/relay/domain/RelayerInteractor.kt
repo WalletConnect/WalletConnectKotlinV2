@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.relay.domain
 
 import com.walletconnect.sign.client.Sign
@@ -5,6 +7,7 @@ import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.core.model.type.ClientParams
 import com.walletconnect.sign.core.model.type.SettlementSequence
+import com.walletconnect.sign.core.model.type.enums.EnvelopeType
 import com.walletconnect.sign.core.model.utils.JsonRpcMethod
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
@@ -14,10 +17,12 @@ import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
 import com.walletconnect.sign.core.model.vo.sync.WCResponseVO
 import com.walletconnect.sign.core.scope.scope
+import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.sign.network.Relay
-import com.walletconnect.sign.relay.data.serializer.JsonRpcSerializer
+import com.walletconnect.sign.relay.data.JsonRpcSerializer
 import com.walletconnect.sign.relay.model.*
 import com.walletconnect.sign.storage.history.JsonRpcHistory
+import com.walletconnect.sign.util.Empty
 import com.walletconnect.sign.util.Logger
 import com.walletconnect.sign.util.NetworkState
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -28,8 +33,9 @@ import java.net.HttpURLConnection
 internal class RelayerInteractor(
     private val relay: Relay,
     private val serializer: JsonRpcSerializer,
+    private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
-    networkState: NetworkState,
+    networkState: NetworkState, //todo: move to the RelayClient
 ) {
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequestVO> = MutableSharedFlow()
     val clientSyncJsonRpc: SharedFlow<WCRequestVO> = _clientSyncJsonRpc.asSharedFlow()
@@ -48,7 +54,7 @@ internal class RelayerInteractor(
             .stateIn(scope, SharingStarted.Eagerly, false)
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
-    private val exceptionHandler = CoroutineExceptionHandler { _, exception -> Logger.error("Exception handler: $exception") }
+    private val exceptionHandler = CoroutineExceptionHandler { _, exception -> handleError(exception.message ?: String.Empty) }
 
     @get:JvmSynthetic
     private val Throwable.toWalletConnectException: WalletConnectException
@@ -88,10 +94,10 @@ internal class RelayerInteractor(
     ) {
         checkConnectionWorking()
         val requestJson = serializer.serialize(payload)
-
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
-            val encodedRequest = serializer.encrypt(requestJson, topic)
-            relay.publish(topic.value, encodedRequest, shouldPrompt(payload.method)) { result ->
+            val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, EnvelopeType.ZERO)
+
+            relay.publish(topic.value, encryptedRequest, shouldPrompt(payload.method)) { result ->
                 result.fold(
                     onSuccess = { onSuccess() },
                     onFailure = { error -> onFailure(error) }
@@ -109,9 +115,9 @@ internal class RelayerInteractor(
         checkConnectionWorking()
         val jsonResponseDO = response.toRelayerDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
-        val encodedJson = serializer.encrypt(responseJson, topic)
+        val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, EnvelopeType.ZERO)
 
-        relay.publish(topic.value, encodedJson) { result ->
+        relay.publish(topic.value, encryptedResponse) { result ->
             result.fold(
                 onSuccess = {
                     jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
@@ -129,18 +135,26 @@ internal class RelayerInteractor(
 
     internal fun respondWithSuccess(request: WCRequestVO) {
         val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = true)
-        publishJsonRpcResponse(request.topic, result, onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
+        try {
+            publishJsonRpcResponse(request.topic, result, onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
+        } catch (e: Exception) {
+            handleError(e.message ?: String.Empty)
+        }
     }
 
     internal fun respondWithError(request: WCRequestVO, error: PeerError, onFailure: (Throwable) -> Unit = {}) {
         Logger.error("Responding with error: ${error.message}: ${error.code}")
         val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = request.id, error = JsonRpcResponseVO.Error(error.code, error.message))
 
-        publishJsonRpcResponse(request.topic, jsonRpcError,
-            onFailure = { failure ->
-                Logger.error("Cannot respond with error: $failure")
-                onFailure(failure)
-            })
+        try {
+            publishJsonRpcResponse(request.topic, jsonRpcError,
+                onFailure = { failure ->
+                    Logger.error("Cannot respond with error: $failure")
+                    onFailure(failure)
+                })
+        } catch (e: Exception) {
+            handleError(e.message ?: String.Empty)
+        }
     }
 
     internal fun subscribe(topic: TopicVO) {
@@ -180,9 +194,9 @@ internal class RelayerInteractor(
             relay.subscriptionRequest
                 .map { relayRequest ->
                     val topic = TopicVO(relayRequest.subscriptionTopic)
-                    val decodedMessage = serializer.decrypt(relayRequest.message, topic)
+                    val message = chaChaPolyCodec.decrypt(topic, relayRequest.message)
 
-                    Pair(decodedMessage, topic)
+                    Pair(message, topic)
                 }
                 .collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
         }
@@ -235,7 +249,8 @@ internal class RelayerInteractor(
         }
     }
 
-    private fun shouldPrompt(method: String): Boolean = method == JsonRpcMethod.WC_SESSION_REQUEST || method == JsonRpcMethod.WC_SESSION_PROPOSE
+    private fun shouldPrompt(method: String): Boolean =
+        method == JsonRpcMethod.WC_SESSION_REQUEST || method == JsonRpcMethod.WC_SESSION_PROPOSE
 
     private fun handleError(errorMessage: String) {
         Logger.error(errorMessage)

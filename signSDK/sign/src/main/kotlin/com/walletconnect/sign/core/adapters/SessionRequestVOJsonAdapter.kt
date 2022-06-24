@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.core.adapters
 
 import com.squareup.moshi.JsonAdapter

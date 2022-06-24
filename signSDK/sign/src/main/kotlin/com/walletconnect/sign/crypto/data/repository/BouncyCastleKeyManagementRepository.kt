@@ -1,10 +1,12 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.crypto.data.repository
 
 import com.walletconnect.sign.core.model.vo.PrivateKey
 import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.SecretKey
+import com.walletconnect.sign.core.model.vo.SymmetricKey
 import com.walletconnect.sign.core.model.vo.TopicVO
-import com.walletconnect.sign.crypto.CryptoRepository
+import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.crypto.KeyStore
 import com.walletconnect.sign.util.bytesToHex
 import com.walletconnect.sign.util.hexToBytes
@@ -17,23 +19,23 @@ import java.security.SecureRandom
 import javax.crypto.KeyGenerator
 import com.walletconnect.sign.core.model.vo.Key as WCKey
 
-internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : CryptoRepository {
+internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStore) : KeyManagementRepository {
 
-    override fun generateSymmetricKey(topic: TopicVO): SecretKey {
+    override fun generateSymmetricKey(topic: TopicVO): SymmetricKey {
         val symmetricKey = createSymmetricKey().bytesToHex()
-        keyChain.setSecretKey(topic.value, SecretKey(symmetricKey))
+        keyChain.setSymmetricKey(topic.value, SymmetricKey(symmetricKey))
 
-        return SecretKey(symmetricKey)
+        return SymmetricKey(symmetricKey)
     }
 
-    override fun setSymmetricKey(topic: TopicVO, symmetricKey: SecretKey) {
-        keyChain.setSecretKey(topic.value, symmetricKey)
+    override fun setSymmetricKey(topic: TopicVO, symmetricKey: SymmetricKey) {
+        keyChain.setSymmetricKey(topic.value, symmetricKey)
     }
 
-    override fun getSymmetricKey(topic: TopicVO): SecretKey {
-        val symmetricKey = keyChain.getSecretKey(topic.value)
+    override fun getSymmetricKey(topic: TopicVO): SymmetricKey {
+        val symmetricKey = keyChain.getSymmetricKey(topic.value)
 
-        return SecretKey(symmetricKey)
+        return SymmetricKey(symmetricKey)
     }
 
     override fun generateKeyPair(): PublicKey {
@@ -46,25 +48,23 @@ internal class BouncyCastleCryptoRepository(private val keyChain: KeyStore) : Cr
         return PublicKey(publicKey.bytesToHex().lowercase())
     }
 
-    internal fun getSharedKey(selfPrivate: PrivateKey, peerPublic: PublicKey): String {
-        val sharedKeyBytes = ByteArray(KEY_SIZE)
-        X25519.scalarMult(selfPrivate.keyAsHex.hexToBytes(), 0, peerPublic.keyAsHex.hexToBytes(), 0, sharedKeyBytes, 0)
+    override fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): TopicVO {
+        val symmetricKey = generateSymmetricKeyFromKeyAgreement(self, peer)
+        val topic = TopicVO(sha256(symmetricKey.keyAsHex))
+        keyChain.setSymmetricKey(topic.value.lowercase(), symmetricKey)
+        setKeyAgreement(topic, self, peer)
 
-        return sharedKeyBytes.bytesToHex()
+        return topic
     }
 
-    override fun generateTopicAndSharedKey(self: PublicKey, peer: PublicKey): Pair<SecretKey, TopicVO> {
+    override fun generateSymmetricKeyFromKeyAgreement(self: PublicKey, peer: PublicKey): SymmetricKey {
         val (_, privateKey) = getKeyPair(self)
         val sharedSecretBytes = ByteArray(KEY_SIZE)
         X25519.scalarMult(privateKey.keyAsHex.hexToBytes(), 0, peer.keyAsHex.hexToBytes(), 0, sharedSecretBytes, 0)
         val sharedSecret = sharedSecretBytes.bytesToHex()
-        val sharedKeyBytes = deriveHKDFKey(sharedSecret)
-        val secretKey = SecretKey(sharedKeyBytes.bytesToHex())
-        val topic = TopicVO(sha256(secretKey.keyAsHex))
-        keyChain.setSecretKey(topic.value.lowercase(), secretKey)
-        setKeyAgreement(topic, self, peer)
+        val symmetricKeyBytes = deriveHKDFKey(sharedSecret)
 
-        return Pair(secretKey, topic)
+        return SymmetricKey(symmetricKeyBytes.bytesToHex())
     }
 
     override fun removeKeys(tag: String) {

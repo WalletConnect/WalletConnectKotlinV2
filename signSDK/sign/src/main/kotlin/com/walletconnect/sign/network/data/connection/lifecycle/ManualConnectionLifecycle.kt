@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.network.data.connection.lifecycle
 
 import com.tinder.scarlet.Lifecycle

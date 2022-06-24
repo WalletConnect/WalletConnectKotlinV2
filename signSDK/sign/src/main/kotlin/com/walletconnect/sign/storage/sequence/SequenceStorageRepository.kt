@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.storage.sequence
 
 import android.database.sqlite.SQLiteException

@@ -1,7 +1,7 @@
 package com.walletconnect.sign.engine.domain
 
 import com.walletconnect.sign.core.exceptions.*
-import com.walletconnect.sign.core.model.vo.SecretKey
+import com.walletconnect.sign.core.model.vo.SymmetricKey
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
@@ -133,7 +133,7 @@ internal object Validator {
         return EngineDO.WalletConnectUri(
             topic = TopicVO(pairUri.userInfo),
             relay = RelayProtocolOptionsVO(protocol = relayProtocol, data = relayData),
-            symKey = SecretKey(symKey)
+            symKey = SymmetricKey(symKey)
         )
     }
 
