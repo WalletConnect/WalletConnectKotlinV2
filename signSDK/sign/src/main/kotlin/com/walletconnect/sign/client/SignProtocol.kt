@@ -1,8 +1,10 @@
 package com.walletconnect.sign.client
 
+import android.util.Log
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.scope.scope
+import com.walletconnect.sign.crypto.data.repository.JwtRepository
 import com.walletconnect.sign.di.*
 import com.walletconnect.sign.engine.domain.EngineInteractor
 import com.walletconnect.sign.engine.model.EngineDO
@@ -21,10 +23,6 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
         val instance = SignProtocol()
     }
 
-    init {
-        wcKoinApp.modules(jwtModule())
-    }
-
     override fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
         with(initial) {
             // TODO: re-init scope
@@ -32,7 +30,6 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
             wcKoinApp.run {
                 androidContext(application)
                 modules(
-                    jwtModule(),
                     commonModule(),
                     cryptoManager(),
                     networkModule(serverUrl, relay, connectionType.toRelayConnectionType()),
