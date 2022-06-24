@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.walletconnect.showcase"
-        minSdk = 23
+        minSdk = MIN_SDK
         targetSdk = 32
         versionCode = 1
         versionName = "1.0"
