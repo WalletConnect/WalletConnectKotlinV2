@@ -1,4 +1,4 @@
-![WalletConnect V2](../docs/walletconnect-banner.svg)
+![WalletConnect V2](/docs/walletconnect-banner.svg)
 
 # **WalletConnect - Kotlin**
 
