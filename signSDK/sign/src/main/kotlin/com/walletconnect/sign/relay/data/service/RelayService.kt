@@ -1,9 +1,9 @@
-package com.walletconnect.sign.network.data.service
+package com.walletconnect.sign.relay.data.service
 
 import com.tinder.scarlet.WebSocket
 import com.tinder.scarlet.ws.Receive
 import com.tinder.scarlet.ws.Send
-import com.walletconnect.sign.network.model.RelayDTO
+import com.walletconnect.sign.relay.model.RelayDTO
 import kotlinx.coroutines.flow.Flow
 
 internal interface RelayService {

@@ -1,4 +1,4 @@
-package com.walletconnect.sign.network.model
+package com.walletconnect.sign.relay.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

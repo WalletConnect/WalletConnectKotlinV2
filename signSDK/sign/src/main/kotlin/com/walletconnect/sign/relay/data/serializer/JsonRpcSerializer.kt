@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.relay.data
+package com.walletconnect.sign.relay.data.serializer
 
 import com.squareup.moshi.Moshi
 import com.walletconnect.sign.core.model.type.ClientParams

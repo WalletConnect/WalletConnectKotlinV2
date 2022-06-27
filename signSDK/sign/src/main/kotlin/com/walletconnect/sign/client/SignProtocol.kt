@@ -8,7 +8,7 @@ import com.walletconnect.sign.core.scope.scope
 import com.walletconnect.sign.di.*
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
-import com.walletconnect.sign.network.Relay
+import com.walletconnect.sign.relay.Relay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext

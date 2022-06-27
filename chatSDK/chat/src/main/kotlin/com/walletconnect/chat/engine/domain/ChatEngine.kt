@@ -19,6 +19,7 @@ internal class ChatEngine(
     private val registerAccountUseCase: RegisterAccountUseCase,
     private val resolveAccountUseCase: ResolveAccountUseCase,
     private val keyManagementRepository: KeyManagementRepository,
+
 ) {
     private val _events: MutableSharedFlow<EventsVO> = MutableSharedFlow()
     val events: SharedFlow<EventsVO> = _events.asSharedFlow()

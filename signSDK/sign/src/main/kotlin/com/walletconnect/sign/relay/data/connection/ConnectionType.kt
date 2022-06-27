@@ -1,4 +1,4 @@
-package com.walletconnect.sign.network.data.connection
+package com.walletconnect.sign.relay.data.connection
 
 internal enum class ConnectionType {
     AUTOMATIC, MANUAL

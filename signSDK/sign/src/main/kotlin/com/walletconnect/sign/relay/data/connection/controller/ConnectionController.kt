@@ -1,8 +1,8 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.network.data.connection.controller
+package com.walletconnect.sign.relay.data.connection.controller
 
-import com.walletconnect.sign.network.data.connection.ConnectionEvent
+import com.walletconnect.sign.relay.data.connection.ConnectionEvent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

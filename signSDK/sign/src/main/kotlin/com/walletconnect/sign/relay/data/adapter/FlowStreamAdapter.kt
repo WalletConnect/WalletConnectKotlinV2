@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.network.data.adapter
+package com.walletconnect.sign.relay.data.adapter
 
 import com.tinder.scarlet.Stream
 import com.tinder.scarlet.StreamAdapter

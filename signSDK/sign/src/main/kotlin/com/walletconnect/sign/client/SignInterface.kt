@@ -1,6 +1,6 @@
 package com.walletconnect.sign.client
 
-import com.walletconnect.sign.network.Relay
+import com.walletconnect.sign.relay.Relay
 
 interface SignInterface {
     interface WalletDelegate {

@@ -21,9 +21,9 @@ import com.walletconnect.sign.core.model.vo.ExpiryVO
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.TtlVO
-import com.walletconnect.sign.network.data.adapter.FlowStreamAdapter
-import com.walletconnect.sign.network.data.service.RelayService
-import com.walletconnect.sign.network.model.RelayDTO
+import com.walletconnect.sign.relay.data.adapter.FlowStreamAdapter
+import com.walletconnect.sign.relay.data.service.RelayService
+import com.walletconnect.sign.relay.model.RelayDTO
 import com.walletconnect.sign.util.CoroutineTestRule
 import com.walletconnect.sign.util.getRandom64ByteHexString
 import com.walletconnect.sign.util.runTest

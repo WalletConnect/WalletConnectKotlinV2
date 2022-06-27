@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.network
+package com.walletconnect.sign.relay
 
 import com.walletconnect.sign.client.Sign
 import kotlinx.coroutines.flow.Flow

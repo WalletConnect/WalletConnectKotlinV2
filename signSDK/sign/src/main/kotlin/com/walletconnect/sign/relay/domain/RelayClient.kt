@@ -1,19 +1,19 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.network.data.client
+package com.walletconnect.sign.relay.domain
 
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.core.exceptions.WRONG_CONNECTION_TYPE
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.scope.scope
-import com.walletconnect.sign.network.Relay
-import com.walletconnect.sign.network.data.connection.controller.ConnectionController
-import com.walletconnect.sign.network.data.service.RelayService
-import com.walletconnect.sign.network.model.RelayDTO
-import com.walletconnect.sign.network.model.toRelayAcknowledgment
-import com.walletconnect.sign.network.model.toRelayEvent
-import com.walletconnect.sign.network.model.toRelayRequest
+import com.walletconnect.sign.relay.Relay
+import com.walletconnect.sign.relay.data.connection.controller.ConnectionController
+import com.walletconnect.sign.relay.data.service.RelayService
+import com.walletconnect.sign.relay.model.RelayDTO
+import com.walletconnect.sign.relay.model.network.toRelayAcknowledgment
+import com.walletconnect.sign.relay.model.network.toRelayEvent
+import com.walletconnect.sign.relay.model.network.toRelayRequest
 import com.walletconnect.sign.util.Logger
 import com.walletconnect.sign.util.generateId
 import kotlinx.coroutines.cancel
