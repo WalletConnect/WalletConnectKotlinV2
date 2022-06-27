@@ -2,7 +2,7 @@
 
 # **WalletConnect - Kotlin**
 
-WalletConnect is an open protocol to communicate securely between Dapps and Wallets. This repository contains Kotlin implementation of
+The communications protocol for web3, WalletConnect brings the ecosystem together by enabling hundreds of wallets and apps to securely connect and interact. This repository contains Kotlin implementation of
 WalletConnect v2 protocols for Android applications.
 
 ## Protocols
