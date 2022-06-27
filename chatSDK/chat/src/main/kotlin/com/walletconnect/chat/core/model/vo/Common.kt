@@ -3,12 +3,15 @@
 package com.walletconnect.chat.core.model.vo
 
 import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
+import com.walletconnect.chat.engine.domain.Validator
 
 @JvmInline
-internal value class AccountId(val value: String)
+internal value class AccountIdVO(val value: String) {
+    fun isValid(): Boolean = Validator.isAccountIdCAIP10Compliant(value)
+}
 
 internal data class AccountIdWithPublicKeyVO(
-    val accountId: AccountId,
+    val accountId: AccountIdVO,
     val publicKey: PublicKey,
 )
 

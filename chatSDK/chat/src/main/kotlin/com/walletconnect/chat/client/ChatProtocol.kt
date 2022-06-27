@@ -1,8 +1,8 @@
 package com.walletconnect.chat.client
 
 import com.walletconnect.chat.copiedFromSign.core.scope.scope
-import com.walletconnect.chat.copiedFromSign.di.cryptoManager
-import com.walletconnect.chat.core.model.vo.AccountId
+import com.walletconnect.chat.copiedFromSign.di.cryptoModule
+import com.walletconnect.chat.core.model.vo.AccountIdVO
 import com.walletconnect.chat.core.model.vo.EventsVO
 import com.walletconnect.chat.di.engineModule
 import com.walletconnect.chat.di.keyServerModule
@@ -27,7 +27,7 @@ internal class ChatProtocol : ChatInterface {
             wcKoinApp.run {
                 androidContext(application)
                 modules(
-                    cryptoManager(), // TODO: Maybe rename to cryptoModule?
+                    cryptoModule(), // TODO: Maybe rename to cryptoModule?
                     keyServerModule(keyServerUrl),
                     engineModule()
                 )
@@ -57,7 +57,7 @@ internal class ChatProtocol : ChatInterface {
         checkEngineInitialization()
 
         chatEngine.registerAccount(
-            AccountId(register.account),
+            AccountIdVO(register.account.value),
             { publicKey -> listener.onSuccess(publicKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) },
             register.private ?: false
@@ -69,7 +69,7 @@ internal class ChatProtocol : ChatInterface {
         checkEngineInitialization()
 
         chatEngine.resolveAccount(
-            AccountId(resolve.account),
+            AccountIdVO(resolve.account.value),
             { publicKey -> listener.onSuccess(publicKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) }
         )

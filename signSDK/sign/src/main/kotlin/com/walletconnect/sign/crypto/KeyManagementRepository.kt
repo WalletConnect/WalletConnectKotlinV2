@@ -17,6 +17,4 @@ internal interface KeyManagementRepository {
     fun generateKeyPair(): PublicKey
 
     fun removeKeys(tag: String)
-
-    // Needs to be added with Chat SDK
 }
