@@ -1,8 +1,8 @@
 package com.walletconnect.sign.relay.domain
 
-import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
+import com.walletconnect.sign.core.model.client.WalletConnect
 import com.walletconnect.sign.core.model.type.ClientParams
 import com.walletconnect.sign.core.model.type.SettlementSequence
 import com.walletconnect.sign.core.model.vo.TopicVO
@@ -89,7 +89,7 @@ internal class RelayerInteractorTest {
 
     private fun mockRelayPublishSuccess() {
         every { relay.publish(any(), any(), any(), any()) } answers {
-            lastArg<(Result<Sign.Model.Relay.Call.Publish.Acknowledgement>) -> Unit>().invoke(
+            lastArg<(Result<WalletConnect.Model.Relay.Call.Publish.Acknowledgement>) -> Unit>().invoke(
                 Result.success(mockk())
             )
         }
@@ -97,7 +97,7 @@ internal class RelayerInteractorTest {
 
     private fun mockRelayPublishFailure() {
         every { relay.publish(any(), any(), any(), any()) } answers {
-            lastArg<(Result<Sign.Model.Relay.Call.Publish.Acknowledgement>) -> Unit>().invoke(
+            lastArg<(Result<WalletConnect.Model.Relay.Call.Publish.Acknowledgement>) -> Unit>().invoke(
                 Result.failure(mockk())
             )
         }
@@ -217,11 +217,11 @@ internal class RelayerInteractorTest {
     @Test
     fun `InitializationErrorsFlow emits value only on OnConnectionFailed`() = runBlockingTest {
         every { relay.eventsFlow } returns flowOf(
-            mockk<Sign.Model.Relay.Event.OnConnectionOpened<*>>(),
-            mockk<Sign.Model.Relay.Event.OnMessageReceived>(),
-            mockk<Sign.Model.Relay.Event.OnConnectionClosing>(),
-            mockk<Sign.Model.Relay.Event.OnConnectionClosed>(),
-            mockk<Sign.Model.Relay.Event.OnConnectionFailed>() {
+            mockk<WalletConnect.Model.Relay.Event.OnConnectionOpened<*>>(),
+            mockk<WalletConnect.Model.Relay.Event.OnMessageReceived>(),
+            mockk<WalletConnect.Model.Relay.Event.OnConnectionClosing>(),
+            mockk<WalletConnect.Model.Relay.Event.OnConnectionClosed>(),
+            mockk<WalletConnect.Model.Relay.Event.OnConnectionFailed>() {
                 every { throwable } returns RuntimeException()
             }
         ).shareIn(this, SharingStarted.Lazily)

@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.walletconnect.dapp"
-        minSdk = 24
+        minSdk = MIN_SDK
         targetSdk = 32
         versionCode = 1
         versionName = "1.0"

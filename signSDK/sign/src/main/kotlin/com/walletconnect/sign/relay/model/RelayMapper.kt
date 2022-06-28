@@ -3,63 +3,55 @@ package com.walletconnect.sign.relay.model.network
 import com.tinder.scarlet.Message
 import com.tinder.scarlet.ShutdownReason
 import com.tinder.scarlet.WebSocket
-import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.core.model.type.ClientParams
-import com.walletconnect.sign.core.model.vo.TopicVO
-import com.walletconnect.sign.core.model.vo.clientsync.session.SessionSettlementVO
-import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcHistoryVO
-import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
-import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
-import com.walletconnect.sign.core.model.vo.sync.WCResponseVO
-import com.walletconnect.sign.relay.model.RelayDTO
-import com.walletconnect.sign.relay.model.RelayerDO
+import com.walletconnect.sign.core.model.client.WalletConnect
 
 @JvmSynthetic
 internal fun WebSocket.Event.toRelayEvent() = when (this) {
     is WebSocket.Event.OnConnectionOpened<*> ->
-        Sign.Model.Relay.Event.OnConnectionOpened(webSocket)
+        WalletConnect.Model.Relay.Event.OnConnectionOpened(webSocket)
     is WebSocket.Event.OnMessageReceived ->
-        Sign.Model.Relay.Event.OnMessageReceived(message.toRelayMessage())
+        WalletConnect.Model.Relay.Event.OnMessageReceived(message.toRelayMessage())
     is WebSocket.Event.OnConnectionClosing ->
-        Sign.Model.Relay.Event.OnConnectionClosing(shutdownReason.toRelayShutdownReason())
+        WalletConnect.Model.Relay.Event.OnConnectionClosing(shutdownReason.toRelayShutdownReason())
     is WebSocket.Event.OnConnectionClosed ->
-        Sign.Model.Relay.Event.OnConnectionClosed(shutdownReason.toRelayShutdownReason())
+        WalletConnect.Model.Relay.Event.OnConnectionClosed(shutdownReason.toRelayShutdownReason())
     is WebSocket.Event.OnConnectionFailed ->
-        Sign.Model.Relay.Event.OnConnectionFailed(throwable)
+        WalletConnect.Model.Relay.Event.OnConnectionFailed(throwable)
 }
 
 @JvmSynthetic
 internal fun Message.toRelayMessage() = when (this) {
-    is Message.Text -> Sign.Model.Relay.Message.Text(value)
-    is Message.Bytes -> Sign.Model.Relay.Message.Bytes(value)
+    is Message.Text -> WalletConnect.Model.Relay.Message.Text(value)
+    is Message.Bytes -> WalletConnect.Model.Relay.Message.Bytes(value)
 }
 
 @JvmSynthetic
 internal fun ShutdownReason.toRelayShutdownReason() =
-    Sign.Model.Relay.ShutdownReason(code, reason)
+    WalletConnect.Model.Relay.ShutdownReason(code, reason)
 
 @JvmSynthetic
 internal fun RelayDTO.Subscription.Request.Params.SubscriptionData.toRelaySubscriptionData() =
-    Sign.Model.Relay.Call.Subscription.Request.Params.SubscriptionData(topic.value, message)
+    WalletConnect.Model.Relay.Call.Subscription.Request.Params.SubscriptionData(topic.value, message)
 
 @JvmSynthetic
 internal fun RelayDTO.Subscription.Request.Params.toRelayParams() =
-    Sign.Model.Relay.Call.Subscription.Request.Params(subscriptionId.id, subscriptionData.toRelaySubscriptionData())
+    WalletConnect.Model.Relay.Call.Subscription.Request.Params(subscriptionId.id, subscriptionData.toRelaySubscriptionData())
 
 @JvmSynthetic
 internal fun RelayDTO.Subscription.Request.toRelayRequest() =
-    Sign.Model.Relay.Call.Subscription.Request(id, jsonrpc, method, params.toRelayParams())
+    WalletConnect.Model.Relay.Call.Subscription.Request(id, jsonrpc, method, params.toRelayParams())
 
 @JvmSynthetic
 internal fun RelayDTO.Publish.Acknowledgement.toRelayAcknowledgment() =
-    Sign.Model.Relay.Call.Publish.Acknowledgement(id, jsonrpc, result)
+    WalletConnect.Model.Relay.Call.Publish.Acknowledgement(id, jsonrpc, result)
 
 @JvmSynthetic
 internal fun RelayDTO.Subscribe.Acknowledgement.toRelayAcknowledgment() =
-    Sign.Model.Relay.Call.Subscribe.Acknowledgement(id, jsonrpc, result.id)
+    WalletConnect.Model.Relay.Call.Subscribe.Acknowledgement(id, jsonrpc, result.id)
 
 @JvmSynthetic
 internal fun RelayDTO.Unsubscribe.Acknowledgement.toRelayAcknowledgment() =
+    WalletConnect.Model.Relay.Call.Unsubscribe.Acknowledgement(id, jsonrpc, result)
     Sign.Model.Relay.Call.Unsubscribe.Acknowledgement(id, jsonrpc, result)
 
 @JvmSynthetic
