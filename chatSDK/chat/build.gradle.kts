@@ -1,6 +1,8 @@
 plugins {
     id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    kotlin("android")
+    kotlin("kapt")
+    id("com.squareup.sqldelight")
 }
 
 android {
@@ -37,4 +39,8 @@ dependencies {
     security()
     jUnit5()
     androidXTest()
+    scarlet()
+    okhttp()
+    timber()
+    sqlDelight()
 }
