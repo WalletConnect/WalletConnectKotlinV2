@@ -10,7 +10,7 @@ import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.TtlVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.payload.SessionRequestVO
-import com.walletconnect.sign.relay.model.RelayerDO
+import com.walletconnect.sign.json_rpc.model.RelayerDO
 import org.json.JSONObject
 import org.koin.dsl.module
 import kotlin.reflect.jvm.jvmName

@@ -5,7 +5,7 @@ import com.walletconnect.chat.copiedFromSign.di.cryptoManager
 import com.walletconnect.chat.copiedFromSign.di.networkModule
 import com.walletconnect.chat.copiedFromSign.di.relayerModule
 import com.walletconnect.chat.copiedFromSign.di.storageModule
-import com.walletconnect.chat.copiedFromSign.relay.data.connection.ConnectionType
+import com.walletconnect.chat.copiedFromSign.network.connection.ConnectionType
 import com.walletconnect.chat.core.model.vo.AccountId
 import com.walletconnect.chat.core.model.vo.EventsVO
 import com.walletconnect.chat.di.engineModule

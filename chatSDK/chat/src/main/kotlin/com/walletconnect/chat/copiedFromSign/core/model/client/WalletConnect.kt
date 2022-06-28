@@ -1,6 +1,6 @@
 package com.walletconnect.chat.copiedFromSign.core.model.client
 
-import com.walletconnect.chat.copiedFromSign.core.model.utils.JsonRpcRelay
+import com.walletconnect.chat.copiedFromSign.network.model.JsonRpcRelay
 
 
 object WalletConnect {

@@ -8,7 +8,7 @@ import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
 import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
-import com.walletconnect.sign.relay.model.RelayerDO
+import com.walletconnect.sign.json_rpc.model.RelayerDO
 import java.lang.reflect.Constructor
 import kotlin.Int
 import kotlin.Long

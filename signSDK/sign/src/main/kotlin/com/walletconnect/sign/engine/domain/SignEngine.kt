@@ -33,7 +33,7 @@ import com.walletconnect.sign.core.scope.scope
 import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.*
-import com.walletconnect.sign.relay.domain.RelayerInteractor
+import com.walletconnect.sign.json_rpc.domain.RelayerInteractor
 import com.walletconnect.sign.storage.sequence.SequenceStorageRepository
 import com.walletconnect.sign.util.*
 import kotlinx.coroutines.*

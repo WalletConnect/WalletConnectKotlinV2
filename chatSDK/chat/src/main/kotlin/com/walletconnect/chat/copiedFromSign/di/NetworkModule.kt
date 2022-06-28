@@ -6,11 +6,12 @@ import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
-import com.walletconnect.chat.copiedFromSign.relay.data.adapter.FlowStreamAdapter
-import com.walletconnect.chat.copiedFromSign.relay.data.connection.ConnectionType
-import com.walletconnect.chat.copiedFromSign.relay.data.connection.controller.ConnectionController
-import com.walletconnect.chat.copiedFromSign.relay.data.connection.lifecycle.ManualConnectionLifecycle
-import com.walletconnect.chat.copiedFromSign.relay.data.service.RelayService
+import com.walletconnect.chat.copiedFromSign.network.adapter.FlowStreamAdapter
+import com.walletconnect.chat.copiedFromSign.network.connection.ConnectionType
+import com.walletconnect.chat.copiedFromSign.network.connection.controller.ConnectionController
+import com.walletconnect.chat.copiedFromSign.network.connection.lifecycle.ManualConnectionLifecycle
+import com.walletconnect.chat.copiedFromSign.network.domain.RelayClient
+import com.walletconnect.chat.copiedFromSign.network.service.RelayService
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module
@@ -64,5 +65,5 @@ internal fun networkModule(serverUrl: String, connectionType: ConnectionType) = 
 
 //    single { relay ?: RelayClient(get(), get()) }
 //    TODO: Figure out how to get relay as in Sign in here
-//    single { RelayClient(get(), get()) }
+    single { RelayClient(get(), get()) }
 }

@@ -1,6 +1,6 @@
 package com.walletconnect.sign.core.model.client
 
-import com.walletconnect.sign.core.model.utils.JsonRpcRelay
+import com.walletconnect.sign.network.model.JsonRpcRelay
 
 object WalletConnect {
     sealed class Model {

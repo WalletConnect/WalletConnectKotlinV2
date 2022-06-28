@@ -5,7 +5,7 @@ import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
-import com.walletconnect.sign.relay.model.RelayerDO
+import com.walletconnect.sign.json_rpc.model.RelayerDO
 import org.junit.jupiter.api.Test
 import kotlin.reflect.jvm.jvmName
 

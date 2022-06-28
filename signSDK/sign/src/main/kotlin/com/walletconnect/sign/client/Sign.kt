@@ -2,7 +2,7 @@ package com.walletconnect.sign.client
 
 import android.app.Application
 import android.net.Uri
-import com.walletconnect.sign.relay.Relay
+import com.walletconnect.sign.network.Relay
 import java.net.URI
 
 object Sign {
