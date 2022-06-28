@@ -1,9 +1,16 @@
-package com.walletconnect.sign.relay.model.network
+package com.walletconnect.sign.relay.model
 
 import com.tinder.scarlet.Message
 import com.tinder.scarlet.ShutdownReason
 import com.tinder.scarlet.WebSocket
 import com.walletconnect.sign.core.model.client.WalletConnect
+import com.walletconnect.sign.core.model.type.ClientParams
+import com.walletconnect.sign.core.model.vo.TopicVO
+import com.walletconnect.sign.core.model.vo.clientsync.session.SessionSettlementVO
+import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcHistoryVO
+import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
+import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
+import com.walletconnect.sign.core.model.vo.sync.WCResponseVO
 
 @JvmSynthetic
 internal fun WebSocket.Event.toRelayEvent() = when (this) {
@@ -52,7 +59,6 @@ internal fun RelayDTO.Subscribe.Acknowledgement.toRelayAcknowledgment() =
 @JvmSynthetic
 internal fun RelayDTO.Unsubscribe.Acknowledgement.toRelayAcknowledgment() =
     WalletConnect.Model.Relay.Call.Unsubscribe.Acknowledgement(id, jsonrpc, result)
-    Sign.Model.Relay.Call.Unsubscribe.Acknowledgement(id, jsonrpc, result)
 
 @JvmSynthetic
 internal fun JsonRpcResponseVO.toRelayerDOJsonRpcResponse(): RelayerDO.JsonRpcResponse =

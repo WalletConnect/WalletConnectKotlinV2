@@ -11,9 +11,9 @@ import com.walletconnect.sign.relay.Relay
 import com.walletconnect.sign.relay.data.connection.controller.ConnectionController
 import com.walletconnect.sign.relay.data.service.RelayService
 import com.walletconnect.sign.relay.model.RelayDTO
-import com.walletconnect.sign.relay.model.network.toRelayAcknowledgment
-import com.walletconnect.sign.relay.model.network.toRelayEvent
-import com.walletconnect.sign.relay.model.network.toRelayRequest
+import com.walletconnect.sign.relay.model.toRelayAcknowledgment
+import com.walletconnect.sign.relay.model.toRelayEvent
+import com.walletconnect.sign.relay.model.toRelayRequest
 import com.walletconnect.sign.util.Logger
 import com.walletconnect.sign.util.generateId
 import kotlinx.coroutines.cancel
