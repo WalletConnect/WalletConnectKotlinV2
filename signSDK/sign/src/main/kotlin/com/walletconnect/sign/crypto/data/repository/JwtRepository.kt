@@ -1,6 +1,5 @@
 package com.walletconnect.sign.crypto.data.repository
 
-import android.content.SharedPreferences
 import android.util.Base64
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -11,7 +10,6 @@ import com.walletconnect.sign.crypto.data.repository.model.IridiumJWTHeader
 import com.walletconnect.sign.crypto.data.repository.model.IridiumJWTPayload
 import com.walletconnect.sign.network.data.service.NonceService
 import com.walletconnect.sign.network.model.NonceResponseDto
-import com.walletconnect.sign.util.Empty
 import com.walletconnect.sign.util.Logger
 import com.walletconnect.sign.util.bytesToHex
 import com.walletconnect.sign.util.hexToBytes
@@ -112,7 +110,6 @@ internal class JwtRepository(private val keyChain: KeyStore, private val nonceSe
 
     private companion object {
         const val KEY_DID_KEYPAIR = "key_did_keypair"
-        const val KEY_JWT = "key_jwt"
         val JWT_IRIDIUM_HEADER = IridiumJWTHeader(algorithm = "EdDSA", type = "JWT")
         const val KEY_SIZE: Int = 32
         const val JWT_DELIMITER = "."

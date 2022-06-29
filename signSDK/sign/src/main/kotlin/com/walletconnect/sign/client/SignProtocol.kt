@@ -15,7 +15,6 @@ import com.walletconnect.sign.util.Logger
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 
@@ -47,21 +46,18 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
         }
 
         scope.launch {
-            val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
+            mutex.withLock {
+                val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
+                val nonce = jwtRepository.getNonceFromDID()
 
-            withContext(coroutineContext) {
-                mutex.withLock {
-                    val nonce = jwtRepository.getNonceFromDID()
-
-                    if (nonce != null) {
-                        val jwt = jwtRepository.signJWT(nonce)
-                        wcKoinApp.modules(scarletModule(initial.relayServerUrl, jwt, initial.connectionType.toRelayConnectionType(), initial.relay))
-                        signEngine = wcKoinApp.koin.get()
-                        signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
-                        Logger.log("Engine Initialized")
-                    } else {
-                        onError(Sign.Model.Error(WalletConnectException.GenericException("Unable to generate Nonce. Please check connection")))
-                    }
+                if (nonce != null) {
+                    val jwt = jwtRepository.signJWT(nonce)
+                    wcKoinApp.modules(scarletModule(initial.relayServerUrl, jwt, initial.connectionType.toRelayConnectionType(), initial.relay))
+                    signEngine = wcKoinApp.koin.get()
+                    signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
+                    Logger.log("Engine Initialized")
+                } else {
+                    onError(Sign.Model.Error(WalletConnectException.GenericException("Unable to generate Nonce. Please check connection")))
                 }
             }
         }
@@ -253,7 +249,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
 
     @Throws(IllegalStateException::class)
     override fun getListOfSettledPairings(): List<Sign.Model.Pairing> {
-//        checkEngineInitialization()
+        checkEngineInitialization()
         return signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing)
     }
 
