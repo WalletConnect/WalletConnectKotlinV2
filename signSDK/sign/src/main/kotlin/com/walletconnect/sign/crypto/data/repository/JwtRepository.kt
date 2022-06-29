@@ -106,7 +106,7 @@ internal class JwtRepository(private val sharedPreferences: SharedPreferences, p
 
         keyChain.setKeys(KEY_DID_KEYPAIR, publicKey, privateKey)
 
-        return DID_PREFIX + DID_DELIMITER + publicKey.keyAsHex
+        return publicKey.keyAsHex
     }
 
     private companion object {
