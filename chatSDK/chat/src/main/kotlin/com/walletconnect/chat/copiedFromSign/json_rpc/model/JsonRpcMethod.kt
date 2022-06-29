@@ -2,24 +2,11 @@ package com.walletconnect.chat.copiedFromSign.json_rpc.model
 
 internal object JsonRpcMethod {
     @get:JvmSynthetic
-    const val WC_PAIRING_PING: String = "wc_pairingPing"
+    const val WC_CHAT_INVITE: String = "wc_chatInvite"
     @get:JvmSynthetic
-    const val WC_PAIRING_DELETE: String = "wc_pairingDelete"
+    const val WC_CHAT_MESSAGE: String = "wc_chatMessage"
     @get:JvmSynthetic
-    const val WC_SESSION_PROPOSE: String = "wc_sessionPropose"
-
+    const val WC_CHAT_PING: String = "wc_chatPing"
     @get:JvmSynthetic
-    const val WC_SESSION_SETTLE: String = "wc_sessionSettle"
-    @get:JvmSynthetic
-    const val WC_SESSION_REQUEST: String = "wc_sessionRequest"
-    @get:JvmSynthetic
-    const val WC_SESSION_DELETE: String = "wc_sessionDelete"
-    @get:JvmSynthetic
-    const val WC_SESSION_PING: String = "wc_sessionPing"
-    @get:JvmSynthetic
-    const val WC_SESSION_EVENT: String = "wc_sessionEvent"
-    @get:JvmSynthetic
-    const val WC_SESSION_UPDATE: String = "wc_sessionUpdate"
-    @get:JvmSynthetic
-    const val WC_SESSION_EXTEND: String = "wc_sessionExtend"
+    const val WC_CHAT_LEAVE: String = "wc_chatLeave"
 }

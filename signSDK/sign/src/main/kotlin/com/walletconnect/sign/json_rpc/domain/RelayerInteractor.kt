@@ -6,7 +6,7 @@ import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.core.model.client.WalletConnect
 import com.walletconnect.sign.core.model.type.ClientParams
-import com.walletconnect.sign.core.model.type.SettlementSequence
+import com.walletconnect.sign.core.model.type.JsonRpcClientSync
 import com.walletconnect.sign.core.model.type.enums.EnvelopeType
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
@@ -87,7 +87,7 @@ internal class RelayerInteractor(
 
     internal fun publishJsonRpcRequests(
         topic: TopicVO,
-        payload: SettlementSequence<*>,
+        payload: JsonRpcClientSync<*>,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {

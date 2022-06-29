@@ -8,5 +8,5 @@ import org.koin.dsl.module
 
 @JvmSynthetic
 internal fun engineModule() = module {
-    single { ChatEngine(get(), get(), get()) }
+    single { ChatEngine(get(), get(), get(), get()) }
 }

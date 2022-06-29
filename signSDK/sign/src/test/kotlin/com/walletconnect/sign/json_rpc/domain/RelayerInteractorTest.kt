@@ -4,7 +4,7 @@ import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.core.model.client.WalletConnect
 import com.walletconnect.sign.core.model.type.ClientParams
-import com.walletconnect.sign.core.model.type.SettlementSequence
+import com.walletconnect.sign.core.model.type.JsonRpcClientSync
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
@@ -60,7 +60,7 @@ internal class RelayerInteractorTest {
 
     private val topicVO = TopicVO("mockkTopic")
 
-    private val settlementSequence: SettlementSequence<*> = mockk {
+    private val settlementSequence: JsonRpcClientSync<*> = mockk {
         every { id } returns DEFAULT_ID
         every { method } returns String.Empty
     }

@@ -4,6 +4,7 @@ package com.walletconnect.chat.engine.domain
 
 import com.walletconnect.chat.copiedFromSign.core.scope.scope
 import com.walletconnect.chat.copiedFromSign.crypto.KeyManagementRepository
+import com.walletconnect.chat.copiedFromSign.json_rpc.domain.RelayerInteractor
 import com.walletconnect.chat.core.model.vo.AccountId
 import com.walletconnect.chat.core.model.vo.AccountIdWithPublicKeyVO
 import com.walletconnect.chat.core.model.vo.EventsVO
@@ -19,7 +20,7 @@ internal class ChatEngine(
     private val registerAccountUseCase: RegisterAccountUseCase,
     private val resolveAccountUseCase: ResolveAccountUseCase,
     private val keyManagementRepository: KeyManagementRepository,
-
+    private val relayerInteractor: RelayerInteractor
 ) {
     private val _events: MutableSharedFlow<EventsVO> = MutableSharedFlow()
     val events: SharedFlow<EventsVO> = _events.asSharedFlow()

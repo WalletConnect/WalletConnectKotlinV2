@@ -2,11 +2,11 @@ package com.walletconnect.sign.core.model.vo.clientsync.session
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.sign.core.model.type.SettlementSequence
+import com.walletconnect.sign.core.model.type.JsonRpcClientSync
 import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 
-internal sealed class SessionSettlementVO : SettlementSequence<SessionParamsVO> {
+internal sealed class SessionSettlementVO : JsonRpcClientSync<SessionParamsVO> {
     abstract override val id: Long
     abstract override val method: String
     abstract override val jsonrpc: String

@@ -5,7 +5,7 @@ package com.walletconnect.chat.copiedFromSign.json_rpc.domain
 import com.walletconnect.chat.copiedFromSign.core.exceptions.client.WalletConnectException
 import com.walletconnect.chat.copiedFromSign.core.exceptions.peer.PeerError
 import com.walletconnect.chat.copiedFromSign.core.model.type.ClientParams
-import com.walletconnect.chat.copiedFromSign.core.model.type.SettlementSequence
+import com.walletconnect.chat.copiedFromSign.core.model.type.JsonRpcClientSync
 import com.walletconnect.chat.copiedFromSign.core.model.type.enums.EnvelopeType
 import com.walletconnect.chat.copiedFromSign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.TopicVO
@@ -54,7 +54,7 @@ internal class RelayerInteractor(
 
     internal fun publishJsonRpcRequests(
         topic: TopicVO,
-        payload: SettlementSequence<*>,
+        payload: JsonRpcClientSync<*>,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
