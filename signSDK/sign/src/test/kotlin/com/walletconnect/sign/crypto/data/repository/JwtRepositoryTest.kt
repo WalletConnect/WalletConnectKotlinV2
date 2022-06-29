@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 internal class JwtRepositoryTest {
     private val sharedPreferences = mockk<SharedPreferences>()
     private val nonceService = mockk<NonceService>()
-    private val sut = JwtRepository(sharedPreferences, KeyChainMock(), nonceService)
+    private val sut = JwtRepository(KeyChainMock(), nonceService)
 
     @Test
     fun jwtExists() {

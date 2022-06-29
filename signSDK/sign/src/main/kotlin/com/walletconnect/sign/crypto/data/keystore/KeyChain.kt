@@ -35,6 +35,10 @@ internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyS
         sharedPreferences.edit().remove(tag).apply()
     }
 
+    override fun checkKeys(tag: String): Boolean {
+        return sharedPreferences.contains(tag)
+    }
+
     private fun concatKeys(keyA: Key, keyB: Key): String = (keyA.keyAsHex.hexToBytes() + keyB.keyAsHex.hexToBytes()).bytesToHex()
 
     private fun splitKeys(concatKeys: String): Pair<String, String> {

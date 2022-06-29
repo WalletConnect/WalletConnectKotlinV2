@@ -14,4 +14,5 @@ internal interface KeyStore {
     fun setKeys(tag: String, key1: Key, key2: Key)
 
     fun deleteKeys(tag: String)
+    fun checkKeys(tag: String): Boolean
 }

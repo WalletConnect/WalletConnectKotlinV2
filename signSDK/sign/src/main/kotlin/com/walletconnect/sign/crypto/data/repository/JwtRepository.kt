@@ -26,15 +26,7 @@ import org.bouncycastle.crypto.signers.Ed25519Signer
 import retrofit2.Response
 import java.security.SecureRandom
 
-internal class JwtRepository(private val sharedPreferences: SharedPreferences, private val keyChain: KeyStore, private val nonceService: NonceService) {
-
-    fun jwtExists(): Boolean {
-        return sharedPreferences.contains(KEY_JWT)
-    }
-
-    fun getJWT(): String {
-        return sharedPreferences.getString(KEY_JWT, null)!!
-    }
+internal class JwtRepository(private val keyChain: KeyStore, private val nonceService: NonceService) {
 
     fun signJWT(subject: String): String {
         val (privateKey, publicKey) = keyChain.getKeys(KEY_DID_KEYPAIR)
@@ -52,8 +44,13 @@ internal class JwtRepository(private val sharedPreferences: SharedPreferences, p
         return encodeJWT(JWT_IRIDIUM_HEADER, payload, signature)
     }
 
-    suspend fun getNonceFromNewDID(): String? {
-        val did = getDIDFromNewKeyPair()
+    suspend fun getNonceFromDID(): String? {
+        val did = if (doesKeyPairExist()) {
+            val (_, publicKey) = keyChain.getKeys(KEY_DID_KEYPAIR)
+            publicKey
+        } else {
+            getDIDFromNewKeyPair()
+        }
         val response: Response<NonceResponseDto> = nonceService.authNonce(did)
 
         return if (response.isSuccessful) {
@@ -91,6 +88,10 @@ internal class JwtRepository(private val sharedPreferences: SharedPreferences, p
 
     private fun encodeByteArray(signature: ByteArray): String {
         return Base64.encodeToString(signature, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+    }
+
+    private fun doesKeyPairExist(): Boolean {
+        return keyChain.checkKeys(KEY_DID_KEYPAIR)
     }
 
     private fun getDIDFromNewKeyPair(): String {
