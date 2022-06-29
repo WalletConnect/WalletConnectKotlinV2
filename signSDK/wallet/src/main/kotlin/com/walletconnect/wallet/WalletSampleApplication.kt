@@ -32,6 +32,7 @@ class WalletSampleApplication : Application() {
         val initString = Sign.Params.Init(
             application = this,
             relayServerUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=$PROJECT_ID",   //TODO: register at https://walletconnect.com/register to get a project ID
+            nonceServerUrl = "https://$WALLET_CONNECT_PROD_RELAY_URL",
             metadata = Sign.Model.AppMetaData(
                 name = "Kotlin Wallet",
                 description = "Wallet description",

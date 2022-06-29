@@ -53,14 +53,14 @@ object Sign {
             ) : Model()
         }
 
-        sealed class Namespace: Model() {
+        sealed class Namespace : Model() {
 
-            data class Proposal(val chains: List<String>, val methods: List<String>, val events: List<String>, val extensions: List<Extension>?): Namespace() {
+            data class Proposal(val chains: List<String>, val methods: List<String>, val events: List<String>, val extensions: List<Extension>?) : Namespace() {
 
                 data class Extension(val chains: List<String>, val methods: List<String>, val events: List<String>)
             }
 
-            data class Session(val accounts: List<String>, val methods: List<String>, val events: List<String>, val extensions: List<Extension>?): Namespace() {
+            data class Session(val accounts: List<String>, val methods: List<String>, val events: List<String>, val extensions: List<Extension>?) : Namespace() {
 
                 data class Extension(val accounts: List<String>, val methods: List<String>, val events: List<String>)
             }
@@ -154,7 +154,7 @@ object Sign {
         ) : Model()
 
         data class ConnectionState(
-            val isAvailable: Boolean
+            val isAvailable: Boolean,
         ) : Model()
 
         sealed class Relay : Model() {
@@ -318,7 +318,8 @@ object Sign {
             val relay: Relay? = null,
             val connectionType: ConnectionType,
         ) : Params() {
-            internal lateinit var serverUrl: String
+            internal lateinit var relayServerUrl: String
+            internal lateinit var nonceServerUrl: String
 
             constructor(
                 application: Application,
@@ -334,17 +335,27 @@ object Sign {
                     .appendQueryParameter("projectId", projectId)
                     .build()
                     .toString()
+                val nonceServerUrl = Uri.Builder().scheme((if (useTls) "https" else "http"))
+                    .authority(hostName)
+                    .build()
+                    .toString()
 
                 require(relayServerUrl.isValidRelayServerUrl()) {
                     "Check the schema and projectId parameter of the Server Url"
                 }
 
-                this.serverUrl = relayServerUrl
+                this.relayServerUrl = relayServerUrl
+                this.nonceServerUrl = if (!nonceServerUrl.endsWith("/")) {
+                    nonceServerUrl.plus("/")
+                } else {
+                    nonceServerUrl
+                }
             }
 
             constructor(
                 application: Application,
                 relayServerUrl: String,
+                nonceServerUrl: String,
                 metadata: Model.AppMetaData,
                 relay: Relay? = null,
                 connectionType: ConnectionType = ConnectionType.AUTOMATIC,
@@ -353,7 +364,12 @@ object Sign {
                     "Check the schema and projectId parameter of the Server Url"
                 }
 
-                this.serverUrl = relayServerUrl
+                this.relayServerUrl = relayServerUrl
+                this.nonceServerUrl = if (!nonceServerUrl.endsWith("/")) {
+                    nonceServerUrl.plus("/")
+                } else {
+                    nonceServerUrl
+                }
             }
 
             private fun String.isValidRelayServerUrl(): Boolean {

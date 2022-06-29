@@ -41,7 +41,10 @@ android {
         freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.time.ExperimentalTime"
     }
 
-    testOptions.unitTests.isIncludeAndroidResources = true
+    testOptions.unitTests {
+        isIncludeAndroidResources = true
+        isReturnDefaultValues = true
+    }
 
     packagingOptions {
         resources.excludes += setOf(
@@ -63,7 +66,7 @@ dependencies {
     security()
     koin()
     retrofit()
-    implementation("com.github.multiformats:java-multibase:1.1.0")  //https://mvnrepository.com/artifact/com.github.multiformats/java-multibase/1.1.0 vulnerability detected with library
+    multibaseJava()
 
     androidXTest()
     jUnit5()
