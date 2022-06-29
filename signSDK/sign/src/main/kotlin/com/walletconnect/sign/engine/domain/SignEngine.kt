@@ -148,8 +148,6 @@ internal class SignEngine(
         } catch (e: SQLiteException) {
             crypto.removeKeys(walletConnectUri.topic.value)
             relayer.unsubscribe(pairing.topic)
-        } finally {
-            throw WalletConnectException.GenericException("Error trying to pair with the other peer.")
         }
     }
 
