@@ -4,6 +4,7 @@ import org.gradle.kotlin.dsl.DependencyHandlerScope
 const val kotlinVersion = "1.6.10"
 val jvmVersion = JavaVersion.VERSION_11
 const val sqlDelightVersion = "1.5.2"
+const val MIN_SDK: Int = 23
 
 fun DependencyHandlerScope.scanner() {
     val mlKitBarcode = "16.0.1"

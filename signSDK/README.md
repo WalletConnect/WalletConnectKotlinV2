@@ -1,5 +1,3 @@
-![WalletConnect V2](../docs/walletconnect-banner.svg)
-
 # **WalletConnect Sign - Kotlin**
 
 Kotlin implementation of WalletConnect v2 Sign protocol for Android applications.
