@@ -37,10 +37,12 @@ dependencies {
     coroutines()
     bouncyCastle()
     security()
-    jUnit5()
-    androidXTest()
     scarlet()
     okhttp()
+    moshi()
     timber()
     sqlDelight()
+
+    jUnit5()
+    androidXTest()
 }

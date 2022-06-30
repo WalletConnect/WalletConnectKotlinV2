@@ -1,10 +1,7 @@
 package com.walletconnect.chat.client
 
 import com.walletconnect.chat.copiedFromSign.core.scope.scope
-import com.walletconnect.chat.copiedFromSign.di.cryptoManager
-import com.walletconnect.chat.copiedFromSign.di.networkModule
-import com.walletconnect.chat.copiedFromSign.di.relayerModule
-import com.walletconnect.chat.copiedFromSign.di.storageModule
+import com.walletconnect.chat.copiedFromSign.di.*
 import com.walletconnect.chat.copiedFromSign.network.connection.ConnectionType
 import com.walletconnect.chat.core.model.vo.AccountId
 import com.walletconnect.chat.core.model.vo.EventsVO
@@ -19,7 +16,7 @@ import org.koin.core.KoinApplication
 internal class ChatProtocol : ChatInterface {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var chatEngine: ChatEngine
-//    override val relay: Relay by lazy { wcKoinApp.koin.get() } TODO: Figure out how to get relay as in Sign in here
+//    val relay: Relay by lazy { wcKoinApp.koin.get() } //TODO: Figure out how to get relay as in Sign in here
 
     private val serverUrl: String = "wss://relay.walletconnect.com?projectId=2ee94aca5d98e6c05c38bce02bee952a"
 
@@ -33,7 +30,8 @@ internal class ChatProtocol : ChatInterface {
             wcKoinApp.run {
                 androidContext(application)
                 modules(
-                    cryptoManager(), // TODO: Maybe rename to cryptoModule?
+                    commonModule(),
+                    cryptoModule(), // TODO: Maybe rename to cryptoModule?
                     keyServerModule(keyServerUrl),
 //                    TODO: Figure out how to get relay as in Sign in here
 //                    networkModule(serverUrl, relay, connectionType.toRelayConnectionType()),
@@ -41,6 +39,7 @@ internal class ChatProtocol : ChatInterface {
                     networkModule(serverUrl, ConnectionType.MANUAL),
                     relayerModule(),
                     storageModule(),
+
                     engineModule()
                 )
             }

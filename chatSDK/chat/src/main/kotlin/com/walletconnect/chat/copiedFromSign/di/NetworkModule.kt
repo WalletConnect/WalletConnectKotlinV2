@@ -6,6 +6,7 @@ import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
+import com.walletconnect.chat.copiedFromSign.network.Relay
 import com.walletconnect.chat.copiedFromSign.network.adapter.FlowStreamAdapter
 import com.walletconnect.chat.copiedFromSign.network.connection.ConnectionType
 import com.walletconnect.chat.copiedFromSign.network.connection.controller.ConnectionController
@@ -61,9 +62,11 @@ internal fun networkModule(serverUrl: String, connectionType: ConnectionType) = 
             .build()
     }
 
-    single { get<Scarlet>().create(RelayService::class.java) }
+    single {
+        get<Scarlet>().create(RelayService::class.java)
+    }
 
 //    single { relay ?: RelayClient(get(), get()) }
 //    TODO: Figure out how to get relay as in Sign in here
-    single { RelayClient(get(), get()) }
+    single<Relay> { RelayClient(get(), get()) }
 }

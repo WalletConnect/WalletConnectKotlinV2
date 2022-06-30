@@ -10,6 +10,7 @@ import com.walletconnect.chat.copiedFromSign.core.model.type.enums.EnvelopeType
 import com.walletconnect.chat.copiedFromSign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.TopicVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.jsonRpc.JsonRpcResponseVO
+import com.walletconnect.chat.copiedFromSign.core.model.vo.sync.ParticipantsVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.sync.WCRequestVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.sync.WCResponseVO
 import com.walletconnect.chat.copiedFromSign.core.scope.scope
@@ -28,7 +29,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-//todo: extract Relay to core module. Keep RelayerInteractor in domain module.
+//todo: extract Relay to core module. Consider what is the best place for RelayerInteractor (sdk or core module)?
 internal class RelayerInteractor(
     private val relay: Relay, //core
     private val serializer: JsonRpcSerializer, //domain
@@ -55,14 +56,16 @@ internal class RelayerInteractor(
     internal fun publishJsonRpcRequests(
         topic: TopicVO,
         payload: JsonRpcClientSync<*>,
+        envelopeType: EnvelopeType,
+        participantsVO: ParticipantsVO,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
         val requestJson = serializer.serialize(payload)
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
-            val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, EnvelopeType.ZERO)
+            val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participantsVO)
 
-            //todo is always prompt true?
+            //todo when promp should be true for chat sdk?
             relay.publish(topic.value, encryptedRequest, true) { result ->
                 result.fold(
                     onSuccess = { onSuccess() },
@@ -75,13 +78,15 @@ internal class RelayerInteractor(
     internal fun publishJsonRpcResponse(
         topic: TopicVO,
         response: JsonRpcResponseVO,
+        envelopeType: EnvelopeType,
+        participantsVO: ParticipantsVO,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
 
         val jsonResponseDO = response.toRelayerDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
-        val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, EnvelopeType.ZERO)
+        val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participantsVO)
 
         relay.publish(topic.value, encryptedResponse) { result ->
             result.fold(
@@ -94,30 +99,39 @@ internal class RelayerInteractor(
         }
     }
 
-    internal fun respondWithParams(request: WCRequestVO, params: ClientParams) {
+    internal fun respondWithParams(request: WCRequestVO, params: ClientParams, envelopeType: EnvelopeType, participantsVO: ParticipantsVO) {
         val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = params)
-        publishJsonRpcResponse(request.topic, result, onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
+        publishJsonRpcResponse(request.topic, result, envelopeType, participantsVO, onFailure = { error ->
+            Logger.error("Cannot send the response, error: $error")
+        })
     }
 
-    internal fun respondWithSuccess(request: WCRequestVO) {
+    internal fun respondWithSuccess(request: WCRequestVO, envelopeType: EnvelopeType, participantsVO: ParticipantsVO) {
         val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = true)
         try {
-            publishJsonRpcResponse(request.topic, result, onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
+            publishJsonRpcResponse(request.topic, result, envelopeType, participantsVO, onFailure = { error ->
+                Logger.error("Cannot send the response, error: $error")
+            })
         } catch (e: Exception) {
             handleError(e.message ?: String.Empty)
         }
     }
 
-    internal fun respondWithError(request: WCRequestVO, error: PeerError, onFailure: (Throwable) -> Unit = {}) {
+    internal fun respondWithError(
+        request: WCRequestVO,
+        error: PeerError,
+        envelopeType: EnvelopeType,
+        participantsVO: ParticipantsVO,
+        onFailure: (Throwable) -> Unit = {},
+    ) {
         Logger.error("Responding with error: ${error.message}: ${error.code}")
         val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = request.id, error = JsonRpcResponseVO.Error(error.code, error.message))
 
         try {
-            publishJsonRpcResponse(request.topic, jsonRpcError,
-                onFailure = { failure ->
-                    Logger.error("Cannot respond with error: $failure")
-                    onFailure(failure)
-                })
+            publishJsonRpcResponse(request.topic, jsonRpcError, envelopeType, participantsVO, onFailure = { failure ->
+                Logger.error("Cannot respond with error: $failure")
+                onFailure(failure)
+            })
         } catch (e: Exception) {
             handleError(e.message ?: String.Empty)
         }

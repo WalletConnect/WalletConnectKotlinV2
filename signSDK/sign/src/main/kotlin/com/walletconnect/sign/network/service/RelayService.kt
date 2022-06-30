@@ -12,7 +12,7 @@ internal interface RelayService {
     fun observeWebSocketEvent(): Flow<WebSocket.Event>
 
     @Send
-    fun publishRequest(publishRequest: RelayDTO.Publish.Request)
+    fun publishRequest( publishRequest: RelayDTO.Publish.Request)
 
     @Receive
     fun observePublishAcknowledgement(): Flow<RelayDTO.Publish.Acknowledgement>
