@@ -9,9 +9,11 @@ interface ChatInterface {
         fun onLeft(onLeft: Chat.Model.Events.OnLeft)
     }
 
+    fun setChatDelegate(delegate: ChatDelegate)
+
     fun initialize(init: Chat.Params.Init, onError: (Chat.Model.Error) -> Unit)
-    fun register(register: Chat.Params.Register, onError: (Chat.Model.Error) -> Unit)
-    fun resolve(resolve: Chat.Params.Resolve, onError: (Chat.Model.Error) -> Unit)
+    fun register(register: Chat.Params.Register, listener: Chat.Listeners.Register)
+    fun resolve(resolve: Chat.Params.Resolve, listener: Chat.Listeners.Resolve)
     fun invite(invite: Chat.Params.Invite, onError: (Chat.Model.Error) -> Unit)
     fun accept(accept: Chat.Params.Accept, onError: (Chat.Model.Error) -> Unit)
     fun reject(reject: Chat.Params.Reject, onError: (Chat.Model.Error) -> Unit)
@@ -22,19 +24,19 @@ interface ChatInterface {
     fun getInvites(getInvites: Chat.Params.GetInvites): Map<String, Chat.Model.Invite>
     fun getThreads(getThreads: Chat.Params.GetThreads): Map<String, Chat.Model.Thread>
     fun getMessages(getMessages: Chat.Params.GetMessages): List<Chat.Model.Message>
-/***
- TODO: Relay should be extracted to core along with websocket interface
+    /***
+    TODO: Relay should be extracted to core along with websocket interface
     interface Websocket {
-        val relay: Relay
+    val relay: Relay
 
-        fun open(onError: (String) -> Unit) {
-            relay.connect { errorMessage -> onError(errorMessage) }
-        }
-
-        fun close(onError: (String) -> Unit) {
-            relay.disconnect { errorMessage -> onError(errorMessage) }
-        }
+    fun open(onError: (String) -> Unit) {
+    relay.connect { errorMessage -> onError(errorMessage) }
     }
-***/
+
+    fun close(onError: (String) -> Unit) {
+    relay.disconnect { errorMessage -> onError(errorMessage) }
+    }
+    }
+     ***/
 
 }
