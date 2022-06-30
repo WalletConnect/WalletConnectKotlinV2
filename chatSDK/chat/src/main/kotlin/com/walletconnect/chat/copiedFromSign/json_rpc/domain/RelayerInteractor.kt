@@ -83,9 +83,9 @@ internal class RelayerInteractor(
         topic: TopicVO,
         payload: JsonRpcClientSync<*>,
         envelopeType: EnvelopeType,
-        participantsVO: ParticipantsVO,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
+        participantsVO: ParticipantsVO? = null
     ) {
         val requestJson = serializer.serialize(payload)
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
@@ -105,14 +105,13 @@ internal class RelayerInteractor(
         topic: TopicVO,
         response: JsonRpcResponseVO,
         envelopeType: EnvelopeType,
-        participantsVO: ParticipantsVO,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
 
         val jsonResponseDO = response.toRelayerDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
-        val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participantsVO)
+        val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType)
 
         relay.publish(topic.value, encryptedResponse) { result ->
             result.fold(
@@ -125,17 +124,17 @@ internal class RelayerInteractor(
         }
     }
 
-    internal fun respondWithParams(request: WCRequestVO, params: ClientParams, envelopeType: EnvelopeType, participantsVO: ParticipantsVO) {
+    internal fun respondWithParams(request: WCRequestVO, params: ClientParams, envelopeType: EnvelopeType) {
         val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = params)
-        publishJsonRpcResponse(request.topic, result, envelopeType, participantsVO, onFailure = { error ->
+        publishJsonRpcResponse(request.topic, result, envelopeType, onFailure = { error ->
             Logger.error("Cannot send the response, error: $error")
         })
     }
 
-    internal fun respondWithSuccess(request: WCRequestVO, envelopeType: EnvelopeType, participantsVO: ParticipantsVO) {
+    internal fun respondWithSuccess(request: WCRequestVO, envelopeType: EnvelopeType) {
         val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = true)
         try {
-            publishJsonRpcResponse(request.topic, result, envelopeType, participantsVO, onFailure = { error ->
+            publishJsonRpcResponse(request.topic, result, envelopeType, onFailure = { error ->
                 Logger.error("Cannot send the response, error: $error")
             })
         } catch (e: Exception) {
@@ -147,14 +146,13 @@ internal class RelayerInteractor(
         request: WCRequestVO,
         error: PeerError,
         envelopeType: EnvelopeType,
-        participantsVO: ParticipantsVO,
         onFailure: (Throwable) -> Unit = {},
     ) {
         Logger.error("Responding with error: ${error.message}: ${error.code}")
         val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = request.id, error = JsonRpcResponseVO.Error(error.code, error.message))
 
         try {
-            publishJsonRpcResponse(request.topic, jsonRpcError, envelopeType, participantsVO, onFailure = { failure ->
+            publishJsonRpcResponse(request.topic, jsonRpcError, envelopeType, onFailure = { failure ->
                 Logger.error("Cannot respond with error: $failure")
                 onFailure(failure)
             })

@@ -1,5 +1,7 @@
 package com.walletconnect.chat.client
 
+import com.walletconnect.chat.client.mapper.toInviteEngineDO
+import com.walletconnect.chat.client.mapper.toMessageEngineDO
 import com.walletconnect.chat.copiedFromSign.core.scope.scope
 import com.walletconnect.chat.copiedFromSign.di.*
 import com.walletconnect.chat.copiedFromSign.network.connection.ConnectionType
@@ -89,37 +91,43 @@ internal class ChatProtocol : ChatInterface {
     @Throws(IllegalStateException::class)
     override fun invite(invite: Chat.Params.Invite, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        chatEngine.invite(invite.toInviteEngineDO()) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun accept(accept: Chat.Params.Accept, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        chatEngine.accept(accept.inviteId) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun reject(reject: Chat.Params.Reject, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        chatEngine.reject(reject.inviteId) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun message(message: Chat.Params.Message, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        chatEngine.message(message.topic, message.toMessageEngineDO()) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun ping(ping: Chat.Params.Ping, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        chatEngine.ping(ping.topic) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun leave(leave: Chat.Params.Leave, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        chatEngine.leave(leave.topic) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)

@@ -26,14 +26,14 @@ internal sealed class ChatParamsVO : ClientParams {
 
     @JsonClass(generateAdapter = true)
     internal data class MessageParams(
-        @Json(name = "publicKey")
-        val publicKey: String,
+        @Json(name = "message")
+        val message: String,
         @Json(name = "authorAccount")
         val authorAccount: String,
         @Json(name = "timestamp")
         val timestamp: Long,
         @Json(name = "media")
-        val media: Media,
+        val media: MediaVO?,
     ) : ChatParamsVO()
 
     @Suppress("CanSealedSubClassBeObject")
