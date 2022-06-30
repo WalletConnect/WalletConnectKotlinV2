@@ -1,16 +1,8 @@
 package com.walletconnect.chatsample.ui.host
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatClient
-import com.walletconnect.chatsample.domain.ChatDelegate
-import com.walletconnect.chatsample.ui.ChatSampleEvents
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.withContext
 
 class ChatSampleViewModel : ViewModel() {
     val resolveAccountSet = setOf(
@@ -27,10 +19,13 @@ class ChatSampleViewModel : ViewModel() {
     )
 
     fun resolve(listener: Chat.Listeners.Resolve) {
-        ChatClient.resolve(Chat.Params.Resolve(resolveAccountSet.random()), listener)
+        ChatClient.resolve(Chat.Params.Resolve(Chat.Model.AccountId(resolveAccountSet.random())), listener)
     }
 
     fun register(listener: Chat.Listeners.Register) {
-        registerAccountSet.random().let { (account, _) -> ChatClient.register(Chat.Params.Register(account), listener) }
+        registerAccountSet.random().let { (account, _) ->
+            ChatClient.register(Chat.Params.Register(Chat.Model.AccountId(account)),
+                listener)
+        }
     }
 }

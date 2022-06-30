@@ -70,7 +70,7 @@ internal class ChatProtocol : ChatInterface {
         checkEngineInitialization()
 
         chatEngine.registerAccount(
-            AccountId(register.account),
+            AccountIdVO(register.account),
             { publicKey -> listener.onSuccess(publicKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) },
             register.private ?: false
@@ -82,7 +82,7 @@ internal class ChatProtocol : ChatInterface {
         checkEngineInitialization()
 
         chatEngine.resolveAccount(
-            AccountId(resolve.account),
+            AccountIdVO(resolve.account),
             { publicKey -> listener.onSuccess(publicKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) }
         )
