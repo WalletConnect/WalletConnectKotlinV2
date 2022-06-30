@@ -30,7 +30,7 @@ internal fun keyServerModule(keyServerUrl: String) = module {
         Retrofit.Builder()
             .baseUrl(keyServerUrl)
             .client(get())
-            .addConverterFactory(MoshiConverterFactory.create())
+            .addConverterFactory(MoshiConverterFactory.create(get()))
             .build()
     }
 
