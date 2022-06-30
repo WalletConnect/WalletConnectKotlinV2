@@ -31,12 +31,12 @@ internal class ChatProtocol : ChatInterface {
                 androidContext(application)
                 modules(
                     commonModule(),
-                    cryptoModule(), // TODO: Maybe rename to cryptoModule?
+                    cryptoModule(),
                     keyServerModule(keyServerUrl),
 //                    TODO: Figure out how to get relay as in Sign in here
 //                    networkModule(serverUrl, relay, connectionType.toRelayConnectionType()),
                     //todo: add serverUrl as init param
-                    networkModule(serverUrl, ConnectionType.MANUAL),
+                    networkModule(serverUrl, ConnectionType.AUTOMATIC),
                     relayerModule(),
                     storageModule(),
 

@@ -4,6 +4,7 @@ package com.walletconnect.chat.copiedFromSign.json_rpc.domain
 
 import com.walletconnect.chat.copiedFromSign.core.exceptions.client.WalletConnectException
 import com.walletconnect.chat.copiedFromSign.core.exceptions.peer.PeerError
+import com.walletconnect.chat.copiedFromSign.core.model.client.WalletConnect
 import com.walletconnect.chat.copiedFromSign.core.model.type.ClientParams
 import com.walletconnect.chat.copiedFromSign.core.model.type.JsonRpcClientSync
 import com.walletconnect.chat.copiedFromSign.core.model.type.enums.EnvelopeType
@@ -28,13 +29,14 @@ import com.walletconnect.chat.copiedFromSign.util.NetworkState
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.net.HttpURLConnection
 
 //todo: extract Relay to core module. Consider what is the best place for RelayerInteractor (sdk or core module)?
 internal class RelayerInteractor(
-    private val relay: Relay, //core
-    private val serializer: JsonRpcSerializer, //domain
-    private val chaChaPolyCodec: Codec, //core
-    private val jsonRpcHistory: JsonRpcHistory, //domain or core?
+    private val relay: Relay,
+    private val serializer: JsonRpcSerializer,
+    private val chaChaPolyCodec: Codec,
+    private val jsonRpcHistory: JsonRpcHistory,
     networkState: NetworkState, //todo: move to the RelayClient?
 ) {
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequestVO> = MutableSharedFlow()
@@ -46,12 +48,36 @@ internal class RelayerInteractor(
     private val _internalErrors = MutableSharedFlow<WalletConnectException.InternalError>()
     val internalErrors: SharedFlow<WalletConnectException.InternalError> = _internalErrors.asSharedFlow()
 
+    private val _isNetworkAvailable: StateFlow<Boolean> = networkState.isAvailable
+    private val _isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> handleError(exception.message ?: String.Empty) }
 
     init {
         manageSubscriptions()
     }
+
+    @get:JvmSynthetic
+    private val Throwable.toWalletConnectException: WalletConnectException
+        get() =
+            when {
+                this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
+                    WalletConnectException.ProjectIdDoesNotExistException(this.message)
+                this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
+                    WalletConnectException.InvalidProjectIdException(this.message)
+                else -> WalletConnectException.GenericException(this.message)
+            }
+
+
+    val initializationErrorsFlow: Flow<WalletConnectException>
+        get() = relay.eventsFlow
+            .onEach { event: WalletConnect.Model.Relay.Event ->
+                Logger.log("$event")
+                setIsWSSConnectionOpened(event)
+            }
+            .filterIsInstance<WalletConnect.Model.Relay.Event.OnConnectionFailed>()
+            .map { error -> error.throwable.toWalletConnectException }
 
     internal fun publishJsonRpcRequests(
         topic: TopicVO,
@@ -161,11 +187,11 @@ internal class RelayerInteractor(
         }
     }
 
-//        internal fun getMessages(topic: TopicVO): List<PendingRequestVO> =
+//        internal fun getMessages(topic: TopicVO): List<ChatMessageVO> =
 //        jsonRpcHistory.getRequests(topic)
-//            .filter { entry -> entry.response != null && entry.method == JsonRpcMethod.WC_SESSION_REQUEST }
-//            .filter { entry -> serializer.tryDeserialize<SessionSettlementVO.SessionRequest>(entry.body) != null }
-//            .map { entry -> serializer.tryDeserialize<SessionSettlementVO.SessionRequest>(entry.body)!!.toPendingRequestVO(entry) }
+//            .filter { entry -> entry.response != null && entry.method == JsonRpcMethod.WC_CHAT_MESSAGE }
+////            .filter { entry -> serializer.tryDeserialize<SessionSettlementVO.SessionRequest>(entry.body) != null }
+////            .map { entry -> serializer.tryDeserialize<SessionSettlementVO.SessionRequest>(entry.body)!!.toPendingRequestVO(entry) }
 
     private fun manageSubscriptions() {
         scope.launch(exceptionHandler) {
@@ -216,6 +242,14 @@ internal class RelayerInteractor(
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(jsonRpcError.toJsonRpcErrorVO(), params))
             } ?: handleError("RelayerInteractor: Unknown error params")
+        }
+    }
+
+    private fun setIsWSSConnectionOpened(event: WalletConnect.Model.Relay.Event) {
+        if (event is WalletConnect.Model.Relay.Event.OnConnectionOpened<*>) {
+            _isWSSConnectionOpened.compareAndSet(expect = false, update = true)
+        } else if (event is WalletConnect.Model.Relay.Event.OnConnectionClosed || event is WalletConnect.Model.Relay.Event.OnConnectionFailed) {
+            _isWSSConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }
 

@@ -31,7 +31,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                 androidContext(application)
                 modules(
                     commonModule(),
-                    cryptoManager(),
+                    cryptoModule(),
                     networkModule(serverUrl, relay, connectionType.toRelayConnectionType()),
                     relayerModule(),
                     storageModule(),

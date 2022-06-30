@@ -5,37 +5,28 @@ package com.walletconnect.chat.copiedFromSign.json_rpc.data
 import com.squareup.moshi.Moshi
 import com.walletconnect.chat.copiedFromSign.core.model.type.ClientParams
 import com.walletconnect.chat.copiedFromSign.core.model.type.SerializableJsonRpc
+import com.walletconnect.chat.copiedFromSign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.chat.copiedFromSign.json_rpc.model.RelayerDO
 import com.walletconnect.chat.copiedFromSign.util.Empty
+import com.walletconnect.chat.core.model.vo.clientsync.ChatSettlementVO
 
 internal class JsonRpcSerializer(private val moshi: Moshi) {
 
     internal fun deserialize(method: String, json: String): ClientParams? =
         when (method) {
-//            JsonRpcMethod.WC_SESSION_PROPOSE -> tryDeserialize<PairingSettlementVO.SessionPropose>(json)?.params
-//            JsonRpcMethod.WC_PAIRING_PING -> tryDeserialize<PairingSettlementVO.PairingPing>(json)?.params
-//            JsonRpcMethod.WC_SESSION_SETTLE -> tryDeserialize<SessionSettlementVO.SessionSettle>(json)?.params
-//            JsonRpcMethod.WC_SESSION_REQUEST -> tryDeserialize<SessionSettlementVO.SessionRequest>(json)?.params
-//            JsonRpcMethod.WC_SESSION_DELETE -> tryDeserialize<SessionSettlementVO.SessionDelete>(json)?.params
-//            JsonRpcMethod.WC_SESSION_PING -> tryDeserialize<SessionSettlementVO.SessionPing>(json)?.params
-//            JsonRpcMethod.WC_SESSION_EVENT -> tryDeserialize<SessionSettlementVO.SessionEvent>(json)?.params
-//            JsonRpcMethod.WC_SESSION_UPDATE -> tryDeserialize<SessionSettlementVO.SessionUpdate>(json)?.params
-//            JsonRpcMethod.WC_SESSION_EXTEND -> tryDeserialize<SessionSettlementVO.SessionExtend>(json)?.params
+            JsonRpcMethod.WC_CHAT_MESSAGE -> tryDeserialize<ChatSettlementVO.ChatMessage>(json)?.params
+            JsonRpcMethod.WC_CHAT_INVITE -> tryDeserialize<ChatSettlementVO.ChatInvite>(json)?.params
+            JsonRpcMethod.WC_CHAT_LEAVE -> tryDeserialize<ChatSettlementVO.ChatLeave>(json)?.params
+            JsonRpcMethod.WC_CHAT_PING -> tryDeserialize<ChatSettlementVO.ChatPing>(json)?.params
             else -> null
         }
 
     fun serialize(payload: SerializableJsonRpc): String =
         when (payload) {
-//            is PairingSettlementVO.SessionPropose -> trySerialize(payload)
-//            is PairingSettlementVO.PairingPing -> trySerialize(payload)
-//            is PairingSettlementVO.PairingDelete -> trySerialize(payload)
-//            is SessionSettlementVO.SessionPing -> trySerialize(payload)
-//            is SessionSettlementVO.SessionEvent -> trySerialize(payload)
-//            is SessionSettlementVO.SessionUpdate -> trySerialize(payload)
-//            is SessionSettlementVO.SessionExtend -> trySerialize(payload)
-//            is SessionSettlementVO.SessionRequest -> trySerialize(payload)
-//            is SessionSettlementVO.SessionDelete -> trySerialize(payload)
-//            is SessionSettlementVO.SessionSettle -> trySerialize(payload)
+            is ChatSettlementVO.ChatMessage -> trySerialize(payload)
+            is ChatSettlementVO.ChatInvite -> trySerialize(payload)
+            is ChatSettlementVO.ChatLeave -> trySerialize(payload)
+            is ChatSettlementVO.ChatPing -> trySerialize(payload)
             is RelayerDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
             is RelayerDO.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             else -> String.Empty
