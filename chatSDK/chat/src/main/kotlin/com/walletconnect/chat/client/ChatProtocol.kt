@@ -5,7 +5,7 @@ import com.walletconnect.chat.client.mapper.toMessageEngineDO
 import com.walletconnect.chat.copiedFromSign.core.scope.scope
 import com.walletconnect.chat.copiedFromSign.di.*
 import com.walletconnect.chat.copiedFromSign.network.connection.ConnectionType
-import com.walletconnect.chat.core.model.vo.AccountId
+import com.walletconnect.chat.core.model.vo.AccountIdVO
 import com.walletconnect.chat.core.model.vo.EventsVO
 import com.walletconnect.chat.di.engineModule
 import com.walletconnect.chat.di.keyServerModule
@@ -70,7 +70,7 @@ internal class ChatProtocol : ChatInterface {
         checkEngineInitialization()
 
         chatEngine.registerAccount(
-            AccountIdVO(register.account),
+            AccountIdVO(register.account.value),
             { publicKey -> listener.onSuccess(publicKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) },
             register.private ?: false
@@ -82,7 +82,7 @@ internal class ChatProtocol : ChatInterface {
         checkEngineInitialization()
 
         chatEngine.resolveAccount(
-            AccountIdVO(resolve.account),
+            AccountIdVO(resolve.account.value),
             { publicKey -> listener.onSuccess(publicKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) }
         )

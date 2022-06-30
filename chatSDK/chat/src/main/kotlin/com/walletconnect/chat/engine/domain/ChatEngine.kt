@@ -11,7 +11,7 @@ import com.walletconnect.chat.copiedFromSign.crypto.KeyManagementRepository
 import com.walletconnect.chat.copiedFromSign.json_rpc.domain.RelayerInteractor
 import com.walletconnect.chat.copiedFromSign.util.Logger
 import com.walletconnect.chat.copiedFromSign.util.generateId
-import com.walletconnect.chat.core.model.vo.AccountId
+import com.walletconnect.chat.core.model.vo.AccountIdVO
 import com.walletconnect.chat.core.model.vo.AccountIdWithPublicKeyVO
 import com.walletconnect.chat.core.model.vo.EventsVO
 import com.walletconnect.chat.core.model.vo.clientsync.ChatSettlementVO
@@ -39,7 +39,7 @@ internal class ChatEngine(
         relayer.initializationErrorsFlow.onEach { error -> Logger.error(error) }.launchIn(scope)
     }
 
-    internal fun resolveAccount(accountId: AccountId, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
+    internal fun resolveAccount(accountId: AccountIdVO, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         scope.launch {
             supervisorScope {
                 resolveAccountUseCase(accountId).fold(
@@ -51,7 +51,7 @@ internal class ChatEngine(
     }
 
     internal fun registerAccount(
-        accountId: AccountId,
+        accountId: AccountIdVO,
         onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit,
         private: Boolean,
