@@ -319,7 +319,6 @@ object Sign {
             val connectionType: ConnectionType,
         ) : Params() {
             internal lateinit var relayServerUrl: String
-            internal lateinit var nonceServerUrl: String
 
             constructor(
                 application: Application,
@@ -335,27 +334,17 @@ object Sign {
                     .appendQueryParameter("projectId", projectId)
                     .build()
                     .toString()
-                val nonceServerUrl = Uri.Builder().scheme((if (useTls) "https" else "http"))
-                    .authority(hostName)
-                    .build()
-                    .toString()
 
                 require(relayServerUrl.isValidRelayServerUrl()) {
                     "Check the schema and projectId parameter of the Server Url"
                 }
 
                 this.relayServerUrl = relayServerUrl
-                this.nonceServerUrl = if (!nonceServerUrl.endsWith("/")) {
-                    nonceServerUrl.plus("/")
-                } else {
-                    nonceServerUrl
-                }
             }
 
             constructor(
                 application: Application,
                 relayServerUrl: String,
-                nonceServerUrl: String,
                 metadata: Model.AppMetaData,
                 relay: Relay? = null,
                 connectionType: ConnectionType = ConnectionType.AUTOMATIC,
@@ -365,11 +354,6 @@ object Sign {
                 }
 
                 this.relayServerUrl = relayServerUrl
-                this.nonceServerUrl = if (!nonceServerUrl.endsWith("/")) {
-                    nonceServerUrl.plus("/")
-                } else {
-                    nonceServerUrl
-                }
             }
 
             private fun String.isValidRelayServerUrl(): Boolean {

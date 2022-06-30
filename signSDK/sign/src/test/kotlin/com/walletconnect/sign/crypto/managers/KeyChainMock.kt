@@ -31,6 +31,10 @@ internal class KeyChainMock : KeyStore {
         mapOfKeys.remove(tag)
     }
 
+    override fun checkKeys(tag: String): Boolean {
+        return mapOfKeys.containsKey(tag)
+    }
+
     private fun concatKeys(keyA: Key, keyB: Key): String = (keyA.keyAsHex.hexToBytes() + keyB.keyAsHex.hexToBytes()).bytesToHex()
 
     private fun splitKeys(concatKeys: String): Pair<String, String> {

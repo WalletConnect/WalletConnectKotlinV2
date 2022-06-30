@@ -21,6 +21,16 @@ import java.util.concurrent.TimeUnit
 @JvmSynthetic
 internal fun scarletModule(serverUrl: String, jwt: String, connectionType: ConnectionType, relay: Relay?) = module {
     val DEFAULT_BACKOFF_MINUTES = 5L
+    val TIMEOUT_TIME = 5000L
+
+    single {
+        OkHttpClient.Builder()
+            .writeTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
+            .readTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
+            .callTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
+            .connectTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
+            .build()
+    }
 
     single { MoshiMessageAdapter.Factory(get()) }
 
@@ -53,7 +63,6 @@ internal fun scarletModule(serverUrl: String, jwt: String, connectionType: Conne
             .addStreamAdapterFactory(get<FlowStreamAdapter.Factory>())
             .build()
     }
-
 
     single { get<Scarlet>().create(RelayService::class.java) }
 

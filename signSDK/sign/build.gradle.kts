@@ -65,7 +65,6 @@ dependencies {
     sqlDelight()
     security()
     koin()
-    retrofit()
     multibaseJava()
 
     androidXTest()

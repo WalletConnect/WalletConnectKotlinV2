@@ -3,7 +3,6 @@
 package com.walletconnect.sign.client
 
 import com.walletconnect.sign.client.mapper.*
-import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.scope.scope
 import com.walletconnect.sign.crypto.data.repository.JwtRepository
@@ -37,7 +36,6 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                 modules(
                     commonModule(),
                     cryptoManager(),
-                    networkModule(nonceServerUrl),
                     relayerModule(),
                     storageModule(),
                     engineModule(metadata)
@@ -48,17 +46,12 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
         scope.launch {
             mutex.withLock {
                 val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
-                val nonce = jwtRepository.getNonceFromDID()
+                val jwt = jwtRepository.generateJWT()
 
-                if (nonce != null) {
-                    val jwt = jwtRepository.signJWT(nonce)
-                    wcKoinApp.modules(scarletModule(initial.relayServerUrl, jwt, initial.connectionType.toRelayConnectionType(), initial.relay))
-                    signEngine = wcKoinApp.koin.get()
-                    signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
-                    Logger.log("Engine Initialized")
-                } else {
-                    onError(Sign.Model.Error(WalletConnectException.GenericException("Unable to generate Nonce. Please check connection")))
-                }
+                wcKoinApp.modules(scarletModule(initial.relayServerUrl, jwt, initial.connectionType.toRelayConnectionType(), initial.relay))
+                signEngine = wcKoinApp.koin.get()
+                signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
+                Logger.log("Engine Initialized")
             }
         }
     }

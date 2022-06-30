@@ -31,5 +31,5 @@ internal fun cryptoManager() = module {
 
     single<KeyManagementRepository> { BouncyCastleKeyManagementRepository(get()) }
 
-    single { JwtRepository(get(), get()) }
+    single { JwtRepository(get()) }
 }
