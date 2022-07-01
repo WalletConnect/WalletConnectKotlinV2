@@ -29,7 +29,7 @@ class ThreadsFragment : Fragment(R.layout.fragment_threads) {
         with(binding) {
             btnNavToInvites.setOnClickListener { findNavController().navigate(R.id.action_global_invitesFragment) }
             btnNavToMessages.setOnClickListener { findNavController().navigate(R.id.action_global_messagesFragment) }
-            btnNavToThreadInvite.setOnClickListener {  }
+            btnNavToThreadInvite.setOnClickListener { findNavController().navigate(R.id.action_threadsFragment_to_threadInviteDialogFragment) }
         }
     }
 
