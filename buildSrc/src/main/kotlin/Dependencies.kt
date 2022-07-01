@@ -50,11 +50,13 @@ fun DependencyHandlerScope.scarlet() {
     "testImplementation"("com.tinder.scarlet:test-utils:$scarletVersion")
 }
 
+
 fun DependencyHandlerScope.retrofit() {
     val retrofitVersion = "2.9.0"
     "implementation"("com.squareup.retrofit2:retrofit:$retrofitVersion")
     "implementation"("com.squareup.retrofit2:converter-moshi:$retrofitVersion")
 }
+
 
 fun DependencyHandlerScope.moshi() {
     val moshiVersion = "1.13.0"

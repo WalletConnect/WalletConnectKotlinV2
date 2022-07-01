@@ -68,7 +68,7 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
     }
 
     override fun removeKeys(tag: String) {
-        val (_, publicKey) = keyChain.getKeys(tag)
+        val (publicKey, _) = keyChain.getKeys(tag)
         with(keyChain) {
             deleteKeys(publicKey.lowercase())
             deleteKeys(tag)

@@ -20,8 +20,8 @@ internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyS
         return sharedPreferences.getString(tag, String.Empty) ?: String.Empty
     }
 
-    override fun setKeys(tag: String, key1: Key, key2: Key) {
-        val keys = concatKeys(key1, key2)
+    override fun setKeys(tag: String, keyA: Key, keyB: Key) {
+        val keys = concatKeys(keyA, keyB)
         sharedPreferences.edit().putString(tag, keys).apply()
     }
 
@@ -43,8 +43,9 @@ internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyS
 
     private fun splitKeys(concatKeys: String): Pair<String, String> {
         val concatKeysByteArray = concatKeys.hexToBytes()
-        val privateKeyByteArray = concatKeysByteArray.sliceArray(0 until (concatKeysByteArray.size / 2))
-        val publicKeyByteArray = concatKeysByteArray.sliceArray((concatKeysByteArray.size / 2) until concatKeysByteArray.size)
-        return privateKeyByteArray.bytesToHex() to publicKeyByteArray.bytesToHex()
+        val keyA = concatKeysByteArray.sliceArray(0 until (concatKeysByteArray.size / 2))
+        val keyB = concatKeysByteArray.sliceArray((concatKeysByteArray.size / 2) until concatKeysByteArray.size)
+
+        return keyA.bytesToHex() to keyB.bytesToHex()
     }
 }
