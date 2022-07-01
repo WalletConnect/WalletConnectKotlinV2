@@ -26,7 +26,7 @@ import java.security.SecureRandom
 internal class JwtRepository(private val keyChain: KeyStore) {
 
     fun generateJWT(): String {
-        val subject = generateNonce()
+        val subject = generateSubject()
         val (publicKey, privateKey) = getKeyPair()
         val privateKeyParameters = Ed25519PrivateKeyParameters(privateKey.hexToBytes())
 
@@ -100,7 +100,7 @@ internal class JwtRepository(private val keyChain: KeyStore) {
         return publicKey.keyAsHex to privateKey.keyAsHex
     }
 
-    internal fun generateNonce() = randomBytes(KEY_NONCE_SIZE).bytesToHex()
+    internal fun generateSubject() = randomBytes(KEY_NONCE_SIZE).bytesToHex()
 
     private companion object {
         const val KEY_DID_KEYPAIR = "key_did_keypair"

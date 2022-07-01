@@ -1,6 +1,5 @@
 package com.walletconnect.sign.crypto.data.repository
 
-import com.walletconnect.sign.core.model.vo.Key
 import com.walletconnect.sign.core.model.vo.PrivateKey
 import com.walletconnect.sign.core.model.vo.PublicKey
 import com.walletconnect.sign.crypto.managers.KeyChainMock
@@ -27,7 +26,7 @@ internal class JwtRepositoryTest {
         val privateKey = PrivateKey("58e0254c211b858ef7896b00e3f36beeb13d568d47c6031c4218b87718061295")
         keyChain.setKeys(tag, privateKey, publicKey)
 
-        every { sut.generateNonce() } returns "c479fe5dc464e771e78b193d239a65b58d278cad1c34bfb0b5716e5bb514928e"
+        every { sut.generateSubject() } returns "c479fe5dc464e771e78b193d239a65b58d278cad1c34bfb0b5716e5bb514928e"
         every { sut.encodeByteArray(any()) } answers  {
             Base64.getUrlEncoder().withoutPadding().encodeToString(firstArg())
         }

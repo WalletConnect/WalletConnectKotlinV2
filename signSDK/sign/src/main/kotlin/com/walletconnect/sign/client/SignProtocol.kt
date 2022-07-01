@@ -10,7 +10,6 @@ import com.walletconnect.sign.di.*
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.network.Relay
-import com.walletconnect.sign.util.Logger
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -51,7 +50,6 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                 wcKoinApp.modules(scarletModule(initial.relayServerUrl, jwt, initial.connectionType.toRelayConnectionType(), initial.relay))
                 signEngine = wcKoinApp.koin.get()
                 signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
-                Logger.log("Engine Initialized")
             }
         }
     }
