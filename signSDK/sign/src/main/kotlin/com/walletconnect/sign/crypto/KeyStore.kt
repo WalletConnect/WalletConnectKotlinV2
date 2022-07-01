@@ -2,14 +2,17 @@
 
 package com.walletconnect.sign.crypto
 
+import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.model.vo.Key
 
 internal interface KeyStore {
-    fun setSymmetricKey(tag: String, key: Key)
     fun getSymmetricKey(tag: String): String
+    fun setSymmetricKey(tag: String, key: Key)
 
-    fun setKeys(tag: String, key1: Key, key2: Key)
+    @Throws(WalletConnectException.InternalError::class)
     fun getKeys(tag: String): Pair<String, String>
+    fun setKeys(tag: String, key1: Key, key2: Key)
 
     fun deleteKeys(tag: String)
+    fun checkKeys(tag: String): Boolean
 }

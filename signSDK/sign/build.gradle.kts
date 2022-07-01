@@ -41,7 +41,10 @@ android {
         freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.time.ExperimentalTime"
     }
 
-    testOptions.unitTests.isIncludeAndroidResources = true
+    testOptions.unitTests {
+        isIncludeAndroidResources = true
+        isReturnDefaultValues = true
+    }
 
     packagingOptions {
         resources.excludes += setOf(
@@ -62,6 +65,7 @@ dependencies {
     sqlDelight()
     security()
     koin()
+    multibaseJava()
 
     androidXTest()
     jUnit5()

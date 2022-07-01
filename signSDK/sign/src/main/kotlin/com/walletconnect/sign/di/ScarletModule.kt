@@ -19,13 +19,9 @@ import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
 @JvmSynthetic
-internal fun networkModule(serverUrl: String, relay: Relay?, connectionType: ConnectionType) = module {
-    val TIMEOUT_TIME = 5000L
+internal fun scarletModule(serverUrl: String, jwt: String, connectionType: ConnectionType, relay: Relay?) = module {
     val DEFAULT_BACKOFF_MINUTES = 5L
-
-    single { MoshiMessageAdapter.Factory(get()) }
-
-    single { FlowStreamAdapter.Factory() }
+    val TIMEOUT_TIME = 5000L
 
     single {
         OkHttpClient.Builder()
@@ -35,6 +31,12 @@ internal fun networkModule(serverUrl: String, relay: Relay?, connectionType: Con
             .connectTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
             .build()
     }
+
+    single { MoshiMessageAdapter.Factory(get()) }
+
+    single { FlowStreamAdapter.Factory() }
+
+    single { LinearBackoffStrategy(TimeUnit.MINUTES.toMillis(DEFAULT_BACKOFF_MINUTES)) }
 
     single {
         if (connectionType == ConnectionType.MANUAL) {
@@ -54,8 +56,8 @@ internal fun networkModule(serverUrl: String, relay: Relay?, connectionType: Con
 
     single {
         Scarlet.Builder()
-            .backoffStrategy(LinearBackoffStrategy(TimeUnit.MINUTES.toMillis(DEFAULT_BACKOFF_MINUTES)))
-            .webSocketFactory(get<OkHttpClient>().newWebSocketFactory(serverUrl))
+            .backoffStrategy(get<LinearBackoffStrategy>())
+            .webSocketFactory(get<OkHttpClient>().newWebSocketFactory("$serverUrl&auth=$jwt"))
             .lifecycle(get())
             .addMessageAdapterFactory(get<MoshiMessageAdapter.Factory>())
             .addStreamAdapterFactory(get<FlowStreamAdapter.Factory>())

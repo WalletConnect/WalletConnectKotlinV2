@@ -33,7 +33,7 @@ fun DependencyHandlerScope.navigationComponent() {
 }
 
 fun DependencyHandlerScope.coroutines() {
-    val coroutinesVersion = "1.5.1"
+    val coroutinesVersion = "1.6.0"
     "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     "testImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
 }
@@ -100,6 +100,12 @@ fun DependencyHandlerScope.koin() {
 fun DependencyHandlerScope.glide_N_kapt() {
     "implementation"("com.github.bumptech.glide:glide:4.12.0")
     "kapt"("com.github.bumptech.glide:compiler:4.12.0")
+}
+
+fun DependencyHandlerScope.multibaseJava() {
+    val multibaseVersion = "1.1.0"
+
+    "implementation"("com.github.multiformats:java-multibase:$multibaseVersion") //https://mvnrepository.com/artifact/com.github.multiformats/java-multibase/1.1.0 vulnerability detected with library
 }
 
 fun DependencyHandlerScope.jUnit5() {
