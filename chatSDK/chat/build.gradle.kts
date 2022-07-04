@@ -45,4 +45,5 @@ dependencies {
 
     jUnit5()
     androidXTest()
+    navigationComponent()
 }
