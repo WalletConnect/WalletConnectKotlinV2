@@ -58,7 +58,9 @@ internal class SignEngine(
     }
 
     fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-        relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
+        relayer.initializationErrorsFlow.onEach { walletConnectException ->
+            onError(walletConnectException)
+        }.launchIn(scope)
     }
 
     internal fun proposeSequence(

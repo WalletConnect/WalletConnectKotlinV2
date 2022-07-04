@@ -3,6 +3,7 @@
 package com.walletconnect.sign.crypto.data.keystore
 
 import android.content.SharedPreferences
+import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.model.vo.Key
 import com.walletconnect.sign.crypto.KeyStore
 import com.walletconnect.sign.util.Empty
@@ -24,13 +25,18 @@ internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyS
         sharedPreferences.edit().putString(tag, keys).apply()
     }
 
+    @Throws(WalletConnectException.InternalError::class)
     override fun getKeys(tag: String): Pair<String, String> {
-        val concatKeys = sharedPreferences.getString(tag, String.Empty) ?: String.Empty
+        val concatKeys = sharedPreferences.getString(tag, null) ?: throw WalletConnectException.InternalError("unable to find keys")
         return splitKeys(concatKeys)
     }
 
     override fun deleteKeys(tag: String) {
         sharedPreferences.edit().remove(tag).apply()
+    }
+
+    override fun checkKeys(tag: String): Boolean {
+        return sharedPreferences.contains(tag)
     }
 
     private fun concatKeys(keyA: Key, keyB: Key): String = (keyA.keyAsHex.hexToBytes() + keyB.keyAsHex.hexToBytes()).bytesToHex()

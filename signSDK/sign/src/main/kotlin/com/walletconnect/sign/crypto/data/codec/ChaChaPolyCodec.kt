@@ -40,7 +40,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         return when (envelopeType.id) {
             EnvelopeType.ZERO.id -> encryptEnvelopeType0(topic, nonceBytes, input, envelopeType)
             EnvelopeType.ONE.id -> encryptEnvelopeType1(participants, nonceBytes, input, envelopeType)
-            else -> throw WalletConnectException.UnknownEnvelopeTypeException("Unknown envelope type: ${envelopeType.id}")
+            else -> throw WalletConnectException.UnknownEnvelopeTypeException("Encrypt; Unknown envelope type: ${envelopeType.id}")
         }
     }
 
@@ -54,7 +54,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         return when (val envelopeType = encryptedPayloadBytes.envelopeType) {
             EnvelopeType.ZERO.id -> decryptType0(topic, encryptedPayloadBytes)
             EnvelopeType.ONE.id -> decryptType1(encryptedPayloadBytes, receiverPublicKey)
-            else -> throw WalletConnectException.UnknownEnvelopeTypeException("Unknown envelope type: $envelopeType")
+            else -> throw WalletConnectException.UnknownEnvelopeTypeException("Decrypt; Unknown envelope type: $envelopeType")
         }
     }
 

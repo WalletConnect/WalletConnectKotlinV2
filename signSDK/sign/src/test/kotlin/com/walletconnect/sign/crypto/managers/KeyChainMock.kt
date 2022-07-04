@@ -6,7 +6,6 @@ import com.walletconnect.sign.util.bytesToHex
 import com.walletconnect.sign.util.hexToBytes
 
 internal class KeyChainMock : KeyStore {
-
     private val mapOfKeys = mutableMapOf<String, String>()
 
     override fun setSymmetricKey(tag: String, key: Key) {
@@ -30,6 +29,10 @@ internal class KeyChainMock : KeyStore {
 
     override fun deleteKeys(tag: String) {
         mapOfKeys.remove(tag)
+    }
+
+    override fun checkKeys(tag: String): Boolean {
+        return mapOfKeys.containsKey(tag)
     }
 
     private fun concatKeys(keyA: Key, keyB: Key): String = (keyA.keyAsHex.hexToBytes() + keyB.keyAsHex.hexToBytes()).bytesToHex()
