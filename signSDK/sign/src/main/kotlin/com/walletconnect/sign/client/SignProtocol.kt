@@ -5,12 +5,14 @@ package com.walletconnect.sign.client
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.scope.scope
+import com.walletconnect.sign.crypto.data.repository.JwtRepository
 import com.walletconnect.sign.di.*
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.network.Relay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 
@@ -18,8 +20,9 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var signEngine: SignEngine
     override val relay: Relay by lazy { wcKoinApp.koin.get() }
+    private val mutex = Mutex()
 
-    companion object  {
+    companion object {
         val instance = SignProtocol()
     }
 
@@ -31,33 +34,43 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                 androidContext(application)
                 modules(
                     commonModule(),
-                    cryptoModule(),
-                    networkModule(serverUrl, relay, connectionType.toRelayConnectionType()),
+                    cryptoManager(),
                     relayerModule(),
                     storageModule(),
                     engineModule(metadata)
                 )
             }
         }
-        signEngine = wcKoinApp.koin.get()
-        signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
+
+        scope.launch {
+            mutex.withLock {
+                val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
+                val jwt = jwtRepository.generateJWT()
+
+                wcKoinApp.modules(scarletModule(initial.relayServerUrl, jwt, initial.connectionType.toRelayConnectionType(), initial.relay))
+                signEngine = wcKoinApp.koin.get()
+                signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
+            }
+        }
     }
 
     @Throws(IllegalStateException::class)
     override fun setWalletDelegate(delegate: SignInterface.WalletDelegate) {
-        checkEngineInitialization()
         scope.launch {
-            signEngine.engineEvent.collect { event ->
-                when (event) {
-                    is EngineDO.SessionProposal -> delegate.onSessionProposal(event.toClientSessionProposal())
-                    is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
-                    is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
-                    //Responses
-                    is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
-                    is EngineDO.SessionUpdateNamespacesResponse -> delegate.onSessionUpdateResponse(event.toClientUpdateSessionNamespacesResponse())
-                    //Utils
-                    is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
-                    is EngineDO.InternalError -> delegate.onError(event.toClientError())
+            mutex.withLock {
+                checkEngineInitialization()
+                signEngine.engineEvent.collect { event ->
+                    when (event) {
+                        is EngineDO.SessionProposal -> delegate.onSessionProposal(event.toClientSessionProposal())
+                        is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
+                        is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
+                        //Responses
+                        is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
+                        is EngineDO.SessionUpdateNamespacesResponse -> delegate.onSessionUpdateResponse(event.toClientUpdateSessionNamespacesResponse())
+                        //Utils
+                        is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
+                        is EngineDO.InternalError -> delegate.onError(event.toClientError())
+                    }
                 }
             }
         }
@@ -65,21 +78,23 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
 
     @Throws(IllegalStateException::class)
     override fun setDappDelegate(delegate: SignInterface.DappDelegate) {
-        checkEngineInitialization()
         scope.launch {
-            signEngine.engineEvent.collect { event ->
-                when (event) {
-                    is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
-                    is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
-                    is EngineDO.SessionUpdateNamespaces -> delegate.onSessionUpdate(event.toClientSessionsNamespaces())
-                    is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
-                    is EngineDO.SessionEvent -> delegate.onSessionEvent(event.toClientSessionEvent())
-                    is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientSettledSession())
-                    //Responses
-                    is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
-                    //Utils
-                    is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
-                    is EngineDO.InternalError -> delegate.onError(event.toClientError())
+            mutex.withLock {
+                checkEngineInitialization()
+                signEngine.engineEvent.collect { event ->
+                    when (event) {
+                        is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
+                        is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
+                        is EngineDO.SessionUpdateNamespaces -> delegate.onSessionUpdate(event.toClientSessionsNamespaces())
+                        is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
+                        is EngineDO.SessionEvent -> delegate.onSessionEvent(event.toClientSessionEvent())
+                        is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientSettledSession())
+                        //Responses
+                        is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
+                        //Utils
+                        is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
+                        is EngineDO.InternalError -> delegate.onError(event.toClientError())
+                    }
                 }
             }
         }

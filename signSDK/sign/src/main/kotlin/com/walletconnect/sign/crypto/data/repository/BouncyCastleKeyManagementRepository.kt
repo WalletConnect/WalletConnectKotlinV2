@@ -68,7 +68,7 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
     }
 
     override fun removeKeys(tag: String) {
-        val (_, publicKey) = keyChain.getKeys(tag)
+        val (publicKey, _) = keyChain.getKeys(tag)
         with(keyChain) {
             deleteKeys(publicKey.lowercase())
             deleteKeys(tag)
@@ -125,11 +125,11 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
     }
 
     private companion object {
-        private const val KEY_SIZE: Int = 32
-        private const val SYM_KEY_SIZE: Int = 256
-        private const val SHA_256: String = "SHA-256"
-        private const val AES: String = "AES"
+        const val KEY_SIZE: Int = 32
+        const val SYM_KEY_SIZE: Int = 256
+        const val SHA_256: String = "SHA-256"
+        const val AES: String = "AES"
 
-        private const val keyAgreementContext = "key_agreement/"
+        const val keyAgreementContext = "key_agreement/"
     }
 }

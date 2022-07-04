@@ -6,6 +6,7 @@ import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.crypto.KeyStore
 import com.walletconnect.sign.crypto.data.keystore.KeyChain
 import com.walletconnect.sign.crypto.data.repository.BouncyCastleKeyManagementRepository
+import com.walletconnect.sign.crypto.data.repository.JwtRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -29,4 +30,6 @@ internal fun cryptoModule() = module {
     single<KeyStore> { KeyChain(get(named(DITags.KEY_STORE))) }
 
     single<KeyManagementRepository> { BouncyCastleKeyManagementRepository(get()) }
+
+    single { JwtRepository(get()) }
 }

@@ -42,8 +42,8 @@ internal fun commonModule() = module {
                     else -> null
                 }
             }
-            .addLast(get<KotlinJsonAdapterFactory>())
             .add(get<PolymorphicJsonAdapterFactory<RelayerDO.JsonRpcResponse>>())
+            .addLast(get<KotlinJsonAdapterFactory>())
             .build()
     }
 }
