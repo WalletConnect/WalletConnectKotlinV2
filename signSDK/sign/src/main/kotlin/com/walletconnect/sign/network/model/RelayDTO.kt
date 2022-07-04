@@ -3,8 +3,10 @@ package com.walletconnect.sign.network.model
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.sign.core.adapters.SubscriptionIdAdapter
+import com.walletconnect.sign.core.adapters.TagsAdapter
 import com.walletconnect.sign.core.adapters.TopicAdapter
 import com.walletconnect.sign.core.adapters.TtlAdapter
+import com.walletconnect.sign.core.model.type.Tags
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.TtlVO
@@ -38,6 +40,9 @@ internal sealed class RelayDTO {
                 @Json(name = "ttl")
                 @field:TtlAdapter.Qualifier
                 val ttl: TtlVO = TtlVO(Time.dayInSeconds),
+                @Json(name = "tag")
+                @field:TagsAdapter.Qualifier
+                val tag: Tags = Tags.SIGN,
                 @Json(name = "prompt")
                 val prompt: Boolean?
             )

@@ -17,6 +17,7 @@ import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.tinder.scarlet.ws.Receive
 import com.tinder.scarlet.ws.Send
 import com.walletconnect.sign.core.adapters.*
+import com.walletconnect.sign.core.model.type.Tags
 import com.walletconnect.sign.core.model.vo.ExpiryVO
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
@@ -311,6 +312,7 @@ internal class RelayTest {
                 SubscriptionIdVO::class.qualifiedName -> SubscriptionIdAdapter
                 TopicVO::class.qualifiedName -> TopicAdapter
                 TtlVO::class.qualifiedName -> TtlAdapter
+                Tags::class.qualifiedName -> TagsAdapter
                 else -> null
             }
         }
