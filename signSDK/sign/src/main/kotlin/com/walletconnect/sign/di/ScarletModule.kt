@@ -6,20 +6,20 @@ import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
-import com.walletconnect.sign.network.Relay
-import com.walletconnect.sign.network.data.adapter.FlowStreamAdapter
-import com.walletconnect.sign.network.data.client.RelayClient
-import com.walletconnect.sign.network.data.connection.ConnectionType
-import com.walletconnect.sign.network.data.connection.controller.ConnectionController
-import com.walletconnect.sign.network.data.connection.lifecycle.ManualConnectionLifecycle
-import com.walletconnect.sign.network.data.service.RelayService
+import com.walletconnect.sign.network.RelayInterface
+import com.walletconnect.sign.network.adapter.FlowStreamAdapter
+import com.walletconnect.sign.network.connection.ConnectionType
+import com.walletconnect.sign.network.connection.controller.ConnectionController
+import com.walletconnect.sign.network.connection.lifecycle.ManualConnectionLifecycle
+import com.walletconnect.sign.network.domain.RelayClient
+import com.walletconnect.sign.network.service.RelayService
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
 @JvmSynthetic
-internal fun scarletModule(serverUrl: String, jwt: String, connectionType: ConnectionType, relay: Relay?) = module {
+internal fun scarletModule(serverUrl: String, jwt: String, connectionType: ConnectionType, relay: RelayInterface?) = module {
     val DEFAULT_BACKOFF_MINUTES = 5L
     val TIMEOUT_TIME = 5000L
 

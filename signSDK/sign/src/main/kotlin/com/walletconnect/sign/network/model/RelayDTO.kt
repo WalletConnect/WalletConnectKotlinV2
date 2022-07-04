@@ -5,7 +5,6 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.sign.core.adapters.SubscriptionIdAdapter
 import com.walletconnect.sign.core.adapters.TopicAdapter
 import com.walletconnect.sign.core.adapters.TtlAdapter
-import com.walletconnect.sign.core.model.utils.JsonRpcRelay
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.TtlVO
