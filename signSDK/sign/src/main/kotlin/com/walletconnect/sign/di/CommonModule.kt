@@ -5,6 +5,7 @@ import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.sign.core.adapters.*
+import com.walletconnect.sign.core.model.type.Tags
 import com.walletconnect.sign.core.model.vo.ExpiryVO
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
@@ -37,6 +38,7 @@ internal fun commonModule() = module {
                     SubscriptionIdVO::class.jvmName -> SubscriptionIdAdapter
                     TopicVO::class.jvmName -> TopicAdapter
                     TtlVO::class.jvmName -> TtlAdapter
+                    Tags::class.jvmName -> TagsAdapter
                     SessionRequestVO::class.jvmName -> SessionRequestVOJsonAdapter(moshi)
                     RelayerDO.JsonRpcResponse.JsonRpcResult::class.jvmName -> RelayDOJsonRpcResultJsonAdapter(moshi)
                     else -> null
