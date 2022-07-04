@@ -6,7 +6,7 @@ import com.walletconnect.sign.core.model.type.JsonRpcClientSync
 import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 
-internal sealed class SessionSettlementVO : JsonRpcClientSync<SessionParamsVO> {
+internal sealed class SessionRpcVO : JsonRpcClientSync<SessionParamsVO> {
     abstract override val id: Long
     abstract override val method: String
     abstract override val jsonrpc: String
@@ -22,7 +22,7 @@ internal sealed class SessionSettlementVO : JsonRpcClientSync<SessionParamsVO> {
         override val method: String = JsonRpcMethod.WC_SESSION_SETTLE,
         @Json(name = "params")
         override val params: SessionParamsVO.SessionSettleParams
-    ) : SessionSettlementVO()
+    ) : SessionRpcVO()
 
     @JsonClass(generateAdapter = true)
     internal data class SessionRequest(
@@ -34,7 +34,7 @@ internal sealed class SessionSettlementVO : JsonRpcClientSync<SessionParamsVO> {
         override val method: String = JsonRpcMethod.WC_SESSION_REQUEST,
         @Json(name = "params")
         override val params: SessionParamsVO.SessionRequestParams
-    ) : SessionSettlementVO()
+    ) : SessionRpcVO()
 
     @JsonClass(generateAdapter = true)
     internal data class SessionDelete(
@@ -46,7 +46,7 @@ internal sealed class SessionSettlementVO : JsonRpcClientSync<SessionParamsVO> {
         override val method: String = JsonRpcMethod.WC_SESSION_DELETE,
         @Json(name = "params")
         override val params: SessionParamsVO.DeleteParams
-    ) : SessionSettlementVO()
+    ) : SessionRpcVO()
 
     @JsonClass(generateAdapter = true)
     internal data class SessionPing(
@@ -58,7 +58,7 @@ internal sealed class SessionSettlementVO : JsonRpcClientSync<SessionParamsVO> {
         override val method: String = JsonRpcMethod.WC_SESSION_PING,
         @Json(name = "params")
         override val params: SessionParamsVO.PingParams,
-    ) : SessionSettlementVO()
+    ) : SessionRpcVO()
 
     @JsonClass(generateAdapter = true)
     internal data class SessionEvent(
@@ -70,7 +70,7 @@ internal sealed class SessionSettlementVO : JsonRpcClientSync<SessionParamsVO> {
         override val method: String = JsonRpcMethod.WC_SESSION_EVENT,
         @Json(name = "params")
         override val params: SessionParamsVO.EventParams,
-    ) : SessionSettlementVO()
+    ) : SessionRpcVO()
 
     @JsonClass(generateAdapter = true)
     internal data class SessionUpdate(
@@ -82,7 +82,7 @@ internal sealed class SessionSettlementVO : JsonRpcClientSync<SessionParamsVO> {
         override val method: String = JsonRpcMethod.WC_SESSION_UPDATE,
         @Json(name = "params")
         override val params: SessionParamsVO.UpdateNamespacesParams,
-    ) : SessionSettlementVO()
+    ) : SessionRpcVO()
 
     @JsonClass(generateAdapter = true)
     internal data class SessionExtend(
@@ -94,5 +94,5 @@ internal sealed class SessionSettlementVO : JsonRpcClientSync<SessionParamsVO> {
         override val method: String = JsonRpcMethod.WC_SESSION_EXTEND,
         @Json(name = "params")
         override val params: SessionParamsVO.ExtendParams,
-    ) : SessionSettlementVO()
+    ) : SessionRpcVO()
 }

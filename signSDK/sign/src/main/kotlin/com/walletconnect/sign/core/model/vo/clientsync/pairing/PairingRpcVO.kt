@@ -6,7 +6,7 @@ import com.walletconnect.sign.core.model.type.JsonRpcClientSync
 import com.walletconnect.sign.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 
-internal sealed class PairingSettlementVO : JsonRpcClientSync<PairingParamsVO> {
+internal sealed class PairingRpcVO : JsonRpcClientSync<PairingParamsVO> {
     abstract override val id: Long
     abstract override val method: String
     abstract override val jsonrpc: String
@@ -22,7 +22,7 @@ internal sealed class PairingSettlementVO : JsonRpcClientSync<PairingParamsVO> {
         override val method: String = JsonRpcMethod.WC_SESSION_PROPOSE,
         @Json(name = "params")
         override val params: PairingParamsVO.SessionProposeParams,
-    ) : PairingSettlementVO()
+    ) : PairingRpcVO()
 
     @JsonClass(generateAdapter = true)
     internal data class PairingDelete(
@@ -34,7 +34,7 @@ internal sealed class PairingSettlementVO : JsonRpcClientSync<PairingParamsVO> {
         override val method: String = JsonRpcMethod.WC_PAIRING_DELETE,
         @Json(name = "params")
         override val params: PairingParamsVO.DeleteParams,
-    ) : PairingSettlementVO()
+    ) : PairingRpcVO()
 
     @JsonClass(generateAdapter = true)
     internal data class PairingPing(
@@ -46,5 +46,5 @@ internal sealed class PairingSettlementVO : JsonRpcClientSync<PairingParamsVO> {
         override val method: String = JsonRpcMethod.WC_PAIRING_PING,
         @Json(name = "params")
         override val params: PairingParamsVO.PingParams,
-    ) : PairingSettlementVO()
+    ) : PairingRpcVO()
 }

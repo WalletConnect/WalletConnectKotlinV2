@@ -4,7 +4,7 @@ package com.walletconnect.chat.copiedFromSign.json_rpc.domain
 
 import com.walletconnect.chat.copiedFromSign.core.exceptions.client.WalletConnectException
 import com.walletconnect.chat.copiedFromSign.core.exceptions.peer.PeerError
-import com.walletconnect.chat.copiedFromSign.core.model.client.WalletConnect
+import com.walletconnect.chat.copiedFromSign.core.model.client.Relay
 import com.walletconnect.chat.copiedFromSign.core.model.type.ClientParams
 import com.walletconnect.chat.copiedFromSign.core.model.type.JsonRpcClientSync
 import com.walletconnect.chat.copiedFromSign.core.model.type.enums.EnvelopeType
@@ -21,7 +21,7 @@ import com.walletconnect.chat.copiedFromSign.json_rpc.model.RelayerDO
 import com.walletconnect.chat.copiedFromSign.json_rpc.model.toJsonRpcErrorVO
 import com.walletconnect.chat.copiedFromSign.json_rpc.model.toRelayerDOJsonRpcResponse
 import com.walletconnect.chat.copiedFromSign.json_rpc.model.toWCResponse
-import com.walletconnect.chat.copiedFromSign.network.Relay
+import com.walletconnect.chat.copiedFromSign.network.RelayInterface
 import com.walletconnect.chat.copiedFromSign.storage.JsonRpcHistory
 import com.walletconnect.chat.copiedFromSign.util.Empty
 import com.walletconnect.chat.copiedFromSign.util.Logger
@@ -33,7 +33,7 @@ import java.net.HttpURLConnection
 
 //todo: extract Relay to core module. Consider what is the best place for RelayerInteractor (sdk or core module)?
 internal class RelayerInteractor(
-    private val relay: Relay,
+    private val relay: RelayInterface,
     private val serializer: JsonRpcSerializer,
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
@@ -72,11 +72,11 @@ internal class RelayerInteractor(
 
     val initializationErrorsFlow: Flow<WalletConnectException>
         get() = relay.eventsFlow
-            .onEach { event: WalletConnect.Model.Relay.Event ->
+            .onEach { event: Relay.Model.Event ->
                 Logger.log("$event")
                 setIsWSSConnectionOpened(event)
             }
-            .filterIsInstance<WalletConnect.Model.Relay.Event.OnConnectionFailed>()
+            .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
             .map { error -> error.throwable.toWalletConnectException }
 
     internal fun publishJsonRpcRequests(
@@ -243,10 +243,10 @@ internal class RelayerInteractor(
         }
     }
 
-    private fun setIsWSSConnectionOpened(event: WalletConnect.Model.Relay.Event) {
-        if (event is WalletConnect.Model.Relay.Event.OnConnectionOpened<*>) {
+    private fun setIsWSSConnectionOpened(event: Relay.Model.Event) {
+        if (event is Relay.Model.Event.OnConnectionOpened<*>) {
             _isWSSConnectionOpened.compareAndSet(expect = false, update = true)
-        } else if (event is WalletConnect.Model.Relay.Event.OnConnectionClosed || event is WalletConnect.Model.Relay.Event.OnConnectionFailed) {
+        } else if (event is Relay.Model.Event.OnConnectionClosed || event is Relay.Model.Event.OnConnectionFailed) {
             _isWSSConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }

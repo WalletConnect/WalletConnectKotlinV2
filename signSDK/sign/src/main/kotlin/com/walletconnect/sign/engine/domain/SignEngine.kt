@@ -17,9 +17,9 @@ import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.SessionParticipantVO
-import com.walletconnect.sign.core.model.vo.clientsync.pairing.PairingSettlementVO
+import com.walletconnect.sign.core.model.vo.clientsync.pairing.PairingRpcVO
 import com.walletconnect.sign.core.model.vo.clientsync.pairing.params.PairingParamsVO
-import com.walletconnect.sign.core.model.vo.clientsync.session.SessionSettlementVO
+import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.payload.SessionRequestVO
@@ -81,7 +81,7 @@ internal class SignEngine(
 
             val selfPublicKey: PublicKey = crypto.generateKeyPair()
             val sessionProposal = toSessionProposeParams(proposedRelays ?: relays, namespaces, selfPublicKey, metaData)
-            val request = PairingSettlementVO.SessionPropose(id = generateId(), params = sessionProposal)
+            val request = PairingRpcVO.SessionPropose(id = generateId(), params = sessionProposal)
             sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequestVO(pairingTopic, request.id, request.method, sessionProposal)
 
             relayer.publishJsonRpcRequests(pairingTopic, request,
@@ -178,7 +178,7 @@ internal class SignEngine(
             try {
                 sequenceStorageRepository.insertSession(session, requestId)
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
-                val sessionSettle = SessionSettlementVO.SessionSettle(id = generateId(), params = params)
+                val sessionSettle = SessionRpcVO.SessionSettle(id = generateId(), params = params)
 
                 relayer.publishJsonRpcRequests(sessionTopic, sessionSettle, onFailure = { error -> onFailure(error) })
             } catch (e: SQLiteException) {
@@ -230,7 +230,7 @@ internal class SignEngine(
         }
 
         val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
-        val sessionUpdate = SessionSettlementVO.SessionUpdate(id = generateId(), params = params)
+        val sessionUpdate = SessionRpcVO.SessionUpdate(id = generateId(), params = params)
 
         sequenceStorageRepository.insertUnAckNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id, onSuccess = {
             relayer.publishJsonRpcRequests(TopicVO(topic), sessionUpdate,
@@ -260,7 +260,7 @@ internal class SignEngine(
         }
 
         val params = SessionParamsVO.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
-        val sessionPayload = SessionSettlementVO.SessionRequest(id = generateId(), params = params)
+        val sessionPayload = SessionRpcVO.SessionRequest(id = generateId(), params = params)
 
         relayer.publishJsonRpcRequests(
             topic = TopicVO(request.topic),
@@ -300,9 +300,9 @@ internal class SignEngine(
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         val pingParams = when {
             sequenceStorageRepository.isSessionValid(TopicVO(topic)) ->
-                SessionSettlementVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams())
+                SessionRpcVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams())
             sequenceStorageRepository.isPairingValid(TopicVO(topic)) ->
-                PairingSettlementVO.PairingPing(id = generateId(), params = PairingParamsVO.PingParams())
+                PairingRpcVO.PairingPing(id = generateId(), params = PairingParamsVO.PingParams())
             else -> throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
@@ -347,7 +347,7 @@ internal class SignEngine(
         }
 
         val eventParams = SessionParamsVO.EventParams(SessionEventVO(event.name, event.data), event.chainId)
-        val sessionEvent = SessionSettlementVO.SessionEvent(id = generateId(), params = eventParams)
+        val sessionEvent = SessionRpcVO.SessionEvent(id = generateId(), params = eventParams)
 
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionEvent,
             onSuccess = { Logger.log("Event sent successfully") },
@@ -373,7 +373,7 @@ internal class SignEngine(
 
         val newExpiration = session.expiry.seconds + Time.weekInSeconds
         sequenceStorageRepository.extendSession(TopicVO(topic), newExpiration)
-        val sessionExtend = SessionSettlementVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(newExpiration))
+        val sessionExtend = SessionRpcVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(newExpiration))
         relayer.publishJsonRpcRequests(TopicVO(topic), sessionExtend,
             onSuccess = { Logger.error("Session extend sent successfully") },
             onFailure = { error ->
@@ -388,7 +388,7 @@ internal class SignEngine(
         }
 
         val deleteParams = SessionParamsVO.DeleteParams(PeerReason.UserDisconnected.code, PeerReason.UserDisconnected.message)
-        val sessionDelete = SessionSettlementVO.SessionDelete(id = generateId(), params = deleteParams)
+        val sessionDelete = SessionRpcVO.SessionDelete(id = generateId(), params = deleteParams)
         sequenceStorageRepository.deleteSession(TopicVO(topic))
 
         relayer.unsubscribe(TopicVO(topic))

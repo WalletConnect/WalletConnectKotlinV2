@@ -14,7 +14,7 @@ import com.walletconnect.chat.copiedFromSign.util.generateId
 import com.walletconnect.chat.core.model.vo.AccountIdVO
 import com.walletconnect.chat.core.model.vo.AccountIdWithPublicKeyVO
 import com.walletconnect.chat.core.model.vo.EventsVO
-import com.walletconnect.chat.core.model.vo.clientsync.ChatSettlementVO
+import com.walletconnect.chat.core.model.vo.clientsync.ChatRpcVO
 import com.walletconnect.chat.core.model.vo.clientsync.params.ChatParamsVO
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterAccountUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveAccountUseCase
@@ -80,7 +80,7 @@ internal class ChatEngine(
         val envelopeType = EnvelopeType.ONE
 
         val inviteParams = ChatParamsVO.InviteParams(invite.message, invite.account, publicKey, invite.signature)
-        val payload = ChatSettlementVO.ChatInvite(id = generateId(), params = inviteParams)
+        val payload = ChatRpcVO.ChatInvite(id = generateId(), params = inviteParams)
         relayer.publishJsonRpcRequests(inviteTopic, payload, envelopeType,
             { Logger.log("Chat invite sent successfully") },
             { throwable ->
@@ -115,7 +115,7 @@ internal class ChatEngine(
         val timestamp = 123345L
 
         val messageParams = ChatParamsVO.MessageParams(sendMessage.message, authorAccount, timestamp, sendMessage.media.toMediaVO())
-        val payload = ChatSettlementVO.ChatMessage(id = generateId(), params = messageParams)
+        val payload = ChatRpcVO.ChatMessage(id = generateId(), params = messageParams)
         relayer.publishJsonRpcRequests(TopicVO(topic), payload, envelopeType,
             { Logger.log("Chat message sent successfully") },
             { throwable ->
@@ -129,7 +129,7 @@ internal class ChatEngine(
         val envelopeType = EnvelopeType.ZERO
 
         val leaveParams = ChatParamsVO.LeaveParams()
-        val payload = ChatSettlementVO.ChatLeave(id = generateId(), params = leaveParams)
+        val payload = ChatRpcVO.ChatLeave(id = generateId(), params = leaveParams)
         relayer.publishJsonRpcRequests(TopicVO(topic), payload, envelopeType,
             { Logger.log("Chat message sent successfully") },
             { throwable ->

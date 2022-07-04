@@ -2,7 +2,7 @@ package com.walletconnect.sign.json_rpc.model
 
 import com.walletconnect.sign.core.model.type.ClientParams
 import com.walletconnect.sign.core.model.vo.TopicVO
-import com.walletconnect.sign.core.model.vo.clientsync.session.SessionSettlementVO
+import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcHistoryVO
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
@@ -32,7 +32,7 @@ internal fun JsonRpcHistoryVO.toWCResponse(result: JsonRpcResponseVO, params: Cl
     WCResponseVO(TopicVO(topic), method, result, params)
 
 @JvmSynthetic
-internal fun SessionSettlementVO.SessionRequest.toPendingRequestVO(entry: JsonRpcHistoryVO): PendingRequestVO =
+internal fun SessionRpcVO.SessionRequest.toPendingRequestVO(entry: JsonRpcHistoryVO): PendingRequestVO =
     PendingRequestVO(
         entry.requestId,
         entry.topic,

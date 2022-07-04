@@ -4,13 +4,13 @@ package com.walletconnect.sign.json_rpc.domain
 
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
-import com.walletconnect.sign.core.model.client.WalletConnect
+import com.walletconnect.sign.core.model.client.Relay
 import com.walletconnect.sign.core.model.type.ClientParams
 import com.walletconnect.sign.core.model.type.JsonRpcClientSync
 import com.walletconnect.sign.core.model.type.enums.EnvelopeType
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
-import com.walletconnect.sign.core.model.vo.clientsync.session.SessionSettlementVO
+import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
@@ -19,7 +19,7 @@ import com.walletconnect.sign.core.scope.scope
 import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.sign.json_rpc.model.*
-import com.walletconnect.sign.network.Relay
+import com.walletconnect.sign.network.RelayInterface
 import com.walletconnect.sign.storage.history.JsonRpcHistory
 import com.walletconnect.sign.util.Empty
 import com.walletconnect.sign.util.Logger
@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 import java.net.HttpURLConnection
 
 internal class RelayerInteractor(
-    private val relay: Relay,
+    private val relay: RelayInterface,
     private val serializer: JsonRpcSerializer,
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
@@ -68,11 +68,11 @@ internal class RelayerInteractor(
 
     val initializationErrorsFlow: Flow<WalletConnectException>
         get() = relay.eventsFlow
-            .onEach { event: WalletConnect.Model.Relay.Event ->
+            .onEach { event: Relay.Model.Event ->
                 Logger.log("$event")
                 setIsWSSConnectionOpened(event)
             }
-            .filterIsInstance<WalletConnect.Model.Relay.Event.OnConnectionFailed>()
+            .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
             .map { error -> error.throwable.toWalletConnectException }
 
     init {
@@ -185,8 +185,8 @@ internal class RelayerInteractor(
     internal fun getPendingRequests(topic: TopicVO): List<PendingRequestVO> =
         jsonRpcHistory.getRequests(topic)
             .filter { entry -> entry.response == null && entry.method == JsonRpcMethod.WC_SESSION_REQUEST }
-            .filter { entry -> serializer.tryDeserialize<SessionSettlementVO.SessionRequest>(entry.body) != null }
-            .map { entry -> serializer.tryDeserialize<SessionSettlementVO.SessionRequest>(entry.body)!!.toPendingRequestVO(entry) }
+            .filter { entry -> serializer.tryDeserialize<SessionRpcVO.SessionRequest>(entry.body) != null }
+            .map { entry -> serializer.tryDeserialize<SessionRpcVO.SessionRequest>(entry.body)!!.toPendingRequestVO(entry) }
 
     private fun manageSubscriptions() {
         scope.launch(exceptionHandler) {
@@ -240,10 +240,10 @@ internal class RelayerInteractor(
         }
     }
 
-    private fun setIsWSSConnectionOpened(event: WalletConnect.Model.Relay.Event) {
-        if (event is WalletConnect.Model.Relay.Event.OnConnectionOpened<*>) {
+    private fun setIsWSSConnectionOpened(event: Relay.Model.Event) {
+        if (event is Relay.Model.Event.OnConnectionOpened<*>) {
             _isWSSConnectionOpened.compareAndSet(expect = false, update = true)
-        } else if (event is WalletConnect.Model.Relay.Event.OnConnectionClosed || event is WalletConnect.Model.Relay.Event.OnConnectionFailed) {
+        } else if (event is Relay.Model.Event.OnConnectionClosed || event is Relay.Model.Event.OnConnectionFailed) {
             _isWSSConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }

@@ -6,7 +6,7 @@ import com.walletconnect.chat.copiedFromSign.core.model.type.JsonRpcClientSync
 import com.walletconnect.chat.copiedFromSign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.chat.core.model.vo.clientsync.params.ChatParamsVO
 
-internal sealed class ChatSettlementVO : JsonRpcClientSync<ChatParamsVO> {
+internal sealed class ChatRpcVO : JsonRpcClientSync<ChatParamsVO> {
     abstract override val id: Long
     abstract override val method: String
     abstract override val jsonrpc: String
@@ -22,7 +22,7 @@ internal sealed class ChatSettlementVO : JsonRpcClientSync<ChatParamsVO> {
         override val method: String = JsonRpcMethod.WC_CHAT_INVITE,
         @Json(name = "params")
         override val params: ChatParamsVO.InviteParams,
-    ) : ChatSettlementVO()
+    ) : ChatRpcVO()
 
     @JsonClass(generateAdapter = true)
     internal data class ChatMessage(
@@ -34,7 +34,7 @@ internal sealed class ChatSettlementVO : JsonRpcClientSync<ChatParamsVO> {
         override val method: String = JsonRpcMethod.WC_CHAT_MESSAGE,
         @Json(name = "params")
         override val params: ChatParamsVO.MessageParams,
-    ) : ChatSettlementVO()
+    ) : ChatRpcVO()
 
     @JsonClass(generateAdapter = true)
     internal data class ChatPing(
@@ -46,7 +46,7 @@ internal sealed class ChatSettlementVO : JsonRpcClientSync<ChatParamsVO> {
         override val method: String = JsonRpcMethod.WC_CHAT_PING,
         @Json(name = "params")
         override val params: ChatParamsVO.PingParams,
-    ) : ChatSettlementVO()
+    ) : ChatRpcVO()
 
     @JsonClass(generateAdapter = true)
     internal data class ChatLeave(
@@ -58,5 +58,5 @@ internal sealed class ChatSettlementVO : JsonRpcClientSync<ChatParamsVO> {
         override val method: String = JsonRpcMethod.WC_CHAT_LEAVE,
         @Json(name = "params")
         override val params: ChatParamsVO.LeaveParams,
-    ) : ChatSettlementVO()
+    ) : ChatRpcVO()
 }

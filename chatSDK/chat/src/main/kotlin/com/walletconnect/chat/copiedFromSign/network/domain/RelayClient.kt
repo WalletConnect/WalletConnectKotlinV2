@@ -3,11 +3,11 @@
 package com.walletconnect.chat.copiedFromSign.network.domain
 
 import com.walletconnect.chat.copiedFromSign.core.exceptions.WRONG_CONNECTION_TYPE
-import com.walletconnect.chat.copiedFromSign.core.model.client.WalletConnect
+import com.walletconnect.chat.copiedFromSign.core.model.client.Relay
 import com.walletconnect.chat.copiedFromSign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.TopicVO
 import com.walletconnect.chat.copiedFromSign.core.scope.scope
-import com.walletconnect.chat.copiedFromSign.network.Relay
+import com.walletconnect.chat.copiedFromSign.network.RelayInterface
 import com.walletconnect.chat.copiedFromSign.network.connection.controller.ConnectionController
 import com.walletconnect.chat.copiedFromSign.network.model.RelayDTO
 import com.walletconnect.chat.copiedFromSign.network.model.toRelayAcknowledgment
@@ -24,9 +24,9 @@ import kotlinx.coroutines.supervisorScope
 internal class RelayClient internal constructor(
     private val connectionController: ConnectionController,
     private val relay: RelayService,
-) : Relay {
+) : RelayInterface {
 
-    override val eventsFlow: SharedFlow<WalletConnect.Model.Relay.Event> = relay
+    override val eventsFlow: SharedFlow<Relay.Model.Event> = relay
         .observeWebSocketEvent()
         .map { event -> event.toRelayEvent() }
         .shareIn(scope, SharingStarted.Lazily, REPLAY)
@@ -46,7 +46,7 @@ internal class RelayClient internal constructor(
         }
     }
 
-    override val subscriptionRequest: Flow<WalletConnect.Model.Relay.Call.Subscription.Request> =
+    override val subscriptionRequest: Flow<Relay.Model.Call.Subscription.Request> =
         relay.observeSubscriptionRequest()
             .map { request -> request.toRelayRequest() }
             .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
@@ -55,7 +55,7 @@ internal class RelayClient internal constructor(
         topic: String,
         message: String,
         prompt: Boolean,
-        onResult: (Result<WalletConnect.Model.Relay.Call.Publish.Acknowledgement>) -> Unit,
+        onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit,
     ) {
         val request = RelayDTO.Publish.Request(generateId(),
             params = RelayDTO.Publish.Request.Params(TopicVO(topic), message, prompt = prompt))
@@ -64,7 +64,7 @@ internal class RelayClient internal constructor(
         relay.publishRequest(request)
     }
 
-    override fun subscribe(topic: String, onResult: (Result<WalletConnect.Model.Relay.Call.Subscribe.Acknowledgement>) -> Unit) {
+    override fun subscribe(topic: String, onResult: (Result<Relay.Model.Call.Subscribe.Acknowledgement>) -> Unit) {
         val subscribeRequest = RelayDTO.Subscribe.Request(id = generateId(), params = RelayDTO.Subscribe.Request.Params(TopicVO(topic)))
         observeSubscribeAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
         observeSubscribeError { error -> onResult(Result.failure(error)) }
@@ -74,7 +74,7 @@ internal class RelayClient internal constructor(
     override fun unsubscribe(
         topic: String,
         subscriptionId: String,
-        onResult: (Result<WalletConnect.Model.Relay.Call.Unsubscribe.Acknowledgement>) -> Unit,
+        onResult: (Result<Relay.Model.Call.Unsubscribe.Acknowledgement>) -> Unit,
     ) {
         val unsubscribeRequest = RelayDTO.Unsubscribe.Request(id = generateId(),
             params = RelayDTO.Unsubscribe.Request.Params(TopicVO(topic), SubscriptionIdVO(subscriptionId)))
@@ -88,7 +88,7 @@ internal class RelayClient internal constructor(
         relay.publishSubscriptionAcknowledgement(publishRequest)
     }
 
-    private fun observePublishAcknowledgement(onResult: (WalletConnect.Model.Relay.Call.Publish.Acknowledgement) -> Unit) {
+    private fun observePublishAcknowledgement(onResult: (Relay.Model.Call.Publish.Acknowledgement) -> Unit) {
         scope.launch {
             relay.observePublishAcknowledgement()
                 .map { ack -> ack.toRelayAcknowledgment() }
@@ -116,7 +116,7 @@ internal class RelayClient internal constructor(
         }
     }
 
-    private fun observeSubscribeAcknowledgement(onResult: (WalletConnect.Model.Relay.Call.Subscribe.Acknowledgement) -> Unit) {
+    private fun observeSubscribeAcknowledgement(onResult: (Relay.Model.Call.Subscribe.Acknowledgement) -> Unit) {
         scope.launch {
             relay.observeSubscribeAcknowledgement()
                 .map { ack -> ack.toRelayAcknowledgment() }
@@ -144,7 +144,7 @@ internal class RelayClient internal constructor(
         }
     }
 
-    private fun observeUnSubscribeAcknowledgement(onSuccess: (WalletConnect.Model.Relay.Call.Unsubscribe.Acknowledgement) -> Unit) {
+    private fun observeUnSubscribeAcknowledgement(onSuccess: (Relay.Model.Call.Unsubscribe.Acknowledgement) -> Unit) {
         scope.launch {
             relay.observeUnsubscribeAcknowledgement()
                 .map { ack -> ack.toRelayAcknowledgment() }

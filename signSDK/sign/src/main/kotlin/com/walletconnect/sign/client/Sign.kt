@@ -2,7 +2,7 @@ package com.walletconnect.sign.client
 
 import android.app.Application
 import android.net.Uri
-import com.walletconnect.sign.network.Relay
+import com.walletconnect.sign.network.RelayInterface
 import java.net.URI
 
 object Sign {
@@ -163,7 +163,7 @@ object Sign {
         data class Init internal constructor(
             val application: Application,
             val metadata: Model.AppMetaData,
-            val relay: Relay? = null,
+            val relay: RelayInterface? = null,
             val connectionType: ConnectionType,
         ) : Params() {
             internal lateinit var relayServerUrl: String
@@ -174,7 +174,7 @@ object Sign {
                 hostName: String,
                 projectId: String,
                 metadata: Model.AppMetaData,
-                relay: Relay? = null,
+                relay: RelayInterface? = null,
                 connectionType: ConnectionType = ConnectionType.AUTOMATIC,
             ) : this(application, metadata, relay, connectionType) {
                 val relayServerUrl = Uri.Builder().scheme((if (useTls) "wss" else "ws"))
@@ -194,7 +194,7 @@ object Sign {
                 application: Application,
                 relayServerUrl: String,
                 metadata: Model.AppMetaData,
-                relay: Relay? = null,
+                relay: RelayInterface? = null,
                 connectionType: ConnectionType = ConnectionType.AUTOMATIC,
             ) : this(application, metadata, relay, connectionType) {
                 require(relayServerUrl.isValidRelayServerUrl()) {

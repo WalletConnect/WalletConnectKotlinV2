@@ -2,7 +2,7 @@ package com.walletconnect.sign.json_rpc.domain
 
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
-import com.walletconnect.sign.core.model.client.WalletConnect
+import com.walletconnect.sign.core.model.client.Relay
 import com.walletconnect.sign.core.model.type.ClientParams
 import com.walletconnect.sign.core.model.type.JsonRpcClientSync
 import com.walletconnect.sign.core.model.vo.TopicVO
@@ -10,7 +10,7 @@ import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
 import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.sign.network.Relay
+import com.walletconnect.sign.network.RelayInterface
 import com.walletconnect.sign.network.model.RelayDTO
 import com.walletconnect.sign.storage.history.JsonRpcHistory
 import com.walletconnect.sign.util.Empty
@@ -33,7 +33,7 @@ internal class RelayerInteractorTest {
         every { encrypt(any(), any(), any(), any()) } returns String.Empty
     }
 
-    private val relay: Relay = mockk {
+    private val relay: RelayInterface = mockk {
         every { subscriptionRequest } returns flow { }
     }
 
@@ -89,7 +89,7 @@ internal class RelayerInteractorTest {
 
     private fun mockRelayPublishSuccess() {
         every { relay.publish(any(), any(), any(), any()) } answers {
-            lastArg<(Result<WalletConnect.Model.Relay.Call.Publish.Acknowledgement>) -> Unit>().invoke(
+            lastArg<(Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit>().invoke(
                 Result.success(mockk())
             )
         }
@@ -97,7 +97,7 @@ internal class RelayerInteractorTest {
 
     private fun mockRelayPublishFailure() {
         every { relay.publish(any(), any(), any(), any()) } answers {
-            lastArg<(Result<WalletConnect.Model.Relay.Call.Publish.Acknowledgement>) -> Unit>().invoke(
+            lastArg<(Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit>().invoke(
                 Result.failure(mockk())
             )
         }
@@ -217,11 +217,11 @@ internal class RelayerInteractorTest {
     @Test
     fun `InitializationErrorsFlow emits value only on OnConnectionFailed`() = runBlockingTest {
         every { relay.eventsFlow } returns flowOf(
-            mockk<WalletConnect.Model.Relay.Event.OnConnectionOpened<*>>(),
-            mockk<WalletConnect.Model.Relay.Event.OnMessageReceived>(),
-            mockk<WalletConnect.Model.Relay.Event.OnConnectionClosing>(),
-            mockk<WalletConnect.Model.Relay.Event.OnConnectionClosed>(),
-            mockk<WalletConnect.Model.Relay.Event.OnConnectionFailed>() {
+            mockk<Relay.Model.Event.OnConnectionOpened<*>>(),
+            mockk<Relay.Model.Event.OnMessageReceived>(),
+            mockk<Relay.Model.Event.OnConnectionClosing>(),
+            mockk<Relay.Model.Event.OnConnectionClosed>(),
+            mockk<Relay.Model.Event.OnConnectionFailed> {
                 every { throwable } returns RuntimeException()
             }
         ).shareIn(this, SharingStarted.Lazily)
