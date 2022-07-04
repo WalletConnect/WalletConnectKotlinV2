@@ -4,13 +4,11 @@ import com.walletconnect.chat.client.mapper.toInviteEngineDO
 import com.walletconnect.chat.client.mapper.toMessageEngineDO
 import com.walletconnect.chat.copiedFromSign.core.scope.scope
 import com.walletconnect.chat.copiedFromSign.di.*
-import com.walletconnect.chat.copiedFromSign.network.connection.ConnectionType
 import com.walletconnect.chat.core.model.vo.AccountIdVO
 import com.walletconnect.chat.core.model.vo.EventsVO
 import com.walletconnect.chat.di.engineModule
 import com.walletconnect.chat.di.keyServerModule
 import com.walletconnect.chat.engine.domain.ChatEngine
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
@@ -38,7 +36,7 @@ internal class ChatProtocol : ChatInterface {
 //                    TODO: Figure out how to get relay as in Sign in here
 //                    networkModule(serverUrl, relay, connectionType.toRelayConnectionType()),
                     //todo: add serverUrl as init param
-                    networkModule(serverUrl, ConnectionType.AUTOMATIC),
+                    networkModule(serverUrl),
                     relayerModule(),
                     storageModule(),
 

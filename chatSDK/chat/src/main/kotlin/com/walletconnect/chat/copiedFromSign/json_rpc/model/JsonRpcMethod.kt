@@ -1,5 +1,6 @@
 package com.walletconnect.chat.copiedFromSign.json_rpc.model
 
+//TODO: Should there be a copy for every SDK with specific methods or one file with all methods.
 internal object JsonRpcMethod {
     @get:JvmSynthetic
     const val WC_CHAT_INVITE: String = "wc_chatInvite"

@@ -10,6 +10,7 @@ import com.walletconnect.chat.copiedFromSign.json_rpc.model.RelayerDO
 import com.walletconnect.chat.copiedFromSign.util.Empty
 import com.walletconnect.chat.core.model.vo.clientsync.ChatSettlementVO
 
+//TODO: Should there be a copy for every SDK with specific methods or one file with all methods.
 internal class JsonRpcSerializer(private val moshi: Moshi) {
 
     internal fun deserialize(method: String, json: String): ClientParams? =
