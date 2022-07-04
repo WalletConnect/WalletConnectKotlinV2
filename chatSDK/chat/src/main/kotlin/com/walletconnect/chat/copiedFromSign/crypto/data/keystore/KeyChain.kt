@@ -4,28 +4,34 @@ package com.walletconnect.chat.copiedFromSign.crypto.data.keystore
 
 import android.content.SharedPreferences
 import com.walletconnect.chat.copiedFromSign.core.model.vo.Key
+import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
 import com.walletconnect.chat.copiedFromSign.crypto.KeyStore
 import com.walletconnect.chat.copiedFromSign.util.Empty
+import com.walletconnect.chat.copiedFromSign.util.Logger
 import com.walletconnect.chat.copiedFromSign.util.bytesToHex
 import com.walletconnect.chat.copiedFromSign.util.hexToBytes
 
 internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyStore {
 
     override fun setSymmetricKey(tag: String, key: Key) {
+        Logger.log("setSymmetricKey: $tag")
         sharedPreferences.edit().putString(tag, key.keyAsHex).apply()
     }
 
     override fun getSymmetricKey(tag: String): String {
+        Logger.log("getSymmetricKey: $tag")
         return sharedPreferences.getString(tag, String.Empty) ?: String.Empty
     }
 
     override fun setKeys(tag: String, key1: Key, key2: Key) {
+        Logger.log("setKeys: $tag")
         val keys = concatKeys(key1, key2)
         sharedPreferences.edit().putString(tag, keys).apply()
     }
 
 
     override fun getKeys(tag: String): Pair<String, String> {
+        Logger.log("getKeys: $tag")
         val concatKeys = sharedPreferences.getString(tag, String.Empty) ?: String.Empty
         return splitKeys(concatKeys)
     }
@@ -45,6 +51,26 @@ internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyS
 
     // Added With Chat SDK
     override fun getInviteSelfPublicKey(tag: String): String? {
+        Logger.log("getInviteSelfPublicKey: $tag")
         return sharedPreferences.getString(tag, null)
+    }
+
+    // Added With Chat SDK
+    override fun setInviteSelfPublicKey(tag: String, key: Key) {
+        sharedPreferences.edit().putString(tag, key.keyAsHex).apply()
+        Logger.log("setInviteSelfPublicKey: $tag")
+
+    }
+
+    // Added With Chat SDK
+    override fun getPublicKey(tag: String): String {
+        Logger.log("getPublicKey: $tag")
+        return sharedPreferences.getString(tag, String.Empty) ?: String.Empty
+    }
+
+    // Added With Chat SDK
+    override fun setPublicKey(tag: String, publicKey: PublicKey) {
+        sharedPreferences.edit().putString(tag, publicKey.keyAsHex).apply()
+        Logger.log("setPublicKey: $tag")
     }
 }

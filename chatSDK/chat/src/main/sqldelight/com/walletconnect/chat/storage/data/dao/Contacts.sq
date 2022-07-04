@@ -1,0 +1,42 @@
+CREATE TABLE Contacts(
+  account_id TEXT PRIMARY KEY NOT NULL,
+  public_key TEXT NOT NULL,
+  display_name TEXT NOT NULL
+);
+
+insertOrAbortContact:
+INSERT OR ABORT INTO Contacts (account_id, public_key, display_name)
+VALUES (?, ?, ?);
+
+updateContact:
+UPDATE Contacts
+SET public_key = ?, display_name = ?
+WHERE account_id = ?;
+
+updateContactPublicKey:
+UPDATE Contacts
+SET public_key = ?
+WHERE account_id = ?;
+
+updateContactDisplayName:
+UPDATE Contacts
+SET display_name = ?
+WHERE account_id = ?;
+
+getContact:
+SELECT account_id, public_key, display_name
+FROM Contacts
+WHERE  account_id = ?
+LIMIT 1;
+
+doesContactNotExists:
+SELECT NOT EXISTS (
+    SELECT 1
+    FROM Contacts
+    WHERE account_id = ?
+    LIMIT 1
+);
+
+deleteContact:
+DELETE FROM Contacts
+WHERE account_id = ?;

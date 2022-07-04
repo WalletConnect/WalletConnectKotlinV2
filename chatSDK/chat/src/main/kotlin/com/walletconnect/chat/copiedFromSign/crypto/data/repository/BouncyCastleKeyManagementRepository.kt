@@ -8,6 +8,7 @@ import com.walletconnect.chat.copiedFromSign.core.model.vo.SymmetricKey
 import com.walletconnect.chat.copiedFromSign.core.model.vo.TopicVO
 import com.walletconnect.chat.copiedFromSign.crypto.KeyManagementRepository
 import com.walletconnect.chat.copiedFromSign.crypto.KeyStore
+import com.walletconnect.chat.copiedFromSign.util.Empty
 import com.walletconnect.chat.copiedFromSign.util.bytesToHex
 import com.walletconnect.chat.copiedFromSign.util.hexToBytes
 import org.bouncycastle.crypto.digests.SHA256Digest
@@ -48,14 +49,6 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         return PublicKey(publicKey.bytesToHex().lowercase())
     }
 
-    override fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): TopicVO {
-        val symmetricKey = generateSymmetricKeyFromKeyAgreement(self, peer)
-        val topic = TopicVO(sha256(symmetricKey.keyAsHex))
-        keyChain.setSymmetricKey(topic.value.lowercase(), symmetricKey)
-        setKeyAgreement(topic, self, peer)
-
-        return topic
-    }
 
     override fun generateSymmetricKeyFromKeyAgreement(self: PublicKey, peer: PublicKey): SymmetricKey {
         val (_, privateKey) = getKeyPair(self)
@@ -82,7 +75,8 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         return Pair(PublicKey(selfPublic), PublicKey(peerPublic))
     }
 
-    private fun setKeyAgreement(topic: TopicVO, self: PublicKey, peer: PublicKey) {
+    // Added with Chat SDK
+    override fun setKeyAgreement(topic: TopicVO, self: PublicKey, peer: PublicKey) {
         val tag = "$keyAgreementContext${topic.value}"
         keyChain.setKeys(tag, self, peer)
     }
@@ -131,21 +125,35 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         const val AES: String = "AES"
 
         const val keyAgreementContext = "key_agreement/"
-        const val selfInvitePublicKey = "invite/selfInviteKey"
+        const val inviteContext = "invite/"
+        const val selfInvitePublicKey = "selfInviteKey"
     }
 
     // Added with Chat SDK
     override fun getOrGenerateInviteSelfKeyPair(): Pair<PublicKey, PrivateKey> {
         val publicKey = keyChain.getInviteSelfPublicKey(selfInvitePublicKey)
-        return if (publicKey != null) {
+        return if (publicKey != null && publicKey != String.Empty) {
             getKeyPair(PublicKey(publicKey))
         } else {
             val keyPair: Pair<PublicKey, PrivateKey> = generateWithoutSavingKeyPair() // TODO: Refactor on extracting core.
             // Note: This could be cleaner with refactor of such method as generateKeyPair so it wont save keys
             // Note: I wont do it here because I don't want two versions of this file
             setKeyPair(keyPair.first, keyPair.second)
+//            keyChain.setSymmetricKey(selfInvitePublicKey, SymmetricKey(keyPair.first.keyAsHex))
             return keyPair
         }
+    }
+
+    // Added with Chat SDK
+    override fun getInviteSelfPublicKey(): PublicKey {
+        val publicKey = keyChain.getInviteSelfPublicKey(selfInvitePublicKey) ?: throw Exception("TODO: Name me / Create exception")
+        return PublicKey(publicKey)
+    }
+
+    // Added with Chat SDK
+    override fun setInviteSelfPublicKey(topic: TopicVO, publicKey: PublicKey) {
+        keyChain.setInviteSelfPublicKey(selfInvitePublicKey, publicKey)
+        keyChain.setPublicKey("$inviteContext${topic.value}", publicKey)
     }
 
     // Added with Chat SDK. TODO: This could be removed after proper refactor
@@ -157,4 +165,26 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
 
         return PublicKey(publicKey.bytesToHex().lowercase()) to PrivateKey(privateKey.bytesToHex().lowercase())
     }
+
+    // Added with Chat SDK
+    override fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): TopicVO {
+        val symmetricKey = generateSymmetricKeyFromKeyAgreement(self, peer)
+        val topic = generateTopicFromSymmetricKey(symmetricKey)
+        setKeyAgreement(topic, self, peer)
+        return topic
+    }
+
+    // Added with Chat SDK
+    private fun generateTopicFromSymmetricKey(symmetricKey: SymmetricKey): TopicVO {
+        val topic = TopicVO(sha256(symmetricKey.keyAsHex))
+        keyChain.setSymmetricKey(topic.value.lowercase(), symmetricKey)
+        return topic
+    }
+
+    // Added with Chat SDK
+    override fun getHash(string: String): String = sha256(string)
+
+
+    // Added with Chat SDK
+    override fun getPublicKey(topic: TopicVO): PublicKey = PublicKey(keyChain.getPublicKey("$inviteContext${topic.value}"))
 }

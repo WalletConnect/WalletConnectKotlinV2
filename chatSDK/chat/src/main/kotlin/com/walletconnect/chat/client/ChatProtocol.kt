@@ -1,14 +1,19 @@
 package com.walletconnect.chat.client
 
-import com.walletconnect.chat.client.mapper.toInviteEngineDO
-import com.walletconnect.chat.client.mapper.toMessageEngineDO
+import com.walletconnect.chat.client.mapper.toClient
+import com.walletconnect.chat.client.mapper.toEngineDO
+import com.walletconnect.chat.client.mapper.toVO
+import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
 import com.walletconnect.chat.copiedFromSign.core.scope.scope
 import com.walletconnect.chat.copiedFromSign.di.*
+import com.walletconnect.chat.copiedFromSign.util.Logger
 import com.walletconnect.chat.core.model.vo.AccountIdVO
+import com.walletconnect.chat.core.model.vo.AccountIdWithPublicKeyVO
 import com.walletconnect.chat.core.model.vo.EventsVO
 import com.walletconnect.chat.di.engineModule
 import com.walletconnect.chat.di.keyServerModule
 import com.walletconnect.chat.engine.domain.ChatEngine
+import com.walletconnect.chat.engine.model.EngineDO
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
@@ -39,13 +44,13 @@ internal class ChatProtocol : ChatInterface {
                     networkModule(serverUrl),
                     relayerModule(),
                     storageModule(),
-
+                    com.walletconnect.chat.di.storageModule(), // TODO: Refactor storage module into one
                     engineModule()
                 )
+
+                chatEngine = koin.get()
             }
         }
-
-        chatEngine = wcKoinApp.koin.get()
     }
 
     override fun setChatDelegate(delegate: ChatInterface.ChatDelegate) {
@@ -54,10 +59,10 @@ internal class ChatProtocol : ChatInterface {
         scope.launch {
             chatEngine.events.collect { event ->
                 when (event) {
-                    is EventsVO.OnInvite -> TODO()
-                    is EventsVO.OnJoined -> TODO()
-                    is EventsVO.OnLeft -> TODO()
-                    is EventsVO.OnMessage -> TODO()
+                    is EngineDO.Events.OnInvite -> delegate.onInvite(event.toClient())
+                    is EngineDO.Events.OnJoined -> delegate.onJoined(event.toClient())
+                    is EngineDO.Events.OnLeft -> TODO()
+                    is EngineDO.Events.OnMessage -> delegate.onMessage(event.toClient())
                 }
             }
         }
@@ -90,7 +95,7 @@ internal class ChatProtocol : ChatInterface {
     override fun invite(invite: Chat.Params.Invite, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        chatEngine.invite(invite.toInviteEngineDO()) { error -> onError(Chat.Model.Error(error)) }
+        chatEngine.invite(invite.toEngineDO()) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
@@ -111,7 +116,7 @@ internal class ChatProtocol : ChatInterface {
     override fun message(message: Chat.Params.Message, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        chatEngine.message(message.topic, message.toMessageEngineDO()) { error -> onError(Chat.Model.Error(error)) }
+        chatEngine.message(message.topic, message.toEngineDO()) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
@@ -131,7 +136,9 @@ internal class ChatProtocol : ChatInterface {
     @Throws(IllegalStateException::class)
     override fun addContact(addContact: Chat.Params.AddContact, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+        chatEngine.addContact(AccountIdWithPublicKeyVO(addContact.account.toVO(), PublicKey(addContact.publicKey))) { error ->
+            onError(Chat.Model.Error(error))
+        }
     }
 
     @Throws(IllegalStateException::class)
