@@ -15,6 +15,5 @@ internal class ResolveAccountUseCase(
         Result.success(accountVO)
     } catch (e: Exception) {
         Result.failure(e)
-
     }
 }

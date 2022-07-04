@@ -2,8 +2,6 @@
 
 package com.walletconnect.chat.engine.model
 
-
-
 internal sealed class EngineDO {
     data class Error(val throwable: Throwable) : EngineDO() // TODO: Should this be extracted to core for easier error handling?
 
@@ -28,6 +26,11 @@ internal sealed class EngineDO {
         val message: String,
         val authorAccount: String,
         val timestamp: Long,
+        val media: Media
+    ) : EngineDO()
+
+    data class SendMessage(
+        val message: String,
         val media: Media
     ) : EngineDO()
 

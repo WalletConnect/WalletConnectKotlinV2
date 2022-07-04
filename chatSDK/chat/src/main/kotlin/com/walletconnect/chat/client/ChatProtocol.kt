@@ -1,13 +1,14 @@
 package com.walletconnect.chat.client
 
+import com.walletconnect.chat.client.mapper.toInviteEngineDO
+import com.walletconnect.chat.client.mapper.toMessageEngineDO
 import com.walletconnect.chat.copiedFromSign.core.scope.scope
-import com.walletconnect.chat.copiedFromSign.di.cryptoModule
+import com.walletconnect.chat.copiedFromSign.di.*
 import com.walletconnect.chat.core.model.vo.AccountIdVO
 import com.walletconnect.chat.core.model.vo.EventsVO
 import com.walletconnect.chat.di.engineModule
 import com.walletconnect.chat.di.keyServerModule
 import com.walletconnect.chat.engine.domain.ChatEngine
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
@@ -15,7 +16,9 @@ import org.koin.core.KoinApplication
 internal class ChatProtocol : ChatInterface {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var chatEngine: ChatEngine
-//    override val relay: Relay by lazy { wcKoinApp.koin.get() } TODO: Figure out how to get relay here
+//    val relay: Relay by lazy { wcKoinApp.koin.get() } //TODO: Figure out how to get relay as in Sign in here
+
+    private val serverUrl: String = "wss://relay.walletconnect.com?projectId=2ee94aca5d98e6c05c38bce02bee952a"
 
     companion object {
         val instance = ChatProtocol()
@@ -27,8 +30,16 @@ internal class ChatProtocol : ChatInterface {
             wcKoinApp.run {
                 androidContext(application)
                 modules(
-                    cryptoModule(), // TODO: Maybe rename to cryptoModule?
+                    commonModule(),
+                    cryptoModule(),
                     keyServerModule(keyServerUrl),
+//                    TODO: Figure out how to get relay as in Sign in here
+//                    networkModule(serverUrl, relay, connectionType.toRelayConnectionType()),
+                    //todo: add serverUrl as init param
+                    networkModule(serverUrl),
+                    relayerModule(),
+                    storageModule(),
+
                     engineModule()
                 )
             }
@@ -78,37 +89,43 @@ internal class ChatProtocol : ChatInterface {
     @Throws(IllegalStateException::class)
     override fun invite(invite: Chat.Params.Invite, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        chatEngine.invite(invite.toInviteEngineDO()) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun accept(accept: Chat.Params.Accept, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        chatEngine.accept(accept.inviteId) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun reject(reject: Chat.Params.Reject, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        chatEngine.reject(reject.inviteId) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun message(message: Chat.Params.Message, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        chatEngine.message(message.topic, message.toMessageEngineDO()) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun ping(ping: Chat.Params.Ping, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        chatEngine.ping(ping.topic) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun leave(leave: Chat.Params.Leave, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        chatEngine.leave(leave.topic) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)

@@ -5,10 +5,9 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.engine.model.EngineDO
-import com.walletconnect.sign.network.data.connection.ConnectionType
+import com.walletconnect.sign.network.connection.ConnectionType
 
-//TODO: Provide VO objects for engine classes. Remove using the EngineDO object in the client layer
-
+//TODO: Figure out what to do with models separation
 @JvmSynthetic
 internal fun EngineDO.ProposedSequence.toClientProposedSequence(): Sign.Model.ProposedSequence =
     when (this) {
