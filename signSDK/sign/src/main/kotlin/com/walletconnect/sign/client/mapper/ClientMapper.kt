@@ -1,5 +1,6 @@
 package com.walletconnect.sign.client.mapper
 
+import android.net.Uri
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
@@ -202,3 +203,8 @@ internal fun EngineDO.ConnectionState.toClientConnectionState(): Sign.Model.Conn
 @JvmSynthetic
 internal fun EngineDO.InternalError.toClientError(): Sign.Model.Error =
     Sign.Model.Error(this.exception)
+
+@JvmSynthetic
+internal fun String.strippedUrl() = Uri.parse(this).run {
+    this@run.scheme + "://" + this@run.authority
+}

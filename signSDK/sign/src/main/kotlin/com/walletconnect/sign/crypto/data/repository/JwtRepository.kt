@@ -22,16 +22,19 @@ import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
 import org.bouncycastle.crypto.signers.Ed25519Signer
 import java.security.SecureRandom
+import java.util.concurrent.TimeUnit
 
 internal class JwtRepository(private val keyChain: KeyStore) {
 
-    fun generateJWT(): String {
+    fun generateJWT(serverUrl: String): String {
         val subject = generateSubject()
         val (publicKey, privateKey) = getKeyPair()
         val privateKeyParameters = Ed25519PrivateKeyParameters(privateKey.hexToBytes())
 
         val issuer = encodeIss(publicKey.hexToBytes())
-        val payload = IridiumJWTPayload(issuer, subject)
+        val issuedAt = TimeUnit.SECONDS.convert(getCurrentTimestamp(), TimeUnit.MILLISECONDS)
+        val expiration = jwtExp(issuedAt)
+        val payload = IridiumJWTPayload(issuer, subject, serverUrl, issuedAt, expiration)
         val data = encodeData(JWT_IRIDIUM_HEADER, payload).encodeToByteArray()
         val signature = Ed25519Signer().run {
             init(true, privateKeyParameters)
@@ -101,6 +104,12 @@ internal class JwtRepository(private val keyChain: KeyStore) {
     }
 
     internal fun generateSubject() = randomBytes(KEY_NONCE_SIZE).bytesToHex()
+
+    private fun jwtExp(issuedAt: Long): Long {
+        return issuedAt + TimeUnit.SECONDS.convert(1, TimeUnit.DAYS)
+    }
+
+    internal fun getCurrentTimestamp() = System.currentTimeMillis()
 
     private companion object {
         const val KEY_DID_KEYPAIR = "key_did_keypair"

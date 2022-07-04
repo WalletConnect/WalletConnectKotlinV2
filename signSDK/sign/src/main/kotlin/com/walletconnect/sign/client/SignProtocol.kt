@@ -45,7 +45,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
         scope.launch {
             mutex.withLock {
                 val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
-                val jwt = jwtRepository.generateJWT()
+                val jwt = jwtRepository.generateJWT(initial.relayServerUrl.strippedUrl())
 
                 wcKoinApp.modules(scarletModule(initial.relayServerUrl, jwt, initial.connectionType.toRelayConnectionType(), initial.relay))
                 signEngine = wcKoinApp.koin.get()
