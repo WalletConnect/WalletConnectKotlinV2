@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">WC Chat</string>
+    <string name="selected_thread">selected_thread</string>
+    <string name="selected_invite">selected_invite</string>
+</resources>
