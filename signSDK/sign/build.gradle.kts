@@ -1,3 +1,5 @@
+import org.apache.commons.io.output.ByteArrayOutputStream
+
 plugins {
     id("com.android.library")
     kotlin("android")
@@ -62,12 +64,48 @@ android {
     }
 }
 
+fun getVersionName(): String {
+    return try {
+        val code = ByteArrayOutputStream()
+
+        exec {
+            commandLine("git", "tag", "--list")
+            standardOutput = code
+        }
+
+        code.toString().split("\n").run {
+            get(this.size - 3)
+        }
+    } catch(e: Exception) {
+        "default"
+    }
+}
+
+//def getVersionCode = { ->
+//    try {
+//        def code = new ByteArrayOutputStream()
+//        exec {
+//            commandLine 'git', 'tag', '--list'
+//            standardOutput = code
+//        }
+//        return code.toString().split("\n").size()
+//    }
+//    catch (ignored) {
+//        return -1;
+//    }
+//}
+
 afterEvaluate {
     publishing {
         publications {
-            register<MavenPublication>("Release") {
+            register<MavenPublication>("release") {
                 groupId = "com.walletconnect"
                 artifactId = "sign"
+                version = "1"//getVersionName()
+
+                afterEvaluate {
+                    from(components["release"])
+                }
             }
             // Creates a Maven publication called "release".
 //            create("release", MavenPublication::class) {
