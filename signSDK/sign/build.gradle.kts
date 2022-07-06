@@ -85,9 +85,9 @@ afterEvaluate {
     publishing {
         publications {
             register<MavenPublication>("release") {
-                groupId = "com.walletconnect"
-                artifactId = "sign"
-                version = getVersionName()
+//                groupId = "com.walletconnect"
+//                artifactId = "sign"
+//                version = getVersionName()
 
                 afterEvaluate {
                     from(components["release"])
