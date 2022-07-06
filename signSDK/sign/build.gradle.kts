@@ -81,40 +81,18 @@ fun getVersionName(): String {
     }
 }
 
-//def getVersionCode = { ->
-//    try {
-//        def code = new ByteArrayOutputStream()
-//        exec {
-//            commandLine 'git', 'tag', '--list'
-//            standardOutput = code
-//        }
-//        return code.toString().split("\n").size()
-//    }
-//    catch (ignored) {
-//        return -1;
-//    }
-//}
-
 afterEvaluate {
     publishing {
         publications {
             register<MavenPublication>("release") {
                 groupId = "com.walletconnect"
                 artifactId = "sign"
-                version = "1"//getVersionName()
+                version = getVersionName()
 
                 afterEvaluate {
                     from(components["release"])
                 }
             }
-            // Creates a Maven publication called "release".
-//            create("release", MavenPublication::class) {
-//                // Applies the component for the release build variant.
-//                from(components.getByName("release"))
-//                groupId = "com.walletconnect"
-//                artifactId = "sign"
-////                version = Config.libraryVersion
-//            }
         }
     }
 }
