@@ -11,11 +11,17 @@ tasks.withType<Test> {
 }
 
 android {
+    namespace = "com.walletconnect.sign"
     compileSdk = 32
 
     defaultConfig {
         minSdk = MIN_SDK
         targetSdk = 32
+
+        aarMetadata {
+            minCompileSdk = MIN_SDK
+            targetSdk = 32
+        }
 
         testInstrumentationRunner = "com.walletconnect.sign.WCTestRunner"
         testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")
@@ -53,6 +59,25 @@ android {
             "META-INF/AL2.0",
             "META-INF/LGPL2.1"
         )
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            register<MavenPublication>("Release") {
+                groupId = "com.walletconnect"
+                artifactId = "sign"
+            }
+            // Creates a Maven publication called "release".
+//            create("release", MavenPublication::class) {
+//                // Applies the component for the release build variant.
+//                from(components.getByName("release"))
+//                groupId = "com.walletconnect"
+//                artifactId = "sign"
+////                version = Config.libraryVersion
+//            }
+        }
     }
 }
 
