@@ -64,31 +64,10 @@ android {
     }
 }
 
-fun getVersionName(): String {
-    return try {
-        val code = ByteArrayOutputStream()
-
-        exec {
-            commandLine("git", "tag", "--list")
-            standardOutput = code
-        }
-
-        code.toString().split("\n").run {
-            get(this.size - 3)
-        }
-    } catch(e: Exception) {
-        "default"
-    }
-}
-
 afterEvaluate {
     publishing {
         publications {
             register<MavenPublication>("release") {
-//                groupId = "com.walletconnect"
-//                artifactId = "sign"
-//                version = getVersionName()
-
                 afterEvaluate {
                     from(components["release"])
                 }
