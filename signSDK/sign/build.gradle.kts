@@ -68,7 +68,6 @@ afterEvaluate {
     publishing {
         publications {
             register<MavenPublication>("release") {
-                this.artifactId = "sign"
                 afterEvaluate {
                     from(components["release"])
                 }
