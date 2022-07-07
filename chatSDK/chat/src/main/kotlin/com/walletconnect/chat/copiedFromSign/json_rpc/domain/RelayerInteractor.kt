@@ -77,7 +77,6 @@ internal class RelayerInteractor(
     val initializationErrorsFlow: Flow<WalletConnectException>
         get() = relay.eventsFlow
             .onEach { event: Relay.Model.Event ->
-                Logger.log("$event")
                 setIsWSSConnectionOpened(event)
             }
             .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()

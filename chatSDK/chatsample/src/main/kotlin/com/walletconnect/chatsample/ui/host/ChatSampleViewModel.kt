@@ -27,15 +27,12 @@ class ChatSampleViewModel : ViewModel() {
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
-    //todo create another account and send message
-    val accountOne = "eip:1:0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
-
     fun resolve(listener: Chat.Listeners.Resolve) {
-        ChatClient.resolve(Chat.Params.Resolve(Chat.Model.AccountId(accountOne)), listener)
+        ChatClient.resolve(Chat.Params.Resolve(Chat.Model.AccountId(AUTHOR_ACCOUNT)), listener)
     }
 
     fun register(listener: Chat.Listeners.Register) {
-            ChatClient.register(Chat.Params.Register(Chat.Model.AccountId(accountOne)),
+            ChatClient.register(Chat.Params.Register(Chat.Model.AccountId(AUTHOR_ACCOUNT)),
                 listener)
     }
 
@@ -43,15 +40,15 @@ class ChatSampleViewModel : ViewModel() {
         Log.d(tag(this), "Invite PubKey X: $publicKey")
 
         ChatClient.addContact(
-            Chat.Params.AddContact(Chat.Model.AccountId(accountOne), publicKey)
+            Chat.Params.AddContact(Chat.Model.AccountId(AUTHOR_ACCOUNT), publicKey)
         ) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
 
         ChatClient.invite(
             Chat.Params.Invite(
-                Chat.Model.AccountId(accountOne),
-                Chat.Model.Invite(Chat.Model.AccountId(accountOne), "Let me in!!!")
+                Chat.Model.AccountId(AUTHOR_ACCOUNT),
+                Chat.Model.Invite(Chat.Model.AccountId(AUTHOR_ACCOUNT), "Let me in!!!")
             )
         ) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
@@ -72,5 +69,9 @@ class ChatSampleViewModel : ViewModel() {
         ChatClient.message(Chat.Params.Message(topic, message)) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
+    }
+
+    companion object {
+        const val AUTHOR_ACCOUNT = "eip:1:0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
     }
 }

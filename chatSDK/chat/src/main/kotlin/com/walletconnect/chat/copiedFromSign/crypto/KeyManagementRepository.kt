@@ -24,6 +24,6 @@ internal interface KeyManagementRepository {
     fun getInviteSelfPublicKey(): PublicKey
     fun setInviteSelfPublicKey(topic: TopicVO, publicKey: PublicKey)
     fun getHash(string: String): String
-    fun getPublicKey(topic: TopicVO): PublicKey
+    fun getInvitePublicKey(topic: TopicVO): PublicKey
     fun setKeyAgreement(topic: TopicVO, self: PublicKey, peer: PublicKey)
 }

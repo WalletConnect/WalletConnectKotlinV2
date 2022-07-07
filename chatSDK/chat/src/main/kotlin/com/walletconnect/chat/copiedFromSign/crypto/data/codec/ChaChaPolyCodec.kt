@@ -10,7 +10,6 @@ import com.walletconnect.chat.copiedFromSign.core.model.vo.TopicVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.sync.ParticipantsVO
 import com.walletconnect.chat.copiedFromSign.crypto.Codec
 import com.walletconnect.chat.copiedFromSign.crypto.KeyManagementRepository
-import com.walletconnect.chat.copiedFromSign.util.Logger
 import com.walletconnect.chat.copiedFromSign.util.bytesToHex
 import com.walletconnect.chat.copiedFromSign.util.hexToBytes
 import com.walletconnect.chat.copiedFromSign.util.randomBytes
@@ -54,7 +53,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
 
         return when (val envelopeType = encryptedPayloadBytes.envelopeType) {
             EnvelopeType.ZERO.id -> decryptType0(topic, encryptedPayloadBytes)
-            EnvelopeType.ONE.id -> decryptType1(encryptedPayloadBytes, keyManagementRepository.getPublicKey(topic))
+            EnvelopeType.ONE.id -> decryptType1(encryptedPayloadBytes, keyManagementRepository.getInvitePublicKey(topic))
             else -> throw WalletConnectException.UnknownEnvelopeTypeException("Unknown envelope type: $envelopeType")
         }
     }
@@ -78,7 +77,6 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
 
     private fun decryptType1(encryptedPayloadBytes: ByteArray, receiverPublicKey: PublicKey?): String {
         if (receiverPublicKey == null) throw WalletConnectException.MissingReceiverPublicKeyException("Missing receiver public key")
-        Logger.error("decryptType1, ReceiverPubKey: $receiverPublicKey")
 
         val envelopeType = ByteArray(ENVELOPE_TYPE_SIZE)
         val nonce = ByteArray(NONCE_SIZE)
@@ -92,20 +90,16 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         byteBuffer.get(nonce)
         byteBuffer.get(encryptedMessageBytes)
 
-        Logger.error("decryptType1, SenderPubKey: ${publicKey.bytesToHex()}")
-
         val peer = PublicKey(publicKey.bytesToHex()) // PubKey Y
         val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(receiverPublicKey, peer)
         keyManagementRepository.setSymmetricKey(TopicVO(keyManagementRepository.getHash(receiverPublicKey.keyAsHex)), symmetricKey)
         val decryptedTextBytes = decryptPayload(symmetricKey, nonce, encryptedMessageBytes)
-        Logger.error("decryptType1, text: ${String(decryptedTextBytes, Charsets.UTF_8)}")
 
         return String(decryptedTextBytes, Charsets.UTF_8)
     }
 
     private fun encryptEnvelopeType0(topic: TopicVO, nonceBytes: ByteArray, input: ByteArray, envelopeType: EnvelopeType): String {
         val symmetricKey = keyManagementRepository.getSymmetricKey(topic)
-        Logger.log("encryptEnvelopeType0($topic) $symmetricKey")
         val cipherBytes = encryptPayload(symmetricKey, nonceBytes, input)
         val payloadSize = cipherBytes.size + NONCE_SIZE + ENVELOPE_TYPE_SIZE
 

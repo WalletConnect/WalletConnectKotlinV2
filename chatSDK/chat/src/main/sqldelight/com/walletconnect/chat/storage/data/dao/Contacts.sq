@@ -8,11 +8,6 @@ insertOrAbortContact:
 INSERT OR ABORT INTO Contacts (account_id, public_key, display_name)
 VALUES (?, ?, ?);
 
-updateContact:
-UPDATE Contacts
-SET public_key = ?, display_name = ?
-WHERE account_id = ?;
-
 updateContactPublicKey:
 UPDATE Contacts
 SET public_key = ?

@@ -61,7 +61,7 @@ internal class ChatProtocol : ChatInterface {
                 when (event) {
                     is EngineDO.Events.OnInvite -> delegate.onInvite(event.toClient())
                     is EngineDO.Events.OnJoined -> delegate.onJoined(event.toClient())
-                    is EngineDO.Events.OnLeft -> TODO()
+                    is EngineDO.Events.OnLeft -> Unit
                     is EngineDO.Events.OnMessage -> delegate.onMessage(event.toClient())
                 }
             }
