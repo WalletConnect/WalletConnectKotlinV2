@@ -32,15 +32,15 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
                 0 -> method = stringAdapter.fromJson(reader) ?: throw Util.unexpectedNull("method", "method", reader)
                 1 -> {
                     val paramsAny = anyAdapter.fromJson(reader) ?: throw Util.unexpectedNull("params", "params", reader)
-                    params = paramsAny.toString()
+                    val paramsAnyString = paramsAny.toString()
                     try {
-                        if (params[0] == '[') {
-                            params = JSONArray(params).toString()
-                        } else if (params[0] == '{') {
-                            params = JSONObject(params).toString()
+                        if (paramsAnyString[0] == '[') {
+                            params = JSONArray(paramsAnyString).toString()
+                        } else if (paramsAnyString[0] == '{') {
+                            params = JSONObject(paramsAnyString).toString()
                         }
                     } catch (e: Exception) {
-                        params = paramsAny.toString()
+                        params = paramsAnyString
                     }
                 }
                 -1 -> {
