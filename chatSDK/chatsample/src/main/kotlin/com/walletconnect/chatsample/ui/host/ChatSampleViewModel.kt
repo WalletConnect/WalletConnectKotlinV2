@@ -72,7 +72,7 @@ class ChatSampleViewModel : ViewModel() {
 
     companion object {
         const val SELF_ACCOUNT = "eip:1:0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
-        const val PEER_ACCOUNT = "eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb" // for cross-platform testing
-//        const val PEER_ACCOUNT = SELF_ACCOUNT // for kotlin testing
+//        const val PEER_ACCOUNT = "eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb" // for cross-platform testing
+        const val PEER_ACCOUNT = SELF_ACCOUNT // for kotlin testing
     }
 }
