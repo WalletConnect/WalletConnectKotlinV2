@@ -38,5 +38,5 @@ internal fun SessionRpcVO.SessionRequest.toPendingRequestVO(entry: JsonRpcHistor
         entry.topic,
         params.request.method,
         params.chainId,
-        params.request.params.toString(),
+        params.request.params,
     )
