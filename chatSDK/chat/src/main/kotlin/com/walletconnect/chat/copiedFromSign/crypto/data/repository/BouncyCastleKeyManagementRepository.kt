@@ -130,17 +130,12 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
     }
 
     // Added with Chat SDK
-    override fun getOrGenerateInviteSelfKeyPair(): Pair<PublicKey, PrivateKey> {
-        val publicKey = keyChain.getInviteSelfPublicKey(SELF_INVITE_PUBLIC_KEY)
-        return if (!publicKey.isNullOrBlank()) {
-            getKeyPair(PublicKey(publicKey))
-        } else {
-            val keyPair: Pair<PublicKey, PrivateKey> = generateWithoutSavingKeyPair() // TODO: Refactor on extracting core.
-            // Note: This could be cleaner with refactor of such method as generateKeyPair so it wont save keys
-            // Note: I wont do it here because I don't want two versions of this file
-            setKeyPair(keyPair.first, keyPair.second)
-            return keyPair
-        }
+    override fun generateInviteSelfKeyPair(): Pair<PublicKey, PrivateKey> {
+        val keyPair: Pair<PublicKey, PrivateKey> = generateWithoutSavingKeyPair() // TODO: Refactor on extracting core.
+        // Note: This could be cleaner with refactor of such method as generateKeyPair so it wont save keys
+        // Note: I wont do it here because I don't want two versions of this file
+        setKeyPair(keyPair.first, keyPair.second)
+        return keyPair
     }
 
     // Added with Chat SDK

@@ -82,7 +82,7 @@ internal class ChatEngine(
             onSuccess(publicKey.keyAsHex)
         }
 
-        val (publicKey, _) = keyManagementRepository.getOrGenerateInviteSelfKeyPair()
+        val (publicKey, _) = keyManagementRepository.generateInviteSelfKeyPair()
 
         if (!private) {
             scope.launch {
@@ -110,10 +110,10 @@ internal class ChatEngine(
         }
     }
 
-    internal fun invite(invite: EngineDO.Invite, onFailure: (Throwable) -> Unit) = try {
+    internal fun invite(peerAccount: AccountIdVO, invite: EngineDO.Invite, onFailure: (Throwable) -> Unit) = try {
         val senderPublicKey = keyManagementRepository.generateKeyPair() // KeyPair Y
 
-        val contact = chatStorage.getContact(invite.accountId)
+        val contact = chatStorage.getContact(peerAccount)
         val publicKeyString = contact.public_key // TODO: What about camelCase?
         val receiverPublicKey = PublicKey(publicKeyString) // KeyPair X
 
@@ -196,6 +196,10 @@ internal class ChatEngine(
         val threadTopic = TopicVO(keyManagementRepository.getHash(threadSymmetricKey.keyAsHex)) // Topic T
         keyManagementRepository.setSymmetricKey(threadTopic, threadSymmetricKey)
         relayer.subscribe(threadTopic)
+
+        scope.launch {
+            _events.emit(EngineDO.Events.OnJoined(threadTopic.value))
+        }
     } catch (error: Exception) {
         onFailure(error)
     }
@@ -210,10 +214,8 @@ internal class ChatEngine(
     }
 
     internal fun message(topic: String, sendMessage: EngineDO.SendMessage, onFailure: (Throwable) -> Unit) {
-        //todo: correct define params
-        val timestamp = System.currentTimeMillis()
-
-        val messageParams = ChatParamsVO.MessageParams(sendMessage.message, AUTHOR_ACCOUNT, timestamp, sendMessage.media)
+        //todo resolve AUTHOR_ACCOUNT from thread storage by topic
+        val messageParams = ChatParamsVO.MessageParams(sendMessage.message, AUTHOR_ACCOUNT, System.currentTimeMillis(), sendMessage.media)
         val payload = ChatRpcVO.ChatMessage(id = generateId(), params = messageParams)
         relayer.publishJsonRpcRequests(TopicVO(topic), payload, EnvelopeType.ZERO,
             { Logger.log("Chat message sent successfully") },
@@ -272,15 +274,17 @@ internal class ChatEngine(
 
     internal fun addContact(accountIdWithPublicKeyVO: AccountIdWithPublicKeyVO, onFailure: (Throwable) -> Unit) = try {
         if (chatStorage.doesContactNotExists(accountIdWithPublicKeyVO.accountId)) {
-            chatStorage.createContact(EngineDO.Contact(accountIdWithPublicKeyVO, AUTHOR_ACCOUNT))
+            chatStorage.createContact(EngineDO.Contact(accountIdWithPublicKeyVO, accountIdWithPublicKeyVO.accountId.value))
         } else {
-            chatStorage.updateContact(accountIdWithPublicKeyVO.accountId, accountIdWithPublicKeyVO.publicKey, AUTHOR_ACCOUNT)
+            chatStorage.updateContact(accountIdWithPublicKeyVO.accountId,
+                accountIdWithPublicKeyVO.publicKey,
+                accountIdWithPublicKeyVO.accountId.value)
         }
     } catch (error: Exception) {
         onFailure(error)
     }
 
     companion object {
-        const val AUTHOR_ACCOUNT = "eip:1:0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+        const val AUTHOR_ACCOUNT = "eip:1:0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826" // todo remove after adding Threads abstraction
     }
 }

@@ -95,7 +95,7 @@ internal class ChatProtocol : ChatInterface {
     override fun invite(invite: Chat.Params.Invite, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        chatEngine.invite(invite.toEngineDO()) { error -> onError(Chat.Model.Error(error)) }
+        chatEngine.invite(invite.account.toVO(), invite.toEngineDO()) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)

@@ -36,7 +36,6 @@ class ChatSampleActivity : AppCompatActivity() {
                     }
                     is ChatSampleEvents.OnJoined -> {
                         Snackbar.make(binding.root, "Joined: ${event.topic}", Snackbar.LENGTH_LONG).show()
-                        viewModel.message(event.topic, "Sup dude!")
                         threadTopic = event.topic
                     }
                     is ChatSampleEvents.OnMessage -> {

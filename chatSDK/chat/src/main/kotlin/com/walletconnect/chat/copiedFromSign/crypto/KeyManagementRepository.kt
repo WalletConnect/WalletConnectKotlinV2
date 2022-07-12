@@ -20,7 +20,7 @@ internal interface KeyManagementRepository {
     fun removeKeys(tag: String)
 
     //Added with Chat SDK
-    fun getOrGenerateInviteSelfKeyPair(): Pair<PublicKey, PrivateKey>
+    fun generateInviteSelfKeyPair(): Pair<PublicKey, PrivateKey>
     fun getInviteSelfPublicKey(): PublicKey
     fun setInviteSelfPublicKey(topic: TopicVO, publicKey: PublicKey)
     fun getHash(string: String): String
