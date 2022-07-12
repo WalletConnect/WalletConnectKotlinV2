@@ -8,5 +8,5 @@ internal data class SessionRequestVO(
     @Json(name = "method")
     val method: String,
     @Json(name = "params")
-    val params: Any
+    val params: String
 )

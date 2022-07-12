@@ -1,5 +1,3 @@
-import org.apache.commons.io.output.ByteArrayOutputStream
-
 plugins {
     id("com.android.library")
     kotlin("android")
