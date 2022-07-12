@@ -48,12 +48,12 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         WalletConnectException.UnknownEnvelopeTypeException::class,
         WalletConnectException.MissingReceiverPublicKeyException::class
     )
-    override fun decrypt(topic: TopicVO, encryptedPayload: String, receiverPublicKey: PublicKey?): String {
+    override fun decrypt(topic: TopicVO, encryptedPayload: String): String {
         val encryptedPayloadBytes = Base64.decode(encryptedPayload)
 
         return when (val envelopeType = encryptedPayloadBytes.envelopeType) {
             EnvelopeType.ZERO.id -> decryptType0(topic, encryptedPayloadBytes)
-            EnvelopeType.ONE.id -> decryptType1(encryptedPayloadBytes, receiverPublicKey)
+            EnvelopeType.ONE.id -> decryptType1(encryptedPayloadBytes, keyManagementRepository.getInvitePublicKey(topic))
             else -> throw WalletConnectException.UnknownEnvelopeTypeException("Unknown envelope type: $envelopeType")
         }
     }
@@ -90,8 +90,9 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         byteBuffer.get(nonce)
         byteBuffer.get(encryptedMessageBytes)
 
-        val peer = PublicKey(publicKey.bytesToHex())
+        val peer = PublicKey(publicKey.bytesToHex()) // PubKey Y
         val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(receiverPublicKey, peer)
+        keyManagementRepository.setSymmetricKey(TopicVO(keyManagementRepository.getHash(receiverPublicKey.keyAsHex)), symmetricKey)
         val decryptedTextBytes = decryptPayload(symmetricKey, nonce, encryptedMessageBytes)
 
         return String(decryptedTextBytes, Charsets.UTF_8)
@@ -123,7 +124,6 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(self, peer)
         val cipherBytes = encryptPayload(symmetricKey, nonceBytes, input)
         val payloadSize = cipherBytes.size + NONCE_SIZE + ENVELOPE_TYPE_SIZE + selfBytes.size
-
         //tp + pk + iv + sb
         val encryptedPayloadBytes = ByteBuffer.allocate(payloadSize)
             .put(envelopeType.id).put(selfBytes).put(nonceBytes).put(cipherBytes)
