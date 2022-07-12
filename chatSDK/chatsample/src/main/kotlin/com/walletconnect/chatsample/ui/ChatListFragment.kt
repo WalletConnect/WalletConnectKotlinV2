@@ -22,7 +22,7 @@ class ChatListFragment : Fragment(R.layout.fragment_chat_list) {
 
         binding.rvChatLists.adapter = chatListAdapter
 
-        binding.vCharRequestsBackground.setOnClickListener {
+        binding.flChatRequests.setOnClickListener {
             findNavController().navigate(R.id.action_chatListFragment_to_chatRequestsFragment)
         }
     }
