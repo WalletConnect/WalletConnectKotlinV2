@@ -9,5 +9,5 @@ import com.walletconnect.chat.copiedFromSign.core.model.vo.sync.ParticipantsVO
 
 internal interface Codec {
     fun encrypt(topic: TopicVO, payload: String, envelopeType: EnvelopeType, participants: ParticipantsVO? = null): String
-    fun decrypt(topic: TopicVO, cipherText: String, receiverPublicKey: PublicKey? = null): String
+    fun decrypt(topic: TopicVO, cipherText: String): String
 }

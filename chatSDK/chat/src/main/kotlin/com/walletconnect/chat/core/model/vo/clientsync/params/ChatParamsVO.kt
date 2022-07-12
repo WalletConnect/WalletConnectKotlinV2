@@ -20,7 +20,7 @@ internal sealed class ChatParamsVO : ClientParams {
     ) : ChatParamsVO()
 
     @JsonClass(generateAdapter = true)
-    internal data class ApprovalParams(
+    internal data class AcceptanceParams(
         @Json(name = "publicKey")
         val publicKey: String,
     ) : ChatParamsVO()

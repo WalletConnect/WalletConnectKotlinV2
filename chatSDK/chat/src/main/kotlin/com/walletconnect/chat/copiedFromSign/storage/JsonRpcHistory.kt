@@ -6,7 +6,7 @@ import android.content.SharedPreferences
 import com.walletconnect.chat.copiedFromSign.core.model.vo.TopicVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.jsonRpc.JsonRpcHistoryVO
 import com.walletconnect.chat.copiedFromSign.util.Logger
-import com.walletconnect.chat.storage.data.dao.rpchistory.JsonRpcHistoryQueries
+import com.walletconnect.chat.storage.data.dao.JsonRpcHistoryQueries
 
 internal class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private val jsonRpcHistoryQueries: JsonRpcHistoryQueries) {
 

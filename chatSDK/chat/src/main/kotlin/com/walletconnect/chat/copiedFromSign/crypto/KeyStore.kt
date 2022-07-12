@@ -3,6 +3,7 @@
 package com.walletconnect.chat.copiedFromSign.crypto
 
 import com.walletconnect.chat.copiedFromSign.core.model.vo.Key
+import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
 
 internal interface KeyStore {
     fun setSymmetricKey(tag: String, key: Key)
@@ -15,4 +16,7 @@ internal interface KeyStore {
 
     // Added With Chat SDK
     fun getInviteSelfPublicKey(tag: String): String?
+    fun setInviteSelfPublicKey(tag: String, key: Key)
+    fun getPublicKey(tag: String): String
+    fun setPublicKey(tag: String, publicKey: PublicKey)
 }

@@ -5,7 +5,7 @@ import com.walletconnect.chat.client.Chat
 sealed class ChatSampleEvents {
     object NoAction : ChatSampleEvents()
 
-    data class OnInvite(val id: Int, val invite: Chat.Model.Invite) : ChatSampleEvents()
+    data class OnInvite(val id: Long, val invite: Chat.Model.Invite) : ChatSampleEvents()
     data class OnJoined(val topic: String) : ChatSampleEvents()
     data class OnMessage(val topic: String, val message: Chat.Model.Message) : ChatSampleEvents()
     data class OnLeft(val topic: String) : ChatSampleEvents()
