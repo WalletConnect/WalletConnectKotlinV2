@@ -17,14 +17,14 @@ import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.tinder.scarlet.ws.Receive
 import com.tinder.scarlet.ws.Send
 import com.walletconnect.sign.core.adapters.*
-import com.walletconnect.sign.core.model.type.Tags
+import com.walletconnect.sign.core.model.type.enums.Tags
 import com.walletconnect.sign.core.model.vo.ExpiryVO
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.TtlVO
-import com.walletconnect.sign.network.adapter.FlowStreamAdapter
+import com.walletconnect.sign.network.data.adapter.FlowStreamAdapter
+import com.walletconnect.sign.network.data.service.RelayService
 import com.walletconnect.sign.network.model.RelayDTO
-import com.walletconnect.sign.network.service.RelayService
 import com.walletconnect.sign.util.CoroutineTestRule
 import com.walletconnect.sign.util.getRandom64ByteHexString
 import com.walletconnect.sign.util.runTest

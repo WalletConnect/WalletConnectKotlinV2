@@ -1,13 +1,13 @@
 package com.walletconnect.sign.engine.domain
 
 import com.walletconnect.sign.core.exceptions.*
+import com.walletconnect.sign.core.model.utils.Time
 import com.walletconnect.sign.core.model.vo.SymmetricKey
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
-import com.walletconnect.sign.util.Time
 import java.net.URI
 import java.net.URISyntaxException
 
