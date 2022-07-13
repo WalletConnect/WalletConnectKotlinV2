@@ -259,6 +259,14 @@ internal fun storageModule(): Module = module {
     }
 
     single {
+        get<Database>().proposalNamespaceDaoQueries
+    }
+
+    single {
+        get<Database>().proposalNamespaceExtensionDaoQueries
+    }
+
+    single {
         SequenceStorageRepository(get(), get(), get(), get(), get(), get(), get(), get(), get())
     }
 
