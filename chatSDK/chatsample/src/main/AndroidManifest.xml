@@ -5,9 +5,8 @@
     <application
         android:name=".ChatSampleApplication"
         android:allowBackup="true"
-        android:icon="@drawable/ic_chat_icon"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/ic_chat_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.WalletConnect">
         <activity

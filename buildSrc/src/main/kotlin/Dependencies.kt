@@ -15,7 +15,7 @@ fun DependencyHandlerScope.scanner() {
 }
 
 fun DependencyHandlerScope.ktxCore() {
-    val ktxCoreVersion = "1.6.0"
+    val ktxCoreVersion = "1.8.0"
     "implementation"("androidx.core:core-ktx:$ktxCoreVersion")
 }
 
