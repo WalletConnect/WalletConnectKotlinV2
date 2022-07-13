@@ -12,7 +12,7 @@ class ChatSampleApplication : Application() {
         ChatClient.initialize(
             Chat.Params.Init(
                 this,
-                "http://159.65.123.131:8080"
+                "https://keys.walletconnect.com"
             )
         ) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())

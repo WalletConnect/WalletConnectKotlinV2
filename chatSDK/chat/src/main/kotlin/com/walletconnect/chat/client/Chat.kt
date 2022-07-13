@@ -46,16 +46,11 @@ object Chat {
             val message: String,
             val authorAccount: AccountId,
             val timestamp: Long,
-            val media: Media,
-        ) : Model()
-
-        data class AccountIdWithPublicKey(
-            val account: AccountId,
-            val publicKey: String,
+            val media: Media?,
         ) : Model()
 
         sealed class Events : Model() {
-            data class OnInvite(val id: Int, val invite: Invite) : Events()
+            data class OnInvite(val id: Long, val invite: Invite) : Events()
 
             data class OnJoined(val topic: String) : Events()
 
@@ -74,11 +69,11 @@ object Chat {
 
         data class Invite(val account: Model.AccountId, val invite: Model.Invite) : Params()
 
-        data class Accept(val inviteId: String) : Params()
+        data class Accept(val inviteId: Long) : Params()
 
         data class Reject(val inviteId: String) : Params()
 
-        data class Message(val topic: String, val message: String, val media: Model.Media) : Params()
+        data class Message(val topic: String, val message: String, val media: Model.Media? = null) : Params()
 
         data class Ping(val topic: String) : Params()
 

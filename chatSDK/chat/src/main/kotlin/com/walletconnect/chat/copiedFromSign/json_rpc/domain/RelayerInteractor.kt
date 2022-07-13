@@ -51,6 +51,10 @@ internal class RelayerInteractor(
     private val _isNetworkAvailable: StateFlow<Boolean> = networkState.isAvailable
     private val _isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
+    val isConnectionAvailable: StateFlow<Boolean> =
+        combine(_isWSSConnectionOpened, _isNetworkAvailable) { wss, internet -> wss && internet }
+            .stateIn(scope, SharingStarted.Eagerly, false)
+
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> handleError(exception.message ?: String.Empty) }
 
@@ -73,7 +77,6 @@ internal class RelayerInteractor(
     val initializationErrorsFlow: Flow<WalletConnectException>
         get() = relay.eventsFlow
             .onEach { event: Relay.Model.Event ->
-                Logger.log("$event")
                 setIsWSSConnectionOpened(event)
             }
             .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
@@ -85,9 +88,10 @@ internal class RelayerInteractor(
         envelopeType: EnvelopeType,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
-        participantsVO: ParticipantsVO? = null
+        participantsVO: ParticipantsVO? = null,
     ) {
         val requestJson = serializer.serialize(payload)
+        Logger.log("publishJsonRpcRequests($requestJson)")
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participantsVO)
 
@@ -112,6 +116,7 @@ internal class RelayerInteractor(
         val jsonResponseDO = response.toRelayerDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
         val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType)
+        Logger.log("publishJsonRpcResponse($responseJson)")
 
         relay.publish(topic.value, encryptedResponse) { result ->
             result.fold(
@@ -197,6 +202,7 @@ internal class RelayerInteractor(
                 .map { relayRequest ->
                     val topic = TopicVO(relayRequest.subscriptionTopic)
                     val message = chaChaPolyCodec.decrypt(topic, relayRequest.message)
+                    Logger.log("manageSubscriptions($message)")
 
                     Pair(message, topic)
                 }

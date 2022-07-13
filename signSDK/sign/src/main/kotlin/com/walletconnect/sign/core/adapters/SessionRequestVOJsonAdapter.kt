@@ -8,6 +8,8 @@ import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
 import com.walletconnect.sign.core.model.vo.clientsync.session.payload.SessionRequestVO
+import org.json.JSONArray
+import org.json.JSONObject
 import kotlin.String
 
 internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRequestVO>() {
@@ -21,16 +23,26 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
 
     override fun fromJson(reader: JsonReader): SessionRequestVO {
         var method: String? = null
-        var params: Any? = null
+        var params: String? = null
 
         reader.beginObject()
 
         while (reader.hasNext()) {
             when (reader.selectName(options)) {
-                0 -> method = stringAdapter.fromJson(reader) ?: throw Util.unexpectedNull("method",
-                    "method", reader)
-                1 -> params = anyAdapter.fromJson(reader) ?: throw Util.unexpectedNull("params", "params",
-                    reader)
+                0 -> method = stringAdapter.fromJson(reader) ?: throw Util.unexpectedNull("method", "method", reader)
+                1 -> {
+                    val paramsAny = anyAdapter.fromJson(reader) ?: throw Util.unexpectedNull("params", "params", reader)
+                    val paramsAnyString = paramsAny.toString()
+                    try {
+                        if (paramsAnyString[0] == '[') {
+                            params = JSONArray(paramsAnyString).toString()
+                        } else if (paramsAnyString[0] == '{') {
+                            params = JSONObject(paramsAnyString).toString()
+                        }
+                    } catch (e: Exception) {
+                        params = paramsAnyString
+                    }
+                }
                 -1 -> {
                     // Unknown name, skip it.
                     reader.skipName()
@@ -64,12 +76,3 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
         }
     }
 }
-
-val test = """
-    //wc(
-        "params" : {
-           "method":"payload",
-           "params": "[]"
-        }
-)
-"""

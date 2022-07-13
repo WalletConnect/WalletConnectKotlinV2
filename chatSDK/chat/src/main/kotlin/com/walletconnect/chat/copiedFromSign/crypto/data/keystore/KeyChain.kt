@@ -4,8 +4,10 @@ package com.walletconnect.chat.copiedFromSign.crypto.data.keystore
 
 import android.content.SharedPreferences
 import com.walletconnect.chat.copiedFromSign.core.model.vo.Key
+import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
 import com.walletconnect.chat.copiedFromSign.crypto.KeyStore
 import com.walletconnect.chat.copiedFromSign.util.Empty
+import com.walletconnect.chat.copiedFromSign.util.Logger
 import com.walletconnect.chat.copiedFromSign.util.bytesToHex
 import com.walletconnect.chat.copiedFromSign.util.hexToBytes
 
@@ -46,5 +48,21 @@ internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyS
     // Added With Chat SDK
     override fun getInviteSelfPublicKey(tag: String): String? {
         return sharedPreferences.getString(tag, null)
+    }
+
+    // Added With Chat SDK
+    override fun setInviteSelfPublicKey(tag: String, key: Key) {
+        sharedPreferences.edit().putString(tag, key.keyAsHex).apply()
+
+    }
+
+    // Added With Chat SDK
+    override fun getPublicKey(tag: String): String {
+        return sharedPreferences.getString(tag, String.Empty) ?: String.Empty
+    }
+
+    // Added With Chat SDK
+    override fun setPublicKey(tag: String, publicKey: PublicKey) {
+        sharedPreferences.edit().putString(tag, publicKey.keyAsHex).apply()
     }
 }

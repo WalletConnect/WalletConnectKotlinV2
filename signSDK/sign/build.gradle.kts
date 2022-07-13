@@ -11,11 +11,17 @@ tasks.withType<Test> {
 }
 
 android {
+    namespace = "com.walletconnect.sign"
     compileSdk = 32
 
     defaultConfig {
         minSdk = MIN_SDK
         targetSdk = 32
+
+        aarMetadata {
+            minCompileSdk = MIN_SDK
+            targetSdk = 32
+        }
 
         testInstrumentationRunner = "com.walletconnect.sign.WCTestRunner"
         testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")
@@ -53,6 +59,18 @@ android {
             "META-INF/AL2.0",
             "META-INF/LGPL2.1"
         )
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            register<MavenPublication>("release") {
+                afterEvaluate {
+                    from(components["release"])
+                }
+            }
+        }
     }
 }
 

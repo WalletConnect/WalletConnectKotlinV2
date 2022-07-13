@@ -21,8 +21,8 @@ internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) : JsonAdapter<Relay
     private val stringAdapter: JsonAdapter<String> = moshi.adapter(String::class.java, emptySet(), "jsonrpc")
     private val booleanAdapter: JsonAdapter<Long> = moshi.adapter(Boolean::class.java, emptySet(), "result")
     private val anyAdapter: JsonAdapter<Any> = moshi.adapter(Any::class.java, emptySet(), "result")
-    private val approvalParamsAdapter: JsonAdapter<ChatParamsVO.ApprovalParams> =
-        moshi.adapter(ChatParamsVO.ApprovalParams::class.java)
+    private val acceptanceParamsAdapter: JsonAdapter<ChatParamsVO.AcceptanceParams> =
+        moshi.adapter(ChatParamsVO.AcceptanceParams::class.java)
 
     @Volatile
     private var constructorRef: Constructor<RelayerDO.JsonRpcResponse.JsonRpcResult>? = null
@@ -48,7 +48,7 @@ internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) : JsonAdapter<Relay
                 }
                 2 -> {
                     result = try {
-                        approvalParamsAdapter.fromJson(reader)
+                        acceptanceParamsAdapter.fromJson(reader)
                     } catch (e: Exception) {
                         anyAdapter.fromJson(reader)
                     }
@@ -97,8 +97,8 @@ internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) : JsonAdapter<Relay
         stringAdapter.toJson(writer, value_.jsonrpc)
         writer.name("result")
 
-        if ((value_.result as? ChatParamsVO.ApprovalParams) != null) {
-            val approvalParamsString = approvalParamsAdapter.toJson(value_.result)
+        if ((value_.result as? ChatParamsVO.AcceptanceParams) != null) {
+            val approvalParamsString = acceptanceParamsAdapter.toJson(value_.result)
             writer.valueSink().use {
                 it.writeUtf8(approvalParamsString)
             }

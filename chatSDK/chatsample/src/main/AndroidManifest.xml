@@ -8,9 +8,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.WalletConnect"
-        android:usesCleartextTraffic="true">
-        <!--TODO: Remove android:usesCleartextTraffic="true"-->
+        android:theme="@style/Theme.WalletConnect">
         <activity
             android:name=".ui.host.ChatSampleActivity"
             android:exported="true"
