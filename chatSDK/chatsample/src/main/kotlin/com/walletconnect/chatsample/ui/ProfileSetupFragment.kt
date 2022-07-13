@@ -17,8 +17,7 @@ class ProfileSetupFragment: Fragment(R.layout.fragment_profile_setup) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Shows as an error but still works
-        binding.tbProfileSetup.setupWithNavController(findNavController(), null)
+        binding.tbProfileSetup.setupWithNavController(findNavController())
         binding.tbProfileSetup.title = null
 
         binding.mbHomeCta.setOnClickListener {

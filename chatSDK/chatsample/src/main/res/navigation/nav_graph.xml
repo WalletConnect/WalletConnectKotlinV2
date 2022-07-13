@@ -9,7 +9,7 @@
         android:id="@+id/homeFragment"
         android:name="com.walletconnect.chatsample.ui.HomeFragment"
         android:label="Home"
-        tools:layout="@layout/fragment_home" >
+        tools:layout="@layout/fragment_home">
         <action
             android:id="@+id/action_homeFragment_to_profileSetupFragment"
             app:destination="@id/profileSetupFragment" />
@@ -19,7 +19,7 @@
         android:id="@+id/profileSetupFragment"
         android:name="com.walletconnect.chatsample.ui.ProfileSetupFragment"
         android:label="Profile Setup"
-        tools:layout="@layout/fragment_profile_setup" >
+        tools:layout="@layout/fragment_profile_setup">
         <action
             android:id="@+id/action_profileSetupFragment_to_chatListFragment"
             app:destination="@id/chatListFragment" />
@@ -29,16 +29,26 @@
         android:id="@+id/chatListFragment"
         android:name="com.walletconnect.chatsample.ui.ChatListFragment"
         android:label="Chat List"
-        tools:layout="@layout/fragment_chat_list" >
+        tools:layout="@layout/fragment_chat_list">
         <action
             android:id="@+id/action_chatListFragment_to_chatRequestsFragment"
             app:destination="@id/chatRequestsFragment" />
+        <action
+            android:id="@+id/action_chatListFragment_to_chatThreadFragment"
+            app:destination="@id/chatThreadFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/chatRequestsFragment"
         android:name="com.walletconnect.chatsample.ui.ChatRequestsFragment"
-        tools:layout="Chat Requests" />
+        android:label="Chat Requests"
+        tools:layout="@layout/fragment_chat_requests" />
+
+    <fragment
+        android:id="@+id/chatThreadFragment"
+        android:name="com.walletconnect.chatsample.ui.ChatThread"
+        android:label="Chat Thread"
+        tools:layout="@layout/fragment_chat_thread" />
 
     <navigation
         android:id="@+id/threadsGraph"
