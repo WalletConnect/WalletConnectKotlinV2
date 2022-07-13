@@ -21,6 +21,7 @@ object Relay {
                         val topic: String,
                         val message: String,
                         val ttl: Long,
+                        val tag: Int,
                         val prompt: Boolean?,
                     )
                 }
