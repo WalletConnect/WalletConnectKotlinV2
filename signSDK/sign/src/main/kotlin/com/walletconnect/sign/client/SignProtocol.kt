@@ -10,7 +10,6 @@ import com.walletconnect.sign.di.*
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.network.RelayInterface
-import com.walletconnect.sign.util.Logger
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -25,7 +24,8 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     private lateinit var signEngine: SignEngine
     override val relay: RelayInterface by lazy { wcKoinApp.koin.get() }
     private val mutex = Mutex()
-    private val engineInitializationScope = CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
+    private val engineInitializationScope =
+        CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
     companion object {
         val instance = SignProtocol()
