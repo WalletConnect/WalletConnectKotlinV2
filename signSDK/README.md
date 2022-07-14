@@ -35,7 +35,7 @@ allprojects {
 app/build.gradle
 
 ```gradle
-implementation("com.github.WalletConnect:WalletConnectKotlinV2:release_version")
+implementation("com.walletconnect:WalletConnectKotlinV2:release_version")
 ```
 
 &nbsp;
