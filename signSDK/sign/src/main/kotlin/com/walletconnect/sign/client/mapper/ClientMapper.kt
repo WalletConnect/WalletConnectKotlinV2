@@ -216,7 +216,7 @@ internal fun String.strippedUrl() = Uri.parse(this).run {
 internal fun String.addUserAgent(): String {
     return Uri.parse(this).buildUpon()
         .appendQueryParameter("protocol","wc-relay-2.0")
-        .appendQueryParameter("sdk", "kotlin-2.0-rc.0") // Setup env variable for version and tag. Use env variable here instead of hard coded version
+        .appendQueryParameter("sdk", "kotlin-2.0-rc.0") // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
         .appendQueryParameter("os", "android-${Build.VERSION.RELEASE}")
         .build()
         .toString()
