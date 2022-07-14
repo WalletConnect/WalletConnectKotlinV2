@@ -1,5 +1,6 @@
 package com.walletconnect.sign.di
 
+import android.os.Build
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
@@ -23,8 +24,16 @@ internal fun scarletModule(serverUrl: String, jwt: String, connectionType: Conne
     val DEFAULT_BACKOFF_MINUTES = 5L
     val TIMEOUT_TIME = 5000L
 
+    // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
     single {
         OkHttpClient.Builder()
+            .addInterceptor {
+                val updatedRequest = it.request().newBuilder()
+                    .addHeader("User-Agent", """wc-2/kotlin-2.0.0-rc.1/android-${Build.VERSION.RELEASE}""")
+                    .build()
+
+                it.proceed(updatedRequest)
+            }
             .writeTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
             .readTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
             .callTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
