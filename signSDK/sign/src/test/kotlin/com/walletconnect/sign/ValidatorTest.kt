@@ -23,6 +23,7 @@ import com.walletconnect.sign.ValidatorTest.Methods.PERSONAL_SIGN
 import com.walletconnect.sign.ValidatorTest.Namespaces.COSMOS
 import com.walletconnect.sign.ValidatorTest.Namespaces.EIP155
 import com.walletconnect.sign.core.exceptions.*
+import com.walletconnect.sign.core.model.utils.Time
 import com.walletconnect.sign.core.model.vo.SymmetricKey
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
@@ -30,7 +31,6 @@ import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptio
 import com.walletconnect.sign.engine.domain.Validator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toAbsoluteString
-import com.walletconnect.sign.util.Time
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

@@ -6,6 +6,7 @@ import com.walletconnect.chat.copiedFromSign.core.exceptions.WRONG_CONNECTION_TY
 import com.walletconnect.chat.copiedFromSign.core.model.client.Relay
 import com.walletconnect.chat.copiedFromSign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.TopicVO
+import com.walletconnect.chat.copiedFromSign.core.model.vo.TtlVO
 import com.walletconnect.chat.copiedFromSign.core.scope.scope
 import com.walletconnect.chat.copiedFromSign.network.RelayInterface
 import com.walletconnect.chat.copiedFromSign.network.connection.controller.ConnectionController
@@ -54,11 +55,13 @@ internal class RelayClient internal constructor(
     override fun publish(
         topic: String,
         message: String,
-        prompt: Boolean,
+        params: Relay.Model.IridiumParams,
         onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit,
     ) {
-        val request = RelayDTO.Publish.Request(generateId(),
-            params = RelayDTO.Publish.Request.Params(TopicVO(topic), message, prompt = prompt))
+        val (tag, ttl, prompt) = params
+        val publishParams = RelayDTO.Publish.Request.Params(TopicVO(topic), message, TtlVO(ttl), tag, prompt)
+        val request = RelayDTO.Publish.Request(generateId(), params = publishParams)
+
         observePublishAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
         observePublishError { error -> onResult(Result.failure(error)) }
         relay.publishRequest(request)

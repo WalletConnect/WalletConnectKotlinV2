@@ -18,7 +18,7 @@ interface RelayInterface {
     fun publish(
         topic: String,
         message: String,
-        prompt: Boolean = false,
+        params: Relay.Model.IridiumParams,
         onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit = {},
     )
 

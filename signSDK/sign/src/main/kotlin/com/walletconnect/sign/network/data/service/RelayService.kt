@@ -1,4 +1,4 @@
-package com.walletconnect.sign.network.service
+package com.walletconnect.sign.network.data.service
 
 import com.tinder.scarlet.WebSocket
 import com.tinder.scarlet.ws.Receive

@@ -6,14 +6,15 @@ import com.walletconnect.sign.core.exceptions.WRONG_CONNECTION_TYPE
 import com.walletconnect.sign.core.model.client.Relay
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
+import com.walletconnect.sign.core.model.vo.TtlVO
 import com.walletconnect.sign.core.scope.scope
 import com.walletconnect.sign.network.RelayInterface
-import com.walletconnect.sign.network.connection.controller.ConnectionController
+import com.walletconnect.sign.network.data.connection.controller.ConnectionController
+import com.walletconnect.sign.network.data.service.RelayService
 import com.walletconnect.sign.network.model.RelayDTO
 import com.walletconnect.sign.network.model.toRelayAcknowledgment
 import com.walletconnect.sign.network.model.toRelayEvent
 import com.walletconnect.sign.network.model.toRelayRequest
-import com.walletconnect.sign.network.service.RelayService
 import com.walletconnect.sign.util.Logger
 import com.walletconnect.sign.util.generateId
 import kotlinx.coroutines.cancel
@@ -54,11 +55,13 @@ internal class RelayClient internal constructor(
     override fun publish(
         topic: String,
         message: String,
-        prompt: Boolean,
+        params: Relay.Model.IridiumParams,
         onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit,
     ) {
-        val request = RelayDTO.Publish.Request(generateId(),
-            params = RelayDTO.Publish.Request.Params(TopicVO(topic), message, prompt = prompt))
+        val (tag, ttl, prompt) = params
+        val publishParams = RelayDTO.Publish.Request.Params(TopicVO(topic), message, TtlVO(ttl), tag, prompt)
+        val request = RelayDTO.Publish.Request(generateId(), params = publishParams)
+
         observePublishAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
         observePublishError { error -> onResult(Result.failure(error)) }
         relay.publishRequest(request)

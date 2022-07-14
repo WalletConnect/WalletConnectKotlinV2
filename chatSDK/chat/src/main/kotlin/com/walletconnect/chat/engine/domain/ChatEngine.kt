@@ -4,8 +4,10 @@ package com.walletconnect.chat.engine.domain
 
 import com.walletconnect.chat.copiedFromSign.core.exceptions.client.WalletConnectException
 import com.walletconnect.chat.copiedFromSign.core.model.type.enums.EnvelopeType
+import com.walletconnect.chat.copiedFromSign.core.model.vo.IridiumParamsVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
 import com.walletconnect.chat.copiedFromSign.core.model.vo.TopicVO
+import com.walletconnect.chat.copiedFromSign.core.model.vo.TtlVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.sync.ParticipantsVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.sync.WCRequestVO
@@ -17,12 +19,14 @@ import com.walletconnect.chat.copiedFromSign.util.Logger
 import com.walletconnect.chat.copiedFromSign.util.generateId
 import com.walletconnect.chat.core.model.vo.AccountIdVO
 import com.walletconnect.chat.core.model.vo.AccountIdWithPublicKeyVO
+import com.walletconnect.chat.core.model.vo.Tags
 import com.walletconnect.chat.core.model.vo.clientsync.ChatRpcVO
 import com.walletconnect.chat.core.model.vo.clientsync.params.ChatParamsVO
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterAccountUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveAccountUseCase
 import com.walletconnect.chat.engine.model.EngineDO
 import com.walletconnect.chat.storage.ChatStorageRepository
+import com.walletconnect.sign.core.model.utils.Time
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
@@ -129,7 +133,9 @@ internal class ChatEngine(
         val acceptTopic = TopicVO(keyManagementRepository.getHash(symmetricKey.keyAsHex))
         keyManagementRepository.setSymmetricKey(acceptTopic, symmetricKey)
         relayer.subscribe(acceptTopic)
-        relayer.publishJsonRpcRequests(inviteTopic, payload, EnvelopeType.ONE,
+        val iridiumParams = IridiumParamsVO(Tags.CHAT_INVITE, TtlVO(Time.dayInSeconds), true)
+
+        relayer.publishJsonRpcRequests(inviteTopic, iridiumParams, payload, EnvelopeType.ONE,
             {
                 Logger.log("Chat invite sent successfully")
             },
@@ -190,7 +196,9 @@ internal class ChatEngine(
 
 
         val acceptanceParams = ChatParamsVO.AcceptanceParams(publicKey.keyAsHex)
-        relayer.respondWithParams(request.copy(topic = acceptTopic), acceptanceParams, EnvelopeType.ZERO)
+        val iridiumParams = IridiumParamsVO(Tags.CHAT_INVITE_RESPONSE, TtlVO(Time.dayInSeconds))
+
+        relayer.respondWithParams(request.copy(topic = acceptTopic), acceptanceParams, iridiumParams, EnvelopeType.ZERO)
 
         val threadSymmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(publicKey, senderPublicKey) // SymKey T
         val threadTopic = TopicVO(keyManagementRepository.getHash(threadSymmetricKey.keyAsHex)) // Topic T
@@ -217,7 +225,9 @@ internal class ChatEngine(
         //todo resolve AUTHOR_ACCOUNT from thread storage by topic
         val messageParams = ChatParamsVO.MessageParams(sendMessage.message, AUTHOR_ACCOUNT, System.currentTimeMillis(), sendMessage.media)
         val payload = ChatRpcVO.ChatMessage(id = generateId(), params = messageParams)
-        relayer.publishJsonRpcRequests(TopicVO(topic), payload, EnvelopeType.ZERO,
+        val iridiumParams = IridiumParamsVO(Tags.CHAT_MESSAGE, TtlVO(Time.dayInSeconds), true)
+
+        relayer.publishJsonRpcRequests(TopicVO(topic), iridiumParams, payload, EnvelopeType.ZERO,
             { Logger.log("Chat message sent successfully") },
             { throwable ->
                 Logger.log("Chat message error: $throwable")
@@ -236,10 +246,11 @@ internal class ChatEngine(
 
     internal fun leave(topic: String, onFailure: (Throwable) -> Unit) {
         //todo: correct define params
-
         val leaveParams = ChatParamsVO.LeaveParams()
         val payload = ChatRpcVO.ChatLeave(id = generateId(), params = leaveParams)
-        relayer.publishJsonRpcRequests(TopicVO(topic), payload, EnvelopeType.ZERO,
+        val iridiumParams = IridiumParamsVO(Tags.CHAT_LEAVE, TtlVO(Time.dayInSeconds), true)
+
+        relayer.publishJsonRpcRequests(TopicVO(topic), iridiumParams, payload, EnvelopeType.ZERO,
             { Logger.log("Chat message sent successfully") },
             { throwable ->
                 Logger.log("Chat message error: $throwable")

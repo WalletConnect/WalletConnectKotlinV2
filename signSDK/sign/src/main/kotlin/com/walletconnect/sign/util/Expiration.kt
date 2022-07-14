@@ -1,4 +1,4 @@
-package com.walletconnect.chat.copiedFromSign.util
+package com.walletconnect.sign.util
 
 import com.walletconnect.sign.core.model.utils.Time
 

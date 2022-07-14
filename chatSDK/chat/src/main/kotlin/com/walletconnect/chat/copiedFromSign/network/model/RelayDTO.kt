@@ -8,7 +8,6 @@ import com.walletconnect.chat.copiedFromSign.core.adapters.TtlAdapter
 import com.walletconnect.chat.copiedFromSign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.TopicVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.TtlVO
-import com.walletconnect.chat.copiedFromSign.util.Time
 
 internal sealed class RelayDTO {
     abstract val id: Long
@@ -37,9 +36,11 @@ internal sealed class RelayDTO {
                 val message: String,
                 @Json(name = "ttl")
                 @field:TtlAdapter.Qualifier
-                val ttl: TtlVO = TtlVO(Time.dayInSeconds),
+                val ttl: TtlVO,
+                @Json(name = "tag")
+                val tag: Int,
                 @Json(name = "prompt")
-                val prompt: Boolean?
+                val prompt: Boolean?,
             )
         }
 
