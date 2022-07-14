@@ -1,31 +1,31 @@
 package com.walletconnect.chatsample.ui.invites
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.walletconnect.chatsample.R
+import com.walletconnect.chatsample.databinding.FragmentInvitesBinding
+import com.walletconnect.chatsample.ui.shared.ChatSharedViewModel
+import com.walletconnect.chatsample.utils.viewBinding
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
-class InvitesFragment : Fragment() {
+class InvitesFragment : Fragment(R.layout.fragment_invites) {
+    private val binding by viewBinding(FragmentInvitesBinding::bind)
+    private val viewModel: ChatSharedViewModel by activityViewModels()
+    private val invitesAdapter by lazy { InvitesAdapter(viewModel::acceptRequest) }
 
-    companion object {
-        fun newInstance() = InvitesFragment()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.rvChatRequests.adapter = invitesAdapter
+
+        viewModel.listOfInvitesStateFlow
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle)
+            .onEach { invitesAdapter.submitList(it.toList()) }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
-
-    private lateinit var viewModel: InvitesViewModel
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View? {
-        return inflater.inflate(R.layout.fragment_invites, container, false)
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(InvitesViewModel::class.java)
-    }
-
 }

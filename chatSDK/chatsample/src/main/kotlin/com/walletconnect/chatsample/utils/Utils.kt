@@ -1,4 +1,4 @@
-package com.walletconnect.chatsample
+package com.walletconnect.chatsample.utils
 
 import android.view.LayoutInflater
 import android.view.View
@@ -16,7 +16,7 @@ import kotlin.reflect.KProperty
 //  samples_common be visible to all sample apps?
 
 inline fun <reified T : Any> tag(currentClass: T): String {
-    return ("Wallet" + currentClass::class.java.canonicalName!!.substringAfterLast(".")).take(23)
+    return ("Chat" + currentClass::class.java.canonicalName!!.substringAfterLast(".")).take(23)
 }
 
 // https://github.com/Zhuinden/fragmentviewbindingdelegate-kt

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="left_title">
+        <item name="android:textSize">17sp</item>
+        <item name="android:letterSpacing">-0.02</item>
+        <item name="android:textColor">#2BEE6C</item>
+    </style>
+
+    <style name="ens_name_or">
+        <item name="android:textSize">
+            15sp
+        </item>
+        <item name="android:letterSpacing">
+            -0.02
+        </item>
+        <item name="android:textColor">
+            #798686
+        </item>
+    </style>
+
+    <style name="discoverabilitEditText">
+
+        <item name="android:textSize">
+            17sp
+        </item>
+
+        <item name="android:letterSpacing">
+            -0.02
+        </item>
+
+        <item name="android:textColor">
+            #FFFFFF
+        </item>
+
+    </style>
+
+    <style name="icon_chevro">
+
+        <item name="android:textSize">
+            23sp
+        </item>
+
+        <item name="android:letterSpacing">
+            0.02
+        </item>
+
+        <item name="android:textColor">
+            #2BEE6C
+        </item>
+
+    </style>
+</resources>
