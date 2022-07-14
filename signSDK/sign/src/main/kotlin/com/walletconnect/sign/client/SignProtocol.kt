@@ -24,7 +24,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     private lateinit var signEngine: SignEngine
     override val relay: RelayInterface by lazy { wcKoinApp.koin.get() }
     private val mutex = Mutex()
-    private val engineInitializationScope =
+    private val signProtocolScope =
         CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
     companion object {
@@ -32,7 +32,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     }
 
     override fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
-        engineInitializationScope.launch {
+        signProtocolScope.launch {
             mutex.withLock {
                 with(initial) {
                     // TODO: re-init scope
@@ -271,7 +271,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
 //    }
 
     private fun <T> awaitLock(codeBlock: suspend () -> T): T {
-        return runBlocking(engineInitializationScope.coroutineContext) {
+        return runBlocking(signProtocolScope.coroutineContext) {
             mutex.withLock {
                 checkEngineInitialization()
                 codeBlock()
