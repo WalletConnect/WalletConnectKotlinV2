@@ -1,12 +1,12 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.network.connection.lifecycle
+package com.walletconnect.sign.network.data.connection.lifecycle
 
 import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import com.walletconnect.sign.core.scope.scope
-import com.walletconnect.sign.network.connection.ConnectionEvent
-import com.walletconnect.sign.network.connection.controller.ConnectionController
+import com.walletconnect.sign.network.data.connection.ConnectionEvent
+import com.walletconnect.sign.network.data.connection.controller.ConnectionController
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 

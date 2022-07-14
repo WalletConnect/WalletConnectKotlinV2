@@ -22,6 +22,7 @@ object Relay {
                         val topic: String,
                         val message: String,
                         val ttl: Long,
+                        val tag: Int,
                         val prompt: Boolean?,
                     )
                 }
@@ -153,5 +154,6 @@ object Relay {
         }
 
         data class ShutdownReason(val code: Int, val reason: String) : Relay.Model()
+        data class IridiumParams(val tag: Int, val ttl: Long, val prompt: Boolean = false) : Relay.Model()
     }
 }

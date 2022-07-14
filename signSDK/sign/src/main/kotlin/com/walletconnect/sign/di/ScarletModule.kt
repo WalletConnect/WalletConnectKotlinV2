@@ -7,12 +7,12 @@ import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.sign.network.RelayInterface
-import com.walletconnect.sign.network.adapter.FlowStreamAdapter
-import com.walletconnect.sign.network.connection.ConnectionType
-import com.walletconnect.sign.network.connection.controller.ConnectionController
-import com.walletconnect.sign.network.connection.lifecycle.ManualConnectionLifecycle
+import com.walletconnect.sign.network.data.adapter.FlowStreamAdapter
+import com.walletconnect.sign.network.data.connection.ConnectionType
+import com.walletconnect.sign.network.data.connection.controller.ConnectionController
+import com.walletconnect.sign.network.data.connection.lifecycle.ManualConnectionLifecycle
+import com.walletconnect.sign.network.data.service.RelayService
 import com.walletconnect.sign.network.domain.RelayClient
-import com.walletconnect.sign.network.service.RelayService
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module
