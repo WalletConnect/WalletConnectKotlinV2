@@ -55,10 +55,10 @@ internal class RelayClient internal constructor(
     override fun publish(
         topic: String,
         message: String,
-        iridiumParams: Relay.Model.IridiumParams,
+        params: Relay.Model.IridiumParams,
         onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit,
     ) {
-        val (ttl, tag, prompt) = Triple(iridiumParams.ttl, iridiumParams.tag, iridiumParams.prompt)
+        val (tag, ttl, prompt) = params
         val publishParams = RelayDTO.Publish.Request.Params(TopicVO(topic), message, TtlVO(ttl), tag, prompt)
         val request = RelayDTO.Publish.Request(generateId(), params = publishParams)
 
