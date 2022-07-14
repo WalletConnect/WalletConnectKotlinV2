@@ -23,10 +23,9 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chat_requests) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.tbChatRequests.setupWithNavController(findNavController())
         binding.rvChatRequests.adapter = chatRequestsAdapter
 
-        viewModel.listOfRequests
+        viewModel.listOfInvitesStateFlow
             .flowWithLifecycle(viewLifecycleOwner.lifecycle)
             .onEach {
                 chatRequestsAdapter.submitList(it.toList())

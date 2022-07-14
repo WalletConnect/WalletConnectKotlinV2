@@ -9,7 +9,7 @@ android {
     compileSdk = 32
 
     defaultConfig {
-        minSdk = MIN_SDK
+        minSdk = 24 //todo after mvp move back to MIN_SDK
         targetSdk = 32
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

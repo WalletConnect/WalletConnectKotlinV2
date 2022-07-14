@@ -5,24 +5,69 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/tbThread"
-        android:layout_width="0dp"
-        android:layout_height="?actionBarSize"
-        app:layout_constraintEnd_toEndOf="parent"
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glMarginTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="50dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clBackButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/glMarginTop"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
+        <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:drawablePadding="12dp"
-            android:gravity="center_vertical"
-            android:text="JS.eth"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            app:drawableStartCompat="@drawable/ic_chat_1_mini" />
-    </androidx.appcompat.widget.Toolbar>
+            android:src="@drawable/ic_chevron_left"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/swift_accent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <ImageView
+        android:id="@+id/ivPeerIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="18dp"
+        android:src="@drawable/ic_chat_icon_2"
+        app:layout_constraintBottom_toTopOf="@+id/glMarginTop"
+        app:layout_constraintStart_toEndOf="@+id/clBackButton"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvPeername"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:gravity="center_vertical"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/ivPeerIcon"
+        app:layout_constraintStart_toEndOf="@+id/ivPeerIcon"
+        app:layout_constraintTop_toTopOf="@+id/ivPeerIcon"
+        tools:text="Swift.eth" />
+
+    <ImageView
+        android:id="@+id/ivThreeDots"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/ic_thread_menu"
+        app:layout_constraintBottom_toTopOf="@+id/glMarginTop"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/swift_accent" />
 
     <TextView
         android:id="@+id/tvThreadTime"
@@ -33,7 +78,7 @@
         android:textSize="13sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tbThread"
+        app:layout_constraintTop_toBottomOf="@+id/ivPeerIcon"
         tools:text="TODAY 9:41 AM" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -58,6 +103,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
+        android:inputType="textNoSuggestions"
         android:background="@drawable/background_thread_input"
         android:gravity="start|center_vertical"
         android:hint="Message..."

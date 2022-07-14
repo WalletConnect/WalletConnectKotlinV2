@@ -7,8 +7,8 @@
         android:topLeftRadius="22dp"
         android:topRightRadius="22dp" />
 
-    <solid android:color="#794CFF" />
+    <solid android:color="@color/swift_accent" />
     <stroke
         android:width=".5dp"
-        android:color="#987DE8" />
+        android:color="@color/swift_accent_light" />
 </shape>

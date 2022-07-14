@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.walletconnect.chatsample"
-        minSdk = MIN_SDK
+        minSdk = 24 //todo after mvp move back to MIN_SDK
         targetSdk = 32
         versionCode = 1
         versionName = "1.0"
