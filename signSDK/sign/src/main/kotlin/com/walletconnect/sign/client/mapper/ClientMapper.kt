@@ -1,11 +1,15 @@
 package com.walletconnect.sign.client.mapper
 
 import android.net.Uri
+import android.os.Build
+import android.util.Log
+import com.walletconnect.sign.BuildConfig
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.network.connection.ConnectionType
+import java.net.URI
 
 //TODO: Figure out what to do with models separation
 @JvmSynthetic
@@ -206,4 +210,14 @@ internal fun EngineDO.InternalError.toClientError(): Sign.Model.Error =
 @JvmSynthetic
 internal fun String.strippedUrl() = Uri.parse(this).run {
     this@run.scheme + "://" + this@run.authority
+}
+
+@JvmSynthetic
+internal fun String.addUserAgent(): String {
+    return Uri.parse(this).buildUpon()
+        .appendQueryParameter("protocol","wc-relay-2.0")
+        .appendQueryParameter("sdk", "kotlin-2.0-rc.0") // Setup env variable for version and tag. Use env variable here instead of hard coded version
+        .appendQueryParameter("os", "android-${Build.VERSION.RELEASE}")
+        .build()
+        .toString()
 }
