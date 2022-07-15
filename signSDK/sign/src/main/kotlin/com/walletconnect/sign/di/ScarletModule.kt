@@ -29,7 +29,7 @@ internal fun scarletModule(serverUrl: String, jwt: String, connectionType: Conne
         OkHttpClient.Builder()
             .addInterceptor {
                 val updatedRequest = it.request().newBuilder()
-                    .addHeader("User-Agent", """wc-2/kotlin-2.0.0-rc.1/android-${Build.VERSION.RELEASE}""")
+                    .addHeader("User-Agent", """wc-2/kotlin-2.0.0-rc.0/android-${Build.VERSION.RELEASE}""")
                     .build()
 
                 it.proceed(updatedRequest)

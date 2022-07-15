@@ -215,7 +215,8 @@ internal fun String.strippedUrl() = Uri.parse(this).run {
 @JvmSynthetic
 internal fun String.addUserAgent(): String {
     return Uri.parse(this).buildUpon()
-        .appendQueryParameter("ua", """wc-2/kotlin-2.0.0-rc.1/android-${Build.VERSION.RELEASE}""") // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
+        // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
+        .appendQueryParameter("ua", """wc-2/kotlin-2.0.0-rc.0/android-${Build.VERSION.RELEASE}""")
         .build()
         .toString()
 }
