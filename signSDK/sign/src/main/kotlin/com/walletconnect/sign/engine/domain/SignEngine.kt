@@ -83,6 +83,7 @@ internal class SignEngine(
             val request = PairingRpcVO.SessionPropose(id = generateId(), params = sessionProposal)
             sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequestVO(pairingTopic, request.id, request.method, sessionProposal)
             val iridiumParams = IridiumParamsVO(Tags.SESSION_PROPOSE, TtlVO(Time.fiveMinutesInSeconds), true)
+            relayer.subscribe(pairingTopic)
 
             relayer.publishJsonRpcRequests(pairingTopic, iridiumParams, request,
                 onSuccess = {
