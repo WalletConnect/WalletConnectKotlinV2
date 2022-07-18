@@ -1,5 +1,6 @@
 package com.walletconnect.sign.di
 
+import android.os.Build
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
@@ -7,12 +8,12 @@ import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.sign.network.RelayInterface
-import com.walletconnect.sign.network.adapter.FlowStreamAdapter
-import com.walletconnect.sign.network.connection.ConnectionType
-import com.walletconnect.sign.network.connection.controller.ConnectionController
-import com.walletconnect.sign.network.connection.lifecycle.ManualConnectionLifecycle
+import com.walletconnect.sign.network.data.adapter.FlowStreamAdapter
+import com.walletconnect.sign.network.data.connection.ConnectionType
+import com.walletconnect.sign.network.data.connection.controller.ConnectionController
+import com.walletconnect.sign.network.data.connection.lifecycle.ManualConnectionLifecycle
+import com.walletconnect.sign.network.data.service.RelayService
 import com.walletconnect.sign.network.domain.RelayClient
-import com.walletconnect.sign.network.service.RelayService
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module
@@ -23,8 +24,16 @@ internal fun scarletModule(serverUrl: String, jwt: String, connectionType: Conne
     val DEFAULT_BACKOFF_MINUTES = 5L
     val TIMEOUT_TIME = 5000L
 
+    // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
     single {
         OkHttpClient.Builder()
+            .addInterceptor {
+                val updatedRequest = it.request().newBuilder()
+                    .addHeader("User-Agent", """wc-2/kotlin-2.0.0-rc.0/android-${Build.VERSION.RELEASE}""")
+                    .build()
+
+                it.proceed(updatedRequest)
+            }
             .writeTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
             .readTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
             .callTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)

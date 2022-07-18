@@ -2,6 +2,7 @@
 
 package com.walletconnect.sign.util
 
+import com.walletconnect.sign.core.model.utils.Time
 import com.walletconnect.sign.core.model.vo.ExpiryVO
 import java.lang.System.currentTimeMillis
 import java.security.SecureRandom

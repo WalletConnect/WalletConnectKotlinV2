@@ -8,6 +8,7 @@ import com.walletconnect.sign.core.model.client.Relay
 import com.walletconnect.sign.core.model.type.ClientParams
 import com.walletconnect.sign.core.model.type.JsonRpcClientSync
 import com.walletconnect.sign.core.model.type.enums.EnvelopeType
+import com.walletconnect.sign.core.model.vo.IridiumParamsVO
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
@@ -87,16 +88,18 @@ internal class RelayerInteractor(
 
     internal fun publishJsonRpcRequests(
         topic: TopicVO,
+        params: IridiumParamsVO,
         payload: JsonRpcClientSync<*>,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
         checkConnectionWorking()
         val requestJson = serializer.serialize(payload)
-        if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
-            val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, EnvelopeType.ZERO)
 
-            relay.publish(topic.value, encryptedRequest, shouldPrompt(payload.method)) { result ->
+        if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
+            val message = chaChaPolyCodec.encrypt(topic, requestJson, EnvelopeType.ZERO)
+
+            relay.publish(topic.value, message, params.toRelay()) { result ->
                 result.fold(
                     onSuccess = { onSuccess() },
                     onFailure = { error -> onFailure(error) }
@@ -108,15 +111,17 @@ internal class RelayerInteractor(
     internal fun publishJsonRpcResponse(
         topic: TopicVO,
         response: JsonRpcResponseVO,
+        params: IridiumParamsVO,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
         checkConnectionWorking()
+
         val jsonResponseDO = response.toRelayerDOJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
-        val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, EnvelopeType.ZERO)
+        val message = chaChaPolyCodec.encrypt(topic, responseJson, EnvelopeType.ZERO)
 
-        relay.publish(topic.value, encryptedResponse) { result ->
+        relay.publish(topic.value, message, params.toRelay()) { result ->
             result.fold(
                 onSuccess = {
                     jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
@@ -127,26 +132,35 @@ internal class RelayerInteractor(
         }
     }
 
-    internal fun respondWithParams(request: WCRequestVO, params: ClientParams) {
-        val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = params)
-        publishJsonRpcResponse(request.topic, result, onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
+    internal fun respondWithParams(request: WCRequestVO, clientParams: ClientParams, iridiumParams: IridiumParamsVO) {
+        val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = clientParams)
+
+        publishJsonRpcResponse(request.topic, result, iridiumParams,
+            onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
     }
 
-    internal fun respondWithSuccess(request: WCRequestVO) {
+    internal fun respondWithSuccess(request: WCRequestVO, iridiumParams: IridiumParamsVO) {
         val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = true)
+
         try {
-            publishJsonRpcResponse(request.topic, result, onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
+            publishJsonRpcResponse(request.topic, result, iridiumParams,
+                onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
         } catch (e: Exception) {
             handleError(e.message ?: String.Empty)
         }
     }
 
-    internal fun respondWithError(request: WCRequestVO, error: PeerError, onFailure: (Throwable) -> Unit = {}) {
+    internal fun respondWithError(
+        request: WCRequestVO,
+        error: PeerError,
+        iridiumParams: IridiumParamsVO,
+        onFailure: (Throwable) -> Unit = {},
+    ) {
         Logger.error("Responding with error: ${error.message}: ${error.code}")
         val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = request.id, error = JsonRpcResponseVO.Error(error.code, error.message))
 
         try {
-            publishJsonRpcResponse(request.topic, jsonRpcError,
+            publishJsonRpcResponse(request.topic, jsonRpcError, iridiumParams,
                 onFailure = { failure ->
                     Logger.error("Cannot respond with error: $failure")
                     onFailure(failure)
@@ -247,9 +261,6 @@ internal class RelayerInteractor(
             _isWSSConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }
-
-    private fun shouldPrompt(method: String): Boolean =
-        method == JsonRpcMethod.WC_SESSION_REQUEST || method == JsonRpcMethod.WC_SESSION_PROPOSE
 
     private fun handleError(errorMessage: String) {
         Logger.error(errorMessage)

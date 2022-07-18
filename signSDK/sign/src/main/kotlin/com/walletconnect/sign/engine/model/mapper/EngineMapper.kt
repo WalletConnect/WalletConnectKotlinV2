@@ -188,7 +188,7 @@ internal fun PairingParamsVO.SessionProposeParams.toSessionApproveParams(selfPub
 
 @JvmSynthetic
 internal fun SessionParamsVO.SessionRequestParams.toEngineDORequest(topic: TopicVO): EngineDO.Request =
-    EngineDO.Request(topic.value, request.method, request.params.toString(), chainId)
+    EngineDO.Request(topic.value, request.method, request.params, chainId)
 
 @JvmSynthetic
 internal fun SessionParamsVO.EventParams.toEngineDOEvent(): EngineDO.Event =

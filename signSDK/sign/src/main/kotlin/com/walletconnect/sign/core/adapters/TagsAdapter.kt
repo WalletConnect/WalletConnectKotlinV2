@@ -1,8 +1,7 @@
 package com.walletconnect.sign.core.adapters
 
 import com.squareup.moshi.*
-import com.walletconnect.sign.core.model.type.Tags
-import com.walletconnect.sign.core.model.vo.TtlVO
+import com.walletconnect.sign.core.model.type.enums.Tags
 
 internal object TagsAdapter : JsonAdapter<Tags>() {
 

@@ -1,6 +1,8 @@
 package com.walletconnect.sign.json_rpc.model
 
+import com.walletconnect.sign.core.model.client.Relay
 import com.walletconnect.sign.core.model.type.ClientParams
+import com.walletconnect.sign.core.model.vo.IridiumParamsVO
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcHistoryVO
@@ -38,5 +40,9 @@ internal fun SessionRpcVO.SessionRequest.toPendingRequestVO(entry: JsonRpcHistor
         entry.topic,
         params.request.method,
         params.chainId,
-        params.request.params.toString(),
+        params.request.params,
     )
+
+@JvmSynthetic
+internal fun IridiumParamsVO.toRelay(): Relay.Model.IridiumParams =
+    Relay.Model.IridiumParams(tag.id, ttl.seconds, prompt)
