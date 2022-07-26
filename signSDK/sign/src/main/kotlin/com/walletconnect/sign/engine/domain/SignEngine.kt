@@ -738,11 +738,11 @@ internal class SignEngine(
                 Logger.log("Session update namespaces response received")
                 val responseId = wcResponse.response.id
                 val sessionTopic = session.topic.value
-                val namespaces = sequenceStorageRepository.getUnAckNamespaces(sessionTopic, responseId)
-                sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(sessionTopic, namespaces, responseId,
+                val namespaces = sequenceStorageRepository.getTempNamespaces(responseId)
 
+                sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(sessionTopic, namespaces, responseId,
                     onSuccess = {
-                        sequenceStorageRepository.markUnAckNamespaceAcknowledged(sessionTopic, responseId)
+                        sequenceStorageRepository.markUnAckNamespaceAcknowledged(responseId)
                         scope.launch {
                             _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Result(session.topic,
                                 session.namespaces.toMapOfEngineNamespacesSession()))
