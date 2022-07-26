@@ -10,7 +10,7 @@ CREATE TABLE TempNamespaceDao(
     events TEXT AS List<String> NOT NULL,
     request_id INTEGER NOT NULL,
     isAcknowledged INTEGER DEFAULT 0,
-    UNIQUE(session_id, key)
+    UNIQUE(request_id)
 );
 
 insertOrAbortNamespace:
@@ -30,6 +30,10 @@ WHERE topic = ? AND request_id / 1000 >= ? AND isAcknowledged = 1;
 markNamespaceAcknowledged:
 UPDATE TempNamespaceDao
 SET isAcknowledged = 1
+WHERE topic = ? AND request_id = ?;
+
+deleteTempNamespacesByTopicAndRequestId:
+DELETE FROM TempNamespaceDao
 WHERE topic = ? AND request_id = ?;
 
 deleteTempNamespacesByTopic:

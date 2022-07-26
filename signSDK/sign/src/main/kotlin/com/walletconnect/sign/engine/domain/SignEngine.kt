@@ -212,7 +212,7 @@ internal class SignEngine(
         sessionSettle(request.id, proposal, sessionTopic)
     }
 
-    internal fun updateSession(
+    internal fun sessionUpdate(
         topic: String,
         namespaces: Map<String, EngineDO.Namespace.Session>,
         onFailure: (Throwable) -> Unit,
@@ -239,11 +239,12 @@ internal class SignEngine(
         val sessionUpdate = SessionRpcVO.SessionUpdate(id = generateId(), params = params)
         val iridiumParams = IridiumParamsVO(Tags.SESSION_UPDATE, TtlVO(Time.dayInSeconds))
 
-        sequenceStorageRepository.insertUnAckNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id, onSuccess = {
+        sequenceStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id, onSuccess = {
             relayer.publishJsonRpcRequests(TopicVO(topic), iridiumParams, sessionUpdate,
                 onSuccess = { Logger.log("Update sent successfully") },
                 onFailure = { error ->
                     Logger.error("Sending session update error: $error")
+                    sequenceStorageRepository.deleteTempNamespacesByTopicAndRequestId(topic, sessionUpdate.id)
                     onFailure(error)
                 }
             )
@@ -672,7 +673,7 @@ internal class SignEngine(
                 when (val params = response.params) {
                     is PairingParamsVO.SessionProposeParams -> onSessionProposalResponse(response, params)
                     is SessionParamsVO.SessionSettleParams -> onSessionSettleResponse(response)
-                    is SessionParamsVO.UpdateNamespacesParams -> onSessionUpdateNamespacesResponse(response)
+                    is SessionParamsVO.UpdateNamespacesParams -> onSessionUpdateResponse(response)
                     is SessionParamsVO.SessionRequestParams -> onSessionRequestResponse(response, params)
                 }
             }
@@ -724,7 +725,7 @@ internal class SignEngine(
         }
     }
 
-    private fun onSessionUpdateNamespacesResponse(wcResponse: WCResponseVO) {
+    private fun onSessionUpdateResponse(wcResponse: WCResponseVO) {
         val sessionTopic = wcResponse.topic
         if (!sequenceStorageRepository.isSessionValid(sessionTopic)) return
         val session = sequenceStorageRepository.getSessionByTopic(sessionTopic)
@@ -735,20 +736,16 @@ internal class SignEngine(
         when (val response = wcResponse.response) {
             is JsonRpcResponseVO.JsonRpcResult -> {
                 Logger.log("Session update namespaces response received")
+                val responseId = wcResponse.response.id
+                val sessionTopic = session.topic.value
+                val namespaces = sequenceStorageRepository.getUnAckNamespaces(sessionTopic, responseId)
+                sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(sessionTopic, namespaces, responseId,
 
-                val updatedNamespace = sequenceStorageRepository.getUnAckNamespaces(session.topic.value, wcResponse.response.id)
-                sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value,
-                    updatedNamespace,
-                    wcResponse.response.id,
                     onSuccess = {
-
-                        sequenceStorageRepository.markUnAckNamespaceAcknowledged(session.topic.value, wcResponse.response.id)
-
+                        sequenceStorageRepository.markUnAckNamespaceAcknowledged(sessionTopic, responseId)
                         scope.launch {
-                            _engineEvent.emit(
-                                EngineDO.SessionUpdateNamespacesResponse.Result(session.topic,
-                                    session.namespaces.toMapOfEngineNamespacesSession())
-                            )
+                            _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Result(session.topic,
+                                session.namespaces.toMapOfEngineNamespacesSession()))
                         }
                     },
                     onFailure = {

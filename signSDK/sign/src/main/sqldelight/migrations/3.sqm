@@ -1,0 +1,20 @@
+import kotlin.collections.List;
+
+-- TempNamespaceDao
+ALTER TABLE TempNamespaceDao RENAME TO TempNamespaceDaoBak;
+
+-- TempNamespaceDao
+CREATE TABLE IF NOT EXISTS TempNamespaceDao(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    session_id INTEGER NOT NULL,
+    topic TEXT NOT NULL,
+    key TEXT NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String> NOT NULL,
+    request_id INTEGER NOT NULL,
+    isAcknowledged INTEGER DEFAULT 0,
+    UNIQUE(request_id)
+);
+
+DROP TABLE IF EXISTS TempNamespaceDaoBak;
