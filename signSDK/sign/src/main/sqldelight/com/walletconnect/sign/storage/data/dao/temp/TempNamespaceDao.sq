@@ -30,7 +30,7 @@ UPDATE TempNamespaceDao
 SET isAcknowledged = 1
 WHERE request_id = ?;
 
-deleteTempNamespacesByTopicAndRequestId:
+deleteTempNamespacesByRequestId:
 DELETE FROM TempNamespaceDao
 WHERE request_id = ?;
 
