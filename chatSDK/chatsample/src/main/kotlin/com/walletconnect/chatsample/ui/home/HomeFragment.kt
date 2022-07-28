@@ -1,4 +1,4 @@
-package com.walletconnect.chatsample.ui
+package com.walletconnect.chatsample.ui.home
 
 import android.os.Bundle
 import android.view.View

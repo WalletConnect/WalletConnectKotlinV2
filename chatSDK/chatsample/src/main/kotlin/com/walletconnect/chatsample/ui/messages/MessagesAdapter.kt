@@ -5,26 +5,60 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.walletconnect.chatsample.databinding.ListItemMessageBinding
+import androidx.viewbinding.ViewBinding
+import com.walletconnect.chatsample.databinding.ListItemPeerMessageBinding
+import com.walletconnect.chatsample.databinding.ListItemSelfMessageBinding
 
-class MessagesAdapter : ListAdapter<MessageUI, MessagesAdapter.ViewHolder>(DIFF_UTIL) {
-    class ViewHolder(val binding: ListItemMessageBinding) : RecyclerView.ViewHolder(binding.root)
+class MessagesAdapter : ListAdapter<MessageBubbleUI, MessagesAdapter.ViewHolder>(DIFF_UTIL) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = ViewHolder(
-        ListItemMessageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-    )
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val threadUI = getItem(position)
+    override fun getItemViewType(position: Int): Int {
+        return when (getItem(position)) {
+            is MessageBubbleUI.Self -> 0
+            is MessageBubbleUI.Peer -> 1
+        }
     }
 
-    companion object {
-        private val DIFF_UTIL = object : DiffUtil.ItemCallback<MessageUI>() {
-            override fun areItemsTheSame(oldItem: MessageUI, newItem: MessageUI): Boolean =
-                oldItem == newItem
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        return when (viewType) {
+            0 -> ViewHolder.Self(ListItemSelfMessageBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+            else -> ViewHolder.Peer(ListItemPeerMessageBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        }
+    }
 
-            override fun areContentsTheSame(oldItem: MessageUI, newItem: MessageUI): Boolean =
-                oldItem.text == newItem.text && oldItem.timestamp == newItem.timestamp
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val message = getItem(position)
+
+        when (holder) {
+            is ViewHolder.Self -> holder.bind(message as MessageBubbleUI.Self)
+            is ViewHolder.Peer -> holder.bind(message as MessageBubbleUI.Peer)
+        }
+    }
+
+    sealed class ViewHolder(rootBinding: ViewBinding) : RecyclerView.ViewHolder(rootBinding.root) {
+
+        class Self(val binding: ListItemSelfMessageBinding) : MessagesAdapter.ViewHolder(binding) {
+            fun bind(self: MessageBubbleUI.Self) {
+                binding.tvSelfMessage.text = self.message
+            }
+        }
+
+        class Peer(val binding: ListItemPeerMessageBinding) : MessagesAdapter.ViewHolder(binding) {
+            fun bind(peer: MessageBubbleUI.Peer) {
+                binding.ivPeerIcon.setImageResource(peer.icon)
+                binding.tvPeerMessage.text = peer.message
+            }
+        }
+    }
+
+    private companion object {
+        val DIFF_UTIL = object : DiffUtil.ItemCallback<MessageBubbleUI>() {
+            override fun areItemsTheSame(oldItem: MessageBubbleUI, newItem: MessageBubbleUI): Boolean {
+                return false
+            }
+
+            override fun areContentsTheSame(oldItem: MessageBubbleUI, newItem: MessageBubbleUI): Boolean {
+                return false
+            }
         }
     }
 }
