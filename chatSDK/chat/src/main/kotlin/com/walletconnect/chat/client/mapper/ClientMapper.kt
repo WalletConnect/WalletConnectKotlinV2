@@ -14,12 +14,12 @@ internal fun Chat.Params.Invite.toEngineDO(): EngineDO.Invite {
 }
 
 @JvmSynthetic
-internal fun Chat.Params.Message.toEngineDO() : EngineDO.SendMessage {
-    return EngineDO.SendMessage(message, media?.toVO())
+internal fun Chat.Params.Message.toEngineDO(): EngineDO.SendMessage {
+    return EngineDO.SendMessage(author.toVO(), message, media?.toVO())
 }
 
 @JvmSynthetic
-private fun Chat.Model.Media.toVO() : MediaVO {
+private fun Chat.Model.Media.toVO(): MediaVO {
     return MediaVO(type, data)
 }
 

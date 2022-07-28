@@ -73,7 +73,7 @@ object Chat {
 
         data class Reject(val inviteId: String) : Params()
 
-        data class Message(val topic: String, val message: String, val media: Model.Media? = null) : Params()
+        data class Message(val topic: String, val author: Model.AccountId, val message: String, val media: Model.Media? = null) : Params()
 
         data class Ping(val topic: String) : Params()
 

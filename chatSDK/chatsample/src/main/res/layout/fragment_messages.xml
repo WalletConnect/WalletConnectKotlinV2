@@ -2,21 +2,130 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/rootFragmentMessages"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.messages.MessagesFragment"
-    tools:background="@color/background">
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glMarginTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="50dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clBackButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/glMarginTop"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_chevron_left"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/swift_accent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <ImageView
+        android:id="@+id/ivPeerIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="18dp"
+        android:src="@drawable/ic_chat_icon_2"
+        app:layout_constraintBottom_toTopOf="@+id/glMarginTop"
+        app:layout_constraintStart_toEndOf="@+id/clBackButton"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/tvPeername"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:gravity="center_vertical"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/ivPeerIcon"
+        app:layout_constraintStart_toEndOf="@+id/ivPeerIcon"
+        app:layout_constraintTop_toTopOf="@+id/ivPeerIcon"
+        tools:text="Swift.eth" />
+
+    <ImageView
+        android:id="@+id/ivThreeDots"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/ic_thread_menu"
+        app:layout_constraintBottom_toTopOf="@+id/glMarginTop"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/swift_accent" />
+
+    <TextView
+        android:id="@+id/tvThreadTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:textColor="#9EA9A9"
+        android:textSize="13sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ivPeerIcon"
+        tools:text="TODAY 9:41 AM" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvChatThread"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:text="Hello"
-        android:textColor="@color/white"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toTopOf="@id/etMessage"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvThreadTime"
+        tools:listitem="@layout/list_item_peer_message" />
+
+    <EditText
+        android:id="@+id/etMessage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:inputType="textNoSuggestions"
+        android:background="@drawable/background_thread_input"
+        android:gravity="start|center_vertical"
+        android:hint="Message..."
+        android:minHeight="44dp"
+        android:paddingStart="15dp"
+        android:paddingEnd="50dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#798686"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        tools:text="dfjadlkfkldjfkldjfkladfkljdklfjadklsfjadfadsf" />
+
+    <ImageView
+        android:id="@+id/btnSend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="4dp"
+        android:padding="4dp"
+        android:src="@drawable/ic_send"
+        app:layout_constraintBottom_toBottomOf="@id/etMessage"
+        app:layout_constraintEnd_toEndOf="@id/etMessage"
+        app:layout_constraintTop_toTopOf="@id/etMessage" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

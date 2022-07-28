@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatClient
+import com.walletconnect.chatsample.utils.tag
 
 class ChatSampleApplication : Application() {
     override fun onCreate() {
