@@ -84,5 +84,26 @@ CREATE TABLE IF NOT EXISTS NamespaceExtensionsDao(
     events TEXT AS List<String>  NOT NULL
 );
 
+-- ProposalNamespaceDao
+CREATE TABLE IF NOT EXISTS ProposalNamespaceDao (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    session_id INTEGER NOT NULL,
+    key TEXT NOT NULL,
+    chains TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String> NOT NULL,
+    UNIQUE(session_id, key)
+);
+
+-- ProposalNamespaceExtensionsDao
+CREATE TABLE IF NOT EXISTS ProposalNamespaceExtensionsDao (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    namespace_key TEXT NOT NULL,
+    session_id INTEGER NOT NULL,
+    chains TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String>  NOT NULL
+);
+
 -- android_metadata
 DROP TABLE IF EXISTS android_metadata;
