@@ -9,10 +9,10 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:7.1.3")
+        classpath("com.android.tools.build:gradle:7.2.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21")
         classpath("org.jetbrains.dokka:dokka-core:$dokkaVersion")      // TODO: Leave version until AGP 7.3 https://github.com/Kotlin/dokka/issues/2472#issuecomment-1143604232
         classpath("org.jetbrains.dokka:dokka-gradle-plugin:$dokkaVersion")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$dokkaVersion")
         classpath("com.squareup.sqldelight:gradle-plugin:$sqlDelightVersion")
     }
 }

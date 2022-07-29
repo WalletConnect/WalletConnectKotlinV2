@@ -5,12 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.sample_common.EthChains
 import com.walletconnect.sample_common.tag
+import com.walletconnect.sign.client.Sign
+import com.walletconnect.sign.client.SignClient
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAccounts2
 import com.walletconnect.wallet.domain.mapOfAllAccounts
 import com.walletconnect.wallet.ui.SampleWalletEvents
-import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.client.SignClient
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -165,7 +165,7 @@ class SessionDetailsViewModel : ViewModel() {
                     }
                     val expandedNamespaces = mapOf(key to Sign.Model.Namespace.Session(accounts, methods, events, null))
                     val update = Sign.Params.Update(sessionTopic = topic, namespaces = expandedNamespaces)
-                    SignClient.update(update) { error -> Log.d("Error", "Sending update error: $error") }
+                    SignClient.update(update) { error -> Log.e("Error", "Sending update error: $error") }
                     return
                 }
             }

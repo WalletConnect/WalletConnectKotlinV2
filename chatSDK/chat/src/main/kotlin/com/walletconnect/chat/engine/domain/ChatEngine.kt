@@ -223,7 +223,8 @@ internal class ChatEngine(
 
     internal fun message(topic: String, sendMessage: EngineDO.SendMessage, onFailure: (Throwable) -> Unit) {
         //todo resolve AUTHOR_ACCOUNT from thread storage by topic
-        val messageParams = ChatParamsVO.MessageParams(sendMessage.message, AUTHOR_ACCOUNT, System.currentTimeMillis(), sendMessage.media)
+        val messageParams =
+            ChatParamsVO.MessageParams(sendMessage.message, sendMessage.author.value, System.currentTimeMillis(), sendMessage.media)
         val payload = ChatRpcVO.ChatMessage(id = generateId(), params = messageParams)
         val iridiumParams = IridiumParamsVO(Tags.CHAT_MESSAGE, TtlVO(Time.dayInSeconds), true)
 
@@ -293,9 +294,5 @@ internal class ChatEngine(
         }
     } catch (error: Exception) {
         onFailure(error)
-    }
-
-    companion object {
-        const val AUTHOR_ACCOUNT = "eip:1:0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826" // todo remove after adding Threads abstraction
     }
 }

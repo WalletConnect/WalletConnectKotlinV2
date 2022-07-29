@@ -9,13 +9,10 @@
 
     <ImageView
         android:id="@+id/ivPeerIcon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
         android:layout_marginStart="4dp"
-        android:src="@drawable/ic_chat_1_mini"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:src="@drawable/ic_chat_icon_2" />
 
     <TextView
         android:id="@+id/tvPeerMessage"
@@ -28,11 +25,6 @@
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0"
-        app:layout_constraintStart_toEndOf="@id/ivPeerIcon"
-        app:layout_constraintTop_toTopOf="parent"
         tools:text="Why, List, why, WHY?! ads fa ds fad sfa dsfa d sf asd dsadsfa" />
 
 </LinearLayout>

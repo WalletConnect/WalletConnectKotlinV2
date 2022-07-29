@@ -18,10 +18,6 @@
         android:paddingEnd="12dp"
         android:maxEms="15"
         android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         tools:text="Why, List, why, WHY?! ads fa ds fad sfa dsfa d sf asd dsadsfa" />
 
 </LinearLayout>

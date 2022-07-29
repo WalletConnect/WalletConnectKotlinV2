@@ -34,6 +34,7 @@ internal sealed class EngineDO {
     ) : EngineDO()
 
     data class SendMessage(
+        val author: AccountIdVO,
         val message: String,
         val media: MediaVO?,
     ) : EngineDO()
