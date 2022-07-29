@@ -22,7 +22,7 @@ internal sealed class RelayDTO {
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
-            val method: String = JsonRpcRelay.IRIDIUM_PUBLISH,
+            val method: String = IRIDIUM_PUBLISH,
             @Json(name = "params")
             val params: Params
         ) : Publish() {
@@ -72,7 +72,7 @@ internal sealed class RelayDTO {
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
-            val method: String = JsonRpcRelay.IRIDIUM_SUBSCRIBE,
+            val method: String = IRIDIUM_SUBSCRIBE,
             @Json(name = "params")
             val params: Params
         ) : Subscribe() {
@@ -114,7 +114,7 @@ internal sealed class RelayDTO {
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
-            val method: String = JsonRpcRelay.IRIDIUM_SUBSCRIPTION,
+            val method: String = IRIDIUM_SUBSCRIPTION,
             @Json(name = "params")
             val params: Params
         ) : Subscription() {
@@ -169,7 +169,7 @@ internal sealed class RelayDTO {
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
-            val method: String = JsonRpcRelay.IRIDIUM_UNSUBSCRIBE,
+            val method: String = IRIDIUM_UNSUBSCRIBE,
             @Json(name = "params")
             val params: Params
         ) : Unsubscribe() {
