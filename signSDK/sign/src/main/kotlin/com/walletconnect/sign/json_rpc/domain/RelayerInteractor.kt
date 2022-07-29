@@ -8,7 +8,7 @@ import com.walletconnect.sign.core.model.client.Relay
 import com.walletconnect.sign.core.model.type.ClientParams
 import com.walletconnect.sign.core.model.type.JsonRpcClientSync
 import com.walletconnect.sign.core.model.type.enums.EnvelopeType
-import com.walletconnect.sign.core.model.vo.IridiumParamsVO
+import com.walletconnect.sign.core.model.vo.IrnParamsVO
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
@@ -88,7 +88,7 @@ internal class RelayerInteractor(
 
     internal fun publishJsonRpcRequests(
         topic: TopicVO,
-        params: IridiumParamsVO,
+        params: IrnParamsVO,
         payload: JsonRpcClientSync<*>,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
@@ -111,7 +111,7 @@ internal class RelayerInteractor(
     internal fun publishJsonRpcResponse(
         topic: TopicVO,
         response: JsonRpcResponseVO,
-        params: IridiumParamsVO,
+        params: IrnParamsVO,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
@@ -132,18 +132,18 @@ internal class RelayerInteractor(
         }
     }
 
-    internal fun respondWithParams(request: WCRequestVO, clientParams: ClientParams, iridiumParams: IridiumParamsVO) {
+    internal fun respondWithParams(request: WCRequestVO, clientParams: ClientParams, irnParams: IrnParamsVO) {
         val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = clientParams)
 
-        publishJsonRpcResponse(request.topic, result, iridiumParams,
+        publishJsonRpcResponse(request.topic, result, irnParams,
             onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
     }
 
-    internal fun respondWithSuccess(request: WCRequestVO, iridiumParams: IridiumParamsVO) {
+    internal fun respondWithSuccess(request: WCRequestVO, irnParams: IrnParamsVO) {
         val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = true)
 
         try {
-            publishJsonRpcResponse(request.topic, result, iridiumParams,
+            publishJsonRpcResponse(request.topic, result, irnParams,
                 onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
         } catch (e: Exception) {
             handleError(e.message ?: String.Empty)
@@ -153,14 +153,14 @@ internal class RelayerInteractor(
     internal fun respondWithError(
         request: WCRequestVO,
         error: PeerError,
-        iridiumParams: IridiumParamsVO,
+        irnParams: IrnParamsVO,
         onFailure: (Throwable) -> Unit = {},
     ) {
         Logger.error("Responding with error: ${error.message}: ${error.code}")
         val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = request.id, error = JsonRpcResponseVO.Error(error.code, error.message))
 
         try {
-            publishJsonRpcResponse(request.topic, jsonRpcError, iridiumParams,
+            publishJsonRpcResponse(request.topic, jsonRpcError, irnParams,
                 onFailure = { failure ->
                     Logger.error("Cannot respond with error: $failure")
                     onFailure(failure)
