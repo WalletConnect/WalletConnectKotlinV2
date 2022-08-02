@@ -54,12 +54,22 @@ object Sign {
 
         sealed class Namespace : Model() {
 
-            data class Proposal(val chains: List<String>, val methods: List<String>, val events: List<String>, val extensions: List<Extension>?) : Namespace() {
+            data class Proposal(
+                val chains: List<String>,
+                val methods: List<String>,
+                val events: List<String>,
+                val extensions: List<Extension>?,
+            ) : Namespace() {
 
                 data class Extension(val chains: List<String>, val methods: List<String>, val events: List<String>)
             }
 
-            data class Session(val accounts: List<String>, val methods: List<String>, val events: List<String>, val extensions: List<Extension>?) : Namespace() {
+            data class Session(
+                val accounts: List<String>,
+                val methods: List<String>,
+                val events: List<String>,
+                val extensions: List<Extension>?,
+            ) : Namespace() {
 
                 data class Extension(val accounts: List<String>, val methods: List<String>, val events: List<String>)
             }
@@ -142,6 +152,12 @@ object Sign {
             val description: String,
             val url: String,
             val icons: List<String>,
+            val redirect: Redirect?,
+        ) : Model()
+
+        data class Redirect(
+            val native: String? = null,
+            val universal: String? = null,
         ) : Model()
 
         data class PendingRequest(

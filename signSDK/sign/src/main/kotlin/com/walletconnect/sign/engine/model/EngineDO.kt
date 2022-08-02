@@ -14,7 +14,7 @@ import java.net.URI
 
 internal sealed class EngineDO {
 
-    internal class InternalError(val exception: WalletConnectException.InternalError): EngineDO(), EngineEvent
+    internal class InternalError(val exception: WalletConnectException.InternalError) : EngineDO(), EngineEvent
 
     internal sealed class ProposedSequence {
         class Pairing(val uri: String) : ProposedSequence()
@@ -25,7 +25,7 @@ internal sealed class EngineDO {
         val topic: TopicVO,
         val symKey: SymmetricKey,
         val relay: RelayProtocolOptionsVO,
-        val version: String = "2"
+        val version: String = "2",
     ) : EngineDO()
 
     internal data class SessionProposal(
@@ -39,14 +39,14 @@ internal sealed class EngineDO {
         val relayData: String?,
     ) : EngineDO(), EngineEvent
 
-    internal sealed class Namespace: EngineDO() {
+    internal sealed class Namespace : EngineDO() {
 
         data class Proposal(
             val chains: List<String>,
             val methods: List<String>,
             val events: List<String>,
-            val extensions: List<Extension>?
-        ): Namespace() {
+            val extensions: List<Extension>?,
+        ) : Namespace() {
 
             data class Extension(val chains: List<String>, val methods: List<String>, val events: List<String>)
         }
@@ -55,8 +55,8 @@ internal sealed class EngineDO {
             val accounts: List<String>,
             val methods: List<String>,
             val events: List<String>,
-            val extensions: List<Extension>?
-        ): Namespace() {
+            val extensions: List<Extension>?,
+        ) : Namespace() {
 
             data class Extension(val accounts: List<String>, val methods: List<String>, val events: List<String>)
         }
@@ -102,7 +102,7 @@ internal sealed class EngineDO {
         val chainId: String?,
     ) : EngineDO(), EngineEvent
 
-   internal sealed class SettledSessionResponse : EngineDO(), EngineEvent {
+    internal sealed class SettledSessionResponse : EngineDO(), EngineEvent {
         data class Result(val settledSession: Session) : SettledSessionResponse()
         data class Error(val errorMessage: String) : SettledSessionResponse()
     }
@@ -132,7 +132,8 @@ internal sealed class EngineDO {
 
     internal data class PairingSettle(val topic: TopicVO, val metaData: AppMetaData?) : EngineDO(), EngineEvent
     internal data class SessionUpdateAccounts(val topic: TopicVO, val accounts: List<String>) : EngineDO(), EngineEvent
-    internal data class SessionUpdateNamespaces(val topic: TopicVO, val namespaces: Map<String, Namespace.Session>) : EngineDO(), EngineEvent
+    internal data class SessionUpdateNamespaces(val topic: TopicVO, val namespaces: Map<String, Namespace.Session>) : EngineDO(),
+        EngineEvent
 
     internal data class SessionExtend(
         override val topic: TopicVO,
@@ -159,10 +160,16 @@ internal sealed class EngineDO {
         val description: String,
         val url: String,
         val icons: List<String>,
+        val redirect: Redirect?,
+    ) : EngineDO()
+
+    internal data class Redirect(
+        val native: String? = null,
+        val universal: String? = null,
     ) : EngineDO()
 
     internal data class ConnectionState(
-        val isAvailable: Boolean
+        val isAvailable: Boolean,
     ) : EngineDO(), EngineEvent
 
     internal sealed class JsonRpcResponse : EngineDO() {

@@ -29,6 +29,9 @@ class WalletSampleApplication : Application() {
 //        )
 
         // Sample of how to use a URI to initialize the WalletConnect Sign SDK
+
+        val redirect = Sign.Model.Redirect(native = "wc:/{topic}/request")
+
         val initString = Sign.Params.Init(
             application = this,
             relayServerUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}",
@@ -37,7 +40,8 @@ class WalletSampleApplication : Application() {
                 name = "Kotlin Wallet",
                 description = "Wallet description",
                 url = "example.wallet",
-                icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media")
+                icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media"),
+                redirect = redirect
             )
         )
 
