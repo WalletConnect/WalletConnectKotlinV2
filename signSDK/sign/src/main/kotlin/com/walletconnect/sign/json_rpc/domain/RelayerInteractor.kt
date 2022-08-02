@@ -82,7 +82,7 @@ internal class RelayerInteractor(
 
     internal fun checkConnectionWorking() {
         if (!isConnectionAvailable.value) {
-            throw WalletConnectException.MissingInternetConnectionException("No connection available")
+            throw WalletConnectException.NoRelayConnectionException("No connection available")
         }
     }
 

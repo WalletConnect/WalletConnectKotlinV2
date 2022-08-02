@@ -39,15 +39,16 @@ fun DependencyHandlerScope.coroutines() {
 }
 
 fun DependencyHandlerScope.scarlet() {
-    val scarletVersion = "0.1.12"
-    "implementation"("com.tinder.scarlet:scarlet:$scarletVersion")
-    "implementation"("com.tinder.scarlet:websocket-okhttp:$scarletVersion")
-    "implementation"("com.tinder.scarlet:stream-adapter-coroutines:$scarletVersion")
-    "implementation"("com.tinder.scarlet:message-adapter-moshi:$scarletVersion")
-    "implementation"("com.tinder.scarlet:lifecycle-android:$scarletVersion")
+    val scarletVersion = "1.0.0"
+    val scarletPackage = "com.github.WalletConnect.Scarlet"
+    "implementation"("$scarletPackage:scarlet:$scarletVersion")
+    "implementation"("$scarletPackage:websocket-okhttp:$scarletVersion")
+    "implementation"("$scarletPackage:stream-adapter-coroutines:$scarletVersion")
+    "implementation"("$scarletPackage:message-adapter-moshi:$scarletVersion")
+    "implementation"("$scarletPackage:lifecycle-android:$scarletVersion")
 
-    "testImplementation"("com.tinder.scarlet:websocket-mockwebserver:$scarletVersion")
-    "testImplementation"("com.tinder.scarlet:test-utils:$scarletVersion")
+    "testImplementation"("$scarletPackage:websocket-mockwebserver:$scarletVersion")
+    "testImplementation"("$scarletPackage:test-utils:$scarletVersion")
 }
 
 
