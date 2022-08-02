@@ -92,7 +92,7 @@ fun DependencyHandlerScope.sqlDelight() {
 }
 
 fun DependencyHandlerScope.koin() {
-    val koinVersion = "3.1.5"
+    val koinVersion = "3.2.0"
 
     "api"("io.insert-koin:koin-android:$koinVersion")
 }
