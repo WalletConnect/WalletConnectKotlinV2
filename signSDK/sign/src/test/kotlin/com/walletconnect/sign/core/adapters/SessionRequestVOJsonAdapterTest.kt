@@ -124,7 +124,7 @@ internal class SessionRequestVOJsonAdapterTest {
 
         val expectedParamsJsonObj = JSONObject(params)
         val actualParamsJsonObj = JSONObject("{$serializedParams}")
-println(actualParamsJsonObj.getJSONArray("transactions").toString())
+
         assertEquals(expectedParamsJsonObj.getJSONArray("transactions").length(), actualParamsJsonObj.getJSONArray("transactions").length())
 
         with(expectedParamsJsonObj.getJSONArray("transactions")) exp@{
