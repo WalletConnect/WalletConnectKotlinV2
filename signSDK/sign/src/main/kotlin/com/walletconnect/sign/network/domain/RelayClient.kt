@@ -55,7 +55,7 @@ internal class RelayClient internal constructor(
     override fun publish(
         topic: String,
         message: String,
-        params: Relay.Model.IridiumParams,
+        params: Relay.Model.IrnParams,
         onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit,
     ) {
         val (tag, ttl, prompt) = params

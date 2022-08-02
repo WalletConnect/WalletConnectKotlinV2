@@ -8,8 +8,8 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.walletconnect.sign.core.model.vo.PrivateKey
 import com.walletconnect.sign.core.model.vo.PublicKey
 import com.walletconnect.sign.crypto.KeyStore
-import com.walletconnect.sign.crypto.data.repository.model.IridiumJWTHeader
-import com.walletconnect.sign.crypto.data.repository.model.IridiumJWTPayload
+import com.walletconnect.sign.crypto.data.repository.model.IrnJWTHeader
+import com.walletconnect.sign.crypto.data.repository.model.IrnJWTPayload
 import com.walletconnect.sign.util.bytesToHex
 import com.walletconnect.sign.util.hexToBytes
 import com.walletconnect.sign.util.randomBytes
@@ -34,15 +34,15 @@ internal class JwtRepository(private val keyChain: KeyStore) {
         val issuer = encodeIss(publicKey.hexToBytes())
         val issuedAt = TimeUnit.SECONDS.convert(getCurrentTimestamp(), TimeUnit.MILLISECONDS)
         val expiration = jwtExp(issuedAt)
-        val payload = IridiumJWTPayload(issuer, subject, serverUrl, issuedAt, expiration)
-        val data = encodeData(JWT_IRIDIUM_HEADER, payload).encodeToByteArray()
+        val payload = IrnJWTPayload(issuer, subject, serverUrl, issuedAt, expiration)
+        val data = encodeData(JWT_IRN_HEADER, payload).encodeToByteArray()
         val signature = Ed25519Signer().run {
             init(true, privateKeyParameters)
             update(data, 0, data.size)
             generateSignature()
         }
 
-        return encodeJWT(JWT_IRIDIUM_HEADER, payload, signature)
+        return encodeJWT(JWT_IRN_HEADER, payload, signature)
     }
 
     private fun encodeIss(publicKey: ByteArray): String {
@@ -52,11 +52,11 @@ internal class JwtRepository(private val keyChain: KeyStore) {
         return listOf(DID_PREFIX, DID_METHOD, multicodec).joinToString(DID_DELIMITER)
     }
 
-    private fun encodeData(header: IridiumJWTHeader, payload: IridiumJWTPayload): String {
+    private fun encodeData(header: IrnJWTHeader, payload: IrnJWTPayload): String {
         return listOf(encodeJSON(header), encodeJSON(payload)).joinToString(JWT_DELIMITER)
     }
 
-    private fun encodeJWT(header: IridiumJWTHeader, payload: IridiumJWTPayload, signature: ByteArray): String {
+    private fun encodeJWT(header: IrnJWTHeader, payload: IrnJWTPayload, signature: ByteArray): String {
         return listOf(encodeJSON(header), encodeJSON(payload), encodeByteArray(signature)).joinToString(JWT_DELIMITER)
     }
 
@@ -113,7 +113,7 @@ internal class JwtRepository(private val keyChain: KeyStore) {
 
     private companion object {
         const val KEY_DID_KEYPAIR = "key_did_keypair"
-        val JWT_IRIDIUM_HEADER = IridiumJWTHeader(algorithm = "EdDSA", type = "JWT")
+        val JWT_IRN_HEADER = IrnJWTHeader(algorithm = "EdDSA", type = "JWT")
         const val KEY_SIZE: Int = 32
         const val KEY_NONCE_SIZE = KEY_SIZE
         const val JWT_DELIMITER = "."

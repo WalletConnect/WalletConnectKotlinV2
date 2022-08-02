@@ -1,8 +1,9 @@
+@file:JvmSynthetic
+
 package com.walletconnect.chat.copiedFromSign.network.model
 
-internal object JsonRpcRelay {
-    const val IRIDIUM_PUBLISH: String = "iridium_publish"
-    const val IRIDIUM_SUBSCRIPTION: String = "iridium_subscription"
-    const val IRIDIUM_SUBSCRIBE: String = "iridium_subscribe"
-    const val IRIDIUM_UNSUBSCRIBE: String = "iridium_unsubscribe"
-}
+private const val SUFFIX = "irn"
+internal const val IRN_PUBLISH: String = "${SUFFIX}_publish"
+internal const val IRN_SUBSCRIPTION: String = "${SUFFIX}_subscription"
+internal const val IRN_SUBSCRIBE: String = "${SUFFIX}_subscribe"
+internal const val IRN_UNSUBSCRIBE: String = "${SUFFIX}_unsubscribe"

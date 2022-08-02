@@ -141,7 +141,7 @@ internal class RelayTest {
 //                    {
 //                      "id": 1634280332683238,
 //                      "jsonrpc": "2.0",
-//                      "method": "iridium_subscription",
+//                      "method": "irn_subscription",
 //                      "params": {
 //                        "id": "ca6b4c1fd2efe0537a1290c8039635c7ea7ffcb9e31b8f54d60aba0d9d25745c",
 //                        "data": {

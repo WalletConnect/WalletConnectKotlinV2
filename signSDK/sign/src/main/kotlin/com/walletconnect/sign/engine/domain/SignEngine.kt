@@ -82,10 +82,10 @@ internal class SignEngine(
             val sessionProposal = toSessionProposeParams(proposedRelays ?: relays, namespaces, selfPublicKey, metaData)
             val request = PairingRpcVO.SessionPropose(id = generateId(), params = sessionProposal)
             sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequestVO(pairingTopic, request.id, request.method, sessionProposal)
-            val iridiumParams = IridiumParamsVO(Tags.SESSION_PROPOSE, TtlVO(Time.fiveMinutesInSeconds), true)
+            val irnParams = IrnParamsVO(Tags.SESSION_PROPOSE, TtlVO(Time.fiveMinutesInSeconds), true)
             relayer.subscribe(pairingTopic)
 
-            relayer.publishJsonRpcRequests(pairingTopic, iridiumParams, request,
+            relayer.publishJsonRpcRequests(pairingTopic, irnParams, request,
                 onSuccess = {
                     Logger.log("Session proposal sent successfully")
                     onProposedSequence(proposedSequence)
@@ -158,9 +158,9 @@ internal class SignEngine(
         val request = sessionProposalRequest[proposerPublicKey]
             ?: throw WalletConnectException.CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
-        val iridiumParams = IridiumParamsVO(Tags.SESSION_PROPOSE_RESPONSE, TtlVO(Time.fiveMinutesInSeconds))
+        val irnParams = IrnParamsVO(Tags.SESSION_PROPOSE_RESPONSE, TtlVO(Time.fiveMinutesInSeconds))
 
-        relayer.respondWithError(request, PeerError.Error(reason, code), iridiumParams, onFailure = { error -> onFailure(error) })
+        relayer.respondWithError(request, PeerError.Error(reason, code), irnParams, onFailure = { error -> onFailure(error) })
     }
 
     internal fun approve(
@@ -182,9 +182,9 @@ internal class SignEngine(
                 sequenceStorageRepository.insertSession(session, requestId)
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
                 val sessionSettle = SessionRpcVO.SessionSettle(id = generateId(), params = params)
-                val iridiumParams = IridiumParamsVO(Tags.SESSION_SETTLE, TtlVO(Time.fiveMinutesInSeconds))
+                val irnParams = IrnParamsVO(Tags.SESSION_SETTLE, TtlVO(Time.fiveMinutesInSeconds))
 
-                relayer.publishJsonRpcRequests(sessionTopic, iridiumParams, sessionSettle, onFailure = { error -> onFailure(error) })
+                relayer.publishJsonRpcRequests(sessionTopic, irnParams, sessionSettle, onFailure = { error -> onFailure(error) })
             } catch (e: SQLiteException) {
                 onFailure(e)
             }
@@ -205,9 +205,9 @@ internal class SignEngine(
         relayer.subscribe(sessionTopic)
 
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
-        val iridiumParams = IridiumParamsVO(Tags.SESSION_PROPOSE_RESPONSE, TtlVO(Time.fiveMinutesInSeconds))
+        val irnParams = IrnParamsVO(Tags.SESSION_PROPOSE_RESPONSE, TtlVO(Time.fiveMinutesInSeconds))
 
-        relayer.respondWithParams(request, approvalParams, iridiumParams)
+        relayer.respondWithParams(request, approvalParams, irnParams)
 
         sessionSettle(request.id, proposal, sessionTopic)
     }
@@ -237,10 +237,10 @@ internal class SignEngine(
 
         val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
         val sessionUpdate = SessionRpcVO.SessionUpdate(id = generateId(), params = params)
-        val iridiumParams = IridiumParamsVO(Tags.SESSION_UPDATE, TtlVO(Time.dayInSeconds))
+        val irnParams = IrnParamsVO(Tags.SESSION_UPDATE, TtlVO(Time.dayInSeconds))
 
         sequenceStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id, onSuccess = {
-            relayer.publishJsonRpcRequests(TopicVO(topic), iridiumParams, sessionUpdate,
+            relayer.publishJsonRpcRequests(TopicVO(topic), irnParams, sessionUpdate,
                 onSuccess = { Logger.log("Update sent successfully") },
                 onFailure = { error ->
                     Logger.error("Sending session update error: $error")
@@ -269,11 +269,11 @@ internal class SignEngine(
 
         val params = SessionParamsVO.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
         val sessionPayload = SessionRpcVO.SessionRequest(id = generateId(), params = params)
-        val iridiumParams = IridiumParamsVO(Tags.SESSION_REQUEST, TtlVO(Time.fiveMinutesInSeconds), true)
+        val irnParams = IrnParamsVO(Tags.SESSION_REQUEST, TtlVO(Time.fiveMinutesInSeconds), true)
 
         relayer.publishJsonRpcRequests(
             TopicVO(request.topic),
-            iridiumParams,
+            irnParams,
             sessionPayload,
             onSuccess = {
                 Logger.log("Session request sent successfully")
@@ -298,9 +298,9 @@ internal class SignEngine(
         if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
-        val iridiumParams = IridiumParamsVO(Tags.SESSION_REQUEST_RESPONSE, TtlVO(Time.fiveMinutesInSeconds))
+        val irnParams = IrnParamsVO(Tags.SESSION_REQUEST_RESPONSE, TtlVO(Time.fiveMinutesInSeconds))
 
-        relayer.publishJsonRpcResponse(TopicVO(topic), jsonRpcResponse, iridiumParams,
+        relayer.publishJsonRpcResponse(TopicVO(topic), jsonRpcResponse, irnParams,
             { Logger.log("Session payload sent successfully") },
             { error ->
                 Logger.error("Sending session payload response error: $error")
@@ -309,21 +309,21 @@ internal class SignEngine(
     }
 
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
-        val (pingPayload, iridiumParams) = when {
+        val (pingPayload, irnParams) = when {
             sequenceStorageRepository.isSessionValid(TopicVO(topic)) ->
                 Pair(
                     SessionRpcVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams()),
-                    IridiumParamsVO(Tags.SESSION_PING, TtlVO(Time.thirtySeconds))
+                    IrnParamsVO(Tags.SESSION_PING, TtlVO(Time.thirtySeconds))
                 )
             sequenceStorageRepository.isPairingValid(TopicVO(topic)) ->
                 Pair(
                     PairingRpcVO.PairingPing(id = generateId(), params = PairingParamsVO.PingParams()),
-                    IridiumParamsVO(Tags.PAIRING_PING, TtlVO(Time.thirtySeconds))
+                    IrnParamsVO(Tags.PAIRING_PING, TtlVO(Time.thirtySeconds))
                 )
             else -> throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        relayer.publishJsonRpcRequests(TopicVO(topic), iridiumParams, pingPayload,
+        relayer.publishJsonRpcRequests(TopicVO(topic), irnParams, pingPayload,
             onSuccess = {
                 Logger.log("Ping sent successfully")
                 scope.launch {
@@ -365,9 +365,9 @@ internal class SignEngine(
 
         val eventParams = SessionParamsVO.EventParams(SessionEventVO(event.name, event.data), event.chainId)
         val sessionEvent = SessionRpcVO.SessionEvent(id = generateId(), params = eventParams)
-        val iridiumParams = IridiumParamsVO(Tags.SESSION_EVENT, TtlVO(Time.fiveMinutesInSeconds), true)
+        val irnParams = IrnParamsVO(Tags.SESSION_EVENT, TtlVO(Time.fiveMinutesInSeconds), true)
 
-        relayer.publishJsonRpcRequests(TopicVO(topic), iridiumParams, sessionEvent,
+        relayer.publishJsonRpcRequests(TopicVO(topic), irnParams, sessionEvent,
             onSuccess = { Logger.log("Event sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending event error: $error")
@@ -392,9 +392,9 @@ internal class SignEngine(
         val newExpiration = session.expiry.seconds + Time.weekInSeconds
         sequenceStorageRepository.extendSession(TopicVO(topic), newExpiration)
         val sessionExtend = SessionRpcVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(newExpiration))
-        val iridiumParams = IridiumParamsVO(Tags.SESSION_EXTEND, TtlVO(Time.dayInSeconds))
+        val irnParams = IrnParamsVO(Tags.SESSION_EXTEND, TtlVO(Time.dayInSeconds))
 
-        relayer.publishJsonRpcRequests(TopicVO(topic), iridiumParams, sessionExtend,
+        relayer.publishJsonRpcRequests(TopicVO(topic), irnParams, sessionExtend,
             onSuccess = { Logger.error("Session extend sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending session extend error: $error")
@@ -411,9 +411,9 @@ internal class SignEngine(
         val sessionDelete = SessionRpcVO.SessionDelete(id = generateId(), params = deleteParams)
         sequenceStorageRepository.deleteSession(TopicVO(topic))
         relayer.unsubscribe(TopicVO(topic))
-        val iridiumParams = IridiumParamsVO(Tags.SESSION_DELETE, TtlVO(Time.dayInSeconds))
+        val irnParams = IrnParamsVO(Tags.SESSION_DELETE, TtlVO(Time.dayInSeconds))
 
-        relayer.publishJsonRpcRequests(TopicVO(topic), iridiumParams, sessionDelete,
+        relayer.publishJsonRpcRequests(TopicVO(topic), irnParams, sessionDelete,
             onSuccess = { Logger.error("Disconnect sent successfully") },
             onFailure = { error -> Logger.error("Sending session disconnect error: $error") })
     }
@@ -469,8 +469,8 @@ internal class SignEngine(
 
     private fun onSessionPropose(request: WCRequestVO, payloadParams: PairingParamsVO.SessionProposeParams) {
         Validator.validateProposalNamespace(payloadParams.namespaces) { error ->
-            val iridiumParams = IridiumParamsVO(Tags.SESSION_PROPOSE_RESPONSE, TtlVO(Time.fiveMinutesInSeconds))
-            relayer.respondWithError(request, error.toPeerError(), iridiumParams)
+            val irnParams = IrnParamsVO(Tags.SESSION_PROPOSE_RESPONSE, TtlVO(Time.fiveMinutesInSeconds))
+            relayer.respondWithError(request, error.toPeerError(), irnParams)
             return
         }
 
@@ -483,17 +483,17 @@ internal class SignEngine(
         val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
         val peerMetadata = settleParams.controller.metadata
         val proposal = sessionProposalRequest[selfPublicKey.keyAsHex] ?: return
-        val iridiumParams = IridiumParamsVO(Tags.SESSION_SETTLE, TtlVO(Time.fiveMinutesInSeconds))
+        val irnParams = IrnParamsVO(Tags.SESSION_SETTLE, TtlVO(Time.fiveMinutesInSeconds))
 
         if (proposal.params !is PairingParamsVO.SessionProposeParams) {
-            relayer.respondWithError(request, PeerError.SessionSettlementFailed(NAMESPACE_MISSING_PROPOSAL_MESSAGE), iridiumParams)
+            relayer.respondWithError(request, PeerError.SessionSettlementFailed(NAMESPACE_MISSING_PROPOSAL_MESSAGE), irnParams)
             return
         }
 
         val proposalNamespaces = proposal.params.namespaces
 
         Validator.validateSessionNamespace(settleParams.namespaces, proposalNamespaces) { error ->
-            relayer.respondWithError(request, error.toPeerError(), iridiumParams)
+            relayer.respondWithError(request, error.toPeerError(), irnParams)
             return
         }
 
@@ -506,22 +506,22 @@ internal class SignEngine(
             sequenceStorageRepository.upsertPairingPeerMetadata(proposal.topic, peerMetadata)
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
             sequenceStorageRepository.insertSession(session, request.id)
-            val iridiumParams = IridiumParamsVO(Tags.SESSION_SETTLE, TtlVO(Time.fiveMinutesInSeconds))
+            val irnParams = IrnParamsVO(Tags.SESSION_SETTLE, TtlVO(Time.fiveMinutesInSeconds))
 
-            relayer.respondWithSuccess(request, iridiumParams)
+            relayer.respondWithSuccess(request, irnParams)
             scope.launch { _engineEvent.emit(session.toSessionApproved()) }
         } catch (e: SQLiteException) {
             sessionProposalRequest[selfPublicKey.keyAsHex] = tempProposalRequest
             sequenceStorageRepository.deleteSession(sessionTopic)
-            relayer.respondWithError(request, PeerError.SessionSettlementFailed(e.message ?: String.Empty), iridiumParams)
+            relayer.respondWithError(request, PeerError.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
             return
         }
     }
 
     private fun onPairingDelete(request: WCRequestVO, params: PairingParamsVO.DeleteParams) {
         if (!sequenceStorageRepository.isPairingValid(request.topic)) {
-            val iridiumParams = IridiumParamsVO(Tags.PAIRING_DELETE_RESPONSE, TtlVO(Time.dayInSeconds))
-            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.PAIRING.name, request.topic.value), iridiumParams)
+            val irnParams = IrnParamsVO(Tags.PAIRING_DELETE_RESPONSE, TtlVO(Time.dayInSeconds))
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.PAIRING.name, request.topic.value), irnParams)
             return
         }
 
@@ -534,8 +534,8 @@ internal class SignEngine(
 
     private fun onSessionDelete(request: WCRequestVO, params: SessionParamsVO.DeleteParams) {
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            val iridiumParams = IridiumParamsVO(Tags.SESSION_DELETE_RESPONSE, TtlVO(Time.dayInSeconds))
-            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), iridiumParams)
+            val irnParams = IrnParamsVO(Tags.SESSION_DELETE_RESPONSE, TtlVO(Time.dayInSeconds))
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
         }
 
@@ -547,14 +547,14 @@ internal class SignEngine(
     }
 
     private fun onSessionRequest(request: WCRequestVO, params: SessionParamsVO.SessionRequestParams) {
-        val iridiumParams = IridiumParamsVO(Tags.SESSION_REQUEST_RESPONSE, TtlVO(Time.fiveMinutesInSeconds))
+        val irnParams = IrnParamsVO(Tags.SESSION_REQUEST_RESPONSE, TtlVO(Time.fiveMinutesInSeconds))
         Validator.validateSessionRequest(params.toEngineDORequest(request.topic)) { error ->
-            relayer.respondWithError(request, error.toPeerError(), iridiumParams)
+            relayer.respondWithError(request, error.toPeerError(), irnParams)
             return
         }
 
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), iridiumParams)
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
         }
 
@@ -563,7 +563,7 @@ internal class SignEngine(
 
         val method = params.request.method
         Validator.validateChainIdWithMethodAuthorisation(params.chainId, method, sessionNamespaces) { error ->
-            relayer.respondWithError(request, error.toPeerError(), iridiumParams)
+            relayer.respondWithError(request, error.toPeerError(), irnParams)
             return
         }
 
@@ -571,62 +571,62 @@ internal class SignEngine(
     }
 
     private fun onSessionEvent(request: WCRequestVO, params: SessionParamsVO.EventParams) {
-        val iridiumParams = IridiumParamsVO(Tags.SESSION_EVENT_RESPONSE, TtlVO(Time.fiveMinutesInSeconds))
+        val irnParams = IrnParamsVO(Tags.SESSION_EVENT_RESPONSE, TtlVO(Time.fiveMinutesInSeconds))
         Validator.validateEvent(params.toEngineDOEvent()) { error ->
-            relayer.respondWithError(request, error.toPeerError(), iridiumParams)
+            relayer.respondWithError(request, error.toPeerError(), irnParams)
             return
         }
 
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), iridiumParams)
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
         }
 
         val session = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (!session.isPeerController) {
-            relayer.respondWithError(request, PeerError.UnauthorizedEventEmit(Sequences.SESSION.name), iridiumParams)
+            relayer.respondWithError(request, PeerError.UnauthorizedEventEmit(Sequences.SESSION.name), irnParams)
             return
         }
         if (!session.isAcknowledged) {
-            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), iridiumParams)
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
         }
 
         val event = params.event
         Validator.validateChainIdWithEventAuthorisation(params.chainId, event.name, session.namespaces) { error ->
-            relayer.respondWithError(request, error.toPeerError(), iridiumParams)
+            relayer.respondWithError(request, error.toPeerError(), irnParams)
             return
         }
 
-        relayer.respondWithSuccess(request, iridiumParams)
+        relayer.respondWithSuccess(request, irnParams)
         scope.launch { _engineEvent.emit(params.toEngineDOSessionEvent(request.topic)) }
     }
 
     private fun onSessionUpdate(request: WCRequestVO, params: SessionParamsVO.UpdateNamespacesParams) {
-        val iridiumParams = IridiumParamsVO(Tags.SESSION_UPDATE_RESPONSE, TtlVO(Time.dayInSeconds))
+        val irnParams = IrnParamsVO(Tags.SESSION_UPDATE_RESPONSE, TtlVO(Time.dayInSeconds))
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), iridiumParams)
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
         }
 
         val session: SessionVO = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (!session.isPeerController) {
-            relayer.respondWithError(request, PeerError.UnauthorizedUpdateRequest(Sequences.SESSION.name), iridiumParams)
+            relayer.respondWithError(request, PeerError.UnauthorizedUpdateRequest(Sequences.SESSION.name), irnParams)
             return
         }
 
         Validator.validateSessionNamespace(params.namespaces, session.proposalNamespaces) { error ->
-            relayer.respondWithError(request, PeerError.InvalidUpdateRequest(error.message), iridiumParams)
+            relayer.respondWithError(request, PeerError.InvalidUpdateRequest(error.message), irnParams)
             return
         }
 
         if (!sequenceStorageRepository.isUpdatedNamespaceValid(session.topic.value, request.id.extractTimestamp())) {
-            relayer.respondWithError(request, PeerError.InvalidUpdateRequest("Update Namespace Request ID too old"), iridiumParams)
+            relayer.respondWithError(request, PeerError.InvalidUpdateRequest("Update Namespace Request ID too old"), irnParams)
             return
         }
 
         sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, params.namespaces, request.id, onSuccess = {
-            relayer.respondWithSuccess(request, iridiumParams)
+            relayer.respondWithSuccess(request, irnParams)
 
             scope.launch {
                 _engineEvent.emit(EngineDO.SessionUpdateNamespaces(request.topic, params.namespaces.toMapOfEngineNamespacesSession()))
@@ -634,37 +634,37 @@ internal class SignEngine(
         }, onFailure = {
             relayer.respondWithError(request,
                 PeerError.InvalidUpdateRequest("Updating Namespace Failed. Review Namespace structure"),
-                iridiumParams)
+                irnParams)
         })
     }
 
     private fun onSessionExtend(request: WCRequestVO, requestParams: SessionParamsVO.ExtendParams) {
-        val iridiumParams = IridiumParamsVO(Tags.SESSION_EXTEND_RESPONSE, TtlVO(Time.dayInSeconds))
+        val irnParams = IrnParamsVO(Tags.SESSION_EXTEND_RESPONSE, TtlVO(Time.dayInSeconds))
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), iridiumParams)
+            relayer.respondWithError(request, PeerError.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
         }
 
         val session = sequenceStorageRepository.getSessionByTopic(request.topic)
         if (!session.isPeerController) {
-            relayer.respondWithError(request, PeerError.UnauthorizedExtendRequest(Sequences.SESSION.name), iridiumParams)
+            relayer.respondWithError(request, PeerError.UnauthorizedExtendRequest(Sequences.SESSION.name), irnParams)
             return
         }
 
         val newExpiry = requestParams.expiry
         Validator.validateSessionExtend(newExpiry, session.expiry.seconds) { error ->
-            relayer.respondWithError(request, error.toPeerError(), iridiumParams)
+            relayer.respondWithError(request, error.toPeerError(), irnParams)
             return
         }
 
         sequenceStorageRepository.extendSession(request.topic, newExpiry)
-        relayer.respondWithSuccess(request, iridiumParams)
+        relayer.respondWithSuccess(request, irnParams)
         scope.launch { _engineEvent.emit(session.toEngineDOSessionExtend(ExpiryVO(newExpiry))) }
     }
 
     private fun onPing(request: WCRequestVO) {
-        val iridiumParams = IridiumParamsVO(Tags.SESSION_PING_RESPONSE, TtlVO(Time.thirtySeconds))
-        relayer.respondWithSuccess(request, iridiumParams)
+        val irnParams = IrnParamsVO(Tags.SESSION_PING_RESPONSE, TtlVO(Time.thirtySeconds))
+        relayer.respondWithSuccess(request, irnParams)
     }
 
     private fun collectJsonRpcResponses() {
