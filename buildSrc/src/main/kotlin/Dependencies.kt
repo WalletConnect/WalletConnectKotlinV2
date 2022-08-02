@@ -144,6 +144,11 @@ fun DependencyHandlerScope.mockk() {
     "testImplementation"("io.mockk:mockk:$mockkVersion")
 }
 
+fun DependencyHandlerScope.testJson() {
+    val jsonVersion = "20220320"
+    "testImplementation"("org.json:json:$jsonVersion")
+}
+
 fun DependencyHandlerScope.timber() {
     val timberVersion = "5.0.1"
 
