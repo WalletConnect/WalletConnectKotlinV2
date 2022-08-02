@@ -2,7 +2,7 @@ package com.walletconnect.chat.copiedFromSign.json_rpc.model
 
 import com.walletconnect.chat.copiedFromSign.core.model.client.Relay
 import com.walletconnect.chat.copiedFromSign.core.model.type.ClientParams
-import com.walletconnect.chat.copiedFromSign.core.model.vo.IridiumParamsVO
+import com.walletconnect.chat.copiedFromSign.core.model.vo.IrnParamsVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.TopicVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.jsonRpc.JsonRpcHistoryVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.jsonRpc.JsonRpcResponseVO
@@ -42,5 +42,5 @@ internal fun JsonRpcHistoryVO.toWCResponse(result: JsonRpcResponseVO, params: Cl
 //    )
 
 @JvmSynthetic
-internal fun IridiumParamsVO.toRelay(): Relay.Model.IridiumParams =
-    Relay.Model.IridiumParams(tag.id, ttl.seconds, prompt)
+internal fun IrnParamsVO.toRelay(): Relay.Model.IrnParams =
+    Relay.Model.IrnParams(tag.id, ttl.seconds, prompt)

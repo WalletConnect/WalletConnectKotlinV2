@@ -4,6 +4,6 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class RelayProtocolOptionsVO(
-    val protocol: String = "iridium",
+    val protocol: String = "irn",
     val data: String? = null
 )
