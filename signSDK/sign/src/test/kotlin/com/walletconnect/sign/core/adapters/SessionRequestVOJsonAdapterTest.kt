@@ -40,12 +40,12 @@ internal class SessionRequestVOJsonAdapterTest {
                         "version":1
                       },
                       {
-                        "nonce":22,
-                        "value":"20000000000000000",
+                        "nonce":"0x0",
+                        "value":"0x0",
                         "receiver":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
                         "sender":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
-                        "gasPrice":1000000000,
-                        "gasLimit":60000000,
+                        "gasPrice":"0x4a817c800",
+                        "gasLimit":"0x5208",
                         "data":"c2Vjb25k",
                         "chainID":"D",
                         "version":1
@@ -59,7 +59,8 @@ internal class SessionRequestVOJsonAdapterTest {
                         "gasLimit":60000000,
                         "data":"dGhpcmQ=",
                         "chainID":"D",
-                        "version":1
+                        "version":1.1,
+                        "testBoolean":true
                       }
                 ]
             }
@@ -76,38 +77,39 @@ internal class SessionRequestVOJsonAdapterTest {
                   "params":{
                     "transactions":[
                           {
-                            "nonce":21,
-                            "value":"10000000000000000",
-                            "receiver":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
-                            "sender":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
-                            "gasPrice":1000000000,
-                            "gasLimit":60000000,
-                            "data":"Zmlyc3Q=",
-                            "chainID":"D",
-                            "version":1
-                          },
-                          {
-                            "nonce":22,
-                            "value":"20000000000000000",
-                            "receiver":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
-                            "sender":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
-                            "gasPrice":1000000000,
-                            "gasLimit":60000000,
-                            "data":"c2Vjb25k",
-                            "chainID":"D",
-                            "version":1
-                          },
-                          {
-                            "nonce":23,
-                            "value":"30000000000000000",
-                            "receiver":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
-                            "sender":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
-                            "gasPrice":1000000000,
-                            "gasLimit":60000000,
-                            "data":"dGhpcmQ=",
-                            "chainID":"D",
-                            "version":1
-                          }
+                        "nonce":21,
+                        "value":"10000000000000000",
+                        "receiver":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
+                        "sender":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
+                        "gasPrice":1000000000,
+                        "gasLimit":60000000,
+                        "data":"Zmlyc3Q=",
+                        "chainID":"D",
+                        "version":1
+                      },
+                      {
+                        "nonce":"0x0",
+                        "value":"0x0",
+                        "receiver":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
+                        "sender":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
+                        "gasPrice":"0x4a817c800",
+                        "gasLimit":"0x5208",
+                        "data":"c2Vjb25k",
+                        "chainID":"D",
+                        "version":1
+                      },
+                      {
+                        "nonce":23,
+                        "value":"30000000000000000",
+                        "receiver":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
+                        "sender":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
+                        "gasPrice":1000000000,
+                        "gasLimit":60000000,
+                        "data":"dGhpcmQ=",
+                        "chainID":"D",
+                        "version":1.1,
+                        "testBoolean":true
+                      }
                     ]
                   }
                 },
@@ -122,7 +124,7 @@ internal class SessionRequestVOJsonAdapterTest {
 
         val expectedParamsJsonObj = JSONObject(params)
         val actualParamsJsonObj = JSONObject("{$serializedParams}")
-
+println(actualParamsJsonObj.getJSONArray("transactions").toString())
         assertEquals(expectedParamsJsonObj.getJSONArray("transactions").length(), actualParamsJsonObj.getJSONArray("transactions").length())
 
         with(expectedParamsJsonObj.getJSONArray("transactions")) exp@{
