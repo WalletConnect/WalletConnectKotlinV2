@@ -19,7 +19,7 @@ sealed class WalletConnectException(override val message: String?) : Exception(m
     class CannotFindSequenceForTopic(override val message: String?) : WalletConnectException(message)
     class PairWithExistingPairingIsNotAllowed(override val message: String?) : WalletConnectException(message)
     class CannotFindSessionProposalException(override val message: String?) : WalletConnectException(message)
-    class MissingInternetConnectionException(override val message: String?) : WalletConnectException(message)
+    class NoRelayConnectionException(override val message: String?) : WalletConnectException(message)
 
     class UnknownEnvelopeTypeException(override val message: String?) : WalletConnectException(message)
     class MissingParticipantsException(override val message: String?) : WalletConnectException(message)

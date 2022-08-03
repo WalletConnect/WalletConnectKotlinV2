@@ -90,4 +90,5 @@ dependencies {
     robolectric()
     mockk()
     timber()
+    testJson()
 }
