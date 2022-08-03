@@ -32,7 +32,7 @@ allprojects {
 }
 ```
 
-app/build.gradle
+app/build.gradle.kts
 
 ```gradle
 implementation("com.walletconnect:sign:release_version")
