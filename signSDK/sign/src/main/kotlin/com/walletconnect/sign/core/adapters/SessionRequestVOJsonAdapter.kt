@@ -100,6 +100,7 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
         return paramsListEntry.joinToString(",", "[", "]") { item ->
             when (item) {
                 is Map<*, *> -> stringifyJsonObject(item)
+                is List<*> -> stringifyJsonArray(item)
                 is String -> "\"$item\""
                 else -> throw IllegalStateException("Deserializing Unknown Type $item")
             }
