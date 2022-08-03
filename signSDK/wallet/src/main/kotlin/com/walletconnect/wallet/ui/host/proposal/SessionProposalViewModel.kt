@@ -4,10 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.walletconnect.sample_common.EthChains
 import com.walletconnect.sample_common.tag
-import com.walletconnect.wallet.domain.WalletDelegate
-import com.walletconnect.wallet.domain.mapOfAllAccounts
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import com.walletconnect.wallet.domain.WalletDelegate
+import com.walletconnect.wallet.domain.mapOfAllAccounts
 
 class SessionProposalViewModel : ViewModel() {
 

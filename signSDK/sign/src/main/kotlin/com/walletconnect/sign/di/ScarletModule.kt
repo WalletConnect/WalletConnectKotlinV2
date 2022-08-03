@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
 
 @JvmSynthetic
 internal fun scarletModule(serverUrl: String, jwt: String, connectionType: ConnectionType, relay: RelayInterface?) = module {
-    val DEFAULT_BACKOFF_MINUTES = 5L
+    val DEFAULT_BACKOFF_SECONDS = 5L
     val TIMEOUT_TIME = 5000L
 
     // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
@@ -45,7 +45,7 @@ internal fun scarletModule(serverUrl: String, jwt: String, connectionType: Conne
 
     single { FlowStreamAdapter.Factory() }
 
-    single { LinearBackoffStrategy(TimeUnit.MINUTES.toMillis(DEFAULT_BACKOFF_MINUTES)) }
+    single { LinearBackoffStrategy(TimeUnit.SECONDS.toMillis(DEFAULT_BACKOFF_SECONDS)) }
 
     single {
         if (connectionType == ConnectionType.MANUAL) {
@@ -72,7 +72,6 @@ internal fun scarletModule(serverUrl: String, jwt: String, connectionType: Conne
             .addStreamAdapterFactory(get<FlowStreamAdapter.Factory>())
             .build()
     }
-
     single { get<Scarlet>().create(RelayService::class.java) }
 
     single { relay ?: RelayClient(get(), get()) }

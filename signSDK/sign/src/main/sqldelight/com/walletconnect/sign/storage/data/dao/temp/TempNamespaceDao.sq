@@ -1,26 +1,24 @@
 import kotlin.collections.List;
 
 CREATE TABLE TempNamespaceDao(
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    request_id INTEGER PRIMARY KEY NOT NULL,
     session_id INTEGER NOT NULL,
     topic TEXT NOT NULL,
     key TEXT NOT NULL,
     accounts TEXT AS List<String> NOT NULL,
     methods TEXT AS List<String> NOT NULL,
     events TEXT AS List<String> NOT NULL,
-    request_id INTEGER NOT NULL,
-    isAcknowledged INTEGER DEFAULT 0,
-    UNIQUE(session_id, key)
+    isAcknowledged INTEGER DEFAULT 0
 );
 
 insertOrAbortNamespace:
 INSERT OR ABORT INTO TempNamespaceDao(session_id, topic, key, accounts, methods, events, request_id)
 VALUES (?, ?, ?, ?, ?, ?, ?);
 
-getTempNamespacesByRequestIdAndTopic:
+getTempNamespacesByRequestId:
 SELECT session_id, key, accounts, methods, events
 FROM TempNamespaceDao
-WHERE topic = ? AND request_id = ?;
+WHERE request_id = ?;
 
 isUpdateNamespaceRequestValid:
 SELECT COUNT(*) = 0
@@ -30,7 +28,11 @@ WHERE topic = ? AND request_id / 1000 >= ? AND isAcknowledged = 1;
 markNamespaceAcknowledged:
 UPDATE TempNamespaceDao
 SET isAcknowledged = 1
-WHERE topic = ? AND request_id = ?;
+WHERE request_id = ?;
+
+deleteTempNamespacesByRequestId:
+DELETE FROM TempNamespaceDao
+WHERE request_id = ?;
 
 deleteTempNamespacesByTopic:
 DELETE FROM TempNamespaceDao

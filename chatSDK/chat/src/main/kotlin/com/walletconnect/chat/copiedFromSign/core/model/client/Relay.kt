@@ -1,6 +1,6 @@
 package com.walletconnect.chat.copiedFromSign.core.model.client
 
-import com.walletconnect.chat.copiedFromSign.network.model.JsonRpcRelay
+import com.walletconnect.chat.copiedFromSign.network.model.*
 
 
 object Relay {
@@ -14,7 +14,7 @@ object Relay {
                 data class Request(
                     override val id: Long,
                     override val jsonrpc: String = "2.0",
-                    val method: String = JsonRpcRelay.IRIDIUM_PUBLISH,
+                    val method: String = IRN_PUBLISH,
                     val params: Params,
                 ) : Publish() {
 
@@ -45,7 +45,7 @@ object Relay {
                 data class Request(
                     override val id: Long,
                     override val jsonrpc: String = "2.0",
-                    val method: String = JsonRpcRelay.IRIDIUM_SUBSCRIBE,
+                    val method: String = IRN_SUBSCRIBE,
                     val params: Params,
                 ) : Subscribe() {
 
@@ -72,7 +72,7 @@ object Relay {
                 data class Request(
                     override val id: Long,
                     override val jsonrpc: String = "2.0",
-                    val method: String = JsonRpcRelay.IRIDIUM_SUBSCRIPTION,
+                    val method: String = IRN_SUBSCRIPTION,
                     val params: Params,
                 ) : Subscription() {
 
@@ -109,7 +109,7 @@ object Relay {
                 data class Request(
                     override val id: Long,
                     override val jsonrpc: String = "2.0",
-                    val method: String = JsonRpcRelay.IRIDIUM_UNSUBSCRIBE,
+                    val method: String = IRN_UNSUBSCRIBE,
                     val params: Params,
                 ) : Unsubscribe() {
 
@@ -154,6 +154,6 @@ object Relay {
         }
 
         data class ShutdownReason(val code: Int, val reason: String) : Relay.Model()
-        data class IridiumParams(val tag: Int, val ttl: Long, val prompt: Boolean = false) : Relay.Model()
+        data class IrnParams(val tag: Int, val ttl: Long, val prompt: Boolean = false) : Relay.Model()
     }
 }

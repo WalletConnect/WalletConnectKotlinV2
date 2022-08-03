@@ -4,7 +4,7 @@ package com.walletconnect.chat.engine.domain
 
 import com.walletconnect.chat.copiedFromSign.core.exceptions.client.WalletConnectException
 import com.walletconnect.chat.copiedFromSign.core.model.type.enums.EnvelopeType
-import com.walletconnect.chat.copiedFromSign.core.model.vo.IridiumParamsVO
+import com.walletconnect.chat.copiedFromSign.core.model.vo.IrnParamsVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
 import com.walletconnect.chat.copiedFromSign.core.model.vo.TopicVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.TtlVO
@@ -133,9 +133,9 @@ internal class ChatEngine(
         val acceptTopic = TopicVO(keyManagementRepository.getHash(symmetricKey.keyAsHex))
         keyManagementRepository.setSymmetricKey(acceptTopic, symmetricKey)
         relayer.subscribe(acceptTopic)
-        val iridiumParams = IridiumParamsVO(Tags.CHAT_INVITE, TtlVO(Time.dayInSeconds), true)
+        val irnParams = IrnParamsVO(Tags.CHAT_INVITE, TtlVO(Time.dayInSeconds), true)
 
-        relayer.publishJsonRpcRequests(inviteTopic, iridiumParams, payload, EnvelopeType.ONE,
+        relayer.publishJsonRpcRequests(inviteTopic, irnParams, payload, EnvelopeType.ONE,
             {
                 Logger.log("Chat invite sent successfully")
             },
@@ -196,9 +196,9 @@ internal class ChatEngine(
 
 
         val acceptanceParams = ChatParamsVO.AcceptanceParams(publicKey.keyAsHex)
-        val iridiumParams = IridiumParamsVO(Tags.CHAT_INVITE_RESPONSE, TtlVO(Time.dayInSeconds))
+        val irnParams = IrnParamsVO(Tags.CHAT_INVITE_RESPONSE, TtlVO(Time.dayInSeconds))
 
-        relayer.respondWithParams(request.copy(topic = acceptTopic), acceptanceParams, iridiumParams, EnvelopeType.ZERO)
+        relayer.respondWithParams(request.copy(topic = acceptTopic), acceptanceParams, irnParams, EnvelopeType.ZERO)
 
         val threadSymmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(publicKey, senderPublicKey) // SymKey T
         val threadTopic = TopicVO(keyManagementRepository.getHash(threadSymmetricKey.keyAsHex)) // Topic T
@@ -223,11 +223,12 @@ internal class ChatEngine(
 
     internal fun message(topic: String, sendMessage: EngineDO.SendMessage, onFailure: (Throwable) -> Unit) {
         //todo resolve AUTHOR_ACCOUNT from thread storage by topic
-        val messageParams = ChatParamsVO.MessageParams(sendMessage.message, AUTHOR_ACCOUNT, System.currentTimeMillis(), sendMessage.media)
+        val messageParams =
+            ChatParamsVO.MessageParams(sendMessage.message, sendMessage.author.value, System.currentTimeMillis(), sendMessage.media)
         val payload = ChatRpcVO.ChatMessage(id = generateId(), params = messageParams)
-        val iridiumParams = IridiumParamsVO(Tags.CHAT_MESSAGE, TtlVO(Time.dayInSeconds), true)
+        val irnParams = IrnParamsVO(Tags.CHAT_MESSAGE, TtlVO(Time.dayInSeconds), true)
 
-        relayer.publishJsonRpcRequests(TopicVO(topic), iridiumParams, payload, EnvelopeType.ZERO,
+        relayer.publishJsonRpcRequests(TopicVO(topic), irnParams, payload, EnvelopeType.ZERO,
             { Logger.log("Chat message sent successfully") },
             { throwable ->
                 Logger.log("Chat message error: $throwable")
@@ -248,9 +249,9 @@ internal class ChatEngine(
         //todo: correct define params
         val leaveParams = ChatParamsVO.LeaveParams()
         val payload = ChatRpcVO.ChatLeave(id = generateId(), params = leaveParams)
-        val iridiumParams = IridiumParamsVO(Tags.CHAT_LEAVE, TtlVO(Time.dayInSeconds), true)
+        val irnParams = IrnParamsVO(Tags.CHAT_LEAVE, TtlVO(Time.dayInSeconds), true)
 
-        relayer.publishJsonRpcRequests(TopicVO(topic), iridiumParams, payload, EnvelopeType.ZERO,
+        relayer.publishJsonRpcRequests(TopicVO(topic), irnParams, payload, EnvelopeType.ZERO,
             { Logger.log("Chat message sent successfully") },
             { throwable ->
                 Logger.log("Chat message error: $throwable")
@@ -293,9 +294,5 @@ internal class ChatEngine(
         }
     } catch (error: Exception) {
         onFailure(error)
-    }
-
-    companion object {
-        const val AUTHOR_ACCOUNT = "eip:1:0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826" // todo remove after adding Threads abstraction
     }
 }
