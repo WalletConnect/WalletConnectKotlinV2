@@ -6,10 +6,12 @@ import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.payload.SessionRequestVO
 import org.intellij.lang.annotations.Language
+import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.reflect.jvm.jvmName
 import kotlin.test.assertEquals
+import kotlin.test.fail
 
 internal class SessionRequestVOJsonAdapterTest {
     private val moshi: Moshi = Moshi.Builder()
@@ -165,17 +167,7 @@ internal class SessionRequestVOJsonAdapterTest {
               "params":{
                 "request":{
                   "method":"erd_signTransactions",
-                  "params": {
-                     "nonce":21,
-                     "value":"10000000000000000",
-                     "receiver":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
-                     "sender":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
-                     "gasPrice":1000000000,
-                     "gasLimit":60000000,
-                     "data":"Zmlyc3Q=",
-                     "chainID":"D",
-                     "version":1
-                    }
+                  "params":$params
                 },
                 "chainId":"elrond:D"
               }
@@ -196,6 +188,192 @@ internal class SessionRequestVOJsonAdapterTest {
                 this@exp.keys().forEach { key ->
                     assertEquals(this@exp.get(key), this@act.get(key))
                 }
+            }
+        }
+    }
+
+    @Test
+    fun deserializeToUnNamedJsonArray() {
+        @Language("JSON")
+        val params = """
+            [
+              "0x4d7920656d61696c206973206a6f686e40646f652e636f6d202d2031363539353332343934303431", 
+              "0x022c0c42a80bd19EA4cF0F94c4F9F96645759716"
+            ]
+        """.trimIndent()
+        @Language("JSON")
+        val stringParamsWithNamedJsonArray = """
+          {
+            "id":1659532494915,
+            "jsonrpc":"2.0",
+            "method":"wc_sessionRequest",
+            "params": {
+              "request": {
+                "method":"personal_sign",
+                "params":$params
+              },
+              "chainId":"eip155:1"
+            }
+          }
+        """.trimIndent()
+
+        val adapter = moshi.adapter(SessionRpcVO.SessionRequest::class.java)
+        val deserializedJson = adapter.fromJson(stringParamsWithNamedJsonArray)
+        val serializedParams = deserializedJson?.params?.request?.params
+
+        val expectedParamsJsonArry = JSONArray(params)
+        val actualParamsJsonArry = JSONArray("$serializedParams")
+
+        assertEquals(expectedParamsJsonArry.length(), actualParamsJsonArry.length())
+
+        with(expectedParamsJsonArry) exp@{
+            with(actualParamsJsonArry) act@{
+                (0 until this@exp.length()).forEach { index ->
+                    assertEquals(this@exp.getString(index), this@act.getString(index))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun deserializeToUnNamedJsonArrayMixedType() {
+        @Language("JSON")
+        val params = """
+            [
+              "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+              {
+                "types": {
+                  "EIP712Domain": [
+                    {
+                      "name": "name",
+                      "type": "string"
+                    },
+                    {
+                      "name": "version",
+                      "type": "string"
+                    },
+                    {
+                      "name": "chainId",
+                      "type": "uint256"
+                    },
+                    {
+                      "name": "verifyingContract",
+                      "type": "address"
+                    }
+                  ],
+                  "Person": [
+                    {
+                      "name": "name",
+                      "type": "string"
+                    },
+                    {
+                      "name": "wallet",
+                      "type": "address"
+                    }
+                  ],
+                  "Mail": [
+                    {
+                      "name": "from",
+                      "type": "Person"
+                    },
+                    {
+                      "name": "to",
+                      "type": "Person"
+                    },
+                    {
+                      "name": "contents",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "primaryType": "Mail",
+                "domain": {
+                  "name": "Ether Mail",
+                  "version": "1",
+                  "chainId": 1,
+                  "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+                },
+                "message": {
+                  "from": {
+                    "name": "Cow",
+                    "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+                  },
+                  "to": {
+                    "name": "Bob",
+                    "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+                  },
+                  "contents": "Hello, Bob!"
+                }
+              }
+            ]
+        """.trimIndent()
+        @Language("JSON")
+        val stringParamsWithNamedJsonArray = """
+          {
+            "id":1659532494915,
+            "jsonrpc":"2.0",
+            "method":"wc_sessionRequest",
+            "params": {
+              "request": {
+                "method":"personal_sign",
+                "params": $params
+              },
+              "chainId":"eip155:1"
+            }
+          }
+        """.trimIndent()
+
+        val adapter = moshi.adapter(SessionRpcVO.SessionRequest::class.java)
+        val deserializedJson = adapter.fromJson(stringParamsWithNamedJsonArray)
+        val serializedParams = deserializedJson?.params?.request?.params
+
+        val expectedParamsJsonArry = JSONArray(params)
+        val actualParamsJsonArry = JSONArray("$serializedParams")
+
+        assertEquals(expectedParamsJsonArry.length(), actualParamsJsonArry.length())
+
+        with(expectedParamsJsonArry) exp@{
+            with(actualParamsJsonArry) act@{
+                (0 until this@exp.length()).forEach { index ->
+                    when (val currentItem = this@exp.get(index)) {
+                        is JSONObject -> iterateJsonObjects(currentItem, this@act.getJSONObject(index))
+                        is JSONArray -> iterateJsonArrays(currentItem, this@act.getJSONArray(index))
+                        else -> assertEquals(currentItem, this@act.get(index))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun iterateJsonObjects(expJsonObject: JSONObject, actJsonObject: JSONObject) {
+        expJsonObject.keys().forEach { key ->
+            assert(actJsonObject.has(key))
+            val expCurrentItem = expJsonObject.get(key)
+            val actCurrentItem = actJsonObject.get(key)
+
+            when {
+                expCurrentItem is JSONObject && actCurrentItem is JSONObject -> {
+                    iterateJsonObjects(expCurrentItem, actCurrentItem)
+                }
+                expCurrentItem is JSONArray && actCurrentItem is JSONArray -> {
+                    iterateJsonArrays(expCurrentItem, actCurrentItem)
+                }
+                else -> assertEquals(expCurrentItem, actCurrentItem)
+            }
+        }
+    }
+
+    private fun iterateJsonArrays(expJsonArray: JSONArray, actJsonArray: JSONArray) {
+        assertEquals(expJsonArray.length(), actJsonArray.length())
+
+        (0 until expJsonArray.length()).forEach { index ->
+            val expCurrentIndexItem = expJsonArray.get(index)
+            val actCurrentIndexItem = actJsonArray[index]
+
+            when {
+                expCurrentIndexItem is JSONObject && actCurrentIndexItem is JSONObject -> iterateJsonObjects(expCurrentIndexItem, actCurrentIndexItem)
+                expCurrentIndexItem is JSONArray && actCurrentIndexItem is JSONArray -> iterateJsonArrays(expCurrentIndexItem, actCurrentIndexItem)
+                else -> assertEquals(expCurrentIndexItem, actCurrentIndexItem)
             }
         }
     }
