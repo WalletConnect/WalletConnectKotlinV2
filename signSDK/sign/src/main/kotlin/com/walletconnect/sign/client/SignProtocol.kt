@@ -53,7 +53,10 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                 val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
                 val jwt = jwtRepository.generateJWT(initial.relayServerUrl.strippedUrl())
 
-                wcKoinApp.modules(scarletModule(initial.relayServerUrl.addUserAgent(), jwt, initial.connectionType.toRelayConnectionType(), initial.relay))
+                wcKoinApp.modules(scarletModule(initial.relayServerUrl.addUserAgent(),
+                    jwt,
+                    initial.connectionType.toRelayConnectionType(),
+                    initial.relay))
                 signEngine = wcKoinApp.koin.get()
                 signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
             }
@@ -275,6 +278,14 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
             mutex.withLock {
                 checkEngineInitialization()
                 codeBlock()
+            }
+        }
+    }
+
+    fun blockUntilInitialized() {
+        runBlocking(signProtocolScope.coroutineContext) {
+            mutex.withLock {
+                checkEngineInitialization()
             }
         }
     }
