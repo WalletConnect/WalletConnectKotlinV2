@@ -2,6 +2,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.kotlin.dsl.DependencyHandlerScope
 
 const val kotlinVersion = "1.6.10"
+const val kspVersion = "1.7.10-1.0.6"
 val jvmVersion = JavaVersion.VERSION_11
 const val sqlDelightVersion = "1.5.2"
 const val MIN_SDK: Int = 23
@@ -38,14 +39,17 @@ fun DependencyHandlerScope.coroutines() {
     "testImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
 }
 
-fun DependencyHandlerScope.scarlet() {
+fun DependencyHandlerScope.scarlet(includeAndroid: Boolean = true) {
     val scarletVersion = "1.0.0"
     val scarletPackage = "com.github.WalletConnect.Scarlet"
     "implementation"("$scarletPackage:scarlet:$scarletVersion")
     "implementation"("$scarletPackage:websocket-okhttp:$scarletVersion")
     "implementation"("$scarletPackage:stream-adapter-coroutines:$scarletVersion")
     "implementation"("$scarletPackage:message-adapter-moshi:$scarletVersion")
-    "implementation"("$scarletPackage:lifecycle-android:$scarletVersion")
+
+    if (includeAndroid) {
+        "implementation"("$scarletPackage:lifecycle-android:$scarletVersion")
+    }
 
     "testImplementation"("$scarletPackage:websocket-mockwebserver:$scarletVersion")
     "testImplementation"("$scarletPackage:test-utils:$scarletVersion")
@@ -59,11 +63,11 @@ fun DependencyHandlerScope.retrofit() {
 }
 
 
-fun DependencyHandlerScope.moshi() {
+fun DependencyHandlerScope.moshi_N_ksp() {
     val moshiVersion = "1.13.0"
     "implementation"("com.squareup.moshi:moshi-adapters:$moshiVersion")
     "implementation"("com.squareup.moshi:moshi-kotlin:$moshiVersion")
-    "kapt"("com.squareup.moshi:moshi-kotlin-codegen:$moshiVersion")
+    "ksp"("com.squareup.moshi:moshi-kotlin-codegen:$moshiVersion")
 }
 
 fun DependencyHandlerScope.okhttp() {
@@ -92,10 +96,15 @@ fun DependencyHandlerScope.sqlDelight() {
     }
 }
 
-fun DependencyHandlerScope.koin() {
+fun DependencyHandlerScope.koin(includeAndroid: Boolean = true) {
     val koinVersion = "3.2.0"
 
-    "api"("io.insert-koin:koin-android:$koinVersion")
+    if (includeAndroid) {
+        "api"("io.insert-koin:koin-android:$koinVersion")
+    } else {
+        "implementation"("io.insert-koin:koin-core:$koinVersion")
+        "testImplementation"("io.insert-koin:koin-test:$koinVersion")
+    }
 }
 
 fun DependencyHandlerScope.glide_N_kapt() {
