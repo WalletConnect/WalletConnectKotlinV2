@@ -70,6 +70,7 @@
             android:name="com.walletconnect.wallet.ui.sessions.active.ActiveSessionsFragment"
             android:label="Sessions"
             tools:layout="@layout/fragment_active_sessions">
+
             <action
                 android:id="@+id/action_fragment_active_sessions_to_fragment_selected_session"
                 app:destination="@id/fragment_session_details">
@@ -81,7 +82,7 @@
 
             <deepLink
                 app:action="android.intent.action.VIEW"
-                app:uri="wc:/{topic}/request" />
+                app:uri="kotlin-wallet-wc:/request" />
 
         </fragment>
 

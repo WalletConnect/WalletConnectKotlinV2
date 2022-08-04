@@ -30,7 +30,7 @@ class WalletSampleApplication : Application() {
 
         // Sample of how to use a URI to initialize the WalletConnect Sign SDK
 
-        val redirect = Sign.Model.Redirect(native = "wc:/{topic}/request")
+        val redirect = Sign.Model.Redirect(native = "kotlin-wallet-wc:/request") //todo: create a val in build confing and add to graph
 
         val initString = Sign.Params.Init(
             application = this,

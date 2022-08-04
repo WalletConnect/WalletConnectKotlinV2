@@ -1,6 +1,10 @@
 package com.walletconnect.wallet.ui.host.request
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,11 +46,11 @@ class SessionRequestBottomSheet : BottomSheetDialogFragment() {
         }
 
         binding.btnReject.setOnClickListener {
-            viewModel.reject()
+            viewModel.reject(::sendResponseDeepLink)
         }
 
         binding.btnApprove.setOnClickListener {
-            viewModel.approve()
+            viewModel.approve(::sendResponseDeepLink)
         }
 
         viewModel.uiState
@@ -71,5 +75,15 @@ class SessionRequestBottomSheet : BottomSheetDialogFragment() {
                 findNavController().popBackStack()
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
+
+    private fun sendResponseDeepLink(sessionRequestDeeplinkUri: Uri) {
+        try {
+            requireActivity().startActivity(Intent(Intent.ACTION_VIEW, sessionRequestDeeplinkUri))
+        } catch (exception: ActivityNotFoundException) {
+
+            Log.e("kobe", "Walelt No Activity: $exception")
+            // There is no app to handle deep link
+        }
     }
 }

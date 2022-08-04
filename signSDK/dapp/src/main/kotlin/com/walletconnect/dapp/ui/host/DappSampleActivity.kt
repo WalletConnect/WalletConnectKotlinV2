@@ -1,5 +1,6 @@
 package com.walletconnect.dapp.ui.host
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.viewModels
@@ -45,9 +46,17 @@ class DappSampleActivity : AppCompatActivity(R.layout.activity_dapp) {
         return navHostFragment.navController.navigateUp() || super.onSupportNavigateUp()
     }
 
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+
+        Log.e("kobe", "DeepLink intent: ${intent.toString()}")
+
+//        navHostFragment.navController.handleDeepLink(intent)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        viewModel.disconnect()
+//        viewModel.disconnect()
     }
 }
 

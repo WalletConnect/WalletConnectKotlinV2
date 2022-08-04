@@ -2,6 +2,7 @@ package com.walletconnect.wallet.ui.host
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
@@ -61,6 +62,9 @@ class WalletSampleActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+
+        Log.e("kobe", "DeepLink intent: ${intent.toString()}")
+
         navController.handleDeepLink(intent)
     }
 }
