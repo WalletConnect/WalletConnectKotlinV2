@@ -11,7 +11,6 @@ import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.reflect.jvm.jvmName
 import kotlin.test.assertEquals
-import kotlin.test.fail
 
 internal class SessionRequestVOJsonAdapterTest {
     private val moshi: Moshi = Moshi.Builder()
@@ -24,10 +23,30 @@ internal class SessionRequestVOJsonAdapterTest {
         .addLast(KotlinJsonAdapterFactory())
         .build()
 
+    private lateinit var params: String
+    private val stringParamsWithNamedJsonArray by lazy {
+        """
+          {
+            "id":1659532494915,
+            "jsonrpc":"2.0",
+            "method":"wc_sessionRequest",
+            "params": {
+              "request": {
+                "method":"personal_sign",
+                "params": $params
+              },
+              "chainId":"eip155:1"
+            }
+          }
+        """.trimIndent()
+    }
+    private val adapter by lazy { moshi.adapter(SessionRpcVO.SessionRequest::class.java) }
+    private val deserializedJson by lazy { adapter.fromJson(stringParamsWithNamedJsonArray) }
+    private val serializedParams by lazy { deserializedJson?.params?.request?.params }
+
     @Test
     fun deserializeToNamedJsonArray() {
-        @Language("JSON")
-        val params = """
+        params = """
             {
                 "transactions":[
                       {
@@ -67,62 +86,6 @@ internal class SessionRequestVOJsonAdapterTest {
                 ]
             }
         """.trimIndent()
-        @Language("JSON")
-        val stringParamsWithNamedJsonArray = """
-            {
-              "id":1658389421577926,
-              "jsonrpc":"2.0",
-              "method":"wc_sessionRequest",
-              "params":{
-                "request":{
-                  "method":"erd_signTransactions",
-                  "params":{
-                    "transactions":[
-                          {
-                        "nonce":21,
-                        "value":"10000000000000000",
-                        "receiver":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
-                        "sender":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
-                        "gasPrice":1000000000,
-                        "gasLimit":60000000,
-                        "data":"Zmlyc3Q=",
-                        "chainID":"D",
-                        "version":1
-                      },
-                      {
-                        "nonce":"0x0",
-                        "value":"0x0",
-                        "receiver":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
-                        "sender":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
-                        "gasPrice":"0x4a817c800",
-                        "gasLimit":"0x5208",
-                        "data":"c2Vjb25k",
-                        "chainID":"D",
-                        "version":1
-                      },
-                      {
-                        "nonce":23,
-                        "value":"30000000000000000",
-                        "receiver":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
-                        "sender":"erd1c542gysqkmfqwwwu7tkuhz8kp9yxkg32gzsuvgmryrs74nhhltzqkna8na",
-                        "gasPrice":1000000000,
-                        "gasLimit":60000000,
-                        "data":"dGhpcmQ=",
-                        "chainID":"D",
-                        "version":1.1,
-                        "testBoolean":true
-                      }
-                    ]
-                  }
-                },
-                "chainId":"elrond:D"
-              }
-            }
-        """.trimIndent()
-
-        val adapter = moshi.adapter(SessionRpcVO.SessionRequest::class.java)
-        val deserializedJson = adapter.fromJson(stringParamsWithNamedJsonArray)
-        val serializedParams = deserializedJson?.params?.request?.params
 
         val expectedParamsJsonObj = JSONObject(params)
         val actualParamsJsonObj = JSONObject("{$serializedParams}")
@@ -144,8 +107,7 @@ internal class SessionRequestVOJsonAdapterTest {
 
     @Test
     fun deserializeToNamedJsonObject() {
-        @Language("JSON")
-        val params = """
+        params = """
             {
                 "nonce":21,
                 "value":"10000000000000000",
@@ -158,25 +120,6 @@ internal class SessionRequestVOJsonAdapterTest {
                 "version":1
             }
         """.trimIndent()
-        @Language("JSON")
-        val stringParamsWithNamedJsonObject = """
-            {
-              "id":1658389421577926,
-              "jsonrpc":"2.0",
-              "method":"wc_sessionRequest",
-              "params":{
-                "request":{
-                  "method":"erd_signTransactions",
-                  "params":$params
-                },
-                "chainId":"elrond:D"
-              }
-            }
-        """.trimIndent()
-
-        val adapter = moshi.adapter(SessionRpcVO.SessionRequest::class.java)
-        val deserializedJson = adapter.fromJson(stringParamsWithNamedJsonObject)
-        val serializedParams = deserializedJson?.params?.request?.params
 
         val expectedParamsJsonObj = JSONObject(params)
         val actualParamsJsonObj = JSONObject(serializedParams)
@@ -194,32 +137,12 @@ internal class SessionRequestVOJsonAdapterTest {
 
     @Test
     fun deserializeToUnNamedJsonArray() {
-        @Language("JSON")
-        val params = """
+        params = """
             [
               "0x4d7920656d61696c206973206a6f686e40646f652e636f6d202d2031363539353332343934303431", 
               "0x022c0c42a80bd19EA4cF0F94c4F9F96645759716"
             ]
         """.trimIndent()
-        @Language("JSON")
-        val stringParamsWithNamedJsonArray = """
-          {
-            "id":1659532494915,
-            "jsonrpc":"2.0",
-            "method":"wc_sessionRequest",
-            "params": {
-              "request": {
-                "method":"personal_sign",
-                "params":$params
-              },
-              "chainId":"eip155:1"
-            }
-          }
-        """.trimIndent()
-
-        val adapter = moshi.adapter(SessionRpcVO.SessionRequest::class.java)
-        val deserializedJson = adapter.fromJson(stringParamsWithNamedJsonArray)
-        val serializedParams = deserializedJson?.params?.request?.params
 
         val expectedParamsJsonArry = JSONArray(params)
         val actualParamsJsonArry = JSONArray("$serializedParams")
@@ -237,8 +160,7 @@ internal class SessionRequestVOJsonAdapterTest {
 
     @Test
     fun deserializeToUnNamedJsonArrayMixedType() {
-        @Language("JSON")
-        val params = """
+        params = """
             [
               "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
               {
@@ -307,27 +229,36 @@ internal class SessionRequestVOJsonAdapterTest {
               }
             ]
         """.trimIndent()
-        @Language("JSON")
-        val stringParamsWithNamedJsonArray = """
-          {
-            "id":1659532494915,
-            "jsonrpc":"2.0",
-            "method":"wc_sessionRequest",
-            "params": {
-              "request": {
-                "method":"personal_sign",
-                "params": $params
-              },
-              "chainId":"eip155:1"
-            }
-          }
-        """.trimIndent()
-
-        val adapter = moshi.adapter(SessionRpcVO.SessionRequest::class.java)
-        val deserializedJson = adapter.fromJson(stringParamsWithNamedJsonArray)
-        val serializedParams = deserializedJson?.params?.request?.params
 
         val expectedParamsJsonArry = JSONArray(params)
+        val actualParamsJsonArry = JSONArray("$serializedParams")
+
+        assertEquals(expectedParamsJsonArry.length(), actualParamsJsonArry.length())
+
+        with(expectedParamsJsonArry) exp@{
+            with(actualParamsJsonArry) act@{
+                (0 until this@exp.length()).forEach { index ->
+                    when (val currentItem = this@exp.get(index)) {
+                        is JSONObject -> iterateJsonObjects(currentItem, this@act.getJSONObject(index))
+                        is JSONArray -> iterateJsonArrays(currentItem, this@act.getJSONArray(index))
+                        else -> assertEquals(currentItem, this@act.get(index))
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun ethSignedTypedData() {
+        // Malformed JSON with mixed in escaping characters from JS Dapp
+        params = """
+            ["0x022c0c42a80bd19EA4cF0F94c4F9F96645759716","{\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"Person\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"wallet\",\"type\":\"address\"}],\"Mail\":[{\"name\":\"from\",\"type\":\"Person\"},{\"name\":\"to\",\"type\":\"Person\"},{\"name\":\"contents\",\"type\":\"string\"}]},\"primaryType\":\"Mail\",\"domain\":{\"name\":\"Ether Mail\",\"version\":\"1\",\"chainId\":1,\"verifyingContract\":\"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC\"},\"message\":{\"from\":{\"name\":\"Cow\",\"wallet\":\"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826\"},\"to\":{\"name\":\"Bob\",\"wallet\":\"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB\"},\"contents\":\"Hello, Bob!\"}}"]
+        """.trimIndent()
+        @Language("JSON")
+        val expectedSerializableParams = """
+            ["0x022c0c42a80bd19EA4cF0F94c4F9F96645759716",{"types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Person":[{"name":"name","type":"string"},{"name":"wallet","type":"address"}],"Mail":[{"name":"from","type":"Person"},{"name":"to","type":"Person"},{"name":"contents","type":"string"}]},"primaryType":"Mail","domain":{"name":"Ether Mail","version":"1","chainId":1,"verifyingContract":"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"},"message":{"from":{"name":"Cow","wallet":"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},"to":{"name":"Bob","wallet":"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"},"contents":"Hello, Bob!"}}]
+        """.trimIndent()
+        val expectedParamsJsonArry = JSONArray(expectedSerializableParams)
         val actualParamsJsonArry = JSONArray("$serializedParams")
 
         assertEquals(expectedParamsJsonArry.length(), actualParamsJsonArry.length())
