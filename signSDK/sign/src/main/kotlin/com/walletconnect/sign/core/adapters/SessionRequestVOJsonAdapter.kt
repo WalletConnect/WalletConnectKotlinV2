@@ -2,15 +2,13 @@
 
 package com.walletconnect.sign.core.adapters
 
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.JsonReader
-import com.squareup.moshi.JsonWriter
-import com.squareup.moshi.Moshi
+import com.squareup.moshi.*
 import com.squareup.moshi.internal.Util
 import com.walletconnect.sign.core.model.vo.clientsync.session.payload.SessionRequestVO
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.NumberFormat
+import kotlin.IllegalArgumentException
 import kotlin.String
 
 internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRequestVO>() {
@@ -34,23 +32,32 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
                 1 -> {
                     // Moshi does not handle malformed JSON where there is a missing key for an array or object
                     val paramsAny = anyAdapter.fromJson(reader) ?: throw Util.unexpectedNull("params", "params", reader)
-                    val paramsMap = paramsAny as Map<*, *>
-                    params = if (paramsMap.size == 1) {
-                        val paramsMapEntry: Map.Entry<*, *> = paramsAny.firstNotNullOf { it }
-                        val key = paramsMapEntry.key as String
+                    params = if (paramsAny is List<*>) {
+                        val stringifiedJson = stringifyJsonArray(paramsAny)
+                        val jsonArray = JSONArray(stringifiedJson).toString()
 
-                        if (paramsMapEntry.value is List<*>) {
-                            val stringifiedJson = stringifyJsonArray(paramsMapEntry.value as List<*>)
-                            val jsonArray = JSONArray(stringifiedJson).toString()
-
-                            "\"$key\":$jsonArray"
-                        } else {
-                            val stringifiedJson = stringifyJsonObject(paramsMapEntry as Map<*, *>)
-                            val jsonObject = JSONObject(stringifiedJson).toString()
-                            "\"$key\":$jsonObject"
-                        }
+                        jsonArray
                     } else {
-                        stringifyJsonObject(paramsMap)
+                        val paramsMap = paramsAny as Map<*, *>
+
+                        if (paramsMap.size == 1) {
+                            val paramsMapEntry: Map.Entry<*, *> = paramsAny.firstNotNullOf { it }
+                            val key = paramsMapEntry.key as String
+
+                            if (paramsMapEntry.value is List<*>) {
+                                val stringifiedJson = stringifyJsonArray(paramsMapEntry.value as List<*>)
+                                val jsonArray = JSONArray(stringifiedJson).toString()
+
+                                "\"$key\":$jsonArray"
+                            } else {
+                                val stringifiedJson = stringifyJsonObject(paramsMapEntry as Map<*, *>)
+                                val jsonObject = JSONObject(stringifiedJson).toString()
+
+                                "\"$key\":$jsonObject"
+                            }
+                        } else {
+                            stringifyJsonObject(paramsMap)
+                        }
                     }
                 }
                 -1 -> {
@@ -86,17 +93,32 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
         }
     }
 
-    private fun stringifyJsonArray(paramsMapEntry: List<*>): String {
-        return (paramsMapEntry as List<Map<String, Any>>).joinToString(",", "[", "]") { linkedHashMap ->
-            stringifyJsonObject(linkedHashMap)
+    private fun stringifyJsonArray(paramsListEntry: List<*>): String {
+        return paramsListEntry.joinToString(",", "[", "]") { item ->
+            when (item) {
+                is Map<*, *> -> stringifyJsonObject(item)
+                is List<*> -> stringifyJsonArray(item)
+                is String -> try {
+                    when (val deserializedJson = anyAdapter.fromJson(item)) {
+                        is List<*> -> stringifyJsonArray(deserializedJson)
+                        is Map<*,*> -> stringifyJsonObject(deserializedJson)
+                        else -> throw IllegalArgumentException("Failed Deserializing Unknown Type $item")
+                    }
+                } catch (e: JsonEncodingException) {
+                    "\"$item\""
+                }
+                else -> throw IllegalArgumentException("Failed Deserializing Unknown Type $item")
+            }
         }
     }
 
     private fun stringifyJsonObject(paramsMap: Map<*, *>): String {
         return (paramsMap as Map<String, Any>).toList().joinToString(",", "{", "}") { (key, value) ->
             val valueString = when (value) {
+                is List<*> -> stringifyJsonArray(value)
+                is Map<*,*,> -> stringifyJsonObject(value)
                 is String -> "\"$value\""
-                is Double -> {
+                is Number -> {
                     val num = NumberFormat.getInstance().apply { isGroupingUsed = false }.format(value)
                     if (num.contains(".")) {
                         num.toDouble()
