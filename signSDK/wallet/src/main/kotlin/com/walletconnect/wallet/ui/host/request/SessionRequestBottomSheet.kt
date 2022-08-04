@@ -4,7 +4,6 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -81,8 +80,6 @@ class SessionRequestBottomSheet : BottomSheetDialogFragment() {
         try {
             requireActivity().startActivity(Intent(Intent.ACTION_VIEW, sessionRequestDeeplinkUri))
         } catch (exception: ActivityNotFoundException) {
-
-            Log.e("kobe", "Walelt No Activity: $exception")
             // There is no app to handle deep link
         }
     }

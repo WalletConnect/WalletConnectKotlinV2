@@ -5,7 +5,6 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -89,8 +88,6 @@ class SelectedAccountFragment : Fragment(R.layout.fragment_selected_account) {
         try {
             requireActivity().startActivity(Intent(Intent.ACTION_VIEW, sessionRequestDeeplinkUri))
         } catch (exception: ActivityNotFoundException) {
-
-            Log.e("kobe", "Dapp No Activity: $exception")
             // There is no app to handle deep link
         }
     }

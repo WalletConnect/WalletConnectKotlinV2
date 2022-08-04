@@ -27,7 +27,6 @@ class SessionFragment : Fragment(R.layout.fragment_session) {
         SessionAdapter { selectedAccount ->
             val selectedAccountKey = getString(R.string.selected_account)
             findNavController().navigate(R.id.action_fragment_session_to_fragment_selected_account, bundleOf(selectedAccountKey to selectedAccount))
-//            findNavController().navigate(R.id.action_global_to_selected_account, bundleOf(selectedAccountKey to selectedAccount))
         }
     }
 
