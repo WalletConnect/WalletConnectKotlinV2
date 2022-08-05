@@ -17,5 +17,21 @@ CREATE TABLE IF NOT EXISTS MetaDataDao(
 
 DROP TABLE IF EXISTS MetaDataDaoBak;
 
+ALTER TABLE SessionDao RENAME TO SessionDaoBak;
+
+CREATE TABLE IF NOT EXISTS  SessionDao(
+   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+   topic TEXT UNIQUE NOT NULL,
+   expiry INTEGER NOT NULL,
+   relay_protocol TEXT NOT NULL,
+   relay_data TEXT,
+   controller_key TEXT,
+   self_participant TEXT NOT NULL,
+   peer_participant TEXT,
+   is_acknowledged INTEGER AS Boolean NOT NULL
+);
+
+DROP TABLE IF EXISTS SessionDaoBak;
+
 -- android_metadata
 DROP TABLE IF EXISTS android_metadata;
