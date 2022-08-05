@@ -2,8 +2,6 @@ import com.walletconnect.sign.core.model.type.enums.MetaDataType;
 import kotlin.collections.List;
 
 -- PairingDao
-ALTER TABLE PairingDao RENAME TO PairingDaoBak;
-
 CREATE TABLE IF NOT EXISTS PairingDao (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     topic TEXT UNIQUE NOT NULL,
@@ -17,8 +15,6 @@ CREATE TABLE IF NOT EXISTS PairingDao (
 DROP TABLE IF EXISTS PairingDaoBak;
 
 -- SessionDao
-ALTER TABLE SessionDao RENAME TO SessionDaoBak;
-
 CREATE TABLE IF NOT EXISTS  SessionDao(
    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
    topic TEXT UNIQUE NOT NULL,
@@ -34,7 +30,7 @@ CREATE TABLE IF NOT EXISTS  SessionDao(
 DROP TABLE IF EXISTS SessionDaoBak;
 
 -- MetaDataDao
-ALTER TABLE MetaDataDao RENAME TO MetaDataDaoBak;
+-- ALTER TABLE MetaDataDao RENAME TO MetaDataDaoBak;
 
 CREATE TABLE IF NOT EXISTS MetaDataDao(
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -50,8 +46,6 @@ CREATE TABLE IF NOT EXISTS MetaDataDao(
 DROP TABLE IF EXISTS MetaDataDaoBak;
 
 -- JsonRpcHistoryDao
-ALTER TABLE JsonRpcHistoryDao RENAME TO JsonRpcHistoryDaoBak;
-
 CREATE TABLE IF NOT EXISTS JsonRpcHistoryDao(
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   request_id INTEGER UNIQUE NOT NULL,

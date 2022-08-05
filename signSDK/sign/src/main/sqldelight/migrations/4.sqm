@@ -16,3 +16,6 @@ CREATE TABLE IF NOT EXISTS MetaDataDao(
 );
 
 DROP TABLE IF EXISTS MetaDataDaoBak;
+
+-- android_metadata
+DROP TABLE IF EXISTS android_metadata;
