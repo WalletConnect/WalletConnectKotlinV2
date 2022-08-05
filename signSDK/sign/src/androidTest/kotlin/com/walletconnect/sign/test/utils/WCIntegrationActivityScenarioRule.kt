@@ -12,6 +12,7 @@ import com.walletconnect.sign.core.scope.scope
 import com.walletconnect.sign.util.Logger
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.sync.withLock
 import org.junit.Assert
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.rules.ExternalResource
@@ -75,6 +76,14 @@ class WCIntegrationActivityScenarioRule : ExternalResource() {
         initialize(dappParams) {}
         blockUntilInitialized()
         relay.connect { }
+    }
+
+    private fun SignProtocol.blockUntilInitialized() {
+        runBlocking(signProtocolScope.coroutineContext) {
+            mutex.withLock {
+                checkEngineInitialization()
+            }
+        }
     }
 
     override fun before() {

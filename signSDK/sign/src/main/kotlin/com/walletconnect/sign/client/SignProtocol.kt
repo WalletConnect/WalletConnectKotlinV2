@@ -23,8 +23,8 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var signEngine: SignEngine
     override val relay: RelayInterface by lazy { wcKoinApp.koin.get() }
-    private val mutex = Mutex()
-    private val signProtocolScope =
+    val mutex = Mutex()
+    val signProtocolScope =
         CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
     companion object {
@@ -282,16 +282,9 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
         }
     }
 
-    fun blockUntilInitialized() {
-        runBlocking(signProtocolScope.coroutineContext) {
-            mutex.withLock {
-                checkEngineInitialization()
-            }
-        }
-    }
 
     @Throws(IllegalStateException::class)
-    private fun checkEngineInitialization() {
+    fun checkEngineInitialization() {
         check(::signEngine.isInitialized) {
             "SignClient needs to be initialized first using the initialize function"
         }
