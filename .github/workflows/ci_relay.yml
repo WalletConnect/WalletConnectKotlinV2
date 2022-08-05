@@ -1,5 +1,7 @@
 name: Relay Integration
 
+
+# IMPORTANT. GHA only for demo purposes.
 on:
   push:
     branches:
