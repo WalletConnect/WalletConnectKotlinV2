@@ -1,0 +1,41 @@
+name: Relay Integration
+
+on:
+  push:
+    branches:
+      - feature/sign/instrumented_tests
+  pull_request:
+    branches:
+      - feature/sign/instrumented_tests
+
+concurrency:
+  # Support push/pr as event types with different behaviors each:
+  # 1. push: queue up builds by branch
+  # 2. pr: only allow one run per PR
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref_name }}
+  # If there is already a workflow running for the same pull request, cancel it
+  # For non-PR triggers queue up builds
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  validate:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Java JDK
+        uses: actions/setup-java@v3.3.0
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+          architecture: x86_64
+      - name: Instrumentation tests
+        env:
+          TEST_RELAY_URL: wss://relay.walletconnect.com
+          TEST_PROJECT_ID: 2ee94aca5d98e6c05c38bce02bee952a
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 32
+          arch: x86_64
+          target: google_apis
+          script: ./gradlew :sign:connectedCheck
