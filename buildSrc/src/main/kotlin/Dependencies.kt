@@ -5,6 +5,10 @@ const val kotlinVersion = "1.6.10"
 val jvmVersion = JavaVersion.VERSION_11
 const val sqlDelightVersion = "1.5.2"
 const val MIN_SDK: Int = 23
+const val moshiVersion = "1.13.0"
+const val coroutinesVersion = "1.6.0"
+const val scarletVersion = "1.0.0"
+const val scarletPackage = "com.github.WalletConnect.Scarlet"
 
 fun DependencyHandlerScope.scanner() {
     val mlKitBarcode = "16.0.1"
@@ -12,11 +16,6 @@ fun DependencyHandlerScope.scanner() {
     "implementation"("androidx.camera:camera-camera2:1.1.0-alpha01")
     "implementation"("androidx.camera:camera-lifecycle:1.1.0-alpha01")
     "implementation"("androidx.camera:camera-view:1.0.0-alpha21")
-}
-
-fun DependencyHandlerScope.ktxCore() {
-    val ktxCoreVersion = "1.8.0"
-    "implementation"("androidx.core:core-ktx:$ktxCoreVersion")
 }
 
 fun DependencyHandlerScope.lifecycle() {
@@ -33,20 +32,24 @@ fun DependencyHandlerScope.navigationComponent() {
 }
 
 fun DependencyHandlerScope.coroutines() {
-    val coroutinesVersion = "1.6.0"
-    "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+    "api"("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+    "testImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
+}
+
+fun DependencyHandlerScope.coroutinesTest() {
     "testImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
 }
 
 fun DependencyHandlerScope.scarlet() {
-    val scarletVersion = "1.0.0"
-    val scarletPackage = "com.github.WalletConnect.Scarlet"
-    "implementation"("$scarletPackage:scarlet:$scarletVersion")
-    "implementation"("$scarletPackage:websocket-okhttp:$scarletVersion")
-    "implementation"("$scarletPackage:stream-adapter-coroutines:$scarletVersion")
-    "implementation"("$scarletPackage:message-adapter-moshi:$scarletVersion")
-    "implementation"("$scarletPackage:lifecycle-android:$scarletVersion")
 
+    "api"("$scarletPackage:scarlet:$scarletVersion")
+    "api"("$scarletPackage:websocket-okhttp:$scarletVersion")
+    "api"("$scarletPackage:stream-adapter-coroutines:$scarletVersion")
+    "api"("$scarletPackage:message-adapter-moshi:$scarletVersion")
+    "api"("$scarletPackage:lifecycle-android:$scarletVersion")
+}
+
+fun DependencyHandlerScope.scarletTest() {
     "testImplementation"("$scarletPackage:websocket-mockwebserver:$scarletVersion")
     "testImplementation"("$scarletPackage:test-utils:$scarletVersion")
 }
@@ -60,31 +63,35 @@ fun DependencyHandlerScope.retrofit() {
 
 
 fun DependencyHandlerScope.moshi() {
-    val moshiVersion = "1.13.0"
-    "implementation"("com.squareup.moshi:moshi-adapters:$moshiVersion")
-    "implementation"("com.squareup.moshi:moshi-kotlin:$moshiVersion")
+    "api"("com.squareup.moshi:moshi-adapters:$moshiVersion")
+    "api"("com.squareup.moshi:moshi-kotlin:$moshiVersion")
+}
+
+fun DependencyHandlerScope.moshiKapt() {
     "kapt"("com.squareup.moshi:moshi-kotlin-codegen:$moshiVersion")
 }
 
 fun DependencyHandlerScope.okhttp() {
     val okhttpVersion = "4.9.0"
 
-    "implementation"(platform("com.squareup.okhttp3:okhttp-bom:$okhttpVersion"))
-    "implementation"("com.squareup.okhttp3:okhttp")
-    "implementation"("com.squareup.okhttp3:logging-interceptor")
+    "api"(platform("com.squareup.okhttp3:okhttp-bom:$okhttpVersion"))
+    "api"("com.squareup.okhttp3:okhttp")
+    "api"("com.squareup.okhttp3:logging-interceptor")
 }
 
 fun DependencyHandlerScope.bouncyCastle() {
     val bouncyCastleVersion = "1.70"
-    "implementation"("org.bouncycastle:bcprov-jdk15on:$bouncyCastleVersion")
+    "api"("org.bouncycastle:bcprov-jdk15on:$bouncyCastleVersion")
 }
 
 fun DependencyHandlerScope.sqlDelight() {
     val sqlCipherVersion = "4.5.0@aar"
-    "implementation"("com.squareup.sqldelight:android-driver:$sqlDelightVersion")
-    "implementation"("com.squareup.sqldelight:coroutines-extensions-jvm:$sqlDelightVersion")
-    "implementation"("net.zetetic:android-database-sqlcipher:$sqlCipherVersion")
+    "api"("com.squareup.sqldelight:android-driver:$sqlDelightVersion")
+    "api"("com.squareup.sqldelight:coroutines-extensions-jvm:$sqlDelightVersion")
+    "api"("net.zetetic:android-database-sqlcipher:$sqlCipherVersion")
+}
 
+fun DependencyHandlerScope.sqlDelightTest() {
     "testImplementation"("com.squareup.sqldelight:sqlite-driver:$sqlDelightVersion")
     "testImplementation"("org.xerial:sqlite-jdbc:3.8.10.2") {
         // Override the version of sqlite used by sqlite-driver to match Android API 23
@@ -106,7 +113,7 @@ fun DependencyHandlerScope.glide_N_kapt() {
 fun DependencyHandlerScope.multibaseJava() {
     val multibaseVersion = "1.1.0"
 
-    "implementation"("com.github.multiformats:java-multibase:$multibaseVersion") //https://mvnrepository.com/artifact/com.github.multiformats/java-multibase/1.1.0 vulnerability detected with library
+    "api"("com.github.multiformats:java-multibase:$multibaseVersion") //https://mvnrepository.com/artifact/com.github.multiformats/java-multibase/1.1.0 vulnerability detected with library
 }
 
 fun DependencyHandlerScope.jUnit5() {
@@ -153,10 +160,10 @@ fun DependencyHandlerScope.testJson() {
 fun DependencyHandlerScope.timber() {
     val timberVersion = "5.0.1"
 
-    "implementation"("com.jakewharton.timber:timber:$timberVersion")
+    "api"("com.jakewharton.timber:timber:$timberVersion")
 }
 
 fun DependencyHandlerScope.security() {
     val androidSecurityVersion = "1.0.0"
-    "implementation"("androidx.security:security-crypto:$androidSecurityVersion")
+    "api"("androidx.security:security-crypto:$androidSecurityVersion")
 }

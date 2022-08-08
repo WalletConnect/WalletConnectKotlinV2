@@ -13,6 +13,7 @@ android {
         targetSdk = 32
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
@@ -28,23 +29,18 @@ android {
 
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
+        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.time.ExperimentalTime"
     }
 }
 
 dependencies {
-    implementation(project(":core"))
-
-    retrofit()
-    navigationComponent()
-
-    moshiKapt()
-    androidXTest()
-    jUnit5()
-    robolectric()
-    mockk()
-    timber()
-    testJson()
-    coroutinesTest()
-    scarletTest()
-    sqlDelightTest()
+    okhttp()
+    bouncyCastle()
+    coroutines()
+    moshi()
+    scarlet()
+    sqlDelight()
+    security()
+    koin()
+    multibaseJava()
 }

@@ -75,20 +75,16 @@ afterEvaluate {
 }
 
 dependencies {
-    okhttp()
-    bouncyCastle()
-    coroutines()
-    moshi()
-    scarlet()
-    sqlDelight()
-    security()
-    koin()
-    multibaseJava()
+    implementation(project(":core"))
 
+    moshiKapt()
     androidXTest()
     jUnit5()
     robolectric()
     mockk()
     timber()
     testJson()
+    coroutinesTest()
+    scarletTest()
+    sqlDelightTest()
 }

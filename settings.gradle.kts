@@ -1,6 +1,7 @@
 rootProject.name = "WalletConnect"
 
 include(":showcase")
+include(":core")
 
 val wcModules = mapOf(
     "signSDK" to listOf("dapp", "samples_common", "wallet", "sign"),
