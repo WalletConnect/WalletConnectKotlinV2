@@ -3,7 +3,7 @@ package com.walletconnect.foundation.common.adapters
 import com.squareup.moshi.*
 import com.walletconnect.foundation.common.model.Topic
 
-object TopicAdapter: JsonAdapter<Topic>() {
+internal object TopicAdapter: JsonAdapter<Topic>() {
 
     @JvmSynthetic
     @FromJson

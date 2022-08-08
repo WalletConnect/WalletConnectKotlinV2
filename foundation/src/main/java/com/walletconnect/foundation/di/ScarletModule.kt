@@ -11,6 +11,7 @@ import com.walletconnect.foundation.network.data.service.RelayService
 import com.walletconnect.foundation.util.scope
 import okhttp3.OkHttpClient
 import org.koin.core.module.Module
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
@@ -35,7 +36,7 @@ fun scarletModule(serverUrl: String, jwt: String): Module = module {
             .build()
     }
 
-    single { MoshiMessageAdapter.Factory(get()) }
+    single { MoshiMessageAdapter.Factory(get(named("foundation"))) }
 
     single { FlowStreamAdapter.Factory() }
 
