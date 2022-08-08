@@ -5,6 +5,7 @@ import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.foundation.network.BaseRelayClient
+import com.walletconnect.foundation.network.RelayInterface
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
 import com.walletconnect.foundation.util.scope
@@ -51,5 +52,5 @@ fun scarletModule(serverUrl: String, jwt: String, /*relay: RelayInterface?*/): M
     }
     single { get<Scarlet>().create(RelayService::class.java) }
 
-    single { object: BaseRelayClient(get(), get(), scope) {} }
+    single<RelayInterface> { object: BaseRelayClient(get(), get(), scope) {} }
 }
