@@ -1,7 +1,7 @@
 import org.gradle.api.JavaVersion
 import org.gradle.kotlin.dsl.DependencyHandlerScope
 
-const val kotlinVersion = "1.6.10"
+const val kotlinVersion = "1.7.10"
 const val kspVersion = "1.7.10-1.0.6"
 val jvmVersion = JavaVersion.VERSION_11
 const val sqlDelightVersion = "1.5.2"
