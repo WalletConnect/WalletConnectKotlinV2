@@ -14,7 +14,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
-fun scarletModule(serverUrl: String, jwt: String, /*relay: RelayInterface?*/): Module = module {
+fun scarletModule(serverUrl: String, jwt: String): Module = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
     val TIMEOUT_TIME = 5000L
 
