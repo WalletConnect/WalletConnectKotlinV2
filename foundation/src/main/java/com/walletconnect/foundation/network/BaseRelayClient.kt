@@ -12,7 +12,7 @@ import com.walletconnect.foundation.network.data.service.RelayService
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.foundation.network.model.RelayDTO
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.foundation.util.generateId
+import com.walletconnect.util.generateId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
