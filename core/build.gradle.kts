@@ -1,7 +1,7 @@
 plugins {
     id("com.android.library")
     kotlin("android")
-    kotlin("kapt")
+    id("com.google.devtools.ksp") version kspVersion
     id("com.squareup.sqldelight")
 }
 
@@ -34,13 +34,18 @@ android {
 }
 
 dependencies {
-    okhttp()
+    implementation(project(":foundation"))
+
     bouncyCastle()
     coroutines()
+    moshiKsp()
     moshi()
     scarlet()
+    scarletAndroid()
     sqlDelight()
     security()
-    koin()
+    koinAndroid()
     multibaseJava()
+
+    koinTest()
 }

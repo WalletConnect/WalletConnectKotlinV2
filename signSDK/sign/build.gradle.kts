@@ -1,7 +1,6 @@
 plugins {
     id("com.android.library")
     kotlin("android")
-    kotlin("kapt")
     id("com.squareup.sqldelight")
     `maven-publish`
     id("com.google.devtools.ksp") version kspVersion
@@ -78,12 +77,13 @@ afterEvaluate {
 dependencies {
     implementation(project(":core"))
 
-    moshiKapt()
+    timber()
+    moshiKsp()
+
     androidXTest()
     jUnit5()
     robolectric()
     mockk()
-    timber()
     testJson()
     coroutinesTest()
     scarletTest()

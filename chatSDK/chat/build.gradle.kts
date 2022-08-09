@@ -1,7 +1,6 @@
 plugins {
     id("com.android.library")
     kotlin("android")
-    kotlin("kapt")
     id("com.squareup.sqldelight")
     id("com.google.devtools.ksp") version kspVersion
 }
@@ -37,8 +36,8 @@ dependencies {
 
     retrofit()
     navigationComponent()
+    moshiKsp()
 
-    moshiKapt()
     androidXTest()
     jUnit5()
     robolectric()
