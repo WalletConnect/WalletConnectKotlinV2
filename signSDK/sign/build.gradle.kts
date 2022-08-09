@@ -75,7 +75,7 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":android_core"))
 
     timber()
     moshiKsp()
