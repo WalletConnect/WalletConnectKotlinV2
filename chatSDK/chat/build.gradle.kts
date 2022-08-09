@@ -3,6 +3,7 @@ plugins {
     kotlin("android")
     kotlin("kapt")
     id("com.squareup.sqldelight")
+    id("com.google.devtools.ksp") version kspVersion
 }
 
 android {

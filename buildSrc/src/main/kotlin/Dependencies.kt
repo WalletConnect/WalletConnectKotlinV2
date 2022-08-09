@@ -2,6 +2,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.kotlin.dsl.DependencyHandlerScope
 
 const val kotlinVersion = "1.6.10"
+const val kspVersion = "1.7.10-1.0.6"
 val jvmVersion = JavaVersion.VERSION_11
 const val sqlDelightVersion = "1.5.2"
 const val MIN_SDK: Int = 23
@@ -40,6 +41,8 @@ fun DependencyHandlerScope.coroutinesTest() {
     "testImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
 }
 
+//fun DependencyHandlerScope.scarlet(includeAndroid: Boolean = true) {
+//scarlet jvm
 fun DependencyHandlerScope.scarlet() {
 
     "api"("$scarletPackage:scarlet:$scarletVersion")
@@ -47,6 +50,10 @@ fun DependencyHandlerScope.scarlet() {
     "api"("$scarletPackage:stream-adapter-coroutines:$scarletVersion")
     "api"("$scarletPackage:message-adapter-moshi:$scarletVersion")
     "api"("$scarletPackage:lifecycle-android:$scarletVersion")
+
+//    if (includeAndroid) {
+//        "implementation"("$scarletPackage:lifecycle-android:$scarletVersion")
+//    }
 }
 
 fun DependencyHandlerScope.scarletTest() {
@@ -68,7 +75,7 @@ fun DependencyHandlerScope.moshi() {
 }
 
 fun DependencyHandlerScope.moshiKapt() {
-    "kapt"("com.squareup.moshi:moshi-kotlin-codegen:$moshiVersion")
+    "ksp"("com.squareup.moshi:moshi-kotlin-codegen:$moshiVersion")
 }
 
 fun DependencyHandlerScope.okhttp() {
@@ -99,10 +106,15 @@ fun DependencyHandlerScope.sqlDelightTest() {
     }
 }
 
-fun DependencyHandlerScope.koin() {
+fun DependencyHandlerScope.koin(includeAndroid: Boolean = true) {
     val koinVersion = "3.2.0"
 
-    "api"("io.insert-koin:koin-android:$koinVersion")
+    if (includeAndroid) {
+        "api"("io.insert-koin:koin-android:$koinVersion")
+    } else {
+        "implementation"("io.insert-koin:koin-core:$koinVersion")
+        "testImplementation"("io.insert-koin:koin-test:$koinVersion")
+    }
 }
 
 fun DependencyHandlerScope.glide_N_kapt() {

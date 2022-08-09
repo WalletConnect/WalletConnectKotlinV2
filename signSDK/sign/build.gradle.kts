@@ -4,6 +4,7 @@ plugins {
     kotlin("kapt")
     id("com.squareup.sqldelight")
     `maven-publish`
+    id("com.google.devtools.ksp") version kspVersion
 }
 
 tasks.withType<Test> {
