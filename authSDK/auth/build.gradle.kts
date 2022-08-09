@@ -39,7 +39,7 @@ dependencies {
     security()
     scarlet()
     okhttp()
-    moshi()
+    moshi_N_ksp()
     timber()
     sqlDelight()
 
