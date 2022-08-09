@@ -1,7 +1,8 @@
 package com.walletconnect.foundation
 
-class RelayTest {
+object RelayTest {
 
+    @JvmStatic
     fun main(args: Array<String>) {
 
     }

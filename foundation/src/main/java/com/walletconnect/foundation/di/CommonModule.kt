@@ -9,7 +9,7 @@ import com.walletconnect.foundation.common.adapters.TtlAdapter
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
-import com.walletconnect.util.Logger
+import com.walletconnect.foundation.util.Logger
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import kotlin.reflect.jvm.jvmName
