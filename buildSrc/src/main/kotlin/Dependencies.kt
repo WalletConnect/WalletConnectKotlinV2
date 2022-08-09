@@ -20,7 +20,6 @@ fun DependencyHandlerScope.navigationComponent() {
 
 fun DependencyHandlerScope.coroutines() {
     "api"("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-    "testImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
 }
 
 fun DependencyHandlerScope.coroutinesTest() {
@@ -43,10 +42,9 @@ fun DependencyHandlerScope.scarletTest() {
     "testImplementation"("$scarletPackage:test-utils:$scarletVersion")
 }
 
-
 fun DependencyHandlerScope.retrofit() {
-    "implementation"("com.squareup.retrofit2:retrofit:$retrofitVersion")
-    "implementation"("com.squareup.retrofit2:converter-moshi:$retrofitVersion")
+    "api"("com.squareup.retrofit2:retrofit:$retrofitVersion")
+    "api"("com.squareup.retrofit2:converter-moshi:$retrofitVersion")
 }
 
 fun DependencyHandlerScope.moshi() {
@@ -68,9 +66,13 @@ fun DependencyHandlerScope.bouncyCastle() {
     "api"("org.bouncycastle:bcprov-jdk15on:$bouncyCastleVersion")
 }
 
-fun DependencyHandlerScope.sqlDelight() {
+fun DependencyHandlerScope.sqlDelightAndroid() {
     "api"("com.squareup.sqldelight:android-driver:$sqlDelightVersion")
     "api"("com.squareup.sqldelight:coroutines-extensions-jvm:$sqlDelightVersion")
+
+}
+
+fun DependencyHandlerScope.sqlCipher() {
     "api"("net.zetetic:android-database-sqlcipher:$sqlCipherVersion")
 }
 

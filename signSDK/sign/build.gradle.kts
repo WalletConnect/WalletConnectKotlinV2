@@ -16,11 +16,11 @@ android {
 
     defaultConfig {
         minSdk = MIN_SDK
-        targetSdk = 32
+        targetSdk = TARGET_SDK
 
         aarMetadata {
             minCompileSdk = MIN_SDK
-            targetSdk = 32
+            targetSdk = TARGET_SDK
         }
 
         testInstrumentationRunner = "com.walletconnect.sign.WCTestRunner"
