@@ -2,16 +2,13 @@
 
 package com.walletconnect.sign.core.adapters
 
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.JsonReader
-import com.squareup.moshi.JsonWriter
-import com.squareup.moshi.Moshi
+import com.squareup.moshi.*
 import com.squareup.moshi.internal.Util
 import com.walletconnect.sign.core.model.vo.clientsync.session.payload.SessionRequestVO
 import org.json.JSONArray
 import org.json.JSONObject
-import java.lang.IllegalStateException
 import java.text.NumberFormat
+import kotlin.IllegalArgumentException
 import kotlin.String
 
 internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRequestVO>() {
@@ -101,8 +98,16 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
             when (item) {
                 is Map<*, *> -> stringifyJsonObject(item)
                 is List<*> -> stringifyJsonArray(item)
-                is String -> "\"$item\""
-                else -> throw IllegalStateException("Deserializing Unknown Type $item")
+                is String -> try {
+                    when (val deserializedJson = anyAdapter.fromJson(item)) {
+                        is List<*> -> stringifyJsonArray(deserializedJson)
+                        is Map<*,*> -> stringifyJsonObject(deserializedJson)
+                        else -> throw IllegalArgumentException("Failed Deserializing Unknown Type $item")
+                    }
+                } catch (e: JsonEncodingException) {
+                    "\"$item\""
+                }
+                else -> throw IllegalArgumentException("Failed Deserializing Unknown Type $item")
             }
         }
     }
