@@ -3,6 +3,7 @@ plugins {
     kotlin("android")
     kotlin("kapt")
     id("com.squareup.sqldelight")
+    id("com.google.devtools.ksp") version kspVersion
 }
 
 android {
@@ -39,7 +40,7 @@ dependencies {
     security()
     scarlet()
     okhttp()
-    moshi()
+    moshi_N_ksp()
     timber()
     sqlDelight()
 

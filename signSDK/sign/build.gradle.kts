@@ -4,6 +4,7 @@ plugins {
     kotlin("kapt")
     id("com.squareup.sqldelight")
     `maven-publish`
+    id("com.google.devtools.ksp") version kspVersion
 }
 
 tasks.withType<Test> {
@@ -78,7 +79,7 @@ dependencies {
     okhttp()
     bouncyCastle()
     coroutines()
-    moshi()
+    moshi_N_ksp()
     scarlet()
     sqlDelight()
     security()
