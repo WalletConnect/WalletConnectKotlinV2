@@ -160,12 +160,7 @@ internal sealed class EngineDO {
         val description: String,
         val url: String,
         val icons: List<String>,
-        val redirect: Redirect?,
-    ) : EngineDO()
-
-    internal data class Redirect(
-        val native: String? = null,
-        val universal: String? = null,
+        val redirect: String?,
     ) : EngineDO()
 
     internal data class ConnectionState(

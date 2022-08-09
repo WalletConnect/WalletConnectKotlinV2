@@ -124,11 +124,11 @@ internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSess
 
 @JvmSynthetic
 internal fun Sign.Model.AppMetaData.toEngineAppMetaData() =
-    EngineDO.AppMetaData(name, description, url, icons, EngineDO.Redirect(redirect?.native, redirect?.universal))
+    EngineDO.AppMetaData(name, description, url, icons, redirect)
 
 @JvmSynthetic
 internal fun EngineDO.AppMetaData.toClientAppMetaData() =
-    Sign.Model.AppMetaData(name, description, url, icons, Sign.Model.Redirect(redirect?.native, redirect?.universal))
+    Sign.Model.AppMetaData(name, description, url, icons, redirect)
 
 @JvmSynthetic
 internal fun Sign.Params.Request.toEngineDORequest(): EngineDO.Request =

@@ -77,7 +77,7 @@ class SelectedAccountViewModel : ViewModel() {
 
             val sessionRequestDeepLinkUri =
                 SignClient.getListOfSettledSessions()
-                    .find { session -> session.topic == requestParams.sessionTopic }?.metaData?.redirect?.native?.toUri()
+                    .find { session -> session.topic == requestParams.sessionTopic }?.metaData?.redirect?.toUri()
                     ?: "wc:/${requestParams.sessionTopic}/request".toUri()
 
             sendSessionRequestDeepLink(sessionRequestDeepLinkUri)

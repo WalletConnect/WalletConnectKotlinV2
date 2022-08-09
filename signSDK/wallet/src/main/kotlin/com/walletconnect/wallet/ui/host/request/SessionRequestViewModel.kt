@@ -84,7 +84,7 @@ class SessionRequestViewModel : ViewModel() {
         sendSessionRequestResponseDeepLink: (Uri) -> Unit,
     ) {
         val session = SignClient.getListOfSettledSessions().find { session -> session.topic == sessionRequest.topic }
-        val deepLinUri = session?.metaData?.redirect?.native?.toUri() ?: "wc:/${sessionRequest.topic})}/request".toUri()
+        val deepLinUri = session?.metaData?.redirect?.toUri() ?: "wc:/${sessionRequest.topic})}/request".toUri()
 
         sendSessionRequestResponseDeepLink(deepLinUri)
     }

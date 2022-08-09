@@ -152,12 +152,7 @@ object Sign {
             val description: String,
             val url: String,
             val icons: List<String>,
-            val redirect: Redirect?,
-        ) : Model()
-
-        data class Redirect(
-            val native: String? = null,
-            val universal: String? = null,
+            val redirect: String?,
         ) : Model()
 
         data class PendingRequest(

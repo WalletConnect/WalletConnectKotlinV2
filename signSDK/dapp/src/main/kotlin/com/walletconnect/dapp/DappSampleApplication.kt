@@ -28,8 +28,6 @@ class DappSampleApplication : Application() {
 //        )
 
         // Sample of how to use a URI to initialize the WalletConnect SDK
-
-        val redirect = Sign.Model.Redirect(native = "kotlin-dapp-wc:/request")
         val initString = Sign.Params.Init(
             application = this,
             //TODO: register at https://walletconnect.com/register to get a project ID
@@ -39,7 +37,7 @@ class DappSampleApplication : Application() {
                 description = "Dapp description",
                 url = "example.dapp",
                 icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media"),
-                redirect = redirect
+                redirect = "kotlin-dapp-wc:/request"
             )
         )
 
