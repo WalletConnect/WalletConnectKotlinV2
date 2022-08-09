@@ -46,7 +46,6 @@ fun scarletModule(serverUrl: String, jwt: String): Module = module {
         Scarlet.Builder()
             .backoffStrategy(get<LinearBackoffStrategy>())
             .webSocketFactory(get<OkHttpClient>().newWebSocketFactory("$serverUrl&auth=$jwt"))
-            .lifecycle(get())
             .addMessageAdapterFactory(get<MoshiMessageAdapter.Factory>())
             .addStreamAdapterFactory(get<FlowStreamAdapter.Factory>())
             .build()
