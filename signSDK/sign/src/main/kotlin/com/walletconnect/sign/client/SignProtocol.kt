@@ -23,8 +23,8 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var signEngine: SignEngine
     override val relay: RelayInterface by lazy { wcKoinApp.koin.get() }
-    private val mutex = Mutex()
-    private val signProtocolScope =
+    val mutex = Mutex()
+    val signProtocolScope =
         CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
     companion object {
@@ -53,7 +53,10 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                 val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
                 val jwt = jwtRepository.generateJWT(initial.relayServerUrl.strippedUrl())
 
-                wcKoinApp.modules(scarletModule(initial.relayServerUrl.addUserAgent(), jwt, initial.connectionType.toRelayConnectionType(), initial.relay))
+                wcKoinApp.modules(scarletModule(initial.relayServerUrl.addUserAgent(),
+                    jwt,
+                    initial.connectionType.toRelayConnectionType(),
+                    initial.relay))
                 signEngine = wcKoinApp.koin.get()
                 signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
             }
@@ -279,8 +282,9 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
         }
     }
 
+
     @Throws(IllegalStateException::class)
-    private fun checkEngineInitialization() {
+    fun checkEngineInitialization() {
         check(::signEngine.isInitialized) {
             "SignClient needs to be initialized first using the initialize function"
         }
