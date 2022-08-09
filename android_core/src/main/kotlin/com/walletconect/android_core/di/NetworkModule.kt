@@ -1,4 +1,4 @@
-package com.walletconnect.sign.di
+package com.walletconect.android_core.di
 
 import android.os.Build
 import com.tinder.scarlet.Scarlet
@@ -8,19 +8,18 @@ import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconect.android_core.network.RelayConnectionInterface
-import com.walletconect.android_core.network.data.adapter.FlowStreamAdapter
 import com.walletconect.android_core.network.data.connection.ConnectionType
 import com.walletconect.android_core.network.data.connection.controller.ConnectionController
 import com.walletconect.android_core.network.data.connection.lifecycle.ManualConnectionLifecycle
-import com.walletconect.android_core.network.data.service.RelayService
 import com.walletconect.android_core.network.domain.RelayClient
+import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
 @JvmSynthetic
-internal fun scarletModule(serverUrl: String, jwt: String, connectionType: ConnectionType, relay: RelayConnectionInterface?) = module {
+internal fun networkModule(serverUrl: String, jwt: String, connectionType: ConnectionType, relay: RelayConnectionInterface?) = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
     val TIMEOUT_TIME = 5000L
 
@@ -72,7 +71,6 @@ internal fun scarletModule(serverUrl: String, jwt: String, connectionType: Conne
             .addStreamAdapterFactory(get<FlowStreamAdapter.Factory>())
             .build()
     }
-    single { get<Scarlet>().create(RelayService::class.java) }
 
-    single { relay ?: RelayClient(get(), get()) }
+    single { relay ?: RelayClient(get(), get(), get(), get()) }
 }

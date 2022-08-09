@@ -1,4 +1,4 @@
-package com.walletconnect.sign.network.domain.relay
+package com.walletconect.android_core.network.domain.relay
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 

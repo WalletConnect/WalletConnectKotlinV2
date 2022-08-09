@@ -9,7 +9,7 @@ import com.walletconnect.sign.crypto.data.repository.JwtRepository
 import com.walletconnect.sign.di.*
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
-import com.walletconnect.sign.network.RelayInterface
+import com.walletconect.android_core.network.RelayConnectionInterface
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -22,7 +22,7 @@ import java.util.concurrent.Executors
 internal class SignProtocol : SignInterface, SignInterface.Websocket {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var signEngine: SignEngine
-    override val relay: RelayInterface by lazy { wcKoinApp.koin.get() }
+    override val relay: RelayConnectionInterface by lazy { wcKoinApp.koin.get() }
     private val mutex = Mutex()
     private val signProtocolScope =
         CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())

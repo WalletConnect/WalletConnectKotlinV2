@@ -1,9 +1,9 @@
 package com.walletconnect.sign.core.model.client
 
-import com.walletconnect.sign.network.model.IRN_PUBLISH
-import com.walletconnect.sign.network.model.IRN_SUBSCRIBE
-import com.walletconnect.sign.network.model.IRN_SUBSCRIPTION
-import com.walletconnect.sign.network.model.IRN_UNSUBSCRIBE
+import com.walletconect.android_core.network.model.IRN_PUBLISH
+import com.walletconect.android_core.network.model.IRN_SUBSCRIBE
+import com.walletconect.android_core.network.model.IRN_SUBSCRIPTION
+import com.walletconect.android_core.network.model.IRN_UNSUBSCRIBE
 
 object Relay {
     sealed class Model {

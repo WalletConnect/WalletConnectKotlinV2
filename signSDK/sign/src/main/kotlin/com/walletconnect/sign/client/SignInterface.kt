@@ -1,6 +1,6 @@
 package com.walletconnect.sign.client
 
-import com.walletconnect.sign.network.RelayInterface
+import com.walletconect.android_core.network.RelayConnectionInterface
 
 interface SignInterface {
     interface WalletDelegate {
@@ -57,7 +57,7 @@ interface SignInterface {
 
 
     interface Websocket {
-        val relay: RelayInterface
+        val relay: RelayConnectionInterface
 
         fun open(onError: (String) -> Unit) {
             relay.connect { errorMessage -> onError(errorMessage) }

@@ -1,4 +1,4 @@
-package com.walletconnect.sign.network.model
+package com.walletconect.android_core.network.model
 
 import com.tinder.scarlet.Message
 import com.tinder.scarlet.ShutdownReason

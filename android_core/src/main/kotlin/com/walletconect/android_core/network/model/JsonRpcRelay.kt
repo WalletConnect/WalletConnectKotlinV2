@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.network.model
+package com.walletconect.android_core.network.model
 
 private const val SUFFIX = "irn"
 internal const val IRN_PUBLISH: String = "${SUFFIX}_publish"

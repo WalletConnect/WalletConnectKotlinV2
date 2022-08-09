@@ -20,7 +20,7 @@ import com.walletconnect.sign.core.scope.scope
 import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.sign.json_rpc.model.*
-import com.walletconnect.sign.network.RelayInterface
+import com.walletconect.android_core.network.RelayConnectionInterface
 import com.walletconnect.sign.storage.history.JsonRpcHistory
 import com.walletconnect.sign.util.Empty
 import com.walletconnect.sign.util.Logger
@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 import java.net.HttpURLConnection
 
 internal class RelayerInteractor(
-    private val relay: RelayInterface,
+    private val relay: RelayConnectionInterface,
     private val serializer: JsonRpcSerializer,
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,

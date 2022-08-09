@@ -1,8 +1,8 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.network.data.connection.controller
+package com.walletconect.android_core.network.data.connection.controller
 
-import com.walletconnect.sign.network.data.connection.ConnectionEvent
+import com.walletconect.android_core.network.data.connection.ConnectionEvent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 internal sealed class ConnectionController {
 
     internal class Manual : ConnectionController() {
-        private val _connectionEvent: MutableStateFlow<ConnectionEvent> = MutableStateFlow(ConnectionEvent.DISCONNECT)
+        private val _connectionEvent: MutableStateFlow<ConnectionEvent> = MutableStateFlow(
+            ConnectionEvent.DISCONNECT)
         val connectionEventFlow: StateFlow<ConnectionEvent> = _connectionEvent.asStateFlow()
 
         fun connect() {

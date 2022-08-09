@@ -13,8 +13,8 @@ import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
 import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.sign.network.RelayInterface
-import com.walletconnect.sign.network.model.RelayDTO
+import com.walletconect.android_core.network.RelayConnectionInterface
+import com.walletconect.android_core.network.model.RelayDTO
 import com.walletconnect.sign.storage.history.JsonRpcHistory
 import com.walletconnect.sign.util.Empty
 import com.walletconnect.sign.util.Logger
@@ -36,7 +36,7 @@ internal class RelayerInteractorTest {
         every { encrypt(any(), any(), any(), any()) } returns String.Empty
     }
 
-    private val relay: RelayInterface = mockk {
+    private val relay: RelayConnectionInterface = mockk {
         every { subscriptionRequest } returns flow { }
     }
 
