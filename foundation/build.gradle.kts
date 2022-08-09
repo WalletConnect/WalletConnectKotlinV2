@@ -18,8 +18,9 @@ tasks.withType<KotlinCompile>() {
 }
 
 dependencies {
-    scarlet(includeAndroid = false)
+    scarlet()
     okhttp()
-    koin(includeAndroid = false)
-    moshi_N_ksp()
+    koinJvm()
+    moshi()
+    moshiKsp()
 }

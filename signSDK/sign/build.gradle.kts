@@ -1,7 +1,6 @@
 plugins {
     id("com.android.library")
     kotlin("android")
-    kotlin("kapt")
     id("com.squareup.sqldelight")
     `maven-publish`
     id("com.google.devtools.ksp") version kspVersion
@@ -17,11 +16,11 @@ android {
 
     defaultConfig {
         minSdk = MIN_SDK
-        targetSdk = 32
+        targetSdk = TARGET_SDK
 
         aarMetadata {
             minCompileSdk = MIN_SDK
-            targetSdk = 32
+            targetSdk = TARGET_SDK
         }
 
         testInstrumentationRunner = "com.walletconnect.sign.WCTestRunner"
@@ -76,20 +75,17 @@ afterEvaluate {
 }
 
 dependencies {
-    okhttp()
-    bouncyCastle()
-    coroutines()
-    moshi_N_ksp()
-    scarlet()
-    sqlDelight()
-    security()
-    koin()
-    multibaseJava()
+    implementation(project(":android_core"))
+
+    timber()
+    moshiKsp()
 
     androidXTest()
     jUnit5()
     robolectric()
     mockk()
-    timber()
     testJson()
+    coroutinesTest()
+    scarletTest()
+    sqlDelightTest()
 }

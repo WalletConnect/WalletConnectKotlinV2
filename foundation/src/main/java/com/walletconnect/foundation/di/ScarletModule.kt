@@ -8,7 +8,7 @@ import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.RelayInterface
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
-import com.walletconnect.util.scope
+import com.walletconnect.foundation.util.scope
 import okhttp3.OkHttpClient
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
@@ -46,7 +46,6 @@ fun scarletModule(serverUrl: String, jwt: String): Module = module {
         Scarlet.Builder()
             .backoffStrategy(get<LinearBackoffStrategy>())
             .webSocketFactory(get<OkHttpClient>().newWebSocketFactory("$serverUrl&auth=$jwt"))
-            .lifecycle(get())
             .addMessageAdapterFactory(get<MoshiMessageAdapter.Factory>())
             .addStreamAdapterFactory(get<FlowStreamAdapter.Factory>())
             .build()
