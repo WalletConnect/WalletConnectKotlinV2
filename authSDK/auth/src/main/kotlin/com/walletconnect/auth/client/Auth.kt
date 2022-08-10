@@ -17,6 +17,7 @@ object Auth {
             val description: String,
             val url: String,
             val icons: List<String>,
+            val redirect: String?
         ) : Model()
 
         data class PendingRequest(
@@ -53,10 +54,23 @@ object Auth {
 
         sealed class Cacao: Model() {
 
-            sealed class Caip70: Cacao() {
+            data class Header(val t: String): Cacao()
 
-                data class CacaoSignature(val t: String, val s: String, val m: String?): Caip70()
-            }
+            data class Payload(
+                val iss: String,
+                val domain: String,
+                val aud: String,
+                val version: String,
+                val nonce: String,
+                val iat: String,
+                val nbf: String?,
+                val exp: String?,
+                val statement: String?,
+                val requestId: String?,
+                val resources: List<String>?
+            )
+
+            data class Signature(val t: String, val s: String, val m: String?): Cacao()
         }
     }
 
@@ -79,7 +93,7 @@ object Auth {
             val resources: List<String>?,
         ): Params()
 
-        data class Respond(val id: Long, val signature: Model.Cacao.Caip70.CacaoSignature): Params()
+        data class Respond(val id: Long, val signature: Model.Cacao.Signature): Params()
 
         data class RequestId(val id: Long)
     }
