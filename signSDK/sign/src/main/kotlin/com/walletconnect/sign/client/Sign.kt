@@ -61,7 +61,11 @@ object Sign {
                 val extensions: List<Extension>?,
             ) : Namespace() {
 
-                data class Extension(val chains: List<String>, val methods: List<String>, val events: List<String>)
+                data class Extension(
+                    val chains: List<String>,
+                    val methods: List<String>,
+                    val events: List<String>
+                )
             }
 
             data class Session(
@@ -71,7 +75,11 @@ object Sign {
                 val extensions: List<Extension>?,
             ) : Namespace() {
 
-                data class Extension(val accounts: List<String>, val methods: List<String>, val events: List<String>)
+                data class Extension(
+                    val accounts: List<String>,
+                    val methods: List<String>,
+                    val events: List<String>
+                )
             }
         }
 
@@ -85,7 +93,9 @@ object Sign {
         }
 
         sealed class SessionUpdateResponse : Model() {
-            data class Result(val topic: String, val namespaces: Map<String, Namespace.Session>) : SessionUpdateResponse()
+            data class Result(val topic: String, val namespaces: Map<String, Namespace.Session>) :
+                SessionUpdateResponse()
+
             data class Error(val errorMessage: String) : SessionUpdateResponse()
         }
 
@@ -103,7 +113,10 @@ object Sign {
 
         data class Blockchain(val chains: List<String>) : Model()
 
-        data class UpdatedSession(val topic: String, val namespaces: Map<String, Namespace.Session>) : Model()
+        data class UpdatedSession(
+            val topic: String,
+            val namespaces: Map<String, Namespace.Session>
+        ) : Model()
 
         data class ApprovedSession(
             val topic: String,
@@ -117,7 +130,9 @@ object Sign {
             val expiry: Long,
             val namespaces: Map<String, Namespace.Session>,
             val metaData: AppMetaData?,
-        ) : Model()
+        ) : Model() {
+            val redirect: String? = metaData?.redirect
+        }
 
         data class SessionEvent(
             val name: String,
@@ -217,7 +232,11 @@ object Sign {
 
             private fun String.isValidRelayServerUrl(): Boolean {
                 return this.isNotBlank() && Uri.parse(this)?.let { relayUrl ->
-                    arrayOf("wss", "ws").contains(relayUrl.scheme) && !relayUrl.getQueryParameter("projectId").isNullOrBlank()
+                    arrayOf(
+                        "wss",
+                        "ws"
+                    ).contains(relayUrl.scheme) && !relayUrl.getQueryParameter("projectId")
+                        .isNullOrBlank()
                 } ?: false
             }
         }
@@ -236,13 +255,20 @@ object Sign {
             val relayProtocol: String? = null,
         ) : Params()
 
-        data class Reject(val proposerPublicKey: String, val reason: String, val code: Int) : Params()
+        data class Reject(val proposerPublicKey: String, val reason: String, val code: Int) :
+            Params()
 
         data class Disconnect(val sessionTopic: String) : Params()
 
-        data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) : Params()
+        data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) :
+            Params()
 
-        data class Request(val sessionTopic: String, val method: String, val params: String, val chainId: String) : Params()
+        data class Request(
+            val sessionTopic: String,
+            val method: String,
+            val params: String,
+            val chainId: String
+        ) : Params()
 
         data class Update(
             val sessionTopic: String,
@@ -251,7 +277,8 @@ object Sign {
 
         data class Ping(val topic: String) : Params()
 
-        data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String) : Params()
+        data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String) :
+            Params()
 
         data class Extend(val topic: String) : Params()
     }

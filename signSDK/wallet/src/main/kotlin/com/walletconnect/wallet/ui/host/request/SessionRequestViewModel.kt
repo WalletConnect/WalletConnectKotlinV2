@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class SessionRequestViewModel : ViewModel() {
-    private val _uiState: MutableStateFlow<SessionRequestUI> = MutableStateFlow(SessionRequestUI.Initial)
+    private val _uiState: MutableStateFlow<SessionRequestUI> =
+        MutableStateFlow(SessionRequestUI.Initial)
     val uiState: StateFlow<SessionRequestUI> = _uiState.asStateFlow()
 
     private val _event: MutableSharedFlow<SampleWalletEvents> = MutableSharedFlow()
@@ -29,7 +30,8 @@ class SessionRequestViewModel : ViewModel() {
         val chain: String? = arrayOfArgs[5]
         val method: String = arrayOfArgs[6].toString()
 
-        _uiState.value = SessionRequestUI.Content(topic, icon, peerName, requestId, param, chain, method)
+        _uiState.value =
+            SessionRequestUI.Content(topic, icon, peerName, requestId, param, chain, method)
     }
 
     fun reject(sendSessionRequestResponseDeepLink: (Uri) -> Unit) {
@@ -83,8 +85,9 @@ class SessionRequestViewModel : ViewModel() {
         sessionRequest: SessionRequestUI.Content,
         sendSessionRequestResponseDeepLink: (Uri) -> Unit,
     ) {
-        val session = SignClient.getListOfSettledSessions().find { session -> session.topic == sessionRequest.topic }
-        val deepLinUri = session?.metaData?.redirect?.toUri() ?: "wc:/${sessionRequest.topic})}/request".toUri()
+        val session = SignClient.getSettledSessionByTopic(sessionRequest.topic)
+        val deepLinUri =
+            session?.redirect?.toUri() ?: "wc:/${sessionRequest.topic})}/request".toUri()
 
         sendSessionRequestResponseDeepLink(deepLinUri)
     }
