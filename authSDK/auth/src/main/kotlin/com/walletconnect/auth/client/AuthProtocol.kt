@@ -22,7 +22,10 @@ internal class AuthProtocol : AuthInterface {
         }
     }
 
-    override fun setAuthDelegate(delegate: AuthInterface.AuthDelegate) {
+    override fun setRequesterDelegate(delegate: AuthInterface.RequesterDelegate) {
+    }
+
+    override fun setResponderDelegate(delegate: AuthInterface.ResponderDelegate) {
     }
 
     override fun pair(pair: Auth.Params.Pair, onError: (Auth.Model.Error) -> Unit) {
@@ -44,6 +47,6 @@ internal class AuthProtocol : AuthInterface {
 
     override fun getRequest(params: Auth.Params.RequestId): Auth.Model.Cacao {
         //TODO("Not yet implemented")
-        return Auth.Model.Cacao.Caip70.CacaoSignature("", "", null)
+        return Auth.Model.Cacao.Signature("", "", null)
     }
 }
