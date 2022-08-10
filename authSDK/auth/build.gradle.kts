@@ -39,11 +39,13 @@ dependencies {
     moshiKsp()
 
     androidXTest()
-    jUnit5()
     robolectric()
     mockk()
     testJson()
     coroutinesTest()
     scarletTest()
     sqlDelightTest()
+
+    jUnit5()
+    jUnit5Android()
 }

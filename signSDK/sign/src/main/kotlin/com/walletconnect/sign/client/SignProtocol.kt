@@ -49,7 +49,6 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                     }
                 }
 
-
                 val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
                 val jwt = jwtRepository.generateJWT(initial.relayServerUrl.strippedUrl())
 
