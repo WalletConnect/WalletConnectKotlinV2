@@ -53,10 +53,14 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                 val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
                 val jwt = jwtRepository.generateJWT(initial.relayServerUrl.strippedUrl())
 
-                wcKoinApp.modules(scarletModule(initial.relayServerUrl.addUserAgent(),
-                    jwt,
-                    initial.connectionType.toRelayConnectionType(),
-                    initial.relay))
+                wcKoinApp.modules(
+                    scarletModule(
+                        initial.relayServerUrl.addUserAgent(),
+                        jwt,
+                        initial.connectionType.toRelayConnectionType(),
+                        initial.relay
+                    )
+                )
                 signEngine = wcKoinApp.koin.get()
                 signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
             }
@@ -254,6 +258,14 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     }
 
     @Throws(IllegalStateException::class)
+    override fun getSettledSessionByTopic(topic: String): Sign.Model.Session? {
+        return awaitLock {
+            signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
+                .find { session -> session.topic == topic }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
     override fun getListOfSettledPairings(): List<Sign.Model.Pairing> {
         return awaitLock {
             signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing)
@@ -284,7 +296,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
 
 
     @Throws(IllegalStateException::class)
-    fun checkEngineInitialization() {
+    private fun checkEngineInitialization() {
         check(::signEngine.isInitialized) {
             "SignClient needs to be initialized first using the initialize function"
         }

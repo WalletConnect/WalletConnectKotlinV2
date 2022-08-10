@@ -42,7 +42,8 @@
 
             <deepLink
                 app:action="android.intent.action.VIEW"
-                app:uri="wc:/{topic}@2"  />
+                app:uri="kotlin-wallet-wc:/request" />
+
         </fragment>
 
         <fragment
@@ -81,8 +82,7 @@
 
             <deepLink
                 app:action="android.intent.action.VIEW"
-                app:uri="wc:/{topic}/request" />
-
+                app:uri="wc:/{topic}@2" />
         </fragment>
 
         <fragment
