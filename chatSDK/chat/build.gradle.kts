@@ -40,6 +40,7 @@ dependencies {
 
     androidXTest()
     jUnit5()
+    jUnit5Android()
     robolectric()
     mockk()
     timber()

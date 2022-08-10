@@ -105,12 +105,18 @@ fun DependencyHandlerScope.multibaseJava() {
     "api"("com.github.multiformats:java-multibase:$multibaseVersion") //https://mvnrepository.com/artifact/com.github.multiformats/java-multibase/1.1.0 vulnerability detected with library
 }
 
+fun DependencyHandlerScope.restEasyJava() {
+    "implementation"("org.jboss.resteasy:resteasy-jaxrs:$restEasyVersion")
+}
+
 fun DependencyHandlerScope.jUnit5() {
     "testImplementation"(platform("org.junit:junit-bom:$jUnit5Version"))
     "testImplementation"("org.junit.jupiter:junit-jupiter-api:$jUnit5Version")
     "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine:$jUnit5Version")
     "testImplementation"("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
+}
 
+fun DependencyHandlerScope.jUnit5Android() {
     "androidTestImplementation"("org.junit.jupiter:junit-jupiter-api:$jUnit5Version")
     "androidTestImplementation"("de.mannodermaus.junit5:android-test-core:1.3.0")
     "androidTestRuntimeOnly"("de.mannodermaus.junit5:android-test-runner:1.3.0")

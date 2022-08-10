@@ -52,5 +52,5 @@ fun scarletModule(serverUrl: String, jwt: String): Module = module {
     }
     single { get<Scarlet>().create(RelayService::class.java) }
 
-    single<RelayInterface> { object: BaseRelayClient(get(), get(), scope) {} }
+    factory<RelayInterface> { object: BaseRelayClient(get(), get(), scope) {} }
 }
