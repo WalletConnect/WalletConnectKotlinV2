@@ -6,7 +6,7 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.engine.model.EngineDO
-import com.walletconect.android_core.network.data.connection.ConnectionType
+import com.walletconnect.android_core.network.data.connection.ConnectionType
 
 //TODO: Figure out what to do with models separation
 @JvmSynthetic

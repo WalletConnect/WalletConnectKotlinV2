@@ -1,8 +1,8 @@
 package com.walletconnect.sign.json_rpc.model
 
 import com.walletconnect.sign.core.model.client.Relay
-import com.walletconect.android_core.common.model.type.ClientParams
-import com.walletconect.android_core.json_rpc.model.RelayerDO
+import com.walletconnect.android_core.common.model.type.ClientParams
+import com.walletconnect.android_core.json_rpc.model.RelayerDO
 import com.walletconnect.sign.core.model.vo.IrnParamsVO
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO

@@ -1,6 +1,6 @@
 package com.walletconnect.sign.core.model.vo.sequence
 
-import com.walletconect.android_core.common.model.Expiry
+import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.sign.core.model.type.Sequence
 import com.walletconnect.sign.core.model.vo.PublicKey
 import com.walletconnect.sign.core.model.vo.TopicVO

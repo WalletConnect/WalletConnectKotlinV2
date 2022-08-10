@@ -3,13 +3,13 @@
 package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
-import com.walletconect.android_core.common.model.Expiry
+import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.core.exceptions.peer.PeerReason
 import com.walletconnect.sign.core.model.type.EngineEvent
 import com.walletconnect.sign.core.model.type.enums.Sequences
-import com.walletconect.android_core.common.model.type.enums.Tags
+import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.sign.core.model.utils.Time
 import com.walletconnect.sign.core.model.vo.*
 import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
@@ -28,7 +28,7 @@ import com.walletconnect.sign.core.model.vo.sequence.SessionVO
 import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
 import com.walletconnect.sign.core.model.vo.sync.WCResponseVO
-import com.walletconect.android_core.common.scope.scope
+import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.sign.util.Logger
 import com.walletconnect.sign.core.exceptions.*
 import com.walletconnect.sign.core.exceptions.MALFORMED_PAIRING_URI_MESSAGE

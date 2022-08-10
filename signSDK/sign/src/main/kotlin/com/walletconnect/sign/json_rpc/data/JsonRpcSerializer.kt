@@ -3,12 +3,12 @@
 package com.walletconnect.sign.json_rpc.data
 
 import com.squareup.moshi.Moshi
-import com.walletconect.android_core.common.model.type.ClientParams
-import com.walletconect.android_core.common.model.type.SerializableJsonRpc
+import com.walletconnect.android_core.common.model.type.ClientParams
+import com.walletconnect.android_core.common.model.type.SerializableJsonRpc
 import com.walletconnect.sign.core.model.vo.clientsync.pairing.PairingRpcVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
-import com.walletconect.android_core.json_rpc.model.RelayerDO
+import com.walletconnect.android_core.json_rpc.model.RelayerDO
 import com.walletconnect.sign.util.Empty
 
 internal class JsonRpcSerializer(private val moshi: Moshi) {

@@ -1,6 +1,6 @@
 package com.walletconnect.sign.engine.model.mapper
 
-import com.walletconect.android_core.common.model.Expiry
+import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.core.model.vo.PublicKey
 import com.walletconnect.sign.core.model.vo.TopicVO

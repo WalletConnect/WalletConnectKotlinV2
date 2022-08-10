@@ -1,6 +1,6 @@
 package com.walletconnect.sign.core.model.vo.sync
 
-import com.walletconect.android_core.common.model.type.ClientParams
+import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.sign.core.model.vo.TopicVO
 
 internal data class WCRequestVO(

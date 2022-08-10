@@ -10,6 +10,7 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun relayerModule() = module {
 
+    //todo: move to crypto module in android_core
     single<Codec> {
         ChaChaPolyCodec(get())
     }
@@ -22,6 +23,7 @@ internal fun relayerModule() = module {
         NetworkState(get())
     }
 
+    //todo: change name to JsonRpcInteractor
     single {
         RelayerInteractor(get(), get(), get(), get(), get())
     }

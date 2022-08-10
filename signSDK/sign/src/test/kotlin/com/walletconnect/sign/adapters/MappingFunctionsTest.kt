@@ -34,7 +34,7 @@ internal class MappingFunctionsTest {
 //        assertEquals(pairingProposal.relay, pairingSuccess.relay)
 //        assertEquals(pairingProposal.pairingProposer.publicKey, pairingSuccess.responder.publicKey)
 //        assert((pairingSuccess.expiry.seconds - pairingProposal.ttl.seconds) > 0)
-//        assert(pairingSuccess.state == com.walletconnect.sign.core.model.vo.clientsync.pairing.before.success.PairingStateVO(null))
+//        assert(pairingSuccess.state == com.walletconnect.android_core.di.core.model.vo.clientsync.pairing.before.success.PairingStateVO(null))
 //    }
 //
 //    @Test

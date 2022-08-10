@@ -3,7 +3,7 @@
 package com.walletconnect.sign.engine.model
 
 import com.squareup.moshi.JsonClass
-import com.walletconect.android_core.common.model.Expiry
+import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.model.type.EngineEvent
 import com.walletconnect.sign.core.model.type.Sequence

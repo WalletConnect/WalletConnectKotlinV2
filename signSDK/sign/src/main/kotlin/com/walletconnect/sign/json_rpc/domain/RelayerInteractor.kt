@@ -2,13 +2,13 @@
 
 package com.walletconnect.sign.json_rpc.domain
 
-import com.walletconect.android_core.common.scope.scope
+import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
-import com.walletconect.android_core.common.model.type.ClientParams
-import com.walletconect.android_core.common.model.type.JsonRpcClientSync
-import com.walletconect.android_core.common.model.type.enums.EnvelopeType
-import com.walletconect.android_core.json_rpc.model.RelayerDO
+import com.walletconnect.android_core.common.model.type.ClientParams
+import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
+import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
+import com.walletconnect.android_core.json_rpc.model.RelayerDO
 import com.walletconnect.sign.core.model.vo.IrnParamsVO
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
@@ -20,7 +20,7 @@ import com.walletconnect.sign.core.model.vo.sync.WCResponseVO
 import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.sign.json_rpc.model.*
-import com.walletconect.android_core.network.RelayConnectionInterface
+import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.sign.storage.history.JsonRpcHistory
 import com.walletconnect.sign.util.Empty
 import com.walletconnect.sign.util.Logger
