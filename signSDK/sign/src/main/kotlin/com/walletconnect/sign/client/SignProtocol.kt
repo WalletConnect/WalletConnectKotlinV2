@@ -23,11 +23,9 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var signEngine: SignEngine
     override val relay: RelayInterface by lazy { wcKoinApp.koin.get() }
-    private val mutex = Mutex()
-    private val signProtocolScope =
-        CoroutineScope(
-            SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher()
-        )
+    val mutex = Mutex()
+    val signProtocolScope =
+        CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
     companion object {
         val instance = SignProtocol()
@@ -55,14 +53,10 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                 val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
                 val jwt = jwtRepository.generateJWT(initial.relayServerUrl.strippedUrl())
 
-                wcKoinApp.modules(
-                    scarletModule(
-                        initial.relayServerUrl.addUserAgent(),
-                        jwt,
-                        initial.connectionType.toRelayConnectionType(),
-                        initial.relay
-                    )
-                )
+                wcKoinApp.modules(scarletModule(initial.relayServerUrl.addUserAgent(),
+                    jwt,
+                    initial.connectionType.toRelayConnectionType(),
+                    initial.relay))
                 signEngine = wcKoinApp.koin.get()
                 signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
             }
@@ -79,9 +73,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                     is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                     //Responses
                     is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
-                    is EngineDO.SessionUpdateNamespacesResponse -> delegate.onSessionUpdateResponse(
-                        event.toClientUpdateSessionNamespacesResponse()
-                    )
+                    is EngineDO.SessionUpdateNamespacesResponse -> delegate.onSessionUpdateResponse(event.toClientUpdateSessionNamespacesResponse())
                     //Utils
                     is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
                     is EngineDO.InternalError -> delegate.onError(event.toClientError())
@@ -146,10 +138,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun approveSession(approve: Sign.Params.Approve, onError: (Sign.Model.Error) -> Unit) {
         awaitLock {
             try {
-                signEngine.approve(
-                    approve.proposerPublicKey,
-                    approve.namespaces.toMapOfEngineNamespacesSession()
-                ) { error ->
+                signEngine.approve(approve.proposerPublicKey, approve.namespaces.toMapOfEngineNamespacesSession()) { error ->
                     onError(Sign.Model.Error(error))
                 }
             } catch (error: Exception) {
@@ -188,10 +177,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun respond(response: Sign.Params.Response, onError: (Sign.Model.Error) -> Unit) {
         awaitLock {
             try {
-                signEngine.respondSessionRequest(
-                    response.sessionTopic,
-                    response.jsonRpcResponse.toJsonRpcResponseVO()
-                ) { error ->
+                signEngine.respondSessionRequest(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponseVO()) { error ->
                     onError(Sign.Model.Error(error))
                 }
             } catch (error: Exception) {
@@ -204,10 +190,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun update(update: Sign.Params.Update, onError: (Sign.Model.Error) -> Unit) {
         awaitLock {
             try {
-                signEngine.sessionUpdate(
-                    update.sessionTopic,
-                    update.namespaces.toMapOfEngineNamespacesSession()
-                )
+                signEngine.sessionUpdate(update.sessionTopic, update.namespaces.toMapOfEngineNamespacesSession())
                 { error -> onError(Sign.Model.Error(error)) }
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
@@ -230,10 +213,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun emit(emit: Sign.Params.Emit, onError: (Sign.Model.Error) -> Unit) {
         awaitLock {
             try {
-                signEngine.emit(
-                    emit.topic,
-                    emit.event.toEngineEvent(emit.chainId)
-                ) { error -> onError(Sign.Model.Error(error)) }
+                signEngine.emit(emit.topic, emit.event.toEngineEvent(emit.chainId)) { error -> onError(Sign.Model.Error(error)) }
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
@@ -256,10 +236,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     }
 
     @Throws(IllegalStateException::class)
-    override fun disconnect(
-        disconnect: Sign.Params.Disconnect,
-        onError: (Sign.Model.Error) -> Unit
-    ) {
+    override fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit) {
         awaitLock {
             try {
                 signEngine.disconnect(disconnect.sessionTopic)
@@ -288,8 +265,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     @Throws(IllegalStateException::class)
     override fun getListOfSettledPairings(): List<Sign.Model.Pairing> {
         return awaitLock {
-            signEngine.getListOfSettledPairings()
-                .map(EngineDO.PairingSettle::toClientSettledPairing)
+            signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing)
         }
     }
 
@@ -314,6 +290,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
             }
         }
     }
+
 
     @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {
