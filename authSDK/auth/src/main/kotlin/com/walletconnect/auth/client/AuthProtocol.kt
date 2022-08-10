@@ -18,32 +18,32 @@ internal class AuthProtocol : AuthInterface {
             wcKoinApp.run {
                 androidContext(application)
                 modules()
-
-//                chatEngine = koin.get()
             }
         }
     }
 
     override fun setAuthDelegate(delegate: AuthInterface.AuthDelegate) {
-//        checkEngineInitialization()
-//
-//        scope.launch {
-//            chatEngine.events.collect { event ->
-//                when (event) {
-//                    is EngineDO.Events.OnInvite -> delegate.onInvite(event.toClient())
-//                    is EngineDO.Events.OnJoined -> delegate.onJoined(event.toClient())
-//                    is EngineDO.Events.OnLeft -> Unit
-//                    is EngineDO.Events.OnMessage -> delegate.onMessage(event.toClient())
-//                }
-//            }
-//        }
     }
 
-//
-//    @Throws(IllegalStateException::class)
-//    private fun checkEngineInitialization() {
-//        check(::chatEngine.isInitialized) {
-//            "ChatClient needs to be initialized first using the initialize function"
-//        }
-//    }
+    override fun pair(pair: Auth.Params.Pair, onError: (Auth.Model.Error) -> Unit) {
+        //TODO("Not yet implemented")
+    }
+
+    override fun request(params: Auth.Params.Request) {
+        //TODO("Not yet implemented")
+    }
+
+    override fun respond(params: Auth.Params.Respond) {
+        //TODO("Not yet implemented")
+    }
+
+    override fun getPendingRequest(): Map<Int, Auth.Model.PendingRequest> {
+        //TODO("Not yet implemented")
+        return emptyMap()
+    }
+
+    override fun getRequest(params: Auth.Params.RequestId): Auth.Model.Cacao {
+        //TODO("Not yet implemented")
+        return Auth.Model.Cacao.Caip70.CacaoSignature("", "", null)
+    }
 }
