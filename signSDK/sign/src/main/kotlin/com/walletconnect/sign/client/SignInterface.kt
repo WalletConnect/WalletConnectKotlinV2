@@ -1,6 +1,6 @@
 package com.walletconnect.sign.client
 
-import com.walletconect.android_core.network.RelayConnectionInterface
+import com.walletconnect.android_core.network.RelayConnectionInterface
 
 interface SignInterface {
     interface WalletDelegate {

@@ -3,15 +3,15 @@
 package com.walletconnect.sign.client
 
 import com.walletconnect.sign.client.mapper.*
-import com.walletconnect.sign.core.model.vo.TopicVO
-import com.walletconect.android_core.common.scope.scope
-import com.walletconect.android_core.di.commonModule
-import com.walletconect.android_core.di.networkModule
+import com.walletconnect.android_core.common.scope.scope
+import com.walletconnect.android_core.di.commonModule
+import com.walletconnect.android_core.di.networkModule
 import com.walletconnect.sign.crypto.data.repository.JwtRepository
 import com.walletconnect.sign.di.*
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
-import com.walletconect.android_core.network.RelayConnectionInterface
+import com.walletconnect.android_core.network.RelayConnectionInterface
+import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -262,7 +262,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     @Throws(IllegalStateException::class)
     override fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest> {
         return awaitLock {
-            signEngine.getPendingRequests(TopicVO(topic)).mapToPendingRequests()
+            signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests()
         }
     }
 

@@ -1,9 +1,9 @@
 package com.walletconnect.sign.engine.model.mapper
 
-import com.walletconect.android_core.common.model.Expiry
+import com.walletconnect.android_core.common.model.Expiry
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
@@ -70,11 +70,11 @@ internal fun SessionParamsVO.SessionRequestParams.toEngineDOSessionRequest(
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: TopicVO): EngineDO.SessionDelete =
+internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: Topic): EngineDO.SessionDelete =
     EngineDO.SessionDelete(topic.value, message)
 
 @JvmSynthetic
-internal fun SessionParamsVO.EventParams.toEngineDOSessionEvent(topic: TopicVO): EngineDO.SessionEvent =
+internal fun SessionParamsVO.EventParams.toEngineDOSessionEvent(topic: Topic): EngineDO.SessionEvent =
     EngineDO.SessionEvent(topic.value, event.name, event.data.toString(), chainId)
 
 @JvmSynthetic
@@ -187,7 +187,7 @@ internal fun PairingParamsVO.SessionProposeParams.toSessionApproveParams(selfPub
         responderPublicKey = selfPublicKey.keyAsHex)
 
 @JvmSynthetic
-internal fun SessionParamsVO.SessionRequestParams.toEngineDORequest(topic: TopicVO): EngineDO.Request =
+internal fun SessionParamsVO.SessionRequestParams.toEngineDORequest(topic: Topic): EngineDO.Request =
     EngineDO.Request(topic.value, request.method, request.params, chainId)
 
 @JvmSynthetic

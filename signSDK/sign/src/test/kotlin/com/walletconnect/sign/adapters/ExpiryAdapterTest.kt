@@ -2,7 +2,7 @@ package com.walletconnect.sign.adapters
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import com.walletconect.android_core.common.adapters.ExpiryAdapter
+import com.walletconnect.android_core.common.adapters.ExpiryAdapter
 import com.walletconnect.sign.core.model.vo.Expiry
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

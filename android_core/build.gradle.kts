@@ -34,7 +34,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":foundation"))
+    api(project(":foundation"))
 
     bouncyCastle()
     coroutines()

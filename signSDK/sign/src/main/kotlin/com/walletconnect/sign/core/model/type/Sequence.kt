@@ -1,9 +1,9 @@
 package com.walletconnect.sign.core.model.type
 
-import com.walletconect.android_core.common.model.Expiry
-import com.walletconnect.sign.core.model.vo.TopicVO
+import com.walletconnect.android_core.common.model.Expiry
+import com.walletconnect.foundation.common.model.Topic
 
 internal interface Sequence {
-    val topic: TopicVO
+    val topic: Topic
     val expiry: Expiry
 }

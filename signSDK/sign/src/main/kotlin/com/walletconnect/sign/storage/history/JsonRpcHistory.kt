@@ -3,14 +3,14 @@
 package com.walletconnect.sign.storage.history
 
 import android.content.SharedPreferences
-import com.walletconnect.sign.core.model.vo.TopicVO
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcHistoryVO
 import com.walletconnect.sign.storage.data.dao.rpchistory.JsonRpcHistoryQueries
 import com.walletconnect.sign.util.Logger
 
 internal class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private val jsonRpcHistoryQueries: JsonRpcHistoryQueries) {
 
-    fun setRequest(requestId: Long, topic: TopicVO, method: String, payload: String): Boolean {
+    fun setRequest(requestId: Long, topic: Topic, method: String, payload: String): Boolean {
         return try {
             if (jsonRpcHistoryQueries.doesJsonRpcNotExist(requestId).executeAsOne()) {
                 jsonRpcHistoryQueries.insertOrAbortJsonRpcHistory(requestId, topic.value, method, payload)
@@ -44,7 +44,7 @@ internal class JsonRpcHistory(private val sharedPreferences: SharedPreferences, 
             record
         }
 
-    fun deleteRequests(topic: TopicVO) {
+    fun deleteRequests(topic: Topic) {
         sharedPreferences.all.entries
             .filter { entry -> entry.value == topic.value }
             .forEach { entry -> sharedPreferences.edit().remove(entry.key).apply() }
@@ -52,7 +52,7 @@ internal class JsonRpcHistory(private val sharedPreferences: SharedPreferences, 
         jsonRpcHistoryQueries.deleteJsonRpcHistory(topic.value)
     }
 
-    internal fun getRequests(topic: TopicVO): List<JsonRpcHistoryVO> =
+    internal fun getRequests(topic: Topic): List<JsonRpcHistoryVO> =
         jsonRpcHistoryQueries.getJsonRpcRequestsDaos(topic.value, mapper = ::mapToJsonRpc).executeAsList()
 
     private fun mapToJsonRpc(requestId: Long, topic: String, method: String, body: String, response: String?): JsonRpcHistoryVO =

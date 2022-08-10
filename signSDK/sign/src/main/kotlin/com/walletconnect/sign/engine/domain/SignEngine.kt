@@ -3,13 +3,13 @@
 package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
-import com.walletconect.android_core.common.model.Expiry
+import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.core.exceptions.peer.PeerReason
 import com.walletconnect.sign.core.model.type.EngineEvent
 import com.walletconnect.sign.core.model.type.enums.Sequences
-import com.walletconect.android_core.common.model.type.enums.Tags
+import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.sign.core.model.utils.Time
 import com.walletconnect.sign.core.model.vo.*
 import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
@@ -28,7 +28,8 @@ import com.walletconnect.sign.core.model.vo.sequence.SessionVO
 import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
 import com.walletconnect.sign.core.model.vo.sync.WCResponseVO
-import com.walletconect.android_core.common.scope.scope
+import com.walletconnect.android_core.common.scope.scope
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.util.Logger
 import com.walletconnect.sign.core.exceptions.*
 import com.walletconnect.sign.core.exceptions.MALFORMED_PAIRING_URI_MESSAGE
@@ -76,7 +77,7 @@ internal class SignEngine(
         onFailure: (Throwable) -> Unit,
     ) {
         fun proposeSession(
-            pairingTopic: TopicVO,
+            pairingTopic: Topic,
             proposedRelays: List<EngineDO.RelayProtocolOptions>?,
             proposedSequence: EngineDO.ProposedSequence,
         ) {
@@ -103,24 +104,24 @@ internal class SignEngine(
         }
 
         if (pairingTopic != null) {
-            if (!sequenceStorageRepository.isPairingValid(TopicVO(pairingTopic))) {
+            if (!sequenceStorageRepository.isPairingValid(Topic(pairingTopic))) {
                 throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$pairingTopic")
             }
 
-            val pairing: PairingVO = sequenceStorageRepository.getPairingByTopic(TopicVO(pairingTopic))
+            val pairing: PairingVO = sequenceStorageRepository.getPairingByTopic(Topic(pairingTopic))
             val relay = EngineDO.RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
 
-            proposeSession(TopicVO(pairingTopic), listOf(relay), EngineDO.ProposedSequence.Session)
+            proposeSession(Topic(pairingTopic), listOf(relay), EngineDO.ProposedSequence.Session)
         } else {
             proposePairing(::proposeSession, onFailure)
         }
     }
 
     private fun proposePairing(
-        proposedSession: (TopicVO, List<EngineDO.RelayProtocolOptions>?, EngineDO.ProposedSequence) -> Unit,
+        proposedSession: (Topic, List<EngineDO.RelayProtocolOptions>?, EngineDO.ProposedSequence) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        val pairingTopic: TopicVO = generateTopic()
+        val pairingTopic: Topic = generateTopic()
         val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptionsVO()
         val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
@@ -179,7 +180,7 @@ internal class SignEngine(
         fun sessionSettle(
             requestId: Long,
             proposal: PairingParamsVO.SessionProposeParams,
-            sessionTopic: TopicVO,
+            sessionTopic: Topic,
         ) {
             val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
             val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO())
@@ -225,11 +226,11 @@ internal class SignEngine(
         namespaces: Map<String, EngineDO.Namespace.Session>,
         onFailure: (Throwable) -> Unit,
     ) {
-        if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
+        if (!sequenceStorageRepository.isSessionValid(Topic(topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
+        val session = sequenceStorageRepository.getSessionByTopic(Topic(topic))
 
         if (!session.isSelfController) {
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
@@ -248,7 +249,7 @@ internal class SignEngine(
         val irnParams = IrnParamsVO(Tags.SESSION_UPDATE, TtlVO(Time.dayInSeconds))
 
         sequenceStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id, onSuccess = {
-            relayer.publishJsonRpcRequests(TopicVO(topic), irnParams, sessionUpdate,
+            relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionUpdate,
                 onSuccess = { Logger.log("Update sent successfully") },
                 onFailure = { error ->
                     Logger.error("Sending session update error: $error")
@@ -262,7 +263,7 @@ internal class SignEngine(
     }
 
     internal fun sessionRequest(request: EngineDO.Request, onFailure: (Throwable) -> Unit) {
-        if (!sequenceStorageRepository.isSessionValid(TopicVO(request.topic))) {
+        if (!sequenceStorageRepository.isSessionValid(Topic(request.topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
 
@@ -270,7 +271,7 @@ internal class SignEngine(
             throw WalletConnectException.InvalidRequestException(error.message)
         }
 
-        val namespaces: Map<String, NamespaceVO.Session> = sequenceStorageRepository.getSessionByTopic(TopicVO(request.topic)).namespaces
+        val namespaces: Map<String, NamespaceVO.Session> = sequenceStorageRepository.getSessionByTopic(Topic(request.topic)).namespaces
         Validator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { error ->
             throw WalletConnectException.UnauthorizedMethodException(error.message)
         }
@@ -280,7 +281,7 @@ internal class SignEngine(
         val irnParams = IrnParamsVO(Tags.SESSION_REQUEST, TtlVO(Time.fiveMinutesInSeconds), true)
 
         relayer.publishJsonRpcRequests(
-            TopicVO(request.topic),
+            Topic(request.topic),
             irnParams,
             sessionPayload,
             onSuccess = {
@@ -303,12 +304,12 @@ internal class SignEngine(
     }
 
     internal fun respondSessionRequest(topic: String, jsonRpcResponse: JsonRpcResponseVO, onFailure: (Throwable) -> Unit) {
-        if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
+        if (!sequenceStorageRepository.isSessionValid(Topic(topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
         val irnParams = IrnParamsVO(Tags.SESSION_REQUEST_RESPONSE, TtlVO(Time.fiveMinutesInSeconds))
 
-        relayer.publishJsonRpcResponse(TopicVO(topic), jsonRpcResponse, irnParams,
+        relayer.publishJsonRpcResponse(Topic(topic), jsonRpcResponse, irnParams,
             { Logger.log("Session payload sent successfully") },
             { error ->
                 Logger.error("Sending session payload response error: $error")
@@ -318,12 +319,12 @@ internal class SignEngine(
 
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         val (pingPayload, irnParams) = when {
-            sequenceStorageRepository.isSessionValid(TopicVO(topic)) ->
+            sequenceStorageRepository.isSessionValid(Topic(topic)) ->
                 Pair(
                     SessionRpcVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams()),
                     IrnParamsVO(Tags.SESSION_PING, TtlVO(Time.thirtySeconds))
                 )
-            sequenceStorageRepository.isPairingValid(TopicVO(topic)) ->
+            sequenceStorageRepository.isPairingValid(Topic(topic)) ->
                 Pair(
                     PairingRpcVO.PairingPing(id = generateId(), params = PairingParamsVO.PingParams()),
                     IrnParamsVO(Tags.PAIRING_PING, TtlVO(Time.thirtySeconds))
@@ -331,7 +332,7 @@ internal class SignEngine(
             else -> throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        relayer.publishJsonRpcRequests(TopicVO(topic), irnParams, pingPayload,
+        relayer.publishJsonRpcRequests(Topic(topic), irnParams, pingPayload,
             onSuccess = {
                 Logger.log("Ping sent successfully")
                 scope.launch {
@@ -353,11 +354,11 @@ internal class SignEngine(
     }
 
     internal fun emit(topic: String, event: EngineDO.Event, onFailure: (Throwable) -> Unit) {
-        if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
+        if (!sequenceStorageRepository.isSessionValid(Topic(topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
+        val session = sequenceStorageRepository.getSessionByTopic(Topic(topic))
         if (!session.isSelfController) {
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_EMIT_MESSAGE)
         }
@@ -375,7 +376,7 @@ internal class SignEngine(
         val sessionEvent = SessionRpcVO.SessionEvent(id = generateId(), params = eventParams)
         val irnParams = IrnParamsVO(Tags.SESSION_EVENT, TtlVO(Time.fiveMinutesInSeconds), true)
 
-        relayer.publishJsonRpcRequests(TopicVO(topic), irnParams, sessionEvent,
+        relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionEvent,
             onSuccess = { Logger.log("Event sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending event error: $error")
@@ -385,11 +386,11 @@ internal class SignEngine(
     }
 
     internal fun extend(topic: String, onFailure: (Throwable) -> Unit) {
-        if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
+        if (!sequenceStorageRepository.isSessionValid(Topic(topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        val session = sequenceStorageRepository.getSessionByTopic(TopicVO(topic))
+        val session = sequenceStorageRepository.getSessionByTopic(Topic(topic))
         if (!session.isSelfController) {
             throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_EXTEND_MESSAGE)
         }
@@ -398,11 +399,11 @@ internal class SignEngine(
         }
 
         val newExpiration = session.expiry.seconds + Time.weekInSeconds
-        sequenceStorageRepository.extendSession(TopicVO(topic), newExpiration)
+        sequenceStorageRepository.extendSession(Topic(topic), newExpiration)
         val sessionExtend = SessionRpcVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(newExpiration))
         val irnParams = IrnParamsVO(Tags.SESSION_EXTEND, TtlVO(Time.dayInSeconds))
 
-        relayer.publishJsonRpcRequests(TopicVO(topic), irnParams, sessionExtend,
+        relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionExtend,
             onSuccess = { Logger.error("Session extend sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending session extend error: $error")
@@ -411,17 +412,17 @@ internal class SignEngine(
     }
 
     internal fun disconnect(topic: String) {
-        if (!sequenceStorageRepository.isSessionValid(TopicVO(topic))) {
+        if (!sequenceStorageRepository.isSessionValid(Topic(topic))) {
             throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
         val deleteParams = SessionParamsVO.DeleteParams(PeerReason.UserDisconnected.code, PeerReason.UserDisconnected.message)
         val sessionDelete = SessionRpcVO.SessionDelete(id = generateId(), params = deleteParams)
-        sequenceStorageRepository.deleteSession(TopicVO(topic))
-        relayer.unsubscribe(TopicVO(topic))
+        sequenceStorageRepository.deleteSession(Topic(topic))
+        relayer.unsubscribe(Topic(topic))
         val irnParams = IrnParamsVO(Tags.SESSION_DELETE, TtlVO(Time.dayInSeconds))
 
-        relayer.publishJsonRpcRequests(TopicVO(topic), irnParams, sessionDelete,
+        relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionDelete,
             onSuccess = { Logger.error("Disconnect sent successfully") },
             onFailure = { error -> Logger.error("Sending session disconnect error: $error") })
     }
@@ -438,7 +439,7 @@ internal class SignEngine(
             .map { pairing -> pairing.toEngineDOSettledPairing() }
     }
 
-    internal fun getPendingRequests(topic: TopicVO): List<PendingRequestVO> = relayer.getPendingRequests(topic)
+    internal fun getPendingRequests(topic: Topic): List<PendingRequestVO> = relayer.getPendingRequests(topic)
 
     private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponseVO.JsonRpcResult>) -> Unit = {}) {
         relayer.peerResponse
@@ -833,7 +834,7 @@ internal class SignEngine(
         }
     }
 
-    private fun generateTopic(): TopicVO = TopicVO(randomBytes(32).bytesToHex())
+    private fun generateTopic(): Topic = Topic(randomBytes(32).bytesToHex())
 
     private companion object {
         const val THIRTY_SECONDS_TIMEOUT: Long = 30000L
