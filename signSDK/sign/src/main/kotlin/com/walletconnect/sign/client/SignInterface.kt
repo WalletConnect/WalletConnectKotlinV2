@@ -59,6 +59,7 @@ interface SignInterface {
     interface Websocket {
         val relay: RelayConnectionInterface
 
+        //todo: consider injecting foundation to android_core by api
         fun open(onError: (String) -> Unit) {
             relay.connect { errorMessage -> onError(errorMessage) }
         }

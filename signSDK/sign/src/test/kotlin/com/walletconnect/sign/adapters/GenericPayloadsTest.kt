@@ -1,4 +1,4 @@
-package com.walletconnect.sign
+package com.walletconnect.sign.adapters
 
 import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.Moshi

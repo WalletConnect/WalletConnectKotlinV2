@@ -1,4 +1,4 @@
-package com.walletconnect.sign.common.network.adapters
+package com.walletconnect.sign.adapters
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory

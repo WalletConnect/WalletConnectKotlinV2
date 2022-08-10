@@ -7,12 +7,12 @@ import com.walletconect.android_core.network.data.connection.controller.Connecti
 import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.data.service.RelayService
 import com.walletconnect.foundation.util.Logger
+import com.walletconect.android_core.common.WRONG_CONNECTION_TYPE
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.*
 
-internal class RelayClient internal constructor(
+class RelayClient internal constructor(
     private val connectionController: ConnectionController,
-    relay: RelayService,
+    private val relay: RelayService,
     logger: Logger,
     scope: CoroutineScope,
 ) : BaseRelayClient(relay, logger, scope), RelayConnectionInterface {

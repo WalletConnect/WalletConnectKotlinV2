@@ -4,8 +4,8 @@ val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23
 const val TARGET_SDK: Int = 32
 const val kotlinVersion = "1.6.10"
-
 const val kspVersion = "1.7.10-1.0.6"
+
 const val sqlDelightVersion = "1.5.2"
 const val moshiVersion = "1.13.0"
 const val coroutinesVersion = "1.6.0"

@@ -1,5 +1,5 @@
 package com.walletconect.android_core.network.data.connection
 
-internal enum class ConnectionEvent {
+enum class ConnectionEvent {
     CONNECT, DISCONNECT
 }

@@ -1,4 +1,4 @@
-package com.walletconnect.sign.common
+package com.walletconnect.sign.adapters
 
 internal class MappingFunctionsTest {
 

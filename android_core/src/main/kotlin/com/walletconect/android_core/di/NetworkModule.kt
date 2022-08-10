@@ -19,7 +19,7 @@ import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
 @JvmSynthetic
-internal fun networkModule(serverUrl: String, jwt: String, connectionType: ConnectionType, relay: RelayConnectionInterface?) = module {
+fun networkModule(serverUrl: String, jwt: String, connectionType: ConnectionType, relay: RelayConnectionInterface?) = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
     val TIMEOUT_TIME = 5000L
 

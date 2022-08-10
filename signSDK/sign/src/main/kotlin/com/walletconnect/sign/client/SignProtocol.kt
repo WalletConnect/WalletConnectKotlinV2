@@ -4,7 +4,8 @@ package com.walletconnect.sign.client
 
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.sign.core.model.vo.TopicVO
-import com.walletconnect.sign.core.scope.scope
+import com.walletconect.android_core.common.scope.scope
+import com.walletconect.android_core.di.networkModule
 import com.walletconnect.sign.crypto.data.repository.JwtRepository
 import com.walletconnect.sign.di.*
 import com.walletconnect.sign.engine.domain.SignEngine
@@ -53,7 +54,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                 val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
                 val jwt = jwtRepository.generateJWT(initial.relayServerUrl.strippedUrl())
 
-                wcKoinApp.modules(scarletModule(initial.relayServerUrl.addUserAgent(), jwt, initial.connectionType.toRelayConnectionType(), initial.relay))
+                wcKoinApp.modules(networkModule(initial.relayServerUrl.addUserAgent(), jwt, initial.connectionType.toRelayConnectionType(), initial.relay))
                 signEngine = wcKoinApp.koin.get()
                 signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
             }

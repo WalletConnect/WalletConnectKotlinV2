@@ -3,7 +3,7 @@
 package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.sign.core.exceptions.*
+import com.walletconect.android_core.common.*
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.core.exceptions.peer.PeerReason
@@ -28,7 +28,12 @@ import com.walletconnect.sign.core.model.vo.sequence.SessionVO
 import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
 import com.walletconnect.sign.core.model.vo.sync.WCResponseVO
-import com.walletconnect.sign.core.scope.scope
+import com.walletconect.android_core.common.scope.scope
+import com.walletconnect.sign.core.exceptions.*
+import com.walletconnect.sign.core.exceptions.MALFORMED_PAIRING_URI_MESSAGE
+import com.walletconnect.sign.core.exceptions.NO_SEQUENCE_FOR_TOPIC_MESSAGE
+import com.walletconnect.sign.core.exceptions.NO_SESSION_PROPOSAL
+import com.walletconnect.sign.core.exceptions.PAIRING_NOW_ALLOWED_MESSAGE
 import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.*
@@ -138,7 +143,9 @@ internal class SignEngine(
             ?: throw WalletConnectException.MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
 
         if (sequenceStorageRepository.isPairingValid(walletConnectUri.topic)) {
-            throw WalletConnectException.PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
+            throw WalletConnectException.PairWithExistingPairingIsNotAllowed(
+                PAIRING_NOW_ALLOWED_MESSAGE
+            )
         }
 
         val pairing = PairingVO.createActivePairing(walletConnectUri)
@@ -486,7 +493,9 @@ internal class SignEngine(
         val irnParams = IrnParamsVO(Tags.SESSION_SETTLE, TtlVO(Time.fiveMinutesInSeconds))
 
         if (proposal.params !is PairingParamsVO.SessionProposeParams) {
-            relayer.respondWithError(request, PeerError.SessionSettlementFailed(NAMESPACE_MISSING_PROPOSAL_MESSAGE), irnParams)
+            relayer.respondWithError(request, PeerError.SessionSettlementFailed(
+                NAMESPACE_MISSING_PROPOSAL_MESSAGE
+            ), irnParams)
             return
         }
 
