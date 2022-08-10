@@ -13,6 +13,7 @@ class RelayTest {
 
     @Test
     fun integrationTest() {
+        // TODO: Create two separate koin instances and generate a new JWT for each instance when creating client
         val koinApp: KoinApplication = KoinApplication.init().apply {
             modules(
                 commonModule(),

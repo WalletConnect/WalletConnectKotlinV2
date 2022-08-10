@@ -48,7 +48,7 @@ fun String.hexToBytes(): ByteArray {
 }
 
 @JvmSynthetic
-fun String.addUserAgent(): String {
+internal fun String.addUserAgent(): String {
     return UriBuilder.fromUri(this)
         .queryParam("ua", """wc-2/kotlin-2.0.0-rc.1/android-integration-test""")
         .build()

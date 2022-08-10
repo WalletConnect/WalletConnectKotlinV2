@@ -82,7 +82,6 @@ dependencies {
 
     androidXTest()
     jUnit5()
-    jUnit5()
     robolectric()
     mockk()
     testJson()
