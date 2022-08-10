@@ -12,7 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 
 class RelayClient internal constructor(
     private val connectionController: ConnectionController,
-    private val relay: RelayService,
+    relay: RelayService,
     logger: Logger,
     scope: CoroutineScope,
 ) : BaseRelayClient(relay, logger, scope), RelayConnectionInterface {

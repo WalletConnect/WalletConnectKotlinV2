@@ -1,7 +1,7 @@
-package com.walletconnect.sign.json_rpc.model
+package com.walletconect.android_core.json_rpc.model
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.sign.core.model.type.SerializableJsonRpc
+import com.walletconect.android_core.common.model.type.SerializableJsonRpc
 
 internal sealed class RelayerDO {
 

@@ -1,6 +1,6 @@
 package com.walletconnect.sign.core.model.vo.sync
 
-import com.walletconnect.sign.core.model.type.ClientParams
+import com.walletconect.android_core.common.model.type.ClientParams
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 

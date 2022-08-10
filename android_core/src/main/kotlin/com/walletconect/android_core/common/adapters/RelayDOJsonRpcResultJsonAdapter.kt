@@ -1,12 +1,13 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.core.adapters
+package com.walletconect.android_core.common.adapters
 
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.JsonReader
 import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
+import com.walletconect.android_core.json_rpc.model.RelayerDO
 import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.sign.json_rpc.model.RelayerDO
 import java.lang.reflect.Constructor

@@ -77,9 +77,7 @@ afterEvaluate {
 dependencies {
     implementation(project(":android_core"))
 
-    timber()
     moshiKsp()
-
     androidXTest()
     jUnit5()
     robolectric()

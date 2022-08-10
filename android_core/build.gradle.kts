@@ -47,6 +47,7 @@ dependencies {
     security()
     koinAndroid()
     multibaseJava()
+    timber()
 
     koinTest()
 }

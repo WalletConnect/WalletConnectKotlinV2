@@ -5,9 +5,10 @@ package com.walletconnect.sign.json_rpc.domain
 import com.walletconect.android_core.common.scope.scope
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
-import com.walletconnect.sign.core.model.type.ClientParams
-import com.walletconnect.sign.core.model.type.JsonRpcClientSync
-import com.walletconnect.sign.core.model.type.enums.EnvelopeType
+import com.walletconect.android_core.common.model.type.ClientParams
+import com.walletconect.android_core.common.model.type.JsonRpcClientSync
+import com.walletconect.android_core.common.model.type.enums.EnvelopeType
+import com.walletconect.android_core.json_rpc.model.RelayerDO
 import com.walletconnect.sign.core.model.vo.IrnParamsVO
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.TopicVO
@@ -29,7 +30,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.net.HttpURLConnection
 
-//todo: move to core as abstract
+//todo: move to android_core as abstract
 internal class RelayerInteractor(
     private val relay: RelayConnectionInterface,
     private val serializer: JsonRpcSerializer,

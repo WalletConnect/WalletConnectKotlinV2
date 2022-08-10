@@ -3,10 +3,10 @@
 package com.walletconnect.sign.engine.model
 
 import com.squareup.moshi.JsonClass
+import com.walletconect.android_core.common.model.Expiry
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.model.type.EngineEvent
 import com.walletconnect.sign.core.model.type.Sequence
-import com.walletconnect.sign.core.model.vo.ExpiryVO
 import com.walletconnect.sign.core.model.vo.SymmetricKey
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
@@ -136,14 +136,14 @@ internal sealed class EngineDO {
 
     internal data class SessionExtend(
         override val topic: TopicVO,
-        override val expiry: ExpiryVO,
+        override val expiry: Expiry,
         val namespaces: Map<String, Namespace.Session>,
         val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, EngineEvent
 
     internal data class Session(
         override val topic: TopicVO,
-        override val expiry: ExpiryVO,
+        override val expiry: Expiry,
         val namespaces: Map<String, Namespace.Session>,
         val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, EngineEvent

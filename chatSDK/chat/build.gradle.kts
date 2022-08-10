@@ -42,7 +42,6 @@ dependencies {
     jUnit5()
     robolectric()
     mockk()
-    timber()
     testJson()
     coroutinesTest()
     scarletTest()

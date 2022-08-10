@@ -5,6 +5,7 @@ package com.walletconnect.sign.client
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconect.android_core.common.scope.scope
+import com.walletconect.android_core.di.commonModule
 import com.walletconect.android_core.di.networkModule
 import com.walletconnect.sign.crypto.data.repository.JwtRepository
 import com.walletconnect.sign.di.*

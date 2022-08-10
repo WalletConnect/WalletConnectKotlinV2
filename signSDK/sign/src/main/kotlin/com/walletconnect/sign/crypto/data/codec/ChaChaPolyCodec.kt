@@ -3,7 +3,7 @@
 package com.walletconnect.sign.crypto.data.codec
 
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
-import com.walletconnect.sign.core.model.type.enums.EnvelopeType
+import com.walletconect.android_core.common.model.type.enums.EnvelopeType
 import com.walletconnect.sign.core.model.vo.PublicKey
 import com.walletconnect.sign.core.model.vo.SymmetricKey
 import com.walletconnect.sign.core.model.vo.TopicVO

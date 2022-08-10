@@ -5,8 +5,6 @@ internal data class TopicVO(val value: String)
 
 internal data class TtlVO(val seconds: Long)
 
-internal data class ExpiryVO(val seconds: Long)
-
 internal data class SubscriptionIdVO(val id: String)
 
 @JvmInline

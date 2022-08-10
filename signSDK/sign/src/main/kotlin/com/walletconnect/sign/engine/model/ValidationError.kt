@@ -1,6 +1,5 @@
 package com.walletconnect.sign.engine.model
 
-import com.walletconect.android_core.common.*
 import com.walletconnect.sign.core.exceptions.*
 import com.walletconnect.sign.core.exceptions.NAMESPACE_EVENTS_MISSING_MESSAGE
 import com.walletconnect.sign.core.exceptions.NAMESPACE_KEYS_CAIP_2_MESSAGE

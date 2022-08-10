@@ -1,14 +1,14 @@
-package com.walletconnect.sign.core.adapters
+package com.walletconect.android_core.common.adapters
 
 import com.squareup.moshi.*
-import com.walletconnect.sign.core.model.vo.ExpiryVO
+import com.walletconect.android_core.common.model.Expiry
 
-internal object ExpiryAdapter: JsonAdapter<ExpiryVO>() {
+internal object ExpiryAdapter: JsonAdapter<Expiry>() {
 
     @JvmSynthetic
     @FromJson
     @Qualifier
-    override fun fromJson(reader: JsonReader): ExpiryVO? {
+    override fun fromJson(reader: JsonReader): Expiry? {
         reader.isLenient = true
         var seconds: Long? = null
 
@@ -17,7 +17,7 @@ internal object ExpiryAdapter: JsonAdapter<ExpiryVO>() {
         }
 
         return if (seconds != null) {
-            ExpiryVO(seconds)
+            Expiry(seconds)
         } else {
             null
         }
@@ -25,7 +25,7 @@ internal object ExpiryAdapter: JsonAdapter<ExpiryVO>() {
 
     @JvmSynthetic
     @ToJson
-    override fun toJson(writer: JsonWriter, @Qualifier value: ExpiryVO?) {
+    override fun toJson(writer: JsonWriter, @Qualifier value: Expiry?) {
         if (value != null) {
             writer.value(value.seconds)
         } else {

@@ -1,7 +1,7 @@
 package com.walletconnect.sign.core.model.vo.sequence
 
+import com.walletconect.android_core.common.model.Expiry
 import com.walletconnect.sign.core.model.type.Sequence
-import com.walletconnect.sign.core.model.vo.ExpiryVO
 import com.walletconnect.sign.core.model.vo.PublicKey
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
@@ -14,7 +14,7 @@ import com.walletconnect.sign.engine.model.mapper.toMapOfNamespacesVOSession
 
 internal data class SessionVO(
     override val topic: TopicVO,
-    override val expiry: ExpiryVO,
+    override val expiry: Expiry,
     val relayProtocol: String,
     val relayData: String?,
     val controllerKey: PublicKey? = null,
@@ -41,7 +41,7 @@ internal data class SessionVO(
         ): SessionVO {
             return SessionVO(
                 sessionTopic,
-                ExpiryVO(sessionExpiry),
+                Expiry(sessionExpiry),
                 relayProtocol = proposal.relays.first().protocol,
                 relayData = proposal.relays.first().data,
                 peerPublicKey = PublicKey(proposal.proposer.publicKey),
@@ -65,7 +65,7 @@ internal data class SessionVO(
         ): SessionVO {
             return SessionVO(
                 sessionTopic,
-                ExpiryVO(settleParams.expiry),
+                Expiry(settleParams.expiry),
                 relayProtocol = settleParams.relay.protocol,
                 relayData = settleParams.relay.data,
                 peerPublicKey = PublicKey(settleParams.controller.publicKey),

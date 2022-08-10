@@ -1,6 +1,5 @@
 package com.walletconnect.sign
 
-import com.walletconect.android_core.common.*
 import com.walletconnect.sign.ValidatorTest.Accounts.COSMOSHUB_4_1
 import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_1
 import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_2

@@ -20,9 +20,9 @@ fun commonModule() = module {
         KotlinJsonAdapterFactory()
     }
 
-    single(named("foundation")) {
+    single<Moshi>(named("foundation")) {
         Moshi.Builder()
-            .add { type, _, moshi ->
+            .add { type, _, _ ->
                 when (type.getRawType().name) {
                     SubscriptionId::class.jvmName -> SubscriptionIdAdapter
                     Topic::class.jvmName -> TopicAdapter
@@ -34,8 +34,8 @@ fun commonModule() = module {
             .build()
     }
 
-    single {
-        object: Logger {
+    single<Logger> {
+        object : Logger {
             override fun log(logMsg: String?) {
                 println(logMsg)
             }

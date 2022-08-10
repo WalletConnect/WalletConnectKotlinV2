@@ -3,9 +3,9 @@ package com.walletconnect.sign.json_rpc.domain
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.core.model.client.Relay
-import com.walletconnect.sign.core.model.type.ClientParams
-import com.walletconnect.sign.core.model.type.JsonRpcClientSync
-import com.walletconnect.sign.core.model.type.enums.Tags
+import com.walletconect.android_core.common.model.type.ClientParams
+import com.walletconect.android_core.common.model.type.JsonRpcClientSync
+import com.walletconect.android_core.common.model.type.enums.Tags
 import com.walletconnect.sign.core.model.vo.IrnParamsVO
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.TtlVO

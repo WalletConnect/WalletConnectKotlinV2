@@ -1,4 +1,4 @@
-package com.walletconnect.sign.core.adapters
+package com.walletconect.android_core.common.adapters
 
 import com.squareup.moshi.*
 import okio.Buffer

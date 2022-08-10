@@ -4,7 +4,7 @@ package com.walletconnect.sign.storage.sequence
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.sign.core.model.type.enums.MetaDataType
-import com.walletconnect.sign.core.model.vo.ExpiryVO
+import com.walletconnect.sign.core.model.vo.Expiry
 import com.walletconnect.sign.core.model.vo.PublicKey
 import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
@@ -79,7 +79,7 @@ internal class SequenceStorageRepository(
         pairingDaoQueries.getPairingByTopic(topic.value).executeAsOne().let { entity ->
             PairingVO(
                 topic = TopicVO(entity.topic),
-                expiry = ExpiryVO(entity.expiry),
+                expiry = Expiry(entity.expiry),
                 uri = entity.uri,
                 relayProtocol = entity.relay_protocol,
                 relayData = entity.relay_data,
@@ -337,7 +337,7 @@ internal class SequenceStorageRepository(
     }
 
     private fun verifyExpiry(expiry: Long, topic: TopicVO, deleteSequence: () -> Unit): Boolean {
-        return if (ExpiryVO(expiry).isSequenceValid()) {
+        return if (Expiry(expiry).isSequenceValid()) {
             true
         } else {
             deleteSequence()
@@ -366,7 +366,7 @@ internal class SequenceStorageRepository(
 
         return PairingVO(
             topic = TopicVO(topic),
-            expiry = ExpiryVO(expirySeconds),
+            expiry = Expiry(expirySeconds),
             peerMetaData = peerMetaData,
             relayProtocol = relay_protocol,
             relayData = relay_data,
@@ -411,7 +411,7 @@ internal class SequenceStorageRepository(
 
         return SessionVO(
             topic = TopicVO(topic),
-            expiry = ExpiryVO(expiry),
+            expiry = Expiry(expiry),
             selfMetaData = selfMetaData,
             peerMetaData = peerMetaData,
             selfPublicKey = PublicKey(self_participant),
