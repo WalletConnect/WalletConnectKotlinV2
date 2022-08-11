@@ -50,4 +50,3 @@ class DappSampleActivity : AppCompatActivity(R.layout.activity_dapp) {
         viewModel.disconnect()
     }
 }
-

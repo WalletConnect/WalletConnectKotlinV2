@@ -1,4 +1,4 @@
-package com.walletconnect.sign.utils
+package com.walletconnect.sign.test.utils
 
 import android.app.Application
 

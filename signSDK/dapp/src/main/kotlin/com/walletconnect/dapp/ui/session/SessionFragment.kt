@@ -24,7 +24,7 @@ class SessionFragment : Fragment(R.layout.fragment_session) {
     private val binding by viewBinding(FragmentSessionBinding::bind)
     private val viewModel: SessionViewModel by viewModels()
     private val sessionAccountAdapter by lazy {
-        SessionAdapter() { selectedAccount ->
+        SessionAdapter { selectedAccount ->
             val selectedAccountKey = getString(R.string.selected_account)
             findNavController().navigate(R.id.action_fragment_session_to_fragment_selected_account, bundleOf(selectedAccountKey to selectedAccount))
         }

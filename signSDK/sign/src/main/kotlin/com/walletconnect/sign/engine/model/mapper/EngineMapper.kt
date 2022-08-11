@@ -4,10 +4,7 @@ import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.core.model.vo.ExpiryVO
 import com.walletconnect.sign.core.model.vo.PublicKey
 import com.walletconnect.sign.core.model.vo.TopicVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.SessionParticipantVO
+import com.walletconnect.sign.core.model.vo.clientsync.common.*
 import com.walletconnect.sign.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.sign.core.model.vo.clientsync.pairing.payload.SessionProposerVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
@@ -34,11 +31,11 @@ private fun EngineDO.WalletConnectUri.getQuery(): String {
 
 @JvmSynthetic
 internal fun EngineDO.AppMetaData.toMetaDataVO() =
-    MetaDataVO(name, description, url, icons)
+    MetaDataVO(name, description, url, icons, RedirectVO(redirect))
 
 @JvmSynthetic
 internal fun MetaDataVO.toEngineDOMetaData(): EngineDO.AppMetaData =
-    EngineDO.AppMetaData(name, description, url, icons)
+    EngineDO.AppMetaData(name, description, url, icons, redirect?.native)
 
 @JvmSynthetic
 internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): EngineDO.SessionProposal =
@@ -65,7 +62,7 @@ internal fun SessionParamsVO.SessionRequestParams.toEngineDOSessionRequest(
         request = EngineDO.SessionRequest.JSONRPCRequest(
             id = request.id,
             method = this.request.method,
-            params = this.request.params.toString()
+            params = this.request.params
         )
     )
 
@@ -87,7 +84,9 @@ internal fun SessionVO.toEngineDOApprovedSessionVO(): EngineDO.Session =
             peerMetaData?.name ?: String.Empty,
             peerMetaData?.description ?: String.Empty,
             peerMetaData?.url ?: String.Empty,
-            peerMetaData?.icons?.map { iconUri -> iconUri } ?: listOf())
+            peerMetaData?.icons?.map { iconUri -> iconUri } ?: listOf(),
+            peerMetaData?.redirect?.native
+        )
     )
 
 @JvmSynthetic
@@ -96,7 +95,7 @@ internal fun SessionVO.toEngineDOSessionExtend(expiryVO: ExpiryVO): EngineDO.Ses
 
 @JvmSynthetic
 private fun MetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
-    EngineDO.AppMetaData(name, description, url, icons)
+    EngineDO.AppMetaData(name, description, url, icons, redirect?.native)
 
 @JvmSynthetic
 internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.PairingSettle =
