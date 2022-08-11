@@ -52,10 +52,9 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                     }
                 }
 
-
                 val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
                 val jwt = jwtRepository.generateJWT(initial.relayServerUrl.strippedUrl())
-                val serverUrl = initial.relayServerUrl.addUserAgent()
+                val serverUrl = initial.relayServerUrl.addUserAgent(BuildConfig.sdkVersion)
                 val connectionType = initial.connectionType.toRelayConnectionType()
 
                 wcKoinApp.modules(networkModule(serverUrl, jwt, connectionType, BuildConfig.sdkVersion,initial.relay))

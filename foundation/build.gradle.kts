@@ -17,10 +17,20 @@ tasks.withType<KotlinCompile>() {
     }
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 dependencies {
     scarlet()
     okhttp()
     koinJvm()
     moshi()
     moshiKsp()
+    bouncyCastle()
+    multibaseJava()
+    restEasyJava()
+
+    jUnit5()
+    mockk()
 }
