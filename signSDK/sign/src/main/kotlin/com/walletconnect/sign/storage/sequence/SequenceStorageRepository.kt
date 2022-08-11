@@ -9,6 +9,7 @@ import com.walletconnect.sign.core.model.type.enums.MetaDataType
 import com.walletconnect.sign.core.model.vo.PublicKey
 import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.sign.core.model.vo.clientsync.common.RedirectVO
 import com.walletconnect.sign.core.model.vo.sequence.PairingVO
 import com.walletconnect.sign.core.model.vo.sequence.SessionVO
 import com.walletconnect.sign.storage.data.dao.metadata.MetaDataDaoQueries
@@ -122,6 +123,7 @@ internal class SequenceStorageRepository(
                 metaData.description,
                 metaData.url,
                 metaData.icons,
+                metaData.redirect?.native,
                 MetaDataType.PEER,
                 topic.value
             )
@@ -296,6 +298,7 @@ internal class SequenceStorageRepository(
                 metaData.description,
                 metaData.url,
                 metaData.icons,
+                metaData.redirect?.native,
                 metaDataType
             )
         }
@@ -392,6 +395,7 @@ internal class SequenceStorageRepository(
         peerDesc: String?,
         peerUrl: String?,
         peerIcons: List<String>?,
+        peerNative: String?,
         is_acknowledged: Boolean,
     ): SessionVO {
         val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
@@ -401,7 +405,7 @@ internal class SequenceStorageRepository(
         }
 
         val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
-            MetaDataVO(peerName, peerDesc, peerUrl, peerIcons)
+            MetaDataVO(peerName, peerDesc, peerUrl, peerIcons, RedirectVO(native = peerNative))
         } else {
             null
         }

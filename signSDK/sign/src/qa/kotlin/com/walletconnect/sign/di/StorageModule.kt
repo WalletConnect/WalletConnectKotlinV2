@@ -10,6 +10,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import kotlin.random.Random
 
 @SuppressLint("HardwareIds")
 @JvmSynthetic
@@ -25,7 +26,7 @@ internal fun storageModule(): Module = module {
         AndroidSqliteDriver(
             schema = Database.Schema,
             context = androidContext(),
-            name = "WalletConnectV2.db"
+            name = "WalletConnectV2${Random.nextInt()}.db"
         )
     }
 

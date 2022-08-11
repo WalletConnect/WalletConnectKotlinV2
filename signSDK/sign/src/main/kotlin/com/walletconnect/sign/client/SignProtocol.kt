@@ -256,6 +256,14 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     }
 
     @Throws(IllegalStateException::class)
+    override fun getSettledSessionByTopic(topic: String): Sign.Model.Session? {
+        return awaitLock {
+            signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
+                .find { session -> session.topic == topic }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
     override fun getListOfSettledPairings(): List<Sign.Model.Pairing> {
         return awaitLock {
             signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing)
@@ -283,6 +291,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
             }
         }
     }
+
 
     @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {

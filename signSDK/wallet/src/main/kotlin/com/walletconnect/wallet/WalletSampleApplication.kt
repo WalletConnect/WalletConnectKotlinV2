@@ -37,7 +37,8 @@ class WalletSampleApplication : Application() {
                 name = "Kotlin Wallet",
                 description = "Wallet description",
                 url = "example.wallet",
-                icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media")
+                icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media"),
+                redirect = "kotlin-wallet-wc:/request"
             )
         )
 

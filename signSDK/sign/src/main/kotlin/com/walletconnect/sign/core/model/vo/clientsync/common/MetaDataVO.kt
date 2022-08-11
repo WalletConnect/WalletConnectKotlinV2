@@ -13,4 +13,6 @@ internal data class MetaDataVO(
     val url: String,
     @Json(name = "icons")
     val icons: List<String>,
+    @Json(name = "redirect")
+    val redirect: RedirectVO? = null,
 )

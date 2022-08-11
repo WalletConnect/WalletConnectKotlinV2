@@ -1,9 +1,8 @@
-package com.walletconnect.sign
+package com.walletconnect.sign.test.utils
 
 import android.app.Application
 import android.content.Context
 import androidx.test.runner.AndroidJUnitRunner
-import com.walletconnect.sign.utils.IntegrationTestApplication
 
 class WCTestRunner : AndroidJUnitRunner() {
 
