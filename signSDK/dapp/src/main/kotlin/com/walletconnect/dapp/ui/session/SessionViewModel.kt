@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
-import com.walletconnect.sample_common.EthChains
+import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
@@ -47,8 +47,8 @@ class SessionViewModel : ViewModel() {
             settledSession.namespaces.values.flatMap { it.accounts }
         }.map { caip10Account ->
             val (chainNamespace, chainReference, account) = caip10Account.split(":")
-            val chain = EthChains.values().first { chain ->
-                chain.chainNamespace == chainNamespace && chain.chainReference == chainReference.toInt()
+            val chain = Chains.values().first { chain ->
+                chain.chainNamespace == chainNamespace && chain.chainReference == chainReference
             }
 
             SessionUI(chain.icon, chain.name, account, chain.chainNamespace, chain.chainReference)

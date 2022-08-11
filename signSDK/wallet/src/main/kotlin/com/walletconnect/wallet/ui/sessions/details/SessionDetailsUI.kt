@@ -18,7 +18,7 @@ sealed class SessionDetailsUI {
             val chainName: String,
             @DrawableRes val chainIcon: Int,
             val chainNamespace: String,
-            val chainReference: Int,
+            val chainReference: String,
             val listOfAccounts: List<Account>
         ) {
 
