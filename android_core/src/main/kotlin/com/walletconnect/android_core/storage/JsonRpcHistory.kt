@@ -52,7 +52,7 @@ class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private v
         jsonRpcHistoryQueries.deleteJsonRpcHistory(topic.value)
     }
 
-    internal fun getRequests(topic: Topic): List<JsonRpcHistoryVO> =
+    fun getRequests(topic: Topic): List<JsonRpcHistoryVO> =
         jsonRpcHistoryQueries.getJsonRpcRequestsDaos(topic.value, mapper = ::mapToJsonRpc).executeAsList()
 
     private fun mapToJsonRpc(requestId: Long, topic: String, method: String, body: String, response: String?): JsonRpcHistoryVO =

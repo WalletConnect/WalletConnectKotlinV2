@@ -7,14 +7,14 @@ import com.squareup.moshi.JsonReader
 import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
-import com.walletconnect.android_core.json_rpc.model.RelayerDO
+import com.walletconnect.android_core.json_rpc.model.JsonRpc
 import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
 import java.lang.reflect.Constructor
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
 
-internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) : JsonAdapter<RelayerDO.JsonRpcResponse.JsonRpcResult>() {
+internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) : JsonAdapter<JsonRpc.JsonRpcResponse.JsonRpcResult>() {
     private val options: JsonReader.Options = JsonReader.Options.of("id", "jsonrpc", "result")
     private val longAdapter: JsonAdapter<Long> = moshi.adapter(Long::class.java, emptySet(), "id")
     private val stringAdapter: JsonAdapter<String> = moshi.adapter(String::class.java, emptySet(), "jsonrpc")
@@ -24,13 +24,13 @@ internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) : JsonAdapter<Relay
         moshi.adapter(SessionParamsVO.ApprovalParams::class.java)
 
     @Volatile
-    private var constructorRef: Constructor<RelayerDO.JsonRpcResponse.JsonRpcResult>? = null
+    private var constructorRef: Constructor<JsonRpc.JsonRpcResponse.JsonRpcResult>? = null
 
     public override fun toString(): String = buildString(59) {
         append("GeneratedJsonAdapter(").append("RelayDO.JsonRpcResponse.JsonRpcResult").append(')')
     }
 
-    public override fun fromJson(reader: JsonReader): RelayerDO.JsonRpcResponse.JsonRpcResult {
+    public override fun fromJson(reader: JsonReader): JsonRpc.JsonRpcResponse.JsonRpcResult {
         var id: Long? = null
         var jsonrpc: String? = null
         var result: Any? = null
@@ -62,7 +62,7 @@ internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) : JsonAdapter<Relay
         reader.endObject()
         if (mask0 == 0xfffffffd.toInt()) {
             // All parameters with defaults are set, invoke the constructor directly
-            return RelayerDO.JsonRpcResponse.JsonRpcResult(
+            return JsonRpc.JsonRpcResponse.JsonRpcResult(
                 id = id ?: throw Util.missingProperty("id", "id", reader),
                 jsonrpc = jsonrpc as String,
                 result = result ?: throw Util.missingProperty("result", "result", reader)
@@ -70,9 +70,9 @@ internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) : JsonAdapter<Relay
         } else {
             // Reflectively invoke the synthetic defaults constructor
             @Suppress("UNCHECKED_CAST")
-            val localConstructor: Constructor<RelayerDO.JsonRpcResponse.JsonRpcResult> =
+            val localConstructor: Constructor<JsonRpc.JsonRpcResponse.JsonRpcResult> =
                 this.constructorRef
-                    ?: RelayerDO.JsonRpcResponse.JsonRpcResult::class.java.getDeclaredConstructor(Long::class.javaPrimitiveType,
+                    ?: JsonRpc.JsonRpcResponse.JsonRpcResult::class.java.getDeclaredConstructor(Long::class.javaPrimitiveType,
                         String::class.java, Any::class.java, Int::class.javaPrimitiveType,
                         Util.DEFAULT_CONSTRUCTOR_MARKER).also { this.constructorRef = it }
             return localConstructor.newInstance(
@@ -85,7 +85,7 @@ internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) : JsonAdapter<Relay
         }
     }
 
-    override fun toJson(writer: JsonWriter, value_: RelayerDO.JsonRpcResponse.JsonRpcResult?) {
+    override fun toJson(writer: JsonWriter, value_: JsonRpc.JsonRpcResponse.JsonRpcResult?) {
         if (value_ == null) {
             throw NullPointerException("value_ was null! Wrap in .nullSafe() to write nullable values.")
         }

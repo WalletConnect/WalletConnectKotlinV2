@@ -3,26 +3,26 @@ package com.walletconnect.android_core.json_rpc.model
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android_core.common.model.type.SerializableJsonRpc
 
-internal sealed class RelayerDO {
+sealed class JsonRpc {
 
-    internal sealed class JsonRpcResponse : RelayerDO(), SerializableJsonRpc {
+    sealed class JsonRpcResponse : JsonRpc(), SerializableJsonRpc {
         abstract val id: Long
 
         @JsonClass(generateAdapter = false)
-        internal data class JsonRpcResult(
+        data class JsonRpcResult(
             override val id: Long,
             val jsonrpc: String = "2.0",
             val result: Any,
         ) : JsonRpcResponse()
 
         @JsonClass(generateAdapter = true)
-        internal data class JsonRpcError(
+        data class JsonRpcError(
             override val id: Long,
             val jsonrpc: String = "2.0",
             val error: Error,
         ) : JsonRpcResponse()
 
-        internal data class Error(
+        data class Error(
             val code: Int,
             val message: String,
         )
@@ -32,5 +32,5 @@ internal sealed class RelayerDO {
         val id: Long,
         val jsonrpc: String,
         val method: String
-    ) : RelayerDO()
+    ) : JsonRpc()
 }

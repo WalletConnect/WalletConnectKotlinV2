@@ -11,10 +11,10 @@ import com.walletconnect.sign.core.model.vo.clientsync.common.SessionParticipant
 import com.walletconnect.sign.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.sign.core.model.vo.clientsync.pairing.payload.SessionProposerVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
-import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
+import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sequence.PairingVO
 import com.walletconnect.sign.core.model.vo.sequence.SessionVO
-import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
+import com.walletconnect.android_core.common.model.vo.sync.WCRequestVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
 import com.walletconnect.sign.util.Empty

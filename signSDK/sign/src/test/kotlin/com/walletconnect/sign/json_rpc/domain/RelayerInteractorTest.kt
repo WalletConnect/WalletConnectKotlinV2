@@ -5,10 +5,10 @@ import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
 import com.walletconnect.android_core.common.model.type.enums.Tags
-import com.walletconnect.sign.core.model.vo.IrnParamsVO
+import com.walletconnect.android_core.common.model.vo.IrnParamsVO
 import com.walletconnect.sign.core.model.vo.TtlVO
-import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
-import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
+import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponseVO
+import com.walletconnect.android_core.common.model.vo.sync.WCRequestVO
 import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android_core.network.RelayConnectionInterface
@@ -18,7 +18,7 @@ import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.android_core.storage.JsonRpcHistory
 import com.walletconnect.android_core.utils.Logger
 import com.walletconnect.sign.util.Empty
-import com.walletconnect.sign.util.NetworkState
+import com.walletconnect.android_core.json_rpc.data.NetworkState
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
@@ -55,7 +55,7 @@ internal class RelayerInteractorTest {
 
     private val sut =
         spyk(
-            RelayerInteractor(relay, serializer, chaChaPolyCodec, jsonRpcHistory, networkState),
+            JsonRpcInteractor(relay, serializer, chaChaPolyCodec, jsonRpcHistory, networkState),
             recordPrivateCalls = true
         ) {
             every { checkConnectionWorking() } answers { }

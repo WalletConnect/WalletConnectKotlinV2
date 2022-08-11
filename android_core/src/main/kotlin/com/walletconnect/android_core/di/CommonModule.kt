@@ -12,7 +12,7 @@ import com.walletconnect.android_core.common.adapters.SessionRequestVOJsonAdapte
 import com.walletconnect.android_core.common.adapters.TagsAdapter
 import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.android_core.common.model.type.enums.Tags
-import com.walletconnect.android_core.json_rpc.model.RelayerDO
+import com.walletconnect.android_core.json_rpc.model.JsonRpc
 import com.walletconnect.foundation.util.Logger
 import org.json.JSONObject
 import org.koin.core.qualifier.named
@@ -26,10 +26,10 @@ fun commonModule() = module {
         KotlinJsonAdapterFactory()
     }
 
-    single<PolymorphicJsonAdapterFactory<RelayerDO.JsonRpcResponse>> {
-        PolymorphicJsonAdapterFactory.of(RelayerDO.JsonRpcResponse::class.java, "type")
-            .withSubtype(RelayerDO.JsonRpcResponse.JsonRpcResult::class.java, "result")
-            .withSubtype(RelayerDO.JsonRpcResponse.JsonRpcError::class.java, "error")
+    single<PolymorphicJsonAdapterFactory<JsonRpc.JsonRpcResponse>> {
+        PolymorphicJsonAdapterFactory.of(JsonRpc.JsonRpcResponse::class.java, "type")
+            .withSubtype(JsonRpc.JsonRpcResponse.JsonRpcResult::class.java, "result")
+            .withSubtype(JsonRpc.JsonRpcResponse.JsonRpcError::class.java, "error")
     }
 
     single {
@@ -41,12 +41,11 @@ fun commonModule() = module {
                     JSONObject::class.jvmName -> JSONObjectAdapter
                     Tags::class.jvmName -> TagsAdapter
                     SessionRequestVO::class.jvmName -> SessionRequestVOJsonAdapter(moshi)
-                    RelayerDO.JsonRpcResponse.JsonRpcResult::class.jvmName ->
-                        RelayDOJsonRpcResultJsonAdapter(moshi)
+                    JsonRpc.JsonRpcResponse.JsonRpcResult::class.jvmName -> RelayDOJsonRpcResultJsonAdapter(moshi)
                     else -> null
                 }
             }
-            .add(get<PolymorphicJsonAdapterFactory<RelayerDO.JsonRpcResponse>>())
+            .add(get<PolymorphicJsonAdapterFactory<JsonRpc.JsonRpcResponse>>())
             .build()
     }
 

@@ -1,4 +1,4 @@
-package com.walletconnect.sign.core.model.vo.sync
+package com.walletconnect.android_core.common.model.vo.sync
 
 data class PendingRequestVO(
     val requestId: Long,

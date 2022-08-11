@@ -10,6 +10,7 @@ import com.walletconnect.sign.core.exceptions.peer.PeerReason
 import com.walletconnect.sign.core.model.type.EngineEvent
 import com.walletconnect.sign.core.model.type.enums.Sequences
 import com.walletconnect.android_core.common.model.type.enums.Tags
+import com.walletconnect.android_core.common.model.vo.IrnParamsVO
 import com.walletconnect.sign.core.model.utils.Time
 import com.walletconnect.sign.core.model.vo.*
 import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
@@ -22,12 +23,12 @@ import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.payload.SessionRequestVO
-import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
+import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sequence.PairingVO
 import com.walletconnect.sign.core.model.vo.sequence.SessionVO
-import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
-import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
-import com.walletconnect.sign.core.model.vo.sync.WCResponseVO
+import com.walletconnect.android_core.common.model.vo.sync.PendingRequestVO
+import com.walletconnect.android_core.common.model.vo.sync.WCRequestVO
+import com.walletconnect.android_core.common.model.vo.sync.WCResponseVO
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.android_core.utils.Logger
@@ -39,14 +40,14 @@ import com.walletconnect.sign.core.exceptions.PAIRING_NOW_ALLOWED_MESSAGE
 import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.*
-import com.walletconnect.sign.json_rpc.domain.RelayerInteractor
+import com.walletconnect.sign.json_rpc.domain.JsonRpcInteractor
 import com.walletconnect.sign.storage.sequence.SequenceStorageRepository
 import com.walletconnect.sign.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 internal class SignEngine(
-    private val relayer: RelayerInteractor,
+    private val relayer: JsonRpcInteractor,
     private val crypto: KeyManagementRepository,
     private val sequenceStorageRepository: SequenceStorageRepository,
     private val metaData: EngineDO.AppMetaData,

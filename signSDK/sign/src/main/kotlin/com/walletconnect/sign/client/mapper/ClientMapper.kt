@@ -3,8 +3,8 @@ package com.walletconnect.sign.client.mapper
 import android.net.Uri
 import android.os.Build
 import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
-import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
+import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponseVO
+import com.walletconnect.android_core.common.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.android_core.network.data.connection.ConnectionType
 

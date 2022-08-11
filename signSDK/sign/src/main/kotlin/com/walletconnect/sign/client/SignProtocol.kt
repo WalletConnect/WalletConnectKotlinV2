@@ -7,6 +7,7 @@ import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.di.*
 import com.walletconnect.sign.crypto.data.repository.JwtRepository
 import com.walletconnect.sign.di.*
+import com.walletconnect.sign.di.jsonRpcModule
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.android_core.network.RelayConnectionInterface
