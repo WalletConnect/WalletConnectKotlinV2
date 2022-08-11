@@ -1,5 +1,6 @@
 package com.walletconnect.auth.client
 
+import com.walletconnect.utils.Empty
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 
@@ -45,8 +46,8 @@ internal class AuthProtocol : AuthInterface {
         return emptyMap()
     }
 
-    override fun getRequest(params: Auth.Params.RequestId): Auth.Model.Cacao {
+    override fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response {
         //TODO("Not yet implemented")
-        return Auth.Model.Cacao.Signature("", "", null)
+        return Auth.Model.Response.ErrorResponse(0, String.Empty)
     }
 }

@@ -17,14 +17,14 @@ object Auth {
             val description: String,
             val url: String,
             val icons: List<String>,
-            val redirect: String?
+            val redirect: String?,
         ) : Model()
 
         data class PendingRequest(
             val id: Long,
             val payloadParams: PayloadParams,
-            val message: String
-        ): Model() {
+            val message: String,
+        ) : Model() {
 
             data class PayloadParams(
                 val type: String,
@@ -38,39 +38,66 @@ object Auth {
                 val exp: String?,
                 val statement: String?,
                 val requestId: String,
-                val resources: List<String>?
+                val resources: List<String>?,
             )
         }
 
-        data class AuthRequest(
-            val id: Long,
-            val cacao: Cacao
-        )
-
-        data class AuthResponse(
-            val id: Long,
-            val message: String
-        )
-
-        sealed class Cacao: Model() {
-
-            data class Header(val t: String): Cacao()
-
-            data class Payload(
-                val iss: String,
-                val domain: String,
-                val aud: String,
-                val version: String,
-                val nonce: String,
-                val iat: String,
-                val nbf: String?,
-                val exp: String?,
-                val statement: String?,
-                val requestId: String?,
-                val resources: List<String>?
+        sealed class Events {
+            data class AuthRequest(
+                val id: Long,
+                val cacao: Cacao,
             )
 
-            data class Signature(val t: String, val s: String, val m: String?): Cacao()
+            data class AuthResponse(
+                val id: Long,
+                val message: String,
+            )
+        }
+
+
+        data class Cacao(
+            val header: CacaoHeader,
+            val payload: CacaoPayload,
+            val signature: CacaoSignature,
+        )
+
+        data class CacaoSignature(val t: String, val s: String, val m: String? = null)
+        data class CacaoHeader(val t: String)
+
+        data class CacaoPayload(
+            val iss: String,
+            val domain: String,
+            val aud: String,
+            val version: String,
+            val nonce: String,
+            val iat: String,
+            val nbf: String?,
+            val exp: String?,
+            val statement: String?,
+            val requestId: String?,
+            val resources: List<String>?,
+        ) {
+            val address: String
+            val chainId: String
+
+            init {
+                iss.split(ISS_DELIMITER).apply {
+                    address = get(ISS_POSITION_OF_ADDRESS)
+                    chainId = get(ISS_POSITION_OF_CHAIN_ID)
+                }
+            }
+
+            companion object {
+                private const val ISS_DELIMITER = ":"
+                private const val ISS_POSITION_OF_CHAIN_ID = 3
+                private const val ISS_POSITION_OF_ADDRESS = 4
+            }
+        }
+
+
+        sealed class Response : Model() {
+            data class Cacao(val cacao: Cacao) : Response()
+            data class ErrorResponse(val code: Int, val message: String) : Response()
         }
     }
 
@@ -78,7 +105,7 @@ object Auth {
 
         data class Init(val application: Application, val appMetaData: Model.AppMetaData, val iss: String?) : Params()
 
-        data class Pair(val uri: String): Params()
+        data class Pair(val uri: String) : Params()
 
         data class Request(
             val chainId: String,
@@ -91,9 +118,12 @@ object Auth {
             val statement: String?,
             val requestId: String?,
             val resources: List<String>?,
-        ): Params()
+        ) : Params()
 
-        data class Respond(val id: Long, val signature: Model.Cacao.Signature): Params()
+        sealed class Respond : Params() {
+            data class ResultResponse(val id: Long, val signature: Model.CacaoSignature) : Respond()
+            data class ErrorResponse(val code: Int, val message: String) : Respond()
+        }
 
         data class RequestId(val id: Long)
     }
