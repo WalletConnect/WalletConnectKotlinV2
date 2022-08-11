@@ -37,7 +37,7 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 @SuppressLint("HardwareIds")
-fun storageModule(storageSuffix: String): Module = module {
+fun coreStorageModule(storageSuffix: String): Module = module {
 
     single(named(DITags.RPC_STORE_ALIAS)) {
         val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC

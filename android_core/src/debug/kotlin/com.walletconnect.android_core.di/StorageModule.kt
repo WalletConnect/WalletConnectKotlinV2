@@ -13,7 +13,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @SuppressLint("HardwareIds")
-fun storageModule(storageSuffix: String): Module = module {
+fun coreStorageModule(storageSuffix: String): Module = module {
 
     single<SharedPreferences>(named(DITags.RPC_STORE)) {
         val sharedPrefsFile = "wc_rpc_store$storageSuffix"
