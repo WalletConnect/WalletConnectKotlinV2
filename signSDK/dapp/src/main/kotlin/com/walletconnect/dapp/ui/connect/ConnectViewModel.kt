@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.dapp.ui.connect.chain_select.ChainSelectionUI
-import com.walletconnect.sample_common.EthChains
+import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
@@ -19,7 +19,7 @@ class ConnectViewModel : ViewModel() {
     private val _listOfChainUI: MutableList<ChainSelectionUI> = mutableListOf()
         get() {
             return if (field.isEmpty()) {
-                EthChains.values().mapTo(field) {
+                Chains.values().mapTo(field) {
                     ChainSelectionUI(it.chainName, it.chainNamespace, it.chainReference, it.icon, it.methods, it.events)
                 }
             } else {
