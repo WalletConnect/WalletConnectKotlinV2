@@ -43,7 +43,6 @@ dependencies {
     jUnit5Android()
     robolectric()
     mockk()
-    timber()
     testJson()
     coroutinesTest()
     scarletTest()

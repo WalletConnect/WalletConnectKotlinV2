@@ -2,8 +2,6 @@
 
 package com.walletconnect.util
 
-import com.sun.jndi.toolkit.url.Uri
-import org.apache.http.client.utils.URIBuilder
 import java.security.SecureRandom
 import javax.ws.rs.core.UriBuilder
 

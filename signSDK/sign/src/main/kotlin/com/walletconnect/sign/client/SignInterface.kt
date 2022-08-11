@@ -1,6 +1,6 @@
 package com.walletconnect.sign.client
 
-import com.walletconnect.sign.network.RelayInterface
+import com.walletconnect.android_core.network.RelayConnectionInterface
 
 interface SignInterface {
     interface WalletDelegate {
@@ -57,8 +57,9 @@ interface SignInterface {
     fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest>
 
     interface Websocket {
-        val relay: RelayInterface
+        val relay: RelayConnectionInterface
 
+        //todo: consider injecting foundation to android_core by api
         fun open(onError: (String) -> Unit) {
             relay.connect { errorMessage -> onError(errorMessage) }
         }

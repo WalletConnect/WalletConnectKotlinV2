@@ -2,12 +2,12 @@
 
 package com.walletconnect.sign.crypto
 
-import com.walletconnect.sign.core.model.type.enums.EnvelopeType
+import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.sync.ParticipantsVO
 
 internal interface Codec {
-    fun encrypt(topic: TopicVO, payload: String, envelopeType: EnvelopeType, participants: ParticipantsVO? = null): String
-    fun decrypt(topic: TopicVO, cipherText: String, receiverPublicKey: PublicKey? = null): String
+    fun encrypt(topic: Topic, payload: String, envelopeType: EnvelopeType, participants: ParticipantsVO? = null): String
+    fun decrypt(topic: Topic, cipherText: String, receiverPublicKey: PublicKey? = null): String
 }

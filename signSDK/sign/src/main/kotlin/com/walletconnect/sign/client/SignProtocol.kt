@@ -3,13 +3,16 @@
 package com.walletconnect.sign.client
 
 import com.walletconnect.sign.client.mapper.*
-import com.walletconnect.sign.core.model.vo.TopicVO
-import com.walletconnect.sign.core.scope.scope
+import com.walletconnect.android_core.common.scope.scope
+import com.walletconnect.android_core.di.commonModule
+import com.walletconnect.android_core.di.networkModule
 import com.walletconnect.sign.crypto.data.repository.JwtRepository
 import com.walletconnect.sign.di.*
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
-import com.walletconnect.sign.network.RelayInterface
+import com.walletconnect.android_core.network.RelayConnectionInterface
+import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.sign.BuildConfig
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -22,9 +25,9 @@ import java.util.concurrent.Executors
 internal class SignProtocol : SignInterface, SignInterface.Websocket {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var signEngine: SignEngine
-    override val relay: RelayInterface by lazy { wcKoinApp.koin.get() }
-    val mutex = Mutex()
-    val signProtocolScope =
+    override val relay: RelayConnectionInterface by lazy { wcKoinApp.koin.get() }
+    private val mutex = Mutex()
+    private val signProtocolScope =
         CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
     companion object {
@@ -51,15 +54,10 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
 
                 val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
                 val jwt = jwtRepository.generateJWT(initial.relayServerUrl.strippedUrl())
+                val serverUrl = initial.relayServerUrl.addUserAgent(BuildConfig.sdkVersion)
+                val connectionType = initial.connectionType.toRelayConnectionType()
 
-                wcKoinApp.modules(
-                    scarletModule(
-                        initial.relayServerUrl.addUserAgent(),
-                        jwt,
-                        initial.connectionType.toRelayConnectionType(),
-                        initial.relay
-                    )
-                )
+                wcKoinApp.modules(networkModule(serverUrl, jwt, connectionType, BuildConfig.sdkVersion,initial.relay))
                 signEngine = wcKoinApp.koin.get()
                 signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
             }
@@ -274,7 +272,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     @Throws(IllegalStateException::class)
     override fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest> {
         return awaitLock {
-            signEngine.getPendingRequests(TopicVO(topic)).mapToPendingRequests()
+            signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests()
         }
     }
 

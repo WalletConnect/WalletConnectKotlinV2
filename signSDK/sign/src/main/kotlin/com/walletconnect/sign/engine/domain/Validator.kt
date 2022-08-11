@@ -1,9 +1,13 @@
 package com.walletconnect.sign.engine.domain
 
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.core.exceptions.*
+import com.walletconnect.sign.core.exceptions.NAMESPACE_CHAINS_CAIP_2_MESSAGE
+import com.walletconnect.sign.core.exceptions.NAMESPACE_CHAINS_MISSING_MESSAGE
+import com.walletconnect.sign.core.exceptions.NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE
+import com.walletconnect.sign.core.exceptions.NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE
 import com.walletconnect.sign.core.model.utils.Time
 import com.walletconnect.sign.core.model.vo.SymmetricKey
-import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.engine.model.EngineDO
@@ -17,10 +21,18 @@ internal object Validator {
     internal inline fun validateProposalNamespace(namespaces: Map<String, NamespaceVO.Proposal>, onError: (ValidationError) -> Unit) {
         when {
             !areProposalNamespacesKeysProperlyFormatted(namespaces) -> onError(ValidationError.UnsupportedNamespaceKey)
-            !areChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_MISSING_MESSAGE))
-            !areChainIdsValid(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_CAIP_2_MESSAGE))
-            !areChainsInMatchingNamespace(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE))
-            !areExtensionChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE))
+            !areChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(
+                NAMESPACE_CHAINS_MISSING_MESSAGE
+            ))
+            !areChainIdsValid(namespaces) -> onError(ValidationError.UnsupportedChains(
+                NAMESPACE_CHAINS_CAIP_2_MESSAGE
+            ))
+            !areChainsInMatchingNamespace(namespaces) -> onError(ValidationError.UnsupportedChains(
+                NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE
+            ))
+            !areExtensionChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(
+                NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE
+            ))
         }
     }
 
@@ -33,16 +45,26 @@ internal object Validator {
         when {
             !areSessionNamespacesKeysProperlyFormatted(sessionNamespaces) -> onError(ValidationError.UnsupportedNamespaceKey)
             !areAllProposalNamespacesApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejected)
-            !areAccountsNotEmpty(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_MESSAGE))
-            !areAccountIdsValid(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
+            !areAccountsNotEmpty(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(
+                NAMESPACE_ACCOUNTS_MISSING_MESSAGE
+            ))
+            !areAccountIdsValid(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(
+                NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE
+            ))
             !areAccountsInMatchingNamespace(sessionNamespaces) ->
-                onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
+                onError(ValidationError.UserRejectedChains(
+                    NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE
+                ))
             !areAllChainsApprovedWithAtLeastOneAccount(sessionNamespaces, proposalNamespaces) ->
-                onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE))
+                onError(ValidationError.UserRejectedChains(
+                    NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE
+                ))
             !areAllMethodsApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejectedMethods)
             !areAllEventsApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejectedEvents)
             !areExtensionAccountsNotEmpty(sessionNamespaces) ->
-                onError(ValidationError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
+                onError(ValidationError.UserRejectedChains(
+                    NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE
+                ))
         }
     }
 
@@ -131,7 +153,7 @@ internal object Validator {
         if (symKey.isEmpty()) return null
 
         return EngineDO.WalletConnectUri(
-            topic = TopicVO(pairUri.userInfo),
+            topic = Topic(pairUri.userInfo),
             relay = RelayProtocolOptionsVO(protocol = relayProtocol, data = relayData),
             symKey = SymmetricKey(symKey)
         )

@@ -23,6 +23,7 @@ android {
             targetSdk = TARGET_SDK
         }
 
+        buildConfigField(type = "String", name= "sdkVersion", value = "\"2.0.0-rc.1\"")
         testInstrumentationRunner = "com.walletconnect.sign.test.utils.WCTestRunner"
         testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")
         testInstrumentationRunnerArguments += mutableMapOf("clearPackageData" to "true")
@@ -87,9 +88,7 @@ afterEvaluate {
 dependencies {
     implementation(project(":android_core"))
 
-    timber()
     moshiKsp()
-
     androidXTest()
     jUnit5()
     robolectric()

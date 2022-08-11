@@ -3,7 +3,7 @@ package com.walletconnect.foundation
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.foundation.di.commonModule
 import com.walletconnect.foundation.di.cryptoModule
-import com.walletconnect.foundation.di.scarletModule
+import com.walletconnect.foundation.di.networkModule
 import com.walletconnect.foundation.network.RelayInterface
 import com.walletconnect.util.addUserAgent
 import org.junit.jupiter.api.Test
@@ -23,7 +23,7 @@ class RelayTest {
 
         val serverUrl = "wss://relay.walletconnect.com?projectId=${"test project id"}"
         val jwt = koinApp.koin.get<JwtRepository>().generateJWT(serverUrl)
-        koinApp.modules(scarletModule(serverUrl.addUserAgent(), jwt))
+        koinApp.modules(networkModule(serverUrl.addUserAgent(), "2.0.0-rc.1", jwt))
 
         val clientA = koinApp.koin.get<RelayInterface>()
         val clientB = koinApp.koin.get<RelayInterface>()

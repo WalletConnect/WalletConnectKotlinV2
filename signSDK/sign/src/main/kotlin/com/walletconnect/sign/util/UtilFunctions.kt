@@ -2,13 +2,13 @@
 
 package com.walletconnect.sign.util
 
+import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.sign.core.model.utils.Time
-import com.walletconnect.sign.core.model.vo.ExpiryVO
 import java.lang.System.currentTimeMillis
 import java.security.SecureRandom
 
 @JvmSynthetic
-internal fun ExpiryVO.isSequenceValid(): Boolean = seconds > Time.currentTimeInSeconds
+internal fun Expiry.isSequenceValid(): Boolean = seconds > Time.currentTimeInSeconds
 
 @JvmSynthetic
 internal fun randomBytes(size: Int): ByteArray =
