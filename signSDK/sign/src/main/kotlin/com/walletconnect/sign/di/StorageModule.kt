@@ -2,6 +2,7 @@ package com.walletconnect.sign.di
 
 import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.EnumColumnAdapter
+import com.walletconnect.android_core.di.storageModule
 import com.walletconnect.sign.Database
 import com.walletconnect.sign.core.model.type.enums.MetaDataType
 import com.walletconnect.sign.storage.data.dao.metadata.MetaDataDao
@@ -11,15 +12,16 @@ import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespa
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceExtensionsDao
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDao
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceExtensionsDao
-import com.walletconnect.sign.storage.history.JsonRpcHistory
 import com.walletconnect.sign.storage.sequence.SequenceStorageRepository
+import com.walletconnect.sign.util.Empty
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
-
 @JvmSynthetic
-internal fun sharedStorageModule(): Module = module {
+internal fun storageModule(): Module = module {
+
+    includes(storageModule(String.Empty)) //due to db name and sharedPrefs key should stay the same for sign
 
     single<ColumnAdapter<List<String>, String>> {
         object : ColumnAdapter<List<String>, String> {
@@ -92,10 +94,6 @@ internal fun sharedStorageModule(): Module = module {
     }
 
     single {
-        get<Database>().jsonRpcHistoryQueries
-    }
-
-    single {
         get<Database>().namespaceDaoQueries
     }
 
@@ -121,9 +119,5 @@ internal fun sharedStorageModule(): Module = module {
 
     single {
         SequenceStorageRepository(get(), get(), get(), get(), get(), get(), get(), get(), get())
-    }
-
-    single {
-        JsonRpcHistory(get(named(DITags.RPC_STORE)), get())
     }
 }

@@ -21,9 +21,9 @@ import com.walletconnect.sign.json_rpc.model.*
 import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.network.model.Relay
-import com.walletconnect.sign.storage.history.JsonRpcHistory
+import com.walletconnect.android_core.storage.JsonRpcHistory
 import com.walletconnect.sign.util.Empty
-import com.walletconnect.sign.util.Logger
+import com.walletconnect.android_core.utils.Logger
 import com.walletconnect.sign.util.NetworkState
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*

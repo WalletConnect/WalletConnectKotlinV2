@@ -4,8 +4,7 @@ package com.walletconnect.sign.client
 
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.android_core.common.scope.scope
-import com.walletconnect.android_core.di.commonModule
-import com.walletconnect.android_core.di.networkModule
+import com.walletconnect.android_core.di.*
 import com.walletconnect.sign.crypto.data.repository.JwtRepository
 import com.walletconnect.sign.di.*
 import com.walletconnect.sign.engine.domain.SignEngine
@@ -46,7 +45,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                             commonModule(),
                             cryptoModule(),
                             jsonRpcModule(),
-                            storageModule(), // android_core or sign?
+                            storageModule(),
                             engineModule(metadata)
                         )
                     }

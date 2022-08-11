@@ -1,9 +1,9 @@
-package com.walletconnect.sign.util
+package com.walletconnect.android_core.utils
 
-import com.walletconnect.sign.BuildConfig
+import com.walletconnect.android_core.BuildConfig
 import timber.log.Timber
 
-internal object Logger {
+object Logger {
     const val TAG = "WalletConnectV2"
 
     init {

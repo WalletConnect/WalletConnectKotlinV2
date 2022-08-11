@@ -7,7 +7,6 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.security.KeyStore
 
-@JvmSynthetic
 fun cryptoModule() = module {
     val sharedPrefsFile = "wc_key_store"
     val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC

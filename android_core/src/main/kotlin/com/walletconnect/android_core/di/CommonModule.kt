@@ -20,7 +20,6 @@ import org.koin.dsl.module
 import timber.log.Timber
 import kotlin.reflect.jvm.jvmName
 
-@JvmSynthetic
 fun commonModule() = module {
 
     single {
