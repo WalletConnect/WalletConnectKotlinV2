@@ -34,7 +34,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":foundation"))
+    api(project(":foundation"))
 
     bouncyCastle()
     coroutines()
@@ -50,4 +50,5 @@ dependencies {
     timber()
 
     koinTest()
+    jUnit5()
 }

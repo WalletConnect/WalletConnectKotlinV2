@@ -1,18 +1,21 @@
 package com.walletconnect.wallet.ui.host.request
 
+import android.net.Uri
 import android.util.Log
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.sample_common.tag
-import com.walletconnect.wallet.domain.WalletDelegate
-import com.walletconnect.wallet.ui.SampleWalletEvents
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import com.walletconnect.wallet.domain.WalletDelegate
+import com.walletconnect.wallet.ui.SampleWalletEvents
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class SessionRequestViewModel : ViewModel() {
-    private val _uiState: MutableStateFlow<SessionRequestUI> = MutableStateFlow(SessionRequestUI.Initial)
+    private val _uiState: MutableStateFlow<SessionRequestUI> =
+        MutableStateFlow(SessionRequestUI.Initial)
     val uiState: StateFlow<SessionRequestUI> = _uiState.asStateFlow()
 
     private val _event: MutableSharedFlow<SampleWalletEvents> = MutableSharedFlow()
@@ -27,10 +30,11 @@ class SessionRequestViewModel : ViewModel() {
         val chain: String? = arrayOfArgs[5]
         val method: String = arrayOfArgs[6].toString()
 
-        _uiState.value = SessionRequestUI.Content(topic, icon, peerName, requestId, param, chain, method)
+        _uiState.value =
+            SessionRequestUI.Content(topic, icon, peerName, requestId, param, chain, method)
     }
 
-    fun reject() {
+    fun reject(sendSessionRequestResponseDeepLink: (Uri) -> Unit) {
         (uiState.value as? SessionRequestUI.Content)?.let { sessionRequest ->
             val result = Sign.Params.Response(
                 sessionTopic = sessionRequest.topic,
@@ -44,15 +48,17 @@ class SessionRequestViewModel : ViewModel() {
             SignClient.respond(result) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
-        }
 
-        viewModelScope.launch {
-            _event.emit(SampleWalletEvents.SessionRequestResponded)
-            WalletDelegate.clearCache()
+            viewModelScope.launch {
+                _event.emit(SampleWalletEvents.SessionRequestResponded)
+                WalletDelegate.clearCache()
+            }
+
+            sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
         }
     }
 
-    fun approve() {
+    fun approve(sendSessionRequestResponseDeepLink: (Uri) -> Unit) {
         (uiState.value as? SessionRequestUI.Content)?.let { sessionRequest ->
             val result = Sign.Params.Response(
                 sessionTopic = sessionRequest.topic,
@@ -65,11 +71,24 @@ class SessionRequestViewModel : ViewModel() {
             SignClient.respond(result) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
-        }
 
-        viewModelScope.launch {
-            _event.emit(SampleWalletEvents.SessionRequestResponded)
-            WalletDelegate.clearCache()
+            viewModelScope.launch {
+                _event.emit(SampleWalletEvents.SessionRequestResponded)
+                WalletDelegate.clearCache()
+            }
+
+            sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
         }
+    }
+
+    private fun sendResponseDeepLink(
+        sessionRequest: SessionRequestUI.Content,
+        sendSessionRequestResponseDeepLink: (Uri) -> Unit,
+    ) {
+        val session = SignClient.getSettledSessionByTopic(sessionRequest.topic)
+        val deepLinUri =
+            session?.redirect?.toUri() ?: "wc:/${sessionRequest.topic})}/request".toUri()
+
+        sendSessionRequestResponseDeepLink(deepLinUri)
     }
 }

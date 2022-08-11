@@ -1,9 +1,9 @@
 package com.walletconnect.sign.engine.model.mapper
 
 import com.walletconnect.android_core.common.model.Expiry
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
@@ -34,11 +34,11 @@ private fun EngineDO.WalletConnectUri.getQuery(): String {
 
 @JvmSynthetic
 internal fun EngineDO.AppMetaData.toMetaDataVO() =
-    MetaDataVO(name, description, url, icons)
+    MetaDataVO(name, description, url, icons, RedirectVO(redirect))
 
 @JvmSynthetic
 internal fun MetaDataVO.toEngineDOMetaData(): EngineDO.AppMetaData =
-    EngineDO.AppMetaData(name, description, url, icons)
+    EngineDO.AppMetaData(name, description, url, icons, redirect?.native)
 
 @JvmSynthetic
 internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): EngineDO.SessionProposal =
@@ -65,16 +65,16 @@ internal fun SessionParamsVO.SessionRequestParams.toEngineDOSessionRequest(
         request = EngineDO.SessionRequest.JSONRPCRequest(
             id = request.id,
             method = this.request.method,
-            params = this.request.params.toString()
+            params = this.request.params
         )
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: TopicVO): EngineDO.SessionDelete =
+internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: Topic): EngineDO.SessionDelete =
     EngineDO.SessionDelete(topic.value, message)
 
 @JvmSynthetic
-internal fun SessionParamsVO.EventParams.toEngineDOSessionEvent(topic: TopicVO): EngineDO.SessionEvent =
+internal fun SessionParamsVO.EventParams.toEngineDOSessionEvent(topic: Topic): EngineDO.SessionEvent =
     EngineDO.SessionEvent(topic.value, event.name, event.data.toString(), chainId)
 
 @JvmSynthetic
@@ -87,7 +87,9 @@ internal fun SessionVO.toEngineDOApprovedSessionVO(): EngineDO.Session =
             peerMetaData?.name ?: String.Empty,
             peerMetaData?.description ?: String.Empty,
             peerMetaData?.url ?: String.Empty,
-            peerMetaData?.icons?.map { iconUri -> iconUri } ?: listOf())
+            peerMetaData?.icons?.map { iconUri -> iconUri } ?: listOf(),
+            peerMetaData?.redirect?.native
+        )
     )
 
 @JvmSynthetic
@@ -96,7 +98,7 @@ internal fun SessionVO.toEngineDOSessionExtend(expiryVO: Expiry): EngineDO.Sessi
 
 @JvmSynthetic
 private fun MetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
-    EngineDO.AppMetaData(name, description, url, icons)
+    EngineDO.AppMetaData(name, description, url, icons, redirect?.native)
 
 @JvmSynthetic
 internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.PairingSettle =
@@ -187,7 +189,7 @@ internal fun PairingParamsVO.SessionProposeParams.toSessionApproveParams(selfPub
         responderPublicKey = selfPublicKey.keyAsHex)
 
 @JvmSynthetic
-internal fun SessionParamsVO.SessionRequestParams.toEngineDORequest(topic: TopicVO): EngineDO.Request =
+internal fun SessionParamsVO.SessionRequestParams.toEngineDORequest(topic: Topic): EngineDO.Request =
     EngineDO.Request(topic.value, request.method, request.params, chainId)
 
 @JvmSynthetic

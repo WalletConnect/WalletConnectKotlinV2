@@ -1,8 +1,8 @@
 package com.walletconnect.sign.crypto.data.repository
 
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.core.model.vo.PrivateKey
 import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.crypto.KeyStore
 import com.walletconnect.sign.crypto.managers.KeyChainMock
 import com.walletconnect.sign.util.Empty
@@ -17,7 +17,7 @@ internal class BouncyCastleCryptoRepositoryTest {
     private val privateKey = PrivateKey("36bf507903537de91f5e573666eaa69b1fa313974f23b2b59645f20fea505854")
     private val keyChain: KeyStore = KeyChainMock()
     private val sut = spyk(BouncyCastleKeyManagementRepository(keyChain), recordPrivateCalls = true)
-    private val topicVO = TopicVO("topic")
+    private val topicVO = Topic("topic")
 
     @BeforeEach
     fun setUp() {

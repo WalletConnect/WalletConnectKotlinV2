@@ -115,17 +115,20 @@ internal fun EngineDO.SessionApproved.toClientSessionApproved(): Sign.Model.Appr
     Sign.Model.ApprovedSession(topic, peerAppMetaData?.toClientAppMetaData(), namespaces.toMapOfClientNamespacesSession(), accounts)
 
 @JvmSynthetic
-internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSession(): Map<String, Sign.Model.Namespace.Session> = this.mapValues { (_, namespace) ->
-    Sign.Model.Namespace.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-        Sign.Model.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
-    })
-}
+internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSession(): Map<String, Sign.Model.Namespace.Session> =
+    this.mapValues { (_, namespace) ->
+        Sign.Model.Namespace.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
+            Sign.Model.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
+        })
+    }
 
 @JvmSynthetic
-internal fun Sign.Model.AppMetaData.toEngineAppMetaData() = EngineDO.AppMetaData(name, description, url, icons)
+internal fun Sign.Model.AppMetaData.toEngineAppMetaData() =
+    EngineDO.AppMetaData(name, description, url, icons, redirect)
 
 @JvmSynthetic
-internal fun EngineDO.AppMetaData.toClientAppMetaData() = Sign.Model.AppMetaData(name, description, url, icons)
+internal fun EngineDO.AppMetaData.toClientAppMetaData() =
+    Sign.Model.AppMetaData(name, description, url, icons, redirect)
 
 @JvmSynthetic
 internal fun Sign.Params.Request.toEngineDORequest(): EngineDO.Request =
@@ -163,30 +166,34 @@ internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): S
     Sign.Model.SessionRequestResponse(topic, chainId, method, result.toClientJsonRpcResponse())
 
 @JvmSynthetic
-internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesProposal(): Map<String, EngineDO.Namespace.Proposal> = mapValues { (_, namespace) ->
-    EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-        EngineDO.Namespace.Proposal.Extension(extension.chains, extension.methods, extension.events)
-    })
-}
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesProposal(): Map<String, EngineDO.Namespace.Proposal> =
+    mapValues { (_, namespace) ->
+        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
+            EngineDO.Namespace.Proposal.Extension(extension.chains, extension.methods, extension.events)
+        })
+    }
 
 @JvmSynthetic
-internal fun Map<String, EngineDO.Namespace.Proposal>.toMapOfClientNamespacesProposal(): Map<String, Sign.Model.Namespace.Proposal> = mapValues { (_, namespace) ->
-    Sign.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-        Sign.Model.Namespace.Proposal.Extension(extension.chains, extension.methods, extension.events)
-    })
-}
+internal fun Map<String, EngineDO.Namespace.Proposal>.toMapOfClientNamespacesProposal(): Map<String, Sign.Model.Namespace.Proposal> =
+    mapValues { (_, namespace) ->
+        Sign.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
+            Sign.Model.Namespace.Proposal.Extension(extension.chains, extension.methods, extension.events)
+        })
+    }
 
 @JvmSynthetic
-internal fun Map<String, Sign.Model.Namespace.Session>.toMapOfEngineNamespacesSession(): Map<String, EngineDO.Namespace.Session> = mapValues { (_, namespace) ->
-    EngineDO.Namespace.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-        EngineDO.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
-    })
-}
+internal fun Map<String, Sign.Model.Namespace.Session>.toMapOfEngineNamespacesSession(): Map<String, EngineDO.Namespace.Session> =
+    mapValues { (_, namespace) ->
+        EngineDO.Namespace.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
+            EngineDO.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
+        })
+    }
 
 @JvmSynthetic
-internal fun List<Sign.Model.RelayProtocolOptions>.toListEngineOfRelayProtocolOptions(): List<EngineDO.RelayProtocolOptions> = map { relayProtocolOptions ->
-    EngineDO.RelayProtocolOptions(relayProtocolOptions.protocol, relayProtocolOptions.data)
-}
+internal fun List<Sign.Model.RelayProtocolOptions>.toListEngineOfRelayProtocolOptions(): List<EngineDO.RelayProtocolOptions> =
+    map { relayProtocolOptions ->
+        EngineDO.RelayProtocolOptions(relayProtocolOptions.protocol, relayProtocolOptions.data)
+    }
 
 @JvmSynthetic
 internal fun Sign.ConnectionType.toRelayConnectionType(): ConnectionType {
@@ -210,10 +217,10 @@ internal fun String.strippedUrl() = Uri.parse(this).run {
 }
 
 @JvmSynthetic
-internal fun String.addUserAgent(): String {
+internal fun String.addUserAgent(sdkVersion: String): String {
     return Uri.parse(this).buildUpon()
         // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
-        .appendQueryParameter("ua", """wc-2/kotlin-2.0.0-rc.0/android-${Build.VERSION.RELEASE}""")
+        .appendQueryParameter("ua", """wc-2/kotlin-$sdkVersion/android-${Build.VERSION.RELEASE}""")
         .build()
         .toString()
 }

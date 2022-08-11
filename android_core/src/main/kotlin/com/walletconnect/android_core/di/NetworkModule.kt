@@ -13,22 +13,23 @@ import com.walletconnect.android_core.network.data.connection.controller.Connect
 import com.walletconnect.android_core.network.data.connection.lifecycle.ManualConnectionLifecycle
 import com.walletconnect.android_core.network.domain.RelayClient
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
+import com.walletconnect.foundation.di.networkModule as foundationNetworkModule
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
-@JvmSynthetic
-fun networkModule(serverUrl: String, jwt: String, connectionType: ConnectionType, relay: RelayConnectionInterface?) = module {
-    val DEFAULT_BACKOFF_SECONDS = 5L
+fun networkModule(serverUrl: String, jwt: String, connectionType: ConnectionType, sdkVersion: String, relay: RelayConnectionInterface?) = module {
     val TIMEOUT_TIME = 5000L
+
+    includes(foundationNetworkModule(serverUrl, sdkVersion, jwt))
 
     // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
     single {
         OkHttpClient.Builder()
             .addInterceptor {
                 val updatedRequest = it.request().newBuilder()
-                    .addHeader("User-Agent", """wc-2/kotlin-2.0.0-rc.0/android-${Build.VERSION.RELEASE}""")
+                    .addHeader("User-Agent", """wc-2/kotlin-$sdkVersion/android-${Build.VERSION.RELEASE}""")
                     .build()
 
                 it.proceed(updatedRequest)
@@ -41,10 +42,6 @@ fun networkModule(serverUrl: String, jwt: String, connectionType: ConnectionType
     }
 
     single { MoshiMessageAdapter.Factory(get()) }
-
-    single { FlowStreamAdapter.Factory() }
-
-    single { LinearBackoffStrategy(TimeUnit.SECONDS.toMillis(DEFAULT_BACKOFF_SECONDS)) }
 
     single {
         if (connectionType == ConnectionType.MANUAL) {

@@ -3,17 +3,16 @@
 package com.walletconnect.sign.client
 
 import com.walletconnect.sign.client.mapper.*
-import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.di.commonModule
-import com.walletconnect.android_core.di.cryptoModule
-import com.walletconnect.android_core.di.jsonRpcModule
 import com.walletconnect.android_core.di.networkModule
 import com.walletconnect.sign.crypto.data.repository.JwtRepository
 import com.walletconnect.sign.di.*
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.android_core.network.RelayConnectionInterface
+import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.sign.BuildConfig
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -53,11 +52,12 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                     }
                 }
 
-
                 val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
                 val jwt = jwtRepository.generateJWT(initial.relayServerUrl.strippedUrl())
+                val serverUrl = initial.relayServerUrl.addUserAgent(BuildConfig.sdkVersion)
+                val connectionType = initial.connectionType.toRelayConnectionType()
 
-                wcKoinApp.modules(networkModule(initial.relayServerUrl.addUserAgent(), jwt, initial.connectionType.toRelayConnectionType(), initial.relay))
+                wcKoinApp.modules(networkModule(serverUrl, jwt, connectionType, BuildConfig.sdkVersion,initial.relay))
                 signEngine = wcKoinApp.koin.get()
                 signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
             }
@@ -255,6 +255,14 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     }
 
     @Throws(IllegalStateException::class)
+    override fun getSettledSessionByTopic(topic: String): Sign.Model.Session? {
+        return awaitLock {
+            signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
+                .find { session -> session.topic == topic }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
     override fun getListOfSettledPairings(): List<Sign.Model.Pairing> {
         return awaitLock {
             signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing)
@@ -264,7 +272,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     @Throws(IllegalStateException::class)
     override fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest> {
         return awaitLock {
-            signEngine.getPendingRequests(TopicVO(topic)).mapToPendingRequests()
+            signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests()
         }
     }
 

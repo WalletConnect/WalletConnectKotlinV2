@@ -13,7 +13,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class SelectedAccountViewModel : ViewModel() {
-    private val _uiState: MutableStateFlow<SelectedAccountUI> = MutableStateFlow(SelectedAccountUI.Initial)
+    private val _uiState: MutableStateFlow<SelectedAccountUI> =
+        MutableStateFlow(SelectedAccountUI.Initial)
     val uiState: StateFlow<SelectedAccountUI> = _uiState.asStateFlow()
 
     private val _event: MutableSharedFlow<SampleDappEvents> = MutableSharedFlow()
@@ -32,11 +33,13 @@ class SelectedAccountViewModel : ViewModel() {
                     is Sign.Model.SessionRequestResponse -> {
                         val request = when (walletEvent.result) {
                             is Sign.Model.JsonRpcResponse.JsonRpcResult -> {
-                                val successResult = (walletEvent.result as Sign.Model.JsonRpcResponse.JsonRpcResult)
+                                val successResult =
+                                    (walletEvent.result as Sign.Model.JsonRpcResponse.JsonRpcResult)
                                 SampleDappEvents.RequestSuccess(successResult.result)
                             }
                             is Sign.Model.JsonRpcResponse.JsonRpcError -> {
-                                val errorResult = (walletEvent.result as Sign.Model.JsonRpcResponse.JsonRpcError)
+                                val errorResult =
+                                    (walletEvent.result as Sign.Model.JsonRpcResponse.JsonRpcError)
                                 SampleDappEvents.RequestPeerError("Error Message: ${errorResult.message}\n Error Code: ${errorResult.code}")
                             }
                         }
@@ -71,11 +74,18 @@ class SelectedAccountViewModel : ViewModel() {
 
             SignClient.request(requestParams) {
                 viewModelScope.launch {
-                    _event.emit(SampleDappEvents.RequestError(it.throwable.localizedMessage ?: "Error trying to send request"))
+                    _event.emit(
+                        SampleDappEvents.RequestError(
+                            it.throwable.localizedMessage ?: "Error trying to send request"
+                        )
+                    )
                 }
             }
 
-            val sessionRequestDeepLinkUri = "wc:/${requestParams.sessionTopic})}/request".toUri()
+            val sessionRequestDeepLinkUri =
+                SignClient.getSettledSessionByTopic(requestParams.sessionTopic)?.redirect?.toUri()
+                    ?: "wc:/${requestParams.sessionTopic}/request".toUri()
+
             sendSessionRequestDeepLink(sessionRequestDeepLinkUri)
         }
     }

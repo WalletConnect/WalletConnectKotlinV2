@@ -1,8 +1,8 @@
 package com.walletconnect.sign.core.model.vo.sequence
 
 import com.walletconnect.android_core.common.model.Expiry
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.core.model.type.Sequence
-import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.engine.model.EngineDO
@@ -10,7 +10,7 @@ import com.walletconnect.sign.engine.model.mapper.toAbsoluteString
 import com.walletconnect.sign.util.Expiration
 
 internal data class PairingVO(
-    override val topic: TopicVO,
+    override val topic: Topic,
     override val expiry: Expiry,
     val peerMetaData: MetaDataVO? = null,
     val relayProtocol: String,
@@ -21,7 +21,7 @@ internal data class PairingVO(
 
     companion object {
 
-        internal fun createInactivePairing(topic: TopicVO, relay: RelayProtocolOptionsVO, uri: String): PairingVO {
+        internal fun createInactivePairing(topic: Topic, relay: RelayProtocolOptionsVO, uri: String): PairingVO {
             return PairingVO(
                 topic,
                 Expiry(Expiration.inactivePairing),

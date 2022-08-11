@@ -6,7 +6,6 @@ import com.walletconnect.sign.core.exceptions.NAMESPACE_KEYS_CAIP_2_MESSAGE
 import com.walletconnect.sign.core.exceptions.NAMESPACE_KEYS_MISSING_MESSAGE
 import com.walletconnect.sign.core.exceptions.NAMESPACE_METHODS_MISSING_MESSAGE
 
-
 internal sealed class ValidationError(val message: String) {
 
     //Namespaces validation

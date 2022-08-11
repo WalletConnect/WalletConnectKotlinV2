@@ -1,5 +1,6 @@
 package com.walletconnect.sign
 
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.ValidatorTest.Accounts.COSMOSHUB_4_1
 import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_1
 import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_2
@@ -25,7 +26,6 @@ import com.walletconnect.sign.ValidatorTest.Namespaces.EIP155
 import com.walletconnect.sign.core.exceptions.*
 import com.walletconnect.sign.core.model.utils.Time
 import com.walletconnect.sign.core.model.vo.SymmetricKey
-import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.engine.domain.Validator
@@ -733,7 +733,7 @@ class ValidatorTest {
     @Test
     fun `parse walletconnect uri to absolute string`() {
         val uri = EngineDO.WalletConnectUri(
-            TopicVO("11112222244444"),
+            Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
             RelayProtocolOptionsVO("irn", "teeestData")
         )
@@ -741,7 +741,7 @@ class ValidatorTest {
         assertEquals(uri.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=irn&relay-data=teeestData&symKey=0x12321321312312312321")
 
         val uri2 = EngineDO.WalletConnectUri(
-            TopicVO("11112222244444"),
+            Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
             RelayProtocolOptionsVO("irn")
         )

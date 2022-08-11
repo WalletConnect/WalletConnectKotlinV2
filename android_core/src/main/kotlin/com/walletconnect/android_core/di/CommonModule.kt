@@ -7,8 +7,8 @@ import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.android_core.common.adapters.*
 import com.walletconnect.android_core.common.adapters.ExpiryAdapter
 import com.walletconnect.android_core.common.adapters.JSONObjectAdapter
-//import com.walletconnect.android_core.common.adapters.RelayDOJsonRpcResultJsonAdapter
-//import com.walletconnect.android_core.common.adapters.SessionRequestVOJsonAdapter
+import com.walletconnect.android_core.common.adapters.RelayDOJsonRpcResultJsonAdapter
+import com.walletconnect.android_core.common.adapters.SessionRequestVOJsonAdapter
 import com.walletconnect.android_core.common.adapters.TagsAdapter
 import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.android_core.common.model.type.enums.Tags
@@ -41,9 +41,9 @@ fun commonModule() = module {
                     Expiry::class.jvmName -> ExpiryAdapter
                     JSONObject::class.jvmName -> JSONObjectAdapter
                     Tags::class.jvmName -> TagsAdapter
-//                    SessionRequestVO::class.jvmName -> SessionRequestVOJsonAdapter(moshi)
-//                    RelayerDO.JsonRpcResponse.JsonRpcResult::class.jvmName ->
-//                        RelayDOJsonRpcResultJsonAdapter(moshi)
+                    SessionRequestVO::class.jvmName -> SessionRequestVOJsonAdapter(moshi)
+                    RelayerDO.JsonRpcResponse.JsonRpcResult::class.jvmName ->
+                        RelayDOJsonRpcResultJsonAdapter(moshi)
                     else -> null
                 }
             }

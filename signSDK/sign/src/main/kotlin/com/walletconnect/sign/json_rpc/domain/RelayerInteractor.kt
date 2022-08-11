@@ -8,10 +8,8 @@ import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
-import com.walletconnect.android_core.json_rpc.model.RelayerDO
 import com.walletconnect.sign.core.model.vo.IrnParamsVO
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
-import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
@@ -21,6 +19,8 @@ import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.sign.json_rpc.model.*
 import com.walletconnect.android_core.network.RelayConnectionInterface
+import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.sign.storage.history.JsonRpcHistory
 import com.walletconnect.sign.util.Empty
 import com.walletconnect.sign.util.Logger
@@ -88,7 +88,7 @@ internal class RelayerInteractor(
     }
 
     internal fun publishJsonRpcRequests(
-        topic: TopicVO,
+        topic: Topic,
         params: IrnParamsVO,
         payload: JsonRpcClientSync<*>,
         onSuccess: () -> Unit = {},
@@ -110,7 +110,7 @@ internal class RelayerInteractor(
     }
 
     internal fun publishJsonRpcResponse(
-        topic: TopicVO,
+        topic: Topic,
         response: JsonRpcResponseVO,
         params: IrnParamsVO,
         onSuccess: () -> Unit = {},
@@ -171,7 +171,7 @@ internal class RelayerInteractor(
         }
     }
 
-    internal fun subscribe(topic: TopicVO) {
+    internal fun subscribe(topic: Topic) {
         checkConnectionWorking()
         relay.subscribe(topic.value) { result ->
             result.fold(
@@ -181,7 +181,7 @@ internal class RelayerInteractor(
         }
     }
 
-    internal fun unsubscribe(topic: TopicVO) {
+    internal fun unsubscribe(topic: Topic) {
         checkConnectionWorking()
         if (subscriptions.contains(topic.value)) {
             val subscriptionId = SubscriptionIdVO(subscriptions[topic.value].toString())
@@ -197,7 +197,7 @@ internal class RelayerInteractor(
         }
     }
 
-    internal fun getPendingRequests(topic: TopicVO): List<PendingRequestVO> =
+    internal fun getPendingRequests(topic: Topic): List<PendingRequestVO> =
         jsonRpcHistory.getRequests(topic)
             .filter { entry -> entry.response == null && entry.method == JsonRpcMethod.WC_SESSION_REQUEST }
             .filter { entry -> serializer.tryDeserialize<SessionRpcVO.SessionRequest>(entry.body) != null }
@@ -207,7 +207,7 @@ internal class RelayerInteractor(
         scope.launch(exceptionHandler) {
             relay.subscriptionRequest
                 .map { relayRequest ->
-                    val topic = TopicVO(relayRequest.subscriptionTopic)
+                    val topic = Topic(relayRequest.subscriptionTopic)
                     val message = chaChaPolyCodec.decrypt(topic, relayRequest.message)
 
                     Pair(message, topic)
@@ -216,7 +216,7 @@ internal class RelayerInteractor(
         }
     }
 
-    private suspend fun manageSubscriptions(decryptedMessage: String, topic: TopicVO) {
+    private suspend fun manageSubscriptions(decryptedMessage: String, topic: Topic) {
         serializer.tryDeserialize<RelayerDO.ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
             handleRequest(clientJsonRpc, topic, decryptedMessage)
         } ?: serializer.tryDeserialize<RelayerDO.JsonRpcResponse.JsonRpcResult>(decryptedMessage)?.let { result ->
@@ -226,7 +226,7 @@ internal class RelayerInteractor(
         } ?: handleError("RelayerInteractor: Received unknown object type")
     }
 
-    private suspend fun handleRequest(clientJsonRpc: RelayerDO.ClientJsonRpc, topic: TopicVO, decryptedMessage: String) {
+    private suspend fun handleRequest(clientJsonRpc: RelayerDO.ClientJsonRpc, topic: Topic, decryptedMessage: String) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(WCRequestVO(topic, clientJsonRpc.id, clientJsonRpc.method, params))

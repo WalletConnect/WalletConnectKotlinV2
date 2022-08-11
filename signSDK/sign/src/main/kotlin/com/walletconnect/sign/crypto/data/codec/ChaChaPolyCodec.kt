@@ -4,9 +4,9 @@ package com.walletconnect.sign.crypto.data.codec
 
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.core.model.vo.PublicKey
 import com.walletconnect.sign.core.model.vo.SymmetricKey
-import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.core.model.vo.sync.ParticipantsVO
 import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.sign.crypto.KeyManagementRepository
@@ -33,7 +33,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         WalletConnectException.UnknownEnvelopeTypeException::class,
         WalletConnectException.MissingParticipantsException::class
     )
-    override fun encrypt(topic: TopicVO, jsonRpcPayload: String, envelopeType: EnvelopeType, participants: ParticipantsVO?): String {
+    override fun encrypt(topic: Topic, jsonRpcPayload: String, envelopeType: EnvelopeType, participants: ParticipantsVO?): String {
         val input = jsonRpcPayload.toByteArray(Charsets.UTF_8)
         val nonceBytes = randomBytes(NONCE_SIZE)
 
@@ -48,7 +48,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         WalletConnectException.UnknownEnvelopeTypeException::class,
         WalletConnectException.MissingReceiverPublicKeyException::class
     )
-    override fun decrypt(topic: TopicVO, encryptedPayload: String, receiverPublicKey: PublicKey?): String {
+    override fun decrypt(topic: Topic, encryptedPayload: String, receiverPublicKey: PublicKey?): String {
         val encryptedPayloadBytes = Base64.decode(encryptedPayload)
 
         return when (val envelopeType = encryptedPayloadBytes.envelopeType) {
@@ -58,7 +58,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         }
     }
 
-    private fun decryptType0(topic: TopicVO, encryptedPayloadBytes: ByteArray): String {
+    private fun decryptType0(topic: Topic, encryptedPayloadBytes: ByteArray): String {
         val envelopeType = ByteArray(ENVELOPE_TYPE_SIZE)
         val nonce = ByteArray(NONCE_SIZE)
         val encryptedMessageBytes = ByteArray(encryptedPayloadBytes.size - NONCE_SIZE - ENVELOPE_TYPE_SIZE)
@@ -97,7 +97,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         return String(decryptedTextBytes, Charsets.UTF_8)
     }
 
-    private fun encryptEnvelopeType0(topic: TopicVO, nonceBytes: ByteArray, input: ByteArray, envelopeType: EnvelopeType): String {
+    private fun encryptEnvelopeType0(topic: Topic, nonceBytes: ByteArray, input: ByteArray, envelopeType: EnvelopeType): String {
         val symmetricKey = keyManagementRepository.getSymmetricKey(topic)
         val cipherBytes = encryptPayload(symmetricKey, nonceBytes, input)
         val payloadSize = cipherBytes.size + NONCE_SIZE + ENVELOPE_TYPE_SIZE

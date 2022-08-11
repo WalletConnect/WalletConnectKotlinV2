@@ -23,8 +23,10 @@ android {
             targetSdk = TARGET_SDK
         }
 
-        testInstrumentationRunner = "com.walletconnect.sign.WCTestRunner"
+        buildConfigField(type = "String", name= "sdkVersion", value = "\"2.0.0-rc.1\"")
+        testInstrumentationRunner = "com.walletconnect.sign.test.utils.WCTestRunner"
         testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")
+        testInstrumentationRunnerArguments += mutableMapOf("clearPackageData" to "true")
     }
 
     buildTypes {
@@ -35,7 +37,16 @@ android {
                 "proguard-rules.pro"
             )
         }
+        create("qa"){
+            initWith(getByName("debug"))
+            signingConfig = signingConfigs.getByName("debug")
+
+            buildConfigField("String", "PROJECT_ID", "\"${System.getenv("TEST_PROJECT_ID") ?: ""}\"")
+            buildConfigField("String", "WC_RELAY_URL", "\"${System.getenv("TEST_RELAY_URL") ?: ""}\"")
+        }
     }
+
+    testBuildType = "qa"
 
     compileOptions {
         sourceCompatibility = jvmVersion

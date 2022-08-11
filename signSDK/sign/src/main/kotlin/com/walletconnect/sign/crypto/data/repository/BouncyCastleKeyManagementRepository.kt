@@ -2,10 +2,10 @@
 
 package com.walletconnect.sign.crypto.data.repository
 
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.core.model.vo.PrivateKey
 import com.walletconnect.sign.core.model.vo.PublicKey
 import com.walletconnect.sign.core.model.vo.SymmetricKey
-import com.walletconnect.sign.core.model.vo.TopicVO
 import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.crypto.KeyStore
 import com.walletconnect.sign.util.bytesToHex
@@ -21,18 +21,18 @@ import com.walletconnect.sign.core.model.vo.Key as WCKey
 
 internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStore) : KeyManagementRepository {
 
-    override fun generateSymmetricKey(topic: TopicVO): SymmetricKey {
+    override fun generateSymmetricKey(topic: Topic): SymmetricKey {
         val symmetricKey = createSymmetricKey().bytesToHex()
         keyChain.setSymmetricKey(topic.value, SymmetricKey(symmetricKey))
 
         return SymmetricKey(symmetricKey)
     }
 
-    override fun setSymmetricKey(topic: TopicVO, symmetricKey: SymmetricKey) {
+    override fun setSymmetricKey(topic: Topic, symmetricKey: SymmetricKey) {
         keyChain.setSymmetricKey(topic.value, symmetricKey)
     }
 
-    override fun getSymmetricKey(topic: TopicVO): SymmetricKey {
+    override fun getSymmetricKey(topic: Topic): SymmetricKey {
         val symmetricKey = keyChain.getSymmetricKey(topic.value)
 
         return SymmetricKey(symmetricKey)
@@ -48,9 +48,9 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         return PublicKey(publicKey.bytesToHex().lowercase())
     }
 
-    override fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): TopicVO {
+    override fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): Topic {
         val symmetricKey = generateSymmetricKeyFromKeyAgreement(self, peer)
-        val topic = TopicVO(sha256(symmetricKey.keyAsHex))
+        val topic = Topic(sha256(symmetricKey.keyAsHex))
         keyChain.setSymmetricKey(topic.value.lowercase(), symmetricKey)
         setKeyAgreement(topic, self, peer)
 
@@ -75,14 +75,14 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         }
     }
 
-    override fun getKeyAgreement(topic: TopicVO): Pair<PublicKey, PublicKey> {
+    override fun getKeyAgreement(topic: Topic): Pair<PublicKey, PublicKey> {
         val tag = "$keyAgreementContext${topic.value}"
         val (selfPublic, peerPublic) = keyChain.getKeys(tag)
 
         return Pair(PublicKey(selfPublic), PublicKey(peerPublic))
     }
 
-    private fun setKeyAgreement(topic: TopicVO, self: PublicKey, peer: PublicKey) {
+    private fun setKeyAgreement(topic: Topic, self: PublicKey, peer: PublicKey) {
         val tag = "$keyAgreementContext${topic.value}"
         keyChain.setKeys(tag, self, peer)
     }
