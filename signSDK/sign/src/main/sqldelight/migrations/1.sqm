@@ -2,9 +2,9 @@ import com.walletconnect.sign.core.model.type.enums.MetaDataType;
 import kotlin.collections.List;
 
 -- PairingDao
-ALTER TABLE PairingDao RENAME TO PairingDaoBak;
+DROP TABLE IF EXISTS PairingDao;
 
-CREATE TABLE IF NOT EXISTS PairingDao (
+CREATE TABLE PairingDao (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     topic TEXT UNIQUE NOT NULL,
     expiry INTEGER NOT NULL,
@@ -14,12 +14,10 @@ CREATE TABLE IF NOT EXISTS PairingDao (
     is_active INTEGER AS Boolean NOT NULL
 );
 
-DROP TABLE IF EXISTS PairingDaoBak;
-
 -- SessionDao
-ALTER TABLE SessionDao RENAME TO SessionDaoBak;
+DROP TABLE IF EXISTS SessionDao;
 
-CREATE TABLE IF NOT EXISTS  SessionDao(
+CREATE TABLE SessionDao(
    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
    topic TEXT UNIQUE NOT NULL,
    expiry INTEGER NOT NULL,
@@ -31,12 +29,10 @@ CREATE TABLE IF NOT EXISTS  SessionDao(
    is_acknowledged INTEGER AS Boolean NOT NULL
 );
 
-DROP TABLE IF EXISTS SessionDaoBak;
-
 -- MetaDataDao
-ALTER TABLE MetaDataDao RENAME TO MetaDataDaoBak;
+DROP TABLE IF EXISTS MetaDataDao;
 
-CREATE TABLE IF NOT EXISTS MetaDataDao(
+CREATE TABLE MetaDataDao(
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	sequence_topic TEXT NOT NULL,
   	name TEXT NOT NULL,
@@ -47,12 +43,10 @@ CREATE TABLE IF NOT EXISTS MetaDataDao(
   	UNIQUE(sequence_topic, type)
 );
 
-DROP TABLE IF EXISTS MetaDataDaoBak;
-
 -- JsonRpcHistoryDao
-ALTER TABLE JsonRpcHistoryDao RENAME TO JsonRpcHistoryDaoBak;
+DROP TABLE IF EXISTS JsonRpcHistoryDao;
 
-CREATE TABLE IF NOT EXISTS JsonRpcHistoryDao(
+CREATE TABLE JsonRpcHistoryDao(
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   request_id INTEGER UNIQUE NOT NULL,
   topic TEXT NOT NULL,
@@ -61,10 +55,10 @@ CREATE TABLE IF NOT EXISTS JsonRpcHistoryDao(
   response TEXT AS String
 );
 
-DROP TABLE IF EXISTS JsonRpcHistoryDaoBak;
-
 -- NamespaceDao
-CREATE TABLE IF NOT EXISTS NamespaceDao(
+DROP TABLE IF EXISTS NamespaceDao;
+
+CREATE TABLE NamespaceDao(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     session_id INTEGER NOT NULL,
     key TEXT NOT NULL,

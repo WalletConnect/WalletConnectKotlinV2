@@ -8,17 +8,18 @@ CREATE TABLE MetaDataDao(
   	description TEXT NOT NULL,
   	url TEXT NOT NULL,
   	icons TEXT AS List<String> NOT NULL,
+  	native TEXT,
   	type TEXT AS MetaDataType NOT NULL,
   	UNIQUE(sequence_topic, type)
 );
 
 insertOrAbortMetaData:
-INSERT OR ABORT INTO MetaDataDao(sequence_topic, name, description, url, icons, type)
-VALUES (?, ?, ?, ?, ?, ?);
+INSERT OR ABORT INTO MetaDataDao(sequence_topic, name, description, url, icons, native, type)
+VALUES (?, ?, ?, ?, ?, ?,?);
 
 updateOrAbortMetaData:
 UPDATE MetaDataDao
-SET name = ?, description = ?, url = ?, icons = ?, type = ?
+SET name = ?, description = ?, url = ?, icons = ?, native = ?, type = ?
 WHERE sequence_topic = ?;
 
 getByTopic:

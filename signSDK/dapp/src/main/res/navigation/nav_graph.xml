@@ -50,6 +50,11 @@
             android:id="@+id/action_global_fragment_chain_selection"
             app:destination="@id/fragment_chain_selection" />
 
+
+        <deepLink
+            app:action="android.intent.action.VIEW"
+            app:uri="kotlin-dapp-wc:/request" />
+
     </navigation>
 
     <fragment

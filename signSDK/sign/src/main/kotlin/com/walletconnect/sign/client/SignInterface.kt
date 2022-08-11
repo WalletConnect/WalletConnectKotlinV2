@@ -52,9 +52,9 @@ interface SignInterface {
     fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing? = null)
     fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit)
     fun getListOfSettledSessions(): List<Sign.Model.Session>
+    fun getSettledSessionByTopic(topic: String): Sign.Model.Session?
     fun getListOfSettledPairings(): List<Sign.Model.Pairing>
     fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest>
-
 
     interface Websocket {
         val relay: RelayInterface
