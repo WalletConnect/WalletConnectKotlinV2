@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android_core.common.adapters
+package com.walletconnect.sign.core.adapters
 
 import com.squareup.moshi.*
 import com.squareup.moshi.internal.Util

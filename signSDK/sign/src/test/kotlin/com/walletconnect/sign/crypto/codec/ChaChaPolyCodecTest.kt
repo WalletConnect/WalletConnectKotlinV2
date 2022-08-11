@@ -2,9 +2,9 @@ package com.walletconnect.sign.crypto.codec
 
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.core.model.vo.PublicKey
 import com.walletconnect.sign.core.model.vo.SymmetricKey
-import com.walletconnect.sign.core.model.vo.Topic
 import com.walletconnect.sign.core.model.vo.sync.ParticipantsVO
 import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec

@@ -5,10 +5,18 @@ package com.walletconnect.android_core.json_rpc.domain
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
+import com.walletconnect.android_core.common.model.vo.IrnParamsVO
+import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponseVO
+import com.walletconnect.android_core.common.model.vo.sync.PendingRequestVO
+import com.walletconnect.android_core.common.model.vo.sync.WCRequestVO
+import com.walletconnect.android_core.common.model.vo.sync.WCResponseVO
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.json_rpc.data.JsonRpcSerializerAbstract
 import com.walletconnect.android_core.json_rpc.data.NetworkState
-import com.walletconnect.android_core.json_rpc.model.JsonRpc
+import com.walletconnect.android_core.json_rpc.model.*
+import com.walletconnect.android_core.json_rpc.model.toRelay
+import com.walletconnect.android_core.json_rpc.model.toRelayerDOJsonRpcResponse
+import com.walletconnect.android_core.json_rpc.model.toWCResponse
 import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.android_core.storage.JsonRpcHistory
 import com.walletconnect.android_core.utils.Logger
@@ -20,8 +28,6 @@ import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.core.model.vo.IrnParamsVO
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
-import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
-import com.walletconnect.sign.core.model.vo.sync.WCResponseVO
 import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.sign.json_rpc.model.*
 import com.walletconnect.sign.util.Empty
@@ -229,7 +235,7 @@ abstract class JsonRpcInteractorAbstract(
         }
     }
 
-    private suspend fun handleJsonRpcResult(jsonRpcResult: RelayerDO.JsonRpcResponse.JsonRpcResult) {
+    private suspend fun handleJsonRpcResult(jsonRpcResult: JsonRpc.JsonRpcResponse.JsonRpcResult) {
         val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcResult.id, serializer.serialize(jsonRpcResult))
 
         if (jsonRpcRecord != null) {

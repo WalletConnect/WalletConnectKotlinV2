@@ -3,7 +3,6 @@ package com.walletconnect.sign.core.adapters
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
-import com.walletconnect.android_core.common.adapters.SessionRequestVOJsonAdapter
 import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.payload.SessionRequestVO
 import org.intellij.lang.annotations.Language

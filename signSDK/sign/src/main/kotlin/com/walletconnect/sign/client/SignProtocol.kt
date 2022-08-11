@@ -14,6 +14,7 @@ import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.BuildConfig
 import kotlinx.coroutines.*
+import com.walletconnect.sign.di.commonModule
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
