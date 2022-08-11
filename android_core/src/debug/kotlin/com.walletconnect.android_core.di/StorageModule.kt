@@ -1,22 +1,22 @@
-package com.walletconnect.sign.di
+package com.walletconnect.android_core.di
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
-import com.walletconnect.sign.Database
+import com.walletconnect.android_core.Database
+import com.walletconnect.android_core.storage.JsonRpcHistory
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @SuppressLint("HardwareIds")
-@JvmSynthetic
-internal fun storageModule(): Module = module {
+fun coreStorageModule(storageSuffix: String): Module = module {
 
     single<SharedPreferences>(named(DITags.RPC_STORE)) {
-        val sharedPrefsFile = "wc_rpc_store"
+        val sharedPrefsFile = "wc_rpc_store$storageSuffix"
 
         androidContext().getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE)
     }
@@ -25,9 +25,15 @@ internal fun storageModule(): Module = module {
         AndroidSqliteDriver(
             schema = Database.Schema,
             context = androidContext(),
-            name = "WalletConnectV2.db"
+            name = "WalletConnectV2$storageSuffix.db"
         )
     }
 
-    includes(sharedStorageModule())
+    single {
+        get<Database>().jsonRpcHistoryQueries
+    }
+
+    single {
+        JsonRpcHistory(get(named(DITags.RPC_STORE)), get())
+    }
 }

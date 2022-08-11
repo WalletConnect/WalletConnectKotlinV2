@@ -5,7 +5,7 @@ package com.walletconnect.chat.copiedFromSign.util
 import java.lang.System.currentTimeMillis
 import java.security.SecureRandom
 
-// Commented because ExpiryVO should not be in core module but somewhere in sign
+// Commented because ExpiryVO should not be in core module but somewhere in android_core
 //@JvmSynthetic
 //internal fun ExpiryVO.isSequenceValid(): Boolean = seconds > Time.currentTimeInSeconds
 

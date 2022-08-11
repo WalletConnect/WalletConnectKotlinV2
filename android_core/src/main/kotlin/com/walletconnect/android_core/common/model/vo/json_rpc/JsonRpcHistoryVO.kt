@@ -1,4 +1,4 @@
-package com.walletconnect.sign.core.model.vo.jsonRpc
+package com.walletconnect.android_core.common.model.vo.json_rpc
 
 data class JsonRpcHistoryVO(
     val requestId: Long,

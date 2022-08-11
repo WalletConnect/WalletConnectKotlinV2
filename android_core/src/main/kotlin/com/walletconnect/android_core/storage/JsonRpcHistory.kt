@@ -1,14 +1,14 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.storage.history
+package com.walletconnect.android_core.storage
 
 import android.content.SharedPreferences
+import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcHistoryVO
+import com.walletconnect.android_core.utils.Logger
+import com.walletconnect.androidcore.storage.data.dao.JsonRpcHistoryQueries
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcHistoryVO
-import com.walletconnect.sign.storage.data.dao.rpchistory.JsonRpcHistoryQueries
-import com.walletconnect.sign.util.Logger
 
-internal class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private val jsonRpcHistoryQueries: JsonRpcHistoryQueries) {
+class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private val jsonRpcHistoryQueries: JsonRpcHistoryQueries) {
 
     fun setRequest(requestId: Long, topic: Topic, method: String, payload: String): Boolean {
         return try {

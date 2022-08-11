@@ -1,4 +1,4 @@
-package com.walletconnect.sign.di
+package com.walletconnect.android_core.di
 
 internal enum class DITags {
     @JvmSynthetic KEY_STORE,

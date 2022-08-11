@@ -14,18 +14,16 @@ import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.android_core.json_rpc.model.RelayerDO
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.foundation.di.commonModule as foundationCommonModule
 import org.json.JSONObject
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import timber.log.Timber
 import kotlin.reflect.jvm.jvmName
 
-@JvmSynthetic
 fun commonModule() = module {
 
-    single {
-        KotlinJsonAdapterFactory()
-    }
+    includes(foundationCommonModule())
 
     single<PolymorphicJsonAdapterFactory<RelayerDO.JsonRpcResponse>> {
         PolymorphicJsonAdapterFactory.of(RelayerDO.JsonRpcResponse::class.java, "type")

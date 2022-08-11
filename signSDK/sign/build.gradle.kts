@@ -37,16 +37,7 @@ android {
                 "proguard-rules.pro"
             )
         }
-        create("qa"){
-            initWith(getByName("debug"))
-            signingConfig = signingConfigs.getByName("debug")
-
-            buildConfigField("String", "PROJECT_ID", "\"${System.getenv("TEST_PROJECT_ID") ?: ""}\"")
-            buildConfigField("String", "WC_RELAY_URL", "\"${System.getenv("TEST_RELAY_URL") ?: ""}\"")
-        }
     }
-
-    testBuildType = "qa"
 
     compileOptions {
         sourceCompatibility = jvmVersion

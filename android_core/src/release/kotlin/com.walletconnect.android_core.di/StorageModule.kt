@@ -1,4 +1,4 @@
-package com.walletconnect.sign.di
+package com.walletconnect.android_core.di
 
 import android.annotation.SuppressLint
 import android.content.SharedPreferences
@@ -7,10 +7,11 @@ import android.security.keystore.KeyProperties
 import android.util.Base64
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
+import com.squareup.sqldelight.ColumnAdapter
+import com.squareup.sqldelight.EnumColumnAdapter
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
-import com.walletconnect.sign.Database
-import com.walletconnect.sign.util.randomBytes
+import com.walletconnect.android_core.storage.JsonRpcHistory
 import net.sqlcipher.database.SupportFactory
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
@@ -25,8 +26,7 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 @SuppressLint("HardwareIds")
-@JvmSynthetic
-internal fun storageModule(): Module = module {
+fun coreStorageModule(storageSuffix: String): Module = module {
 
     single(named(DITags.RPC_STORE_ALIAS)) {
         val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
@@ -34,7 +34,7 @@ internal fun storageModule(): Module = module {
     }
 
     single(named(DITags.RPC_STORE)) {
-        val sharedPrefsFile = "wc_rpc_store"
+        val sharedPrefsFile = "wc_rpc_store$storageSuffix"
 
         EncryptedSharedPreferences.create(
             sharedPrefsFile,
@@ -44,7 +44,6 @@ internal fun storageModule(): Module = module {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
     }
-
 
     single<KeyStore> {
         KeyStore.getInstance("AndroidKeyStore").apply {
@@ -152,12 +151,18 @@ internal fun storageModule(): Module = module {
         AndroidSqliteDriver(
             schema = Database.Schema,
             context = androidContext(),
-            name = "WalletConnectV2.db",
+            name = "WalletConnectV2$storageSuffix.db",
             factory = SupportFactory(get(named(DITags.DB_PASSPHRASE)), null, false)
         )
     }
 
-    includes(sharedStorageModule())
+    single {
+        get<Database>().jsonRpcHistoryQueries
+    }
+
+    single {
+        JsonRpcHistory(get(named(DITags.RPC_STORE)), get())
+    }
 }
 
 private fun encode(decodedData: ByteArray): String = Base64.encodeToString(decodedData, Base64.NO_WRAP)

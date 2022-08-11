@@ -6,7 +6,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.sign.core.model.vo.IrnParamsVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
-import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcHistoryVO
+import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcHistoryVO
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.core.model.vo.sync.WCResponseVO
