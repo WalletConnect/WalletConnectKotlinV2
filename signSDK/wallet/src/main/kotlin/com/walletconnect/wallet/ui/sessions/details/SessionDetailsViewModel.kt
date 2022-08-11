@@ -3,7 +3,7 @@ package com.walletconnect.wallet.ui.sessions.details
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.sample_common.EthChains
+import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
@@ -55,7 +55,7 @@ class SessionDetailsViewModel : ViewModel() {
             val selectedSessionPeerData: Sign.Model.AppMetaData =
                 requireNotNull(selectedSession.metaData)
             val uiState = SessionDetailsUI.Content(
-                icon = selectedSessionPeerData.icons.first(),
+                icon = selectedSessionPeerData.icons.firstOrNull(),
                 name = selectedSessionPeerData.name,
                 url = selectedSessionPeerData.url,
                 description = selectedSessionPeerData.description,
@@ -165,7 +165,7 @@ class SessionDetailsViewModel : ViewModel() {
                     val secondAccount = namespace.accounts.firstOrNull()?.let { account ->
                         val (chainNamespace, chainReference, _) = account.split(":")
                         mapOfAccounts2
-                            .filter { (ethChain, _) -> ethChain.chainNamespace == chainNamespace && ethChain.chainReference == chainReference.toInt() }
+                            .filter { (ethChain, _) -> ethChain.chainNamespace == chainNamespace && ethChain.chainReference == chainReference }
                             .map { (ethChain, address) -> "${ethChain.chainNamespace}:${ethChain.chainReference}:${address}" }
                             .firstOrNull()
                     }
@@ -203,7 +203,7 @@ class SessionDetailsViewModel : ViewModel() {
 
     private fun filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession: Sign.Model.Session): List<SessionDetailsUI.Content.ChainAccountInfo> =
         mapOfAllAccounts.values
-            .flatMap { accountsMap: Map<EthChains, String> ->
+            .flatMap { accountsMap: Map<Chains, String> ->
                 val accountsMapID =
                     mapOfAllAccounts.entries.associate { it.value to it.key }.getValue(accountsMap)
                 accountsMap.toList().map { (ethChain, accountAddress) ->
@@ -214,7 +214,7 @@ class SessionDetailsViewModel : ViewModel() {
                     )
                 }
             }
-            .filter { (ethChain: EthChains, _, _) ->
+            .filter { (ethChain: Chains, _, _) ->
                 val listOfParentChainsWChainId =
                     selectedSession.namespaces.values.flatMap { it.accounts }.map {
                         val (chainNamespace, chainReference, _) = it.split(":")
@@ -223,17 +223,17 @@ class SessionDetailsViewModel : ViewModel() {
 
                 "${ethChain.chainNamespace}:${ethChain.chainReference}" in listOfParentChainsWChainId
             }
-            .sortedBy { (ethChain: EthChains, _, _) -> ethChain.order }
-            .groupBy { (ethChain: EthChains, _: String, _: Int) -> ethChain }.values
-            .map { it: List<Triple<EthChains, String, Int>> ->
-                val chainDetails: EthChains = it.first().first
+            .sortedBy { (ethChain: Chains, _, _) -> ethChain.order }
+            .groupBy { (ethChain: Chains, _: String, _: Int) -> ethChain }.values
+            .map { it: List<Triple<Chains, String, Int>> ->
+                val chainDetails: Chains = it.first().first
                 val chainName = chainDetails.chainName
                 val chainIcon = chainDetails.icon
                 val parentChain = chainDetails.chainNamespace
                 val chainId = chainDetails.chainReference
 
                 val listOfAccounts: List<SessionDetailsUI.Content.ChainAccountInfo.Account> =
-                    it.map { (ethChain: EthChains, accountAddress: String, accountsMapId: Int) ->
+                    it.map { (ethChain: Chains, accountAddress: String, accountsMapId: Int) ->
                         val isSelected =
                             "${ethChain.chainNamespace}:${ethChain.chainReference}:$accountAddress" in selectedSession.namespaces.values.flatMap { it.accounts }
                         val addressTitle = "$accountAddress-Account $accountsMapId"

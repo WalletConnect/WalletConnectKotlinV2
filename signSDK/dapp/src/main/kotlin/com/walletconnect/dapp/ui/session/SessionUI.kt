@@ -5,5 +5,5 @@ data class SessionUI(
     val name: String,
     val address: String,
     val chainNamespace: String,
-    val chainReference: Int,
+    val chainReference: String,
 )

@@ -18,7 +18,7 @@ class ActiveSessionViewModel : ViewModel() {
             wcSession.metaData != null
         }.map { wcSession ->
             ActiveSessionUI(
-                icon = wcSession.metaData!!.icons.first(),
+                icon = wcSession.metaData?.icons?.firstOrNull(),
                 name = wcSession.metaData!!.name,
                 url = wcSession.metaData!!.url,
                 topic = wcSession.topic
