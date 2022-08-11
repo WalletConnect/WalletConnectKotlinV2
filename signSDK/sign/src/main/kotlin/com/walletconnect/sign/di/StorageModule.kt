@@ -2,7 +2,7 @@ package com.walletconnect.sign.di
 
 import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.EnumColumnAdapter
-import com.walletconnect.android_core.di.storageModule
+import com.walletconnect.android_core.di.coreStorageModule
 import com.walletconnect.sign.Database
 import com.walletconnect.sign.core.model.type.enums.MetaDataType
 import com.walletconnect.sign.storage.data.dao.metadata.MetaDataDao
@@ -21,7 +21,7 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun storageModule(): Module = module {
 
-    includes(storageModule(String.Empty)) //due to db name and sharedPrefs key should stay the same for sign
+    includes(coreStorageModule(String.Empty)) //due to db name and sharedPrefs key should stay the same for sign
 
     single<ColumnAdapter<List<String>, String>> {
         object : ColumnAdapter<List<String>, String> {

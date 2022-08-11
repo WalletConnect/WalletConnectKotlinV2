@@ -11,18 +11,7 @@ import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.EnumColumnAdapter
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
-//import com.walletconnect.sign.Database
-//import com.walletconnect.sign.core.model.type.enums.MetaDataType
-//import com.walletconnect.sign.storage.data.dao.metadata.MetaDataDao
-//import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDao
-//import com.walletconnect.sign.storage.data.dao.namespace.NamespaceExtensionsDao
-//import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceDao
-//import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceExtensionsDao
-//import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDao
-//import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceExtensionsDao
-//import com.walletconnect.sign.storage.history.JsonRpcHistory
-//import com.walletconnect.sign.storage.sequence.SequenceStorageRepository
-//import com.walletconnect.sign.util.randomBytes
+import com.walletconnect.android_core.storage.JsonRpcHistory
 import net.sqlcipher.database.SupportFactory
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
@@ -37,7 +26,7 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 @SuppressLint("HardwareIds")
-fun storageModule(storageSuffix: String): Module = module {
+fun coreStorageModule(storageSuffix: String): Module = module {
 
     single(named(DITags.RPC_STORE_ALIAS)) {
         val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
