@@ -50,4 +50,5 @@ dependencies {
     timber()
 
     koinTest()
+    jUnit5()
 }

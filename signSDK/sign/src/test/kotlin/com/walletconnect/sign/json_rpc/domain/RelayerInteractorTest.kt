@@ -2,12 +2,10 @@ package com.walletconnect.sign.json_rpc.domain
 
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
-import com.walletconnect.sign.core.model.client.Relay
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
 import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.sign.core.model.vo.IrnParamsVO
-import com.walletconnect.sign.core.model.vo.Topic
 import com.walletconnect.sign.core.model.vo.TtlVO
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
@@ -15,6 +13,8 @@ import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.android_core.network.model.RelayDTO
+import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.sign.storage.history.JsonRpcHistory
 import com.walletconnect.sign.util.Empty
 import com.walletconnect.sign.util.Logger

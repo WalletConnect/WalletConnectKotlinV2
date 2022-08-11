@@ -1,9 +1,9 @@
-package com.walletconnect.sign.adapters
+package com.walletconnect.foundation.adapters
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import com.walletconnect.sign.core.adapters.SubscriptionIdAdapter
-import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
+import com.walletconnect.foundation.common.adapters.SubscriptionIdAdapter
+import com.walletconnect.foundation.common.model.SubscriptionId
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -19,9 +19,9 @@ internal class SubscriptionIdAdapterTest {
     @Test
     fun fromJson() {
         val expectedSubscriptionId = "subscriptionId1"
-        val expected = SubscriptionIdVO(expectedSubscriptionId)
+        val expected = SubscriptionId(expectedSubscriptionId)
 
-        val resultSubscriptionId = moshi.adapter(SubscriptionIdVO::class.java).fromJson(expectedSubscriptionId)
+        val resultSubscriptionId = moshi.adapter(SubscriptionId::class.java).fromJson(expectedSubscriptionId)
 
         assertNotNull(resultSubscriptionId)
         assertEquals(expected, resultSubscriptionId)

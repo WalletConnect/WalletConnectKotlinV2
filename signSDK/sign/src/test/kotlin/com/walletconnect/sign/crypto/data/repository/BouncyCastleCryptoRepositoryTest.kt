@@ -1,8 +1,8 @@
 package com.walletconnect.sign.crypto.data.repository
 
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.core.model.vo.PrivateKey
 import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.Topic
 import com.walletconnect.sign.crypto.KeyStore
 import com.walletconnect.sign.crypto.managers.KeyChainMock
 import com.walletconnect.sign.util.Empty
