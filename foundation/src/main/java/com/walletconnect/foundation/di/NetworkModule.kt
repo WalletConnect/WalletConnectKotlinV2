@@ -15,7 +15,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
-internal fun networkModule(serverUrl: String, jwt: String): Module = module {
+fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
     val TIMEOUT_TIME = 5000L
 
@@ -24,7 +24,7 @@ internal fun networkModule(serverUrl: String, jwt: String): Module = module {
         OkHttpClient.Builder()
             .addInterceptor {
                 val updatedRequest = it.request().newBuilder()
-                    .addHeader("User-Agent", "wc-2/kotlin-relayTest")
+                    .addHeader("User-Agent", "wc-2/kotlin-$sdkVersion-relayTest")
                     .build()
 
                 it.proceed(updatedRequest)
@@ -52,5 +52,5 @@ internal fun networkModule(serverUrl: String, jwt: String): Module = module {
     }
     single { get<Scarlet>().create(RelayService::class.java) }
 
-    single<RelayInterface> { object: BaseRelayClient(get(), get(), scope) {} }
+    single<RelayInterface> { object : BaseRelayClient(get(), get(), scope) {} }
 }
