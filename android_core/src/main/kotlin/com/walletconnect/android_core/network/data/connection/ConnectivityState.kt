@@ -1,4 +1,4 @@
-package com.walletconnect.android_core.json_rpc.data
+package com.walletconnect.android_core.network.data.connection
 
 import android.content.Context
 import android.net.ConnectivityManager
@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class NetworkState(context: Context) {
+class ConnectivityState(context: Context) {
     private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     private val _isAvailable = MutableStateFlow(false)

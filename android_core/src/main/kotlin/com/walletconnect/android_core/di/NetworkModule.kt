@@ -7,6 +7,7 @@ import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
+import com.walletconnect.android_core.network.data.connection.ConnectivityState
 import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.android_core.network.data.connection.ConnectionType
 import com.walletconnect.android_core.network.data.connection.controller.ConnectionController
@@ -70,4 +71,6 @@ fun networkModule(serverUrl: String, jwt: String, connectionType: ConnectionType
     }
 
     single { relay ?: RelayClient(get(), get(), get(), get()) }
+
+    single { ConnectivityState(get()) }
 }

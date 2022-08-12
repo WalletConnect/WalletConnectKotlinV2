@@ -1,34 +1,34 @@
 package com.walletconnect.android_core.json_rpc.model
 
 import com.walletconnect.android_core.common.model.type.ClientParams
-import com.walletconnect.android_core.common.model.vo.IrnParams
-import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcHistoryVO
-import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponse
-import com.walletconnect.android_core.common.model.vo.sync.WCResponse
+import com.walletconnect.android_core.common.model.IrnParams
+import com.walletconnect.android_core.common.model.json_rpc.JsonRpcHistory
+import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
+import com.walletconnect.android_core.common.model.sync.WCResponse
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.network.model.Relay
 
 @JvmSynthetic
-internal fun JsonRpcResponse.toRelayerDOJsonRpcResponse(): JsonRpc.JsonRpcResponse =
+internal fun JsonRpcResponse.toJsonRpcResponse(): JsonRpc.JsonRpcResponse =
     when (this) {
-        is JsonRpcResponse.JsonRpcResult -> toRelayerDOJsonRpcResult()
-        is JsonRpcResponse.JsonRpcError -> toRelayerDORpcError()
+        is JsonRpcResponse.JsonRpcResult -> toJsonRpcResult()
+        is JsonRpcResponse.JsonRpcError -> toRpcError()
     }
 
 @JvmSynthetic
-internal fun JsonRpcResponse.JsonRpcResult.toRelayerDOJsonRpcResult(): JsonRpc.JsonRpcResponse.JsonRpcResult =
+internal fun JsonRpcResponse.JsonRpcResult.toJsonRpcResult(): JsonRpc.JsonRpcResponse.JsonRpcResult =
     JsonRpc.JsonRpcResponse.JsonRpcResult(id, result = result)
 
 @JvmSynthetic
-internal fun JsonRpcResponse.JsonRpcError.toRelayerDORpcError(): JsonRpc.JsonRpcResponse.JsonRpcError =
+internal fun JsonRpcResponse.JsonRpcError.toRpcError(): JsonRpc.JsonRpcResponse.JsonRpcError =
     JsonRpc.JsonRpcResponse.JsonRpcError(id, error = JsonRpc.JsonRpcResponse.Error(error.code, error.message))
 
 @JvmSynthetic
-internal fun JsonRpc.JsonRpcResponse.JsonRpcError.toJsonRpcErrorVO(): JsonRpcResponse.JsonRpcError =
+internal fun JsonRpc.JsonRpcResponse.JsonRpcError.toJsonRpcError(): JsonRpcResponse.JsonRpcError =
     JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(error.code, error.message))
 
 @JvmSynthetic
-internal fun JsonRpcHistoryVO.toWCResponse(result: JsonRpcResponse, params: ClientParams): WCResponse =
+internal fun JsonRpcHistory.toWCResponse(result: JsonRpcResponse, params: ClientParams): WCResponse =
     WCResponse(Topic(topic), method, result, params)
 
 @JvmSynthetic

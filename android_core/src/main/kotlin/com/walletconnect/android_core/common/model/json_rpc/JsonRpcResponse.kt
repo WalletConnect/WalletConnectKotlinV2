@@ -1,4 +1,4 @@
-package com.walletconnect.android_core.common.model.vo.json_rpc
+package com.walletconnect.android_core.common.model.json_rpc
 
 import com.squareup.moshi.JsonClass
 

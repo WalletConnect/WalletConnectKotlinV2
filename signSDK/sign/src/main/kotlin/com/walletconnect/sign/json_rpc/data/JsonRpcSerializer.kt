@@ -28,7 +28,7 @@ internal class JsonRpcSerializer(override val moshi: Moshi) : JsonRpcSerializerA
             else -> null
         }
 
-    override fun serialize(payload: SerializableJsonRpc): String =
+    override fun sdkSpecificSerialize(payload: SerializableJsonRpc): String =
         when (payload) {
             is PairingRpcVO.SessionPropose -> trySerialize(payload)
             is PairingRpcVO.PairingPing -> trySerialize(payload)
@@ -40,8 +40,6 @@ internal class JsonRpcSerializer(override val moshi: Moshi) : JsonRpcSerializerA
             is SessionRpcVO.SessionRequest -> trySerialize(payload)
             is SessionRpcVO.SessionDelete -> trySerialize(payload)
             is SessionRpcVO.SessionSettle -> trySerialize(payload)
-            is JsonRpc.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
-            is JsonRpc.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             else -> String.Empty
         }
 }

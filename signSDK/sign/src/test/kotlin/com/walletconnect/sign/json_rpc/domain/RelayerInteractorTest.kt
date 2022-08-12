@@ -3,9 +3,9 @@ package com.walletconnect.sign.json_rpc.domain
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
 import com.walletconnect.android_core.common.model.type.enums.Tags
-import com.walletconnect.android_core.common.model.vo.IrnParams
-import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponse
-import com.walletconnect.android_core.common.model.vo.sync.WCRequest
+import com.walletconnect.android_core.common.model.IrnParams
+import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
+import com.walletconnect.android_core.common.model.sync.WCRequest
 import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android_core.network.RelayConnectionInterface
@@ -13,10 +13,9 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.android_core.storage.JsonRpcHistory
 import com.walletconnect.android_core.utils.Logger
-import com.walletconnect.android_core.json_rpc.data.NetworkState
+import com.walletconnect.android_core.network.data.connection.ConnectivityState
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.network.model.RelayDTO
-import com.walletconnect.sign.common.exceptions.client.WalletConnectException
 import com.walletconnect.android_core.common.exceptions.client.WalletConnectException as CoreWalletConnectException
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.utils.Empty
@@ -50,7 +49,7 @@ internal class RelayerInteractorTest {
         every { updateRequestWithResponse(any(), any()) } returns mockk()
     }
 
-    private val networkState: NetworkState = mockk(relaxed = true) {
+    private val networkState: ConnectivityState = mockk(relaxed = true) {
         every { isAvailable } returns MutableStateFlow(true).asStateFlow()
     }
 

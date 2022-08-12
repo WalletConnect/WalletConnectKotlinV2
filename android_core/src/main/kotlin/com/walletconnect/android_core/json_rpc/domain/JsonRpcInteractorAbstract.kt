@@ -6,14 +6,14 @@ import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
 import com.walletconnect.android_core.common.model.type.Error
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
-import com.walletconnect.android_core.common.model.vo.IrnParams
-import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponse
-import com.walletconnect.android_core.common.model.vo.sync.PendingRequestVO
-import com.walletconnect.android_core.common.model.vo.sync.WCRequest
-import com.walletconnect.android_core.common.model.vo.sync.WCResponse
+import com.walletconnect.android_core.common.model.IrnParams
+import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
+import com.walletconnect.android_core.common.model.sync.PendingRequest
+import com.walletconnect.android_core.common.model.sync.WCRequest
+import com.walletconnect.android_core.common.model.sync.WCResponse
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.json_rpc.data.JsonRpcSerializerAbstract
-import com.walletconnect.android_core.json_rpc.data.NetworkState
+import com.walletconnect.android_core.network.data.connection.ConnectivityState
 import com.walletconnect.android_core.json_rpc.model.*
 import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.android_core.storage.JsonRpcHistory
@@ -34,7 +34,7 @@ abstract class JsonRpcInteractorAbstract(
     private val serializer: JsonRpcSerializerAbstract,
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
-    networkState: NetworkState, //todo: move to the RelayClient
+    networkState: ConnectivityState, //todo: move to the RelayClient
 ) {
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequest> = MutableSharedFlow()
     val clientSyncJsonRpc: SharedFlow<WCRequest> = _clientSyncJsonRpc.asSharedFlow()
@@ -55,7 +55,7 @@ abstract class JsonRpcInteractorAbstract(
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> handleError(exception.message ?: String.Empty) }
 
-    abstract fun getPendingRequests(topic: Topic): List<PendingRequestVO>
+    abstract fun getPendingRequests(topic: Topic): List<PendingRequest>
 
     @get:JvmSynthetic
     private val Throwable.toWalletConnectException: WalletConnectException
@@ -118,7 +118,7 @@ abstract class JsonRpcInteractorAbstract(
     ) {
         checkConnectionWorking()
 
-        val jsonResponseDO = response.toRelayerDOJsonRpcResponse()
+        val jsonResponseDO = response.toJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
         val message = chaChaPolyCodec.encrypt(topic, responseJson, EnvelopeType.ZERO)
 
@@ -244,7 +244,7 @@ abstract class JsonRpcInteractorAbstract(
 
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
-                _peerResponse.emit(jsonRpcRecord.toWCResponse(jsonRpcError.toJsonRpcErrorVO(), params))
+                _peerResponse.emit(jsonRpcRecord.toWCResponse(jsonRpcError.toJsonRpcError(), params))
             } ?: handleError("RelayerInteractor: Unknown error params")
         }
     }

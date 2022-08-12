@@ -29,7 +29,7 @@ fun commonModule() = module {
             .withSubtype(JsonRpc.JsonRpcResponse.JsonRpcError::class.java, "error")
     }
 
-    single {
+    single(named("android_core")) {
         get<Moshi>(named("foundation"))
             .newBuilder()
             .addLast { type, _, moshi ->

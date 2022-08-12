@@ -179,7 +179,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun respond(response: Sign.Params.Response, onError: (Sign.Model.Error) -> Unit) {
         awaitLock {
             try {
-                signEngine.respondSessionRequest(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponseVO()) { error ->
+                signEngine.respondSessionRequest(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponse()) { error ->
                     onError(Sign.Model.Error(error))
                 }
             } catch (error: Exception) {

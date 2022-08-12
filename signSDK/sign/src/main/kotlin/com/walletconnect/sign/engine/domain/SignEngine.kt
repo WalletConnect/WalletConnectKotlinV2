@@ -5,11 +5,11 @@ package com.walletconnect.sign.engine.domain
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.android_core.common.model.type.enums.Tags
-import com.walletconnect.android_core.common.model.vo.IrnParams
-import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponse
-import com.walletconnect.android_core.common.model.vo.sync.PendingRequestVO
-import com.walletconnect.android_core.common.model.vo.sync.WCRequest
-import com.walletconnect.android_core.common.model.vo.sync.WCResponse
+import com.walletconnect.android_core.common.model.IrnParams
+import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
+import com.walletconnect.android_core.common.model.sync.PendingRequest
+import com.walletconnect.android_core.common.model.sync.WCRequest
+import com.walletconnect.android_core.common.model.sync.WCResponse
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.utils.Logger
 import com.walletconnect.foundation.common.model.PublicKey
@@ -21,7 +21,7 @@ import com.walletconnect.sign.common.exceptions.client.WalletConnectException
 import com.walletconnect.android_core.common.exceptions.client.WalletConnectException as CoreWalletConnectException
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.exceptions.peer.PeerReason
-import com.walletconnect.sign.common.model.type.EngineEvent
+import com.walletconnect.android_core.common.model.type.EngineEvent
 import com.walletconnect.sign.common.model.type.enums.Sequences
 import com.walletconnect.sign.util.Time
 import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO
@@ -139,6 +139,7 @@ internal class SignEngine(
         } catch (e: SQLiteException) {
             crypto.removeKeys(pairingTopic.value)
             relayer.unsubscribe(pairingTopic)
+            sequenceStorageRepository.deletePairing(pairingTopic)
 
             onFailure(e)
         }
@@ -441,7 +442,7 @@ internal class SignEngine(
             .map { pairing -> pairing.toEngineDOSettledPairing() }
     }
 
-    internal fun getPendingRequests(topic: Topic): List<PendingRequestVO> = relayer.getPendingRequests(topic)
+    internal fun getPendingRequests(topic: Topic): List<PendingRequest> = relayer.getPendingRequests(topic)
 
     private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit = {}) {
         relayer.peerResponse

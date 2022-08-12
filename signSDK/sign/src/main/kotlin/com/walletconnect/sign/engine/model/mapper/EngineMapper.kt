@@ -6,10 +6,10 @@ import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.payload.SessionProposerVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
-import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponse
+import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.sign.common.model.vo.sequence.PairingVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
-import com.walletconnect.android_core.common.model.vo.sync.WCRequest
+import com.walletconnect.android_core.common.model.sync.WCRequest
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.sign.common.model.vo.clientsync.common.*
 import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO

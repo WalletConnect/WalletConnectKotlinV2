@@ -7,7 +7,7 @@ import com.walletconnect.android_core.common.exceptions.client.WalletConnectExce
 import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.common.model.type.EngineEvent
+import com.walletconnect.android_core.common.model.type.EngineEvent
 import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.common.model.type.Sequence
 import java.net.URI

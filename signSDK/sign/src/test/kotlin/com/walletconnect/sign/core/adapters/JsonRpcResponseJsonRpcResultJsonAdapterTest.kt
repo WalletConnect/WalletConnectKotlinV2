@@ -3,19 +3,20 @@ package com.walletconnect.sign.core.adapters
 import com.squareup.moshi.Moshi
 import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.android_core.json_rpc.model.JsonRpc
+import com.walletconnect.sign.common.adapters.RelayDOJsonRpcResultJsonAdapter
 import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
 import org.junit.jupiter.api.Test
 import kotlin.reflect.jvm.jvmName
 
-internal class RelayerDOJsonRpcResponseJsonRpcResultJsonAdapterTest {
+internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {
 
     @Test
     fun `test to json`() {
         val moshi = Moshi.Builder().add { type, _, moshi ->
             return@add if (type.getRawType().name == JsonRpc.JsonRpcResponse.JsonRpcResult::class.jvmName) {
-                com.walletconnect.sign.common.adapters.RelayDOJsonRpcResultJsonAdapter(moshi = moshi)
+                RelayDOJsonRpcResultJsonAdapter(moshi = moshi)
             } else {
                 null
             }
@@ -39,7 +40,7 @@ internal class RelayerDOJsonRpcResponseJsonRpcResultJsonAdapterTest {
     fun `test from json`() {
         val moshi = Moshi.Builder().add { type, _, moshi ->
             return@add if (type.getRawType().name == JsonRpc.JsonRpcResponse.JsonRpcResult::class.jvmName) {
-                com.walletconnect.sign.common.adapters.RelayDOJsonRpcResultJsonAdapter(moshi = moshi)
+                RelayDOJsonRpcResultJsonAdapter(moshi = moshi)
             } else {
                 null
             }
@@ -62,7 +63,7 @@ internal class RelayerDOJsonRpcResponseJsonRpcResultJsonAdapterTest {
     fun `test from json with boolean`() {
         val moshi = Moshi.Builder().add { type, _, moshi ->
             return@add if (type.getRawType().name == JsonRpc.JsonRpcResponse.JsonRpcResult::class.jvmName) {
-                com.walletconnect.sign.common.adapters.RelayDOJsonRpcResultJsonAdapter(moshi = moshi)
+                RelayDOJsonRpcResultJsonAdapter(moshi = moshi)
             } else {
                 null
             }
