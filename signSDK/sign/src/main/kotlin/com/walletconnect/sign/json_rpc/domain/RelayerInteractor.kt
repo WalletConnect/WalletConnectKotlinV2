@@ -2,12 +2,21 @@
 
 package com.walletconnect.sign.json_rpc.domain
 
-import com.walletconnect.android_core.common.scope.scope
-import com.walletconnect.sign.core.exceptions.client.WalletConnectException
-import com.walletconnect.sign.core.exceptions.peer.PeerError
+import com.walletconnect.android_core.common.GenericException
+import com.walletconnect.android_core.common.WalletConnectException
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
+import com.walletconnect.android_core.common.scope.scope
+import com.walletconnect.android_core.network.RelayConnectionInterface
+import com.walletconnect.android_core.storage.JsonRpcHistory
+import com.walletconnect.android_core.utils.Logger
+import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.foundation.network.model.Relay
+import com.walletconnect.sign.core.exceptions.client.InvalidProjectIdException
+import com.walletconnect.sign.core.exceptions.client.NoRelayConnectionException
+import com.walletconnect.sign.core.exceptions.client.ProjectIdDoesNotExistException
+import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.core.model.vo.IrnParamsVO
 import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
@@ -18,12 +27,7 @@ import com.walletconnect.sign.core.model.vo.sync.WCResponseVO
 import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.sign.json_rpc.model.*
-import com.walletconnect.android_core.network.RelayConnectionInterface
-import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.foundation.network.model.Relay
-import com.walletconnect.android_core.storage.JsonRpcHistory
 import com.walletconnect.sign.util.Empty
-import com.walletconnect.android_core.utils.Logger
 import com.walletconnect.sign.util.NetworkState
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
@@ -44,8 +48,8 @@ internal class RelayerInteractor(
     private val _peerResponse: MutableSharedFlow<WCResponseVO> = MutableSharedFlow()
     val peerResponse: SharedFlow<WCResponseVO> = _peerResponse.asSharedFlow()
 
-    private val _internalErrors = MutableSharedFlow<WalletConnectException.InternalError>()
-    val internalErrors: SharedFlow<WalletConnectException.InternalError> = _internalErrors.asSharedFlow()
+    private val _internalErrors = MutableSharedFlow<InternalError>()
+    val internalErrors: SharedFlow<InternalError> = _internalErrors.asSharedFlow()
 
     private val _isNetworkAvailable: StateFlow<Boolean> = networkState.isAvailable
     private val _isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -62,10 +66,10 @@ internal class RelayerInteractor(
         get() =
             when {
                 this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
-                    WalletConnectException.ProjectIdDoesNotExistException(this.message)
+                    ProjectIdDoesNotExistException(this.message)
                 this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
-                    WalletConnectException.InvalidProjectIdException(this.message)
-                else -> WalletConnectException.GenericException(this.message)
+                    InvalidProjectIdException(this.message)
+                else -> GenericException(this.message)
             }
 
     val initializationErrorsFlow: Flow<WalletConnectException>
@@ -83,7 +87,7 @@ internal class RelayerInteractor(
 
     internal fun checkConnectionWorking() {
         if (!isConnectionAvailable.value) {
-            throw WalletConnectException.NoRelayConnectionException("No connection available")
+            throw NoRelayConnectionException("No connection available")
         }
     }
 

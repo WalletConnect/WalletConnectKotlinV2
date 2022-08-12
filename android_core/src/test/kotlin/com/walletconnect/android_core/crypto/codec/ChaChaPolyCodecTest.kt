@@ -1,19 +1,20 @@
-package com.walletconnect.sign.crypto.codec
+package com.walletconnect.android_core.crypto.codec
 
-import com.walletconnect.sign.core.exceptions.client.WalletConnectException
+import com.walletconnect.android_core.common.MissingParticipantsException
+import com.walletconnect.android_core.common.MissingReceiverPublicKeyException
+import com.walletconnect.android_core.common.model.SymmetricKey
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
-import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.SymmetricKey
+import com.walletconnect.android_core.common.model.vo.sync.ParticipantsVO
+import com.walletconnect.android_core.crypto.KeyManagementRepository
+import com.walletconnect.android_core.crypto.data.codec.ChaChaPolyCodec
+import com.walletconnect.android_core.utils.Empty
+import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.core.model.vo.sync.ParticipantsVO
-import com.walletconnect.sign.crypto.KeyManagementRepository
-import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
-import com.walletconnect.sign.util.Empty
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class ChaChaPolyCodecTest {
 
@@ -59,14 +60,14 @@ class ChaChaPolyCodecTest {
 
     @Test
     fun `ChaCha20-Poly1305 encryption envelope type 1 throws missing participants`() {
-        Assertions.assertThrows(WalletConnectException.MissingParticipantsException::class.java) {
+        assertThrows(MissingParticipantsException::class.java) {
             codec.encrypt(topic, MESSAGE, EnvelopeType.ONE)
         }
     }
 
     @Test
     fun `ChaCha20-Poly1305 decryption envelope type 1 throws missing receiver key`() {
-        Assertions.assertThrows(WalletConnectException.MissingReceiverPublicKeyException::class.java) {
+        assertThrows(MissingReceiverPublicKeyException::class.java) {
             every { keyManagementRepository.getSymmetricKey(topic) } returns symmetricKey
             every { keyManagementRepository.generateSymmetricKeyFromKeyAgreement(self, peer) } returns symmetricKey
 
@@ -79,7 +80,7 @@ class ChaChaPolyCodecTest {
     fun `ChaCha20-Poly1305 encryption envelope type 0 with key that is not 64 Byte long throws`() {
         listOf(String.Empty, KEY_32_BYTES, KEY_128_BYTES).forEach { encryptionKeyAsHex ->
             every { keyManagementRepository.getSymmetricKey(topic) } returns SymmetricKey(encryptionKeyAsHex)
-            Assertions.assertThrows(Exception::class.java) {
+            assertThrows(Exception::class.java) {
                 codec.encrypt(topic, MESSAGE, EnvelopeType.ZERO)
             }
         }
@@ -87,7 +88,7 @@ class ChaChaPolyCodecTest {
 
     @Test
     fun `ChaCha20-Poly1305 encryption and decryption envelope type 0 with the different key throws`() {
-        Assertions.assertThrows(Exception::class.java) {
+        assertThrows(Exception::class.java) {
             every { keyManagementRepository.getSymmetricKey(topic) } returns symmetricKey
             val encryptedMessage = codec.encrypt(topic, MESSAGE, EnvelopeType.ZERO)
 
@@ -98,7 +99,7 @@ class ChaChaPolyCodecTest {
 
     @Test
     fun `ChaCha20-Poly1305 decryption envelope type 0 of non base64 encoded message throws `() {
-        Assertions.assertThrows(Exception::class.java) {
+        assertThrows(Exception::class.java) {
             codec.decrypt(topic, MESSAGE)
         }
     }

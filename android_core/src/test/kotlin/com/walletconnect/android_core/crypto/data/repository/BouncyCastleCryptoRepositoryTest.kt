@@ -1,16 +1,16 @@
-package com.walletconnect.sign.crypto.data.repository
+package com.walletconnect.android_core.crypto.data.repository
 
+import com.walletconnect.android_core.crypto.KeyStore
+import com.walletconnect.android_core.crypto.managers.KeyChainMock
+import com.walletconnect.android_core.utils.Empty
+import com.walletconnect.foundation.common.model.PrivateKey
+import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.core.model.vo.PrivateKey
-import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.crypto.KeyStore
-import com.walletconnect.sign.crypto.managers.KeyChainMock
-import com.walletconnect.sign.util.Empty
 import io.mockk.spyk
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 internal class BouncyCastleCryptoRepositoryTest {
     private val publicKey = PublicKey("590c2c627be7af08597091ff80dd41f7fa28acd10ef7191d7e830e116d3a186a")

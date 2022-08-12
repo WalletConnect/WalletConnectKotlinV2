@@ -1,18 +1,18 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.crypto.data.codec
+package com.walletconnect.android_core.crypto.data.codec
 
-import com.walletconnect.sign.core.exceptions.client.WalletConnectException
+import com.walletconnect.android_core.common.WalletConnectException
+import com.walletconnect.android_core.common.model.SymmetricKey
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
+import com.walletconnect.android_core.common.model.vo.sync.ParticipantsVO
+import com.walletconnect.android_core.crypto.Codec
+import com.walletconnect.android_core.crypto.KeyManagementRepository
+import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.SymmetricKey
-import com.walletconnect.sign.core.model.vo.sync.ParticipantsVO
-import com.walletconnect.sign.crypto.Codec
-import com.walletconnect.sign.crypto.KeyManagementRepository
-import com.walletconnect.sign.util.bytesToHex
-import com.walletconnect.sign.util.hexToBytes
-import com.walletconnect.sign.util.randomBytes
+import com.walletconnect.util.bytesToHex
+import com.walletconnect.util.hexToBytes
+import com.walletconnect.util.randomBytes
 import org.bouncycastle.crypto.modes.ChaCha20Poly1305
 import org.bouncycastle.crypto.params.KeyParameter
 import org.bouncycastle.crypto.params.ParametersWithIV
@@ -26,7 +26,6 @@ import java.nio.ByteBuffer
  */
 
 internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagementRepository) : Codec {
-
     private val cha20Poly1305 = ChaCha20Poly1305()
 
     @Throws(

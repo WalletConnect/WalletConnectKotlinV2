@@ -51,4 +51,5 @@ dependencies {
 
     koinTest()
     jUnit5()
+    mockk()
 }

@@ -9,7 +9,7 @@ import com.walletconnect.sign.core.model.vo.IrnParamsVO
 import com.walletconnect.sign.core.model.vo.TtlVO
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
-import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
+import com.walletconnect.android_core.crypto.data.codec.ChaChaPolyCodec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.android_core.network.model.RelayDTO

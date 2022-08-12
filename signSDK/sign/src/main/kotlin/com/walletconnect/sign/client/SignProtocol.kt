@@ -5,7 +5,7 @@ package com.walletconnect.sign.client
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.di.*
-import com.walletconnect.sign.crypto.data.repository.JwtRepository
+import com.walletconnect.android_core.crypto.data.repository.JwtRepository
 import com.walletconnect.sign.di.*
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO

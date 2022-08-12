@@ -13,9 +13,11 @@ import com.walletconnect.android_core.network.data.connection.controller.Connect
 import com.walletconnect.android_core.network.data.connection.lifecycle.ManualConnectionLifecycle
 import com.walletconnect.android_core.network.domain.RelayClient
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
+import okhttp3.Interceptor
 import com.walletconnect.foundation.di.networkModule as foundationNetworkModule
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
@@ -24,15 +26,24 @@ fun networkModule(serverUrl: String, jwt: String, connectionType: ConnectionType
 
     includes(foundationNetworkModule(serverUrl, sdkVersion, jwt))
 
+    single(named("android-core")) {
+        Interceptor {
+            val updatedRequest = it.request().newBuilder()
+                .addHeader("User-Agent", """wc-2/kotlin-$sdkVersion/android-${Build.VERSION.RELEASE}""")
+                .build()
+
+            it.proceed(updatedRequest)
+        }
+    }
+
     // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
     single {
         OkHttpClient.Builder()
-            .addInterceptor {
-                val updatedRequest = it.request().newBuilder()
-                    .addHeader("User-Agent", """wc-2/kotlin-$sdkVersion/android-${Build.VERSION.RELEASE}""")
-                    .build()
-
-                it.proceed(updatedRequest)
+            .apply {
+                interceptors().apply {
+                    remove(get(named("foundation")))
+                    add(get(named("android-core")))
+                }
             }
             .writeTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
             .readTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
