@@ -20,8 +20,7 @@ internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) : JsonAdapter<JsonR
     private val stringAdapter: JsonAdapter<String> = moshi.adapter(String::class.java, emptySet(), "jsonrpc")
     private val booleanAdapter: JsonAdapter<Long> = moshi.adapter(Boolean::class.java, emptySet(), "result")
     private val anyAdapter: JsonAdapter<Any> = moshi.adapter(Any::class.java, emptySet(), "result")
-    private val approvalParamsAdapter: JsonAdapter<SessionParamsVO.ApprovalParams> =
-        moshi.adapter(SessionParamsVO.ApprovalParams::class.java)
+    private val approvalParamsAdapter: JsonAdapter<SessionParamsVO.ApprovalParams> = moshi.adapter(SessionParamsVO.ApprovalParams::class.java)
 
     @Volatile
     private var constructorRef: Constructor<JsonRpc.JsonRpcResponse.JsonRpcResult>? = null

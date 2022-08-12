@@ -3,8 +3,8 @@
 package com.walletconnect.sign.crypto.data.keystore
 
 import android.content.SharedPreferences
+import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
-import com.walletconnect.sign.core.model.vo.Key
 import com.walletconnect.sign.crypto.KeyStore
 import com.walletconnect.sign.util.Empty
 import com.walletconnect.sign.util.bytesToHex

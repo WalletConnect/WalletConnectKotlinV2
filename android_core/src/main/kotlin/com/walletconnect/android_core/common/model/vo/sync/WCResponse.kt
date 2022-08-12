@@ -1,11 +1,12 @@
 package com.walletconnect.android_core.common.model.vo.sync
 
 import com.walletconnect.android_core.common.model.type.ClientParams
+import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponse
 import com.walletconnect.foundation.common.model.Topic
 
-internal data class WCRequestVO(
+data class WCResponse(
     val topic: Topic,
-    val id: Long,
     val method: String,
-    val params: ClientParams
+    val response: JsonRpcResponse,
+    val params: ClientParams,
 )

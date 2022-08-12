@@ -5,8 +5,8 @@ package com.walletconnect.sign.crypto.data.repository
 import android.util.Base64
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import com.walletconnect.sign.core.model.vo.PrivateKey
-import com.walletconnect.sign.core.model.vo.PublicKey
+import com.walletconnect.foundation.common.model.PrivateKey
+import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.sign.crypto.KeyStore
 import com.walletconnect.sign.crypto.data.repository.model.IrnJWTHeader
 import com.walletconnect.sign.crypto.data.repository.model.IrnJWTPayload

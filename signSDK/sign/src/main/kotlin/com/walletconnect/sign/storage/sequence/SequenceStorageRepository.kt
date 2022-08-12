@@ -4,9 +4,9 @@ package com.walletconnect.sign.storage.sequence
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android_core.common.model.Expiry
+import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.core.model.type.enums.MetaDataType
-import com.walletconnect.sign.core.model.vo.PublicKey
 import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RedirectVO

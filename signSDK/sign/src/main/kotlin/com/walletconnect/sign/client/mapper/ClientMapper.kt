@@ -3,7 +3,7 @@ package com.walletconnect.sign.client.mapper
 import android.net.Uri
 import android.os.Build
 import com.walletconnect.sign.client.Sign
-import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponseVO
+import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.android_core.network.data.connection.ConnectionType
@@ -17,7 +17,7 @@ internal fun EngineDO.ProposedSequence.toClientProposedSequence(): Sign.Model.Pr
     }
 
 @JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponseVO(): JsonRpcResponseVO =
+internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponseVO(): JsonRpcResponse =
     when (this) {
         is Sign.Model.JsonRpcResponse.JsonRpcResult -> this.toRpcResultVO()
         is Sign.Model.JsonRpcResponse.JsonRpcError -> this.toRpcErrorVO()
@@ -72,12 +72,12 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     )
 
 @JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResultVO(): JsonRpcResponseVO.JsonRpcResult =
-    JsonRpcResponseVO.JsonRpcResult(id, result = result)
+internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResultVO(): JsonRpcResponse.JsonRpcResult =
+    JsonRpcResponse.JsonRpcResult(id, result = result)
 
 @JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcErrorVO(): JsonRpcResponseVO.JsonRpcError =
-    JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(code, message))
+internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcErrorVO(): JsonRpcResponse.JsonRpcError =
+    JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(code, message))
 
 @JvmSynthetic
 internal fun Sign.Model.SessionEvent.toEngineEvent(chainId: String): EngineDO.Event = EngineDO.Event(name, data, chainId)

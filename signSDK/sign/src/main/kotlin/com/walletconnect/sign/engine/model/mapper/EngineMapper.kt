@@ -11,10 +11,10 @@ import com.walletconnect.sign.core.model.vo.clientsync.common.SessionParticipant
 import com.walletconnect.sign.core.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.sign.core.model.vo.clientsync.pairing.payload.SessionProposerVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
-import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponseVO
+import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponse
 import com.walletconnect.sign.core.model.vo.sequence.PairingVO
 import com.walletconnect.sign.core.model.vo.sequence.SessionVO
-import com.walletconnect.android_core.common.model.vo.sync.WCRequestVO
+import com.walletconnect.android_core.common.model.vo.sync.WCRequest
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
 import com.walletconnect.sign.util.Empty
@@ -55,7 +55,7 @@ internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): E
 
 @JvmSynthetic
 internal fun SessionParamsVO.SessionRequestParams.toEngineDOSessionRequest(
-    request: WCRequestVO,
+    request: WCRequest,
     peerMetaDataVO: MetaDataVO?,
 ): EngineDO.SessionRequest =
     EngineDO.SessionRequest(
@@ -175,11 +175,11 @@ internal fun getSessionRelays(relays: List<EngineDO.RelayProtocolOptions>?): Lis
 } ?: listOf(RelayProtocolOptionsVO())
 
 @JvmSynthetic
-internal fun JsonRpcResponseVO.JsonRpcResult.toEngineJsonRpcResult(): EngineDO.JsonRpcResponse.JsonRpcResult =
+internal fun JsonRpcResponse.JsonRpcResult.toEngineJsonRpcResult(): EngineDO.JsonRpcResponse.JsonRpcResult =
     EngineDO.JsonRpcResponse.JsonRpcResult(id = id, result = result.toString())
 
 @JvmSynthetic
-internal fun JsonRpcResponseVO.JsonRpcError.toEngineJsonRpcError(): EngineDO.JsonRpcResponse.JsonRpcError =
+internal fun JsonRpcResponse.JsonRpcError.toEngineJsonRpcError(): EngineDO.JsonRpcResponse.JsonRpcError =
     EngineDO.JsonRpcResponse.JsonRpcError(id = id, error = EngineDO.JsonRpcResponse.Error(error.code, error.message))
 
 @JvmSynthetic

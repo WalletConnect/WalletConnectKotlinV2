@@ -5,11 +5,11 @@ package com.walletconnect.android_core.json_rpc.domain
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
-import com.walletconnect.android_core.common.model.vo.IrnParamsVO
-import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponseVO
+import com.walletconnect.android_core.common.model.vo.IrnParams
+import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.vo.sync.PendingRequestVO
-import com.walletconnect.android_core.common.model.vo.sync.WCRequestVO
-import com.walletconnect.android_core.common.model.vo.sync.WCResponseVO
+import com.walletconnect.android_core.common.model.vo.sync.WCRequest
+import com.walletconnect.android_core.common.model.vo.sync.WCResponse
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.json_rpc.data.JsonRpcSerializerAbstract
 import com.walletconnect.android_core.json_rpc.data.NetworkState
@@ -25,9 +25,6 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
-import com.walletconnect.sign.core.model.vo.IrnParamsVO
-import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
-import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.sign.json_rpc.model.*
 import com.walletconnect.sign.util.Empty
@@ -43,11 +40,11 @@ abstract class JsonRpcInteractorAbstract(
     private val jsonRpcHistory: JsonRpcHistory,
     networkState: NetworkState, //todo: move to the RelayClient
 ) {
-    private val _clientSyncJsonRpc: MutableSharedFlow<WCRequestVO> = MutableSharedFlow()
-    val clientSyncJsonRpc: SharedFlow<WCRequestVO> = _clientSyncJsonRpc.asSharedFlow()
+    private val _clientSyncJsonRpc: MutableSharedFlow<WCRequest> = MutableSharedFlow()
+    val clientSyncJsonRpc: SharedFlow<WCRequest> = _clientSyncJsonRpc.asSharedFlow()
 
-    private val _peerResponse: MutableSharedFlow<WCResponseVO> = MutableSharedFlow()
-    val peerResponse: SharedFlow<WCResponseVO> = _peerResponse.asSharedFlow()
+    private val _peerResponse: MutableSharedFlow<WCResponse> = MutableSharedFlow()
+    val peerResponse: SharedFlow<WCResponse> = _peerResponse.asSharedFlow()
 
     private val _internalErrors = MutableSharedFlow<WalletConnectException.InternalError>()
     val internalErrors: SharedFlow<WalletConnectException.InternalError> = _internalErrors.asSharedFlow()
@@ -96,7 +93,7 @@ abstract class JsonRpcInteractorAbstract(
 
     fun publishJsonRpcRequests(
         topic: Topic,
-        params: IrnParamsVO,
+        params: IrnParams,
         payload: JsonRpcClientSync<*>,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
@@ -118,8 +115,8 @@ abstract class JsonRpcInteractorAbstract(
 
     fun publishJsonRpcResponse(
         topic: Topic,
-        response: JsonRpcResponseVO,
-        params: IrnParamsVO,
+        response: JsonRpcResponse,
+        params: IrnParams,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
@@ -140,15 +137,15 @@ abstract class JsonRpcInteractorAbstract(
         }
     }
 
-    fun respondWithParams(request: WCRequestVO, clientParams: ClientParams, irnParams: IrnParamsVO) {
-        val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = clientParams)
+    fun respondWithParams(request: WCRequest, clientParams: ClientParams, irnParams: IrnParams) {
+        val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = clientParams)
 
         publishJsonRpcResponse(request.topic, result, irnParams,
             onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
     }
 
-    fun respondWithSuccess(request: WCRequestVO, irnParams: IrnParamsVO) {
-        val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = true)
+    fun respondWithSuccess(request: WCRequest, irnParams: IrnParams) {
+        val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = true)
 
         try {
             publishJsonRpcResponse(request.topic, result, irnParams,
@@ -159,13 +156,13 @@ abstract class JsonRpcInteractorAbstract(
     }
 
     fun respondWithError(
-        request: WCRequestVO,
+        request: WCRequest,
         error: PeerError,
-        irnParams: IrnParamsVO,
+        irnParams: IrnParams,
         onFailure: (Throwable) -> Unit = {},
     ) {
         Logger.error("Responding with error: ${error.message}: ${error.code}")
-        val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = request.id, error = JsonRpcResponseVO.Error(error.code, error.message))
+        val jsonRpcError = JsonRpcResponse.JsonRpcError(id = request.id, error = JsonRpcResponse.Error(error.code, error.message))
 
         try {
             publishJsonRpcResponse(request.topic, jsonRpcError, irnParams,
@@ -230,7 +227,7 @@ abstract class JsonRpcInteractorAbstract(
     private suspend fun handleRequest(clientJsonRpc: JsonRpc.ClientJsonRpc, topic: Topic, decryptedMessage: String) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
-                _clientSyncJsonRpc.emit(WCRequestVO(topic, clientJsonRpc.id, clientJsonRpc.method, params))
+                _clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params))
             } ?: handleError("RelayerInteractor: Unknown request params")
         }
     }
@@ -240,7 +237,7 @@ abstract class JsonRpcInteractorAbstract(
 
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
-                val responseVO = JsonRpcResponseVO.JsonRpcResult(jsonRpcResult.id, result = jsonRpcResult.result)
+                val responseVO = JsonRpcResponse.JsonRpcResult(jsonRpcResult.id, result = jsonRpcResult.result)
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(responseVO, params))
             } ?: handleError("RelayerInteractor: Unknown result params")
         }

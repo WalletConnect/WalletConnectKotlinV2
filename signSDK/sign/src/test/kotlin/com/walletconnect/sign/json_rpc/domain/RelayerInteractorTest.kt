@@ -5,10 +5,10 @@ import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
 import com.walletconnect.android_core.common.model.type.enums.Tags
-import com.walletconnect.android_core.common.model.vo.IrnParamsVO
+import com.walletconnect.android_core.common.model.vo.IrnParams
 import com.walletconnect.sign.core.model.vo.TtlVO
-import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponseVO
-import com.walletconnect.android_core.common.model.vo.sync.WCRequestVO
+import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponse
+import com.walletconnect.android_core.common.model.vo.sync.WCRequest
 import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android_core.network.RelayConnectionInterface
@@ -68,7 +68,7 @@ internal class RelayerInteractorTest {
         every { method } returns String.Empty
     }
 
-    private val request: WCRequestVO = mockk {
+    private val request: WCRequest = mockk {
         every { id } returns DEFAULT_ID
         every { topic } returns topicVO
     }
@@ -107,7 +107,7 @@ internal class RelayerInteractorTest {
     }
 
     private fun publishJsonRpcRequests() {
-        val irnParamsVO = IrnParamsVO(Tags.SESSION_PING, TtlVO(300))
+        val irnParamsVO = IrnParams(Tags.SESSION_PING, TtlVO(300))
         sut.publishJsonRpcRequests(
             topicVO,
             irnParamsVO,
@@ -178,8 +178,8 @@ internal class RelayerInteractorTest {
     @Test
     fun `RespondWithParams publishes result with params and request id on request topic`() {
         val params: ClientParams = mockk()
-        val result = JsonRpcResponseVO.JsonRpcResult(request.id, result = params)
-        val irnParamsVO = IrnParamsVO(Tags.SESSION_PING, TtlVO(300))
+        val result = JsonRpcResponse.JsonRpcResult(request.id, result = params)
+        val irnParamsVO = IrnParams(Tags.SESSION_PING, TtlVO(300))
         mockRelayPublishSuccess()
         sut.respondWithParams(request, params, irnParamsVO)
         verify { sut.publishJsonRpcResponse(topicVO, result, irnParamsVO, any(), any()) }
@@ -187,8 +187,8 @@ internal class RelayerInteractorTest {
 
     @Test
     fun `RespondWithSuccess publishes result as true with request id on request topic`() {
-        val result = JsonRpcResponseVO.JsonRpcResult(request.id, result = true)
-        val irnParamsVO = IrnParamsVO(Tags.SESSION_PING, TtlVO(300))
+        val result = JsonRpcResponse.JsonRpcResult(request.id, result = true)
+        val irnParamsVO = IrnParams(Tags.SESSION_PING, TtlVO(300))
         mockRelayPublishSuccess()
         sut.respondWithSuccess(request, irnParamsVO)
         verify { sut.publishJsonRpcResponse(topicVO, result, irnParamsVO, any(), any()) }
@@ -196,9 +196,9 @@ internal class RelayerInteractorTest {
 
     @Test
     fun `RespondWithError publishes result as error with request id on request topic`() {
-        val error = JsonRpcResponseVO.Error(peerError.code, peerError.message)
-        val result = JsonRpcResponseVO.JsonRpcError(request.id, error = error)
-        val irnParamsVO = IrnParamsVO(Tags.SESSION_PING, TtlVO(300))
+        val error = JsonRpcResponse.Error(peerError.code, peerError.message)
+        val result = JsonRpcResponse.JsonRpcError(request.id, error = error)
+        val irnParamsVO = IrnParams(Tags.SESSION_PING, TtlVO(300))
         mockRelayPublishSuccess()
         sut.respondWithError(request, peerError, irnParamsVO)
         verify { sut.publishJsonRpcResponse(topicVO, result, irnParamsVO, any(), any()) }
@@ -207,7 +207,7 @@ internal class RelayerInteractorTest {
     @Test
     fun `OnFailure callback called when respondWithError encounters error`() {
         mockRelayPublishFailure()
-        val irnParamsVO = IrnParamsVO(Tags.SESSION_PING, TtlVO(300))
+        val irnParamsVO = IrnParams(Tags.SESSION_PING, TtlVO(300))
         sut.respondWithError(request, peerError, irnParamsVO, onFailure)
         verify { onFailure(any()) }
     }
