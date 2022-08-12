@@ -23,8 +23,8 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var signEngine: SignEngine
     internal val relay: RelayInterface by lazy { wcKoinApp.koin.get() }
-    internal val mutex = Mutex()
-    internal val signProtocolScope = CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
+    private val mutex = Mutex()
+    private val signProtocolScope = CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
     companion object {
         val instance = SignProtocol()
