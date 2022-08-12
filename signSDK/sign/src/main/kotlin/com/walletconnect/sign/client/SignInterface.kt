@@ -57,15 +57,7 @@ interface SignInterface {
     fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest>
 
     interface Websocket {
-        val relay: RelayConnectionInterface
-
-        //todo: consider injecting foundation to android_core by api
-        fun open(onError: (String) -> Unit) {
-            relay.connect { errorMessage -> onError(errorMessage) }
-        }
-
-        fun close(onError: (String) -> Unit) {
-            relay.disconnect { errorMessage -> onError(errorMessage) }
-        }
+        fun open(onError: (String) -> Unit)
+        fun close(onError: (String) -> Unit)
     }
 }
