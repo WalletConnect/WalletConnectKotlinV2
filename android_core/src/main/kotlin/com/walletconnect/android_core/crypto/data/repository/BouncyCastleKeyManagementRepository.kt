@@ -1,13 +1,20 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.crypto.data.repository
+package com.walletconnect.android_core.crypto.data.repository
 
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.SymmetricKey
+import com.walletconnect.android_core.common.model.SymmetricKey
+import com.walletconnect.android_core.crypto.KeyManagementRepository
+import com.walletconnect.android_core.crypto.KeyStore
+import com.walletconnect.foundation.common.model.PrivateKey
+import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.crypto.KeyStore
+import com.walletconnect.util.bytesToHex
+import com.walletconnect.util.hexToBytes
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
 import org.bouncycastle.crypto.digests.SHA256Digest

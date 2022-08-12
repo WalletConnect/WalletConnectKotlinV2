@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.crypto
+package com.walletconnect.android_core.crypto
 
 import com.walletconnect.android_core.common.exceptions.client.WalletConnectException
 import com.walletconnect.foundation.common.model.Key

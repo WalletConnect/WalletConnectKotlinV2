@@ -1,10 +1,19 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.crypto.data.repository
+package com.walletconnect.android_core.crypto.data.repository
 
 import android.util.Base64
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import com.walletconnect.android_core.crypto.KeyStore
+import com.walletconnect.foundation.common.model.PrivateKey
+import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.crypto.data.repository.BaseJwtRepository
+import com.walletconnect.foundation.crypto.data.repository.model.IrnJWTHeader
+import com.walletconnect.foundation.crypto.data.repository.model.IrnJWTPayload
+import com.walletconnect.util.bytesToHex
+import com.walletconnect.util.hexToBytes
+import com.walletconnect.util.randomBytes
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.sign.crypto.KeyStore
@@ -24,9 +33,9 @@ import org.bouncycastle.crypto.signers.Ed25519Signer
 import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
 
-internal class JwtRepository(private val keyChain: KeyStore) {
+internal class JwtRepositoryAndroid(private val keyChain: KeyStore): BaseJwtRepository() {
 
-    fun generateJWT(serverUrl: String): String {
+    override fun generateJWT(serverUrl: String): String {
         val subject = generateSubject()
         val (publicKey, privateKey) = getKeyPair()
         val privateKeyParameters = Ed25519PrivateKeyParameters(privateKey.hexToBytes())
@@ -43,6 +52,10 @@ internal class JwtRepository(private val keyChain: KeyStore) {
         }
 
         return encodeJWT(JWT_IRN_HEADER, payload, signature)
+    }
+
+    override fun setKeyPair(key: String, privateKey: PrivateKey, publicKey: PublicKey) {
+        TODO("Not yet implemented")
     }
 
     private fun encodeIss(publicKey: ByteArray): String {
@@ -70,11 +83,11 @@ internal class JwtRepository(private val keyChain: KeyStore) {
         return encodeByteArray(jsonByteArray)
     }
 
-    internal fun encodeByteArray(signature: ByteArray): String {
+    override fun encodeByteArray(signature: ByteArray): String {
         return Base64.encodeToString(signature, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
     }
 
-    private fun getKeyPair(): Pair<String, String> {
+    override fun getKeyPair(): Pair<String, String> {
         return if (doesKeyPairExist()) {
             val (privateKey, publicKey) = keyChain.getKeys(KEY_DID_KEYPAIR)
             publicKey to privateKey

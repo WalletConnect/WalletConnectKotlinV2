@@ -6,7 +6,7 @@ import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.android_core.common.model.IrnParams
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.WCRequest
-import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
+import com.walletconnect.android_core.crypto.data.codec.ChaChaPolyCodec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.Topic
