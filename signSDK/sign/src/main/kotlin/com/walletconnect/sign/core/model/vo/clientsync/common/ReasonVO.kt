@@ -2,7 +2,7 @@ package com.walletconnect.sign.core.model.vo.clientsync.common
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.sign.util.DefaultId
+import com.walletconnect.utils.DefaultId
 
 @JsonClass(generateAdapter = true)
 internal data class ReasonVO(

@@ -10,7 +10,7 @@ import com.walletconnect.android_core.json_rpc.model.JsonRpc
 import com.walletconnect.sign.core.model.vo.clientsync.pairing.PairingRpcVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
-import com.walletconnect.sign.util.Empty
+import com.walletconnect.utils.Empty
 
 internal class JsonRpcSerializer(override val moshi: Moshi) : JsonRpcSerializerAbstract(moshi) {
 

@@ -13,7 +13,7 @@ import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespa
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDao
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceExtensionsDao
 import com.walletconnect.sign.storage.sequence.SequenceStorageRepository
-import com.walletconnect.sign.util.Empty
+import com.walletconnect.utils.Empty
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module

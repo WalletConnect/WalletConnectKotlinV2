@@ -2,13 +2,13 @@ package com.walletconnect.sign.crypto.codec
 
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
-import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.SymmetricKey
+import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.core.model.vo.sync.ParticipantsVO
 import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
-import com.walletconnect.sign.util.Empty
+import com.walletconnect.utils.Empty
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions

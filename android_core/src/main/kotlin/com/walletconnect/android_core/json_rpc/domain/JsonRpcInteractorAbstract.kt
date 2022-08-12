@@ -26,8 +26,7 @@ import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.crypto.Codec
-import com.walletconnect.sign.json_rpc.model.*
-import com.walletconnect.sign.util.Empty
+import com.walletconnect.utils.Empty
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

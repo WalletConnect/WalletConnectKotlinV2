@@ -10,7 +10,7 @@ import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptio
 import com.walletconnect.sign.core.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.payload.SessionRequestVO
-import com.walletconnect.sign.util.DefaultId
+import com.walletconnect.utils.DefaultId
 
 internal sealed class SessionParamsVO : ClientParams {
 

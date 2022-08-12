@@ -1,5 +1,6 @@
 package com.walletconnect.sign
 
+import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.ValidatorTest.Accounts.COSMOSHUB_4_1
 import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_1
@@ -25,7 +26,6 @@ import com.walletconnect.sign.ValidatorTest.Namespaces.COSMOS
 import com.walletconnect.sign.ValidatorTest.Namespaces.EIP155
 import com.walletconnect.sign.core.exceptions.*
 import com.walletconnect.sign.core.model.utils.Time
-import com.walletconnect.sign.core.model.vo.SymmetricKey
 import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.engine.domain.Validator

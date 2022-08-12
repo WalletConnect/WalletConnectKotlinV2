@@ -6,19 +6,19 @@ import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
 import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.android_core.common.model.vo.IrnParams
-import com.walletconnect.sign.core.model.vo.TtlVO
 import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.vo.sync.WCRequest
 import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android_core.network.RelayConnectionInterface
-import com.walletconnect.android_core.network.model.RelayDTO
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.android_core.storage.JsonRpcHistory
 import com.walletconnect.android_core.utils.Logger
-import com.walletconnect.sign.util.Empty
 import com.walletconnect.android_core.json_rpc.data.NetworkState
+import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.network.model.RelayDTO
+import com.walletconnect.utils.Empty
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
@@ -55,7 +55,7 @@ internal class RelayerInteractorTest {
 
     private val sut =
         spyk(
-            JsonRpcInteractor(relay, serializer, chaChaPolyCodec, jsonRpcHistory, networkState),
+            JsonRpcInteractor(relay, chaChaPolyCodec, networkState, jsonRpcHistory, serializer),
             recordPrivateCalls = true
         ) {
             every { checkConnectionWorking() } answers { }
@@ -107,7 +107,7 @@ internal class RelayerInteractorTest {
     }
 
     private fun publishJsonRpcRequests() {
-        val irnParamsVO = IrnParams(Tags.SESSION_PING, TtlVO(300))
+        val irnParamsVO = IrnParams(Tags.SESSION_PING, Ttl(300))
         sut.publishJsonRpcRequests(
             topicVO,
             irnParamsVO,
@@ -179,7 +179,7 @@ internal class RelayerInteractorTest {
     fun `RespondWithParams publishes result with params and request id on request topic`() {
         val params: ClientParams = mockk()
         val result = JsonRpcResponse.JsonRpcResult(request.id, result = params)
-        val irnParamsVO = IrnParams(Tags.SESSION_PING, TtlVO(300))
+        val irnParamsVO = IrnParams(Tags.SESSION_PING, Ttl(300))
         mockRelayPublishSuccess()
         sut.respondWithParams(request, params, irnParamsVO)
         verify { sut.publishJsonRpcResponse(topicVO, result, irnParamsVO, any(), any()) }
@@ -188,7 +188,7 @@ internal class RelayerInteractorTest {
     @Test
     fun `RespondWithSuccess publishes result as true with request id on request topic`() {
         val result = JsonRpcResponse.JsonRpcResult(request.id, result = true)
-        val irnParamsVO = IrnParams(Tags.SESSION_PING, TtlVO(300))
+        val irnParamsVO = IrnParams(Tags.SESSION_PING, Ttl(300))
         mockRelayPublishSuccess()
         sut.respondWithSuccess(request, irnParamsVO)
         verify { sut.publishJsonRpcResponse(topicVO, result, irnParamsVO, any(), any()) }
@@ -198,7 +198,7 @@ internal class RelayerInteractorTest {
     fun `RespondWithError publishes result as error with request id on request topic`() {
         val error = JsonRpcResponse.Error(peerError.code, peerError.message)
         val result = JsonRpcResponse.JsonRpcError(request.id, error = error)
-        val irnParamsVO = IrnParams(Tags.SESSION_PING, TtlVO(300))
+        val irnParamsVO = IrnParams(Tags.SESSION_PING, Ttl(300))
         mockRelayPublishSuccess()
         sut.respondWithError(request, peerError, irnParamsVO)
         verify { sut.publishJsonRpcResponse(topicVO, result, irnParamsVO, any(), any()) }
@@ -207,7 +207,7 @@ internal class RelayerInteractorTest {
     @Test
     fun `OnFailure callback called when respondWithError encounters error`() {
         mockRelayPublishFailure()
-        val irnParamsVO = IrnParams(Tags.SESSION_PING, TtlVO(300))
+        val irnParamsVO = IrnParams(Tags.SESSION_PING, Ttl(300))
         sut.respondWithError(request, peerError, irnParamsVO, onFailure)
         verify { onFailure(any()) }
     }

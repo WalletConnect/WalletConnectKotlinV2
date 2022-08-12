@@ -8,7 +8,7 @@ import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.core.model.vo.clientsync.pairing.payload.SessionProposerVO
-import com.walletconnect.sign.util.DefaultId
+import com.walletconnect.utils.DefaultId
 
 internal sealed class PairingParamsVO : ClientParams {
 
