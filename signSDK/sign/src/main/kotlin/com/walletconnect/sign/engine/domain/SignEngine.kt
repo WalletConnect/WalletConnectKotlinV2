@@ -4,48 +4,45 @@ package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android_core.common.model.Expiry
-import com.walletconnect.sign.core.exceptions.client.WalletConnectException
-import com.walletconnect.sign.core.exceptions.peer.PeerError
-import com.walletconnect.sign.core.exceptions.peer.PeerReason
-import com.walletconnect.sign.core.model.type.EngineEvent
-import com.walletconnect.sign.core.model.type.enums.Sequences
 import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.android_core.common.model.vo.IrnParams
-import com.walletconnect.sign.core.model.utils.Time
-import com.walletconnect.sign.core.model.vo.*
-import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.SessionParticipantVO
-import com.walletconnect.sign.core.model.vo.clientsync.pairing.PairingRpcVO
-import com.walletconnect.sign.core.model.vo.clientsync.pairing.params.PairingParamsVO
-import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
-import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
-import com.walletconnect.sign.core.model.vo.clientsync.session.payload.SessionEventVO
-import com.walletconnect.sign.core.model.vo.clientsync.session.payload.SessionRequestVO
 import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponse
-import com.walletconnect.sign.core.model.vo.sequence.PairingVO
-import com.walletconnect.sign.core.model.vo.sequence.SessionVO
 import com.walletconnect.android_core.common.model.vo.sync.PendingRequestVO
 import com.walletconnect.android_core.common.model.vo.sync.WCRequest
 import com.walletconnect.android_core.common.model.vo.sync.WCResponse
 import com.walletconnect.android_core.common.scope.scope
-import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.android_core.utils.Logger
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.SymmetricKey
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
-import com.walletconnect.sign.core.exceptions.*
-import com.walletconnect.sign.core.exceptions.MALFORMED_PAIRING_URI_MESSAGE
-import com.walletconnect.sign.core.exceptions.NO_SEQUENCE_FOR_TOPIC_MESSAGE
-import com.walletconnect.sign.core.exceptions.NO_SESSION_PROPOSAL
-import com.walletconnect.sign.core.exceptions.PAIRING_NOW_ALLOWED_MESSAGE
+import com.walletconnect.sign.common.exceptions.*
+import com.walletconnect.sign.common.exceptions.client.WalletConnectException
+import com.walletconnect.android_core.common.exceptions.client.WalletConnectException as CoreWalletConnectException
+import com.walletconnect.sign.common.exceptions.peer.PeerError
+import com.walletconnect.sign.common.exceptions.peer.PeerReason
+import com.walletconnect.sign.common.model.type.EngineEvent
+import com.walletconnect.sign.common.model.type.enums.Sequences
+import com.walletconnect.sign.util.Time
+import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO
+import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO
+import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
+import com.walletconnect.sign.common.model.vo.clientsync.pairing.PairingRpcVO
+import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.SessionRpcVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionEventVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
+import com.walletconnect.sign.common.model.vo.sequence.PairingVO
+import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.*
 import com.walletconnect.sign.json_rpc.domain.JsonRpcInteractor
 import com.walletconnect.sign.storage.sequence.SequenceStorageRepository
 import com.walletconnect.sign.util.*
+import com.walletconnect.utils.Empty
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
@@ -67,10 +64,8 @@ internal class SignEngine(
         collectInternalErrors()
     }
 
-    fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-        relayer.initializationErrorsFlow.onEach { walletConnectException ->
-            onError(walletConnectException)
-        }.launchIn(scope)
+    fun handleInitializationErrors(onError: (CoreWalletConnectException) -> Unit) {
+        relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
 
     internal fun proposeSequence(
@@ -260,7 +255,7 @@ internal class SignEngine(
                 }
             )
         }, onFailure = {
-            onFailure(WalletConnectException.GenericException("Error updating namespaces"))
+            onFailure(CoreWalletConnectException.GenericException("Error updating namespaces"))
         })
     }
 

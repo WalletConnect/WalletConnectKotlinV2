@@ -15,7 +15,7 @@ internal class RelayerDOJsonRpcResponseJsonRpcResultJsonAdapterTest {
     fun `test to json`() {
         val moshi = Moshi.Builder().add { type, _, moshi ->
             return@add if (type.getRawType().name == JsonRpc.JsonRpcResponse.JsonRpcResult::class.jvmName) {
-                RelayDOJsonRpcResultJsonAdapter(moshi = moshi)
+                com.walletconnect.sign.common.adapters.RelayDOJsonRpcResultJsonAdapter(moshi = moshi)
             } else {
                 null
             }
@@ -39,7 +39,7 @@ internal class RelayerDOJsonRpcResponseJsonRpcResultJsonAdapterTest {
     fun `test from json`() {
         val moshi = Moshi.Builder().add { type, _, moshi ->
             return@add if (type.getRawType().name == JsonRpc.JsonRpcResponse.JsonRpcResult::class.jvmName) {
-                RelayDOJsonRpcResultJsonAdapter(moshi = moshi)
+                com.walletconnect.sign.common.adapters.RelayDOJsonRpcResultJsonAdapter(moshi = moshi)
             } else {
                 null
             }
@@ -62,7 +62,7 @@ internal class RelayerDOJsonRpcResponseJsonRpcResultJsonAdapterTest {
     fun `test from json with boolean`() {
         val moshi = Moshi.Builder().add { type, _, moshi ->
             return@add if (type.getRawType().name == JsonRpc.JsonRpcResponse.JsonRpcResult::class.jvmName) {
-                RelayDOJsonRpcResultJsonAdapter(moshi = moshi)
+                com.walletconnect.sign.common.adapters.RelayDOJsonRpcResultJsonAdapter(moshi = moshi)
             } else {
                 null
             }

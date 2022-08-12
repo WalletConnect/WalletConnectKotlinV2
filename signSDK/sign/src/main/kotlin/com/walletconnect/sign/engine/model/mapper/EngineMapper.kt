@@ -2,22 +2,22 @@ package com.walletconnect.sign.engine.model.mapper
 
 import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.core.exceptions.peer.PeerError
-import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.SessionParticipantVO
-import com.walletconnect.sign.core.model.vo.clientsync.pairing.params.PairingParamsVO
-import com.walletconnect.sign.core.model.vo.clientsync.pairing.payload.SessionProposerVO
-import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
+import com.walletconnect.sign.common.exceptions.peer.PeerError
+import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
+import com.walletconnect.sign.common.model.vo.clientsync.pairing.payload.SessionProposerVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponse
-import com.walletconnect.sign.core.model.vo.sequence.PairingVO
-import com.walletconnect.sign.core.model.vo.sequence.SessionVO
+import com.walletconnect.sign.common.model.vo.sequence.PairingVO
+import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.android_core.common.model.vo.sync.WCRequest
+import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.sign.common.model.vo.clientsync.common.*
+import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO
+import com.walletconnect.sign.common.model.vo.clientsync.common.RedirectVO
+import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
-import com.walletconnect.sign.util.Empty
+import com.walletconnect.utils.Empty
 import java.net.URI
 
 @JvmSynthetic

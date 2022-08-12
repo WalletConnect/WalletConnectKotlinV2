@@ -4,7 +4,7 @@ import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.EnumColumnAdapter
 import com.walletconnect.android_core.di.coreStorageModule
 import com.walletconnect.sign.Database
-import com.walletconnect.sign.core.model.type.enums.MetaDataType
+import com.walletconnect.sign.common.model.type.enums.MetaDataType
 import com.walletconnect.sign.storage.data.dao.metadata.MetaDataDao
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDao
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceExtensionsDao
@@ -37,9 +37,7 @@ internal fun storageModule(): Module = module {
         }
     }
 
-    single<ColumnAdapter<MetaDataType, String>>(named("MetaDataType")) {
-        EnumColumnAdapter()
-    }
+    single<ColumnAdapter<MetaDataType, String>>(named("MetaDataType")) { EnumColumnAdapter() }
 
     single {
         Database(

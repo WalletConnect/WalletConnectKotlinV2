@@ -3,7 +3,6 @@
 package com.walletconnect.sign.util
 
 import com.walletconnect.android_core.common.model.Expiry
-import com.walletconnect.sign.core.model.utils.Time
 import java.lang.System.currentTimeMillis
 import java.security.SecureRandom
 

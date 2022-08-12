@@ -7,7 +7,7 @@ import com.walletconnect.android_core.json_rpc.domain.JsonRpcInteractorAbstract
 import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.android_core.storage.JsonRpcHistory
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.android_core.common.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer

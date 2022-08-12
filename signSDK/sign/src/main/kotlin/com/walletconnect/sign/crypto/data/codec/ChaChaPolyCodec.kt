@@ -6,8 +6,8 @@ import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.core.exceptions.client.WalletConnectException
-import com.walletconnect.sign.core.model.vo.sync.ParticipantsVO
+import com.walletconnect.sign.common.exceptions.client.WalletConnectException
+import com.walletconnect.sign.common.model.vo.sync.ParticipantsVO
 import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.util.bytesToHex
