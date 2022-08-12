@@ -1,5 +1,6 @@
 package com.walletconnect.sign.engine.domain
 
+import com.walletconnect.android_core.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.core.exceptions.*
 import com.walletconnect.sign.core.exceptions.NAMESPACE_CHAINS_CAIP_2_MESSAGE
@@ -7,7 +8,6 @@ import com.walletconnect.sign.core.exceptions.NAMESPACE_CHAINS_MISSING_MESSAGE
 import com.walletconnect.sign.core.exceptions.NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE
 import com.walletconnect.sign.core.exceptions.NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE
 import com.walletconnect.sign.core.model.utils.Time
-import com.walletconnect.sign.core.model.vo.SymmetricKey
 import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.engine.model.EngineDO

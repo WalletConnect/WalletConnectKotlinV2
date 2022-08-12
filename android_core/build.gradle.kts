@@ -49,7 +49,8 @@ dependencies {
     multibaseJava()
     timber()
 
-    koinTest()
-    jUnit5()
     mockk()
+    jUnit5()
+    jUnit5Android()
+    koinTest()
 }

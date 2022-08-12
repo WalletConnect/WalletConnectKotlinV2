@@ -3,14 +3,17 @@
 package com.walletconnect.sign.json_rpc.domain
 
 import com.walletconnect.android_core.common.GenericException
+import com.walletconnect.android_core.common.InternalError
 import com.walletconnect.android_core.common.WalletConnectException
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
 import com.walletconnect.android_core.common.scope.scope
+import com.walletconnect.android_core.crypto.Codec
 import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.android_core.storage.JsonRpcHistory
 import com.walletconnect.android_core.utils.Logger
+import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.sign.core.exceptions.client.InvalidProjectIdException
@@ -18,13 +21,11 @@ import com.walletconnect.sign.core.exceptions.client.NoRelayConnectionException
 import com.walletconnect.sign.core.exceptions.client.ProjectIdDoesNotExistException
 import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.core.model.vo.IrnParamsVO
-import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
 import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
 import com.walletconnect.sign.core.model.vo.sync.WCResponseVO
-import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.sign.json_rpc.model.*
 import com.walletconnect.sign.util.Empty
@@ -188,7 +189,7 @@ internal class RelayerInteractor(
     internal fun unsubscribe(topic: Topic) {
         checkConnectionWorking()
         if (subscriptions.contains(topic.value)) {
-            val subscriptionId = SubscriptionIdVO(subscriptions[topic.value].toString())
+            val subscriptionId = SubscriptionId(subscriptions[topic.value].toString())
             relay.unsubscribe(topic.value, subscriptionId.id) { result ->
                 result.fold(
                     onSuccess = {
