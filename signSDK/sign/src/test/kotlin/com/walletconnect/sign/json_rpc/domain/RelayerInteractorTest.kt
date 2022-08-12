@@ -1,7 +1,5 @@
 package com.walletconnect.sign.json_rpc.domain
 
-import com.walletconnect.sign.core.exceptions.client.WalletConnectException
-import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
 import com.walletconnect.android_core.common.model.type.enums.Tags
@@ -18,6 +16,9 @@ import com.walletconnect.android_core.utils.Logger
 import com.walletconnect.android_core.json_rpc.data.NetworkState
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.network.model.RelayDTO
+import com.walletconnect.sign.common.exceptions.client.WalletConnectException
+import com.walletconnect.android_core.common.exceptions.client.WalletConnectException as CoreWalletConnectException
+import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.utils.Empty
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -86,7 +87,7 @@ internal class RelayerInteractorTest {
         every { this@mockk.invoke() } returns Unit
     }
 
-    private val onError: (WalletConnectException) -> Unit = mockk {
+    private val onError: (CoreWalletConnectException) -> Unit = mockk {
         every { this@mockk.invoke(any()) } returns Unit
     }
 
