@@ -42,7 +42,12 @@ import com.walletconnect.sign.engine.model.mapper.*
 import com.walletconnect.sign.json_rpc.domain.JsonRpcInteractor
 import com.walletconnect.sign.storage.sequence.SequenceStorageRepository
 import com.walletconnect.sign.util.*
+import com.walletconnect.util.bytesToHex
+import com.walletconnect.util.generateId
+import com.walletconnect.util.randomBytes
 import com.walletconnect.utils.Empty
+import com.walletconnect.utils.extractTimestamp
+import com.walletconnect.utils.isSequenceValid
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 

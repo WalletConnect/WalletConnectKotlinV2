@@ -10,9 +10,9 @@ import com.walletconnect.sign.common.exceptions.client.WalletConnectException
 import com.walletconnect.sign.common.model.vo.sync.ParticipantsVO
 import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.sign.crypto.KeyManagementRepository
-import com.walletconnect.sign.util.bytesToHex
-import com.walletconnect.sign.util.hexToBytes
-import com.walletconnect.sign.util.randomBytes
+import com.walletconnect.util.bytesToHex
+import com.walletconnect.util.hexToBytes
+import com.walletconnect.util.randomBytes
 import org.bouncycastle.crypto.modes.ChaCha20Poly1305
 import org.bouncycastle.crypto.params.KeyParameter
 import org.bouncycastle.crypto.params.ParametersWithIV

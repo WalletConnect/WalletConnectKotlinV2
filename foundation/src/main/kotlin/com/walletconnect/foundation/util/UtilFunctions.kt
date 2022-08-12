@@ -5,15 +5,12 @@ package com.walletconnect.util
 import java.security.SecureRandom
 import javax.ws.rs.core.UriBuilder
 
-@JvmSynthetic
 fun generateId(): Long = (System.currentTimeMillis() + (100..999).random())
 
-@JvmSynthetic
 fun randomBytes(size: Int): ByteArray = ByteArray(size).apply {
     SecureRandom().nextBytes(this)
 }
 
-@JvmSynthetic
 fun ByteArray.bytesToHex(): String {
     val hexString = StringBuilder(2 * this.size)
 
@@ -30,7 +27,6 @@ fun ByteArray.bytesToHex(): String {
     return hexString.toString()
 }
 
-@JvmSynthetic
 fun String.hexToBytes(): ByteArray {
     val len = this.length
     val data = ByteArray(len / 2)
