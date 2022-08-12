@@ -2,8 +2,10 @@
 
 package com.walletconnect.android_core.json_rpc.domain
 
+import com.walletconnect.android_core.common.exceptions.WalletConnectException
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
+import com.walletconnect.android_core.common.model.type.Error
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
 import com.walletconnect.android_core.common.model.vo.IrnParams
 import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcResponse
@@ -14,17 +16,12 @@ import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.json_rpc.data.JsonRpcSerializerAbstract
 import com.walletconnect.android_core.json_rpc.data.NetworkState
 import com.walletconnect.android_core.json_rpc.model.*
-import com.walletconnect.android_core.json_rpc.model.toRelay
-import com.walletconnect.android_core.json_rpc.model.toRelayerDOJsonRpcResponse
-import com.walletconnect.android_core.json_rpc.model.toWCResponse
 import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.android_core.storage.JsonRpcHistory
 import com.walletconnect.android_core.utils.Logger
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.network.model.Relay
-import com.walletconnect.sign.core.exceptions.client.WalletConnectException
-import com.walletconnect.sign.core.exceptions.peer.PeerError
 import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.utils.Empty
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -156,7 +153,7 @@ abstract class JsonRpcInteractorAbstract(
 
     fun respondWithError(
         request: WCRequest,
-        error: PeerError,
+        error: Error,
         irnParams: IrnParams,
         onFailure: (Throwable) -> Unit = {},
     ) {

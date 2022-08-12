@@ -1,8 +1,8 @@
 package com.walletconnect.sign.core.exceptions.peer
 
-internal sealed class PeerError {
-    abstract val message: String
-    abstract val code: Int
+import com.walletconnect.android_core.common.model.type.Error
+
+internal sealed class PeerError : Error {
 
     //Validation errors
 
