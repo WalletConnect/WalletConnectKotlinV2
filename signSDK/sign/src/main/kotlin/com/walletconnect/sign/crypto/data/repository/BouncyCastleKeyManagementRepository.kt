@@ -2,14 +2,14 @@
 
 package com.walletconnect.sign.crypto.data.repository
 
+import com.walletconnect.foundation.common.model.PrivateKey
+import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.core.model.vo.PrivateKey
-import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.SymmetricKey
 import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.crypto.KeyStore
-import com.walletconnect.sign.util.bytesToHex
-import com.walletconnect.sign.util.hexToBytes
+import com.walletconnect.util.bytesToHex
+import com.walletconnect.util.hexToBytes
 import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator
 import org.bouncycastle.crypto.params.HKDFParameters
@@ -17,7 +17,7 @@ import org.bouncycastle.math.ec.rfc7748.X25519
 import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.KeyGenerator
-import com.walletconnect.sign.core.model.vo.Key as WCKey
+import com.walletconnect.foundation.common.model.Key as WCKey
 
 internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStore) : KeyManagementRepository {
 

@@ -1,11 +1,11 @@
 package com.walletconnect.sign.crypto.data.repository
 
+import com.walletconnect.foundation.common.model.PrivateKey
+import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.core.model.vo.PrivateKey
-import com.walletconnect.sign.core.model.vo.PublicKey
 import com.walletconnect.sign.crypto.KeyStore
 import com.walletconnect.sign.crypto.managers.KeyChainMock
-import com.walletconnect.sign.util.Empty
+import com.walletconnect.utils.Empty
 import io.mockk.spyk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

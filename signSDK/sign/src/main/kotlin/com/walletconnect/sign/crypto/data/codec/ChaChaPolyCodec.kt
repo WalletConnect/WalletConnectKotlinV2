@@ -2,17 +2,17 @@
 
 package com.walletconnect.sign.crypto.data.codec
 
-import com.walletconnect.sign.core.exceptions.client.WalletConnectException
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
+import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.SymmetricKey
-import com.walletconnect.sign.core.model.vo.sync.ParticipantsVO
+import com.walletconnect.sign.common.exceptions.client.WalletConnectException
+import com.walletconnect.sign.common.model.vo.sync.ParticipantsVO
 import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.sign.crypto.KeyManagementRepository
-import com.walletconnect.sign.util.bytesToHex
-import com.walletconnect.sign.util.hexToBytes
-import com.walletconnect.sign.util.randomBytes
+import com.walletconnect.util.bytesToHex
+import com.walletconnect.util.hexToBytes
+import com.walletconnect.util.randomBytes
 import org.bouncycastle.crypto.modes.ChaCha20Poly1305
 import org.bouncycastle.crypto.params.KeyParameter
 import org.bouncycastle.crypto.params.ParametersWithIV

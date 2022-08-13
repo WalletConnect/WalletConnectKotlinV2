@@ -4,14 +4,14 @@ package com.walletconnect.sign.storage.sequence
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android_core.common.model.Expiry
+import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.core.model.type.enums.MetaDataType
-import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.RedirectVO
-import com.walletconnect.sign.core.model.vo.sequence.PairingVO
-import com.walletconnect.sign.core.model.vo.sequence.SessionVO
+import com.walletconnect.sign.common.model.vo.sequence.PairingVO
+import com.walletconnect.sign.common.model.vo.sequence.SessionVO
+import com.walletconnect.sign.common.model.type.enums.MetaDataType
+import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO
+import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.sign.common.model.vo.clientsync.common.RedirectVO
 import com.walletconnect.sign.storage.data.dao.metadata.MetaDataDaoQueries
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceExtensionDaoQueries
@@ -21,8 +21,8 @@ import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespa
 import com.walletconnect.sign.storage.data.dao.session.SessionDaoQueries
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceExtensionDaoQueries
-import com.walletconnect.sign.util.Empty
-import com.walletconnect.sign.util.isSequenceValid
+import com.walletconnect.utils.Empty
+import com.walletconnect.utils.isSequenceValid
 
 //TODO: Split into SessionStorageRepository and PairingStorageRepository
 internal class SequenceStorageRepository(

@@ -1,9 +1,9 @@
 package com.walletconnect.sign.crypto.managers
 
-import com.walletconnect.sign.core.model.vo.Key
+import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.sign.crypto.KeyStore
-import com.walletconnect.sign.util.bytesToHex
-import com.walletconnect.sign.util.hexToBytes
+import com.walletconnect.util.bytesToHex
+import com.walletconnect.util.hexToBytes
 
 internal class KeyChainMock : KeyStore {
     private val mapOfKeys = mutableMapOf<String, String>()

@@ -1,10 +1,6 @@
 package com.walletconnect.sign.engine.model
 
-import com.walletconnect.sign.core.exceptions.*
-import com.walletconnect.sign.core.exceptions.NAMESPACE_EVENTS_MISSING_MESSAGE
-import com.walletconnect.sign.core.exceptions.NAMESPACE_KEYS_CAIP_2_MESSAGE
-import com.walletconnect.sign.core.exceptions.NAMESPACE_KEYS_MISSING_MESSAGE
-import com.walletconnect.sign.core.exceptions.NAMESPACE_METHODS_MISSING_MESSAGE
+import com.walletconnect.sign.common.exceptions.*
 
 internal sealed class ValidationError(val message: String) {
 
@@ -24,6 +20,6 @@ internal sealed class ValidationError(val message: String) {
 
     //Validation errors
     object InvalidSessionRequest : ValidationError(INVALID_REQUEST_MESSAGE)
-    object InvalidEvent: ValidationError(INVALID_EVENT_MESSAGE)
+    object InvalidEvent : ValidationError(INVALID_EVENT_MESSAGE)
     object InvalidExtendRequest : ValidationError(INVALID_EXTEND_TIME)
 }

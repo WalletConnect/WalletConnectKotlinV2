@@ -7,12 +7,10 @@ import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.android_core.common.adapters.*
 import com.walletconnect.android_core.common.adapters.ExpiryAdapter
 import com.walletconnect.android_core.common.adapters.JSONObjectAdapter
-import com.walletconnect.android_core.common.adapters.RelayDOJsonRpcResultJsonAdapter
-import com.walletconnect.android_core.common.adapters.SessionRequestVOJsonAdapter
 import com.walletconnect.android_core.common.adapters.TagsAdapter
 import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.android_core.common.model.type.enums.Tags
-import com.walletconnect.android_core.json_rpc.model.RelayerDO
+import com.walletconnect.android_core.json_rpc.model.JsonRpc
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.di.commonModule as foundationCommonModule
 import org.json.JSONObject
@@ -25,13 +23,13 @@ fun commonModule() = module {
 
     includes(foundationCommonModule())
 
-    single<PolymorphicJsonAdapterFactory<RelayerDO.JsonRpcResponse>> {
-        PolymorphicJsonAdapterFactory.of(RelayerDO.JsonRpcResponse::class.java, "type")
-            .withSubtype(RelayerDO.JsonRpcResponse.JsonRpcResult::class.java, "result")
-            .withSubtype(RelayerDO.JsonRpcResponse.JsonRpcError::class.java, "error")
+    single<PolymorphicJsonAdapterFactory<JsonRpc.JsonRpcResponse>> {
+        PolymorphicJsonAdapterFactory.of(JsonRpc.JsonRpcResponse::class.java, "type")
+            .withSubtype(JsonRpc.JsonRpcResponse.JsonRpcResult::class.java, "result")
+            .withSubtype(JsonRpc.JsonRpcResponse.JsonRpcError::class.java, "error")
     }
 
-    single {
+    single(named("android_core")) {
         get<Moshi>(named("foundation"))
             .newBuilder()
             .addLast { type, _, moshi ->
@@ -39,13 +37,10 @@ fun commonModule() = module {
                     Expiry::class.jvmName -> ExpiryAdapter
                     JSONObject::class.jvmName -> JSONObjectAdapter
                     Tags::class.jvmName -> TagsAdapter
-                    SessionRequestVO::class.jvmName -> SessionRequestVOJsonAdapter(moshi)
-                    RelayerDO.JsonRpcResponse.JsonRpcResult::class.jvmName ->
-                        RelayDOJsonRpcResultJsonAdapter(moshi)
                     else -> null
                 }
             }
-            .add(get<PolymorphicJsonAdapterFactory<RelayerDO.JsonRpcResponse>>())
+            .add(get<PolymorphicJsonAdapterFactory<JsonRpc.JsonRpcResponse>>())
             .build()
     }
 
