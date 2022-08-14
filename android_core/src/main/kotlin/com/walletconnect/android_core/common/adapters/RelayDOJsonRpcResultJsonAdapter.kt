@@ -9,6 +9,9 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
 import com.walletconnect.android_core.json_rpc.model.RelayerDO
 import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
+import com.walletconnect.sign.json_rpc.model.RelayerDO
+import org.json.JSONArray
+import org.json.JSONObject
 import java.lang.reflect.Constructor
 import kotlin.Int
 import kotlin.Long
@@ -26,11 +29,11 @@ internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) : JsonAdapter<Relay
     @Volatile
     private var constructorRef: Constructor<RelayerDO.JsonRpcResponse.JsonRpcResult>? = null
 
-    public override fun toString(): String = buildString(59) {
+    override fun toString(): String = buildString(59) {
         append("GeneratedJsonAdapter(").append("RelayDO.JsonRpcResponse.JsonRpcResult").append(')')
     }
 
-    public override fun fromJson(reader: JsonReader): RelayerDO.JsonRpcResponse.JsonRpcResult {
+    override fun fromJson(reader: JsonReader): RelayerDO.JsonRpcResponse.JsonRpcResult {
         var id: Long? = null
         var jsonrpc: String? = null
         var result: Any? = null
@@ -89,6 +92,7 @@ internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) : JsonAdapter<Relay
         if (value_ == null) {
             throw NullPointerException("value_ was null! Wrap in .nullSafe() to write nullable values.")
         }
+
         writer.beginObject()
         writer.name("id")
         longAdapter.toJson(writer, value_.id)
@@ -96,13 +100,24 @@ internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) : JsonAdapter<Relay
         stringAdapter.toJson(writer, value_.jsonrpc)
         writer.name("result")
 
-        if ((value_.result as? SessionParamsVO.ApprovalParams) != null) {
-            val approvalParamsString = approvalParamsAdapter.toJson(value_.result)
-            writer.valueSink().use {
-                it.writeUtf8(approvalParamsString)
+        when {
+            (value_.result as? SessionParamsVO.ApprovalParams) != null -> {
+                val approvalParamsString = approvalParamsAdapter.toJson(value_.result)
+                writer.valueSink().use {
+                    it.writeUtf8(approvalParamsString)
+                }
             }
-        } else {
-            anyAdapter.toJson(writer, value_.result)
+            value_.result is String && value_.result.startsWith("{") -> {
+                writer.valueSink().use {
+                    it.writeUtf8(JSONObject(value_.result).toString())
+                }
+            }
+            value_.result is String && value_.result.startsWith("[") -> {
+                writer.valueSink().use {
+                    it.writeUtf8(JSONArray(value_.result).toString())
+                }
+            }
+            else -> anyAdapter.toJson(writer, value_.result)
         }
         writer.endObject()
     }

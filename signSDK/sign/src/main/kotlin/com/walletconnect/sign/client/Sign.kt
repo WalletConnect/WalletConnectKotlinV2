@@ -232,11 +232,7 @@ object Sign {
 
             private fun String.isValidRelayServerUrl(): Boolean {
                 return this.isNotBlank() && Uri.parse(this)?.let { relayUrl ->
-                    arrayOf(
-                        "wss",
-                        "ws"
-                    ).contains(relayUrl.scheme) && !relayUrl.getQueryParameter("projectId")
-                        .isNullOrBlank()
+                    arrayOf("wss", "ws").contains(relayUrl.scheme) && !relayUrl.getQueryParameter("projectId").isNullOrBlank()
                 } ?: false
             }
         }

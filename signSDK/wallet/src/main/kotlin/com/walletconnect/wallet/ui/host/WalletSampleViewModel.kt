@@ -15,7 +15,7 @@ class WalletSampleViewModel : ViewModel() {
             is Sign.Model.SessionProposal -> SampleWalletEvents.SessionProposal
             is Sign.Model.SessionRequest -> {
                 val topic = wcEvent.topic
-                val icon = wcEvent.peerMetaData?.icons?.first()
+                val icon = wcEvent.peerMetaData?.icons?.firstOrNull()
                 val peerName = wcEvent.peerMetaData?.name
                 val requestId = wcEvent.request.id.toString()
                 val params = wcEvent.request.params
