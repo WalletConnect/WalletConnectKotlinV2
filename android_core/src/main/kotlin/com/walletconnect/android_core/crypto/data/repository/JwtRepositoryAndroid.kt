@@ -14,6 +14,14 @@ import com.walletconnect.foundation.crypto.data.repository.model.IrnJWTPayload
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
 import com.walletconnect.util.randomBytes
+import com.walletconnect.foundation.common.model.PrivateKey
+import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.sign.crypto.KeyStore
+import com.walletconnect.sign.crypto.data.repository.model.IrnJWTHeader
+import com.walletconnect.sign.crypto.data.repository.model.IrnJWTPayload
+import com.walletconnect.util.bytesToHex
+import com.walletconnect.util.hexToBytes
+import com.walletconnect.util.randomBytes
 import io.ipfs.multibase.Base58
 import io.ipfs.multibase.Multibase
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair

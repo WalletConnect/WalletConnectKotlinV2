@@ -9,7 +9,16 @@ import com.walletconnect.android_core.common.model.vo.sync.ParticipantsVO
 import com.walletconnect.android_core.crypto.Codec
 import com.walletconnect.android_core.crypto.KeyManagementRepository
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.util.bytesToHex
+import com.walletconnect.util.hexToBytes
+import com.walletconnect.util.randomBytes
+import com.walletconnect.sign.common.exceptions.client.WalletConnectException
+import com.walletconnect.sign.common.model.vo.sync.ParticipantsVO
+import com.walletconnect.sign.crypto.Codec
+import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
 import com.walletconnect.util.randomBytes

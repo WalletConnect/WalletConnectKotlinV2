@@ -8,6 +8,12 @@ import com.walletconnect.android_core.utils.Empty
 import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
+import com.walletconnect.android_core.common.exceptions.client.WalletConnectException
+import com.walletconnect.foundation.common.model.Key
+import com.walletconnect.sign.crypto.KeyStore
+import com.walletconnect.util.bytesToHex
+import com.walletconnect.util.hexToBytes
+import com.walletconnect.utils.Empty
 
 internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyStore {
 

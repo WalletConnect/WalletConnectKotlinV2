@@ -9,7 +9,14 @@ import com.walletconnect.android_core.crypto.KeyManagementRepository
 import com.walletconnect.android_core.crypto.data.codec.ChaChaPolyCodec
 import com.walletconnect.android_core.utils.Empty
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.sign.common.exceptions.client.WalletConnectException
+import com.walletconnect.sign.common.model.vo.sync.ParticipantsVO
+import com.walletconnect.sign.crypto.KeyManagementRepository
+import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
+import com.walletconnect.utils.Empty
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals

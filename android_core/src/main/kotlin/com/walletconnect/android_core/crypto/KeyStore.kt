@@ -2,8 +2,8 @@
 
 package com.walletconnect.android_core.crypto
 
-import com.walletconnect.sign.core.exceptions.client.WalletConnectException
-import com.walletconnect.sign.core.model.vo.Key
+import com.walletconnect.android_core.common.exceptions.client.WalletConnectException
+import com.walletconnect.foundation.common.model.Key
 
 internal interface KeyStore {
     fun getSymmetricKey(tag: String): String
