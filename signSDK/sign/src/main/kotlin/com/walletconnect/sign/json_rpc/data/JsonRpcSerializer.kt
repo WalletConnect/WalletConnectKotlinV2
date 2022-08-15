@@ -6,7 +6,6 @@ import com.squareup.moshi.Moshi
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.SerializableJsonRpc
 import com.walletconnect.android_core.json_rpc.data.JsonRpcSerializerAbstract
-import com.walletconnect.android_core.json_rpc.model.JsonRpc
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.PairingRpcVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod

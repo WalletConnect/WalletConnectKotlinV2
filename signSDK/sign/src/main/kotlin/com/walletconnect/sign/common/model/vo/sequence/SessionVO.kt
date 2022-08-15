@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.common.model.vo.sequence
 
 import com.walletconnect.android_core.common.model.Expiry

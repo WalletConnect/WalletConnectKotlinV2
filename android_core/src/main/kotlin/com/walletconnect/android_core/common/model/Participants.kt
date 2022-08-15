@@ -1,10 +1,8 @@
-@file:JvmSynthetic
-
-package com.walletconnect.sign.common.model.vo.sync
+package com.walletconnect.android_core.common.model
 
 import com.walletconnect.foundation.common.model.PublicKey
 
-internal data class ParticipantsVO(
+data class Participants(
     val senderPublicKey: PublicKey,
     val receiverPublicKey: PublicKey,
 )

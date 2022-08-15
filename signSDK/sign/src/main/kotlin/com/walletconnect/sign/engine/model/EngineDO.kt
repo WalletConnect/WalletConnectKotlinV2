@@ -3,18 +3,18 @@
 package com.walletconnect.sign.engine.model
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android_core.common.exceptions.client.WalletConnectException
+import com.walletconnect.android_core.common.InternalError as AndroidCoreInternalError
 import com.walletconnect.android_core.common.model.Expiry
+import com.walletconnect.android_core.common.model.type.EngineEvent
 import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.android_core.common.model.type.EngineEvent
-import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.common.model.type.Sequence
+import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO
 import java.net.URI
 
 internal sealed class EngineDO {
 
-    internal class InternalError(val exception: WalletConnectException.InternalError) : EngineDO(), EngineEvent
+    internal class InternalError(val exception: AndroidCoreInternalError) : EngineDO(), EngineEvent
 
     internal sealed class ProposedSequence {
         class Pairing(val uri: String) : ProposedSequence()

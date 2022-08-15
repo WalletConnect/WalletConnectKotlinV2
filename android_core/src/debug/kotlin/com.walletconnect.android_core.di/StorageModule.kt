@@ -34,6 +34,6 @@ fun coreStorageModule(storageSuffix: String): Module = module {
     }
 
     single {
-        JsonRpcHistory(get(named(DITags.RPC_STORE)), get())
+        JsonRpcHistory(get(named(DITags.RPC_STORE)), get(), get())
     }
 }

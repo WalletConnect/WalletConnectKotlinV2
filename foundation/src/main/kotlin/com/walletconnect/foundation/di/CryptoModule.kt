@@ -6,7 +6,7 @@ import com.walletconnect.foundation.crypto.data.repository.BaseJwtRepository
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import org.koin.dsl.module
 
-fun cryptoModule() = module {
+internal fun cryptoModule() = module {
 
     single<JwtRepository> {
         object: BaseJwtRepository() {

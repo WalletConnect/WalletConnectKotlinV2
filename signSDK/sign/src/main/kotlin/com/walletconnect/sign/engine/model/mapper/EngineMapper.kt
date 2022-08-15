@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.engine.model.mapper
 
 import com.walletconnect.android_core.common.model.Expiry

@@ -10,6 +10,9 @@ import com.walletconnect.android_core.crypto.KeyManagementRepository
 import com.walletconnect.android_core.crypto.KeyStore
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.SymmetricKey
+import com.walletconnect.foundation.common.model.PrivateKey
+import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.crypto.KeyStore

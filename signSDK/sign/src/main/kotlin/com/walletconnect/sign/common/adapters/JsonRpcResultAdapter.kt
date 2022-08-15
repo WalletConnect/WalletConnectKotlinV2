@@ -9,12 +9,14 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
 import com.walletconnect.android_core.json_rpc.model.JsonRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
+import org.json.JSONArray
+import org.json.JSONObject
 import java.lang.reflect.Constructor
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
 
-internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) : JsonAdapter<JsonRpc.JsonRpcResponse.JsonRpcResult>() {
+internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<JsonRpc.JsonRpcResponse.JsonRpcResult>() {
     private val options: JsonReader.Options = JsonReader.Options.of("id", "jsonrpc", "result")
     private val longAdapter: JsonAdapter<Long> = moshi.adapter(Long::class.java, emptySet(), "id")
     private val stringAdapter: JsonAdapter<String> = moshi.adapter(String::class.java, emptySet(), "jsonrpc")
@@ -96,12 +98,21 @@ internal class RelayDOJsonRpcResultJsonAdapter(moshi: Moshi) : JsonAdapter<JsonR
         writer.name("result")
 
         if ((value_.result as? SessionParamsVO.ApprovalParams) != null) {
-            val approvalParamsString = approvalParamsAdapter.toJson(value_.result)
+            val approvalParamsString = approvalParamsAdapter.toJson(value_.result as SessionParamsVO.ApprovalParams)
             writer.valueSink().use {
                 it.writeUtf8(approvalParamsString)
             }
-        } else {
-            anyAdapter.toJson(writer, value_.result)
+            value_.result is String && (value_.result as String).startsWith("{") -> {
+                writer.valueSink().use {
+                    it.writeUtf8(JSONObject(value_.result as String).toString())
+                }
+            }
+            value_.result is String && (value_.result as String).startsWith("[") -> {
+                writer.valueSink().use {
+                    it.writeUtf8(JSONArray(value_.result as String).toString())
+                }
+            }
+            else -> anyAdapter.toJson(writer, value_.result)
         }
         writer.endObject()
     }

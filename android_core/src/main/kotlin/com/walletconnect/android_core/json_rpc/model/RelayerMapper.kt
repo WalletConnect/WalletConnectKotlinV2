@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.android_core.json_rpc.model
 
 import com.walletconnect.android_core.common.model.type.ClientParams

@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.json_rpc.model
 
 internal object JsonRpcMethod {

@@ -3,15 +3,12 @@ package com.walletconnect.android_core.di
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
-import com.walletconnect.android_core.common.adapters.*
 import com.walletconnect.android_core.common.adapters.ExpiryAdapter
-import com.walletconnect.android_core.common.adapters.JSONObjectAdapter
 import com.walletconnect.android_core.common.adapters.TagsAdapter
 import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.android_core.json_rpc.model.JsonRpc
 import com.walletconnect.foundation.util.Logger
-import org.json.JSONObject
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import timber.log.Timber
@@ -31,10 +28,9 @@ fun commonModule() = module {
     single(named("android_core")) {
         get<Moshi>(named("foundation"))
             .newBuilder()
-            .addLast { type, _, moshi ->
+            .add { type, _, moshi ->
                 when (type.getRawType().name) {
                     Expiry::class.jvmName -> ExpiryAdapter
-                    JSONObject::class.jvmName -> JSONObjectAdapter
                     Tags::class.jvmName -> TagsAdapter
                     else -> null
                 }

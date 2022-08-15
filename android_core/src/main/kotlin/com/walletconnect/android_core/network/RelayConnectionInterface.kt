@@ -1,5 +1,3 @@
-@file:JvmSynthetic
-
 package com.walletconnect.android_core.network
 
 import com.walletconnect.foundation.network.RelayInterface
