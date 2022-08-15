@@ -1,5 +1,3 @@
-@file:JvmSynthetic
-
 package com.walletconnect.foundation.network
 
 import com.walletconnect.foundation.network.model.Relay
@@ -8,7 +6,6 @@ import kotlinx.coroutines.flow.SharedFlow
 
 interface RelayInterface {
     val eventsFlow: SharedFlow<Relay.Model.Event>
-
     val subscriptionRequest: Flow<Relay.Model.Call.Subscription.Request>
 
     fun publish(

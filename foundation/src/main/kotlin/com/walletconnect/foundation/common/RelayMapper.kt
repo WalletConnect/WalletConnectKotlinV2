@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.foundation.common
 
 import com.tinder.scarlet.Message

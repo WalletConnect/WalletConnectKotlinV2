@@ -1,5 +1,3 @@
-@file:JvmSynthetic
-
 package com.walletconnect.foundation.network
 
 import com.walletconnect.foundation.common.model.SubscriptionId
@@ -13,8 +11,11 @@ import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.foundation.network.model.RelayDTO
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.generateId
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 abstract class BaseRelayClient constructor(
     private val relay: RelayService,
@@ -156,6 +157,6 @@ abstract class BaseRelayClient constructor(
     }
 
     private companion object {
-        private const val REPLAY: Int = 1
+        const val REPLAY: Int = 1
     }
 }

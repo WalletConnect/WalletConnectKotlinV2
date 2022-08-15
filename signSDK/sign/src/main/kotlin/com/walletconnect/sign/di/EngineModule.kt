@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.di
 
 import com.walletconnect.sign.client.Sign

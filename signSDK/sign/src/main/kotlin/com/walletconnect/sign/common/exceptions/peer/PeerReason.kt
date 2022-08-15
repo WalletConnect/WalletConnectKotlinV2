@@ -1,6 +1,6 @@
 package com.walletconnect.sign.common.exceptions.peer
 
-import com.walletconnect.sign.core.exceptions.DISCONNECT_MESSAGE
+import com.walletconnect.sign.common.exceptions.DISCONNECT_MESSAGE
 
 internal sealed class PeerReason {
     abstract val message: String

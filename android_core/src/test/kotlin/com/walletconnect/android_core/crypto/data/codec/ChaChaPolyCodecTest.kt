@@ -1,21 +1,13 @@
-package com.walletconnect.android_core.crypto.codec
+package com.walletconnect.android_core.crypto.data.codec
 
 import com.walletconnect.android_core.common.MissingParticipantsException
 import com.walletconnect.android_core.common.MissingReceiverPublicKeyException
-import com.walletconnect.android_core.common.model.SymmetricKey
+import com.walletconnect.android_core.common.model.Participants
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
-import com.walletconnect.android_core.common.model.vo.sync.ParticipantsVO
 import com.walletconnect.android_core.crypto.KeyManagementRepository
-import com.walletconnect.android_core.crypto.data.codec.ChaChaPolyCodec
-import com.walletconnect.android_core.utils.Empty
-import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.common.exceptions.client.WalletConnectException
-import com.walletconnect.sign.common.model.vo.sync.ParticipantsVO
-import com.walletconnect.sign.crypto.KeyManagementRepository
-import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
 import com.walletconnect.utils.Empty
 import io.mockk.every
 import io.mockk.mockk
@@ -24,12 +16,11 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
 class ChaChaPolyCodecTest {
-
     private val keyManagementRepository: KeyManagementRepository = mockk()
     private val codec: ChaChaPolyCodec = ChaChaPolyCodec(keyManagementRepository)
     private val self = PublicKey("590c2c627be7af08597091ff80dd41f7fa28acd10ef7191d7e830e116d3a186a")
     private val peer = PublicKey("1fb63fca5c6ac731246f2f069d3bc2454345d5208254aa8ea7bffc6d110c8862")
-    private val participants = ParticipantsVO(senderPublicKey = self, receiverPublicKey = peer)
+    private val participants = Participants(senderPublicKey = self, receiverPublicKey = peer)
     private val symmetricKey = SymmetricKey(KEY_64_BYTES_1)
     private val invalidKey = SymmetricKey(KEY_64_BYTES_2)
     private val topic = Topic("topic")

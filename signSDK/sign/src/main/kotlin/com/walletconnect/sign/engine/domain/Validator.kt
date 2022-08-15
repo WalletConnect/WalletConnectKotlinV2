@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.engine.domain
 
 import com.walletconnect.foundation.common.model.SymmetricKey

@@ -1,53 +1,27 @@
-@file:JvmSynthetic
-
 package com.walletconnect.android_core.json_rpc.domain
 
-import com.walletconnect.android_core.common.GenericException
-import com.walletconnect.android_core.common.WalletConnectException
-import com.walletconnect.android_core.common.model.type.ClientParams
-import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
-import com.walletconnect.android_core.common.model.type.Error
-import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
+import com.walletconnect.android_core.common.*
 import com.walletconnect.android_core.common.model.IrnParams
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.PendingRequest
 import com.walletconnect.android_core.common.model.sync.WCRequest
 import com.walletconnect.android_core.common.model.sync.WCResponse
+import com.walletconnect.android_core.common.model.type.ClientParams
+import com.walletconnect.android_core.common.model.type.Error
+import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
+import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
 import com.walletconnect.android_core.common.scope.scope
+import com.walletconnect.android_core.crypto.Codec
 import com.walletconnect.android_core.json_rpc.data.JsonRpcSerializerAbstract
-import com.walletconnect.android_core.network.data.connection.ConnectivityState
 import com.walletconnect.android_core.json_rpc.model.*
 import com.walletconnect.android_core.network.RelayConnectionInterface
+import com.walletconnect.android_core.network.data.connection.ConnectivityState
 import com.walletconnect.android_core.storage.JsonRpcHistory
 import com.walletconnect.android_core.utils.Logger
-import com.walletconnect.android_core.common.exceptions.client.WalletConnectException
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.network.model.Relay
-import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.utils.Empty
-import com.walletconnect.android_core.common.scope.scope
-import com.walletconnect.android_core.network.RelayConnectionInterface
-import com.walletconnect.android_core.storage.JsonRpcHistory
-import com.walletconnect.android_core.utils.Logger
-import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.foundation.network.model.Relay
-import com.walletconnect.sign.core.exceptions.client.InvalidProjectIdException
-import com.walletconnect.sign.core.exceptions.client.NoRelayConnectionException
-import com.walletconnect.sign.core.exceptions.client.ProjectIdDoesNotExistException
-import com.walletconnect.sign.core.exceptions.peer.PeerError
-import com.walletconnect.sign.core.model.vo.IrnParamsVO
-import com.walletconnect.sign.core.model.vo.SubscriptionIdVO
-import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
-import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
-import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
-import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
-import com.walletconnect.sign.core.model.vo.sync.WCResponseVO
-import com.walletconnect.sign.crypto.Codec
-import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.sign.json_rpc.model.*
-import com.walletconnect.sign.util.Empty
-import com.walletconnect.sign.util.NetworkState
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -284,7 +258,7 @@ abstract class JsonRpcInteractorAbstract(
     private fun handleError(errorMessage: String) {
         Logger.error(errorMessage)
         scope.launch {
-            _internalErrors.emit(WalletConnectException.InternalError(errorMessage))
+            _internalErrors.emit(InternalError(errorMessage))
         }
     }
 }
