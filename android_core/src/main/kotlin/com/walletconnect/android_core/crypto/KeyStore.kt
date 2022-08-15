@@ -2,14 +2,14 @@
 
 package com.walletconnect.android_core.crypto
 
-import com.walletconnect.sign.core.exceptions.client.WalletConnectException
-import com.walletconnect.sign.core.model.vo.Key
+import com.walletconnect.android_core.common.InternalError
+import com.walletconnect.foundation.common.model.Key
 
 internal interface KeyStore {
     fun getSymmetricKey(tag: String): String
     fun setSymmetricKey(tag: String, key: Key)
 
-    @Throws(WalletConnectException.InternalError::class)
+    @Throws(InternalError::class)
     fun getKeys(tag: String): Pair<String, String>
     fun setKeys(tag: String, key1: Key, key2: Key)
 

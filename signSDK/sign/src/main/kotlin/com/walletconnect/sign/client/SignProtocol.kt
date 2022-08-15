@@ -2,16 +2,20 @@
 
 package com.walletconnect.sign.client
 
-import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.android_core.common.scope.scope
-import com.walletconnect.android_core.di.*
-import com.walletconnect.android_core.crypto.data.repository.JwtRepository
-import com.walletconnect.sign.di.*
-import com.walletconnect.sign.engine.domain.SignEngine
-import com.walletconnect.sign.engine.model.EngineDO
+import com.walletconnect.android_core.di.cryptoModule
+import com.walletconnect.android_core.di.networkModule
 import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.sign.BuildConfig
+import com.walletconnect.sign.client.mapper.*
+import com.walletconnect.sign.di.commonModule
+import com.walletconnect.sign.di.engineModule
+import com.walletconnect.sign.di.jsonRpcModule
+import com.walletconnect.sign.di.storageModule
+import com.walletconnect.sign.engine.domain.SignEngine
+import com.walletconnect.sign.engine.model.EngineDO
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -24,10 +28,9 @@ import java.util.concurrent.Executors
 internal class SignProtocol : SignInterface, SignInterface.Websocket {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var signEngine: SignEngine
-    override val relay: RelayConnectionInterface by lazy { wcKoinApp.koin.get() }
+    internal val relay: RelayConnectionInterface by lazy { wcKoinApp.koin.get() }
     private val mutex = Mutex()
-    private val signProtocolScope =
-        CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
+    private val signProtocolScope = CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
     companion object {
         val instance = SignProtocol()
@@ -177,7 +180,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun respond(response: Sign.Params.Response, onError: (Sign.Model.Error) -> Unit) {
         awaitLock {
             try {
-                signEngine.respondSessionRequest(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponseVO()) { error ->
+                signEngine.respondSessionRequest(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponse()) { error ->
                     onError(Sign.Model.Error(error))
                 }
             } catch (error: Exception) {
@@ -281,6 +284,20 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
 //        wcKoinApp.close()
 //    }
 
+    @Throws(IllegalStateException::class)
+    override fun open(onError: (String) -> Unit) {
+        awaitLock {
+            relay.connect { errorMessage -> onError(errorMessage) }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun close(onError: (String) -> Unit) {
+        awaitLock {
+            relay.disconnect { errorMessage -> onError(errorMessage) }
+        }
+    }
+
     private fun <T> awaitLock(codeBlock: suspend () -> T): T {
         return runBlocking(signProtocolScope.coroutineContext) {
             mutex.withLock {
@@ -291,7 +308,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     }
 
     @Throws(IllegalStateException::class)
-    private fun checkEngineInitialization() {
+    internal fun checkEngineInitialization() {
         check(::signEngine.isInitialized) {
             "SignClient needs to be initialized first using the initialize function"
         }

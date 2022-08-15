@@ -8,9 +8,8 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-class GenericPayloadsTest {
+internal class GenericPayloadsTest {
     private val moshi: Moshi = Moshi.Builder()
-//        .add(SingleToArrayAdapter.INSTANCE)
         .addLast(KotlinJsonAdapterFactory())
         .build()
 

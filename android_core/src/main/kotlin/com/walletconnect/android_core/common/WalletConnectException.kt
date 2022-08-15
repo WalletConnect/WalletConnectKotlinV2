@@ -8,3 +8,7 @@ class InternalError(override val message: String?): WalletConnectException(messa
 class UnknownEnvelopeTypeException(override val message: String?) : WalletConnectException(message)
 class MissingParticipantsException(override val message: String?) : WalletConnectException(message)
 class MissingReceiverPublicKeyException(override val message: String?) : WalletConnectException(message)
+
+class InvalidProjectIdException(override val message: String?) : WalletConnectException(message)
+class ProjectIdDoesNotExistException(override val message: String?) : WalletConnectException(message)
+class NoRelayConnectionException(override val message: String?) : WalletConnectException(message)

@@ -1,14 +1,12 @@
-@file:JvmSynthetic
-
 package com.walletconnect.android_core.storage
 
 import android.content.SharedPreferences
-import com.walletconnect.android_core.common.model.vo.json_rpc.JsonRpcHistoryVO
-import com.walletconnect.android_core.utils.Logger
+import com.walletconnect.android_core.common.model.json_rpc.JsonRpcHistory
 import com.walletconnect.androidcore.storage.data.dao.JsonRpcHistoryQueries
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.foundation.util.Logger
 
-class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private val jsonRpcHistoryQueries: JsonRpcHistoryQueries) {
+class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private val jsonRpcHistoryQueries: JsonRpcHistoryQueries, private val logger: Logger) {
 
     fun setRequest(requestId: Long, topic: Topic, method: String, payload: String): Boolean {
         return try {
@@ -16,28 +14,28 @@ class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private v
                 jsonRpcHistoryQueries.insertOrAbortJsonRpcHistory(requestId, topic.value, method, payload)
                 jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOne() > 0L
             } else {
-                Logger.error("Duplicated JsonRpc RequestId: $requestId")
+                logger.error("Duplicated JsonRpc RequestId: $requestId")
                 false
             }
         } catch (e: Exception) {
-            Logger.error(e)
+            logger.error(e)
             false
         }
     }
 
-    fun updateRequestWithResponse(requestId: Long, response: String): JsonRpcHistoryVO? {
+    fun updateRequestWithResponse(requestId: Long, response: String): JsonRpcHistory? {
         val record = jsonRpcHistoryQueries.getJsonRpcHistoryRecord(requestId, mapper = ::mapToJsonRpc).executeAsOneOrNull()
         return if (record != null) {
             updateRecord(record, requestId, response)
         } else {
-            Logger.log("No JsonRpcRequest matching response")
+            logger.log("No JsonRpcRequest matching response")
             null
         }
     }
 
-    private fun updateRecord(record: JsonRpcHistoryVO, requestId: Long, response: String): JsonRpcHistoryVO? =
+    private fun updateRecord(record: JsonRpcHistory, requestId: Long, response: String): JsonRpcHistory? =
         if (record.response != null) {
-            Logger.log("Duplicated JsonRpc RequestId: $requestId")
+            logger.log("Duplicated JsonRpc RequestId: $requestId")
             null
         } else {
             jsonRpcHistoryQueries.updateJsonRpcHistory(response = response, request_id = requestId)
@@ -52,9 +50,9 @@ class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private v
         jsonRpcHistoryQueries.deleteJsonRpcHistory(topic.value)
     }
 
-    internal fun getRequests(topic: Topic): List<JsonRpcHistoryVO> =
+    fun getRequests(topic: Topic): List<JsonRpcHistory> =
         jsonRpcHistoryQueries.getJsonRpcRequestsDaos(topic.value, mapper = ::mapToJsonRpc).executeAsList()
 
-    private fun mapToJsonRpc(requestId: Long, topic: String, method: String, body: String, response: String?): JsonRpcHistoryVO =
-        JsonRpcHistoryVO(requestId, topic, method, body, response)
+    private fun mapToJsonRpc(requestId: Long, topic: String, method: String, body: String, response: String?): JsonRpcHistory =
+        JsonRpcHistory(requestId, topic, method, body, response)
 }

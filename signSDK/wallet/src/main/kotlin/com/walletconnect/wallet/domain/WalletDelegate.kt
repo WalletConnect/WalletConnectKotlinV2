@@ -45,7 +45,6 @@ object WalletDelegate : SignClient.WalletDelegate {
         }
     }
 
-
     override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {
         sessionProposal = null
 

@@ -93,7 +93,7 @@ fun DependencyHandlerScope.koinAndroid() {
 }
 
 fun DependencyHandlerScope.koinTest() {
-    "testImplementation"("io.insert-koin:koin-test:$koinVersion")
+    "testImplementation"("io.insert-koin:koin-test-junit5:$koinVersion")
 }
 
 fun DependencyHandlerScope.glide_N_kapt() {
@@ -114,6 +114,7 @@ fun DependencyHandlerScope.jUnit5() {
     "testImplementation"("org.junit.jupiter:junit-jupiter-api:$jUnit5Version")
     "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine:$jUnit5Version")
     "testImplementation"("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
+
 }
 
 fun DependencyHandlerScope.jUnit5Android() {

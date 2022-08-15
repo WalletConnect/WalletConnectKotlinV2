@@ -2,10 +2,10 @@ package com.walletconnect.android_core.crypto.data.repository
 
 import com.walletconnect.android_core.crypto.KeyStore
 import com.walletconnect.android_core.crypto.managers.KeyChainMock
-import com.walletconnect.android_core.utils.Empty
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.utils.Empty
 import io.mockk.spyk
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull

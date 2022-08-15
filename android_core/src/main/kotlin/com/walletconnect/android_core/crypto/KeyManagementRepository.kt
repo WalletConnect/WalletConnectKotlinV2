@@ -1,9 +1,7 @@
-@file:JvmSynthetic
-
 package com.walletconnect.android_core.crypto
 
-import com.walletconnect.android_core.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 
 interface KeyManagementRepository {

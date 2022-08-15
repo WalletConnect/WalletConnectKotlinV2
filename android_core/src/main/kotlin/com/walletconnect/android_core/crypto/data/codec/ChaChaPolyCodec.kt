@@ -5,13 +5,15 @@ package com.walletconnect.android_core.crypto.data.codec
 import com.walletconnect.android_core.common.MissingParticipantsException
 import com.walletconnect.android_core.common.MissingReceiverPublicKeyException
 import com.walletconnect.android_core.common.UnknownEnvelopeTypeException
-import com.walletconnect.android_core.common.WalletConnectException
-import com.walletconnect.android_core.common.model.SymmetricKey
+import com.walletconnect.android_core.common.MissingParticipantsException
+import com.walletconnect.android_core.common.MissingReceiverPublicKeyException
+import com.walletconnect.android_core.common.UnknownEnvelopeTypeException
+import com.walletconnect.android_core.common.model.Participants
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
-import com.walletconnect.android_core.common.model.vo.sync.ParticipantsVO
 import com.walletconnect.android_core.crypto.Codec
 import com.walletconnect.android_core.crypto.KeyManagementRepository
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
@@ -28,14 +30,14 @@ import java.nio.ByteBuffer
 * EnvelopeType.ONE -> tp + pk + iv + sb
  */
 
-class ChaChaPolyCodec(private val keyManagementRepository: KeyManagementRepository) : Codec {
+internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagementRepository) : Codec {
     private val cha20Poly1305 = ChaCha20Poly1305()
 
     @Throws(
         UnknownEnvelopeTypeException::class,
         MissingParticipantsException::class
     )
-    override fun encrypt(topic: Topic, jsonRpcPayload: String, envelopeType: EnvelopeType, participants: ParticipantsVO?): String {
+    override fun encrypt(topic: Topic, jsonRpcPayload: String, envelopeType: EnvelopeType, participants: Participants?): String {
         val input = jsonRpcPayload.toByteArray(Charsets.UTF_8)
         val nonceBytes = randomBytes(NONCE_SIZE)
 
@@ -113,7 +115,7 @@ class ChaChaPolyCodec(private val keyManagementRepository: KeyManagementReposito
     }
 
     private fun encryptEnvelopeType1(
-        participants: ParticipantsVO?,
+        participants: Participants?,
         nonceBytes: ByteArray,
         input: ByteArray,
         envelopeType: EnvelopeType,
@@ -128,7 +130,10 @@ class ChaChaPolyCodec(private val keyManagementRepository: KeyManagementReposito
 
         //tp + pk + iv + sb
         val encryptedPayloadBytes = ByteBuffer.allocate(payloadSize)
-            .put(envelopeType.id).put(selfBytes).put(nonceBytes).put(cipherBytes)
+            .put(envelopeType.id)
+            .put(selfBytes)
+            .put(nonceBytes)
+            .put(cipherBytes)
             .array()
 
         return Base64.toBase64String(encryptedPayloadBytes)

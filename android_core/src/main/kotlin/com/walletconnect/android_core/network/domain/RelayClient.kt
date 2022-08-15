@@ -10,7 +10,7 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.android_core.common.WRONG_CONNECTION_TYPE
 import kotlinx.coroutines.CoroutineScope
 
-class RelayClient internal constructor(
+internal class RelayClient internal constructor(
     private val connectionController: ConnectionController,
     relay: RelayService,
     logger: Logger,

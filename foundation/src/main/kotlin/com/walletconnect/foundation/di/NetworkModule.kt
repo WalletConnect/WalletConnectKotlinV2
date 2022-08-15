@@ -11,7 +11,6 @@ import com.walletconnect.foundation.network.data.service.RelayService
 import com.walletconnect.foundation.util.scope
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.Response
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -32,7 +31,7 @@ fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = 
     }
 
     // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
-    single {
+    single(named("foundation")) {
         OkHttpClient.Builder()
             .addInterceptor(get<Interceptor>(named("foundation")))
             .writeTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)

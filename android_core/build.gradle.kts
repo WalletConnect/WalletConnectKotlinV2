@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    compileSdk = 32
+    compileSdk = COMPILE_SDK
 
     defaultConfig {
         minSdk = MIN_SDK
@@ -49,8 +49,7 @@ dependencies {
     multibaseJava()
     timber()
 
-    mockk()
     jUnit5()
     jUnit5Android()
-    koinTest()
+    mockk()
 }
