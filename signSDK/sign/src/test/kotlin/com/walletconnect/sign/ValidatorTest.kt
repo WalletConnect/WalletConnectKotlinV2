@@ -1,6 +1,6 @@
 package com.walletconnect.sign
 
-import com.walletconnect.foundation.common.model.SymmetricKey
+import SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.ValidatorTest.Accounts.COSMOSHUB_4_1
 import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_1

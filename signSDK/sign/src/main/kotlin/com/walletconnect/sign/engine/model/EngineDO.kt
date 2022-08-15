@@ -6,7 +6,7 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.android_core.common.InternalError as AndroidCoreInternalError
 import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.android_core.common.model.type.EngineEvent
-import com.walletconnect.foundation.common.model.SymmetricKey
+import SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.type.Sequence
 import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO

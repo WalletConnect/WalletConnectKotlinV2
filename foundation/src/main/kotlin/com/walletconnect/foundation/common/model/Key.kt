@@ -5,9 +5,6 @@ interface Key {
 }
 
 @JvmInline
-value class SymmetricKey(override val keyAsHex: String) : Key
-
-@JvmInline
 value class PublicKey(override val keyAsHex: String) : Key
 
 @JvmInline

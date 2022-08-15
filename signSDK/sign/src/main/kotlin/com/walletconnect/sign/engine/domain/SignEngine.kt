@@ -16,7 +16,7 @@ import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.crypto.KeyManagementRepository
 import com.walletconnect.android_core.utils.Logger
 import com.walletconnect.foundation.common.model.PublicKey
-import com.walletconnect.foundation.common.model.SymmetricKey
+import SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.sign.common.exceptions.*

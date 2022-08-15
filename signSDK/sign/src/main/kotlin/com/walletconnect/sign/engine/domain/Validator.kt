@@ -2,7 +2,7 @@
 
 package com.walletconnect.sign.engine.domain
 
-import com.walletconnect.foundation.common.model.SymmetricKey
+import SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE
 import com.walletconnect.sign.common.exceptions.*
