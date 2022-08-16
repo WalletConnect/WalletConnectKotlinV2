@@ -33,6 +33,10 @@ android {
     }
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 dependencies {
     api(project(":foundation"))
 
