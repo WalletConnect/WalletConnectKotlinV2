@@ -1,8 +1,8 @@
 package com.walletconnect.android_core.crypto.data.repository
 
+import com.walletconnect.android_core.crypto.managers.KeyChainMock
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
-import com.walletconnect.android_core.crypto.managers.KeyChainMock
 import io.mockk.every
 import io.mockk.spyk
 import org.junit.jupiter.api.*
@@ -11,7 +11,7 @@ import java.util.*
 
 internal class JwtRepositoryTest {
     private val keyChain = KeyChainMock()
-    private val sut = spyk(JwtRepository(keyChain))
+    private val sut = spyk(JwtRepositoryAndroid(keyChain))
     private val tag = "key_did_keypair"
     private val serverUrl = "wss://relay.walletconnect.com"
 

@@ -8,9 +8,11 @@ import com.walletconnect.foundation.network.RelayInterface
 import com.walletconnect.util.addUserAgent
 import org.junit.jupiter.api.Test
 import org.koin.core.KoinApplication
+import kotlin.test.Ignore
 
 class RelayTest {
 
+    @Ignore
     @Test
     fun integrationTest() {
         // TODO: Create two separate koin instances and generate a new JWT for each instance when creating client
