@@ -27,11 +27,11 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<JsonRpc.JsonRpcR
     @Volatile
     private var constructorRef: Constructor<JsonRpc.JsonRpcResponse.JsonRpcResult>? = null
 
-    public override fun toString(): String = buildString(59) {
+    override fun toString(): String = buildString(59) {
         append("GeneratedJsonAdapter(").append("RelayDO.JsonRpcResponse.JsonRpcResult").append(')')
     }
 
-    public override fun fromJson(reader: JsonReader): JsonRpc.JsonRpcResponse.JsonRpcResult {
+    override fun fromJson(reader: JsonReader): JsonRpc.JsonRpcResponse.JsonRpcResult {
         var id: Long? = null
         var jsonrpc: String? = null
         var result: Any? = null
@@ -90,6 +90,7 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<JsonRpc.JsonRpcR
         if (value_ == null) {
             throw NullPointerException("value_ was null! Wrap in .nullSafe() to write nullable values.")
         }
+
         writer.beginObject()
         writer.name("id")
         longAdapter.toJson(writer, value_.id)
