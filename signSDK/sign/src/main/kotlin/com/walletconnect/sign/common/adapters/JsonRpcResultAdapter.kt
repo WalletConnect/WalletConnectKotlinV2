@@ -97,10 +97,12 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<JsonRpc.JsonRpcR
         stringAdapter.toJson(writer, value_.jsonrpc)
         writer.name("result")
 
-        if ((value_.result as? SessionParamsVO.ApprovalParams) != null) {
-            val approvalParamsString = approvalParamsAdapter.toJson(value_.result as SessionParamsVO.ApprovalParams)
-            writer.valueSink().use {
-                it.writeUtf8(approvalParamsString)
+        when {
+            (value_.result as? SessionParamsVO.ApprovalParams) != null -> {
+                val approvalParamsString = approvalParamsAdapter.toJson(value_.result as SessionParamsVO.ApprovalParams)
+                writer.valueSink().use {
+                    it.writeUtf8(approvalParamsString)
+                }
             }
             value_.result is String && (value_.result as String).startsWith("{") -> {
                 writer.valueSink().use {

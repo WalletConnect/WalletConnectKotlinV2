@@ -7,12 +7,10 @@ import com.squareup.moshi.JsonReader
 import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
-import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
-import com.walletconnect.sign.json_rpc.model.RelayerDO
-import org.json.JSONArray
-import org.json.JSONObject
 import com.walletconnect.chat.copiedFromSign.json_rpc.model.RelayerDO
 import com.walletconnect.chat.core.model.vo.clientsync.params.ChatParamsVO
+import org.json.JSONArray
+import org.json.JSONObject
 import java.lang.reflect.Constructor
 import kotlin.Int
 import kotlin.Long

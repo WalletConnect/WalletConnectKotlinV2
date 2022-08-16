@@ -1,10 +1,6 @@
 package com.walletconnect.android_core.json_rpc.domain
 
 import com.walletconnect.android_core.common.*
-import com.walletconnect.android_core.common.model.type.ClientParams
-import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
-import com.walletconnect.android_core.common.model.type.Error
-import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
 import com.walletconnect.android_core.common.model.IrnParams
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.PendingRequest
@@ -44,8 +40,8 @@ abstract class JsonRpcInteractorAbstract(
     private val _peerResponse: MutableSharedFlow<WCResponse> = MutableSharedFlow()
     val peerResponse: SharedFlow<WCResponse> = _peerResponse.asSharedFlow()
 
-    private val _internalErrors = MutableSharedFlow<WalletConnectException.InternalError>()
-    val internalErrors: SharedFlow<WalletConnectException.InternalError> = _internalErrors.asSharedFlow()
+    private val _internalErrors = MutableSharedFlow<InternalError>()
+    val internalErrors: SharedFlow<InternalError> = _internalErrors.asSharedFlow()
 
     private val _isNetworkAvailable: StateFlow<Boolean> = networkState.isAvailable
     private val _isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -64,10 +60,10 @@ abstract class JsonRpcInteractorAbstract(
         get() =
             when {
                 this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
-                    WalletConnectException.ProjectIdDoesNotExistException(this.message)
+                    ProjectIdDoesNotExistException(this.message)
                 this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
-                    WalletConnectException.InvalidProjectIdException(this.message)
-                else -> WalletConnectException.GenericException(this.message)
+                    InvalidProjectIdException(this.message)
+                else -> GenericException(this.message)
             }
 
     val initializationErrorsFlow: Flow<WalletConnectException>
@@ -85,7 +81,7 @@ abstract class JsonRpcInteractorAbstract(
 
     fun checkConnectionWorking() {
         if (!isConnectionAvailable.value) {
-            throw WalletConnectException.NoRelayConnectionException("No connection available")
+            throw NoRelayConnectionException("No connection available")
         }
     }
 

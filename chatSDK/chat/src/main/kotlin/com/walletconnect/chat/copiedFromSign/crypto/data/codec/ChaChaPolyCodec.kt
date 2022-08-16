@@ -2,7 +2,9 @@
 
 package com.walletconnect.chat.copiedFromSign.crypto.data.codec
 
-import com.walletconnect.chat.copiedFromSign.core.exceptions.client.WalletConnectException
+import com.walletconnect.android_core.common.MissingParticipantsException
+import com.walletconnect.android_core.common.MissingReceiverPublicKeyException
+import com.walletconnect.android_core.common.UnknownEnvelopeTypeException
 import com.walletconnect.chat.copiedFromSign.core.model.type.enums.EnvelopeType
 import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
 import com.walletconnect.chat.copiedFromSign.core.model.vo.SymmetricKey
@@ -30,8 +32,8 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
     private val cha20Poly1305 = ChaCha20Poly1305()
 
     @Throws(
-        WalletConnectException.UnknownEnvelopeTypeException::class,
-        WalletConnectException.MissingParticipantsException::class
+        UnknownEnvelopeTypeException::class,
+        MissingParticipantsException::class
     )
     override fun encrypt(topic: TopicVO, jsonRpcPayload: String, envelopeType: EnvelopeType, participants: ParticipantsVO?): String {
         val input = jsonRpcPayload.toByteArray(Charsets.UTF_8)
@@ -40,13 +42,13 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         return when (envelopeType.id) {
             EnvelopeType.ZERO.id -> encryptEnvelopeType0(topic, nonceBytes, input, envelopeType)
             EnvelopeType.ONE.id -> encryptEnvelopeType1(participants, nonceBytes, input, envelopeType)
-            else -> throw WalletConnectException.UnknownEnvelopeTypeException("Unknown envelope type: ${envelopeType.id}")
+            else -> throw UnknownEnvelopeTypeException("Unknown envelope type: ${envelopeType.id}")
         }
     }
 
     @Throws(
-        WalletConnectException.UnknownEnvelopeTypeException::class,
-        WalletConnectException.MissingReceiverPublicKeyException::class
+        UnknownEnvelopeTypeException::class,
+        MissingReceiverPublicKeyException::class
     )
     override fun decrypt(topic: TopicVO, encryptedPayload: String): String {
         val encryptedPayloadBytes = Base64.decode(encryptedPayload)
@@ -54,7 +56,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         return when (val envelopeType = encryptedPayloadBytes.envelopeType) {
             EnvelopeType.ZERO.id -> decryptType0(topic, encryptedPayloadBytes)
             EnvelopeType.ONE.id -> decryptType1(encryptedPayloadBytes, keyManagementRepository.getInvitePublicKey(topic))
-            else -> throw WalletConnectException.UnknownEnvelopeTypeException("Unknown envelope type: $envelopeType")
+            else -> throw UnknownEnvelopeTypeException("Unknown envelope type: $envelopeType")
         }
     }
 
@@ -76,7 +78,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
     }
 
     private fun decryptType1(encryptedPayloadBytes: ByteArray, receiverPublicKey: PublicKey?): String {
-        if (receiverPublicKey == null) throw WalletConnectException.MissingReceiverPublicKeyException("Missing receiver public key")
+        if (receiverPublicKey == null) throw MissingReceiverPublicKeyException("Missing receiver public key")
 
         val envelopeType = ByteArray(ENVELOPE_TYPE_SIZE)
         val nonce = ByteArray(NONCE_SIZE)
@@ -117,7 +119,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         input: ByteArray,
         envelopeType: EnvelopeType,
     ): String {
-        if (participants == null) throw WalletConnectException.MissingParticipantsException("Missing participants when encrypting envelope type 1")
+        if (participants == null) throw MissingParticipantsException("Missing participants when encrypting envelope type 1")
         val self = participants.senderPublicKey
         val selfBytes = self.keyAsHex.hexToBytes()
         val peer = participants.receiverPublicKey

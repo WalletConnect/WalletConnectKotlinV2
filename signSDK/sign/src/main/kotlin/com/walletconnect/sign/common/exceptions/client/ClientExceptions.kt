@@ -15,4 +15,3 @@ class NotSettledSessionException(override val message: String?) : WalletConnectE
 class CannotFindSequenceForTopic(override val message: String?) : WalletConnectException(message)
 class PairWithExistingPairingIsNotAllowed(override val message: String?) : WalletConnectException(message)
 class CannotFindSessionProposalException(override val message: String?) : WalletConnectException(message)
-}

@@ -1,7 +1,5 @@
 package com.walletconnect.android_core.crypto.data.repository
 
-import com.walletconnect.foundation.common.model.PrivateKey
-import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.android_core.crypto.KeyStore
 import com.walletconnect.android_core.crypto.managers.KeyChainMock
 import com.walletconnect.foundation.common.model.PrivateKey
