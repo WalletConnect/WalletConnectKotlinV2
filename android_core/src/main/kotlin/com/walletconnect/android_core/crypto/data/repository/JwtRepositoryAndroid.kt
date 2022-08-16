@@ -47,7 +47,7 @@ internal class JwtRepositoryAndroid(private val keyChain: KeyStore): BaseJwtRepo
     }
 
     override fun setKeyPair(key: String, privateKey: PrivateKey, publicKey: PublicKey) {
-        TODO("Not yet implemented")
+        keyChain.setKeys(KEY_DID_KEYPAIR, privateKey, publicKey)
     }
 
     private fun encodeIss(publicKey: ByteArray): String {
