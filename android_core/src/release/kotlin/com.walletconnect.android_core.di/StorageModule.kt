@@ -28,17 +28,17 @@ import javax.crypto.spec.GCMParameterSpec
 @SuppressLint("HardwareIds")
 fun coreStorageModule(storageSuffix: String): Module = module {
 
-    single(named(DITags.RPC_STORE_ALIAS)) {
+    single(named(AndroidCoreDITags.RPC_STORE_ALIAS)) {
         val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
         MasterKeys.getOrCreate(keyGenParameterSpec)
     }
 
-    single(named(DITags.RPC_STORE)) {
+    single(named(AndroidCoreDITags.RPC_STORE)) {
         val sharedPrefsFile = "wc_rpc_store$storageSuffix"
 
         EncryptedSharedPreferences.create(
             sharedPrefsFile,
-            get(named(DITags.RPC_STORE_ALIAS)),
+            get(named(AndroidCoreDITags.RPC_STORE_ALIAS)),
             androidContext(),
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
@@ -57,7 +57,7 @@ fun coreStorageModule(storageSuffix: String): Module = module {
         Cipher.getInstance(TRANSFORMATION)
     }
 
-    single(named(DITags.DB_ALIAS)) {
+    single(named(AndroidCoreDITags.DB_ALIAS)) {
         val alias = "_wc_db_key_"
         val keySize = 256
         val keyGenParameterSpec = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
@@ -69,7 +69,7 @@ fun coreStorageModule(storageSuffix: String): Module = module {
         MasterKeys.getOrCreate(keyGenParameterSpec)
     }
 
-    single(named(DITags.DB_SECRET_KEY)) {
+    single(named(AndroidCoreDITags.DB_SECRET_KEY)) {
         fun generateSecretKey(secretKeyAlias: String): SecretKey {
             val spec = KeyGenParameterSpec
                 .Builder(secretKeyAlias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
@@ -83,34 +83,34 @@ fun coreStorageModule(storageSuffix: String): Module = module {
             }
         }
 
-        val alias = get<String>(named(DITags.DB_ALIAS))
+        val alias = get<String>(named(AndroidCoreDITags.DB_ALIAS))
         val keyStore: KeyStore = get()
         val secretKeyEntry = keyStore.getEntry(alias, null) as? KeyStore.SecretKeyEntry
 
         secretKeyEntry?.secretKey ?: generateSecretKey(alias)
     }
 
-    single(named(DITags.DB_KEY_STORAGE)) {
+    single(named(AndroidCoreDITags.DB_KEY_STORAGE)) {
         val sharedPrefsFile = "db_key_store"
 
         EncryptedSharedPreferences.create(
             sharedPrefsFile,
-            get(named(DITags.DB_ALIAS)),
+            get(named(AndroidCoreDITags.DB_ALIAS)),
             androidContext(),
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
     }
 
-    single<ByteArray>(named(DITags.DB_PASSPHRASE)) {
+    single<ByteArray>(named(AndroidCoreDITags.DB_PASSPHRASE)) {
         val SP_ENCRYPTED_KEY = "encryptedDBKey"
         val cipher: Cipher = get()
-        val sharedPreferences: SharedPreferences = get(named(DITags.DB_KEY_STORAGE))
+        val sharedPreferences: SharedPreferences = get(named(AndroidCoreDITags.DB_KEY_STORAGE))
         val encryptedDBKeyFromStore: ByteArray? = sharedPreferences.getString(SP_ENCRYPTED_KEY, null)?.let { decode(it) }
 
         if (encryptedDBKeyFromStore == null) {
             val generatedKeyForDBByteArray = randomBytes(32)
-            val secretKey: SecretKey = get(named(DITags.DB_SECRET_KEY))
+            val secretKey: SecretKey = get(named(AndroidCoreDITags.DB_SECRET_KEY))
             cipher.init(Cipher.ENCRYPT_MODE, secretKey)
 
             val encryptedKey: ByteArray = cipher.doFinal(generatedKeyForDBByteArray)
@@ -139,7 +139,7 @@ fun coreStorageModule(storageSuffix: String): Module = module {
                 buffer.get(this)
             }
 
-            val secretKey: SecretKey = get(named(DITags.DB_SECRET_KEY))
+            val secretKey: SecretKey = get(named(AndroidCoreDITags.DB_SECRET_KEY))
             val ivSpec = GCMParameterSpec(128, iv)
             cipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
 
@@ -152,7 +152,7 @@ fun coreStorageModule(storageSuffix: String): Module = module {
             schema = Database.Schema,
             context = androidContext(),
             name = "WalletConnectV2$storageSuffix.db",
-            factory = SupportFactory(get(named(DITags.DB_PASSPHRASE)), null, false)
+            factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false)
         )
     }
 
@@ -161,7 +161,7 @@ fun coreStorageModule(storageSuffix: String): Module = module {
     }
 
     single {
-        JsonRpcHistory(get(named(DITags.RPC_STORE)), get(), get())
+        JsonRpcHistory(get(named(AndroidCoreDITags.RPC_STORE)), get(), get())
     }
 }
 

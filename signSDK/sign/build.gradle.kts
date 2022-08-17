@@ -6,10 +6,6 @@ plugins {
     id("com.google.devtools.ksp") version kspVersion
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
 android {
     namespace = "com.walletconnect.sign"
     compileSdk = 32
@@ -62,6 +58,17 @@ android {
             "META-INF/LGPL2.1"
         )
     }
+}
+
+sqldelight {
+    database("Database") {
+        packageName = "com.walletconnect.sign"
+        dependency(project(":android_core"))
+    }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
 
 afterEvaluate {

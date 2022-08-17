@@ -33,6 +33,12 @@ android {
     }
 }
 
+sqldelight {
+    database("Database") {
+        packageName = "com.walletconnect.android_core"
+    }
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }
