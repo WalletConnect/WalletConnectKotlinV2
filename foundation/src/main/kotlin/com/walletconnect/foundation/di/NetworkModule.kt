@@ -50,7 +50,7 @@ fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = 
     single {
         Scarlet.Builder()
             .backoffStrategy(get<LinearBackoffStrategy>())
-            .webSocketFactory(get<OkHttpClient>().newWebSocketFactory("$serverUrl&auth=$jwt"))
+            .webSocketFactory(get<OkHttpClient>(named(FoundationDITags.OK_HTTP)).newWebSocketFactory("$serverUrl&auth=$jwt"))
             .addMessageAdapterFactory(get<MoshiMessageAdapter.Factory>())
             .addStreamAdapterFactory(get<FlowStreamAdapter.Factory>())
             .build()
