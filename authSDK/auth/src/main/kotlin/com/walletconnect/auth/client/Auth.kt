@@ -45,59 +45,57 @@ object Auth {
         sealed class Events {
             data class AuthRequest(
                 val id: Long,
-                val cacao: Cacao,
+                val message: String,
             ) : Events()
 
             data class AuthResponse(
                 val id: Long,
-                val message: String,
+                val response: Response,
             ) : Events()
         }
 
 
         data class Cacao(
-            val header: CacaoHeader,
-            val payload: CacaoPayload,
-            val signature: CacaoSignature,
-        )
+            val header: Header,
+            val payload: Payload,
+            val signature: Signature,
+        ) : Model() {
+            data class Signature(val t: String, val s: String, val m: String? = null) : Model()
+            data class Header(val t: String) : Model()
+            data class Payload(
+                val iss: String,
+                val domain: String,
+                val aud: String,
+                val version: String,
+                val nonce: String,
+                val iat: String,
+                val nbf: String?,
+                val exp: String?,
+                val statement: String?,
+                val requestId: String?,
+                val resources: List<String>?,
+            ) : Model() {
+                val address: String
+                val chainId: String
 
-        data class CacaoSignature(val t: String, val s: String, val m: String? = null)
-        data class CacaoHeader(val t: String)
-
-        data class CacaoPayload(
-            val iss: String,
-            val domain: String,
-            val aud: String,
-            val version: String,
-            val nonce: String,
-            val iat: String,
-            val nbf: String?,
-            val exp: String?,
-            val statement: String?,
-            val requestId: String?,
-            val resources: List<String>?,
-        ) {
-            val address: String
-            val chainId: String
-
-            init {
-                iss.split(ISS_DELIMITER).apply {
-                    address = get(ISS_POSITION_OF_ADDRESS)
-                    chainId = get(ISS_POSITION_OF_CHAIN_ID)
+                init {
+                    iss.split(ISS_DELIMITER).apply {
+                        address = get(ISS_POSITION_OF_ADDRESS)
+                        chainId = get(ISS_POSITION_OF_CHAIN_ID)
+                    }
                 }
-            }
 
-            companion object {
-                private const val ISS_DELIMITER = ":"
-                private const val ISS_POSITION_OF_CHAIN_ID = 3
-                private const val ISS_POSITION_OF_ADDRESS = 4
+                companion object {
+                    private const val ISS_DELIMITER = ":"
+                    private const val ISS_POSITION_OF_CHAIN_ID = 3
+                    private const val ISS_POSITION_OF_ADDRESS = 4
+                }
             }
         }
 
-
         sealed class Response : Model() {
-            data class Cacao(val cacao: Cacao) : Response()
-            data class ErrorResponse(val code: Int, val message: String) : Response()
+            data class Result(val cacao: Cacao) : Response()
+            data class Error(val code: Int, val message: String) : Response()
         }
     }
 
@@ -121,8 +119,8 @@ object Auth {
         ) : Params()
 
         sealed class Respond : Params() {
-            data class ResultResponse(val id: Long, val signature: Model.CacaoSignature) : Respond()
-            data class ErrorResponse(val code: Int, val message: String) : Respond()
+            data class Result(val id: Long, val signature: Model.Cacao.Signature) : Respond()
+            data class Error(val code: Int, val message: String) : Respond()
         }
 
         data class RequestId(val id: Long)

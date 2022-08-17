@@ -11,9 +11,9 @@ import org.web3j.crypto.ECKeyPair
 class CacaoSigner {
     private val eip191Signer = EIP191Signer()
 
-    fun sign(message: ByteArray, keyPair: ECKeyPair, type: SignatureType): Auth.Model.CacaoSignature = when (type) {
-        SignatureType.EIP191 -> Auth.Model.CacaoSignature(type.header, eip191Signer.sign(message, keyPair).toCacaoSignature())
+    fun sign(message: ByteArray, keyPair: ECKeyPair, type: SignatureType): Auth.Model.Cacao.Signature = when (type) {
+        SignatureType.EIP191 -> Auth.Model.Cacao.Signature(type.header, eip191Signer.sign(message, keyPair).toCacaoSignature())
     }
 
-    fun sign(message: String, keyPair: ECKeyPair, type: SignatureType): Auth.Model.CacaoSignature = sign(message.toByteArray(), keyPair, type)
+    fun sign(message: String, keyPair: ECKeyPair, type: SignatureType): Auth.Model.Cacao.Signature = sign(message.toByteArray(), keyPair, type)
 }

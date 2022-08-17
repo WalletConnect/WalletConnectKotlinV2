@@ -48,6 +48,6 @@ internal class AuthProtocol : AuthInterface {
 
     override fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response {
         //TODO("Not yet implemented")
-        return Auth.Model.Response.ErrorResponse(0, String.Empty)
+        return Auth.Model.Response.Error(0, String.Empty)
     }
 }

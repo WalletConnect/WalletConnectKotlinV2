@@ -7,7 +7,7 @@ import org.web3j.crypto.Sign
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-fun Auth.Model.CacaoPayload.toFormattedMessage(): String {
+fun Auth.Model.Cacao.Payload.toFormattedMessage(): String {
     var message = "$domain wants you to sign in with your Ethereum account:\n$address\n\n"
     if (statement != null) message += "$statement\n"
     message += "\nURI: $aud\nVersion: $version\nChain ID: $chainId\nNonce: $nonce\nIssued At: $iat"
@@ -21,7 +21,7 @@ fun Auth.Model.CacaoPayload.toFormattedMessage(): String {
     return message
 }
 
-fun Auth.Params.Request.toCacaoPayload(iss: String): Auth.Model.CacaoPayload = Auth.Model.CacaoPayload(
+fun Auth.Params.Request.toCacaoPayload(iss: String): Auth.Model.Cacao.Payload = Auth.Model.Cacao.Payload(
     iss = iss,
     domain = domain,
     aud = aud,
@@ -36,7 +36,7 @@ fun Auth.Params.Request.toCacaoPayload(iss: String): Auth.Model.CacaoPayload = A
 )
 
 fun Sign.SignatureData.toSignature(): Signature = Signature(v, r, s)
-fun Auth.Model.CacaoSignature.toSignature(): Signature = Signature.fromString(s)
+fun Auth.Model.Cacao.Signature.toSignature(): Signature = Signature.fromString(s)
 fun Signature.toSignatureData(): Sign.SignatureData = Sign.SignatureData(v, r, s)
 fun Signature.toCacaoSignature(): String = String.HexPrefix + r.bytesToHex() + s.bytesToHex() + v.bytesToHex()
 
