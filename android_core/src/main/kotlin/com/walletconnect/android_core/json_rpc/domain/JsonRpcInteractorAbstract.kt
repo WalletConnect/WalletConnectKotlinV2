@@ -5,7 +5,6 @@ import com.walletconnect.android_core.common.model.IrnParams
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.PendingRequest
 import com.walletconnect.android_core.common.model.sync.WCRequest
-import com.walletconnect.android_core.common.InternalError
 import com.walletconnect.android_core.common.model.sync.WCResponse
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.Error

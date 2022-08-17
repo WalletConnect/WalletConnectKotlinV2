@@ -3,14 +3,13 @@
 package com.walletconnect.sign.engine.domain
 
 import com.walletconnect.android_core.common.model.SymmetricKey
+import com.walletconnect.android_core.utils.WEEK_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.common.exceptions.NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE
 import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
-import com.walletconnect.android_core.utils.WEEK_IN_SECONDS
 import java.net.URI
 import java.net.URISyntaxException
 

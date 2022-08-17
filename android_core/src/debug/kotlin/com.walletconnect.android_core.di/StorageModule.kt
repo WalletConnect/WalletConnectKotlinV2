@@ -10,7 +10,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
-inline fun <reified T: Database> coreStorageModule(storageSuffix: String) = module {
+inline fun <reified T: Database> coreStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
 
     single<SharedPreferences>(named(AndroidCoreDITags.RPC_STORE)) {
         val sharedPrefsFile = "wc_rpc_store$storageSuffix"
@@ -20,7 +20,7 @@ inline fun <reified T: Database> coreStorageModule(storageSuffix: String) = modu
 
     single<SqlDriver> {
         AndroidSqliteDriver(
-            schema = Database.Schema,
+            schema = databaseSchema,
             context = androidContext(),
             name = "WalletConnectV2$storageSuffix.db"
         )

@@ -15,8 +15,8 @@ import com.walletconnect.android_core.common.model.type.EngineEvent
 import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.crypto.KeyManagementRepository
-import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.android_core.utils.*
+import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.sign.common.exceptions.*

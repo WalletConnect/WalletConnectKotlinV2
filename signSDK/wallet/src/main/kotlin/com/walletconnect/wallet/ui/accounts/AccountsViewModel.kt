@@ -4,12 +4,12 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
+import com.walletconnect.sign.client.Sign
+import com.walletconnect.sign.client.SignClient
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAccounts1
 import com.walletconnect.wallet.domain.mapOfAccounts2
 import com.walletconnect.wallet.domain.mapOfAllAccounts
-import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.client.SignClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

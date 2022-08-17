@@ -3,7 +3,6 @@
 package com.walletconnect.chat.engine.domain
 
 import com.walletconnect.android_core.common.GenericException
-import com.walletconnect.android_core.common.WalletConnectException
 import com.walletconnect.chat.copiedFromSign.core.model.type.enums.EnvelopeType
 import com.walletconnect.chat.copiedFromSign.core.model.vo.IrnParamsVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey

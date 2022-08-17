@@ -3,14 +3,14 @@
 package com.walletconnect.sign.common.model.vo.sequence
 
 import com.walletconnect.android_core.common.model.Expiry
+import com.walletconnect.android_core.utils.ACTIVE_PAIRING
+import com.walletconnect.android_core.utils.INACTIVE_PAIRING
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.type.Sequence
 import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toAbsoluteString
-import com.walletconnect.android_core.utils.ACTIVE_PAIRING
-import com.walletconnect.android_core.utils.INACTIVE_PAIRING
 
 internal data class PairingVO(
     override val topic: Topic,

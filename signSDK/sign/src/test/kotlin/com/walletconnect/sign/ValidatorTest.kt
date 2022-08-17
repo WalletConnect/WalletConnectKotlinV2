@@ -1,7 +1,10 @@
 package com.walletconnect.sign
 
 import com.walletconnect.android_core.common.model.SymmetricKey
-import com.walletconnect.android_core.utils.*
+import com.walletconnect.android_core.utils.DAY_IN_SECONDS
+import com.walletconnect.android_core.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android_core.utils.MONTH_IN_SECONDS
+import com.walletconnect.android_core.utils.WEEK_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.ValidatorTest.Accounts.COSMOSHUB_4_1
 import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_1

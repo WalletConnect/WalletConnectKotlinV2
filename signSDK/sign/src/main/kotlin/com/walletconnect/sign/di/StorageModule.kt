@@ -23,7 +23,7 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun storageModule(): Module = module {
 
-    includes(coreStorageModule<Database>(String.Empty)) //due to db name and sharedPrefs key should stay the same for sign
+    includes(coreStorageModule<Database>(Database.Schema, String.Empty))
 
     single<ColumnAdapter<List<String>, String>> {
         object : ColumnAdapter<List<String>, String> {
