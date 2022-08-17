@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.di
 
 import com.squareup.sqldelight.ColumnAdapter
@@ -37,14 +39,14 @@ internal fun storageModule(): Module = module {
         }
     }
 
-    single<ColumnAdapter<MetaDataType, String>>(named("MetaDataType")) { EnumColumnAdapter() }
+    single<ColumnAdapter<MetaDataType, String>>(named(SignDITags.METADATA_TYPE)) { EnumColumnAdapter() }
 
     single {
         Database(
             get(),
             MetaDataDaoAdapter = MetaDataDao.Adapter(
                 iconsAdapter = get(),
-                typeAdapter = get(named("MetaDataType"))
+                typeAdapter = get(named(SignDITags.METADATA_TYPE))
             ),
             NamespaceDaoAdapter = NamespaceDao.Adapter(
                 accountsAdapter = get(),

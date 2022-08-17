@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.client.mapper
 
 import android.net.Uri
@@ -208,7 +210,7 @@ internal fun EngineDO.ConnectionState.toClientConnectionState(): Sign.Model.Conn
     Sign.Model.ConnectionState(isAvailable)
 
 @JvmSynthetic
-internal fun EngineDO.InternalError.toClientError(): Sign.Model.Error =
+internal fun EngineDO.SDKError.toClientError(): Sign.Model.Error =
     Sign.Model.Error(this.exception)
 
 @JvmSynthetic

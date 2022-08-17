@@ -1,23 +1,23 @@
 package com.walletconnect.sign.json_rpc.domain
 
-import com.walletconnect.android_core.common.model.type.ClientParams
-import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
-import com.walletconnect.android_core.common.model.type.enums.Tags
+import com.walletconnect.android_core.common.WalletConnectException
 import com.walletconnect.android_core.common.model.IrnParams
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.WCRequest
-import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
-import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
+import com.walletconnect.android_core.common.model.type.ClientParams
+import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
+import com.walletconnect.android_core.common.model.type.enums.Tags
+import com.walletconnect.android_core.crypto.Codec
 import com.walletconnect.android_core.network.RelayConnectionInterface
-import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.foundation.network.model.Relay
+import com.walletconnect.android_core.network.data.connection.ConnectivityState
 import com.walletconnect.android_core.storage.JsonRpcHistory
 import com.walletconnect.android_core.utils.Logger
-import com.walletconnect.android_core.network.data.connection.ConnectivityState
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.foundation.network.model.RelayDTO
-import com.walletconnect.android_core.common.exceptions.client.WalletConnectException as CoreWalletConnectException
 import com.walletconnect.sign.common.exceptions.peer.PeerError
+import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.utils.Empty
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,7 +32,7 @@ import kotlin.test.assertFalse
 @ExperimentalCoroutinesApi
 internal class RelayerInteractorTest {
 
-    private val chaChaPolyCodec: ChaChaPolyCodec = mockk {
+    private val chaChaPolyCodec: Codec = mockk {
         every { encrypt(any(), any(), any(), any()) } returns String.Empty
     }
 
@@ -86,7 +86,7 @@ internal class RelayerInteractorTest {
         every { this@mockk.invoke() } returns Unit
     }
 
-    private val onError: (CoreWalletConnectException) -> Unit = mockk {
+    private val onError: (WalletConnectException) -> Unit = mockk {
         every { this@mockk.invoke(any()) } returns Unit
     }
 

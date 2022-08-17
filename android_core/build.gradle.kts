@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    compileSdk = 32
+    compileSdk = COMPILE_SDK
 
     defaultConfig {
         minSdk = MIN_SDK
@@ -33,6 +33,10 @@ android {
     }
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 dependencies {
     api(project(":foundation"))
 
@@ -49,6 +53,6 @@ dependencies {
     multibaseJava()
     timber()
 
-    koinTest()
     jUnit5()
+    mockk()
 }

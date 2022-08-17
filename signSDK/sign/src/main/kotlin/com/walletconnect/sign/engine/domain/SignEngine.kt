@@ -3,27 +3,27 @@
 package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.android_core.common.GenericException
 import com.walletconnect.android_core.common.model.Expiry
-import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.android_core.common.model.IrnParams
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.PendingRequest
 import com.walletconnect.android_core.common.model.sync.WCRequest
 import com.walletconnect.android_core.common.model.sync.WCResponse
+import com.walletconnect.android_core.common.model.type.EngineEvent
+import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.android_core.common.scope.scope
+import com.walletconnect.android_core.crypto.KeyManagementRepository
 import com.walletconnect.android_core.utils.Logger
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.sign.common.exceptions.*
-import com.walletconnect.sign.common.exceptions.client.WalletConnectException
-import com.walletconnect.android_core.common.exceptions.client.WalletConnectException as CoreWalletConnectException
+import com.walletconnect.sign.common.exceptions.client.*
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.exceptions.peer.PeerReason
-import com.walletconnect.android_core.common.model.type.EngineEvent
 import com.walletconnect.sign.common.model.type.enums.Sequences
-import com.walletconnect.sign.util.Time
 import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO
@@ -36,12 +36,12 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.payload.Session
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
 import com.walletconnect.sign.common.model.vo.sequence.PairingVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
-import com.walletconnect.sign.crypto.KeyManagementRepository
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.*
 import com.walletconnect.sign.json_rpc.domain.JsonRpcInteractor
 import com.walletconnect.sign.storage.sequence.SequenceStorageRepository
-import com.walletconnect.sign.util.*
+import com.walletconnect.sign.util.Expiration
+import com.walletconnect.sign.util.Time
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.generateId
 import com.walletconnect.util.randomBytes
@@ -50,6 +50,7 @@ import com.walletconnect.utils.extractTimestamp
 import com.walletconnect.utils.isSequenceValid
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import com.walletconnect.android_core.common.WalletConnectException as CoreWalletConnectException
 
 internal class SignEngine(
     private val relayer: JsonRpcInteractor,
@@ -86,7 +87,7 @@ internal class SignEngine(
             proposedSequence: EngineDO.ProposedSequence,
         ) {
             Validator.validateProposalNamespace(namespaces.toNamespacesVOProposal()) { error ->
-                throw WalletConnectException.InvalidNamespaceException(error.message)
+                throw InvalidNamespaceException(error.message)
             }
 
             val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -109,7 +110,7 @@ internal class SignEngine(
 
         if (pairingTopic != null) {
             if (!sequenceStorageRepository.isPairingValid(Topic(pairingTopic))) {
-                throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$pairingTopic")
+                throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$pairingTopic")
             }
 
             val pairing: PairingVO = sequenceStorageRepository.getPairingByTopic(Topic(pairingTopic))
@@ -147,10 +148,10 @@ internal class SignEngine(
 
     internal fun pair(uri: String) {
         val walletConnectUri: EngineDO.WalletConnectUri = Validator.validateWCUri(uri)
-            ?: throw WalletConnectException.MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
+            ?: throw MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
 
         if (sequenceStorageRepository.isPairingValid(walletConnectUri.topic)) {
-            throw WalletConnectException.PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
+            throw PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
         }
 
         val pairing = PairingVO.createActivePairing(walletConnectUri)
@@ -168,7 +169,7 @@ internal class SignEngine(
 
     internal fun reject(proposerPublicKey: String, reason: String, code: Int, onFailure: (Throwable) -> Unit = {}) {
         val request = sessionProposalRequest[proposerPublicKey]
-            ?: throw WalletConnectException.CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
+            ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(Time.fiveMinutesInSeconds))
 
@@ -204,12 +205,12 @@ internal class SignEngine(
 
 
         val request = sessionProposalRequest[proposerPublicKey]
-            ?: throw WalletConnectException.CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
+            ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
         val proposal = request.params as PairingParamsVO.SessionProposeParams
 
         Validator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), proposal.namespaces) { error ->
-            throw WalletConnectException.InvalidNamespaceException(error.message)
+            throw InvalidNamespaceException(error.message)
         }
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
@@ -230,21 +231,21 @@ internal class SignEngine(
         onFailure: (Throwable) -> Unit,
     ) {
         if (!sequenceStorageRepository.isSessionValid(Topic(topic))) {
-            throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
         val session = sequenceStorageRepository.getSessionByTopic(Topic(topic))
 
         if (!session.isSelfController) {
-            throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
+            throw UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
         }
 
         if (!session.isAcknowledged) {
-            throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
+            throw NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
         Validator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), session.proposalNamespaces) { error ->
-            throw WalletConnectException.InvalidNamespaceException(error.message)
+            throw InvalidNamespaceException(error.message)
         }
 
         val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
@@ -261,22 +262,22 @@ internal class SignEngine(
                 }
             )
         }, onFailure = {
-            onFailure(CoreWalletConnectException.GenericException("Error updating namespaces"))
+            onFailure(GenericException("Error updating namespaces"))
         })
     }
 
     internal fun sessionRequest(request: EngineDO.Request, onFailure: (Throwable) -> Unit) {
         if (!sequenceStorageRepository.isSessionValid(Topic(request.topic))) {
-            throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
+            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
 
         Validator.validateSessionRequest(request) { error ->
-            throw WalletConnectException.InvalidRequestException(error.message)
+            throw InvalidRequestException(error.message)
         }
 
         val namespaces: Map<String, NamespaceVO.Session> = sequenceStorageRepository.getSessionByTopic(Topic(request.topic)).namespaces
         Validator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { error ->
-            throw WalletConnectException.UnauthorizedMethodException(error.message)
+            throw UnauthorizedMethodException(error.message)
         }
 
         val params = SessionParamsVO.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
@@ -308,7 +309,7 @@ internal class SignEngine(
 
     internal fun respondSessionRequest(topic: String, jsonRpcResponse: JsonRpcResponse, onFailure: (Throwable) -> Unit) {
         if (!sequenceStorageRepository.isSessionValid(Topic(topic))) {
-            throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(Time.fiveMinutesInSeconds))
 
@@ -332,7 +333,7 @@ internal class SignEngine(
                     PairingRpcVO.PairingPing(id = generateId(), params = PairingParamsVO.PingParams()),
                     IrnParams(Tags.PAIRING_PING, Ttl(Time.thirtySeconds))
                 )
-            else -> throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+            else -> throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
         relayer.publishJsonRpcRequests(Topic(topic), irnParams, pingPayload,
@@ -358,21 +359,21 @@ internal class SignEngine(
 
     internal fun emit(topic: String, event: EngineDO.Event, onFailure: (Throwable) -> Unit) {
         if (!sequenceStorageRepository.isSessionValid(Topic(topic))) {
-            throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
         val session = sequenceStorageRepository.getSessionByTopic(Topic(topic))
         if (!session.isSelfController) {
-            throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_EMIT_MESSAGE)
+            throw UnauthorizedPeerException(UNAUTHORIZED_EMIT_MESSAGE)
         }
 
         Validator.validateEvent(event) { error ->
-            throw WalletConnectException.InvalidEventException(error.message)
+            throw InvalidEventException(error.message)
         }
 
         val namespaces = session.namespaces
         Validator.validateChainIdWithEventAuthorisation(event.chainId, event.name, namespaces) { error ->
-            throw WalletConnectException.UnauthorizedEventException(error.message)
+            throw UnauthorizedEventException(error.message)
         }
 
         val eventParams = SessionParamsVO.EventParams(SessionEventVO(event.name, event.data), event.chainId)
@@ -390,15 +391,15 @@ internal class SignEngine(
 
     internal fun extend(topic: String, onFailure: (Throwable) -> Unit) {
         if (!sequenceStorageRepository.isSessionValid(Topic(topic))) {
-            throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
         val session = sequenceStorageRepository.getSessionByTopic(Topic(topic))
         if (!session.isSelfController) {
-            throw WalletConnectException.UnauthorizedPeerException(UNAUTHORIZED_EXTEND_MESSAGE)
+            throw UnauthorizedPeerException(UNAUTHORIZED_EXTEND_MESSAGE)
         }
         if (!session.isAcknowledged) {
-            throw WalletConnectException.NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
+            throw NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
         val newExpiration = session.expiry.seconds + Time.weekInSeconds
@@ -416,7 +417,7 @@ internal class SignEngine(
 
     internal fun disconnect(topic: String) {
         if (!sequenceStorageRepository.isSessionValid(Topic(topic))) {
-            throw WalletConnectException.CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
         val deleteParams = SessionParamsVO.DeleteParams(PeerReason.UserDisconnected.code, PeerReason.UserDisconnected.message)
@@ -475,7 +476,7 @@ internal class SignEngine(
 
     private fun collectInternalErrors() {
         relayer.internalErrors
-            .onEach { exception -> _engineEvent.emit(EngineDO.InternalError(exception)) }
+            .onEach { exception -> _engineEvent.emit(EngineDO.SDKError(exception)) }
             .launchIn(scope)
     }
 

@@ -1,6 +1,9 @@
 package com.walletconnect.chat.copiedFromSign.core.model.client
 
-import com.walletconnect.chat.copiedFromSign.network.model.*
+import com.walletconnect.chat.copiedFromSign.network.model.IRN_PUBLISH
+import com.walletconnect.chat.copiedFromSign.network.model.IRN_SUBSCRIBE
+import com.walletconnect.chat.copiedFromSign.network.model.IRN_SUBSCRIPTION
+import com.walletconnect.chat.copiedFromSign.network.model.IRN_UNSUBSCRIBE
 
 
 object Relay {

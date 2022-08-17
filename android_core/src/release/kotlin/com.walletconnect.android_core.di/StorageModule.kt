@@ -11,7 +11,9 @@ import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.EnumColumnAdapter
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
+import com.walletconnect.android_core.Database
 import com.walletconnect.android_core.storage.JsonRpcHistory
+import com.walletconnect.util.randomBytes
 import net.sqlcipher.database.SupportFactory
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
@@ -161,7 +163,7 @@ fun coreStorageModule(storageSuffix: String): Module = module {
     }
 
     single {
-        JsonRpcHistory(get(named(DITags.RPC_STORE)), get())
+        JsonRpcHistory(get(named(DITags.RPC_STORE)), get(), get())
     }
 }
 

@@ -9,6 +9,7 @@ import com.walletconnect.foundation.network.RelayInterface
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
 import com.walletconnect.foundation.util.scope
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
@@ -19,16 +20,20 @@ fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = 
     val DEFAULT_BACKOFF_SECONDS = 5L
     val TIMEOUT_TIME = 5000L
 
-    // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
-    single {
-        OkHttpClient.Builder()
-            .addInterceptor {
-                val updatedRequest = it.request().newBuilder()
-                    .addHeader("User-Agent", "wc-2/kotlin-$sdkVersion-relayTest")
-                    .build()
+    single(named(FoundationDITags.INTERCEPTOR)) {
+        Interceptor {
+            val updatedRequest = it.request().newBuilder()
+                .addHeader("User-Agent", "wc-2/kotlin-$sdkVersion-relayTest")
+                .build()
 
-                it.proceed(updatedRequest)
-            }
+            it.proceed(updatedRequest)
+        }
+    }
+
+    // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
+    single(named(FoundationDITags.OK_HTTP)) {
+        OkHttpClient.Builder()
+            .addInterceptor(get<Interceptor>(named(FoundationDITags.INTERCEPTOR)))
             .writeTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
             .readTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
             .callTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
@@ -36,7 +41,7 @@ fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = 
             .build()
     }
 
-    single { MoshiMessageAdapter.Factory(get(named("foundation"))) }
+    single { MoshiMessageAdapter.Factory(get(named(FoundationDITags.MOSHI))) }
 
     single { FlowStreamAdapter.Factory() }
 

@@ -1,3 +1,5 @@
+import com.android.build.gradle.BaseExtension
+
 buildscript {
     repositories {
         google()
@@ -6,7 +8,7 @@ buildscript {
     }
     dependencies {
         classpath("com.android.tools.build:gradle:7.2.1")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
         classpath("com.squareup.sqldelight:gradle-plugin:$sqlDelightVersion")
     }
 }
@@ -18,6 +20,23 @@ allprojects {
         mavenLocal()
         mavenCentral()
         jcenter() // Warning: this repository is going to shut down soon
+    }
+}
+
+subprojects {
+    afterEvaluate {
+        if (hasProperty("android")) {
+            extensions.configure(BaseExtension::class.java) {
+                packagingOptions {
+                    with(resources.excludes) {
+                        add("META-INF/INDEX.LIST")
+                        add("META-INF/DEPENDENCIES")
+                        add("META-INF/LICENSE.md")
+                        add("META-INF/NOTICE.md")
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -1,7 +1,9 @@
 package com.walletconnect.foundation.network.model
 
 object Relay {
+
     sealed class Model {
+
         sealed class Call : Relay.Model() {
             abstract val id: Long
             abstract val jsonrpc: String

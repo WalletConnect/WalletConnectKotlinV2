@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.android_core.common.adapters
 
 import com.squareup.moshi.*

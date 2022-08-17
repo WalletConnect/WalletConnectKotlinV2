@@ -15,7 +15,7 @@ import org.koin.dsl.module
 @SuppressLint("HardwareIds")
 fun coreStorageModule(storageSuffix: String): Module = module {
 
-    single<SharedPreferences>(named(DITags.RPC_STORE)) {
+    single<SharedPreferences>(named(AndroidCoreDITags.RPC_STORE)) {
         val sharedPrefsFile = "wc_rpc_store$storageSuffix"
 
         androidContext().getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE)
@@ -34,6 +34,6 @@ fun coreStorageModule(storageSuffix: String): Module = module {
     }
 
     single {
-        JsonRpcHistory(get(named(DITags.RPC_STORE)), get())
+        JsonRpcHistory(get(named(AndroidCoreDITags.RPC_STORE)), get(), get())
     }
 }

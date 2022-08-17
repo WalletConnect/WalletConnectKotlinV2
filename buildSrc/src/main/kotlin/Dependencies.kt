@@ -93,7 +93,7 @@ fun DependencyHandlerScope.koinAndroid() {
 }
 
 fun DependencyHandlerScope.koinTest() {
-    "testImplementation"("io.insert-koin:koin-test:$koinVersion")
+    "testImplementation"("io.insert-koin:koin-test-junit5:$koinVersion")
 }
 
 fun DependencyHandlerScope.glide_N_kapt() {

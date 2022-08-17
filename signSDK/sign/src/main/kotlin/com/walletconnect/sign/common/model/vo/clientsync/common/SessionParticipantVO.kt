@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.common.model.vo.clientsync.common
 
 import com.squareup.moshi.Json

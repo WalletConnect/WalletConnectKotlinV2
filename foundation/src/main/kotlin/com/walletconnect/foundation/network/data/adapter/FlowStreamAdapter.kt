@@ -1,5 +1,3 @@
-@file:JvmSynthetic
-
 package com.walletconnect.foundation.network.data.adapter
 
 import com.tinder.scarlet.Stream

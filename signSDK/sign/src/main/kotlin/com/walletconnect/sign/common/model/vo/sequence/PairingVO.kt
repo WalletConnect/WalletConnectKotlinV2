@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.common.model.vo.sequence
 
 import com.walletconnect.android_core.common.model.Expiry
@@ -21,6 +23,7 @@ internal data class PairingVO(
 
     companion object {
 
+        @JvmSynthetic
         internal fun createInactivePairing(topic: Topic, relay: RelayProtocolOptionsVO, uri: String): PairingVO {
             return PairingVO(
                 topic,
@@ -32,6 +35,7 @@ internal data class PairingVO(
             )
         }
 
+        @JvmSynthetic
         internal fun createActivePairing(uri: EngineDO.WalletConnectUri): PairingVO {
             return PairingVO(
                 uri.topic,

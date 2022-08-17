@@ -82,18 +82,15 @@ class SelectedAccountViewModel : ViewModel() {
                 }
             }
 
-            val sessionRequestDeepLinkUri =
-                SignClient.getSettledSessionByTopic(requestParams.sessionTopic)?.redirect?.toUri()
-                    ?: "wc:/${requestParams.sessionTopic}/request".toUri()
-
-            sendSessionRequestDeepLink(sessionRequestDeepLinkUri)
+            SignClient.getSettledSessionByTopic(requestParams.sessionTopic)?.redirect?.toUri()
+                ?.let { deepLinkUri -> sendSessionRequestDeepLink(deepLinkUri) }
         }
     }
 
     fun fetchAccountDetails(selectedAccountInfo: String) {
         val (chainNamespace, chainReference, account) = selectedAccountInfo.split(":")
-        val chainDetails = EthChains.values().first {
-            it.chainNamespace == chainNamespace && it.chainReference == chainReference.toInt()
+        val chainDetails = Chains.values().first {
+            it.chainNamespace == chainNamespace && it.chainReference == chainReference
         }
         val listOfMethods: List<String> = SignClient.getListOfSettledSessions().filter { session ->
             session.topic == DappDelegate.selectedSessionTopic

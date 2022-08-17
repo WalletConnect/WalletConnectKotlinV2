@@ -1,28 +1,26 @@
-@file:JvmSynthetic
-
 package com.walletconnect.android_core.json_rpc.domain
 
-import com.walletconnect.android_core.common.model.type.ClientParams
-import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
-import com.walletconnect.android_core.common.model.type.Error
-import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
+import com.walletconnect.android_core.common.*
 import com.walletconnect.android_core.common.model.IrnParams
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.PendingRequest
 import com.walletconnect.android_core.common.model.sync.WCRequest
 import com.walletconnect.android_core.common.model.sync.WCResponse
+import com.walletconnect.android_core.common.model.type.ClientParams
+import com.walletconnect.android_core.common.model.type.Error
+import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
+import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
 import com.walletconnect.android_core.common.scope.scope
+import com.walletconnect.android_core.crypto.Codec
 import com.walletconnect.android_core.json_rpc.data.JsonRpcSerializerAbstract
-import com.walletconnect.android_core.network.data.connection.ConnectivityState
 import com.walletconnect.android_core.json_rpc.model.*
 import com.walletconnect.android_core.network.RelayConnectionInterface
+import com.walletconnect.android_core.network.data.connection.ConnectivityState
 import com.walletconnect.android_core.storage.JsonRpcHistory
 import com.walletconnect.android_core.utils.Logger
-import com.walletconnect.android_core.common.exceptions.client.WalletConnectException
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.network.model.Relay
-import com.walletconnect.sign.crypto.Codec
 import com.walletconnect.utils.Empty
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
@@ -34,7 +32,7 @@ abstract class JsonRpcInteractorAbstract(
     private val serializer: JsonRpcSerializerAbstract,
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
-    networkState: ConnectivityState, //todo: move to the RelayClient
+    networkState: ConnectivityState,
 ) {
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequest> = MutableSharedFlow()
     val clientSyncJsonRpc: SharedFlow<WCRequest> = _clientSyncJsonRpc.asSharedFlow()
@@ -42,8 +40,8 @@ abstract class JsonRpcInteractorAbstract(
     private val _peerResponse: MutableSharedFlow<WCResponse> = MutableSharedFlow()
     val peerResponse: SharedFlow<WCResponse> = _peerResponse.asSharedFlow()
 
-    private val _internalErrors = MutableSharedFlow<WalletConnectException.InternalError>()
-    val internalErrors: SharedFlow<WalletConnectException.InternalError> = _internalErrors.asSharedFlow()
+    private val _internalErrors = MutableSharedFlow<InternalError>()
+    val internalErrors: SharedFlow<InternalError> = _internalErrors.asSharedFlow()
 
     private val _isNetworkAvailable: StateFlow<Boolean> = networkState.isAvailable
     private val _isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -62,10 +60,10 @@ abstract class JsonRpcInteractorAbstract(
         get() =
             when {
                 this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
-                    WalletConnectException.ProjectIdDoesNotExistException(this.message)
+                    ProjectIdDoesNotExistException(this.message)
                 this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
-                    WalletConnectException.InvalidProjectIdException(this.message)
-                else -> WalletConnectException.GenericException(this.message)
+                    InvalidProjectIdException(this.message)
+                else -> GenericException(this.message)
             }
 
     val initializationErrorsFlow: Flow<WalletConnectException>
@@ -83,7 +81,7 @@ abstract class JsonRpcInteractorAbstract(
 
     fun checkConnectionWorking() {
         if (!isConnectionAvailable.value) {
-            throw WalletConnectException.NoRelayConnectionException("No connection available")
+            throw NoRelayConnectionException("No connection available")
         }
     }
 
@@ -260,7 +258,7 @@ abstract class JsonRpcInteractorAbstract(
     private fun handleError(errorMessage: String) {
         Logger.error(errorMessage)
         scope.launch {
-            _internalErrors.emit(WalletConnectException.InternalError(errorMessage))
+            _internalErrors.emit(InternalError(errorMessage))
         }
     }
 }

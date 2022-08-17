@@ -3,7 +3,7 @@ package com.walletconnect.sign.core.adapters
 import com.squareup.moshi.Moshi
 import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.android_core.json_rpc.model.JsonRpc
-import com.walletconnect.sign.common.adapters.RelayDOJsonRpcResultJsonAdapter
+import com.walletconnect.sign.common.adapters.JsonRpcResultAdapter
 import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
@@ -16,7 +16,7 @@ internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {
     fun `test to json`() {
         val moshi = Moshi.Builder().add { type, _, moshi ->
             return@add if (type.getRawType().name == JsonRpc.JsonRpcResponse.JsonRpcResult::class.jvmName) {
-                RelayDOJsonRpcResultJsonAdapter(moshi = moshi)
+                JsonRpcResultAdapter(moshi = moshi)
             } else {
                 null
             }
@@ -40,7 +40,7 @@ internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {
     fun `test from json`() {
         val moshi = Moshi.Builder().add { type, _, moshi ->
             return@add if (type.getRawType().name == JsonRpc.JsonRpcResponse.JsonRpcResult::class.jvmName) {
-                RelayDOJsonRpcResultJsonAdapter(moshi = moshi)
+                JsonRpcResultAdapter(moshi = moshi)
             } else {
                 null
             }
@@ -63,7 +63,7 @@ internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {
     fun `test from json with boolean`() {
         val moshi = Moshi.Builder().add { type, _, moshi ->
             return@add if (type.getRawType().name == JsonRpc.JsonRpcResponse.JsonRpcResult::class.jvmName) {
-                RelayDOJsonRpcResultJsonAdapter(moshi = moshi)
+                JsonRpcResultAdapter(moshi = moshi)
             } else {
                 null
             }

@@ -1,5 +1,3 @@
-@file:JvmSynthetic
-
 package com.walletconnect.android_core.json_rpc.data
 
 import com.squareup.moshi.Moshi
