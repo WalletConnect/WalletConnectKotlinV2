@@ -20,12 +20,11 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.KeyStore
 import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 @SuppressLint("HardwareIds")
-inline fun <reified T: Database> coreStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
+inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
 
     single(named(AndroidCoreDITags.RPC_STORE_ALIAS)) {
         val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
@@ -69,19 +68,6 @@ inline fun <reified T: Database> coreStorageModule(databaseSchema: SqlDriver.Sch
     }
 
     single(named(AndroidCoreDITags.DB_SECRET_KEY)) {
-        fun generateSecretKey(secretKeyAlias: String): SecretKey {
-            val spec = KeyGenParameterSpec
-                .Builder(secretKeyAlias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                .build()
-
-            return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore").run {
-                init(spec)
-                generateKey()
-            }
-        }
-
         val alias = get<String>(named(AndroidCoreDITags.DB_ALIAS))
         val keyStore: KeyStore = get()
         val secretKeyEntry = keyStore.getEntry(alias, null) as? KeyStore.SecretKeyEntry
@@ -105,7 +91,7 @@ inline fun <reified T: Database> coreStorageModule(databaseSchema: SqlDriver.Sch
         val SP_ENCRYPTED_KEY = "encryptedDBKey"
         val cipher: Cipher = get()
         val sharedPreferences: SharedPreferences = get(named(AndroidCoreDITags.DB_KEY_STORAGE))
-        val encryptedDBKeyFromStore: ByteArray? = sharedPreferences.getString(SP_ENCRYPTED_KEY, null)?.let { decode(it) }
+        val encryptedDBKeyFromStore: ByteArray? = sharedPreferences.getString(SP_ENCRYPTED_KEY, null)?.let { Base64.decode(it, Base64.DEFAULT) }
 
         if (encryptedDBKeyFromStore == null) {
             val generatedKeyForDBByteArray = randomBytes(32)
@@ -123,7 +109,7 @@ inline fun <reified T: Database> coreStorageModule(databaseSchema: SqlDriver.Sch
                 put(encryptedKey)
             }
 
-            sharedPreferences.edit().putString(SP_ENCRYPTED_KEY, encode(ivAndEncryptedKey)).apply()
+            sharedPreferences.edit().putString(SP_ENCRYPTED_KEY, Base64.encodeToString(ivAndEncryptedKey, Base64.NO_WRAP)).apply()
 
             generatedKeyForDBByteArray
         } else {
@@ -163,6 +149,3 @@ inline fun <reified T: Database> coreStorageModule(databaseSchema: SqlDriver.Sch
         JsonRpcHistory(get(named(AndroidCoreDITags.RPC_STORE)), get(), get())
     }
 }
-
-private fun encode(decodedData: ByteArray): String = Base64.encodeToString(decodedData, Base64.NO_WRAP)
-private fun decode(encodedData: String): ByteArray = Base64.decode(encodedData, Base64.DEFAULT)
