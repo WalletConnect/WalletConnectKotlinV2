@@ -46,12 +46,12 @@ object Auth {
             data class AuthRequest(
                 val id: Long,
                 val cacao: Cacao,
-            )
+            ) : Events()
 
             data class AuthResponse(
                 val id: Long,
                 val message: String,
-            )
+            ) : Events()
         }
 
 
