@@ -14,7 +14,6 @@ import com.walletconnect.android_core.storage.JsonRpcHistory
 import com.walletconnect.util.randomBytes
 import net.sqlcipher.database.SupportFactory
 import org.koin.android.ext.koin.androidContext
-import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.nio.ByteBuffer
@@ -26,7 +25,7 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 @SuppressLint("HardwareIds")
-fun coreStorageModule(storageSuffix: String): Module = module {
+inline fun <reified T: Database> coreStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
 
     single(named(AndroidCoreDITags.RPC_STORE_ALIAS)) {
         val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
@@ -149,7 +148,7 @@ fun coreStorageModule(storageSuffix: String): Module = module {
 
     single<SqlDriver> {
         AndroidSqliteDriver(
-            schema = Database.Schema,
+            schema = databaseSchema,
             context = androidContext(),
             name = "WalletConnectV2$storageSuffix.db",
             factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false)
