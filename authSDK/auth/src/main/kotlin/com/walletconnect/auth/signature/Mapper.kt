@@ -7,8 +7,9 @@ import org.web3j.crypto.Sign
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-fun Auth.Model.Cacao.Payload.toFormattedMessage(): String {
-    var message = "$domain wants you to sign in with your Ethereum account:\n$address\n\n"
+// todo: Figure out chain name resolving to support chain agnosticism
+fun Auth.Model.Cacao.Payload.toFormattedMessage(chainName: String = "Ethereum"): String {
+    var message = "$domain wants you to sign in with your $chainName account:\n$address\n\n"
     if (statement != null) message += "$statement\n"
     message += "\nURI: $aud\nVersion: $version\nChain ID: $chainId\nNonce: $nonce\nIssued At: $iat"
     if (exp != null) message += "\nExpiration Time: $exp"
@@ -25,7 +26,7 @@ fun Auth.Params.Request.toCacaoPayload(iss: String): Auth.Model.Cacao.Payload = 
     iss = iss,
     domain = domain,
     aud = aud,
-    version = "1",  // Specs don't describe how to handle versioning
+    version = "1",  // todo: Specs don't describe how to handle versioning
     nonce = nonce,
     iat = DateTimeFormatter.ofPattern(ISO_8601_PATTERN).format(ZonedDateTime.now()),
     nbf = nbf,

@@ -1,6 +1,6 @@
 package com.walletconnect.auth.signature
 
-import com.walletconnect.auth.client.Auth.Model.CacaoPayload
+import com.walletconnect.auth.client.Auth.Model.Cacao.Payload
 import com.walletconnect.auth.client.Auth.Params.Request
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -14,13 +14,13 @@ import kotlin.test.assertTrue
 
 internal class MapperTest {
     private val iss = "did:pkh:eip155:1:0x15bca56b6e2728aec2532df9d436bd1600e86688"
-
-    private fun CacaoPayload.mockIatAsNbf(request: Request): CacaoPayload {
+    private val chainName = "Ethereum"
+    private fun Payload.mockIatAsNbf(request: Request): Payload {
         return this.copy(iat = request.nbf!!)
     }
 
     @Test
-    fun `CacaoPayload based on Request mapping with supplied issuer`() {
+    fun `Payload based on Request mapping with supplied issuer`() {
         val request = Request(
             type = "eip191",
             chainId = "eip155:1",
@@ -34,7 +34,7 @@ internal class MapperTest {
             resources = listOf("ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/", "https://example.com/my-web2-claim.json")
         )
 
-        val payload = CacaoPayload(
+        val payload = Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
@@ -52,7 +52,7 @@ internal class MapperTest {
     }
 
     @Test
-    fun `CacaoPayload based on Request generates issued at with current time`() {
+    fun `Payload based on Request generates issued at with current time`() {
         val before = ZonedDateTime.now(Clock.offset(systemDefaultZone(), Duration.ofSeconds(-2)))
 
         val payload = Request(
@@ -76,8 +76,8 @@ internal class MapperTest {
     }
 
     @Test
-    fun `CacaoPayload required fields formatting`() {
-        val payload = CacaoPayload(
+    fun `Payload required fields formatting`() {
+        val payload = Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
@@ -100,12 +100,12 @@ internal class MapperTest {
                 "Nonce: 32891756\n" +
                 "Issued At: 2021-09-30T16:25:24Z"
 
-        assertEquals(message, payload.toFormattedMessage())
+        assertEquals(message, payload.toFormattedMessage(chainName))
     }
 
     @Test
-    fun `CacaoPayload resources formatting`() {
-        val payload = CacaoPayload(
+    fun `Payload resources formatting`() {
+        val payload = Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
@@ -131,12 +131,12 @@ internal class MapperTest {
                 "- ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/\n" +
                 "- https://example.com/my-web2-claim.json"
 
-        assertEquals(message, payload.toFormattedMessage())
+        assertEquals(message, payload.toFormattedMessage(chainName))
     }
 
     @Test
-    fun `CacaoPayload requestId formatting`() {
-        val payload = CacaoPayload(
+    fun `Payload requestId formatting`() {
+        val payload = Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
@@ -160,12 +160,12 @@ internal class MapperTest {
                 "Issued At: 2021-09-30T16:25:24Z\n" +
                 "Request ID: someRequestId"
 
-        assertEquals(message, payload.toFormattedMessage())
+        assertEquals(message, payload.toFormattedMessage(chainName))
     }
 
     @Test
-    fun `CacaoPayload statement formatting`() {
-        val payload = CacaoPayload(
+    fun `Payload statement formatting`() {
+        val payload = Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
@@ -190,12 +190,12 @@ internal class MapperTest {
                 "Nonce: 32891756\n" +
                 "Issued At: 2021-09-30T16:25:24Z"
 
-        assertEquals(message, payload.toFormattedMessage())
+        assertEquals(message, payload.toFormattedMessage(chainName))
     }
 
     @Test
-    fun `CacaoPayload expiry formatting`() {
-        val payload = CacaoPayload(
+    fun `Payload expiry formatting`() {
+        val payload = Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
@@ -219,12 +219,12 @@ internal class MapperTest {
                 "Issued At: 2021-09-30T16:25:24Z\n" +
                 "Expiration Time: 2021-09-31T16:25:24Z"
 
-        assertEquals(message, payload.toFormattedMessage())
+        assertEquals(message, payload.toFormattedMessage(chainName))
     }
 
     @Test
-    fun `CacaoPayload not before formatting`() {
-        val payload = CacaoPayload(
+    fun `Payload not before formatting`() {
+        val payload = Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
@@ -248,12 +248,12 @@ internal class MapperTest {
                 "Issued At: 2021-09-30T16:25:24Z\n" +
                 "Not Before: 2021-09-31T16:25:24Z"
 
-        assertEquals(message, payload.toFormattedMessage())
+        assertEquals(message, payload.toFormattedMessage(chainName))
     }
 
     @Test
-    fun `CacaoPayload all fields formatting`() {
-        val payload = CacaoPayload(
+    fun `Payload all fields formatting`() {
+        val payload = Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
@@ -284,6 +284,6 @@ internal class MapperTest {
                 "- ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/\n" +
                 "- https://example.com/my-web2-claim.json"
 
-        assertEquals(message, payload.toFormattedMessage())
+        assertEquals(message, payload.toFormattedMessage(chainName))
     }
 }

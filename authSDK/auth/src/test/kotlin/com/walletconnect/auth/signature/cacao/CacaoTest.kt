@@ -2,7 +2,6 @@ package com.walletconnect.auth.signature.cacao
 
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.signature.SignatureType
-import com.walletconnect.auth.signature.toCacaoPayload
 import com.walletconnect.auth.signature.toFormattedMessage
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -11,8 +10,9 @@ import org.web3j.utils.Numeric
 
 internal class CacaoTest {
     private val iss = "did:pkh:eip155:1:0x15bca56b6e2728aec2532df9d436bd1600e86688"
+    private val chainName = "Ethereum"
 
-    private val payload = Auth.Model.CacaoPayload(
+    private val payload = Auth.Model.Cacao.Payload(
         iss = iss,
         domain = "service.invalid",
         aud = "https://service.invalid/login",
@@ -33,8 +33,8 @@ internal class CacaoTest {
 
     @Test
     fun signAndVerifyTest() {
-        val signature = signerSut.sign(payload.toFormattedMessage(), keyPair, SignatureType.EIP191)
-        val cacao = Auth.Model.Cacao(Auth.Model.CacaoHeader(SignatureType.EIP191.header), payload, signature)
+        val signature = signerSut.sign(payload.toFormattedMessage(chainName), keyPair, SignatureType.EIP191)
+        val cacao = Auth.Model.Cacao(Auth.Model.Cacao.Header(SignatureType.EIP191.header), payload, signature)
         val result = verifierSut.verify(cacao)
         Assertions.assertTrue(result)
     }

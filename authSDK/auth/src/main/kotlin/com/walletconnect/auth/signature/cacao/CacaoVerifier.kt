@@ -1,8 +1,8 @@
 package com.walletconnect.auth.signature.cacao
 
 import com.walletconnect.auth.client.Auth
-import com.walletconnect.auth.signature.eip191.EIP191Verifier
 import com.walletconnect.auth.signature.SignatureType
+import com.walletconnect.auth.signature.eip191.EIP191Verifier
 import com.walletconnect.auth.signature.toFormattedMessage
 import com.walletconnect.auth.signature.toSignature
 
