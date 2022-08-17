@@ -20,7 +20,7 @@ fun commonModule() = module {
         KotlinJsonAdapterFactory()
     }
 
-    single<Moshi>(named("foundation")) {
+    single<Moshi>(named(FoundationDITags.MOSHI)) {
         Moshi.Builder()
             .add { type, _, _ ->
                 when (type.getRawType().name) {

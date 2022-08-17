@@ -19,7 +19,7 @@ fun cryptoModule() = module {
     val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
     val mainKeyAlias = MasterKeys.getOrCreate(keyGenParameterSpec)
 
-    single(named(DITags.KEY_STORE)) {
+    single(named(AndroidCoreDITags.KEY_STORE)) {
         EncryptedSharedPreferences.create(
             sharedPrefsFile,
             mainKeyAlias,
@@ -29,7 +29,7 @@ fun cryptoModule() = module {
         )
     }
 
-    single<KeyStore> { KeyChain(get(named(DITags.KEY_STORE))) }
+    single<KeyStore> { KeyChain(get(named(AndroidCoreDITags.KEY_STORE))) }
 
     single<KeyManagementRepository> { BouncyCastleKeyManagementRepository(get()) }
 

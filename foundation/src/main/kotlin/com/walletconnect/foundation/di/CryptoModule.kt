@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.foundation.di
 
 import com.walletconnect.foundation.common.model.PrivateKey

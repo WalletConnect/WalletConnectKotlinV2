@@ -7,7 +7,6 @@ import com.walletconnect.chat.copiedFromSign.core.model.vo.Key
 import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
 import com.walletconnect.chat.copiedFromSign.crypto.KeyStore
 import com.walletconnect.chat.copiedFromSign.util.Empty
-import com.walletconnect.chat.copiedFromSign.util.Logger
 import com.walletconnect.chat.copiedFromSign.util.bytesToHex
 import com.walletconnect.chat.copiedFromSign.util.hexToBytes
 

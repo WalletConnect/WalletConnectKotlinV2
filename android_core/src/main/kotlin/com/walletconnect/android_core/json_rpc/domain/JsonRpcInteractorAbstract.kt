@@ -33,7 +33,7 @@ abstract class JsonRpcInteractorAbstract(
     private val serializer: JsonRpcSerializerAbstract,
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
-    networkState: ConnectivityState, //todo: move to the RelayClient
+    networkState: ConnectivityState,
 ) {
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequest> = MutableSharedFlow()
     val clientSyncJsonRpc: SharedFlow<WCRequest> = _clientSyncJsonRpc.asSharedFlow()

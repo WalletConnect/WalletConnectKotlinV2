@@ -8,6 +8,7 @@ import com.walletconnect.android_core.common.adapters.TagsAdapter
 import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.android_core.json_rpc.model.JsonRpc
+import com.walletconnect.foundation.di.FoundationDITags
 import com.walletconnect.foundation.util.Logger
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -25,10 +26,10 @@ fun commonModule() = module {
             .withSubtype(JsonRpc.JsonRpcResponse.JsonRpcError::class.java, "error")
     }
 
-    single(named("android_core")) {
-        get<Moshi>(named("foundation"))
+    single<Moshi>(named(AndroidCoreDITags.MOSHI)) {
+        get<Moshi>(named(FoundationDITags.MOSHI))
             .newBuilder()
-            .add { type, _, moshi ->
+            .add { type, _, _ ->
                 when (type.getRawType().name) {
                     Expiry::class.jvmName -> ExpiryAdapter
                     Tags::class.jvmName -> TagsAdapter

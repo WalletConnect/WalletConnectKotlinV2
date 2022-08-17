@@ -3,7 +3,7 @@
 package com.walletconnect.sign.engine.model
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android_core.common.InternalError as AndroidCoreInternalError
+import com.walletconnect.android_core.common.InternalError
 import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.android_core.common.model.type.EngineEvent
 import SymmetricKey
@@ -14,7 +14,7 @@ import java.net.URI
 
 internal sealed class EngineDO {
 
-    internal class InternalError(val exception: AndroidCoreInternalError) : EngineDO(), EngineEvent
+    internal class SDKError(val exception: InternalError) : EngineDO(), EngineEvent
 
     internal sealed class ProposedSequence {
         class Pairing(val uri: String) : ProposedSequence()

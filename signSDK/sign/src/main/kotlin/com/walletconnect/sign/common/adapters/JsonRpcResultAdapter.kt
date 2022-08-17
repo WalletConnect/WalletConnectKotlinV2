@@ -16,6 +16,7 @@ import kotlin.Int
 import kotlin.Long
 import kotlin.String
 
+// TODO: figure out how to share this with other modules
 internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<JsonRpc.JsonRpcResponse.JsonRpcResult>() {
     private val options: JsonReader.Options = JsonReader.Options.of("id", "jsonrpc", "result")
     private val longAdapter: JsonAdapter<Long> = moshi.adapter(Long::class.java, emptySet(), "id")

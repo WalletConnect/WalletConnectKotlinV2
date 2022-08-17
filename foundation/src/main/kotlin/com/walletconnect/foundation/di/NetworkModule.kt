@@ -20,7 +20,7 @@ fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = 
     val DEFAULT_BACKOFF_SECONDS = 5L
     val TIMEOUT_TIME = 5000L
 
-    single(named("foundation")) {
+    single(named(FoundationDITags.INTERCEPTOR)) {
         Interceptor {
             val updatedRequest = it.request().newBuilder()
                 .addHeader("User-Agent", "wc-2/kotlin-$sdkVersion-relayTest")
@@ -31,9 +31,9 @@ fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = 
     }
 
     // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
-    single(named("foundation")) {
+    single(named(FoundationDITags.OK_HTTP)) {
         OkHttpClient.Builder()
-            .addInterceptor(get<Interceptor>(named("foundation")))
+            .addInterceptor(get<Interceptor>(named(FoundationDITags.INTERCEPTOR)))
             .writeTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
             .readTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
             .callTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
@@ -41,7 +41,7 @@ fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = 
             .build()
     }
 
-    single { MoshiMessageAdapter.Factory(get(named("foundation"))) }
+    single { MoshiMessageAdapter.Factory(get(named(FoundationDITags.MOSHI))) }
 
     single { FlowStreamAdapter.Factory() }
 

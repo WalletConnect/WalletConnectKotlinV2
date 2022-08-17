@@ -78,7 +78,7 @@ abstract class BaseJwtRepository: JwtRepository {
         return encodeByteArray(jsonByteArray)
     }
 
-    private fun getDIDFromNewKeyPair(): Pair<String, String> {
+    fun getDIDFromNewKeyPair(): Pair<String, String> {
         val secureRandom = SecureRandom(ByteArray(KEY_SIZE))
         val keyPair: AsymmetricCipherKeyPair = Ed25519KeyPairGenerator().run {
             this.init(Ed25519KeyGenerationParameters(secureRandom))
@@ -94,23 +94,23 @@ abstract class BaseJwtRepository: JwtRepository {
         return publicKey.keyAsHex to privateKey.keyAsHex
     }
 
-    internal fun generateSubject() = randomBytes(KEY_NONCE_SIZE).bytesToHex()
+    fun generateSubject() = randomBytes(KEY_NONCE_SIZE).bytesToHex()
 
     private fun jwtExp(issuedAt: Long): Long {
         return issuedAt + TimeUnit.SECONDS.convert(1, TimeUnit.DAYS)
     }
 
-    internal fun getCurrentTimestamp() = System.currentTimeMillis()
+    fun getCurrentTimestamp() = System.currentTimeMillis()
 
-    private companion object {
+    companion object {
         const val KEY_DID_KEYPAIR = "key_did_keypair"
-        val JWT_IRN_HEADER = IrnJWTHeader(algorithm = "EdDSA", type = "JWT")
-        const val KEY_SIZE: Int = 32
-        const val KEY_NONCE_SIZE = KEY_SIZE
-        const val JWT_DELIMITER = "."
-        const val DID_DELIMITER = ":"
-        const val DID_PREFIX = "did"
-        const val DID_METHOD = "key"
-        const val MULTICODEC_ED25519_HEADER = "K36"
+        private val JWT_IRN_HEADER = IrnJWTHeader(algorithm = "EdDSA", type = "JWT")
+        private const val KEY_SIZE: Int = 32
+        private const val KEY_NONCE_SIZE = KEY_SIZE
+        private const val JWT_DELIMITER = "."
+        private const val DID_DELIMITER = ":"
+        private const val DID_PREFIX = "did"
+        private const val DID_METHOD = "key"
+        private const val MULTICODEC_ED25519_HEADER = "K36"
     }
 }
