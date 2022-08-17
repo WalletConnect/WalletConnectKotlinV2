@@ -3,10 +3,10 @@ package com.walletconnect.android_core.crypto.data.codec
 import com.walletconnect.android_core.common.MissingParticipantsException
 import com.walletconnect.android_core.common.MissingReceiverPublicKeyException
 import com.walletconnect.android_core.common.model.Participants
+import com.walletconnect.android_core.common.model.SymmetricKey
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
 import com.walletconnect.android_core.crypto.KeyManagementRepository
 import com.walletconnect.foundation.common.model.PublicKey
-import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.utils.Empty
 import io.mockk.every

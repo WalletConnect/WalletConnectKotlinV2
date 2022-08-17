@@ -3,20 +3,17 @@
 package com.walletconnect.sign.engine.model.mapper
 
 import com.walletconnect.android_core.common.model.Expiry
+import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
+import com.walletconnect.android_core.common.model.sync.WCRequest
+import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.peer.PeerError
+import com.walletconnect.sign.common.model.vo.clientsync.common.*
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.payload.SessionProposerVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
-import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.sign.common.model.vo.sequence.PairingVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
-import com.walletconnect.android_core.common.model.sync.WCRequest
-import com.walletconnect.foundation.common.model.PublicKey
-import com.walletconnect.sign.common.model.vo.clientsync.common.*
-import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO
-import com.walletconnect.sign.common.model.vo.clientsync.common.RedirectVO
-import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
 import com.walletconnect.utils.Empty

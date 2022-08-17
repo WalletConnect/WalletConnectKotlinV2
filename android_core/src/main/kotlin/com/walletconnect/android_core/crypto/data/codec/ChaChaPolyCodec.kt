@@ -6,11 +6,11 @@ import com.walletconnect.android_core.common.MissingParticipantsException
 import com.walletconnect.android_core.common.MissingReceiverPublicKeyException
 import com.walletconnect.android_core.common.UnknownEnvelopeTypeException
 import com.walletconnect.android_core.common.model.Participants
+import com.walletconnect.android_core.common.model.SymmetricKey
 import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
 import com.walletconnect.android_core.crypto.Codec
 import com.walletconnect.android_core.crypto.KeyManagementRepository
 import com.walletconnect.foundation.common.model.PublicKey
-import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
@@ -34,8 +34,8 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         UnknownEnvelopeTypeException::class,
         MissingParticipantsException::class
     )
-    override fun encrypt(topic: Topic, jsonRpcPayload: String, envelopeType: EnvelopeType, participants: Participants?): String {
-        val input = jsonRpcPayload.toByteArray(Charsets.UTF_8)
+    override fun encrypt(topic: Topic, payload: String, envelopeType: EnvelopeType, participants: Participants?): String {
+        val input = payload.toByteArray(Charsets.UTF_8)
         val nonceBytes = randomBytes(NONCE_SIZE)
 
         return when (envelopeType.id) {
@@ -49,8 +49,8 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         UnknownEnvelopeTypeException::class,
         MissingReceiverPublicKeyException::class
     )
-    override fun decrypt(topic: Topic, encryptedPayload: String, receiverPublicKey: PublicKey?): String {
-        val encryptedPayloadBytes = Base64.decode(encryptedPayload)
+    override fun decrypt(topic: Topic, cipherText: String, receiverPublicKey: PublicKey?): String {
+        val encryptedPayloadBytes = Base64.decode(cipherText)
 
         return when (val envelopeType = encryptedPayloadBytes.envelopeType) {
             EnvelopeType.ZERO.id -> decryptType0(topic, encryptedPayloadBytes)

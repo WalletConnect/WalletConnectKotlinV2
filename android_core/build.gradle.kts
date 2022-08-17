@@ -33,6 +33,12 @@ android {
     }
 }
 
+sqldelight {
+    database("Database") {
+        packageName = "com.walletconnect.android_core"
+    }
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }
@@ -54,5 +60,6 @@ dependencies {
     timber()
 
     jUnit5()
+    jUnit5Android()
     mockk()
 }

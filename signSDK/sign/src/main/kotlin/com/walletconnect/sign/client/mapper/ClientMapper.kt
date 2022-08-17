@@ -4,11 +4,11 @@ package com.walletconnect.sign.client.mapper
 
 import android.net.Uri
 import android.os.Build
-import com.walletconnect.sign.client.Sign
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.PendingRequest
-import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.android_core.network.data.connection.ConnectionType
+import com.walletconnect.sign.client.Sign
+import com.walletconnect.sign.engine.model.EngineDO
 
 //TODO: Figure out what to do with models separation
 @JvmSynthetic

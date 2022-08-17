@@ -1,6 +1,6 @@
 package com.walletconnect.android_core.di
 
-internal enum class AndroidCoreDITags {
+enum class AndroidCoreDITags {
     KEY_STORE,
     RPC_STORE,
     RPC_STORE_ALIAS,
