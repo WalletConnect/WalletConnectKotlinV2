@@ -10,7 +10,7 @@ import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
 import com.walletconnect.android_core.crypto.Codec
 import com.walletconnect.android_core.crypto.KeyManagementRepository
 import com.walletconnect.foundation.common.model.PublicKey
-import SymmetricKey
+import com.walletconnect.android_core.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes

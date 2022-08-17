@@ -1,6 +1,7 @@
 package com.walletconnect.sign
 
-import SymmetricKey
+import com.walletconnect.android_core.common.model.SymmetricKey
+import com.walletconnect.android_core.utils.*
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.ValidatorTest.Accounts.COSMOSHUB_4_1
 import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_1
@@ -30,7 +31,6 @@ import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOpt
 import com.walletconnect.sign.engine.domain.Validator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toAbsoluteString
-import com.walletconnect.sign.util.Time
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -780,9 +780,9 @@ class ValidatorTest {
 
     @Test
     fun `test time periods in seconds`() {
-        Time.fiveMinutesInSeconds.apply { assertEquals(this.compareTo(300), 0) }
-        Time.dayInSeconds.apply { assertEquals(this.compareTo(86400), 0) }
-        Time.weekInSeconds.apply { assertEquals(this.compareTo(604800), 0) }
-        Time.monthInSeconds.apply { assertEquals(this.compareTo(2592000), 0) }
+        FIVE_MINUTES_IN_SECONDS.apply { assertEquals(this.compareTo(300), 0) }
+        DAY_IN_SECONDS.apply { assertEquals(this.compareTo(86400), 0) }
+        WEEK_IN_SECONDS.apply { assertEquals(this.compareTo(604800), 0) }
+        MONTH_IN_SECONDS.apply { assertEquals(this.compareTo(2592000), 0) }
     }
 }
