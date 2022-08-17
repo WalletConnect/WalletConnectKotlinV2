@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.android_core.common
 
 internal const val WRONG_CONNECTION_TYPE: String =

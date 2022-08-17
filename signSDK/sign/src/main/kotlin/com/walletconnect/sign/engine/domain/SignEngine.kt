@@ -476,7 +476,7 @@ internal class SignEngine(
 
     private fun collectInternalErrors() {
         relayer.internalErrors
-            .onEach { exception -> _engineEvent.emit(EngineDO.InternalError(exception)) }
+            .onEach { exception -> _engineEvent.emit(EngineDO.SDKError(exception)) }
             .launchIn(scope)
     }
 

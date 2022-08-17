@@ -79,7 +79,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                     is EngineDO.SessionUpdateNamespacesResponse -> delegate.onSessionUpdateResponse(event.toClientUpdateSessionNamespacesResponse())
                     //Utils
                     is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
-                    is EngineDO.InternalError -> delegate.onError(event.toClientError())
+                    is EngineDO.SDKError -> delegate.onError(event.toClientError())
                 }
             }.launchIn(scope)
         }
@@ -100,7 +100,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                     is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
                     //Utils
                     is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
-                    is EngineDO.InternalError -> delegate.onError(event.toClientError())
+                    is EngineDO.SDKError -> delegate.onError(event.toClientError())
                 }
             }.launchIn(scope)
         }

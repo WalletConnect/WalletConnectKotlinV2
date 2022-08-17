@@ -4,6 +4,7 @@ package com.walletconnect.sign.di
 
 import com.squareup.moshi.Moshi
 import com.tinder.scarlet.utils.getRawType
+import com.walletconnect.android_core.di.AndroidCoreDITags
 import com.walletconnect.android_core.json_rpc.model.JsonRpc
 import com.walletconnect.sign.common.adapters.JsonRpcResultAdapter
 import com.walletconnect.sign.common.adapters.SessionRequestVOJsonAdapter
@@ -14,12 +15,12 @@ import kotlin.reflect.jvm.jvmName
 import com.walletconnect.android_core.di.commonModule as androidCoreCommonModule
 
 @JvmSynthetic
-fun commonModule() = module {
+internal fun commonModule() = module {
 
     includes(androidCoreCommonModule())
 
     single {
-        get<Moshi>(named("android_core"))
+        get<Moshi>(named(AndroidCoreDITags.MOSHI))
             .newBuilder()
             .add { type, _, moshi ->
                 when (type.getRawType().name) {
