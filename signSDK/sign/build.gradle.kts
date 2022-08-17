@@ -84,7 +84,7 @@ afterEvaluate {
 }
 
 dependencies {
-    api(project(":android_core"))
+    implementation(project(":android_core"))
 
     moshiKsp()
     androidXTest()

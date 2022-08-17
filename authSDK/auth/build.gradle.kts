@@ -13,6 +13,7 @@ android {
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
 
+        buildConfigField(type = "String", name= "sdkVersion", value = "\"1.0.0-alpha01\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -29,6 +30,13 @@ android {
 
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
+    }
+}
+
+sqldelight {
+    database("Database") {
+        packageName = "com.walletconnect.auth"
+        dependency(project(":android_core"))
     }
 }
 

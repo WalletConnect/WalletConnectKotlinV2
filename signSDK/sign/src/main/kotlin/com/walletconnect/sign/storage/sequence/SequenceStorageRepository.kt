@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteException
 import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.common.model.type.enums.MetaDataType
+import com.walletconnect.android_core.common.model.type.enums.MetaDataType
 import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.RedirectVO
