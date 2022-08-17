@@ -2,7 +2,7 @@
 
 package com.walletconnect.chat.engine.domain
 
-import com.walletconnect.chat.copiedFromSign.core.exceptions.client.WalletConnectException
+import com.walletconnect.android_core.common.GenericException
 import com.walletconnect.chat.copiedFromSign.core.model.type.enums.EnvelopeType
 import com.walletconnect.chat.copiedFromSign.core.model.vo.IrnParamsVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
@@ -183,7 +183,7 @@ internal class ChatEngine(
 
 
     internal fun accept(inviteId: Long, onFailure: (Throwable) -> Unit) = try {
-        val request = inviteRequestMap[inviteId] ?: throw WalletConnectException.GenericException("No request for inviteId")
+        val request = inviteRequestMap[inviteId] ?: throw GenericException("No request for inviteId")
         val senderPublicKey = PublicKey((request.params as ChatParamsVO.InviteParams).publicKey) // PubKey Y
         inviteRequestMap.remove(inviteId)
 

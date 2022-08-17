@@ -1,20 +1,22 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.engine.model.mapper
 
-import com.walletconnect.sign.core.exceptions.peer.PeerError
-import com.walletconnect.sign.core.model.vo.ExpiryVO
-import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.TopicVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.*
-import com.walletconnect.sign.core.model.vo.clientsync.pairing.params.PairingParamsVO
-import com.walletconnect.sign.core.model.vo.clientsync.pairing.payload.SessionProposerVO
-import com.walletconnect.sign.core.model.vo.clientsync.session.params.SessionParamsVO
-import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
-import com.walletconnect.sign.core.model.vo.sequence.PairingVO
-import com.walletconnect.sign.core.model.vo.sequence.SessionVO
-import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
+import com.walletconnect.android_core.common.model.Expiry
+import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
+import com.walletconnect.android_core.common.model.sync.WCRequest
+import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.sign.common.exceptions.peer.PeerError
+import com.walletconnect.sign.common.model.vo.clientsync.common.*
+import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
+import com.walletconnect.sign.common.model.vo.clientsync.pairing.payload.SessionProposerVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
+import com.walletconnect.sign.common.model.vo.sequence.PairingVO
+import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
-import com.walletconnect.sign.util.Empty
+import com.walletconnect.utils.Empty
 import java.net.URI
 
 @JvmSynthetic
@@ -52,7 +54,7 @@ internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): E
 
 @JvmSynthetic
 internal fun SessionParamsVO.SessionRequestParams.toEngineDOSessionRequest(
-    request: WCRequestVO,
+    request: WCRequest,
     peerMetaDataVO: MetaDataVO?,
 ): EngineDO.SessionRequest =
     EngineDO.SessionRequest(
@@ -67,11 +69,11 @@ internal fun SessionParamsVO.SessionRequestParams.toEngineDOSessionRequest(
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: TopicVO): EngineDO.SessionDelete =
+internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: Topic): EngineDO.SessionDelete =
     EngineDO.SessionDelete(topic.value, message)
 
 @JvmSynthetic
-internal fun SessionParamsVO.EventParams.toEngineDOSessionEvent(topic: TopicVO): EngineDO.SessionEvent =
+internal fun SessionParamsVO.EventParams.toEngineDOSessionEvent(topic: Topic): EngineDO.SessionEvent =
     EngineDO.SessionEvent(topic.value, event.name, event.data.toString(), chainId)
 
 @JvmSynthetic
@@ -90,7 +92,7 @@ internal fun SessionVO.toEngineDOApprovedSessionVO(): EngineDO.Session =
     )
 
 @JvmSynthetic
-internal fun SessionVO.toEngineDOSessionExtend(expiryVO: ExpiryVO): EngineDO.SessionExtend =
+internal fun SessionVO.toEngineDOSessionExtend(expiryVO: Expiry): EngineDO.SessionExtend =
     EngineDO.SessionExtend(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfMetaData?.toEngineDOAppMetaData())
 
 @JvmSynthetic
@@ -172,11 +174,11 @@ internal fun getSessionRelays(relays: List<EngineDO.RelayProtocolOptions>?): Lis
 } ?: listOf(RelayProtocolOptionsVO())
 
 @JvmSynthetic
-internal fun JsonRpcResponseVO.JsonRpcResult.toEngineJsonRpcResult(): EngineDO.JsonRpcResponse.JsonRpcResult =
+internal fun JsonRpcResponse.JsonRpcResult.toEngineJsonRpcResult(): EngineDO.JsonRpcResponse.JsonRpcResult =
     EngineDO.JsonRpcResponse.JsonRpcResult(id = id, result = result.toString())
 
 @JvmSynthetic
-internal fun JsonRpcResponseVO.JsonRpcError.toEngineJsonRpcError(): EngineDO.JsonRpcResponse.JsonRpcError =
+internal fun JsonRpcResponse.JsonRpcError.toEngineJsonRpcError(): EngineDO.JsonRpcResponse.JsonRpcError =
     EngineDO.JsonRpcResponse.JsonRpcError(id = id, error = EngineDO.JsonRpcResponse.Error(error.code, error.message))
 
 @JvmSynthetic
@@ -186,7 +188,7 @@ internal fun PairingParamsVO.SessionProposeParams.toSessionApproveParams(selfPub
         responderPublicKey = selfPublicKey.keyAsHex)
 
 @JvmSynthetic
-internal fun SessionParamsVO.SessionRequestParams.toEngineDORequest(topic: TopicVO): EngineDO.Request =
+internal fun SessionParamsVO.SessionRequestParams.toEngineDORequest(topic: Topic): EngineDO.Request =
     EngineDO.Request(topic.value, request.method, request.params, chainId)
 
 @JvmSynthetic

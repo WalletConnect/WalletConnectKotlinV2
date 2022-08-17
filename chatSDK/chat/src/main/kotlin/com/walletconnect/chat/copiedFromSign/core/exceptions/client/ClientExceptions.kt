@@ -1,8 +1,10 @@
 package com.walletconnect.chat.copiedFromSign.core.exceptions.client
 
-sealed class WalletConnectException(override val message: String?) : Exception(message) {
-    class GenericException(override val message: String?) : WalletConnectException(message)
-    class InternalError(override val message: String?): WalletConnectException(message)
+import com.walletconnect.android_core.common.WalletConnectException
+
+//sealed class WalletConnectException(override val message: String?) : Exception(message) {
+//    class GenericException(override val message: String?) : WalletConnectException(message)
+//    class InternalError(override val message: String?): WalletConnectException(message)
 
     class UnauthorizedPeerException(override val message: String?) : WalletConnectException(message)
     class UnauthorizedMethodException(override val message: String?) : WalletConnectException(message)
@@ -21,7 +23,7 @@ sealed class WalletConnectException(override val message: String?) : Exception(m
     class CannotFindSessionProposalException(override val message: String?) : WalletConnectException(message)
     class MissingInternetConnectionException(override val message: String?) : WalletConnectException(message)
 
-    class UnknownEnvelopeTypeException(override val message: String?) : WalletConnectException(message)
-    class MissingParticipantsException(override val message: String?) : WalletConnectException(message)
-    class MissingReceiverPublicKeyException(override val message: String?) : WalletConnectException(message)
-}
+//    class UnknownEnvelopeTypeException(override val message: String?) : WalletConnectException(message)
+//    class MissingParticipantsException(override val message: String?) : WalletConnectException(message)
+//    class MissingReceiverPublicKeyException(override val message: String?) : WalletConnectException(message)
+////}

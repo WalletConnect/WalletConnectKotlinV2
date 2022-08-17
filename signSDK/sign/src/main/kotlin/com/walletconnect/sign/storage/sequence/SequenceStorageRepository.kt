@@ -3,15 +3,15 @@
 package com.walletconnect.sign.storage.sequence
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.sign.core.model.type.enums.MetaDataType
-import com.walletconnect.sign.core.model.vo.ExpiryVO
-import com.walletconnect.sign.core.model.vo.PublicKey
-import com.walletconnect.sign.core.model.vo.TopicVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.MetaDataVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.RedirectVO
-import com.walletconnect.sign.core.model.vo.sequence.PairingVO
-import com.walletconnect.sign.core.model.vo.sequence.SessionVO
+import com.walletconnect.android_core.common.model.Expiry
+import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.sign.common.model.type.enums.MetaDataType
+import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO
+import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.sign.common.model.vo.clientsync.common.RedirectVO
+import com.walletconnect.sign.common.model.vo.sequence.PairingVO
+import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.storage.data.dao.metadata.MetaDataDaoQueries
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceExtensionDaoQueries
@@ -21,8 +21,8 @@ import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespa
 import com.walletconnect.sign.storage.data.dao.session.SessionDaoQueries
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceExtensionDaoQueries
-import com.walletconnect.sign.util.Empty
-import com.walletconnect.sign.util.isSequenceValid
+import com.walletconnect.utils.Empty
+import com.walletconnect.utils.isSequenceValid
 
 //TODO: Split into SessionStorageRepository and PairingStorageRepository
 internal class SequenceStorageRepository(
@@ -38,7 +38,7 @@ internal class SequenceStorageRepository(
 ) {
 
     @JvmSynthetic
-    var onSequenceExpired: (topic: TopicVO) -> Unit = {}
+    var onSequenceExpired: (topic: Topic) -> Unit = {}
 
     @JvmSynthetic
     fun getListOfPairingVOs(): List<PairingVO> =
@@ -49,7 +49,7 @@ internal class SequenceStorageRepository(
         sessionDaoQueries.getListOfSessionDaos(mapper = this@SequenceStorageRepository::mapSessionDaoToSessionVO).executeAsList()
 
     @JvmSynthetic
-    fun isSessionValid(topic: TopicVO): Boolean {
+    fun isSessionValid(topic: Topic): Boolean {
         val hasTopic = sessionDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
 
         return if (hasTopic) {
@@ -64,7 +64,7 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun isPairingValid(topic: TopicVO): Boolean {
+    fun isPairingValid(topic: Topic): Boolean {
         val hasTopic = pairingDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
 
         return if (hasTopic) {
@@ -76,11 +76,11 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun getPairingByTopic(topic: TopicVO): PairingVO =
+    fun getPairingByTopic(topic: Topic): PairingVO =
         pairingDaoQueries.getPairingByTopic(topic.value).executeAsOne().let { entity ->
             PairingVO(
-                topic = TopicVO(entity.topic),
-                expiry = ExpiryVO(entity.expiry),
+                topic = Topic(entity.topic),
+                expiry = Expiry(entity.expiry),
                 uri = entity.uri,
                 relayProtocol = entity.relay_protocol,
                 relayData = entity.relay_data,
@@ -89,7 +89,7 @@ internal class SequenceStorageRepository(
         }
 
     @JvmSynthetic
-    fun getSessionByTopic(topic: TopicVO): SessionVO =
+    fun getSessionByTopic(topic: Topic): SessionVO =
         sessionDaoQueries.getSessionByTopic(topic.value, mapper = this@SequenceStorageRepository::mapSessionDaoToSessionVO).executeAsOne()
 
     @JvmSynthetic
@@ -108,13 +108,13 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun activatePairing(topic: TopicVO, expiryInSeconds: Long) {
+    fun activatePairing(topic: Topic, expiryInSeconds: Long) {
         pairingDaoQueries.activatePairing(expiryInSeconds, true, topic.value)
     }
 
     @JvmSynthetic
     @Throws(SQLiteException::class)
-    fun upsertPairingPeerMetadata(topic: TopicVO, metaData: MetaDataVO) {
+    fun upsertPairingPeerMetadata(topic: Topic, metaData: MetaDataVO) {
         if (metaDataDaoQueries.getByTopic(topic.value).executeAsOneOrNull() == null) {
             insertMetaData(metaData, MetaDataType.PEER, topic)
         } else {
@@ -131,7 +131,7 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun deletePairing(topic: TopicVO) {
+    fun deletePairing(topic: Topic) {
         metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
         pairingDaoQueries.deletePairing(topic.value)
     }
@@ -161,12 +161,12 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun acknowledgeSession(topic: TopicVO) {
+    fun acknowledgeSession(topic: Topic) {
         sessionDaoQueries.acknowledgeSession(true, topic.value)
     }
 
     @JvmSynthetic
-    fun extendSession(topic: TopicVO, expiryInSeconds: Long) {
+    fun extendSession(topic: Topic, expiryInSeconds: Long) {
         sessionDaoQueries.updateSessionExpiry(expiryInSeconds, topic.value)
     }
 
@@ -278,7 +278,7 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun deleteSession(topic: TopicVO) {
+    fun deleteSession(topic: Topic) {
         metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
         namespaceDaoQueries.deleteNamespacesByTopic(topic.value)
         extensionsDaoQueries.deleteNamespacesExtensionsByTopic(topic.value)
@@ -290,7 +290,7 @@ internal class SequenceStorageRepository(
     }
 
     @Throws(SQLiteException::class)
-    private fun insertMetaData(metaData: MetaDataVO?, metaDataType: MetaDataType, topic: TopicVO) {
+    private fun insertMetaData(metaData: MetaDataVO?, metaDataType: MetaDataType, topic: Topic) {
         metaData?.let {
             metaDataDaoQueries.insertOrAbortMetaData(
                 topic.value,
@@ -339,8 +339,8 @@ internal class SequenceStorageRepository(
         }
     }
 
-    private fun verifyExpiry(expiry: Long, topic: TopicVO, deleteSequence: () -> Unit): Boolean {
-        return if (ExpiryVO(expiry).isSequenceValid()) {
+    private fun verifyExpiry(expiry: Long, topic: Topic, deleteSequence: () -> Unit): Boolean {
+        return if (Expiry(expiry).isSequenceValid()) {
             true
         } else {
             deleteSequence()
@@ -368,8 +368,8 @@ internal class SequenceStorageRepository(
         }
 
         return PairingVO(
-            topic = TopicVO(topic),
-            expiry = ExpiryVO(expirySeconds),
+            topic = Topic(topic),
+            expiry = Expiry(expirySeconds),
             peerMetaData = peerMetaData,
             relayProtocol = relay_protocol,
             relayData = relay_data,
@@ -414,8 +414,8 @@ internal class SequenceStorageRepository(
         val proposalNamespaces: Map<String, NamespaceVO.Proposal> = getProposalNamespaces(id)
 
         return SessionVO(
-            topic = TopicVO(topic),
-            expiry = ExpiryVO(expiry),
+            topic = Topic(topic),
+            expiry = Expiry(expiry),
             selfMetaData = selfMetaData,
             peerMetaData = peerMetaData,
             selfPublicKey = PublicKey(self_participant),

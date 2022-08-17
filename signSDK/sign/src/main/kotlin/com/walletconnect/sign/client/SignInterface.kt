@@ -1,7 +1,5 @@
 package com.walletconnect.sign.client
 
-import com.walletconnect.sign.network.RelayInterface
-
 interface SignInterface {
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal)

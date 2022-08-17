@@ -1,13 +1,9 @@
 plugins {
     id("com.android.library")
     kotlin("android")
-    kotlin("kapt")
     id("com.squareup.sqldelight")
     `maven-publish`
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
+    id("com.google.devtools.ksp") version kspVersion
 }
 
 android {
@@ -16,13 +12,14 @@ android {
 
     defaultConfig {
         minSdk = MIN_SDK
-        targetSdk = 32
+        targetSdk = TARGET_SDK
 
         aarMetadata {
             minCompileSdk = MIN_SDK
-            targetSdk = 32
+            targetSdk = TARGET_SDK
         }
 
+        buildConfigField(type = "String", name= "sdkVersion", value = "\"2.0.0-rc.1\"")
         testInstrumentationRunner = "com.walletconnect.sign.test.utils.WCTestRunner"
         testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")
         testInstrumentationRunnerArguments += mutableMapOf("clearPackageData" to "true")
@@ -36,16 +33,7 @@ android {
                 "proguard-rules.pro"
             )
         }
-        create("qa"){
-            initWith(getByName("debug"))
-            signingConfig = signingConfigs.getByName("debug")
-
-            buildConfigField("String", "PROJECT_ID", "\"${System.getenv("TEST_PROJECT_ID") ?: ""}\"")
-            buildConfigField("String", "WC_RELAY_URL", "\"${System.getenv("TEST_RELAY_URL") ?: ""}\"")
-        }
     }
-
-    testBuildType = "qa"
 
     compileOptions {
         sourceCompatibility = jvmVersion
@@ -72,6 +60,17 @@ android {
     }
 }
 
+sqldelight {
+    database("Database") {
+        packageName = "com.walletconnect.sign"
+        dependency(project(":android_core"))
+    }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 afterEvaluate {
     publishing {
         publications {
@@ -85,20 +84,15 @@ afterEvaluate {
 }
 
 dependencies {
-    okhttp()
-    bouncyCastle()
-    coroutines()
-    moshi()
-    scarlet()
-    sqlDelight()
-    security()
-    koin()
-    multibaseJava()
+    api(project(":android_core"))
 
+    moshiKsp()
     androidXTest()
     jUnit5()
     robolectric()
     mockk()
-    timber()
     testJson()
+    coroutinesTest()
+    scarletTest()
+    sqlDelightTest()
 }

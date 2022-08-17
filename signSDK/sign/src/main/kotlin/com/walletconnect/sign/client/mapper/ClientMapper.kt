@@ -1,12 +1,14 @@
+@file:JvmSynthetic
+
 package com.walletconnect.sign.client.mapper
 
 import android.net.Uri
 import android.os.Build
+import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
+import com.walletconnect.android_core.common.model.sync.PendingRequest
+import com.walletconnect.android_core.network.data.connection.ConnectionType
 import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
-import com.walletconnect.sign.core.model.vo.sync.PendingRequestVO
 import com.walletconnect.sign.engine.model.EngineDO
-import com.walletconnect.sign.network.data.connection.ConnectionType
 
 //TODO: Figure out what to do with models separation
 @JvmSynthetic
@@ -17,10 +19,10 @@ internal fun EngineDO.ProposedSequence.toClientProposedSequence(): Sign.Model.Pr
     }
 
 @JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponseVO(): JsonRpcResponseVO =
+internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponse(): JsonRpcResponse =
     when (this) {
-        is Sign.Model.JsonRpcResponse.JsonRpcResult -> this.toRpcResultVO()
-        is Sign.Model.JsonRpcResponse.JsonRpcError -> this.toRpcErrorVO()
+        is Sign.Model.JsonRpcResponse.JsonRpcResult -> this.toRpcResult()
+        is Sign.Model.JsonRpcResponse.JsonRpcError -> this.toRpcError()
     }
 
 @JvmSynthetic
@@ -72,12 +74,12 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     )
 
 @JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResultVO(): JsonRpcResponseVO.JsonRpcResult =
-    JsonRpcResponseVO.JsonRpcResult(id, result = result)
+internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): JsonRpcResponse.JsonRpcResult =
+    JsonRpcResponse.JsonRpcResult(id, result = result)
 
 @JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcErrorVO(): JsonRpcResponseVO.JsonRpcError =
-    JsonRpcResponseVO.JsonRpcError(id, error = JsonRpcResponseVO.Error(code, message))
+internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcError(): JsonRpcResponse.JsonRpcError =
+    JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(code, message))
 
 @JvmSynthetic
 internal fun Sign.Model.SessionEvent.toEngineEvent(chainId: String): EngineDO.Event = EngineDO.Event(name, data, chainId)
@@ -151,7 +153,7 @@ internal fun EngineDO.PairingSettle.toClientSettledPairing(): Sign.Model.Pairing
     Sign.Model.Pairing(topic.value, metaData?.toClientAppMetaData())
 
 @JvmSynthetic
-internal fun List<PendingRequestVO>.mapToPendingRequests(): List<Sign.Model.PendingRequest> = map { request ->
+internal fun List<PendingRequest>.mapToPendingRequests(): List<Sign.Model.PendingRequest> = map { request ->
     Sign.Model.PendingRequest(
         request.requestId,
         request.topic,
@@ -208,7 +210,7 @@ internal fun EngineDO.ConnectionState.toClientConnectionState(): Sign.Model.Conn
     Sign.Model.ConnectionState(isAvailable)
 
 @JvmSynthetic
-internal fun EngineDO.InternalError.toClientError(): Sign.Model.Error =
+internal fun EngineDO.SDKError.toClientError(): Sign.Model.Error =
     Sign.Model.Error(this.exception)
 
 @JvmSynthetic
@@ -217,10 +219,10 @@ internal fun String.strippedUrl() = Uri.parse(this).run {
 }
 
 @JvmSynthetic
-internal fun String.addUserAgent(): String {
+internal fun String.addUserAgent(sdkVersion: String): String {
     return Uri.parse(this).buildUpon()
         // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
-        .appendQueryParameter("ua", """wc-2/kotlin-2.0.0-rc.2/android-${Build.VERSION.RELEASE}""")
+        .appendQueryParameter("ua", """wc-2/kotlin-$sdkVersion/android-${Build.VERSION.RELEASE}""")
         .build()
         .toString()
 }

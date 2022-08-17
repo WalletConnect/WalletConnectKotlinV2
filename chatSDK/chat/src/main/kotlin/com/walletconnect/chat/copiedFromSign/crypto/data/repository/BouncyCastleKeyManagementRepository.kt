@@ -8,7 +8,6 @@ import com.walletconnect.chat.copiedFromSign.core.model.vo.SymmetricKey
 import com.walletconnect.chat.copiedFromSign.core.model.vo.TopicVO
 import com.walletconnect.chat.copiedFromSign.crypto.KeyManagementRepository
 import com.walletconnect.chat.copiedFromSign.crypto.KeyStore
-import com.walletconnect.chat.copiedFromSign.util.Empty
 import com.walletconnect.chat.copiedFromSign.util.bytesToHex
 import com.walletconnect.chat.copiedFromSign.util.hexToBytes
 import org.bouncycastle.crypto.digests.SHA256Digest

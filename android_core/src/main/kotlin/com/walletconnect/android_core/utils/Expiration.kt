@@ -1,0 +1,7 @@
+@file:JvmName("Expiration")
+
+package com.walletconnect.android_core.utils
+
+val INACTIVE_PAIRING: Long = CURRENT_TIME_IN_SECONDS + FIVE_MINUTES_IN_SECONDS
+val ACTIVE_PAIRING: Long = CURRENT_TIME_IN_SECONDS + MONTH_IN_SECONDS
+val ACTIVE_SESSION: Long = CURRENT_TIME_IN_SECONDS + WEEK_IN_SECONDS
