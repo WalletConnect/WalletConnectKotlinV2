@@ -42,4 +42,3 @@ fun Signature.toSignatureData(): Sign.SignatureData = Sign.SignatureData(v, r, s
 fun Signature.toCacaoSignature(): String = String.HexPrefix + r.bytesToHex() + s.bytesToHex() + v.bytesToHex()
 
 const val ISO_8601_PATTERN = "uuuu-MM-dd'T'HH:mm:ssXXX"
-

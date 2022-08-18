@@ -1,31 +1,30 @@
 package com.walletconnect.auth.signature.eip191
 
 import com.walletconnect.auth.signature.Signature
+import com.walletconnect.util.hexToBytes
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Keys
-import org.web3j.utils.Numeric
 
 internal class EIP191SignerTest {
 
     private val message = "Message"
-    private val privateKey = "305c6cde3846927892cd32762f6120539f3ec74c9e3a16b9b798b1e85351ae2a"
-    private val keyPair: ECKeyPair = ECKeyPair.create(Numeric.hexStringToByteArray(privateKey))
+    private val privateKey = "305c6cde3846927892cd32762f6120539f3ec74c9e3a16b9b798b1e85351ae2a".hexToBytes()
 
     @Test
     fun signAndVerify() {
-        val address = Keys.getAddress(keyPair)
-        val signature = EIP191Signer.sign(message, keyPair)
+        val address = Keys.getAddress(ECKeyPair.create(privateKey))
+        val signature = EIP191Signer.sign(message, privateKey)
         val result = EIP191Verifier.verify(signature, message, address)
         assertTrue(result)
     }
 
     @Test
     fun signAndVerifyNoPrefix() {
-        val address = Keys.getAddress(keyPair)
-        val signature = EIP191Signer.signNoPrefix(message, keyPair)
+        val address = Keys.getAddress(ECKeyPair.create(privateKey))
+        val signature = EIP191Signer.signNoPrefix(message, privateKey)
         val result = EIP191Verifier.verifyNoPrefix(signature, message, address)
         assertTrue(result)
     }

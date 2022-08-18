@@ -7,8 +7,8 @@ import org.web3j.crypto.Sign
 
 
 object EIP191Signer {
-    fun sign(message: ByteArray, keyPair: ECKeyPair): Signature = Sign.signPrefixedMessage(message, keyPair).toSignature()
-    fun sign(message: String, keyPair: ECKeyPair): Signature = sign(message.toByteArray(), keyPair)
-    fun signNoPrefix(message: ByteArray, keyPair: ECKeyPair): Signature = Sign.signMessage(message, keyPair).toSignature()
-    fun signNoPrefix(message: String, keyPair: ECKeyPair): Signature = signNoPrefix(message.toByteArray(), keyPair)
+    fun sign(message: ByteArray, privateKey: ByteArray): Signature = Sign.signPrefixedMessage(message, ECKeyPair.create(privateKey)).toSignature()
+    fun sign(message: String, privateKey: ByteArray): Signature = sign(message.toByteArray(), privateKey)
+    fun signNoPrefix(message: ByteArray, privateKey: ByteArray): Signature = Sign.signMessage(message, ECKeyPair.create(privateKey)).toSignature()
+    fun signNoPrefix(message: String, privateKey: ByteArray): Signature = signNoPrefix(message.toByteArray(), privateKey)
 }
