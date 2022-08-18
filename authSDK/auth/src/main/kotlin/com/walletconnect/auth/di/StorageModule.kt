@@ -13,17 +13,16 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun storageModule() = module {
 
-    val dbSuffix = "_auth"
-    includes(coreStorageModule<Database>(Database.Schema, dbSuffix))
+    includes(coreStorageModule<Database>(Database.Schema, "_auth"))
 
-    single<ColumnAdapter<MetaDataType, String>>(named(AuthDITags.METADATA_TYPE)) { EnumColumnAdapter() }
+    single<ColumnAdapter<MetaDataType, String>> { EnumColumnAdapter() }
 
     single {
         Database(
             get(),
             MetaDataDaoAdapter = MetaDataDao.Adapter(
                 iconsAdapter = get(),
-                typeAdapter = get(named(AuthDITags.METADATA_TYPE))
+                typeAdapter = get()
             )
         )
     }

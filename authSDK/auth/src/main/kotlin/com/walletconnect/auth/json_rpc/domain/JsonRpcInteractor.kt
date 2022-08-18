@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.auth.json_rpc.domain
 
 import com.walletconnect.android_core.common.model.sync.PendingRequest

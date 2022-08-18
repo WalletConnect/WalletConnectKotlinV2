@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.auth.engine.domain
 
 import com.walletconnect.android_core.common.WalletConnectException

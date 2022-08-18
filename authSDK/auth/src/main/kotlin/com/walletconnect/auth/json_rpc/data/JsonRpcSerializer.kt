@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.auth.json_rpc.data
 
 import com.squareup.moshi.Moshi

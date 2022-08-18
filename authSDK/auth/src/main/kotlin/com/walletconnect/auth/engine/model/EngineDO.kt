@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.auth.engine.model
 
 internal sealed class EngineDO {
