@@ -7,7 +7,7 @@ import org.web3j.crypto.Keys
 import org.web3j.crypto.Sign
 import java.security.SignatureException
 
-object EIP191Verifier {
+internal object EIP191Verifier {
     fun verify(signature: Signature, originalMessage: ByteArray, address: String): Boolean =
         getAddressUsedToSignPrefixedMessage(signature.toSignatureData(), originalMessage).equals(address.guaranteeNoHexPrefix(), ignoreCase = true)
 
