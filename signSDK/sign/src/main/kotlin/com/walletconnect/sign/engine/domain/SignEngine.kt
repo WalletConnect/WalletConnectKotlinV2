@@ -4,9 +4,7 @@ package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android_core.common.GenericException
-import com.walletconnect.android_core.common.model.Expiry
-import com.walletconnect.android_core.common.model.IrnParams
-import com.walletconnect.android_core.common.model.SymmetricKey
+import com.walletconnect.android_core.common.model.*
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.PendingRequest
 import com.walletconnect.android_core.common.model.sync.WCRequest
@@ -474,7 +472,7 @@ internal class SignEngine(
 
     private fun collectInternalErrors() {
         relayer.internalErrors
-            .onEach { exception -> _engineEvent.emit(EngineDO.SDKError(exception)) }
+            .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
             .launchIn(scope)
     }
 
@@ -787,9 +785,7 @@ internal class SignEngine(
 
     private fun resubscribeToSequences() {
         relayer.isConnectionAvailable
-            .onEach { isAvailable ->
-                _engineEvent.emit(EngineDO.ConnectionState(isAvailable))
-            }
+            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
                 coroutineScope {

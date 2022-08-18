@@ -2,6 +2,8 @@
 
 package com.walletconnect.sign.client
 
+import com.walletconnect.android_core.common.model.ConnectionState
+import com.walletconnect.android_core.common.model.SDKError
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.di.cryptoModule
 import com.walletconnect.android_core.di.networkModule
@@ -78,8 +80,8 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                     is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
                     is EngineDO.SessionUpdateNamespacesResponse -> delegate.onSessionUpdateResponse(event.toClientUpdateSessionNamespacesResponse())
                     //Utils
-                    is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
-                    is EngineDO.SDKError -> delegate.onError(event.toClientError())
+                    is ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
+                    is SDKError -> delegate.onError(event.toClientError())
                 }
             }.launchIn(scope)
         }
@@ -99,8 +101,8 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                     //Responses
                     is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
                     //Utils
-                    is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
-                    is EngineDO.SDKError -> delegate.onError(event.toClientError())
+                    is ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
+                    is SDKError -> delegate.onError(event.toClientError())
                 }
             }.launchIn(scope)
         }

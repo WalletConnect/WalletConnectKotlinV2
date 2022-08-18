@@ -14,8 +14,6 @@ import java.net.URI
 
 internal sealed class EngineDO {
 
-    internal class SDKError(val exception: InternalError) : EngineDO(), EngineEvent
-
     internal sealed class ProposedSequence {
         class Pairing(val uri: String) : ProposedSequence()
         object Session : ProposedSequence()
@@ -161,10 +159,6 @@ internal sealed class EngineDO {
         val icons: List<String>,
         val redirect: String?,
     ) : EngineDO()
-
-    internal data class ConnectionState(
-        val isAvailable: Boolean
-    ) : EngineDO(), EngineEvent
 
     internal sealed class JsonRpcResponse : EngineDO() {
         abstract val id: Long

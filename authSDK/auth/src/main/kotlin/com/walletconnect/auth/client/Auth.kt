@@ -24,6 +24,8 @@ object Auth {
 
         data class Error(val throwable: Throwable) : Model() // TODO: Should this be extracted to core for easier error handling?
 
+        data class ConnectionState(val isAvailable: Boolean, ) : Model()
+
         data class AppMetaData(
             val name: String,
             val description: String,

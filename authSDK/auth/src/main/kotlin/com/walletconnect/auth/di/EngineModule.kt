@@ -10,5 +10,5 @@ internal fun engineModule(metadata: Auth.Model.AppMetaData) = module {
 
     single { metadata.toEngineDO() }
 
-    single { AuthEngine(get(), get(), get()) }
+    single { AuthEngine(get(), get(), get(), get()) }
 }
