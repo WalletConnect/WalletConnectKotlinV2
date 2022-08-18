@@ -18,3 +18,7 @@ fun Long.extractTimestamp() = this / 1000
 
 @JvmSynthetic
 fun Expiry.isSequenceValid(): Boolean = seconds > CURRENT_TIME_IN_SECONDS
+
+@get:JvmSynthetic
+val String.Companion.HexPrefix
+    get() = "0x"

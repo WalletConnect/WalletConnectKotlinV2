@@ -6,6 +6,10 @@ plugins {
     id("com.google.devtools.ksp") version kspVersion
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 android {
     compileSdk = 32
 
@@ -37,7 +41,6 @@ dependencies {
 
     timber()
     moshiKsp()
-
     androidXTest()
     robolectric()
     mockk()
@@ -45,7 +48,7 @@ dependencies {
     coroutinesTest()
     scarletTest()
     sqlDelightTest()
-
     jUnit5()
     jUnit5Android()
+    web3jCrypto()
 }
