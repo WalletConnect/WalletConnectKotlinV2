@@ -28,14 +28,12 @@ internal class CacaoTest {
 
     private val privateKey = "305c6cde3846927892cd32762f6120539f3ec74c9e3a16b9b798b1e85351ae2a"
     private val keyPair: ECKeyPair = ECKeyPair.create(Numeric.hexStringToByteArray(privateKey))
-    private val signerSut = CacaoSigner()
-    private val verifierSut = CacaoVerifier()
 
     @Test
     fun signAndVerifyTest() {
-        val signature = signerSut.sign(payload.toFormattedMessage(chainName), keyPair, SignatureType.EIP191)
+        val signature = CacaoSigner.sign(payload.toFormattedMessage(chainName), keyPair, SignatureType.EIP191)
         val cacao = Auth.Model.Cacao(Auth.Model.Cacao.Header(SignatureType.EIP191.header), payload, signature)
-        val result = verifierSut.verify(cacao)
+        val result = CacaoVerifier.verify(cacao)
         Assertions.assertTrue(result)
     }
 }

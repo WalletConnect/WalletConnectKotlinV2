@@ -13,22 +13,20 @@ internal class EIP191SignerTest {
     private val message = "Message"
     private val privateKey = "305c6cde3846927892cd32762f6120539f3ec74c9e3a16b9b798b1e85351ae2a"
     private val keyPair: ECKeyPair = ECKeyPair.create(Numeric.hexStringToByteArray(privateKey))
-    private val signerSut = EIP191Signer()
-    private val verifierSut = EIP191Verifier()
 
     @Test
     fun signAndVerify() {
         val address = Keys.getAddress(keyPair)
-        val signature = signerSut.sign(message, keyPair)
-        val result = verifierSut.verify(signature, message, address)
+        val signature = EIP191Signer.sign(message, keyPair)
+        val result = EIP191Verifier.verify(signature, message, address)
         assertTrue(result)
     }
 
     @Test
     fun signAndVerifyNoPrefix() {
         val address = Keys.getAddress(keyPair)
-        val signature = signerSut.signNoPrefix(message, keyPair)
-        val result = verifierSut.verifyNoPrefix(signature, message, address)
+        val signature = EIP191Signer.signNoPrefix(message, keyPair)
+        val result = EIP191Verifier.verifyNoPrefix(signature, message, address)
         assertTrue(result)
     }
 
@@ -43,7 +41,7 @@ internal class EIP191SignerTest {
         val address = addressFromEtherscan
         val ogMessage = signedMessageFromEtherscan.toByteArray()
         val messageHash = Signature.fromString(signatureHashFromEtherscan)
-        val result = verifierSut.verify(messageHash, ogMessage, address)
+        val result = EIP191Verifier.verify(messageHash, ogMessage, address)
         assertTrue(result)
     }
 
@@ -52,7 +50,7 @@ internal class EIP191SignerTest {
         val address = addressFromEtherscan
         val ogMessage = signedMessageFromEtherscan.toByteArray()
         val messageHash = Signature.fromString(signatureHashFromEtherscan)
-        val result = verifierSut.verifyNoPrefix(messageHash, ogMessage, address)
+        val result = EIP191Verifier.verifyNoPrefix(messageHash, ogMessage, address)
         assertFalse(result)
     }
 }
