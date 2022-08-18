@@ -2,11 +2,16 @@ package com.walletconnect.auth.client
 
 interface AuthInterface {
 
-    interface RequesterDelegate {
+    interface AuthDelegate {
+        fun onConnectionStateChange(state: Auth.Model.ConnectionState)
+        fun onError(error: Auth.Model.Error)
+    }
+
+    interface RequesterDelegate : AuthDelegate {
         fun onAuthResponse(authResponse: Auth.Model.AuthResponse)
     }
 
-    interface ResponderDelegate {
+    interface ResponderDelegate : AuthDelegate {
         fun onAuthRequest(authRequest: Auth.Model.AuthRequest)
     }
 

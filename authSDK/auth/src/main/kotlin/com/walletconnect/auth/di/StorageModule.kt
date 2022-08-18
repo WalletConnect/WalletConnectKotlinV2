@@ -6,8 +6,8 @@ import com.squareup.sqldelight.EnumColumnAdapter
 import com.walletconnect.android_core.common.model.type.enums.MetaDataType
 import com.walletconnect.android_core.di.coreStorageModule
 import com.walletconnect.auth.Database
+import com.walletconnect.auth.storage.AuthStorageRepository
 import com.walletconnect.auth.storage.data.dao.MetaDataDao
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @JvmSynthetic
@@ -29,5 +29,9 @@ internal fun storageModule() = module {
 
     single {
         get<Database>().pairingDaoQueries
+    }
+
+    single {
+        AuthStorageRepository(get())
     }
 }
