@@ -8,6 +8,18 @@ object Auth {
 
     }
 
+    sealed class Events {
+        data class AuthRequest(
+            val id: Long,
+            val message: String,
+        ) : Events()
+
+        data class AuthResponse(
+            val id: Long,
+            val response: Model.Response,
+        ) : Events()
+    }
+
     sealed class Model {
 
         data class Error(val throwable: Throwable) : Model() // TODO: Should this be extracted to core for easier error handling?
@@ -41,19 +53,6 @@ object Auth {
                 val resources: List<String>?,
             )
         }
-
-        sealed class Events {
-            data class AuthRequest(
-                val id: Long,
-                val message: String,
-            ) : Events()
-
-            data class AuthResponse(
-                val id: Long,
-                val response: Response,
-            ) : Events()
-        }
-
 
         data class Cacao(
             val header: Header,
