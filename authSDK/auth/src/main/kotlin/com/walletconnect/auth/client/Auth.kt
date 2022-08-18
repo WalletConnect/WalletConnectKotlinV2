@@ -85,10 +85,10 @@ object Auth {
                     }
                 }
 
-                companion object {
-                    private const val ISS_DELIMITER = ":"
-                    private const val ISS_POSITION_OF_CHAIN_ID = 3
-                    private const val ISS_POSITION_OF_ADDRESS = 4
+                private companion object {
+                    const val ISS_DELIMITER = ":"
+                    const val ISS_POSITION_OF_CHAIN_ID = 3
+                    const val ISS_POSITION_OF_ADDRESS = 4
                 }
             }
         }
