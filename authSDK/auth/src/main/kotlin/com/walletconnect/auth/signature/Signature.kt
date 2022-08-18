@@ -5,29 +5,19 @@ import com.walletconnect.util.hexToBytes
 data class Signature(val v: ByteArray, val r: ByteArray, val s: ByteArray) {
     companion object {
         fun fromString(string: String): Signature = string.guaranteeNoHexPrefix().let { noPrefix ->
-            val r = noPrefix.substring(0, 64).hexToBytes()
-            val s = noPrefix.substring(64, 128).hexToBytes()
-            val iv = Integer.parseUnsignedInt(noPrefix.substring(128, 130), 16).also { iv -> if (iv < 27) iv + 27 }
-            val v = Integer.toHexString(iv).hexToBytes()
-
-            Signature(v = v, r = r, s = s)
+            check(noPrefix.chunked(64).size == 3)
+            val (rRaw, sRaw, ivRaw) = noPrefix.chunked(64)
+            val iv = Integer.parseUnsignedInt(ivRaw, 16).let { iv -> if (iv < 27) iv + 27 else iv }
+            val v = Integer.toHexString(iv)
+            Signature(v = v.hexToBytes(), r = rRaw.hexToBytes(), s = sRaw.hexToBytes())
         }
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) {
-            return true
-        }
-        if (other == null || javaClass != other.javaClass) {
-            return false
-        }
-        val that = other as Signature
-        if (!v.contentEquals(that.v)) {
-            return false
-        }
-        return if (!r.contentEquals(that.r)) {
-            false
-        } else s.contentEquals(that.s)
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other == null || javaClass != other.javaClass -> false
+        other is Signature -> !v.contentEquals(other.v) || !r.contentEquals(other.r) || s.contentEquals(other.s)
+        else -> false
     }
 
     override fun hashCode(): Int {
