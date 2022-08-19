@@ -182,7 +182,7 @@ internal class SignEngine(
             sessionTopic: Topic,
         ) {
             val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
-            val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO())
+            val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toCore())
             val sessionExpiry = ACTIVE_SESSION
             val session = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces)
 
@@ -509,7 +509,7 @@ internal class SignEngine(
 
         try {
             val session =
-                SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toMetaDataVO(), proposalNamespaces)
+                SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toCore(), proposalNamespaces)
 
             sequenceStorageRepository.upsertPairingPeerMetadata(proposal.topic, peerMetadata)
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
