@@ -35,7 +35,7 @@ private fun EngineDO.WalletConnectUri.getQuery(): String {
 }
 
 @JvmSynthetic
-internal fun EngineDO.AppMetaData.toMetaDataVO() =
+internal fun EngineDO.AppMetaData.toCore() =
     MetaData(name, description, url, icons, Redirect(redirect))
 
 @JvmSynthetic
@@ -135,7 +135,7 @@ internal fun toSessionProposeParams(
     metaData: EngineDO.AppMetaData,
 ) = PairingParamsVO.SessionProposeParams(
     relays = getSessionRelays(relays),
-    proposer = SessionProposerVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO()),
+    proposer = SessionProposerVO(selfPublicKey.keyAsHex, metaData.toCore()),
     namespaces = namespaces.toNamespacesVOProposal()
 )
 
