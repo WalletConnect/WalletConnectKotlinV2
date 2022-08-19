@@ -5,7 +5,7 @@ package com.walletconnect.sign.client.mapper
 import android.net.Uri
 import android.os.Build
 import com.walletconnect.android_core.common.model.ConnectionState
-import com.walletconnect.android_core.common.model.SDKError
+import com.walletconnect.android_core.common.SDKError
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.PendingRequest
 import com.walletconnect.android_core.network.data.connection.ConnectionType

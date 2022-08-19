@@ -2,12 +2,12 @@
 
 package com.walletconnect.sign.engine.domain
 
+import com.walletconnect.android_core.common.model.RelayProtocolOptions
 import com.walletconnect.android_core.common.model.SymmetricKey
 import com.walletconnect.android_core.utils.WEEK_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
 import java.net.URI
@@ -134,7 +134,7 @@ internal object Validator {
 
         return EngineDO.WalletConnectUri(
             topic = Topic(pairUri.userInfo),
-            relay = RelayProtocolOptionsVO(protocol = relayProtocol, data = relayData),
+            relay = RelayProtocolOptions(protocol = relayProtocol, data = relayData),
             symKey = SymmetricKey(symKey)
         )
     }

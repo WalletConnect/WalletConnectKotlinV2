@@ -3,6 +3,9 @@
 package com.walletconnect.sign.engine.model.mapper
 
 import com.walletconnect.android_core.common.model.Expiry
+import com.walletconnect.android_core.common.model.MetaData
+import com.walletconnect.android_core.common.model.Redirect
+import com.walletconnect.android_core.common.model.RelayProtocolOptions
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.WCRequest
 import com.walletconnect.foundation.common.model.PublicKey
@@ -33,10 +36,10 @@ private fun EngineDO.WalletConnectUri.getQuery(): String {
 
 @JvmSynthetic
 internal fun EngineDO.AppMetaData.toMetaDataVO() =
-    MetaDataVO(name, description, url, icons, RedirectVO(redirect))
+    MetaData(name, description, url, icons, Redirect(redirect))
 
 @JvmSynthetic
-internal fun MetaDataVO.toEngineDOMetaData(): EngineDO.AppMetaData =
+internal fun MetaData.toEngineDOMetaData(): EngineDO.AppMetaData =
     EngineDO.AppMetaData(name, description, url, icons, redirect?.native)
 
 @JvmSynthetic
@@ -55,7 +58,7 @@ internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): E
 @JvmSynthetic
 internal fun SessionParamsVO.SessionRequestParams.toEngineDOSessionRequest(
     request: WCRequest,
-    peerMetaDataVO: MetaDataVO?,
+    peerMetaDataVO: MetaData?,
 ): EngineDO.SessionRequest =
     EngineDO.SessionRequest(
         topic = request.topic.value,
@@ -96,7 +99,7 @@ internal fun SessionVO.toEngineDOSessionExtend(expiryVO: Expiry): EngineDO.Sessi
     EngineDO.SessionExtend(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfMetaData?.toEngineDOAppMetaData())
 
 @JvmSynthetic
-private fun MetaDataVO.toEngineDOAppMetaData(): EngineDO.AppMetaData =
+private fun MetaData.toEngineDOAppMetaData(): EngineDO.AppMetaData =
     EngineDO.AppMetaData(name, description, url, icons, redirect?.native)
 
 @JvmSynthetic
@@ -119,7 +122,7 @@ internal fun PairingParamsVO.SessionProposeParams.toSessionSettleParams(
     namespaces: Map<String, EngineDO.Namespace.Session>,
 ): SessionParamsVO.SessionSettleParams =
     SessionParamsVO.SessionSettleParams(
-        relay = RelayProtocolOptionsVO(relays.first().protocol, relays.first().data),
+        relay = RelayProtocolOptions(relays.first().protocol, relays.first().data),
         controller = selfParticipant,
         namespaces = namespaces.toMapOfNamespacesVOSession(),
         expiry = sessionExpiry)
@@ -169,9 +172,9 @@ internal fun Map<String, EngineDO.Namespace.Session>.toMapOfNamespacesVOSession(
     }
 
 @JvmSynthetic
-internal fun getSessionRelays(relays: List<EngineDO.RelayProtocolOptions>?): List<RelayProtocolOptionsVO> = relays?.map { relay ->
-    RelayProtocolOptionsVO(relay.protocol, relay.data)
-} ?: listOf(RelayProtocolOptionsVO())
+internal fun getSessionRelays(relays: List<EngineDO.RelayProtocolOptions>?): List<RelayProtocolOptions> = relays?.map { relay ->
+    RelayProtocolOptions(relay.protocol, relay.data)
+} ?: listOf(RelayProtocolOptions())
 
 @JvmSynthetic
 internal fun JsonRpcResponse.JsonRpcResult.toEngineJsonRpcResult(): EngineDO.JsonRpcResponse.JsonRpcResult =
@@ -184,7 +187,7 @@ internal fun JsonRpcResponse.JsonRpcError.toEngineJsonRpcError(): EngineDO.JsonR
 @JvmSynthetic
 internal fun PairingParamsVO.SessionProposeParams.toSessionApproveParams(selfPublicKey: PublicKey): SessionParamsVO.ApprovalParams =
     SessionParamsVO.ApprovalParams(
-        relay = RelayProtocolOptionsVO(relays.first().protocol, relays.first().data),
+        relay = RelayProtocolOptions(relays.first().protocol, relays.first().data),
         responderPublicKey = selfPublicKey.keyAsHex)
 
 @JvmSynthetic

@@ -1,10 +1,10 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.common.model.vo.clientsync.common
+package com.walletconnect.android_core.common.model
 
 import com.squareup.moshi.Json
 
-internal data class RedirectVO(
+data class Redirect(
     @Json(name = "native")
     val native: String? = null,
     @Json(name = "universal")

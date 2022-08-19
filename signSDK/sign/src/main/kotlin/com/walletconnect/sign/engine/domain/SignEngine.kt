@@ -3,7 +3,7 @@
 package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.android_core.common.GenericException
+import com.walletconnect.android_core.common.*
 import com.walletconnect.android_core.common.model.*
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.PendingRequest
@@ -22,9 +22,8 @@ import com.walletconnect.sign.common.exceptions.client.*
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.exceptions.peer.PeerReason
 import com.walletconnect.sign.common.model.type.enums.Sequences
-import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO
+import com.walletconnect.android_core.common.model.RelayProtocolOptions
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.PairingRpcVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
@@ -124,7 +123,7 @@ internal class SignEngine(
     ) {
         val pairingTopic: Topic = generateTopic()
         val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(pairingTopic)
-        val relay = RelayProtocolOptionsVO()
+        val relay = RelayProtocolOptions()
         val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
         val pairing = PairingVO.createInactivePairing(pairingTopic, relay, walletConnectUri.toAbsoluteString())
 
@@ -567,7 +566,7 @@ internal class SignEngine(
             return
         }
 
-        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerMetaData: MetaDataVO?) =
+        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerMetaData: com.walletconnect.android_core.common.model.MetaData?) =
             with(sequenceStorageRepository.getSessionByTopic(request.topic)) { namespaces to peerMetaData }
 
         val method = params.request.method

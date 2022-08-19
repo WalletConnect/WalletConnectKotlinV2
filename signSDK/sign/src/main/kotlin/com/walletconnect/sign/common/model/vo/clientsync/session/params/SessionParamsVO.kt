@@ -6,7 +6,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO
+import com.walletconnect.android_core.common.model.RelayProtocolOptions
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
@@ -17,7 +17,7 @@ internal sealed class SessionParamsVO : ClientParams {
     @JsonClass(generateAdapter = true)
     internal data class ApprovalParams(
         @Json(name = "relay")
-        val relay: RelayProtocolOptionsVO,
+        val relay: RelayProtocolOptions,
         @Json(name = "responderPublicKey")
         val responderPublicKey: String,
     ) : SessionParamsVO()
@@ -25,7 +25,7 @@ internal sealed class SessionParamsVO : ClientParams {
     @JsonClass(generateAdapter = true)
     internal data class SessionSettleParams(
         @Json(name = "relay")
-        val relay: RelayProtocolOptionsVO,
+        val relay: RelayProtocolOptions,
         @Json(name = "controller")
         val controller: SessionParticipantVO,
         @Json(name = "namespaces")
