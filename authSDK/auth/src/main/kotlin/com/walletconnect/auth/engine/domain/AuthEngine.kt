@@ -5,6 +5,7 @@ package com.walletconnect.auth.engine.domain
 import com.walletconnect.android_core.common.*
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.crypto.KeyManagementRepository
+import com.walletconnect.auth.common.PairingVO
 import com.walletconnect.auth.engine.model.EngineDO
 import com.walletconnect.auth.json_rpc.domain.JsonRpcInteractor
 import com.walletconnect.auth.storage.AuthStorageRepository
@@ -22,7 +23,29 @@ internal class AuthEngine(
 
     init {
         resubscribeToSequences()
+        setupSequenceExpiration()
         collectInternalErrors()
+    }
+
+    internal fun pair(uri: String) {
+        val walletConnectUri: EngineDO.WalletConnectUri =
+            Validator.validateWCUri(uri) ?: throw MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
+
+        if (storage.isPairingValid(walletConnectUri.topic)) {
+            throw PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
+        }
+
+        val pairing = PairingVO.createActivePairing(walletConnectUri)
+        val symmetricKey = walletConnectUri.symKey
+        crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
+
+        try {
+            relayer.subscribe(pairing.topic)
+            storage.insertPairing(pairing)
+        } catch (e: SQLiteException) {
+            crypto.removeKeys(walletConnectUri.topic.value)
+            relayer.unsubscribe(pairing.topic)
+        }
     }
 
     fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
@@ -42,20 +65,27 @@ internal class AuthEngine(
     }
 
     private fun resubscribeToPairings() {
-//        val (listOfExpiredPairing, listOfValidPairing) =
-//            sequenceStorageRepository.getListOfPairingVOs().partition { pairing -> !pairing.expiry.isSequenceValid() }
-//
-//        listOfExpiredPairing
-//            .map { pairing -> pairing.topic }
-//            .onEach { pairingTopic ->
-//                relayer.unsubscribe(pairingTopic)
-//                crypto.removeKeys(pairingTopic.value)
-//                sequenceStorageRepository.deletePairing(pairingTopic)
-//            }
-//
-//        listOfValidPairing
-//            .map { pairing -> pairing.topic }
-//            .onEach { pairingTopic -> relayer.subscribe(pairingTopic) }
+        val (listOfExpiredPairing, listOfValidPairing) =
+            storage.getListOfPairingVOs().partition { pairing -> !pairing.expiry.isSequenceValid() }
+
+        listOfExpiredPairing
+            .map { pairing -> pairing.topic }
+            .onEach { pairingTopic ->
+                relayer.unsubscribe(pairingTopic)
+                crypto.removeKeys(pairingTopic.value)
+                storage.deletePairing(pairingTopic)
+            }
+
+        listOfValidPairing
+            .map { pairing -> pairing.topic }
+            .onEach { pairingTopic -> relayer.subscribe(pairingTopic) }
+    }
+
+    private fun setupSequenceExpiration() {
+        storage.onPairingExpired = { topic ->
+            relayer.unsubscribe(topic)
+            crypto.removeKeys(topic.value)
+        }
     }
 
     private fun collectInternalErrors() {
@@ -63,6 +93,4 @@ internal class AuthEngine(
             .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
             .launchIn(scope)
     }
-
-
 }
