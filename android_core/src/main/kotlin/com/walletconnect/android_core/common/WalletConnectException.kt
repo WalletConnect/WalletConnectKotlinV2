@@ -12,3 +12,6 @@ class MissingReceiverPublicKeyException(override val message: String?) : WalletC
 class InvalidProjectIdException(override val message: String?) : WalletConnectException(message)
 class ProjectIdDoesNotExistException(override val message: String?) : WalletConnectException(message)
 class NoRelayConnectionException(override val message: String?) : WalletConnectException(message)
+
+class MalformedWalletConnectUri(override val message: String?) : WalletConnectException(message)
+class PairWithExistingPairingIsNotAllowed(override val message: String?) : WalletConnectException(message)

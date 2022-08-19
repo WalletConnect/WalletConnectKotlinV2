@@ -3,14 +3,13 @@
 package com.walletconnect.sign.engine.model
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android_core.common.InternalError
 import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.android_core.common.model.SymmetricKey
 import com.walletconnect.android_core.common.model.type.EngineEvent
+import com.walletconnect.android_core.common.model.type.Sequence
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.common.model.type.Sequence
-import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO
 import java.net.URI
+import com.walletconnect.android_core.common.model.RelayProtocolOptions as CoreRelayProtocolOptions
 
 internal sealed class EngineDO {
 
@@ -18,11 +17,10 @@ internal sealed class EngineDO {
         class Pairing(val uri: String) : ProposedSequence()
         object Session : ProposedSequence()
     }
-
     internal class WalletConnectUri(
         val topic: Topic,
         val symKey: SymmetricKey,
-        val relay: RelayProtocolOptionsVO,
+        val relay: CoreRelayProtocolOptions,
         val version: String = "2"
     ) : EngineDO()
 

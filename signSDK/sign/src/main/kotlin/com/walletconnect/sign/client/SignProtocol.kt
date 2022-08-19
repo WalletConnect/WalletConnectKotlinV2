@@ -3,7 +3,7 @@
 package com.walletconnect.sign.client
 
 import com.walletconnect.android_core.common.model.ConnectionState
-import com.walletconnect.android_core.common.model.SDKError
+import com.walletconnect.android_core.common.SDKError
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.di.cryptoModule
 import com.walletconnect.android_core.di.networkModule

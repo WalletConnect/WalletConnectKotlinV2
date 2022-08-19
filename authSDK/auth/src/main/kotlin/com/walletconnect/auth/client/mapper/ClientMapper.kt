@@ -3,7 +3,7 @@
 package com.walletconnect.auth.client.mapper
 
 import com.walletconnect.android_core.common.model.ConnectionState
-import com.walletconnect.android_core.common.model.SDKError
+import com.walletconnect.android_core.common.SDKError
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.engine.model.EngineDO
 

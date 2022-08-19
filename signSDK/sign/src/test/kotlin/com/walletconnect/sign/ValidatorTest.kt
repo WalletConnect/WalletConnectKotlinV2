@@ -30,7 +30,7 @@ import com.walletconnect.sign.ValidatorTest.Namespaces.COSMOS
 import com.walletconnect.sign.ValidatorTest.Namespaces.EIP155
 import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO
+import com.walletconnect.android_core.common.model.RelayProtocolOptions
 import com.walletconnect.sign.engine.domain.Validator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toAbsoluteString
@@ -738,7 +738,7 @@ class ValidatorTest {
         val uri = EngineDO.WalletConnectUri(
             Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
-            RelayProtocolOptionsVO("irn", "teeestData")
+            EngineDO.RelayProtocolOptions("irn", "teeestData")
         )
 
         assertEquals(uri.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=irn&relay-data=teeestData&symKey=0x12321321312312312321")
@@ -746,7 +746,7 @@ class ValidatorTest {
         val uri2 = EngineDO.WalletConnectUri(
             Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
-            RelayProtocolOptionsVO("irn")
+            EngineDO.RelayProtocolOptions("irn")
         )
 
         assertEquals(uri2.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=irn&symKey=0x12321321312312312321")

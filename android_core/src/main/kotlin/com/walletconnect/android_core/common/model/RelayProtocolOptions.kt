@@ -1,11 +1,11 @@
 @file:JvmSynthetic
 
-package com.walletconnect.sign.common.model.vo.clientsync.common
+package com.walletconnect.android_core.common.model
 
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-internal data class RelayProtocolOptionsVO(
+data class RelayProtocolOptions(
     val protocol: String = "irn",
     val data: String? = null
 )

@@ -2,7 +2,7 @@ package com.walletconnect.auth.client
 
 import com.walletconnect.utils.Empty
 import com.walletconnect.android_core.common.model.ConnectionState
-import com.walletconnect.android_core.common.model.SDKError
+import com.walletconnect.android_core.common.SDKError
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.di.cryptoModule
 import com.walletconnect.android_core.di.networkModule
@@ -95,7 +95,11 @@ internal class AuthProtocol : AuthInterface {
     @Throws(IllegalStateException::class)
     override fun pair(pair: Auth.Params.Pair, onError: (Auth.Model.Error) -> Unit) {
         awaitLock {
-
+            try {
+                authEngine.pair(pair.uri)
+            } catch (error: Exception) {
+                onError(Auth.Model.Error(error))
+            }
         }
     }
 
