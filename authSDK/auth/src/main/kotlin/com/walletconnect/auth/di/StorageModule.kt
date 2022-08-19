@@ -32,6 +32,10 @@ internal fun storageModule() = module {
     }
 
     single {
-        AuthStorageRepository(get())
+        get<Database>().metaDataDaoQueries
+    }
+
+    single {
+        AuthStorageRepository(get(), get())
     }
 }
