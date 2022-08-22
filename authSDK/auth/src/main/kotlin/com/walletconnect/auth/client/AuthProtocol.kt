@@ -1,5 +1,6 @@
 package com.walletconnect.auth.client
 
+import com.walletconnect.utils.Empty
 import com.walletconnect.android_core.di.cryptoModule
 import com.walletconnect.android_core.di.networkModule
 import com.walletconnect.android_core.network.RelayConnectionInterface
@@ -85,8 +86,8 @@ internal class AuthProtocol : AuthInterface {
         return emptyMap()
     }
 
-    override fun getRequest(params: Auth.Params.RequestId): Auth.Model.Cacao {
+    override fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response {
         //TODO("Not yet implemented")
-        return Auth.Model.Cacao.Signature("", "", null)
+        return Auth.Model.Response.Error(0, String.Empty)
     }
 }
