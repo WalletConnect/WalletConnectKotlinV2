@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pairing_topic">pairing_topic</string>
+    <string name="selected_account">selected_account</string>
+</resources>

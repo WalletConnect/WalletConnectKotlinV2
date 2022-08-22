@@ -8,11 +8,11 @@ interface AuthInterface {
     }
 
     interface RequesterDelegate : AuthDelegate {
-        fun onAuthResponse(authResponse: Auth.Model.AuthResponse)
+        fun onAuthResponse(authResponse: Auth.Events.AuthResponse)
     }
 
     interface ResponderDelegate : AuthDelegate {
-        fun onAuthRequest(authRequest: Auth.Model.AuthRequest)
+        fun onAuthRequest(authRequest: Auth.Events.AuthRequest)
     }
 
     fun setRequesterDelegate(delegate: RequesterDelegate)
@@ -29,5 +29,5 @@ interface AuthInterface {
 
     fun getPendingRequest(): Map<Int, Auth.Model.PendingRequest>
 
-    fun getRequest(params: Auth.Params.RequestId): Auth.Model.Cacao
+    fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response
 }

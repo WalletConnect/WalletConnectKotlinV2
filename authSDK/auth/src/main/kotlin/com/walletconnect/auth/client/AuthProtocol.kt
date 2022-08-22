@@ -1,5 +1,6 @@
 package com.walletconnect.auth.client
 
+import com.walletconnect.utils.Empty
 import com.walletconnect.android_core.common.model.ConnectionState
 import com.walletconnect.android_core.common.SDKError
 import com.walletconnect.android_core.common.scope.scope
@@ -119,9 +120,9 @@ internal class AuthProtocol : AuthInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun getRequest(params: Auth.Params.RequestId): Auth.Model.Cacao {
+    override fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response {
         //TODO("Not yet implemented")
-        return Auth.Model.Cacao.Signature("", "", null)
+        return Auth.Model.Response.Error(0, String.Empty)
     }
 
 

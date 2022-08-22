@@ -150,3 +150,8 @@ fun DependencyHandlerScope.timber() {
 fun DependencyHandlerScope.security() {
     "api"("androidx.security:security-crypto:$androidSecurityVersion")
 }
+
+
+fun DependencyHandlerScope.web3jCrypto() {
+    "api"("org.web3j:crypto:$web3jVersion")
+}
