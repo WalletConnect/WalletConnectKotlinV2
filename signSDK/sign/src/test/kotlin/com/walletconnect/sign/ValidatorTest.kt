@@ -738,7 +738,7 @@ class ValidatorTest {
         val uri = EngineDO.WalletConnectUri(
             Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
-            EngineDO.RelayProtocolOptions("irn", "teeestData")
+            RelayProtocolOptions("irn", "teeestData")
         )
 
         assertEquals(uri.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=irn&relay-data=teeestData&symKey=0x12321321312312312321")
@@ -746,7 +746,7 @@ class ValidatorTest {
         val uri2 = EngineDO.WalletConnectUri(
             Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
-            EngineDO.RelayProtocolOptions("irn")
+            RelayProtocolOptions("irn")
         )
 
         assertEquals(uri2.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=irn&symKey=0x12321321312312312321")
