@@ -54,25 +54,4 @@
         android:name="com.walletconnect.responder.ui.sessions.SessionsFragment"
         android:label="Sessions"
         tools:layout="@layout/fragment_sessions" />
-
-    <!--    <action-->
-    <!--        android:id="@+id/action_global_to_active_session"-->
-    <!--        app:destination="@id/active_session_graph" />-->
-
-    <!--    <navigation-->
-    <!--        android:id="@+id/active_session_graph"-->
-    <!--        app:startDestination="@id/fragment_active_sessions">-->
-
-    <!--    <fragment-->
-    <!--        android:id="@+id/fragment_sessions"-->
-    <!--        android:name="com.walletconnect.responder.ui.sessions.SessionsFragment"-->
-    <!--        android:label="Sessions"-->
-    <!--        tools:layout="@layout/fragment_sessions">-->
-    <!--    </fragment>-->
-
-    <!--        <fragment-->
-    <!--            android:id="@+id/fragment_session_details"-->
-    <!--            android:name="com.walletconnect.wallet.ui.sessions.details.SessionDetailsFragment"-->
-    <!--            android:label="Session Details" />-->
-    <!--    </navigation>-->
 </navigation>
