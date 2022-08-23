@@ -11,12 +11,12 @@ import com.walletconnect.utils.Empty
 
 internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyStore {
 
-    override fun setSymmetricKey(tag: String, key: Key) {
+    override fun setKey(tag: String, key: Key) {
         sharedPreferences.edit().putString(tag, key.keyAsHex).apply()
     }
 
-    override fun getSymmetricKey(tag: String): String {
-        return sharedPreferences.getString(tag, String.Empty) ?: String.Empty
+    override fun getKey(tag: String): String {
+        return sharedPreferences.getString(tag, String.Empty) ?: String.Empty //todo: Return null instead of String.Empty
     }
 
     override fun setKeys(tag: String, keyA: Key, keyB: Key) {

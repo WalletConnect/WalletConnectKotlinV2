@@ -22,7 +22,7 @@ object Sign {
 
         data class Error(val throwable: Throwable) : Model()
 
-        sealed class ProposedSequence {
+        sealed class ProposedSequence : Model() {
             class Pairing(val uri: String) : ProposedSequence()
             object Session : ProposedSequence()
         }

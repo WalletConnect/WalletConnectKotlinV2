@@ -30,6 +30,7 @@ enum class Chains(
     val methods: List<String>,
     val events: List<String>,
     val order: Int,
+    val chainId: String = "$chainNamespace:$chainReference"
 ) {
 
     ETHEREUM_MAIN(

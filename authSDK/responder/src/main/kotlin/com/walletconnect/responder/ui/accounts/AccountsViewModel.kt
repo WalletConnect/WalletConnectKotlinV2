@@ -1,13 +1,17 @@
 package com.walletconnect.responder.ui.accounts
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.auth.client.Auth
+import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.responder.domain.ResponderDelegate
 import com.walletconnect.responder.domain.mapOfAccounts1
 import com.walletconnect.responder.domain.mapOfAccounts2
 import com.walletconnect.responder.ui.events.ResponderEvents
+import com.walletconnect.responder.ui.request.RequestStore
 import com.walletconnect.sample_common.Chains
+import com.walletconnect.sample_common.tag
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 
@@ -19,9 +23,10 @@ class AccountsViewModel : ViewModel() {
     val navigation: Flow<ResponderEvents> = _navigation.receiveAsFlow()
 
     init {
-        ResponderDelegate.wcEvents.map { walletEvent: Auth.Events ->
-            when (walletEvent) {
-                is Auth.Events.AuthResponse -> ResponderEvents.OnRequest(walletEvent.id, walletEvent.response)
+        ResponderDelegate.wcEvents.map { event: Auth.Events ->
+            when (event) {
+                //todo: remove `.also { RequestStore.currentRequest = it }` after implementing pending request
+                is Auth.Events.AuthRequest -> ResponderEvents.OnRequest(event.id, event.message).also { RequestStore.currentRequest = it }
                 else -> ResponderEvents.NoAction
             }
         }.onEach { event ->
@@ -29,21 +34,9 @@ class AccountsViewModel : ViewModel() {
         }.launchIn(viewModelScope)
     }
 
-    //todo: Reimplement.
     fun pair(pairingUri: String) {
-//        val pairingParams = Sign.Params.Pair(pairingUri)
-//        SignClient.pair(pairingParams) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
-//
-//        val selectedAccountInfoSet: Set<Pair<String, String>> = _accountUI.value.first { it.isSelected }.chainAddressList.map { it.chainName to it.accountAddress }.toSet()
-//        val allAccountsMappedToUIDomainSetWAccountId: Map<Set<Pair<String, String>>, Int> = mapOfAllAccounts.map { (accountsId: Int, mapOfAccounts: Map<Chains, String>) ->
-//            mapOfAccounts.map { it.key.chainName to it.value }.toSet() to accountsId
-//        }.toMap()
-//        val uiDomainSetWAccountIdsMatchingSelectedAccounts: Map<Set<Pair<String, String>>, Int> = allAccountsMappedToUIDomainSetWAccountId.filter { (uiDomainMappedSet: Set<Pair<String, String>>, _) ->
-//            uiDomainMappedSet.all(selectedAccountInfoSet::contains)
-//        }
-//        val selectedChainAddressId: Int = uiDomainSetWAccountIdsMatchingSelectedAccounts.values.first()
-//
-//        WalletDelegate.setSelectedAccount(selectedChainAddressId)
+        val pairingParams = Auth.Params.Pair(pairingUri)
+        AuthClient.pair(pairingParams) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
     }
 
     fun newAccountClicked(selectedAccountIndex: Int) {

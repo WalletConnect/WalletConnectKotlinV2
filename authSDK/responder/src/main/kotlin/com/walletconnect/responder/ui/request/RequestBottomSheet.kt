@@ -1,10 +1,13 @@
 package com.walletconnect.responder.ui.request
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.net.toUri
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
@@ -35,7 +38,7 @@ class RequestBottomSheet : BottomSheetDialogFragment() {
             tvProposalUri.text = sessionProposal.proposalUri
             tvMessage.text = sessionProposal.message
         }, {
-            Toast.makeText(requireContext(), "Unable to find proposed Request", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Unable to find request", Toast.LENGTH_SHORT).show()
             findNavController().popBackStack()
         })
 
@@ -47,6 +50,13 @@ class RequestBottomSheet : BottomSheetDialogFragment() {
         btnApprove.setOnClickListener {
             viewModel.approve()
             findNavController().popBackStack()
+
+            try {
+                val trickyRequesterDeeplink = "kotlin-requester-wc:/request"
+                requireActivity().startActivity(Intent(Intent.ACTION_VIEW, trickyRequesterDeeplink.toUri()))
+            } catch (exception: ActivityNotFoundException) {
+                // There is no app to handle deep link
+            }
         }
     }
 }

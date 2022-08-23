@@ -12,16 +12,17 @@ import java.net.URI
 import com.walletconnect.android_core.common.model.RelayProtocolOptions as CoreRelayProtocolOptions
 
 internal sealed class EngineDO {
-
+    
     internal sealed class ProposedSequence {
         class Pairing(val uri: String) : ProposedSequence()
         object Session : ProposedSequence()
     }
+
     internal class WalletConnectUri(
         val topic: Topic,
         val symKey: SymmetricKey,
         val relay: CoreRelayProtocolOptions,
-        val version: String = "2"
+        val version: String = "2",
     ) : EngineDO()
 
     internal data class SessionProposal(
