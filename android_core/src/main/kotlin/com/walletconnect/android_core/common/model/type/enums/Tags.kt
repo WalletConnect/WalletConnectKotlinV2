@@ -30,4 +30,8 @@ enum class Tags(val id: Int) {
 
     SESSION_PING(1114),
     SESSION_PING_RESPONSE(1115),
+
+    AUTH_REQUEST(3000),
+    AUTH_REQUEST_RESPONSE(3001)
+    //todo: Discuss: Should Tags be in specific SDKs?
 }

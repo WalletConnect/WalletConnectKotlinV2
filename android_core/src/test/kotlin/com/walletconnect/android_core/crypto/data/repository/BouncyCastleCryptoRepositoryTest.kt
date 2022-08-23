@@ -41,7 +41,7 @@ internal class BouncyCastleCryptoRepositoryTest {
 
     @Test
     fun `Generate symmetric key test`() {
-        val symKey = sut.generateSymmetricKey(topicVO)
+        val symKey = sut.generateAndStoreSymmetricKey(topicVO)
         assert(symKey.keyAsHex.length == 64)
 
         val secretKey = sut.getSymmetricKey(topicVO)
@@ -97,7 +97,7 @@ internal class BouncyCastleCryptoRepositoryTest {
 
     @Test
     fun `Generated SymmetricKey gets removed when using a TopicVO as the tag for removeKeys`() {
-        val symKey = sut.generateSymmetricKey(topicVO)
+        val symKey = sut.generateAndStoreSymmetricKey(topicVO)
 
         val secretKey = sut.getSymmetricKey(topicVO)
         assertEquals(symKey.keyAsHex, secretKey.keyAsHex)

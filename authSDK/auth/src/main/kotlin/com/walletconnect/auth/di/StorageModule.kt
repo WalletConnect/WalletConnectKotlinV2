@@ -11,9 +11,9 @@ import com.walletconnect.auth.storage.data.dao.MetaDataDao
 import org.koin.dsl.module
 
 @JvmSynthetic
-internal fun storageModule() = module {
+internal fun storageModule(storageSuffix: String) = module {
 
-    includes(coreStorageModule<Database>(Database.Schema, "_auth"))
+    includes(coreStorageModule<Database>(Database.Schema, storageSuffix))
 
     single<ColumnAdapter<MetaDataType, String>> { EnumColumnAdapter() }
 

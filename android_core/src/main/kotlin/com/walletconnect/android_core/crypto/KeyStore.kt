@@ -6,8 +6,8 @@ import com.walletconnect.android_core.common.InternalError
 import com.walletconnect.foundation.common.model.Key
 
 internal interface KeyStore {
-    fun getSymmetricKey(tag: String): String
-    fun setSymmetricKey(tag: String, key: Key)
+    fun getKey(tag: String): String
+    fun setKey(tag: String, key: Key)
 
     @Throws(InternalError::class)
     fun getKeys(tag: String): Pair<String, String>

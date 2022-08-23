@@ -24,7 +24,7 @@ class ConnectFragment : Fragment(R.layout.fragment_connect) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.btnConnect.setOnClickListener {
-            if (viewModel.anySettledPairingExist()) {
+            if (viewModel.anySettledPairingExist()) { //todo: Right now always false
                 findNavController().navigate(R.id.action_fragment_chain_selection_to_dialog_pairing_selection)
             } else {
                 findNavController().navigate(R.id.action_fragment_chain_selection_to_dialog_pairing_generation)
@@ -35,8 +35,8 @@ class ConnectFragment : Fragment(R.layout.fragment_connect) {
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.RESUMED)
             .onEach { events ->
                 when (events) {
-                    is RequesterEvents.OnApprove -> findNavController().navigate(R.id.action_global_fragment_session)
-                    is RequesterEvents.OnReject -> {
+                    is RequesterEvents.OnAuthenticated -> findNavController().navigate(R.id.action_global_fragment_session)
+                    is RequesterEvents.OnError -> {
                         findNavController().navigate(R.id.action_global_fragment_chain_selection)
                         Snackbar.make(binding.root, "Session was Rejected", Snackbar.LENGTH_LONG).show()
                     }
