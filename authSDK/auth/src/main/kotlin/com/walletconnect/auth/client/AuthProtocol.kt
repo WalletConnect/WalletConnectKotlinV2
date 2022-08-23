@@ -125,8 +125,6 @@ internal class AuthProtocol : AuthInterface {
         return Auth.Model.Response.Error(0, String.Empty)
     }
 
-
-    //todo: move to android_core ??
     private fun <T> awaitLock(codeBlock: suspend () -> T): T {
         return runBlocking(authProtocolScope.coroutineContext) {
             mutex.withLock {
