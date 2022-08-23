@@ -2,6 +2,7 @@ package com.walletconnect.android_core.di
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.android_core.Database
@@ -24,6 +25,20 @@ inline fun <reified T: Database> coreStorageModule(databaseSchema: SqlDriver.Sch
             context = androidContext(),
             name = "WalletConnectV2$storageSuffix.db"
         )
+    }
+
+    single<ColumnAdapter<List<String>, String>> {
+        object : ColumnAdapter<List<String>, String> {
+
+            override fun decode(databaseValue: String) =
+                if (databaseValue.isBlank()) {
+                    listOf()
+                } else {
+                    databaseValue.split(",")
+                }
+
+            override fun encode(value: List<String>) = value.joinToString(separator = ",")
+        }
     }
 
     single {

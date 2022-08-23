@@ -6,7 +6,7 @@ import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.EnumColumnAdapter
 import com.walletconnect.android_core.di.coreStorageModule
 import com.walletconnect.sign.Database
-import com.walletconnect.sign.common.model.type.enums.MetaDataType
+import com.walletconnect.android_core.common.model.type.enums.MetaDataType
 import com.walletconnect.sign.storage.data.dao.metadata.MetaDataDao
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDao
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceExtensionsDao
@@ -24,20 +24,6 @@ import org.koin.dsl.module
 internal fun storageModule(): Module = module {
 
     includes(coreStorageModule<Database>(Database.Schema, String.Empty))
-
-    single<ColumnAdapter<List<String>, String>> {
-        object : ColumnAdapter<List<String>, String> {
-
-            override fun decode(databaseValue: String) =
-                if (databaseValue.isBlank()) {
-                    listOf()
-                } else {
-                    databaseValue.split(",")
-                }
-
-            override fun encode(value: List<String>) = value.joinToString(separator = ",")
-        }
-    }
 
     single<ColumnAdapter<MetaDataType, String>>(named(SignDITags.METADATA_TYPE)) { EnumColumnAdapter() }
 
