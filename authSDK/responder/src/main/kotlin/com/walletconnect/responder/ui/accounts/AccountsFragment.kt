@@ -20,6 +20,7 @@ import com.walletconnect.responder.R
 import com.walletconnect.responder.common.ACCOUNTS_ARGUMENT_KEY
 import com.walletconnect.responder.databinding.FragmentAccountsBinding
 import com.walletconnect.responder.ui.events.ResponderEvents
+import com.walletconnect.responder.ui.request.RequestStore
 import com.walletconnect.sample_common.BottomVerticalSpaceItemDecoration
 import com.walletconnect.sample_common.viewBinding
 import kotlinx.coroutines.flow.launchIn
@@ -56,8 +57,8 @@ class AccountsFragment : Fragment(R.layout.fragment_accounts) {
 
         viewModel.navigation
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.RESUMED)
-            .onEach { events ->
-                when (events) {
+            .onEach { event ->
+                when (event) {
                     is ResponderEvents.OnRequest -> findNavController().navigate(R.id.action_global_to_request)
                     else -> Unit
                 }

@@ -1,5 +1,6 @@
 package com.walletconnect.auth.engine.domain
 
+import com.walletconnect.android_core.common.model.RelayProtocolOptions
 import com.walletconnect.android_core.common.model.SymmetricKey
 import com.walletconnect.auth.engine.model.EngineDO
 import com.walletconnect.foundation.common.model.Topic
@@ -39,8 +40,8 @@ object Validator {
         if (symKey.isEmpty()) return null
 
         return EngineDO.WalletConnectUri(
-            topic = Topic(pairUri.userInfo),
-            relay = EngineDO.RelayProtocolOptions(protocol = relayProtocol, data = relayData),
+            topic = Topic(pairUri.userInfo.removePrefix("auth-")),
+            relay = RelayProtocolOptions(protocol = relayProtocol, data = relayData),
             symKey = SymmetricKey(symKey)
         )
     }

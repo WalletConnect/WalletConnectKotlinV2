@@ -1,7 +1,13 @@
 package com.walletconnect.auth.signature
 
-import com.walletconnect.auth.client.Auth.Model.Cacao.Payload
 import com.walletconnect.auth.client.Auth.Params.Request
+import com.walletconnect.auth.client.mapper.toEngineDO
+import com.walletconnect.auth.engine.model.EngineDO
+import com.walletconnect.auth.engine.model.EngineDO.Cacao.Payload
+import com.walletconnect.auth.engine.model.mapper.toCacaoPayloadDTO
+import com.walletconnect.auth.engine.model.mapper.toDTO
+import com.walletconnect.auth.engine.model.mapper.toEngineDO
+import com.walletconnect.auth.engine.model.mapper.toFormattedMessage
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.Clock.systemDefaultZone
@@ -15,9 +21,11 @@ import kotlin.test.assertTrue
 internal class MapperTest {
     private val iss = "did:pkh:eip155:1:0x15bca56b6e2728aec2532df9d436bd1600e86688"
     private val chainName = "Ethereum"
+
     private fun Payload.mockIatAsNbf(request: Request): Payload {
         return this.copy(iat = request.nbf!!)
     }
+    private fun Request.toCacaoPayload(iss: String): EngineDO.Cacao.Payload = this.toEngineDO().toDTO().toCacaoPayloadDTO(EngineDO.Issuer(iss)).toEngineDO()
 
     @Test
     fun `Payload based on Request mapping with supplied issuer`() {

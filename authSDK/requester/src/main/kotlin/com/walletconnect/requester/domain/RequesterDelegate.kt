@@ -25,11 +25,15 @@ object RequesterDelegate : AuthClient.RequesterDelegate {
         }
     }
 
-    override fun onConnectionStateChange(state: Auth.Model.ConnectionState) {
-        TODO("Not yet implemented")
+    override fun onConnectionStateChange(connectionStateChange: Auth.Events.ConnectionStateChange) {
+        scope.launch {
+            _wcEvents.emit(connectionStateChange)
+        }
     }
 
-    override fun onError(error: Auth.Model.Error) {
-        TODO("Not yet implemented")
+    override fun onError(error: Auth.Events.Error) {
+        scope.launch {
+            _wcEvents.emit(error)
+        }
     }
 }
