@@ -6,6 +6,10 @@ plugins {
     id("com.google.devtools.ksp") version kspVersion
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 android {
     compileSdk = 32
 
@@ -13,6 +17,7 @@ android {
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
 
+        buildConfigField(type = "String", name= "sdkVersion", value = "\"1.0.0-alpha01\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -32,12 +37,18 @@ android {
     }
 }
 
+sqldelight {
+    database("Database") {
+        packageName = "com.walletconnect.auth"
+        dependency(project(":android_core"))
+    }
+}
+
 dependencies {
-    implementation(project(":android_core"))
+    api(project(":android_core"))
 
     timber()
     moshiKsp()
-
     androidXTest()
     robolectric()
     mockk()
@@ -45,7 +56,7 @@ dependencies {
     coroutinesTest()
     scarletTest()
     sqlDelightTest()
-
     jUnit5()
     jUnit5Android()
+    web3jCrypto()
 }
