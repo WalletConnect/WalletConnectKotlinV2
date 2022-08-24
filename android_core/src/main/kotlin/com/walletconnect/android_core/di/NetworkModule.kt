@@ -37,7 +37,6 @@ fun networkModule(serverUrl: String, jwt: String, connectionType: ConnectionType
         }
     }
 
-    // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
     single(named(AndroidCoreDITags.OK_HTTP)) {
         get<OkHttpClient>(named(FoundationDITags.OK_HTTP)).newBuilder()
             .apply {

@@ -6,7 +6,6 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 //todo: Discuss: Example DTO
-//todo: Engine do dla cacao
 @JsonClass(generateAdapter = true)
 internal data class CacaoDTO(
     @Json(name = "header")

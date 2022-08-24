@@ -11,7 +11,7 @@ class SessionViewModel : ViewModel() {
     private val _uiState: MutableStateFlow<SessionDetailsUI> = MutableStateFlow(getSession())
     val uiState: StateFlow<SessionDetailsUI> = _uiState.asStateFlow()
 
-    //todo: Reimplement. Right now only for demo purposes
+    //todo: Reimplement fetching getting cacao. Right now only for demo purposes
     private fun getSession(): SessionDetailsUI =
         if (CacaoStore.currentCacao != null) {
             SessionDetailsUI(R.drawable.ic_ethereum, Chains.ETHEREUM_MAIN.chainName, CacaoStore.currentCacao!!.payload.address)

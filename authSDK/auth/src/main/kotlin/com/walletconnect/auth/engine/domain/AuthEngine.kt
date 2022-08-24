@@ -16,6 +16,10 @@ import com.walletconnect.android_core.crypto.KeyManagementRepository
 import com.walletconnect.android_core.utils.DAY_IN_SECONDS
 import com.walletconnect.android_core.utils.Logger
 import com.walletconnect.auth.client.mapper.toDTO
+import com.walletconnect.auth.common.exceptions.InvalidCacaoException
+import com.walletconnect.auth.common.exceptions.MissingAuthRequestException
+import com.walletconnect.auth.common.exceptions.MissingAuthRequestParamsException
+import com.walletconnect.auth.common.exceptions.PeerError
 import com.walletconnect.auth.common.json_rpc.AuthRpcDTO
 import com.walletconnect.auth.common.json_rpc.params.AuthParams
 import com.walletconnect.auth.common.json_rpc.payload.CacaoDTO
@@ -67,26 +71,24 @@ internal class AuthEngine(
         }
     }
 
-    //B receives request and decrypts it with symKey S from URI.
     private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
         if (issuer != null) {
             scope.launch {
                 authRequestMap[wcRequest.id] = wcRequest
-                //B constructs message to be signed from request and signs it.
-                val formattedMessage: String = authParams.payloadParams.toCacaoPayloadDTO(issuer).toEngineDO().toFormattedMessage() //todo: Add mapper
+                val formattedMessage: String = authParams.payloadParams.toFormattedMessage(issuer)
                 _engineEvent.emit(EngineDO.Events.onAuthRequest(wcRequest.id, formattedMessage))
             }
         } else {
-            //TODO: inform Peer A that something went wrong
-//            relayer.respondWithError(request, PeerError.SessionSettlementFailed(NAMESPACE_MISSING_PROPOSAL_MESSAGE), irnParams)
-            Logger.error("Missing issuer")
+            val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
+            relayer.respondWithError(wcRequest, PeerError.MissingIssuer, irnParams)
+            Logger.error(PeerError.MissingIssuer.message)
         }
     }
 
     private fun collectJsonRpcResponses() {
         scope.launch {
             relayer.peerResponse.collect { response ->
-                when (val params = response.params) {
+                when (response.params) {
                     is AuthParams.RequestParams -> onAuthRequestResponse(response)
                 }
             }
@@ -102,18 +104,15 @@ internal class AuthEngine(
             }
             is JsonRpcResponse.JsonRpcResult -> {
                 val cacao: EngineDO.Cacao = (response.result as AuthParams.ResponseParams).cacao.toEngineDO()
-                //A receives response and validates signature.
                 if (CacaoVerifier.verify(cacao)) {
                     scope.launch {
-                        //If signature is valid, then user is authenticated.
                         _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Result(cacao)))
                     }
                 } else {
                     scope.launch {
-                        //todo: Define Error Codes
-                        //If signature is not valid, then throw verification error.
-                        _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Error(11004, "Signature Verification Failed")))
-                        //todo: Protocol Improvement: Maybe notify Peer B about wrong verification?
+                        _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id,
+                            EngineDO.AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)))
+                        //idea: Protocol Improvement: Maybe notify Peer B about wrong verification?
                     }
                 }
             }
@@ -128,12 +127,11 @@ internal class AuthEngine(
             throw PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
         }
 
-        val activePairing = PairingVO(walletConnectUri).also { Logger.log("Responder pairingTopic:${it.topic}") }
-        val symmetricKey = walletConnectUri.symKey.also { Logger.log("Responder symKey:${it.keyAsHex}") }
+        val activePairing = PairingVO(walletConnectUri)
+        val symmetricKey: SymmetricKey = walletConnectUri.symKey
         crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
 
         try {
-            //B subscribes to pairing topic from provided URI
             relayer.subscribe(activePairing.topic)
             storage.insertPairing(activePairing)
         } catch (e: SQLiteException) {
@@ -151,41 +149,40 @@ internal class AuthEngine(
         onFailure: (Throwable) -> Unit,
     ) {
         if (authRequestMap[respond.id] == null) {
-            Logger.error("Missing Auth Request")
-            onFailure(Throwable("Missing Auth Request"))
+            Logger.error(MissingAuthRequestException.message)
+            onFailure(MissingAuthRequestException)
             return
         }
         val wcRequest: WCRequest = authRequestMap[respond.id]!!
         if (wcRequest.params !is AuthParams.RequestParams) {
-            Logger.error("Missing Auth Request Params")
-            onFailure(Throwable("Missing Auth Request Params"))
+            Logger.error(MissingAuthRequestParamsException.message)
+            onFailure(MissingAuthRequestParamsException)
             return
         }
         val authParams: AuthParams.RequestParams = (wcRequest.params as AuthParams.RequestParams)
         val response: JsonRpcResponse = when (respond) {
-            is EngineDO.Respond.Error -> {
-                JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
-            }
+            is EngineDO.Respond.Error -> JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
             is EngineDO.Respond.Result -> {
-
                 val payload = authParams.payloadParams.toCacaoPayloadDTO(issuer!!)
                 val cacao = CacaoDTO(CacaoDTO.HeaderDTO(SignatureType.EIP191.header), payload, respond.signature.toDTO())
                 val responseParams = AuthParams.ResponseParams(cacao)
-                CacaoVerifier.verify(cacao.toEngineDO()).let { Logger.log("Is Cacao valid: $it") } // todo: Add onFailure/throw when cacao is not valid
-                JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
+                if (CacaoVerifier.verify(cacao.toEngineDO())) {
+                    JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
+                } else {
+                    Logger.error(InvalidCacaoException)
+                    onFailure(InvalidCacaoException)
+                    return
+                }
             }
         }
 
-        //B generates keyPair Y and generates shared symKey R.
-        val receiverPublicKey = PublicKey(authParams.requester.publicKey) // PubKey X
+        val receiverPublicKey = PublicKey(authParams.requester.publicKey)
         val senderPublicKey: PublicKey = crypto.generateKeyPair()
-        val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(senderPublicKey, receiverPublicKey) // SymKey R
+        val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(senderPublicKey, receiverPublicKey)
         val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
         crypto.setSymmetricKey(responseTopic, symmetricKey)
-        val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
 
-        //B encrypts response with symKey R as type 1 envelope.
-        //B sends Cacao response on response topic.
+        val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
         relayer.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
             onSuccess = { Logger.log("Success Responded on topic: ${wcRequest.topic}") },
@@ -207,36 +204,29 @@ internal class AuthEngine(
         // todo: do some magic
 
 
-        // todo: ATM assuming not authenticated
-        //A creates random symKey S for pairing topic.
-        val symmetricKey: SymmetricKey = crypto.generateSymmetricKey().also { Logger.log("Requester symKey:${it.keyAsHex}") }
-        //Pairing topic is the hash of symKey S.
-        val pairingTopic: Topic = crypto.getTopicFromKey(symmetricKey).also { Logger.log("Requester pairingTopic:$it") }
+        // For Alpha we are assuming not authenticated only todo: Remove comment after Alpha
+        val symmetricKey: SymmetricKey = crypto.generateSymmetricKey()
+        val pairingTopic: Topic = crypto.getTopicFromKey(symmetricKey)
         crypto.setSymmetricKey(pairingTopic, symmetricKey)
-        //todo: refactor to not use crypto 3 times
+
         val relay = RelayProtocolOptions()
         val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
         val inactivePairing = PairingVO(pairingTopic, relay, walletConnectUri.toAbsoluteString())
 
         try {
             storage.insertPairing(inactivePairing)
-            //A generates keyPair X and generates response topic.
             val responsePublicKey: PublicKey = crypto.generateKeyPair()
-            //Response topic is the hash of publicKey X.
             val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
-            crypto.setSelfParticipant(responsePublicKey, responseTopic) // For future decrypting of EnvelopeType.ZERO
-            //A will construct an authentication request.
+            crypto.setSelfParticipant(responsePublicKey, responseTopic)
+
             val authParams: AuthParams.RequestParams = AuthParams.RequestParams(RequesterDTO(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams.toDTO())
             val authRequest: AuthRpcDTO.AuthRequest = AuthRpcDTO.AuthRequest(generateId(), params = authParams)
             val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
-            //A encrypts request with symKey S.
-            //A publishes encrypted request to topic.
             relayer.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
                 onSuccess = {
-                    Logger.log("Auth request sent successfully")
+                    Logger.log("Auth request sent successfully on topic:$pairingTopic, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
                     onPairing(EngineDO.Pairing(walletConnectUri.toAbsoluteString()))
-                    //A subscribes to messages on response topic.
-                    relayer.subscribe(responseTopic).also { Logger.log("Responder responseTopic:${responseTopic}") }
+                    relayer.subscribe(responseTopic)
                 },
                 onFailure = { error ->
                     Logger.error("Failed to send a auth request: $error")
