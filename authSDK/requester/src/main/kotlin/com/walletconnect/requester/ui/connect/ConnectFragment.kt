@@ -24,7 +24,7 @@ class ConnectFragment : Fragment(R.layout.fragment_connect) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.btnConnect.setOnClickListener {
-            if (viewModel.anySettledPairingExist()) { //todo: Right now always false
+            if (viewModel.anySettledPairingExist()) { //todo: Right now always false. Remove todo comment after implemented
                 findNavController().navigate(R.id.action_fragment_chain_selection_to_dialog_pairing_selection)
             } else {
                 findNavController().navigate(R.id.action_fragment_chain_selection_to_dialog_pairing_generation)

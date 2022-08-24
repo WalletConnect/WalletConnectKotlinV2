@@ -18,7 +18,7 @@ val mapOfAccounts2: Map<Chains, String> = mapOf(
 
 val mapOfAllAccounts = mapOf(
     ACCOUNTS_1_ID to mapOfAccounts1,
-//    ACCOUNTS_2_ID to mapOfAccounts2 // todo: Add support to signing with different account after initalization
+//    ACCOUNTS_2_ID to mapOfAccounts2 // todo: Add support to signing with different account after initialisation
 )
 
 val PRIVATE_KEY_1: ByteArray = "e05c1a7f048a164ab400e38764708a401c773fa83181b923fc8b2724f46c0c6c".hexToBytes()

@@ -17,6 +17,9 @@ internal fun PayloadParamsDTO.toCacaoPayloadDTO(iss: EngineDO.Issuer): CacaoDTO.
 )
 
 @JvmSynthetic
+internal fun PayloadParamsDTO.toFormattedMessage(iss: EngineDO.Issuer, chainName: String = "Ethereum"): String = this.toCacaoPayloadDTO(iss).toEngineDO().toFormattedMessage(chainName)
+
+@JvmSynthetic
 internal fun EngineDO.PayloadParams.toDTO(): PayloadParamsDTO = PayloadParamsDTO(
     type = type, chainId = chainId, domain = domain, aud = aud, version = version, nonce = nonce, iat = iat, nbf = nbf, exp = exp, statement = statement, requestId = requestId, resources = resources
 )
