@@ -4,7 +4,6 @@ package com.walletconnect.auth.engine.domain
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android_core.common.*
-import com.walletconnect.android_core.common.SDKError
 import com.walletconnect.android_core.common.model.ConnectionState
 import com.walletconnect.android_core.common.model.type.EngineEvent
 import com.walletconnect.android_core.common.scope.scope
@@ -43,16 +42,16 @@ internal class AuthEngine(
             throw PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
         }
 
-        val pairing = PairingVO.createActivePairing(walletConnectUri)
+        val activePairing = PairingVO(walletConnectUri)
         val symmetricKey = walletConnectUri.symKey
         crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
 
         try {
-            relayer.subscribe(pairing.topic)
-            storage.insertPairing(pairing)
+            relayer.subscribe(activePairing.topic)
+            storage.insertPairing(activePairing)
         } catch (e: SQLiteException) {
             crypto.removeKeys(walletConnectUri.topic.value)
-            relayer.unsubscribe(pairing.topic)
+            relayer.unsubscribe(activePairing.topic)
         }
     }
 
