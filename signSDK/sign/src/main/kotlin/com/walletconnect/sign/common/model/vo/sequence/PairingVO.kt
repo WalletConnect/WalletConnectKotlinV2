@@ -15,7 +15,6 @@ import com.walletconnect.sign.engine.model.mapper.toAbsoluteString
 internal data class PairingVO(
     override val topic: Topic,
     override val expiry: Expiry,
-    val peerMetaData: MetaData? = null,
     val relayProtocol: String,
     val relayData: String?,
     val uri: String,
