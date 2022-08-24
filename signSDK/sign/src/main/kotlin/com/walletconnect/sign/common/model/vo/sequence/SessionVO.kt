@@ -3,10 +3,10 @@
 package com.walletconnect.sign.common.model.vo.sequence
 
 import com.walletconnect.android_core.common.model.Expiry
+import com.walletconnect.android_core.common.model.MetaData
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.common.model.type.Sequence
-import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO
+import com.walletconnect.android_core.common.model.type.Sequence
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
@@ -21,9 +21,9 @@ internal data class SessionVO(
     val relayData: String?,
     val controllerKey: PublicKey? = null,
     val selfPublicKey: PublicKey,
-    val selfMetaData: MetaDataVO? = null,
+    val selfMetaData: MetaData? = null,
     val peerPublicKey: PublicKey? = null,
-    val peerMetaData: MetaDataVO? = null,
+    val peerMetaData: MetaData? = null,
     val namespaces: Map<String, NamespaceVO.Session>,
     val proposalNamespaces: Map<String, NamespaceVO.Proposal>,
     val isAcknowledged: Boolean,
@@ -62,7 +62,7 @@ internal data class SessionVO(
             sessionTopic: Topic,
             settleParams: SessionParamsVO.SessionSettleParams,
             selfPublicKey: PublicKey,
-            selfMetadata: MetaDataVO,
+            selfMetadata: MetaData,
             proposalNamespaces: Map<String, NamespaceVO.Proposal>
         ): SessionVO {
             return SessionVO(

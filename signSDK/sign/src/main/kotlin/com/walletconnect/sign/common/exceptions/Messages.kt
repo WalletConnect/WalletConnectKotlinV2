@@ -1,7 +1,6 @@
 package com.walletconnect.sign.common.exceptions
 
 internal const val NO_SEQUENCE_FOR_TOPIC_MESSAGE: String = "Cannot find sequence for given topic: "
-internal const val PAIRING_NOW_ALLOWED_MESSAGE: String = "Pair with existing pairing is not allowed"
 internal const val UNAUTHORIZED_UPDATE_MESSAGE: String =
     "The update() was called by the unauthorized peer. Must be called by controller client."
 internal const val UNAUTHORIZED_EXTEND_MESSAGE: String =
@@ -30,7 +29,6 @@ internal const val UNAUTHORIZED_METHOD_MESSAGE: String = "Unauthorized method is
 internal const val UNAUTHORIZED_EVENT_MESSAGE: String = "Unauthorized event is not authorized for given chain"
 internal const val INVALID_EVENT_MESSAGE: String = "Event name and data fields cannot be empty. ChainId must be CAIP-2 compliant"
 internal const val INVALID_REQUEST_MESSAGE: String = "Request topic, method and params fields cannot be empty. ChainId must be CAIP-2 compliant"
-internal const val MALFORMED_PAIRING_URI_MESSAGE: String = "Pairing URI string is invalid."
 internal const val INVALID_EXTEND_TIME: String = "Extend time is out of range"
 internal const val NO_SESSION_PROPOSAL: String = "No session proposal for proposer publicKey: "
 

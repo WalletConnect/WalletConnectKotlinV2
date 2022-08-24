@@ -1,16 +1,14 @@
-@file:JvmSynthetic
-
-package com.walletconnect.sign.common.model.vo.sequence
+package com.walletconnect.auth.common
 
 import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.android_core.common.model.MetaData
+import com.walletconnect.android_core.common.model.RelayProtocolOptions
 import com.walletconnect.android_core.utils.ACTIVE_PAIRING
 import com.walletconnect.android_core.utils.INACTIVE_PAIRING
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.android_core.common.model.type.Sequence
-import com.walletconnect.android_core.common.model.RelayProtocolOptions
-import com.walletconnect.sign.engine.model.EngineDO
-import com.walletconnect.sign.engine.model.mapper.toAbsoluteString
+import com.walletconnect.auth.engine.model.EngineDO
+import com.walletconnect.auth.engine.model.toAbsoluteString
 
 internal data class PairingVO(
     override val topic: Topic,
@@ -19,7 +17,7 @@ internal data class PairingVO(
     val relayData: String?,
     val uri: String,
     val isActive: Boolean,
-    val peerMetaData: MetaData? = null
+    val peerMetaData: MetaData? = null,
 ) : Sequence {
 
     constructor(topic: Topic, relay: RelayProtocolOptions, uri: String) : this(

@@ -24,4 +24,12 @@ object RequesterDelegate : AuthClient.RequesterDelegate {
             _wcEvents.emit(authResponse)
         }
     }
+
+    override fun onConnectionStateChange(state: Auth.Model.ConnectionState) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onError(error: Auth.Model.Error) {
+        TODO("Not yet implemented")
+    }
 }

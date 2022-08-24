@@ -3,10 +3,8 @@
 package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.android_core.common.GenericException
-import com.walletconnect.android_core.common.model.Expiry
-import com.walletconnect.android_core.common.model.IrnParams
-import com.walletconnect.android_core.common.model.SymmetricKey
+import com.walletconnect.android_core.common.*
+import com.walletconnect.android_core.common.model.*
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.PendingRequest
 import com.walletconnect.android_core.common.model.sync.WCRequest
@@ -24,9 +22,8 @@ import com.walletconnect.sign.common.exceptions.client.*
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.exceptions.peer.PeerReason
 import com.walletconnect.sign.common.model.type.enums.Sequences
-import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.common.model.vo.clientsync.common.RelayProtocolOptionsVO
+import com.walletconnect.android_core.common.model.RelayProtocolOptions
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.PairingRpcVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
@@ -126,12 +123,12 @@ internal class SignEngine(
     ) {
         val pairingTopic: Topic = generateTopic()
         val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(pairingTopic)
-        val relay = RelayProtocolOptionsVO()
+        val relay = RelayProtocolOptions()
         val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
-        val pairing = PairingVO.createInactivePairing(pairingTopic, relay, walletConnectUri.toAbsoluteString())
+        val inactivePairing = PairingVO(pairingTopic, relay, walletConnectUri.toAbsoluteString())
 
         try {
-            sequenceStorageRepository.insertPairing(pairing)
+            sequenceStorageRepository.insertPairing(inactivePairing)
             relayer.subscribe(pairingTopic)
 
             proposedSession(pairingTopic, null, EngineDO.ProposedSequence.Pairing(walletConnectUri.toAbsoluteString()))
@@ -152,16 +149,16 @@ internal class SignEngine(
             throw PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
         }
 
-        val pairing = PairingVO.createActivePairing(walletConnectUri)
+        val activePairing = PairingVO(walletConnectUri)
         val symmetricKey = walletConnectUri.symKey
         crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
 
         try {
-            relayer.subscribe(pairing.topic)
-            sequenceStorageRepository.insertPairing(pairing)
+            relayer.subscribe(activePairing.topic)
+            sequenceStorageRepository.insertPairing(activePairing)
         } catch (e: SQLiteException) {
             crypto.removeKeys(walletConnectUri.topic.value)
-            relayer.unsubscribe(pairing.topic)
+            relayer.unsubscribe(activePairing.topic)
         }
     }
 
@@ -185,7 +182,7 @@ internal class SignEngine(
             sessionTopic: Topic,
         ) {
             val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
-            val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toMetaDataVO())
+            val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toCore())
             val sessionExpiry = ACTIVE_SESSION
             val session = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces)
 
@@ -432,7 +429,7 @@ internal class SignEngine(
     internal fun getListOfSettledSessions(): List<EngineDO.Session> {
         return sequenceStorageRepository.getListOfSessionVOs()
             .filter { session -> session.isAcknowledged && session.expiry.isSequenceValid() }
-            .map { session -> session.toEngineDOApprovedSessionVO() }
+            .map { session -> session.toEngineDO() }
     }
 
     internal fun getListOfSettledPairings(): List<EngineDO.PairingSettle> {
@@ -474,7 +471,7 @@ internal class SignEngine(
 
     private fun collectInternalErrors() {
         relayer.internalErrors
-            .onEach { exception -> _engineEvent.emit(EngineDO.SDKError(exception)) }
+            .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
             .launchIn(scope)
     }
 
@@ -486,7 +483,7 @@ internal class SignEngine(
         }
 
         sessionProposalRequest[payloadParams.proposer.publicKey] = request
-        scope.launch { _engineEvent.emit(payloadParams.toEngineDOSessionProposal()) }
+        scope.launch { _engineEvent.emit(payloadParams.toEngineDO()) }
     }
 
     private fun onSessionSettle(request: WCRequest, settleParams: SessionParamsVO.SessionSettleParams) {
@@ -512,7 +509,7 @@ internal class SignEngine(
 
         try {
             val session =
-                SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toMetaDataVO(), proposalNamespaces)
+                SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toCore(), proposalNamespaces)
 
             sequenceStorageRepository.upsertPairingPeerMetadata(proposal.topic, peerMetadata)
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
@@ -554,12 +551,12 @@ internal class SignEngine(
         sequenceStorageRepository.deleteSession(request.topic)
         relayer.unsubscribe(request.topic)
 
-        scope.launch { _engineEvent.emit(params.toEngineDoDeleteSession(request.topic)) }
+        scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
     }
 
     private fun onSessionRequest(request: WCRequest, params: SessionParamsVO.SessionRequestParams) {
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-        Validator.validateSessionRequest(params.toEngineDORequest(request.topic)) { error ->
+        Validator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->
             relayer.respondWithError(request, error.toPeerError(), irnParams)
             return
         }
@@ -569,7 +566,7 @@ internal class SignEngine(
             return
         }
 
-        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerMetaData: MetaDataVO?) =
+        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerMetaData: MetaData?) =
             with(sequenceStorageRepository.getSessionByTopic(request.topic)) { namespaces to peerMetaData }
 
         val method = params.request.method
@@ -578,7 +575,7 @@ internal class SignEngine(
             return
         }
 
-        scope.launch { _engineEvent.emit(params.toEngineDOSessionRequest(request, sessionPeerMetaData)) }
+        scope.launch { _engineEvent.emit(params.toEngineDO(request, sessionPeerMetaData)) }
     }
 
     private fun onSessionEvent(request: WCRequest, params: SessionParamsVO.EventParams) {
@@ -610,7 +607,7 @@ internal class SignEngine(
         }
 
         relayer.respondWithSuccess(request, irnParams)
-        scope.launch { _engineEvent.emit(params.toEngineDOSessionEvent(request.topic)) }
+        scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
     }
 
     private fun onSessionUpdate(request: WCRequest, params: SessionParamsVO.UpdateNamespacesParams) {
@@ -727,7 +724,7 @@ internal class SignEngine(
             is JsonRpcResponse.JsonRpcResult -> {
                 Logger.log("Session settle success received")
                 sequenceStorageRepository.acknowledgeSession(sessionTopic)
-                scope.launch { _engineEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDOApprovedSessionVO())) }
+                scope.launch { _engineEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDO())) }
             }
             is JsonRpcResponse.JsonRpcError -> {
                 Logger.error("Peer failed to settle session: ${(wcResponse.response as JsonRpcResponse.JsonRpcError).errorMessage}")
@@ -778,8 +775,8 @@ internal class SignEngine(
 
     private fun onSessionRequestResponse(response: WCResponse, params: SessionParamsVO.SessionRequestParams) {
         val result = when (response.response) {
-            is JsonRpcResponse.JsonRpcResult -> (response.response as JsonRpcResponse.JsonRpcResult).toEngineJsonRpcResult()
-            is JsonRpcResponse.JsonRpcError -> (response.response as JsonRpcResponse.JsonRpcError).toEngineJsonRpcError()
+            is JsonRpcResponse.JsonRpcResult -> (response.response as JsonRpcResponse.JsonRpcResult).toEngineDO()
+            is JsonRpcResponse.JsonRpcError -> (response.response as JsonRpcResponse.JsonRpcError).toEngineDO()
         }
         val method = params.request.method
         scope.launch { _engineEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
@@ -787,9 +784,7 @@ internal class SignEngine(
 
     private fun resubscribeToSequences() {
         relayer.isConnectionAvailable
-            .onEach { isAvailable ->
-                _engineEvent.emit(EngineDO.ConnectionState(isAvailable))
-            }
+            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
                 coroutineScope {
