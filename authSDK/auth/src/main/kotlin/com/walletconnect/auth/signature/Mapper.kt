@@ -10,7 +10,6 @@ import org.web3j.crypto.Sign
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-// todo: is this necessary?
 // todo: Figure out chain name resolving to support chain agnosticism
 fun Auth.Model.Cacao.Payload.toFormattedMessage(chainName: String = "Ethereum"): String {
     var message = "$domain wants you to sign in with your $chainName account:\n$address\n\n"
