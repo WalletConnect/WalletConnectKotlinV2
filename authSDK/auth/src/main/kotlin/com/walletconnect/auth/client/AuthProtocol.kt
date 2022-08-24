@@ -3,6 +3,7 @@ package com.walletconnect.auth.client
 import com.walletconnect.utils.Empty
 import com.walletconnect.android_core.common.model.ConnectionState
 import com.walletconnect.android_core.common.SDKError
+import com.walletconnect.android_core.common.client.Protocol
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.di.cryptoModule
 import com.walletconnect.android_core.di.networkModule
@@ -26,14 +27,11 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 import java.util.concurrent.Executors
 
-internal class AuthProtocol : AuthInterface {
+internal class AuthProtocol : AuthInterface, Protocol() {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var authEngine: AuthEngine
-
     // TODO: Figure out how to get relay as in Sign in here. Should we keep Relay in the Auth init params?
     internal val relay: RelayConnectionInterface by lazy { wcKoinApp.koin.get() }
-    private val mutex = Mutex()
-    private val authProtocolScope = CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
     private val serverUrl: String = "wss://relay.walletconnect.com?projectId=2ee94aca5d98e6c05c38bce02bee952a"
 
     companion object {
@@ -42,7 +40,7 @@ internal class AuthProtocol : AuthInterface {
 
     @Throws(IllegalStateException::class)
     override fun initialize(init: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit) {
-        authProtocolScope.launch {
+        protocolScope.launch {
             mutex.withLock {
                 with(init) {
                     wcKoinApp.run {
@@ -125,19 +123,8 @@ internal class AuthProtocol : AuthInterface {
         return Auth.Model.Response.Error(0, String.Empty)
     }
 
-
-    //todo: move to android_core ??
-    private fun <T> awaitLock(codeBlock: suspend () -> T): T {
-        return runBlocking(authProtocolScope.coroutineContext) {
-            mutex.withLock {
-                checkEngineInitialization()
-                codeBlock()
-            }
-        }
-    }
-
     @Throws(IllegalStateException::class)
-    internal fun checkEngineInitialization() {
+    override fun checkEngineInitialization() {
         check(::authEngine.isInitialized) {
             "AuthClient needs to be initialized first using the initialize function"
         }

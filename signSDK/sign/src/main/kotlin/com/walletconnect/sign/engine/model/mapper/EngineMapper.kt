@@ -39,11 +39,7 @@ internal fun EngineDO.AppMetaData.toCore() =
     MetaData(name, description, url, icons, Redirect(redirect))
 
 @JvmSynthetic
-internal fun MetaData.toEngineDOMetaData(): EngineDO.AppMetaData =
-    EngineDO.AppMetaData(name, description, url, icons, redirect?.native)
-
-@JvmSynthetic
-internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): EngineDO.SessionProposal =
+internal fun PairingParamsVO.SessionProposeParams.toEngineDO(): EngineDO.SessionProposal =
     EngineDO.SessionProposal(
         name = this.proposer.metadata.name,
         description = this.proposer.metadata.description,
@@ -56,14 +52,14 @@ internal fun PairingParamsVO.SessionProposeParams.toEngineDOSessionProposal(): E
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.SessionRequestParams.toEngineDOSessionRequest(
+internal fun SessionParamsVO.SessionRequestParams.toEngineDO(
     request: WCRequest,
-    peerMetaDataVO: MetaData?,
+    peerMetaData: MetaData?,
 ): EngineDO.SessionRequest =
     EngineDO.SessionRequest(
         topic = request.topic.value,
         chainId = chainId,
-        peerAppMetaData = peerMetaDataVO?.toEngineDOAppMetaData(),
+        peerAppMetaData = peerMetaData?.toEngineDO(),
         request = EngineDO.SessionRequest.JSONRPCRequest(
             id = request.id,
             method = this.request.method,
@@ -72,15 +68,15 @@ internal fun SessionParamsVO.SessionRequestParams.toEngineDOSessionRequest(
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.DeleteParams.toEngineDoDeleteSession(topic: Topic): EngineDO.SessionDelete =
+internal fun SessionParamsVO.DeleteParams.toEngineDO(topic: Topic): EngineDO.SessionDelete =
     EngineDO.SessionDelete(topic.value, message)
 
 @JvmSynthetic
-internal fun SessionParamsVO.EventParams.toEngineDOSessionEvent(topic: Topic): EngineDO.SessionEvent =
+internal fun SessionParamsVO.EventParams.toEngineDO(topic: Topic): EngineDO.SessionEvent =
     EngineDO.SessionEvent(topic.value, event.name, event.data.toString(), chainId)
 
 @JvmSynthetic
-internal fun SessionVO.toEngineDOApprovedSessionVO(): EngineDO.Session =
+internal fun SessionVO.toEngineDO(): EngineDO.Session =
     EngineDO.Session(
         topic,
         expiry,
@@ -96,21 +92,22 @@ internal fun SessionVO.toEngineDOApprovedSessionVO(): EngineDO.Session =
 
 @JvmSynthetic
 internal fun SessionVO.toEngineDOSessionExtend(expiryVO: Expiry): EngineDO.SessionExtend =
-    EngineDO.SessionExtend(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfMetaData?.toEngineDOAppMetaData())
+    EngineDO.SessionExtend(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfMetaData?.toEngineDO())
 
 @JvmSynthetic
-private fun MetaData.toEngineDOAppMetaData(): EngineDO.AppMetaData =
+internal fun MetaData.toEngineDO(): EngineDO.AppMetaData =
     EngineDO.AppMetaData(name, description, url, icons, redirect?.native)
+
 
 @JvmSynthetic
 internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.PairingSettle =
-    EngineDO.PairingSettle(topic, peerMetaData?.toEngineDOAppMetaData())
+    EngineDO.PairingSettle(topic, peerMetaData?.toEngineDO())
 
 @JvmSynthetic
 internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
     EngineDO.SessionApproved(
         topic = topic.value,
-        peerAppMetaData = peerMetaData?.toEngineDOMetaData(),
+        peerAppMetaData = peerMetaData?.toEngineDO(),
         accounts = namespaces.flatMap { (_, namespace) -> namespace.accounts },
         namespaces = namespaces.toMapOfEngineNamespacesSession()
     )
@@ -177,11 +174,11 @@ internal fun getSessionRelays(relays: List<EngineDO.RelayProtocolOptions>?): Lis
 } ?: listOf(RelayProtocolOptions())
 
 @JvmSynthetic
-internal fun JsonRpcResponse.JsonRpcResult.toEngineJsonRpcResult(): EngineDO.JsonRpcResponse.JsonRpcResult =
+internal fun JsonRpcResponse.JsonRpcResult.toEngineDO(): EngineDO.JsonRpcResponse.JsonRpcResult =
     EngineDO.JsonRpcResponse.JsonRpcResult(id = id, result = result.toString())
 
 @JvmSynthetic
-internal fun JsonRpcResponse.JsonRpcError.toEngineJsonRpcError(): EngineDO.JsonRpcResponse.JsonRpcError =
+internal fun JsonRpcResponse.JsonRpcError.toEngineDO(): EngineDO.JsonRpcResponse.JsonRpcError =
     EngineDO.JsonRpcResponse.JsonRpcError(id = id, error = EngineDO.JsonRpcResponse.Error(error.code, error.message))
 
 @JvmSynthetic
@@ -191,7 +188,7 @@ internal fun PairingParamsVO.SessionProposeParams.toSessionApproveParams(selfPub
         responderPublicKey = selfPublicKey.keyAsHex)
 
 @JvmSynthetic
-internal fun SessionParamsVO.SessionRequestParams.toEngineDORequest(topic: Topic): EngineDO.Request =
+internal fun SessionParamsVO.SessionRequestParams.toEngineDO(topic: Topic): EngineDO.Request =
     EngineDO.Request(topic.value, request.method, request.params, chainId)
 
 @JvmSynthetic

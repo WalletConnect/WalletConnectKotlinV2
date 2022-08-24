@@ -13,37 +13,28 @@ import com.walletconnect.auth.engine.model.toAbsoluteString
 internal data class PairingVO(
     override val topic: Topic,
     override val expiry: Expiry,
-    val peerMetaData: MetaData? = null,
     val relayProtocol: String,
     val relayData: String?,
     val uri: String,
     val isActive: Boolean,
+    val peerMetaData: MetaData? = null,
 ) : Sequence {
 
-    companion object {
+    constructor(topic: Topic, relay: RelayProtocolOptions, uri: String) : this(
+        topic,
+        Expiry(INACTIVE_PAIRING),
+        relay.protocol,
+        relay.data,
+        uri,
+        false
+    )
 
-        @JvmSynthetic
-        internal fun createInactivePairing(topic: Topic, relay: RelayProtocolOptions, uri: String): PairingVO {
-            return PairingVO(
-                topic,
-                Expiry(INACTIVE_PAIRING),
-                uri = uri,
-                relayProtocol = relay.protocol,
-                relayData = relay.data,
-                isActive = false
-            )
-        }
-
-        @JvmSynthetic
-        internal fun createActivePairing(uri: EngineDO.WalletConnectUri): PairingVO {
-            return PairingVO(
-                uri.topic,
-                Expiry(ACTIVE_PAIRING),
-                uri = uri.toAbsoluteString(),
-                relayProtocol = uri.relay.protocol,
-                relayData = uri.relay.data,
-                isActive = true
-            )
-        }
-    }
+    constructor(uri: EngineDO.WalletConnectUri) : this(
+        uri.topic,
+        Expiry(ACTIVE_PAIRING),
+        uri.relay.protocol,
+        uri.relay.data,
+        uri.toAbsoluteString(),
+        true
+    )
 }

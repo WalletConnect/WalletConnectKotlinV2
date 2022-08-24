@@ -125,10 +125,10 @@ internal class SignEngine(
         val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptions()
         val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
-        val pairing = PairingVO.createInactivePairing(pairingTopic, relay, walletConnectUri.toAbsoluteString())
+        val inactivePairing = PairingVO(pairingTopic, relay, walletConnectUri.toAbsoluteString())
 
         try {
-            sequenceStorageRepository.insertPairing(pairing)
+            sequenceStorageRepository.insertPairing(inactivePairing)
             relayer.subscribe(pairingTopic)
 
             proposedSession(pairingTopic, null, EngineDO.ProposedSequence.Pairing(walletConnectUri.toAbsoluteString()))
@@ -149,16 +149,16 @@ internal class SignEngine(
             throw PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
         }
 
-        val pairing = PairingVO.createActivePairing(walletConnectUri)
+        val activePairing = PairingVO(walletConnectUri)
         val symmetricKey = walletConnectUri.symKey
         crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
 
         try {
-            relayer.subscribe(pairing.topic)
-            sequenceStorageRepository.insertPairing(pairing)
+            relayer.subscribe(activePairing.topic)
+            sequenceStorageRepository.insertPairing(activePairing)
         } catch (e: SQLiteException) {
             crypto.removeKeys(walletConnectUri.topic.value)
-            relayer.unsubscribe(pairing.topic)
+            relayer.unsubscribe(activePairing.topic)
         }
     }
 
@@ -429,7 +429,7 @@ internal class SignEngine(
     internal fun getListOfSettledSessions(): List<EngineDO.Session> {
         return sequenceStorageRepository.getListOfSessionVOs()
             .filter { session -> session.isAcknowledged && session.expiry.isSequenceValid() }
-            .map { session -> session.toEngineDOApprovedSessionVO() }
+            .map { session -> session.toEngineDO() }
     }
 
     internal fun getListOfSettledPairings(): List<EngineDO.PairingSettle> {
@@ -483,7 +483,7 @@ internal class SignEngine(
         }
 
         sessionProposalRequest[payloadParams.proposer.publicKey] = request
-        scope.launch { _engineEvent.emit(payloadParams.toEngineDOSessionProposal()) }
+        scope.launch { _engineEvent.emit(payloadParams.toEngineDO()) }
     }
 
     private fun onSessionSettle(request: WCRequest, settleParams: SessionParamsVO.SessionSettleParams) {
@@ -551,12 +551,12 @@ internal class SignEngine(
         sequenceStorageRepository.deleteSession(request.topic)
         relayer.unsubscribe(request.topic)
 
-        scope.launch { _engineEvent.emit(params.toEngineDoDeleteSession(request.topic)) }
+        scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
     }
 
     private fun onSessionRequest(request: WCRequest, params: SessionParamsVO.SessionRequestParams) {
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-        Validator.validateSessionRequest(params.toEngineDORequest(request.topic)) { error ->
+        Validator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->
             relayer.respondWithError(request, error.toPeerError(), irnParams)
             return
         }
@@ -566,7 +566,7 @@ internal class SignEngine(
             return
         }
 
-        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerMetaData: com.walletconnect.android_core.common.model.MetaData?) =
+        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerMetaData: MetaData?) =
             with(sequenceStorageRepository.getSessionByTopic(request.topic)) { namespaces to peerMetaData }
 
         val method = params.request.method
@@ -575,7 +575,7 @@ internal class SignEngine(
             return
         }
 
-        scope.launch { _engineEvent.emit(params.toEngineDOSessionRequest(request, sessionPeerMetaData)) }
+        scope.launch { _engineEvent.emit(params.toEngineDO(request, sessionPeerMetaData)) }
     }
 
     private fun onSessionEvent(request: WCRequest, params: SessionParamsVO.EventParams) {
@@ -607,7 +607,7 @@ internal class SignEngine(
         }
 
         relayer.respondWithSuccess(request, irnParams)
-        scope.launch { _engineEvent.emit(params.toEngineDOSessionEvent(request.topic)) }
+        scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
     }
 
     private fun onSessionUpdate(request: WCRequest, params: SessionParamsVO.UpdateNamespacesParams) {
@@ -724,7 +724,7 @@ internal class SignEngine(
             is JsonRpcResponse.JsonRpcResult -> {
                 Logger.log("Session settle success received")
                 sequenceStorageRepository.acknowledgeSession(sessionTopic)
-                scope.launch { _engineEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDOApprovedSessionVO())) }
+                scope.launch { _engineEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDO())) }
             }
             is JsonRpcResponse.JsonRpcError -> {
                 Logger.error("Peer failed to settle session: ${(wcResponse.response as JsonRpcResponse.JsonRpcError).errorMessage}")
@@ -775,8 +775,8 @@ internal class SignEngine(
 
     private fun onSessionRequestResponse(response: WCResponse, params: SessionParamsVO.SessionRequestParams) {
         val result = when (response.response) {
-            is JsonRpcResponse.JsonRpcResult -> (response.response as JsonRpcResponse.JsonRpcResult).toEngineJsonRpcResult()
-            is JsonRpcResponse.JsonRpcError -> (response.response as JsonRpcResponse.JsonRpcError).toEngineJsonRpcError()
+            is JsonRpcResponse.JsonRpcResult -> (response.response as JsonRpcResponse.JsonRpcResult).toEngineDO()
+            is JsonRpcResponse.JsonRpcError -> (response.response as JsonRpcResponse.JsonRpcError).toEngineDO()
         }
         val method = params.request.method
         scope.launch { _engineEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
