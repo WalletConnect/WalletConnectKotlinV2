@@ -12,6 +12,8 @@ import org.koin.dsl.module
 
 inline fun <reified T: Database> coreStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
 
+    includes(baseStorageModule<T>())
+
     single<SharedPreferences>(named(AndroidCoreDITags.RPC_STORE)) {
         val sharedPrefsFile = "wc_rpc_store$storageSuffix"
 
@@ -24,13 +26,5 @@ inline fun <reified T: Database> coreStorageModule(databaseSchema: SqlDriver.Sch
             context = androidContext(),
             name = "WalletConnectV2$storageSuffix.db"
         )
-    }
-
-    single {
-        get<T>().jsonRpcHistoryQueries
-    }
-
-    single {
-        JsonRpcHistory(get(named(AndroidCoreDITags.RPC_STORE)), get(), get())
     }
 }

@@ -26,6 +26,8 @@ import javax.crypto.spec.GCMParameterSpec
 @SuppressLint("HardwareIds")
 inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
 
+    includes(baseStorageModule<T>())
+
     single(named(AndroidCoreDITags.RPC_STORE_ALIAS)) {
         val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
         MasterKeys.getOrCreate(keyGenParameterSpec)
@@ -139,13 +141,5 @@ inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Sc
             name = "WalletConnectV2$storageSuffix.db",
             factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false)
         )
-    }
-
-    single {
-        get<Database>().jsonRpcHistoryQueries
-    }
-
-    single {
-        JsonRpcHistory(get(named(AndroidCoreDITags.RPC_STORE)), get(), get())
     }
 }
