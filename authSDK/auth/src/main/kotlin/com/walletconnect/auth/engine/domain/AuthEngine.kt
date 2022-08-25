@@ -193,7 +193,6 @@ internal class AuthEngine(
         } else {
             val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
             relayer.respondWithError(wcRequest, PeerError.MissingIssuer, irnParams)
-            Logger.error(PeerError.MissingIssuer.message)
         }
     }
 
