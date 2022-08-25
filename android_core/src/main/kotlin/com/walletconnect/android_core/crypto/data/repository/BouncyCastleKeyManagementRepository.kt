@@ -20,8 +20,8 @@ import java.security.SecureRandom
 import javax.crypto.KeyGenerator
 import com.walletconnect.foundation.common.model.Key as WCKey
 
+//todo: Refactor
 internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStore) : KeyManagementRepository {
-    //todo: Refactor
     override fun generateAndStoreSymmetricKey(topic: Topic): SymmetricKey {
         val symmetricKey = generateSymmetricKey()
         keyChain.setKey(topic.value, symmetricKey)
