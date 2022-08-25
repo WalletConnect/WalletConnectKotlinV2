@@ -61,6 +61,10 @@ internal class AuthEngine(
         collectInternalErrors()
     }
 
+    internal fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
+        relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
+    }
+
     private fun collectJsonRpcRequests() {
         scope.launch {
             relayer.clientSyncJsonRpc.collect { request ->
@@ -68,20 +72,6 @@ internal class AuthEngine(
                     is AuthParams.RequestParams -> onAuthRequest(request, params)
                 }
             }
-        }
-    }
-
-    private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
-        if (issuer != null) {
-            scope.launch {
-                authRequestMap[wcRequest.id] = wcRequest
-                val formattedMessage: String = authParams.payloadParams.toFormattedMessage(issuer)
-                _engineEvent.emit(EngineDO.Events.onAuthRequest(wcRequest.id, formattedMessage))
-            }
-        } else {
-            val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
-            relayer.respondWithError(wcRequest, PeerError.MissingIssuer, irnParams)
-            Logger.error(PeerError.MissingIssuer.message)
         }
     }
 
@@ -99,7 +89,12 @@ internal class AuthEngine(
         when (val response = wcResponse.response) {
             is JsonRpcResponse.JsonRpcError -> {
                 scope.launch {
-                    _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Error(response.error.code, response.error.message)))
+                    _engineEvent.emit(
+                        EngineDO.Events.onAuthResponse(
+                            response.id,
+                            EngineDO.AuthResponse.Error(response.error.code, response.error.message)
+                        )
+                    )
                 }
             }
             is JsonRpcResponse.JsonRpcResult -> {
@@ -110,8 +105,12 @@ internal class AuthEngine(
                     }
                 } else {
                     scope.launch {
-                        _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id,
-                            EngineDO.AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)))
+                        _engineEvent.emit(
+                            EngineDO.Events.onAuthResponse(
+                                response.id,
+                                EngineDO.AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)
+                            )
+                        )
                         //idea: Protocol Improvement: Maybe notify Peer B about wrong verification?
                     }
                 }
@@ -138,10 +137,6 @@ internal class AuthEngine(
             crypto.removeKeys(walletConnectUri.topic.value)
             relayer.unsubscribe(activePairing.topic)
         }
-    }
-
-    fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-        relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
 
     internal fun respond(
@@ -219,7 +214,8 @@ internal class AuthEngine(
             val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
             crypto.setSelfParticipant(responsePublicKey, responseTopic)
 
-            val authParams: AuthParams.RequestParams = AuthParams.RequestParams(RequesterDTO(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams.toDTO())
+            val authParams: AuthParams.RequestParams =
+                AuthParams.RequestParams(RequesterDTO(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams.toDTO())
             val authRequest: AuthRpcDTO.AuthRequest = AuthRpcDTO.AuthRequest(generateId(), params = authParams)
             val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
             relayer.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
@@ -240,6 +236,30 @@ internal class AuthEngine(
             onFailure(e)
         }
 
+    }
+
+    private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
+        if (issuer != null) {
+            scope.launch {
+                authRequestMap[wcRequest.id] = wcRequest
+                val formattedMessage: String = authParams.payloadParams.toFormattedMessage(issuer)
+                _engineEvent.emit(EngineDO.Events.onAuthRequest(wcRequest.id, formattedMessage))
+            }
+        } else {
+            val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
+            relayer.respondWithError(wcRequest, PeerError.MissingIssuer, irnParams)
+            Logger.error(PeerError.MissingIssuer.message)
+        }
+    }
+
+    internal fun getRequestById(id: Long): EngineDO.Response {
+
+        return EngineDO.Response.Error(1, 1, "")
+    }
+
+    internal fun getPendingRequests(): List<EngineDO.PendingRequest> {
+        return relayer.getPendingRequests()
+            .map { pendingRequest -> pendingRequest.toEngineDO(pendingRequest.payloadParams.toFormattedMessage(issuer!!)) }
     }
 
     private fun resubscribeToSequences() {

@@ -7,7 +7,7 @@ import android.os.Build
 import com.walletconnect.android_core.common.model.ConnectionState
 import com.walletconnect.android_core.common.SDKError
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
-import com.walletconnect.android_core.common.model.sync.PendingRequest
+import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.android_core.network.data.connection.ConnectionType
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.engine.model.EngineDO
@@ -157,8 +157,8 @@ internal fun EngineDO.PairingSettle.toClientSettledPairing(): Sign.Model.Pairing
 @JvmSynthetic
 internal fun List<PendingRequest>.mapToPendingRequests(): List<Sign.Model.PendingRequest> = map { request ->
     Sign.Model.PendingRequest(
-        request.requestId,
-        request.topic,
+        request.id,
+        request.topic.value,
         request.method,
         request.chainId,
         request.params

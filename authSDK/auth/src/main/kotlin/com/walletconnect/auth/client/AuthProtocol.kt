@@ -19,7 +19,6 @@ import com.walletconnect.auth.di.storageModule
 import com.walletconnect.auth.engine.domain.AuthEngine
 import com.walletconnect.auth.engine.model.EngineDO
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
-import com.walletconnect.utils.Empty
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -30,6 +29,7 @@ import org.koin.core.KoinApplication
 internal class AuthProtocol : AuthInterface, Protocol() {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var authEngine: AuthEngine
+
     // TODO: Figure out how to get relay as in Sign in here. Should we keep Relay in the Auth init params?
     internal val relay: RelayConnectionInterface by lazy { wcKoinApp.koin.get() }
     private val serverUrl: String = "wss://relay.walletconnect.com?projectId=2ee94aca5d98e6c05c38bce02bee952a"
@@ -59,7 +59,7 @@ internal class AuthProtocol : AuthInterface, Protocol() {
                 val jwt = jwtRepository.generateJWT(serverUrl)
                 val connectionType = ConnectionType.AUTOMATIC
 
-                //todo: should we allow injecting relayClient?
+                //todo: should we allow injecting relayClient? - YES
                 wcKoinApp.modules(networkModule(serverUrl, jwt, connectionType, BuildConfig.sdkVersion, null))
                 authEngine = wcKoinApp.koin.get()
                 authEngine.handleInitializationErrors { error -> onError(Auth.Model.Error(error)) }
@@ -131,15 +131,18 @@ internal class AuthProtocol : AuthInterface, Protocol() {
     }
 
     @Throws(IllegalStateException::class)
-    override fun getPendingRequest(): Map<Int, Auth.Model.PendingRequest> {
-        //TODO("Not yet implemented")
-        return emptyMap()
+    override fun getPendingRequest(): List<Auth.Model.PendingRequest> {
+        //todo: add responder check/iss check
+        return awaitLock {
+            authEngine.getPendingRequests().toClient()
+        }
     }
 
     @Throws(IllegalStateException::class)
     override fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response {
-        //TODO("Not yet implemented")
-        return Auth.Model.Response.Error(0, 0, String.Empty)
+        return awaitLock {
+            authEngine.getRequestById(params.id).toClient()
+        }
     }
 
     @Throws(IllegalStateException::class)

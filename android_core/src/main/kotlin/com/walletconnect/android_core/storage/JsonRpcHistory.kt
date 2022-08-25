@@ -6,7 +6,11 @@ import com.walletconnect.androidcore.storage.data.dao.JsonRpcHistoryQueries
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 
-class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private val jsonRpcHistoryQueries: JsonRpcHistoryQueries, private val logger: Logger) {
+class JsonRpcHistory(
+    private val sharedPreferences: SharedPreferences,
+    private val jsonRpcHistoryQueries: JsonRpcHistoryQueries,
+    private val logger: Logger
+) {
 
     fun setRequest(requestId: Long, topic: Topic, method: String, payload: String): Boolean {
         return try {
@@ -50,8 +54,11 @@ class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private v
         jsonRpcHistoryQueries.deleteJsonRpcHistory(topic.value)
     }
 
-    fun getRequests(topic: Topic): List<JsonRpcHistory> =
-        jsonRpcHistoryQueries.getJsonRpcRequestsDaos(topic.value, mapper = ::mapToJsonRpc).executeAsList()
+    fun getRequestsByTopic(topic: Topic): List<JsonRpcHistory> =
+        jsonRpcHistoryQueries.getJsonRpcRequestsByTopic(topic.value, mapper = ::mapToJsonRpc).executeAsList()
+
+    fun getAllRequests(): List<JsonRpcHistory> =
+        jsonRpcHistoryQueries.getJsonRpcRequests(mapper = ::mapToJsonRpc).executeAsList()
 
     private fun mapToJsonRpc(requestId: Long, topic: String, method: String, body: String, response: String?): JsonRpcHistory =
         JsonRpcHistory(requestId, topic, method, body, response)

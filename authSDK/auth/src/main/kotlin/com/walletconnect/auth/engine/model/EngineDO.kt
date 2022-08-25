@@ -5,7 +5,6 @@ package com.walletconnect.auth.engine.model
 import com.walletconnect.android_core.common.model.SymmetricKey
 import com.walletconnect.android_core.common.model.type.EngineEvent
 import com.walletconnect.auth.client.Auth
-import com.walletconnect.auth.common.json_rpc.payload.CacaoDTO
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.android_core.common.model.RelayProtocolOptions as CoreRelayProtocolOptions
 
@@ -26,6 +25,13 @@ internal sealed class EngineDO {
 
         data class Result(override val id: Long, val signature: Auth.Model.Cacao.Signature) : Respond()
         data class Error(override val id: Long, val code: Int, val message: String) : Respond()
+    }
+
+    sealed class Response : EngineDO() {
+        abstract val id: Long
+
+        data class Result(override val id: Long, val cacao: Cacao) : Response()
+        data class Error(override val id: Long, val code: Int, val message: String) : Response()
     }
 
     internal class WalletConnectUri(
@@ -100,4 +106,10 @@ internal sealed class EngineDO {
             }
         }
     }
+
+    internal data class PendingRequest(
+        val id: Long,
+        val payloadParams: PayloadParams,
+        val message: String,
+    ) : EngineDO()
 }

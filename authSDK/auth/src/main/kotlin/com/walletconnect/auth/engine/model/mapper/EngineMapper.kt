@@ -2,8 +2,11 @@ package com.walletconnect.auth.engine.model.mapper
 
 import com.walletconnect.android_core.common.model.MetaData
 import com.walletconnect.android_core.common.model.Redirect
+import com.walletconnect.auth.client.Auth
+import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.common.json_rpc.payload.CacaoDTO
 import com.walletconnect.auth.common.json_rpc.payload.PayloadParamsDTO
+import com.walletconnect.auth.common.model.PendingRequest
 import com.walletconnect.auth.engine.model.EngineDO
 import com.walletconnect.auth.signature.Signature
 
@@ -13,15 +16,53 @@ internal fun EngineDO.AppMetaData.toCore() =
 
 @JvmSynthetic
 internal fun PayloadParamsDTO.toCacaoPayloadDTO(iss: EngineDO.Issuer): CacaoDTO.PayloadDTO = CacaoDTO.PayloadDTO(
-    iss.value, domain = domain, aud = aud, version = version, nonce = nonce, iat = iat, nbf = nbf, exp = exp, statement = statement, requestId = requestId, resources = resources
+    iss.value,
+    domain = domain,
+    aud = aud,
+    version = version,
+    nonce = nonce,
+    iat = iat,
+    nbf = nbf,
+    exp = exp,
+    statement = statement,
+    requestId = requestId,
+    resources = resources
 )
 
 @JvmSynthetic
-internal fun PayloadParamsDTO.toFormattedMessage(iss: EngineDO.Issuer, chainName: String = "Ethereum"): String = this.toCacaoPayloadDTO(iss).toEngineDO().toFormattedMessage(chainName)
+internal fun PayloadParamsDTO.toFormattedMessage(iss: EngineDO.Issuer, chainName: String = "Ethereum"): String =
+    this.toCacaoPayloadDTO(iss).toEngineDO().toFormattedMessage(chainName)
 
 @JvmSynthetic
 internal fun EngineDO.PayloadParams.toDTO(): PayloadParamsDTO = PayloadParamsDTO(
-    type = type, chainId = chainId, domain = domain, aud = aud, version = version, nonce = nonce, iat = iat, nbf = nbf, exp = exp, statement = statement, requestId = requestId, resources = resources
+    type = type,
+    chainId = chainId,
+    domain = domain,
+    aud = aud,
+    version = version,
+    nonce = nonce,
+    iat = iat,
+    nbf = nbf,
+    exp = exp,
+    statement = statement,
+    requestId = requestId,
+    resources = resources
+)
+
+@JvmSynthetic
+internal fun PayloadParamsDTO.toEngineDO(): EngineDO.PayloadParams = EngineDO.PayloadParams(
+    type = type,
+    chainId = chainId,
+    domain = domain,
+    aud = aud,
+    version = version,
+    nonce = nonce,
+    iat = iat,
+    nbf = nbf,
+    exp = exp,
+    statement = statement,
+    requestId = requestId,
+    resources = resources
 )
 
 @JvmSynthetic
@@ -31,7 +72,8 @@ internal fun CacaoDTO.toEngineDO(): EngineDO.Cacao = EngineDO.Cacao(header.toEng
 internal fun CacaoDTO.HeaderDTO.toEngineDO(): EngineDO.Cacao.Header = EngineDO.Cacao.Header(t)
 
 @JvmSynthetic
-internal fun CacaoDTO.PayloadDTO.toEngineDO(): EngineDO.Cacao.Payload = EngineDO.Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+internal fun CacaoDTO.PayloadDTO.toEngineDO(): EngineDO.Cacao.Payload =
+    EngineDO.Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
 
 @JvmSynthetic
 internal fun CacaoDTO.SignatureDTO.toEngineDO(): EngineDO.Cacao.Signature = EngineDO.Cacao.Signature(t, s, m)
@@ -66,3 +108,7 @@ private fun EngineDO.WalletConnectUri.getQuery(): String {
     }
     return query
 }
+
+@JvmSynthetic
+internal fun PendingRequest.toEngineDO(message: String): EngineDO.PendingRequest =
+    EngineDO.PendingRequest(id, payloadParams.toEngineDO(), message)

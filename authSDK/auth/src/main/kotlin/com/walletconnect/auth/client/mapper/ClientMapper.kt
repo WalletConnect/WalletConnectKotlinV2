@@ -6,7 +6,6 @@ import com.walletconnect.android_core.common.SDKError
 import com.walletconnect.android_core.common.model.ConnectionState
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.common.json_rpc.payload.CacaoDTO
-import com.walletconnect.auth.common.json_rpc.payload.PayloadParamsDTO
 import com.walletconnect.auth.engine.model.EngineDO
 import com.walletconnect.auth.signature.SignatureType
 import java.time.ZonedDateTime
@@ -26,7 +25,8 @@ internal fun Auth.Params.Respond.toEngineDO(): EngineDO.Respond = when (this) {
 }
 
 @JvmSynthetic
-internal fun ConnectionState.toClientEvent(): Auth.Events.ConnectionStateChange = Auth.Events.ConnectionStateChange(Auth.Model.ConnectionState(this.isAvailable))
+internal fun ConnectionState.toClientEvent(): Auth.Events.ConnectionStateChange =
+    Auth.Events.ConnectionStateChange(Auth.Model.ConnectionState(this.isAvailable))
 
 @JvmSynthetic
 internal fun SDKError.toClientEvent(): Auth.Events.Error = Auth.Events.Error(Auth.Model.Error(this.exception))
@@ -60,6 +60,23 @@ internal fun Auth.Params.Request.toEngineDO(): EngineDO.PayloadParams = EngineDO
 )
 
 @JvmSynthetic
+internal fun EngineDO.PayloadParams.toClient(): Auth.Model.PendingRequest.PayloadParams =
+    Auth.Model.PendingRequest.PayloadParams(
+        type = SignatureType.EIP191.header,
+        chainId = chainId,
+        domain = domain,
+        aud = aud,
+        version = MESSAGE_TEMPLATE_VERSION,
+        nonce = nonce,
+        iat = DateTimeFormatter.ofPattern(ISO_8601_PATTERN).format(ZonedDateTime.now()),
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+    )
+
+@JvmSynthetic
 internal fun Auth.Model.Cacao.Signature.toEngineDO(): EngineDO.Cacao.Signature = EngineDO.Cacao.Signature(t, s, m)
 
 @JvmSynthetic
@@ -69,10 +86,27 @@ internal fun Auth.Model.Cacao.Signature.toDTO(): CacaoDTO.SignatureDTO = CacaoDT
 internal fun EngineDO.Cacao.toClient(): Auth.Model.Cacao = Auth.Model.Cacao(header.toClient(), payload.toClient(), signature.toClient())
 
 @JvmSynthetic
+internal fun List<EngineDO.PendingRequest>.toClient(): List<Auth.Model.PendingRequest> =
+    map { request ->
+        Auth.Model.PendingRequest(
+            request.id,
+            request.payloadParams.toClient(),
+            request.message
+        )
+    }
+
+@JvmSynthetic
+internal fun EngineDO.Response.toClient(): Auth.Model.Response = when (this) {
+    is EngineDO.Response.Result -> Auth.Model.Response.Result(id, cacao.toClient())
+    is EngineDO.Response.Error -> Auth.Model.Response.Error(id, code, message)
+}
+
+@JvmSynthetic
 internal fun EngineDO.Cacao.Header.toClient(): Auth.Model.Cacao.Header = Auth.Model.Cacao.Header(t)
 
 @JvmSynthetic
-internal fun EngineDO.Cacao.Payload.toClient(): Auth.Model.Cacao.Payload = Auth.Model.Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+internal fun EngineDO.Cacao.Payload.toClient(): Auth.Model.Cacao.Payload =
+    Auth.Model.Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
 
 @JvmSynthetic
 internal fun EngineDO.Cacao.Signature.toClient(): Auth.Model.Cacao.Signature = Auth.Model.Cacao.Signature(t, s, m)

@@ -4,7 +4,6 @@ import com.walletconnect.android_core.common.*
 import com.walletconnect.android_core.common.model.IrnParams
 import com.walletconnect.android_core.common.model.Participants
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
-import com.walletconnect.android_core.common.model.sync.PendingRequest
 import com.walletconnect.android_core.common.model.sync.WCRequest
 import com.walletconnect.android_core.common.model.sync.WCResponse
 import com.walletconnect.android_core.common.model.type.ClientParams
@@ -28,7 +27,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.net.HttpURLConnection
 
-abstract class BaseJsonRpcInteractor(
+open class BaseJsonRpcInteractor(
     private val relay: RelayConnectionInterface,
     private val serializer: JsonRpcSerializerAbstract,
     private val chaChaPolyCodec: Codec,
@@ -53,8 +52,6 @@ abstract class BaseJsonRpcInteractor(
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> handleError(exception.message ?: String.Empty) }
-
-    abstract fun getPendingRequests(topic: Topic): List<PendingRequest>
 
     @get:JvmSynthetic
     private val Throwable.toWalletConnectException: WalletConnectException
