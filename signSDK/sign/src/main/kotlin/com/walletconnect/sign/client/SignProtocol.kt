@@ -2,6 +2,9 @@
 
 package com.walletconnect.sign.client
 
+import com.walletconnect.android_core.common.model.ConnectionState
+import com.walletconnect.android_core.common.SDKError
+import com.walletconnect.android_core.common.client.Protocol
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.di.cryptoModule
 import com.walletconnect.android_core.di.networkModule
@@ -25,19 +28,17 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 import java.util.concurrent.Executors
 
-internal class SignProtocol : SignInterface, SignInterface.Websocket {
+internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol() {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var signEngine: SignEngine
     internal val relay: RelayConnectionInterface by lazy { wcKoinApp.koin.get() }
-    private val mutex = Mutex()
-    private val signProtocolScope = CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
     companion object {
         val instance = SignProtocol()
     }
 
     override fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
-        signProtocolScope.launch {
+        protocolScope.launch {
             mutex.withLock {
                 with(initial) {
                     // TODO: re-init scope
@@ -59,7 +60,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                 val serverUrl = initial.relayServerUrl.addUserAgent(BuildConfig.sdkVersion)
                 val connectionType = initial.connectionType.toRelayConnectionType()
 
-                wcKoinApp.modules(networkModule(serverUrl, jwt, connectionType, BuildConfig.sdkVersion,initial.relay))
+                wcKoinApp.modules(networkModule(serverUrl, jwt, connectionType, BuildConfig.sdkVersion, initial.relay))
                 signEngine = wcKoinApp.koin.get()
                 signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
             }
@@ -78,8 +79,8 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                     is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
                     is EngineDO.SessionUpdateNamespacesResponse -> delegate.onSessionUpdateResponse(event.toClientUpdateSessionNamespacesResponse())
                     //Utils
-                    is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
-                    is EngineDO.SDKError -> delegate.onError(event.toClientError())
+                    is ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
+                    is SDKError -> delegate.onError(event.toClientError())
                 }
             }.launchIn(scope)
         }
@@ -99,8 +100,8 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                     //Responses
                     is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
                     //Utils
-                    is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
-                    is EngineDO.SDKError -> delegate.onError(event.toClientError())
+                    is ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
+                    is SDKError -> delegate.onError(event.toClientError())
                 }
             }.launchIn(scope)
         }
@@ -298,17 +299,8 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
         }
     }
 
-    private fun <T> awaitLock(codeBlock: suspend () -> T): T {
-        return runBlocking(signProtocolScope.coroutineContext) {
-            mutex.withLock {
-                checkEngineInitialization()
-                codeBlock()
-            }
-        }
-    }
-
     @Throws(IllegalStateException::class)
-    internal fun checkEngineInitialization() {
+    override fun checkEngineInitialization() {
         check(::signEngine.isInitialized) {
             "SignClient needs to be initialized first using the initialize function"
         }

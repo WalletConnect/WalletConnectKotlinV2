@@ -1,12 +1,10 @@
-@file:JvmSynthetic
-
-package com.walletconnect.sign.common.model.vo.clientsync.common
+package com.walletconnect.android_core.common.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-internal data class MetaDataVO(
+data class MetaData(
     @Json(name = "name")
     val name: String,
     @Json(name = "description")
@@ -16,5 +14,5 @@ internal data class MetaDataVO(
     @Json(name = "icons")
     val icons: List<String>,
     @Json(name = "redirect")
-    val redirect: RedirectVO? = null,
+    val redirect: Redirect? = null,
 )

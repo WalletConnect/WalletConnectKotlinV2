@@ -10,8 +10,6 @@ class InvalidNamespaceException(override val message: String?) : WalletConnectEx
 class InvalidEventException(override val message: String?) : WalletConnectException(message)
 class InvalidRequestException(override val message: String?) : WalletConnectException(message)
 
-class MalformedWalletConnectUri(override val message: String?) : WalletConnectException(message)
 class NotSettledSessionException(override val message: String?) : WalletConnectException(message)
 class CannotFindSequenceForTopic(override val message: String?) : WalletConnectException(message)
-class PairWithExistingPairingIsNotAllowed(override val message: String?) : WalletConnectException(message)
 class CannotFindSessionProposalException(override val message: String?) : WalletConnectException(message)

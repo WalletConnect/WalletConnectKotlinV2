@@ -4,12 +4,12 @@ package com.walletconnect.sign.storage.sequence
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android_core.common.model.Expiry
+import com.walletconnect.android_core.common.model.MetaData
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.android_core.common.model.type.enums.MetaDataType
-import com.walletconnect.sign.common.model.vo.clientsync.common.MetaDataVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.common.model.vo.clientsync.common.RedirectVO
+import com.walletconnect.android_core.common.model.Redirect
 import com.walletconnect.sign.common.model.vo.sequence.PairingVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.storage.data.dao.metadata.MetaDataDaoQueries
@@ -114,7 +114,7 @@ internal class SequenceStorageRepository(
 
     @JvmSynthetic
     @Throws(SQLiteException::class)
-    fun upsertPairingPeerMetadata(topic: Topic, metaData: MetaDataVO) {
+    fun upsertPairingPeerMetadata(topic: Topic, metaData: MetaData) {
         if (metaDataDaoQueries.getByTopic(topic.value).executeAsOneOrNull() == null) {
             insertMetaData(metaData, MetaDataType.PEER, topic)
         } else {
@@ -290,7 +290,7 @@ internal class SequenceStorageRepository(
     }
 
     @Throws(SQLiteException::class)
-    private fun insertMetaData(metaData: MetaDataVO?, metaDataType: MetaDataType, topic: Topic) {
+    private fun insertMetaData(metaData: MetaData?, metaDataType: MetaDataType, topic: Topic) {
         metaData?.let {
             metaDataDaoQueries.insertOrAbortMetaData(
                 topic.value,
@@ -362,7 +362,7 @@ internal class SequenceStorageRepository(
         is_active: Boolean,
     ): PairingVO {
         val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
-            MetaDataVO(peerName, peerDesc, peerUrl, peerIcons)
+            MetaData(peerName, peerDesc, peerUrl, peerIcons)
         } else {
             null
         }
@@ -399,13 +399,13 @@ internal class SequenceStorageRepository(
         is_acknowledged: Boolean,
     ): SessionVO {
         val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
-            MetaDataVO(selfName, selfDesc, selfUrl, selfIcons)
+            MetaData(selfName, selfDesc, selfUrl, selfIcons)
         } else {
             null
         }
 
         val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
-            MetaDataVO(peerName, peerDesc, peerUrl, peerIcons, RedirectVO(native = peerNative))
+            MetaData(peerName, peerDesc, peerUrl, peerIcons, Redirect(native = peerNative))
         } else {
             null
         }

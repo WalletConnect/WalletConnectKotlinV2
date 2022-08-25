@@ -4,6 +4,8 @@ package com.walletconnect.sign.client.mapper
 
 import android.net.Uri
 import android.os.Build
+import com.walletconnect.android_core.common.model.ConnectionState
+import com.walletconnect.android_core.common.SDKError
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.PendingRequest
 import com.walletconnect.android_core.network.data.connection.ConnectionType
@@ -206,11 +208,11 @@ internal fun Sign.ConnectionType.toRelayConnectionType(): ConnectionType {
 }
 
 @JvmSynthetic
-internal fun EngineDO.ConnectionState.toClientConnectionState(): Sign.Model.ConnectionState =
+internal fun ConnectionState.toClientConnectionState(): Sign.Model.ConnectionState =
     Sign.Model.ConnectionState(isAvailable)
 
 @JvmSynthetic
-internal fun EngineDO.SDKError.toClientError(): Sign.Model.Error =
+internal fun SDKError.toClientError(): Sign.Model.Error =
     Sign.Model.Error(this.exception)
 
 @JvmSynthetic
