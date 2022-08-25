@@ -9,7 +9,6 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.payload.Session
 import org.intellij.lang.annotations.Language
 import org.json.JSONArray
 import org.json.JSONObject
-import org.junit.Ignore
 import org.junit.jupiter.api.Test
 import kotlin.reflect.jvm.jvmName
 import kotlin.test.assertEquals
@@ -131,7 +130,7 @@ internal class SessionRequestVOJsonAdapterTest {
         """.trimIndent()
 
         val expectedParamsJsonArray = JSONArray(params)
-        val actualParamsJsonArray = JSONArray("$serializedParams")
+        val actualParamsJsonArray = JSONArray(serializedParams)
 
         assertEquals(expectedParamsJsonArray.length(), actualParamsJsonArray.length())
 
@@ -211,7 +210,7 @@ internal class SessionRequestVOJsonAdapterTest {
         """.trimIndent()
 
         val expectedParamsJsonArray = JSONArray(params)
-        val actualParamsJsonArray = JSONArray("$serializedParams")
+        val actualParamsJsonArray = JSONArray(serializedParams)
 
         assertEquals(expectedParamsJsonArray.length(), actualParamsJsonArray.length())
 
@@ -229,7 +228,20 @@ internal class SessionRequestVOJsonAdapterTest {
             ["0x022c0c42a80bd19EA4cF0F94c4F9F96645759716",{"types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Person":[{"name":"name","type":"string"},{"name":"wallet","type":"address"}],"Mail":[{"name":"from","type":"Person"},{"name":"to","type":"Person"},{"name":"contents","type":"string"}]},"primaryType":"Mail","domain":{"name":"Ether Mail","version":"1","chainId":1,"verifyingContract":"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"},"message":{"from":{"name":"Cow","wallet":"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},"to":{"name":"Bob","wallet":"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"},"contents":"Hello, Bob!"}}]
         """.trimIndent()
         val expectedParamsJsonArray = JSONArray(expectedSerializableParams)
-        val actualParamsJsonArray = JSONArray("$serializedParams")
+        val actualParamsJsonArray = JSONArray(serializedParams)
+
+        assertEquals(expectedParamsJsonArray.length(), actualParamsJsonArray.length())
+
+        iterateJsonArrays(expectedParamsJsonArray, actualParamsJsonArray)
+    }
+
+    @Test
+    fun ethSignTransaction() {
+        @Language("JSON")
+        params = """[{"from":"0x022c0c42a80bd19EA4cF0F94c4F9F96645759716","to":"0x022c0c42a80bd19EA4cF0F94c4F9F96645759716","data":"0x","nonce":"0x00","gasPrice":"0x9502f907","gasLimit":"0x5208","value":"0x00"}]""".trimIndent()
+
+        val expectedParamsJsonArray = JSONArray(params)
+        val actualParamsJsonArray = JSONArray(serializedParams)
 
         assertEquals(expectedParamsJsonArray.length(), actualParamsJsonArray.length())
 
@@ -388,7 +400,7 @@ internal class SessionRequestVOJsonAdapterTest {
         """.trimIndent()
 
         val expectedParamsJsonArray = JSONArray(paramsJson)
-        val actualParamsJsonArray = JSONArray("$serializedParams")
+        val actualParamsJsonArray = JSONArray(serializedParams)
 
         assertEquals(expectedParamsJsonArray.length(), actualParamsJsonArray.length())
 
