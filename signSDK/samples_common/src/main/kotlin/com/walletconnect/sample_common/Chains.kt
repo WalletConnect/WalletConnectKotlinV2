@@ -111,32 +111,29 @@ enum class Chains(
         order = 7
     );
 
-    companion object {
+    sealed class Info {
+        abstract val chain: String
+        abstract val defaultEvents: List<String>
+        abstract val defaultMethods: List<String>
 
-        sealed class Info {
-            abstract val chain: String
-            abstract val defaultEvents: List<String>
-            abstract val defaultMethods: List<String>
+        object Eth: Info() {
+            override val chain = "eip155"
+            override val defaultEvents: List<String> = listOf("chainChanged", "accountChanged")
+            override val defaultMethods: List<String> = listOf(
+                "eth_sendTransaction",
+                "personal_sign",
+                "eth_sign",
+                "eth_signTypedData"
+            )
+        }
 
-            object Eth: Info() {
-                override val chain = "eip155"
-                override val defaultEvents: List<String> = listOf("chainChanged", "accountChanged")
-                override val defaultMethods: List<String> = listOf(
-                    "eth_sendTransaction",
-                    "personal_sign",
-                    "eth_sign",
-                    "eth_signTypedData"
-                )
-            }
-
-            object Cosmos: Info() {
-                override val chain = "cosmos"
-                override val defaultEvents: List<String> = listOf("chainChanged", "accountChanged")
-                override val defaultMethods: List<String> = listOf(
-                    "cosmos_signDirect",
-                    "cosmos_signAmino"
-                )
-            }
+        object Cosmos: Info() {
+            override val chain = "cosmos"
+            override val defaultEvents: List<String> = listOf("chainChanged", "accountChanged")
+            override val defaultMethods: List<String> = listOf(
+                "cosmos_signDirect",
+                "cosmos_signAmino"
+            )
         }
     }
 }
