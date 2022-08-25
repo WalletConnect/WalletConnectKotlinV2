@@ -61,134 +61,9 @@ internal class AuthEngine(
         collectInternalErrors()
     }
 
-    private fun collectJsonRpcRequests() {
-        scope.launch {
-            relayer.clientSyncJsonRpc.collect { request ->
-                when (val params = request.params) {
-                    is AuthParams.RequestParams -> onAuthRequest(request, params)
-                }
-            }
-        }
-    }
 
-    private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
-        if (issuer != null) {
-            scope.launch {
-                authRequestMap[wcRequest.id] = wcRequest
-                val formattedMessage: String = authParams.payloadParams.toFormattedMessage(issuer)
-                _engineEvent.emit(EngineDO.Events.onAuthRequest(wcRequest.id, formattedMessage))
-            }
-        } else {
-            val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
-            relayer.respondWithError(wcRequest, PeerError.MissingIssuer, irnParams)
-            Logger.error(PeerError.MissingIssuer.message)
-        }
-    }
-
-    private fun collectJsonRpcResponses() {
-        scope.launch {
-            relayer.peerResponse.collect { response ->
-                when (response.params) {
-                    is AuthParams.RequestParams -> onAuthRequestResponse(response)
-                }
-            }
-        }
-    }
-
-    private fun onAuthRequestResponse(wcResponse: WCResponse) {
-        when (val response = wcResponse.response) {
-            is JsonRpcResponse.JsonRpcError -> {
-                scope.launch {
-                    _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Error(response.error.code, response.error.message)))
-                }
-            }
-            is JsonRpcResponse.JsonRpcResult -> {
-                val cacao: EngineDO.Cacao = (response.result as AuthParams.ResponseParams).cacao.toEngineDO()
-                if (CacaoVerifier.verify(cacao)) {
-                    scope.launch {
-                        _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Result(cacao)))
-                    }
-                } else {
-                    scope.launch {
-                        _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id,
-                            EngineDO.AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)))
-                        //idea: Protocol Improvement: Maybe notify Peer B about wrong verification?
-                    }
-                }
-            }
-        }
-    }
-
-    internal fun pair(uri: String) {
-        val walletConnectUri: EngineDO.WalletConnectUri =
-            Validator.validateWCUri(uri) ?: throw MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
-
-        if (storage.isPairingValid(walletConnectUri.topic)) {
-            throw PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
-        }
-
-        val activePairing = PairingVO(walletConnectUri)
-        val symmetricKey: SymmetricKey = walletConnectUri.symKey
-        crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
-
-        try {
-            relayer.subscribe(activePairing.topic)
-            storage.insertPairing(activePairing)
-        } catch (e: SQLiteException) {
-            crypto.removeKeys(walletConnectUri.topic.value)
-            relayer.unsubscribe(activePairing.topic)
-        }
-    }
-
-    fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
+    internal fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
         relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
-    }
-
-    internal fun respond(
-        respond: EngineDO.Respond,
-        onFailure: (Throwable) -> Unit,
-    ) {
-        if (authRequestMap[respond.id] == null) {
-            Logger.error(MissingAuthRequestException.message)
-            onFailure(MissingAuthRequestException)
-            return
-        }
-        val wcRequest: WCRequest = authRequestMap[respond.id]!!
-        if (wcRequest.params !is AuthParams.RequestParams) {
-            Logger.error(MissingAuthRequestParamsException.message)
-            onFailure(MissingAuthRequestParamsException)
-            return
-        }
-        val authParams: AuthParams.RequestParams = (wcRequest.params as AuthParams.RequestParams)
-        val response: JsonRpcResponse = when (respond) {
-            is EngineDO.Respond.Error -> JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
-            is EngineDO.Respond.Result -> {
-                val payload = authParams.payloadParams.toCacaoPayloadDTO(issuer!!)
-                val cacao = CacaoDTO(CacaoDTO.HeaderDTO(SignatureType.EIP191.header), payload, respond.signature.toDTO())
-                val responseParams = AuthParams.ResponseParams(cacao)
-                if (CacaoVerifier.verify(cacao.toEngineDO())) {
-                    JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
-                } else {
-                    Logger.error(InvalidCacaoException)
-                    onFailure(InvalidCacaoException)
-                    return
-                }
-            }
-        }
-
-        val receiverPublicKey = PublicKey(authParams.requester.publicKey)
-        val senderPublicKey: PublicKey = crypto.generateKeyPair()
-        val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(senderPublicKey, receiverPublicKey)
-        val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
-        crypto.setSymmetricKey(responseTopic, symmetricKey)
-
-        val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
-        relayer.publishJsonRpcResponse(
-            responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
-            onSuccess = { Logger.log("Success Responded on topic: ${wcRequest.topic}") },
-            onFailure = { Logger.error("Error Responded on topic: ${wcRequest.topic}") }
-        )
-
     }
 
     internal fun request(
@@ -239,7 +114,133 @@ internal class AuthEngine(
 
             onFailure(e)
         }
+    }
 
+    internal fun pair(uri: String) {
+        val walletConnectUri: EngineDO.WalletConnectUri =
+            Validator.validateWCUri(uri) ?: throw MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
+
+        if (storage.isPairingValid(walletConnectUri.topic)) {
+            throw PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
+        }
+
+        val activePairing = PairingVO(walletConnectUri)
+        val symmetricKey: SymmetricKey = walletConnectUri.symKey
+        crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
+
+        try {
+            relayer.subscribe(activePairing.topic)
+            storage.insertPairing(activePairing)
+        } catch (e: SQLiteException) {
+            crypto.removeKeys(walletConnectUri.topic.value)
+            relayer.unsubscribe(activePairing.topic)
+        }
+    }
+
+    internal fun respond(
+        respond: EngineDO.Respond,
+        onFailure: (Throwable) -> Unit,
+    ) {
+        if (authRequestMap[respond.id] == null) {
+            Logger.error(MissingAuthRequestException.message)
+            onFailure(MissingAuthRequestException)
+            return
+        }
+        val wcRequest: WCRequest = authRequestMap[respond.id]!!
+        if (wcRequest.params !is AuthParams.RequestParams) {
+            Logger.error(MissingAuthRequestParamsException.message)
+            onFailure(MissingAuthRequestParamsException)
+            return
+        }
+        val authParams: AuthParams.RequestParams = (wcRequest.params as AuthParams.RequestParams)
+        val response: JsonRpcResponse = when (respond) {
+            is EngineDO.Respond.Error -> JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
+            is EngineDO.Respond.Result -> {
+                val payload = authParams.payloadParams.toCacaoPayloadDTO(issuer!!)
+                val cacao = CacaoDTO(CacaoDTO.HeaderDTO(SignatureType.EIP191.header), payload, respond.signature.toDTO())
+                val responseParams = AuthParams.ResponseParams(cacao)
+                if (CacaoVerifier.verify(cacao.toEngineDO())) {
+                    JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
+                } else {
+                    Logger.error(InvalidCacaoException)
+                    onFailure(InvalidCacaoException)
+                    return
+                }
+            }
+        }
+
+        val receiverPublicKey = PublicKey(authParams.requester.publicKey)
+        val senderPublicKey: PublicKey = crypto.generateKeyPair()
+        val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(senderPublicKey, receiverPublicKey)
+        val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
+        crypto.setSymmetricKey(responseTopic, symmetricKey)
+
+        val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
+        relayer.publishJsonRpcResponse(
+            responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
+            onSuccess = { Logger.log("Success Responded on topic: ${wcRequest.topic}") },
+            onFailure = { Logger.error("Error Responded on topic: ${wcRequest.topic}") }
+        )
+
+    }
+
+    private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
+        if (issuer != null) {
+            scope.launch {
+                authRequestMap[wcRequest.id] = wcRequest
+                val formattedMessage: String = authParams.payloadParams.toFormattedMessage(issuer)
+                _engineEvent.emit(EngineDO.Events.onAuthRequest(wcRequest.id, formattedMessage))
+            }
+        } else {
+            val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
+            relayer.respondWithError(wcRequest, PeerError.MissingIssuer, irnParams)
+            Logger.error(PeerError.MissingIssuer.message)
+        }
+    }
+
+    private fun onAuthRequestResponse(wcResponse: WCResponse) {
+        when (val response = wcResponse.response) {
+            is JsonRpcResponse.JsonRpcError -> {
+                scope.launch {
+                    _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Error(response.error.code, response.error.message)))
+                }
+            }
+            is JsonRpcResponse.JsonRpcResult -> {
+                val cacao: EngineDO.Cacao = (response.result as AuthParams.ResponseParams).cacao.toEngineDO()
+                if (CacaoVerifier.verify(cacao)) {
+                    scope.launch {
+                        _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Result(cacao)))
+                    }
+                } else {
+                    scope.launch {
+                        _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id,
+                            EngineDO.AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)))
+                        //idea: Protocol Improvement: Maybe notify Peer B about wrong verification?
+                    }
+                }
+            }
+        }
+    }
+
+    private fun collectJsonRpcRequests() {
+        scope.launch {
+            relayer.clientSyncJsonRpc.collect { request ->
+                when (val params = request.params) {
+                    is AuthParams.RequestParams -> onAuthRequest(request, params)
+                }
+            }
+        }
+    }
+
+
+    private fun collectJsonRpcResponses() {
+        scope.launch {
+            relayer.peerResponse.collect { response ->
+                when (response.params) {
+                    is AuthParams.RequestParams -> onAuthRequestResponse(response)
+                }
+            }
+        }
     }
 
     private fun resubscribeToSequences() {
