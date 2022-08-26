@@ -54,11 +54,18 @@ class JsonRpcHistory(
         jsonRpcHistoryQueries.deleteJsonRpcHistory(topic.value)
     }
 
-    fun getRequestsByTopic(topic: Topic): List<JsonRpcHistory> =
-        jsonRpcHistoryQueries.getJsonRpcRequestsByTopic(topic.value, mapper = ::mapToJsonRpc).executeAsList()
+    fun getPendingRequestsByTopic(topic: Topic): List<JsonRpcHistory> =
+        jsonRpcHistoryQueries.getJsonRpcRequestsByTopic(topic.value, mapper = ::mapToJsonRpc)
+            .executeAsList()
+            .filter { rpcHistoryEntry -> rpcHistoryEntry.response == null }
 
-    fun getAllRequests(): List<JsonRpcHistory> =
-        jsonRpcHistoryQueries.getJsonRpcRequests(mapper = ::mapToJsonRpc).executeAsList()
+    fun getPendingRequests(): List<JsonRpcHistory> =
+        jsonRpcHistoryQueries.getJsonRpcRequests(mapper = ::mapToJsonRpc)
+            .executeAsList()
+            .filter { rpcHistoryEntry -> rpcHistoryEntry.response == null }
+
+    fun getRequestById(id: Long): JsonRpcHistory? =
+        jsonRpcHistoryQueries.getJsonRpcHistoryRecord(id, mapper = ::mapToJsonRpc).executeAsOneOrNull()
 
     private fun mapToJsonRpc(requestId: Long, topic: String, method: String, body: String, response: String?): JsonRpcHistory =
         JsonRpcHistory(requestId, topic, method, body, response)

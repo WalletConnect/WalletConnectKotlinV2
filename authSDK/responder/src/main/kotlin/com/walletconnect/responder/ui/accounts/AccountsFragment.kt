@@ -51,6 +51,14 @@ class AccountsFragment : Fragment(R.layout.fragment_accounts) {
             addItemDecoration(BottomVerticalSpaceItemDecoration(24))
         }
 
+        binding.getRequest.setOnClickListener {
+            viewModel.getPendingRequests()
+        }
+
+        binding.getResponse.setOnClickListener {
+            viewModel.getResponse()
+        }
+
         binding.btnTestRequest.setOnClickListener {
             findNavController().navigate(R.id.dialog_request)
         }

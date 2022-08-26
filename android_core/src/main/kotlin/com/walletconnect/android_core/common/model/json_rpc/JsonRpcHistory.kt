@@ -1,6 +1,6 @@
 package com.walletconnect.android_core.common.model.json_rpc
 
-data class JsonRpcHistory(
+ data class JsonRpcHistory(
     val requestId: Long,
     val topic: String,
     val method: String,

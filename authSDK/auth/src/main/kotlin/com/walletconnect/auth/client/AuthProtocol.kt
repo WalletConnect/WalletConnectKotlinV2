@@ -139,9 +139,9 @@ internal class AuthProtocol : AuthInterface, Protocol() {
     }
 
     @Throws(IllegalStateException::class)
-    override fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response {
+    override fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response? {
         return awaitLock {
-            authEngine.getRequestById(params.id).toClient()
+            authEngine.getResponseById(params.id)?.toClient()
         }
     }
 

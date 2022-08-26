@@ -29,5 +29,5 @@ interface AuthInterface {
 
     fun getPendingRequest(): List<Auth.Model.PendingRequest>
 
-    fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response
+    fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response?
 }

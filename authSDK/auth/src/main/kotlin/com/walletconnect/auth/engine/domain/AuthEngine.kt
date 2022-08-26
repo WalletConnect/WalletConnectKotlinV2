@@ -13,6 +13,7 @@ import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
 import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.crypto.KeyManagementRepository
+import com.walletconnect.android_core.json_rpc.model.JsonRpc
 import com.walletconnect.android_core.utils.DAY_IN_SECONDS
 import com.walletconnect.android_core.utils.Logger
 import com.walletconnect.auth.client.mapper.toDTO
@@ -61,7 +62,6 @@ internal class AuthEngine(
         collectInternalErrors()
     }
 
-
     internal fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
         relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
@@ -94,7 +94,8 @@ internal class AuthEngine(
             val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
             crypto.setSelfParticipant(responsePublicKey, responseTopic)
 
-            val authParams: AuthParams.RequestParams = AuthParams.RequestParams(RequesterDTO(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams.toDTO())
+            val authParams: AuthParams.RequestParams =
+                AuthParams.RequestParams(RequesterDTO(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams.toDTO())
             val authRequest: AuthRpcDTO.AuthRequest = AuthRpcDTO.AuthRequest(generateId(), params = authParams)
             val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
             relayer.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
@@ -160,7 +161,7 @@ internal class AuthEngine(
                 val cacao = CacaoDTO(CacaoDTO.HeaderDTO(SignatureType.EIP191.header), payload, respond.signature.toDTO())
                 val responseParams = AuthParams.ResponseParams(cacao)
                 if (CacaoVerifier.verify(cacao.toEngineDO())) {
-                    JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
+                    JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams) // CACAO as response
                 } else {
                     Logger.error(InvalidCacaoException)
                     onFailure(InvalidCacaoException)
@@ -201,7 +202,12 @@ internal class AuthEngine(
         when (val response = wcResponse.response) {
             is JsonRpcResponse.JsonRpcError -> {
                 scope.launch {
-                    _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Error(response.error.code, response.error.message)))
+                    _engineEvent.emit(
+                        EngineDO.Events.onAuthResponse(
+                            response.id,
+                            EngineDO.AuthResponse.Error(response.error.code, response.error.message)
+                        )
+                    )
                 }
             }
             is JsonRpcResponse.JsonRpcResult -> {
@@ -212,13 +218,34 @@ internal class AuthEngine(
                     }
                 } else {
                     scope.launch {
-                        _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id,
-                            EngineDO.AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)))
+                        _engineEvent.emit(
+                            EngineDO.Events.onAuthResponse(
+                                response.id,
+                                EngineDO.AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)
+                            )
+                        )
                         //idea: Protocol Improvement: Maybe notify Peer B about wrong verification?
                     }
                 }
             }
         }
+    }
+
+    internal fun getResponseById(id: Long): EngineDO.Response? {
+        return relayer.getResponseById(id)?.let { response ->
+            when (response) {
+                is JsonRpc.JsonRpcResponse.JsonRpcResult -> {
+                    val cacao: EngineDO.Cacao = (response.result as AuthParams.ResponseParams).cacao.toEngineDO()
+                    EngineDO.Response.Result(response.id, cacao)
+                }
+                is JsonRpc.JsonRpcResponse.JsonRpcError -> EngineDO.Response.Error(response.id, response.error.code, response.error.message)
+            }
+        }
+    }
+
+    internal fun getPendingRequests(): List<EngineDO.PendingRequest> {
+        return relayer.getPendingRequests()
+            .map { pendingRequest -> pendingRequest.toEngineDO(pendingRequest.payloadParams.toFormattedMessage(issuer!!)) }
     }
 
     private fun collectJsonRpcRequests() {

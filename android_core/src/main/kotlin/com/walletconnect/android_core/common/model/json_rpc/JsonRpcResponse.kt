@@ -2,6 +2,7 @@ package com.walletconnect.android_core.common.model.json_rpc
 
 import com.squareup.moshi.JsonClass
 
+//todo: remove me?
 sealed class JsonRpcResponse {
     abstract val id: Long
 

@@ -30,7 +30,6 @@ getJsonRpcRequests:
 SELECT request_id, topic, method, body, response
 FROM JsonRpcHistoryDao;
 
-
 doesJsonRpcNotExist:
 SELECT NOT EXISTS (
     SELECT 1

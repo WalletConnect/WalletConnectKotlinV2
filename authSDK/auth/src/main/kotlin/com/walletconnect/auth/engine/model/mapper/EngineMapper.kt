@@ -2,8 +2,6 @@ package com.walletconnect.auth.engine.model.mapper
 
 import com.walletconnect.android_core.common.model.MetaData
 import com.walletconnect.android_core.common.model.Redirect
-import com.walletconnect.auth.client.Auth
-import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.common.json_rpc.payload.CacaoDTO
 import com.walletconnect.auth.common.json_rpc.payload.PayloadParamsDTO
 import com.walletconnect.auth.common.model.PendingRequest
@@ -111,4 +109,4 @@ private fun EngineDO.WalletConnectUri.getQuery(): String {
 
 @JvmSynthetic
 internal fun PendingRequest.toEngineDO(message: String): EngineDO.PendingRequest =
-    EngineDO.PendingRequest(id, payloadParams.toEngineDO(), message)
+    EngineDO.PendingRequest(requestId, payloadParams.toEngineDO(), message)

@@ -45,6 +45,16 @@ class AccountsViewModel : ViewModel() {
         }
     }
 
+    fun getPendingRequests() {
+        val list = AuthClient.getPendingRequest()
+    }
+
+    fun getResponse(){
+        val params = Auth.Params.RequestId(RequestStore.currentRequest!!.id)
+
+        AuthClient.getResponse(params)
+    }
+
     private companion object {
         val INITIAL_CHAIN_ADDRESS_LIST_1: List<ChainAddressUI> = mapOfAccounts1.map { (chain: Chains, accountAddress: String) ->
             ChainAddressUI(chain.icon, chain.chainName, accountAddress)

@@ -28,6 +28,7 @@ sealed class JsonRpc {
         )
     }
 
+    //todo: move me to types package?
     internal data class ClientJsonRpc(
         val id: Long,
         val jsonrpc: String,

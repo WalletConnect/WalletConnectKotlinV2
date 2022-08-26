@@ -27,5 +27,4 @@ internal sealed class AuthRpcDTO : JsonRpcClientSync<AuthParams> {
         @Json(name = "params")
         override val params: AuthParams.RequestParams
     ) : AuthRpcDTO()
-
 }

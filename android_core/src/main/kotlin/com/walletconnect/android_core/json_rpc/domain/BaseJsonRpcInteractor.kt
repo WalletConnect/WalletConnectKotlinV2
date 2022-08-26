@@ -118,14 +118,14 @@ open class BaseJsonRpcInteractor(
         ) {
         checkConnectionWorking()
 
-        val jsonResponseDO = response.toJsonRpcResponse()
-        val responseJson = serializer.serialize(jsonResponseDO)
+        val jsonResponse = response.toJsonRpcResponse()
+        val responseJson = serializer.serialize(jsonResponse)
         val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
 
         relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
             result.fold(
                 onSuccess = {
-                    jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
+                    jsonRpcHistory.updateRequestWithResponse(response.id, responseJson) //JsonRpcResult or JsonRpcError
                     onSuccess()
                 },
                 onFailure = { error -> onFailure(error) }
@@ -231,14 +231,14 @@ open class BaseJsonRpcInteractor(
             handleJsonRpcResult(result)
         } ?: serializer.tryDeserialize<JsonRpc.JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
             handleJsonRpcError(error)
-        } ?: handleError("RelayerInteractor: Received unknown object type")
+        } ?: handleError("JsonRpcInteractor: Received unknown object type")
     }
 
     private suspend fun handleRequest(clientJsonRpc: JsonRpc.ClientJsonRpc, topic: Topic, decryptedMessage: String) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params))
-            } ?: handleError("RelayerInteractor: Unknown request params")
+            } ?: handleError("JsonRpcInteractor: Unknown request params")
         }
     }
 
@@ -249,7 +249,7 @@ open class BaseJsonRpcInteractor(
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 val responseVO = JsonRpcResponse.JsonRpcResult(jsonRpcResult.id, result = jsonRpcResult.result)
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(responseVO, params))
-            } ?: handleError("RelayerInteractor: Unknown result params")
+            } ?: handleError("JsonRpcInteractor: Unknown result params")
         }
     }
 
@@ -259,7 +259,7 @@ open class BaseJsonRpcInteractor(
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(jsonRpcError.toJsonRpcError(), params))
-            } ?: handleError("RelayerInteractor: Unknown error params")
+            } ?: handleError("JsonRpcInteractor: Unknown error params")
         }
     }
 
