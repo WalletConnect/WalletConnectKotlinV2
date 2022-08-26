@@ -8,25 +8,25 @@ object Auth {
 
     }
 
-    sealed class Events {
+    sealed class Event {
         data class AuthRequest(
             val id: Long,
             val message: String,
-        ) : Events()
+        ) : Event()
 
         //idea: Protocol Improvement. Remove id in AuthResponse
         data class AuthResponse(
             val id: Long,
             val response: Model.Response,
-        ) : Events()
+        ) : Event()
 
         data class ConnectionStateChange(
             val state: Model.ConnectionState,
-        ) : Events()
+        ) : Event()
 
         data class Error(
             val error: Model.Error
-        ) : Events()
+        ) : Event()
     }
 
     sealed class Model {
