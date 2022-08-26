@@ -61,60 +61,58 @@ internal class AuthEngine(
         collectInternalErrors()
     }
 
+
     internal fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
         relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
 
-    private fun collectJsonRpcRequests() {
-        scope.launch {
-            relayer.clientSyncJsonRpc.collect { request ->
-                when (val params = request.params) {
-                    is AuthParams.RequestParams -> onAuthRequest(request, params)
-                }
-            }
-        }
-    }
+    internal fun request(
+        payloadParams: EngineDO.PayloadParams,
+        onPairing: (EngineDO.Pairing) -> Unit,
+        onFailure: (Throwable) -> Unit,
+    ) {
+        //todo: check if is authentication exists and is not expired
+        // todo: do some magic
 
-    private fun collectJsonRpcResponses() {
-        scope.launch {
-            relayer.peerResponse.collect { response ->
-                when (response.params) {
-                    is AuthParams.RequestParams -> onAuthRequestResponse(response)
-                }
-            }
-        }
-    }
 
-    private fun onAuthRequestResponse(wcResponse: WCResponse) {
-        when (val response = wcResponse.response) {
-            is JsonRpcResponse.JsonRpcError -> {
-                scope.launch {
-                    _engineEvent.emit(
-                        EngineDO.Events.onAuthResponse(
-                            response.id,
-                            EngineDO.AuthResponse.Error(response.error.code, response.error.message)
-                        )
-                    )
-                }
-            }
-            is JsonRpcResponse.JsonRpcResult -> {
-                val cacao: EngineDO.Cacao = (response.result as AuthParams.ResponseParams).cacao.toEngineDO()
-                if (CacaoVerifier.verify(cacao)) {
-                    scope.launch {
-                        _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Result(cacao)))
-                    }
-                } else {
-                    scope.launch {
-                        _engineEvent.emit(
-                            EngineDO.Events.onAuthResponse(
-                                response.id,
-                                EngineDO.AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)
-                            )
-                        )
-                        //idea: Protocol Improvement: Maybe notify Peer B about wrong verification?
-                    }
-                }
-            }
+        //todo: check if is authentication exists and is  expired
+        // todo: do some magic
+
+
+        // For Alpha we are assuming not authenticated only todo: Remove comment after Alpha
+        val symmetricKey: SymmetricKey = crypto.generateSymmetricKey()
+        val pairingTopic: Topic = crypto.getTopicFromKey(symmetricKey)
+        crypto.setSymmetricKey(pairingTopic, symmetricKey)
+
+        val relay = RelayProtocolOptions()
+        val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
+        val inactivePairing = PairingVO(pairingTopic, relay, walletConnectUri.toAbsoluteString())
+
+        try {
+            storage.insertPairing(inactivePairing)
+            val responsePublicKey: PublicKey = crypto.generateKeyPair()
+            val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
+            crypto.setSelfParticipant(responsePublicKey, responseTopic)
+
+            val authParams: AuthParams.RequestParams = AuthParams.RequestParams(RequesterDTO(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams.toDTO())
+            val authRequest: AuthRpcDTO.AuthRequest = AuthRpcDTO.AuthRequest(generateId(), params = authParams)
+            val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
+            relayer.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
+                onSuccess = {
+                    Logger.log("Auth request sent successfully on topic:$pairingTopic, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
+                    onPairing(EngineDO.Pairing(walletConnectUri.toAbsoluteString()))
+                    relayer.subscribe(responseTopic)
+                },
+                onFailure = { error ->
+                    Logger.error("Failed to send a auth request: $error")
+                    onFailure(error)
+                })
+
+        } catch (e: SQLiteException) {
+            crypto.removeKeys(pairingTopic.value)
+            storage.deletePairing(pairingTopic)
+
+            onFailure(e)
         }
     }
 
@@ -186,58 +184,6 @@ internal class AuthEngine(
 
     }
 
-    internal fun request(
-        payloadParams: EngineDO.PayloadParams,
-        onPairing: (EngineDO.Pairing) -> Unit,
-        onFailure: (Throwable) -> Unit,
-    ) {
-        //todo: check if is authentication exists and is not expired
-        // todo: do some magic
-
-
-        //todo: check if is authentication exists and is  expired
-        // todo: do some magic
-
-
-        // For Alpha we are assuming not authenticated only todo: Remove comment after Alpha
-        val symmetricKey: SymmetricKey = crypto.generateSymmetricKey()
-        val pairingTopic: Topic = crypto.getTopicFromKey(symmetricKey)
-        crypto.setSymmetricKey(pairingTopic, symmetricKey)
-
-        val relay = RelayProtocolOptions()
-        val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
-        val inactivePairing = PairingVO(pairingTopic, relay, walletConnectUri.toAbsoluteString())
-
-        try {
-            storage.insertPairing(inactivePairing)
-            val responsePublicKey: PublicKey = crypto.generateKeyPair()
-            val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
-            crypto.setSelfParticipant(responsePublicKey, responseTopic)
-
-            val authParams: AuthParams.RequestParams =
-                AuthParams.RequestParams(RequesterDTO(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams.toDTO())
-            val authRequest: AuthRpcDTO.AuthRequest = AuthRpcDTO.AuthRequest(generateId(), params = authParams)
-            val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
-            relayer.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
-                onSuccess = {
-                    Logger.log("Auth request sent successfully on topic:$pairingTopic, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
-                    onPairing(EngineDO.Pairing(walletConnectUri.toAbsoluteString()))
-                    relayer.subscribe(responseTopic)
-                },
-                onFailure = { error ->
-                    Logger.error("Failed to send a auth request: $error")
-                    onFailure(error)
-                })
-
-        } catch (e: SQLiteException) {
-            crypto.removeKeys(pairingTopic.value)
-            storage.deletePairing(pairingTopic)
-
-            onFailure(e)
-        }
-
-    }
-
     private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
         if (issuer != null) {
             scope.launch {
@@ -248,18 +194,52 @@ internal class AuthEngine(
         } else {
             val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
             relayer.respondWithError(wcRequest, PeerError.MissingIssuer, irnParams)
-            Logger.error(PeerError.MissingIssuer.message)
         }
     }
 
-    internal fun getRequestById(id: Long): EngineDO.Response {
-
-        return EngineDO.Response.Error(1, 1, "")
+    private fun onAuthRequestResponse(wcResponse: WCResponse) {
+        when (val response = wcResponse.response) {
+            is JsonRpcResponse.JsonRpcError -> {
+                scope.launch {
+                    _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Error(response.error.code, response.error.message)))
+                }
+            }
+            is JsonRpcResponse.JsonRpcResult -> {
+                val cacao: EngineDO.Cacao = (response.result as AuthParams.ResponseParams).cacao.toEngineDO()
+                if (CacaoVerifier.verify(cacao)) {
+                    scope.launch {
+                        _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Result(cacao)))
+                    }
+                } else {
+                    scope.launch {
+                        _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id,
+                            EngineDO.AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)))
+                        //idea: Protocol Improvement: Maybe notify Peer B about wrong verification?
+                    }
+                }
+            }
+        }
     }
 
-    internal fun getPendingRequests(): List<EngineDO.PendingRequest> {
-        return relayer.getPendingRequests()
-            .map { pendingRequest -> pendingRequest.toEngineDO(pendingRequest.payloadParams.toFormattedMessage(issuer!!)) }
+    private fun collectJsonRpcRequests() {
+        scope.launch {
+            relayer.clientSyncJsonRpc.collect { request ->
+                when (val params = request.params) {
+                    is AuthParams.RequestParams -> onAuthRequest(request, params)
+                }
+            }
+        }
+    }
+
+
+    private fun collectJsonRpcResponses() {
+        scope.launch {
+            relayer.peerResponse.collect { response ->
+                when (response.params) {
+                    is AuthParams.RequestParams -> onAuthRequestResponse(response)
+                }
+            }
+        }
     }
 
     private fun resubscribeToSequences() {
