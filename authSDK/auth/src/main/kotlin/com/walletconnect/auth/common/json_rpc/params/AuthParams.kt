@@ -23,7 +23,4 @@ internal sealed class AuthParams : ClientParams {
         @Json(name = "cacao")
         val cacao: CacaoDTO,
     ) : AuthParams()
-
-
-
 }

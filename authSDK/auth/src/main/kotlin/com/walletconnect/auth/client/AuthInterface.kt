@@ -3,16 +3,16 @@ package com.walletconnect.auth.client
 interface AuthInterface {
 
     sealed interface AuthDelegate {
-        fun onConnectionStateChange(connectionStateChange: Auth.Events.ConnectionStateChange)
-        fun onError(error: Auth.Events.Error)
+        fun onConnectionStateChange(connectionStateChange: Auth.Event.ConnectionStateChange)
+        fun onError(error: Auth.Event.Error)
     }
 
     interface RequesterDelegate : AuthDelegate {
-        fun onAuthResponse(authResponse: Auth.Events.AuthResponse)
+        fun onAuthResponse(authResponse: Auth.Event.AuthResponse)
     }
 
     interface ResponderDelegate : AuthDelegate {
-        fun onAuthRequest(authRequest: Auth.Events.AuthRequest)
+        fun onAuthRequest(authRequest: Auth.Event.AuthRequest)
     }
 
     fun setRequesterDelegate(delegate: RequesterDelegate)
@@ -29,5 +29,5 @@ interface AuthInterface {
 
     fun getPendingRequest(): Map<Int, Auth.Model.PendingRequest>
 
-    fun getRequest(params: Auth.Params.RequestId): Auth.Model.Cacao
+    fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response
 }

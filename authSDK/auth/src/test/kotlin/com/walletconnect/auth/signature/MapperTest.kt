@@ -2,11 +2,11 @@ package com.walletconnect.auth.signature
 
 import com.walletconnect.auth.client.Auth.Params.Request
 import com.walletconnect.auth.client.mapper.toEngineDO
-import com.walletconnect.auth.engine.model.EngineDO
-import com.walletconnect.auth.engine.model.EngineDO.Cacao.Payload
+import com.walletconnect.auth.common.model.IssuerVO
+import com.walletconnect.auth.common.model.CacaoVO.PayloadVO as Payload
 import com.walletconnect.auth.engine.model.mapper.toCacaoPayloadDTO
 import com.walletconnect.auth.engine.model.mapper.toDTO
-import com.walletconnect.auth.engine.model.mapper.toEngineDO
+import com.walletconnect.auth.engine.model.mapper.toVO
 import com.walletconnect.auth.engine.model.mapper.toFormattedMessage
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -25,7 +25,7 @@ internal class MapperTest {
     private fun Payload.mockIatAsNbf(request: Request): Payload {
         return this.copy(iat = request.nbf!!)
     }
-    private fun Request.toCacaoPayload(iss: String): EngineDO.Cacao.Payload = this.toEngineDO().toDTO().toCacaoPayloadDTO(EngineDO.Issuer(iss)).toEngineDO()
+    private fun Request.toCacaoPayload(iss: String): Payload = this.toEngineDO().toDTO().toCacaoPayloadDTO(IssuerVO(iss)).toVO()
 
     @Test
     fun `Payload based on Request mapping with supplied issuer`() {

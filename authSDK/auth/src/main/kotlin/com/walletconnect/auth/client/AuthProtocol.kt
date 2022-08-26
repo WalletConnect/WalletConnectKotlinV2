@@ -10,7 +10,6 @@ import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.android_core.network.data.connection.ConnectionType
 import com.walletconnect.auth.BuildConfig
 import com.walletconnect.auth.client.mapper.toClient
-import com.walletconnect.auth.client.mapper.toClientEvent
 import com.walletconnect.auth.client.mapper.toEngineDO
 import com.walletconnect.auth.di.commonModule
 import com.walletconnect.auth.di.engineModule
@@ -72,8 +71,8 @@ internal class AuthProtocol : AuthInterface, Protocol() {
         awaitLock {
             authEngine.engineEvent.onEach { event ->
                 when (event) {
-                    is ConnectionState -> delegate.onConnectionStateChange(event.toClientEvent())
-                    is SDKError -> delegate.onError(event.toClientEvent())
+                    is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
+                    is SDKError -> delegate.onError(event.toClient())
                     is EngineDO.Events.onAuthResponse -> delegate.onAuthResponse(event.toClient())
                 }
             }.launchIn(scope)
@@ -85,8 +84,8 @@ internal class AuthProtocol : AuthInterface, Protocol() {
         awaitLock {
             authEngine.engineEvent.onEach { event ->
                 when (event) {
-                    is ConnectionState -> delegate.onConnectionStateChange(event.toClientEvent())
-                    is SDKError -> delegate.onError(event.toClientEvent())
+                    is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
+                    is SDKError -> delegate.onError(event.toClient())
                     is EngineDO.Events.onAuthRequest -> delegate.onAuthRequest(event.toClient())
                 }
             }.launchIn(scope)

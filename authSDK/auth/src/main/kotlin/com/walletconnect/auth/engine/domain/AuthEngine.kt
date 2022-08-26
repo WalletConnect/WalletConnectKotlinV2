@@ -24,6 +24,8 @@ import com.walletconnect.auth.common.json_rpc.AuthRpcDTO
 import com.walletconnect.auth.common.json_rpc.params.AuthParams
 import com.walletconnect.auth.common.json_rpc.payload.CacaoDTO
 import com.walletconnect.auth.common.json_rpc.payload.RequesterDTO
+import com.walletconnect.auth.common.model.CacaoVO
+import com.walletconnect.auth.common.model.IssuerVO
 import com.walletconnect.auth.common.model.PairingVO
 import com.walletconnect.auth.engine.model.EngineDO
 import com.walletconnect.auth.engine.model.mapper.*
@@ -45,7 +47,7 @@ internal class AuthEngine(
     private val crypto: KeyManagementRepository,
     private val storage: AuthStorageRepository,
     private val metaData: EngineDO.AppMetaData,
-    private val issuer: EngineDO.Issuer?,
+    private val issuer: IssuerVO?,
 ) {
 
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -141,13 +143,11 @@ internal class AuthEngine(
         onFailure: (Throwable) -> Unit,
     ) {
         if (authRequestMap[respond.id] == null) {
-            Logger.error(MissingAuthRequestException.message)
             onFailure(MissingAuthRequestException)
             return
         }
         val wcRequest: WCRequest = authRequestMap[respond.id]!!
         if (wcRequest.params !is AuthParams.RequestParams) {
-            Logger.error(MissingAuthRequestParamsException.message)
             onFailure(MissingAuthRequestParamsException)
             return
         }
@@ -158,13 +158,9 @@ internal class AuthEngine(
                 val payload = authParams.payloadParams.toCacaoPayloadDTO(issuer!!)
                 val cacao = CacaoDTO(CacaoDTO.HeaderDTO(SignatureType.EIP191.header), payload, respond.signature.toDTO())
                 val responseParams = AuthParams.ResponseParams(cacao)
-                if (CacaoVerifier.verify(cacao.toEngineDO())) {
-                    JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
-                } else {
-                    Logger.error(InvalidCacaoException)
-                    onFailure(InvalidCacaoException)
-                    return
-                }
+
+                if (!CacaoVerifier.verify(cacao.toVO())) throw InvalidCacaoException
+                JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
             }
         }
 
@@ -204,16 +200,16 @@ internal class AuthEngine(
                 }
             }
             is JsonRpcResponse.JsonRpcResult -> {
-                val cacao: EngineDO.Cacao = (response.result as AuthParams.ResponseParams).cacao.toEngineDO()
+                val cacao: CacaoVO = (response.result as AuthParams.ResponseParams).cacao.toVO()
                 if (CacaoVerifier.verify(cacao)) {
                     scope.launch {
                         _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Result(cacao)))
                     }
                 } else {
                     scope.launch {
-                        _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id,
-                            EngineDO.AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)))
-                        //idea: Protocol Improvement: Maybe notify Peer B about wrong verification?
+                        _engineEvent.emit(
+                            EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message))
+                        )
                     }
                 }
             }
