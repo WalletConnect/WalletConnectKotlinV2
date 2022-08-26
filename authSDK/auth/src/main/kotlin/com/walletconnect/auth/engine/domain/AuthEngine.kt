@@ -5,7 +5,6 @@ package com.walletconnect.auth.engine.domain
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android_core.common.*
 import com.walletconnect.android_core.common.model.*
-import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.WCRequest
 import com.walletconnect.android_core.common.model.sync.WCResponse
 import com.walletconnect.android_core.common.model.type.EngineEvent
@@ -13,7 +12,7 @@ import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
 import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.crypto.KeyManagementRepository
-import com.walletconnect.android_core.json_rpc.model.JsonRpc
+import com.walletconnect.android_core.json_rpc.model.JsonRpcResponse
 import com.walletconnect.android_core.utils.DAY_IN_SECONDS
 import com.walletconnect.android_core.utils.Logger
 import com.walletconnect.auth.client.mapper.toDTO
@@ -234,11 +233,11 @@ internal class AuthEngine(
     internal fun getResponseById(id: Long): EngineDO.Response? {
         return relayer.getResponseById(id)?.let { response ->
             when (response) {
-                is JsonRpc.JsonRpcResponse.JsonRpcResult -> {
+                is JsonRpcResponse.JsonRpcResult -> {
                     val cacao: EngineDO.Cacao = (response.result as AuthParams.ResponseParams).cacao.toEngineDO()
                     EngineDO.Response.Result(response.id, cacao)
                 }
-                is JsonRpc.JsonRpcResponse.JsonRpcError -> EngineDO.Response.Error(response.id, response.error.code, response.error.message)
+                is JsonRpcResponse.JsonRpcError -> EngineDO.Response.Error(response.id, response.error.code, response.error.message)
             }
         }
     }

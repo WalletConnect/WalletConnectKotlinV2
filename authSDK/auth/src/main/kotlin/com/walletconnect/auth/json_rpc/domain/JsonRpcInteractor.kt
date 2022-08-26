@@ -4,7 +4,7 @@ package com.walletconnect.auth.json_rpc.domain
 
 import com.walletconnect.android_core.crypto.Codec
 import com.walletconnect.android_core.json_rpc.domain.BaseJsonRpcInteractor
-import com.walletconnect.android_core.json_rpc.model.JsonRpc
+import com.walletconnect.android_core.json_rpc.model.JsonRpcResponse
 import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.android_core.network.data.connection.ConnectivityState
 import com.walletconnect.android_core.storage.JsonRpcHistory
@@ -28,15 +28,15 @@ internal class JsonRpcInteractor(
             .filter { rpcHistory -> serializer.deserialize(rpcHistory.method, rpcHistory.body) != null }
             .map { rpcHistory -> serializer.tryDeserialize<AuthRpcDTO.AuthRequest>(rpcHistory.body)!!.toEntry(rpcHistory) }
 
-    fun getResponseById(id: Long): JsonRpc.JsonRpcResponse? {
+    fun getResponseById(id: Long): JsonRpcResponse? {
         val jsonRpcHistory = jsonRpcHistory.getRequestById(id)
-        var jsonRpcResponse: JsonRpc.JsonRpcResponse? = null
+        var jsonRpcResponse: JsonRpcResponse? = null
 
         if (jsonRpcHistory != null) {
             jsonRpcHistory.response?.let { responseJson ->
-                serializer.tryDeserialize<JsonRpc.JsonRpcResponse.JsonRpcResult>(responseJson)?.let { rpcResult ->
+                serializer.tryDeserialize<JsonRpcResponse.JsonRpcResult>(responseJson)?.let { rpcResult ->
                     jsonRpcResponse = rpcResult
-                } ?: serializer.tryDeserialize<JsonRpc.JsonRpcResponse.JsonRpcError>(responseJson)?.let { rpcError ->
+                } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcError>(responseJson)?.let { rpcError ->
                     jsonRpcResponse = rpcError
                 }
             }

@@ -3,15 +3,15 @@ package com.walletconnect.android_core.json_rpc.data
 import com.squareup.moshi.Moshi
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.SerializableJsonRpc
-import com.walletconnect.android_core.json_rpc.model.JsonRpc
+import com.walletconnect.android_core.json_rpc.model.JsonRpcResponse
 
 abstract class JsonRpcSerializerAbstract(open val moshi: Moshi) {
     abstract fun deserialize(method: String, json: String): ClientParams?
     abstract fun sdkSpecificSerialize(payload: SerializableJsonRpc): String
 
     fun serialize(payload: SerializableJsonRpc): String = when (payload) {
-        is JsonRpc.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
-        is JsonRpc.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
+        is JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
+        is JsonRpcResponse.JsonRpcError -> trySerialize(payload)
         else -> sdkSpecificSerialize(payload)
     }
 

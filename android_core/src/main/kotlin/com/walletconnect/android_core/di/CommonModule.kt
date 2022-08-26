@@ -7,7 +7,7 @@ import com.walletconnect.android_core.common.adapters.ExpiryAdapter
 import com.walletconnect.android_core.common.adapters.TagsAdapter
 import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.android_core.common.model.type.enums.Tags
-import com.walletconnect.android_core.json_rpc.model.JsonRpc
+import com.walletconnect.android_core.json_rpc.model.JsonRpcResponse
 import com.walletconnect.foundation.di.FoundationDITags
 import com.walletconnect.foundation.util.Logger
 import org.koin.core.qualifier.named
@@ -20,10 +20,10 @@ fun commonModule() = module {
 
     includes(foundationCommonModule())
 
-    single<PolymorphicJsonAdapterFactory<JsonRpc.JsonRpcResponse>> {
-        PolymorphicJsonAdapterFactory.of(JsonRpc.JsonRpcResponse::class.java, "type")
-            .withSubtype(JsonRpc.JsonRpcResponse.JsonRpcResult::class.java, "result")
-            .withSubtype(JsonRpc.JsonRpcResponse.JsonRpcError::class.java, "error")
+    single<PolymorphicJsonAdapterFactory<JsonRpcResponse>> {
+        PolymorphicJsonAdapterFactory.of(JsonRpcResponse::class.java, "type")
+            .withSubtype(JsonRpcResponse.JsonRpcResult::class.java, "result")
+            .withSubtype(JsonRpcResponse.JsonRpcError::class.java, "error")
     }
 
     single<Moshi>(named(AndroidCoreDITags.MOSHI)) {
@@ -36,7 +36,7 @@ fun commonModule() = module {
                     else -> null
                 }
             }
-            .add(get<PolymorphicJsonAdapterFactory<JsonRpc.JsonRpcResponse>>())
+            .add(get<PolymorphicJsonAdapterFactory<JsonRpcResponse>>())
             .build()
     }
 

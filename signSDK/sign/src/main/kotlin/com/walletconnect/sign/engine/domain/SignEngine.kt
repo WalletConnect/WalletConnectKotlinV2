@@ -5,7 +5,6 @@ package com.walletconnect.sign.engine.domain
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android_core.common.*
 import com.walletconnect.android_core.common.model.*
-import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.android_core.common.model.sync.WCRequest
 import com.walletconnect.android_core.common.model.sync.WCResponse
@@ -24,6 +23,7 @@ import com.walletconnect.sign.common.exceptions.peer.PeerReason
 import com.walletconnect.sign.common.model.type.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.android_core.common.model.RelayProtocolOptions
+import com.walletconnect.android_core.json_rpc.model.JsonRpcResponse
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.PairingRpcVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO

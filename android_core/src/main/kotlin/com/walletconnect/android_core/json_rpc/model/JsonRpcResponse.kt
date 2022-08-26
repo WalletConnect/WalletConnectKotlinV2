@@ -1,12 +1,12 @@
-package com.walletconnect.android_core.common.model.json_rpc
+package com.walletconnect.android_core.json_rpc.model
 
 import com.squareup.moshi.JsonClass
+import com.walletconnect.android_core.common.model.type.SerializableJsonRpc
 
-//todo: remove me?
-sealed class JsonRpcResponse {
+sealed class JsonRpcResponse : SerializableJsonRpc {
     abstract val id: Long
 
-    @JsonClass(generateAdapter = true)
+    @JsonClass(generateAdapter = false)
     data class JsonRpcResult(
         override val id: Long,
         val jsonrpc: String = "2.0",

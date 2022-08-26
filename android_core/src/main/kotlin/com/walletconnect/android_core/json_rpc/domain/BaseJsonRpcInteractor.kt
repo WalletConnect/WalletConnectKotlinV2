@@ -3,7 +3,7 @@ package com.walletconnect.android_core.json_rpc.domain
 import com.walletconnect.android_core.common.*
 import com.walletconnect.android_core.common.model.IrnParams
 import com.walletconnect.android_core.common.model.Participants
-import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
+import com.walletconnect.android_core.common.model.sync.ClientJsonRpc
 import com.walletconnect.android_core.common.model.sync.WCRequest
 import com.walletconnect.android_core.common.model.sync.WCResponse
 import com.walletconnect.android_core.common.model.type.ClientParams
@@ -225,16 +225,16 @@ open class BaseJsonRpcInteractor(
     }
 
     private suspend fun manageSubscriptions(decryptedMessage: String, topic: Topic) {
-        serializer.tryDeserialize<JsonRpc.ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
+        serializer.tryDeserialize<ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
             handleRequest(clientJsonRpc, topic, decryptedMessage)
-        } ?: serializer.tryDeserialize<JsonRpc.JsonRpcResponse.JsonRpcResult>(decryptedMessage)?.let { result ->
+        } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcResult>(decryptedMessage)?.let { result ->
             handleJsonRpcResult(result)
-        } ?: serializer.tryDeserialize<JsonRpc.JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
+        } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
             handleJsonRpcError(error)
         } ?: handleError("JsonRpcInteractor: Received unknown object type")
     }
 
-    private suspend fun handleRequest(clientJsonRpc: JsonRpc.ClientJsonRpc, topic: Topic, decryptedMessage: String) {
+    private suspend fun handleRequest(clientJsonRpc: ClientJsonRpc, topic: Topic, decryptedMessage: String) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params))
@@ -242,7 +242,7 @@ open class BaseJsonRpcInteractor(
         }
     }
 
-    private suspend fun handleJsonRpcResult(jsonRpcResult: JsonRpc.JsonRpcResponse.JsonRpcResult) {
+    private suspend fun handleJsonRpcResult(jsonRpcResult: JsonRpcResponse.JsonRpcResult) {
         val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcResult.id, serializer.serialize(jsonRpcResult))
 
         if (jsonRpcRecord != null) {
@@ -253,7 +253,7 @@ open class BaseJsonRpcInteractor(
         }
     }
 
-    private suspend fun handleJsonRpcError(jsonRpcError: JsonRpc.JsonRpcResponse.JsonRpcError) {
+    private suspend fun handleJsonRpcError(jsonRpcError: JsonRpcResponse.JsonRpcError) {
         val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcError.id, serializer.serialize(jsonRpcError))
 
         if (jsonRpcRecord != null) {
