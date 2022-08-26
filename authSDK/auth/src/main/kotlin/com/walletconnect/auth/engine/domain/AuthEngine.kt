@@ -16,9 +16,11 @@ import com.walletconnect.android_core.crypto.KeyManagementRepository
 import com.walletconnect.android_core.utils.DAY_IN_SECONDS
 import com.walletconnect.android_core.utils.Logger
 import com.walletconnect.auth.client.mapper.toDTO
+import com.walletconnect.auth.common.exceptions.*
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException
 import com.walletconnect.auth.common.exceptions.MissingAuthRequestException
 import com.walletconnect.auth.common.exceptions.MissingAuthRequestParamsException
+import com.walletconnect.auth.common.exceptions.MissingIssuerException
 import com.walletconnect.auth.common.exceptions.PeerError
 import com.walletconnect.auth.common.json_rpc.AuthRpcDTO
 import com.walletconnect.auth.common.json_rpc.params.AuthParams
@@ -156,7 +158,8 @@ internal class AuthEngine(
         val response: JsonRpcResponse = when (respond) {
             is EngineDO.Respond.Error -> JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
             is EngineDO.Respond.Result -> {
-                val payload = authParams.payloadParams.toCacaoPayloadDTO(issuer!!)
+                val issuer: IssuerVO = issuer ?: throw MissingIssuerException
+                val payload = authParams.payloadParams.toCacaoPayloadDTO(issuer)
                 val cacao = CacaoDTO(CacaoDTO.HeaderDTO(SignatureType.EIP191.header), payload, respond.signature.toDTO())
                 val responseParams = AuthParams.ResponseParams(cacao)
 
