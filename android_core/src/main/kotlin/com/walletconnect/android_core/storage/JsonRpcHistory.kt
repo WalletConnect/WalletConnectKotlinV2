@@ -67,6 +67,12 @@ class JsonRpcHistory(
     fun getRequestById(id: Long): JsonRpcHistory? =
         jsonRpcHistoryQueries.getJsonRpcHistoryRecord(id, mapper = ::mapToJsonRpc).executeAsOneOrNull()
 
+    fun getPendingRequestById(id: Long): JsonRpcHistory? {
+        val record = jsonRpcHistoryQueries.getJsonRpcHistoryRecord(id, mapper = ::mapToJsonRpc).executeAsOneOrNull()
+        return if (record != null && record.response == null) record else null
+    }
+
+
     private fun mapToJsonRpc(requestId: Long, topic: String, method: String, body: String, response: String?): JsonRpcHistory =
         JsonRpcHistory(requestId, topic, method, body, response)
 }

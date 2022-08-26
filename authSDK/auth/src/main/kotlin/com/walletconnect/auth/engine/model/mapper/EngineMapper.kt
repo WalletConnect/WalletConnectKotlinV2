@@ -109,4 +109,4 @@ private fun EngineDO.WalletConnectUri.getQuery(): String {
 
 @JvmSynthetic
 internal fun PendingRequest.toEngineDO(message: String): EngineDO.PendingRequest =
-    EngineDO.PendingRequest(requestId, payloadParams.toEngineDO(), message)
+    EngineDO.PendingRequest(id, params.payloadParams.toEngineDO(), message)

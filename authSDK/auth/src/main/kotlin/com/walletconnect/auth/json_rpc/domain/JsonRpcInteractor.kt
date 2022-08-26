@@ -12,7 +12,7 @@ import com.walletconnect.auth.common.json_rpc.AuthRpcDTO
 import com.walletconnect.auth.common.model.PendingRequest
 import com.walletconnect.auth.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.auth.json_rpc.model.JsonRpcMethod
-import com.walletconnect.auth.json_rpc.model.toEntry
+import com.walletconnect.auth.json_rpc.model.toPendingRequest
 
 internal class JsonRpcInteractor(
     relay: RelayConnectionInterface,
@@ -24,9 +24,23 @@ internal class JsonRpcInteractor(
 
     fun getPendingRequests(): List<PendingRequest> =
         jsonRpcHistory.getPendingRequests()
-            .filter { rpcHistory -> rpcHistory.method == JsonRpcMethod.WC_AUTH_REQUEST }
-            .filter { rpcHistory -> serializer.deserialize(rpcHistory.method, rpcHistory.body) != null }
-            .map { rpcHistory -> serializer.tryDeserialize<AuthRpcDTO.AuthRequest>(rpcHistory.body)!!.toEntry(rpcHistory) }
+            .filter { entry -> entry.method == JsonRpcMethod.WC_AUTH_REQUEST }
+            .filter { rpcHistory -> serializer.tryDeserialize<AuthRpcDTO.AuthRequest>(rpcHistory.body) != null }
+            .map { rpcHistory -> serializer.tryDeserialize<AuthRpcDTO.AuthRequest>(rpcHistory.body)!!.toPendingRequest(rpcHistory) }
+
+    fun getPendingRequestById(id: Long): PendingRequest? {
+        val jsonRpcHistory = jsonRpcHistory.getPendingRequestById(id)
+        var pendingRequest: PendingRequest? = null
+
+        if (jsonRpcHistory != null) {
+           val authRequest: AuthRpcDTO.AuthRequest? = serializer.tryDeserialize<AuthRpcDTO.AuthRequest>(jsonRpcHistory.body)
+            if (authRequest != null) {
+                pendingRequest = authRequest.toPendingRequest(jsonRpcHistory)
+            }
+        }
+
+        return pendingRequest
+    }
 
     fun getResponseById(id: Long): JsonRpcResponse? {
         val jsonRpcHistory = jsonRpcHistory.getRequestById(id)

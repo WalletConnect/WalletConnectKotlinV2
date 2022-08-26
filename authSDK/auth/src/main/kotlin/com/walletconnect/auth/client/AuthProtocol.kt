@@ -130,9 +130,8 @@ internal class AuthProtocol : AuthInterface, Protocol() {
         }
     }
 
-    @Throws(IllegalStateException::class)
+    @Throws(Exception::class)
     override fun getPendingRequest(): List<Auth.Model.PendingRequest> {
-        //todo: add responder check/iss check
         return awaitLock {
             authEngine.getPendingRequests().toClient()
         }

@@ -2,7 +2,7 @@ package com.walletconnect.sign.common.model
 
 import com.walletconnect.foundation.common.model.Topic
 
-data class PendingRequest(
+internal data class PendingRequest(
     val id: Long,
     val topic: Topic,
     val method: String,
