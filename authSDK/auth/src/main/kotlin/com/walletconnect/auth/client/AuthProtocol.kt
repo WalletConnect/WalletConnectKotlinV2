@@ -48,7 +48,7 @@ internal class AuthProtocol : AuthInterface, Protocol() {
                         androidContext(application)
                         modules(
                             commonModule(),
-                            cryptoModule(STORAGE_SUFFIX),
+                            cryptoModule(),
                             storageModule(STORAGE_SUFFIX),
                             jsonRpcModule(),
                             engineModule(appMetaData, iss) //idea: Protocol Improvement. Dynamically changing issuer after initialisation

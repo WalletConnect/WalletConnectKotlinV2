@@ -49,7 +49,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
                         androidContext(application)
                         modules(
                             commonModule(),
-                            cryptoModule(STORAGE_SUFFIX),
+                            cryptoModule(),
                             jsonRpcModule(),
                             storageModule(STORAGE_SUFFIX),
                             engineModule(metadata)
