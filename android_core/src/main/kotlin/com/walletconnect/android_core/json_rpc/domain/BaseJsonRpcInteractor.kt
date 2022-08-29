@@ -115,7 +115,7 @@ open class BaseJsonRpcInteractor(
         onFailure: (Throwable) -> Unit = {},
         participants: Participants? = null,
         envelopeType: EnvelopeType = EnvelopeType.ZERO,
-        ) {
+    ) {
         checkConnectionWorking()
 
         val jsonResponse = response.toJsonRpcResponse()
@@ -125,7 +125,7 @@ open class BaseJsonRpcInteractor(
         relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
             result.fold(
                 onSuccess = {
-                    jsonRpcHistory.updateRequestWithResponse(response.id, responseJson) //JsonRpcResult or JsonRpcError
+                    jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
                     onSuccess()
                 },
                 onFailure = { error -> onFailure(error) }
@@ -152,7 +152,7 @@ open class BaseJsonRpcInteractor(
         irnParams: IrnParams,
         envelopeType: EnvelopeType = EnvelopeType.ZERO,
         participants: Participants? = null,
-        ) {
+    ) {
         val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = true)
 
         try {

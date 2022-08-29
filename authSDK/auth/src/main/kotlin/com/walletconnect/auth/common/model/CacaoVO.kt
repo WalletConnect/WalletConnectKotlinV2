@@ -1,7 +1,6 @@
 @file:JvmSynthetic
 package com.walletconnect.auth.common.model
 
-
 internal data class CacaoVO(
     val header: HeaderVO,
     val payload: PayloadVO,

@@ -31,7 +31,7 @@ internal sealed class EngineDO {
     sealed class Response : EngineDO() {
         abstract val id: Long
 
-        data class Result(override val id: Long, val cacao: Cacao) : Response()
+        data class Result(override val id: Long, val cacao: CacaoVO) : Response()
         data class Error(override val id: Long, val code: Int, val message: String) : Response()
     }
 
@@ -66,44 +66,6 @@ internal sealed class EngineDO {
         val requestId: String?,
         val resources: List<String>?,
     ) : EngineDO()
-
-//    internal data class Cacao(
-//        val header: Header,
-//        val payload: Payload,
-//        val signature: Signature,
-//    ) : EngineDO() {
-//        data class Signature(val t: String, val s: String, val m: String? = null) : EngineDO()
-//        data class Header(val t: String) : EngineDO()
-//        data class Payload(
-//            val iss: String,
-//            val domain: String,
-//            val aud: String,
-//            val version: String,
-//            val nonce: String,
-//            val iat: String,
-//            val nbf: String?,
-//            val exp: String?,
-//            val statement: String?,
-//            val requestId: String?,
-//            val resources: List<String>?,
-//        ) : EngineDO() {
-//            val address: String
-//            val chainId: String
-//
-//            init {
-//                iss.split(ISS_DELIMITER).apply {
-//                    address = get(ISS_POSITION_OF_ADDRESS)
-//                    chainId = get(ISS_POSITION_OF_CHAIN_ID)
-//                }
-//            }
-//
-//            private companion object {
-//                const val ISS_DELIMITER = ":"
-//                const val ISS_POSITION_OF_CHAIN_ID = 3
-//                const val ISS_POSITION_OF_ADDRESS = 4
-//            }
-//        }
-//    }
 
     internal data class PendingRequest(
         val id: Long,

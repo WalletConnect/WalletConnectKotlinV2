@@ -108,8 +108,8 @@ internal fun CacaoVO.HeaderVO.toClient(): Auth.Model.Cacao.Header = Auth.Model.C
 @JvmSynthetic
 internal fun CacaoVO.PayloadVO.toClient(): Auth.Model.Cacao.Payload = Auth.Model.Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
 
-internal fun EngineDO.Cacao.Payload.toClient(): Auth.Model.Cacao.Payload =
-    Auth.Model.Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+//internal fun EngineDO.Cacao.Payload.toClient(): Auth.Model.Cacao.Payload =
+//    Auth.Model.Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
 
 @JvmSynthetic
 internal fun CacaoVO.SignatureVO.toClient(): Auth.Model.Cacao.Signature = Auth.Model.Cacao.Signature(t, s, m)

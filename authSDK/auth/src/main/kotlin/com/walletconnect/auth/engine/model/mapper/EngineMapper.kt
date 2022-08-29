@@ -4,7 +4,7 @@ import com.walletconnect.android_core.common.model.MetaData
 import com.walletconnect.android_core.common.model.Redirect
 import com.walletconnect.auth.common.json_rpc.payload.CacaoDTO
 import com.walletconnect.auth.common.json_rpc.payload.PayloadParamsDTO
-import com.walletconnect.auth.common.model.PendingRequest
+import com.walletconnect.auth.common.model.PendingRequestVO
 import com.walletconnect.auth.common.model.CacaoVO
 import com.walletconnect.auth.common.model.IssuerVO
 import com.walletconnect.auth.engine.model.EngineDO
@@ -30,7 +30,8 @@ internal fun PayloadParamsDTO.toCacaoPayloadDTO(iss: IssuerVO): CacaoDTO.Payload
 )
 
 @JvmSynthetic
-internal fun PayloadParamsDTO.toFormattedMessage(iss: IssuerVO, chainName: String = "Ethereum"): String = this.toCacaoPayloadDTO(iss).toVO().toFormattedMessage(chainName)
+internal fun PayloadParamsDTO.toFormattedMessage(iss: IssuerVO, chainName: String = "Ethereum"): String =
+    this.toCacaoPayloadDTO(iss).toVO().toFormattedMessage(chainName)
 
 @JvmSynthetic
 internal fun EngineDO.PayloadParams.toDTO(): PayloadParamsDTO = PayloadParamsDTO(
@@ -71,10 +72,8 @@ internal fun CacaoDTO.toVO(): CacaoVO = CacaoVO(header.toVO(), payload.toVO(), s
 internal fun CacaoDTO.HeaderDTO.toVO(): CacaoVO.HeaderVO = CacaoVO.HeaderVO(t)
 
 @JvmSynthetic
-internal fun CacaoDTO.PayloadDTO.toVO(): CacaoVO.PayloadVO = CacaoVO.PayloadVO(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
-
-internal fun CacaoDTO.PayloadDTO.toEngineDO(): EngineDO.Cacao.Payload =
-    EngineDO.Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+internal fun CacaoDTO.PayloadDTO.toVO(): CacaoVO.PayloadVO =
+    CacaoVO.PayloadVO(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
 
 @JvmSynthetic
 internal fun CacaoDTO.SignatureDTO.toVO(): CacaoVO.SignatureVO = CacaoVO.SignatureVO(t, s, m)
@@ -111,5 +110,5 @@ private fun EngineDO.WalletConnectUri.getQuery(): String {
 }
 
 @JvmSynthetic
-internal fun PendingRequest.toEngineDO(message: String): EngineDO.PendingRequest =
+internal fun PendingRequestVO.toEngineDO(message: String): EngineDO.PendingRequest =
     EngineDO.PendingRequest(id, params.payloadParams.toEngineDO(), message)
