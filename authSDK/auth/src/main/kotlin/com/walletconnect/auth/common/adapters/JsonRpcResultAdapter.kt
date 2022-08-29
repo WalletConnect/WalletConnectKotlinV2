@@ -8,8 +8,8 @@ import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
 import com.walletconnect.android_core.json_rpc.model.JsonRpc
-import com.walletconnect.auth.common.json_rpc.params.AuthParams
-import com.walletconnect.auth.common.json_rpc.payload.CacaoDTO
+import com.walletconnect.auth.common.json_rpc.AuthParams
+import com.walletconnect.auth.common.model.Cacao
 import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.reflect.Constructor
@@ -100,7 +100,7 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<JsonRpc.JsonRpcR
         writer.name("result")
 
         when {
-            (value_.result as? CacaoDTO) != null -> {
+            (value_.result as? Cacao) != null -> {
                 val responseParamsString = cacaoAdapter.toJson(value_.result as AuthParams.ResponseParams)
                 writer.valueSink().use {
                     it.writeUtf8(responseParamsString)

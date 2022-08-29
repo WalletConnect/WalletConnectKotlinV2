@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.auth.common.model
 
 import com.walletconnect.android_core.common.model.Expiry
@@ -6,11 +8,10 @@ import com.walletconnect.android_core.common.model.RelayProtocolOptions
 import com.walletconnect.android_core.common.model.type.Sequence
 import com.walletconnect.android_core.utils.ACTIVE_PAIRING
 import com.walletconnect.android_core.utils.INACTIVE_PAIRING
-import com.walletconnect.auth.engine.model.EngineDO
-import com.walletconnect.auth.engine.model.mapper.toAbsoluteString
+import com.walletconnect.auth.engine.mapper.toAbsoluteString
 import com.walletconnect.foundation.common.model.Topic
 
-internal data class PairingVO(
+internal data class Pairing(
     override val topic: Topic,
     override val expiry: Expiry,
     val peerMetaData: MetaData? = null,
@@ -29,7 +30,7 @@ internal data class PairingVO(
         isActive = false
     )
 
-    constructor(uri: EngineDO.WalletConnectUri) : this(
+    constructor(uri: WalletConnectUri) : this(
         topic = uri.topic,
         expiry = Expiry(ACTIVE_PAIRING),
         relayProtocol = uri.relay.protocol,
