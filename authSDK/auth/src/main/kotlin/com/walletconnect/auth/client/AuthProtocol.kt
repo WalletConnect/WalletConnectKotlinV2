@@ -10,18 +10,18 @@ import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.android_core.network.data.connection.ConnectionType
 import com.walletconnect.auth.BuildConfig
 import com.walletconnect.auth.client.mapper.toClient
-import com.walletconnect.auth.client.mapper.toEngineDO
+import com.walletconnect.auth.client.mapper.toCommon
+import com.walletconnect.auth.common.model.Events
 import com.walletconnect.auth.di.commonModule
 import com.walletconnect.auth.di.engineModule
 import com.walletconnect.auth.di.jsonRpcModule
 import com.walletconnect.auth.di.storageModule
 import com.walletconnect.auth.engine.domain.AuthEngine
-import com.walletconnect.auth.engine.model.EngineDO
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.utils.Empty
-import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
@@ -73,7 +73,7 @@ internal class AuthProtocol : AuthInterface, Protocol() {
                 when (event) {
                     is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
                     is SDKError -> delegate.onError(event.toClient())
-                    is EngineDO.Events.onAuthResponse -> delegate.onAuthResponse(event.toClient())
+                    is Events.OnAuthResponse -> delegate.onAuthResponse(event.toClient())
                 }
             }.launchIn(scope)
         }
@@ -86,7 +86,7 @@ internal class AuthProtocol : AuthInterface, Protocol() {
                 when (event) {
                     is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
                     is SDKError -> delegate.onError(event.toClient())
-                    is EngineDO.Events.onAuthRequest -> delegate.onAuthRequest(event.toClient())
+                    is Events.OnAuthRequest -> delegate.onAuthRequest(event.toClient())
                 }
             }.launchIn(scope)
         }
@@ -108,8 +108,8 @@ internal class AuthProtocol : AuthInterface, Protocol() {
         awaitLock {
             try {
                 authEngine.request(
-                    params.toEngineDO(),
-                    onPairing = { proposedSequence -> onPairing(proposedSequence.toClient()) },
+                    params.toCommon(),
+                    onPairing = { uri -> onPairing(uri.toClient()) },
                     onFailure = { error -> onError(Auth.Model.Error(error)) }
                 )
             } catch (error: Exception) {
@@ -122,7 +122,7 @@ internal class AuthProtocol : AuthInterface, Protocol() {
     override fun respond(params: Auth.Params.Respond, onError: (Auth.Model.Error) -> Unit) {
         awaitLock {
             try {
-                authEngine.respond(params.toEngineDO()) { error -> onError(Auth.Model.Error(error)) }
+                authEngine.respond(params.toCommon()) { error -> onError(Auth.Model.Error(error)) }
             } catch (error: Exception) {
                 onError(Auth.Model.Error(error))
             }

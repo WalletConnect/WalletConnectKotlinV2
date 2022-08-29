@@ -20,7 +20,6 @@ import com.walletconnect.responder.R
 import com.walletconnect.responder.common.ACCOUNTS_ARGUMENT_KEY
 import com.walletconnect.responder.databinding.FragmentAccountsBinding
 import com.walletconnect.responder.ui.events.ResponderEvents
-import com.walletconnect.responder.ui.request.RequestStore
 import com.walletconnect.sample_common.BottomVerticalSpaceItemDecoration
 import com.walletconnect.sample_common.viewBinding
 import kotlinx.coroutines.flow.launchIn

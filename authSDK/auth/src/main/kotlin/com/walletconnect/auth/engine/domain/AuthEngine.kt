@@ -15,21 +15,15 @@ import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.crypto.KeyManagementRepository
 import com.walletconnect.android_core.utils.DAY_IN_SECONDS
 import com.walletconnect.android_core.utils.Logger
-import com.walletconnect.auth.client.mapper.toDTO
-import com.walletconnect.auth.common.exceptions.InvalidCacaoException
-import com.walletconnect.auth.common.exceptions.MissingAuthRequestException
-import com.walletconnect.auth.common.exceptions.MissingAuthRequestParamsException
-import com.walletconnect.auth.common.exceptions.MissingIssuerException
-import com.walletconnect.auth.common.exceptions.PeerError
-import com.walletconnect.auth.common.json_rpc.AuthRpcDTO
-import com.walletconnect.auth.common.json_rpc.params.AuthParams
-import com.walletconnect.auth.common.json_rpc.payload.CacaoDTO
-import com.walletconnect.auth.common.json_rpc.payload.RequesterDTO
-import com.walletconnect.auth.common.model.CacaoVO
-import com.walletconnect.auth.common.model.IssuerVO
-import com.walletconnect.auth.common.model.PairingVO
-import com.walletconnect.auth.engine.model.EngineDO
-import com.walletconnect.auth.engine.model.mapper.*
+import com.walletconnect.auth.client.mapper.toCommon
+import com.walletconnect.auth.common.exceptions.*
+import com.walletconnect.auth.common.json_rpc.AuthParams
+import com.walletconnect.auth.common.json_rpc.AuthRpc
+import com.walletconnect.auth.common.model.*
+import com.walletconnect.auth.engine.mapper.toAbsoluteString
+import com.walletconnect.auth.engine.mapper.toCacaoPayload
+import com.walletconnect.auth.engine.mapper.toCore
+import com.walletconnect.auth.engine.mapper.toFormattedMessage
 import com.walletconnect.auth.json_rpc.domain.JsonRpcInteractor
 import com.walletconnect.auth.signature.SignatureType
 import com.walletconnect.auth.signature.cacao.CacaoVerifier
@@ -47,8 +41,8 @@ internal class AuthEngine(
     private val relayer: JsonRpcInteractor,
     private val crypto: KeyManagementRepository,
     private val storage: AuthStorageRepository,
-    private val metaData: EngineDO.AppMetaData,
-    private val issuer: IssuerVO?,
+    private val metaData: AppMetaData,
+    private val issuer: Issuer?,
 ) {
 
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -69,8 +63,8 @@ internal class AuthEngine(
     }
 
     internal fun request(
-        payloadParams: EngineDO.PayloadParams,
-        onPairing: (EngineDO.Pairing) -> Unit,
+        payloadParams: PayloadParams,
+        onPairing: (String) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         //todo: check if is authentication exists and is not expired
@@ -87,8 +81,8 @@ internal class AuthEngine(
         crypto.setSymmetricKey(pairingTopic, symmetricKey)
 
         val relay = RelayProtocolOptions()
-        val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
-        val inactivePairing = PairingVO(pairingTopic, relay, walletConnectUri.toAbsoluteString())
+        val walletConnectUri = WalletConnectUri(pairingTopic, symmetricKey, relay)
+        val inactivePairing = Pairing(pairingTopic, relay, walletConnectUri.toAbsoluteString())
 
         try {
             storage.insertPairing(inactivePairing)
@@ -96,13 +90,13 @@ internal class AuthEngine(
             val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
             crypto.setSelfParticipant(responsePublicKey, responseTopic)
 
-            val authParams: AuthParams.RequestParams = AuthParams.RequestParams(RequesterDTO(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams.toDTO())
-            val authRequest: AuthRpcDTO.AuthRequest = AuthRpcDTO.AuthRequest(generateId(), params = authParams)
+            val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams)
+            val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
             val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
             relayer.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
                 onSuccess = {
                     Logger.log("Auth request sent successfully on topic:$pairingTopic, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
-                    onPairing(EngineDO.Pairing(walletConnectUri.toAbsoluteString()))
+                    onPairing(walletConnectUri.toAbsoluteString())
                     relayer.subscribe(responseTopic)
                 },
                 onFailure = { error ->
@@ -119,14 +113,14 @@ internal class AuthEngine(
     }
 
     internal fun pair(uri: String) {
-        val walletConnectUri: EngineDO.WalletConnectUri =
+        val walletConnectUri: WalletConnectUri =
             Validator.validateWCUri(uri) ?: throw MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
 
         if (storage.isPairingValid(walletConnectUri.topic)) {
             throw PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
         }
 
-        val activePairing = PairingVO(walletConnectUri)
+        val activePairing = Pairing(walletConnectUri)
         val symmetricKey: SymmetricKey = walletConnectUri.symKey
         crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
 
@@ -140,7 +134,7 @@ internal class AuthEngine(
     }
 
     internal fun respond(
-        respond: EngineDO.Respond,
+        respond: Respond,
         onFailure: (Throwable) -> Unit,
     ) {
         if (authRequestMap[respond.id] == null) {
@@ -154,14 +148,14 @@ internal class AuthEngine(
         }
         val authParams: AuthParams.RequestParams = (wcRequest.params as AuthParams.RequestParams)
         val response: JsonRpcResponse = when (respond) {
-            is EngineDO.Respond.Error -> JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
-            is EngineDO.Respond.Result -> {
-                val issuer: IssuerVO = issuer ?: throw MissingIssuerException
-                val payloadDTO: CacaoDTO.PayloadDTO = authParams.payloadParams.toCacaoPayloadDTO(issuer)
-                val cacaoDTO = CacaoDTO(CacaoDTO.HeaderDTO(SignatureType.EIP191.header), payloadDTO, respond.signature.toDTO())
-                val responseParams = AuthParams.ResponseParams(cacaoDTO)
+            is Respond.Error -> JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
+            is Respond.Result -> {
+                val issuer: Issuer = issuer ?: throw MissingIssuerException
+                val payload: Cacao.Payload = authParams.payloadParams.toCacaoPayload(issuer)
+                val cacao = Cacao(Cacao.Header(SignatureType.EIP191.header), payload, respond.signature.toCommon())
+                val responseParams = AuthParams.ResponseParams(cacao)
 
-                if (!CacaoVerifier.verify(cacaoDTO.toVO())) throw InvalidCacaoException
+                if (!CacaoVerifier.verify(cacao)) throw InvalidCacaoException
                 JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
             }
         }
@@ -186,7 +180,7 @@ internal class AuthEngine(
             scope.launch {
                 authRequestMap[wcRequest.id] = wcRequest
                 val formattedMessage: String = authParams.payloadParams.toFormattedMessage(issuer)
-                _engineEvent.emit(EngineDO.Events.onAuthRequest(wcRequest.id, formattedMessage))
+                _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, formattedMessage))
             }
         } else {
             val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
@@ -198,19 +192,19 @@ internal class AuthEngine(
         when (val response = wcResponse.response) {
             is JsonRpcResponse.JsonRpcError -> {
                 scope.launch {
-                    _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Error(response.error.code, response.error.message)))
+                    _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Error(response.error.code, response.error.message)))
                 }
             }
             is JsonRpcResponse.JsonRpcResult -> {
-                val cacao: CacaoVO = (response.result as AuthParams.ResponseParams).cacao.toVO()
+                val cacao: Cacao = (response.result as AuthParams.ResponseParams).cacao
                 if (CacaoVerifier.verify(cacao)) {
                     scope.launch {
-                        _engineEvent.emit(EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Result(cacao)))
+                        _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Result(cacao)))
                     }
                 } else {
                     scope.launch {
                         _engineEvent.emit(
-                            EngineDO.Events.onAuthResponse(response.id, EngineDO.AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message))
+                            Events.OnAuthResponse(response.id, AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message))
                         )
                     }
                 }
