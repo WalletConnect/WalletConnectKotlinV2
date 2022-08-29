@@ -1,13 +1,11 @@
 package com.walletconnect.requester.ui.connect.pairing_generate
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
+import android.content.*
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.net.toUri
 import androidx.fragment.app.DialogFragment
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
 import com.google.android.material.snackbar.Snackbar
 import com.walletconnect.requester.R
@@ -22,34 +20,27 @@ class PairingGenerationDialogFragment : DialogFragment(R.layout.dialog_connect_u
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         dialog?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 
-        //todo: Reimplement. Right now only for demo purposes
-        viewModel.connectToWallet {
-            val pairingUri = "https://walletconnect.com/" // todo: get right uri here
-            val deeplinkPairingUri = pairingUri.replace("wc:", "wc:/")
-            val qr = QRCode.from(pairingUri).bitmap()
+        viewModel.connectToWallet { uri ->
+            val deeplinkPairingUri = uri.replace("wc:", "wc:/")
+            val qr = QRCode.from(uri).bitmap()
 
             binding.ivUri.setImageBitmap(qr)
             binding.btnCopyToClipboard.setOnClickListener {
                 val clipBoard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                val clipData = ClipData.newPlainText("WalletConnect Pairing URI", pairingUri)
+                val clipData = ClipData.newPlainText("WalletConnect Pairing URI", uri)
                 clipBoard.setPrimaryClip(clipData)
 
                 Snackbar.make(binding.root, "Copied to Clipboard", Snackbar.LENGTH_SHORT).show()
             }
 
             binding.btnDeepLink.setOnClickListener {
-//                try {
-//                    requireActivity().startActivity(Intent(Intent.ACTION_VIEW, deeplinkPairingUri.toUri()))
-//                } catch (exception: ActivityNotFoundException) {
-//                    // There is no app to handle deep link
-//                }
-                // todo: uncomment for deeplinking
-
-                findNavController().navigate(R.id.action_global_fragment_session)
-
+                try {
+                    requireActivity().startActivity(Intent(Intent.ACTION_VIEW, deeplinkPairingUri.toUri()))
+                } catch (exception: ActivityNotFoundException) {
+                    // There is no app to handle deep link
+                }
             }
         }
     }

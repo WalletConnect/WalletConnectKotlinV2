@@ -56,8 +56,8 @@ class AccountsFragment : Fragment(R.layout.fragment_accounts) {
 
         viewModel.navigation
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.RESUMED)
-            .onEach { events ->
-                when (events) {
+            .onEach { event ->
+                when (event) {
                     is ResponderEvents.OnRequest -> findNavController().navigate(R.id.action_global_to_request)
                     else -> Unit
                 }

@@ -19,6 +19,7 @@ import com.walletconnect.sign.di.jsonRpcModule
 import com.walletconnect.sign.di.storageModule
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
+import com.walletconnect.utils.Empty
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -35,6 +36,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
 
     companion object {
         val instance = SignProtocol()
+        private const val STORAGE_SUFFIX = ""
     }
 
     override fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
@@ -49,7 +51,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
                             commonModule(),
                             cryptoModule(),
                             jsonRpcModule(),
-                            storageModule(),
+                            storageModule(STORAGE_SUFFIX),
                             engineModule(metadata)
                         )
                     }

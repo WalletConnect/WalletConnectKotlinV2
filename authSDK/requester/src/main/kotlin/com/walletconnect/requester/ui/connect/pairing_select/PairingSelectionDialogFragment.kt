@@ -10,6 +10,7 @@ import com.walletconnect.requester.databinding.DialogPairingSelectionBinding
 import com.walletconnect.requester.ui.connect.ConnectViewModel
 import com.walletconnect.sample_common.BottomVerticalSpaceItemDecoration
 
+//todo: Decide after Alpha if this is obsolete
 class PairingSelectionDialogFragment : DialogFragment(R.layout.dialog_pairing_selection) {
     private val viewModel: ConnectViewModel by navGraphViewModels(R.id.connectGraph)
     private var _binding: DialogPairingSelectionBinding? = null
@@ -17,7 +18,7 @@ class PairingSelectionDialogFragment : DialogFragment(R.layout.dialog_pairing_se
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        //todo: Reimplement. Right now only for demo purposes
+        //todo: Reimplement.
         val binding = DialogPairingSelectionBinding.bind(view).also { _binding = it }
 //        val pairings = SignClient.getListOfSettledPairings().mapNotNull { pairing ->
 //            pairing.metaData?.let { metadata -> metadata.icons.first() to metadata.name }

@@ -8,11 +8,11 @@ import com.walletconnect.util.hexToBytes
 internal class KeyChainMock : KeyStore {
     private val mapOfKeys = mutableMapOf<String, String>()
 
-    override fun setSymmetricKey(tag: String, key: Key) {
+    override fun setKey(tag: String, key: Key) {
         mapOfKeys[tag] = key.keyAsHex
     }
 
-    override fun getSymmetricKey(tag: String): String {
+    override fun getKey(tag: String): String {
         return mapOfKeys[tag] ?: ""
     }
 

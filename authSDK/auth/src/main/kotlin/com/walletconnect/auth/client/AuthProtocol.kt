@@ -1,31 +1,30 @@
 package com.walletconnect.auth.client
 
-import com.walletconnect.utils.Empty
-import com.walletconnect.android_core.common.model.ConnectionState
 import com.walletconnect.android_core.common.SDKError
 import com.walletconnect.android_core.common.client.Protocol
+import com.walletconnect.android_core.common.model.ConnectionState
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.di.cryptoModule
 import com.walletconnect.android_core.di.networkModule
 import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.android_core.network.data.connection.ConnectionType
 import com.walletconnect.auth.BuildConfig
-import com.walletconnect.auth.client.mapper.toClientConnectionState
-import com.walletconnect.auth.client.mapper.toClientError
+import com.walletconnect.auth.client.mapper.toClient
+import com.walletconnect.auth.client.mapper.toCommon
+import com.walletconnect.auth.common.model.Events
 import com.walletconnect.auth.di.commonModule
 import com.walletconnect.auth.di.engineModule
 import com.walletconnect.auth.di.jsonRpcModule
 import com.walletconnect.auth.di.storageModule
 import com.walletconnect.auth.engine.domain.AuthEngine
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
-import kotlinx.coroutines.*
+import com.walletconnect.utils.Empty
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
-import java.util.concurrent.Executors
 
 internal class AuthProtocol : AuthInterface, Protocol() {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
@@ -36,6 +35,7 @@ internal class AuthProtocol : AuthInterface, Protocol() {
 
     companion object {
         val instance = AuthProtocol()
+        private const val STORAGE_SUFFIX = "_auth"
     }
 
     @Throws(IllegalStateException::class)
@@ -48,9 +48,9 @@ internal class AuthProtocol : AuthInterface, Protocol() {
                         modules(
                             commonModule(),
                             cryptoModule(),
-                            storageModule(),
+                            storageModule(STORAGE_SUFFIX),
                             jsonRpcModule(),
-                            engineModule(appMetaData)
+                            engineModule(appMetaData, iss) //idea: Protocol Improvement. Dynamically changing issuer after initialisation
                         )
                     }
                 }
@@ -71,8 +71,9 @@ internal class AuthProtocol : AuthInterface, Protocol() {
         awaitLock {
             authEngine.engineEvent.onEach { event ->
                 when (event) {
-                    is ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
-                    is SDKError -> delegate.onError(event.toClientError())
+                    is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
+                    is SDKError -> delegate.onError(event.toClient())
+                    is Events.OnAuthResponse -> delegate.onAuthResponse(event.toClient())
                 }
             }.launchIn(scope)
         }
@@ -83,8 +84,9 @@ internal class AuthProtocol : AuthInterface, Protocol() {
         awaitLock {
             authEngine.engineEvent.onEach { event ->
                 when (event) {
-                    is ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
-                    is SDKError -> delegate.onError(event.toClientError())
+                    is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
+                    is SDKError -> delegate.onError(event.toClient())
+                    is Events.OnAuthRequest -> delegate.onAuthRequest(event.toClient())
                 }
             }.launchIn(scope)
         }
@@ -102,13 +104,29 @@ internal class AuthProtocol : AuthInterface, Protocol() {
     }
 
     @Throws(IllegalStateException::class)
-    override fun request(params: Auth.Params.Request) {
-        //TODO("Not yet implemented")
+    override fun request(params: Auth.Params.Request, onPairing: (Auth.Model.Pairing) -> Unit, onError: (Auth.Model.Error) -> Unit) {
+        awaitLock {
+            try {
+                authEngine.request(
+                    params.toCommon(),
+                    onPairing = { uri -> onPairing(uri.toClient()) },
+                    onFailure = { error -> onError(Auth.Model.Error(error)) }
+                )
+            } catch (error: Exception) {
+                onError(Auth.Model.Error(error))
+            }
+        }
     }
 
     @Throws(IllegalStateException::class)
-    override fun respond(params: Auth.Params.Respond) {
-        //TODO("Not yet implemented")
+    override fun respond(params: Auth.Params.Respond, onError: (Auth.Model.Error) -> Unit) {
+        awaitLock {
+            try {
+                authEngine.respond(params.toCommon()) { error -> onError(Auth.Model.Error(error)) }
+            } catch (error: Exception) {
+                onError(Auth.Model.Error(error))
+            }
+        }
     }
 
     @Throws(IllegalStateException::class)
@@ -120,7 +138,7 @@ internal class AuthProtocol : AuthInterface, Protocol() {
     @Throws(IllegalStateException::class)
     override fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response {
         //TODO("Not yet implemented")
-        return Auth.Model.Response.Error(0, String.Empty)
+        return Auth.Model.Response.Error(0, 0, String.Empty)
     }
 
     @Throws(IllegalStateException::class)

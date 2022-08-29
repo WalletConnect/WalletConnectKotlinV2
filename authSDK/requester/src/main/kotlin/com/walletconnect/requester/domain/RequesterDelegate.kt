@@ -12,24 +12,28 @@ import kotlinx.coroutines.launch
 
 object RequesterDelegate : AuthClient.RequesterDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val _wcEvents: MutableSharedFlow<Auth.Events> = MutableSharedFlow()
-    val wcEvents: SharedFlow<Auth.Events> = _wcEvents.asSharedFlow()
+    private val _wcEvents: MutableSharedFlow<Auth.Event> = MutableSharedFlow()
+    val wcEvents: SharedFlow<Auth.Event> = _wcEvents.asSharedFlow()
 
     init {
         AuthClient.setRequesterDelegate(this)
     }
 
-    override fun onAuthResponse(authResponse: Auth.Events.AuthResponse) {
+    override fun onAuthResponse(authResponse: Auth.Event.AuthResponse) {
         scope.launch {
             _wcEvents.emit(authResponse)
         }
     }
 
-    override fun onConnectionStateChange(state: Auth.Model.ConnectionState) {
-        TODO("Not yet implemented")
+    override fun onConnectionStateChange(connectionStateChange: Auth.Event.ConnectionStateChange) {
+        scope.launch {
+            _wcEvents.emit(connectionStateChange)
+        }
     }
 
-    override fun onError(error: Auth.Model.Error) {
-        TODO("Not yet implemented")
+    override fun onError(error: Auth.Event.Error) {
+        scope.launch {
+            _wcEvents.emit(error)
+        }
     }
 }

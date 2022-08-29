@@ -8,23 +8,32 @@ object Auth {
 
     }
 
-    sealed class Events {
+    sealed class Event {
         data class AuthRequest(
             val id: Long,
             val message: String,
-        ) : Events()
+        ) : Event()
 
+        //idea: Protocol Improvement. Remove id in AuthResponse
         data class AuthResponse(
             val id: Long,
             val response: Model.Response,
-        ) : Events()
+        ) : Event()
+
+        data class ConnectionStateChange(
+            val state: Model.ConnectionState,
+        ) : Event()
+
+        data class Error(
+            val error: Model.Error
+        ) : Event()
     }
 
     sealed class Model {
 
         data class Error(val throwable: Throwable) : Model() // TODO: Should this be extracted to core for easier error handling?
 
-        data class ConnectionState(val isAvailable: Boolean, ) : Model()
+        data class ConnectionState(val isAvailable: Boolean) : Model()
 
         data class AppMetaData(
             val name: String,
@@ -33,6 +42,8 @@ object Auth {
             val icons: List<String>,
             val redirect: String?,
         ) : Model()
+
+        data class Pairing(val uri: String) : Model()
 
         data class PendingRequest(
             val id: Long,
@@ -95,8 +106,10 @@ object Auth {
         }
 
         sealed class Response : Model() {
-            data class Result(val cacao: Cacao) : Response()
-            data class Error(val code: Int, val message: String) : Response()
+            abstract val id: Long
+
+            data class Result(override val id: Long, val cacao: Cacao) : Response()
+            data class Error(override val id: Long, val code: Int, val message: String) : Response()
         }
     }
 
@@ -120,8 +133,10 @@ object Auth {
         ) : Params()
 
         sealed class Respond : Params() {
-            data class Result(val id: Long, val signature: Model.Cacao.Signature) : Respond()
-            data class Error(val code: Int, val message: String) : Respond()
+            abstract val id: Long
+
+            data class Result(override val id: Long, val signature: Model.Cacao.Signature) : Respond()
+            data class Error(override val id: Long, val code: Int, val message: String) : Respond()
         }
 
         data class RequestId(val id: Long)

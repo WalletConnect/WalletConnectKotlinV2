@@ -1,39 +1,51 @@
 package com.walletconnect.responder.ui.request
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.walletconnect.responder.R
+import com.walletconnect.auth.client.Auth
+import com.walletconnect.auth.client.AuthClient
+import com.walletconnect.auth.signature.SignatureType
+import com.walletconnect.auth.signature.cacao.CacaoSigner
+import com.walletconnect.responder.domain.PRIVATE_KEY_1
+import com.walletconnect.sample_common.tag
 
 class RequestViewModel : ViewModel() {
+
     fun fetchRequestProposal(sessionExists: (RequestUI) -> Unit, sessionDNE: () -> Unit) {
         //todo: here goes fetching request
-        sessionExists(
-            RequestUI(
-                "https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png",
-                "WalletConnect",
-                "https://walletconnect.com/",
-                "The communications protocol for web3.",
-                """service.invalid wants you to sign in with your Ethereum account:
-0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
-
-I accept the ServiceOrg Terms of Service: https://service.invalid/tos
-
-URI: https://service.invalid/login
-Version: 1
-Chain ID: 1
-Nonce: 32891756
-Issued At: 2021-09-30T16:25:24Z
-Resources:
-- ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq
-- https://example.com/my-web2-claim.json"""
+        if (RequestStore.currentRequest != null) {
+            sessionExists(
+                //todo: How to get Requester Metadata here?
+                RequestUI(
+                    peerIcon = "https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png",
+                    peerName = "WalletConnect",
+                    proposalUri = "https://walletconnect.com/",
+                    peerDescription = "The communications protocol for web3.",
+                    message = RequestStore.currentRequest!!.message
+                )
             )
-        )
+        } else {
+            sessionDNE()
+        }
+
     }
 
     fun approve() {
-        //todo: here goes signing and responding
+        val request = RequestStore.currentRequest!!
+        AuthClient.respond(
+            Auth.Params.Respond.Result(request.id, CacaoSigner.sign(request.message, PRIVATE_KEY_1, SignatureType.EIP191))
+        ) { error ->
+            Log.e(tag(this), error.throwable.stackTraceToString())
+        }
     }
 
     fun reject() {
-        //todo: here goes responding with error
+        val request = RequestStore.currentRequest!!
+        //todo: Define Error Codes
+        AuthClient.respond(
+            Auth.Params.Respond.Error(request.id, 12001, "User Rejected Request")
+        ) { error ->
+            Log.e(tag(this), error.throwable.stackTraceToString())
+        }
     }
 }

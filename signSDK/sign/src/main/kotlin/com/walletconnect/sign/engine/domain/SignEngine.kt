@@ -5,6 +5,7 @@ package com.walletconnect.sign.engine.domain
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android_core.common.*
 import com.walletconnect.android_core.common.model.*
+import com.walletconnect.android_core.common.GenericException
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.PendingRequest
 import com.walletconnect.android_core.common.model.sync.WCRequest
@@ -122,7 +123,7 @@ internal class SignEngine(
         onFailure: (Throwable) -> Unit,
     ) {
         val pairingTopic: Topic = generateTopic()
-        val symmetricKey: SymmetricKey = crypto.generateSymmetricKey(pairingTopic)
+        val symmetricKey: SymmetricKey = crypto.generateAndStoreSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptions()
         val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
         val inactivePairing = PairingVO(pairingTopic, relay, walletConnectUri.toAbsoluteString())
@@ -308,7 +309,7 @@ internal class SignEngine(
         }
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
-        relayer.publishJsonRpcResponse(Topic(topic), jsonRpcResponse, irnParams,
+        relayer.publishJsonRpcResponse(Topic(topic), irnParams, jsonRpcResponse,
             { Logger.log("Session payload sent successfully") },
             { error ->
                 Logger.error("Sending session payload response error: $error")

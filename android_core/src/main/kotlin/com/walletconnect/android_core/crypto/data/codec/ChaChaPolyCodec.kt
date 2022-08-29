@@ -49,12 +49,12 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         UnknownEnvelopeTypeException::class,
         MissingReceiverPublicKeyException::class
     )
-    override fun decrypt(topic: Topic, cipherText: String, receiverPublicKey: PublicKey?): String {
+    override fun decrypt(topic: Topic, cipherText: String): String {
         val encryptedPayloadBytes = Base64.decode(cipherText)
 
         return when (val envelopeType = encryptedPayloadBytes.envelopeType) {
             EnvelopeType.ZERO.id -> decryptType0(topic, encryptedPayloadBytes)
-            EnvelopeType.ONE.id -> decryptType1(encryptedPayloadBytes, receiverPublicKey)
+            EnvelopeType.ONE.id -> decryptType1(encryptedPayloadBytes, keyManagementRepository.getSelfParticipant(topic))
             else -> throw UnknownEnvelopeTypeException("Decrypt; Unknown envelope type: $envelopeType")
         }
     }

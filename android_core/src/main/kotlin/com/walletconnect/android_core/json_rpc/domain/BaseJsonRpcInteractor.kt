@@ -2,6 +2,7 @@ package com.walletconnect.android_core.json_rpc.domain
 
 import com.walletconnect.android_core.common.*
 import com.walletconnect.android_core.common.model.IrnParams
+import com.walletconnect.android_core.common.model.Participants
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.PendingRequest
 import com.walletconnect.android_core.common.model.sync.WCRequest
@@ -89,6 +90,8 @@ abstract class BaseJsonRpcInteractor(
         topic: Topic,
         params: IrnParams,
         payload: JsonRpcClientSync<*>,
+        envelopeType: EnvelopeType = EnvelopeType.ZERO,
+        participants: Participants? = null,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
@@ -96,9 +99,9 @@ abstract class BaseJsonRpcInteractor(
         val requestJson = serializer.serialize(payload)
 
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
-            val message = chaChaPolyCodec.encrypt(topic, requestJson, EnvelopeType.ZERO)
+            val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
 
-            relay.publish(topic.value, message, params.toRelay()) { result ->
+            relay.publish(topic.value, encryptedRequest, params.toRelay()) { result ->
                 result.fold(
                     onSuccess = { onSuccess() },
                     onFailure = { error -> onFailure(error) }
@@ -109,18 +112,20 @@ abstract class BaseJsonRpcInteractor(
 
     fun publishJsonRpcResponse(
         topic: Topic,
-        response: JsonRpcResponse,
         params: IrnParams,
+        response: JsonRpcResponse,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
-    ) {
+        participants: Participants? = null,
+        envelopeType: EnvelopeType = EnvelopeType.ZERO,
+        ) {
         checkConnectionWorking()
 
         val jsonResponseDO = response.toJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO)
-        val message = chaChaPolyCodec.encrypt(topic, responseJson, EnvelopeType.ZERO)
+        val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
 
-        relay.publish(topic.value, message, params.toRelay()) { result ->
+        relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
             result.fold(
                 onSuccess = {
                     jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
@@ -131,18 +136,30 @@ abstract class BaseJsonRpcInteractor(
         }
     }
 
-    fun respondWithParams(request: WCRequest, clientParams: ClientParams, irnParams: IrnParams) {
+    fun respondWithParams(
+        request: WCRequest,
+        clientParams: ClientParams,
+        irnParams: IrnParams,
+        envelopeType: EnvelopeType = EnvelopeType.ZERO,
+        participants: Participants? = null,
+
+        ) {
         val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = clientParams)
 
-        publishJsonRpcResponse(request.topic, result, irnParams,
+        publishJsonRpcResponse(request.topic, irnParams, result, envelopeType = envelopeType, participants = participants,
             onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
     }
 
-    fun respondWithSuccess(request: WCRequest, irnParams: IrnParams) {
+    fun respondWithSuccess(
+        request: WCRequest,
+        irnParams: IrnParams,
+        envelopeType: EnvelopeType = EnvelopeType.ZERO,
+        participants: Participants? = null,
+        ) {
         val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = true)
 
         try {
-            publishJsonRpcResponse(request.topic, result, irnParams,
+            publishJsonRpcResponse(request.topic, irnParams, result, envelopeType = envelopeType, participants = participants,
                 onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
         } catch (e: Exception) {
             handleError(e.message ?: String.Empty)
@@ -153,13 +170,15 @@ abstract class BaseJsonRpcInteractor(
         request: WCRequest,
         error: Error,
         irnParams: IrnParams,
+        envelopeType: EnvelopeType = EnvelopeType.ZERO,
+        participants: Participants? = null,
         onFailure: (Throwable) -> Unit = {},
     ) {
         Logger.error("Responding with error: ${error.message}: ${error.code}")
         val jsonRpcError = JsonRpcResponse.JsonRpcError(id = request.id, error = JsonRpcResponse.Error(error.code, error.message))
 
         try {
-            publishJsonRpcResponse(request.topic, jsonRpcError, irnParams,
+            publishJsonRpcResponse(request.topic, irnParams, jsonRpcError, envelopeType = envelopeType, participants = participants,
                 onFailure = { failure ->
                     Logger.error("Cannot respond with error: $failure")
                     onFailure(failure)
