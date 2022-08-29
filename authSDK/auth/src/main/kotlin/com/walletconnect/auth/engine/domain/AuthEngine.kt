@@ -148,12 +148,7 @@ internal class AuthEngine(
             onFailure(MissingAuthRequestException)
             return
         }
-
-//        if (pendingRequest.params !is AuthParams.RequestParams) {
-//            Logger.error(MissingAuthRequestParamsException.message)
-//            onFailure(MissingAuthRequestParamsException)
-//            return
-//        }
+        
         val authParams: AuthParams.RequestParams = pendingRequest.params
         val response: JsonRpcResponse = when (respond) {
             is EngineDO.Respond.Error -> JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
