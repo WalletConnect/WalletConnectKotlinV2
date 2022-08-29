@@ -2,8 +2,8 @@
 
 package com.walletconnect.auth.engine.domain
 
+import android.database.sqlite.SQLiteException
 import com.walletconnect.android_core.common.*
-import com.walletconnect.android_core.common.SDKError
 import com.walletconnect.android_core.common.model.*
 import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.WCRequest
@@ -36,6 +36,7 @@ import com.walletconnect.utils.isSequenceValid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 internal class AuthEngine(
     private val relayer: JsonRpcInteractor,
