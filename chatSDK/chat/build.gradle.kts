@@ -32,7 +32,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":android_core"))
+    implementation(project(":android_core_impl"))
 
     retrofit()
     navigationComponent()
