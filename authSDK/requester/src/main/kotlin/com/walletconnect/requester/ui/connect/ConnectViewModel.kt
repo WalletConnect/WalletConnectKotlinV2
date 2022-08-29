@@ -22,9 +22,9 @@ class ConnectViewModel : ViewModel() {
     val navigation: Flow<RequesterEvents> = _navigation.receiveAsFlow()
 
     init {
-        RequesterDelegate.wcEvents.map { walletEvent: Auth.Events ->
+        RequesterDelegate.wcEvents.map { walletEvent: Auth.Event ->
             when (walletEvent) {
-                is Auth.Events.AuthResponse -> {
+                is Auth.Event.AuthResponse -> {
                     when (val response: Auth.Model.Response = walletEvent.response) {
                         is Auth.Model.Response.Result -> RequesterEvents.OnAuthenticated(response.cacao).also { CacaoStore.currentCacao = response.cacao }
                         is Auth.Model.Response.Error -> RequesterEvents.OnError(response.code, response.message)

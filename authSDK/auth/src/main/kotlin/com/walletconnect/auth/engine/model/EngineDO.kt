@@ -5,6 +5,7 @@ package com.walletconnect.auth.engine.model
 import com.walletconnect.android_core.common.model.SymmetricKey
 import com.walletconnect.android_core.common.model.type.EngineEvent
 import com.walletconnect.auth.client.Auth
+import com.walletconnect.auth.common.model.CacaoVO
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.android_core.common.model.RelayProtocolOptions as CoreRelayProtocolOptions
 
@@ -16,7 +17,7 @@ internal sealed class EngineDO {
     }
 
     internal sealed class AuthResponse : EngineDO() {
-        data class Result(val cacao: Cacao) : AuthResponse()
+        data class Result(val cacao: CacaoVO) : AuthResponse()
         data class Error(val code: Int, val message: String) : AuthResponse()
     }
 
@@ -40,9 +41,6 @@ internal sealed class EngineDO {
         val relay: CoreRelayProtocolOptions,
         val version: String = "2",
     ) : EngineDO()
-
-    @JvmInline
-    internal value class Issuer(val value: String)
 
     internal data class AppMetaData(
         val name: String,
@@ -69,43 +67,43 @@ internal sealed class EngineDO {
         val resources: List<String>?,
     ) : EngineDO()
 
-    internal data class Cacao(
-        val header: Header,
-        val payload: Payload,
-        val signature: Signature,
-    ) : EngineDO() {
-        data class Signature(val t: String, val s: String, val m: String? = null) : EngineDO()
-        data class Header(val t: String) : EngineDO()
-        data class Payload(
-            val iss: String,
-            val domain: String,
-            val aud: String,
-            val version: String,
-            val nonce: String,
-            val iat: String,
-            val nbf: String?,
-            val exp: String?,
-            val statement: String?,
-            val requestId: String?,
-            val resources: List<String>?,
-        ) : EngineDO() {
-            val address: String
-            val chainId: String
-
-            init {
-                iss.split(ISS_DELIMITER).apply {
-                    address = get(ISS_POSITION_OF_ADDRESS)
-                    chainId = get(ISS_POSITION_OF_CHAIN_ID)
-                }
-            }
-
-            private companion object {
-                const val ISS_DELIMITER = ":"
-                const val ISS_POSITION_OF_CHAIN_ID = 3
-                const val ISS_POSITION_OF_ADDRESS = 4
-            }
-        }
-    }
+//    internal data class Cacao(
+//        val header: Header,
+//        val payload: Payload,
+//        val signature: Signature,
+//    ) : EngineDO() {
+//        data class Signature(val t: String, val s: String, val m: String? = null) : EngineDO()
+//        data class Header(val t: String) : EngineDO()
+//        data class Payload(
+//            val iss: String,
+//            val domain: String,
+//            val aud: String,
+//            val version: String,
+//            val nonce: String,
+//            val iat: String,
+//            val nbf: String?,
+//            val exp: String?,
+//            val statement: String?,
+//            val requestId: String?,
+//            val resources: List<String>?,
+//        ) : EngineDO() {
+//            val address: String
+//            val chainId: String
+//
+//            init {
+//                iss.split(ISS_DELIMITER).apply {
+//                    address = get(ISS_POSITION_OF_ADDRESS)
+//                    chainId = get(ISS_POSITION_OF_CHAIN_ID)
+//                }
+//            }
+//
+//            private companion object {
+//                const val ISS_DELIMITER = ":"
+//                const val ISS_POSITION_OF_CHAIN_ID = 3
+//                const val ISS_POSITION_OF_ADDRESS = 4
+//            }
+//        }
+//    }
 
     internal data class PendingRequest(
         val id: Long,

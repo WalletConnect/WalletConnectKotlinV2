@@ -6,6 +6,8 @@ import com.walletconnect.android_core.common.SDKError
 import com.walletconnect.android_core.common.model.ConnectionState
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.common.json_rpc.payload.CacaoDTO
+import com.walletconnect.auth.common.model.CacaoVO
+import com.walletconnect.auth.common.model.IssuerVO
 import com.walletconnect.auth.engine.model.EngineDO
 import com.walletconnect.auth.signature.SignatureType
 import java.time.ZonedDateTime
@@ -16,7 +18,7 @@ internal fun Auth.Model.AppMetaData.toEngineDO(): EngineDO.AppMetaData =
     EngineDO.AppMetaData(name, description, url, icons, redirect)
 
 @JvmSynthetic
-internal fun String.toEngineDO(): EngineDO.Issuer = EngineDO.Issuer(this)
+internal fun String.toVO(): IssuerVO = IssuerVO(this)
 
 @JvmSynthetic
 internal fun Auth.Params.Respond.toEngineDO(): EngineDO.Respond = when (this) {
@@ -25,19 +27,18 @@ internal fun Auth.Params.Respond.toEngineDO(): EngineDO.Respond = when (this) {
 }
 
 @JvmSynthetic
-internal fun ConnectionState.toClientEvent(): Auth.Events.ConnectionStateChange =
-    Auth.Events.ConnectionStateChange(Auth.Model.ConnectionState(this.isAvailable))
+internal fun ConnectionState.toClient(): Auth.Event.ConnectionStateChange = Auth.Event.ConnectionStateChange(Auth.Model.ConnectionState(this.isAvailable))
 
 @JvmSynthetic
-internal fun SDKError.toClientEvent(): Auth.Events.Error = Auth.Events.Error(Auth.Model.Error(this.exception))
+internal fun SDKError.toClient(): Auth.Event.Error = Auth.Event.Error(Auth.Model.Error(this.exception))
 
 @JvmSynthetic
-internal fun EngineDO.Events.onAuthRequest.toClient(): Auth.Events.AuthRequest = Auth.Events.AuthRequest(id, message)
+internal fun EngineDO.Events.onAuthRequest.toClient(): Auth.Event.AuthRequest = Auth.Event.AuthRequest(id, message)
 
 @JvmSynthetic
-internal fun EngineDO.Events.onAuthResponse.toClient(): Auth.Events.AuthResponse = when (val response = response) {
-    is EngineDO.AuthResponse.Error -> Auth.Events.AuthResponse(id, Auth.Model.Response.Error(id, response.code, response.message))
-    is EngineDO.AuthResponse.Result -> Auth.Events.AuthResponse(id, Auth.Model.Response.Result(id, response.cacao.toClient()))
+internal fun EngineDO.Events.onAuthResponse.toClient(): Auth.Event.AuthResponse = when (val response = response) {
+    is EngineDO.AuthResponse.Error -> Auth.Event.AuthResponse(id, Auth.Model.Response.Error(id, response.code, response.message))
+    is EngineDO.AuthResponse.Result -> Auth.Event.AuthResponse(id, Auth.Model.Response.Result(id, response.cacao.toClient()))
 }
 
 @JvmSynthetic
@@ -77,13 +78,13 @@ internal fun EngineDO.PayloadParams.toClient(): Auth.Model.PendingRequest.Payloa
     )
 
 @JvmSynthetic
-internal fun Auth.Model.Cacao.Signature.toEngineDO(): EngineDO.Cacao.Signature = EngineDO.Cacao.Signature(t, s, m)
+internal fun Auth.Model.Cacao.Signature.toVO(): CacaoVO.SignatureVO = CacaoVO.SignatureVO(t, s, m)
 
 @JvmSynthetic
 internal fun Auth.Model.Cacao.Signature.toDTO(): CacaoDTO.SignatureDTO = CacaoDTO.SignatureDTO(t, s, m)
 
 @JvmSynthetic
-internal fun EngineDO.Cacao.toClient(): Auth.Model.Cacao = Auth.Model.Cacao(header.toClient(), payload.toClient(), signature.toClient())
+internal fun CacaoVO.toClient(): Auth.Model.Cacao = Auth.Model.Cacao(header.toClient(), payload.toClient(), signature.toClient())
 
 @JvmSynthetic
 internal fun List<EngineDO.PendingRequest>.toClient(): List<Auth.Model.PendingRequest> =
@@ -102,14 +103,16 @@ internal fun EngineDO.Response.toClient(): Auth.Model.Response = when (this) {
 }
 
 @JvmSynthetic
-internal fun EngineDO.Cacao.Header.toClient(): Auth.Model.Cacao.Header = Auth.Model.Cacao.Header(t)
+internal fun CacaoVO.HeaderVO.toClient(): Auth.Model.Cacao.Header = Auth.Model.Cacao.Header(t)
 
 @JvmSynthetic
+internal fun CacaoVO.PayloadVO.toClient(): Auth.Model.Cacao.Payload = Auth.Model.Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+
 internal fun EngineDO.Cacao.Payload.toClient(): Auth.Model.Cacao.Payload =
     Auth.Model.Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
 
 @JvmSynthetic
-internal fun EngineDO.Cacao.Signature.toClient(): Auth.Model.Cacao.Signature = Auth.Model.Cacao.Signature(t, s, m)
+internal fun CacaoVO.SignatureVO.toClient(): Auth.Model.Cacao.Signature = Auth.Model.Cacao.Signature(t, s, m)
 
-const val ISO_8601_PATTERN = "uuuu-MM-dd'T'HH:mm:ssXXX"
-const val MESSAGE_TEMPLATE_VERSION = "1"
+private const val ISO_8601_PATTERN = "uuuu-MM-dd'T'HH:mm:ssXXX"
+private const val MESSAGE_TEMPLATE_VERSION = "1"

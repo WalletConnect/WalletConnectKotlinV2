@@ -23,10 +23,10 @@ class AccountsViewModel : ViewModel() {
     val navigation: Flow<ResponderEvents> = _navigation.receiveAsFlow()
 
     init {
-        ResponderDelegate.wcEvents.map { event: Auth.Events ->
+        ResponderDelegate.wcEvents.map { event: Auth.Event ->
             when (event) {
                 //todo: remove `.also { RequestStore.currentRequest = it }` after implementing pending request
-                is Auth.Events.AuthRequest -> ResponderEvents.OnRequest(event.id, event.message).also { RequestStore.currentRequest = it }
+                is Auth.Event.AuthRequest -> ResponderEvents.OnRequest(event.id, event.message).also { RequestStore.currentRequest = it }
                 else -> ResponderEvents.NoAction
             }
         }.onEach { event ->
