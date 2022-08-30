@@ -1,4 +1,4 @@
-import com.walletconnect.android_core.common.model.SymmetricKey
+import com.walletconnect.android.impl.common.model.SymmetricKey
 import com.walletconnect.auth.engine.domain.Validator
 import com.walletconnect.auth.engine.model.EngineDO
 import com.walletconnect.auth.engine.model.toAbsoluteString

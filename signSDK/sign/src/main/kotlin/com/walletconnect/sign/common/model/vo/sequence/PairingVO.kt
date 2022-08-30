@@ -2,13 +2,13 @@
 
 package com.walletconnect.sign.common.model.vo.sequence
 
-import com.walletconnect.android_core.common.model.Expiry
-import com.walletconnect.android_core.common.model.MetaData
-import com.walletconnect.android_core.utils.ACTIVE_PAIRING
-import com.walletconnect.android_core.utils.INACTIVE_PAIRING
+import com.walletconnect.android.impl.common.model.Expiry
+import com.walletconnect.android.impl.common.model.MetaData
+import com.walletconnect.android.impl.utils.ACTIVE_PAIRING
+import com.walletconnect.android.impl.utils.INACTIVE_PAIRING
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.android_core.common.model.type.Sequence
-import com.walletconnect.android_core.common.model.RelayProtocolOptions
+import com.walletconnect.android.impl.common.model.type.Sequence
+import com.walletconnect.android.impl.common.model.RelayProtocolOptions
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toAbsoluteString
 

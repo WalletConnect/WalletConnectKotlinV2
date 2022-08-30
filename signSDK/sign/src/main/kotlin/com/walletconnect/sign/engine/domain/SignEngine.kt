@@ -3,17 +3,17 @@
 package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.android_core.common.*
-import com.walletconnect.android_core.common.model.*
-import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
-import com.walletconnect.android_core.common.model.sync.PendingRequest
-import com.walletconnect.android_core.common.model.sync.WCRequest
-import com.walletconnect.android_core.common.model.sync.WCResponse
-import com.walletconnect.android_core.common.model.type.EngineEvent
-import com.walletconnect.android_core.common.model.type.enums.Tags
-import com.walletconnect.android_core.common.scope.scope
-import com.walletconnect.android_core.crypto.KeyManagementRepository
-import com.walletconnect.android_core.utils.*
+import com.walletconnect.android.impl.common.*
+import com.walletconnect.android.impl.common.model.*
+import com.walletconnect.android.impl.common.model.json_rpc.JsonRpcResponse
+import com.walletconnect.android.impl.common.model.sync.PendingRequest
+import com.walletconnect.android.impl.common.model.sync.WCRequest
+import com.walletconnect.android.impl.common.model.sync.WCResponse
+import com.walletconnect.android.impl.common.model.type.EngineEvent
+import com.walletconnect.android.impl.common.model.type.enums.Tags
+import com.walletconnect.android.impl.common.scope.scope
+import com.walletconnect.android.impl.crypto.KeyManagementRepository
+import com.walletconnect.android.impl.utils.*
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -23,7 +23,7 @@ import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.exceptions.peer.PeerReason
 import com.walletconnect.sign.common.model.type.enums.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.android_core.common.model.RelayProtocolOptions
+import com.walletconnect.android.impl.common.model.RelayProtocolOptions
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.PairingRpcVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
@@ -45,7 +45,7 @@ import com.walletconnect.utils.extractTimestamp
 import com.walletconnect.utils.isSequenceValid
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import com.walletconnect.android_core.common.WalletConnectException as CoreWalletConnectException
+import com.walletconnect.android.impl.common.WalletConnectException as CoreWalletConnectException
 
 internal class SignEngine(
     private val relayer: JsonRpcInteractor,

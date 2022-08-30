@@ -2,9 +2,9 @@
 
 package com.walletconnect.chat.copiedFromSign.crypto.data.codec
 
-import com.walletconnect.android_core.common.MissingParticipantsException
-import com.walletconnect.android_core.common.MissingReceiverPublicKeyException
-import com.walletconnect.android_core.common.UnknownEnvelopeTypeException
+import com.walletconnect.android.impl.common.MissingParticipantsException
+import com.walletconnect.android.impl.common.MissingReceiverPublicKeyException
+import com.walletconnect.android.impl.common.UnknownEnvelopeTypeException
 import com.walletconnect.chat.copiedFromSign.core.model.type.enums.EnvelopeType
 import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
 import com.walletconnect.chat.copiedFromSign.core.model.vo.SymmetricKey

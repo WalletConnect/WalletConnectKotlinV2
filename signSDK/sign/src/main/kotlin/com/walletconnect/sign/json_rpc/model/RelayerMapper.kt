@@ -2,8 +2,8 @@
 
 package com.walletconnect.sign.json_rpc.model
 
-import com.walletconnect.android_core.common.model.json_rpc.JsonRpcHistory
-import com.walletconnect.android_core.common.model.sync.PendingRequest
+import com.walletconnect.android.impl.common.model.json_rpc.JsonRpcHistory
+import com.walletconnect.android.impl.common.model.sync.PendingRequest
 import com.walletconnect.sign.common.model.vo.clientsync.session.SessionRpcVO
 
 @JvmSynthetic

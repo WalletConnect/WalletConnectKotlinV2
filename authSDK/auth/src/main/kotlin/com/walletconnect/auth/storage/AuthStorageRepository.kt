@@ -3,8 +3,8 @@
 package com.walletconnect.auth.storage
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.android_core.common.model.Expiry
-import com.walletconnect.android_core.common.model.MetaData
+import com.walletconnect.android.impl.common.model.Expiry
+import com.walletconnect.android.impl.common.model.MetaData
 import com.walletconnect.auth.common.PairingVO
 import com.walletconnect.auth.storage.data.dao.MetaDataDaoQueries
 import com.walletconnect.auth.storage.data.dao.PairingDaoQueries

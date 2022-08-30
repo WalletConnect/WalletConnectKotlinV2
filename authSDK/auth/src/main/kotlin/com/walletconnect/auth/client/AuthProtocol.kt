@@ -1,14 +1,14 @@
 package com.walletconnect.auth.client
 
 import com.walletconnect.utils.Empty
-import com.walletconnect.android_core.common.model.ConnectionState
-import com.walletconnect.android_core.common.SDKError
-import com.walletconnect.android_core.common.client.Protocol
-import com.walletconnect.android_core.common.scope.scope
-import com.walletconnect.android_core.di.cryptoModule
-import com.walletconnect.android_core.di.networkModule
-import com.walletconnect.android_core.network.RelayConnectionInterface
-import com.walletconnect.android_core.network.data.connection.ConnectionType
+import com.walletconnect.android.impl.common.model.ConnectionState
+import com.walletconnect.android.impl.common.SDKError
+import com.walletconnect.android.impl.common.client.Protocol
+import com.walletconnect.android.impl.common.scope.scope
+import com.walletconnect.android.impl.di.cryptoModule
+import com.walletconnect.android.impl.di.networkModule
+import com.walletconnect.android.impl.network.RelayConnectionInterface
+import com.walletconnect.android.impl.network.data.connection.ConnectionType
 import com.walletconnect.auth.BuildConfig
 import com.walletconnect.auth.client.mapper.toClientConnectionState
 import com.walletconnect.auth.client.mapper.toClientError
@@ -21,11 +21,9 @@ import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
-import java.util.concurrent.Executors
 
 internal class AuthProtocol : AuthInterface, Protocol() {
     private val wcKoinApp: KoinApplication = KoinApplication.init()

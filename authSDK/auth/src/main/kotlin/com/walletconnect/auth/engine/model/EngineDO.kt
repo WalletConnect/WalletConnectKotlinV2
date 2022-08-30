@@ -2,7 +2,7 @@
 
 package com.walletconnect.auth.engine.model
 
-import com.walletconnect.android_core.common.model.SymmetricKey
+import com.walletconnect.android.impl.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 
 internal sealed class EngineDO {

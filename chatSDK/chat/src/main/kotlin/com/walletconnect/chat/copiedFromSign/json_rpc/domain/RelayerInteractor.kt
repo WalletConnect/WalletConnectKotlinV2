@@ -2,10 +2,10 @@
 
 package com.walletconnect.chat.copiedFromSign.json_rpc.domain
 
-import com.walletconnect.android_core.common.GenericException
-import com.walletconnect.android_core.common.NoRelayConnectionException
-import com.walletconnect.android_core.common.WalletConnectException
-import com.walletconnect.android_core.utils.Logger
+import com.walletconnect.android.impl.common.GenericException
+import com.walletconnect.android.impl.common.NoRelayConnectionException
+import com.walletconnect.android.impl.common.WalletConnectException
+import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.chat.copiedFromSign.core.exceptions.client.InvalidProjectIdException
 import com.walletconnect.chat.copiedFromSign.core.exceptions.client.ProjectIdDoesNotExistException
 import com.walletconnect.chat.copiedFromSign.core.exceptions.peer.PeerError

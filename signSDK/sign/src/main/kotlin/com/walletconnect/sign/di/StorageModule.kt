@@ -4,9 +4,9 @@ package com.walletconnect.sign.di
 
 import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.EnumColumnAdapter
-import com.walletconnect.android_core.di.coreStorageModule
+import com.walletconnect.android.impl.di.coreStorageModule
 import com.walletconnect.sign.Database
-import com.walletconnect.android_core.common.model.type.enums.MetaDataType
+import com.walletconnect.android.impl.common.model.type.enums.MetaDataType
 import com.walletconnect.sign.storage.data.dao.metadata.MetaDataDao
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDao
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceExtensionsDao

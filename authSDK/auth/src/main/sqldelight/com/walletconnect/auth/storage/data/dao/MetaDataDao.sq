@@ -1,4 +1,4 @@
-import com.walletconnect.android_core.common.model.type.enums.MetaDataType;
+import com.walletconnect.android.impl.common.model.type.enums.MetaDataType;
 import kotlin.collections.List;
 
 CREATE TABLE MetaDataDao(

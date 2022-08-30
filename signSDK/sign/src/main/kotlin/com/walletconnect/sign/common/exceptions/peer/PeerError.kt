@@ -1,6 +1,6 @@
 package com.walletconnect.sign.common.exceptions.peer
 
-import com.walletconnect.android_core.common.model.type.Error
+import com.walletconnect.android.impl.common.model.type.Error
 
 internal sealed class PeerError : Error {
 

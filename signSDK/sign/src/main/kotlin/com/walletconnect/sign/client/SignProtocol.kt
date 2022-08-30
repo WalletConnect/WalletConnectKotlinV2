@@ -2,13 +2,13 @@
 
 package com.walletconnect.sign.client
 
-import com.walletconnect.android_core.common.model.ConnectionState
-import com.walletconnect.android_core.common.SDKError
-import com.walletconnect.android_core.common.client.Protocol
-import com.walletconnect.android_core.common.scope.scope
-import com.walletconnect.android_core.di.cryptoModule
-import com.walletconnect.android_core.di.networkModule
-import com.walletconnect.android_core.network.RelayConnectionInterface
+import com.walletconnect.android.impl.common.model.ConnectionState
+import com.walletconnect.android.impl.common.SDKError
+import com.walletconnect.android.impl.common.client.Protocol
+import com.walletconnect.android.impl.common.scope.scope
+import com.walletconnect.android.impl.di.cryptoModule
+import com.walletconnect.android.impl.di.networkModule
+import com.walletconnect.android.impl.network.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.sign.BuildConfig
@@ -22,11 +22,9 @@ import com.walletconnect.sign.engine.model.EngineDO
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
-import java.util.concurrent.Executors
 
 internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol() {
     private val wcKoinApp: KoinApplication = KoinApplication.init()

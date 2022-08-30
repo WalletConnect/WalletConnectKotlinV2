@@ -3,11 +3,11 @@
 package com.walletconnect.auth.engine.domain
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.android_core.common.*
-import com.walletconnect.android_core.common.model.ConnectionState
-import com.walletconnect.android_core.common.model.type.EngineEvent
-import com.walletconnect.android_core.common.scope.scope
-import com.walletconnect.android_core.crypto.KeyManagementRepository
+import com.walletconnect.android.impl.common.*
+import com.walletconnect.android.impl.common.model.ConnectionState
+import com.walletconnect.android.impl.common.model.type.EngineEvent
+import com.walletconnect.android.impl.common.scope.scope
+import com.walletconnect.android.impl.crypto.KeyManagementRepository
 import com.walletconnect.auth.common.PairingVO
 import com.walletconnect.auth.engine.model.EngineDO
 import com.walletconnect.auth.json_rpc.domain.JsonRpcInteractor

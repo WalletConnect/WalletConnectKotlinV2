@@ -1,7 +1,5 @@
 package com.walletconnect.auth.engine.model
 
-import com.walletconnect.android_core.common.model.RelayProtocolOptions
-
 @JvmSynthetic
 internal fun EngineDO.WalletConnectUri.toAbsoluteString(): String =
     "wc:auth-${topic.value}@$version?${getQuery()}&symKey=${symKey.keyAsHex}"

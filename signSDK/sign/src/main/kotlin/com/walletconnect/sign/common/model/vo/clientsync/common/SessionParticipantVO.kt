@@ -4,7 +4,7 @@ package com.walletconnect.sign.common.model.vo.clientsync.common
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android_core.common.model.MetaData
+import com.walletconnect.android.impl.common.model.MetaData
 
 @JsonClass(generateAdapter = true)
 internal data class SessionParticipantVO(

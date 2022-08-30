@@ -35,7 +35,7 @@ android {
 
 sqldelight {
     database("Database") {
-        packageName = "com.walletconnect.android_core"
+        packageName = "com.walletconnect.android.impl"
     }
 }
 
