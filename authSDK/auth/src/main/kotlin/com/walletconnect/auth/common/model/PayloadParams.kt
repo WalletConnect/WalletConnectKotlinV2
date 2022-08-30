@@ -1,13 +1,12 @@
 @file:JvmSynthetic
 
-package com.walletconnect.auth.common.json_rpc.payload
+package com.walletconnect.auth.common.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-//todo: Discuss: Example DTO
 @JsonClass(generateAdapter = true)
-internal data class PayloadParamsDTO(
+internal data class PayloadParams(
     @Json(name = "type")
     val type: String,
     @Json(name = "chainId")

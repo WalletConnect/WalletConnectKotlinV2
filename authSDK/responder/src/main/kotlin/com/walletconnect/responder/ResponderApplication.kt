@@ -5,8 +5,6 @@ import android.util.Log
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.responder.domain.ISSUER
-import com.walletconnect.responder.domain.mapOfAccounts1
-import com.walletconnect.responder.domain.toIssuer
 import com.walletconnect.sample_common.tag
 
 class ResponderApplication : Application() {

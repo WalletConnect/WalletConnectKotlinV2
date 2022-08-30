@@ -1,22 +1,21 @@
 @file:JvmSynthetic
 
-package com.walletconnect.auth.common.json_rpc.payload
+package com.walletconnect.auth.common.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-//todo: Discuss: Example DTO
 @JsonClass(generateAdapter = true)
-internal data class CacaoDTO(
+internal data class Cacao(
     @Json(name = "header")
-    val header: HeaderDTO,
+    val header: Header,
     @Json(name = "payload")
-    val payload: PayloadDTO,
+    val payload: Payload,
     @Json(name = "signature")
-    val signature: SignatureDTO,
+    val signature: Signature,
 ) {
     @JsonClass(generateAdapter = true)
-    data class SignatureDTO(
+    data class Signature(
         @Json(name = "t")
         val t: String,
         @Json(name = "s")
@@ -26,13 +25,13 @@ internal data class CacaoDTO(
     )
 
     @JsonClass(generateAdapter = true)
-    data class HeaderDTO(
+    data class Header(
         @Json(name = "t")
         val t: String,
     )
 
     @JsonClass(generateAdapter = true)
-    data class PayloadDTO(
+    data class Payload(
         @Json(name = "iss")
         val iss: String,
         @Json(name = "domain")
@@ -55,5 +54,16 @@ internal data class CacaoDTO(
         val requestId: String?,
         @Json(name = "resources")
         val resources: List<String>?,
-    )
+    ) {
+        val address: String
+            get() = iss.split(ISS_DELIMITER)[ISS_POSITION_OF_ADDRESS]
+        val chainId: String
+            get() = iss.split(ISS_DELIMITER)[ISS_POSITION_OF_CHAIN_ID]
+
+        private companion object {
+            const val ISS_DELIMITER = ":"
+            const val ISS_POSITION_OF_CHAIN_ID = 3
+            const val ISS_POSITION_OF_ADDRESS = 4
+        }
+    }
 }

@@ -23,9 +23,8 @@ internal class JsonRpcInteractor(
 ) : BaseJsonRpcInteractor(relay, serializer, chaChaPolyCodec, jsonRpcHistory, networkState) {
 
     fun getPendingRequests(topic: Topic): List<PendingRequest> =
-        jsonRpcHistory.getPendingRequestsByTopic(topic)
-            .filter { entry -> entry.method == JsonRpcMethod.WC_SESSION_REQUEST }
-            .filter { entry -> serializer.tryDeserialize<SessionRpcVO.SessionRequest>(entry.body) != null }
-            .map { entry -> serializer.tryDeserialize<SessionRpcVO.SessionRequest>(entry.body)!!.toPendingRequest(entry) }
-
+        jsonRpcHistory.getListOfPendingRecordsByTopic(topic)
+            .filter { record -> record.method == JsonRpcMethod.WC_SESSION_REQUEST }
+            .filter { record -> serializer.tryDeserialize<SessionRpcVO.SessionRequest>(record.body) != null }
+            .map { record -> serializer.tryDeserialize<SessionRpcVO.SessionRequest>(record.body)!!.toPendingRequest(record) }
 }

@@ -23,27 +23,6 @@
         tools:itemCount="3"
         tools:listitem="@layout/list_item_account" />
 
-
-    <Button
-        android:id="@+id/getRequest"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:text="GET REQUSTES"
-        app:layout_constraintBottom_toTopOf="@+id/getResponse"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/getResponse"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:text="GET RESPONSES"
-        app:layout_constraintBottom_toTopOf="@+id/btnTestRequest"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
     <Button
         android:id="@+id/btnTestRequest"
         android:layout_width="0dp"

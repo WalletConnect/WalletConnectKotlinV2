@@ -1,16 +1,16 @@
 package com.walletconnect.auth.json_rpc.model
 
-import com.walletconnect.android_core.common.model.json_rpc.JsonRpcHistory
-import com.walletconnect.auth.common.json_rpc.AuthRpcDTO
-import com.walletconnect.auth.common.model.PendingRequestVO
+import com.walletconnect.android_core.common.model.json_rpc.JsonRpcHistoryRecord
+import com.walletconnect.auth.common.json_rpc.AuthParams
+import com.walletconnect.auth.common.model.JsonRpcHistoryEntry
 import com.walletconnect.foundation.common.model.Topic
 
 @JvmSynthetic
-internal fun AuthRpcDTO.AuthRequest.toPendingRequest(entry: JsonRpcHistory): PendingRequestVO =
-    PendingRequestVO(
-        entry.requestId,
-        Topic(entry.topic),
-        entry.method,
+internal fun JsonRpcHistoryRecord.toEntry(params: AuthParams.RequestParams): JsonRpcHistoryEntry =
+    JsonRpcHistoryEntry(
+        id,
+        Topic(topic),
+        method,
         params,
-        entry.response
+        response
     )

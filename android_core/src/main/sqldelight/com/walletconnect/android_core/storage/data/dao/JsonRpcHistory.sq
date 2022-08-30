@@ -21,12 +21,12 @@ SELECT request_id, topic, method, body, response
 FROM JsonRpcHistoryDao
 WHERE  request_id = ?;
 
-getJsonRpcRequestsByTopic:
+getJsonRpcRecordsByTopic:
 SELECT request_id, topic, method, body, response
 FROM JsonRpcHistoryDao
 WHERE topic = ?;
 
-getJsonRpcRequests:
+getJsonRpcRecords:
 SELECT request_id, topic, method, body, response
 FROM JsonRpcHistoryDao;
 

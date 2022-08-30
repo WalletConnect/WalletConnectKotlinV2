@@ -5,7 +5,7 @@ package com.walletconnect.auth.storage
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.android_core.common.model.MetaData
-import com.walletconnect.auth.common.model.PairingVO
+import com.walletconnect.auth.common.model.Pairing
 import com.walletconnect.auth.storage.data.dao.MetaDataDaoQueries
 import com.walletconnect.auth.storage.data.dao.PairingDaoQueries
 import com.walletconnect.foundation.common.model.Topic
@@ -18,7 +18,7 @@ internal class AuthStorageRepository(private val pairingDaoQueries: PairingDaoQu
 
     @JvmSynthetic
     @Throws(SQLiteException::class)
-    fun insertPairing(pairing: PairingVO) {
+    fun insertPairing(pairing: Pairing) {
         with(pairing) {
             pairingDaoQueries.insertOrAbortPairing(
                 topic.value,
@@ -38,13 +38,13 @@ internal class AuthStorageRepository(private val pairingDaoQueries: PairingDaoQu
     }
 
     @JvmSynthetic
-    fun getListOfPairingVOs(): List<PairingVO> =
+    fun getListOfPairingVOs(): List<Pairing> =
         pairingDaoQueries.getListOfPairingDaos(mapper = this::mapPairingDaoToPairingVO).executeAsList()
 
     @JvmSynthetic
-    fun getPairingByTopic(topic: Topic): PairingVO =
+    fun getPairingByTopic(topic: Topic): Pairing =
         pairingDaoQueries.getPairingByTopic(topic.value).executeAsOne().let { entity ->
-            PairingVO(
+            Pairing(
                 topic = Topic(entity.topic),
                 expiry = Expiry(entity.expiry),
                 uri = entity.uri,
@@ -82,14 +82,14 @@ internal class AuthStorageRepository(private val pairingDaoQueries: PairingDaoQu
         peerUrl: String?,
         peerIcons: List<String>?,
         is_active: Boolean,
-    ): PairingVO {
+    ): Pairing {
         val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
             MetaData(peerName, peerDesc, peerUrl, peerIcons)
         } else {
             null
         }
 
-        return PairingVO(
+        return Pairing(
             topic = Topic(topic),
             expiry = Expiry(expirySeconds),
             peerMetaData = peerMetaData,

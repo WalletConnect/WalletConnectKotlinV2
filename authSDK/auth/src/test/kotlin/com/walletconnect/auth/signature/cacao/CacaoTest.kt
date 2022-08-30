@@ -1,9 +1,8 @@
 package com.walletconnect.auth.signature.cacao
 
-import com.walletconnect.auth.client.mapper.toEngineDO
-import com.walletconnect.auth.client.mapper.toVO
-import com.walletconnect.auth.common.model.CacaoVO
-import com.walletconnect.auth.engine.model.mapper.toFormattedMessage
+import com.walletconnect.auth.client.mapper.toCommon
+import com.walletconnect.auth.common.model.Cacao
+import com.walletconnect.auth.engine.mapper.toFormattedMessage
 import com.walletconnect.auth.signature.SignatureType
 import com.walletconnect.util.hexToBytes
 import org.junit.jupiter.api.Assertions
@@ -13,7 +12,7 @@ internal class CacaoTest {
     private val iss = "did:pkh:eip155:1:0x15bca56b6e2728aec2532df9d436bd1600e86688"
     private val chainName = "Ethereum"
 
-    private val payload = CacaoVO.PayloadVO(
+    private val payload = Cacao.Payload(
         iss = iss,
         domain = "service.invalid",
         aud = "https://service.invalid/login",
@@ -31,8 +30,8 @@ internal class CacaoTest {
 
     @Test
     fun signAndVerifyTest() {
-        val signature: CacaoVO.SignatureVO = CacaoSigner.sign(payload.toFormattedMessage(chainName), privateKey, SignatureType.EIP191).toVO()
-        val cacao = CacaoVO(CacaoVO.HeaderVO(SignatureType.EIP191.header), payload, signature)
+        val signature: Cacao.Signature = CacaoSigner.sign(payload.toFormattedMessage(chainName), privateKey, SignatureType.EIP191).toCommon()
+        val cacao = Cacao(Cacao.Header(SignatureType.EIP191.header), payload, signature)
         val result = CacaoVerifier.verify(cacao)
         Assertions.assertTrue(result)
     }

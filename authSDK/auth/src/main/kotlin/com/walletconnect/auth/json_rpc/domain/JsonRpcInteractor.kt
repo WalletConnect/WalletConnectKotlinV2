@@ -2,17 +2,18 @@
 
 package com.walletconnect.auth.json_rpc.domain
 
+import com.walletconnect.android_core.common.model.json_rpc.JsonRpcHistoryRecord
 import com.walletconnect.android_core.crypto.Codec
 import com.walletconnect.android_core.json_rpc.domain.BaseJsonRpcInteractor
 import com.walletconnect.android_core.json_rpc.model.JsonRpcResponse
 import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.android_core.network.data.connection.ConnectivityState
 import com.walletconnect.android_core.storage.JsonRpcHistory
-import com.walletconnect.auth.common.json_rpc.AuthRpcDTO
-import com.walletconnect.auth.common.model.PendingRequestVO
+import com.walletconnect.auth.common.json_rpc.AuthRpc
+import com.walletconnect.auth.common.model.JsonRpcHistoryEntry
 import com.walletconnect.auth.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.auth.json_rpc.model.JsonRpcMethod
-import com.walletconnect.auth.json_rpc.model.toPendingRequest
+import com.walletconnect.auth.json_rpc.model.toEntry
 
 internal class JsonRpcInteractor(
     relay: RelayConnectionInterface,
@@ -22,36 +23,36 @@ internal class JsonRpcInteractor(
     private val serializer: JsonRpcSerializer
 ) : BaseJsonRpcInteractor(relay, serializer, chaChaPolyCodec, jsonRpcHistory, networkState) {
 
-    fun getPendingRequests(): List<PendingRequestVO> =
-        jsonRpcHistory.getPendingRequests()
-            .filter { entry -> entry.method == JsonRpcMethod.WC_AUTH_REQUEST }
-            .filter { rpcHistory -> serializer.tryDeserialize<AuthRpcDTO.AuthRequest>(rpcHistory.body) != null }
-            .map { rpcHistory -> serializer.tryDeserialize<AuthRpcDTO.AuthRequest>(rpcHistory.body)!!.toPendingRequest(rpcHistory) }
+    fun getPendingJsonRpcHistoryEntries(): List<JsonRpcHistoryEntry> =
+        jsonRpcHistory.getListOfPendingRecords()
+            .filter { record -> record.method == JsonRpcMethod.WC_AUTH_REQUEST }
+            .filter { record -> serializer.tryDeserialize<AuthRpc.AuthRequest>(record.body) != null }
+            .map { record -> record.toEntry(serializer.tryDeserialize<AuthRpc.AuthRequest>(record.body)!!.params) }
 
-    fun getPendingRequestById(id: Long): PendingRequestVO? {
-        val jsonRpcHistory = jsonRpcHistory.getPendingRequestById(id)
-        var pendingRequest: PendingRequestVO? = null
+    fun getPendingJsonRpcHistoryEntryById(id: Long): JsonRpcHistoryEntry? {
+        val record: JsonRpcHistoryRecord? = jsonRpcHistory.getPendingRecordById(id)
+        var entry: JsonRpcHistoryEntry? = null
 
-        if (jsonRpcHistory != null) {
-           val authRequest: AuthRpcDTO.AuthRequest? = serializer.tryDeserialize<AuthRpcDTO.AuthRequest>(jsonRpcHistory.body)
+        if (record != null) {
+            val authRequest: AuthRpc.AuthRequest? = serializer.tryDeserialize<AuthRpc.AuthRequest>(record.body)
             if (authRequest != null) {
-                pendingRequest = authRequest.toPendingRequest(jsonRpcHistory)
+                entry = record.toEntry(authRequest.params)
             }
         }
 
-        return pendingRequest
+        return entry
     }
 
     fun getResponseById(id: Long): JsonRpcResponse? {
-        val jsonRpcHistory = jsonRpcHistory.getRequestById(id)
+        val record: JsonRpcHistoryRecord? = jsonRpcHistory.getRecordById(id)
         var jsonRpcResponse: JsonRpcResponse? = null
 
-        if (jsonRpcHistory != null) {
-            jsonRpcHistory.response?.let { responseJson ->
-                serializer.tryDeserialize<JsonRpcResponse.JsonRpcResult>(responseJson)?.let { rpcResult ->
-                    jsonRpcResponse = rpcResult
-                } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcError>(responseJson)?.let { rpcError ->
-                    jsonRpcResponse = rpcError
+        if (record != null) {
+            record.response?.let { responseJson ->
+                serializer.tryDeserialize<JsonRpcResponse.JsonRpcResult>(responseJson)?.let { jsonRpcResult ->
+                    jsonRpcResponse = jsonRpcResult
+                } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcError>(responseJson)?.let { jsonRpcError ->
+                    jsonRpcResponse = jsonRpcError
                 }
             }
         }

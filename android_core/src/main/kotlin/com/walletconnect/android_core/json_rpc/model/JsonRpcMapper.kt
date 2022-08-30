@@ -3,7 +3,7 @@
 package com.walletconnect.android_core.json_rpc.model
 
 import com.walletconnect.android_core.common.model.IrnParams
-import com.walletconnect.android_core.common.model.json_rpc.JsonRpcHistory
+import com.walletconnect.android_core.common.model.json_rpc.JsonRpcHistoryRecord
 import com.walletconnect.android_core.common.model.sync.WCResponse
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.foundation.common.model.Topic
@@ -29,7 +29,7 @@ internal fun JsonRpcResponse.JsonRpcError.toJsonRpcError(): JsonRpcResponse.Json
     JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(error.code, error.message))
 
 @JvmSynthetic
-internal fun JsonRpcHistory.toWCResponse(result: JsonRpcResponse, params: ClientParams): WCResponse =
+internal fun JsonRpcHistoryRecord.toWCResponse(result: JsonRpcResponse, params: ClientParams): WCResponse =
     WCResponse(Topic(topic), method, result, params)
 
 @JvmSynthetic

@@ -1,7 +1,7 @@
 package com.walletconnect.android_core.storage
 
 import android.content.SharedPreferences
-import com.walletconnect.android_core.common.model.json_rpc.JsonRpcHistory
+import com.walletconnect.android_core.common.model.json_rpc.JsonRpcHistoryRecord
 import com.walletconnect.androidcore.storage.data.dao.JsonRpcHistoryQueries
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
@@ -27,8 +27,8 @@ class JsonRpcHistory(
         }
     }
 
-    fun updateRequestWithResponse(requestId: Long, response: String): JsonRpcHistory? {
-        val record = jsonRpcHistoryQueries.getJsonRpcHistoryRecord(requestId, mapper = ::mapToJsonRpc).executeAsOneOrNull()
+    fun updateRequestWithResponse(requestId: Long, response: String): JsonRpcHistoryRecord? {
+        val record = jsonRpcHistoryQueries.getJsonRpcHistoryRecord(requestId, mapper = ::toRecord).executeAsOneOrNull()
         return if (record != null) {
             updateRecord(record, requestId, response)
         } else {
@@ -37,7 +37,7 @@ class JsonRpcHistory(
         }
     }
 
-    private fun updateRecord(record: JsonRpcHistory, requestId: Long, response: String): JsonRpcHistory? =
+    private fun updateRecord(record: JsonRpcHistoryRecord, requestId: Long, response: String): JsonRpcHistoryRecord? =
         if (record.response != null) {
             logger.log("Duplicated JsonRpc RequestId: $requestId")
             null
@@ -46,7 +46,7 @@ class JsonRpcHistory(
             record
         }
 
-    fun deleteRequests(topic: Topic) {
+    fun deleteRecordsByTopic(topic: Topic) {
         sharedPreferences.all.entries
             .filter { entry -> entry.value == topic.value }
             .forEach { entry -> sharedPreferences.edit().remove(entry.key).apply() }
@@ -54,25 +54,25 @@ class JsonRpcHistory(
         jsonRpcHistoryQueries.deleteJsonRpcHistory(topic.value)
     }
 
-    fun getPendingRequestsByTopic(topic: Topic): List<JsonRpcHistory> =
-        jsonRpcHistoryQueries.getJsonRpcRequestsByTopic(topic.value, mapper = ::mapToJsonRpc)
+    fun getListOfPendingRecordsByTopic(topic: Topic): List<JsonRpcHistoryRecord> =
+        jsonRpcHistoryQueries.getJsonRpcRecordsByTopic(topic.value, mapper = ::toRecord)
             .executeAsList()
-            .filter { rpcHistoryEntry -> rpcHistoryEntry.response == null }
+            .filter { record -> record.response == null }
 
-    fun getPendingRequests(): List<JsonRpcHistory> =
-        jsonRpcHistoryQueries.getJsonRpcRequests(mapper = ::mapToJsonRpc)
+    fun getListOfPendingRecords(): List<JsonRpcHistoryRecord> =
+        jsonRpcHistoryQueries.getJsonRpcRecords(mapper = ::toRecord)
             .executeAsList()
-            .filter { rpcHistoryEntry -> rpcHistoryEntry.response == null }
+            .filter { record -> record.response == null }
 
-    fun getRequestById(id: Long): JsonRpcHistory? =
-        jsonRpcHistoryQueries.getJsonRpcHistoryRecord(id, mapper = ::mapToJsonRpc).executeAsOneOrNull()
+    fun getRecordById(id: Long): JsonRpcHistoryRecord? =
+        jsonRpcHistoryQueries.getJsonRpcHistoryRecord(id, mapper = ::toRecord).executeAsOneOrNull()
 
-    fun getPendingRequestById(id: Long): JsonRpcHistory? {
-        val record = jsonRpcHistoryQueries.getJsonRpcHistoryRecord(id, mapper = ::mapToJsonRpc).executeAsOneOrNull()
+    fun getPendingRecordById(id: Long): JsonRpcHistoryRecord? {
+        val record = jsonRpcHistoryQueries.getJsonRpcHistoryRecord(id, mapper = ::toRecord).executeAsOneOrNull()
         return if (record != null && record.response == null) record else null
     }
 
 
-    private fun mapToJsonRpc(requestId: Long, topic: String, method: String, body: String, response: String?): JsonRpcHistory =
-        JsonRpcHistory(requestId, topic, method, body, response)
+    private fun toRecord(requestId: Long, topic: String, method: String, body: String, response: String?): JsonRpcHistoryRecord =
+        JsonRpcHistoryRecord(requestId, topic, method, body, response)
 }

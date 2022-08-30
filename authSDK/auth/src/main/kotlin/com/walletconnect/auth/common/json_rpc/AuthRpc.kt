@@ -5,12 +5,9 @@ package com.walletconnect.auth.common.json_rpc
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
-import com.walletconnect.auth.common.json_rpc.params.AuthParams
 import com.walletconnect.auth.json_rpc.model.JsonRpcMethod
 
-//todo: Discuss: Should VO classes in json_rpc be DTO
-//todo: Is VO suffix necessary?
-internal sealed class AuthRpcDTO : JsonRpcClientSync<AuthParams> {
+internal sealed class AuthRpc : JsonRpcClientSync<AuthParams> {
     abstract override val id: Long
     abstract override val method: String
     abstract override val jsonrpc: String
@@ -26,5 +23,6 @@ internal sealed class AuthRpcDTO : JsonRpcClientSync<AuthParams> {
         override val method: String = JsonRpcMethod.WC_AUTH_REQUEST,
         @Json(name = "params")
         override val params: AuthParams.RequestParams
-    ) : AuthRpcDTO()
+    ) : AuthRpc()
+
 }

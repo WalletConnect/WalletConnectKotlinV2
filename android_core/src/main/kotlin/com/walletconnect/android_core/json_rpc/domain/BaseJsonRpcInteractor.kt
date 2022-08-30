@@ -115,11 +115,11 @@ open class BaseJsonRpcInteractor(
         onFailure: (Throwable) -> Unit = {},
         participants: Participants? = null,
         envelopeType: EnvelopeType = EnvelopeType.ZERO,
-    ) {
+        ) {
         checkConnectionWorking()
 
-        val jsonResponse = response.toJsonRpcResponse()
-        val responseJson = serializer.serialize(jsonResponse)
+        val jsonResponseDO = response.toJsonRpcResponse()
+        val responseJson = serializer.serialize(jsonResponseDO)
         val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
 
         relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
@@ -152,7 +152,7 @@ open class BaseJsonRpcInteractor(
         irnParams: IrnParams,
         envelopeType: EnvelopeType = EnvelopeType.ZERO,
         participants: Participants? = null,
-    ) {
+        ) {
         val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = true)
 
         try {
@@ -202,7 +202,7 @@ open class BaseJsonRpcInteractor(
             relay.unsubscribe(topic.value, subscriptionId.id) { result ->
                 result.fold(
                     onSuccess = {
-                        jsonRpcHistory.deleteRequests(topic)
+                        jsonRpcHistory.deleteRecordsByTopic(topic)
                         subscriptions.remove(topic.value)
                     },
                     onFailure = { error -> Logger.error("Unsubscribe to topic: $topic error: $error") }

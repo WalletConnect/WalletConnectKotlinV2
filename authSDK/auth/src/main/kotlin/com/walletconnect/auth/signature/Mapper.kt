@@ -1,14 +1,9 @@
 package com.walletconnect.auth.signature
 
 import com.walletconnect.auth.client.Auth
-import com.walletconnect.auth.client.mapper.toClient
-import com.walletconnect.auth.common.json_rpc.payload.CacaoDTO
-import com.walletconnect.auth.engine.model.EngineDO
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.utils.HexPrefix
 import org.web3j.crypto.Sign
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 // todo: Figure out chain name resolving to support chain agnosticism
 fun Auth.Model.Cacao.Payload.toFormattedMessage(chainName: String = "Ethereum"): String {

@@ -273,7 +273,7 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun deleteTempNamespacesByTopicAndRequestId(topic: String, requestId: Long) {
+    fun deleteTempNamespacesByTopicAndRequestId(requestId: Long) {
         tempNamespaceDaoQueries.deleteTempNamespacesByRequestId(requestId)
     }
 
