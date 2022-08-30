@@ -1,16 +1,13 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.impl.network.domain
+package com.walletconnect.android.api
 
-import com.walletconnect.android.impl.common.WRONG_CONNECTION_TYPE
-import com.walletconnect.android.impl.network.RelayConnectionInterface
-import com.walletconnect.android.impl.network.data.connection.controller.ConnectionController
 import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.data.service.RelayService
 import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.CoroutineScope
 
-internal class RelayClient internal constructor(
+class RelayClient constructor(
     private val connectionController: ConnectionController,
     relay: RelayService,
     logger: Logger,

@@ -8,7 +8,7 @@ import com.walletconnect.android.impl.common.model.type.ClientParams
 import com.walletconnect.android.impl.common.model.type.JsonRpcClientSync
 import com.walletconnect.android.impl.common.model.type.enums.Tags
 import com.walletconnect.android.impl.crypto.Codec
-import com.walletconnect.android.impl.network.RelayConnectionInterface
+import com.walletconnect.android.api.RelayConnectionInterface
 import com.walletconnect.android.impl.network.data.connection.ConnectivityState
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.impl.utils.Logger

@@ -8,9 +8,10 @@ import com.walletconnect.android.impl.common.client.Protocol
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.di.networkModule
-import com.walletconnect.android.impl.network.RelayConnectionInterface
+import com.walletconnect.android.api.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
+import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.sign.BuildConfig
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.sign.di.commonModule

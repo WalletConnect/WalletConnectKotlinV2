@@ -5,8 +5,8 @@ package com.walletconnect.android.impl.network.data.connection.lifecycle
 import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import com.walletconnect.android.impl.common.scope.scope
-import com.walletconnect.android.impl.network.data.connection.ConnectionEvent
-import com.walletconnect.android.impl.network.data.connection.controller.ConnectionController
+import com.walletconnect.android.api.ConnectionEvent
+import com.walletconnect.android.api.ConnectionController
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 

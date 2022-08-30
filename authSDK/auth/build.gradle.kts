@@ -45,7 +45,8 @@ sqldelight {
 }
 
 dependencies {
-    api(project(":android_core_impl"))
+    implementation(project(":android_core_impl"))
+    api(project(":android_core_api"))
 
     timber()
     moshiKsp()

@@ -1,4 +1,4 @@
-package com.walletconnect.android.impl.network
+package com.walletconnect.android.api
 
 import com.walletconnect.foundation.network.RelayInterface
 

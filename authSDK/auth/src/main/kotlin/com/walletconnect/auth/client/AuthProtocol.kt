@@ -7,7 +7,7 @@ import com.walletconnect.android.impl.common.client.Protocol
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.di.networkModule
-import com.walletconnect.android.impl.network.RelayConnectionInterface
+import com.walletconnect.android.api.RelayConnectionInterface
 import com.walletconnect.android.impl.network.data.connection.ConnectionType
 import com.walletconnect.auth.BuildConfig
 import com.walletconnect.auth.client.mapper.toClientConnectionState

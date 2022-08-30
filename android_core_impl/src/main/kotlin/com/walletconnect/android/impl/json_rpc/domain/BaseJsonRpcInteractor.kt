@@ -14,7 +14,7 @@ import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializerAbstract
 import com.walletconnect.android.impl.json_rpc.model.*
-import com.walletconnect.android.impl.network.RelayConnectionInterface
+import com.walletconnect.android.api.RelayConnectionInterface
 import com.walletconnect.android.impl.network.data.connection.ConnectivityState
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.impl.utils.Logger

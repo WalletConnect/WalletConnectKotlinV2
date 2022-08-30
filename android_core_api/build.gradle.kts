@@ -26,41 +26,15 @@ android {
         sourceCompatibility = jvmVersion
         targetCompatibility = jvmVersion
     }
-
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.time.ExperimentalTime"
     }
-}
-
-sqldelight {
-    database("Database") {
-        packageName = "com.walletconnect.android.impl"
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }
 
 dependencies {
-    api(project(":foundation"))
-    api(project(":android_core_api"))
+    implementation(project(":foundation"))
 
-    bouncyCastle()
-    coroutines()
-    moshiKsp()
-    moshi()
+    koinAndroid()
     scarlet()
     scarletAndroid()
-    sqlDelightAndroid()
-    sqlCipher()
-    security()
-    koinAndroid()
-    multibaseJava()
-    timber()
-
-    jUnit5()
-    jUnit5Android()
-    mockk()
 }

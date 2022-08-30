@@ -8,12 +8,12 @@ import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.android.impl.common.scope.scope
-import com.walletconnect.android.impl.network.RelayConnectionInterface
+import com.walletconnect.android.api.RelayConnectionInterface
 import com.walletconnect.android.impl.network.data.connection.ConnectionType
 import com.walletconnect.android.impl.network.data.connection.ConnectivityState
-import com.walletconnect.android.impl.network.data.connection.controller.ConnectionController
+import com.walletconnect.android.api.ConnectionController
 import com.walletconnect.android.impl.network.data.connection.lifecycle.ManualConnectionLifecycle
-import com.walletconnect.android.impl.network.domain.RelayClient
+import com.walletconnect.android.api.RelayClient
 import com.walletconnect.foundation.di.FoundationDITags
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import okhttp3.Interceptor
