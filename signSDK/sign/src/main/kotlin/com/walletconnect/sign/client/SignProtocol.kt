@@ -19,15 +19,12 @@ import com.walletconnect.sign.di.jsonRpcModule
 import com.walletconnect.sign.di.storageModule
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
-import com.walletconnect.utils.Empty
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
-import java.util.concurrent.Executors
 
 internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol() {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
@@ -157,7 +154,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
     override fun rejectSession(reject: Sign.Params.Reject, onError: (Sign.Model.Error) -> Unit) {
         awaitLock {
             try {
-                signEngine.reject(reject.proposerPublicKey, reject.reason, reject.code) { error ->
+                signEngine.reject(reject.proposerPublicKey, reject.reason) { error ->
                     onError(Sign.Model.Error(error))
                 }
             } catch (error: Exception) {

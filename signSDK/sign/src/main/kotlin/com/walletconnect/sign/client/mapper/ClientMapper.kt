@@ -10,6 +10,7 @@ import com.walletconnect.android_core.json_rpc.model.JsonRpcResponse
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.android_core.network.data.connection.ConnectionType
 import com.walletconnect.sign.client.Sign
+import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.engine.model.EngineDO
 
 //TODO: Figure out what to do with models separation
@@ -81,7 +82,9 @@ internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): JsonRpcResp
 
 @JvmSynthetic
 internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcError(): JsonRpcResponse.JsonRpcError =
-    JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(code, message))
+    PeerError.CAIP25.UserRejected(message).let { error ->
+        JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(error.code, error.message))
+    }
 
 @JvmSynthetic
 internal fun Sign.Model.SessionEvent.toEngineEvent(chainId: String): EngineDO.Event = EngineDO.Event(name, data, chainId)
