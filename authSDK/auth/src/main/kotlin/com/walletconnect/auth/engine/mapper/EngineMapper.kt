@@ -10,10 +10,22 @@ internal fun AppMetaData.toCore(): MetaData = MetaData(name, description, url, i
 
 @JvmSynthetic
 internal fun PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.Payload(
-    iss.value, domain = domain, aud = aud, version = version, nonce = nonce, iat = iat, nbf = nbf, exp = exp, statement = statement, requestId = requestId, resources = resources
+    iss.value,
+    domain = domain,
+    aud = aud,
+    version = version,
+    nonce = nonce,
+    iat = iat,
+    nbf = nbf,
+    exp = exp,
+    statement = statement,
+    requestId = requestId,
+    resources = resources
 )
+
 @JvmSynthetic
-internal fun PayloadParams.toFormattedMessage(iss: Issuer, chainName: String = "Ethereum"): String = this.toCacaoPayload(iss).toFormattedMessage(chainName)
+internal fun PayloadParams.toFormattedMessage(iss: Issuer, chainName: String = "Ethereum"): String =
+    this.toCacaoPayload(iss).toFormattedMessage(chainName)
 
 @JvmSynthetic
 internal fun Cacao.Signature.toSignature(): Signature = Signature.fromString(s)
@@ -45,3 +57,7 @@ private fun WalletConnectUri.getQuery(): String {
     }
     return query
 }
+
+@JvmSynthetic
+internal fun JsonRpcHistoryEntry.toPendingRequest(issuer: Issuer): PendingRequest =
+    PendingRequest(id, params.payloadParams, params.payloadParams.toFormattedMessage(issuer))

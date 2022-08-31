@@ -62,6 +62,38 @@ internal fun Auth.Params.Request.toCommon(): PayloadParams = PayloadParams(
 )
 
 @JvmSynthetic
+internal fun List<PendingRequest>.toClient(): List<Auth.Model.PendingRequest> =
+    map { request ->
+        Auth.Model.PendingRequest(
+            request.id,
+            request.payloadParams.toClient(),
+            request.message
+        )
+    }
+
+internal fun PayloadParams.toClient(): Auth.Model.PendingRequest.PayloadParams =
+    Auth.Model.PendingRequest.PayloadParams(
+        type = SignatureType.EIP191.header,
+        chainId = chainId,
+        domain = domain,
+        aud = aud,
+        version = MESSAGE_TEMPLATE_VERSION,
+        nonce = nonce,
+        iat = DateTimeFormatter.ofPattern(ISO_8601_PATTERN).format(ZonedDateTime.now()),
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+    )
+
+@JvmSynthetic
+internal fun Response.toClient(): Auth.Model.Response = when (this) {
+    is Response.Result -> Auth.Model.Response.Result(id, cacao.toClient())
+    is Response.Error -> Auth.Model.Response.Error(id, code, message)
+}
+
+@JvmSynthetic
 internal fun Auth.Model.Cacao.Signature.toCommon(): Cacao.Signature = Cacao.Signature(t, s, m)
 
 @JvmSynthetic

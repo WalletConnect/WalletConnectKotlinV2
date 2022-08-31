@@ -19,5 +19,4 @@ internal fun engineModule(metadata: Auth.Model.AppMetaData, issuer: String?) = m
     } else {
         single<AuthEngine> { AuthEngine(get(), get(), get(), get(), null) }
     }
-
 }
