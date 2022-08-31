@@ -23,7 +23,6 @@ import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.android_core.common.model.RelayProtocolOptions
 import com.walletconnect.android_core.json_rpc.model.JsonRpcResponse
 import com.walletconnect.sign.common.exceptions.peer.PeerError
-import com.walletconnect.sign.common.exceptions.peer.PeerReason
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.PairingRpcVO
@@ -163,7 +162,7 @@ internal class SignEngine(
         }
     }
 
-    internal fun reject(proposerPublicKey: String, reason: String, code: Int, onFailure: (Throwable) -> Unit = {}) {
+    internal fun reject(proposerPublicKey: String, reason: String, onFailure: (Throwable) -> Unit = {}) {
         val request = sessionProposalRequest[proposerPublicKey]
             ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
@@ -416,7 +415,7 @@ internal class SignEngine(
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        val deleteParams = SessionParamsVO.DeleteParams(PeerReason.UserDisconnected.code, PeerReason.UserDisconnected.message)
+        val deleteParams = SessionParamsVO.DeleteParams(PeerError.Reason.UserDisconnected.code, PeerError.Reason.UserDisconnected.message)
         val sessionDelete = SessionRpcVO.SessionDelete(id = generateId(), params = deleteParams)
         sequenceStorageRepository.deleteSession(Topic(topic))
         relayer.unsubscribe(Topic(topic))
