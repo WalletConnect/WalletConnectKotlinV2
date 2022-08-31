@@ -21,21 +21,13 @@ concurrency:
 
 jobs:
   integration_tests:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup Java JDK
-        uses: actions/setup-java@v3.3.0
-        with:
-          distribution: 'zulu'
-          java-version: '11'
-          architecture: x86_64
-          cache: 'gradle'
-
-      - name: Relay unit tests
+      - name: Run Relay CI
         env:
           TEST_RELAY_URL: wss://relay.walletconnect.com
           TEST_PROJECT_ID: 2ee94aca5d98e6c05c38bce02bee952a
-        run: ./gradlew :foundation:test --tests "com.walletconnect.foundation.RelayTest"
+        uses: ./.github/actions/ci_relay
