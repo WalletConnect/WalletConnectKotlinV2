@@ -35,20 +35,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Unit tests
+      - name: Sign Unit tests
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-        run: ./gradlew test
+        run: ./gradlew :sign:test
+
+      - name: Auth Unit tests
+        env:
+          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+        run: ./gradlew :auth:test
 
       - name: Stop Gradle
         run: ./gradlew --stop
-#  android_tests:
-#    runs-on: macos-latest
-#    steps:
-#      - uses: actions/checkout@v2
-#
-#      - name: Instrumentation Tests
-#        uses: reactivecircus/android-emulator-runner@v2
-#        with:
-#          api-level: 29
-#          script: ./gradlew walletconnectv2:connectedAndroidTest
