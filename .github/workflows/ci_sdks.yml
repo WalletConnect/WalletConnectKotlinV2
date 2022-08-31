@@ -1,4 +1,4 @@
-name: Android Test and deploy
+name: SDKs Unit Tests
 
 on:
   push:

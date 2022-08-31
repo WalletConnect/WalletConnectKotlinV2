@@ -1,4 +1,4 @@
-name: Relay Integration
+name: Relay Integration Tests
 
 on:
   push:
@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  validate:
+  integration_tests:
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -39,5 +39,3 @@ jobs:
           TEST_RELAY_URL: wss://relay.walletconnect.com
           TEST_PROJECT_ID: 2ee94aca5d98e6c05c38bce02bee952a
         run: ./gradlew :foundation:test --tests "com.walletconnect.foundation.RelayTest"
-
-
