@@ -253,7 +253,7 @@ internal class SignEngine(
                 onSuccess = { Logger.log("Update sent successfully") },
                 onFailure = { error ->
                     Logger.error("Sending session update error: $error")
-                    sequenceStorageRepository.deleteTempNamespacesByTopicAndRequestId(sessionUpdate.id)
+                    sequenceStorageRepository.deleteTempNamespacesByRequestId(sessionUpdate.id)
                     onFailure(error)
                 }
             )
