@@ -2,12 +2,12 @@ package com.walletconnect.sign.json_rpc.domain
 
 import com.walletconnect.android_core.common.WalletConnectException
 import com.walletconnect.android_core.common.model.IrnParams
-import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.WCRequest
 import com.walletconnect.android_core.common.model.type.ClientParams
 import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
 import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.android_core.crypto.Codec
+import com.walletconnect.android_core.json_rpc.model.JsonRpcResponse
 import com.walletconnect.android_core.network.RelayConnectionInterface
 import com.walletconnect.android_core.network.data.connection.ConnectivityState
 import com.walletconnect.android_core.storage.JsonRpcHistory

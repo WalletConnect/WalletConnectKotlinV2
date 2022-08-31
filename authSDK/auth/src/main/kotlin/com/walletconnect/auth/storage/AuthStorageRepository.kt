@@ -41,6 +41,20 @@ internal class AuthStorageRepository(private val pairingDaoQueries: PairingDaoQu
     fun getListOfPairingVOs(): List<Pairing> =
         pairingDaoQueries.getListOfPairingDaos(mapper = this::mapPairingDaoToPairingVO).executeAsList()
 
+    @JvmSynthetic
+    fun getPairingByTopic(topic: Topic): Pairing =
+        pairingDaoQueries.getPairingByTopic(topic.value).executeAsOne().let { entity ->
+            Pairing(
+                topic = Topic(entity.topic),
+                expiry = Expiry(entity.expiry),
+                uri = entity.uri,
+                relayProtocol = entity.relay_protocol,
+                relayData = entity.relay_data,
+                isActive = entity.is_active
+            )
+        }
+
+    @JvmSynthetic
     fun isPairingValid(topic: Topic): Boolean {
         val hasTopic = pairingDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
 
@@ -50,6 +64,11 @@ internal class AuthStorageRepository(private val pairingDaoQueries: PairingDaoQu
         } else {
             false
         }
+    }
+
+    @JvmSynthetic
+    fun activatePairing(topic: Topic, expiryInSeconds: Long) {
+        pairingDaoQueries.activatePairing(expiryInSeconds, true, topic.value)
     }
 
     private fun mapPairingDaoToPairingVO(

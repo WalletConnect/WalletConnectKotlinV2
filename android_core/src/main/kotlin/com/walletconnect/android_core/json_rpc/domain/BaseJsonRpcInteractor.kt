@@ -3,8 +3,7 @@ package com.walletconnect.android_core.json_rpc.domain
 import com.walletconnect.android_core.common.*
 import com.walletconnect.android_core.common.model.IrnParams
 import com.walletconnect.android_core.common.model.Participants
-import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
-import com.walletconnect.android_core.common.model.sync.PendingRequest
+import com.walletconnect.android_core.common.model.sync.ClientJsonRpc
 import com.walletconnect.android_core.common.model.sync.WCRequest
 import com.walletconnect.android_core.common.model.sync.WCResponse
 import com.walletconnect.android_core.common.model.type.ClientParams
@@ -28,7 +27,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.net.HttpURLConnection
 
-abstract class BaseJsonRpcInteractor(
+open class BaseJsonRpcInteractor(
     private val relay: RelayConnectionInterface,
     private val serializer: JsonRpcSerializerAbstract,
     private val chaChaPolyCodec: Codec,
@@ -53,8 +52,6 @@ abstract class BaseJsonRpcInteractor(
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> handleError(exception.message ?: String.Empty) }
-
-    abstract fun getPendingRequests(topic: Topic): List<PendingRequest>
 
     @get:JvmSynthetic
     private val Throwable.toWalletConnectException: WalletConnectException
@@ -205,7 +202,7 @@ abstract class BaseJsonRpcInteractor(
             relay.unsubscribe(topic.value, subscriptionId.id) { result ->
                 result.fold(
                     onSuccess = {
-                        jsonRpcHistory.deleteRequests(topic)
+                        jsonRpcHistory.deleteRecordsByTopic(topic)
                         subscriptions.remove(topic.value)
                     },
                     onFailure = { error -> Logger.error("Unsubscribe to topic: $topic error: $error") }
@@ -228,41 +225,41 @@ abstract class BaseJsonRpcInteractor(
     }
 
     private suspend fun manageSubscriptions(decryptedMessage: String, topic: Topic) {
-        serializer.tryDeserialize<JsonRpc.ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
+        serializer.tryDeserialize<ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
             handleRequest(clientJsonRpc, topic, decryptedMessage)
-        } ?: serializer.tryDeserialize<JsonRpc.JsonRpcResponse.JsonRpcResult>(decryptedMessage)?.let { result ->
+        } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcResult>(decryptedMessage)?.let { result ->
             handleJsonRpcResult(result)
-        } ?: serializer.tryDeserialize<JsonRpc.JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
+        } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
             handleJsonRpcError(error)
-        } ?: handleError("RelayerInteractor: Received unknown object type")
+        } ?: handleError("JsonRpcInteractor: Received unknown object type")
     }
 
-    private suspend fun handleRequest(clientJsonRpc: JsonRpc.ClientJsonRpc, topic: Topic, decryptedMessage: String) {
+    private suspend fun handleRequest(clientJsonRpc: ClientJsonRpc, topic: Topic, decryptedMessage: String) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
                 _clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params))
-            } ?: handleError("RelayerInteractor: Unknown request params")
+            } ?: handleError("JsonRpcInteractor: Unknown request params")
         }
     }
 
-    private suspend fun handleJsonRpcResult(jsonRpcResult: JsonRpc.JsonRpcResponse.JsonRpcResult) {
+    private suspend fun handleJsonRpcResult(jsonRpcResult: JsonRpcResponse.JsonRpcResult) {
         val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcResult.id, serializer.serialize(jsonRpcResult))
 
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 val responseVO = JsonRpcResponse.JsonRpcResult(jsonRpcResult.id, result = jsonRpcResult.result)
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(responseVO, params))
-            } ?: handleError("RelayerInteractor: Unknown result params")
+            } ?: handleError("JsonRpcInteractor: Unknown result params")
         }
     }
 
-    private suspend fun handleJsonRpcError(jsonRpcError: JsonRpc.JsonRpcResponse.JsonRpcError) {
+    private suspend fun handleJsonRpcError(jsonRpcError: JsonRpcResponse.JsonRpcError) {
         val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcError.id, serializer.serialize(jsonRpcError))
 
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(jsonRpcError.toJsonRpcError(), params))
-            } ?: handleError("RelayerInteractor: Unknown error params")
+            } ?: handleError("JsonRpcInteractor: Unknown error params")
         }
     }
 

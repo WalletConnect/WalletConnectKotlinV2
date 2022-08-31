@@ -4,10 +4,6 @@ import android.app.Application
 
 object Auth {
 
-    sealed interface Listeners {
-
-    }
-
     sealed class Event {
         data class AuthRequest(
             val id: Long,
@@ -62,7 +58,7 @@ object Auth {
                 val nbf: String?,
                 val exp: String?,
                 val statement: String?,
-                val requestId: String,
+                val requestId: String?,
                 val resources: List<String>?,
             )
         }

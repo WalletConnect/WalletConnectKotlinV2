@@ -6,8 +6,6 @@ import android.database.sqlite.SQLiteException
 import com.walletconnect.android_core.common.*
 import com.walletconnect.android_core.common.model.*
 import com.walletconnect.android_core.common.GenericException
-import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
-import com.walletconnect.android_core.common.model.sync.PendingRequest
 import com.walletconnect.android_core.common.model.sync.WCRequest
 import com.walletconnect.android_core.common.model.sync.WCResponse
 import com.walletconnect.android_core.common.model.type.EngineEvent
@@ -22,9 +20,11 @@ import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.exceptions.client.*
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.exceptions.peer.PeerReason
-import com.walletconnect.sign.common.model.type.enums.Sequences
+import com.walletconnect.sign.common.model.type.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.android_core.common.model.RelayProtocolOptions
+import com.walletconnect.android_core.json_rpc.model.JsonRpcResponse
+import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.PairingRpcVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
@@ -253,7 +253,7 @@ internal class SignEngine(
                 onSuccess = { Logger.log("Update sent successfully") },
                 onFailure = { error ->
                     Logger.error("Sending session update error: $error")
-                    sequenceStorageRepository.deleteTempNamespacesByTopicAndRequestId(topic, sessionUpdate.id)
+                    sequenceStorageRepository.deleteTempNamespacesByRequestId(sessionUpdate.id)
                     onFailure(error)
                 }
             )
@@ -515,9 +515,8 @@ internal class SignEngine(
             sequenceStorageRepository.upsertPairingPeerMetadata(proposal.topic, peerMetadata)
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
             sequenceStorageRepository.insertSession(session, request.id)
-            val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
-            relayer.respondWithSuccess(request, irnParams)
+            relayer.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
             scope.launch { _engineEvent.emit(session.toSessionApproved()) }
         } catch (e: SQLiteException) {
             sessionProposalRequest[selfPublicKey.keyAsHex] = tempProposalRequest
@@ -748,10 +747,9 @@ internal class SignEngine(
             is JsonRpcResponse.JsonRpcResult -> {
                 Logger.log("Session update namespaces response received")
                 val responseId = wcResponse.response.id
-                val sessionTopic = session.topic.value
                 val namespaces = sequenceStorageRepository.getTempNamespaces(responseId)
 
-                sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(sessionTopic, namespaces, responseId,
+                sequenceStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, namespaces, responseId,
                     onSuccess = {
                         sequenceStorageRepository.markUnAckNamespaceAcknowledged(responseId)
                         scope.launch {

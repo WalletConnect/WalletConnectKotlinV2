@@ -4,9 +4,7 @@ package com.walletconnect.auth.common.exceptions
 
 import com.walletconnect.android_core.common.WalletConnectException
 
-
 internal object MissingAuthRequestException : WalletConnectException(MISSING_AUTH_REQUEST_MESSAGE)
 internal object MissingAuthRequestParamsException : WalletConnectException(MISSING_AUTH_REQUEST_PARAMS_MESSAGE)
 internal object InvalidCacaoException : WalletConnectException(CACAO_IS_NOT_VALID_MESSAGE)
 internal object MissingIssuerException : WalletConnectException(MISSING_ISSUER_MESSAGE)
-

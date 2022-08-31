@@ -5,7 +5,6 @@ package com.walletconnect.auth.engine.domain
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android_core.common.*
 import com.walletconnect.android_core.common.model.*
-import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.WCRequest
 import com.walletconnect.android_core.common.model.sync.WCResponse
 import com.walletconnect.android_core.common.model.type.EngineEvent
@@ -13,13 +12,16 @@ import com.walletconnect.android_core.common.model.type.enums.EnvelopeType
 import com.walletconnect.android_core.common.model.type.enums.Tags
 import com.walletconnect.android_core.common.scope.scope
 import com.walletconnect.android_core.crypto.KeyManagementRepository
+import com.walletconnect.android_core.json_rpc.model.JsonRpcResponse
+import com.walletconnect.android_core.utils.ACTIVE_PAIRING
 import com.walletconnect.android_core.utils.DAY_IN_SECONDS
 import com.walletconnect.android_core.utils.Logger
-import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.*
+import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.json_rpc.AuthRpc
 import com.walletconnect.auth.common.model.*
+import com.walletconnect.auth.engine.mapper.*
 import com.walletconnect.auth.engine.mapper.toAbsoluteString
 import com.walletconnect.auth.engine.mapper.toCacaoPayload
 import com.walletconnect.auth.engine.mapper.toCore
@@ -48,7 +50,6 @@ internal class AuthEngine(
 
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
-    private val authRequestMap: MutableMap<Long, WCRequest> = mutableMapOf()
 
     init {
         resubscribeToSequences()
@@ -68,14 +69,6 @@ internal class AuthEngine(
         onPairing: (String) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        //todo: check if is authentication exists and is not expired
-        // todo: do some magic
-
-
-        //todo: check if is authentication exists and is  expired
-        // todo: do some magic
-
-
         // For Alpha we are assuming not authenticated only todo: Remove comment after Alpha
         val symmetricKey: SymmetricKey = crypto.generateSymmetricKey()
         val pairingTopic: Topic = crypto.getTopicFromKey(symmetricKey)
@@ -91,7 +84,8 @@ internal class AuthEngine(
             val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
             crypto.setSelfParticipant(responsePublicKey, responseTopic)
 
-            val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams)
+            val authParams: AuthParams.RequestParams =
+                AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams)
             val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
             val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
             relayer.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
@@ -138,16 +132,14 @@ internal class AuthEngine(
         respond: Respond,
         onFailure: (Throwable) -> Unit,
     ) {
-        if (authRequestMap[respond.id] == null) {
+        val jsonRpcHistoryEntry = relayer.getPendingJsonRpcHistoryEntryById(respond.id)
+        if (jsonRpcHistoryEntry == null) {
+            Logger.error(MissingAuthRequestException.message)
             onFailure(MissingAuthRequestException)
             return
         }
-        val wcRequest: WCRequest = authRequestMap[respond.id]!!
-        if (wcRequest.params !is AuthParams.RequestParams) {
-            onFailure(MissingAuthRequestParamsException)
-            return
-        }
-        val authParams: AuthParams.RequestParams = (wcRequest.params as AuthParams.RequestParams)
+
+        val authParams: AuthParams.RequestParams = jsonRpcHistoryEntry.params
         val response: JsonRpcResponse = when (respond) {
             is Respond.Error -> JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
             is Respond.Result -> {
@@ -170,16 +162,35 @@ internal class AuthEngine(
         val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
         relayer.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
-            onSuccess = { Logger.log("Success Responded on topic: ${wcRequest.topic}") },
-            onFailure = { Logger.error("Error Responded on topic: ${wcRequest.topic}") }
+            onSuccess = { Logger.log("Success Responded on topic: $responseTopic") },
+            onFailure = { Logger.error("Error Responded on topic: $responseTopic") }
         )
 
+    }
+
+    internal fun getResponseById(id: Long): Response? {
+        return relayer.getResponseById(id)?.let { response ->
+            when (response) {
+                is JsonRpcResponse.JsonRpcResult -> {
+                    val cacao: Cacao = (response.result as AuthParams.ResponseParams).cacao
+                    Response.Result(response.id, cacao)
+                }
+                is JsonRpcResponse.JsonRpcError -> Response.Error(response.id, response.error.code, response.error.message)
+            }
+        }
+    }
+
+    internal fun getPendingRequests(): List<PendingRequest> {
+        if (issuer == null) {
+            throw MissingIssuerException
+        }
+        return relayer.getPendingJsonRpcHistoryEntries()
+            .map { jsonRpcHistoryEntry -> jsonRpcHistoryEntry.toPendingRequest(issuer) }
     }
 
     private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
         if (issuer != null) {
             scope.launch {
-                authRequestMap[wcRequest.id] = wcRequest
                 val formattedMessage: String = authParams.payloadParams.toFormattedMessage(issuer)
                 _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, formattedMessage))
             }
@@ -190,6 +201,13 @@ internal class AuthEngine(
     }
 
     private fun onAuthRequestResponse(wcResponse: WCResponse) {
+        val pairingTopic = wcResponse.topic
+        if (!storage.isPairingValid(pairingTopic)) return
+        val pairing = storage.getPairingByTopic(pairingTopic)
+        if (!pairing.isActive) {
+            storage.activatePairing(pairingTopic, ACTIVE_PAIRING)
+        }
+
         when (val response = wcResponse.response) {
             is JsonRpcResponse.JsonRpcError -> {
                 scope.launch {
@@ -205,7 +223,10 @@ internal class AuthEngine(
                 } else {
                     scope.launch {
                         _engineEvent.emit(
-                            Events.OnAuthResponse(response.id, AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message))
+                            Events.OnAuthResponse(
+                                response.id,
+                                AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)
+                            )
                         )
                     }
                 }

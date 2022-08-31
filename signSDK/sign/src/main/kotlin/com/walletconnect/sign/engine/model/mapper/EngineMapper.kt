@@ -6,8 +6,8 @@ import com.walletconnect.android_core.common.model.Expiry
 import com.walletconnect.android_core.common.model.MetaData
 import com.walletconnect.android_core.common.model.Redirect
 import com.walletconnect.android_core.common.model.RelayProtocolOptions
-import com.walletconnect.android_core.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android_core.common.model.sync.WCRequest
+import com.walletconnect.android_core.json_rpc.model.JsonRpcResponse
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.peer.PeerError
