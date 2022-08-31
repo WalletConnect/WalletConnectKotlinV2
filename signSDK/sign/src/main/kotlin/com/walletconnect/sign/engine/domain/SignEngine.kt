@@ -24,6 +24,7 @@ import com.walletconnect.android_core.common.model.RelayProtocolOptions
 import com.walletconnect.android_core.json_rpc.model.JsonRpcResponse
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.exceptions.peer.PeerReason
+import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.PairingRpcVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
