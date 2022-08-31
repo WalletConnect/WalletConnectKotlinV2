@@ -6,10 +6,8 @@ import com.walletconnect.chat.client.mapper.toVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
 import com.walletconnect.chat.copiedFromSign.core.scope.scope
 import com.walletconnect.chat.copiedFromSign.di.*
-import com.walletconnect.chat.copiedFromSign.util.Logger
 import com.walletconnect.chat.core.model.vo.AccountIdVO
 import com.walletconnect.chat.core.model.vo.AccountIdWithPublicKeyVO
-import com.walletconnect.chat.core.model.vo.EventsVO
 import com.walletconnect.chat.di.engineModule
 import com.walletconnect.chat.di.keyServerModule
 import com.walletconnect.chat.engine.domain.ChatEngine

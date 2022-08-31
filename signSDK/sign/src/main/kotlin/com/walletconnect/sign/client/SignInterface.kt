@@ -1,7 +1,5 @@
 package com.walletconnect.sign.client
 
-import com.walletconnect.sign.network.RelayInterface
-
 interface SignInterface {
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal)
@@ -57,14 +55,7 @@ interface SignInterface {
     fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest>
 
     interface Websocket {
-        val relay: RelayInterface
-
-        fun open(onError: (String) -> Unit) {
-            relay.connect { errorMessage -> onError(errorMessage) }
-        }
-
-        fun close(onError: (String) -> Unit) {
-            relay.disconnect { errorMessage -> onError(errorMessage) }
-        }
+        fun open(onError: (String) -> Unit)
+        fun close(onError: (String) -> Unit)
     }
 }

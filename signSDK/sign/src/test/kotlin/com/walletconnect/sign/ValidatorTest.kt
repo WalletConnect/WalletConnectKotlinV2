@@ -1,5 +1,11 @@
 package com.walletconnect.sign
 
+import com.walletconnect.android_core.common.model.SymmetricKey
+import com.walletconnect.android_core.utils.DAY_IN_SECONDS
+import com.walletconnect.android_core.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android_core.utils.MONTH_IN_SECONDS
+import com.walletconnect.android_core.utils.WEEK_IN_SECONDS
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.ValidatorTest.Accounts.COSMOSHUB_4_1
 import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_1
 import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_2
@@ -22,12 +28,9 @@ import com.walletconnect.sign.ValidatorTest.Methods.ETH_SIGN
 import com.walletconnect.sign.ValidatorTest.Methods.PERSONAL_SIGN
 import com.walletconnect.sign.ValidatorTest.Namespaces.COSMOS
 import com.walletconnect.sign.ValidatorTest.Namespaces.EIP155
-import com.walletconnect.sign.core.exceptions.*
-import com.walletconnect.sign.core.model.utils.Time
-import com.walletconnect.sign.core.model.vo.SymmetricKey
-import com.walletconnect.sign.core.model.vo.TopicVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
+import com.walletconnect.sign.common.exceptions.*
+import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.android_core.common.model.RelayProtocolOptions
 import com.walletconnect.sign.engine.domain.Validator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toAbsoluteString
@@ -733,17 +736,17 @@ class ValidatorTest {
     @Test
     fun `parse walletconnect uri to absolute string`() {
         val uri = EngineDO.WalletConnectUri(
-            TopicVO("11112222244444"),
+            Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
-            RelayProtocolOptionsVO("irn", "teeestData")
+            RelayProtocolOptions("irn", "teeestData")
         )
 
         assertEquals(uri.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=irn&relay-data=teeestData&symKey=0x12321321312312312321")
 
         val uri2 = EngineDO.WalletConnectUri(
-            TopicVO("11112222244444"),
+            Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
-            RelayProtocolOptionsVO("irn")
+            RelayProtocolOptions("irn")
         )
 
         assertEquals(uri2.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=irn&symKey=0x12321321312312312321")
@@ -780,9 +783,9 @@ class ValidatorTest {
 
     @Test
     fun `test time periods in seconds`() {
-        Time.fiveMinutesInSeconds.apply { assertEquals(this.compareTo(300), 0) }
-        Time.dayInSeconds.apply { assertEquals(this.compareTo(86400), 0) }
-        Time.weekInSeconds.apply { assertEquals(this.compareTo(604800), 0) }
-        Time.monthInSeconds.apply { assertEquals(this.compareTo(2592000), 0) }
+        FIVE_MINUTES_IN_SECONDS.apply { assertEquals(this.compareTo(300), 0) }
+        DAY_IN_SECONDS.apply { assertEquals(this.compareTo(86400), 0) }
+        WEEK_IN_SECONDS.apply { assertEquals(this.compareTo(604800), 0) }
+        MONTH_IN_SECONDS.apply { assertEquals(this.compareTo(2592000), 0) }
     }
 }

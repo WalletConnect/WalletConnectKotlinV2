@@ -2,37 +2,42 @@
 
 package com.walletconnect.sign.client
 
+import com.walletconnect.android_core.common.model.ConnectionState
+import com.walletconnect.android_core.common.SDKError
+import com.walletconnect.android_core.common.client.Protocol
+import com.walletconnect.android_core.common.scope.scope
+import com.walletconnect.android_core.di.cryptoModule
+import com.walletconnect.android_core.di.networkModule
+import com.walletconnect.android_core.network.RelayConnectionInterface
+import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.foundation.crypto.data.repository.JwtRepository
+import com.walletconnect.sign.BuildConfig
 import com.walletconnect.sign.client.mapper.*
-import com.walletconnect.sign.core.model.vo.TopicVO
-import com.walletconnect.sign.core.scope.scope
-import com.walletconnect.sign.crypto.data.repository.JwtRepository
-import com.walletconnect.sign.di.*
+import com.walletconnect.sign.di.commonModule
+import com.walletconnect.sign.di.engineModule
+import com.walletconnect.sign.di.jsonRpcModule
+import com.walletconnect.sign.di.storageModule
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
-import com.walletconnect.sign.network.RelayInterface
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
-import java.util.concurrent.Executors
 
-internal class SignProtocol : SignInterface, SignInterface.Websocket {
+internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol() {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var signEngine: SignEngine
-    override val relay: RelayInterface by lazy { wcKoinApp.koin.get() }
-    val mutex = Mutex()
-    val signProtocolScope =
-        CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
+    internal val relay: RelayConnectionInterface by lazy { wcKoinApp.koin.get() }
 
     companion object {
         val instance = SignProtocol()
+        private const val STORAGE_SUFFIX = ""
     }
 
     override fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
-        signProtocolScope.launch {
+        protocolScope.launch {
             mutex.withLock {
                 with(initial) {
                     // TODO: re-init scope
@@ -42,25 +47,19 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                         modules(
                             commonModule(),
                             cryptoModule(),
-                            relayerModule(),
-                            storageModule(),
+                            jsonRpcModule(),
+                            storageModule(STORAGE_SUFFIX),
                             engineModule(metadata)
                         )
                     }
                 }
 
-
                 val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
                 val jwt = jwtRepository.generateJWT(initial.relayServerUrl.strippedUrl())
+                val serverUrl = initial.relayServerUrl.addUserAgent(BuildConfig.sdkVersion)
+                val connectionType = initial.connectionType.toRelayConnectionType()
 
-                wcKoinApp.modules(
-                    scarletModule(
-                        initial.relayServerUrl.addUserAgent(),
-                        jwt,
-                        initial.connectionType.toRelayConnectionType(),
-                        initial.relay
-                    )
-                )
+                wcKoinApp.modules(networkModule(serverUrl, jwt, connectionType, BuildConfig.sdkVersion, initial.relay))
                 signEngine = wcKoinApp.koin.get()
                 signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
             }
@@ -79,8 +78,8 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                     is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
                     is EngineDO.SessionUpdateNamespacesResponse -> delegate.onSessionUpdateResponse(event.toClientUpdateSessionNamespacesResponse())
                     //Utils
-                    is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
-                    is EngineDO.InternalError -> delegate.onError(event.toClientError())
+                    is ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
+                    is SDKError -> delegate.onError(event.toClientError())
                 }
             }.launchIn(scope)
         }
@@ -100,8 +99,8 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                     //Responses
                     is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
                     //Utils
-                    is EngineDO.ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
-                    is EngineDO.InternalError -> delegate.onError(event.toClientError())
+                    is ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
+                    is SDKError -> delegate.onError(event.toClientError())
                 }
             }.launchIn(scope)
         }
@@ -155,7 +154,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun rejectSession(reject: Sign.Params.Reject, onError: (Sign.Model.Error) -> Unit) {
         awaitLock {
             try {
-                signEngine.reject(reject.proposerPublicKey, reject.reason, reject.code) { error ->
+                signEngine.reject(reject.proposerPublicKey, reject.reason) { error ->
                     onError(Sign.Model.Error(error))
                 }
             } catch (error: Exception) {
@@ -181,7 +180,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     override fun respond(response: Sign.Params.Response, onError: (Sign.Model.Error) -> Unit) {
         awaitLock {
             try {
-                signEngine.respondSessionRequest(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponseVO()) { error ->
+                signEngine.respondSessionRequest(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponse()) { error ->
                     onError(Sign.Model.Error(error))
                 }
             } catch (error: Exception) {
@@ -275,7 +274,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
     @Throws(IllegalStateException::class)
     override fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest> {
         return awaitLock {
-            signEngine.getPendingRequests(TopicVO(topic)).mapToPendingRequests()
+            signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests()
         }
     }
 
@@ -285,18 +284,22 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
 //        wcKoinApp.close()
 //    }
 
-    private fun <T> awaitLock(codeBlock: suspend () -> T): T {
-        return runBlocking(signProtocolScope.coroutineContext) {
-            mutex.withLock {
-                checkEngineInitialization()
-                codeBlock()
-            }
+    @Throws(IllegalStateException::class)
+    override fun open(onError: (String) -> Unit) {
+        awaitLock {
+            relay.connect { errorMessage -> onError(errorMessage) }
         }
     }
 
+    @Throws(IllegalStateException::class)
+    override fun close(onError: (String) -> Unit) {
+        awaitLock {
+            relay.disconnect { errorMessage -> onError(errorMessage) }
+        }
+    }
 
     @Throws(IllegalStateException::class)
-    private fun checkEngineInitialization() {
+    override fun checkEngineInitialization() {
         check(::signEngine.isInitialized) {
             "SignClient needs to be initialized first using the initialize function"
         }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/pasteUri"
+        android:icon="@drawable/ic_url"
+        android:title="Paste Uri"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/qrCodeScanner"
+        android:icon="@drawable/ic_qr_code_scanner"
+        android:title="QR Code"
+        app:showAsAction="always" />
+</menu>

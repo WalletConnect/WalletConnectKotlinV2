@@ -9,7 +9,7 @@ android {
     defaultConfig {
         applicationId = "com.walletconnect.chatsample"
         minSdk = MIN_SDK
-        targetSdk = 32
+        targetSdk = TARGET_SDK
         versionCode = 1
         versionName = "1.0"
 
@@ -45,6 +45,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
-    jUnit5()
 
+    jUnit5()
+    jUnit5Android()
 }

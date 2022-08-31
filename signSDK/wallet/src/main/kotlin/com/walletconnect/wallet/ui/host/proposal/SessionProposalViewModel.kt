@@ -56,8 +56,7 @@ class SessionProposalViewModel : ViewModel() {
             val rejectionReason = "Reject Session"
             val reject = Sign.Params.Reject(
                 proposerPublicKey = sessionProposal.proposerPublicKey,
-                reason = rejectionReason,
-                code = 406
+                reason = rejectionReason
             )
 
             SignClient.rejectSession(reject) { error ->

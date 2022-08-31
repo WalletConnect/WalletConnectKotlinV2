@@ -1,8 +1,8 @@
 package com.walletconnect.sign.test.relay
 
-import com.walletconnect.sign.test.utils.WCIntegrationActivityScenarioRule
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import com.walletconnect.sign.test.utils.WCIntegrationActivityScenarioRule
 import com.walletconnect.sign.util.Logger
 import org.junit.Rule
 import org.junit.Test
