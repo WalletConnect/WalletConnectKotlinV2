@@ -27,18 +27,4 @@ inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Sc
             name = "WalletConnectV2$storageSuffix.db"
         )
     }
-
-    single<ColumnAdapter<List<String>, String>> {
-        object : ColumnAdapter<List<String>, String> {
-
-            override fun decode(databaseValue: String) =
-                if (databaseValue.isBlank()) {
-                    listOf()
-                } else {
-                    databaseValue.split(",")
-                }
-
-            override fun encode(value: List<String>) = value.joinToString(separator = ",")
-        }
-    }
 }
