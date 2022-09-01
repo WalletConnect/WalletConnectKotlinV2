@@ -10,7 +10,6 @@ import androidx.security.crypto.MasterKeys
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.android_core.Database
-import com.walletconnect.android_core.storage.JsonRpcHistory
 import com.walletconnect.util.randomBytes
 import net.sqlcipher.database.SupportFactory
 import org.koin.android.ext.koin.androidContext
