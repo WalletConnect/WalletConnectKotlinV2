@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.auth.client
 
 import com.walletconnect.android_core.common.SDKError
@@ -12,7 +14,6 @@ import com.walletconnect.auth.BuildConfig
 import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Events
-import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.di.commonModule
 import com.walletconnect.auth.di.engineModule
 import com.walletconnect.auth.di.jsonRpcModule
@@ -24,20 +25,26 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import org.koin.android.ext.koin.androidContext
-import org.koin.core.KoinApplication
+import org.koin.core.module.Module
 
 internal class AuthProtocol : AuthInterface, Protocol() {
-    private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var authEngine: AuthEngine
 
     // TODO: Figure out how to get relay as in Sign in here. Should we keep Relay in the Auth init params?
     internal val relay: RelayConnectionInterface by lazy { wcKoinApp.koin.get() }
     private val serverUrl: String = "wss://relay.walletconnect.com?projectId=2ee94aca5d98e6c05c38bce02bee952a"
+    override val storageSuffix: String = "_auth"
 
     companion object {
         val instance = AuthProtocol()
-        private const val STORAGE_SUFFIX = "_auth"
     }
+
+    override fun initialModules(): List<Module> = listOf(
+        commonModule(),
+        cryptoModule(),
+        jsonRpcModule(),
+        storageModule(storageSuffix)
+    )
 
     @Throws(IllegalStateException::class)
     override fun initialize(init: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit) {
@@ -46,15 +53,10 @@ internal class AuthProtocol : AuthInterface, Protocol() {
                 with(init) {
                     wcKoinApp.run {
                         androidContext(application)
-                        modules(
-                            commonModule(),
-                            cryptoModule(),
-                            storageModule(STORAGE_SUFFIX),
-                            jsonRpcModule(),
-                            engineModule(appMetaData, iss) //idea: Protocol Improvement. Dynamically changing issuer after initialisation
-                        )
+                        modules(engineModule(appMetaData, iss)) //idea: Protocol Improvement. Dynamically changing issuer after initialisation
                     }
                 }
+
                 val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
                 val jwt = jwtRepository.generateJWT(serverUrl)
                 val connectionType = ConnectionType.AUTOMATIC
