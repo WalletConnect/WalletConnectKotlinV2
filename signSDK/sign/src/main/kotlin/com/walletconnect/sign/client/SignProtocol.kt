@@ -24,17 +24,23 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.withLock
 import org.koin.android.ext.koin.androidContext
-import org.koin.core.KoinApplication
+import org.koin.core.module.Module
 
 internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol() {
-    private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var signEngine: SignEngine
     internal val relay: RelayConnectionInterface by lazy { wcKoinApp.koin.get() }
+    override val storageSuffix: String = ""
 
     companion object {
         val instance = SignProtocol()
-        private const val STORAGE_SUFFIX = ""
     }
+
+    override fun initialModules(): List<Module> = listOf(
+        commonModule(),
+        cryptoModule(),
+        jsonRpcModule(),
+        storageModule(storageSuffix)
+    )
 
     override fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
         protocolScope.launch {
@@ -44,13 +50,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
                     // TODO: add logic to check hostName for ws/wss scheme with and without ://
                     wcKoinApp.run {
                         androidContext(application)
-                        modules(
-                            commonModule(),
-                            cryptoModule(),
-                            jsonRpcModule(),
-                            storageModule(STORAGE_SUFFIX),
-                            engineModule(metadata)
-                        )
+                        modules(engineModule(metadata))
                     }
                 }
 
