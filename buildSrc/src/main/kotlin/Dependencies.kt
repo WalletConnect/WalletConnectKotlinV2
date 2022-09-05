@@ -157,6 +157,6 @@ fun DependencyHandlerScope.timber() {
 }
 
 fun DependencyHandlerScope.security() {
-    val androidSecurityVersion = "1.0.0"
+    val androidSecurityVersion = "1.1.0-alpha01"
     "implementation"("androidx.security:security-crypto:$androidSecurityVersion")
 }
