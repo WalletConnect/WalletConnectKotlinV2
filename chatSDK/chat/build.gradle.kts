@@ -1,8 +1,8 @@
 plugins {
     id("com.android.library")
     kotlin("android")
-    kotlin("kapt")
     id("com.squareup.sqldelight")
+    id("com.google.devtools.ksp") version kspVersion
 }
 
 android {
@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         minSdk = MIN_SDK
-        targetSdk = 32
+        targetSdk = TARGET_SDK
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -32,18 +32,19 @@ android {
 }
 
 dependencies {
-    koin()
-    retrofit()
-    coroutines()
-    bouncyCastle()
-    security()
-    scarlet()
-    okhttp()
-    moshi()
-    timber()
-    sqlDelight()
+    implementation(project(":android_core"))
 
-    jUnit5()
-    androidXTest()
+    retrofit()
     navigationComponent()
+    moshiKsp()
+
+    androidXTest()
+    jUnit5()
+    jUnit5Android()
+    robolectric()
+    mockk()
+    testJson()
+    coroutinesTest()
+    scarletTest()
+    sqlDelightTest()
 }

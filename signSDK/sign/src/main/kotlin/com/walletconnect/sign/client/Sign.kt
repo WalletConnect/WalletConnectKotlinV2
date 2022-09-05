@@ -2,7 +2,7 @@ package com.walletconnect.sign.client
 
 import android.app.Application
 import android.net.Uri
-import com.walletconnect.sign.network.RelayInterface
+import com.walletconnect.android_core.network.RelayConnectionInterface
 import java.net.URI
 
 object Sign {
@@ -22,7 +22,7 @@ object Sign {
 
         data class Error(val throwable: Throwable) : Model()
 
-        sealed class ProposedSequence {
+        sealed class ProposedSequence : Model() {
             class Pairing(val uri: String) : ProposedSequence()
             object Session : ProposedSequence()
         }
@@ -189,7 +189,7 @@ object Sign {
         data class Init internal constructor(
             val application: Application,
             val metadata: Model.AppMetaData,
-            val relay: RelayInterface? = null,
+            val relay: RelayConnectionInterface? = null,
             val connectionType: ConnectionType,
         ) : Params() {
             internal lateinit var relayServerUrl: String
@@ -200,7 +200,7 @@ object Sign {
                 hostName: String,
                 projectId: String,
                 metadata: Model.AppMetaData,
-                relay: RelayInterface? = null,
+                relay: RelayConnectionInterface? = null,
                 connectionType: ConnectionType = ConnectionType.AUTOMATIC,
             ) : this(application, metadata, relay, connectionType) {
                 val relayServerUrl = Uri.Builder().scheme((if (useTls) "wss" else "ws"))
@@ -220,7 +220,7 @@ object Sign {
                 application: Application,
                 relayServerUrl: String,
                 metadata: Model.AppMetaData,
-                relay: RelayInterface? = null,
+                relay: RelayConnectionInterface? = null,
                 connectionType: ConnectionType = ConnectionType.AUTOMATIC,
             ) : this(application, metadata, relay, connectionType) {
                 require(relayServerUrl.isValidRelayServerUrl()) {
@@ -251,13 +251,11 @@ object Sign {
             val relayProtocol: String? = null,
         ) : Params()
 
-        data class Reject(val proposerPublicKey: String, val reason: String, val code: Int) :
-            Params()
+        data class Reject(val proposerPublicKey: String, val reason: String) : Params()
 
         data class Disconnect(val sessionTopic: String) : Params()
 
-        data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) :
-            Params()
+        data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) : Params()
 
         data class Request(
             val sessionTopic: String,

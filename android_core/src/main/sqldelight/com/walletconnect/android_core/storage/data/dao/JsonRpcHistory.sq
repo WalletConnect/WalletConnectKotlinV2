@@ -1,0 +1,46 @@
+CREATE TABLE JsonRpcHistoryDao(
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  request_id INTEGER UNIQUE NOT NULL,
+  topic TEXT NOT NULL,
+  method TEXT NOT NULL,
+  body TEXT NOT NULL,
+  response TEXT AS String
+);
+
+insertOrAbortJsonRpcHistory:
+INSERT OR ABORT INTO JsonRpcHistoryDao (request_id, topic, method, body)
+VALUES (?, ?, ?, ?);
+
+updateJsonRpcHistory:
+UPDATE JsonRpcHistoryDao
+SET response = ?
+WHERE request_id = ?;
+
+getJsonRpcHistoryRecord:
+SELECT request_id, topic, method, body, response
+FROM JsonRpcHistoryDao
+WHERE  request_id = ?;
+
+getJsonRpcRecordsByTopic:
+SELECT request_id, topic, method, body, response
+FROM JsonRpcHistoryDao
+WHERE topic = ?;
+
+getJsonRpcRecords:
+SELECT request_id, topic, method, body, response
+FROM JsonRpcHistoryDao;
+
+doesJsonRpcNotExist:
+SELECT NOT EXISTS (
+    SELECT 1
+    FROM JsonRpcHistoryDao
+    WHERE request_id = ?
+    LIMIT 1
+);
+
+selectLastInsertedRowId:
+SELECT last_insert_rowid();
+
+deleteJsonRpcHistory:
+DELETE FROM JsonRpcHistoryDao
+WHERE topic = ?;

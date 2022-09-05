@@ -4,7 +4,6 @@
     android:layout_height="48dp"
     android:gravity="end"
     android:orientation="horizontal"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
     <TextView

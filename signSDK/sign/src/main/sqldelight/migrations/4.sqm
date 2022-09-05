@@ -1,4 +1,4 @@
-import com.walletconnect.sign.core.model.type.enums.MetaDataType;
+import com.walletconnect.sign.common.model.type.enums.MetaDataType;
 import java.util.List;
 
 ALTER TABLE MetaDataDao RENAME TO MetaDataDaoBak;
