@@ -3,7 +3,7 @@ package com.walletconnect.wallet.ui.sessions.details
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.sample_common.EthChains
+import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
@@ -47,19 +47,23 @@ class SessionDetailsViewModel : ViewModel() {
     }
 
     fun getSessionDetails(sessionTopic: String) {
-        val state = SignClient.getListOfSettledSessions().find { it.topic == sessionTopic }?.let { selectedSession ->
+        val state = SignClient.getSettledSessionByTopic(sessionTopic)?.let { selectedSession ->
             selectedSessionTopic = sessionTopic
 
-            val listOfChainAccountInfo = filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession)
-            val selectedSessionPeerData: Sign.Model.AppMetaData = requireNotNull(selectedSession.metaData)
+            val listOfChainAccountInfo =
+                filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession)
+            val selectedSessionPeerData: Sign.Model.AppMetaData =
+                requireNotNull(selectedSession.metaData)
             val uiState = SessionDetailsUI.Content(
-                icon = selectedSessionPeerData.icons.first(),
+                icon = selectedSessionPeerData.icons.firstOrNull(),
                 name = selectedSessionPeerData.name,
                 url = selectedSessionPeerData.url,
                 description = selectedSessionPeerData.description,
                 listOfChainAccountInfo = listOfChainAccountInfo,
-                methods = selectedSession.namespaces.values.flatMap { it.methods }.joinToString("\n"),
-                events = selectedSession.namespaces.values.flatMap { it.events }.joinToString("\n")
+                methods = selectedSession.namespaces.values.flatMap { it.methods }
+                    .joinToString("\n"),
+                events = selectedSession.namespaces.values.flatMap { it.events }
+                    .joinToString("\n")
             )
 
             uiState
@@ -92,7 +96,12 @@ class SessionDetailsViewModel : ViewModel() {
 
                 override fun onSuccess(pingSuccess: Sign.Model.Ping.Success) {
                     viewModelScope.launch() {
-                        _sessionDetails.emit(SampleWalletEvents.PingSuccess(pingSuccess.topic, System.currentTimeMillis()))
+                        _sessionDetails.emit(
+                            SampleWalletEvents.PingSuccess(
+                                pingSuccess.topic,
+                                System.currentTimeMillis()
+                            )
+                        )
                     }
                 }
 
@@ -119,14 +128,23 @@ class SessionDetailsViewModel : ViewModel() {
         // Right now: Emits first alphabetical event
         // How it should be: User should be able to emit desired event
         selectedSessionTopic?.let { topic ->
-            SignClient.getListOfSettledSessions().find { it.topic == topic }?.let { selectedSession ->
+            SignClient.getSettledSessionByTopic(topic)?.let { selectedSession ->
                 allApprovedEventsWithChains(selectedSession)
                     .filter { (_, chains) -> chains.isNotEmpty() }
                     .let { eventWithChains ->
                         eventWithChains.keys.minOrNull()?.let { event ->
                             eventWithChains[event]!!.first().let { chain ->
-                                Sign.Params.Emit(topic, Sign.Model.SessionEvent(event, "dummyData"), chain).let { sessionEvent ->
-                                    SignClient.emit(sessionEvent) { error -> Log.d("Error", "Extend session error: $error") }
+                                Sign.Params.Emit(
+                                    topic,
+                                    Sign.Model.SessionEvent(event, "dummyData"),
+                                    chain
+                                ).let { sessionEvent ->
+                                    SignClient.emit(sessionEvent) { error ->
+                                        Log.d(
+                                            "Error",
+                                            "Extend session error: $error"
+                                        )
+                                    }
                                     return // So as not to log error below
                                 }
                             }
@@ -142,12 +160,12 @@ class SessionDetailsViewModel : ViewModel() {
         // Right now: Expand first (right now there's only eip155) namespace with another account, event and method. Works only once
         // How it should be: User can toggle every account, method, event and then call this method with state to be updated
         selectedSessionTopic?.let { topic ->
-            SignClient.getListOfSettledSessions().find { it.topic == topic }?.let { selectedSession ->
+            SignClient.getSettledSessionByTopic(topic)?.let { selectedSession ->
                 selectedSession.namespaces.firstNotNullOf { it }.let { (key, namespace) ->
                     val secondAccount = namespace.accounts.firstOrNull()?.let { account ->
                         val (chainNamespace, chainReference, _) = account.split(":")
                         mapOfAccounts2
-                            .filter { (ethChain, _) -> ethChain.chainNamespace == chainNamespace && ethChain.chainReference == chainReference.toInt() }
+                            .filter { (ethChain, _) -> ethChain.chainNamespace == chainNamespace && ethChain.chainReference == chainReference }
                             .map { (ethChain, address) -> "${ethChain.chainNamespace}:${ethChain.chainReference}:${address}" }
                             .firstOrNull()
                     }
@@ -163,9 +181,13 @@ class SessionDetailsViewModel : ViewModel() {
                     if (!events.contains(anotherEvent)) {
                         events.add(anotherEvent)
                     }
-                    val expandedNamespaces = mapOf(key to Sign.Model.Namespace.Session(accounts, methods, events, null))
-                    val update = Sign.Params.Update(sessionTopic = topic, namespaces = expandedNamespaces)
-                    SignClient.update(update) { error -> Log.e("Error", "Sending update error: $error") }
+                    val expandedNamespaces =
+                        mapOf(key to Sign.Model.Namespace.Session(accounts, methods, events, null))
+                    val update =
+                        Sign.Params.Update(sessionTopic = topic, namespaces = expandedNamespaces)
+                    SignClient.update(update) { error ->
+                        Log.e("Error", "Sending update error: $error")
+                    }
                     return
                 }
             }
@@ -181,34 +203,46 @@ class SessionDetailsViewModel : ViewModel() {
 
     private fun filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession: Sign.Model.Session): List<SessionDetailsUI.Content.ChainAccountInfo> =
         mapOfAllAccounts.values
-            .flatMap { accountsMap: Map<EthChains, String> ->
-                val accountsMapID = mapOfAllAccounts.entries.associate { it.value to it.key }.getValue(accountsMap)
-                accountsMap.toList().map { (ethChain, accountAddress) -> Triple(ethChain, accountAddress, accountsMapID) }
-            }
-            .filter { (ethChain: EthChains, _, _) ->
-                val listOfParentChainsWChainId = selectedSession.namespaces.values.flatMap { it.accounts }.map {
-                    val (chainNamespace, chainReference, _) = it.split(":")
-                    "$chainNamespace:$chainReference"
+            .flatMap { accountsMap: Map<Chains, String> ->
+                val accountsMapID =
+                    mapOfAllAccounts.entries.associate { it.value to it.key }.getValue(accountsMap)
+                accountsMap.toList().map { (ethChain, accountAddress) ->
+                    Triple(
+                        ethChain,
+                        accountAddress,
+                        accountsMapID
+                    )
                 }
+            }
+            .filter { (ethChain: Chains, _, _) ->
+                val listOfParentChainsWChainId =
+                    selectedSession.namespaces.values.flatMap { it.accounts }.map {
+                        val (chainNamespace, chainReference, _) = it.split(":")
+                        "$chainNamespace:$chainReference"
+                    }
 
                 "${ethChain.chainNamespace}:${ethChain.chainReference}" in listOfParentChainsWChainId
             }
-            .sortedBy { (ethChain: EthChains, _, _) -> ethChain.order }
-            .groupBy { (ethChain: EthChains, _: String, _: Int) -> ethChain }.values
-            .map { it: List<Triple<EthChains, String, Int>> ->
-                val chainDetails: EthChains = it.first().first
+            .sortedBy { (ethChain: Chains, _, _) -> ethChain.order }
+            .groupBy { (ethChain: Chains, _: String, _: Int) -> ethChain }.values
+            .map { it: List<Triple<Chains, String, Int>> ->
+                val chainDetails: Chains = it.first().first
                 val chainName = chainDetails.chainName
                 val chainIcon = chainDetails.icon
                 val parentChain = chainDetails.chainNamespace
                 val chainId = chainDetails.chainReference
 
                 val listOfAccounts: List<SessionDetailsUI.Content.ChainAccountInfo.Account> =
-                    it.map { (ethChain: EthChains, accountAddress: String, accountsMapId: Int) ->
+                    it.map { (ethChain: Chains, accountAddress: String, accountsMapId: Int) ->
                         val isSelected =
                             "${ethChain.chainNamespace}:${ethChain.chainReference}:$accountAddress" in selectedSession.namespaces.values.flatMap { it.accounts }
                         val addressTitle = "$accountAddress-Account $accountsMapId"
 
-                        SessionDetailsUI.Content.ChainAccountInfo.Account(isSelected, addressTitle, accountAddress)
+                        SessionDetailsUI.Content.ChainAccountInfo.Account(
+                            isSelected,
+                            addressTitle,
+                            accountAddress
+                        )
                     }
 
                 SessionDetailsUI.Content.ChainAccountInfo(

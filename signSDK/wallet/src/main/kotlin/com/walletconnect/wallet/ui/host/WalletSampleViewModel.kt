@@ -2,9 +2,9 @@ package com.walletconnect.wallet.ui.host
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.sign.client.Sign
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.ui.SampleWalletEvents
-import com.walletconnect.sign.client.Sign
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
@@ -15,7 +15,7 @@ class WalletSampleViewModel : ViewModel() {
             is Sign.Model.SessionProposal -> SampleWalletEvents.SessionProposal
             is Sign.Model.SessionRequest -> {
                 val topic = wcEvent.topic
-                val icon = wcEvent.peerMetaData?.icons?.first()
+                val icon = wcEvent.peerMetaData?.icons?.firstOrNull()
                 val peerName = wcEvent.peerMetaData?.name
                 val requestId = wcEvent.request.id.toString()
                 val params = wcEvent.request.params

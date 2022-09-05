@@ -2,13 +2,18 @@
 
 package com.walletconnect.chat.copiedFromSign.json_rpc.domain
 
-import com.walletconnect.chat.copiedFromSign.core.exceptions.client.WalletConnectException
+import com.walletconnect.android_core.common.GenericException
+import com.walletconnect.android_core.common.NoRelayConnectionException
+import com.walletconnect.android_core.common.WalletConnectException
+import com.walletconnect.android_core.utils.Logger
+import com.walletconnect.chat.copiedFromSign.core.exceptions.client.InvalidProjectIdException
+import com.walletconnect.chat.copiedFromSign.core.exceptions.client.ProjectIdDoesNotExistException
 import com.walletconnect.chat.copiedFromSign.core.exceptions.peer.PeerError
 import com.walletconnect.chat.copiedFromSign.core.model.client.Relay
 import com.walletconnect.chat.copiedFromSign.core.model.type.ClientParams
 import com.walletconnect.chat.copiedFromSign.core.model.type.JsonRpcClientSync
 import com.walletconnect.chat.copiedFromSign.core.model.type.enums.EnvelopeType
-import com.walletconnect.chat.copiedFromSign.core.model.vo.IridiumParamsVO
+import com.walletconnect.chat.copiedFromSign.core.model.vo.IrnParamsVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.SubscriptionIdVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.TopicVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.jsonRpc.JsonRpcResponseVO
@@ -20,9 +25,7 @@ import com.walletconnect.chat.copiedFromSign.crypto.Codec
 import com.walletconnect.chat.copiedFromSign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.chat.copiedFromSign.json_rpc.model.*
 import com.walletconnect.chat.copiedFromSign.network.RelayInterface
-import com.walletconnect.chat.copiedFromSign.storage.JsonRpcHistory
 import com.walletconnect.chat.copiedFromSign.util.Empty
-import com.walletconnect.chat.copiedFromSign.util.Logger
 import com.walletconnect.chat.copiedFromSign.util.NetworkState
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
@@ -34,7 +37,7 @@ internal class RelayerInteractor(
     private val relay: RelayInterface,
     private val serializer: JsonRpcSerializer,
     private val chaChaPolyCodec: Codec,
-    private val jsonRpcHistory: JsonRpcHistory,
+    private val jsonRpcHistory: com.walletconnect.chat.copiedFromSign.storage.JsonRpcHistory,
     networkState: NetworkState, //todo: move to the RelayClient?
 ) {
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequestVO> = MutableSharedFlow()
@@ -43,8 +46,8 @@ internal class RelayerInteractor(
     private val _peerResponse: MutableSharedFlow<WCResponseVO> = MutableSharedFlow()
     val peerResponse: SharedFlow<WCResponseVO> = _peerResponse.asSharedFlow()
 
-    private val _internalErrors = MutableSharedFlow<WalletConnectException.InternalError>()
-    val internalErrors: SharedFlow<WalletConnectException.InternalError> = _internalErrors.asSharedFlow()
+    private val _internalErrors = MutableSharedFlow<InternalError>()
+    val internalErrors: SharedFlow<InternalError> = _internalErrors.asSharedFlow()
 
     private val _isNetworkAvailable: StateFlow<Boolean> = networkState.isAvailable
     private val _isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -65,10 +68,10 @@ internal class RelayerInteractor(
         get() =
             when {
                 this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
-                    WalletConnectException.ProjectIdDoesNotExistException(this.message)
+                    ProjectIdDoesNotExistException(this.message)
                 this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
-                    WalletConnectException.InvalidProjectIdException(this.message)
-                else -> WalletConnectException.GenericException(this.message)
+                    InvalidProjectIdException(this.message)
+                else -> GenericException(this.message)
             }
 
 
@@ -80,9 +83,19 @@ internal class RelayerInteractor(
             .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
             .map { error -> error.throwable.toWalletConnectException }
 
+    init {
+        manageSubscriptions()
+    }
+
+    internal fun checkConnectionWorking() {
+        if (!isConnectionAvailable.value) {
+            throw NoRelayConnectionException("No connection available")
+        }
+    }
+
     internal fun publishJsonRpcRequests(
         topic: TopicVO,
-        params: IridiumParamsVO,
+        params: IrnParamsVO,
         payload: JsonRpcClientSync<*>,
         envelopeType: EnvelopeType,
         onSuccess: () -> Unit = {},
@@ -105,7 +118,7 @@ internal class RelayerInteractor(
 
     internal fun publishJsonRpcResponse(
         topic: TopicVO,
-        params: IridiumParamsVO,
+        params: IrnParamsVO,
         response: JsonRpcResponseVO,
         envelopeType: EnvelopeType,
         onSuccess: () -> Unit = {},
@@ -129,19 +142,19 @@ internal class RelayerInteractor(
     internal fun respondWithParams(
         request: WCRequestVO,
         clientParams: ClientParams,
-        iridiumParams: IridiumParamsVO,
+        irnParams: IrnParamsVO,
         envelopeType: EnvelopeType,
     ) {
         val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = clientParams)
 
-        publishJsonRpcResponse(request.topic, iridiumParams, result, envelopeType,
+        publishJsonRpcResponse(request.topic, irnParams, result, envelopeType,
             onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
     }
 
-    internal fun respondWithSuccess(request: WCRequestVO, iridiumParams: IridiumParamsVO, envelopeType: EnvelopeType) {
+    internal fun respondWithSuccess(request: WCRequestVO, irnParams: IrnParamsVO, envelopeType: EnvelopeType) {
         val result = JsonRpcResponseVO.JsonRpcResult(id = request.id, result = true)
         try {
-            publishJsonRpcResponse(request.topic, iridiumParams, result, envelopeType,
+            publishJsonRpcResponse(request.topic, irnParams, result, envelopeType,
                 onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
         } catch (e: Exception) {
             handleError(e.message ?: String.Empty)
@@ -151,7 +164,7 @@ internal class RelayerInteractor(
     internal fun respondWithError(
         request: WCRequestVO,
         error: PeerError,
-        iridiumParams: IridiumParamsVO,
+        irnParams: IrnParamsVO,
         envelopeType: EnvelopeType,
         onFailure: (Throwable) -> Unit = {},
     ) {
@@ -159,7 +172,7 @@ internal class RelayerInteractor(
         val jsonRpcError = JsonRpcResponseVO.JsonRpcError(id = request.id, error = JsonRpcResponseVO.Error(error.code, error.message))
 
         try {
-            publishJsonRpcResponse(request.topic, iridiumParams, jsonRpcError, envelopeType,
+            publishJsonRpcResponse(request.topic, irnParams, jsonRpcError, envelopeType,
                 onFailure = { failure ->
                     Logger.error("Cannot respond with error: $failure")
                     onFailure(failure)
@@ -263,7 +276,7 @@ internal class RelayerInteractor(
     private fun handleError(errorMessage: String) {
         Logger.error(errorMessage)
         scope.launch {
-            _internalErrors.emit(WalletConnectException.InternalError(errorMessage))
+            _internalErrors.emit(InternalError(errorMessage))
         }
     }
 }

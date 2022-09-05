@@ -14,7 +14,11 @@
         <activity
             android:name="com.walletconnect.dapp.ui.host.DappSampleActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:screenOrientation="portrait">
+
+            <nav-graph android:value="@navigation/nav_graph" />
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

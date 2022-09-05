@@ -1,8 +1,9 @@
 plugins {
     id("com.android.library")
     kotlin("android")
-    kotlin("kapt")
     id("com.squareup.sqldelight")
+    `maven-publish`
+    id("com.google.devtools.ksp") version kspVersion
     id("org.jetbrains.dokka")
     id("publish-module")
 }
@@ -17,24 +18,23 @@ android {
 
     defaultConfig {
         minSdk = MIN_SDK
-        targetSdk = 32
+        targetSdk = TARGET_SDK
 
         aarMetadata {
             minCompileSdk = MIN_SDK
-            targetSdk = 32
+            targetSdk = TARGET_SDK
         }
 
-        testInstrumentationRunner = "com.walletconnect.sign.WCTestRunner"
+        buildConfigField(type = "String", name= "sdkVersion", value = "\"2.0.0-rc.3\"")
+        testInstrumentationRunner = "com.walletconnect.sign.test.utils.WCTestRunner"
         testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")
+        testInstrumentationRunnerArguments += mutableMapOf("clearPackageData" to "true")
     }
 
     buildTypes {
-        getByName("release") {
+        release {
             isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
@@ -60,6 +60,13 @@ android {
             "META-INF/AL2.0",
             "META-INF/LGPL2.1"
         )
+    }
+}
+
+sqldelight {
+    database("Database") {
+        packageName = "com.walletconnect.sign"
+        dependency(project(":android_core"))
     }
 }
 
@@ -157,19 +164,15 @@ signing {
 }
 
 dependencies {
-    okhttp()
-    bouncyCastle()
-    coroutines()
-    moshi()
-    scarlet()
-    sqlDelight()
-    security()
-    koin()
-    multibaseJava()
+    api(project(":android_core"))
 
+    moshiKsp()
     androidXTest()
     jUnit5()
     robolectric()
     mockk()
-    timber()
+    testJson()
+    coroutinesTest()
+    scarletTest()
+    sqlDelightTest()
 }

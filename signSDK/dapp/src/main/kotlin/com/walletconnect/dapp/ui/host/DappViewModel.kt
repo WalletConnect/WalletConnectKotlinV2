@@ -6,9 +6,12 @@ import androidx.lifecycle.viewModelScope
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.sample_common.tag
-import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.client.Sign
-import kotlinx.coroutines.flow.*
+import com.walletconnect.sign.client.SignClient
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 
 class DappViewModel : ViewModel() {
 

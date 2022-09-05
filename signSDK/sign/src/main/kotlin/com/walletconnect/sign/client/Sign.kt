@@ -2,7 +2,7 @@ package com.walletconnect.sign.client
 
 import android.app.Application
 import android.net.Uri
-import com.walletconnect.sign.network.RelayInterface
+import com.walletconnect.android_core.network.RelayConnectionInterface
 import java.net.URI
 
 object Sign {
@@ -22,7 +22,7 @@ object Sign {
 
         data class Error(val throwable: Throwable) : Model()
 
-        sealed class ProposedSequence {
+        sealed class ProposedSequence : Model() {
             class Pairing(val uri: String) : ProposedSequence()
             object Session : ProposedSequence()
         }
@@ -54,14 +54,32 @@ object Sign {
 
         sealed class Namespace : Model() {
 
-            data class Proposal(val chains: List<String>, val methods: List<String>, val events: List<String>, val extensions: List<Extension>?) : Namespace() {
+            data class Proposal(
+                val chains: List<String>,
+                val methods: List<String>,
+                val events: List<String>,
+                val extensions: List<Extension>?,
+            ) : Namespace() {
 
-                data class Extension(val chains: List<String>, val methods: List<String>, val events: List<String>)
+                data class Extension(
+                    val chains: List<String>,
+                    val methods: List<String>,
+                    val events: List<String>
+                )
             }
 
-            data class Session(val accounts: List<String>, val methods: List<String>, val events: List<String>, val extensions: List<Extension>?) : Namespace() {
+            data class Session(
+                val accounts: List<String>,
+                val methods: List<String>,
+                val events: List<String>,
+                val extensions: List<Extension>?,
+            ) : Namespace() {
 
-                data class Extension(val accounts: List<String>, val methods: List<String>, val events: List<String>)
+                data class Extension(
+                    val accounts: List<String>,
+                    val methods: List<String>,
+                    val events: List<String>
+                )
             }
         }
 
@@ -75,7 +93,9 @@ object Sign {
         }
 
         sealed class SessionUpdateResponse : Model() {
-            data class Result(val topic: String, val namespaces: Map<String, Namespace.Session>) : SessionUpdateResponse()
+            data class Result(val topic: String, val namespaces: Map<String, Namespace.Session>) :
+                SessionUpdateResponse()
+
             data class Error(val errorMessage: String) : SessionUpdateResponse()
         }
 
@@ -93,7 +113,10 @@ object Sign {
 
         data class Blockchain(val chains: List<String>) : Model()
 
-        data class UpdatedSession(val topic: String, val namespaces: Map<String, Namespace.Session>) : Model()
+        data class UpdatedSession(
+            val topic: String,
+            val namespaces: Map<String, Namespace.Session>
+        ) : Model()
 
         data class ApprovedSession(
             val topic: String,
@@ -107,7 +130,9 @@ object Sign {
             val expiry: Long,
             val namespaces: Map<String, Namespace.Session>,
             val metaData: AppMetaData?,
-        ) : Model()
+        ) : Model() {
+            val redirect: String? = metaData?.redirect
+        }
 
         data class SessionEvent(
             val name: String,
@@ -142,6 +167,7 @@ object Sign {
             val description: String,
             val url: String,
             val icons: List<String>,
+            val redirect: String?,
         ) : Model()
 
         data class PendingRequest(
@@ -163,7 +189,7 @@ object Sign {
         data class Init internal constructor(
             val application: Application,
             val metadata: Model.AppMetaData,
-            val relay: RelayInterface? = null,
+            val relay: RelayConnectionInterface? = null,
             val connectionType: ConnectionType,
         ) : Params() {
             internal lateinit var relayServerUrl: String
@@ -174,7 +200,7 @@ object Sign {
                 hostName: String,
                 projectId: String,
                 metadata: Model.AppMetaData,
-                relay: RelayInterface? = null,
+                relay: RelayConnectionInterface? = null,
                 connectionType: ConnectionType = ConnectionType.AUTOMATIC,
             ) : this(application, metadata, relay, connectionType) {
                 val relayServerUrl = Uri.Builder().scheme((if (useTls) "wss" else "ws"))
@@ -194,7 +220,7 @@ object Sign {
                 application: Application,
                 relayServerUrl: String,
                 metadata: Model.AppMetaData,
-                relay: RelayInterface? = null,
+                relay: RelayConnectionInterface? = null,
                 connectionType: ConnectionType = ConnectionType.AUTOMATIC,
             ) : this(application, metadata, relay, connectionType) {
                 require(relayServerUrl.isValidRelayServerUrl()) {
@@ -225,13 +251,18 @@ object Sign {
             val relayProtocol: String? = null,
         ) : Params()
 
-        data class Reject(val proposerPublicKey: String, val reason: String, val code: Int) : Params()
+        data class Reject(val proposerPublicKey: String, val reason: String) : Params()
 
         data class Disconnect(val sessionTopic: String) : Params()
 
         data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) : Params()
 
-        data class Request(val sessionTopic: String, val method: String, val params: String, val chainId: String) : Params()
+        data class Request(
+            val sessionTopic: String,
+            val method: String,
+            val params: String,
+            val chainId: String
+        ) : Params()
 
         data class Update(
             val sessionTopic: String,
@@ -240,7 +271,8 @@ object Sign {
 
         data class Ping(val topic: String) : Params()
 
-        data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String) : Params()
+        data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String) :
+            Params()
 
         data class Extend(val topic: String) : Params()
     }

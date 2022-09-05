@@ -3,17 +3,17 @@
 package com.walletconnect.sign.json_rpc.data
 
 import com.squareup.moshi.Moshi
-import com.walletconnect.sign.core.model.type.ClientParams
-import com.walletconnect.sign.core.model.type.SerializableJsonRpc
-import com.walletconnect.sign.core.model.vo.clientsync.pairing.PairingRpcVO
-import com.walletconnect.sign.core.model.vo.clientsync.session.SessionRpcVO
+import com.walletconnect.android_core.common.model.type.ClientParams
+import com.walletconnect.android_core.common.model.type.SerializableJsonRpc
+import com.walletconnect.android_core.json_rpc.data.JsonRpcSerializerAbstract
+import com.walletconnect.sign.common.model.vo.clientsync.pairing.PairingRpcVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
-import com.walletconnect.sign.json_rpc.model.RelayerDO
-import com.walletconnect.sign.util.Empty
+import com.walletconnect.utils.Empty
 
-internal class JsonRpcSerializer(private val moshi: Moshi) {
+internal class JsonRpcSerializer(override val moshi: Moshi) : JsonRpcSerializerAbstract(moshi) {
 
-    internal fun deserialize(method: String, json: String): ClientParams? =
+    override fun deserialize(method: String, json: String): ClientParams? =
         when (method) {
             JsonRpcMethod.WC_SESSION_PROPOSE -> tryDeserialize<PairingRpcVO.SessionPropose>(json)?.params
             JsonRpcMethod.WC_PAIRING_PING -> tryDeserialize<PairingRpcVO.PairingPing>(json)?.params
@@ -27,7 +27,7 @@ internal class JsonRpcSerializer(private val moshi: Moshi) {
             else -> null
         }
 
-    fun serialize(payload: SerializableJsonRpc): String =
+    override fun sdkSpecificSerialize(payload: SerializableJsonRpc): String =
         when (payload) {
             is PairingRpcVO.SessionPropose -> trySerialize(payload)
             is PairingRpcVO.PairingPing -> trySerialize(payload)
@@ -39,11 +39,6 @@ internal class JsonRpcSerializer(private val moshi: Moshi) {
             is SessionRpcVO.SessionRequest -> trySerialize(payload)
             is SessionRpcVO.SessionDelete -> trySerialize(payload)
             is SessionRpcVO.SessionSettle -> trySerialize(payload)
-            is RelayerDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
-            is RelayerDO.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             else -> String.Empty
         }
-
-    inline fun <reified T> tryDeserialize(json: String): T? = runCatching { moshi.adapter(T::class.java).fromJson(json) }.getOrNull()
-    private inline fun <reified T> trySerialize(type: T): String = moshi.adapter(T::class.java).toJson(type)
 }

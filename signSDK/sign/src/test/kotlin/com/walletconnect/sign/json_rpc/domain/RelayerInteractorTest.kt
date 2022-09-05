@@ -1,24 +1,24 @@
 package com.walletconnect.sign.json_rpc.domain
 
-import com.walletconnect.sign.core.exceptions.client.WalletConnectException
-import com.walletconnect.sign.core.exceptions.peer.PeerError
-import com.walletconnect.sign.core.model.client.Relay
-import com.walletconnect.sign.core.model.type.ClientParams
-import com.walletconnect.sign.core.model.type.JsonRpcClientSync
-import com.walletconnect.sign.core.model.type.enums.Tags
-import com.walletconnect.sign.core.model.vo.IridiumParamsVO
-import com.walletconnect.sign.core.model.vo.TopicVO
-import com.walletconnect.sign.core.model.vo.TtlVO
-import com.walletconnect.sign.core.model.vo.jsonRpc.JsonRpcResponseVO
-import com.walletconnect.sign.core.model.vo.sync.WCRequestVO
-import com.walletconnect.sign.crypto.data.codec.ChaChaPolyCodec
+import com.walletconnect.android_core.common.WalletConnectException
+import com.walletconnect.android_core.common.model.IrnParams
+import com.walletconnect.android_core.common.model.sync.WCRequest
+import com.walletconnect.android_core.common.model.type.ClientParams
+import com.walletconnect.android_core.common.model.type.JsonRpcClientSync
+import com.walletconnect.android_core.common.model.type.enums.Tags
+import com.walletconnect.android_core.crypto.Codec
+import com.walletconnect.android_core.json_rpc.model.JsonRpcResponse
+import com.walletconnect.android_core.network.RelayConnectionInterface
+import com.walletconnect.android_core.network.data.connection.ConnectivityState
+import com.walletconnect.android_core.storage.JsonRpcHistory
+import com.walletconnect.android_core.utils.Logger
+import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.network.model.Relay
+import com.walletconnect.foundation.network.model.RelayDTO
+import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.sign.network.RelayInterface
-import com.walletconnect.sign.network.model.RelayDTO
-import com.walletconnect.sign.storage.history.JsonRpcHistory
-import com.walletconnect.sign.util.Empty
-import com.walletconnect.sign.util.Logger
-import com.walletconnect.sign.util.NetworkState
+import com.walletconnect.utils.Empty
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
@@ -32,11 +32,11 @@ import kotlin.test.assertFalse
 @ExperimentalCoroutinesApi
 internal class RelayerInteractorTest {
 
-    private val chaChaPolyCodec: ChaChaPolyCodec = mockk {
+    private val chaChaPolyCodec: Codec = mockk {
         every { encrypt(any(), any(), any(), any()) } returns String.Empty
     }
 
-    private val relay: RelayInterface = mockk {
+    private val relay: RelayConnectionInterface = mockk {
         every { subscriptionRequest } returns flow { }
     }
 
@@ -49,26 +49,26 @@ internal class RelayerInteractorTest {
         every { updateRequestWithResponse(any(), any()) } returns mockk()
     }
 
-    private val networkState: NetworkState = mockk(relaxed = true) {
+    private val networkState: ConnectivityState = mockk(relaxed = true) {
         every { isAvailable } returns MutableStateFlow(true).asStateFlow()
     }
 
     private val sut =
         spyk(
-            RelayerInteractor(relay, serializer, chaChaPolyCodec, jsonRpcHistory, networkState),
+            JsonRpcInteractor(relay, chaChaPolyCodec, networkState, jsonRpcHistory, serializer),
             recordPrivateCalls = true
         ) {
             every { checkConnectionWorking() } answers { }
         }
 
-    private val topicVO = TopicVO("mockkTopic")
+    private val topicVO = Topic("mockkTopic")
 
     private val settlementSequence: JsonRpcClientSync<*> = mockk {
         every { id } returns DEFAULT_ID
         every { method } returns String.Empty
     }
 
-    private val request: WCRequestVO = mockk {
+    private val request: WCRequest = mockk {
         every { id } returns DEFAULT_ID
         every { topic } returns topicVO
     }
@@ -107,10 +107,10 @@ internal class RelayerInteractorTest {
     }
 
     private fun publishJsonRpcRequests() {
-        val iridiumParamsVO = IridiumParamsVO(Tags.SESSION_PING, TtlVO(300))
+        val irnParamsVO = IrnParams(Tags.SESSION_PING, Ttl(300))
         sut.publishJsonRpcRequests(
             topicVO,
-            iridiumParamsVO,
+            irnParamsVO,
             settlementSequence,
             onSuccess = onSuccess,
             onFailure = onFailure
@@ -178,37 +178,37 @@ internal class RelayerInteractorTest {
     @Test
     fun `RespondWithParams publishes result with params and request id on request topic`() {
         val params: ClientParams = mockk()
-        val result = JsonRpcResponseVO.JsonRpcResult(request.id, result = params)
-        val iridiumParamsVO = IridiumParamsVO(Tags.SESSION_PING, TtlVO(300))
+        val result = JsonRpcResponse.JsonRpcResult(request.id, result = params)
+        val irnParams = IrnParams(Tags.SESSION_PING, Ttl(300))
         mockRelayPublishSuccess()
-        sut.respondWithParams(request, params, iridiumParamsVO)
-        verify { sut.publishJsonRpcResponse(topicVO, result, iridiumParamsVO, any(), any()) }
+        sut.respondWithParams(request, params, irnParams)
+        verify { sut.publishJsonRpcResponse(topic = topicVO, response = result, params = irnParams, onSuccess = any(), onFailure = any()) }
     }
 
     @Test
     fun `RespondWithSuccess publishes result as true with request id on request topic`() {
-        val result = JsonRpcResponseVO.JsonRpcResult(request.id, result = true)
-        val iridiumParamsVO = IridiumParamsVO(Tags.SESSION_PING, TtlVO(300))
+        val result = JsonRpcResponse.JsonRpcResult(request.id, result = true)
+        val irnParams = IrnParams(Tags.SESSION_PING, Ttl(300))
         mockRelayPublishSuccess()
-        sut.respondWithSuccess(request, iridiumParamsVO)
-        verify { sut.publishJsonRpcResponse(topicVO, result, iridiumParamsVO, any(), any()) }
+        sut.respondWithSuccess(request, irnParams)
+        verify { sut.publishJsonRpcResponse(topic = topicVO, response = result, params = irnParams, onSuccess = any(), onFailure = any()) }
     }
 
     @Test
     fun `RespondWithError publishes result as error with request id on request topic`() {
-        val error = JsonRpcResponseVO.Error(peerError.code, peerError.message)
-        val result = JsonRpcResponseVO.JsonRpcError(request.id, error = error)
-        val iridiumParamsVO = IridiumParamsVO(Tags.SESSION_PING, TtlVO(300))
+        val error = JsonRpcResponse.Error(peerError.code, peerError.message)
+        val result = JsonRpcResponse.JsonRpcError(request.id, error = error)
+        val irnParams = IrnParams(Tags.SESSION_PING, Ttl(300))
         mockRelayPublishSuccess()
-        sut.respondWithError(request, peerError, iridiumParamsVO)
-        verify { sut.publishJsonRpcResponse(topicVO, result, iridiumParamsVO, any(), any()) }
+        sut.respondWithError(request, peerError, irnParams)
+        verify { sut.publishJsonRpcResponse(topic = topicVO, response = result, params = irnParams, onSuccess = any(), onFailure = any()) }
     }
 
     @Test
     fun `OnFailure callback called when respondWithError encounters error`() {
         mockRelayPublishFailure()
-        val iridiumParamsVO = IridiumParamsVO(Tags.SESSION_PING, TtlVO(300))
-        sut.respondWithError(request, peerError, iridiumParamsVO, onFailure)
+        val irnParams = IrnParams(Tags.SESSION_PING, Ttl(300))
+        sut.respondWithError(request = request, error = peerError, irnParams = irnParams, onFailure = onFailure)
         verify { onFailure(any()) }
     }
 

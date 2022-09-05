@@ -2,7 +2,7 @@ package com.walletconnect.wallet.ui.host.proposal
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.walletconnect.sample_common.EthChains
+import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
@@ -22,14 +22,14 @@ class SessionProposalViewModel : ViewModel() {
 
     fun approve() {
         if (WalletDelegate.sessionProposal != null && WalletDelegate.selectedChainAddressId in mapOfAllAccounts.keys) {
-            val selectedAccounts: Map<EthChains, String> = mapOfAllAccounts[WalletDelegate.selectedChainAddressId] ?: throw Exception("Can't find account")
+            val selectedAccounts: Map<Chains, String> = mapOfAllAccounts[WalletDelegate.selectedChainAddressId] ?: throw Exception("Can't find account")
             val sessionProposal: Sign.Model.SessionProposal = requireNotNull(WalletDelegate.sessionProposal)
-            val sessionNamespaces: Map<String, Sign.Model.Namespace.Session> = selectedAccounts.filter { (chain: EthChains, _) ->
+            val sessionNamespaces: Map<String, Sign.Model.Namespace.Session> = selectedAccounts.filter { (chain: Chains, _) ->
                 "${chain.chainNamespace}:${chain.chainReference}" in sessionProposal.requiredNamespaces.values.flatMap { it.chains }
-            }.toList().groupBy { (chain: EthChains, _: String) ->
+            }.toList().groupBy { (chain: Chains, _: String) ->
                 chain.chainNamespace
-            }.map { (namespaceKey: String, chainData: List<Pair<EthChains, String>>) ->
-                val accounts = chainData.map { (chain: EthChains, accountAddress: String) ->
+            }.map { (namespaceKey: String, chainData: List<Pair<Chains, String>>) ->
+                val accounts = chainData.map { (chain: Chains, accountAddress: String) ->
                     "${chain.chainNamespace}:${chain.chainReference}:${accountAddress}"
                 }
                 val methods = sessionProposal.requiredNamespaces.values.flatMap { it.methods }
@@ -56,8 +56,7 @@ class SessionProposalViewModel : ViewModel() {
             val rejectionReason = "Reject Session"
             val reject = Sign.Params.Reject(
                 proposerPublicKey = sessionProposal.proposerPublicKey,
-                reason = rejectionReason,
-                code = 406
+                reason = rejectionReason
             )
 
             SignClient.rejectSession(reject) { error ->
@@ -70,7 +69,7 @@ class SessionProposalViewModel : ViewModel() {
 
     private fun generateSessionProposalEvent(sessionProposal: Sign.Model.SessionProposal): SessionProposalUI {
         return SessionProposalUI(
-            peerIcon = sessionProposal.icons.first().toString(),
+            peerIcon = sessionProposal.icons.firstOrNull().toString(),
             peerName = sessionProposal.name,
             proposalUri = sessionProposal.url,
             peerDescription = sessionProposal.description,

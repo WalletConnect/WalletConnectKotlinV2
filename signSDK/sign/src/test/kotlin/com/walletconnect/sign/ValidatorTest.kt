@@ -1,5 +1,11 @@
 package com.walletconnect.sign
 
+import com.walletconnect.android_core.common.model.SymmetricKey
+import com.walletconnect.android_core.utils.DAY_IN_SECONDS
+import com.walletconnect.android_core.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android_core.utils.MONTH_IN_SECONDS
+import com.walletconnect.android_core.utils.WEEK_IN_SECONDS
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.ValidatorTest.Accounts.COSMOSHUB_4_1
 import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_1
 import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_2
@@ -22,12 +28,9 @@ import com.walletconnect.sign.ValidatorTest.Methods.ETH_SIGN
 import com.walletconnect.sign.ValidatorTest.Methods.PERSONAL_SIGN
 import com.walletconnect.sign.ValidatorTest.Namespaces.COSMOS
 import com.walletconnect.sign.ValidatorTest.Namespaces.EIP155
-import com.walletconnect.sign.core.exceptions.*
-import com.walletconnect.sign.core.model.utils.Time
-import com.walletconnect.sign.core.model.vo.SymmetricKey
-import com.walletconnect.sign.core.model.vo.TopicVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.core.model.vo.clientsync.common.RelayProtocolOptionsVO
+import com.walletconnect.sign.common.exceptions.*
+import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.android_core.common.model.RelayProtocolOptions
 import com.walletconnect.sign.engine.domain.Validator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toAbsoluteString
@@ -686,27 +689,27 @@ class ValidatorTest {
     @Test
     fun `validate WC uri test`() {
         val validUri =
-            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=iridium&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
+            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
 
         Validator.validateWCUri("").apply { assertEquals(null, this) }
         Validator.validateWCUri(validUri).apply {
             assertNotNull(this)
             assertEquals("7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9", this.topic.value)
-            assertEquals("iridium", this.relay.protocol)
+            assertEquals("irn", this.relay.protocol)
             assertEquals("587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303", this.symKey.keyAsHex)
             assertEquals("2", this.version)
         }
 
         val noTopicInvalidUri =
-            "wc:@2?relay-protocol=iridium&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
+            "wc:@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
         Validator.validateWCUri(noTopicInvalidUri).apply { assertNull(this) }
 
         val noPrefixInvalidUri =
-            "7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=iridium&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
+            "7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
         Validator.validateWCUri(noPrefixInvalidUri).apply { assertNull(this) }
 
         val noSymKeyInvalidUri =
-            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=iridium&symKey="
+            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey="
         Validator.validateWCUri(noSymKeyInvalidUri).apply { assertNull(this) }
 
         val noProtocolTypeInvalidUri =
@@ -717,13 +720,13 @@ class ValidatorTest {
     @Test
     fun `validate WC uri test optional data field`() {
         val validUri =
-            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=iridium&relay-data=testData&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
+            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&relay-data=testData&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
 
         Validator.validateWCUri("").apply { assertEquals(null, this) }
         Validator.validateWCUri(validUri).apply {
             assertNotNull(this)
             assertEquals("7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9", this.topic.value)
-            assertEquals("iridium", this.relay.protocol)
+            assertEquals("irn", this.relay.protocol)
             assertEquals("testData", this.relay.data)
             assertEquals("587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303", this.symKey.keyAsHex)
             assertEquals("2", this.version)
@@ -733,20 +736,20 @@ class ValidatorTest {
     @Test
     fun `parse walletconnect uri to absolute string`() {
         val uri = EngineDO.WalletConnectUri(
-            TopicVO("11112222244444"),
+            Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
-            RelayProtocolOptionsVO("iridium", "teeestData")
+            RelayProtocolOptions("irn", "teeestData")
         )
 
-        assertEquals(uri.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=iridium&relay-data=teeestData&symKey=0x12321321312312312321")
+        assertEquals(uri.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=irn&relay-data=teeestData&symKey=0x12321321312312312321")
 
         val uri2 = EngineDO.WalletConnectUri(
-            TopicVO("11112222244444"),
+            Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
-            RelayProtocolOptionsVO("iridium")
+            RelayProtocolOptions("irn")
         )
 
-        assertEquals(uri2.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=iridium&symKey=0x12321321312312312321")
+        assertEquals(uri2.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=irn&symKey=0x12321321312312312321")
     }
 
     @Test
@@ -780,9 +783,9 @@ class ValidatorTest {
 
     @Test
     fun `test time periods in seconds`() {
-        Time.fiveMinutesInSeconds.apply { assertEquals(this.compareTo(300), 0) }
-        Time.dayInSeconds.apply { assertEquals(this.compareTo(86400), 0) }
-        Time.weekInSeconds.apply { assertEquals(this.compareTo(604800), 0) }
-        Time.monthInSeconds.apply { assertEquals(this.compareTo(2592000), 0) }
+        FIVE_MINUTES_IN_SECONDS.apply { assertEquals(this.compareTo(300), 0) }
+        DAY_IN_SECONDS.apply { assertEquals(this.compareTo(86400), 0) }
+        WEEK_IN_SECONDS.apply { assertEquals(this.compareTo(604800), 0) }
+        MONTH_IN_SECONDS.apply { assertEquals(this.compareTo(2592000), 0) }
     }
 }
