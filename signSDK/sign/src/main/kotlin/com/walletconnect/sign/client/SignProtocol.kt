@@ -22,10 +22,20 @@ import java.util.concurrent.Executors
 internal class SignProtocol : SignInterface, SignInterface.Websocket {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var signEngine: SignEngine
-    override val relay: RelayInterface by lazy { wcKoinApp.koin.get() }
+    internal val relay: RelayInterface by lazy { wcKoinApp.koin.get() }
     val mutex = Mutex()
-    val signProtocolScope =
-        CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
+    val signProtocolScope = CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
+
+    init {
+        wcKoinApp.run {
+            modules(
+                commonModule(),
+                cryptoModule(),
+                relayerModule(),
+                storageModule()
+            )
+        }
+    }
 
     companion object {
         val instance = SignProtocol()
@@ -39,13 +49,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
                     // TODO: add logic to check hostName for ws/wss scheme with and without ://
                     wcKoinApp.run {
                         androidContext(application)
-                        modules(
-                            commonModule(),
-                            cryptoModule(),
-                            relayerModule(),
-                            storageModule(),
-                            engineModule(metadata)
-                        )
+                        modules(engineModule(metadata))
                     }
                 }
 
@@ -285,6 +289,20 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
 //        wcKoinApp.close()
 //    }
 
+    @Throws(IllegalStateException::class)
+    override fun open(onError: (String) -> Unit) {
+        awaitLock {
+            relay.connect { errorMessage -> onError(errorMessage) }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun close(onError: (String) -> Unit) {
+        awaitLock {
+            relay.disconnect { errorMessage -> onError(errorMessage) }
+        }
+    }
+
     private fun <T> awaitLock(codeBlock: suspend () -> T): T {
         return runBlocking(signProtocolScope.coroutineContext) {
             mutex.withLock {
@@ -296,7 +314,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket {
 
 
     @Throws(IllegalStateException::class)
-    private fun checkEngineInitialization() {
+    internal fun checkEngineInitialization() {
         check(::signEngine.isInitialized) {
             "SignClient needs to be initialized first using the initialize function"
         }
