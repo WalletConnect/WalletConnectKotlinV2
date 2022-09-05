@@ -4,23 +4,23 @@ package com.walletconnect.sign.di
 
 import com.squareup.moshi.Moshi
 import com.tinder.scarlet.utils.getRawType
+import com.walletconnect.android.api.AndroidApiDITags
 import com.walletconnect.android.impl.di.AndroidCoreDITags
-import com.walletconnect.android.impl.json_rpc.model.JsonRpc
+import com.walletconnect.android.api.JsonRpc
 import com.walletconnect.sign.common.adapters.JsonRpcResultAdapter
 import com.walletconnect.sign.common.adapters.SessionRequestVOJsonAdapter
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import kotlin.reflect.jvm.jvmName
-import com.walletconnect.android.impl.di.commonModule as androidCoreCommonModule
 
 @JvmSynthetic
 internal fun commonModule() = module {
 
-    includes(androidCoreCommonModule())
+    includes(com.walletconnect.android.api.di.commonModule())
 
     single {
-        get<Moshi>(named(AndroidCoreDITags.MOSHI))
+        get<Moshi>(named(AndroidApiDITags.MOSHI))
             .newBuilder()
             .add { type, _, moshi ->
                 when (type.getRawType().name) {

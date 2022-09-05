@@ -1,6 +1,6 @@
 package com.walletconnect.android.impl
 
-import com.walletconnect.android.impl.crypto.KeyStore
+import com.walletconnect.android.api.KeyStore
 import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes

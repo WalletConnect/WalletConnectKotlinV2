@@ -1,4 +1,4 @@
-package com.walletconnect.android.impl.common.model.type.enums
+package com.walletconnect.android.api
 
 enum class Tags(val id: Int) {
     PAIRING_DELETE(1000),

@@ -1,24 +1,21 @@
-package com.walletconnect.android.impl.di
+package com.walletconnect.android.api.di
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
-import com.walletconnect.android.impl.common.adapters.ExpiryAdapter
-import com.walletconnect.android.impl.common.adapters.TagsAdapter
-import com.walletconnect.android.impl.common.model.Expiry
-import com.walletconnect.android.impl.common.model.type.enums.Tags
-import com.walletconnect.android.impl.json_rpc.model.JsonRpc
+import com.walletconnect.android.api.*
+import com.walletconnect.android.api.ExpiryAdapter
+import com.walletconnect.android.api.TagsAdapter
 import com.walletconnect.foundation.di.FoundationDITags
 import com.walletconnect.foundation.util.Logger
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import timber.log.Timber
 import kotlin.reflect.jvm.jvmName
-import com.walletconnect.foundation.di.commonModule as foundationCommonModule
 
 fun commonModule() = module {
 
-    includes(foundationCommonModule())
+    includes(com.walletconnect.foundation.di.commonModule())
 
     single<PolymorphicJsonAdapterFactory<JsonRpc.JsonRpcResponse>> {
         PolymorphicJsonAdapterFactory.of(JsonRpc.JsonRpcResponse::class.java, "type")
@@ -26,7 +23,7 @@ fun commonModule() = module {
             .withSubtype(JsonRpc.JsonRpcResponse.JsonRpcError::class.java, "error")
     }
 
-    single<Moshi>(named(AndroidCoreDITags.MOSHI)) {
+    single<Moshi>(named(AndroidApiDITags.MOSHI)) {
         get<Moshi>(named(FoundationDITags.MOSHI))
             .newBuilder()
             .add { type, _, _ ->

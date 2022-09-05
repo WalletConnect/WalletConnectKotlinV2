@@ -1,7 +1,6 @@
-package com.walletconnect.android.impl.json_rpc.model
+package com.walletconnect.android.api
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android.impl.common.model.type.SerializableJsonRpc
 
 sealed class JsonRpc {
 
@@ -28,7 +27,7 @@ sealed class JsonRpc {
         )
     }
 
-    internal data class ClientJsonRpc(
+    data class ClientJsonRpc(
         val id: Long,
         val jsonrpc: String,
         val method: String

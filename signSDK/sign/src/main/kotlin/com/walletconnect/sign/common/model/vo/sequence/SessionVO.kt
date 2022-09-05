@@ -2,7 +2,7 @@
 
 package com.walletconnect.sign.common.model.vo.sequence
 
-import com.walletconnect.android.impl.common.model.Expiry
+import com.walletconnect.android.api.Expiry
 import com.walletconnect.android.impl.common.model.MetaData
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic

@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.api
+package com.walletconnect.foundation.network.data
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

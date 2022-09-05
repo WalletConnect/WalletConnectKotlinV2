@@ -1,11 +1,10 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.impl.crypto
+package com.walletconnect.android.api
 
-import com.walletconnect.android.impl.common.InternalError
 import com.walletconnect.foundation.common.model.Key
 
-internal interface KeyStore {
+interface KeyStore {
     fun getSymmetricKey(tag: String): String
     fun setSymmetricKey(tag: String, key: Key)
 

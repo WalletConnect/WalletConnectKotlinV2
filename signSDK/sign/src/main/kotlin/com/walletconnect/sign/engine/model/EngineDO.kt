@@ -3,7 +3,7 @@
 package com.walletconnect.sign.engine.model
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android.impl.common.model.Expiry
+import com.walletconnect.android.api.Expiry
 import com.walletconnect.android.impl.common.model.SymmetricKey
 import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.common.model.type.Sequence

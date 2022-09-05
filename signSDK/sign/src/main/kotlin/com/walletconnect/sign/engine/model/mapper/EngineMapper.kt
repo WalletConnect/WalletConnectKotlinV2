@@ -2,7 +2,7 @@
 
 package com.walletconnect.sign.engine.model.mapper
 
-import com.walletconnect.android.impl.common.model.Expiry
+import com.walletconnect.android.api.Expiry
 import com.walletconnect.android.impl.common.model.MetaData
 import com.walletconnect.android.impl.common.model.Redirect
 import com.walletconnect.android.impl.common.model.RelayProtocolOptions

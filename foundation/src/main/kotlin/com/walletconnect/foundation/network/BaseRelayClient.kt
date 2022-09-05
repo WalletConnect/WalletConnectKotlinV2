@@ -1,37 +1,75 @@
 package com.walletconnect.foundation.network
 
+import com.tinder.scarlet.Scarlet
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.common.toRelayAcknowledgment
 import com.walletconnect.foundation.common.toRelayEvent
 import com.walletconnect.foundation.common.toRelayRequest
+import com.walletconnect.foundation.di.*
+import com.walletconnect.foundation.di.cryptoModule
 import com.walletconnect.foundation.network.data.service.RelayService
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.foundation.network.model.RelayDTO
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.foundation.util.scope
+import com.walletconnect.util.addUserAgent
 import com.walletconnect.util.generateId
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import org.koin.core.KoinApplication
+import org.koin.core.component.KoinComponent
+import org.koin.core.qualifier.named
 
-abstract class BaseRelayClient constructor(
-    private val relay: RelayService,
-    private val logger: Logger,
-    private val scope: CoroutineScope
-) : RelayInterface {
+abstract class BaseRelayClient : RelayInterface, KoinComponent {
 
-    override val eventsFlow: SharedFlow<Relay.Model.Event> = relay
-        .observeWebSocketEvent()
-        .map { event -> event.toRelayEvent() }
-        .shareIn(scope, SharingStarted.Lazily, REPLAY)
+    protected var foundationKoinApp: KoinApplication = KoinApplication.init()
 
-    override val subscriptionRequest: Flow<Relay.Model.Call.Subscription.Request> =
+    protected lateinit var relay: RelayService //by lazy { foundationKoinApp.koin.get(named(FoundationDITags.RELAY_SERVICE)) }
+    private var logger: Logger
+
+    //shutdown function
+    //don't event start scarlet in base
+
+    init {
+        println("kobe; Base RelayClient Init")
+
+        foundationKoinApp.run {
+            modules(
+                commonModule(),
+//                cryptoModule()
+            )
+
+            //fake, because is supposed to be overridden in android_core_api
+//            val jwt = "jwt"
+//            val serverUrl = relayServerUri.addUserAgent()
+//            modules(networkModule(serverUrl, sdkVersion = "2.0.0", jwt))
+        }
+
+        println("kobe; Foundation Relay Service")
+//        relay = foundationKoinApp.koin.get(named(FoundationDITags.RELAY_SERVICE))
+        logger = foundationKoinApp.koin.get()
+
+        println("kobe; End of base init")
+    }
+
+    override val eventsFlow: SharedFlow<Relay.Model.Event> by lazy {
+        relay
+            .observeWebSocketEvent()
+            .map { event -> event.toRelayEvent() }
+            .shareIn(scope, SharingStarted.Lazily, REPLAY)
+    }
+
+//        .shareIn(scope, SharingStarted.Lazily, REPLAY)
+
+    override val subscriptionRequest: Flow<Relay.Model.Call.Subscription.Request> by lazy {
         relay.observeSubscriptionRequest()
             .map { request -> request.toRelayRequest() }
             .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
+    }
 
     override fun publish(
         topic: String,
@@ -60,8 +98,10 @@ abstract class BaseRelayClient constructor(
         subscriptionId: String,
         onResult: (Result<Relay.Model.Call.Unsubscribe.Acknowledgement>) -> Unit,
     ) {
-        val unsubscribeRequest = RelayDTO.Unsubscribe.Request(id = generateId(),
-            params = RelayDTO.Unsubscribe.Request.Params(Topic(topic), SubscriptionId(subscriptionId)))
+        val unsubscribeRequest = RelayDTO.Unsubscribe.Request(
+            id = generateId(),
+            params = RelayDTO.Unsubscribe.Request.Params(Topic(topic), SubscriptionId(subscriptionId))
+        )
         observeUnSubscribeAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
         observeUnSubscribeError { error -> onResult(Result.failure(error)) }
         relay.unsubscribeRequest(unsubscribeRequest)

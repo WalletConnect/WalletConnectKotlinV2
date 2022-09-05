@@ -8,7 +8,7 @@ import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android.impl.common.model.sync.PendingRequest
-import com.walletconnect.android.impl.network.data.connection.ConnectionType
+import com.walletconnect.android.api.ConnectionType
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.engine.model.EngineDO
 

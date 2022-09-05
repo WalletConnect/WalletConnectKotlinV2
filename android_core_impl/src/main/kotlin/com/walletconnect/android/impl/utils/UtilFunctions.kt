@@ -2,7 +2,7 @@
 
 package com.walletconnect.utils
 
-import com.walletconnect.android.impl.common.model.Expiry
+import com.walletconnect.android.api.Expiry
 import com.walletconnect.android.impl.utils.CURRENT_TIME_IN_SECONDS
 
 @get:JvmSynthetic

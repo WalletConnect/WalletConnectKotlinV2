@@ -2,6 +2,7 @@
 
 package com.walletconnect.android.impl.json_rpc.model
 
+import com.walletconnect.android.api.JsonRpc
 import com.walletconnect.android.impl.common.model.IrnParams
 import com.walletconnect.android.impl.common.model.json_rpc.JsonRpcHistory
 import com.walletconnect.android.impl.common.model.json_rpc.JsonRpcResponse

@@ -2,8 +2,8 @@ package com.walletconnect.android.impl.json_rpc.data
 
 import com.squareup.moshi.Moshi
 import com.walletconnect.android.impl.common.model.type.ClientParams
-import com.walletconnect.android.impl.common.model.type.SerializableJsonRpc
-import com.walletconnect.android.impl.json_rpc.model.JsonRpc
+import com.walletconnect.android.api.SerializableJsonRpc
+import com.walletconnect.android.api.JsonRpc
 
 abstract class JsonRpcSerializerAbstract(open val moshi: Moshi) {
     abstract fun deserialize(method: String, json: String): ClientParams?

@@ -1,5 +1,6 @@
 package com.walletconnect.android.impl.json_rpc.domain
 
+import com.walletconnect.android.api.JsonRpc
 import com.walletconnect.android.impl.common.*
 import com.walletconnect.android.impl.common.model.IrnParams
 import com.walletconnect.android.impl.common.model.json_rpc.JsonRpcResponse
@@ -15,6 +16,7 @@ import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializerAbstract
 import com.walletconnect.android.impl.json_rpc.model.*
 import com.walletconnect.android.api.RelayConnectionInterface
+import com.walletconnect.android.api.WalletConnectException
 import com.walletconnect.android.impl.network.data.connection.ConnectivityState
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.impl.utils.Logger
@@ -63,7 +65,10 @@ abstract class BaseJsonRpcInteractor(
                     ProjectIdDoesNotExistException(this.message)
                 this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
                     InvalidProjectIdException(this.message)
-                else -> GenericException(this.message)
+                else -> {
+                    Logger.error("KOBE; $this")
+                    GenericException(this.message)
+                }
             }
 
     val initializationErrorsFlow: Flow<WalletConnectException>
@@ -210,7 +215,9 @@ abstract class BaseJsonRpcInteractor(
 
     private suspend fun manageSubscriptions(decryptedMessage: String, topic: Topic) {
         serializer.tryDeserialize<JsonRpc.ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
+
             handleRequest(clientJsonRpc, topic, decryptedMessage)
+
         } ?: serializer.tryDeserialize<JsonRpc.JsonRpcResponse.JsonRpcResult>(decryptedMessage)?.let { result ->
             handleJsonRpcResult(result)
         } ?: serializer.tryDeserialize<JsonRpc.JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
@@ -220,8 +227,11 @@ abstract class BaseJsonRpcInteractor(
 
     private suspend fun handleRequest(clientJsonRpc: JsonRpc.ClientJsonRpc, topic: Topic, decryptedMessage: String) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
+
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
+
                 _clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params))
+
             } ?: handleError("RelayerInteractor: Unknown request params")
         }
     }

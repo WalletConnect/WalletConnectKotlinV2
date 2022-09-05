@@ -5,6 +5,10 @@ package com.walletconnect.util
 import java.security.SecureRandom
 import javax.ws.rs.core.UriBuilder
 
+@get:JvmSynthetic
+val String.Companion.Empty
+    get() = ""
+
 fun generateId(): Long = (System.currentTimeMillis() + (100..999).random())
 
 fun randomBytes(size: Int): ByteArray = ByteArray(size).apply {

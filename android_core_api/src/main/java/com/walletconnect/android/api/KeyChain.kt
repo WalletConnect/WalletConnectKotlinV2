@@ -1,13 +1,12 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.impl.data.keystore
+package com.walletconnect.android.api
 
 import android.content.SharedPreferences
-import com.walletconnect.android.impl.crypto.KeyStore
 import com.walletconnect.foundation.common.model.Key
+import com.walletconnect.util.Empty
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
-import com.walletconnect.utils.Empty
 
 internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyStore {
 

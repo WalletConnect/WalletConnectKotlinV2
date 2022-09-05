@@ -6,7 +6,7 @@ import com.walletconnect.android.impl.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android.impl.common.model.sync.WCRequest
 import com.walletconnect.android.impl.common.model.type.ClientParams
 import com.walletconnect.android.impl.common.model.type.JsonRpcClientSync
-import com.walletconnect.android.impl.common.model.type.enums.Tags
+import com.walletconnect.android.api.Tags
 import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.api.RelayConnectionInterface
 import com.walletconnect.android.impl.network.data.connection.ConnectivityState

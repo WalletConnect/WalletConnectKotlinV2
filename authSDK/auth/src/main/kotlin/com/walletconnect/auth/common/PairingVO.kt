@@ -1,6 +1,6 @@
 package com.walletconnect.auth.common
 
-import com.walletconnect.android.impl.common.model.Expiry
+import com.walletconnect.android.api.Expiry
 import com.walletconnect.android.impl.common.model.MetaData
 import com.walletconnect.android.impl.common.model.RelayProtocolOptions
 import com.walletconnect.android.impl.utils.ACTIVE_PAIRING

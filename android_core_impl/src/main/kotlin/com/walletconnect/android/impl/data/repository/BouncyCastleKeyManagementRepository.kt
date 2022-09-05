@@ -2,9 +2,9 @@
 
 package com.walletconnect.android.impl.data.repository
 
+import com.walletconnect.android.api.KeyStore
 import com.walletconnect.android.impl.common.model.SymmetricKey
 import com.walletconnect.android.impl.crypto.KeyManagementRepository
-import com.walletconnect.android.impl.crypto.KeyStore
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic

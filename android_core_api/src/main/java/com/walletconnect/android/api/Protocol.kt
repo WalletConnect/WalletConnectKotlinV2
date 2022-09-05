@@ -1,5 +1,7 @@
-package com.walletconnect.android.impl.common.client
+package com.walletconnect.android.api
 
+import com.walletconnect.android.api.di.mutex
+import com.walletconnect.android.api.di.protocolScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -10,8 +12,6 @@ import java.util.concurrent.Executors
 
 abstract class Protocol {
     protected abstract fun checkEngineInitialization()
-    protected val mutex = Mutex()
-    protected val protocolScope = CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
     protected fun <T> awaitLock(codeBlock: suspend () -> T): T {
         return runBlocking(protocolScope.coroutineContext) {

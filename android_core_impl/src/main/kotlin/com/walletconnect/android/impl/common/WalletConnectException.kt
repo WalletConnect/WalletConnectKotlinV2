@@ -1,9 +1,11 @@
 package com.walletconnect.android.impl.common
 
-open class WalletConnectException(override val message: String?) : Exception(message)
+import com.walletconnect.android.api.WalletConnectException
+
+//open class WalletConnectException(override val message: String?) : Exception(message)
 
 class GenericException(override val message: String?) : WalletConnectException(message)
-class InternalError(override val message: String?): WalletConnectException(message)
+//class InternalError(override val message: String?): WalletConnectException(message)
 
 class UnknownEnvelopeTypeException(override val message: String?) : WalletConnectException(message)
 class MissingParticipantsException(override val message: String?) : WalletConnectException(message)

@@ -2,6 +2,7 @@ package com.walletconnect.sign.client
 
 import android.app.Application
 import android.net.Uri
+import com.walletconnect.android.api.RelayClient
 import com.walletconnect.android.api.RelayConnectionInterface
 import java.net.URI
 
@@ -186,55 +187,59 @@ object Sign {
     sealed class Params {
 
         // TODO: Maybe convert this into a Builder
-        data class Init internal constructor(
+        data class Init constructor(
             val application: Application,
             val metadata: Model.AppMetaData,
-            val relay: RelayConnectionInterface? = null,
-            val connectionType: ConnectionType,
+            val relay: RelayClient// RelayConnectionInterface,
+//            val connectionType: ConnectionType,
         ) : Params() {
-            internal lateinit var relayServerUrl: String
+//            internal lateinit var relayServerUrl: String
 
-            constructor(
-                application: Application,
-                useTls: Boolean,
-                hostName: String,
-                projectId: String,
-                metadata: Model.AppMetaData,
-                relay: RelayConnectionInterface? = null,
-                connectionType: ConnectionType = ConnectionType.AUTOMATIC,
-            ) : this(application, metadata, relay, connectionType) {
-                val relayServerUrl = Uri.Builder().scheme((if (useTls) "wss" else "ws"))
-                    .authority(hostName)
-                    .appendQueryParameter("projectId", projectId)
-                    .build()
-                    .toString()
+//            constructor(
+//                application: Application,
+////                useTls: Boolean,
+////                hostName: String,
+////                projectId: String,
+//                metadata: Model.AppMetaData,
+//                relay: RelayConnectionInterface,
+////                connectionType: ConnectionType = ConnectionType.AUTOMATIC,
+//            ) : this(application, metadata, relay)
+//            {
+//                val relayServerUrl = Uri.Builder().scheme((if (useTls) "wss" else "ws"))
+//                    .authority(hostName)
+//                    .appendQueryParameter("projectId", projectId)
+//                    .build()
+//                    .toString()
+//
+//                require(relayServerUrl.isValidRelayServerUrl()) {
+//                    "Check the schema and projectId parameter of the Server Url"
+//                }
+//
+//                this.relayServerUrl = relayServerUrl
+//            }
 
-                require(relayServerUrl.isValidRelayServerUrl()) {
-                    "Check the schema and projectId parameter of the Server Url"
-                }
-
-                this.relayServerUrl = relayServerUrl
-            }
-
-            constructor(
-                application: Application,
-                relayServerUrl: String,
-                metadata: Model.AppMetaData,
-                relay: RelayConnectionInterface? = null,
-                connectionType: ConnectionType = ConnectionType.AUTOMATIC,
-            ) : this(application, metadata, relay, connectionType) {
-                require(relayServerUrl.isValidRelayServerUrl()) {
-                    "Check the schema and projectId parameter of the Server Url"
-                }
-
-                this.relayServerUrl = relayServerUrl
-            }
-
-            private fun String.isValidRelayServerUrl(): Boolean {
-                return this.isNotBlank() && Uri.parse(this)?.let { relayUrl ->
-                    arrayOf("wss", "ws").contains(relayUrl.scheme) && !relayUrl.getQueryParameter("projectId").isNullOrBlank()
-                } ?: false
-            }
+//            constructor(
+//                application: Application,
+////                relayServerUrl: String,
+//                metadata: Model.AppMetaData,
+//                relay: RelayConnectionInterface,
+////                connectionType: ConnectionType = ConnectionType.AUTOMATIC,
+//            ) : this(application, metadata, relay)
+//            {
+//
+//            }
+//                require(relayServerUrl.isValidRelayServerUrl()) {
+//                    "Check the schema and projectId parameter of the Server Url"
+//                }
+//
+//                this.relayServerUrl = relayServerUrl
+//            }
+//
+//            private fun String.isValidRelayServerUrl(): Boolean {
+//                return this.isNotBlank() && Uri.parse(this)?.let { relayUrl ->
+//                    arrayOf("wss", "ws").contains(relayUrl.scheme) && !relayUrl.getQueryParameter("projectId").isNullOrBlank()
+//                } ?: false
+//            }
         }
 
         data class Connect(

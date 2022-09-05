@@ -3,6 +3,8 @@
 package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.android.api.Expiry
+import com.walletconnect.android.api.WalletConnectException
 import com.walletconnect.android.impl.common.*
 import com.walletconnect.android.impl.common.model.*
 import com.walletconnect.android.impl.common.model.json_rpc.JsonRpcResponse
@@ -10,7 +12,7 @@ import com.walletconnect.android.impl.common.model.sync.PendingRequest
 import com.walletconnect.android.impl.common.model.sync.WCRequest
 import com.walletconnect.android.impl.common.model.sync.WCResponse
 import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.common.model.type.enums.Tags
+import com.walletconnect.android.api.Tags
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.crypto.KeyManagementRepository
 import com.walletconnect.android.impl.utils.*
@@ -45,7 +47,6 @@ import com.walletconnect.utils.extractTimestamp
 import com.walletconnect.utils.isSequenceValid
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import com.walletconnect.android.impl.common.WalletConnectException as CoreWalletConnectException
 
 internal class SignEngine(
     private val relayer: JsonRpcInteractor,
@@ -65,7 +66,8 @@ internal class SignEngine(
         collectInternalErrors()
     }
 
-    fun handleInitializationErrors(onError: (CoreWalletConnectException) -> Unit) {
+    fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
+        println("kobe; Sign Engine Events")
         relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
 

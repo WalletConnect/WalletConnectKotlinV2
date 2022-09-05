@@ -1,9 +1,8 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.impl.data.repository
+package com.walletconnect.android.api
 
 import android.util.Base64
-import com.walletconnect.android.impl.crypto.KeyStore
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.crypto.data.repository.BaseJwtRepository

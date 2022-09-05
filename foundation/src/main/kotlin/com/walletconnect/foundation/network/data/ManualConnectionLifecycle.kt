@@ -1,16 +1,14 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.impl.network.data.connection.lifecycle
+package com.walletconnect.foundation.network.data
 
 import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
-import com.walletconnect.android.impl.common.scope.scope
-import com.walletconnect.android.api.ConnectionEvent
-import com.walletconnect.android.api.ConnectionController
+import com.walletconnect.foundation.util.scope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-internal class ManualConnectionLifecycle(
+class ManualConnectionLifecycle(
     connectionController: ConnectionController,
     private val lifecycleRegistry: LifecycleRegistry,
 ) : Lifecycle by lifecycleRegistry {

@@ -1,6 +1,6 @@
 package com.walletconnect.android.impl
 
-import com.walletconnect.android.impl.data.repository.JwtRepositoryAndroid
+import com.walletconnect.android.api.JwtRepositoryAndroid
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import io.mockk.every

@@ -1,9 +1,8 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.impl.common.adapters
+package com.walletconnect.android.api
 
 import com.squareup.moshi.*
-import com.walletconnect.android.impl.common.model.Expiry
 
 internal object ExpiryAdapter: JsonAdapter<Expiry>() {
 

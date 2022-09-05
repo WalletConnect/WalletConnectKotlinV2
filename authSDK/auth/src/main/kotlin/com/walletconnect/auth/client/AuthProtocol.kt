@@ -3,13 +3,13 @@ package com.walletconnect.auth.client
 import com.walletconnect.utils.Empty
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.SDKError
-import com.walletconnect.android.impl.common.client.Protocol
+import com.walletconnect.android.api.Protocol
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.di.cryptoModule
-import com.walletconnect.android.impl.di.networkModule
 import com.walletconnect.android.api.RelayConnectionInterface
-import com.walletconnect.android.impl.network.data.connection.ConnectionType
-import com.walletconnect.auth.BuildConfig
+import com.walletconnect.android.api.ConnectionType
+import com.walletconnect.android.api.di.mutex
+import com.walletconnect.android.api.di.protocolScope
 import com.walletconnect.auth.client.mapper.toClientConnectionState
 import com.walletconnect.auth.client.mapper.toClientError
 import com.walletconnect.auth.di.commonModule
@@ -57,7 +57,7 @@ internal class AuthProtocol : AuthInterface, Protocol() {
                 val connectionType = ConnectionType.AUTOMATIC
 
                 //todo: should we allow injecting relayClient?
-                wcKoinApp.modules(networkModule(serverUrl, jwt, connectionType, BuildConfig.sdkVersion, null))
+//                wcKoinApp.modules(networkModule(serverUrl, jwt, connectionType, BuildConfig.sdkVersion, null))
                 authEngine = wcKoinApp.koin.get()
                 authEngine.handleInitializationErrors { error -> onError(Auth.Model.Error(error)) }
             }

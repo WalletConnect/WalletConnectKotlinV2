@@ -32,9 +32,11 @@ android {
 }
 
 dependencies {
-    implementation(project(":foundation"))
+    api(project(":foundation")) //todo: should be implementation?
 
     koinAndroid()
+    security()
+    timber()
     scarlet()
     scarletAndroid()
 }
