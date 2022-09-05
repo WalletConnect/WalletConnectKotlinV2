@@ -5,8 +5,7 @@ package com.walletconnect.sign.di
 import com.squareup.moshi.Moshi
 import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.android.api.AndroidApiDITags
-import com.walletconnect.android.impl.di.AndroidCoreDITags
-import com.walletconnect.android.api.JsonRpc
+import com.walletconnect.android.api.JsonRpcResponse
 import com.walletconnect.sign.common.adapters.JsonRpcResultAdapter
 import com.walletconnect.sign.common.adapters.SessionRequestVOJsonAdapter
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
@@ -25,7 +24,7 @@ internal fun commonModule() = module {
             .add { type, _, moshi ->
                 when (type.getRawType().name) {
                     SessionRequestVO::class.jvmName -> SessionRequestVOJsonAdapter(moshi)
-                    JsonRpc.JsonRpcResponse.JsonRpcResult::class.jvmName -> JsonRpcResultAdapter(moshi)
+                    JsonRpcResponse.JsonRpcResult::class.jvmName -> JsonRpcResultAdapter(moshi)
                     else -> null
                 }
             }

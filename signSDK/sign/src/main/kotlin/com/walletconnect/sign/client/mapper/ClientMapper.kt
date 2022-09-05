@@ -6,10 +6,11 @@ import android.net.Uri
 import android.os.Build
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.SDKError
-import com.walletconnect.android.impl.common.model.json_rpc.JsonRpcResponse
-import com.walletconnect.android.impl.common.model.sync.PendingRequest
 import com.walletconnect.android.api.ConnectionType
+import com.walletconnect.android.api.JsonRpcResponse
 import com.walletconnect.sign.client.Sign
+import com.walletconnect.sign.common.exceptions.peer.PeerError
+import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.engine.model.EngineDO
 
 //TODO: Figure out what to do with models separation
@@ -81,7 +82,9 @@ internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): JsonRpcResp
 
 @JvmSynthetic
 internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcError(): JsonRpcResponse.JsonRpcError =
-    JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(code, message))
+    PeerError.CAIP25.UserRejected(message).let { error ->
+        JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(error.code, error.message))
+    }
 
 @JvmSynthetic
 internal fun Sign.Model.SessionEvent.toEngineEvent(chainId: String): EngineDO.Event = EngineDO.Event(name, data, chainId)
@@ -157,8 +160,8 @@ internal fun EngineDO.PairingSettle.toClientSettledPairing(): Sign.Model.Pairing
 @JvmSynthetic
 internal fun List<PendingRequest>.mapToPendingRequests(): List<Sign.Model.PendingRequest> = map { request ->
     Sign.Model.PendingRequest(
-        request.requestId,
-        request.topic,
+        request.id,
+        request.topic.value,
         request.method,
         request.chainId,
         request.params

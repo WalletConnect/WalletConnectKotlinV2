@@ -17,10 +17,10 @@ fun commonModule() = module {
 
     includes(com.walletconnect.foundation.di.commonModule())
 
-    single<PolymorphicJsonAdapterFactory<JsonRpc.JsonRpcResponse>> {
-        PolymorphicJsonAdapterFactory.of(JsonRpc.JsonRpcResponse::class.java, "type")
-            .withSubtype(JsonRpc.JsonRpcResponse.JsonRpcResult::class.java, "result")
-            .withSubtype(JsonRpc.JsonRpcResponse.JsonRpcError::class.java, "error")
+    single<PolymorphicJsonAdapterFactory<JsonRpcResponse>> {
+        PolymorphicJsonAdapterFactory.of(JsonRpcResponse::class.java, "type")
+            .withSubtype(JsonRpcResponse.JsonRpcResult::class.java, "result")
+            .withSubtype(JsonRpcResponse.JsonRpcError::class.java, "error")
     }
 
     single<Moshi>(named(AndroidApiDITags.MOSHI)) {
@@ -33,7 +33,7 @@ fun commonModule() = module {
                     else -> null
                 }
             }
-            .add(get<PolymorphicJsonAdapterFactory<JsonRpc.JsonRpcResponse>>())
+            .add(get<PolymorphicJsonAdapterFactory<JsonRpcResponse>>())
             .build()
     }
 

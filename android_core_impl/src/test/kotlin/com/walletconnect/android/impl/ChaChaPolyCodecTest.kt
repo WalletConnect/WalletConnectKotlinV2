@@ -50,10 +50,11 @@ class ChaChaPolyCodecTest {
         every { keyManagementRepository.getSymmetricKey(topic) } returns symmetricKey
         every { keyManagementRepository.generateSymmetricKeyFromKeyAgreement(self, peer) } returns symmetricKey
         every { keyManagementRepository.generateSymmetricKeyFromKeyAgreement(peer, self) } returns symmetricKey
+        every { keyManagementRepository.getSelfParticipant(topic) } returns peer
 
         listOf("secretMessage", "", "👍🏻").forEach { message ->
             val encryptedMessage = codec.encrypt(topic, message, EnvelopeType.ONE, participants)
-            assertEquals(message, codec.decrypt(topic, encryptedMessage, peer))
+            assertEquals(message, codec.decrypt(topic, encryptedMessage))
         }
     }
 
@@ -69,6 +70,7 @@ class ChaChaPolyCodecTest {
         assertThrows(MissingReceiverPublicKeyException::class.java) {
             every { keyManagementRepository.getSymmetricKey(topic) } returns symmetricKey
             every { keyManagementRepository.generateSymmetricKeyFromKeyAgreement(self, peer) } returns symmetricKey
+            every { keyManagementRepository.getSelfParticipant(topic) } returns null
 
             val encryptedMessage = codec.encrypt(topic, MESSAGE, EnvelopeType.ONE, participants)
             codec.decrypt(topic, encryptedMessage)

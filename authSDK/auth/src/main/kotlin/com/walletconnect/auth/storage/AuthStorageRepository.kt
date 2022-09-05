@@ -5,8 +5,8 @@ package com.walletconnect.auth.storage
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.api.Expiry
 import com.walletconnect.android.impl.common.model.MetaData
-import com.walletconnect.auth.common.PairingVO
 import com.walletconnect.auth.storage.data.dao.MetaDataDaoQueries
+import com.walletconnect.auth.common.model.Pairing
 import com.walletconnect.auth.storage.data.dao.PairingDaoQueries
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.utils.isSequenceValid
@@ -18,7 +18,7 @@ internal class AuthStorageRepository(private val pairingDaoQueries: PairingDaoQu
 
     @JvmSynthetic
     @Throws(SQLiteException::class)
-    fun insertPairing(pairing: PairingVO) {
+    fun insertPairing(pairing: Pairing) {
         with(pairing) {
             pairingDaoQueries.insertOrAbortPairing(
                 topic.value,
@@ -38,9 +38,23 @@ internal class AuthStorageRepository(private val pairingDaoQueries: PairingDaoQu
     }
 
     @JvmSynthetic
-    fun getListOfPairingVOs(): List<PairingVO> =
+    fun getListOfPairingVOs(): List<Pairing> =
         pairingDaoQueries.getListOfPairingDaos(mapper = this::mapPairingDaoToPairingVO).executeAsList()
 
+    @JvmSynthetic
+    fun getPairingByTopic(topic: Topic): Pairing =
+        pairingDaoQueries.getPairingByTopic(topic.value).executeAsOne().let { entity ->
+            Pairing(
+                topic = Topic(entity.topic),
+                expiry = Expiry(entity.expiry),
+                uri = entity.uri,
+                relayProtocol = entity.relay_protocol,
+                relayData = entity.relay_data,
+                isActive = entity.is_active
+            )
+        }
+
+    @JvmSynthetic
     fun isPairingValid(topic: Topic): Boolean {
         val hasTopic = pairingDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
 
@@ -50,6 +64,11 @@ internal class AuthStorageRepository(private val pairingDaoQueries: PairingDaoQu
         } else {
             false
         }
+    }
+
+    @JvmSynthetic
+    fun activatePairing(topic: Topic, expiryInSeconds: Long) {
+        pairingDaoQueries.activatePairing(expiryInSeconds, true, topic.value)
     }
 
     private fun mapPairingDaoToPairingVO(
@@ -63,14 +82,14 @@ internal class AuthStorageRepository(private val pairingDaoQueries: PairingDaoQu
         peerUrl: String?,
         peerIcons: List<String>?,
         is_active: Boolean,
-    ): PairingVO {
+    ): Pairing {
         val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
             MetaData(peerName, peerDesc, peerUrl, peerIcons)
         } else {
             null
         }
 
-        return PairingVO(
+        return Pairing(
             topic = Topic(topic),
             expiry = Expiry(expirySeconds),
             peerMetaData = peerMetaData,

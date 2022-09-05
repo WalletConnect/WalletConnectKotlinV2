@@ -23,6 +23,7 @@ fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = 
     val DEFAULT_BACKOFF_SECONDS = 5L
     val TIMEOUT_TIME = 5000L
 
+    // TODO: Setup env variable for tag instead of relayTest. Use env variable here instead of hard coded version
     single(named(FoundationDITags.INTERCEPTOR)) {
         Interceptor {
             val updatedRequest = it.request().newBuilder()
@@ -33,7 +34,6 @@ fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = 
         }
     }
 
-    // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
     single(named(FoundationDITags.OK_HTTP)) {
         OkHttpClient.Builder()
             .addInterceptor(get<Interceptor>(named(FoundationDITags.INTERCEPTOR)))

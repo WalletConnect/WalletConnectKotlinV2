@@ -3,10 +3,10 @@
 package com.walletconnect.sign.engine.model.mapper
 
 import com.walletconnect.android.api.Expiry
+import com.walletconnect.android.api.JsonRpcResponse
 import com.walletconnect.android.impl.common.model.MetaData
 import com.walletconnect.android.impl.common.model.Redirect
 import com.walletconnect.android.impl.common.model.RelayProtocolOptions
-import com.walletconnect.android.impl.common.model.json_rpc.JsonRpcResponse
 import com.walletconnect.android.impl.common.model.sync.WCRequest
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -198,15 +198,15 @@ internal fun SessionParamsVO.EventParams.toEngineDOEvent(): EngineDO.Event =
 
 @JvmSynthetic
 internal fun ValidationError.toPeerError() = when (this) {
-    is ValidationError.UnsupportedNamespaceKey -> PeerError.UnsupportedNamespaceKey(message)
-    is ValidationError.UnsupportedChains -> PeerError.UnsupportedChains(message)
-    is ValidationError.InvalidEvent -> PeerError.InvalidEvent(message)
-    is ValidationError.InvalidExtendRequest -> PeerError.InvalidExtendRequest(message)
-    is ValidationError.InvalidSessionRequest -> PeerError.InvalidMethod(message)
-    is ValidationError.UnauthorizedEvent -> PeerError.UnauthorizedEvent(message)
-    is ValidationError.UnauthorizedMethod -> PeerError.UnauthorizedMethod(message)
-    is ValidationError.UserRejected -> PeerError.UserRejected(message)
-    is ValidationError.UserRejectedEvents -> PeerError.UserRejectedEvents(message)
-    is ValidationError.UserRejectedMethods -> PeerError.UserRejectedMethods(message)
-    is ValidationError.UserRejectedChains -> PeerError.UserRejectedChains(message)
+    is ValidationError.UnsupportedNamespaceKey -> PeerError.CAIP25.UnsupportedNamespaceKey(message)
+    is ValidationError.UnsupportedChains -> PeerError.CAIP25.UnsupportedChains(message)
+    is ValidationError.InvalidEvent -> PeerError.Invalid.Event(message)
+    is ValidationError.InvalidExtendRequest -> PeerError.Invalid.ExtendRequest(message)
+    is ValidationError.InvalidSessionRequest -> PeerError.Invalid.Method(message)
+    is ValidationError.UnauthorizedEvent -> PeerError.Unauthorized.Event(message)
+    is ValidationError.UnauthorizedMethod -> PeerError.Unauthorized.Method(message)
+    is ValidationError.UserRejected -> PeerError.CAIP25.UserRejected(message)
+    is ValidationError.UserRejectedEvents -> PeerError.CAIP25.UserRejectedEvents(message)
+    is ValidationError.UserRejectedMethods -> PeerError.CAIP25.UserRejectedMethods(message)
+    is ValidationError.UserRejectedChains -> PeerError.CAIP25.UserRejectedChains(message)
 }

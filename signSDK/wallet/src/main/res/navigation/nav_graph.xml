@@ -80,6 +80,7 @@
                     app:argType="string" />
             </action>
 
+<!--            fixme: Currently with wallet and responder samples installed. AuthRequest always links to this deeplink-->
             <deepLink
                 app:action="android.intent.action.VIEW"
                 app:uri="wc:/{topic}@2" />

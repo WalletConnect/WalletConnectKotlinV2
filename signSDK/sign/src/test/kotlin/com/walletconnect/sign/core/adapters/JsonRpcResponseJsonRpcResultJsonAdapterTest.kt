@@ -15,17 +15,17 @@ internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {
     @Test
     fun `test to json`() {
         val moshi = Moshi.Builder().add { type, _, moshi ->
-            return@add if (type.getRawType().name == JsonRpc.JsonRpcResponse.JsonRpcResult::class.jvmName) {
+            return@add if (type.getRawType().name == JsonRpcResponse.JsonRpcResult::class.jvmName) {
                 JsonRpcResultAdapter(moshi = moshi)
             } else {
                 null
             }
         }.build()
-        val adapter = moshi.adapter(JsonRpc.JsonRpcResponse.JsonRpcResult::class.java)
+        val adapter = moshi.adapter(JsonRpcResponse.JsonRpcResult::class.java)
         val metadata = MetaData("name", "desc", "url", listOf("icon"))
         val approvalParams =
             SessionParamsVO.ApprovalParams(relay = RelayProtocolOptions("irn"), responderPublicKey = "124")
-        val jsonResult = JsonRpc.JsonRpcResponse.JsonRpcResult(
+        val jsonResult = JsonRpcResponse.JsonRpcResult(
             id = 1L,
             jsonrpc = "2.0",
             result = approvalParams
@@ -39,20 +39,20 @@ internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {
     @Test
     fun `test from json`() {
         val moshi = Moshi.Builder().add { type, _, moshi ->
-            return@add if (type.getRawType().name == JsonRpc.JsonRpcResponse.JsonRpcResult::class.jvmName) {
+            return@add if (type.getRawType().name == JsonRpcResponse.JsonRpcResult::class.jvmName) {
                 JsonRpcResultAdapter(moshi = moshi)
             } else {
                 null
             }
         }.build()
-        val adapter = moshi.adapter(JsonRpc.JsonRpcResponse.JsonRpcResult::class.java)
+        val adapter = moshi.adapter(JsonRpcResponse.JsonRpcResult::class.java)
 
         val metadata = MetaData("name", "desc", "url", listOf("icon"))
-        val approvalParamsJsonResult = JsonRpc.JsonRpcResponse.JsonRpcResult(id = 11L,
+        val approvalParamsJsonResult = JsonRpcResponse.JsonRpcResult(id = 11L,
             result = SessionParamsVO.ApprovalParams(relay = RelayProtocolOptions("irn"), responderPublicKey = "124"))
-        val resultString = moshi.adapter(JsonRpc.JsonRpcResponse.JsonRpcResult::class.java).toJson(approvalParamsJsonResult)
+        val resultString = moshi.adapter(JsonRpcResponse.JsonRpcResult::class.java).toJson(approvalParamsJsonResult)
         val result = adapter.fromJson(resultString)
-        result is JsonRpc.JsonRpcResponse.JsonRpcResult
+        result is JsonRpcResponse.JsonRpcResult
 
         println()
         println(result)
@@ -62,19 +62,19 @@ internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {
     @Test
     fun `test from json with boolean`() {
         val moshi = Moshi.Builder().add { type, _, moshi ->
-            return@add if (type.getRawType().name == JsonRpc.JsonRpcResponse.JsonRpcResult::class.jvmName) {
+            return@add if (type.getRawType().name == JsonRpcResponse.JsonRpcResult::class.jvmName) {
                 JsonRpcResultAdapter(moshi = moshi)
             } else {
                 null
             }
         }.build()
-        val adapter = moshi.adapter(JsonRpc.JsonRpcResponse.JsonRpcResult::class.java)
+        val adapter = moshi.adapter(JsonRpcResponse.JsonRpcResult::class.java)
 
-        val approvalParamsJsonResult = JsonRpc.JsonRpcResponse.JsonRpcResult(id = 11L, result = true)
-        val resultString = moshi.adapter(JsonRpc.JsonRpcResponse.JsonRpcResult::class.java).toJson(approvalParamsJsonResult)
+        val approvalParamsJsonResult = JsonRpcResponse.JsonRpcResult(id = 11L, result = true)
+        val resultString = moshi.adapter(JsonRpcResponse.JsonRpcResult::class.java).toJson(approvalParamsJsonResult)
 
         val result = adapter.fromJson(resultString)
-        result is JsonRpc.JsonRpcResponse.JsonRpcResult
+        result is JsonRpcResponse.JsonRpcResult
 
         println()
         println(result)

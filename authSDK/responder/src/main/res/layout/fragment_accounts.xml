@@ -14,15 +14,14 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
-        app:layout_constraintVertical_bias="0"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toTopOf="@id/btnTestRequest"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/btnTestRequest"
+        app:layout_constraintVertical_bias="0"
         tools:itemCount="3"
         tools:listitem="@layout/list_item_account" />
-
 
     <Button
         android:id="@+id/btnTestRequest"

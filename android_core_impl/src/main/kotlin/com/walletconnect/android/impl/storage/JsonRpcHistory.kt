@@ -1,12 +1,16 @@
 package com.walletconnect.android.impl.storage
 
 import android.content.SharedPreferences
-import com.walletconnect.android.impl.common.model.json_rpc.JsonRpcHistory
+import com.walletconnect.android.impl.json_rpc.model.JsonRpcHistoryRecord
 import com.walletconnect.android.impl.storage.data.dao.JsonRpcHistoryQueries
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 
-class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private val jsonRpcHistoryQueries: JsonRpcHistoryQueries, private val logger: Logger) {
+class JsonRpcHistory(
+    private val sharedPreferences: SharedPreferences,
+    private val jsonRpcHistoryQueries: JsonRpcHistoryQueries,
+    private val logger: Logger
+) {
 
     fun setRequest(requestId: Long, topic: Topic, method: String, payload: String): Boolean {
         return try {
@@ -23,8 +27,8 @@ class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private v
         }
     }
 
-    fun updateRequestWithResponse(requestId: Long, response: String): JsonRpcHistory? {
-        val record = jsonRpcHistoryQueries.getJsonRpcHistoryRecord(requestId, mapper = ::mapToJsonRpc).executeAsOneOrNull()
+    fun updateRequestWithResponse(requestId: Long, response: String): JsonRpcHistoryRecord? {
+        val record = jsonRpcHistoryQueries.getJsonRpcHistoryRecord(requestId, mapper = ::toRecord).executeAsOneOrNull()
         return if (record != null) {
             updateRecord(record, requestId, response)
         } else {
@@ -33,7 +37,7 @@ class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private v
         }
     }
 
-    private fun updateRecord(record: JsonRpcHistory, requestId: Long, response: String): JsonRpcHistory? =
+    private fun updateRecord(record: JsonRpcHistoryRecord, requestId: Long, response: String): JsonRpcHistoryRecord? =
         if (record.response != null) {
             logger.log("Duplicated JsonRpc RequestId: $requestId")
             null
@@ -42,7 +46,7 @@ class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private v
             record
         }
 
-    fun deleteRequests(topic: Topic) {
+    fun deleteRecordsByTopic(topic: Topic) {
         sharedPreferences.all.entries
             .filter { entry -> entry.value == topic.value }
             .forEach { entry -> sharedPreferences.edit().remove(entry.key).apply() }
@@ -50,9 +54,24 @@ class JsonRpcHistory(private val sharedPreferences: SharedPreferences, private v
         jsonRpcHistoryQueries.deleteJsonRpcHistory(topic.value)
     }
 
-    fun getRequests(topic: Topic): List<JsonRpcHistory> =
-        jsonRpcHistoryQueries.getJsonRpcRequestsDaos(topic.value, mapper = ::mapToJsonRpc).executeAsList()
+    fun getListOfPendingRecordsByTopic(topic: Topic): List<JsonRpcHistoryRecord> =
+        jsonRpcHistoryQueries.getJsonRpcRecordsByTopic(topic.value, mapper = ::toRecord)
+            .executeAsList()
+            .filter { record -> record.response == null }
 
-    private fun mapToJsonRpc(requestId: Long, topic: String, method: String, body: String, response: String?): JsonRpcHistory =
-        JsonRpcHistory(requestId, topic, method, body, response)
+    fun getListOfPendingRecords(): List<JsonRpcHistoryRecord> =
+        jsonRpcHistoryQueries.getJsonRpcRecords(mapper = ::toRecord)
+            .executeAsList()
+            .filter { record -> record.response == null }
+
+    fun getRecordById(id: Long): JsonRpcHistoryRecord? =
+        jsonRpcHistoryQueries.getJsonRpcHistoryRecord(id, mapper = ::toRecord).executeAsOneOrNull()
+
+    fun getPendingRecordById(id: Long): JsonRpcHistoryRecord? {
+        val record = jsonRpcHistoryQueries.getJsonRpcHistoryRecord(id, mapper = ::toRecord).executeAsOneOrNull()
+        return if (record != null && record.response == null) record else null
+    }
+
+    private fun toRecord(requestId: Long, topic: String, method: String, body: String, response: String?): JsonRpcHistoryRecord =
+        JsonRpcHistoryRecord(requestId, topic, method, body, response)
 }

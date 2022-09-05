@@ -21,15 +21,24 @@ import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.koin.core.module.Module
 
 internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol() {
 
     private lateinit var signEngine: SignEngine
     internal lateinit var relay: RelayConnectionInterface //by lazy { wcKoinApp.koin.get() }
+    override val storageSuffix: String = ""
 
     companion object {
         val instance = SignProtocol()
     }
+
+    override fun initialModules(): List<Module> = listOf(
+        commonModule(),
+        cryptoModule(),
+        jsonRpcModule(),
+        storageModule(storageSuffix)
+    )
 
     override fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
 
@@ -50,12 +59,13 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
 
                     wcKoinApp.run {
 //                        androidContext(application)
+//                        modules(engineModule(metadata))
                         modules(
                             networkModule(initial.relay),
                             commonModule(),
                             cryptoModule(),
                             jsonRpcModule(),
-                            storageModule(),
+                            storageModule(storageSuffix),
                             engineModule(metadata)
                         )
                     }
@@ -161,7 +171,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
     override fun rejectSession(reject: Sign.Params.Reject, onError: (Sign.Model.Error) -> Unit) {
         awaitLock {
             try {
-                signEngine.reject(reject.proposerPublicKey, reject.reason, reject.code) { error ->
+                signEngine.reject(reject.proposerPublicKey, reject.reason) { error ->
                     onError(Sign.Model.Error(error))
                 }
             } catch (error: Exception) {

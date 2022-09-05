@@ -23,7 +23,7 @@ object Sign {
 
         data class Error(val throwable: Throwable) : Model()
 
-        sealed class ProposedSequence {
+        sealed class ProposedSequence : Model() {
             class Pairing(val uri: String) : ProposedSequence()
             object Session : ProposedSequence()
         }
@@ -256,13 +256,11 @@ object Sign {
             val relayProtocol: String? = null,
         ) : Params()
 
-        data class Reject(val proposerPublicKey: String, val reason: String, val code: Int) :
-            Params()
+        data class Reject(val proposerPublicKey: String, val reason: String) : Params()
 
         data class Disconnect(val sessionTopic: String) : Params()
 
-        data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) :
-            Params()
+        data class Response(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) : Params()
 
         data class Request(
             val sessionTopic: String,

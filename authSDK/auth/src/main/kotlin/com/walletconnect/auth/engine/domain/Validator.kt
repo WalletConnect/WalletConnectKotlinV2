@@ -1,7 +1,8 @@
 package com.walletconnect.auth.engine.domain
 
+import com.walletconnect.android.impl.common.model.RelayProtocolOptions
 import com.walletconnect.android.impl.common.model.SymmetricKey
-import com.walletconnect.auth.engine.model.EngineDO
+import com.walletconnect.auth.common.model.WalletConnectUri
 import com.walletconnect.foundation.common.model.Topic
 import java.net.URI
 import java.net.URISyntaxException
@@ -9,7 +10,7 @@ import java.net.URISyntaxException
 object Validator {
 
     @JvmSynthetic
-    internal fun validateWCUri(uri: String): EngineDO.WalletConnectUri? {
+    internal fun validateWCUri(uri: String): WalletConnectUri? {
         if (!uri.startsWith("wc:")) return null
         if (!uri.contains("auth")) return null
         val properUriString = when {
@@ -38,9 +39,9 @@ object Validator {
         mapOfQueryParameters["symKey"]?.let { symKey = it } ?: return null
         if (symKey.isEmpty()) return null
 
-        return EngineDO.WalletConnectUri(
-            topic = Topic(pairUri.userInfo),
-            relay = EngineDO.RelayProtocolOptions(protocol = relayProtocol, data = relayData),
+        return WalletConnectUri(
+            topic = Topic(pairUri.userInfo.removePrefix("auth-")),
+            relay = RelayProtocolOptions(protocol = relayProtocol, data = relayData),
             symKey = SymmetricKey(symKey)
         )
     }

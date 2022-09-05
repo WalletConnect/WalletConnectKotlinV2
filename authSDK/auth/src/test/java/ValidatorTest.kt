@@ -1,7 +1,8 @@
+import com.walletconnect.android.impl.common.model.RelayProtocolOptions
 import com.walletconnect.android.impl.common.model.SymmetricKey
+import com.walletconnect.auth.common.model.WalletConnectUri
 import com.walletconnect.auth.engine.domain.Validator
-import com.walletconnect.auth.engine.model.EngineDO
-import com.walletconnect.auth.engine.model.toAbsoluteString
+import com.walletconnect.auth.engine.mapper.toAbsoluteString
 import com.walletconnect.foundation.common.model.Topic
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -59,18 +60,18 @@ class ValidatorTest {
 
     @Test
     fun `parse walletconnect uri to absolute string`() {
-        val uri = EngineDO.WalletConnectUri(
+        val uri = WalletConnectUri(
             Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
-            EngineDO.RelayProtocolOptions("irn", "teeestData")
+            RelayProtocolOptions("irn", "teeestData")
         )
 
         assertEquals(uri.toAbsoluteString(), "wc:auth-11112222244444@2?relay-protocol=irn&relay-data=teeestData&symKey=0x12321321312312312321")
 
-        val uri2 = EngineDO.WalletConnectUri(
+        val uri2 = WalletConnectUri(
             Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
-            EngineDO.RelayProtocolOptions("irn")
+            RelayProtocolOptions("irn")
         )
 
         assertEquals(uri2.toAbsoluteString(), "wc:auth-11112222244444@2?relay-protocol=irn&symKey=0x12321321312312312321")

@@ -30,10 +30,10 @@
             <action
                 android:id="@+id/action_fragment_accounts_to_dialog_paste_uri"
                 app:destination="@id/dialog_paste_uri" />
-
             <deepLink
                 app:action="android.intent.action.VIEW"
-                app:uri="kotlin-wallet-wc:/request" />
+                app:uri="wc:/auth-{topic}@2" />
+
 
         </fragment>
 
@@ -48,10 +48,4 @@
             tools:layout="@layout/bottomsheet_uri" />
 
     </navigation>
-
-    <fragment
-        android:id="@+id/fragment_sessions"
-        android:name="com.walletconnect.responder.ui.sessions.SessionsFragment"
-        android:label="Sessions"
-        tools:layout="@layout/fragment_sessions" />
 </navigation>
