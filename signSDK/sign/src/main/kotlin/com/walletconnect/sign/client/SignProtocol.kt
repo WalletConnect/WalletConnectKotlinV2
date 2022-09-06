@@ -29,10 +29,10 @@ import org.koin.core.module.Module
 internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol() {
     private lateinit var signEngine: SignEngine
     internal val relay: RelayConnectionInterface by lazy { wcKoinApp.koin.get() }
-    override val storageSuffix: String = ""
 
     companion object {
         val instance = SignProtocol()
+        const val storageSuffix: String = ""
     }
 
     override fun initialModules(): List<Module> = listOf(

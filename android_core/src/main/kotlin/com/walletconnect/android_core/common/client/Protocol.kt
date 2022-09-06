@@ -15,7 +15,6 @@ abstract class Protocol {
     protected val mutex = Mutex()
     protected val protocolScope = CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
     protected val wcKoinApp: KoinApplication = KoinApplication.init()
-    protected abstract val storageSuffix: String
 
     init {
         wcKoinApp.modules(initialModules())
