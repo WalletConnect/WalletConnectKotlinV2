@@ -1,11 +1,26 @@
-//apply plugin: signing
+import com.android.build.gradle.BaseExtension
+
 plugins {
     `maven-publish`
     signing
+    id("org.jetbrains.dokka")
 }
 
-//afterEvaluate {
-//    publishing {
+tasks {
+    register("javadocJar", Jar::class) {
+        dependsOn(named("dokkaHtml"))
+        archiveClassifier.set("javadoc")
+        from("$buildDir/dokka/html")
+    }
+
+    register("sourcesJar", Jar::class) {
+        archiveClassifier.set("sources")
+        from(extensions.findByType<BaseExtension>()?.sourceSets?.getByName("main")?.java?.srcDirs)
+    }
+}
+
+afterEvaluate {
+    publishing {
 //        publications {
 //            register<MavenPublication>("mavenAndroid") {
 //                afterEvaluate { artifact(tasks.getByName("bundleReleaseAar")) }
@@ -68,9 +83,9 @@ plugins {
 //                }
 //            }
 //        }
-//    }
-//}
+    }
+}
 
-//signing {
-//
-//}
+signing {
+
+}
