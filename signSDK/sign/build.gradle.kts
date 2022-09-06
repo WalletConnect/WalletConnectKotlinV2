@@ -8,7 +8,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "sign"
-    extra[KEY_PUBLISH_VERSION] = "2.0.0-rc0-test"
+    extra[KEY_PUBLISH_VERSION] = "2.0.0-rc.3"
     extra[KEY_SDK_NAME] = "Sign"
 }
 
@@ -24,7 +24,7 @@ android {
             targetSdk = TARGET_SDK
         }
 
-        buildConfigField(type = "String", name= "sdkVersion", value = "\"2.0.0-rc.3\"")
+        buildConfigField(type = "String", name= "sdkVersion", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         testInstrumentationRunner = "com.walletconnect.sign.test.utils.WCTestRunner"
         testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")
         testInstrumentationRunnerArguments += mutableMapOf("clearPackageData" to "true")
