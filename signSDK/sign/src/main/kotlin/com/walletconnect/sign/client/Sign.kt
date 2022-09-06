@@ -190,8 +190,7 @@ object Sign {
         data class Init constructor(
             val application: Application,
             val metadata: Model.AppMetaData,
-            val relay: RelayClient// RelayConnectionInterface,
-//            val connectionType: ConnectionType,
+            val relay: RelayConnectionInterface,
         ) : Params() {
 //            internal lateinit var relayServerUrl: String
 

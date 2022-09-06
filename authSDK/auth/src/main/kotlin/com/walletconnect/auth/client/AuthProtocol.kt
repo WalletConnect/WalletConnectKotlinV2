@@ -2,13 +2,13 @@
 
 package com.walletconnect.auth.client
 
-import com.walletconnect.android.impl.common.model.ConnectionState
-import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.api.Protocol
+import com.walletconnect.android.api.RelayConnectionInterface
+import com.walletconnect.android.api.di.wcKoinApp
+import com.walletconnect.android.impl.common.SDKError
+import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.di.cryptoModule
-import com.walletconnect.android.api.RelayConnectionInterface
-import com.walletconnect.android.api.ConnectionType
 import com.walletconnect.android.impl.di.networkModule
 import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
@@ -18,54 +18,44 @@ import com.walletconnect.auth.di.engineModule
 import com.walletconnect.auth.di.jsonRpcModule
 import com.walletconnect.auth.di.storageModule
 import com.walletconnect.auth.engine.domain.AuthEngine
-import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.withLock
-import org.koin.android.ext.koin.androidContext
-import org.koin.core.module.Module
 
 internal class AuthProtocol : AuthInterface, Protocol() {
     private lateinit var authEngine: AuthEngine
 
-    // TODO: Figure out how to get relay as in Sign in here. Should we keep Relay in the Auth init params?
-    internal val relay: RelayConnectionInterface by lazy { wcKoinApp.koin.get() }
-    private val serverUrl: String = "wss://relay.walletconnect.com?projectId=2ee94aca5d98e6c05c38bce02bee952a"
-    override val storageSuffix: String = "_auth"
+
+    internal lateinit var relay: RelayConnectionInterface
 
     companion object {
         val instance = AuthProtocol()
+        const val storageSuffix: String = "_auth"
     }
-
-    override fun initialModules(): List<Module> = listOf(
-        commonModule(),
-        cryptoModule(),
-        jsonRpcModule(),
-        storageModule(storageSuffix)
-    )
 
     @Throws(IllegalStateException::class)
     override fun initialize(init: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit) {
-        protocolScope.launch {
-            mutex.withLock {
+
+        this.relay = init.relay
+
+//        protocolScope.launch {
+//            mutex.withLock {
                 with(init) {
                     wcKoinApp.run {
-                        androidContext(application)
-                        modules(engineModule(appMetaData, iss)) //idea: Protocol Improvement. Dynamically changing issuer after initialisation
+                        modules(
+                            networkModule(relay),
+                            commonModule(),
+                            cryptoModule(),
+                            jsonRpcModule(),
+                            storageModule(storageSuffix),
+                            engineModule(appMetaData, iss)
+                        )
                     }
                 }
 
-                val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
-                val jwt = jwtRepository.generateJWT(serverUrl)
-                val connectionType = ConnectionType.AUTOMATIC
-
-                //todo: should we allow injecting relayClient? - YES
-//                wcKoinApp.modules(networkModule(serverUrl, jwt, connectionType, BuildConfig.sdkVersion, null))
                 authEngine = wcKoinApp.koin.get()
                 authEngine.handleInitializationErrors { error -> onError(Auth.Model.Error(error)) }
-            }
-        }
+//            }
+//        }
     }
 
     @Throws(IllegalStateException::class)

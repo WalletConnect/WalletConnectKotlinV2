@@ -16,7 +16,7 @@ fun androidApiCryptoModule() = module {
     val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
     val mainKeyAlias = MasterKeys.getOrCreate(keyGenParameterSpec)
 
-    single(named("AndroidCoreDITags.KEY_STORE")) {
+    single() {
         EncryptedSharedPreferences.create(
             sharedPrefsFile,
             mainKeyAlias,
@@ -26,7 +26,7 @@ fun androidApiCryptoModule() = module {
         )
     }
 
-    single<KeyStore> { KeyChain(get(named("AndroidCoreDITags.KEY_STORE"))) }
+    single<KeyStore> { KeyChain(get()) }
 
     single<JwtRepository> {
         println("kobe: Android JWT")

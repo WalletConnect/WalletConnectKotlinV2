@@ -14,16 +14,13 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
 
-//developers should be able to create instance of RelayClient and send messages through the network
+class RelayClient(relayServerUrl: String, connectionType: ConnectionType, application: Application) :
+    BaseRelayClient(), RelayConnectionInterface, KoinComponent {
 
-class RelayClient(relayServerUrl: String, connectionType: ConnectionType, application: Application) : BaseRelayClient(), RelayConnectionInterface, KoinComponent {
-
-//    val relay: RelayService //by lazy { wcKoinApp.koin.get(named("android_api_relay_service")) }
+    private val connectionController: ConnectionController by inject()
 
     init {
         println("kobe; RelayClient INIT")
-
-//        foundationKoinApp.close()
 
         wcKoinApp.run {
             androidContext(application)
@@ -37,23 +34,14 @@ class RelayClient(relayServerUrl: String, connectionType: ConnectionType, applic
         val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl())
         val serverUrl = relayServerUrl.addUserAgent("2.0.0")
 
-//        println("kobe; jwt: $jwt; server uri: $serverUrl")
-
-        wcKoinApp.modules(
-//            networkModule(serverUrl, "1111", jwt),
-            androidApiNetworkModule(serverUrl, jwt, connectionType, "2.0.0")
-        )
+        //TODO: how to get sdk version?
+        wcKoinApp.modules(androidApiNetworkModule(serverUrl, jwt, connectionType, "2.0.0"))
 
         println("kobe; Android Relay Service")
         relay = wcKoinApp.koin.get(named(AndroidApiDITags.RELAY_SERVICE))
-        //TODO: how to get sdk version?
 
         println("kobe; end init relay client")
     }
-
-    private val connectionController: ConnectionController by inject()//= wcKoinApp.koin.get()
-
-    val logger = LoggerImpl()
 
     override fun connect(onError: (String) -> Unit) {
         when (connectionController) {

@@ -12,10 +12,11 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import timber.log.Timber
 import kotlin.reflect.jvm.jvmName
+import com.walletconnect.foundation.di.commonModule as foundationCommonModule
 
 fun commonModule() = module {
 
-    includes(com.walletconnect.foundation.di.commonModule())
+    includes(foundationCommonModule())
 
     single<PolymorphicJsonAdapterFactory<JsonRpcResponse>> {
         PolymorphicJsonAdapterFactory.of(JsonRpcResponse::class.java, "type")

@@ -21,24 +21,16 @@ import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import org.koin.core.module.Module
 
 internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol() {
 
     private lateinit var signEngine: SignEngine
     internal lateinit var relay: RelayConnectionInterface //by lazy { wcKoinApp.koin.get() }
-    override val storageSuffix: String = ""
 
     companion object {
         val instance = SignProtocol()
+        const val storageSuffix: String = ""
     }
-
-    override fun initialModules(): List<Module> = listOf(
-        commonModule(),
-        cryptoModule(),
-        jsonRpcModule(),
-        storageModule(storageSuffix)
-    )
 
     override fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
 
@@ -56,12 +48,9 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
                     // TODO: re-init scope
                     // TODO: add logic to check hostName for ws/wss scheme with and without ://
 
-
                     wcKoinApp.run {
-//                        androidContext(application)
-//                        modules(engineModule(metadata))
                         modules(
-                            networkModule(initial.relay),
+                            networkModule(relay),
                             commonModule(),
                             cryptoModule(),
                             jsonRpcModule(),
