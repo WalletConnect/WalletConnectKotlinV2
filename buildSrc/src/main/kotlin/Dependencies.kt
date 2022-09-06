@@ -1,11 +1,5 @@
 import org.gradle.kotlin.dsl.DependencyHandlerScope
 
-const val kotlinVersion = "1.6.10"
-val jvmVersion = JavaVersion.VERSION_11
-const val sqlDelightVersion = "1.5.2"
-const val MIN_SDK: Int = 23
-const val dokkaVersion = "1.6.21"
-
 fun DependencyHandlerScope.scanner() {
     "implementation"("com.google.mlkit:barcode-scanning:$mlKitBarcode")
     "implementation"("androidx.camera:camera-camera2:$camera2Version")
