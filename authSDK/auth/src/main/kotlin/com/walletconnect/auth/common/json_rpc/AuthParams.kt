@@ -20,7 +20,11 @@ internal sealed class AuthParams : ClientParams {
 
     @JsonClass(generateAdapter = true)
     internal data class ResponseParams(
-        @Json(name = "cacao")
-        val cacao: Cacao,
+        @Json(name = "header")
+        val header: Cacao.Header,
+        @Json(name = "payload")
+        val payload: Cacao.Payload,
+        @Json(name = "signature")
+        val signature: Cacao.Signature,
     ) : AuthParams()
 }
