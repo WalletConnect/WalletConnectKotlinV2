@@ -38,7 +38,7 @@ fun commonModule() = module {
             .build()
     }
 
-    single<Logger> {
+    single<Logger>(named(AndroidApiDITags.LOGGER)) {
         object : Logger {
             override fun log(logMsg: String?) {
                 Timber.d(logMsg)

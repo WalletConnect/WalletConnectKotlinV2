@@ -69,9 +69,9 @@ internal class AuthEngine(
     }
 
 
-    internal fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-        relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
-    }
+//    internal fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
+//        relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
+//    }
 
     internal fun request(
         payloadParams: PayloadParams,

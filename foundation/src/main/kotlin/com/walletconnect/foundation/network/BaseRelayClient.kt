@@ -18,12 +18,11 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.koin.core.KoinApplication
-import org.koin.core.component.KoinComponent
 
-abstract class BaseRelayClient : RelayInterface, KoinComponent {
+abstract class BaseRelayClient : RelayInterface {
 
     private var foundationKoinApp: KoinApplication = KoinApplication.init()
-    protected lateinit var relay: RelayService
+    protected lateinit var relayService: RelayService
     private var logger: Logger
 
     init {
@@ -32,14 +31,14 @@ abstract class BaseRelayClient : RelayInterface, KoinComponent {
     }
 
     override val eventsFlow: SharedFlow<Relay.Model.Event> by lazy {
-        relay
+        relayService
             .observeWebSocketEvent()
             .map { event -> event.toRelayEvent() }
             .shareIn(scope, SharingStarted.Lazily, REPLAY)
     }
 
     override val subscriptionRequest: Flow<Relay.Model.Call.Subscription.Request> by lazy {
-        relay.observeSubscriptionRequest()
+        relayService.observeSubscriptionRequest()
             .map { request -> request.toRelayRequest() }
             .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
     }
@@ -56,14 +55,14 @@ abstract class BaseRelayClient : RelayInterface, KoinComponent {
 
         observePublishAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
         observePublishError { error -> onResult(Result.failure(error)) }
-        relay.publishRequest(request)
+        relayService.publishRequest(request)
     }
 
     override fun subscribe(topic: String, onResult: (Result<Relay.Model.Call.Subscribe.Acknowledgement>) -> Unit) {
         val subscribeRequest = RelayDTO.Subscribe.Request(id = generateId(), params = RelayDTO.Subscribe.Request.Params(Topic(topic)))
         observeSubscribeAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
         observeSubscribeError { error -> onResult(Result.failure(error)) }
-        relay.subscribeRequest(subscribeRequest)
+        relayService.subscribeRequest(subscribeRequest)
     }
 
     override fun unsubscribe(
@@ -77,17 +76,17 @@ abstract class BaseRelayClient : RelayInterface, KoinComponent {
         )
         observeUnSubscribeAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
         observeUnSubscribeError { error -> onResult(Result.failure(error)) }
-        relay.unsubscribeRequest(unsubscribeRequest)
+        relayService.unsubscribeRequest(unsubscribeRequest)
     }
 
     private fun publishSubscriptionAcknowledgement(id: Long) {
         val publishRequest = RelayDTO.Subscription.Acknowledgement(id = id, result = true)
-        relay.publishSubscriptionAcknowledgement(publishRequest)
+        relayService.publishSubscriptionAcknowledgement(publishRequest)
     }
 
     private fun observePublishAcknowledgement(onResult: (Relay.Model.Call.Publish.Acknowledgement) -> Unit) {
         scope.launch {
-            relay.observePublishAcknowledgement()
+            relayService.observePublishAcknowledgement()
                 .map { ack -> ack.toRelayAcknowledgment() }
                 .catch { exception -> logger.error(exception) }
                 .collect { acknowledgement ->
@@ -101,7 +100,7 @@ abstract class BaseRelayClient : RelayInterface, KoinComponent {
 
     private fun observePublishError(onFailure: (Throwable) -> Unit) {
         scope.launch {
-            relay.observePublishError()
+            relayService.observePublishError()
                 .onEach { jsonRpcError -> logger.error(Throwable(jsonRpcError.error.errorMessage)) }
                 .catch { exception -> logger.error(exception) }
                 .collect { errorResponse ->
@@ -115,7 +114,7 @@ abstract class BaseRelayClient : RelayInterface, KoinComponent {
 
     private fun observeSubscribeAcknowledgement(onResult: (Relay.Model.Call.Subscribe.Acknowledgement) -> Unit) {
         scope.launch {
-            relay.observeSubscribeAcknowledgement()
+            relayService.observeSubscribeAcknowledgement()
                 .map { ack -> ack.toRelayAcknowledgment() }
                 .catch { exception -> logger.error(exception) }
                 .collect { acknowledgement ->
@@ -129,7 +128,7 @@ abstract class BaseRelayClient : RelayInterface, KoinComponent {
 
     private fun observeSubscribeError(onFailure: (Throwable) -> Unit) {
         scope.launch {
-            relay.observeSubscribeError()
+            relayService.observeSubscribeError()
                 .onEach { jsonRpcError -> logger.error(Throwable(jsonRpcError.error.errorMessage)) }
                 .catch { exception -> logger.error(exception) }
                 .collect { errorResponse ->
@@ -143,7 +142,7 @@ abstract class BaseRelayClient : RelayInterface, KoinComponent {
 
     private fun observeUnSubscribeAcknowledgement(onSuccess: (Relay.Model.Call.Unsubscribe.Acknowledgement) -> Unit) {
         scope.launch {
-            relay.observeUnsubscribeAcknowledgement()
+            relayService.observeUnsubscribeAcknowledgement()
                 .map { ack -> ack.toRelayAcknowledgment() }
                 .catch { exception -> logger.error(exception) }
                 .collect { acknowledgement ->
@@ -157,7 +156,7 @@ abstract class BaseRelayClient : RelayInterface, KoinComponent {
 
     private fun observeUnSubscribeError(onFailure: (Throwable) -> Unit) {
         scope.launch {
-            relay.observeUnsubscribeError()
+            relayService.observeUnsubscribeError()
                 .onEach { jsonRpcError -> logger.error(Throwable(jsonRpcError.error.errorMessage)) }
                 .catch { exception -> logger.error(exception) }
                 .collect { errorResponse ->

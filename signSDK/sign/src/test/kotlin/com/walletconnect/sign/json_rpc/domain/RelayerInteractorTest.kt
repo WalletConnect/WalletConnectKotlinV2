@@ -9,7 +9,7 @@ import com.walletconnect.android.api.Tags
 import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.api.RelayConnectionInterface
 import com.walletconnect.android.api.WalletConnectException
-import com.walletconnect.android.impl.network.data.connection.ConnectivityState
+import com.walletconnect.android.api.ConnectivityState
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.foundation.common.model.Topic

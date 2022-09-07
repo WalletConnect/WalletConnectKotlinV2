@@ -1,10 +1,12 @@
 @file:JvmSynthetic
 
-package com.walletconnect.foundation.network.data
+package com.walletconnect.android.api
 
+import android.app.Application
 import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
-import com.walletconnect.foundation.util.scope
+import com.walletconnect.foundation.network.data.ConnectionController
+import com.walletconnect.foundation.network.data.ConnectionEvent
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -24,5 +26,11 @@ class ManualConnectionLifecycle(
                 }
                 .launchIn(scope)
         }
+//        else {
+//            var app: Application? = null
+//            app?.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks{
+//
+//            })
+//        }
     }
 }

@@ -1,4 +1,4 @@
-package com.walletconnect.android.impl.network.data.connection
+package com.walletconnect.android.api
 
 import android.content.Context
 import android.net.ConnectivityManager

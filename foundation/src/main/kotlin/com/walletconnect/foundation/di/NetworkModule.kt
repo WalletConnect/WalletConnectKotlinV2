@@ -8,7 +8,6 @@ import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.RelayInterface
 import com.walletconnect.foundation.network.data.ConnectionController
-import com.walletconnect.foundation.network.data.ManualConnectionLifecycle
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
 import okhttp3.Interceptor
@@ -56,11 +55,6 @@ fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = 
         ConnectionController.Manual()
     }
 
-    single<ManualConnectionLifecycle>() {
-
-        ManualConnectionLifecycle(get(), LifecycleRegistry())
-    }
-
     single(named(FoundationDITags.SCARLET)) {
 
         println("kobe; Base Scarlet: $serverUrl&auth=$jwt")
@@ -68,9 +62,6 @@ fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = 
         Scarlet.Builder()
             .backoffStrategy(get<LinearBackoffStrategy>())
             .webSocketFactory(get<OkHttpClient>(named(FoundationDITags.OK_HTTP)).newWebSocketFactory("$serverUrl&auth=$jwt"))
-
-            .lifecycle(get<ManualConnectionLifecycle>())
-
             .addMessageAdapterFactory(get<MoshiMessageAdapter.Factory>(named(FoundationDITags.MSG_ADAPTER)))
             .addStreamAdapterFactory(get<FlowStreamAdapter.Factory>())
             .build()

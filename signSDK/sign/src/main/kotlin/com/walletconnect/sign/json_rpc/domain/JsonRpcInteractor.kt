@@ -5,7 +5,7 @@ package com.walletconnect.sign.json_rpc.domain
 import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.impl.json_rpc.domain.BaseJsonRpcInteractor
 import com.walletconnect.android.api.RelayConnectionInterface
-import com.walletconnect.android.impl.network.data.connection.ConnectivityState
+import com.walletconnect.android.api.ConnectivityState
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.PendingRequest
@@ -17,10 +17,10 @@ import com.walletconnect.sign.json_rpc.model.toPendingRequest
 internal class JsonRpcInteractor(
     relay: RelayConnectionInterface,
     chaChaPolyCodec: Codec,
-    networkState: ConnectivityState,
+//    networkState: ConnectivityState,
     private val jsonRpcHistory: JsonRpcHistory,
     private val serializer: JsonRpcSerializer
-) : BaseJsonRpcInteractor(relay, serializer, chaChaPolyCodec, jsonRpcHistory, networkState) {
+) : BaseJsonRpcInteractor(relay, serializer, chaChaPolyCodec, jsonRpcHistory) {
 
     fun getPendingRequests(topic: Topic): List<PendingRequest> =
         jsonRpcHistory.getListOfPendingRecordsByTopic(topic)

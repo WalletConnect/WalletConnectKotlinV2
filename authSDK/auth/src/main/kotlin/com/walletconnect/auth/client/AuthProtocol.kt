@@ -53,7 +53,7 @@ internal class AuthProtocol : AuthInterface, Protocol() {
                 }
 
                 authEngine = wcKoinApp.koin.get()
-                authEngine.handleInitializationErrors { error -> onError(Auth.Model.Error(error)) }
+//                authEngine.handleInitializationErrors { error -> onError(Auth.Model.Error(error)) }
 //            }
 //        }
     }

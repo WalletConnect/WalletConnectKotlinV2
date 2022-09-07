@@ -12,6 +12,6 @@ internal fun jsonRpcModule() = module {
     }
 
     single {
-        JsonRpcInteractor(get(), get(), get(), get(), get())
+        JsonRpcInteractor(get(), get(), get(), get())
     }
 }

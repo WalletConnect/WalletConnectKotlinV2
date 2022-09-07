@@ -10,7 +10,8 @@ import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.android.api.AndroidApiDITags
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.android.api.ConnectionType
-import com.walletconnect.foundation.network.data.ManualConnectionLifecycle
+import com.walletconnect.android.api.ConnectivityState
+import com.walletconnect.android.api.ManualConnectionLifecycle
 import com.walletconnect.foundation.di.networkModule
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
@@ -18,6 +19,7 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidApplication
+import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
@@ -33,7 +35,7 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: Conn
 
     single(named(AndroidApiDITags.INTERCEPTOR)) {
 
-        println("kobe; Interceptor")
+        println("kobe; RELAY Interceptor")
 
         Interceptor { chain ->
             val updatedRequest = chain.request().newBuilder()
@@ -45,7 +47,7 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: Conn
     }
 
     single(named(AndroidApiDITags.OK_HTTP)) {
-        println("kobe; OkHTTP")
+        println("kobe; RELAY OkHTTP")
 
         OkHttpClient.Builder()
             .addInterceptor(get<Interceptor>(named(AndroidApiDITags.INTERCEPTOR)))
@@ -69,7 +71,7 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: Conn
             ConnectionController.Manual()
         } else {
 
-            println("kobe; Automatic controller")
+            println("kobe; RELAY Automatic controller")
 
             ConnectionController.Automatic
         }
@@ -80,10 +82,10 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: Conn
 
             println("kobe; Manual cycle")
 
-            ManualConnectionLifecycle(get(named(AndroidApiDITags.CONNECTION_CONTROLLER)), LifecycleRegistry())
+            ManualConnectionLifecycle( ConnectionController.Manual(), LifecycleRegistry())
         } else {
 
-            println("kobe; Automatic cycle")
+            println("kobe; RELAY Automatic cycle")
 
             AndroidLifecycle.ofApplicationForeground(androidApplication())
         }
@@ -95,7 +97,7 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: Conn
 
     single(named(AndroidApiDITags.SCARLET)) {
 
-        println("kobe; Client Scarlet")
+        println("kobe;  RELAY Client Scarlet")
 
         Scarlet.Builder()
             .backoffStrategy(get<LinearBackoffStrategy>())
@@ -108,8 +110,16 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: Conn
 
     single<RelayService>(named(AndroidApiDITags.RELAY_SERVICE)) {
 
-        println("kobe; RelayService")
+        println("kobe; RELAY RelayService")
 
         get<Scarlet>(named(AndroidApiDITags.SCARLET)).create(RelayService::class.java)
     }
+
+    single(named(AndroidApiDITags.CONNECTIVITY_STATE)) {
+
+        println("kobe; RELAY ConnectivityState")
+
+        ConnectivityState(androidApplication())
+    }
+
 }

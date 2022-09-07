@@ -4,6 +4,8 @@ package com.walletconnect.sign.client
 
 import com.walletconnect.android.api.Protocol
 import com.walletconnect.android.api.RelayConnectionInterface
+import com.walletconnect.android.api.di.mutex
+import com.walletconnect.android.api.di.protocolScope
 import com.walletconnect.android.api.di.wcKoinApp
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
@@ -19,8 +21,11 @@ import com.walletconnect.sign.di.jsonRpcModule
 import com.walletconnect.sign.di.storageModule
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.withLock
 
 internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol() {
 
@@ -36,9 +41,6 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
 
         this.relay = initial.relay
 
-//        protocolScope.launch {
-//            mutex.withLock {
-//
 //        runBlocking(protocolScope.coroutineContext) {
 //            mutex.withLock {
 

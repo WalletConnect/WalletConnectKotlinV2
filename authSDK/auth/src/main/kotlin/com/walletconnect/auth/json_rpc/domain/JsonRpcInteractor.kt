@@ -7,7 +7,7 @@ import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.impl.json_rpc.domain.BaseJsonRpcInteractor
 import com.walletconnect.android.api.RelayConnectionInterface
 import com.walletconnect.android.impl.json_rpc.model.JsonRpcHistoryRecord
-import com.walletconnect.android.impl.network.data.connection.ConnectivityState
+import com.walletconnect.android.api.ConnectivityState
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.auth.common.json_rpc.AuthRpc
 import com.walletconnect.auth.common.model.JsonRpcHistoryEntry
@@ -18,10 +18,10 @@ import com.walletconnect.auth.json_rpc.model.toEntry
 internal class JsonRpcInteractor(
     relay: RelayConnectionInterface,
     chaChaPolyCodec: Codec,
-    networkState: ConnectivityState,
+//    networkState: ConnectivityState,
     private val jsonRpcHistory: JsonRpcHistory,
     private val serializer: JsonRpcSerializer
-) : BaseJsonRpcInteractor(relay, serializer, chaChaPolyCodec, jsonRpcHistory, networkState) {
+) : BaseJsonRpcInteractor(relay, serializer, chaChaPolyCodec, jsonRpcHistory) {
 
     fun getPendingJsonRpcHistoryEntries(): List<JsonRpcHistoryEntry> =
         jsonRpcHistory.getListOfPendingRecords()

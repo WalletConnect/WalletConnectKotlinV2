@@ -1,7 +1,6 @@
 package com.walletconnect.android.impl.json_rpc.domain
 
-import com.walletconnect.android.api.JsonRpcResponse
-import com.walletconnect.android.impl.common.*
+import com.walletconnect.android.api.*
 import com.walletconnect.android.impl.common.model.IrnParams
 import com.walletconnect.android.impl.common.model.sync.WCRequest
 import com.walletconnect.android.impl.common.model.sync.WCResponse
@@ -13,28 +12,24 @@ import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializerAbstract
 import com.walletconnect.android.impl.json_rpc.model.*
-import com.walletconnect.android.api.RelayConnectionInterface
-import com.walletconnect.android.api.WalletConnectException
 import com.walletconnect.android.impl.common.model.Participants
 import com.walletconnect.android.impl.common.model.sync.ClientJsonRpc
-import com.walletconnect.android.impl.network.data.connection.ConnectivityState
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.utils.Empty
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.net.HttpURLConnection
+import java.lang.InternalError
 
 open class BaseJsonRpcInteractor(
     private val relay: RelayConnectionInterface,
     private val serializer: JsonRpcSerializerAbstract,
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
-    networkState: ConnectivityState,
+//    networkState: ConnectivityState,
 ) {
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequest> = MutableSharedFlow()
     val clientSyncJsonRpc: SharedFlow<WCRequest> = _clientSyncJsonRpc.asSharedFlow()
@@ -45,42 +40,48 @@ open class BaseJsonRpcInteractor(
     private val _internalErrors = MutableSharedFlow<InternalError>()
     val internalErrors: SharedFlow<InternalError> = _internalErrors.asSharedFlow()
 
-    private val _isNetworkAvailable: StateFlow<Boolean> = networkState.isAvailable
-    private val _isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
+//    private val _isNetworkAvailable: StateFlow<Boolean> = networkState.isAvailable
+//    private val _isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    val isConnectionAvailable: StateFlow<Boolean> =
-        combine(_isWSSConnectionOpened, _isNetworkAvailable) { wss, internet -> wss && internet }
-            .stateIn(scope, SharingStarted.Eagerly, false)
+    val isConnectionAvailable: StateFlow<Boolean> = relay.isConnectionAvailable
+//        combine(_isWSSConnectionOpened, _isNetworkAvailable) { wss, internet -> wss && internet }
+//            .stateIn(scope, SharingStarted.Eagerly, false)
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> handleError(exception.message ?: String.Empty) }
 
-    @get:JvmSynthetic
-    private val Throwable.toWalletConnectException: WalletConnectException
-        get() =
-            when {
-                this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
-                    ProjectIdDoesNotExistException(this.message)
-                this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
-                    InvalidProjectIdException(this.message)
-                else -> GenericException(this.message)
-            }
-
-    val initializationErrorsFlow: Flow<WalletConnectException>
-        get() = relay.eventsFlow
-            .onEach { event: Relay.Model.Event ->
-                Logger.log("$event")
-                setIsWSSConnectionOpened(event)
-            }
-            .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
-            .map { error -> error.throwable.toWalletConnectException }
+//    @get:JvmSynthetic
+//    private val Throwable.toWalletConnectException: WalletConnectException
+//        get() =
+//            when {
+//                this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true -> ProjectIdDoesNotExistException(this.message)
+//                this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true -> InvalidProjectIdException(this.message)
+//                else -> GenericException(this.message)
+//            }
+//
+    val initializationErrorsFlow: Flow<WalletConnectException> get() = relay.initializationErrorsFlow
+//            relay.eventsFlow
+//            .onEach { event: Relay.Model.Event ->
+//                Logger.log("$event")
+//                setIsWSSConnectionOpened(event)
+//            }
+//            .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
+//            .map { error -> error.throwable.toWalletConnectException }
+////
+//        private fun setIsWSSConnectionOpened(event: Relay.Model.Event) {
+//        if (event is Relay.Model.Event.OnConnectionOpened<*>) {
+//            _isWSSConnectionOpened.compareAndSet(expect = false, update = true)
+//        } else if (event is Relay.Model.Event.OnConnectionClosed || event is Relay.Model.Event.OnConnectionFailed) {
+//            _isWSSConnectionOpened.compareAndSet(expect = true, update = false)
+//        }
+//    }
 
     init {
         manageSubscriptions()
     }
 
     fun checkConnectionWorking() {
-        if (!isConnectionAvailable.value) {
+        if (!relay.isConnectionAvailable.value) {
             throw NoRelayConnectionException("No connection available")
         }
     }
@@ -262,14 +263,6 @@ open class BaseJsonRpcInteractor(
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(jsonRpcError.toJsonRpcError(), params))
             } ?: handleError("JsonRpcInteractor: Unknown error params")
-        }
-    }
-
-    private fun setIsWSSConnectionOpened(event: Relay.Model.Event) {
-        if (event is Relay.Model.Event.OnConnectionOpened<*>) {
-            _isWSSConnectionOpened.compareAndSet(expect = false, update = true)
-        } else if (event is Relay.Model.Event.OnConnectionClosed || event is Relay.Model.Event.OnConnectionFailed) {
-            _isWSSConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }
 

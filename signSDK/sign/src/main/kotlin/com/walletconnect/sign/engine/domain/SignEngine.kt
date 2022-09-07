@@ -3,15 +3,12 @@
 package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.android.api.Expiry
-import com.walletconnect.android.api.JsonRpcResponse
-import com.walletconnect.android.api.WalletConnectException
+import com.walletconnect.android.api.*
 import com.walletconnect.android.impl.common.*
 import com.walletconnect.android.impl.common.model.*
 import com.walletconnect.android.impl.common.model.sync.WCRequest
 import com.walletconnect.android.impl.common.model.sync.WCResponse
 import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.api.Tags
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.crypto.KeyManagementRepository
 import com.walletconnect.android.impl.utils.*
@@ -68,6 +65,25 @@ internal class SignEngine(
     fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
         println("kobe; Sign Engine Events")
         relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
+    }
+
+    private fun resubscribeToSequences() {
+
+        Logger.error("kobe; Resubcribe")
+
+        relayer.isConnectionAvailable
+            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
+            .filter { isAvailable: Boolean -> isAvailable }
+            .onEach {
+
+                Logger.error("kobe; Resubcribing")
+
+                coroutineScope {
+                    launch(Dispatchers.IO) { resubscribeToPairings() }
+                    launch(Dispatchers.IO) { resubscribeToSession() }
+                }
+            }
+            .launchIn(scope)
     }
 
     internal fun proposeSequence(
@@ -791,19 +807,6 @@ internal class SignEngine(
         }
         val method = params.request.method
         scope.launch { _engineEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
-    }
-
-    private fun resubscribeToSequences() {
-        relayer.isConnectionAvailable
-            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
-            .filter { isAvailable: Boolean -> isAvailable }
-            .onEach {
-                coroutineScope {
-                    launch(Dispatchers.IO) { resubscribeToPairings() }
-                    launch(Dispatchers.IO) { resubscribeToSession() }
-                }
-            }
-            .launchIn(scope)
     }
 
     private fun resubscribeToPairings() {
