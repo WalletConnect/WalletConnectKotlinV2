@@ -33,8 +33,8 @@ internal fun Cacao.Signature.toSignature(): Signature = Signature.fromString(s)
 // todo: Figure out chain name resolving to support chain agnosticism
 @JvmSynthetic
 internal fun Cacao.Payload.toFormattedMessage(chainName: String = "Ethereum"): String {
-    var message = "$domain wants you to sign in with your $chainName account:\n$address\n\n"
-    if (statement != null) message += "$statement\n"
+    var message = "$domain wants you to sign in with your $chainName account:\n$address\n"
+    if (statement != null) message += "\n$statement\n"
     message += "\nURI: $aud\nVersion: $version\nChain ID: $chainId\nNonce: $nonce\nIssued At: $iat"
     if (exp != null) message += "\nExpiration Time: $exp"
     if (nbf != null) message += "\nNot Before: $nbf"
