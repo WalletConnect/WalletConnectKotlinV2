@@ -17,12 +17,12 @@ class DappSampleApplication : Application() {
 
         //TODO: register at https://walletconnect.com/register to get a project ID
         val serverUri = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
-        val relayClient = RelayClient(relayServerUrl = serverUri, connectionType = ConnectionType.AUTOMATIC, application = this)
+//        val relayClient = RelayClient(relayServerUrl = serverUri, connectionType = ConnectionType.AUTOMATIC, application = this)
+        RelayClient.initialize(relayServerUrl = serverUri, connectionType = ConnectionType.AUTOMATIC, application = this)
 
         // Sample of how to use a URI to initialize the WalletConnect SDK
         val initString = Sign.Params.Init(
-            application = this,
-            relay = relayClient,
+            relay = RelayClient,
             metadata = Sign.Model.AppMetaData(
                 name = "Kotlin Dapp",
                 description = "Dapp description",

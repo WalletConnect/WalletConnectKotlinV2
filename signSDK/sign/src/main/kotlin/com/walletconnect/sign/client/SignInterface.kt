@@ -54,8 +54,8 @@ interface SignInterface {
     fun getListOfSettledPairings(): List<Sign.Model.Pairing>
     fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest>
 
-    interface Websocket {
-        fun open(onError: (String) -> Unit)
-        fun close(onError: (String) -> Unit)
-    }
+//    interface Websocket {
+//        fun open(onError: (String) -> Unit)
+//        fun close(onError: (String) -> Unit)
+//    }
 }

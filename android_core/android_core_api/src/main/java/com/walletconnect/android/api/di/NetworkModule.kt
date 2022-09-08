@@ -61,7 +61,6 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: Conn
 
     single(named(AndroidApiDITags.MSG_ADAPTER)) { MoshiMessageAdapter.Factory(get(named(AndroidApiDITags.MOSHI))) }
 
-//        single { relay } //?: RelayClient(get(), get(), get(), scope) }
 
     single(named(AndroidApiDITags.CONNECTION_CONTROLLER)) {
         if (connectionType == ConnectionType.MANUAL) {
@@ -82,7 +81,7 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: Conn
 
             println("kobe; Manual cycle")
 
-            ManualConnectionLifecycle( ConnectionController.Manual(), LifecycleRegistry())
+            ManualConnectionLifecycle( get(named(AndroidApiDITags.CONNECTION_CONTROLLER)), LifecycleRegistry())
         } else {
 
             println("kobe; RELAY Automatic cycle")

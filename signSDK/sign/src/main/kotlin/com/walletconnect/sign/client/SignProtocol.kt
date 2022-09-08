@@ -2,7 +2,6 @@
 
 package com.walletconnect.sign.client
 
-import com.walletconnect.android.api.Protocol
 import com.walletconnect.android.api.RelayConnectionInterface
 import com.walletconnect.android.api.di.test
 import com.walletconnect.android.api.di.wcKoinApp
@@ -23,7 +22,7 @@ import com.walletconnect.sign.engine.model.EngineDO
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol() {
+internal class SignProtocol : SignInterface {
     private lateinit var signEngine: SignEngine
     internal val relay: RelayConnectionInterface by lazy { wcKoinApp.koin.get() }
 
@@ -60,7 +59,8 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
 
         Logger.error("kobe; setWalletDelegate")
 
-        awaitLock {
+//        awaitLock {
+        checkEngineInitialization()
 
             Logger.error("kobe; setWalletDelegate lock")
 
@@ -77,12 +77,13 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
                     is SDKError -> delegate.onError(event.toClientError())
                 }
             }.launchIn(scope)
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun setDappDelegate(delegate: SignInterface.DappDelegate) {
-        awaitLock {
+//        awaitLock {
+        checkEngineInitialization()
             signEngine.engineEvent.onEach { event ->
                 when (event) {
                     is EngineDO.SessionRejected -> delegate.onSessionRejected(event.toClientSessionRejected())
@@ -98,7 +99,7 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
                     is SDKError -> delegate.onError(event.toClientError())
                 }
             }.launchIn(scope)
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
@@ -106,7 +107,8 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
         connect: Sign.Params.Connect, onProposedSequence: (Sign.Model.ProposedSequence) -> Unit,
         onError: (Sign.Model.Error) -> Unit,
     ) {
-        awaitLock {
+//        awaitLock {
+        checkEngineInitialization()
             try {
                 signEngine.proposeSequence(
                     connect.namespaces.toMapOfEngineNamespacesProposal(),
@@ -118,23 +120,25 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun pair(pair: Sign.Params.Pair, onError: (Sign.Model.Error) -> Unit) {
-        awaitLock {
+        checkEngineInitialization()
+//        awaitLock {
             try {
                 signEngine.pair(pair.uri)
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun approveSession(approve: Sign.Params.Approve, onError: (Sign.Model.Error) -> Unit) {
-        awaitLock {
+        checkEngineInitialization()
+//        awaitLock {
             try {
                 signEngine.approve(approve.proposerPublicKey, approve.namespaces.toMapOfEngineNamespacesSession()) { error ->
                     onError(Sign.Model.Error(error))
@@ -142,12 +146,13 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun rejectSession(reject: Sign.Params.Reject, onError: (Sign.Model.Error) -> Unit) {
-        awaitLock {
+        checkEngineInitialization()
+//        awaitLock {
             try {
                 signEngine.reject(reject.proposerPublicKey, reject.reason) { error ->
                     onError(Sign.Model.Error(error))
@@ -155,12 +160,13 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun request(request: Sign.Params.Request, onError: (Sign.Model.Error) -> Unit) {
-        awaitLock {
+        checkEngineInitialization()
+//        awaitLock {
             try {
                 signEngine.sessionRequest(request.toEngineDORequest()) { error ->
                     onError(Sign.Model.Error(error))
@@ -168,12 +174,13 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun respond(response: Sign.Params.Response, onError: (Sign.Model.Error) -> Unit) {
-        awaitLock {
+        checkEngineInitialization()
+//        awaitLock {
             try {
                 signEngine.respondSessionRequest(response.sessionTopic, response.jsonRpcResponse.toJsonRpcResponse()) { error ->
                     onError(Sign.Model.Error(error))
@@ -181,46 +188,50 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun update(update: Sign.Params.Update, onError: (Sign.Model.Error) -> Unit) {
-        awaitLock {
+        checkEngineInitialization()
+//        awaitLock {
             try {
                 signEngine.sessionUpdate(update.sessionTopic, update.namespaces.toMapOfEngineNamespacesSession())
                 { error -> onError(Sign.Model.Error(error)) }
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun extend(extend: Sign.Params.Extend, onError: (Sign.Model.Error) -> Unit) {
-        awaitLock {
+        checkEngineInitialization()
+//        awaitLock {
             try {
                 signEngine.extend(extend.topic) { error -> onError(Sign.Model.Error(error)) }
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun emit(emit: Sign.Params.Emit, onError: (Sign.Model.Error) -> Unit) {
-        awaitLock {
+        checkEngineInitialization()
+//        awaitLock {
             try {
                 signEngine.emit(emit.topic, emit.event.toEngineEvent(emit.chainId)) { error -> onError(Sign.Model.Error(error)) }
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing?) {
-        awaitLock {
+        checkEngineInitialization()
+//        awaitLock {
             try {
                 signEngine.ping(
                     ping.topic,
@@ -230,47 +241,57 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
             } catch (error: Exception) {
                 sessionPing?.onError(Sign.Model.Ping.Error(error))
             }
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit) {
-        awaitLock {
+        checkEngineInitialization()
+//        awaitLock {
             try {
                 signEngine.disconnect(disconnect.sessionTopic)
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun getListOfSettledSessions(): List<Sign.Model.Session> {
-        return awaitLock {
-            signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
-        }
+        checkEngineInitialization()
+        return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
+//        return awaitLock {
+//            signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun getSettledSessionByTopic(topic: String): Sign.Model.Session? {
-        return awaitLock {
-            signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
-                .find { session -> session.topic == topic }
-        }
+        checkEngineInitialization()
+        return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
+            .find { session -> session.topic == topic }
+//        return awaitLock {
+//            signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
+//                .find { session -> session.topic == topic }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun getListOfSettledPairings(): List<Sign.Model.Pairing> {
-        return awaitLock {
-            signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing)
-        }
+        checkEngineInitialization()
+        return signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing)
+//        return awaitLock {
+//            signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing)
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest> {
-        return awaitLock {
-            signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests()
-        }
+        checkEngineInitialization()
+        return signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests()
+//        return awaitLock {
+//            signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests()
+//        }
     }
 
     // TODO: Uncomment once reinit scope logic is added
@@ -279,23 +300,8 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
 //        wcKoinApp.close()
 //    }
 
-    //todo: remove and use methods from RelayClient
     @Throws(IllegalStateException::class)
-    override fun open(onError: (String) -> Unit) {
-        awaitLock {
-            relay.connect { errorMessage -> onError(errorMessage) }
-        }
-    }
-
-    @Throws(IllegalStateException::class)
-    override fun close(onError: (String) -> Unit) {
-        awaitLock {
-            relay.disconnect { errorMessage -> onError(errorMessage) }
-        }
-    }
-
-    @Throws(IllegalStateException::class)
-    override fun checkEngineInitialization() {
+    private fun checkEngineInitialization() {
         check(::signEngine.isInitialized) {
             "SignClient needs to be initialized first using the initialize function"
         }

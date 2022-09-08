@@ -186,7 +186,7 @@ object Sign {
 
         // TODO: Maybe convert this into a Builder
         data class Init constructor(
-            val application: Application,
+//            val application: Application,
             val metadata: Model.AppMetaData,
             val relay: RelayConnectionInterface,
         ) : Params() {

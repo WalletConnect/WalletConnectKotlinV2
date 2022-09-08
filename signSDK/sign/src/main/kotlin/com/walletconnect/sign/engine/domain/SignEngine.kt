@@ -171,8 +171,8 @@ internal class SignEngine(
         crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
 
         try {
-            relayer.subscribe(activePairing.topic)
             sequenceStorageRepository.insertPairing(activePairing)
+            relayer.subscribe(activePairing.topic)
         } catch (e: SQLiteException) {
             crypto.removeKeys(walletConnectUri.topic.value)
             relayer.unsubscribe(activePairing.topic)

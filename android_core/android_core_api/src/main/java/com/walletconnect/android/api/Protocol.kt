@@ -10,12 +10,12 @@ abstract class Protocol {
 //    protected val mutex = Mutex()
 //    private val protocolScope = CoroutineScope(SupervisorJob() + Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
-    protected fun <T> awaitLock(codeBlock: suspend () -> T): T {
-        return runBlocking(protocolScope.coroutineContext) {
-            mutex.withLock {
-                checkEngineInitialization()
-                codeBlock()
-            }
-        }
-    }
+//    protected fun <T> awaitLock(codeBlock: suspend () -> T): T {
+//        return runBlocking(protocolScope.coroutineContext) {
+//            mutex.withLock {
+//                checkEngineInitialization()
+//                codeBlock()
+//            }
+//        }
+//    }
 }

@@ -5,9 +5,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 interface RelayConnectionInterface : RelayInterface {
-
-//    val isWSSConnectionOpened: MutableStateFlow<Boolean>
-
     val isConnectionAvailable: StateFlow<Boolean>
     val initializationErrorsFlow: Flow<WalletConnectException>
 

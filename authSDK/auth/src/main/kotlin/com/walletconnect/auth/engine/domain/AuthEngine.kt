@@ -5,6 +5,7 @@ package com.walletconnect.auth.engine.domain
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.api.JsonRpcResponse
 import com.walletconnect.android.api.Tags
+import com.walletconnect.android.api.WalletConnectException
 import com.walletconnect.android.impl.common.*
 import com.walletconnect.android.impl.common.model.*
 import com.walletconnect.android.impl.common.model.sync.WCRequest
@@ -68,9 +69,9 @@ internal class AuthEngine(
     }
 
 
-//    internal fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-//        relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
-//    }
+    internal fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
+        relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
+    }
 
     internal fun request(
         payloadParams: PayloadParams,
@@ -128,8 +129,8 @@ internal class AuthEngine(
         crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
 
         try {
-            relayer.subscribe(activePairing.topic)
             storage.insertPairing(activePairing)
+            relayer.subscribe(activePairing.topic)
         } catch (e: SQLiteException) {
             crypto.removeKeys(walletConnectUri.topic.value)
             relayer.unsubscribe(activePairing.topic)

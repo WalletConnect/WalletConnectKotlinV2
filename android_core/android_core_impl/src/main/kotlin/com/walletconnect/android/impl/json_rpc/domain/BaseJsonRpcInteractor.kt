@@ -29,7 +29,6 @@ open class BaseJsonRpcInteractor(
     private val serializer: JsonRpcSerializerAbstract,
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
-//    networkState: ConnectivityState,
 ) {
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequest> = MutableSharedFlow()
     val clientSyncJsonRpc: SharedFlow<WCRequest> = _clientSyncJsonRpc.asSharedFlow()
@@ -40,41 +39,12 @@ open class BaseJsonRpcInteractor(
     private val _internalErrors = MutableSharedFlow<InternalError>()
     val internalErrors: SharedFlow<InternalError> = _internalErrors.asSharedFlow()
 
-//    private val _isNetworkAvailable: StateFlow<Boolean> = networkState.isAvailable
-//    private val _isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
-
     val isConnectionAvailable: StateFlow<Boolean> = relay.isConnectionAvailable
-//        combine(_isWSSConnectionOpened, _isNetworkAvailable) { wss, internet -> wss && internet }
-//            .stateIn(scope, SharingStarted.Eagerly, false)
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> handleError(exception.message ?: String.Empty) }
 
-//    @get:JvmSynthetic
-//    private val Throwable.toWalletConnectException: WalletConnectException
-//        get() =
-//            when {
-//                this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true -> ProjectIdDoesNotExistException(this.message)
-//                this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true -> InvalidProjectIdException(this.message)
-//                else -> GenericException(this.message)
-//            }
-//
     val initializationErrorsFlow: Flow<WalletConnectException> get() = relay.initializationErrorsFlow
-//            relay.eventsFlow
-//            .onEach { event: Relay.Model.Event ->
-//                Logger.log("$event")
-//                setIsWSSConnectionOpened(event)
-//            }
-//            .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
-//            .map { error -> error.throwable.toWalletConnectException }
-////
-//        private fun setIsWSSConnectionOpened(event: Relay.Model.Event) {
-//        if (event is Relay.Model.Event.OnConnectionOpened<*>) {
-//            _isWSSConnectionOpened.compareAndSet(expect = false, update = true)
-//        } else if (event is Relay.Model.Event.OnConnectionClosed || event is Relay.Model.Event.OnConnectionFailed) {
-//            _isWSSConnectionOpened.compareAndSet(expect = true, update = false)
-//        }
-//    }
 
     init {
         manageSubscriptions()

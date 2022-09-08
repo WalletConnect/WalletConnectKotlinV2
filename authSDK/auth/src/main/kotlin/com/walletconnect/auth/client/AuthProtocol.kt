@@ -2,7 +2,6 @@
 
 package com.walletconnect.auth.client
 
-import com.walletconnect.android.api.Protocol
 import com.walletconnect.android.api.RelayConnectionInterface
 import com.walletconnect.android.api.di.wcKoinApp
 import com.walletconnect.android.impl.common.SDKError
@@ -21,7 +20,7 @@ import com.walletconnect.auth.engine.domain.AuthEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-internal class AuthProtocol : AuthInterface, Protocol() {
+internal class AuthProtocol : AuthInterface { //, Protocol() {
     private lateinit var authEngine: AuthEngine
 
 
@@ -53,14 +52,15 @@ internal class AuthProtocol : AuthInterface, Protocol() {
                 }
 
                 authEngine = wcKoinApp.koin.get()
-//                authEngine.handleInitializationErrors { error -> onError(Auth.Model.Error(error)) }
+                authEngine.handleInitializationErrors { error -> onError(Auth.Model.Error(error)) }
 //            }
 //        }
     }
 
     @Throws(IllegalStateException::class)
     override fun setRequesterDelegate(delegate: AuthInterface.RequesterDelegate) {
-        awaitLock {
+        checkEngineInitialization()
+//        awaitLock {
             authEngine.engineEvent.onEach { event ->
                 when (event) {
                     is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
@@ -68,12 +68,13 @@ internal class AuthProtocol : AuthInterface, Protocol() {
                     is Events.OnAuthResponse -> delegate.onAuthResponse(event.toClient())
                 }
             }.launchIn(scope)
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun setResponderDelegate(delegate: AuthInterface.ResponderDelegate) {
-        awaitLock {
+        checkEngineInitialization()
+//        awaitLock {
             authEngine.engineEvent.onEach { event ->
                 when (event) {
                     is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
@@ -81,23 +82,25 @@ internal class AuthProtocol : AuthInterface, Protocol() {
                     is Events.OnAuthRequest -> delegate.onAuthRequest(event.toClient())
                 }
             }.launchIn(scope)
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun pair(pair: Auth.Params.Pair, onError: (Auth.Model.Error) -> Unit) {
-        awaitLock {
+        checkEngineInitialization()
+//        awaitLock {
             try {
                 authEngine.pair(pair.uri)
             } catch (error: Exception) {
                 onError(Auth.Model.Error(error))
             }
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun request(params: Auth.Params.Request, onPairing: (Auth.Model.Pairing) -> Unit, onError: (Auth.Model.Error) -> Unit) {
-        awaitLock {
+        checkEngineInitialization()
+//        awaitLock {
             try {
                 authEngine.request(
                     params.toCommon(),
@@ -107,36 +110,41 @@ internal class AuthProtocol : AuthInterface, Protocol() {
             } catch (error: Exception) {
                 onError(Auth.Model.Error(error))
             }
-        }
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun respond(params: Auth.Params.Respond, onError: (Auth.Model.Error) -> Unit) {
-        awaitLock {
+        checkEngineInitialization()
+//        awaitLock {
             try {
                 authEngine.respond(params.toCommon()) { error -> onError(Auth.Model.Error(error)) }
             } catch (error: Exception) {
                 onError(Auth.Model.Error(error))
             }
-        }
+//        }
     }
 
     @Throws(Exception::class)
     override fun getPendingRequest(): List<Auth.Model.PendingRequest> {
-        return awaitLock {
-            authEngine.getPendingRequests().toClient()
-        }
+        checkEngineInitialization()
+        return authEngine.getPendingRequests().toClient()
+//        return awaitLock {
+//            authEngine.getPendingRequests().toClient()
+//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response? {
-        return awaitLock {
-            authEngine.getResponseById(params.id)?.toClient()
-        }
+        checkEngineInitialization()
+        return authEngine.getResponseById(params.id)?.toClient()
+//        return awaitLock {
+//            authEngine.getResponseById(params.id)?.toClient()
+//        }
     }
 
     @Throws(IllegalStateException::class)
-    override fun checkEngineInitialization() {
+    private fun checkEngineInitialization() {
         check(::authEngine.isInitialized) {
             "AuthClient needs to be initialized first using the initialize function"
         }

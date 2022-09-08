@@ -13,6 +13,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import com.walletconnect.android.api.RelayClient
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sample_common.viewBinding
 import com.walletconnect.sign.client.Sign
@@ -64,14 +65,19 @@ class WalletSampleActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
+        Log.e("kobe", "CONNECT")
+        RelayClient.connect {
+            Log.e("kobe", "Connect error: $it")
+        }
     }
 
     override fun onPause() {
         super.onPause()
 
-//        SignClient.WebSocket.close {
-//            Log.e("kobe", "close error: $it")
-//        }
+        Log.e("kobe", "DISCONNECT")
+        RelayClient.disconnect {
+            Log.e("kobe", "Disconnect error: $it")
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
