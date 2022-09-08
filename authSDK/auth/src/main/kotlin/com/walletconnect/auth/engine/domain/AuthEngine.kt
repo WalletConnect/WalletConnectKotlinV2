@@ -36,7 +36,7 @@ import com.walletconnect.auth.engine.mapper.toCacaoPayload
 import com.walletconnect.auth.engine.mapper.toCore
 import com.walletconnect.auth.engine.mapper.toPendingRequest
 import com.walletconnect.auth.json_rpc.domain.JsonRpcInteractor
-import com.walletconnect.auth.signature.SignatureType
+import com.walletconnect.auth.signature.CacaoType
 import com.walletconnect.auth.signature.cacao.CacaoVerifier
 import com.walletconnect.auth.storage.AuthStorageRepository
 import com.walletconnect.foundation.common.model.PublicKey
@@ -54,7 +54,7 @@ internal class AuthEngine(
     private val crypto: KeyManagementRepository,
     private val storage: AuthStorageRepository,
     private val metaData: AppMetaData,
-    private val issuer: Issuer?,
+    private val issuer: Issuer?
 ) {
 
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -153,8 +153,8 @@ internal class AuthEngine(
             is Respond.Result -> {
                 val issuer: Issuer = issuer ?: throw MissingIssuerException
                 val payload: Cacao.Payload = authParams.payloadParams.toCacaoPayload(issuer)
-                val cacao = Cacao(Cacao.Header(SignatureType.EIP191.header), payload, respond.signature.toCommon())
-                val responseParams = AuthParams.ResponseParams(cacao)
+                val cacao = Cacao(Cacao.Header(CacaoType.EIP4361.header), payload, respond.signature.toCommon())
+                val responseParams = AuthParams.ResponseParams(cacao.header, cacao.payload, cacao.signature)
 
                 if (!CacaoVerifier.verify(cacao)) throw InvalidCacaoException
                 JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
@@ -173,14 +173,14 @@ internal class AuthEngine(
             onSuccess = { Logger.log("Success Responded on topic: $responseTopic") },
             onFailure = { Logger.error("Error Responded on topic: $responseTopic") }
         )
-
     }
 
     internal fun getResponseById(id: Long): Response? {
         return relayer.getResponseById(id)?.let { response ->
             when (response) {
                 is JsonRpcResponse.JsonRpcResult -> {
-                    val cacao: Cacao = (response.result as AuthParams.ResponseParams).cacao
+                    val (header, payload, signature) = (response.result as AuthParams.ResponseParams)
+                    val cacao = Cacao(header, payload, signature)
                     Response.Result(response.id, cacao)
                 }
                 is JsonRpcResponse.JsonRpcError -> Response.Error(response.id, response.error.code, response.error.message)
@@ -223,7 +223,8 @@ internal class AuthEngine(
                 }
             }
             is JsonRpcResponse.JsonRpcResult -> {
-                val cacao: Cacao = (response.result as AuthParams.ResponseParams).cacao
+                val (header, payload, signature) = (response.result as AuthParams.ResponseParams)
+                val cacao = Cacao(header, payload, signature)
                 if (CacaoVerifier.verify(cacao)) {
                     scope.launch {
                         _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Result(cacao)))
@@ -251,7 +252,6 @@ internal class AuthEngine(
             }
         }
     }
-
 
     private fun collectJsonRpcResponses() {
         scope.launch {

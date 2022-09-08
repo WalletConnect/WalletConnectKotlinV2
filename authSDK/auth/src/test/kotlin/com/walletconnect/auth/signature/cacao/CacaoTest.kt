@@ -3,6 +3,7 @@ package com.walletconnect.auth.signature.cacao
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Cacao
 import com.walletconnect.auth.engine.mapper.toFormattedMessage
+import com.walletconnect.auth.signature.CacaoType
 import com.walletconnect.auth.signature.SignatureType
 import com.walletconnect.util.hexToBytes
 import org.junit.jupiter.api.Assertions
@@ -30,8 +31,11 @@ internal class CacaoTest {
 
     @Test
     fun signAndVerifyTest() {
+
+        print(payload.toFormattedMessage(chainName))
+
         val signature: Cacao.Signature = CacaoSigner.sign(payload.toFormattedMessage(chainName), privateKey, SignatureType.EIP191).toCommon()
-        val cacao = Cacao(Cacao.Header(SignatureType.EIP191.header), payload, signature)
+        val cacao = Cacao(Cacao.Header(CacaoType.EIP4361.header), payload, signature)
         val result = CacaoVerifier.verify(cacao)
         Assertions.assertTrue(result)
     }
