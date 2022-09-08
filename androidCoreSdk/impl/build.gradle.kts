@@ -45,7 +45,7 @@ tasks.withType<Test> {
 
 dependencies {
     api(project(":foundation"))
-    api(project(":android_core_api"))
+    api(project(":api"))
 
     bouncyCastle()
     coroutines()

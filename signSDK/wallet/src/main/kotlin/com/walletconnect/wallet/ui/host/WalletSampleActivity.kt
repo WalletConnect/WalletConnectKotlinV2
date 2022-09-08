@@ -34,7 +34,6 @@ class WalletSampleActivity : AppCompatActivity() {
         (supportFragmentManager.findFragmentById(R.id.fcvHost) as NavHostFragment).navController
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -59,24 +58,6 @@ class WalletSampleActivity : AppCompatActivity() {
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             binding.bnvTabs.isVisible = destination.id != R.id.fragment_scanner
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-
-        Log.e("kobe", "CONNECT")
-        RelayClient.connect {
-            Log.e("kobe", "Connect error: $it")
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-
-        Log.e("kobe", "DISCONNECT")
-        RelayClient.disconnect {
-            Log.e("kobe", "Disconnect error: $it")
         }
     }
 

@@ -20,11 +20,9 @@ import com.walletconnect.auth.engine.domain.AuthEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-internal class AuthProtocol : AuthInterface { //, Protocol() {
+internal class AuthProtocol : AuthInterface {
     private lateinit var authEngine: AuthEngine
-
-
-    internal lateinit var relay: RelayConnectionInterface
+    private lateinit var relay: RelayConnectionInterface
 
     companion object {
         val instance = AuthProtocol()
@@ -33,114 +31,93 @@ internal class AuthProtocol : AuthInterface { //, Protocol() {
 
     @Throws(IllegalStateException::class)
     override fun initialize(init: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit) {
-
         this.relay = init.relay
 
-//        protocolScope.launch {
-//            mutex.withLock {
-                with(init) {
-                    wcKoinApp.run {
-                        modules(
-                            networkModule(relay),
-                            commonModule(),
-                            cryptoModule(),
-                            jsonRpcModule(),
-                            storageModule(storageSuffix),
-                            engineModule(appMetaData, iss)
-                        )
-                    }
-                }
+        with(init) {
+            wcKoinApp.run {
+                modules(
+                    networkModule(relay),
+                    commonModule(),
+                    cryptoModule(),
+                    jsonRpcModule(),
+                    storageModule(storageSuffix),
+                    engineModule(appMetaData, iss)
+                )
+            }
+        }
 
-                authEngine = wcKoinApp.koin.get()
-                authEngine.handleInitializationErrors { error -> onError(Auth.Model.Error(error)) }
-//            }
-//        }
+        authEngine = wcKoinApp.koin.get()
+        authEngine.handleInitializationErrors { error -> onError(Auth.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun setRequesterDelegate(delegate: AuthInterface.RequesterDelegate) {
         checkEngineInitialization()
-//        awaitLock {
-            authEngine.engineEvent.onEach { event ->
-                when (event) {
-                    is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
-                    is SDKError -> delegate.onError(event.toClient())
-                    is Events.OnAuthResponse -> delegate.onAuthResponse(event.toClient())
-                }
-            }.launchIn(scope)
-//        }
+        authEngine.engineEvent.onEach { event ->
+            when (event) {
+                is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
+                is SDKError -> delegate.onError(event.toClient())
+                is Events.OnAuthResponse -> delegate.onAuthResponse(event.toClient())
+            }
+        }.launchIn(scope)
     }
 
     @Throws(IllegalStateException::class)
     override fun setResponderDelegate(delegate: AuthInterface.ResponderDelegate) {
         checkEngineInitialization()
-//        awaitLock {
-            authEngine.engineEvent.onEach { event ->
-                when (event) {
-                    is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
-                    is SDKError -> delegate.onError(event.toClient())
-                    is Events.OnAuthRequest -> delegate.onAuthRequest(event.toClient())
-                }
-            }.launchIn(scope)
-//        }
+        authEngine.engineEvent.onEach { event ->
+            when (event) {
+                is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
+                is SDKError -> delegate.onError(event.toClient())
+                is Events.OnAuthRequest -> delegate.onAuthRequest(event.toClient())
+            }
+        }.launchIn(scope)
     }
 
     @Throws(IllegalStateException::class)
     override fun pair(pair: Auth.Params.Pair, onError: (Auth.Model.Error) -> Unit) {
         checkEngineInitialization()
-//        awaitLock {
-            try {
-                authEngine.pair(pair.uri)
-            } catch (error: Exception) {
-                onError(Auth.Model.Error(error))
-            }
-//        }
+        try {
+            authEngine.pair(pair.uri)
+        } catch (error: Exception) {
+            onError(Auth.Model.Error(error))
+        }
     }
 
     @Throws(IllegalStateException::class)
     override fun request(params: Auth.Params.Request, onPairing: (Auth.Model.Pairing) -> Unit, onError: (Auth.Model.Error) -> Unit) {
         checkEngineInitialization()
-//        awaitLock {
-            try {
-                authEngine.request(
-                    params.toCommon(),
-                    onPairing = { uri -> onPairing(uri.toClient()) },
-                    onFailure = { error -> onError(Auth.Model.Error(error)) }
-                )
-            } catch (error: Exception) {
-                onError(Auth.Model.Error(error))
-            }
-//        }
+        try {
+            authEngine.request(
+                params.toCommon(),
+                onPairing = { uri -> onPairing(uri.toClient()) },
+                onFailure = { error -> onError(Auth.Model.Error(error)) }
+            )
+        } catch (error: Exception) {
+            onError(Auth.Model.Error(error))
+        }
     }
 
     @Throws(IllegalStateException::class)
     override fun respond(params: Auth.Params.Respond, onError: (Auth.Model.Error) -> Unit) {
         checkEngineInitialization()
-//        awaitLock {
-            try {
-                authEngine.respond(params.toCommon()) { error -> onError(Auth.Model.Error(error)) }
-            } catch (error: Exception) {
-                onError(Auth.Model.Error(error))
-            }
-//        }
+        try {
+            authEngine.respond(params.toCommon()) { error -> onError(Auth.Model.Error(error)) }
+        } catch (error: Exception) {
+            onError(Auth.Model.Error(error))
+        }
     }
 
     @Throws(Exception::class)
     override fun getPendingRequest(): List<Auth.Model.PendingRequest> {
         checkEngineInitialization()
         return authEngine.getPendingRequests().toClient()
-//        return awaitLock {
-//            authEngine.getPendingRequests().toClient()
-//        }
     }
 
     @Throws(IllegalStateException::class)
     override fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response? {
         checkEngineInitialization()
         return authEngine.getResponseById(params.id)?.toClient()
-//        return awaitLock {
-//            authEngine.getResponseById(params.id)?.toClient()
-//        }
     }
 
     @Throws(IllegalStateException::class)

@@ -26,17 +26,10 @@ import java.util.concurrent.TimeUnit
 
 fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: ConnectionType, sdkVersion: String) = module {
 
-//    includes(networkModule(serverUrl, sdkVersion, jwt))
-
     val DEFAULT_BACKOFF_SECONDS = 5L
     val TIMEOUT_TIME = 5000L
 
-    println("kobe; androidApiNetworkModule")
-
     single(named(AndroidApiDITags.INTERCEPTOR)) {
-
-        println("kobe; RELAY Interceptor")
-
         Interceptor { chain ->
             val updatedRequest = chain.request().newBuilder()
                 .addHeader("User-Agent", """wc-2/kotlin-$sdkVersion/android-${Build.VERSION.RELEASE}""")
@@ -47,8 +40,6 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: Conn
     }
 
     single(named(AndroidApiDITags.OK_HTTP)) {
-        println("kobe; RELAY OkHTTP")
-
         OkHttpClient.Builder()
             .addInterceptor(get<Interceptor>(named(AndroidApiDITags.INTERCEPTOR)))
             .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
@@ -64,28 +55,16 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: Conn
 
     single(named(AndroidApiDITags.CONNECTION_CONTROLLER)) {
         if (connectionType == ConnectionType.MANUAL) {
-
-            println("kobe; Manual controller")
-
             ConnectionController.Manual()
         } else {
-
-            println("kobe; RELAY Automatic controller")
-
             ConnectionController.Automatic
         }
     }
 
     single(named(AndroidApiDITags.LIFECYCLE)) {
         if (connectionType == ConnectionType.MANUAL) {
-
-            println("kobe; Manual cycle")
-
             ManualConnectionLifecycle( get(named(AndroidApiDITags.CONNECTION_CONTROLLER)), LifecycleRegistry())
         } else {
-
-            println("kobe; RELAY Automatic cycle")
-
             AndroidLifecycle.ofApplicationForeground(androidApplication())
         }
     }
@@ -95,9 +74,6 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: Conn
     single { FlowStreamAdapter.Factory() }
 
     single(named(AndroidApiDITags.SCARLET)) {
-
-        println("kobe;  RELAY Client Scarlet")
-
         Scarlet.Builder()
             .backoffStrategy(get<LinearBackoffStrategy>())
             .webSocketFactory(get<OkHttpClient>(named(AndroidApiDITags.OK_HTTP)).newWebSocketFactory("$serverUrl&auth=$jwt"))
@@ -108,16 +84,10 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: Conn
     }
 
     single<RelayService>(named(AndroidApiDITags.RELAY_SERVICE)) {
-
-        println("kobe; RELAY RelayService")
-
         get<Scarlet>(named(AndroidApiDITags.SCARLET)).create(RelayService::class.java)
     }
 
     single(named(AndroidApiDITags.CONNECTIVITY_STATE)) {
-
-        println("kobe; RELAY ConnectivityState")
-
         ConnectivityState(androidApplication())
     }
 

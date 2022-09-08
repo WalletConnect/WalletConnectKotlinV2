@@ -63,21 +63,14 @@ internal class SignEngine(
     }
 
     fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-        println("kobe; Sign Engine Events")
         relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
 
     private fun resubscribeToSequences() {
-
-        Logger.error("kobe; Resubcribe")
-
         relayer.isConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
-
-                Logger.error("kobe; Resubcribing")
-
                 coroutineScope {
                     launch(Dispatchers.IO) { resubscribeToPairings() }
                     launch(Dispatchers.IO) { resubscribeToSession() }

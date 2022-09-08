@@ -40,13 +40,13 @@ android {
 sqldelight {
     database("Database") {
         packageName = "com.walletconnect.auth"
-        dependency(project(":android_core_impl"))
+        dependency(project(":impl"))
     }
 }
 
 dependencies {
-    implementation(project(":android_core_impl"))
-    api(project(":android_core_api"))
+    implementation(project(":impl"))
+    api(project(":api"))
 
     timber()
     moshiKsp()

@@ -60,7 +60,7 @@ android {
 sqldelight {
     database("Database") {
         packageName = "com.walletconnect.sign"
-        dependency(project(":android_core_impl"))
+        dependency(project(":impl"))
     }
 }
 
@@ -81,8 +81,8 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation(project(":android_core_impl"))
-    api(project(":android_core_api"))
+    implementation(project(":impl"))
+    api(project(":api"))
 
     moshiKsp()
     androidXTest()

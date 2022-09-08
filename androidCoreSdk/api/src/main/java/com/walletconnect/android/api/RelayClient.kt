@@ -16,25 +16,15 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import java.net.HttpURLConnection
 
-//1. Make RelayClient working as stand alone class with wss connection
-//2. Inject it to any instance of sdk client and allow publishing and subscribing
-//3. Singleton because we want to force one wss connection accross sdks
-
 object RelayClient : BaseRelayClient(), RelayConnectionInterface {
-
     private val logger: Logger by lazy { wcKoinApp.koin.get(named(AndroidApiDITags.LOGGER)) }
-
     private val connectionController: ConnectionController by lazy { wcKoinApp.koin.get(named(AndroidApiDITags.CONNECTION_CONTROLLER)) }
     private val networkState: ConnectivityState by lazy { wcKoinApp.koin.get(named(AndroidApiDITags.CONNECTIVITY_STATE)) }
 
-    private val _isNetworkAvailable: StateFlow<Boolean> by lazy { networkState.isAvailable }
-    private val _isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
-
+    private val isNetworkAvailable: StateFlow<Boolean> by lazy { networkState.isAvailable }
+    private val isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     fun initialize(relayServerUrl: String, connectionType: ConnectionType, application: Application) {
-        println("kobe; RelayClient INIT")
-        println("TalhaRelay: $wcKoinApp $test")
-
         wcKoinApp.run {
             androidContext(application)
             modules(
@@ -45,19 +35,14 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
 
         val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
         val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl())
-        val serverUrl = relayServerUrl.addUserAgent("2.0.0") //TODO: how to get sdk version?
+        val serverUrl = relayServerUrl.addUserAgent("2.0.0") //TODO: how to get sdk version? Ask team.
 
-        println("kobe; android api network")
         wcKoinApp.modules(androidApiNetworkModule(serverUrl, jwt, connectionType, "2.0.0"))
-
-        println("kobe; getting relay service")
         relayService = wcKoinApp.koin.get(named(AndroidApiDITags.RELAY_SERVICE))
-
-        println("kobe; END init relay client")
     }
 
     override val isConnectionAvailable: StateFlow<Boolean> by lazy {
-        combine(_isWSSConnectionOpened, _isNetworkAvailable) { wss, internet -> wss && internet }
+        combine(isWSSConnectionOpened, isNetworkAvailable) { wss, internet -> wss && internet }
             .stateIn(scope, SharingStarted.Eagerly, false)
     }
 
@@ -97,20 +82,20 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
 
     private fun setIsWSSConnectionOpened(event: Relay.Model.Event) {
         if (event is Relay.Model.Event.OnConnectionOpened<*>) {
-            _isWSSConnectionOpened.compareAndSet(expect = false, update = true)
+            isWSSConnectionOpened.compareAndSet(expect = false, update = true)
         } else if (event is Relay.Model.Event.OnConnectionClosed || event is Relay.Model.Event.OnConnectionFailed) {
-            _isWSSConnectionOpened.compareAndSet(expect = true, update = false)
+            isWSSConnectionOpened.compareAndSet(expect = true, update = false)
         }
     }
 }
 
 @JvmSynthetic
-internal fun String.strippedUrl() = Uri.parse(this).run {
+private fun String.strippedUrl() = Uri.parse(this).run {
     this@run.scheme + "://" + this@run.authority
 }
 
 @JvmSynthetic
-internal fun String.addUserAgent(sdkVersion: String): String {
+private fun String.addUserAgent(sdkVersion: String): String {
     return Uri.parse(this).buildUpon()
         // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
         .appendQueryParameter("ua", """wc-2/kotlin-$sdkVersion/android-${Build.VERSION.RELEASE}""")

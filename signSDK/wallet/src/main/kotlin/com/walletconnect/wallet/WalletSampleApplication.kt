@@ -15,11 +15,8 @@ class WalletSampleApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        Log.e("kobe", "INIT Wallet APP")
-
         //TODO: register at https://walletconnect.com/register to get a project ID
         val serverUri = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
-//        val relayClient = RelayClient(relayServerUrl = serverUri, connectionType = ConnectionType.AUTOMATIC, application = this)
         RelayClient.initialize(relayServerUrl = serverUri, connectionType = ConnectionType.AUTOMATIC, application = this)
 
         val initParams = Sign.Params.Init(
