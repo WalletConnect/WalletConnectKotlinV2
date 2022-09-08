@@ -1,8 +1,6 @@
 package com.walletconnect.sign.client
 
 import android.app.Application
-import android.net.Uri
-import com.walletconnect.android.api.RelayClient
 import com.walletconnect.android.api.RelayConnectionInterface
 import java.net.URI
 

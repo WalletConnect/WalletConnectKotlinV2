@@ -4,8 +4,7 @@ package com.walletconnect.sign.client
 
 import com.walletconnect.android.api.Protocol
 import com.walletconnect.android.api.RelayConnectionInterface
-import com.walletconnect.android.api.di.mutex
-import com.walletconnect.android.api.di.protocolScope
+import com.walletconnect.android.api.di.test
 import com.walletconnect.android.api.di.wcKoinApp
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
@@ -21,16 +20,12 @@ import com.walletconnect.sign.di.jsonRpcModule
 import com.walletconnect.sign.di.storageModule
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.withLock
 
 internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol() {
-
     private lateinit var signEngine: SignEngine
-    internal lateinit var relay: RelayConnectionInterface //by lazy { wcKoinApp.koin.get() }
+    internal val relay: RelayConnectionInterface by lazy { wcKoinApp.koin.get() }
 
     companion object {
         val instance = SignProtocol()
@@ -38,34 +33,26 @@ internal class SignProtocol : SignInterface, SignInterface.Websocket, Protocol()
     }
 
     override fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
+        println("kobe; initialize")
+        println("TalhaSign: $wcKoinApp $test")
+        with(initial) {
+            // TODO: re-init scope
+            // TODO: add logic to check hostName for ws/wss scheme with and without ://
 
-        this.relay = initial.relay
+            wcKoinApp.run {
+                modules(
+                    networkModule(relay),
+                    commonModule(),
+                    cryptoModule(),
+                    jsonRpcModule(),
+                    storageModule(storageSuffix),
+                    engineModule(metadata)
+                )
+            }
+        }
 
-//        runBlocking(protocolScope.coroutineContext) {
-//            mutex.withLock {
-
-                println("kobe; initialize")
-
-                with(initial) {
-                    // TODO: re-init scope
-                    // TODO: add logic to check hostName for ws/wss scheme with and without ://
-
-                    wcKoinApp.run {
-                        modules(
-                            networkModule(relay),
-                            commonModule(),
-                            cryptoModule(),
-                            jsonRpcModule(),
-                            storageModule(storageSuffix),
-                            engineModule(metadata)
-                        )
-                    }
-                }
-
-                signEngine = wcKoinApp.koin.get()
-                signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
-//            }
-//        }
+        signEngine = wcKoinApp.koin.get()
+        signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)

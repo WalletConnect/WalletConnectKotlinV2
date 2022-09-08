@@ -5,7 +5,6 @@ package com.walletconnect.auth.engine.domain
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.api.JsonRpcResponse
 import com.walletconnect.android.api.Tags
-import com.walletconnect.android.api.WalletConnectException
 import com.walletconnect.android.impl.common.*
 import com.walletconnect.android.impl.common.model.*
 import com.walletconnect.android.impl.common.model.sync.WCRequest

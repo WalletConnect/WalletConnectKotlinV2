@@ -2,7 +2,7 @@ rootProject.name = "WalletConnect"
 
 val excludedDirs = listOf(".idea", ".git", "build", ".gradle", ".github", "buildSrc", "gradle", "docs", "licenses")
 // TODO: Add to rootModules when new module is added to the project root directory
-val rootModules = listOf("showcase", "foundation", "android_core_impl", "android_core_api")
+val rootModules = listOf("showcase", "foundation", /*"android_core_impl", "android_core_api"*/)
 
 File(rootDir.path).listFiles { file -> file.isDirectory && file.name !in excludedDirs }?.forEach { childDir ->
     if (childDir.name !in rootModules) {
@@ -14,4 +14,3 @@ File(rootDir.path).listFiles { file -> file.isDirectory && file.name !in exclude
         include(":${childDir.name}")
     }
 }
-include(":android_core_api")
