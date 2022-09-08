@@ -52,7 +52,7 @@ class ConnectViewModel : ViewModel() {
             type = null,
             nbf = null,
             exp = null,
-            statement = null,
+            statement = "Sign in with wallet.",
             requestId = null,
             resources = null,
         )

@@ -6,7 +6,7 @@ import com.walletconnect.android_core.common.SDKError
 import com.walletconnect.android_core.common.model.ConnectionState
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.common.model.*
-import com.walletconnect.auth.signature.SignatureType
+import com.walletconnect.auth.signature.CacaoType
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -47,7 +47,7 @@ internal fun Pairing.toClient(): Auth.Model.Pairing = Auth.Model.Pairing(uri)
 
 @JvmSynthetic
 internal fun Auth.Params.Request.toCommon(): PayloadParams = PayloadParams(
-    type = SignatureType.EIP191.header,
+    type = CacaoType.EIP4361.header,
     chainId = chainId,
     domain = domain,
     aud = aud,
@@ -73,7 +73,7 @@ internal fun List<PendingRequest>.toClient(): List<Auth.Model.PendingRequest> =
 
 internal fun PayloadParams.toClient(): Auth.Model.PendingRequest.PayloadParams =
     Auth.Model.PendingRequest.PayloadParams(
-        type = SignatureType.EIP191.header,
+        type = CacaoType.EIP4361.header,
         chainId = chainId,
         domain = domain,
         aud = aud,
