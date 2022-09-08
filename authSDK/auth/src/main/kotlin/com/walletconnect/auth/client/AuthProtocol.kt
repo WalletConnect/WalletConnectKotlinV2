@@ -33,10 +33,10 @@ internal class AuthProtocol : AuthInterface, Protocol() {
     // TODO: Figure out how to get relay as in Sign in here. Should we keep Relay in the Auth init params?
     internal val relay: RelayConnectionInterface by lazy { wcKoinApp.koin.get() }
     private val serverUrl: String = "wss://relay.walletconnect.com?projectId=2ee94aca5d98e6c05c38bce02bee952a"
-    override val storageSuffix: String = "_auth"
 
     companion object {
         val instance = AuthProtocol()
+        const val storageSuffix: String = "_auth"
     }
 
     override fun initialModules(): List<Module> = listOf(

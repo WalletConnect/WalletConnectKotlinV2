@@ -4,14 +4,14 @@ import com.walletconnect.sample_common.Chains
 
 
 const val ACCOUNTS_1_ID = 1
-const val ACCOUNTS_1_ADDRESS = "0x46586f7f766955caf22a54dda7570e6efa94c16c"
+const val ACCOUNTS_1_ADDRESS = "0x46586f7F766955CAF22A54dDA7570E6eFA94c16c"
 
 val mapOfAccounts1: Map<Chains, String> = mapOf(
     Chains.ETHEREUM_MAIN to ACCOUNTS_1_ADDRESS,
 )
 
 const val ACCOUNTS_2_ID = 2
-const val ACCOUNTS_2_ADDRESS = "0x3a16bd62a7eaa3428c7483f764e9ad1da526755e"
+const val ACCOUNTS_2_ADDRESS = "0x3A16bd62a7eAA3428C7483F764E9ad1dA526755e"
 val mapOfAccounts2: Map<Chains, String> = mapOf(
     Chains.ETHEREUM_MAIN to ACCOUNTS_2_ADDRESS,
 )
