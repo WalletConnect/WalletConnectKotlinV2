@@ -7,7 +7,6 @@ import com.walletconnect.auth.common.model.Cacao
 import com.walletconnect.auth.common.model.PayloadParams
 import com.walletconnect.auth.common.model.Requester
 
-
 internal sealed class AuthParams : ClientParams {
 
     @JsonClass(generateAdapter = true)
@@ -20,11 +19,11 @@ internal sealed class AuthParams : ClientParams {
 
     @JsonClass(generateAdapter = true)
     internal data class ResponseParams(
-        @Json(name = "header")
+        @Json(name = "h")
         val header: Cacao.Header,
-        @Json(name = "payload")
+        @Json(name = "p")
         val payload: Cacao.Payload,
-        @Json(name = "signature")
+        @Json(name = "s")
         val signature: Cacao.Signature,
     ) : AuthParams()
 }
