@@ -18,6 +18,12 @@ import com.walletconnect.android.exception.GenericException
 import com.walletconnect.android.exception.InvalidProjectIdException
 import com.walletconnect.android.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.exception.WalletConnectException
+import com.walletconnect.android.utils.*
+import com.walletconnect.android.utils.addUserAgent
+import com.walletconnect.android.utils.isValidRelayServerUrl
+import com.walletconnect.android.utils.strippedUrl
+import com.walletconnect.android.utils.toCommonConnectionType
+import com.walletconnect.foundation.common.toRelayEvent
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.data.ConnectionController
@@ -33,11 +39,12 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     private val logger: Logger by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER)) }
     private val connectionController: ConnectionController by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.CONNECTION_CONTROLLER)) }
     private val networkState: ConnectivityState by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.CONNECTIVITY_STATE)) }
-
     private val isNetworkAvailable: StateFlow<Boolean> by lazy { networkState.isAvailable }
     private val isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     fun initialize(relayServerUrl: String, connectionType: ConnectionType, application: Application) {
+        require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
+
         wcKoinApp.run {
             androidContext(application)
             modules(
@@ -60,13 +67,14 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     }
 
     override val initializationErrorsFlow: Flow<WalletConnectException>
-        get() = eventsFlow
-            .onEach { event: Relay.Model.Event ->
-                logger.log("$event")
-                setIsWSSConnectionOpened(event)
-            }
-            .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
-            .map { error -> error.throwable.toWalletConnectException }
+        get() =
+            eventsFlow
+                .onEach { event: Relay.Model.Event ->
+                    logger.log("kobe $event")
+                    setIsWSSConnectionOpened(event)
+                }
+                .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
+                .map { error -> error.throwable.toWalletConnectException }
 
     override fun connect(onError: (String) -> Unit) {
         when (connectionController) {
@@ -82,17 +90,6 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
         }
     }
 
-    @get:JvmSynthetic
-    private val Throwable.toWalletConnectException: WalletConnectException
-        get() =
-            when {
-                this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
-                    ProjectIdDoesNotExistException(this.message)
-                this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
-                    InvalidProjectIdException(this.message)
-                else -> GenericException(this.message)
-            }
-
     private fun setIsWSSConnectionOpened(event: Relay.Model.Event) {
         if (event is Relay.Model.Event.OnConnectionOpened<*>) {
             isWSSConnectionOpened.compareAndSet(expect = false, update = true)
@@ -101,24 +98,3 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
         }
     }
 }
-
-@JvmSynthetic
-private fun String.strippedUrl() = Uri.parse(this).run {
-    this@run.scheme + "://" + this@run.authority
-}
-
-@JvmSynthetic
-private fun String.addUserAgent(sdkVersion: String): String {
-    return Uri.parse(this).buildUpon()
-        // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
-        .appendQueryParameter("ua", """wc-2/kotlin-$sdkVersion/android-${Build.VERSION.RELEASE}""")
-        .build()
-        .toString()
-}
-
-@JvmSynthetic
-private fun ConnectionType.toCommonConnectionType(): CommonConnectionType =
-    when(this) {
-        ConnectionType.AUTOMATIC -> CommonConnectionType.AUTOMATIC
-        ConnectionType.MANUAL -> CommonConnectionType.MANUAL
-    }

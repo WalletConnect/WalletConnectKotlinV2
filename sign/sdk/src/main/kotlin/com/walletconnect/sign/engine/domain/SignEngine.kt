@@ -10,7 +10,6 @@ import com.walletconnect.android.impl.common.model.*
 import com.walletconnect.android.impl.common.model.sync.WCRequest
 import com.walletconnect.android.impl.common.model.sync.WCResponse
 import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.crypto.KeyManagementRepository
 import com.walletconnect.android.impl.utils.*
 import com.walletconnect.foundation.common.model.PublicKey
@@ -21,6 +20,7 @@ import com.walletconnect.sign.common.exceptions.client.*
 import com.walletconnect.sign.common.model.type.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.android.impl.common.model.RelayProtocolOptions
+import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
@@ -64,6 +64,7 @@ internal class SignEngine(
     }
 
     fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
+//        Logger.error(" ")
         relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
 

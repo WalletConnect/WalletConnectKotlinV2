@@ -15,8 +15,6 @@ internal fun jsonRpcModule() = module {
     }
 
     single {
-        println("kobe; Sign JsorRpc")
-
         JsonRpcInteractor(get(), get(), get(), get())
     }
 }

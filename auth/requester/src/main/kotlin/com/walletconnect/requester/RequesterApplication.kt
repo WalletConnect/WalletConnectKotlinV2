@@ -15,7 +15,6 @@ class RequesterApplication : Application() {
         super.onCreate()
 
         val serverUri = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
-//        val relayClient = RelayClient(relayServerUrl = serverUri, connectionType = ConnectionType.AUTOMATIC, application = this)
         RelayClient.initialize(relayServerUrl = serverUri, connectionType = ConnectionType.AUTOMATIC, application = this)
 
         AuthClient.initialize(

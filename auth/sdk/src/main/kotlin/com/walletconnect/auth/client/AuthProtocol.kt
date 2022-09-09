@@ -2,7 +2,6 @@
 
 package com.walletconnect.auth.client
 
-import com.walletconnect.android.RelayConnectionInterface
 import com.walletconnect.android.common.wcKoinApp
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
@@ -22,7 +21,6 @@ import kotlinx.coroutines.flow.onEach
 
 internal class AuthProtocol : AuthInterface {
     private lateinit var authEngine: AuthEngine
-    private lateinit var relay: RelayConnectionInterface
 
     companion object {
         val instance = AuthProtocol()
@@ -31,8 +29,6 @@ internal class AuthProtocol : AuthInterface {
 
     @Throws(IllegalStateException::class)
     override fun initialize(init: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit) {
-        this.relay = init.relay
-
         with(init) {
             wcKoinApp.run {
                 modules(
