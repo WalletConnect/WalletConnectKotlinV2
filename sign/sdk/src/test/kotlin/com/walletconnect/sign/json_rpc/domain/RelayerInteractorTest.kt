@@ -5,8 +5,9 @@ import com.walletconnect.android.impl.common.model.sync.WCRequest
 import com.walletconnect.android.impl.common.model.type.ClientParams
 import com.walletconnect.android.impl.common.model.type.JsonRpcClientSync
 import com.walletconnect.android.impl.crypto.Codec
-import com.walletconnect.android.api.RelayConnectionInterface
-import com.walletconnect.android.api.exception.WalletConnectException
+import com.walletconnect.android.RelayConnectionInterface
+import com.walletconnect.android.common.connection.ConnectivityState
+import com.walletconnect.android.exception.WalletConnectException
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.foundation.common.model.Topic
@@ -46,13 +47,13 @@ internal class RelayerInteractorTest {
         every { updateRequestWithResponse(any(), any()) } returns mockk()
     }
 
-    private val networkState: com.walletconnect.android.common.connection.ConnectivityState = mockk(relaxed = true) {
-        every { isAvailable } returns MutableStateFlow(true).asStateFlow()
-    }
+//    private val networkState: ConnectivityState = mockk(relaxed = true) {
+//        every { isAvailable } returns MutableStateFlow(true).asStateFlow()
+//    }
 
     private val sut =
         spyk(
-            JsonRpcInteractor(relay, chaChaPolyCodec, networkState, jsonRpcHistory, serializer),
+            JsonRpcInteractor(relay, chaChaPolyCodec, /*networkState,*/ jsonRpcHistory, serializer),
             recordPrivateCalls = true
         ) {
             every { checkConnectionWorking() } answers { }

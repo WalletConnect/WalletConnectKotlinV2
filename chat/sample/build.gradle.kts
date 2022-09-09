@@ -36,7 +36,8 @@ android {
 }
 
 dependencies {
-    implementation(project(":chat"))
+    implementation(project(":chat:sdk"))
+    implementation(project(":androidCore:sdk"))
 
     lifecycle()
     implementation("com.google.android.material:material:1.6.1")

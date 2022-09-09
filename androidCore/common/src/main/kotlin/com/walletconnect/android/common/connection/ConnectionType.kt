@@ -1,4 +1,4 @@
-package com.walletconnect.android.api
+package com.walletconnect.android.common.connection
 
 enum class ConnectionType {
     AUTOMATIC, MANUAL

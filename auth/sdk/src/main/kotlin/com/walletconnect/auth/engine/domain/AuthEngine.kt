@@ -3,7 +3,7 @@
 package com.walletconnect.auth.engine.domain
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.android.api.exception.WalletConnectException
+import com.walletconnect.android.exception.WalletConnectException
 import com.walletconnect.android.impl.common.*
 import com.walletconnect.android.impl.common.model.*
 import com.walletconnect.android.impl.common.model.sync.WCRequest

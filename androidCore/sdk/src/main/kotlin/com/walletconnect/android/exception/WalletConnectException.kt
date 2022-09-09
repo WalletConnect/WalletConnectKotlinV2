@@ -1,4 +1,4 @@
-package com.walletconnect.android.api.exception
+package com.walletconnect.android.exception
 
 open class WalletConnectException(override val message: String?) : Exception(message)
 

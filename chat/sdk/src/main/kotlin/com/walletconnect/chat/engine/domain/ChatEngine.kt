@@ -2,7 +2,7 @@
 
 package com.walletconnect.chat.engine.domain
 
-import com.walletconnect.android.api.exception.GenericException
+import com.walletconnect.android.exception.GenericException
 import com.walletconnect.chat.copiedFromSign.core.model.type.enums.EnvelopeType
 import com.walletconnect.chat.copiedFromSign.core.model.vo.IrnParamsVO
 import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey

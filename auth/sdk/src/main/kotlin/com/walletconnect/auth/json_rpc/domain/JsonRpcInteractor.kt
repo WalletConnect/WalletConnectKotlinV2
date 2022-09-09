@@ -2,10 +2,9 @@
 
 package com.walletconnect.auth.json_rpc.domain
 
-import com.walletconnect.android.common.JsonRpcResponse
 import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.impl.json_rpc.domain.BaseJsonRpcInteractor
-import com.walletconnect.android.api.RelayConnectionInterface
+import com.walletconnect.android.RelayConnectionInterface
 import com.walletconnect.android.impl.json_rpc.model.JsonRpcHistoryRecord
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.auth.common.json_rpc.AuthRpc

@@ -1,6 +1,6 @@
 package com.walletconnect.chat.copiedFromSign.core.exceptions.client
 
-import com.walletconnect.android.api.exception.WalletConnectException
+import com.walletconnect.android.exception.WalletConnectException
 
 
 //sealed class WalletConnectException(override val message: String?) : Exception(message) {

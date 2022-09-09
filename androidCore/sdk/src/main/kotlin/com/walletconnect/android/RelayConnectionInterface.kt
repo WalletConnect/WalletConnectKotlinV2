@@ -1,6 +1,6 @@
-package com.walletconnect.android.api
+package com.walletconnect.android
 
-import com.walletconnect.android.api.exception.WalletConnectException
+import com.walletconnect.android.exception.WalletConnectException
 import com.walletconnect.foundation.network.RelayInterface
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow

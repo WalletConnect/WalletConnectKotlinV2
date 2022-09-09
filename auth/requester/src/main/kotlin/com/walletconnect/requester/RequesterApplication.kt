@@ -2,9 +2,8 @@ package com.walletconnect.requester
 
 import android.app.Application
 import android.util.Log
-import com.walletconnect.android.api.ConnectionType
-
-import com.walletconnect.android.api.RelayClient
+import com.walletconnect.android.RelayClient
+import com.walletconnect.android.connection.ConnectionType
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.sample_common.BuildConfig

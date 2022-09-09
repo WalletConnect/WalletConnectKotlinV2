@@ -1,14 +1,10 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.api
+package com.walletconnect.android
 
 import android.app.Application
 import android.net.Uri
 import android.os.Build
-import com.walletconnect.android.api.exception.GenericException
-import com.walletconnect.android.api.exception.InvalidProjectIdException
-import com.walletconnect.android.api.exception.ProjectIdDoesNotExistException
-import com.walletconnect.android.api.exception.WalletConnectException
 import com.walletconnect.android.common.connection.ConnectivityState
 import com.walletconnect.android.common.di.AndroidCommonDITags
 import com.walletconnect.android.common.di.androidApiCryptoModule
@@ -17,6 +13,11 @@ import com.walletconnect.android.common.di.commonModule
 import com.walletconnect.android.common.exception.WRONG_CONNECTION_TYPE
 import com.walletconnect.android.common.scope
 import com.walletconnect.android.common.wcKoinApp
+import com.walletconnect.android.connection.ConnectionType
+import com.walletconnect.android.exception.GenericException
+import com.walletconnect.android.exception.InvalidProjectIdException
+import com.walletconnect.android.exception.ProjectIdDoesNotExistException
+import com.walletconnect.android.exception.WalletConnectException
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.data.ConnectionController
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.*
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import java.net.HttpURLConnection
+import com.walletconnect.android.common.connection.ConnectionType as CommonConnectionType
 
 object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     private val logger: Logger by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER)) }
@@ -48,7 +50,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
         val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl())
         val serverUrl = relayServerUrl.addUserAgent("2.0.0") //TODO: how to get sdk version? Ask team.
 
-        wcKoinApp.modules(androidApiNetworkModule(serverUrl, jwt, connectionType, "2.0.0"))
+        wcKoinApp.modules(androidApiNetworkModule(serverUrl, jwt, connectionType.toCommonConnectionType(), "2.0.0"))
         relayService = wcKoinApp.koin.get(named(AndroidCommonDITags.RELAY_SERVICE))
     }
 
@@ -113,3 +115,10 @@ private fun String.addUserAgent(sdkVersion: String): String {
         .build()
         .toString()
 }
+
+@JvmSynthetic
+private fun ConnectionType.toCommonConnectionType(): CommonConnectionType =
+    when(this) {
+        ConnectionType.AUTOMATIC -> CommonConnectionType.AUTOMATIC
+        ConnectionType.MANUAL -> CommonConnectionType.MANUAL
+    }

@@ -2,8 +2,8 @@
 
 package com.walletconnect.auth.client
 
-import com.walletconnect.android.api.RelayConnectionInterface
-import com.walletconnect.android.api.di.wcKoinApp
+import com.walletconnect.android.RelayConnectionInterface
+import com.walletconnect.android.common.wcKoinApp
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.scope.scope

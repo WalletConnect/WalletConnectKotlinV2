@@ -42,6 +42,7 @@ android {
 dependencies {
     implementation(project(":sign:sdk"))
     implementation(project(":sign:samples_common"))
+    implementation(project(":androidCore:sdk"))
 
     glide_N_kapt()
     implementation("com.github.kenglxn.QRGen:android:2.6.0")

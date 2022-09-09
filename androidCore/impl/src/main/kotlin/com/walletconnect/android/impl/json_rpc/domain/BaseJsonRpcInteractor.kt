@@ -1,9 +1,9 @@
 package com.walletconnect.android.impl.json_rpc.domain
 
-import com.walletconnect.android.api.*
+import com.walletconnect.android.RelayConnectionInterface
 import com.walletconnect.android.common.JsonRpcResponse
-import com.walletconnect.android.api.exception.NoRelayConnectionException
-import com.walletconnect.android.api.exception.WalletConnectException
+import com.walletconnect.android.exception.NoRelayConnectionException
+import com.walletconnect.android.exception.WalletConnectException
 import com.walletconnect.android.impl.common.model.IrnParams
 import com.walletconnect.android.impl.common.model.sync.WCRequest
 import com.walletconnect.android.impl.common.model.sync.WCResponse

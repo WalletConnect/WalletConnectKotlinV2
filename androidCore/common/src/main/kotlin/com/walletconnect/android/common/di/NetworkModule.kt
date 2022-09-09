@@ -7,7 +7,7 @@ import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
-import com.walletconnect.android.api.ConnectionType
+import com.walletconnect.android.common.connection.ConnectionType
 import com.walletconnect.android.common.connection.ManualConnectionLifecycle
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
@@ -20,7 +20,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
-fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: com.walletconnect.android.api.ConnectionType, sdkVersion: String) = module {
+fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: ConnectionType, sdkVersion: String) = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
     val TIMEOUT_TIME = 5000L
 
@@ -49,7 +49,7 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: com.
 
 
     single(named(AndroidCommonDITags.CONNECTION_CONTROLLER)) {
-        if (connectionType == com.walletconnect.android.api.ConnectionType.MANUAL) {
+        if (connectionType == ConnectionType.MANUAL) {
             ConnectionController.Manual()
         } else {
             ConnectionController.Automatic
@@ -57,7 +57,7 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: com.
     }
 
     single(named(AndroidCommonDITags.LIFECYCLE)) {
-        if (connectionType == com.walletconnect.android.api.ConnectionType.MANUAL) {
+        if (connectionType == ConnectionType.MANUAL) {
             ManualConnectionLifecycle(get(named(AndroidCommonDITags.CONNECTION_CONTROLLER)), LifecycleRegistry())
         } else {
             AndroidLifecycle.ofApplicationForeground(androidApplication())

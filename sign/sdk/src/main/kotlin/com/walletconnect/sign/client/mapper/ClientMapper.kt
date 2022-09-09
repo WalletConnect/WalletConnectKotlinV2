@@ -4,7 +4,7 @@ package com.walletconnect.sign.client.mapper
 
 import android.net.Uri
 import android.os.Build
-import com.walletconnect.android.api.ConnectionType
+import com.walletconnect.android.common.connection.ConnectionType
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.sign.client.Sign
