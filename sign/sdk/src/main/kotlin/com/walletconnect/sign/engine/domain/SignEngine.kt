@@ -64,7 +64,6 @@ internal class SignEngine(
     }
 
     fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-//        Logger.error(" ")
         relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
 
@@ -314,7 +313,11 @@ internal class SignEngine(
         )
     }
 
-    internal fun respondSessionRequest(topic: String, jsonRpcResponse: com.walletconnect.android.common.JsonRpcResponse, onFailure: (Throwable) -> Unit) {
+    internal fun respondSessionRequest(
+        topic: String,
+        jsonRpcResponse: com.walletconnect.android.common.JsonRpcResponse,
+        onFailure: (Throwable) -> Unit
+    ) {
         if (!sequenceStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }

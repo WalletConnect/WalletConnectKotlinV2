@@ -36,7 +36,7 @@ import java.net.HttpURLConnection
 import com.walletconnect.android.common.connection.ConnectionType as CommonConnectionType
 
 object RelayClient : BaseRelayClient(), RelayConnectionInterface {
-    private val logger: Logger by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER)) }
+    private lateinit var logger: Logger
     private val connectionController: ConnectionController by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.CONNECTION_CONTROLLER)) }
     private val networkState: ConnectivityState by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.CONNECTIVITY_STATE)) }
     private val isNetworkAvailable: StateFlow<Boolean> by lazy { networkState.isAvailable }
@@ -58,6 +58,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
         val serverUrl = relayServerUrl.addUserAgent("2.0.0") //TODO: how to get sdk version? Ask team.
 
         wcKoinApp.modules(androidApiNetworkModule(serverUrl, jwt, connectionType.toCommonConnectionType(), "2.0.0"))
+        logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
         relayService = wcKoinApp.koin.get(named(AndroidCommonDITags.RELAY_SERVICE))
     }
 
@@ -70,7 +71,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
         get() =
             eventsFlow
                 .onEach { event: Relay.Model.Event ->
-                    logger.log("kobe $event")
+                    logger.log("$event")
                     setIsWSSConnectionOpened(event)
                 }
                 .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()

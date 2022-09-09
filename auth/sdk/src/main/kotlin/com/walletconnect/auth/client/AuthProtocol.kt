@@ -8,6 +8,7 @@ import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.di.networkModule
+import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Events
@@ -29,6 +30,7 @@ internal class AuthProtocol : AuthInterface {
 
     @Throws(IllegalStateException::class)
     override fun initialize(init: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit) {
+        Logger.init()
         with(init) {
             wcKoinApp.run {
                 modules(
