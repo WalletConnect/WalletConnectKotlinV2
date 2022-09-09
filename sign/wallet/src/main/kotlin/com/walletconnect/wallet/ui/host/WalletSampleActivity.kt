@@ -2,7 +2,6 @@ package com.walletconnect.wallet.ui.host
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
@@ -13,15 +12,10 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import com.walletconnect.android.api.RelayClient
-import com.walletconnect.sample_common.tag
 import com.walletconnect.sample_common.viewBinding
-import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.client.SignClient
 import com.walletconnect.wallet.R
 import com.walletconnect.wallet.SESSION_REQUEST_ARGS_NUM_KEY
 import com.walletconnect.wallet.SESSION_REQUEST_KEY
-import com.walletconnect.wallet.WalletSampleApplication
 import com.walletconnect.wallet.databinding.ActivityWalletBinding
 import com.walletconnect.wallet.ui.SampleWalletEvents
 import kotlinx.coroutines.flow.launchIn

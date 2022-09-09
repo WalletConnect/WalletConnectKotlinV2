@@ -1,8 +1,6 @@
 plugins {
     id("com.android.library")
     kotlin("android")
-    id("com.google.devtools.ksp") version kspVersion
-    id("com.squareup.sqldelight")
 }
 
 android {
@@ -36,8 +34,4 @@ dependencies {
     implementation(project(":androidCore:common"))
 
     koinAndroid()
-    security()
-    timber()
-    scarlet()
-    scarletAndroid()
 }
