@@ -16,7 +16,6 @@ import com.walletconnect.sign.json_rpc.model.toPendingRequest
 internal class JsonRpcInteractor(
     relay: RelayConnectionInterface,
     chaChaPolyCodec: Codec,
-//    networkState: ConnectivityState,
     private val jsonRpcHistory: JsonRpcHistory,
     private val serializer: JsonRpcSerializer
 ) : BaseJsonRpcInteractor(relay, serializer, chaChaPolyCodec, jsonRpcHistory) {

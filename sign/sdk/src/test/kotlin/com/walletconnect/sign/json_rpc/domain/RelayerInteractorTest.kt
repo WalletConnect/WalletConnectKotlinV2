@@ -47,13 +47,9 @@ internal class RelayerInteractorTest {
         every { updateRequestWithResponse(any(), any()) } returns mockk()
     }
 
-//    private val networkState: ConnectivityState = mockk(relaxed = true) {
-//        every { isAvailable } returns MutableStateFlow(true).asStateFlow()
-//    }
-
     private val sut =
         spyk(
-            JsonRpcInteractor(relay, chaChaPolyCodec, /*networkState,*/ jsonRpcHistory, serializer),
+            JsonRpcInteractor(relay, chaChaPolyCodec, jsonRpcHistory, serializer),
             recordPrivateCalls = true
         ) {
             every { checkConnectionWorking() } answers { }
@@ -223,15 +219,9 @@ internal class RelayerInteractorTest {
 
     @Test
     fun `InitializationErrorsFlow emits value only on OnConnectionFailed`() = runBlockingTest {
-        every { relay.eventsFlow } returns flowOf(
-            mockk<Relay.Model.Event.OnConnectionOpened<*>>(),
-            mockk<Relay.Model.Event.OnMessageReceived>(),
-            mockk<Relay.Model.Event.OnConnectionClosing>(),
-            mockk<Relay.Model.Event.OnConnectionClosed>(),
-            mockk<Relay.Model.Event.OnConnectionFailed> {
-                every { throwable } returns RuntimeException()
-            }
-        ).shareIn(this, SharingStarted.Lazily)
+        every { relay.initializationErrorsFlow } returns flowOf(
+            WalletConnectException("Test")
+        )
 
         val job = sut.initializationErrorsFlow.onEach { walletConnectException ->
             onError(walletConnectException)
@@ -244,6 +234,8 @@ internal class RelayerInteractorTest {
 
     @Test
     fun `IsConnectionOpened initial value is false`() = runBlockingTest {
+        every { relay.isConnectionAvailable } returns flowOf(false).stateIn(this)
+
         assertFalse(sut.isConnectionAvailable.first())
     }
 }

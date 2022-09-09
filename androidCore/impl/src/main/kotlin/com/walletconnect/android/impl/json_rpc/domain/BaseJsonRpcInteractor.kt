@@ -42,7 +42,7 @@ open class BaseJsonRpcInteractor(
     private val _internalErrors = MutableSharedFlow<InternalError>()
     val internalErrors: SharedFlow<InternalError> = _internalErrors.asSharedFlow()
 
-    val isConnectionAvailable: StateFlow<Boolean> = relay.isConnectionAvailable
+    val isConnectionAvailable: StateFlow<Boolean> get() = relay.isConnectionAvailable
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> handleError(exception.message ?: String.Empty) }
