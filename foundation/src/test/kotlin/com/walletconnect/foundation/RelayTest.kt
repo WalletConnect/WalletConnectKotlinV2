@@ -1,17 +1,23 @@
 package com.walletconnect.foundation
 
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
+import com.walletconnect.foundation.di.FoundationDITags
 import com.walletconnect.foundation.di.commonModule
 import com.walletconnect.foundation.di.cryptoModule
 import com.walletconnect.foundation.di.networkModule
+import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.RelayInterface
+import com.walletconnect.foundation.network.data.service.RelayService
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.util.addUserAgent
 import com.walletconnect.util.bytesToHex
+import io.mockk.every
+import io.mockk.spyk
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.junit.jupiter.api.Test
 import org.koin.core.KoinApplication
+import org.koin.core.qualifier.named
 import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlin.test.fail
@@ -21,7 +27,6 @@ import kotlin.time.measureTime
 
 @ExperimentalCoroutinesApi
 class RelayTest {
-
     private val testProjectId: String = System.getProperty("TEST_PROJECT_ID")
     private val testRelayUrl: String = System.getProperty("TEST_RELAY_URL")
     private val serverUrl = "$testRelayUrl?projectId=$testProjectId"
@@ -71,21 +76,28 @@ class RelayTest {
         println("Connection established after ${measureTime { awaitConnection(clientA, clientB) }.inWholeMilliseconds} ms with: $testRelayUrl")
     }
 
-    private fun startLoggingClientEventsFlow(client: RelayInterface, tag: String) = client.eventsFlow.onEach { println("$tag eventsFlow: $it") }.launchIn(testScope)
+    private fun startLoggingClientEventsFlow(client: RelayInterface, tag: String) =
+        client.eventsFlow.onEach { println("$tag eventsFlow: $it") }.launchIn(testScope)
 
     private fun initTwoClients(): Pair<RelayInterface, RelayInterface> {
-        val koinAppA: KoinApplication = KoinApplication.init().apply { modules(commonModule(), cryptoModule()) }.also { koinApp ->
-            val jwt = koinApp.koin.get<JwtRepository>().generateJWT(serverUrl)
-            koinApp.modules(networkModule(serverUrl.addUserAgent(), sdkVersion, jwt))
-        }
 
-        val koinAppB: KoinApplication = KoinApplication.init().apply { modules(commonModule(), cryptoModule()) }.also { koinApp ->
-            val jwt = koinApp.koin.get<JwtRepository>().generateJWT(serverUrl)
-            koinApp.modules(networkModule(serverUrl.addUserAgent(), sdkVersion, jwt))
-        }
+        val koinAppA: KoinApplication = KoinApplication.init()
+            .apply { modules(commonModule(), cryptoModule()) }.also { koinApp ->
+                val jwt = koinApp.koin.get<JwtRepository>().generateJWT(serverUrl)
+                koinApp.modules(networkModule(serverUrl.addUserAgent(), sdkVersion, jwt))
+            }
 
-        val clientA: RelayInterface = koinAppA.koin.get()
-        val clientB: RelayInterface = koinAppB.koin.get()
+        val koinAppB: KoinApplication = KoinApplication.init()
+            .apply { modules(commonModule(), cryptoModule()) }.also { koinApp ->
+                val jwt = koinApp.koin.get<JwtRepository>().generateJWT(serverUrl)
+                koinApp.modules(networkModule(serverUrl.addUserAgent(), sdkVersion, jwt))
+            }
+
+        val clientA: BaseRelayClient = spyk<BaseRelayClient>(koinAppA.koin.get<BaseRelayClient>())
+        val clientB: BaseRelayClient = koinAppB.koin.get<BaseRelayClient>()
+
+        clientA.relayService = koinAppA.koin.get<RelayService>(named(FoundationDITags.RELAY_SERVICE))
+        clientB.relayService = koinAppA.koin.get<RelayService>(named(FoundationDITags.RELAY_SERVICE))
 
         startLoggingClientEventsFlow(clientA, "ClientA")
         startLoggingClientEventsFlow(clientB, "ClientB")
@@ -99,7 +111,11 @@ class RelayTest {
         val isClientAReady = MutableStateFlow(false)
         val isClientBReady = MutableStateFlow(false)
         val areBothReady: StateFlow<Boolean> =
-            combine(isClientAReady, isClientBReady) { clientA: Boolean, clientB: Boolean -> clientA && clientB }.stateIn(testScope, SharingStarted.Eagerly, false)
+            combine(isClientAReady, isClientBReady) { clientA: Boolean, clientB: Boolean -> clientA && clientB }.stateIn(
+                testScope,
+                SharingStarted.Eagerly,
+                false
+            )
 
         val clientAJob = clientA.eventsFlow.onEach { event ->
             when (event) {

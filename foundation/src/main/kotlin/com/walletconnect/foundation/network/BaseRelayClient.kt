@@ -20,9 +20,8 @@ import kotlinx.coroutines.supervisorScope
 import org.koin.core.KoinApplication
 
 abstract class BaseRelayClient : RelayInterface {
-
     private var foundationKoinApp: KoinApplication = KoinApplication.init()
-    protected lateinit var relayService: RelayService
+    lateinit var relayService: RelayService
     private var logger: Logger
 
     init {

@@ -69,5 +69,5 @@ fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = 
 
     single<RelayService>(named(FoundationDITags.RELAY_SERVICE)) { get<Scarlet>(named(FoundationDITags.SCARLET)).create(RelayService::class.java) }
 
-    single<RelayInterface> { object : BaseRelayClient() {} }
+    single<BaseRelayClient> { object : BaseRelayClient() {} }
 }
