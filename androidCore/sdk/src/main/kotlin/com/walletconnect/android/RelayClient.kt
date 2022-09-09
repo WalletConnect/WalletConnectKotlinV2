@@ -3,8 +3,6 @@
 package com.walletconnect.android
 
 import android.app.Application
-import android.net.Uri
-import android.os.Build
 import com.walletconnect.android.common.connection.ConnectivityState
 import com.walletconnect.android.common.di.AndroidCommonDITags
 import com.walletconnect.android.common.di.androidApiCryptoModule
@@ -14,16 +12,8 @@ import com.walletconnect.android.common.exception.WRONG_CONNECTION_TYPE
 import com.walletconnect.android.common.scope
 import com.walletconnect.android.common.wcKoinApp
 import com.walletconnect.android.connection.ConnectionType
-import com.walletconnect.android.exception.GenericException
-import com.walletconnect.android.exception.InvalidProjectIdException
-import com.walletconnect.android.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.exception.WalletConnectException
 import com.walletconnect.android.utils.*
-import com.walletconnect.android.utils.addUserAgent
-import com.walletconnect.android.utils.isValidRelayServerUrl
-import com.walletconnect.android.utils.strippedUrl
-import com.walletconnect.android.utils.toCommonConnectionType
-import com.walletconnect.foundation.common.toRelayEvent
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.data.ConnectionController
@@ -32,8 +22,6 @@ import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.flow.*
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
-import java.net.HttpURLConnection
-import com.walletconnect.android.common.connection.ConnectionType as CommonConnectionType
 
 object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     private lateinit var logger: Logger

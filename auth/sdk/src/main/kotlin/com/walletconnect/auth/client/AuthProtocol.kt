@@ -112,11 +112,11 @@ internal class AuthProtocol : AuthInterface {
         return authEngine.getPendingRequests().toClient()
     }
 
-    @Throws(IllegalStateException::class)
-    override fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response? {
-        checkEngineInitialization()
-        return authEngine.getResponseById(params.id)?.toClient()
-    }
+//    @Throws(IllegalStateException::class)
+//    override fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response? {
+//        checkEngineInitialization()
+//        return authEngine.getResponseById(params.id)?.toClient()
+//    }
 
     @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {

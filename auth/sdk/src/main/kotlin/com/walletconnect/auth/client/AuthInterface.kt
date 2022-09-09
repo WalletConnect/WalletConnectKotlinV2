@@ -28,6 +28,4 @@ interface AuthInterface {
     fun respond(params: Auth.Params.Respond, onError: (Auth.Model.Error) -> Unit)
 
     fun getPendingRequest(): List<Auth.Model.PendingRequest>
-
-    fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response?
 }
