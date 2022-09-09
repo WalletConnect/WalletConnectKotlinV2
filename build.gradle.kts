@@ -2,6 +2,7 @@ import com.android.build.gradle.BaseExtension
 
 plugins {
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+    id("org.jetbrains.kotlin.android") version "1.7.10" apply false
 }
 
 buildscript {

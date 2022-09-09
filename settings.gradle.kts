@@ -7,11 +7,11 @@ val rootModules = listOf("showcase", "foundation", /*"android_core_impl", "andro
 File(rootDir.path).listFiles { file -> file.isDirectory && file.name !in excludedDirs }?.forEach { childDir ->
     if (childDir.name !in rootModules) {
         childDir.listFiles { dir -> dir.isDirectory }?.forEach { moduleDir ->
-            include(":${moduleDir.name}")
-            project(":${moduleDir.name}").projectDir = moduleDir
+            val module = ":${moduleDir.parentFile.name}:${moduleDir.name}"
+            include(module)
+            project(module).projectDir = moduleDir
         }
     } else {
         include(":${childDir.name}")
     }
 }
-
