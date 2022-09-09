@@ -38,12 +38,12 @@ jobs:
       - name: Sign Unit tests
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-        run: ./gradlew :sign:test
+        run: ./gradlew :sign:sdk:test
 
       - name: Auth Unit tests
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-        run: ./gradlew :auth:test
+        run: ./gradlew :auth:sdk:test
 
       - name: Stop Gradle
         run: ./gradlew --stop

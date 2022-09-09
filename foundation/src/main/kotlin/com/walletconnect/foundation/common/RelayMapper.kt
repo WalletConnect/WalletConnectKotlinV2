@@ -9,7 +9,7 @@ import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.foundation.network.model.RelayDTO
 
 @JvmSynthetic
-internal fun WebSocket.Event.toRelayEvent() = when (this) {
+fun WebSocket.Event.toRelayEvent() = when (this) {
     is WebSocket.Event.OnConnectionOpened<*> ->
         Relay.Model.Event.OnConnectionOpened(webSocket)
     is WebSocket.Event.OnMessageReceived ->
@@ -41,17 +41,17 @@ internal fun RelayDTO.Subscription.Request.Params.toRelayParams() =
     Relay.Model.Call.Subscription.Request.Params(subscriptionId.id, subscriptionData.toRelaySubscriptionData())
 
 @JvmSynthetic
-internal fun RelayDTO.Subscription.Request.toRelayRequest() =
+fun RelayDTO.Subscription.Request.toRelayRequest() =
     Relay.Model.Call.Subscription.Request(id, jsonrpc, method, params.toRelayParams())
 
 @JvmSynthetic
-internal fun RelayDTO.Publish.Acknowledgement.toRelayAcknowledgment() =
+fun RelayDTO.Publish.Acknowledgement.toRelayAcknowledgment() =
     Relay.Model.Call.Publish.Acknowledgement(id, jsonrpc, result)
 
 @JvmSynthetic
-internal fun RelayDTO.Subscribe.Acknowledgement.toRelayAcknowledgment() =
+fun RelayDTO.Subscribe.Acknowledgement.toRelayAcknowledgment() =
     Relay.Model.Call.Subscribe.Acknowledgement(id, jsonrpc, result.id)
 
 @JvmSynthetic
-internal fun RelayDTO.Unsubscribe.Acknowledgement.toRelayAcknowledgment() =
+fun RelayDTO.Unsubscribe.Acknowledgement.toRelayAcknowledgment() =
     Relay.Model.Call.Unsubscribe.Acknowledgement(id, jsonrpc, result)
