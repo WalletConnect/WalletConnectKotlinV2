@@ -93,7 +93,7 @@ class RelayTest {
                 koinApp.modules(networkModule(serverUrl.addUserAgent(), sdkVersion, jwt))
             }
 
-        val clientA: BaseRelayClient = spyk<BaseRelayClient>(koinAppA.koin.get<BaseRelayClient>())
+        val clientA: BaseRelayClient = koinAppA.koin.get<BaseRelayClient>()
         val clientB: BaseRelayClient = koinAppB.koin.get<BaseRelayClient>()
 
         clientA.relayService = koinAppA.koin.get<RelayService>(named(FoundationDITags.RELAY_SERVICE))
