@@ -21,7 +21,7 @@ internal class ChatProtocol : ChatInterface {
     private lateinit var chatEngine: ChatEngine
 //    val relay: Relay by lazy { wcKoinApp.koin.get() } //TODO: Figure out how to get relay as in Sign in here
 
-    private val serverUrl: String = "wss://relay.walletconnect.com?projectId=2ee94aca5d98e6c05c38bce02bee952a"
+    private val serverUrl: String = "wss://relay.walletconnect.com?projectId=a7f155fbc59c18b6ad4fb5650067dd41"
 
     companion object {
         val instance = ChatProtocol()

@@ -71,6 +71,8 @@ open class BaseJsonRpcInteractor(
         checkConnectionWorking()
         val requestJson = serializer.serialize(payload)
 
+        Logger.error("kobe; Request: $requestJson")
+
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
 
@@ -166,7 +168,7 @@ open class BaseJsonRpcInteractor(
         relay.subscribe(topic.value) { result ->
             result.fold(
                 onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result },
-                onFailure = { error -> Logger.error("Subscribe to topic: $topic error: $error") }
+                onFailure = { error -> Logger.error("Subscribe to topic error: $topic error: $error") }
             )
         }
     }

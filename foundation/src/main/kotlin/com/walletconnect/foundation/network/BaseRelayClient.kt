@@ -1,11 +1,13 @@
 package com.walletconnect.foundation.network
 
+import com.squareup.moshi.Moshi
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.common.toRelayAcknowledgment
 import com.walletconnect.foundation.common.toRelayEvent
 import com.walletconnect.foundation.common.toRelayRequest
+import com.walletconnect.foundation.di.FoundationDITags
 import com.walletconnect.foundation.di.commonModule
 import com.walletconnect.foundation.network.data.service.RelayService
 import com.walletconnect.foundation.network.model.Relay
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.koin.core.KoinApplication
+import org.koin.core.qualifier.named
 
 abstract class BaseRelayClient : RelayInterface {
     private var foundationKoinApp: KoinApplication = KoinApplication.init()
@@ -52,9 +55,60 @@ abstract class BaseRelayClient : RelayInterface {
         val publishParams = RelayDTO.Publish.Request.Params(Topic(topic), message, Ttl(ttl), tag, prompt)
         val request = RelayDTO.Publish.Request(generateId(), params = publishParams)
 
-        observePublishAcknowledgement { acknowledgement -> onResult(Result.success(acknowledgement)) }
+        val publishJson = foundationKoinApp.koin.get<Moshi>(named(FoundationDITags.MOSHI))
+            .adapter(RelayDTO.Publish.Request::class.java)
+            .toJson(request)
+
+        logger.error("kobe; Publish: $publishJson")
+
+        //todo: combine two flows, when one of them is collected, cancel supervisor scope
+        observePublishAcknowledgement(message) { acknowledgement -> onResult(Result.success(acknowledgement)) }
         observePublishError { error -> onResult(Result.failure(error)) }
+
         relayService.publishRequest(request)
+    }
+
+    private fun observePublishAcknowledgement(message: String, onResult: (Relay.Model.Call.Publish.Acknowledgement) -> Unit) {
+        scope.launch {
+            relayService.observePublishAcknowledgement()
+                .map { ack -> ack.toRelayAcknowledgment() }
+                .catch { exception -> logger.error(exception) }
+                .collect { acknowledgement ->
+                    supervisorScope {
+                        onResult(acknowledgement)
+                        logger.error("kobe; publish; ACK: $message")
+                        cancel()
+                    }
+                }
+        }
+    }
+
+    private fun observePublishError(onFailure: (Throwable) -> Unit) {
+        scope.launch {
+
+            relayService.observePublishError()
+                .onEach { jsonRpcError ->
+
+                    logger.error("kobe; publish;  On each error response: $jsonRpcError")
+
+                    logger.error(Throwable(jsonRpcError.error.errorMessage))
+                }
+                .catch { exception ->
+
+                    logger.error("kobe; publish; Catching error response: $exception")
+
+                    logger.error(exception)
+                }
+                .collect { errorResponse ->
+                    supervisorScope {
+                        onFailure(Throwable(errorResponse.error.errorMessage))
+
+                        logger.error("kobe; publish; Collecting error response: $errorResponse")
+                        cancel()
+
+                    }
+                }
+        }
     }
 
     override fun subscribe(topic: String, onResult: (Result<Relay.Model.Call.Subscribe.Acknowledgement>) -> Unit) {
@@ -83,34 +137,6 @@ abstract class BaseRelayClient : RelayInterface {
         relayService.publishSubscriptionAcknowledgement(publishRequest)
     }
 
-    private fun observePublishAcknowledgement(onResult: (Relay.Model.Call.Publish.Acknowledgement) -> Unit) {
-        scope.launch {
-            relayService.observePublishAcknowledgement()
-                .map { ack -> ack.toRelayAcknowledgment() }
-                .catch { exception -> logger.error(exception) }
-                .collect { acknowledgement ->
-                    supervisorScope {
-                        onResult(acknowledgement)
-                        cancel()
-                    }
-                }
-        }
-    }
-
-    private fun observePublishError(onFailure: (Throwable) -> Unit) {
-        scope.launch {
-            relayService.observePublishError()
-                .onEach { jsonRpcError -> logger.error(Throwable(jsonRpcError.error.errorMessage)) }
-                .catch { exception -> logger.error(exception) }
-                .collect { errorResponse ->
-                    supervisorScope {
-                        onFailure(Throwable(errorResponse.error.errorMessage))
-                        cancel()
-                    }
-                }
-        }
-    }
-
     private fun observeSubscribeAcknowledgement(onResult: (Relay.Model.Call.Subscribe.Acknowledgement) -> Unit) {
         scope.launch {
             relayService.observeSubscribeAcknowledgement()
@@ -119,6 +145,9 @@ abstract class BaseRelayClient : RelayInterface {
                 .collect { acknowledgement ->
                     supervisorScope {
                         onResult(acknowledgement)
+
+                        logger.error("kobe; subscribe; ACK")
+
                         cancel()
                     }
                 }
@@ -128,10 +157,21 @@ abstract class BaseRelayClient : RelayInterface {
     private fun observeSubscribeError(onFailure: (Throwable) -> Unit) {
         scope.launch {
             relayService.observeSubscribeError()
-                .onEach { jsonRpcError -> logger.error(Throwable(jsonRpcError.error.errorMessage)) }
-                .catch { exception -> logger.error(exception) }
+                .onEach { jsonRpcError ->
+                    logger.error("kobe; subscribe;  On each error response: $jsonRpcError")
+
+                    logger.error(Throwable(jsonRpcError.error.errorMessage))
+                }
+                .catch { exception ->
+                    logger.error("kobe; subscribe; Catching error response: $exception")
+
+                    logger.error(exception)
+                }
                 .collect { errorResponse ->
                     supervisorScope {
+
+                        logger.error("kobe; subscribe; Collecting error response: $errorResponse")
+
                         onFailure(Throwable(errorResponse.error.errorMessage))
                         cancel()
                     }
