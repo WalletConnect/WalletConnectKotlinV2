@@ -348,8 +348,6 @@ internal class SignEngine(
             else -> throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        Logger.error("kobe; PingParams: $irnParams")
-
         relayer.publishJsonRpcRequests(Topic(topic), irnParams, pingPayload,
             onSuccess = {
 

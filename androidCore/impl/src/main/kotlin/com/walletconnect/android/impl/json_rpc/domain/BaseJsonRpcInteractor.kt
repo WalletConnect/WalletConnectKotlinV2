@@ -71,8 +71,6 @@ open class BaseJsonRpcInteractor(
         checkConnectionWorking()
         val requestJson = serializer.serialize(payload)
 
-        Logger.error("kobe; Request: $requestJson")
-
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
 
