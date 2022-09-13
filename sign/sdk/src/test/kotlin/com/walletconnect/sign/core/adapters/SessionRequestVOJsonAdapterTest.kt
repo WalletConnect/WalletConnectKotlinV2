@@ -121,6 +121,22 @@ internal class SessionRequestVOJsonAdapterTest {
     }
 
     @Test
+    fun deserializeToNamedJsonObjectWithOneField() {
+        params = """
+            {
+                "nonce":21
+            }
+        """.trimIndent()
+
+        val expectedParamsJsonObj = JSONObject(params)
+        val actualParamsJsonObj = JSONObject(serializedParams)
+
+        assertEquals(expectedParamsJsonObj.length(), actualParamsJsonObj.length())
+
+        iterateJsonObjects(expectedParamsJsonObj, actualParamsJsonObj)
+    }
+
+    @Test
     fun deserializeToUnNamedJsonArray() {
         params = """
             [
@@ -238,7 +254,8 @@ internal class SessionRequestVOJsonAdapterTest {
     @Test
     fun ethSignTransaction() {
         @Language("JSON")
-        params = """[{"from":"0x022c0c42a80bd19EA4cF0F94c4F9F96645759716","to":"0x022c0c42a80bd19EA4cF0F94c4F9F96645759716","data":"0x","nonce":"0x00","gasPrice":"0x9502f907","gasLimit":"0x5208","value":"0x00"}]""".trimIndent()
+        params =
+            """[{"from":"0x022c0c42a80bd19EA4cF0F94c4F9F96645759716","to":"0x022c0c42a80bd19EA4cF0F94c4F9F96645759716","data":"0x","nonce":"0x00","gasPrice":"0x9502f907","gasLimit":"0x5208","value":"0x00"}]""".trimIndent()
 
         val expectedParamsJsonArray = JSONArray(params)
         val actualParamsJsonArray = JSONArray(serializedParams)
