@@ -8,6 +8,7 @@ import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.android.common.connection.ConnectionType
+import com.walletconnect.android.common.connection.ConnectivityState
 import com.walletconnect.android.common.connection.ManualConnectionLifecycle
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
@@ -82,7 +83,7 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: Conn
     }
 
     single(named(AndroidCommonDITags.CONNECTIVITY_STATE)) {
-        com.walletconnect.android.common.connection.ConnectivityState(androidApplication())
+        ConnectivityState(androidApplication())
     }
 
 }

@@ -14,7 +14,7 @@ const val kspVersion = "1.7.10-1.0.6"
 
 const val sqlDelightVersion = "1.5.2"
 const val moshiVersion = "1.13.0"
-const val coroutinesVersion = "1.6.0"
+const val coroutinesVersion = "1.6.4"
 const val scarletVersion = "1.0.0"
 const val scarletPackage = "com.github.WalletConnect.Scarlet"
 const val koinVersion = "3.2.0"

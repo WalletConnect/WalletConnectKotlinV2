@@ -209,7 +209,7 @@ internal class RelayerInteractorTest {
     @Test
     fun `OnFailure callback called when subscribe encounters error`() {
         every { relay.subscribe(any(), any()) } answers {
-            lastArg<(Result<RelayDTO.Publish.Acknowledgement>) -> Unit>().invoke(
+            lastArg<(Result<RelayDTO.Publish.Result.Acknowledgement>) -> Unit>().invoke(
                 Result.failure(mockk())
             )
         }
