@@ -6,7 +6,6 @@ import com.squareup.moshi.Moshi
 import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.android.common.JsonRpcResponse
 import com.walletconnect.android.common.di.AndroidCommonDITags
-import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.sign.common.adapters.JsonRpcResultAdapter
 import com.walletconnect.sign.common.adapters.SessionRequestVOJsonAdapter
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO

@@ -195,8 +195,7 @@ open class BaseJsonRpcInteractor(
                     val message = chaChaPolyCodec.decrypt(topic, relayRequest.message)
 
                     Pair(message, topic)
-                }
-                .collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
+                }.collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
         }
     }
 
@@ -212,11 +211,8 @@ open class BaseJsonRpcInteractor(
 
     private suspend fun handleRequest(clientJsonRpc: ClientJsonRpc, topic: Topic, decryptedMessage: String) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
-
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
-
                 _clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params))
-
             } ?: handleError("JsonRpcInteractor: Unknown request params")
         }
     }
