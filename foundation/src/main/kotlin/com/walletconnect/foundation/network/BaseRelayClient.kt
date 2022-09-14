@@ -22,7 +22,7 @@ import org.koin.core.KoinApplication
 abstract class BaseRelayClient : RelayInterface {
     private var foundationKoinApp: KoinApplication = KoinApplication.init()
     lateinit var relayService: RelayService
-    protected open lateinit var logger: Logger
+    protected var logger: Logger
 
     init {
         foundationKoinApp.run { modules(commonModule()) }

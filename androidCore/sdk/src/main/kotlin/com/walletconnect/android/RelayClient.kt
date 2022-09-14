@@ -24,11 +24,11 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 
 object RelayClient : BaseRelayClient(), RelayConnectionInterface {
-    override lateinit var logger: Logger
     private val connectionController: ConnectionController by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.CONNECTION_CONTROLLER)) }
     private val networkState: ConnectivityState by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.CONNECTIVITY_STATE)) }
     private val isNetworkAvailable: StateFlow<Boolean> by lazy { networkState.isAvailable }
     private val isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private const val sdkVersion: String = "2.0.0" //TODO: get android core sdk version
 
     fun initialize(relayServerUrl: String, connectionType: ConnectionType, application: Application) {
         require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
@@ -40,9 +40,9 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
 
         val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
         val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl())
-        val serverUrl = relayServerUrl.addUserAgent("2.0.0") //TODO: how to get sdk version?
+        val serverUrl = relayServerUrl.addUserAgent(sdkVersion)
 
-        wcKoinApp.modules(androidApiNetworkModule(serverUrl, jwt, connectionType.toCommonConnectionType(), "2.0.0"))
+        wcKoinApp.modules(androidApiNetworkModule(serverUrl, jwt, connectionType.toCommonConnectionType(), sdkVersion))
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
         relayService = wcKoinApp.koin.get(named(AndroidCommonDITags.RELAY_SERVICE))
     }
