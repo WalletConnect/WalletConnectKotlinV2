@@ -44,7 +44,6 @@ tasks.withType<Test> {
 }
 
 dependencies {
-    api(project(":foundation"))
     api(project(":androidCore:sdk"))
     api(project(":androidCore:common"))
 

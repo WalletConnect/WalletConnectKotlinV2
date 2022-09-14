@@ -4,6 +4,13 @@ plugins {
     kotlin("kapt")
     id("com.squareup.sqldelight")
     id("com.google.devtools.ksp") version kspVersion
+    id("publish-module")
+}
+
+project.apply {
+    extra[KEY_PUBLISH_ARTIFACT_ID] = "auth"
+    extra[KEY_PUBLISH_VERSION] = "1.0.0-alpha01"
+    extra[KEY_SDK_NAME] = "Auth"
 }
 
 tasks.withType<Test> {
@@ -46,7 +53,7 @@ sqldelight {
 
 dependencies {
     implementation(project(":androidCore:impl"))
-    api(project(":androidCore:sdk"))
+//    api(project(":androidCore:sdk"))
 
     timber()
     moshiKsp()

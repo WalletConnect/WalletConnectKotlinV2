@@ -39,6 +39,7 @@ dependencies {
     implementation(project(":auth:sdk"))
     implementation(project(":sign:samples_common")) //todo: Move samples common module out of signSDK
     implementation(project(":androidCore:sdk"))
+//    implementation("com.walletconnect:core")
     glide_N_kapt()
     implementation("com.github.kenglxn.QRGen:android:2.6.0")
 

@@ -51,15 +51,6 @@ android {
         isIncludeAndroidResources = true
         isReturnDefaultValues = true
     }
-
-    packagingOptions {
-        resources.excludes += setOf(
-            "META-INF/LICENSE.md",
-            "META-INF/LICENSE-notice.md",
-            "META-INF/AL2.0",
-            "META-INF/LGPL2.1"
-        )
-    }
 }
 
 sqldelight {
@@ -75,7 +66,7 @@ tasks.withType<Test> {
 
 dependencies {
     implementation(project(":androidCore:impl"))
-//    api(project(":androidCore:sdk"))
+    api(project(":androidCore:sdk"))
 
     moshiKsp()
     androidXTest()

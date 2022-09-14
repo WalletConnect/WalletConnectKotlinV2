@@ -70,14 +70,15 @@ afterEvaluate {
                                 appendNode("scope", scope)
                             }
                         }
+                        fun Dependency.isWCDependency(): Boolean = this.group?.contains("WalletConnect") == true && this.version.equals("unspecified", true)
 
                         asNode().appendNode("dependencies").let { dependencies ->
                             // List all "api" dependencies as "compile" dependencies
-                            configurations.named("api").get().allDependencies.forEach {
+                            configurations.named("api").get().allDependencies.filterNot(Dependency::isWCDependency).forEach {
                                 dependencies.addDependency(it, "compile")
                             }
                             // List all "implementation" dependencies as "runtime" dependencies
-                            configurations.named("implementation").get().allDependencies.forEach {
+                            configurations.named("implementation").get().allDependencies.filterNot(Dependency::isWCDependency).forEach {
                                 dependencies.addDependency(it, "runtime")
                             }
                         }
