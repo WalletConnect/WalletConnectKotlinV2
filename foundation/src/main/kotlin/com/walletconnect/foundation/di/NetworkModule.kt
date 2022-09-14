@@ -56,9 +56,6 @@ fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = 
     }
 
     single(named(FoundationDITags.SCARLET)) {
-
-        println("kobe; Base Scarlet: $serverUrl&auth=$jwt")
-
         Scarlet.Builder()
             .backoffStrategy(get<LinearBackoffStrategy>())
             .webSocketFactory(get<OkHttpClient>(named(FoundationDITags.OK_HTTP)).newWebSocketFactory("$serverUrl&auth=$jwt"))

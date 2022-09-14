@@ -44,23 +44,26 @@ sealed class RelayDTO {
             )
         }
 
-        data class Acknowledgement(
-            @Json(name = "id")
-            override val id: Long,
-            @Json(name = "jsonrpc")
-            override val jsonrpc: String = "2.0",
-            @Json(name = "result")
-            val result: Boolean,
-        ) : Publish()
+        sealed class Result : Publish() {
 
-        data class JsonRpcError(
-            @Json(name = "jsonrpc")
-            override val jsonrpc: String = "2.0",
-            @Json(name = "error")
-            val error: Error,
-            @Json(name = "id")
-            override val id: Long,
-        ) : Publish()
+            data class Acknowledgement(
+                @Json(name = "id")
+                override val id: Long,
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "result")
+                val result: Boolean,
+            ) : Result()
+
+            data class JsonRpcError(
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "error")
+                val error: Error,
+                @Json(name = "id")
+                override val id: Long,
+            ) : Result()
+        }
     }
 
     sealed class Subscribe : RelayDTO() {
@@ -85,24 +88,27 @@ sealed class RelayDTO {
             )
         }
 
-        data class Acknowledgement(
-            @Json(name = "id")
-            override val id: Long,
-            @Json(name = "jsonrpc")
-            override val jsonrpc: String = "2.0",
-            @Json(name = "result")
-            @field:SubscriptionIdAdapter.Qualifier
-            val result: SubscriptionId,
-        ) : Subscribe()
+        sealed class Result : Subscribe() {
 
-        data class JsonRpcError(
-            @Json(name = "jsonrpc")
-            override val jsonrpc: String = "2.0",
-            @Json(name = "error")
-            val error: Error,
-            @Json(name = "id")
-            override val id: Long,
-        ) : Subscribe()
+            data class Acknowledgement(
+                @Json(name = "id")
+                override val id: Long,
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "result")
+                @field:SubscriptionIdAdapter.Qualifier
+                val result: SubscriptionId,
+            ) : Result()
+
+            data class JsonRpcError(
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "error")
+                val error: Error,
+                @Json(name = "id")
+                override val id: Long,
+            ) : Result()
+        }
     }
 
     sealed class Subscription : RelayDTO() {
@@ -118,9 +124,6 @@ sealed class RelayDTO {
             @Json(name = "params")
             val params: Params,
         ) : Subscription() {
-
-            val subscriptionTopic: Topic = params.subscriptionData.topic
-            val message: String = params.subscriptionData.message
 
             @JsonClass(generateAdapter = true)
             data class Params(
@@ -142,23 +145,26 @@ sealed class RelayDTO {
             }
         }
 
-        data class Acknowledgement(
-            @Json(name = "id")
-            override val id: Long,
-            @Json(name = "jsonrpc")
-            override val jsonrpc: String = "2.0",
-            @Json(name = "result")
-            val result: Boolean,
-        ) : Subscription()
+        sealed class Result : Subscription() {
 
-        data class JsonRpcError(
-            @Json(name = "jsonrpc")
-            override val jsonrpc: String = "2.0",
-            @Json(name = "error")
-            val error: Error,
-            @Json(name = "id")
-            override val id: Long,
-        ) : Subscription()
+            data class Acknowledgement(
+                @Json(name = "id")
+                override val id: Long,
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "result")
+                val result: Boolean,
+            ) : Subscription()
+
+            data class JsonRpcError(
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "error")
+                val error: Error,
+                @Json(name = "id")
+                override val id: Long,
+            ) : Subscription()
+        }
     }
 
     sealed class Unsubscribe : RelayDTO() {
@@ -184,23 +190,26 @@ sealed class RelayDTO {
             )
         }
 
-        data class Acknowledgement(
-            @Json(name = "id")
-            override val id: Long,
-            @Json(name = "jsonrpc")
-            override val jsonrpc: String = "2.0",
-            @Json(name = "result")
-            val result: Boolean,
-        ) : Unsubscribe()
+        sealed class Result : Unsubscribe() {
 
-        data class JsonRpcError(
-            @Json(name = "jsonrpc")
-            override val jsonrpc: String = "2.0",
-            @Json(name = "error")
-            val error: Error,
-            @Json(name = "id")
-            override val id: Long,
-        ) : Unsubscribe()
+            data class Acknowledgement(
+                @Json(name = "id")
+                override val id: Long,
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "result")
+                val result: Boolean,
+            ) : Result()
+
+            data class JsonRpcError(
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "error")
+                val error: Error,
+                @Json(name = "id")
+                override val id: Long,
+            ) : Result()
+        }
     }
 
     data class Error(

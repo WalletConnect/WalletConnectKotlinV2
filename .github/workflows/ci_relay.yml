@@ -29,5 +29,5 @@ jobs:
       - name: Run Relay CI
         env:
           TEST_RELAY_URL: wss://relay.walletconnect.com
-          TEST_PROJECT_ID: 2ee94aca5d98e6c05c38bce02bee952a
+          TEST_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
         uses: ./.github/actions/ci_relay
