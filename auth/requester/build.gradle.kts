@@ -40,7 +40,7 @@ dependencies {
     implementation(project(":sign:samples_common")) //todo: Move samples common module out of signSDK
     implementation(project(":androidCore:sdk"))
     glide_N_kapt()
-    implementation("com.github.kenglxn.QRGen:android:2.6.0")
+    implementation("com.github.alexzhirkevich:custom-qr-generator:1.4.1")
 
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
