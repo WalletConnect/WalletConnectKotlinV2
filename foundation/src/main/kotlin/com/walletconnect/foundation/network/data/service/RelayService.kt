@@ -15,32 +15,32 @@ interface RelayService {
     fun publishRequest( publishRequest: RelayDTO.Publish.Request)
 
     @Receive
-    fun observePublishAcknowledgement(): Flow<RelayDTO.Publish.Acknowledgement>
+    fun observePublishAcknowledgement(): Flow<RelayDTO.Publish.Result.Acknowledgement>
 
     @Receive
-    fun observePublishError(): Flow<RelayDTO.Publish.JsonRpcError>
+    fun observePublishError(): Flow<RelayDTO.Publish.Result.JsonRpcError>
 
     @Send
     fun subscribeRequest(subscribeRequest: RelayDTO.Subscribe.Request)
 
     @Receive
-    fun observeSubscribeAcknowledgement(): Flow<RelayDTO.Subscribe.Acknowledgement>
+    fun observeSubscribeAcknowledgement(): Flow<RelayDTO.Subscribe.Result.Acknowledgement>
 
     @Receive
-    fun observeSubscribeError(): Flow<RelayDTO.Subscribe.JsonRpcError>
+    fun observeSubscribeError(): Flow<RelayDTO.Subscribe.Result.JsonRpcError>
 
     @Receive
     fun observeSubscriptionRequest(): Flow<RelayDTO.Subscription.Request>
 
     @Send
-    fun publishSubscriptionAcknowledgement(publishRequest: RelayDTO.Subscription.Acknowledgement)
+    fun publishSubscriptionAcknowledgement(publishRequest: RelayDTO.Subscription.Result.Acknowledgement)
 
     @Send
     fun unsubscribeRequest(unsubscribeRequest: RelayDTO.Unsubscribe.Request)
 
     @Receive
-    fun observeUnsubscribeAcknowledgement(): Flow<RelayDTO.Unsubscribe.Acknowledgement>
+    fun observeUnsubscribeAcknowledgement(): Flow<RelayDTO.Unsubscribe.Result.Acknowledgement>
 
     @Receive
-    fun observeUnsubscribeError(): Flow<RelayDTO.Unsubscribe.JsonRpcError>
+    fun observeUnsubscribeError(): Flow<RelayDTO.Unsubscribe.Result.JsonRpcError>
 }

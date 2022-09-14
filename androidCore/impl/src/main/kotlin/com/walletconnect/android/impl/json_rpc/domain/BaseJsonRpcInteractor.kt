@@ -166,7 +166,7 @@ open class BaseJsonRpcInteractor(
         relay.subscribe(topic.value) { result ->
             result.fold(
                 onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result },
-                onFailure = { error -> Logger.error("Subscribe to topic: $topic error: $error") }
+                onFailure = { error -> Logger.error("Subscribe to topic error: $topic error: $error") }
             )
         }
     }
