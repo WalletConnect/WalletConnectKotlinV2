@@ -91,7 +91,7 @@ open class BaseJsonRpcInteractor(
         onFailure: (Throwable) -> Unit = {},
         participants: Participants? = null,
         envelopeType: EnvelopeType = EnvelopeType.ZERO,
-        ) {
+    ) {
         checkConnectionWorking()
 
         val jsonResponseDO = response.toJsonRpcResponse()
@@ -128,7 +128,7 @@ open class BaseJsonRpcInteractor(
         irnParams: IrnParams,
         envelopeType: EnvelopeType = EnvelopeType.ZERO,
         participants: Participants? = null,
-        ) {
+    ) {
         val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = true)
 
         try {
@@ -195,8 +195,7 @@ open class BaseJsonRpcInteractor(
                     val message = chaChaPolyCodec.decrypt(topic, relayRequest.message)
 
                     Pair(message, topic)
-                }
-                .collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
+                }.collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
         }
     }
 
