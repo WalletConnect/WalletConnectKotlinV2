@@ -1,5 +1,4 @@
 import com.android.build.gradle.BaseExtension
-import groovy.util.Node
 
 plugins {
     `maven-publish`
@@ -24,7 +23,6 @@ afterEvaluate {
     publishing {
         publications {
             register<MavenPublication>("mavenAndroid") {
-//                afterEvaluate { artifact(tasks.getByName("bundleReleaseAar")) }
                 afterEvaluate { from(components["release"]) }
                 artifact(tasks.getByName("javadocJar"))
                 artifact(tasks.getByName("sourcesJar"))
@@ -61,28 +59,6 @@ afterEvaluate {
                         developerConnection.set("scm:git:ssh://github.com/WalletConnect/WalletConnectKotlinV2.git")
                         url.set("https://github.com/WalletConnect/WalletConnectKotlinV2")
                     }
-
-//                    withXml {
-//                        fun Node.addDependency(dependency: Dependency, scope: String) {
-//                            appendNode("dependency").apply {
-//                                appendNode("groupId", dependency.group)
-//                                appendNode("artifactId", dependency.name)
-//                                appendNode("version", dependency.version)
-//                                appendNode("scope", scope)
-//                            }
-//                        }
-//
-//                        asNode().appendNode("dependencies").let { dependencies ->
-//                            // List all "api" dependencies as "compile" dependencies
-//                            configurations.named("api").get().allDependencies.forEach {
-//                                dependencies.addDependency(it, "compile")
-//                            }
-//                            // List all "implementation" dependencies as "runtime" dependencies
-//                            configurations.named("implementation").get().allDependencies.forEach {
-//                                dependencies.addDependency(it, "runtime")
-//                            }
-//                        }
-//                    }
                 }
             }
         }
