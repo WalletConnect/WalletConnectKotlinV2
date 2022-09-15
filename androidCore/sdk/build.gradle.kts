@@ -1,14 +1,11 @@
-import kotlinx.coroutines.flow.flowOf
-
 plugins {
     id("com.android.library")
     kotlin("android")
-    id("publish-module")
-    id("com.kezong.fat-aar")
+    id("publish-module-android")
 }
 
 project.apply {
-    extra[KEY_PUBLISH_ARTIFACT_ID] = "core-android"
+    extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core"
     extra[KEY_PUBLISH_VERSION] = "1.0.0"
     extra[KEY_SDK_NAME] = "Android Core"
 }
@@ -41,26 +38,9 @@ android {
     }
 }
 
-fataar {
-    transitive = true
-}
-
 dependencies {
-//    embed(project(":foundation")) {
-//        exclude("com.github.WalletConnect.Scarlet")
-//        exclude("com.squareup.okhttp3")
-//        exclude("io.insert-koin")
-////        exclude("com.squareup.moshi")
-//        exclude("org.bouncycastle")
-//        exclude("com.github.multiformats")
-//        exclude("org.jboss.resteasy", "resteasy-jaxrs")
-//        exclude("org.junit")
-//        exclude("org.junit.jupiter")
-//        exclude("org.jetbrains.kotlin")
-//        exclude("io.mockk")
-//    }
 //    implementation(project(":androidCore:common"))
-    embed(project(":androidCore:common"))
-
+    implementation("com.walletconnect:android-core-common:1.0.0")
+    api("com.walletconnect:foundation:1.0.0")
     koinAndroid()
 }

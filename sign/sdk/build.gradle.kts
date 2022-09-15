@@ -3,7 +3,7 @@ plugins {
     kotlin("android")
     id("com.squareup.sqldelight")
     id("com.google.devtools.ksp") version kspVersion
-    id("publish-module")
+    id("publish-module-android")
 }
 
 project.apply {

@@ -1,5 +1,4 @@
 import com.android.build.gradle.BaseExtension
-import org.gradle.internal.impldep.org.bouncycastle.cms.RecipientId.password
 
 plugins {
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
@@ -19,7 +18,6 @@ buildscript {
         classpath("org.jetbrains.dokka:dokka-core:$dokkaVersion")      // TODO: Leave version until AGP 7.3 https://github.com/Kotlin/dokka/issues/2472#issuecomment-1143604232
         classpath("org.jetbrains.dokka:dokka-gradle-plugin:$dokkaVersion")
         classpath("com.squareup.sqldelight:gradle-plugin:$sqlDelightVersion")
-        classpath("com.github.kezong:fat-aar:1.3.8")
     }
 }
 
@@ -34,6 +32,8 @@ allprojects {
 }
 
 subprojects {
+    group = "com.walletconnect"
+
     afterEvaluate {
         if (hasProperty("android")) {
             extensions.configure(BaseExtension::class.java) {
@@ -46,10 +46,6 @@ subprojects {
                     }
                 }
             }
-        }
-
-        if (plugins.hasPlugin("maven-publish") && plugins.hasPlugin("signing")) {
-            group = "com.walletconnect"
         }
     }
 }
