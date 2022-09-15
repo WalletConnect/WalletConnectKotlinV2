@@ -40,7 +40,7 @@ android {
 
 dependencies {
 //    implementation(project(":androidCore:common"))
-    implementation("com.walletconnect:android-core-common:1.0.0")
-    api("com.walletconnect:foundation:1.0.0")
+    api("com.walletconnect:android-core-common:1.0.0")
+
     koinAndroid()
 }
