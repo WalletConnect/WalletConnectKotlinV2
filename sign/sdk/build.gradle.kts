@@ -66,7 +66,6 @@ tasks.withType<Test> {
 
 dependencies {
     implementation(project(":androidCore:impl"))
-    api(project(":androidCore:sdk"))
 
     moshiKsp()
     androidXTest()

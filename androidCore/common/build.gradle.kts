@@ -52,8 +52,9 @@ tasks.withType<Test> {
 }
 
 dependencies {
-//    api(project(":foundation"))
-    api("com.walletconnect:foundation:1.0.0")
+    api(project(":foundation"))
+//    debugApi(project(":foundation"))
+//    releaseApi("com.walletconnect:foundation:1.0.0")
 
     bouncyCastle()
     coroutines()

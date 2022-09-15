@@ -32,8 +32,8 @@ android {
 }
 
 dependencies {
-//    implementation(project(":androidCore:impl"))
-    implementation("com.walletconnect:android-core:1.0.0")
+    implementation(project(":androidCore:impl"))
+//    implementation("com.walletconnect:android-core:1.0.0")
 
     implementation("com.google.android.material:material:1.6.1")
 }

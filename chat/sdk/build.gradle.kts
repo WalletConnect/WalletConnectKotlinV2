@@ -33,6 +33,7 @@ android {
 
 dependencies {
     implementation(project(":androidCore:impl"))
+    api(project(":androidCore:sdk"))
 
     retrofit()
     navigationComponent()

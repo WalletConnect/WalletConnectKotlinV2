@@ -42,7 +42,6 @@ android {
 dependencies {
     implementation(project(":sign:sdk"))
     implementation(project(":sign:samples_common"))
-    implementation(project(":androidCore:sdk"))
 //    implementation("com.walletconnect:core.android:1.0.0")
 
     scanner()
