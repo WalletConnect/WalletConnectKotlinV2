@@ -7,8 +7,8 @@ WalletConnect v2 protocols for Android applications.
 
 ## Protocols
 
-* [Sign SDK](https://github.com/WalletConnect/WalletConnectKotlinV2/tree/develop/signSDK)
-* [Chat SDK](https://github.com/WalletConnect/WalletConnectKotlinV2/tree/develop/chatSDK)
+* [Sign SDK](https://github.com/WalletConnect/WalletConnectKotlinV2/tree/develop/sign)
+* [Auth SDK](https://github.com/WalletConnect/WalletConnectKotlinV2/tree/develop/auth)
 
 ## License
 WalletConnect v2 is released under the Apache 2.0 license. [See LICENSE](https://github.com/WalletConnect/WalletConnectKotlinV2/blob/feature/develop/LICENSE) for details.
