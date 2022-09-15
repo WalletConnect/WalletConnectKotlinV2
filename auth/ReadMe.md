@@ -2,7 +2,7 @@
 
 Kotlin implementation of WalletConnect Auth protocol for Android applications.
 
-![Maven Central](https://img.shields.io/maven-central/v/com.walletconnect/sign)
+![Maven Central](https://img.shields.io/maven-central/v/com.walletconnect/auth)
 
 ## Requirements
 
