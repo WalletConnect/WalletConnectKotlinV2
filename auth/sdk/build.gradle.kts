@@ -5,6 +5,7 @@ plugins {
     id("com.squareup.sqldelight")
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
+    id("com.kezong.fat-aar")
 }
 
 project.apply {
@@ -14,7 +15,7 @@ project.apply {
 }
 
 android {
-    compileSdk = 32
+    compileSdk = COMPILE_SDK
 
     defaultConfig {
         minSdk = MIN_SDK
@@ -48,8 +49,7 @@ sqldelight {
 }
 
 dependencies {
-    implementation(project(":androidCore:impl"))
-//    api(project(":androidCore:sdk"))
+    embed(project(":androidCore:impl"))
 
     timber()
     moshiKsp()

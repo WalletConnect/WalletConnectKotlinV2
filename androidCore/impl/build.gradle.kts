@@ -3,13 +3,6 @@ plugins {
     kotlin("android")
     id("com.google.devtools.ksp") version kspVersion
     id("com.squareup.sqldelight")
-//    id("publish-module-android")
-}
-
-project.apply {
-    extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core-impl"
-    extra[KEY_PUBLISH_VERSION] = "1.0.0"
-    extra[KEY_SDK_NAME] = "Android Core Common"
 }
 
 android {

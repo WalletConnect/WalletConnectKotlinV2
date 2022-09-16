@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    compileSdk = 32
+    compileSdk = COMPILE_SDK
 
     defaultConfig {
         minSdk = MIN_SDK
