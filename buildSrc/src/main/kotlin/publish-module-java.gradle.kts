@@ -1,3 +1,6 @@
+import com.android.build.gradle.BaseExtension
+import com.android.builder.model.JavaArtifact
+
 plugins {
     `maven-publish`
     signing
@@ -10,13 +13,18 @@ tasks {
         archiveClassifier.set("javadoc")
         from("$buildDir/dokka/html")
     }
+    register("sourceJar", Jar::class) {
+        archiveClassifier.set("sources")
+        from(((project as ExtensionAware).extensions.getByName("sourceSets") as SourceSetContainer).getByName("main").allSource)
+    }
 }
 
 afterEvaluate {
     publishing {
         publications {
-            register<MavenPublication>("mavenAndroid") {
+            register<MavenPublication>("mavenJvm") {
                 from(components["java"])
+                artifact(tasks.getByName("sourceJar"))
                 artifact(tasks.getByName("javadocJar"))
 
                 groupId = "com.walletconnect"
