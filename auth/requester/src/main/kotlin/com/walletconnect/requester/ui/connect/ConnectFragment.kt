@@ -29,10 +29,14 @@ class ConnectFragment : Fragment(R.layout.fragment_connect) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.rlSignIn.setOnClickListener {
-            if (viewModel.anySettledPairingExist()) { //todo: Right now always false. Remove todo comment after implemented
-                findNavController().navigate(R.id.action_fragment_chain_selection_to_dialog_pairing_selection)
+            if (viewModel.isConnectionAvailable) {
+                if (viewModel.anySettledPairingExist()) { //todo: Right now always false. Remove todo comment after implemented
+                    findNavController().navigate(R.id.action_fragment_chain_selection_to_dialog_pairing_selection)
+                } else {
+                    findNavController().navigate(R.id.action_fragment_chain_selection_to_dialog_pairing_generation)
+                }
             } else {
-                findNavController().navigate(R.id.action_fragment_chain_selection_to_dialog_pairing_generation)
+                Snackbar.make(binding.root, "No connection with server available. Try again in a second", Snackbar.LENGTH_LONG).show()
             }
         }
 
