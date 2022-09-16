@@ -35,7 +35,7 @@ class RequestBottomSheet : BottomSheetDialogFragment() {
 
             tvPeerName.text = sessionProposal.peerName
             tvPeerDescription.text = sessionProposal.peerDescription
-            tvProposalUri.text = sessionProposal.proposalUri
+            tvProposalUri.text = sessionProposal.proposalUri.removePrefix(HTTPS_PREFIX).removeSuffix(SLASH_SIGN)
             tvMessage.text = sessionProposal.message
         }, {
             Toast.makeText(requireContext(), "Unable to find request", Toast.LENGTH_SHORT).show()
@@ -58,5 +58,10 @@ class RequestBottomSheet : BottomSheetDialogFragment() {
                 // There is no app to handle deep link
             }
         }
+    }
+
+    companion object {
+        private const val HTTPS_PREFIX = "https://"
+        private const val SLASH_SIGN = "/"
     }
 }
