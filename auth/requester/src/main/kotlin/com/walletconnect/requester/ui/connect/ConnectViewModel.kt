@@ -21,6 +21,8 @@ class ConnectViewModel : ViewModel() {
     private val _navigation = Channel<RequesterEvents>(Channel.BUFFERED)
     val navigation: Flow<RequesterEvents> = _navigation.receiveAsFlow()
 
+    var isConnectionAvailable: Boolean = false
+
     init {
         RequesterDelegate.wcEvents.map { walletEvent: Auth.Event ->
             when (walletEvent) {
@@ -34,6 +36,12 @@ class ConnectViewModel : ViewModel() {
             }
         }.onEach { event ->
             _navigation.trySend(event)
+        }.launchIn(viewModelScope)
+
+        RequesterDelegate.wcEvents.map { walletEvent: Auth.Event ->
+            if (walletEvent is Auth.Event.ConnectionStateChange) {
+                isConnectionAvailable = (walletEvent.state.isAvailable)
+            }
         }.launchIn(viewModelScope)
     }
 
