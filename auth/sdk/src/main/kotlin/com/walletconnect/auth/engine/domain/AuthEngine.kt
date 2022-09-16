@@ -23,16 +23,7 @@ import com.walletconnect.auth.common.exceptions.PeerError
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.json_rpc.AuthRpc
 import com.walletconnect.auth.common.model.*
-import com.walletconnect.auth.common.model.AppMetaData
-import com.walletconnect.auth.common.model.Issuer
-import com.walletconnect.auth.common.model.Pairing
-import com.walletconnect.auth.common.model.PayloadParams
-import com.walletconnect.auth.common.model.WalletConnectUri
 import com.walletconnect.auth.engine.mapper.*
-import com.walletconnect.auth.engine.mapper.toAbsoluteString
-import com.walletconnect.auth.engine.mapper.toCacaoPayload
-import com.walletconnect.auth.engine.mapper.toCore
-import com.walletconnect.auth.engine.mapper.toPendingRequest
 import com.walletconnect.auth.json_rpc.domain.JsonRpcInteractor
 import com.walletconnect.auth.signature.CacaoType
 import com.walletconnect.auth.signature.cacao.CacaoVerifier
@@ -52,11 +43,14 @@ internal class AuthEngine(
     private val crypto: KeyManagementRepository,
     private val storage: AuthStorageRepository,
     private val metaData: AppMetaData,
-    private val issuer: Issuer?
+    private val issuer: Issuer?,
 ) {
 
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
+
+    // idea: If we need responseTopic persistence throughout app terminations this is not sufficient. Decide after Alpha
+    private val pairingTopicToResponseTopicMap: MutableMap<Topic, Topic> = mutableMapOf()
 
     init {
         resubscribeToSequences()
@@ -99,6 +93,7 @@ internal class AuthEngine(
                     Logger.log("Auth request sent successfully on topic:$pairingTopic, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
                     onPairing(walletConnectUri.toAbsoluteString())
                     relayer.subscribe(responseTopic)
+                    pairingTopicToResponseTopicMap[pairingTopic] = responseTopic
                 },
                 onFailure = { error ->
                     Logger.error("Failed to send a auth request: $error")
@@ -213,6 +208,7 @@ internal class AuthEngine(
         if (!pairing.isActive) {
             storage.activatePairing(pairingTopic, ACTIVE_PAIRING)
         }
+        pairingTopicToResponseTopicMap.remove(pairingTopic)
 
         when (val response = wcResponse.response) {
             is com.walletconnect.android.common.JsonRpcResponse.JsonRpcError -> {
@@ -268,9 +264,14 @@ internal class AuthEngine(
             .onEach {
                 coroutineScope {
                     launch(Dispatchers.IO) { resubscribeToPairings() }
+                    launch(Dispatchers.IO) { resubscribeToPendingRequestsTopics() }
                 }
             }
             .launchIn(scope)
+    }
+
+    private fun resubscribeToPendingRequestsTopics() {
+        pairingTopicToResponseTopicMap.onEach { (_: Topic, responseTopic: Topic) -> relayer.subscribe(responseTopic) }
     }
 
     private fun resubscribeToPairings() {

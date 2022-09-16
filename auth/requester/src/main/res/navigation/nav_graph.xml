@@ -36,7 +36,7 @@
 
         <dialog
             android:id="@+id/dialog_pairing_generation"
-            android:name="com.walletconnect.requester.ui.connect.pairing_generate.PairingGenerationDialogFragment"
+            android:name="com.walletconnect.requester.ui.connect.pairing_generate.PairingGenerateBottomSheet"
             android:label="Pairing Generation"
             tools:layout="@layout/dialog_connect_uri" />
 
