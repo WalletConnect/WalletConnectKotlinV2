@@ -44,9 +44,3 @@ implementation("com.walletconnect:sign:release_version")
 
 * For sample wallet run `wallet module`
 * For sample Dapp run `dapp module`
-
-&nbsp;
-
-## Project ID
-
-For the Project ID look at [Project ID](https://walletconnect.com/).
