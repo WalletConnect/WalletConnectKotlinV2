@@ -1,6 +1,3 @@
-import com.android.build.gradle.BaseExtension
-import groovy.util.Node
-
 plugins {
     `maven-publish`
     signing
@@ -13,21 +10,16 @@ tasks {
         archiveClassifier.set("javadoc")
         from("$buildDir/dokka/html")
     }
-
-    register("sourcesJar", Jar::class) {
-        archiveClassifier.set("sources")
-        from(extensions.findByType<BaseExtension>()?.sourceSets?.getByName("main")?.java?.srcDirs)
-    }
 }
 
 afterEvaluate {
     publishing {
         publications {
             register<MavenPublication>("mavenAndroid") {
-                afterEvaluate { artifact(tasks.getByName("bundleReleaseAar")) }
+                from(components["java"])
                 artifact(tasks.getByName("javadocJar"))
-                artifact(tasks.getByName("sourcesJar"))
 
+                groupId = "com.walletconnect"
                 artifactId = requireNotNull(extra.get(KEY_PUBLISH_ARTIFACT_ID)).toString()
                 version = requireNotNull(extra.get(KEY_PUBLISH_VERSION)).toString()
 
@@ -59,28 +51,6 @@ afterEvaluate {
                         connection.set("scm:git:git://github.com/WalletConnect/WalletConnectKotlinV2.git")
                         developerConnection.set("scm:git:ssh://github.com/WalletConnect/WalletConnectKotlinV2.git")
                         url.set("https://github.com/WalletConnect/WalletConnectKotlinV2")
-                    }
-
-                    withXml {
-                        fun Node.addDependency(dependency: Dependency, scope: String) {
-                            appendNode("dependency").apply {
-                                appendNode("groupId", dependency.group)
-                                appendNode("artifactId", dependency.name)
-                                appendNode("version", dependency.version)
-                                appendNode("scope", scope)
-                            }
-                        }
-
-                        asNode().appendNode("dependencies").let { dependencies ->
-                            // List all "api" dependencies as "compile" dependencies
-                            configurations.named("api").get().allDependencies.forEach {
-                                dependencies.addDependency(it, "compile")
-                            }
-                            // List all "implementation" dependencies as "runtime" dependencies
-                            configurations.named("implementation").get().allDependencies.forEach {
-                                dependencies.addDependency(it, "runtime")
-                            }
-                        }
                     }
                 }
             }

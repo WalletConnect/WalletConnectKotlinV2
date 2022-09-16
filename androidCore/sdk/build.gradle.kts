@@ -1,6 +1,13 @@
 plugins {
     id("com.android.library")
     kotlin("android")
+    id("publish-module-android")
+}
+
+project.apply {
+    extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core"
+    extra[KEY_PUBLISH_VERSION] = "1.0.0"
+    extra[KEY_SDK_NAME] = "Android Core"
 }
 
 android {
@@ -20,18 +27,20 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
+
     compileOptions {
         sourceCompatibility = jvmVersion
         targetCompatibility = jvmVersion
     }
+
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
     }
 }
 
 dependencies {
-    api(project(":foundation")) //todo: should be implementation?
-    implementation(project(":androidCore:common"))
+    debugApi(project(":androidCore:common"))
+    releaseApi("com.walletconnect:android-core-common:1.0.0")
 
     koinAndroid()
 }
