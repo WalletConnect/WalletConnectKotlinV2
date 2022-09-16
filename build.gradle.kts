@@ -1,4 +1,5 @@
 import com.android.build.gradle.BaseExtension
+import org.gradle.internal.impldep.org.bouncycastle.cms.RecipientId.password
 
 plugins {
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
@@ -10,6 +11,7 @@ buildscript {
         google()
         mavenLocal()
         mavenCentral()
+        maven(url = "https://plugins.gradle.org/m2/")
     }
     dependencies {
         classpath("com.android.tools.build:gradle:7.2.1")
@@ -24,7 +26,6 @@ allprojects {
     repositories {
         google()
         maven(url = "https://jitpack.io")
-        maven(url = "https://plugins.gradle.org/m2/")
         mavenLocal()
         mavenCentral()
         jcenter() // Warning: this repository is going to shut down soon
@@ -45,10 +46,10 @@ subprojects {
                 }
             }
         }
+    }
 
-        if (plugins.hasPlugin("maven-publish") && plugins.hasPlugin("signing")) {
-            group = "com.walletconnect"
-        }
+    tasks.withType<Test> {
+        useJUnitPlatform()
     }
 }
 

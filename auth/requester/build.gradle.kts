@@ -20,6 +20,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -36,9 +37,14 @@ android {
 }
 
 dependencies {
-    implementation(project(":auth:sdk"))
     implementation(project(":sign:samples_common")) //todo: Move samples common module out of signSDK
-    implementation(project(":androidCore:sdk"))
+
+    debugImplementation(project(":auth:sdk"))
+    releaseImplementation("com.walletconnect:auth:1.0.0-alpha01")
+
+    debugImplementation(project(":androidCore:sdk"))
+    releaseImplementation("com.walletconnect:android-core:1.0.0")
+
     glide_N_kapt()
     implementation("com.github.alexzhirkevich:custom-qr-generator:1.4.1")
 

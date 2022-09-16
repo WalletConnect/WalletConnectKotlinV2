@@ -3,11 +3,22 @@
     package="com.walletconnect.android_core_sample">
 
     <application
+        android:name="com.walletconnect.core.android.sample.AndroidCoreSampleApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.WalletConnect" />
+        android:theme="@style/Theme.WalletConnect" >
+
+        <activity android:name="com.walletconnect.core.android.sample.AndroidCoreActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
 
 </manifest>

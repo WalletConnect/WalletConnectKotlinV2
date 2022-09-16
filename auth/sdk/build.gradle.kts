@@ -4,14 +4,17 @@ plugins {
     kotlin("kapt")
     id("com.squareup.sqldelight")
     id("com.google.devtools.ksp") version kspVersion
+    id("publish-module-android")
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+project.apply {
+    extra[KEY_PUBLISH_ARTIFACT_ID] = "auth"
+    extra[KEY_PUBLISH_VERSION] = "1.0.0-alpha01"
+    extra[KEY_SDK_NAME] = "Auth"
 }
 
 android {
-    compileSdk = 32
+    compileSdk = COMPILE_SDK
 
     defaultConfig {
         minSdk = MIN_SDK
@@ -45,8 +48,8 @@ sqldelight {
 }
 
 dependencies {
-    implementation(project(":androidCore:impl"))
-    api(project(":androidCore:sdk"))
+    debugImplementation(project(":androidCore:impl"))
+    releaseImplementation("com.walletconnect:android-core-impl:1.0.0")
 
     timber()
     moshiKsp()
