@@ -109,8 +109,6 @@ object Sign {
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
 
-        data class Blockchain(val chains: List<String>) : Model()
-
         data class UpdatedSession(
             val topic: String,
             val namespaces: Map<String, Namespace.Session>
@@ -185,58 +183,9 @@ object Sign {
 
         // TODO: Maybe convert this into a Builder
         data class Init constructor(
-//            val application: Application,
             val metadata: Model.AppMetaData,
             val relay: RelayConnectionInterface,
-        ) : Params() {
-//            internal lateinit var relayServerUrl: String
-
-//            constructor(
-//                application: Application,
-////                useTls: Boolean,
-////                hostName: String,
-////                projectId: String,
-//                metadata: Model.AppMetaData,
-//                relay: RelayConnectionInterface,
-////                connectionType: ConnectionType = ConnectionType.AUTOMATIC,
-//            ) : this(application, metadata, relay)
-//            {
-//                val relayServerUrl = Uri.Builder().scheme((if (useTls) "wss" else "ws"))
-//                    .authority(hostName)
-//                    .appendQueryParameter("projectId", projectId)
-//                    .build()
-//                    .toString()
-//
-//                require(relayServerUrl.isValidRelayServerUrl()) {
-//                    "Check the schema and projectId parameter of the Server Url"
-//                }
-//
-//                this.relayServerUrl = relayServerUrl
-//            }
-
-//            constructor(
-//                application: Application,
-////                relayServerUrl: String,
-//                metadata: Model.AppMetaData,
-//                relay: RelayConnectionInterface,
-////                connectionType: ConnectionType = ConnectionType.AUTOMATIC,
-//            ) : this(application, metadata, relay)
-//            {
-//
-//            }
-//                require(relayServerUrl.isValidRelayServerUrl()) {
-//                    "Check the schema and projectId parameter of the Server Url"
-//                }
-//
-//                this.relayServerUrl = relayServerUrl
-//            }
-//
-//            private fun String.isValidRelayServerUrl(): Boolean {
-//                return this.isNotBlank() && Uri.parse(this)?.let { relayUrl ->
-//                    arrayOf("wss", "ws").contains(relayUrl.scheme) && !relayUrl.getQueryParameter("projectId").isNullOrBlank()
-//                } ?: false
-//            }
-        }
+        ) : Params()
 
         data class Connect(
             val namespaces: Map<String, Model.Namespace.Proposal>,

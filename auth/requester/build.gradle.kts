@@ -46,7 +46,7 @@ dependencies {
     releaseImplementation("com.walletconnect:android-core:1.0.0")
 
     glide_N_kapt()
-    implementation("com.github.kenglxn.QRGen:android:2.6.0")
+    implementation("com.github.alexzhirkevich:custom-qr-generator:1.4.1")
 
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")

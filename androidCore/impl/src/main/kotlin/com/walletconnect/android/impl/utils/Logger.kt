@@ -6,7 +6,7 @@ import timber.log.Timber
 object Logger {
     const val TAG = "WalletConnectV2"
 
-    init {
+    fun init() {
         if (BuildConfig.DEBUG) {
             // Source: https://medium.com/androiddevnotes/customize-your-android-timber-logger-setup-to-add-a-global-tag-and-a-method-name-to-the-logs-for-e7f23acd844f
             Timber.plant(

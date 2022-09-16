@@ -2,13 +2,13 @@
 
 package com.walletconnect.sign.client
 
-import com.walletconnect.android.RelayConnectionInterface
 import com.walletconnect.android.common.wcKoinApp
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.di.networkModule
+import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.sign.di.commonModule
@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.onEach
 
 internal class SignProtocol : SignInterface {
     private lateinit var signEngine: SignEngine
-    private lateinit var relay: RelayConnectionInterface
 
     companion object {
         val instance = SignProtocol()
@@ -30,10 +29,9 @@ internal class SignProtocol : SignInterface {
     }
 
     override fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
+        Logger.init()
         with(initial) {
             // TODO: re-init scope
-            // TODO: add logic to check hostName for ws/wss scheme with and without ://
-
             wcKoinApp.run {
                 modules(
                     networkModule(relay),

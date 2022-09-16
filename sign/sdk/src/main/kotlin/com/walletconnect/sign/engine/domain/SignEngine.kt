@@ -3,6 +3,8 @@
 package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.android.common.JsonRpcResponse
+import com.walletconnect.android.common.model.Tags
 import com.walletconnect.android.exception.GenericException
 import com.walletconnect.android.exception.WalletConnectException
 import com.walletconnect.android.impl.common.*
@@ -10,7 +12,6 @@ import com.walletconnect.android.impl.common.model.*
 import com.walletconnect.android.impl.common.model.sync.WCRequest
 import com.walletconnect.android.impl.common.model.sync.WCResponse
 import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.crypto.KeyManagementRepository
 import com.walletconnect.android.impl.utils.*
 import com.walletconnect.foundation.common.model.PublicKey
@@ -21,6 +22,7 @@ import com.walletconnect.sign.common.exceptions.client.*
 import com.walletconnect.sign.common.model.type.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.android.impl.common.model.RelayProtocolOptions
+import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
@@ -100,7 +102,7 @@ internal class SignEngine(
             val sessionProposal = toSessionProposeParams(proposedRelays ?: relays, namespaces, selfPublicKey, metaData)
             val request = PairingRpcVO.SessionPropose(id = generateId(), params = sessionProposal)
             sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequest(pairingTopic, request.id, request.method, sessionProposal)
-            val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
+            val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
             relayer.subscribe(pairingTopic)
 
             relayer.publishJsonRpcRequests(pairingTopic, irnParams, request,
@@ -177,7 +179,7 @@ internal class SignEngine(
         val request = sessionProposalRequest[proposerPublicKey]
             ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         relayer.respondWithError(request, PeerError.EIP1193.UserRejectedRequest(reason), irnParams, onFailure = { error -> onFailure(error) })
     }
@@ -201,7 +203,7 @@ internal class SignEngine(
                 sequenceStorageRepository.insertSession(session, requestId)
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
                 val sessionSettle = SessionRpcVO.SessionSettle(id = generateId(), params = params)
-                val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
+                val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
                 relayer.publishJsonRpcRequests(sessionTopic, irnParams, sessionSettle, onFailure = { error -> onFailure(error) })
             } catch (e: SQLiteException) {
@@ -224,7 +226,7 @@ internal class SignEngine(
         relayer.subscribe(sessionTopic)
 
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         relayer.respondWithParams(request, approvalParams, irnParams)
 
@@ -288,7 +290,7 @@ internal class SignEngine(
 
         val params = SessionParamsVO.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
         val sessionPayload = SessionRpcVO.SessionRequest(id = generateId(), params = params)
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_REQUEST, Ttl(FIVE_MINUTES_IN_SECONDS), true)
+        val irnParams = IrnParams(Tags.SESSION_REQUEST, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
         relayer.publishJsonRpcRequests(
             Topic(request.topic),
@@ -313,11 +315,15 @@ internal class SignEngine(
         )
     }
 
-    internal fun respondSessionRequest(topic: String, jsonRpcResponse: com.walletconnect.android.common.JsonRpcResponse, onFailure: (Throwable) -> Unit) {
+    internal fun respondSessionRequest(
+        topic: String,
+        jsonRpcResponse: JsonRpcResponse,
+        onFailure: (Throwable) -> Unit
+    ) {
         if (!sequenceStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         relayer.publishJsonRpcResponse(Topic(topic), irnParams, jsonRpcResponse,
             { Logger.log("Session payload sent successfully") },
@@ -332,27 +338,37 @@ internal class SignEngine(
             sequenceStorageRepository.isSessionValid(Topic(topic)) ->
                 Pair(
                     SessionRpcVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams()),
-                    IrnParams(com.walletconnect.android.common.model.Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
+                    IrnParams(Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
                 )
             sequenceStorageRepository.isPairingValid(Topic(topic)) ->
                 Pair(
                     PairingRpcVO.PairingPing(id = generateId(), params = PairingParamsVO.PingParams()),
-                    IrnParams(com.walletconnect.android.common.model.Tags.PAIRING_PING, Ttl(THIRTY_SECONDS))
+                    IrnParams(Tags.PAIRING_PING, Ttl(THIRTY_SECONDS))
                 )
             else -> throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
         relayer.publishJsonRpcRequests(Topic(topic), irnParams, pingPayload,
             onSuccess = {
+
                 Logger.log("Ping sent successfully")
+
                 scope.launch {
                     try {
                         withTimeout(THIRTY_SECONDS_TIMEOUT) {
                             collectResponse(pingPayload.id) { result ->
                                 cancel()
                                 result.fold(
-                                    onSuccess = { onSuccess(topic) },
-                                    onFailure = { error -> onFailure(error) })
+                                    onSuccess = {
+                                        Logger.log("Ping peer response success")
+                                        onSuccess(topic)
+                                    },
+                                    onFailure = { error ->
+
+                                        Logger.log("Ping peer response error: $error")
+
+                                        onFailure(error)
+                                    })
                             }
                         }
                     } catch (e: TimeoutCancellationException) {
@@ -360,7 +376,12 @@ internal class SignEngine(
                     }
                 }
             },
-            onFailure = { error -> onFailure(error) })
+            onFailure = { error ->
+
+                Logger.log("Ping sent error: $error")
+
+                onFailure(error)
+            })
     }
 
     internal fun emit(topic: String, event: EngineDO.Event, onFailure: (Throwable) -> Unit) {
@@ -384,7 +405,7 @@ internal class SignEngine(
 
         val eventParams = SessionParamsVO.EventParams(SessionEventVO(event.name, event.data), event.chainId)
         val sessionEvent = SessionRpcVO.SessionEvent(id = generateId(), params = eventParams)
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
+        val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
         relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionEvent,
             onSuccess = { Logger.log("Event sent successfully") },
@@ -411,10 +432,10 @@ internal class SignEngine(
         val newExpiration = session.expiry.seconds + WEEK_IN_SECONDS
         sequenceStorageRepository.extendSession(Topic(topic), newExpiration)
         val sessionExtend = SessionRpcVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(newExpiration))
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_EXTEND, Ttl(DAY_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_EXTEND, Ttl(DAY_IN_SECONDS))
 
         relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionExtend,
-            onSuccess = { Logger.error("Session extend sent successfully") },
+            onSuccess = { Logger.log("Session extend sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending session extend error: $error")
                 onFailure(error)
@@ -430,7 +451,7 @@ internal class SignEngine(
         val sessionDelete = SessionRpcVO.SessionDelete(id = generateId(), params = deleteParams)
         sequenceStorageRepository.deleteSession(Topic(topic))
         relayer.unsubscribe(Topic(topic))
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_DELETE, Ttl(DAY_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_DELETE, Ttl(DAY_IN_SECONDS))
 
         relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionDelete,
             onSuccess = { Logger.error("Disconnect sent successfully") },
@@ -451,13 +472,13 @@ internal class SignEngine(
 
     internal fun getPendingRequests(topic: Topic): List<PendingRequest> = relayer.getPendingRequests(topic)
 
-    private suspend fun collectResponse(id: Long, onResponse: (Result<com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult>) -> Unit = {}) {
+    private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit = {}) {
         relayer.peerResponse
             .filter { response -> response.response.id == id }
             .collect { response ->
                 when (val result = response.response) {
-                    is com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult -> onResponse(Result.success(result))
-                    is com.walletconnect.android.common.JsonRpcResponse.JsonRpcError -> onResponse(Result.failure(Throwable(result.errorMessage)))
+                    is JsonRpcResponse.JsonRpcResult -> onResponse(Result.success(result))
+                    is JsonRpcResponse.JsonRpcError -> onResponse(Result.failure(Throwable(result.errorMessage)))
                 }
             }
     }
@@ -502,7 +523,7 @@ internal class SignEngine(
     // listened by WalletDelegate
     private fun onSessionPropose(request: WCRequest, payloadParams: PairingParamsVO.SessionProposeParams) {
         Validator.validateProposalNamespace(payloadParams.namespaces) { error ->
-            val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+            val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
             relayer.respondWithError(request, error.toPeerError(), irnParams)
             return
         }
@@ -517,7 +538,7 @@ internal class SignEngine(
         val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
         val peerMetadata = settleParams.controller.metadata
         val proposal = sessionProposalRequest[selfPublicKey.keyAsHex] ?: return
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         if (proposal.params !is PairingParamsVO.SessionProposeParams) {
             relayer.respondWithError(request, PeerError.Failure.SessionSettlementFailed(NAMESPACE_MISSING_PROPOSAL_MESSAGE), irnParams)
@@ -541,7 +562,7 @@ internal class SignEngine(
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
             sequenceStorageRepository.insertSession(session, request.id)
 
-            relayer.respondWithSuccess(request, IrnParams(com.walletconnect.android.common.model.Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
+            relayer.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
             scope.launch { _engineEvent.emit(session.toSessionApproved()) }
         } catch (e: SQLiteException) {
             sessionProposalRequest[selfPublicKey.keyAsHex] = tempProposalRequest
@@ -554,7 +575,7 @@ internal class SignEngine(
     // TODO: Not listened by a delegate, should remove?
     private fun onPairingDelete(request: WCRequest, params: PairingParamsVO.DeleteParams) {
         if (!sequenceStorageRepository.isPairingValid(request.topic)) {
-            val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.PAIRING_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
+            val irnParams = IrnParams(Tags.PAIRING_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
             relayer.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.PAIRING.name, request.topic.value), irnParams)
             return
         }
@@ -569,7 +590,7 @@ internal class SignEngine(
     // listened by WalletDelegate
     private fun onSessionDelete(request: WCRequest, params: SessionParamsVO.DeleteParams) {
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
+            val irnParams = IrnParams(Tags.SESSION_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
             relayer.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
         }
@@ -583,7 +604,7 @@ internal class SignEngine(
 
     // listened by WalletDelegate
     private fun onSessionRequest(request: WCRequest, params: SessionParamsVO.SessionRequestParams) {
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         Validator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->
             relayer.respondWithError(request, error.toPeerError(), irnParams)
             return
@@ -608,7 +629,7 @@ internal class SignEngine(
 
     // listened by DappDelegate
     private fun onSessionEvent(request: WCRequest, params: SessionParamsVO.EventParams) {
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_EVENT_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_EVENT_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         Validator.validateEvent(params.toEngineDOEvent()) { error ->
             relayer.respondWithError(request, error.toPeerError(), irnParams)
             return
@@ -641,7 +662,7 @@ internal class SignEngine(
 
     // listened by DappDelegate
     private fun onSessionUpdate(request: WCRequest, params: SessionParamsVO.UpdateNamespacesParams) {
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_UPDATE_RESPONSE, Ttl(DAY_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_UPDATE_RESPONSE, Ttl(DAY_IN_SECONDS))
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
             relayer.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
@@ -680,7 +701,7 @@ internal class SignEngine(
 
     // listened by DappDelegate
     private fun onSessionExtend(request: WCRequest, requestParams: SessionParamsVO.ExtendParams) {
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_EXTEND_RESPONSE, Ttl(DAY_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_EXTEND_RESPONSE, Ttl(DAY_IN_SECONDS))
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
             relayer.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
@@ -704,7 +725,7 @@ internal class SignEngine(
     }
 
     private fun onPing(request: WCRequest) {
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_PING_RESPONSE, Ttl(THIRTY_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_PING_RESPONSE, Ttl(THIRTY_SECONDS))
         relayer.respondWithSuccess(request, irnParams)
     }
 
@@ -718,7 +739,7 @@ internal class SignEngine(
         }
 
         when (val response = wcResponse.response) {
-            is com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult -> {
+            is JsonRpcResponse.JsonRpcResult -> {
                 Logger.log("Session proposal approve received")
                 val selfPublicKey = PublicKey(params.proposer.publicKey)
                 val approveParams = response.result as SessionParamsVO.ApprovalParams
@@ -726,7 +747,7 @@ internal class SignEngine(
                 val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
                 relayer.subscribe(sessionTopic)
             }
-            is com.walletconnect.android.common.JsonRpcResponse.JsonRpcError -> {
+            is JsonRpcResponse.JsonRpcError -> {
                 if (!pairing.isActive) sequenceStorageRepository.deletePairing(pairingTopic)
                 Logger.log("Session proposal reject received: ${response.error}")
                 scope.launch { _engineEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
@@ -741,13 +762,13 @@ internal class SignEngine(
         val session = sequenceStorageRepository.getSessionByTopic(sessionTopic)
 
         when (wcResponse.response) {
-            is com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult -> {
+            is JsonRpcResponse.JsonRpcResult -> {
                 Logger.log("Session settle success received")
                 sequenceStorageRepository.acknowledgeSession(sessionTopic)
                 scope.launch { _engineEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDO())) }
             }
-            is com.walletconnect.android.common.JsonRpcResponse.JsonRpcError -> {
-                Logger.error("Peer failed to settle session: ${(wcResponse.response as com.walletconnect.android.common.JsonRpcResponse.JsonRpcError).errorMessage}")
+            is JsonRpcResponse.JsonRpcError -> {
+                Logger.error("Peer failed to settle session: ${(wcResponse.response as JsonRpcResponse.JsonRpcError).errorMessage}")
                 relayer.unsubscribe(sessionTopic)
                 sequenceStorageRepository.deleteSession(sessionTopic)
                 crypto.removeKeys(sessionTopic.value)
@@ -765,7 +786,7 @@ internal class SignEngine(
         }
 
         when (val response = wcResponse.response) {
-            is com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult -> {
+            is JsonRpcResponse.JsonRpcResult -> {
                 Logger.log("Session update namespaces response received")
                 val responseId = wcResponse.response.id
                 val namespaces = sequenceStorageRepository.getTempNamespaces(responseId)
@@ -786,7 +807,7 @@ internal class SignEngine(
                         scope.launch { _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error("Unable to update the session")) }
                     })
             }
-            is com.walletconnect.android.common.JsonRpcResponse.JsonRpcError -> {
+            is JsonRpcResponse.JsonRpcError -> {
                 Logger.error("Peer failed to update session namespaces: ${response.error}")
                 scope.launch { _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error(response.errorMessage)) }
             }
@@ -796,8 +817,8 @@ internal class SignEngine(
     // listened by DappDelegate
     private fun onSessionRequestResponse(response: WCResponse, params: SessionParamsVO.SessionRequestParams) {
         val result = when (response.response) {
-            is com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult -> (response.response as com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult).toEngineDO()
-            is com.walletconnect.android.common.JsonRpcResponse.JsonRpcError -> (response.response as com.walletconnect.android.common.JsonRpcResponse.JsonRpcError).toEngineDO()
+            is JsonRpcResponse.JsonRpcResult -> (response.response as JsonRpcResponse.JsonRpcResult).toEngineDO()
+            is JsonRpcResponse.JsonRpcError -> (response.response as JsonRpcResponse.JsonRpcError).toEngineDO()
         }
         val method = params.request.method
         scope.launch { _engineEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }

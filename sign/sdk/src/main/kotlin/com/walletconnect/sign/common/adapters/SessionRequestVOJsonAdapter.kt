@@ -43,10 +43,12 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
                                 val jsonArray = upsertArray(JSONArray(), paramsMapEntry.value as List<*>).toString()
 
                                 "\"$key\":$jsonArray"
-                            } else {
-                                val jsonObject = upsertObject(JSONObject(), paramsMapEntry as Map<*, *>)
+                            } else if (paramsMapEntry.value is Map<*, *>) {
+                                val jsonObject = upsertObject(JSONObject(), paramsMapEntry.value as Map<*, *>)
 
                                 "\"$key\":$jsonObject"
+                            } else {
+                                upsertObject(JSONObject(), paramsMap).toString()
                             }
                         } else {
                             upsertObject(JSONObject(), paramsMap).toString()

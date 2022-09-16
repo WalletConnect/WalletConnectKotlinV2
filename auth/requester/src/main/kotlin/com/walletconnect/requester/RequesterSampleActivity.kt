@@ -11,10 +11,6 @@ class RequesterSampleActivity : AppCompatActivity(R.layout.activity_requester) {
         supportFragmentManager.findFragmentById(R.id.fcvHost) as NavHostFragment
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        NavigationUI.setupActionBarWithNavController(this, navHostFragment.navController)
-    }
 
     override fun onSupportNavigateUp(): Boolean {
         return navHostFragment.navController.navigateUp() || super.onSupportNavigateUp()

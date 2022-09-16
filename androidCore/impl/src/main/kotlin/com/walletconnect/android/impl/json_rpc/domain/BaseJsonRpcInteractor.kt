@@ -42,7 +42,7 @@ open class BaseJsonRpcInteractor(
     private val _internalErrors = MutableSharedFlow<InternalError>()
     val internalErrors: SharedFlow<InternalError> = _internalErrors.asSharedFlow()
 
-    val isConnectionAvailable: StateFlow<Boolean> = relay.isConnectionAvailable
+    val isConnectionAvailable: StateFlow<Boolean> get() = relay.isConnectionAvailable
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> handleError(exception.message ?: String.Empty) }
@@ -91,7 +91,7 @@ open class BaseJsonRpcInteractor(
         onFailure: (Throwable) -> Unit = {},
         participants: Participants? = null,
         envelopeType: EnvelopeType = EnvelopeType.ZERO,
-        ) {
+    ) {
         checkConnectionWorking()
 
         val jsonResponseDO = response.toJsonRpcResponse()
@@ -128,7 +128,7 @@ open class BaseJsonRpcInteractor(
         irnParams: IrnParams,
         envelopeType: EnvelopeType = EnvelopeType.ZERO,
         participants: Participants? = null,
-        ) {
+    ) {
         val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = true)
 
         try {
@@ -166,7 +166,7 @@ open class BaseJsonRpcInteractor(
         relay.subscribe(topic.value) { result ->
             result.fold(
                 onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result },
-                onFailure = { error -> Logger.error("Subscribe to topic: $topic error: $error") }
+                onFailure = { error -> Logger.error("Subscribe to topic error: $topic error: $error") }
             )
         }
     }
@@ -195,8 +195,7 @@ open class BaseJsonRpcInteractor(
                     val message = chaChaPolyCodec.decrypt(topic, relayRequest.message)
 
                     Pair(message, topic)
-                }
-                .collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
+                }.collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
         }
     }
 

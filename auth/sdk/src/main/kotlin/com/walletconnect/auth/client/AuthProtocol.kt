@@ -2,13 +2,13 @@
 
 package com.walletconnect.auth.client
 
-import com.walletconnect.android.RelayConnectionInterface
 import com.walletconnect.android.common.wcKoinApp
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.di.networkModule
+import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Events
@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.onEach
 
 internal class AuthProtocol : AuthInterface {
     private lateinit var authEngine: AuthEngine
-    private lateinit var relay: RelayConnectionInterface
 
     companion object {
         val instance = AuthProtocol()
@@ -31,8 +30,7 @@ internal class AuthProtocol : AuthInterface {
 
     @Throws(IllegalStateException::class)
     override fun initialize(init: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit) {
-        this.relay = init.relay
-
+        Logger.init()
         with(init) {
             wcKoinApp.run {
                 modules(
@@ -114,11 +112,11 @@ internal class AuthProtocol : AuthInterface {
         return authEngine.getPendingRequests().toClient()
     }
 
-    @Throws(IllegalStateException::class)
-    override fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response? {
-        checkEngineInitialization()
-        return authEngine.getResponseById(params.id)?.toClient()
-    }
+//    @Throws(IllegalStateException::class)
+//    override fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response? {
+//        checkEngineInitialization()
+//        return authEngine.getResponseById(params.id)?.toClient()
+//    }
 
     @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {

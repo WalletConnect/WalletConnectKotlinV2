@@ -1,21 +1,38 @@
 package com.walletconnect.requester.ui.session
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.walletconnect.requester.R
-import com.walletconnect.sample_common.Chains
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 class SessionViewModel : ViewModel() {
     private val _uiState: MutableStateFlow<SessionDetailsUI> = MutableStateFlow(getSession())
     val uiState: StateFlow<SessionDetailsUI> = _uiState.asStateFlow()
 
-    //todo: Reimplement fetching getting cacao. Right now only for demo purposes
-    private fun getSession(): SessionDetailsUI =
-        if (CacaoStore.currentCacao != null) {
-            SessionDetailsUI(R.drawable.ic_ethereum, Chains.ETHEREUM_MAIN.chainName, CacaoStore.currentCacao!!.payload.address)
+    fun getSession(): SessionDetailsUI {
+        return if (CacaoStore.currentCacao != null) {
+            FetchingUI(CacaoStore.currentCacao!!.payload.address)
         } else {
-            SessionDetailsUI(R.drawable.ic_ethereum, Chains.ETHEREUM_MAIN.chainName, "0x5496858C1f2f469Eb6A6D378C332e7a4E1dc1B4D")
+            FetchingUI(INVALID_CACAO)
         }
+    }
+
+    fun fetchData() {
+        viewModelScope.launch {
+            delay(2000L)
+            _uiState.value = if (CacaoStore.currentCacao != null) {
+                ConnectedUI(R.drawable.app_icon_round, CacaoStore.currentCacao!!.payload.address)
+            } else {
+                ConnectedUI(R.drawable.app_icon_round, INVALID_CACAO)
+            }
+        }
+    }
+
+    companion object {
+        const val INVALID_CACAO = "Invalid Cacao state"
+    }
 }
