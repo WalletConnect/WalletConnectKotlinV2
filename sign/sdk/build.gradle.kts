@@ -4,7 +4,6 @@ plugins {
     id("com.squareup.sqldelight")
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
-    id("com.kezong.fat-aar")
 }
 
 project.apply {
@@ -62,7 +61,8 @@ sqldelight {
 }
 
 dependencies {
-    embed(project(":androidCore:impl"))
+    debugImplementation(project(":androidCore:impl"))
+    releaseImplementation("com.walletconnect:android-core-impl:1.0.0")
 
     moshiKsp()
     androidXTest()
