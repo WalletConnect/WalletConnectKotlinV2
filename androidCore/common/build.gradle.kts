@@ -47,14 +47,9 @@ sqldelight {
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
 dependencies {
-    api(project(":foundation"))
-//    debugApi(project(":foundation"))
-//    releaseApi("com.walletconnect:foundation:1.0.0")
+    debugApi(project(":foundation"))
+    releaseApi("com.walletconnect:foundation:1.0.0")
 
     bouncyCastle()
     coroutines()

@@ -19,6 +19,7 @@ afterEvaluate {
                 from(components["java"])
                 artifact(tasks.getByName("javadocJar"))
 
+                groupId = "com.walletconnect"
                 artifactId = requireNotNull(extra.get(KEY_PUBLISH_ARTIFACT_ID)).toString()
                 version = requireNotNull(extra.get(KEY_PUBLISH_VERSION)).toString()
 

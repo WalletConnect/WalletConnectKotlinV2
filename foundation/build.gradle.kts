@@ -24,8 +24,7 @@ tasks.withType<KotlinCompile>() {
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+tasks.withType<Test>() {
     systemProperty("SDK_VERSION", System.getenv("SDK_VERSION") ?: "2.0.0-rc.2") // todo: Automate versioning
     systemProperty("TEST_RELAY_URL", System.getenv("TEST_RELAY_URL"))
     systemProperty("TEST_PROJECT_ID", System.getenv("TEST_RELAY_URL"))

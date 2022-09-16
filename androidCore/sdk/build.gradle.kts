@@ -39,9 +39,8 @@ android {
 }
 
 dependencies {
-    api(project(":androidCore:common"))
-//    debugApi(project(":androidCore:common"))
-//    releaseApi("com.walletconnect:android-core-common:1.0.0")
+    debugApi(project(":androidCore:common"))
+    releaseApi("com.walletconnect:android-core-common:1.0.0")
 
     koinAndroid()
 }

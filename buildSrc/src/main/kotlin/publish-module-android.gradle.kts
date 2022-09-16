@@ -1,4 +1,5 @@
 import com.android.build.gradle.BaseExtension
+import com.android.build.gradle.LibraryExtension
 
 plugins {
     `maven-publish`
@@ -15,20 +16,25 @@ tasks {
 
     register("sourcesJar", Jar::class) {
         archiveClassifier.set("sources")
-        from(extensions.findByType<BaseExtension>()?.sourceSets?.getByName("main")?.java?.srcDirs)
+        from(project.extensions.getByType<BaseExtension>().sourceSets.getByName("main").java.srcDirs)
     }
+}
+
+(project as ExtensionAware).extensions.configure<LibraryExtension>("android") {
+    publishing.singleVariant("release")
 }
 
 afterEvaluate {
     publishing {
         publications {
-            register<MavenPublication>("mavenAndroid") {
+            register<MavenPublication>("release") {
                 afterEvaluate { from(components["release"]) }
                 artifact(tasks.getByName("javadocJar"))
                 artifact(tasks.getByName("sourcesJar"))
 
-                artifactId = requireNotNull(extra.get(KEY_PUBLISH_ARTIFACT_ID)).toString()
-                version = requireNotNull(extra.get(KEY_PUBLISH_VERSION)).toString()
+                groupId = "com.walletconnect"
+                artifactId = requireNotNull(project.extra[KEY_PUBLISH_ARTIFACT_ID]).toString()
+                version = requireNotNull(project.extra[KEY_PUBLISH_VERSION]).toString()
 
                 pom {
                     name.set("WalletConnect ${requireNotNull(extra.get(KEY_SDK_NAME))}")

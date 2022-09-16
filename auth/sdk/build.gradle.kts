@@ -13,10 +13,6 @@ project.apply {
     extra[KEY_SDK_NAME] = "Auth"
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
 android {
     compileSdk = 32
 
