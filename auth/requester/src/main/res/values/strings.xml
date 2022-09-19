@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Requester</string>
+    <string name="displayed_description"><![CDATA[This is a simple example app made to demonstrate the <b>WalletConnect Auth API</b>]]></string>
+</resources>

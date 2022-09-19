@@ -1,20 +1,17 @@
 rootProject.name = "WalletConnect"
 
-include(":showcase")
+val excludedDirs = listOf(".idea", ".git", "build", ".gradle", ".github", "buildSrc", "gradle", "docs", "licenses")
+// TODO: Add to rootModules when new module is added to the project root directory
+val rootModules = listOf("showcase", "foundation")
 
-val wcModules = mapOf(
-    "signSDK" to listOf("dapp", "samples_common", "wallet", "sign"),
-    "chatSDK" to listOf("chat", "chatsample")
-)
-
-wcModules.forEach { (projectDirName, listOfModules) ->
-    listOfModules.forEach { moduleName ->
-        include(":$moduleName")
-    }
-
-    with(File(rootDir, projectDirName)) {
-        listOfModules.forEach { moduleName ->
-            project(":$moduleName").projectDir = resolve(moduleName)
+File(rootDir.path).listFiles { file -> file.isDirectory && file.name !in excludedDirs }?.forEach { childDir ->
+    if (childDir.name !in rootModules) {
+        childDir.listFiles { dir -> dir.isDirectory && dir.name !in excludedDirs}?.forEach { moduleDir ->
+            val module = ":${moduleDir.parentFile.name}:${moduleDir.name}"
+            include(module)
+            project(module).projectDir = moduleDir
         }
+    } else {
+        include(":${childDir.name}")
     }
 }

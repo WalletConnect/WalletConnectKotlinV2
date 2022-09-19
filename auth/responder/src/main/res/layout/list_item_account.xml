@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="65dp"
+    tools:background="@color/background">
+
+    <ImageView
+        android:id="@+id/ivChainIcon"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="4dp"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@tools:sample/avatars"
+        app:tint="@color/gray"
+        android:tintMode="multiply"/>
+
+    <TextView
+        android:id="@+id/tvChainName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/tvChainAddress"
+        app:layout_constraintStart_toEndOf="@id/ivChainIcon"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Ethereum" />
+
+    <TextView
+        android:id="@+id/tvChainAddress"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="4dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+        android:textColor="@color/white"
+        android:textSize="11sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/tvChainName"
+        app:layout_constraintTop_toBottomOf="@+id/tvChainName"
+        app:layout_constraintVertical_bias="0"
+        tools:text="0x726b4Bc9C0e3A47f0c722C45CC7e7F0fFAf8134c" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

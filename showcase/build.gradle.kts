@@ -4,12 +4,12 @@ plugins {
 }
 
 android {
-    compileSdk = 32
+    compileSdk = COMPILE_SDK
 
     defaultConfig {
         applicationId = "com.walletconnect.showcase"
         minSdk = MIN_SDK
-        targetSdk = 32
+        targetSdk = TARGET_SDK
         versionCode = 1
         versionName = "1.0"
 
@@ -32,7 +32,6 @@ android {
 }
 
 dependencies {
-
     implementation("androidx.core:core-ktx:1.8.0")
     implementation("androidx.appcompat:appcompat:1.4.2")
     implementation("com.google.android.material:material:1.6.1")
