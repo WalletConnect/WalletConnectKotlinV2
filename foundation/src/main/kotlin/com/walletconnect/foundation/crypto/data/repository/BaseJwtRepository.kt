@@ -21,8 +21,7 @@ import java.security.SecureRandom
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-abstract class BaseJwtRepository: JwtRepository {
-
+abstract class BaseJwtRepository : JwtRepository {
     abstract fun setKeyPair(key: String, privateKey: PrivateKey, publicKey: PublicKey)
 
     open fun getKeyPair(): Pair<String, String> {
@@ -34,12 +33,13 @@ abstract class BaseJwtRepository: JwtRepository {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(signature)
     }
 
-    override fun generateJWT(serverUrl: String): String {
+    override fun generateJWT(serverUrl: String, getIssuer: (String) -> Unit): String {
         val subject = generateSubject()
         val (publicKey, privateKey) = getKeyPair()
         val privateKeyParameters = Ed25519PrivateKeyParameters(privateKey.hexToBytes())
 
         val issuer = encodeIss(publicKey.hexToBytes())
+        getIssuer(issuer)
         val issuedAt = TimeUnit.SECONDS.convert(getCurrentTimestamp(), TimeUnit.MILLISECONDS)
         val expiration = jwtExp(issuedAt)
         val payload = IrnJWTPayload(issuer, subject, serverUrl, issuedAt, expiration)

@@ -2,14 +2,13 @@
 
 package com.walletconnect.auth.common.model
 
-import com.walletconnect.android.common.model.Expiry
 import com.walletconnect.android.impl.common.model.MetaData
 import com.walletconnect.android.impl.common.model.RelayProtocolOptions
+import com.walletconnect.android.impl.common.model.type.Sequence
 import com.walletconnect.android.impl.utils.ACTIVE_PAIRING
 import com.walletconnect.android.impl.utils.INACTIVE_PAIRING
-import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.android.impl.common.model.type.Sequence
 import com.walletconnect.auth.engine.mapper.toAbsoluteString
+import com.walletconnect.foundation.common.model.Topic
 
 internal data class Pairing(
     override val topic: Topic,
