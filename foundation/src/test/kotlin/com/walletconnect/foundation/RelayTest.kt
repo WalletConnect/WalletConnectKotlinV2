@@ -201,9 +201,13 @@ class RelayTest {
             }
         }.launchIn(testScope)
 
-        while (!areBothReady.value) {
+        //Lock until is finished or timed out
+        val start = System.currentTimeMillis()
+        while (!areBothReady.value && !didTimeout(start, 10000L)) {
             delay(10)
         }
+
+        if (didTimeout(start, 10000L)) { throw Exception("Unable to establish socket connection") }
 
         clientAJob.cancel()
         clientBJob.cancel()
