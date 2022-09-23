@@ -36,12 +36,14 @@ val Neighbors.hasHorizontal: Boolean
 class HorizontalStripesShape(
     @FloatRange(from = .5, to = 1.0)
     private val width: Float = .8f,
+    @FloatRange(from = .0, to = .5)
+    private val corner: Float = .5f,
 ) : QrPixelShape {
     override fun invoke(i: Int, j: Int, elementSize: Int, neighbors: Neighbors): Boolean {
         val shape: QrPixelShape = when {
             neighbors.hasHorizontal -> WidthShape(width = width)
-            neighbors.left -> RoundCornersWidthShape(corner = .5f, width = width, bottomLeft = false, topLeft = false)
-            neighbors.right -> RoundCornersWidthShape(corner = .5f, width = width, bottomRight = false, topRight = false)
+            neighbors.left -> RoundCornersWidthShape(corner = corner, width = width, bottomLeft = false, topLeft = false)
+            neighbors.right -> RoundCornersWidthShape(corner = corner, width = width, bottomRight = false, topRight = false)
             else -> QrPixelShape.Circle(size = width)
         }
         return shape.invoke(i, j, elementSize, neighbors)
