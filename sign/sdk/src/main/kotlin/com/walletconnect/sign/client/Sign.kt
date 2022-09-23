@@ -1,6 +1,6 @@
 package com.walletconnect.sign.client
 
-import com.walletconnect.android.RelayConnectionInterface
+import com.walletconnect.android.relay.RelayConnectionInterface
 import java.net.URI
 
 object Sign {
@@ -193,6 +193,7 @@ object Sign {
             val pairingTopic: String? = null,
         ) : Params()
 
+        @Deprecated("Creating a pair param will be moved to Core to make pairing SDK agnostic", ReplaceWith("Core.Params.Pair", "com.walletconnect.android.Core"))
         data class Pair(val uri: String) : Params()
 
         data class Approve(
@@ -219,6 +220,7 @@ object Sign {
             val namespaces: Map<String, Model.Namespace.Session>,
         ) : Params()
 
+        @Deprecated("Creating a ping param will be moved to Core to make pairing SDK agnostic", ReplaceWith("Core.Params.Ping", "com.walletconnect.android.Core"))
         data class Ping(val topic: String) : Params()
 
         data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String) :

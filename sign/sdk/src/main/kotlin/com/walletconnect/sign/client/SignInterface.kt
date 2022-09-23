@@ -39,7 +39,12 @@ interface SignInterface {
         onError: (Sign.Model.Error) -> Unit,
     )
 
+    @Deprecated("Creating a pairing will be moved to CoreClient to make pairing SDK agnostic", ReplaceWith("CoreClient.pair()", "com.walletconnect.android.CoreClient"))
     fun pair(pair: Sign.Params.Pair, onError: (Sign.Model.Error) -> Unit)
+
+    @Deprecated("Pinging a pairing will be moved to CoreClient to make pairing SDK agnostic", ReplaceWith("CoreClient.ping()", "com.walletconnect.android.CoreClient"))
+    fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing? = null)
+
     fun approveSession(approve: Sign.Params.Approve, onError: (Sign.Model.Error) -> Unit)
     fun rejectSession(reject: Sign.Params.Reject, onError: (Sign.Model.Error) -> Unit)
     fun request(request: Sign.Params.Request, onError: (Sign.Model.Error) -> Unit)
@@ -47,7 +52,6 @@ interface SignInterface {
     fun update(update: Sign.Params.Update, onError: (Sign.Model.Error) -> Unit)
     fun extend(extend: Sign.Params.Extend, onError: (Sign.Model.Error) -> Unit)
     fun emit(emit: Sign.Params.Emit, onError: (Sign.Model.Error) -> Unit)
-    fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing? = null)
     fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit)
     fun getListOfSettledSessions(): List<Sign.Model.Session>
     fun getSettledSessionByTopic(topic: String): Sign.Model.Session?

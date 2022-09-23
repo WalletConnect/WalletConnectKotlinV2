@@ -1,6 +1,6 @@
 package com.walletconnect.auth.client
 
-import com.walletconnect.android.RelayConnectionInterface
+import com.walletconnect.android.relay.RelayConnectionInterface
 
 object Auth {
 

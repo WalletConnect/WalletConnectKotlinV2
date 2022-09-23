@@ -2,7 +2,7 @@ package com.walletconnect.responder
 
 import android.app.Application
 import android.util.Log
-import com.walletconnect.android.RelayClient
+import com.walletconnect.android.CoreClient
 import com.walletconnect.android.connection.ConnectionType
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
@@ -16,11 +16,11 @@ class ResponderApplication : Application() {
         super.onCreate()
 
         val serverUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
-        RelayClient.initialize(relayServerUrl = serverUrl, connectionType = ConnectionType.AUTOMATIC, application = this)
+        CoreClient.initialize(relayServerUrl = serverUrl, connectionType = ConnectionType.AUTOMATIC, application = this)
 
         AuthClient.initialize(
             init = Auth.Params.Init(
-                relay = RelayClient,
+                relay = CoreClient,
                 appMetaData = Auth.Model.AppMetaData(
                     name = "Kotlin.Responder",
                     description = "Kotlin AuthSDK Responder Implementation",

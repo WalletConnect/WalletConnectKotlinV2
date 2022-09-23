@@ -1,4 +1,4 @@
-package com.walletconnect.android
+package com.walletconnect.android.relay
 
 import com.walletconnect.android.exception.WalletConnectException
 import com.walletconnect.foundation.network.RelayInterface
