@@ -1,15 +1,13 @@
 package com.walletconnect.android.impl.storage
 
-import android.content.SharedPreferences
 import com.walletconnect.android.impl.json_rpc.model.JsonRpcHistoryRecord
 import com.walletconnect.android.impl.storage.data.dao.JsonRpcHistoryQueries
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 
 class JsonRpcHistory(
-    private val sharedPreferences: SharedPreferences,
     private val jsonRpcHistoryQueries: JsonRpcHistoryQueries,
-    private val logger: Logger
+    private val logger: Logger,
 ) {
 
     fun setRequest(requestId: Long, topic: Topic, method: String, payload: String): Boolean {
@@ -47,10 +45,6 @@ class JsonRpcHistory(
         }
 
     fun deleteRecordsByTopic(topic: Topic) {
-        sharedPreferences.all.entries
-            .filter { entry -> entry.value == topic.value }
-            .forEach { entry -> sharedPreferences.edit().remove(entry.key).apply() }
-
         jsonRpcHistoryQueries.deleteJsonRpcHistory(topic.value)
     }
 
