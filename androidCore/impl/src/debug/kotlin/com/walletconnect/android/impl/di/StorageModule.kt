@@ -14,12 +14,6 @@ inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Sc
 
     includes(baseStorageModule<T>())
 
-    single<SharedPreferences>(named(AndroidCoreDITags.RPC_STORE)) {
-        val sharedPrefsFile = "wc_rpc_store$storageSuffix"
-
-        androidContext().getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE)
-    }
-
     single<SqlDriver> {
         AndroidSqliteDriver(
             schema = databaseSchema,

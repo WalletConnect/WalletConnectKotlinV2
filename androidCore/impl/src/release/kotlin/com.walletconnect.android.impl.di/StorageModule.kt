@@ -28,23 +28,6 @@ inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Sc
 
     includes(baseStorageModule<T>())
 
-    single(named(AndroidCoreDITags.RPC_STORE_ALIAS)) {
-        val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
-        MasterKeys.getOrCreate(keyGenParameterSpec)
-    }
-
-    single(named(AndroidCoreDITags.RPC_STORE)) {
-        val sharedPrefsFile = "wc_rpc_store$storageSuffix"
-
-        EncryptedSharedPreferences.create(
-            sharedPrefsFile,
-            get(named(AndroidCoreDITags.RPC_STORE_ALIAS)),
-            androidContext(),
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-    }
-
     single<KeyStore> {
         KeyStore.getInstance("AndroidKeyStore").apply {
             load(null)
@@ -58,7 +41,7 @@ inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Sc
     }
 
     single(named(AndroidCoreDITags.DB_ALIAS)) {
-        val alias = "_wc_db_key_"
+        val alias = "_wc_db_key_" // TODO: add storageSuffix to alias
         val keySize = 256
         val keyGenParameterSpec = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
             .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
@@ -66,6 +49,7 @@ inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Sc
             .setKeySize(keySize)
             .build()
 
+        // TODO: Replace with new MasterKey API
         MasterKeys.getOrCreate(keyGenParameterSpec)
     }
 
