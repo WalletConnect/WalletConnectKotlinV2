@@ -3,18 +3,19 @@
 package com.walletconnect.auth.engine.domain
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.android.exception.WalletConnectException
+import com.walletconnect.android.common.model.metadata.RelayProtocolOptions
+import com.walletconnect.android.common.exception.WalletConnectException
 import com.walletconnect.android.impl.common.*
 import com.walletconnect.android.impl.common.model.*
-import com.walletconnect.android.impl.common.model.sync.WCRequest
-import com.walletconnect.android.impl.common.model.sync.WCResponse
-import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.common.model.type.enums.EnvelopeType
+import com.walletconnect.android.common.model.sync.WCRequest
+import com.walletconnect.android.common.model.EngineEvent
 import com.walletconnect.android.impl.common.scope.scope
-import com.walletconnect.android.impl.crypto.KeyManagementRepository
-import com.walletconnect.android.impl.utils.ACTIVE_PAIRING
-import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
-import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.common.crypto.KeyManagementRepository
+import com.walletconnect.android.common.constants.ACTIVE_PAIRING
+import com.walletconnect.android.common.constants.DAY_IN_SECONDS
+import com.walletconnect.android.common.constants.MALFORMED_PAIRING_URI_MESSAGE
+import com.walletconnect.android.common.constants.PAIRING_NOW_ALLOWED_MESSAGE
+import com.walletconnect.android.common.model.*
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException
 import com.walletconnect.auth.common.exceptions.MissingAuthRequestException
@@ -29,10 +30,11 @@ import com.walletconnect.auth.signature.CacaoType
 import com.walletconnect.auth.signature.cacao.CacaoVerifier
 import com.walletconnect.auth.storage.AuthStorageRepository
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.util.generateId
-import com.walletconnect.utils.isSequenceValid
+import com.walletconnect.utils.isNotExpired
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
@@ -87,7 +89,7 @@ internal class AuthEngine(
             val authParams: AuthParams.RequestParams =
                 AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams)
             val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
-            val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
+            val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
             relayer.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
                 onSuccess = {
                     Logger.log("Auth request sent successfully on topic:$pairingTopic, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
@@ -160,7 +162,7 @@ internal class AuthEngine(
         val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
         crypto.setSymmetricKey(responseTopic, symmetricKey)
 
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
+        val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
         relayer.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
             onSuccess = { Logger.log("Success Responded on topic: $responseTopic") },
@@ -196,7 +198,7 @@ internal class AuthEngine(
                 _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, formattedMessage))
             }
         } else {
-            val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
+            val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
             relayer.respondWithError(wcRequest, PeerError.MissingIssuer, irnParams)
         }
     }
@@ -276,7 +278,7 @@ internal class AuthEngine(
 
     private fun resubscribeToPairings() {
         val (listOfExpiredPairing, listOfValidPairing) =
-            storage.getListOfPairingVOs().partition { pairing -> !pairing.expiry.isSequenceValid() }
+            storage.getListOfPairingVOs().partition { pairing -> !pairing.expiry.isNotExpired() }
 
         listOfExpiredPairing
             .map { pairing -> pairing.topic }

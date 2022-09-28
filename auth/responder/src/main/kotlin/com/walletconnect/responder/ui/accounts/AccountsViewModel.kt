@@ -3,6 +3,8 @@ package com.walletconnect.responder.ui.accounts
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.android.Core
+import com.walletconnect.android.CoreClient
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.responder.domain.ResponderDelegate
@@ -35,8 +37,8 @@ class AccountsViewModel : ViewModel() {
     }
 
     fun pair(pairingUri: String) {
-        val pairingParams = Auth.Params.Pair(pairingUri)
-        AuthClient.pair(pairingParams) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
+        val pairingParams = Core.Params.Pair(pairingUri)
+        CoreClient.pair(pairingParams) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
     }
 
     fun newAccountClicked(selectedAccountIndex: Int) {

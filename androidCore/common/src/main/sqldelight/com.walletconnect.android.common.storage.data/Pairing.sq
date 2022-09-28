@@ -1,0 +1,48 @@
+CREATE TABLE Pairing (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    topic TEXT UNIQUE NOT NULL,
+    expiry INTEGER NOT NULL,
+    relay_protocol TEXT NOT NULL,
+    relay_data TEXT,
+    uri TEXT NOT NULL,
+    is_active INTEGER AS Boolean NOT NULL
+);
+
+insertOrAbortPairing:
+INSERT OR ABORT INTO Pairing(topic, expiry, relay_protocol,  relay_data, uri, is_active)
+VALUES (?,?,?,?,?,?);
+
+getListOfPairing:
+SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, pd.is_active
+FROM Pairing pd
+    LEFT JOIN MetaData mdd_peer ON pd.topic = mdd_peer.sequence_topic AND mdd_peer.type = "PEER";
+
+getPairingByTopic:
+SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, pd.is_active
+FROM Pairing pd
+LEFT JOIN MetaData mdd_peer ON pd.topic = mdd_peer.sequence_topic AND mdd_peer.type = "PEER"
+WHERE ? = topic;
+
+deletePairing:
+DELETE FROM Pairing
+WHERE ? = topic;
+
+activatePairing:
+UPDATE OR ABORT Pairing
+SET expiry = ?, is_active = ?
+WHERE topic = ?;
+
+hasTopic:
+SELECT topic
+FROM Pairing
+WHERE ? = topic;
+
+getExpiry:
+SELECT expiry
+FROM Pairing
+WHERE ? = topic;
+
+updateOrAbortExpiry:
+UPDATE OR ABORT Pairing
+SET expiry = ?
+WHERE ? = topic;

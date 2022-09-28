@@ -43,6 +43,7 @@ android {
 sqldelight {
     database("Database") {
         packageName = "com.walletconnect.android.impl"
+        dependency(project(":androidCore:common"))
     }
 }
 

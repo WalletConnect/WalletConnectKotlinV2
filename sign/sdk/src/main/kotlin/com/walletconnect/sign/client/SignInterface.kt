@@ -39,11 +39,24 @@ interface SignInterface {
         onError: (Sign.Model.Error) -> Unit,
     )
 
-    @Deprecated("Creating a pairing will be moved to CoreClient to make pairing SDK agnostic", ReplaceWith("CoreClient.pair()", "com.walletconnect.android.CoreClient"))
+    // TODO: Remove support for old methods #423
+    @Deprecated(
+        message = "Creating a pairing will be moved to CoreClient to make pairing SDK agnostic",
+        replaceWith = ReplaceWith(expression = "CoreClient.pair()", imports = ["com.walletconnect.android.CoreClient"]))
     fun pair(pair: Sign.Params.Pair, onError: (Sign.Model.Error) -> Unit)
 
-    @Deprecated("Pinging a pairing will be moved to CoreClient to make pairing SDK agnostic", ReplaceWith("CoreClient.ping()", "com.walletconnect.android.CoreClient"))
+    // TODO: Remove support for old methods #423
+    @Deprecated(
+        message = "Pinging a pairing will be moved to CoreClient to make pairing SDK agnostic",
+        replaceWith = ReplaceWith(expression = "CoreClient.ping()", imports = ["com.walletconnect.android.CoreClient"]))
     fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing? = null)
+
+    // TODO: Remove support for old methods #423
+    @Deprecated(
+        message = "Disconnecting from pairing will be moved to CoreClient to make pairing SDK agnostic",
+        replaceWith = ReplaceWith(expression = "CoreClient.disconnect()", imports = ["com.walletconnect.android.CoreClient"])
+    )
+    fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit)
 
     fun approveSession(approve: Sign.Params.Approve, onError: (Sign.Model.Error) -> Unit)
     fun rejectSession(reject: Sign.Params.Reject, onError: (Sign.Model.Error) -> Unit)
@@ -52,14 +65,8 @@ interface SignInterface {
     fun update(update: Sign.Params.Update, onError: (Sign.Model.Error) -> Unit)
     fun extend(extend: Sign.Params.Extend, onError: (Sign.Model.Error) -> Unit)
     fun emit(emit: Sign.Params.Emit, onError: (Sign.Model.Error) -> Unit)
-    fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit)
     fun getListOfSettledSessions(): List<Sign.Model.Session>
     fun getSettledSessionByTopic(topic: String): Sign.Model.Session?
     fun getListOfSettledPairings(): List<Sign.Model.Pairing>
     fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest>
-
-//    interface Websocket {
-//        fun open(onError: (String) -> Unit)
-//        fun close(onError: (String) -> Unit)
-//    }
 }

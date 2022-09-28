@@ -6,7 +6,7 @@ import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.android.common.JsonRpcResponse
 import com.walletconnect.android.common.adapter.ExpiryAdapter
 import com.walletconnect.android.common.adapter.TagsAdapter
-import com.walletconnect.android.common.model.Expiry
+import com.walletconnect.android.common.model.pairing.Expiry
 import com.walletconnect.android.common.model.Tags
 import com.walletconnect.foundation.di.FoundationDITags
 import com.walletconnect.foundation.util.Logger

@@ -3,9 +3,8 @@
 package com.walletconnect.sign.json_rpc.data
 
 import com.squareup.moshi.Moshi
-import com.walletconnect.android.impl.common.model.type.ClientParams
-import com.walletconnect.android.common.SerializableJsonRpc
-import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializerAbstract
+import com.walletconnect.android.common.model.type.ClientParams
+import com.walletconnect.android.common.json_rpc.JsonRpcSerializerAbstract
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.PairingRpcVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
@@ -15,8 +14,6 @@ internal class JsonRpcSerializer(override val moshi: Moshi) : JsonRpcSerializerA
 
     override fun deserialize(method: String, json: String): ClientParams? =
         when (method) {
-            JsonRpcMethod.WC_SESSION_PROPOSE -> tryDeserialize<PairingRpcVO.SessionPropose>(json)?.params
-            JsonRpcMethod.WC_PAIRING_PING -> tryDeserialize<PairingRpcVO.PairingPing>(json)?.params
             JsonRpcMethod.WC_SESSION_SETTLE -> tryDeserialize<SessionRpcVO.SessionSettle>(json)?.params
             JsonRpcMethod.WC_SESSION_REQUEST -> tryDeserialize<SessionRpcVO.SessionRequest>(json)?.params
             JsonRpcMethod.WC_SESSION_DELETE -> tryDeserialize<SessionRpcVO.SessionDelete>(json)?.params
@@ -29,9 +26,6 @@ internal class JsonRpcSerializer(override val moshi: Moshi) : JsonRpcSerializerA
 
     override fun sdkSpecificSerialize(payload: com.walletconnect.android.common.SerializableJsonRpc): String =
         when (payload) {
-            is PairingRpcVO.SessionPropose -> trySerialize(payload)
-            is PairingRpcVO.PairingPing -> trySerialize(payload)
-            is PairingRpcVO.PairingDelete -> trySerialize(payload)
             is SessionRpcVO.SessionPing -> trySerialize(payload)
             is SessionRpcVO.SessionEvent -> trySerialize(payload)
             is SessionRpcVO.SessionUpdate -> trySerialize(payload)

@@ -1,7 +1,7 @@
 package com.walletconnect.auth.engine.domain
 
-import com.walletconnect.android.impl.common.model.RelayProtocolOptions
-import com.walletconnect.android.impl.common.model.SymmetricKey
+import com.walletconnect.android.common.model.metadata.RelayProtocolOptions
+import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.auth.common.model.WalletConnectUri
 import com.walletconnect.foundation.common.model.Topic
 import java.net.URI

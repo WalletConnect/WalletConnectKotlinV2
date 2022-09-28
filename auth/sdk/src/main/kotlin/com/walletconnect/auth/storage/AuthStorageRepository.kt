@@ -3,13 +3,13 @@
 package com.walletconnect.auth.storage
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.android.common.model.Expiry
-import com.walletconnect.android.impl.common.model.MetaData
+import com.walletconnect.android.common.model.metadata.PeerMetaData
+import com.walletconnect.android.common.model.pairing.Expiry
 import com.walletconnect.auth.storage.data.dao.MetaDataDaoQueries
 import com.walletconnect.auth.common.model.Pairing
 import com.walletconnect.auth.storage.data.dao.PairingDaoQueries
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.utils.isSequenceValid
+import com.walletconnect.utils.isNotExpired
 
 internal class AuthStorageRepository(private val pairingDaoQueries: PairingDaoQueries, private val metaDataDaoQueries: MetaDataDaoQueries) {
 
@@ -46,7 +46,7 @@ internal class AuthStorageRepository(private val pairingDaoQueries: PairingDaoQu
         pairingDaoQueries.getPairingByTopic(topic.value).executeAsOne().let { entity ->
             Pairing(
                 topic = Topic(entity.topic),
-                expiry = com.walletconnect.android.common.model.Expiry(entity.expiry),
+                expiry = Expiry(entity.expiry),
                 uri = entity.uri,
                 relayProtocol = entity.relay_protocol,
                 relayData = entity.relay_data,
@@ -84,14 +84,14 @@ internal class AuthStorageRepository(private val pairingDaoQueries: PairingDaoQu
         is_active: Boolean,
     ): Pairing {
         val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
-            MetaData(peerName, peerDesc, peerUrl, peerIcons)
+            PeerMetaData(peerName, peerDesc, peerUrl, peerIcons)
         } else {
             null
         }
 
         return Pairing(
             topic = Topic(topic),
-            expiry = com.walletconnect.android.common.model.Expiry(expirySeconds),
+            expiry = Expiry(expirySeconds),
             peerMetaData = peerMetaData,
             relayProtocol = relay_protocol,
             relayData = relay_data,
@@ -101,7 +101,7 @@ internal class AuthStorageRepository(private val pairingDaoQueries: PairingDaoQu
     }
 
     private fun verifyExpiry(expiry: Long, topic: Topic, deleteSequence: () -> Unit): Boolean {
-        return if (com.walletconnect.android.common.model.Expiry(expiry).isSequenceValid()) {
+        return if (Expiry(expiry).isNotExpired()) {
             true
         } else {
             deleteSequence()

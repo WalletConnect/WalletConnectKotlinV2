@@ -2,6 +2,7 @@ package com.walletconnect.responder
 
 import android.app.Application
 import android.util.Log
+import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.connection.ConnectionType
 import com.walletconnect.auth.client.Auth
@@ -15,21 +16,19 @@ class ResponderApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        //TODO: register at https://walletconnect.com/register to get a project ID
         val serverUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
-        CoreClient.initialize(relayServerUrl = serverUrl, connectionType = ConnectionType.AUTOMATIC, application = this)
+
+        CoreClient.initialize(relayServerUrl = serverUrl, connectionType = ConnectionType.AUTOMATIC, application = this, appMetaData = Core.Model.AppMetaData(
+            name = "Kotlin.Responder",
+            description = "Kotlin AuthSDK Responder Implementation",
+            url = "kotlin.responder.walletconnect.com",
+            icons = listOf("https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Logo/Gradient/Logo.png"),
+            redirect = "kotlin-responder-wc:/request"
+        ))
 
         AuthClient.initialize(
-            init = Auth.Params.Init(
-                relay = CoreClient,
-                appMetaData = Auth.Model.AppMetaData(
-                    name = "Kotlin.Responder",
-                    description = "Kotlin AuthSDK Responder Implementation",
-                    url = "kotlin.responder.walletconnect.com",
-                    icons = listOf("https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Logo/Gradient/Logo.png"),
-                    redirect = "kotlin-responder-wc:/request"
-                ),
-                iss = ISSUER
-            )
+            init = Auth.Params.Init(core = CoreClient, iss = ISSUER)
         ) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }

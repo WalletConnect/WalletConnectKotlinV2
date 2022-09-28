@@ -2,7 +2,7 @@
 
 package com.walletconnect.auth.common.model
 
-import com.walletconnect.android.impl.common.model.type.EngineEvent
+import com.walletconnect.android.common.model.EngineEvent
 
 internal sealed class Events : EngineEvent {
     data class OnAuthRequest(val id: Long, val message: String) : Events()

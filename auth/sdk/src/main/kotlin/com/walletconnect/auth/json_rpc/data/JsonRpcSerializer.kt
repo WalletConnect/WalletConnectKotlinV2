@@ -3,9 +3,8 @@
 package com.walletconnect.auth.json_rpc.data
 
 import com.squareup.moshi.Moshi
-import com.walletconnect.android.impl.common.model.type.ClientParams
-import com.walletconnect.android.common.SerializableJsonRpc
-import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializerAbstract
+import com.walletconnect.android.common.model.type.ClientParams
+import com.walletconnect.android.common.json_rpc.JsonRpcSerializerAbstract
 import com.walletconnect.auth.common.json_rpc.AuthRpc
 import com.walletconnect.auth.json_rpc.model.JsonRpcMethod
 import com.walletconnect.utils.Empty

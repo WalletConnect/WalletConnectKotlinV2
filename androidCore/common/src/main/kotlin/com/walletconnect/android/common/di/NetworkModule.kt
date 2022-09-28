@@ -10,6 +10,7 @@ import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.android.common.connection.ConnectionType
 import com.walletconnect.android.common.connection.ConnectivityState
 import com.walletconnect.android.common.connection.ManualConnectionLifecycle
+import com.walletconnect.android.common.relay.RelayConnectionInterface
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
@@ -21,9 +22,11 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
-fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: ConnectionType, sdkVersion: String) = module {
+fun androidApiNetworkModule(relay: RelayConnectionInterface, serverUrl: String, jwt: String, connectionType: ConnectionType, sdkVersion: String) = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
     val TIMEOUT_TIME = 5000L
+
+    single { relay }
 
     single(named(AndroidCommonDITags.INTERCEPTOR)) {
         Interceptor { chain ->

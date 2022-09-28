@@ -4,9 +4,10 @@ package com.walletconnect.sign.client.mapper
 
 import android.net.Uri
 import android.os.Build
+import com.walletconnect.android.Core
 import com.walletconnect.android.common.connection.ConnectionType
-import com.walletconnect.android.impl.common.model.ConnectionState
-import com.walletconnect.android.impl.common.SDKError
+import com.walletconnect.android.common.model.ConnectionState
+import com.walletconnect.android.common.model.SDKError
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
@@ -129,7 +130,7 @@ internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSess
     }
 
 @JvmSynthetic
-internal fun Sign.Model.AppMetaData.toEngineAppMetaData() =
+internal fun Core.Model.AppMetaData.toEngineAppMetaData() =
     EngineDO.AppMetaData(name, description, url, icons, redirect)
 
 @JvmSynthetic

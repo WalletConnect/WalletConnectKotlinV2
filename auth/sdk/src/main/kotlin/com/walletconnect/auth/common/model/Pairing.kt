@@ -2,18 +2,19 @@
 
 package com.walletconnect.auth.common.model
 
-import com.walletconnect.android.impl.common.model.MetaData
-import com.walletconnect.android.impl.common.model.RelayProtocolOptions
-import com.walletconnect.android.impl.common.model.type.Sequence
-import com.walletconnect.android.impl.utils.ACTIVE_PAIRING
-import com.walletconnect.android.impl.utils.INACTIVE_PAIRING
+import com.walletconnect.android.common.model.pairing.Expiry
+import com.walletconnect.android.common.model.metadata.PeerMetaData
+import com.walletconnect.android.common.model.metadata.RelayProtocolOptions
+import com.walletconnect.android.common.model.pairing.Sequence
+import com.walletconnect.android.common.constants.ACTIVE_PAIRING
+import com.walletconnect.android.common.constants.INACTIVE_PAIRING
 import com.walletconnect.auth.engine.mapper.toAbsoluteString
 import com.walletconnect.foundation.common.model.Topic
 
 internal data class Pairing(
     override val topic: Topic,
-    override val expiry: com.walletconnect.android.common.model.Expiry,
-    val peerMetaData: MetaData? = null,
+    override val expiry: Expiry,
+    val peerMetaData: PeerMetaData? = null,
     val relayProtocol: String,
     val relayData: String?,
     val uri: String,
@@ -22,7 +23,7 @@ internal data class Pairing(
 
     constructor(topic: Topic, relay: RelayProtocolOptions, uri: String) : this(
         topic = topic,
-        expiry = com.walletconnect.android.common.model.Expiry(INACTIVE_PAIRING),
+        expiry = Expiry(INACTIVE_PAIRING),
         relayProtocol = relay.protocol,
         relayData = relay.data,
         uri = uri,
@@ -31,7 +32,7 @@ internal data class Pairing(
 
     constructor(uri: WalletConnectUri) : this(
         topic = uri.topic,
-        expiry = com.walletconnect.android.common.model.Expiry(ACTIVE_PAIRING),
+        expiry = Expiry(ACTIVE_PAIRING),
         relayProtocol = uri.relay.protocol,
         relayData = uri.relay.data,
         uri = uri.toAbsoluteString(),

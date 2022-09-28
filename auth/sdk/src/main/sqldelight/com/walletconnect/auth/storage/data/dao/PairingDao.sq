@@ -9,34 +9,34 @@ CREATE TABLE PairingDao (
 );
 
 insertOrAbortPairing:
-INSERT OR ABORT INTO PairingDao(topic, expiry, relay_protocol,  relay_data, uri, is_active)
+INSERT OR ABORT INTO Pairing(topic, expiry, relay_protocol,  relay_data, uri, is_active)
 VALUES (?,?,?,?,?,?);
 
 getListOfPairingDaos:
 SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, pd.is_active
-FROM PairingDao pd
+FROM Pairing pd
     LEFT JOIN MetaDataDao mdd_peer ON pd.topic = mdd_peer.sequence_topic AND mdd_peer.type = "PEER";
 
 getPairingByTopic:
 SELECT topic, expiry, relay_protocol, relay_data, uri, is_active
-FROM PairingDao
+FROM Pairing
 WHERE ? = topic;
 
 deletePairing:
-DELETE FROM PairingDao
+DELETE FROM Pairing
 WHERE ? = topic;
 
 activatePairing:
-UPDATE OR ABORT PairingDao
+UPDATE OR ABORT Pairing
 SET expiry = ?, is_active = ?
 WHERE topic = ?;
 
 hasTopic:
 SELECT topic
-FROM PairingDao
+FROM Pairing
 WHERE ? = topic;
 
 getExpiry:
 SELECT expiry
-FROM PairingDao
+FROM Pairing
 WHERE ? = topic;

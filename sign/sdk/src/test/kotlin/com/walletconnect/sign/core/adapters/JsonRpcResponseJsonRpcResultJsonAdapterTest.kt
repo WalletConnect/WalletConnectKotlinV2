@@ -2,10 +2,9 @@ package com.walletconnect.sign.core.adapters
 
 import com.squareup.moshi.Moshi
 import com.tinder.scarlet.utils.getRawType
-import com.walletconnect.android.common.JsonRpcResponse
-import com.walletconnect.android.impl.common.model.MetaData
+import com.walletconnect.android.common.model.metadata.PeerMetaData
 import com.walletconnect.sign.common.adapters.JsonRpcResultAdapter
-import com.walletconnect.android.impl.common.model.RelayProtocolOptions
+import com.walletconnect.android.common.model.metadata.RelayProtocolOptions
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
 import org.junit.jupiter.api.Test
 import kotlin.reflect.jvm.jvmName
@@ -22,7 +21,7 @@ internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {
             }
         }.build()
         val adapter = moshi.adapter(com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult::class.java)
-        val metadata = MetaData("name", "desc", "url", listOf("icon"))
+        val metadata = PeerMetaData("name", "desc", "url", listOf("icon"))
         val approvalParams =
             SessionParamsVO.ApprovalParams(relay = RelayProtocolOptions("irn"), responderPublicKey = "124")
         val jsonResult = com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult(
@@ -47,7 +46,7 @@ internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {
         }.build()
         val adapter = moshi.adapter(com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult::class.java)
 
-        val metadata = MetaData("name", "desc", "url", listOf("icon"))
+        val metadata = PeerMetaData("name", "desc", "url", listOf("icon"))
         val approvalParamsJsonResult = com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult(id = 11L,
             result = SessionParamsVO.ApprovalParams(relay = RelayProtocolOptions("irn"), responderPublicKey = "124"))
         val resultString = moshi.adapter(com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult::class.java).toJson(approvalParamsJsonResult)

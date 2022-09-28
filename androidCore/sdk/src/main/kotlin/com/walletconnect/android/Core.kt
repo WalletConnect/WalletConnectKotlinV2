@@ -15,6 +15,8 @@ object Core {
             data class Success(val topic: String) : Ping()
             data class Error(val error: Throwable) : Ping()
         }
+
+        data class AppMetaData(val name: String, val description: String, val url: String, val icons: List<String>, val redirect: String?) : Model()
     }
 
     sealed class Params {

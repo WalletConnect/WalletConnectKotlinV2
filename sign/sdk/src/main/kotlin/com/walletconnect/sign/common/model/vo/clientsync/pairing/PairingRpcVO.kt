@@ -4,7 +4,7 @@ package com.walletconnect.sign.common.model.vo.clientsync.pairing
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android.impl.common.model.type.JsonRpcClientSync
+import com.walletconnect.android.common.model.type.JsonRpcClientSync
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 
@@ -25,6 +25,8 @@ internal sealed class PairingRpcVO : JsonRpcClientSync<PairingParamsVO> {
         @Json(name = "params")
         override val params: PairingParamsVO.SessionProposeParams,
     ) : PairingRpcVO()
+
+    // TODO: Split in half
 
     @JsonClass(generateAdapter = true)
     internal data class PairingDelete(

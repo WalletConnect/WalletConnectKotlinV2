@@ -3,32 +3,27 @@
 package com.walletconnect.sign.storage.sequence
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.android.common.model.Expiry
-import com.walletconnect.android.impl.common.model.MetaData
+import com.walletconnect.android.common.model.metadata.PeerMetaData
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.android.impl.common.model.type.enums.MetaDataType
+import com.walletconnect.android.common.model.MetaDataType
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.android.impl.common.model.Redirect
-import com.walletconnect.sign.common.model.vo.sequence.PairingVO
+import com.walletconnect.android.common.model.metadata.Redirect
+import com.walletconnect.android.common.model.pairing.Expiry
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
-import com.walletconnect.sign.storage.data.dao.metadata.MetaDataDaoQueries
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceExtensionDaoQueries
-import com.walletconnect.sign.storage.data.dao.pairing.PairingDaoQueries
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceExtensionDaoQueries
 import com.walletconnect.sign.storage.data.dao.session.SessionDaoQueries
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceExtensionDaoQueries
 import com.walletconnect.utils.Empty
-import com.walletconnect.utils.isSequenceValid
+import com.walletconnect.utils.isNotExpired
 
 //TODO: Split into SessionStorageRepository and PairingStorageRepository
 internal class SequenceStorageRepository(
-    private val pairingDaoQueries: PairingDaoQueries,
     private val sessionDaoQueries: SessionDaoQueries,
-    private val metaDataDaoQueries: MetaDataDaoQueries,
     private val namespaceDaoQueries: NamespaceDaoQueries,
     private val extensionsDaoQueries: NamespaceExtensionDaoQueries,
     private val proposalNamespaceDaoQueries: ProposalNamespaceDaoQueries,
@@ -80,7 +75,7 @@ internal class SequenceStorageRepository(
         pairingDaoQueries.getPairingByTopic(topic.value).executeAsOne().let { entity ->
             PairingVO(
                 topic = Topic(entity.topic),
-                expiry = com.walletconnect.android.common.model.Expiry(entity.expiry),
+                expiry = Expiry(entity.expiry),
                 uri = entity.uri,
                 relayProtocol = entity.relay_protocol,
                 relayData = entity.relay_data,
@@ -114,7 +109,7 @@ internal class SequenceStorageRepository(
 
     @JvmSynthetic
     @Throws(SQLiteException::class)
-    fun upsertPairingPeerMetadata(topic: Topic, metaData: MetaData) {
+    fun upsertPairingPeerMetadata(topic: Topic, metaData: PeerMetaData) {
         if (metaDataDaoQueries.getByTopic(topic.value).executeAsOneOrNull() == null) {
             insertMetaData(metaData, MetaDataType.PEER, topic)
         } else {
@@ -290,7 +285,7 @@ internal class SequenceStorageRepository(
     }
 
     @Throws(SQLiteException::class)
-    private fun insertMetaData(metaData: MetaData?, metaDataType: MetaDataType, topic: Topic) {
+    private fun insertMetaData(metaData: PeerMetaData?, metaDataType: MetaDataType, topic: Topic) {
         metaData?.let {
             metaDataDaoQueries.insertOrAbortMetaData(
                 topic.value,
@@ -340,7 +335,7 @@ internal class SequenceStorageRepository(
     }
 
     private fun verifyExpiry(expiry: Long, topic: Topic, deleteSequence: () -> Unit): Boolean {
-        return if (com.walletconnect.android.common.model.Expiry(expiry).isSequenceValid()) {
+        return if (Expiry(expiry).isNotExpired()) {
             true
         } else {
             deleteSequence()
@@ -362,14 +357,14 @@ internal class SequenceStorageRepository(
         is_active: Boolean,
     ): PairingVO {
         val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
-            MetaData(peerName, peerDesc, peerUrl, peerIcons)
+            PeerMetaData(peerName, peerDesc, peerUrl, peerIcons)
         } else {
             null
         }
 
         return PairingVO(
             topic = Topic(topic),
-            expiry = com.walletconnect.android.common.model.Expiry(expirySeconds),
+            expiry = Expiry(expirySeconds),
             peerMetaData = peerMetaData,
             relayProtocol = relay_protocol,
             relayData = relay_data,
@@ -399,13 +394,13 @@ internal class SequenceStorageRepository(
         is_acknowledged: Boolean,
     ): SessionVO {
         val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
-            MetaData(selfName, selfDesc, selfUrl, selfIcons)
+            PeerMetaData(selfName, selfDesc, selfUrl, selfIcons)
         } else {
             null
         }
 
         val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
-            MetaData(peerName, peerDesc, peerUrl, peerIcons, Redirect(native = peerNative))
+            PeerMetaData(peerName, peerDesc, peerUrl, peerIcons, Redirect(native = peerNative))
         } else {
             null
         }
@@ -415,7 +410,7 @@ internal class SequenceStorageRepository(
 
         return SessionVO(
             topic = Topic(topic),
-            expiry = com.walletconnect.android.common.model.Expiry(expiry),
+            expiry = Expiry(expiry),
             selfMetaData = selfMetaData,
             peerMetaData = peerMetaData,
             selfPublicKey = PublicKey(self_participant),

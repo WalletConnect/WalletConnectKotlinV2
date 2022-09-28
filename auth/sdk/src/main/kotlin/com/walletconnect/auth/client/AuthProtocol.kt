@@ -3,12 +3,11 @@
 package com.walletconnect.auth.client
 
 import com.walletconnect.android.common.wcKoinApp
-import com.walletconnect.android.impl.common.SDKError
-import com.walletconnect.android.impl.common.model.ConnectionState
+import com.walletconnect.android.common.model.SDKError
+import com.walletconnect.android.common.model.ConnectionState
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.di.cryptoModule
-import com.walletconnect.android.impl.di.networkModule
-import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.impl.di.pairingModule
 import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Events
@@ -34,12 +33,12 @@ internal class AuthProtocol : AuthInterface {
         with(init) {
             wcKoinApp.run {
                 modules(
-                    networkModule(relay),
                     commonModule(),
                     cryptoModule(),
                     jsonRpcModule(),
                     storageModule(storageSuffix),
-                    engineModule(appMetaData, iss)
+                    engineModule(core.selfMetaData, iss),
+                    pairingModule(core)
                 )
             }
         }

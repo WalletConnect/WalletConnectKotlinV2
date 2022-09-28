@@ -4,15 +4,13 @@ package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.common.JsonRpcResponse
-import com.walletconnect.android.common.model.Tags
-import com.walletconnect.android.exception.GenericException
-import com.walletconnect.android.exception.WalletConnectException
+import com.walletconnect.android.common.model.metadata.PeerMetaData
+import com.walletconnect.android.common.exception.GenericException
+import com.walletconnect.android.common.exception.WalletConnectException
 import com.walletconnect.android.impl.common.*
 import com.walletconnect.android.impl.common.model.*
-import com.walletconnect.android.impl.common.model.sync.WCRequest
-import com.walletconnect.android.impl.common.model.sync.WCResponse
-import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.crypto.KeyManagementRepository
+import com.walletconnect.android.common.model.sync.WCRequest
+import com.walletconnect.android.common.crypto.KeyManagementRepository
 import com.walletconnect.android.impl.utils.*
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -21,8 +19,12 @@ import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.exceptions.client.*
 import com.walletconnect.sign.common.model.type.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.android.impl.common.model.RelayProtocolOptions
+import com.walletconnect.android.common.model.metadata.RelayProtocolOptions
+import com.walletconnect.android.common.constants.*
+import com.walletconnect.android.common.model.*
+import com.walletconnect.android.common.model.pairing.Expiry
 import com.walletconnect.android.impl.common.scope.scope
+import com.walletconnect.foundation.common.model.SymmetricKey
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
@@ -32,7 +34,6 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
-import com.walletconnect.sign.common.model.vo.sequence.PairingVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.*
@@ -43,7 +44,7 @@ import com.walletconnect.util.generateId
 import com.walletconnect.util.randomBytes
 import com.walletconnect.utils.Empty
 import com.walletconnect.utils.extractTimestamp
-import com.walletconnect.utils.isSequenceValid
+import com.walletconnect.utils.isNotExpired
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
@@ -258,7 +259,7 @@ internal class SignEngine(
 
         val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
         val sessionUpdate = SessionRpcVO.SessionUpdate(id = generateId(), params = params)
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
 
         sequenceStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id, onSuccess = {
             relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionUpdate,
@@ -460,13 +461,13 @@ internal class SignEngine(
 
     internal fun getListOfSettledSessions(): List<EngineDO.Session> {
         return sequenceStorageRepository.getListOfSessionVOs()
-            .filter { session -> session.isAcknowledged && session.expiry.isSequenceValid() }
+            .filter { session -> session.isAcknowledged && session.expiry.isNotExpired() }
             .map { session -> session.toEngineDO() }
     }
 
     internal fun getListOfSettledPairings(): List<EngineDO.PairingSettle> {
         return sequenceStorageRepository.getListOfPairingVOs()
-            .filter { pairing -> pairing.expiry.isSequenceValid() }
+            .filter { pairing -> pairing.expiry.isNotExpired() }
             .map { pairing -> pairing.toEngineDOSettledPairing() }
     }
 
@@ -615,7 +616,7 @@ internal class SignEngine(
             return
         }
 
-        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerMetaData: MetaData?) =
+        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerMetaData: PeerMetaData?) =
             with(sequenceStorageRepository.getSessionByTopic(request.topic)) { namespaces to peerMetaData }
 
         val method = params.request.method
@@ -721,7 +722,7 @@ internal class SignEngine(
 
         sequenceStorageRepository.extendSession(request.topic, newExpiry)
         relayer.respondWithSuccess(request, irnParams)
-        scope.launch { _engineEvent.emit(session.toEngineDOSessionExtend(com.walletconnect.android.common.model.Expiry(newExpiry))) }
+        scope.launch { _engineEvent.emit(session.toEngineDOSessionExtend(Expiry(newExpiry))) }
     }
 
     private fun onPing(request: WCRequest) {
@@ -826,7 +827,7 @@ internal class SignEngine(
 
     private fun resubscribeToPairings() {
         val (listOfExpiredPairing, listOfValidPairing) =
-            sequenceStorageRepository.getListOfPairingVOs().partition { pairing -> !pairing.expiry.isSequenceValid() }
+            sequenceStorageRepository.getListOfPairingVOs().partition { pairing -> !pairing.expiry.isNotExpired() }
 
         listOfExpiredPairing
             .map { pairing -> pairing.topic }
@@ -843,7 +844,7 @@ internal class SignEngine(
 
     private fun resubscribeToSession() {
         val (listOfExpiredSession, listOfValidSessions) =
-            sequenceStorageRepository.getListOfSessionVOs().partition { session -> !session.expiry.isSequenceValid() }
+            sequenceStorageRepository.getListOfSessionVOs().partition { session -> !session.expiry.isNotExpired() }
 
         listOfExpiredSession
             .map { session -> session.topic }

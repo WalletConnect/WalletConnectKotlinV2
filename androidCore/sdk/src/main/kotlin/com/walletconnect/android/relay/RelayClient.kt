@@ -5,21 +5,19 @@ package com.walletconnect.android.relay
 import android.app.Application
 import com.walletconnect.android.common.connection.ConnectivityState
 import com.walletconnect.android.common.di.AndroidCommonDITags
-import com.walletconnect.android.common.di.androidApiCryptoModule
 import com.walletconnect.android.common.di.androidApiNetworkModule
-import com.walletconnect.android.common.di.commonModule
 import com.walletconnect.android.common.exception.WRONG_CONNECTION_TYPE
+import com.walletconnect.android.common.exception.WalletConnectException
+import com.walletconnect.android.common.relay.RelayConnectionInterface
 import com.walletconnect.android.common.scope
 import com.walletconnect.android.common.wcKoinApp
 import com.walletconnect.android.connection.ConnectionType
-import com.walletconnect.android.exception.WalletConnectException
 import com.walletconnect.android.utils.*
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.model.Relay
 import kotlinx.coroutines.flow.*
-import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 
 internal object RelayClient : BaseRelayClient(), RelayConnectionInterface {
@@ -32,17 +30,12 @@ internal object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     fun initialize(relayServerUrl: String, connectionType: ConnectionType, application: Application) {
         require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
 
-        wcKoinApp.run {
-            androidContext(application)
-            modules(commonModule(), androidApiCryptoModule())
-        }
-
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
         val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
         val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl())
         val serverUrl = relayServerUrl.addUserAgent(sdkVersion)
 
-        wcKoinApp.modules(androidApiNetworkModule(serverUrl, jwt, connectionType.toCommonConnectionType(), sdkVersion))
+        wcKoinApp.modules(androidApiNetworkModule(relay = this, serverUrl, jwt, connectionType.toCommonConnectionType(), sdkVersion))
         relayService = wcKoinApp.koin.get(named(AndroidCommonDITags.RELAY_SERVICE))
     }
 

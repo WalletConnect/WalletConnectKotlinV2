@@ -3,6 +3,10 @@ package com.walletconnect.android.common.di
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.walletconnect.android.common.JwtRepositoryAndroid
+import com.walletconnect.android.common.crypto.Codec
+import com.walletconnect.android.common.crypto.KeyManagementRepository
+import com.walletconnect.android.common.data.BouncyCastleKeyManagementRepository
+import com.walletconnect.android.common.data.ChaChaPolyCodec
 import com.walletconnect.android.common.storage.KeyChain
 import com.walletconnect.android.common.storage.KeyStore
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
@@ -28,4 +32,8 @@ fun androidApiCryptoModule() = module {
     single<KeyStore> { KeyChain(get()) }
 
     single<JwtRepository> { JwtRepositoryAndroid(get()) }
+
+    single<KeyManagementRepository> { BouncyCastleKeyManagementRepository(get()) }
+
+    single<Codec> { ChaChaPolyCodec(get()) }
 }

@@ -3,7 +3,7 @@
 package com.walletconnect.android.common.adapter
 
 import com.squareup.moshi.*
-import com.walletconnect.android.common.model.Expiry
+import com.walletconnect.android.common.model.pairing.Expiry
 
 internal object ExpiryAdapter: JsonAdapter<Expiry>() {
 

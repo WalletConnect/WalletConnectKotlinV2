@@ -1,6 +1,6 @@
 package com.walletconnect.sign.client
 
-import com.walletconnect.android.relay.RelayConnectionInterface
+import com.walletconnect.android.CoreInterface
 import java.net.URI
 
 object Sign {
@@ -62,7 +62,7 @@ object Sign {
                 data class Extension(
                     val chains: List<String>,
                     val methods: List<String>,
-                    val events: List<String>
+                    val events: List<String>,
                 )
             }
 
@@ -76,7 +76,7 @@ object Sign {
                 data class Extension(
                     val accounts: List<String>,
                     val methods: List<String>,
-                    val events: List<String>
+                    val events: List<String>,
                 )
             }
         }
@@ -111,7 +111,7 @@ object Sign {
 
         data class UpdatedSession(
             val topic: String,
-            val namespaces: Map<String, Namespace.Session>
+            val namespaces: Map<String, Namespace.Session>,
         ) : Model()
 
         data class ApprovedSession(
@@ -181,10 +181,8 @@ object Sign {
 
     sealed class Params {
 
-        // TODO: Maybe convert this into a Builder
-        data class Init constructor(
-            val metadata: Model.AppMetaData,
-            val relay: RelayConnectionInterface,
+        data class Init(
+            val core: CoreInterface
         ) : Params()
 
         data class Connect(
@@ -193,7 +191,11 @@ object Sign {
             val pairingTopic: String? = null,
         ) : Params()
 
-        @Deprecated("Creating a pair param will be moved to Core to make pairing SDK agnostic", ReplaceWith("Core.Params.Pair", "com.walletconnect.android.Core"))
+        // TODO: Remove support for old methods #423
+        @Deprecated(
+            message = "Creating a pair param will be moved to Core to make pairing SDK agnostic",
+            ReplaceWith("Core.Params.Pair", imports = ["com.walletconnect.android.Core"])
+        )
         data class Pair(val uri: String) : Params()
 
         data class Approve(
@@ -212,7 +214,7 @@ object Sign {
             val sessionTopic: String,
             val method: String,
             val params: String,
-            val chainId: String
+            val chainId: String,
         ) : Params()
 
         data class Update(
@@ -220,7 +222,11 @@ object Sign {
             val namespaces: Map<String, Model.Namespace.Session>,
         ) : Params()
 
-        @Deprecated("Creating a ping param will be moved to Core to make pairing SDK agnostic", ReplaceWith("Core.Params.Ping", "com.walletconnect.android.Core"))
+        // TODO: Remove support for old methods #423
+        @Deprecated(
+            message = "Creating a ping param will be moved to Core to make pairing SDK agnostic",
+            ReplaceWith(expression = "Core.Params.Ping", imports = ["com.walletconnect.android.Core"])
+        )
         data class Ping(val topic: String) : Params()
 
         data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String) :

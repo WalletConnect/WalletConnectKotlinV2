@@ -2,7 +2,7 @@
 
 package com.walletconnect.auth.common.exceptions
 
-import com.walletconnect.android.impl.common.model.type.Error
+import com.walletconnect.android.common.model.type.Error
 
 internal sealed class PeerError : Error {
     object MissingIssuer : PeerError() {
