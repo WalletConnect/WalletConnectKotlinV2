@@ -1,4 +1,4 @@
-package com.walletconnect.android.pairing
+package com.walletconnect.android
 
 object Core {
     sealed interface Listeners {

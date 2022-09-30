@@ -1,6 +1,7 @@
 package com.walletconnect.android.pairing
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.android.Core
 import com.walletconnect.android.common.crypto.KeyManagementRepository
 import com.walletconnect.android.common.model.*
 import com.walletconnect.android.common.wcKoinApp
@@ -11,6 +12,7 @@ import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
 import com.walletconnect.android.internal.NO_SEQUENCE_FOR_TOPIC_MESSAGE
 import com.walletconnect.android.internal.PAIRING_NOW_ALLOWED_MESSAGE
 import com.walletconnect.android.internal.Validator
+import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.android.utils.isSequenceValid
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.util.bytesToHex
@@ -25,6 +27,8 @@ internal object PairingClient : PairingInterface {
         get() = wcKoinApp.koin.getOrNull() ?: throw IllegalStateException("SDK has not been initialized")
     private val crypto: KeyManagementRepository
         get() = wcKoinApp.koin.getOrNull() ?: throw IllegalStateException("SDK has not been initialized")
+    private val relayer: RelayConnectionInterface
+        get() = wcKoinApp.koin.getOrNull() ?: throw IllegalStateException("SDK has not been initialized")
 
     override fun initialize(metaData: Core.Model.AppMetaData) {
         _selfMetaData = metaData
@@ -37,6 +41,7 @@ internal object PairingClient : PairingInterface {
         } else {
 //        sessionPing?.onError(Core.Model.Ping.Error())
         }
+        relayer.publish()
     }
 
     override fun create(onPairingCreated: (String) -> Unit, onError: (Core.Model.Error) -> Unit) {

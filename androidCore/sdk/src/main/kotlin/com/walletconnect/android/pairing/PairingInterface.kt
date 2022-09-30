@@ -1,5 +1,6 @@
 package com.walletconnect.android.pairing
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.common.model.Expiry
 import com.walletconnect.android.common.model.PeerMetaData
 import com.walletconnect.android.common.model.WCRequest
