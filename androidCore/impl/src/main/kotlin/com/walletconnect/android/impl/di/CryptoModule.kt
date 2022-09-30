@@ -2,7 +2,7 @@ package com.walletconnect.android.impl.di
 
 import com.walletconnect.android.common.di.androidApiCryptoModule
 import com.walletconnect.android.impl.crypto.Codec
-import com.walletconnect.android.impl.crypto.KeyManagementRepository
+import com.walletconnect.android.common.crypto.KeyManagementRepository
 import com.walletconnect.android.impl.data.codec.ChaChaPolyCodec
 import com.walletconnect.android.impl.data.repository.BouncyCastleKeyManagementRepository
 import org.koin.dsl.module

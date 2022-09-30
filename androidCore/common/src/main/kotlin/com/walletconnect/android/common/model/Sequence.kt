@@ -1,6 +1,5 @@
-package com.walletconnect.android.impl.common.model.type
+package com.walletconnect.android.common.model
 
-import com.walletconnect.android.common.model.Expiry
 import com.walletconnect.foundation.common.model.Topic
 
 interface Sequence {

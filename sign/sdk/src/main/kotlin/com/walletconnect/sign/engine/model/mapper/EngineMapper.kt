@@ -4,7 +4,7 @@ package com.walletconnect.sign.engine.model.mapper
 
 import com.walletconnect.android.impl.common.model.MetaData
 import com.walletconnect.android.impl.common.model.Redirect
-import com.walletconnect.android.impl.common.model.RelayProtocolOptions
+import com.walletconnect.android.common.model.RelayProtocolOptions
 import com.walletconnect.android.impl.common.model.sync.WCRequest
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic

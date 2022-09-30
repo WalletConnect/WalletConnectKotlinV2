@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android
+package com.walletconnect.android.relay
 
 import android.app.Application
 import com.walletconnect.android.common.connection.ConnectivityState
@@ -18,7 +18,6 @@ import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.model.Relay
-import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.flow.*
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named

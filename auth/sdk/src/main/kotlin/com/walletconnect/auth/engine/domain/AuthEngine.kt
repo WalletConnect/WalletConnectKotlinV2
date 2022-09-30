@@ -3,6 +3,8 @@
 package com.walletconnect.auth.engine.domain
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.android.common.model.RelayProtocolOptions
+import com.walletconnect.android.common.model.SymmetricKey
 import com.walletconnect.android.exception.WalletConnectException
 import com.walletconnect.android.impl.common.*
 import com.walletconnect.android.impl.common.model.*
@@ -11,7 +13,7 @@ import com.walletconnect.android.impl.common.model.sync.WCResponse
 import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.common.model.type.enums.EnvelopeType
 import com.walletconnect.android.impl.common.scope.scope
-import com.walletconnect.android.impl.crypto.KeyManagementRepository
+import com.walletconnect.android.common.crypto.KeyManagementRepository
 import com.walletconnect.android.impl.utils.ACTIVE_PAIRING
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.Logger

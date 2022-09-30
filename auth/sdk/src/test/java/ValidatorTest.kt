@@ -1,5 +1,5 @@
-import com.walletconnect.android.impl.common.model.RelayProtocolOptions
-import com.walletconnect.android.impl.common.model.SymmetricKey
+import com.walletconnect.android.common.model.RelayProtocolOptions
+import com.walletconnect.android.common.model.SymmetricKey
 import com.walletconnect.auth.common.model.WalletConnectUri
 import com.walletconnect.auth.engine.domain.Validator
 import com.walletconnect.auth.engine.mapper.toAbsoluteString

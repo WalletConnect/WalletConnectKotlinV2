@@ -3,8 +3,8 @@
 package com.walletconnect.auth.common.model
 
 import com.walletconnect.android.impl.common.model.MetaData
-import com.walletconnect.android.impl.common.model.RelayProtocolOptions
-import com.walletconnect.android.impl.common.model.type.Sequence
+import com.walletconnect.android.common.model.RelayProtocolOptions
+import com.walletconnect.android.common.model.Sequence
 import com.walletconnect.android.impl.utils.ACTIVE_PAIRING
 import com.walletconnect.android.impl.utils.INACTIVE_PAIRING
 import com.walletconnect.auth.engine.mapper.toAbsoluteString

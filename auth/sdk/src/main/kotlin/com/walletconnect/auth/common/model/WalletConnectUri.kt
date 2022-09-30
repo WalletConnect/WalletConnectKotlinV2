@@ -2,8 +2,8 @@
 
 package com.walletconnect.auth.common.model
 
-import com.walletconnect.android.impl.common.model.RelayProtocolOptions
-import com.walletconnect.android.impl.common.model.SymmetricKey
+import com.walletconnect.android.common.model.RelayProtocolOptions
+import com.walletconnect.android.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 
 internal class WalletConnectUri(

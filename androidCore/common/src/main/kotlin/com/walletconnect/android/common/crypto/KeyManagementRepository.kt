@@ -1,6 +1,6 @@
-package com.walletconnect.android.impl.crypto
+package com.walletconnect.android.common.crypto
 
-import com.walletconnect.android.impl.common.model.SymmetricKey
+import com.walletconnect.android.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic

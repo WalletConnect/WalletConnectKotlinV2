@@ -1,6 +1,6 @@
 package com.walletconnect.sign
 
-import com.walletconnect.android.impl.common.model.SymmetricKey
+import com.walletconnect.android.common.model.SymmetricKey
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
@@ -30,7 +30,7 @@ import com.walletconnect.sign.ValidatorTest.Namespaces.COSMOS
 import com.walletconnect.sign.ValidatorTest.Namespaces.EIP155
 import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.android.impl.common.model.RelayProtocolOptions
+import com.walletconnect.android.common.model.RelayProtocolOptions
 import com.walletconnect.sign.engine.domain.Validator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toAbsoluteString

@@ -12,7 +12,7 @@ import com.walletconnect.android.impl.common.model.*
 import com.walletconnect.android.impl.common.model.sync.WCRequest
 import com.walletconnect.android.impl.common.model.sync.WCResponse
 import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.crypto.KeyManagementRepository
+import com.walletconnect.android.common.crypto.KeyManagementRepository
 import com.walletconnect.android.impl.utils.*
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -21,7 +21,8 @@ import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.exceptions.client.*
 import com.walletconnect.sign.common.model.type.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.android.impl.common.model.RelayProtocolOptions
+import com.walletconnect.android.common.model.RelayProtocolOptions
+import com.walletconnect.android.common.model.SymmetricKey
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
