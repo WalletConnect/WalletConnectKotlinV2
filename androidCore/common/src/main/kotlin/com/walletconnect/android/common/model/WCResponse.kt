@@ -1,7 +1,6 @@
-package com.walletconnect.android.impl.common.model.sync
+package com.walletconnect.android.common.model
 
 import com.walletconnect.android.common.JsonRpcResponse
-import com.walletconnect.android.impl.common.model.type.ClientParams
 import com.walletconnect.foundation.common.model.Topic
 
 data class WCResponse(

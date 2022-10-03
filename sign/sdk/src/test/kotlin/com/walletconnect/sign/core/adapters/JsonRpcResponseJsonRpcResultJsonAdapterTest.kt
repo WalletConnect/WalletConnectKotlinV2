@@ -2,7 +2,7 @@ package com.walletconnect.sign.core.adapters
 
 import com.squareup.moshi.Moshi
 import com.tinder.scarlet.utils.getRawType
-import com.walletconnect.android.impl.common.model.MetaData
+import com.walletconnect.android.common.model.MetaData
 import com.walletconnect.sign.common.adapters.JsonRpcResultAdapter
 import com.walletconnect.android.common.model.RelayProtocolOptions
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO

@@ -1,4 +1,4 @@
-package com.walletconnect.android.impl.common.model.type
+package com.walletconnect.android.common.model
 
 interface Error {
     val message: String

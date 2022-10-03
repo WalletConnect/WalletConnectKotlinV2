@@ -5,12 +5,12 @@ package com.walletconnect.android.utils
 import android.net.Uri
 import android.os.Build
 import com.walletconnect.android.common.CURRENT_TIME_IN_SECONDS
+import com.walletconnect.android.common.exception.WalletConnectException
 import com.walletconnect.android.common.model.Expiry
 import com.walletconnect.android.connection.ConnectionType
 import com.walletconnect.android.exception.GenericException
 import com.walletconnect.android.exception.InvalidProjectIdException
 import com.walletconnect.android.exception.ProjectIdDoesNotExistException
-import com.walletconnect.android.exception.WalletConnectException
 import java.net.HttpURLConnection
 
 @JvmSynthetic
@@ -54,3 +54,7 @@ internal val Throwable.toWalletConnectException: WalletConnectException
 
 @JvmSynthetic
 fun Expiry.isSequenceValid(): Boolean = seconds > CURRENT_TIME_IN_SECONDS
+
+@get:JvmSynthetic
+val Int.Companion.DefaultId
+    get() = -1

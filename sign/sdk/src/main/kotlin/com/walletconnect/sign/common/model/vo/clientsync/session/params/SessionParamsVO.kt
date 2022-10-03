@@ -4,7 +4,7 @@ package com.walletconnect.sign.common.model.vo.clientsync.session.params
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android.impl.common.model.type.ClientParams
+import com.walletconnect.android.common.model.ClientParams
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.android.common.model.RelayProtocolOptions
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO

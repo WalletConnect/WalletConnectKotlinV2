@@ -1,72 +1,67 @@
 package com.walletconnect.android.impl.json_rpc.domain
 
-import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.android.common.JsonRpcResponse
+import com.walletconnect.android.common.exception.WalletConnectException
+import com.walletconnect.android.common.model.*
 import com.walletconnect.android.exception.NoRelayConnectionException
-import com.walletconnect.android.exception.WalletConnectException
-import com.walletconnect.android.impl.common.model.IrnParams
-import com.walletconnect.android.impl.common.model.sync.WCRequest
-import com.walletconnect.android.impl.common.model.sync.WCResponse
-import com.walletconnect.android.impl.common.model.type.ClientParams
-import com.walletconnect.android.impl.common.model.type.Error
-import com.walletconnect.android.impl.common.model.type.JsonRpcClientSync
-import com.walletconnect.android.impl.common.model.type.enums.EnvelopeType
+import com.walletconnect.android.impl.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializerAbstract
-import com.walletconnect.android.impl.json_rpc.model.*
-import com.walletconnect.android.impl.common.model.Participants
-import com.walletconnect.android.impl.common.model.sync.ClientJsonRpc
+import com.walletconnect.android.impl.json_rpc.model.toJsonRpcError
+import com.walletconnect.android.impl.json_rpc.model.toJsonRpcResponse
+import com.walletconnect.android.impl.json_rpc.model.toRelay
+import com.walletconnect.android.impl.json_rpc.model.toWCResponse
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.utils.Empty
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.lang.InternalError
 
-open class BaseJsonRpcInteractor(
+internal class JsonRpcInteractor(
     private val relay: RelayConnectionInterface,
     private val serializer: JsonRpcSerializerAbstract,
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
-) {
+): JsonRpcInteractorInterface {
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequest> = MutableSharedFlow()
-    val clientSyncJsonRpc: SharedFlow<WCRequest> = _clientSyncJsonRpc.asSharedFlow()
+    override val clientSyncJsonRpc: SharedFlow<WCRequest> = _clientSyncJsonRpc.asSharedFlow()
 
     private val _peerResponse: MutableSharedFlow<WCResponse> = MutableSharedFlow()
-    val peerResponse: SharedFlow<WCResponse> = _peerResponse.asSharedFlow()
+    override val peerResponse: SharedFlow<WCResponse> = _peerResponse.asSharedFlow()
 
     private val _internalErrors = MutableSharedFlow<InternalError>()
-    val internalErrors: SharedFlow<InternalError> = _internalErrors.asSharedFlow()
+    override val internalErrors: SharedFlow<InternalError> = _internalErrors.asSharedFlow()
 
-    val isConnectionAvailable: StateFlow<Boolean> get() = relay.isConnectionAvailable
+    override val isConnectionAvailable: StateFlow<Boolean> get() = relay.isConnectionAvailable
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> handleError(exception.message ?: String.Empty) }
 
-    val initializationErrorsFlow: Flow<WalletConnectException> get() = relay.initializationErrorsFlow
+    override val initializationErrorsFlow: Flow<WalletConnectException> get() = relay.initializationErrorsFlow
 
     init {
         manageSubscriptions()
     }
 
-    fun checkConnectionWorking() {
+    override fun checkConnectionWorking() {
         if (!relay.isConnectionAvailable.value) {
             throw NoRelayConnectionException("No connection available")
         }
     }
 
-    fun publishJsonRpcRequests(
+    override fun publishJsonRpcRequests(
         topic: Topic,
         params: IrnParams,
         payload: JsonRpcClientSync<*>,
-        envelopeType: EnvelopeType = EnvelopeType.ZERO,
-        participants: Participants? = null,
-        onSuccess: () -> Unit = {},
-        onFailure: (Throwable) -> Unit = {},
+        envelopeType: EnvelopeType,
+        participants: Participants?,
+        onSuccess: () -> Unit,
+        onFailure: (Throwable) -> Unit,
     ) {
         checkConnectionWorking()
         val requestJson = serializer.serialize(payload)
@@ -83,14 +78,14 @@ open class BaseJsonRpcInteractor(
         }
     }
 
-    fun publishJsonRpcResponse(
+    override fun publishJsonRpcResponse(
         topic: Topic,
         params: IrnParams,
         response: JsonRpcResponse,
-        onSuccess: () -> Unit = {},
-        onFailure: (Throwable) -> Unit = {},
-        participants: Participants? = null,
-        envelopeType: EnvelopeType = EnvelopeType.ZERO,
+        onSuccess: () -> Unit,
+        onFailure: (Throwable) -> Unit,
+        participants: Participants?,
+        envelopeType: EnvelopeType,
     ) {
         checkConnectionWorking()
 
@@ -109,25 +104,24 @@ open class BaseJsonRpcInteractor(
         }
     }
 
-    fun respondWithParams(
+    override fun respondWithParams(
         request: WCRequest,
         clientParams: ClientParams,
         irnParams: IrnParams,
-        envelopeType: EnvelopeType = EnvelopeType.ZERO,
-        participants: Participants? = null,
-
-        ) {
+        envelopeType: EnvelopeType,
+        participants: Participants?,
+    ) {
         val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = clientParams)
 
         publishJsonRpcResponse(request.topic, irnParams, result, envelopeType = envelopeType, participants = participants,
             onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
     }
 
-    fun respondWithSuccess(
+    override fun respondWithSuccess(
         request: WCRequest,
         irnParams: IrnParams,
-        envelopeType: EnvelopeType = EnvelopeType.ZERO,
-        participants: Participants? = null,
+        envelopeType: EnvelopeType,
+        participants: Participants?,
     ) {
         val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = true)
 
@@ -139,13 +133,13 @@ open class BaseJsonRpcInteractor(
         }
     }
 
-    fun respondWithError(
+    override fun respondWithError(
         request: WCRequest,
         error: Error,
         irnParams: IrnParams,
-        envelopeType: EnvelopeType = EnvelopeType.ZERO,
-        participants: Participants? = null,
-        onFailure: (Throwable) -> Unit = {},
+        envelopeType: EnvelopeType,
+        participants: Participants?,
+        onFailure: (Throwable) -> Unit,
     ) {
         Logger.error("Responding with error: ${error.message}: ${error.code}")
         val jsonRpcError = JsonRpcResponse.JsonRpcError(id = request.id, error = JsonRpcResponse.Error(error.code, error.message))
@@ -161,7 +155,7 @@ open class BaseJsonRpcInteractor(
         }
     }
 
-    fun subscribe(topic: Topic) {
+    override fun subscribe(topic: Topic) {
         checkConnectionWorking()
         relay.subscribe(topic.value) { result ->
             result.fold(
@@ -171,7 +165,7 @@ open class BaseJsonRpcInteractor(
         }
     }
 
-    fun unsubscribe(topic: Topic) {
+    override fun unsubscribe(topic: Topic) {
         checkConnectionWorking()
         if (subscriptions.contains(topic.value)) {
             val subscriptionId = SubscriptionId(subscriptions[topic.value].toString())

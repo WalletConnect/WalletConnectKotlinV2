@@ -3,17 +3,13 @@
 package com.walletconnect.auth.engine.domain
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.android.common.model.RelayProtocolOptions
-import com.walletconnect.android.common.model.SymmetricKey
-import com.walletconnect.android.exception.WalletConnectException
+import com.walletconnect.android.common.crypto.KeyManagementRepository
+import com.walletconnect.android.common.exception.WalletConnectException
+import com.walletconnect.android.common.model.*
 import com.walletconnect.android.impl.common.*
 import com.walletconnect.android.impl.common.model.*
-import com.walletconnect.android.impl.common.model.sync.WCRequest
-import com.walletconnect.android.impl.common.model.sync.WCResponse
 import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.common.model.type.enums.EnvelopeType
 import com.walletconnect.android.impl.common.scope.scope
-import com.walletconnect.android.common.crypto.KeyManagementRepository
 import com.walletconnect.android.impl.utils.ACTIVE_PAIRING
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.Logger
@@ -25,8 +21,11 @@ import com.walletconnect.auth.common.exceptions.PeerError
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.json_rpc.AuthRpc
 import com.walletconnect.auth.common.model.*
+import com.walletconnect.auth.common.model.WalletConnectUri
 import com.walletconnect.auth.engine.mapper.*
-import com.walletconnect.auth.json_rpc.domain.JsonRpcInteractor
+import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
+import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
+import com.walletconnect.auth.json_rpc.domain.GetResponseByIdUseCase
 import com.walletconnect.auth.signature.CacaoType
 import com.walletconnect.auth.signature.cacao.CacaoVerifier
 import com.walletconnect.auth.storage.AuthStorageRepository
@@ -41,7 +40,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 internal class AuthEngine(
-    private val relayer: JsonRpcInteractor,
+    private val relayer: JsonRpcInteractorInterface,
+    private val getPendingJsonRpcHistoryEntriesUseCase: GetPendingJsonRpcHistoryEntriesUseCase,
+    private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
+    private val getResponseByIdUseCase: GetResponseByIdUseCase,
     private val crypto: KeyManagementRepository,
     private val storage: AuthStorageRepository,
     private val metaData: AppMetaData,
@@ -89,7 +91,7 @@ internal class AuthEngine(
             val authParams: AuthParams.RequestParams =
                 AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams)
             val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
-            val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
+            val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
             relayer.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
                 onSuccess = {
                     Logger.log("Auth request sent successfully on topic:$pairingTopic, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
@@ -135,7 +137,8 @@ internal class AuthEngine(
         respond: Respond,
         onFailure: (Throwable) -> Unit,
     ) {
-        val jsonRpcHistoryEntry = relayer.getPendingJsonRpcHistoryEntryById(respond.id)
+        val jsonRpcHistoryEntry = getPendingJsonRpcHistoryEntryByIdUseCase(respond.id)
+
         if (jsonRpcHistoryEntry == null) {
             Logger.error(MissingAuthRequestException.message)
             onFailure(MissingAuthRequestException)
@@ -162,7 +165,7 @@ internal class AuthEngine(
         val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
         crypto.setSymmetricKey(responseTopic, symmetricKey)
 
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
+        val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
         relayer.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
             onSuccess = { Logger.log("Success Responded on topic: $responseTopic") },
@@ -171,7 +174,7 @@ internal class AuthEngine(
     }
 
     internal fun getResponseById(id: Long): Response? {
-        return relayer.getResponseById(id)?.let { response ->
+        return getResponseByIdUseCase(id)?.let { response ->
             when (response) {
                 is com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult -> {
                     val (header, payload, signature) = (response.result as AuthParams.ResponseParams)
@@ -187,7 +190,7 @@ internal class AuthEngine(
         if (issuer == null) {
             throw MissingIssuerException
         }
-        return relayer.getPendingJsonRpcHistoryEntries()
+        return getPendingJsonRpcHistoryEntriesUseCase()
             .map { jsonRpcHistoryEntry -> jsonRpcHistoryEntry.toPendingRequest(issuer) }
     }
 
@@ -198,7 +201,7 @@ internal class AuthEngine(
                 _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, formattedMessage))
             }
         } else {
-            val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
+            val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
             relayer.respondWithError(wcRequest, PeerError.MissingIssuer, irnParams)
         }
     }

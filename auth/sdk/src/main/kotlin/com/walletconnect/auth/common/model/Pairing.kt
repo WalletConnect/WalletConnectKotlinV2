@@ -2,7 +2,7 @@
 
 package com.walletconnect.auth.common.model
 
-import com.walletconnect.android.impl.common.model.MetaData
+import com.walletconnect.android.common.model.MetaData
 import com.walletconnect.android.common.model.RelayProtocolOptions
 import com.walletconnect.android.common.model.Sequence
 import com.walletconnect.android.impl.utils.ACTIVE_PAIRING

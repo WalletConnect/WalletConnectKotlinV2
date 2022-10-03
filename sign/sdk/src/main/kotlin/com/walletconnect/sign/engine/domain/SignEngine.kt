@@ -4,28 +4,25 @@ package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.common.JsonRpcResponse
-import com.walletconnect.android.common.model.Tags
-import com.walletconnect.android.exception.GenericException
-import com.walletconnect.android.exception.WalletConnectException
-import com.walletconnect.android.impl.common.*
-import com.walletconnect.android.impl.common.model.*
-import com.walletconnect.android.impl.common.model.sync.WCRequest
-import com.walletconnect.android.impl.common.model.sync.WCResponse
-import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.common.crypto.KeyManagementRepository
+import com.walletconnect.android.common.exception.WalletConnectException
+import com.walletconnect.android.common.model.*
+import com.walletconnect.android.exception.GenericException
+import com.walletconnect.android.impl.common.*
+import com.walletconnect.android.impl.common.model.ConnectionState
+import com.walletconnect.android.common.model.MetaData
+import com.walletconnect.android.impl.common.model.type.EngineEvent
+import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.utils.*
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.exceptions.client.*
-import com.walletconnect.sign.common.model.type.Sequences
-import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.android.common.model.RelayProtocolOptions
-import com.walletconnect.android.common.model.SymmetricKey
-import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
+import com.walletconnect.sign.common.model.type.Sequences
+import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.PairingRpcVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
@@ -37,7 +34,7 @@ import com.walletconnect.sign.common.model.vo.sequence.PairingVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.*
-import com.walletconnect.sign.json_rpc.domain.JsonRpcInteractor
+import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCase
 import com.walletconnect.sign.storage.sequence.SequenceStorageRepository
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.generateId
@@ -49,7 +46,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 internal class SignEngine(
-    private val relayer: JsonRpcInteractor,
+    private val relayer: JsonRpcInteractorInterface,
+    private val getPendingRequestsUseCase: GetPendingRequestsUseCase,
     private val crypto: KeyManagementRepository,
     private val sequenceStorageRepository: SequenceStorageRepository,
     private val metaData: EngineDO.AppMetaData,
@@ -259,7 +257,7 @@ internal class SignEngine(
 
         val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
         val sessionUpdate = SessionRpcVO.SessionUpdate(id = generateId(), params = params)
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
 
         sequenceStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id, onSuccess = {
             relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionUpdate,
@@ -456,7 +454,8 @@ internal class SignEngine(
 
         relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionDelete,
             onSuccess = { Logger.error("Disconnect sent successfully") },
-            onFailure = { error -> Logger.error("Sending session disconnect error: $error") })
+            onFailure = { error -> Logger.error("Sending session disconnect error: $error") }
+        )
     }
 
     internal fun getListOfSettledSessions(): List<EngineDO.Session> {
@@ -471,7 +470,7 @@ internal class SignEngine(
             .map { pairing -> pairing.toEngineDOSettledPairing() }
     }
 
-    internal fun getPendingRequests(topic: Topic): List<PendingRequest> = relayer.getPendingRequests(topic)
+    internal fun getPendingRequests(topic: Topic): List<PendingRequest> = getPendingRequestsUseCase(topic)
 
     private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit = {}) {
         relayer.peerResponse
@@ -722,7 +721,7 @@ internal class SignEngine(
 
         sequenceStorageRepository.extendSession(request.topic, newExpiry)
         relayer.respondWithSuccess(request, irnParams)
-        scope.launch { _engineEvent.emit(session.toEngineDOSessionExtend(com.walletconnect.android.common.model.Expiry(newExpiry))) }
+        scope.launch { _engineEvent.emit(session.toEngineDOSessionExtend(Expiry(newExpiry))) }
     }
 
     private fun onPing(request: WCRequest) {

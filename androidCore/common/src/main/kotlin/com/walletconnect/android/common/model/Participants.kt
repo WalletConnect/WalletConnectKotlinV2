@@ -1,4 +1,4 @@
-package com.walletconnect.android.impl.common.model
+package com.walletconnect.android.common.model
 
 import com.walletconnect.foundation.common.model.PublicKey
 

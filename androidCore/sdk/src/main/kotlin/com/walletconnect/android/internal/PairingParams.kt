@@ -1,25 +1,22 @@
-@file:JvmSynthetic
-
-package com.walletconnect.sign.common.model.vo.clientsync.pairing.params
+package com.walletconnect.android.internal
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.common.model.ClientParams
 import com.walletconnect.android.common.model.RelayProtocolOptions
-import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.utils.DefaultId
+import com.walletconnect.android.utils.DefaultId
 
-internal sealed class PairingParamsVO : ClientParams {
+sealed class PairingParams : ClientParams {
 
     @JsonClass(generateAdapter = true)
     internal data class SessionProposeParams(
         @Json(name = "relays")
         val relays: List<RelayProtocolOptions>,
         @Json(name = "proposer")
-        val proposer: SessionProposerVO,
+        val proposer: SessionProposer,
         @Json(name = "requiredNamespaces")
-        val namespaces: Map<String, NamespaceVO.Proposal>,
-    ) : PairingParamsVO()
+        val namespaces: Map<String, Proposal>,
+    ) : PairingParams()
 
     @JsonClass(generateAdapter = true)
     internal class DeleteParams(
@@ -27,8 +24,8 @@ internal sealed class PairingParamsVO : ClientParams {
         val code: Int = Int.DefaultId,
         @Json(name = "message")
         val message: String,
-    ) : PairingParamsVO()
+    ) : PairingParams()
 
     @Suppress("CanSealedSubClassBeObject")
-    internal class PingParams : PairingParamsVO()
+    internal class PingParams : PairingParams()
 }

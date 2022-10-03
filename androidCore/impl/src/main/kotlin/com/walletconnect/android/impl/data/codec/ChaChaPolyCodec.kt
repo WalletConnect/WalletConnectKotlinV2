@@ -5,9 +5,9 @@ package com.walletconnect.android.impl.data.codec
 import com.walletconnect.android.impl.common.MissingParticipantsException
 import com.walletconnect.android.impl.common.MissingReceiverPublicKeyException
 import com.walletconnect.android.impl.common.UnknownEnvelopeTypeException
-import com.walletconnect.android.impl.common.model.Participants
+import com.walletconnect.android.common.model.Participants
 import com.walletconnect.android.common.model.SymmetricKey
-import com.walletconnect.android.impl.common.model.type.enums.EnvelopeType
+import com.walletconnect.android.common.model.EnvelopeType
 import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.common.crypto.KeyManagementRepository
 import com.walletconnect.foundation.common.model.PublicKey

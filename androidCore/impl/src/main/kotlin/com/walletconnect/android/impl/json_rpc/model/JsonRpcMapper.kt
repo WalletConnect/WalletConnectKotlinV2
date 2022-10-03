@@ -3,9 +3,9 @@
 package com.walletconnect.android.impl.json_rpc.model
 
 import com.walletconnect.android.common.JsonRpcResponse
-import com.walletconnect.android.impl.common.model.IrnParams
-import com.walletconnect.android.impl.common.model.sync.WCResponse
-import com.walletconnect.android.impl.common.model.type.ClientParams
+import com.walletconnect.android.common.model.IrnParams
+import com.walletconnect.android.common.model.WCResponse
+import com.walletconnect.android.common.model.ClientParams
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.network.model.Relay
 

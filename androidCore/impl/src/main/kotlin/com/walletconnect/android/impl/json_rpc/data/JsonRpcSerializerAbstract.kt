@@ -2,7 +2,7 @@ package com.walletconnect.android.impl.json_rpc.data
 
 import com.squareup.moshi.Moshi
 import com.walletconnect.android.common.JsonRpcResponse
-import com.walletconnect.android.impl.common.model.type.ClientParams
+import com.walletconnect.android.common.model.ClientParams
 import com.walletconnect.android.common.SerializableJsonRpc
 
 abstract class JsonRpcSerializerAbstract(open val moshi: Moshi) {

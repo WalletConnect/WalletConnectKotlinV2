@@ -4,7 +4,7 @@ package com.walletconnect.auth.common.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android.impl.common.model.MetaData
+import com.walletconnect.android.common.model.MetaData
 
 @JsonClass(generateAdapter = true)
 internal data class Requester(

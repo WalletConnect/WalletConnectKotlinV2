@@ -1,7 +1,7 @@
 package com.walletconnect.android.impl.crypto
 
-import com.walletconnect.android.impl.common.model.Participants
-import com.walletconnect.android.impl.common.model.type.enums.EnvelopeType
+import com.walletconnect.android.common.model.Participants
+import com.walletconnect.android.common.model.EnvelopeType
 import com.walletconnect.foundation.common.model.Topic
 
 interface Codec {

@@ -3,18 +3,15 @@
 package com.walletconnect.sign.di
 
 import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.sign.json_rpc.domain.JsonRpcInteractor
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import com.walletconnect.android.impl.di.jsonRpcModule as coreJsonRpcModule
 
 @JvmSynthetic
 internal fun jsonRpcModule() = module {
 
-    single {
-        JsonRpcSerializer(get())
-    }
+    includes(coreJsonRpcModule())
 
     single {
-        JsonRpcInteractor(get(), get(), get(), get())
+        JsonRpcSerializer(get())
     }
 }
