@@ -9,7 +9,5 @@ internal fun jsonRpcModule() = module {
 
     includes(coreJsonRpcModule())
 
-    single {
-        JsonRpcSerializer(get())
-    }
+    single { JsonRpcSerializer(get()) }
 }

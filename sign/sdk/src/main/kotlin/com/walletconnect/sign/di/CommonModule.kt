@@ -19,6 +19,7 @@ internal fun commonModule() = module {
 
     includes(androidCommonModule())
 
+    //todo: Maybe this needs to be registered as named(AndroidCommonDITags.MOSHI) to properly work with new JsonRpcSerializer approach
     single {
         get<Moshi>(named(AndroidCommonDITags.MOSHI))
             .newBuilder()

@@ -3,11 +3,12 @@ package com.walletconnect.android.impl.json_rpc.domain
 import com.walletconnect.android.common.JsonRpcResponse
 import com.walletconnect.android.common.exception.WalletConnectException
 import com.walletconnect.android.common.model.*
+import com.walletconnect.android.common.wcKoinApp
 import com.walletconnect.android.exception.NoRelayConnectionException
 import com.walletconnect.android.impl.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.crypto.Codec
-import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializerAbstract
+import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.impl.json_rpc.model.toJsonRpcError
 import com.walletconnect.android.impl.json_rpc.model.toJsonRpcResponse
 import com.walletconnect.android.impl.json_rpc.model.toRelay
@@ -24,10 +25,12 @@ import kotlinx.coroutines.launch
 
 internal class JsonRpcInteractor(
     private val relay: RelayConnectionInterface,
-    private val serializer: JsonRpcSerializerAbstract,
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
 ): JsonRpcInteractorInterface {
+    private val serializer: JsonRpcSerializer
+        get() = wcKoinApp.koin.get()
+
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequest> = MutableSharedFlow()
     override val clientSyncJsonRpc: SharedFlow<WCRequest> = _clientSyncJsonRpc.asSharedFlow()
 

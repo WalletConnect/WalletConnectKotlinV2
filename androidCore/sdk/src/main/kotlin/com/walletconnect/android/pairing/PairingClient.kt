@@ -37,6 +37,10 @@ internal object PairingClient : PairingInterface {
         _selfMetaData = metaData
     }
 
+    init {
+        // Match it with signEngine init {}
+    }
+
     override fun ping(ping: Core.Params.Ping, sessionPing: Core.Listeners.SessionPing?) {
         if (storageRepository.isPairingValid(Topic(ping.topic))) {
             val pingPayload = PairingRpc.PairingPing(id = generateId(), params = PairingParams.PingParams())
@@ -61,9 +65,9 @@ internal object PairingClient : PairingInterface {
                     }
                 }
             },
-            onFailure = { error ->
-                sessionPing?.onError(Core.Model.Ping.Error(error))
-            })
+                onFailure = { error ->
+                    sessionPing?.onError(Core.Model.Ping.Error(error))
+                })
         } else {
             sessionPing?.onError(Core.Model.Ping.Error(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${ping.topic}")))
         }
@@ -148,11 +152,26 @@ internal object PairingClient : PairingInterface {
 
     private val methodsToCallbacks: MutableMap<String, (topic: String, request: WCRequest) -> Unit> = mutableMapOf()
 
-//    @Throws(MethodAlreadyRegistered::class)
+    //    @Throws(MethodAlreadyRegistered::class)
     override fun register(method: String, onMethod: (topic: String, request: WCRequest) -> Unit) {
 //        if (methodsToCallbacks.containsKey(method)) throw MethodAlreadyRegistered("Method: $method already registered")
 
         methodsToCallbacks[method] = onMethod
+    }
+
+
+    private fun collectJsonRpcRequests() {
+        scope.launch {
+            jsonRpcInteractor.clientSyncJsonRpc.collect { request ->
+                val onMethod = methodsToCallbacks[request.method]
+                if (onMethod == null) {
+                    TODO("Probably respond here with error")
+//                    jsonRpcInteractor.respondWithError()
+                } else {
+                    onMethod(request.topic.value, request)
+                }
+            }
+        }
     }
 
     private fun generateTopic(): Topic = Topic(randomBytes(32).bytesToHex())
