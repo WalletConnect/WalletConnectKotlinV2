@@ -9,10 +9,10 @@ import com.walletconnect.android.common.di.androidApiCryptoModule
 import com.walletconnect.android.common.di.androidApiNetworkModule
 import com.walletconnect.android.common.di.commonModule
 import com.walletconnect.android.common.exception.WRONG_CONNECTION_TYPE
+import com.walletconnect.android.common.exception.WalletConnectException
 import com.walletconnect.android.common.scope
 import com.walletconnect.android.common.wcKoinApp
 import com.walletconnect.android.connection.ConnectionType
-import com.walletconnect.android.exception.WalletConnectException
 import com.walletconnect.android.utils.*
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.foundation.network.BaseRelayClient
