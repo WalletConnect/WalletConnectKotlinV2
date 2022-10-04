@@ -15,7 +15,7 @@ fun jsonRpcModule() = module {
         JsonRpcInteractor(get(), get(), get())
     }
 
-    single(named(AndroidCoreDITags.SERIALIZER_SET)) {
+    single(named(AndroidCoreDITags.SERIALIZER_SET), createdAtStart = true) {
         mutableSetOf<(SerializableJsonRpc) -> Boolean>()
     }
 
@@ -23,5 +23,10 @@ fun jsonRpcModule() = module {
         mutableMapOf<String, KClass<*>>()
     }
     
-    factory { JsonRpcSerializer(get(), serializerEntries = get(named(AndroidCoreDITags.SERIALIZER_SET)), deserializerEntries = get(named(AndroidCoreDITags.DESERIALIZER_MAP))) }
+    factory {
+        JsonRpcSerializer(
+            serializerEntries = get(named(AndroidCoreDITags.SERIALIZER_SET)),
+            deserializerEntries = get(named(AndroidCoreDITags.DESERIALIZER_MAP))
+        )
+    }
 }

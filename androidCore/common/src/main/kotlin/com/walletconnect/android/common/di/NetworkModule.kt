@@ -1,6 +1,7 @@
 package com.walletconnect.android.common.di
 
 import android.os.Build
+import com.squareup.moshi.Moshi
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
@@ -45,7 +46,7 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: Conn
             .build()
     }
 
-    single(named(AndroidCommonDITags.MSG_ADAPTER)) { MoshiMessageAdapter.Factory(get(named(AndroidCommonDITags.MOSHI))) }
+    single(named(AndroidCommonDITags.MSG_ADAPTER)) { MoshiMessageAdapter.Factory(get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)).build()) }
 
 
     single(named(AndroidCommonDITags.CONNECTION_CONTROLLER)) {

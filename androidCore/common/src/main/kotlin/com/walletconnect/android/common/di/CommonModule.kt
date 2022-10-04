@@ -26,7 +26,7 @@ fun commonModule() = module {
             .withSubtype(JsonRpcResponse.JsonRpcError::class.java, "error")
     }
 
-    single<Moshi>(named(AndroidCommonDITags.MOSHI)) {
+    single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {
         get<Moshi>(named(FoundationDITags.MOSHI))
             .newBuilder()
             .add { type, _, _ ->
@@ -37,7 +37,6 @@ fun commonModule() = module {
                 }
             }
             .add(get<PolymorphicJsonAdapterFactory<JsonRpcResponse>>())
-            .build()
     }
 
     single<Logger>(named(AndroidCommonDITags.LOGGER)) {

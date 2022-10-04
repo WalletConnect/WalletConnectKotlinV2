@@ -20,9 +20,8 @@ internal fun commonModule() = module {
     includes(androidCommonModule())
 
     //todo: Maybe this needs to be registered as named(AndroidCommonDITags.MOSHI) to properly work with new JsonRpcSerializer approach
-    single {
-        get<Moshi>(named(AndroidCommonDITags.MOSHI))
-            .newBuilder()
+    single(createdAtStart = true) {
+        get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))
             .add { type, _, moshi ->
                 when (type.getRawType().name) {
                     SessionRequestVO::class.jvmName -> SessionRequestVOJsonAdapter(moshi)
@@ -30,6 +29,5 @@ internal fun commonModule() = module {
                     else -> null
                 }
             }
-            .build()
     }
 }

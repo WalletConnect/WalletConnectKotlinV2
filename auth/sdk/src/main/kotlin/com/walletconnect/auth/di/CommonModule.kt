@@ -15,15 +15,13 @@ internal fun commonModule() = module {
     includes(androidCommonModule())
 
     //todo: Maybe this needs to be registered as named(AndroidCommonDITags.MOSHI) to properly work with new JsonRpcSerializer approach
-    single {
-        get<Moshi>(named(AndroidCommonDITags.MOSHI))
-            .newBuilder()
+    single(createdAtStart = true) {
+        get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))
             .add { type, _, moshi ->
                 when (type.getRawType().name) {
                     com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult::class.jvmName -> JsonRpcResultAdapter(moshi)
                     else -> null
                 }
             }
-            .build()
     }
 }
