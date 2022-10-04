@@ -67,7 +67,7 @@ internal class JsonRpcInteractor(
         onFailure: (Throwable) -> Unit,
     ) {
         checkConnectionWorking()
-        val requestJson = serializer.serialize(payload)
+        val requestJson = serializer.serialize(payload) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
 
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
@@ -93,7 +93,7 @@ internal class JsonRpcInteractor(
         checkConnectionWorking()
 
         val jsonResponseDO = response.toJsonRpcResponse()
-        val responseJson = serializer.serialize(jsonResponseDO)
+        val responseJson = serializer.serialize(jsonResponseDO) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
         val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
 
         relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
@@ -215,7 +215,8 @@ internal class JsonRpcInteractor(
     }
 
     private suspend fun handleJsonRpcResult(jsonRpcResult: JsonRpcResponse.JsonRpcResult) {
-        val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcResult.id, serializer.serialize(jsonRpcResult))
+        val serializedResult = serializer.serialize(jsonRpcResult) ?: return handleError("JsonRpcInteractor: Unknown result params")
+        val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcResult.id, serializedResult)
 
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
@@ -226,7 +227,8 @@ internal class JsonRpcInteractor(
     }
 
     private suspend fun handleJsonRpcError(jsonRpcError: JsonRpcResponse.JsonRpcError) {
-        val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcError.id, serializer.serialize(jsonRpcError))
+        val serializedResult = serializer.serialize(jsonRpcError) ?: return handleError("JsonRpcInteractor: Unknown result params")
+        val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcError.id, serializedResult)
 
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->

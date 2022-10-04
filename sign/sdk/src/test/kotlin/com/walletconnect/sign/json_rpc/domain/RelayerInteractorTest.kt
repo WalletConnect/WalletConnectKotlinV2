@@ -2,7 +2,6 @@ package com.walletconnect.sign.json_rpc.domain
 
 import com.walletconnect.android.common.exception.WalletConnectException
 import com.walletconnect.android.common.model.*
-import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.relay.RelayConnectionInterface
@@ -11,7 +10,6 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.foundation.network.model.RelayDTO
 import com.walletconnect.sign.common.exceptions.peer.PeerError
-import com.walletconnect.sign.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.utils.Empty
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,16 +24,8 @@ import kotlin.test.assertFalse
 @ExperimentalCoroutinesApi
 internal class RelayerInteractorTest {
 
-    private val chaChaPolyCodec: Codec = mockk {
-        every { encrypt(any(), any(), any(), any()) } returns String.Empty
-    }
-
     private val relay: RelayConnectionInterface = mockk {
         every { subscriptionRequest } returns flow { }
-    }
-
-    private val serializer: JsonRpcSerializer = mockk {
-        every { serialize(any()) } returns String.Empty
     }
 
     private val jsonRpcHistory: JsonRpcHistory = mockk {

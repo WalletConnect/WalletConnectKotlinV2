@@ -2,8 +2,6 @@
 
 package com.walletconnect.auth.client
 
-import com.walletconnect.android.common.SerializableJsonRpc
-import com.walletconnect.android.common.model.ClientParams
 import com.walletconnect.android.common.wcKoinApp
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
@@ -19,10 +17,8 @@ import com.walletconnect.auth.di.engineModule
 import com.walletconnect.auth.di.jsonRpcModule
 import com.walletconnect.auth.di.storageModule
 import com.walletconnect.auth.engine.domain.AuthEngine
-import com.walletconnect.auth.json_rpc.data.JsonRpcSerializerAddon
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import org.koin.core.qualifier.named
 
 internal class AuthProtocol : AuthInterface {
     private lateinit var authEngine: AuthEngine
