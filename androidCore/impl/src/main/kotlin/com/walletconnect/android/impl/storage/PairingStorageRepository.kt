@@ -56,7 +56,7 @@ class PairingStorageRepository(val metadataDao: MetadataDao, val pairingDao: Pai
     override fun updateMetadata(topic: Topic, metadata: PeerMetaData): Unit = metadataDao.updateOrAbortMetaData(metadata, MetaDataType.PEER, topic) // todo is MetaDataType.PEER necessary?
 
     @Throws(SQLiteException::class)
-    override fun getPairingByTopic(topic: Topic): Pairing = pairingDao.getPairingByTopic(topic)
+    override fun getPairingOrNullByTopic(topic: Topic): Pairing? = pairingDao.getPairingOrNullByTopic(topic)
 
     @Throws(SQLiteException::class)
     override fun upsertPairingPeerMetadata(topic: Topic, metaData: PeerMetaData) {

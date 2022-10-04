@@ -42,7 +42,12 @@ android {
 
 sqldelight {
     database("Database") {
-        packageName = "com.walletconnect.android.impl"
+        packageName = "com.walletconnect.android.impl.shared"
+        sourceFolders = listOf("shared")
+    }
+    database("AndroidCoreDatabase") {
+        packageName = "com.walletconnect.android.impl.core"
+        sourceFolders = listOf("core")
     }
 }
 

@@ -190,7 +190,7 @@ internal class AuthEngine(
     private fun onAuthRequestResponse(wcResponse: WCResponse) {
         val pairingTopic = wcResponse.topic
         if (!pairingStorageRepository.isPairingValid(pairingTopic)) return
-        val pairing = pairingStorageRepository.getPairingByTopic(pairingTopic)
+        val pairing = pairingStorageRepository.getPairingOrNullByTopic(pairingTopic)
         if (!pairing.isActive) {
             pairingStorageRepository.activatePairing(pairingTopic)
         }

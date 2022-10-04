@@ -25,7 +25,7 @@ interface PairingStorageRepositoryInterface {
 
     fun updateMetadata(topic: Topic, metadata: PeerMetaData)
 
-    fun getPairingByTopic(topic: Topic): Pairing
+    fun getPairingOrNullByTopic(topic: Topic): Pairing?
 
     fun upsertPairingPeerMetadata(topic: Topic, metaData: PeerMetaData)
 }

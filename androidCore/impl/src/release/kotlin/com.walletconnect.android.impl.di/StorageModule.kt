@@ -139,4 +139,13 @@ inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Sc
             factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false)
         )
     }
+
+    single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)) {
+        AndroidSqliteDriver(
+            schema = AndroidCoreDatabase.Schema,
+            context = androidContext(),
+            name = "WalletConnectAndroidCore.db",
+            factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false) //todo: create a separate DB_PASSHPHRASE
+        )
+    }
 }

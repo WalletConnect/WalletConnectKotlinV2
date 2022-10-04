@@ -2,12 +2,9 @@
 
 package com.walletconnect.sign.di
 
-import com.squareup.sqldelight.ColumnAdapter
-import com.squareup.sqldelight.EnumColumnAdapter
 import com.walletconnect.android.impl.di.coreStorageModule
-import com.walletconnect.sign.Database
-import com.walletconnect.android.impl.common.model.type.enums.MetaDataType
-import com.walletconnect.sign.storage.data.dao.metadata.MetaDataDao
+import com.walletconnect.android.impl.di.sdkBaseStorageModule
+import com.walletconnect.sign.SignDatabase
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDao
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceExtensionsDao
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceDao
@@ -16,23 +13,16 @@ import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDao
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceExtensionsDao
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import org.koin.core.module.Module
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @JvmSynthetic
 internal fun storageModule(storageSuffix: String): Module = module {
 
-    includes(coreStorageModule<Database>(Database.Schema, storageSuffix))
-
-    single<ColumnAdapter<MetaDataType, String>>(named(SignDITags.METADATA_TYPE)) { EnumColumnAdapter() }
+    includes(coreStorageModule(), sdkBaseStorageModule(SignDatabase.Schema, storageSuffix))
 
     single {
-        Database(
+        SignDatabase(
             get(),
-            MetaDataDaoAdapter = MetaDataDao.Adapter(
-                iconsAdapter = get(),
-                typeAdapter = get(named(SignDITags.METADATA_TYPE))
-            ),
             NamespaceDaoAdapter = NamespaceDao.Adapter(
                 accountsAdapter = get(),
                 methodsAdapter = get(),
@@ -67,42 +57,34 @@ internal fun storageModule(storageSuffix: String): Module = module {
     }
 
     single {
-        get<Database>().pairingDaoQueries
+        get<SignDatabase>().sessionDaoQueries
     }
 
     single {
-        get<Database>().sessionDaoQueries
+        get<SignDatabase>().namespaceDaoQueries
     }
 
     single {
-        get<Database>().metaDataDaoQueries
+        get<SignDatabase>().namespaceExtensionDaoQueries
     }
 
     single {
-        get<Database>().namespaceDaoQueries
+        get<SignDatabase>().tempNamespaceDaoQueries
     }
 
     single {
-        get<Database>().namespaceExtensionDaoQueries
+        get<SignDatabase>().tempNamespaceExtensionDaoQueries
     }
 
     single {
-        get<Database>().tempNamespaceDaoQueries
+        get<SignDatabase>().proposalNamespaceDaoQueries
     }
 
     single {
-        get<Database>().tempNamespaceExtensionDaoQueries
+        get<SignDatabase>().proposalNamespaceExtensionDaoQueries
     }
 
     single {
-        get<Database>().proposalNamespaceDaoQueries
-    }
-
-    single {
-        get<Database>().proposalNamespaceExtensionDaoQueries
-    }
-
-    single {
-        SessionStorageRepository(get(), get(), get(), get(), get(), get(), get(), get(), get())
+        SessionStorageRepository(get(), get(), get(), get(), get(), get(), get())
     }
 }

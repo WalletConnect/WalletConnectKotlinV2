@@ -15,7 +15,6 @@ import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.storage.PairingStorageRepository
 import com.walletconnect.android.impl.utils.*
-import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -32,7 +31,6 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
-import com.walletconnect.sign.common.model.vo.sequence.PairingVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.*
@@ -123,7 +121,7 @@ internal class SignEngine(
                 throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$pairingTopic")
             }
 
-            val pairing: Pairing = pairingStorageRepository.getPairingByTopic(Topic(pairingTopic))
+            val pairing: Pairing = pairingStorageRepository.getPairingOrNullByTopic(Topic(pairingTopic))
             val relay = EngineDO.RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
 
             proposeSession(Topic(pairingTopic), listOf(relay), EngineDO.ProposedSequence.Session)
@@ -471,6 +469,7 @@ internal class SignEngine(
             .map { session -> session.toEngineDO() }
     }
 
+
         //        todo: remove and delegate SignProtocol.getListOfSettledPairings to PairingClient getListOfPairings
     internal fun getListOfSettledPairings(): List<EngineDO.PairingSettle> {
 //        return sessionStorageRepository.getListOfPairingVOs()
@@ -742,7 +741,7 @@ internal class SignEngine(
     private fun onSessionProposalResponse(wcResponse: WCResponse, params: PairingParamsVO.SessionProposeParams) {
         val pairingTopic = wcResponse.topic
         if (!pairingStorageRepository.isPairingValid(pairingTopic)) return
-        val pairing = pairingStorageRepository.getPairingByTopic(pairingTopic)
+        val pairing = pairingStorageRepository.getPairingOrNullByTopic(pairingTopic)
         if (!pairing.isActive) {
             pairingStorageRepository.activatePairing(pairingTopic)
         }

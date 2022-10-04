@@ -9,7 +9,6 @@ import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.di.networkModule
 import com.walletconnect.android.impl.utils.Logger
-import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Events
@@ -26,7 +25,6 @@ internal class AuthProtocol : AuthInterface {
 
     companion object {
         val instance = AuthProtocol()
-        const val storageSuffix: String = "_auth"
     }
 
     @Throws(IllegalStateException::class)
@@ -39,7 +37,7 @@ internal class AuthProtocol : AuthInterface {
                     commonModule(),
                     cryptoModule(),
                     jsonRpcModule(),
-                    storageModule(storageSuffix),
+                    storageModule(),
                     engineModule(core.selfMetaData, iss)
                 )
             }

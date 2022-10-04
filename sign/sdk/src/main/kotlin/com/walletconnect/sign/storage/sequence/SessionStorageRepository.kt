@@ -8,7 +8,6 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.android.impl.common.model.type.enums.MetaDataType
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.android.common.model.Redirect
 import com.walletconnect.sign.common.model.vo.sequence.PairingVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDaoQueries
@@ -21,6 +20,9 @@ import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceExtensionDaoQue
 import com.walletconnect.utils.Empty
 import com.walletconnect.utils.isSequenceValid
 
+
+// todo: ensure joining metadata is done outside of sqldelight
+// todo: Also big migration
 internal class SessionStorageRepository(
     private val sessionDaoQueries: SessionDaoQueries,
     private val namespaceDaoQueries: NamespaceDaoQueries,
@@ -293,29 +295,29 @@ internal class SessionStorageRepository(
         relay_data: String?,
         controller_key: String?,
         self_participant: String,
-        selfName: String?,
-        selfDesc: String?,
-        selfUrl: String?,
-        selfIcons: List<String>?,
+//        selfName: String?,
+//        selfDesc: String?,
+//        selfUrl: String?,
+//        selfIcons: List<String>?,
         peer_participant: String?,
-        peerName: String?,
-        peerDesc: String?,
-        peerUrl: String?,
-        peerIcons: List<String>?,
-        peerNative: String?,
+//        peerName: String?,
+//        peerDesc: String?,
+//        peerUrl: String?,
+//        peerIcons: List<String>?,
+//        peerNative: String?,
         is_acknowledged: Boolean,
     ): SessionVO {
-        val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
-            MetaData(selfName, selfDesc, selfUrl, selfIcons)
-        } else {
-            null
-        }
-
-        val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
-            MetaData(peerName, peerDesc, peerUrl, peerIcons, Redirect(native = peerNative))
-        } else {
-            null
-        }
+//        val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
+//            MetaData(selfName, selfDesc, selfUrl, selfIcons)
+//        } else {
+//            null
+//        }
+//
+//        val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
+//            MetaData(peerName, peerDesc, peerUrl, peerIcons, Redirect(native = peerNative))
+//        } else {
+//            null
+//        }
 
         val sessionNamespaces: Map<String, NamespaceVO.Session> = getSessionNamespaces(id)
         val proposalNamespaces: Map<String, NamespaceVO.Proposal> = getProposalNamespaces(id)
@@ -323,8 +325,8 @@ internal class SessionStorageRepository(
         return SessionVO(
             topic = Topic(topic),
             expiry = com.walletconnect.android.common.model.Expiry(expiry),
-            selfMetaData = selfMetaData,
-            peerMetaData = peerMetaData,
+            selfMetaData = null,
+            peerMetaData = null,
             selfPublicKey = PublicKey(self_participant),
             peerPublicKey = PublicKey(peer_participant ?: String.Empty),
             controllerKey = PublicKey(controller_key ?: String.Empty),

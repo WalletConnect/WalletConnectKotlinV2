@@ -12,32 +12,24 @@ import com.walletconnect.foundation.common.model.Topic
 
 class PairingDao(private val pairingQueries: PairingQueries) {
 
-    @JvmSynthetic
     @Throws(SQLiteException::class)
     fun insertOrAbortPairing(pairing: Pairing): Unit = with(pairing) {
         pairingQueries.insertOrAbortPairing(topic.value, expiry.seconds, relayProtocol, relayData, uri, isActive)
     }
 
-    @JvmSynthetic
     fun deletePairing(topic: Topic): Unit = pairingQueries.deletePairing(topic.value)
 
-    @JvmSynthetic
     fun getListOfPairing(): List<Pairing> = pairingQueries.getListOfPairing(mapper = this::toPairing).executeAsList()
 
-    @JvmSynthetic
-    fun getPairingByTopic(topic: Topic): Pairing = pairingQueries.getPairingByTopic(topic.value, mapper = this::toPairing).executeAsOne()
+    fun getPairingOrNullByTopic(topic: Topic): Pairing? = pairingQueries.getPairingByTopic(topic.value, mapper = this::toPairing).executeAsOneOrNull()
 
-    @JvmSynthetic
     fun existsByTopic(topic: Topic): Boolean = pairingQueries.hasTopic(topic.value).executeAsOneOrNull() != null
 
-    @JvmSynthetic
     fun getExpiry(topic: Topic): Expiry = Expiry(pairingQueries.getExpiry(topic.value).executeAsOne())
 
-    @JvmSynthetic
     @Throws(SQLiteException::class)
     fun updateOrAbortExpiry(expiry: Expiry, topic: Topic) = pairingQueries.updateOrAbortExpiry(expiry.seconds, topic.value)
 
-    @JvmSynthetic
     fun activatePairing(topic: Topic, expiryInSeconds: Long) {
         pairingQueries.activatePairing(expiryInSeconds, true, topic.value)
     }

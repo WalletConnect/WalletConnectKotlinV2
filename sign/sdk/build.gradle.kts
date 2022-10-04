@@ -54,9 +54,8 @@ android {
 }
 
 sqldelight {
-    database("Database") {
+    database("SignDatabase") {
         packageName = "com.walletconnect.sign"
-        dependency(project(":androidCore:impl"))
     }
 }
 

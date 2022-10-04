@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.onEach
 
 internal class SignProtocol : SignInterface {
     private lateinit var signEngine: SignEngine
-    private lateinit var pairingClient: PairingInterface
 
     companion object {
         val instance = SignProtocol()

@@ -40,13 +40,6 @@ android {
     }
 }
 
-sqldelight {
-    database("Database") {
-        packageName = "com.walletconnect.auth"
-        dependency(project(":androidCore:impl"))
-    }
-}
-
 dependencies {
     debugImplementation(project(":androidCore:impl"))
     releaseImplementation("com.walletconnect:android-core-impl:1.0.0")
