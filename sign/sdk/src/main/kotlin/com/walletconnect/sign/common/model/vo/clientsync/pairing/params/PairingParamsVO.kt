@@ -6,6 +6,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.common.model.ClientParams
 import com.walletconnect.android.common.model.RelayProtocolOptions
+import com.walletconnect.android.common.model.SessionProposer
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.utils.DefaultId
 
@@ -16,7 +17,7 @@ internal sealed class PairingParamsVO : ClientParams {
         @Json(name = "relays")
         val relays: List<RelayProtocolOptions>,
         @Json(name = "proposer")
-        val proposer: SessionProposerVO,
+        val proposer: SessionProposer,
         @Json(name = "requiredNamespaces")
         val namespaces: Map<String, NamespaceVO.Proposal>,
     ) : PairingParamsVO()

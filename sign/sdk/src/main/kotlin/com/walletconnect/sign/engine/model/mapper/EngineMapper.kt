@@ -3,7 +3,7 @@
 package com.walletconnect.sign.engine.model.mapper
 
 import com.walletconnect.android.common.model.MetaData
-import com.walletconnect.android.impl.common.model.Redirect
+import com.walletconnect.android.common.model.Redirect
 import com.walletconnect.android.common.model.RelayProtocolOptions
 import com.walletconnect.android.common.model.WCRequest
 import com.walletconnect.foundation.common.model.PublicKey
@@ -12,7 +12,7 @@ import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
-import com.walletconnect.android.internal.SessionProposer
+import com.walletconnect.android.common.model.SessionProposer
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.sign.common.model.vo.sequence.PairingVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO

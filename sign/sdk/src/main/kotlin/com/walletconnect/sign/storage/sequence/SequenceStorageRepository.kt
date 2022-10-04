@@ -8,7 +8,7 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.android.impl.common.model.type.enums.MetaDataType
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.android.impl.common.model.Redirect
+import com.walletconnect.android.common.model.Redirect
 import com.walletconnect.sign.common.model.vo.sequence.PairingVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.storage.data.dao.metadata.MetaDataDaoQueries

@@ -5,7 +5,6 @@ import com.walletconnect.android.common.JsonRpcResponse
 import com.walletconnect.android.common.SerializableJsonRpc
 import com.walletconnect.android.common.model.ClientParams
 import com.walletconnect.android.common.model.JsonRpcClientSync
-import com.walletconnect.utils.Empty
 import kotlin.reflect.KClass
 
 //todo: Verify if consequent initialisations of child class append moshi adapters and store entries.
