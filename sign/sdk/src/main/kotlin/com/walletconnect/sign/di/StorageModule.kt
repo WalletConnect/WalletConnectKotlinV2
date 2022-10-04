@@ -14,7 +14,7 @@ import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespa
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceExtensionsDao
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDao
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceExtensionsDao
-import com.walletconnect.sign.storage.sequence.SequenceStorageRepository
+import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -103,6 +103,6 @@ internal fun storageModule(storageSuffix: String): Module = module {
     }
 
     single {
-        SequenceStorageRepository(get(), get(), get(), get(), get(), get(), get(), get(), get())
+        SessionStorageRepository(get(), get(), get(), get(), get(), get(), get(), get(), get())
     }
 }

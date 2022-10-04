@@ -2,6 +2,7 @@ package com.walletconnect.android.pairing
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.common.model.Expiry
+import com.walletconnect.android.common.model.Pairing
 import com.walletconnect.android.common.model.PeerMetaData
 import com.walletconnect.android.common.model.WCRequest
 
@@ -10,7 +11,8 @@ interface PairingInterface {
     val selfMetaData: Core.Model.AppMetaData
 
     // initializes the client with persisted storage and a network connection
-    fun initialize(metaData: Core.Model.AppMetaData)
+//    fun initialize(metaData: Core.Model.AppMetaData)
+    // had to be removed to not be visible in CoreClient
 
     // for either to ping a peer
     fun ping(ping: Core.Params.Ping, sessionPing: Core.Listeners.SessionPing? = null)

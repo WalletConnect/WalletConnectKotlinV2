@@ -9,6 +9,7 @@ import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.di.networkModule
 import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Events
@@ -34,12 +35,12 @@ internal class AuthProtocol : AuthInterface {
         with(init) {
             wcKoinApp.run {
                 modules(
-                    networkModule(relay),
+                    networkModule(core),
                     commonModule(),
                     cryptoModule(),
                     jsonRpcModule(),
                     storageModule(storageSuffix),
-                    engineModule(appMetaData, iss)
+                    engineModule(core.selfMetaData, iss)
                 )
             }
         }
@@ -70,16 +71,6 @@ internal class AuthProtocol : AuthInterface {
                 is Events.OnAuthRequest -> delegate.onAuthRequest(event.toClient())
             }
         }.launchIn(scope)
-    }
-
-    @Throws(IllegalStateException::class)
-    override fun pair(pair: Auth.Params.Pair, onError: (Auth.Model.Error) -> Unit) {
-        checkEngineInitialization()
-        try {
-            authEngine.pair(pair.uri)
-        } catch (error: Exception) {
-            onError(Auth.Model.Error(error))
-        }
     }
 
     @Throws(IllegalStateException::class)

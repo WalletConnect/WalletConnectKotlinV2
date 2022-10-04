@@ -1,8 +1,8 @@
 package com.walletconnect.auth.json_rpc.domain
 
+import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.impl.json_rpc.model.JsonRpcHistoryRecord
 import com.walletconnect.android.impl.storage.JsonRpcHistory
-import com.walletconnect.auth.json_rpc.data.JsonRpcSerializer
 
 internal class GetResponseByIdUseCase(
     private val jsonRpcHistory: JsonRpcHistory,

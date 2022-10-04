@@ -20,6 +20,7 @@ internal fun storageModule(storageSuffix: String) = module {
     single {
         Database(
             get(),
+            //todo: replace adapter
             MetaDataDaoAdapter = MetaDataDao.Adapter(
                 iconsAdapter = get(),
                 typeAdapter = get()

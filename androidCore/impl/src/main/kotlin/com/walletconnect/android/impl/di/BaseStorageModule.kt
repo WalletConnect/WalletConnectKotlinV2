@@ -3,6 +3,9 @@ package com.walletconnect.android.impl.di
 import com.squareup.sqldelight.ColumnAdapter
 import com.walletconnect.android.impl.Database
 import com.walletconnect.android.impl.storage.JsonRpcHistory
+import com.walletconnect.android.impl.storage.dao.MetadataDao
+import com.walletconnect.android.impl.storage.dao.PairingDao
+import com.walletconnect.android.impl.storage.PairingStorageRepository
 import org.koin.dsl.module
 
 inline fun <reified T : Database> baseStorageModule() = module {
@@ -21,11 +24,13 @@ inline fun <reified T : Database> baseStorageModule() = module {
         }
     }
 
-    single {
-        get<T>().jsonRpcHistoryQueries
-    }
+    single { get<T>().jsonRpcHistoryQueries }
+    single { get<T>().pairingQueries }
+    single { get<T>().metaDataQueries }
 
-    single {
-        JsonRpcHistory(get(), get())
-    }
+    single { PairingDao(get()) }
+    single { MetadataDao(get()) }
+
+    single { JsonRpcHistory(get(), get()) }
+    single { PairingStorageRepository(get(), get()) }
 }

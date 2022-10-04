@@ -6,11 +6,12 @@ import android.database.sqlite.SQLiteException
 import com.walletconnect.android.common.crypto.KeyManagementRepository
 import com.walletconnect.android.common.exception.WalletConnectException
 import com.walletconnect.android.common.model.*
-import com.walletconnect.android.impl.common.*
-import com.walletconnect.android.impl.common.model.*
+import com.walletconnect.android.common.model.Pairing
+import com.walletconnect.android.impl.common.SDKError
+import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.common.scope.scope
-import com.walletconnect.android.impl.utils.ACTIVE_PAIRING
+import com.walletconnect.android.impl.storage.PairingStorageRepository
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.auth.client.mapper.toCommon
@@ -21,14 +22,15 @@ import com.walletconnect.auth.common.exceptions.PeerError
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.json_rpc.AuthRpc
 import com.walletconnect.auth.common.model.*
-import com.walletconnect.auth.common.model.WalletConnectUri
-import com.walletconnect.auth.engine.mapper.*
+import com.walletconnect.auth.engine.mapper.toCacaoPayload
+import com.walletconnect.auth.engine.mapper.toCore
+import com.walletconnect.auth.engine.mapper.toFormattedMessage
+import com.walletconnect.auth.engine.mapper.toPendingRequest
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.auth.json_rpc.domain.GetResponseByIdUseCase
 import com.walletconnect.auth.signature.CacaoType
 import com.walletconnect.auth.signature.cacao.CacaoVerifier
-import com.walletconnect.auth.storage.AuthStorageRepository
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -45,7 +47,7 @@ internal class AuthEngine(
     private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
     private val getResponseByIdUseCase: GetResponseByIdUseCase,
     private val crypto: KeyManagementRepository,
-    private val storage: AuthStorageRepository,
+    private val pairingStorageRepository: PairingStorageRepository,
     private val metaData: AppMetaData,
     private val issuer: Issuer?,
 ) {
@@ -83,7 +85,7 @@ internal class AuthEngine(
         val inactivePairing = Pairing(pairingTopic, relay, walletConnectUri.toAbsoluteString())
 
         try {
-            storage.insertPairing(inactivePairing)
+            pairingStorageRepository.insertPairing(inactivePairing)
             val responsePublicKey: PublicKey = crypto.generateKeyPair()
             val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
             crypto.setSelfParticipant(responsePublicKey, responseTopic)
@@ -106,30 +108,9 @@ internal class AuthEngine(
 
         } catch (e: SQLiteException) {
             crypto.removeKeys(pairingTopic.value)
-            storage.deletePairing(pairingTopic)
+            pairingStorageRepository.deletePairing(pairingTopic)
 
             onFailure(e)
-        }
-    }
-
-    internal fun pair(uri: String) {
-        val walletConnectUri: WalletConnectUri =
-            Validator.validateWCUri(uri) ?: throw MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
-
-        if (storage.isPairingValid(walletConnectUri.topic)) {
-            throw PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
-        }
-
-        val activePairing = Pairing(walletConnectUri)
-        val symmetricKey: SymmetricKey = walletConnectUri.symKey
-        crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
-
-        try {
-            storage.insertPairing(activePairing)
-            relayer.subscribe(activePairing.topic)
-        } catch (e: SQLiteException) {
-            crypto.removeKeys(walletConnectUri.topic.value)
-            relayer.unsubscribe(activePairing.topic)
         }
     }
 
@@ -208,10 +189,10 @@ internal class AuthEngine(
 
     private fun onAuthRequestResponse(wcResponse: WCResponse) {
         val pairingTopic = wcResponse.topic
-        if (!storage.isPairingValid(pairingTopic)) return
-        val pairing = storage.getPairingByTopic(pairingTopic)
+        if (!pairingStorageRepository.isPairingValid(pairingTopic)) return
+        val pairing = pairingStorageRepository.getPairingByTopic(pairingTopic)
         if (!pairing.isActive) {
-            storage.activatePairing(pairingTopic, ACTIVE_PAIRING)
+            pairingStorageRepository.activatePairing(pairingTopic)
         }
         pairingTopicToResponseTopicMap.remove(pairingTopic)
 
@@ -281,14 +262,14 @@ internal class AuthEngine(
 
     private fun resubscribeToPairings() {
         val (listOfExpiredPairing, listOfValidPairing) =
-            storage.getListOfPairingVOs().partition { pairing -> !pairing.expiry.isSequenceValid() }
+            pairingStorageRepository.getListOfPairings().partition { pairing -> !pairing.expiry.isSequenceValid() }
 
         listOfExpiredPairing
             .map { pairing -> pairing.topic }
             .onEach { pairingTopic ->
                 relayer.unsubscribe(pairingTopic)
                 crypto.removeKeys(pairingTopic.value)
-                storage.deletePairing(pairingTopic)
+                pairingStorageRepository.deletePairing(pairingTopic)
             }
 
         listOfValidPairing
@@ -297,10 +278,10 @@ internal class AuthEngine(
     }
 
     private fun setupSequenceExpiration() {
-        storage.onPairingExpired = { topic ->
+        pairingStorageRepository.topicExpiredFlow.onEach { topic ->
             relayer.unsubscribe(topic)
             crypto.removeKeys(topic.value)
-        }
+        }.launchIn(scope)
     }
 
     private fun collectInternalErrors() {

@@ -5,6 +5,7 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.common.*
 import com.walletconnect.android.common.crypto.KeyManagementRepository
 import com.walletconnect.android.common.model.*
+import com.walletconnect.android.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.android.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.exception.MalformedWalletConnectUri
 import com.walletconnect.android.exception.PairWithExistingPairingIsNotAllowed
@@ -26,14 +27,14 @@ internal object PairingClient : PairingInterface {
     override val selfMetaData: Core.Model.AppMetaData
         get() = _selfMetaData
 
-    private val storageRepository: PairingStorageRepository
+    private val storageRepository: PairingStorageRepositoryInterface
         get() = wcKoinApp.koin.getOrNull() ?: throw IllegalStateException("SDK has not been initialized")
     private val crypto: KeyManagementRepository
         get() = wcKoinApp.koin.getOrNull() ?: throw IllegalStateException("SDK has not been initialized")
     private val jsonRpcInteractor: JsonRpcInteractorInterface
         get() = wcKoinApp.koin.getOrNull() ?: throw IllegalStateException("SDK has not been initialized")
 
-    override fun initialize(metaData: Core.Model.AppMetaData) {
+    fun initialize(metaData: Core.Model.AppMetaData) {
         _selfMetaData = metaData
     }
 
@@ -115,7 +116,7 @@ internal object PairingClient : PairingInterface {
     }
 
     override fun getPairings(): List<Pairing> {
-        return storageRepository.getListOfPairingVOs()
+        return storageRepository.getListOfPairings()
             .filter { pairing -> pairing.expiry.isSequenceValid() }
     }
 

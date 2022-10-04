@@ -1,0 +1,37 @@
+import com.walletconnect.android.common.model.MetaDataType;
+import kotlin.collections.List;
+
+CREATE TABLE MetaData(
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	sequence_topic TEXT NOT NULL,
+  	name TEXT NOT NULL,
+  	description TEXT NOT NULL,
+  	url TEXT NOT NULL,
+  	icons TEXT AS List<String> NOT NULL,
+  	native TEXT,
+  	type TEXT AS MetaDataType NOT NULL, -- if SELF is not used anywhere this might be unnecessary
+  	UNIQUE(sequence_topic, type)
+);
+
+insertOrAbortMetaData:
+INSERT OR ABORT INTO MetaData(sequence_topic, name, description, url, icons, native, type)
+VALUES (?, ?, ?, ?, ?, ?,?);
+
+updateOrAbortMetaData:
+UPDATE MetaData
+SET name = ?, description = ?, url = ?, icons = ?, native = ?, type = ?
+WHERE sequence_topic = ?;
+
+getMetadataByTopic:
+SELECT name, description, url, icons, native
+FROM MetaData
+WHERE sequence_topic = ?;
+
+getIdByTopic:
+SELECT id
+FROM MetaData
+WHERE sequence_topic = ?;
+
+deleteMetaDataFromTopic:
+DELETE FROM MetaData
+WHERE sequence_topic = ?;

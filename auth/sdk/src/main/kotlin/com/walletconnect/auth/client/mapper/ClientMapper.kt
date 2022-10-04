@@ -2,6 +2,7 @@
 
 package com.walletconnect.auth.client.mapper
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.auth.client.Auth
@@ -11,7 +12,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 @JvmSynthetic
-internal fun Auth.Model.AppMetaData.toCommon(): AppMetaData =
+internal fun Core.Model.AppMetaData.toCommon(): AppMetaData =
     AppMetaData(name, description, url, icons, redirect)
 
 @JvmSynthetic

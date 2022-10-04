@@ -9,6 +9,7 @@ import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.di.networkModule
 import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.sign.di.commonModule
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.onEach
 
 internal class SignProtocol : SignInterface {
     private lateinit var signEngine: SignEngine
+    private lateinit var pairingClient: PairingInterface
 
     companion object {
         val instance = SignProtocol()
@@ -41,6 +43,7 @@ internal class SignProtocol : SignInterface {
                     storageModule(storageSuffix),
                     engineModule(metadata)
                 )
+
             }
         }
 

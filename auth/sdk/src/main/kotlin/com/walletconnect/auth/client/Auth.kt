@@ -1,5 +1,6 @@
 package com.walletconnect.auth.client
 
+import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.RelayConnectionInterface
 
 object Auth {
@@ -111,7 +112,7 @@ object Auth {
 
     sealed class Params {
 
-        data class Init(val relay: RelayConnectionInterface, val appMetaData: Model.AppMetaData, val iss: String?) : Params()
+        data class Init(val core: CoreClient, val iss: String?) : Params()
 
         data class Pair(val uri: String) : Params()
 

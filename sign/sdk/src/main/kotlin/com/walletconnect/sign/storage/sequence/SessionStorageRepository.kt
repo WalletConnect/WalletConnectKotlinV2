@@ -11,10 +11,8 @@ import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.android.common.model.Redirect
 import com.walletconnect.sign.common.model.vo.sequence.PairingVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
-import com.walletconnect.sign.storage.data.dao.metadata.MetaDataDaoQueries
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceExtensionDaoQueries
-import com.walletconnect.sign.storage.data.dao.pairing.PairingDaoQueries
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceExtensionDaoQueries
 import com.walletconnect.sign.storage.data.dao.session.SessionDaoQueries
@@ -23,11 +21,8 @@ import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceExtensionDaoQue
 import com.walletconnect.utils.Empty
 import com.walletconnect.utils.isSequenceValid
 
-//TODO: Split into SessionStorageRepository and PairingStorageRepository
-internal class SequenceStorageRepository(
-    private val pairingDaoQueries: PairingDaoQueries,
+internal class SessionStorageRepository(
     private val sessionDaoQueries: SessionDaoQueries,
-    private val metaDataDaoQueries: MetaDataDaoQueries,
     private val namespaceDaoQueries: NamespaceDaoQueries,
     private val extensionsDaoQueries: NamespaceExtensionDaoQueries,
     private val proposalNamespaceDaoQueries: ProposalNamespaceDaoQueries,
@@ -40,12 +35,8 @@ internal class SequenceStorageRepository(
     var onSequenceExpired: (topic: Topic) -> Unit = {}
 
     @JvmSynthetic
-    fun getListOfPairingVOs(): List<PairingVO> =
-        pairingDaoQueries.getListOfPairingDaos(mapper = this@SequenceStorageRepository::mapPairingDaoToPairingVO).executeAsList()
-
-    @JvmSynthetic
     fun getListOfSessionVOs(): List<SessionVO> =
-        sessionDaoQueries.getListOfSessionDaos(mapper = this@SequenceStorageRepository::mapSessionDaoToSessionVO).executeAsList()
+        sessionDaoQueries.getListOfSessionDaos(mapper = this@SessionStorageRepository::mapSessionDaoToSessionVO).executeAsList()
 
     @JvmSynthetic
     fun isSessionValid(topic: Topic): Boolean {
@@ -63,77 +54,8 @@ internal class SequenceStorageRepository(
     }
 
     @JvmSynthetic
-    fun isPairingValid(topic: Topic): Boolean {
-        val hasTopic = pairingDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
-
-        return if (hasTopic) {
-            val expiry = pairingDaoQueries.getExpiry(topic.value).executeAsOne()
-            verifyExpiry(expiry, topic) { pairingDaoQueries.deletePairing(topic.value) }
-        } else {
-            false
-        }
-    }
-
-    @JvmSynthetic
-    fun getPairingByTopic(topic: Topic): PairingVO =
-        pairingDaoQueries.getPairingByTopic(topic.value).executeAsOne().let { entity ->
-            PairingVO(
-                topic = Topic(entity.topic),
-                expiry = com.walletconnect.android.common.model.Expiry(entity.expiry),
-                uri = entity.uri,
-                relayProtocol = entity.relay_protocol,
-                relayData = entity.relay_data,
-                isActive = entity.is_active
-            )
-        }
-
-    @JvmSynthetic
     fun getSessionByTopic(topic: Topic): SessionVO =
-        sessionDaoQueries.getSessionByTopic(topic.value, mapper = this@SequenceStorageRepository::mapSessionDaoToSessionVO).executeAsOne()
-
-    @JvmSynthetic
-    @Throws(SQLiteException::class)
-    fun insertPairing(pairing: PairingVO) {
-        with(pairing) {
-            pairingDaoQueries.insertOrAbortPairing(
-                topic.value,
-                expiry.seconds,
-                relayProtocol,
-                relayData,
-                uri,
-                isActive
-            )
-        }
-    }
-
-    @JvmSynthetic
-    fun activatePairing(topic: Topic, expiryInSeconds: Long) {
-        pairingDaoQueries.activatePairing(expiryInSeconds, true, topic.value)
-    }
-
-    @JvmSynthetic
-    @Throws(SQLiteException::class)
-    fun upsertPairingPeerMetadata(topic: Topic, metaData: MetaData) {
-        if (metaDataDaoQueries.getByTopic(topic.value).executeAsOneOrNull() == null) {
-            insertMetaData(metaData, MetaDataType.PEER, topic)
-        } else {
-            metaDataDaoQueries.updateOrAbortMetaData(
-                metaData.name,
-                metaData.description,
-                metaData.url,
-                metaData.icons,
-                metaData.redirect?.native,
-                MetaDataType.PEER,
-                topic.value
-            )
-        }
-    }
-
-    @JvmSynthetic
-    fun deletePairing(topic: Topic) {
-        metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
-        pairingDaoQueries.deletePairing(topic.value)
-    }
+        sessionDaoQueries.getSessionByTopic(topic.value, mapper = this@SessionStorageRepository::mapSessionDaoToSessionVO).executeAsOne()
 
     @Synchronized
     @JvmSynthetic
@@ -278,7 +200,8 @@ internal class SequenceStorageRepository(
 
     @JvmSynthetic
     fun deleteSession(topic: Topic) {
-        metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
+        // todo: not sure
+//        metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
         namespaceDaoQueries.deleteNamespacesByTopic(topic.value)
         extensionsDaoQueries.deleteNamespacesExtensionsByTopic(topic.value)
         proposalNamespaceDaoQueries.deleteProposalNamespacesByTopic(topic.value)
@@ -286,21 +209,6 @@ internal class SequenceStorageRepository(
         tempNamespaceDaoQueries.deleteTempNamespacesByTopic(topic.value)
         tempExtensionsDaoQueries.deleteTempNamespacesExtensionByTopic(topic.value)
         sessionDaoQueries.deleteSession(topic.value)
-    }
-
-    @Throws(SQLiteException::class)
-    private fun insertMetaData(metaData: MetaData?, metaDataType: MetaDataType, topic: Topic) {
-        metaData?.let {
-            metaDataDaoQueries.insertOrAbortMetaData(
-                topic.value,
-                metaData.name,
-                metaData.description,
-                metaData.url,
-                metaData.icons,
-                metaData.redirect?.native,
-                metaDataType
-            )
-        }
     }
 
     @Throws(SQLiteException::class)
