@@ -4,6 +4,7 @@ import com.walletconnect.android.Core
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Issuer
 import com.walletconnect.auth.engine.domain.AuthEngine
+import com.walletconnect.auth.engine.mapper.toCore
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.auth.json_rpc.domain.GetResponseByIdUseCase
@@ -12,7 +13,7 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun engineModule(metadata: Core.Model.AppMetaData, issuer: String?) = module {
 
-    single<Core.Model.AppMetaData> { metadata }
+    single { metadata.toCore() }
 
     //todo: check if dependencies are here
     single { GetPendingJsonRpcHistoryEntriesUseCase(get(), get()) }
