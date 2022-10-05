@@ -3,6 +3,7 @@
 package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.android.Core
 import com.walletconnect.android.common.JsonRpcResponse
 import com.walletconnect.android.common.crypto.KeyManagementRepository
 import com.walletconnect.android.common.exception.WalletConnectException
@@ -16,6 +17,7 @@ import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.storage.MetadataStorageRepository
 import com.walletconnect.android.impl.storage.PairingStorageRepository
 import com.walletconnect.android.impl.utils.*
+import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -53,6 +55,7 @@ internal class SignEngine(
     private val sessionStorageRepository: SessionStorageRepository,
     private val pairingStorageRepository: PairingStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepository,
+    private val pairingInterface: PairingInterface,
     private val metaData: EngineDO.AppMetaData,
 ) {
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -342,7 +345,17 @@ internal class SignEngine(
             })
     }
 
+    // TODO: Do we still want Session Ping
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
+        pairingInterface.ping(Core.Params.Ping(topic), object: Core.Listeners.SessionPing {
+            override fun onSuccess(pingSuccess: Core.Model.Ping.Success) {
+                onSuccess(pingSuccess.topic)
+            }
+
+            override fun onError(pingError: Core.Model.Ping.Error) {
+                onFailure(pingError.error)
+            }
+        })
         //        todo: remove and delegate SignProtocol.ping to PairingClient
 
 //        val (pingPayload, irnParams) = when {
@@ -502,8 +515,7 @@ internal class SignEngine(
         scope.launch {
             relayer.clientSyncJsonRpc.collect { request ->
                 when (val requestParams = request.params) {
-                    is PairingParamsVO.SessionProposeParams -> onSessionPropose(request, requestParams)
-                    is PairingParamsVO.DeleteParams -> onPairingDelete(request, requestParams)
+
                     is SessionParamsVO.SessionSettleParams -> onSessionSettle(request, requestParams)
                     is SessionParamsVO.SessionRequestParams -> onSessionRequest(request, requestParams)
                     is SessionParamsVO.DeleteParams -> onSessionDelete(request, requestParams)
@@ -512,6 +524,11 @@ internal class SignEngine(
                     is SessionParamsVO.ExtendParams -> onSessionExtend(request, requestParams)
                     is SessionParamsVO.PingParams, is PairingParamsVO.PingParams -> onPing(request)
                 }
+            }
+
+            pairingInterface.flow.collect { request ->
+                is PairingParamsVO.SessionProposeParams -> onSessionPropose(request, requestParams)
+                is PairingParamsVO.DeleteParams -> onPairingDelete(request, requestParams)
             }
         }
     }

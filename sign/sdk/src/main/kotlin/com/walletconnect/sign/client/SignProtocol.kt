@@ -33,17 +33,14 @@ internal class SignProtocol : SignInterface {
         Logger.init()
         with(initial) {
             // TODO: re-init scope
-            wcKoinApp.run {
-                modules(
-                    networkModule(relay),
-                    commonModule(),
-                    cryptoModule(),
-                    jsonRpcModule(),
-                    storageModule(storageSuffix),
-                    engineModule(metadata)
-                )
-
-            }
+            wcKoinApp.modules(
+                networkModule(coreClient),
+                commonModule(),
+                cryptoModule(),
+                jsonRpcModule(),
+                storageModule(storageSuffix),
+                engineModule(metadata, coreClient)
+            )
         }
 
         signEngine = wcKoinApp.koin.get()

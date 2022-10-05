@@ -1,5 +1,6 @@
 package com.walletconnect.sign.client
 
+import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.RelayConnectionInterface
 import java.net.URI
 
@@ -184,7 +185,7 @@ object Sign {
         // TODO: Maybe convert this into a Builder
         data class Init constructor(
             val metadata: Model.AppMetaData,
-            val relay: RelayConnectionInterface,
+            val coreClient: CoreClient,
         ) : Params()
 
         data class Connect(
