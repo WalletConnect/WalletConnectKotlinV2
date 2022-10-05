@@ -2,8 +2,10 @@ package com.walletconnect.responder
 
 import android.app.Application
 import android.util.Log
-import com.walletconnect.android.relay.RelayClient
+import com.walletconnect.android.Core
+import com.walletconnect.android.CoreClient
 import com.walletconnect.android.connection.ConnectionType
+import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.responder.domain.ISSUER
@@ -16,18 +18,11 @@ class ResponderApplication : Application() {
         super.onCreate()
 
         val serverUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
-        RelayClient.initialize(relayServerUrl = serverUrl, connectionType = ConnectionType.AUTOMATIC, application = this)
+        CoreClient.initialize(Core.Model.AppMetaData("", "", serverUrl, emptyList(), null), "", ConnectionType.AUTOMATIC, this)
 
         AuthClient.initialize(
             init = Auth.Params.Init(
-                relay = RelayClient,
-                appMetaData = Auth.Model.AppMetaData(
-                    name = "Kotlin.Responder",
-                    description = "Kotlin AuthSDK Responder Implementation",
-                    url = "kotlin.responder.walletconnect.com",
-                    icons = listOf("https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Logo/Gradient/Logo.png"),
-                    redirect = "kotlin-responder-wc:/request"
-                ),
+                core = CoreClient,
                 iss = ISSUER
             )
         ) { error ->

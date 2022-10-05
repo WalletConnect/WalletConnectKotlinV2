@@ -2,6 +2,7 @@ package com.walletconnect.auth.engine.mapper
 
 import com.walletconnect.android.common.model.MetaData
 import com.walletconnect.android.common.model.Redirect
+import com.walletconnect.android.common.model.WalletConnectUri
 import com.walletconnect.auth.common.model.*
 import com.walletconnect.auth.signature.Signature
 

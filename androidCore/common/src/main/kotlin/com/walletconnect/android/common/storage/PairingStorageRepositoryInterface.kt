@@ -23,9 +23,5 @@ interface PairingStorageRepositoryInterface {
 
     fun updateExpiry(topic: Topic, expiry: Expiry)
 
-    fun updateMetadata(topic: Topic, metadata: PeerMetaData)
-
     fun getPairingOrNullByTopic(topic: Topic): Pairing?
-
-    fun upsertPairingPeerMetadata(topic: Topic, metaData: PeerMetaData)
 }

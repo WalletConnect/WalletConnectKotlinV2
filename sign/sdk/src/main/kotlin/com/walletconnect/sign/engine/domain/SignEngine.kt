@@ -13,6 +13,7 @@ import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.common.model.MetaData
 import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.common.scope.scope
+import com.walletconnect.android.impl.storage.MetadataStorageRepository
 import com.walletconnect.android.impl.storage.PairingStorageRepository
 import com.walletconnect.android.impl.utils.*
 import com.walletconnect.foundation.common.model.PublicKey
@@ -51,6 +52,7 @@ internal class SignEngine(
     private val crypto: KeyManagementRepository,
     private val sessionStorageRepository: SessionStorageRepository,
     private val pairingStorageRepository: PairingStorageRepository,
+    private val metadataStorageRepository: MetadataStorageRepository,
     private val metaData: EngineDO.AppMetaData,
 ) {
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -121,7 +123,7 @@ internal class SignEngine(
                 throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$pairingTopic")
             }
 
-            val pairing: Pairing = pairingStorageRepository.getPairingOrNullByTopic(Topic(pairingTopic))
+            val pairing: Pairing = pairingStorageRepository.getPairingOrNullByTopic(Topic(pairingTopic)) ?: return
             val relay = EngineDO.RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
 
             proposeSession(Topic(pairingTopic), listOf(relay), EngineDO.ProposedSequence.Session)
@@ -149,6 +151,7 @@ internal class SignEngine(
             crypto.removeKeys(pairingTopic.value)
             relayer.unsubscribe(pairingTopic)
             pairingStorageRepository.deletePairing(pairingTopic)
+            metadataStorageRepository.deleteMetaData(pairingTopic)
 
             onFailure(e)
         }
@@ -202,7 +205,7 @@ internal class SignEngine(
 
             try {
                 sessionStorageRepository.insertSession(session, requestId)
-                pairingStorageRepository.upsertPairingPeerMetadata(sessionTopic, proposal.proposer.metadata) //todo: take care of multiple metadata structures
+//                pairingStorageRepository.upsertPairingPeerMetadata(sessionTopic, proposal.proposer.metadata) //todo: take care of multiple metadata structures
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
                 val sessionSettle = SessionRpcVO.SessionSettle(id = generateId(), params = params)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
@@ -566,7 +569,7 @@ internal class SignEngine(
             val session =
                 SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toCore(), proposalNamespaces)
 
-            pairingStorageRepository.upsertPairingPeerMetadata(proposal.topic, peerMetadata) //todo: take care of multiple metadata structures
+//            pairingStorageRepository.upsertPairingPeerMetadata(proposal.topic, peerMetadata) //todo: take care of multiple metadata structures
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
             sessionStorageRepository.insertSession(session, request.id)
 
@@ -591,6 +594,7 @@ internal class SignEngine(
         crypto.removeKeys(request.topic.value)
         relayer.unsubscribe(request.topic)
         pairingStorageRepository.deletePairing(request.topic)
+        metadataStorageRepository.deleteMetaData(request.topic)
 
         scope.launch { _engineEvent.emit(EngineDO.DeletedPairing(request.topic.value, params.message)) }
     }
@@ -742,7 +746,7 @@ internal class SignEngine(
         val pairingTopic = wcResponse.topic
         if (!pairingStorageRepository.isPairingValid(pairingTopic)) return
         val pairing = pairingStorageRepository.getPairingOrNullByTopic(pairingTopic)
-        if (!pairing.isActive) {
+        if (pairing?.isActive != true) {
             pairingStorageRepository.activatePairing(pairingTopic)
         }
 
@@ -756,7 +760,10 @@ internal class SignEngine(
                 relayer.subscribe(sessionTopic)
             }
             is JsonRpcResponse.JsonRpcError -> {
-                if (!pairing.isActive) pairingStorageRepository.deletePairing(pairingTopic)
+                if (pairing?.isActive != true) {
+                    pairingStorageRepository.deletePairing(pairingTopic)
+                    metadataStorageRepository.deleteMetaData(pairingTopic)
+                }
                 Logger.log("Session proposal reject received: ${response.error}")
                 scope.launch { _engineEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
             }
@@ -842,6 +849,7 @@ internal class SignEngine(
                 relayer.unsubscribe(pairingTopic)
                 crypto.removeKeys(pairingTopic.value)
                 pairingStorageRepository.deletePairing(pairingTopic)
+                metadataStorageRepository.deleteMetaData(pairingTopic)
             }
 
         listOfValidPairing

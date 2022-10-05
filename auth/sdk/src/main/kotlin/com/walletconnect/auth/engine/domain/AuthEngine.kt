@@ -7,11 +7,12 @@ import com.walletconnect.android.common.crypto.KeyManagementRepository
 import com.walletconnect.android.common.exception.WalletConnectException
 import com.walletconnect.android.common.model.*
 import com.walletconnect.android.common.model.Pairing
+import com.walletconnect.android.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.common.scope.scope
-import com.walletconnect.android.impl.storage.PairingStorageRepository
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.auth.client.mapper.toCommon
@@ -47,7 +48,8 @@ internal class AuthEngine(
     private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
     private val getResponseByIdUseCase: GetResponseByIdUseCase,
     private val crypto: KeyManagementRepository,
-    private val pairingStorageRepository: PairingStorageRepository,
+    private val pairingStorageRepository: PairingStorageRepositoryInterface,
+    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val metaData: AppMetaData,
     private val issuer: Issuer?,
 ) {
@@ -109,6 +111,7 @@ internal class AuthEngine(
         } catch (e: SQLiteException) {
             crypto.removeKeys(pairingTopic.value)
             pairingStorageRepository.deletePairing(pairingTopic)
+            metadataStorageRepository.deleteMetaData(pairingTopic)
 
             onFailure(e)
         }
@@ -189,11 +192,10 @@ internal class AuthEngine(
 
     private fun onAuthRequestResponse(wcResponse: WCResponse) {
         val pairingTopic = wcResponse.topic
+
         if (!pairingStorageRepository.isPairingValid(pairingTopic)) return
-        val pairing = pairingStorageRepository.getPairingOrNullByTopic(pairingTopic)
-        if (!pairing.isActive) {
-            pairingStorageRepository.activatePairing(pairingTopic)
-        }
+        if (pairingStorageRepository.getPairingOrNullByTopic(pairingTopic)?.isActive != true) pairingStorageRepository.activatePairing(pairingTopic)
+
         pairingTopicToResponseTopicMap.remove(pairingTopic)
 
         when (val response = wcResponse.response) {
@@ -270,6 +272,7 @@ internal class AuthEngine(
                 relayer.unsubscribe(pairingTopic)
                 crypto.removeKeys(pairingTopic.value)
                 pairingStorageRepository.deletePairing(pairingTopic)
+                metadataStorageRepository.deleteMetaData(pairingTopic)
             }
 
         listOfValidPairing

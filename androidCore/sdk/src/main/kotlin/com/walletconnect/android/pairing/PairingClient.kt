@@ -5,6 +5,7 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.common.*
 import com.walletconnect.android.common.crypto.KeyManagementRepository
 import com.walletconnect.android.common.model.*
+import com.walletconnect.android.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.android.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.exception.MalformedWalletConnectUri
@@ -27,7 +28,9 @@ internal object PairingClient : PairingInterface {
     override val selfMetaData: Core.Model.AppMetaData
         get() = _selfMetaData
 
-    private val storageRepository: PairingStorageRepositoryInterface
+    private val pairingRepository: PairingStorageRepositoryInterface
+        get() = wcKoinApp.koin.getOrNull() ?: throw IllegalStateException("SDK has not been initialized")
+    private val metadataRepository: MetadataStorageRepositoryInterface
         get() = wcKoinApp.koin.getOrNull() ?: throw IllegalStateException("SDK has not been initialized")
     private val crypto: KeyManagementRepository
         get() = wcKoinApp.koin.getOrNull() ?: throw IllegalStateException("SDK has not been initialized")
@@ -43,7 +46,7 @@ internal object PairingClient : PairingInterface {
     }
 
     override fun ping(ping: Core.Params.Ping, sessionPing: Core.Listeners.SessionPing?) {
-        if (storageRepository.isPairingValid(Topic(ping.topic))) {
+        if (pairingRepository.isPairingValid(Topic(ping.topic))) {
             val pingPayload = PairingRpc.PairingPing(id = generateId(), params = PairingParams.PingParams())
             val irnParams = IrnParams(Tags.PAIRING_PING, Ttl(THIRTY_SECONDS))
             jsonRpcInteractor.publishJsonRpcRequests(Topic(ping.topic), irnParams, pingPayload, onSuccess = {
@@ -82,12 +85,13 @@ internal object PairingClient : PairingInterface {
         val inactivePairing = Pairing(walletConnectUri)
 
         try {
-            storageRepository.insertPairing(inactivePairing)
+            pairingRepository.insertPairing(inactivePairing)
             jsonRpcInteractor.subscribe(pairingTopic)
             onPairingCreated(pairingTopic.value)
         } catch (e: Exception) {
             crypto.removeKeys(pairingTopic.value)
-            storageRepository.deletePairing(pairingTopic)
+            pairingRepository.deletePairing(pairingTopic)
+            metadataRepository.deleteMetaData(pairingTopic)
             jsonRpcInteractor.unsubscribe(pairingTopic)
 
             onError(Core.Model.Error(e))
@@ -97,7 +101,7 @@ internal object PairingClient : PairingInterface {
     override fun pair(pair: Core.Params.Pair, onError: (Core.Model.Error) -> Unit) {
         val walletConnectUri: WalletConnectUri = Validator.validateWCUri(pair.uri) ?: return onError(Core.Model.Error(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)))
 
-        if (storageRepository.isPairingValid(walletConnectUri.topic)) {
+        if (pairingRepository.isPairingValid(walletConnectUri.topic)) {
             return onError(Core.Model.Error(PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)))
         }
 
@@ -106,7 +110,7 @@ internal object PairingClient : PairingInterface {
         crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
 
         try {
-            storageRepository.insertPairing(activePairing)
+            pairingRepository.insertPairing(activePairing)
             jsonRpcInteractor.subscribe(activePairing.topic)
         } catch (e: SQLiteException) {
             crypto.removeKeys(walletConnectUri.topic.value)
@@ -116,17 +120,18 @@ internal object PairingClient : PairingInterface {
     }
 
     override fun getPairings(): List<Pairing> {
-        return storageRepository.getListOfPairings()
+        return pairingRepository.getListOfPairings()
             .filter { pairing -> pairing.expiry.isSequenceValid() }
     }
 
     // TODO: add parameter to unsubscribe and publish SessionDelete from the RelayClient
     override fun disconnect(topic: String, onError: (Core.Model.Error) -> Unit) {
-        if (!storageRepository.isPairingValid(Topic(topic))) {
+        if (!pairingRepository.isPairingValid(Topic(topic))) {
             return onError(Core.Model.Error(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")))
         }
 
-        storageRepository.deletePairing(Topic(topic))
+        pairingRepository.deletePairing(Topic(topic))
+        metadataRepository.deleteMetaData(Topic(topic))
         jsonRpcInteractor.unsubscribe(Topic(topic))
         // TODO: Move PeerError related to either internal directory or common
         val deleteParams = PairingParams.DeleteParams(6000, "User disconnected")

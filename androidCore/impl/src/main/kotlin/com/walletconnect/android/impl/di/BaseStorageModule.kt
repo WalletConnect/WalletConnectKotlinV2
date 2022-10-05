@@ -2,13 +2,14 @@ package com.walletconnect.android.impl.di
 
 import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.EnumColumnAdapter
+import com.walletconnect.android.common.model.MetaData
+import com.walletconnect.android.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.android.impl.common.model.type.enums.MetaDataType
 import com.walletconnect.android.impl.core.AndroidCoreDatabase
 import com.walletconnect.android.impl.storage.JsonRpcHistory
+import com.walletconnect.android.impl.storage.MetadataStorageRepository
 import com.walletconnect.android.impl.storage.PairingStorageRepository
-import com.walletconnect.android.impl.storage.dao.MetadataDao
-import com.walletconnect.android.impl.storage.dao.PairingDao
-import com.walletconnect.android.impl.storage.data.dao.MetaData
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -45,8 +46,8 @@ fun baseStorageModule() = module {
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).metaDataQueries }
 
     single { JsonRpcHistory(get(), get()) }
-    single { PairingDao(get()) }
-    single { MetadataDao(get()) }
 
-    single { PairingStorageRepository(get(), get()) }
+    single<PairingStorageRepositoryInterface> { PairingStorageRepository(get()) }
+
+    single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(get()) }
 }
