@@ -39,7 +39,7 @@ internal class SignProtocol : SignInterface {
                 cryptoModule(),
                 jsonRpcModule(),
                 storageModule(storageSuffix),
-                engineModule(metadata, coreClient)
+                engineModule(coreClient)
             )
         }
 

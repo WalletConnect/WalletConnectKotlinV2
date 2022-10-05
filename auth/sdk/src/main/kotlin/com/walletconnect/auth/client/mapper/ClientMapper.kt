@@ -11,9 +11,6 @@ import com.walletconnect.auth.signature.CacaoType
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-@JvmSynthetic
-internal fun Core.Model.AppMetaData.toCommon(): AppMetaData =
-    AppMetaData(name, description, url, icons, redirect)
 
 @JvmSynthetic
 internal fun String.toCommon(): Issuer = Issuer(this)

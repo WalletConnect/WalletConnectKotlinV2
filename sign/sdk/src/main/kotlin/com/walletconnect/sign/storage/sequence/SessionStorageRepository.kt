@@ -6,10 +6,8 @@ import android.database.sqlite.SQLiteException
 import com.walletconnect.android.common.model.MetaData
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.android.impl.common.model.type.enums.MetaDataType
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.common.model.vo.sequence.PairingVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceExtensionDaoQueries
@@ -206,8 +204,6 @@ internal class SessionStorageRepository(
 
     @JvmSynthetic
     fun deleteSession(topic: Topic) {
-        // todo: not sure
-//        metaDataDaoQueries.deleteMetaDataFromTopic(topic.value)
         namespaceDaoQueries.deleteNamespacesByTopic(topic.value)
         extensionsDaoQueries.deleteNamespacesExtensionsByTopic(topic.value)
         proposalNamespaceDaoQueries.deleteProposalNamespacesByTopic(topic.value)
@@ -260,35 +256,6 @@ internal class SessionStorageRepository(
             onSequenceExpired(topic)
             false
         }
-    }
-
-    private fun mapPairingDaoToPairingVO(
-        topic: String,
-        expirySeconds: Long,
-        relay_protocol: String,
-        relay_data: String?,
-        uri: String,
-        peerName: String?,
-        peerDesc: String?,
-        peerUrl: String?,
-        peerIcons: List<String>?,
-        is_active: Boolean,
-    ): PairingVO {
-        val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
-            MetaData(peerName, peerDesc, peerUrl, peerIcons)
-        } else {
-            null
-        }
-
-        return PairingVO(
-            topic = Topic(topic),
-            expiry = com.walletconnect.android.common.model.Expiry(expirySeconds),
-            peerMetaData = peerMetaData,
-            relayProtocol = relay_protocol,
-            relayData = relay_data,
-            uri = uri,
-            isActive = is_active
-        )
     }
 
     private fun mapSessionDaoToSessionVO(

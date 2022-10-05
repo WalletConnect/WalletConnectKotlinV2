@@ -154,7 +154,7 @@ internal object PairingClient : PairingInterface {
         TODO("Not yet implemented")
     }
 
-    override fun updateMetadata(topic: String, metadata: PeerMetaData, onError: (Core.Model.Error) -> Unit) {
+    override fun updateMetadata(topic: String, metadata: MetaData, onError: (Core.Model.Error) -> Unit) {
         TODO("Not yet implemented")
     }
 

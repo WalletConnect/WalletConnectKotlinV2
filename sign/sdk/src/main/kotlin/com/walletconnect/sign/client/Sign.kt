@@ -1,6 +1,8 @@
 package com.walletconnect.sign.client
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.common.model.MetaData
 import com.walletconnect.android.relay.RelayConnectionInterface
 import java.net.URI
 
@@ -40,7 +42,7 @@ object Sign {
         data class SessionRequest(
             val topic: String,
             val chainId: String?,
-            val peerMetaData: AppMetaData?,
+            val peerMetaData: Core.Model.AppMetaData?,
             val request: JSONRPCRequest,
         ) : Model() {
 
@@ -84,7 +86,7 @@ object Sign {
 
         data class RelayProtocolOptions(val protocol: String, val data: String? = null) : Model()
 
-        data class Pairing(val topic: String, val metaData: AppMetaData?) : Model()
+        data class Pairing(val topic: String, val metaData: Core.Model.AppMetaData?) : Model()
 
         sealed class SettledSessionResponse : Model() {
             data class Result(val session: Session) : SettledSessionResponse()
@@ -117,7 +119,7 @@ object Sign {
 
         data class ApprovedSession(
             val topic: String,
-            val metaData: AppMetaData?,
+            val metaData: Core.Model.AppMetaData?,
             val namespaces: Map<String, Namespace.Session>,
             val accounts: List<String>,
         ) : Model()
@@ -126,7 +128,7 @@ object Sign {
             val topic: String,
             val expiry: Long,
             val namespaces: Map<String, Namespace.Session>,
-            val metaData: AppMetaData?,
+            val metaData: Core.Model.AppMetaData?,
         ) : Model() {
             val redirect: String? = metaData?.redirect
         }
@@ -159,14 +161,6 @@ object Sign {
             ) : JsonRpcResponse()
         }
 
-        data class AppMetaData(
-            val name: String,
-            val description: String,
-            val url: String,
-            val icons: List<String>,
-            val redirect: String?,
-        ) : Model()
-
         data class PendingRequest(
             val requestId: Long,
             val topic: String,
@@ -184,8 +178,7 @@ object Sign {
 
         // TODO: Maybe convert this into a Builder
         data class Init constructor(
-            val metadata: Model.AppMetaData,
-            val coreClient: CoreClient,
+            val coreClient: CoreClient
         ) : Params()
 
         data class Connect(

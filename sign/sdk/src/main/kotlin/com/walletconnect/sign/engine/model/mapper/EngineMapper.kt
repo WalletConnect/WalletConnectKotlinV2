@@ -3,7 +3,6 @@
 package com.walletconnect.sign.engine.model.mapper
 
 import com.walletconnect.android.common.model.MetaData
-import com.walletconnect.android.common.model.Redirect
 import com.walletconnect.android.common.model.RelayProtocolOptions
 import com.walletconnect.android.common.model.WCRequest
 import com.walletconnect.foundation.common.model.PublicKey
@@ -14,7 +13,6 @@ import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipa
 import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.android.common.model.SessionProposer
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
-import com.walletconnect.sign.common.model.vo.sequence.PairingVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
@@ -32,10 +30,6 @@ private fun EngineDO.WalletConnectUri.getQuery(): String {
     }
     return query
 }
-
-@JvmSynthetic
-internal fun EngineDO.AppMetaData.toCore() =
-    MetaData(name, description, url, icons, Redirect(redirect))
 
 @JvmSynthetic
 internal fun PairingParamsVO.SessionProposeParams.toEngineDO(): EngineDO.SessionProposal =
@@ -58,7 +52,7 @@ internal fun SessionParamsVO.SessionRequestParams.toEngineDO(
     EngineDO.SessionRequest(
         topic = request.topic.value,
         chainId = chainId,
-        peerAppMetaData = peerMetaData?.toEngineDO(),
+        peerAppMetaData = peerMetaData,
         request = EngineDO.SessionRequest.JSONRPCRequest(
             id = request.id,
             method = this.request.method,
@@ -80,33 +74,25 @@ internal fun SessionVO.toEngineDO(): EngineDO.Session =
         topic,
         expiry,
         namespaces.toMapOfEngineNamespacesSession(),
-        EngineDO.AppMetaData(
+        MetaData(
             peerMetaData?.name ?: String.Empty,
             peerMetaData?.description ?: String.Empty,
             peerMetaData?.url ?: String.Empty,
             peerMetaData?.icons?.map { iconUri -> iconUri } ?: listOf(),
-            peerMetaData?.redirect?.native
+            peerMetaData?.redirect
         )
     )
 
 @JvmSynthetic
 internal fun SessionVO.toEngineDOSessionExtend(expiryVO: com.walletconnect.android.common.model.Expiry): EngineDO.SessionExtend =
-    EngineDO.SessionExtend(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfMetaData?.toEngineDO())
+    EngineDO.SessionExtend(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfMetaData)
 
-@JvmSynthetic
-internal fun MetaData.toEngineDO(): EngineDO.AppMetaData =
-    EngineDO.AppMetaData(name, description, url, icons, redirect?.native)
-
-
-@JvmSynthetic
-internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.PairingSettle =
-    EngineDO.PairingSettle(topic, peerMetaData?.toEngineDO())
 
 @JvmSynthetic
 internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
     EngineDO.SessionApproved(
         topic = topic.value,
-        peerAppMetaData = peerMetaData?.toEngineDO(),
+        peerAppMetaData = peerMetaData,
         accounts = namespaces.flatMap { (_, namespace) -> namespace.accounts },
         namespaces = namespaces.toMapOfEngineNamespacesSession()
     )
@@ -128,10 +114,10 @@ internal fun toSessionProposeParams(
     relays: List<EngineDO.RelayProtocolOptions>?,
     namespaces: Map<String, EngineDO.Namespace.Proposal>,
     selfPublicKey: PublicKey,
-    metaData: EngineDO.AppMetaData,
+    metaData: MetaData,
 ) = PairingParamsVO.SessionProposeParams(
     relays = getSessionRelays(relays),
-    proposer = SessionProposer(selfPublicKey.keyAsHex, metaData.toCore()),
+    proposer = SessionProposer(selfPublicKey.keyAsHex, metaData),
     namespaces = namespaces.toNamespacesVOProposal()
 )
 

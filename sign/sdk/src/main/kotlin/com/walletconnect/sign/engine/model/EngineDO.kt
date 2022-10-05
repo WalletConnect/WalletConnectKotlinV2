@@ -3,6 +3,7 @@
 package com.walletconnect.sign.engine.model
 
 import com.squareup.moshi.JsonClass
+import com.walletconnect.android.common.model.MetaData
 import com.walletconnect.android.common.model.SymmetricKey
 import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.common.model.Sequence
@@ -63,7 +64,7 @@ internal sealed class EngineDO {
     internal data class SessionRequest(
         val topic: String,
         val chainId: String?,
-        val peerAppMetaData: AppMetaData?,
+        val peerAppMetaData: MetaData?,
         val request: JSONRPCRequest,
     ) : EngineDO(), EngineEvent {
 
@@ -121,12 +122,12 @@ internal sealed class EngineDO {
 
     internal data class SessionApproved(
         val topic: String,
-        val peerAppMetaData: AppMetaData?,
+        val peerAppMetaData: MetaData?,
         val accounts: List<String>,
         val namespaces: Map<String, Namespace.Session>,
     ) : EngineDO(), EngineEvent
 
-    internal data class PairingSettle(val topic: Topic, val metaData: AppMetaData?) : EngineDO(), EngineEvent
+    internal data class PairingSettle(val topic: Topic, val metaData: MetaData?) : EngineDO(), EngineEvent
     internal data class SessionUpdateAccounts(val topic: Topic, val accounts: List<String>) : EngineDO(), EngineEvent
     internal data class SessionUpdateNamespaces(val topic: Topic, val namespaces: Map<String, Namespace.Session>) : EngineDO(), EngineEvent
 
@@ -134,28 +135,20 @@ internal sealed class EngineDO {
         override val topic: Topic,
         override val expiry: com.walletconnect.android.common.model.Expiry,
         val namespaces: Map<String, Namespace.Session>,
-        val peerAppMetaData: AppMetaData?,
+        val peerAppMetaData: MetaData?,
     ) : EngineDO(), Sequence, EngineEvent
 
     internal data class Session(
         override val topic: Topic,
         override val expiry: com.walletconnect.android.common.model.Expiry,
         val namespaces: Map<String, Namespace.Session>,
-        val peerAppMetaData: AppMetaData?,
+        val peerAppMetaData: MetaData?,
     ) : EngineDO(), Sequence, EngineEvent
 
     internal data class Event(
         val name: String,
         val data: String,
         val chainId: String,
-    ) : EngineDO()
-
-    internal data class AppMetaData(
-        val name: String,
-        val description: String,
-        val url: String,
-        val icons: List<String>,
-        val redirect: String?,
     ) : EngineDO()
 
     internal sealed class JsonRpcResponse : EngineDO() {

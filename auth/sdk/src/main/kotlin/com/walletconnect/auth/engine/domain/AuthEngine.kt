@@ -53,7 +53,7 @@ internal class AuthEngine(
     private val crypto: KeyManagementRepository,
     private val pairingStorageRepository: PairingStorageRepositoryInterface,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
-    private val metaData: AppMetaData,
+    private val selfMetaData: MetaData,
     private val issuer: Issuer?,
 ) {
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -90,10 +90,12 @@ internal class AuthEngine(
 
         try {
             pairingStorageRepository.insertPairing(inactivePairing)
-            metadataStorageRepository.insertOrAbortMetadata(PeerMetaData(metaData.name, metaData.description, metaData.url, metaData.icons, Redirect(metaData.redirect)), MetaDataType.SELF, pairingTopic)
+            metadataStorageRepository.insertOrAbortMetadata(pairingTopic,
+                selfMetaData,
+                MetaDataType.SELF)
             val responsePublicKey: PublicKey = crypto.generateKeyPair()
             val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
-            val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams)
+            val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfMetaData), payloadParams)
             val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
             val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
 

@@ -4,7 +4,10 @@ package com.walletconnect.sign.client.mapper
 
 import android.net.Uri
 import android.os.Build
+import com.walletconnect.android.Core
 import com.walletconnect.android.common.connection.ConnectionType
+import com.walletconnect.android.common.model.MetaData
+import com.walletconnect.android.common.model.Redirect
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.sign.client.Sign
@@ -67,7 +70,7 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     Sign.Model.SessionRequest(
         topic = topic,
         chainId = chainId,
-        peerMetaData = peerAppMetaData?.toClientAppMetaData(),
+        peerMetaData = peerAppMetaData?.toClient(),
         request = Sign.Model.SessionRequest.JSONRPCRequest(
             id = request.id,
             method = request.method,
@@ -101,7 +104,7 @@ internal fun EngineDO.Session.toClientSettledSession(): Sign.Model.Session =
     Sign.Model.Session(topic.value,
         expiry.seconds,
         namespaces.toMapOfClientNamespacesSession(),
-        peerAppMetaData?.toClientAppMetaData())
+        peerAppMetaData?.toClient())
 
 @JvmSynthetic
 internal fun EngineDO.SessionExtend.toClientSettledSession(): Sign.Model.Session =
@@ -109,7 +112,7 @@ internal fun EngineDO.SessionExtend.toClientSettledSession(): Sign.Model.Session
         topic.value,
         expiry.seconds,
         namespaces.toMapOfClientNamespacesSession(),
-        peerAppMetaData?.toClientAppMetaData()
+        peerAppMetaData?.toClient()
     )
 
 @JvmSynthetic
@@ -118,7 +121,7 @@ internal fun EngineDO.SessionRejected.toClientSessionRejected(): Sign.Model.Reje
 
 @JvmSynthetic
 internal fun EngineDO.SessionApproved.toClientSessionApproved(): Sign.Model.ApprovedSession =
-    Sign.Model.ApprovedSession(topic, peerAppMetaData?.toClientAppMetaData(), namespaces.toMapOfClientNamespacesSession(), accounts)
+    Sign.Model.ApprovedSession(topic, peerAppMetaData?.toClient(), namespaces.toMapOfClientNamespacesSession(), accounts)
 
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSession(): Map<String, Sign.Model.Namespace.Session> =
@@ -128,13 +131,15 @@ internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSess
         })
     }
 
+//todo create and move to core mapper outside
 @JvmSynthetic
-internal fun Sign.Model.AppMetaData.toEngineAppMetaData() =
-    EngineDO.AppMetaData(name, description, url, icons, redirect)
+internal fun Core.Model.AppMetaData.toCore() =
+    MetaData(name, description, url, icons, Redirect(redirect))
 
+//todo create and move to core mapper outside
 @JvmSynthetic
-internal fun EngineDO.AppMetaData.toClientAppMetaData() =
-    Sign.Model.AppMetaData(name, description, url, icons, redirect)
+internal fun MetaData.toClient() =
+    Core.Model.AppMetaData(name, description, url, icons, redirect?.native)
 
 @JvmSynthetic
 internal fun Sign.Params.Request.toEngineDORequest(): EngineDO.Request =
@@ -154,7 +159,7 @@ internal fun EngineDO.JsonRpcResponse.JsonRpcError.toClientJsonRpcError(): Sign.
 
 @JvmSynthetic
 internal fun EngineDO.PairingSettle.toClientSettledPairing(): Sign.Model.Pairing =
-    Sign.Model.Pairing(topic.value, metaData?.toClientAppMetaData())
+    Sign.Model.Pairing(topic.value, metaData?.toClient())
 
 @JvmSynthetic
 internal fun List<PendingRequest>.mapToPendingRequests(): List<Sign.Model.PendingRequest> = map { request ->

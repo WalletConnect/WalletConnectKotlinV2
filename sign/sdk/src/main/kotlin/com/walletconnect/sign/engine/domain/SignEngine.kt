@@ -56,7 +56,7 @@ internal class SignEngine(
     private val pairingStorageRepository: PairingStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepository,
     private val pairingInterface: PairingInterface,
-    private val metaData: EngineDO.AppMetaData,
+    private val selfMetaData: MetaData,
 ) {
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
@@ -104,7 +104,7 @@ internal class SignEngine(
             }
 
             val selfPublicKey: PublicKey = crypto.generateKeyPair()
-            val sessionProposal = toSessionProposeParams(proposedRelays ?: relays, namespaces, selfPublicKey, metaData)
+            val sessionProposal = toSessionProposeParams(proposedRelays ?: relays, namespaces, selfPublicKey, selfMetaData)
             val request = PairingRpcVO.SessionPropose(id = generateId(), params = sessionProposal)
             sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequest(pairingTopic, request.id, request.method, sessionProposal)
             val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
@@ -147,7 +147,7 @@ internal class SignEngine(
 
         try {
             pairingStorageRepository.insertPairing(inactivePairing)
-            metadataStorageRepository.insertOrAbortMetadata(pairingTopic, PeerMetaData(metaData.name, metaData.description, metaData.url, metaData.icons, Redirect(metaData.redirect)), MetaDataType.SELF)
+            metadataStorageRepository.insertOrAbortMetadata(pairingTopic, selfMetaData, MetaDataType.SELF)
             relayer.subscribe(pairingTopic)
 
             proposedSession(pairingTopic, null, EngineDO.ProposedSequence.Pairing(walletConnectUri.toAbsoluteString()))
@@ -204,14 +204,14 @@ internal class SignEngine(
             pairingTopic: Topic
         ) {
             val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
-            val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toCore())
+            val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, selfMetaData)
             val sessionExpiry = ACTIVE_SESSION
             val session = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces)
 
             try {
-                val peerMetaData = with(proposal.proposer.metadata) { PeerMetaData(name, description, url, icons, redirect) }
+                val peerMetaData = with(proposal.proposer.metadata) { MetaData(name, description, url, icons, redirect) }
                 sessionStorageRepository.insertSession(session, pairingTopic, requestId)
-                metadataStorageRepository.upsertPairingPeerMetadata(pairingTopic, PeerMetaData(metaData.name, metaData.description, metaData.url, metaData.icons, Redirect(metaData.redirect)), MetaDataType.SELF) //todo: take care of multiple metadata structures
+                metadataStorageRepository.upsertPairingPeerMetadata(pairingTopic, selfMetaData, MetaDataType.SELF) //todo: take care of multiple metadata structures
                 metadataStorageRepository.upsertPairingPeerMetadata(pairingTopic, peerMetaData, MetaDataType.PEER) //todo: take care of multiple metadata structures
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
                 val sessionSettle = SessionRpcVO.SessionSettle(id = generateId(), params = params)
@@ -526,10 +526,10 @@ internal class SignEngine(
                 }
             }
 
-            pairingInterface.flow.collect { request ->
-                is PairingParamsVO.SessionProposeParams -> onSessionPropose(request, requestParams)
-                is PairingParamsVO.DeleteParams -> onPairingDelete(request, requestParams)
-            }
+//            pairingInterface.flow.collect { request ->
+//                is PairingParamsVO.SessionProposeParams -> onSessionPropose(request, requestParams)
+//                is PairingParamsVO.DeleteParams -> onPairingDelete(request, requestParams)
+//            }
         }
     }
 
@@ -588,12 +588,12 @@ internal class SignEngine(
         val tempProposalRequest = sessionProposalRequest.getValue(selfPublicKey.keyAsHex)
 
         try {
-            val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toCore(), proposalNamespaces)
+            val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, selfMetaData, proposalNamespaces)
 
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
             sessionStorageRepository.insertSession(session, request.topic, request.id)
-            metadataStorageRepository.upsertPairingPeerMetadata(request.topic, PeerMetaData(metaData.name, metaData.description, metaData.url, metaData.icons, Redirect(metaData.redirect)), MetaDataType.SELF)
-            metadataStorageRepository.upsertPairingPeerMetadata(request.topic, PeerMetaData(peerMetadata.name, peerMetadata.description, peerMetadata.url, peerMetadata.icons, peerMetadata.redirect), MetaDataType.PEER)
+            metadataStorageRepository.upsertPairingPeerMetadata(request.topic, selfMetaData, MetaDataType.SELF)
+            metadataStorageRepository.upsertPairingPeerMetadata(request.topic, peerMetadata, MetaDataType.PEER)
 
             relayer.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
             scope.launch { _engineEvent.emit(session.toSessionApproved()) }

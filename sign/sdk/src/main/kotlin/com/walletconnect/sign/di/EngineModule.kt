@@ -2,20 +2,18 @@
 
 package com.walletconnect.sign.di
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.pairing.PairingInterface
-import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.client.mapper.toEngineAppMetaData
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCase
 import org.koin.dsl.module
 
 @JvmSynthetic
-internal fun engineModule(metadata: Sign.Model.AppMetaData, pairingInterface: PairingInterface) = module {
+internal fun engineModule(pairingInterface: PairingInterface) = module {
 
     single { pairingInterface }
 
-    //todo: Remove. Instead take Pairing selfMetaData
-    single { metadata.toEngineAppMetaData() }
+    single<Core.Model.AppMetaData> { pairingInterface.selfMetaData }
 
     //todo: check if dependencies are here
     single { GetPendingRequestsUseCase(get(), get())}

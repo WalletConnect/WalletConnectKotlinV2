@@ -2,7 +2,6 @@ package com.walletconnect.android.common.storage
 
 import com.walletconnect.android.common.model.Expiry
 import com.walletconnect.android.common.model.Pairing
-import com.walletconnect.android.common.model.PeerMetaData
 import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.flow.SharedFlow
 
