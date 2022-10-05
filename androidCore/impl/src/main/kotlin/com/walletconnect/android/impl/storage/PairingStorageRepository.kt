@@ -9,6 +9,7 @@ import com.walletconnect.android.common.model.PeerMetaData
 import com.walletconnect.android.common.model.Redirect
 import com.walletconnect.android.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.android.impl.common.scope.scope
+import com.walletconnect.android.impl.storage.data.dao.PairingQueries
 import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.flow.*
 
