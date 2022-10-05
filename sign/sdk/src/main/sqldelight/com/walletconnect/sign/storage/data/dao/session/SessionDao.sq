@@ -3,6 +3,7 @@ import java.lang.Boolean;
 CREATE TABLE SessionDao(
    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
    topic TEXT UNIQUE NOT NULL, -- todo: this is missing pairingTopic
+   pairingTopic TEXT UNIQUE NOT NULL,
    expiry INTEGER NOT NULL,
    relay_protocol TEXT NOT NULL,
    relay_data TEXT,
@@ -13,8 +14,8 @@ CREATE TABLE SessionDao(
 );
 
 insertOrAbortSession:
-INSERT OR ABORT INTO SessionDao(topic, expiry, relay_protocol, relay_data, controller_key, self_participant, peer_participant, is_acknowledged)
-VALUES (?,  ?, ?,?, ?, ?, ?, ?);
+INSERT OR ABORT INTO SessionDao(topic, pairingTopic, expiry, relay_protocol, relay_data, controller_key, self_participant, peer_participant, is_acknowledged)
+VALUES (?,  ?, ?,?, ?, ?, ?, ?, ?);
 
 lastInsertedRow:
 SELECT id

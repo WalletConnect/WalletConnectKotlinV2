@@ -7,6 +7,7 @@ import com.walletconnect.android.common.model.MetaData
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.android.impl.common.model.type.enums.MetaDataType
+import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.sequence.PairingVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
@@ -19,7 +20,7 @@ import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceExtensionDaoQueries
 import com.walletconnect.utils.Empty
 import com.walletconnect.utils.isSequenceValid
-
+import kotlinx.coroutines.flow.*
 
 // todo: ensure joining metadata is done outside of sqldelight
 // todo: Also big migration
@@ -32,6 +33,10 @@ internal class SessionStorageRepository(
     private val tempNamespaceDaoQueries: TempNamespaceDaoQueries,
     private val tempExtensionsDaoQueries: TempNamespaceExtensionDaoQueries,
 ) {
+    private val _topicExpiredFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
+    val topicExpiredFlow: SharedFlow<Topic> = _topicExpiredFlow.onEach {
+        deleteSession(it)
+    }.shareIn(scope, SharingStarted.Lazily)
 
     @JvmSynthetic
     var onSequenceExpired: (topic: Topic) -> Unit = {}
@@ -62,10 +67,11 @@ internal class SessionStorageRepository(
     @Synchronized
     @JvmSynthetic
     @Throws(SQLiteException::class)
-    fun insertSession(session: SessionVO, requestId: Long) {
+    fun insertSession(session: SessionVO, pairingTopic: Topic, requestId: Long) {
         with(session) {
             sessionDaoQueries.insertOrAbortSession(
                 topic = topic.value,
+                pairingTopic = pairingTopic.value,
                 expiry = expiry.seconds,
                 self_participant = selfPublicKey.keyAsHex,
                 relay_protocol = relayProtocol,
@@ -77,8 +83,6 @@ internal class SessionStorageRepository(
         }
 
         val lastInsertedSessionId = sessionDaoQueries.lastInsertedRow().executeAsOne()
-        insertMetaData(session.selfMetaData, MetaDataType.SELF, session.topic)
-        insertMetaData(session.peerMetaData, MetaDataType.PEER, session.topic)
         insertNamespace(session.namespaces, lastInsertedSessionId, requestId)
         insertProposalNamespace(session.proposalNamespaces, lastInsertedSessionId)
     }

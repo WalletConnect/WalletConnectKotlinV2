@@ -25,9 +25,9 @@ internal fun engineModule(metadata: Core.Model.AppMetaData, issuer: String?) = m
         single<Issuer> { issuer.toCommon() }
 
         //todo: check if dependencies are here
-        single<AuthEngine> { AuthEngine(get(), get(), get(), get(), get(), get(), get(), get()) }
+        single<AuthEngine> { AuthEngine(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     } else {
         //todo: check if dependencies are here
-        single<AuthEngine> { AuthEngine(get(), get(), get(), get(), get(), get(), get(), null) }
+        single<AuthEngine> { AuthEngine(get(), get(), get(), get(), get(), get(), get(), get(), null) }
     }
 }

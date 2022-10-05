@@ -30,17 +30,16 @@ internal class AuthProtocol : AuthInterface {
     @Throws(IllegalStateException::class)
     override fun initialize(init: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit) {
         Logger.init()
+
         with(init) {
-            wcKoinApp.run {
-                modules(
-                    networkModule(core),
-                    commonModule(),
-                    cryptoModule(),
-                    jsonRpcModule(),
-                    storageModule(),
-                    engineModule(core.selfMetaData, iss)
-                )
-            }
+            wcKoinApp.modules(
+                networkModule(core),
+                commonModule(),
+                cryptoModule(),
+                jsonRpcModule(),
+                storageModule(),
+                engineModule(core.selfMetaData, iss)
+            )
         }
 
         authEngine = wcKoinApp.koin.get()
@@ -74,6 +73,7 @@ internal class AuthProtocol : AuthInterface {
     @Throws(IllegalStateException::class)
     override fun request(params: Auth.Params.Request, onPairing: (Auth.Model.Pairing) -> Unit, onError: (Auth.Model.Error) -> Unit) {
         checkEngineInitialization()
+
         try {
             authEngine.request(
                 params.toCommon(),

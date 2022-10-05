@@ -92,7 +92,8 @@ internal class SignProtocol : SignInterface {
 
     @Throws(IllegalStateException::class)
     override fun connect(
-        connect: Sign.Params.Connect, onProposedSequence: (Sign.Model.ProposedSequence) -> Unit,
+        connect: Sign.Params.Connect,
+        onProposedSequence: (Sign.Model.ProposedSequence) -> Unit,
         onError: (Sign.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()

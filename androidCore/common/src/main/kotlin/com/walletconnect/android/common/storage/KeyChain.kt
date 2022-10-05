@@ -30,7 +30,9 @@ internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyS
     }
 
     override fun deleteKeys(tag: String) {
-        sharedPreferences.edit().remove(tag).apply()
+        if (checkKeys(tag)) {
+            sharedPreferences.edit().remove(tag).apply()
+        }
     }
 
     override fun checkKeys(tag: String): Boolean {

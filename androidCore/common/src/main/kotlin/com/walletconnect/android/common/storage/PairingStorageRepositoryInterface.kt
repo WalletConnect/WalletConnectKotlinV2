@@ -17,6 +17,8 @@ interface PairingStorageRepositoryInterface {
 
     fun isPairingValid(topic: Topic): Boolean
 
+    fun hasTopic(topic: Topic): Boolean
+
     fun getListOfPairings(): List<Pairing>
 
     fun activatePairing(topic: Topic)

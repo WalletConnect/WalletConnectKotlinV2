@@ -37,6 +37,8 @@ internal object PairingClient : PairingInterface {
     private val jsonRpcInteractor: JsonRpcInteractorInterface
         get() = wcKoinApp.koin.getOrNull() ?: throw IllegalStateException("SDK has not been initialized")
 
+
+
     fun initialize(metaData: Core.Model.AppMetaData) {
         _selfMetaData = metaData
     }

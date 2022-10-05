@@ -20,7 +20,7 @@ FROM Pairing pd
 getPairingByTopic:
 SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, pd.is_active, mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, mdd_peer.native
 FROM Pairing pd
-LEFT JOIN MetaData mdd_peer ON pd.topic = mdd_peer.sequence_topic AND mdd_peer.type = "PEER"
+    LEFT JOIN MetaData mdd_peer ON pd.topic = mdd_peer.sequence_topic AND mdd_peer.type = "PEER"
 WHERE ? = topic;
 
 deletePairing:

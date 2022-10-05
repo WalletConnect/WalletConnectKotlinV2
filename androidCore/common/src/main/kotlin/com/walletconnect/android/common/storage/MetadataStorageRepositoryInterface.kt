@@ -6,13 +6,15 @@ import com.walletconnect.foundation.common.model.Topic
 
 interface MetadataStorageRepositoryInterface {
 
-    fun insertOrAbortMetadata(metaData: PeerMetaData, metaDataType: MetaDataType, topic: Topic)
+    fun insertOrAbortMetadata(topic: Topic, metaData: PeerMetaData, metaDataType: MetaDataType)
 
-    fun updateOrAbortMetaData(metaData: PeerMetaData, metaDataType: MetaDataType, topic: Topic)
+    fun updateOrAbortMetaData(topic: Topic, metaData: PeerMetaData, metaDataType: MetaDataType)
 
     fun deleteMetaData(topic: Topic)
 
     fun existsByTopic(topic: Topic): Boolean
 
     fun getByTopic(topic: Topic): PeerMetaData
+
+    fun upsertPairingPeerMetadata(topic: Topic, metaData: PeerMetaData, metaDataType: MetaDataType)
 }

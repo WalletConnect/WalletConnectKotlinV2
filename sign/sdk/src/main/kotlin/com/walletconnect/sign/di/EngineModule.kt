@@ -18,5 +18,5 @@ internal fun engineModule(metadata: Sign.Model.AppMetaData) = module {
     single { GetPendingRequestsUseCase(get(), get())}
 
     //todo: check if dependencies are here
-    single { SignEngine(get(), get(), get(), get(), get(), get()) }
+    single { SignEngine(get(), get(), get(), get(), get(), get(), get()) }
 }

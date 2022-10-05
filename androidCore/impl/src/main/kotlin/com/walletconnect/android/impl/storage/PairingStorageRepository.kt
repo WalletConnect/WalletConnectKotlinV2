@@ -3,10 +3,7 @@ package com.walletconnect.android.impl.storage
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.common.ACTIVE_PAIRING
 import com.walletconnect.android.common.CURRENT_TIME_IN_SECONDS
-import com.walletconnect.android.common.model.Expiry
-import com.walletconnect.android.common.model.Pairing
-import com.walletconnect.android.common.model.PeerMetaData
-import com.walletconnect.android.common.model.Redirect
+import com.walletconnect.android.common.model.*
 import com.walletconnect.android.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.storage.data.dao.PairingQueries
@@ -16,7 +13,9 @@ import kotlinx.coroutines.flow.*
 class PairingStorageRepository(private val pairingQueries: PairingQueries) : PairingStorageRepositoryInterface {
 
     private val _topicExpiredFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
-    override val topicExpiredFlow: SharedFlow<Topic> = _topicExpiredFlow.onEach { deletePairing(it) }.shareIn(scope, SharingStarted.Lazily)
+    override val topicExpiredFlow: SharedFlow<Topic> = _topicExpiredFlow.onEach {
+        deletePairing(it)
+    }.shareIn(scope, SharingStarted.Lazily)
 
     @Throws(SQLiteException::class)
     override fun insertPairing(pairing: Pairing) {
@@ -32,7 +31,7 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
 
     @Throws(SQLiteException::class)
     override fun isPairingValid(topic: Topic): Boolean {
-        return if (pairingQueries.hasTopic(topic.value).executeAsOneOrNull() != null) {
+        return if (hasTopic(topic)) {
             if (Expiry(pairingQueries.getExpiry(topic.value).executeAsOne()).seconds > CURRENT_TIME_IN_SECONDS) {
                 true
             } else {
@@ -43,6 +42,8 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
             false
         }
     }
+
+    override fun hasTopic(topic: Topic): Boolean = pairingQueries.hasTopic(topic.value).executeAsOneOrNull() != null
 
     @Throws(SQLiteException::class)
     override fun getListOfPairings(): List<Pairing> = pairingQueries.getListOfPairing(mapper = this::toPairing).executeAsList()

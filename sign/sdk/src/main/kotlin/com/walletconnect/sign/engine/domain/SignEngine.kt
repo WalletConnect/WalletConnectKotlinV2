@@ -144,6 +144,7 @@ internal class SignEngine(
 
         try {
             pairingStorageRepository.insertPairing(inactivePairing)
+            metadataStorageRepository.insertOrAbortMetadata(pairingTopic, PeerMetaData(metaData.name, metaData.description, metaData.url, metaData.icons, Redirect(metaData.redirect)), MetaDataType.SELF)
             relayer.subscribe(pairingTopic)
 
             proposedSession(pairingTopic, null, EngineDO.ProposedSequence.Pairing(walletConnectUri.toAbsoluteString()))
@@ -197,6 +198,7 @@ internal class SignEngine(
             requestId: Long,
             proposal: PairingParamsVO.SessionProposeParams,
             sessionTopic: Topic,
+            pairingTopic: Topic
         ) {
             val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
             val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, metaData.toCore())
@@ -204,21 +206,23 @@ internal class SignEngine(
             val session = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces)
 
             try {
-                sessionStorageRepository.insertSession(session, requestId)
-//                pairingStorageRepository.upsertPairingPeerMetadata(sessionTopic, proposal.proposer.metadata) //todo: take care of multiple metadata structures
+                val peerMetaData = with(proposal.proposer.metadata) { PeerMetaData(name, description, url, icons, redirect) }
+                sessionStorageRepository.insertSession(session, pairingTopic, requestId)
+                metadataStorageRepository.upsertPairingPeerMetadata(pairingTopic, PeerMetaData(metaData.name, metaData.description, metaData.url, metaData.icons, Redirect(metaData.redirect)), MetaDataType.SELF) //todo: take care of multiple metadata structures
+                metadataStorageRepository.upsertPairingPeerMetadata(pairingTopic, peerMetaData, MetaDataType.PEER) //todo: take care of multiple metadata structures
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
                 val sessionSettle = SessionRpcVO.SessionSettle(id = generateId(), params = params)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
                 relayer.publishJsonRpcRequests(sessionTopic, irnParams, sessionSettle, onFailure = { error -> onFailure(error) })
             } catch (e: SQLiteException) {
+                sessionStorageRepository.deleteSession(sessionTopic)
+                metadataStorageRepository.deleteMetaData(sessionTopic)
                 onFailure(e)
             }
         }
 
-
-        val request = sessionProposalRequest[proposerPublicKey]
-            ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
+        val request = sessionProposalRequest[proposerPublicKey] ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
         val proposal = request.params as PairingParamsVO.SessionProposeParams
 
@@ -235,7 +239,7 @@ internal class SignEngine(
 
         relayer.respondWithParams(request, approvalParams, irnParams)
 
-        sessionSettle(request.id, proposal, sessionTopic)
+        sessionSettle(request.id, proposal, sessionTopic, request.topic)
     }
 
     internal fun sessionUpdate(
@@ -532,6 +536,7 @@ internal class SignEngine(
     }
 
     // listened by WalletDelegate
+    // TODO: Move PairingClient
     private fun onSessionPropose(request: WCRequest, payloadParams: PairingParamsVO.SessionProposeParams) {
         Validator.validateProposalNamespace(payloadParams.namespaces) { error ->
             val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
@@ -566,18 +571,19 @@ internal class SignEngine(
         val tempProposalRequest = sessionProposalRequest.getValue(selfPublicKey.keyAsHex)
 
         try {
-            val session =
-                SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toCore(), proposalNamespaces)
+            val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, metaData.toCore(), proposalNamespaces)
 
-//            pairingStorageRepository.upsertPairingPeerMetadata(proposal.topic, peerMetadata) //todo: take care of multiple metadata structures
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
-            sessionStorageRepository.insertSession(session, request.id)
+            sessionStorageRepository.insertSession(session, request.topic, request.id)
+            metadataStorageRepository.upsertPairingPeerMetadata(request.topic, PeerMetaData(metaData.name, metaData.description, metaData.url, metaData.icons, Redirect(metaData.redirect)), MetaDataType.SELF)
+            metadataStorageRepository.upsertPairingPeerMetadata(request.topic, PeerMetaData(peerMetadata.name, peerMetadata.description, peerMetadata.url, peerMetadata.icons, peerMetadata.redirect), MetaDataType.PEER)
 
             relayer.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
             scope.launch { _engineEvent.emit(session.toSessionApproved()) }
         } catch (e: SQLiteException) {
             sessionProposalRequest[selfPublicKey.keyAsHex] = tempProposalRequest
             sessionStorageRepository.deleteSession(sessionTopic)
+            metadataStorageRepository.deleteMetaData(request.topic)
             relayer.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
             return
         }
@@ -874,16 +880,21 @@ internal class SignEngine(
     }
 
     private fun setupSequenceExpiration() {
-        pairingStorageRepository.topicExpiredFlow.onEach { topic ->
-            relayer.unsubscribe(topic)
-            crypto.removeKeys(topic.value)
-        }.launchIn(scope)
-
-        //todo: do as in pairingStorageRepository
         sessionStorageRepository.onSequenceExpired = { topic ->
             relayer.unsubscribe(topic)
             crypto.removeKeys(topic.value)
         }
+
+        merge(
+            pairingStorageRepository.topicExpiredFlow,
+            sessionStorageRepository.topicExpiredFlow
+        ).onEach { topic ->
+            pairingStorageRepository.deletePairing(topic)
+            sessionStorageRepository.deleteSession(topic)
+
+            relayer.unsubscribe(topic)
+            crypto.removeKeys(topic.value)
+        }.launchIn(scope)
     }
 
     private fun generateTopic(): Topic = Topic(randomBytes(32).bytesToHex())
