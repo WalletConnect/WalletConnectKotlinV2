@@ -61,12 +61,12 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
         topic: String, expirySeconds: Long, relay_protocol: String, relay_data: String?, uri: String, is_active: Boolean,
         peerName: String?, peerDesc: String?, peerUrl: String?, peerIcons: List<String>?, native: String?,
     ): Pairing {
-        val peerMetaData: MetaData? = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
-            MetaData(peerName, peerDesc, peerUrl, peerIcons, Redirect(native = native))
+        val peerAppMetaData: AppMetaData? = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
+            AppMetaData(peerName, peerDesc, peerUrl, peerIcons, Redirect(native = native))
         } else {
             null
         }
 
-        return Pairing(topic = Topic(topic), expiry = Expiry(expirySeconds), peerMetaData = peerMetaData, relayProtocol = relay_protocol, relayData = relay_data, uri = uri, isActive = is_active)
+        return Pairing(topic = Topic(topic), expiry = Expiry(expirySeconds), peerAppMetaData = peerAppMetaData, relayProtocol = relay_protocol, relayData = relay_data, uri = uri, isActive = is_active)
     }
 }

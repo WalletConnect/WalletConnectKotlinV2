@@ -2,7 +2,7 @@
 
 package com.walletconnect.sign.common.model.vo.sequence
 
-import com.walletconnect.android.common.model.MetaData
+import com.walletconnect.android.common.model.AppMetaData
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.android.common.model.Sequence
@@ -20,9 +20,9 @@ internal data class SessionVO(
     val relayData: String?,
     val controllerKey: PublicKey? = null,
     val selfPublicKey: PublicKey,
-    val selfMetaData: MetaData? = null,
+    val selfAppMetaData: AppMetaData? = null,
     val peerPublicKey: PublicKey? = null,
-    val peerMetaData: MetaData? = null,
+    val peerAppMetaData: AppMetaData? = null,
     val namespaces: Map<String, NamespaceVO.Session>,
     val proposalNamespaces: Map<String, NamespaceVO.Proposal>,
     val isAcknowledged: Boolean,
@@ -46,9 +46,9 @@ internal data class SessionVO(
                 relayProtocol = proposal.relays.first().protocol,
                 relayData = proposal.relays.first().data,
                 peerPublicKey = PublicKey(proposal.proposer.publicKey),
-                peerMetaData = proposal.proposer.metadata,
+                peerAppMetaData = proposal.proposer.metadata,
                 selfPublicKey = PublicKey(selfParticipant.publicKey),
-                selfMetaData = selfParticipant.metadata,
+                selfAppMetaData = selfParticipant.metadata,
                 controllerKey = PublicKey(selfParticipant.publicKey),
                 namespaces = namespaces.toMapOfNamespacesVOSession(),
                 proposalNamespaces = proposal.namespaces,
@@ -61,7 +61,7 @@ internal data class SessionVO(
             sessionTopic: Topic,
             settleParams: SessionParamsVO.SessionSettleParams,
             selfPublicKey: PublicKey,
-            selfMetadata: MetaData,
+            selfMetadata: AppMetaData,
             proposalNamespaces: Map<String, NamespaceVO.Proposal>
         ): SessionVO {
             return SessionVO(
@@ -70,9 +70,9 @@ internal data class SessionVO(
                 relayProtocol = settleParams.relay.protocol,
                 relayData = settleParams.relay.data,
                 peerPublicKey = PublicKey(settleParams.controller.publicKey),
-                peerMetaData = settleParams.controller.metadata,
+                peerAppMetaData = settleParams.controller.metadata,
                 selfPublicKey = selfPublicKey,
-                selfMetaData = selfMetadata,
+                selfAppMetaData = selfMetadata,
                 controllerKey = PublicKey(settleParams.controller.publicKey),
                 namespaces = settleParams.namespaces,
                 proposalNamespaces = proposalNamespaces,

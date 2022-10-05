@@ -2,7 +2,7 @@
 
 package com.walletconnect.sign.engine.model.mapper
 
-import com.walletconnect.android.common.model.MetaData
+import com.walletconnect.android.common.model.AppMetaData
 import com.walletconnect.android.common.model.RelayProtocolOptions
 import com.walletconnect.android.common.model.WCRequest
 import com.walletconnect.foundation.common.model.PublicKey
@@ -47,12 +47,12 @@ internal fun PairingParamsVO.SessionProposeParams.toEngineDO(): EngineDO.Session
 @JvmSynthetic
 internal fun SessionParamsVO.SessionRequestParams.toEngineDO(
     request: WCRequest,
-    peerMetaData: MetaData?,
+    peerAppMetaData: AppMetaData?,
 ): EngineDO.SessionRequest =
     EngineDO.SessionRequest(
         topic = request.topic.value,
         chainId = chainId,
-        peerAppMetaData = peerMetaData,
+        peerAppMetaData = peerAppMetaData,
         request = EngineDO.SessionRequest.JSONRPCRequest(
             id = request.id,
             method = this.request.method,
@@ -74,25 +74,25 @@ internal fun SessionVO.toEngineDO(): EngineDO.Session =
         topic,
         expiry,
         namespaces.toMapOfEngineNamespacesSession(),
-        MetaData(
-            peerMetaData?.name ?: String.Empty,
-            peerMetaData?.description ?: String.Empty,
-            peerMetaData?.url ?: String.Empty,
-            peerMetaData?.icons?.map { iconUri -> iconUri } ?: listOf(),
-            peerMetaData?.redirect
+        AppMetaData(
+            peerAppMetaData?.name ?: String.Empty,
+            peerAppMetaData?.description ?: String.Empty,
+            peerAppMetaData?.url ?: String.Empty,
+            peerAppMetaData?.icons?.map { iconUri -> iconUri } ?: listOf(),
+            peerAppMetaData?.redirect
         )
     )
 
 @JvmSynthetic
 internal fun SessionVO.toEngineDOSessionExtend(expiryVO: com.walletconnect.android.common.model.Expiry): EngineDO.SessionExtend =
-    EngineDO.SessionExtend(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfMetaData)
+    EngineDO.SessionExtend(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfAppMetaData)
 
 
 @JvmSynthetic
 internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
     EngineDO.SessionApproved(
         topic = topic.value,
-        peerAppMetaData = peerMetaData,
+        peerAppMetaData = peerAppMetaData,
         accounts = namespaces.flatMap { (_, namespace) -> namespace.accounts },
         namespaces = namespaces.toMapOfEngineNamespacesSession()
     )
@@ -114,10 +114,10 @@ internal fun toSessionProposeParams(
     relays: List<EngineDO.RelayProtocolOptions>?,
     namespaces: Map<String, EngineDO.Namespace.Proposal>,
     selfPublicKey: PublicKey,
-    metaData: MetaData,
+    appMetaData: AppMetaData,
 ) = PairingParamsVO.SessionProposeParams(
     relays = getSessionRelays(relays),
-    proposer = SessionProposer(selfPublicKey.keyAsHex, metaData),
+    proposer = SessionProposer(selfPublicKey.keyAsHex, appMetaData),
     namespaces = namespaces.toNamespacesVOProposal()
 )
 

@@ -1,7 +1,7 @@
 package com.walletconnect.auth.engine.mapper
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.common.model.MetaData
+import com.walletconnect.android.common.model.AppMetaData
 import com.walletconnect.android.common.model.Redirect
 import com.walletconnect.android.common.model.WalletConnectUri
 import com.walletconnect.auth.common.model.*
@@ -9,7 +9,7 @@ import com.walletconnect.auth.signature.Signature
 
 //todo create and move to core mapper outside
 @JvmSynthetic
-internal fun Core.Model.AppMetaData.toCore(): MetaData = MetaData(name, description, url, icons, Redirect(redirect))
+internal fun Core.Model.AppMetaData.toCore(): AppMetaData = AppMetaData(name, description, url, icons, Redirect(redirect))
 
 @JvmSynthetic
 internal fun PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.Payload(

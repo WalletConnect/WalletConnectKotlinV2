@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class MetaData(
+data class AppMetaData(
     @Json(name = "name")
     val name: String,
     @Json(name = "description")
@@ -15,4 +15,5 @@ data class MetaData(
     val icons: List<String>,
     @Json(name = "redirect")
     val redirect: Redirect? = null,
+    //todo: Add Type here
 )

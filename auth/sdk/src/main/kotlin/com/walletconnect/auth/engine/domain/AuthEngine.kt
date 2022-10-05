@@ -27,7 +27,6 @@ import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.json_rpc.AuthRpc
 import com.walletconnect.auth.common.model.*
 import com.walletconnect.auth.engine.mapper.toCacaoPayload
-import com.walletconnect.auth.engine.mapper.toCore
 import com.walletconnect.auth.engine.mapper.toFormattedMessage
 import com.walletconnect.auth.engine.mapper.toPendingRequest
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
@@ -53,7 +52,7 @@ internal class AuthEngine(
     private val crypto: KeyManagementRepository,
     private val pairingStorageRepository: PairingStorageRepositoryInterface,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
-    private val selfMetaData: MetaData,
+    private val selfAppMetaData: AppMetaData,
     private val issuer: Issuer?,
 ) {
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -91,11 +90,11 @@ internal class AuthEngine(
         try {
             pairingStorageRepository.insertPairing(inactivePairing)
             metadataStorageRepository.insertOrAbortMetadata(pairingTopic,
-                selfMetaData,
-                MetaDataType.SELF)
+                selfAppMetaData,
+                AppMetaDataType.SELF)
             val responsePublicKey: PublicKey = crypto.generateKeyPair()
             val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
-            val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfMetaData), payloadParams)
+            val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams)
             val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
             val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
 

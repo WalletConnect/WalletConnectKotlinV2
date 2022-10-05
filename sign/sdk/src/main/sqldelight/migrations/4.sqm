@@ -1,4 +1,4 @@
-import com.walletconnect.sign.common.model.type.enums.MetaDataType;
+import com.walletconnect.android.common.model.AppMetaDataType;
 import java.util.List;
 
 ALTER TABLE MetaDataDao RENAME TO MetaDataDaoBak;
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS MetaDataDao(
   	url TEXT NOT NULL,
   	icons TEXT AS List<String> NOT NULL,
   	native TEXT,
-  	type TEXT AS MetaDataType NOT NULL,
+  	type TEXT AS AppMetaDataType NOT NULL,
   	UNIQUE(sequence_topic, type)
 );
 

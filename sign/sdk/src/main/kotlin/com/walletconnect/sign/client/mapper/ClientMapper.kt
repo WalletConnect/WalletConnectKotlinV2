@@ -6,7 +6,7 @@ import android.net.Uri
 import android.os.Build
 import com.walletconnect.android.Core
 import com.walletconnect.android.common.connection.ConnectionType
-import com.walletconnect.android.common.model.MetaData
+import com.walletconnect.android.common.model.AppMetaData
 import com.walletconnect.android.common.model.Redirect
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.SDKError
@@ -134,11 +134,11 @@ internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSess
 //todo create and move to core mapper outside
 @JvmSynthetic
 internal fun Core.Model.AppMetaData.toCore() =
-    MetaData(name, description, url, icons, Redirect(redirect))
+    AppMetaData(name, description, url, icons, Redirect(redirect))
 
 //todo create and move to core mapper outside
 @JvmSynthetic
-internal fun MetaData.toClient() =
+internal fun AppMetaData.toClient() =
     Core.Model.AppMetaData(name, description, url, icons, redirect?.native)
 
 @JvmSynthetic
@@ -159,7 +159,7 @@ internal fun EngineDO.JsonRpcResponse.JsonRpcError.toClientJsonRpcError(): Sign.
 
 @JvmSynthetic
 internal fun EngineDO.PairingSettle.toClientSettledPairing(): Sign.Model.Pairing =
-    Sign.Model.Pairing(topic.value, metaData?.toClient())
+    Sign.Model.Pairing(topic.value, appMetaData?.toClient())
 
 @JvmSynthetic
 internal fun List<PendingRequest>.mapToPendingRequests(): List<Sign.Model.PendingRequest> = map { request ->

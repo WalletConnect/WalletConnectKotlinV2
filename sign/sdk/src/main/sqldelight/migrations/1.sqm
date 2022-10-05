@@ -1,4 +1,4 @@
-import com.walletconnect.sign.common.model.type.enums.MetaDataType;
+import com.walletconnect.android.common.model.AppMetaDataType;
 import kotlin.collections.List;
 
 -- PairingDao
@@ -39,7 +39,7 @@ CREATE TABLE MetaDataDao(
   	description TEXT NOT NULL,
   	url TEXT NOT NULL,
   	icons TEXT AS List<String> NOT NULL,
-  	type TEXT AS MetaDataType NOT NULL,
+  	type TEXT AS AppMetaDataType NOT NULL,
   	UNIQUE(sequence_topic, type)
 );
 

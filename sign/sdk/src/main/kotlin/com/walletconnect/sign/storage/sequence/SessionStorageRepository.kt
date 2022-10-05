@@ -3,7 +3,6 @@
 package com.walletconnect.sign.storage.sequence
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.android.common.model.MetaData
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.android.impl.common.scope.scope
@@ -296,8 +295,8 @@ internal class SessionStorageRepository(
         return SessionVO(
             topic = Topic(topic),
             expiry = com.walletconnect.android.common.model.Expiry(expiry),
-            selfMetaData = null,
-            peerMetaData = null,
+            selfAppMetaData = null,
+            peerAppMetaData = null,
             selfPublicKey = PublicKey(self_participant),
             peerPublicKey = PublicKey(peer_participant ?: String.Empty),
             controllerKey = PublicKey(controller_key ?: String.Empty),

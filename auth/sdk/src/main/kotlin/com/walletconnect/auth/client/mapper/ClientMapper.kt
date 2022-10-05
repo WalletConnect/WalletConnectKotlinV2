@@ -41,9 +41,6 @@ internal fun Events.OnAuthResponse.toClient(): Auth.Event.AuthResponse = when (v
 }
 
 @JvmSynthetic
-internal fun Pairing.toClient(): Auth.Model.Pairing = Auth.Model.Pairing(uri)
-
-@JvmSynthetic
 internal fun Auth.Params.Request.toCommon(): PayloadParams = PayloadParams(
     type = CacaoType.EIP4361.header,
     chainId = chainId,

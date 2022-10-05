@@ -11,7 +11,7 @@ import com.walletconnect.android.common.model.*
 import com.walletconnect.android.exception.GenericException
 import com.walletconnect.android.impl.common.*
 import com.walletconnect.android.impl.common.model.ConnectionState
-import com.walletconnect.android.common.model.MetaData
+import com.walletconnect.android.common.model.AppMetaData
 import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.storage.MetadataStorageRepository
@@ -56,7 +56,7 @@ internal class SignEngine(
     private val pairingStorageRepository: PairingStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepository,
     private val pairingInterface: PairingInterface,
-    private val selfMetaData: MetaData,
+    private val selfAppMetaData: AppMetaData,
 ) {
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
@@ -104,7 +104,7 @@ internal class SignEngine(
             }
 
             val selfPublicKey: PublicKey = crypto.generateKeyPair()
-            val sessionProposal = toSessionProposeParams(proposedRelays ?: relays, namespaces, selfPublicKey, selfMetaData)
+            val sessionProposal = toSessionProposeParams(proposedRelays ?: relays, namespaces, selfPublicKey, selfAppMetaData)
             val request = PairingRpcVO.SessionPropose(id = generateId(), params = sessionProposal)
             sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequest(pairingTopic, request.id, request.method, sessionProposal)
             val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
@@ -147,7 +147,7 @@ internal class SignEngine(
 
         try {
             pairingStorageRepository.insertPairing(inactivePairing)
-            metadataStorageRepository.insertOrAbortMetadata(pairingTopic, selfMetaData, MetaDataType.SELF)
+            metadataStorageRepository.insertOrAbortMetadata(pairingTopic, selfAppMetaData, AppMetaDataType.SELF)
             relayer.subscribe(pairingTopic)
 
             proposedSession(pairingTopic, null, EngineDO.ProposedSequence.Pairing(walletConnectUri.toAbsoluteString()))
@@ -204,15 +204,15 @@ internal class SignEngine(
             pairingTopic: Topic
         ) {
             val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
-            val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, selfMetaData)
+            val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, selfAppMetaData)
             val sessionExpiry = ACTIVE_SESSION
             val session = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces)
 
             try {
-                val peerMetaData = with(proposal.proposer.metadata) { MetaData(name, description, url, icons, redirect) }
+                val peerAppMetaData = with(proposal.proposer.metadata) { AppMetaData(name, description, url, icons, redirect) }
                 sessionStorageRepository.insertSession(session, pairingTopic, requestId)
-                metadataStorageRepository.upsertPairingPeerMetadata(pairingTopic, selfMetaData, MetaDataType.SELF) //todo: take care of multiple metadata structures
-                metadataStorageRepository.upsertPairingPeerMetadata(pairingTopic, peerMetaData, MetaDataType.PEER) //todo: take care of multiple metadata structures
+                metadataStorageRepository.upsertPairingPeerMetadata(pairingTopic, selfAppMetaData, AppMetaDataType.SELF) //todo: take care of multiple metadata structures
+                metadataStorageRepository.upsertPairingPeerMetadata(pairingTopic, peerAppMetaData, AppMetaDataType.PEER) //todo: take care of multiple metadata structures
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
                 val sessionSettle = SessionRpcVO.SessionSettle(id = generateId(), params = params)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
@@ -588,12 +588,12 @@ internal class SignEngine(
         val tempProposalRequest = sessionProposalRequest.getValue(selfPublicKey.keyAsHex)
 
         try {
-            val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, selfMetaData, proposalNamespaces)
+            val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, selfAppMetaData, proposalNamespaces)
 
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
             sessionStorageRepository.insertSession(session, request.topic, request.id)
-            metadataStorageRepository.upsertPairingPeerMetadata(request.topic, selfMetaData, MetaDataType.SELF)
-            metadataStorageRepository.upsertPairingPeerMetadata(request.topic, peerMetadata, MetaDataType.PEER)
+            metadataStorageRepository.upsertPairingPeerMetadata(request.topic, selfAppMetaData, AppMetaDataType.SELF)
+            metadataStorageRepository.upsertPairingPeerMetadata(request.topic, peerMetadata, AppMetaDataType.PEER)
 
             relayer.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
             scope.launch { _engineEvent.emit(session.toSessionApproved()) }
@@ -650,8 +650,8 @@ internal class SignEngine(
             return
         }
 
-        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerMetaData: MetaData?) =
-            with(sessionStorageRepository.getSessionByTopic(request.topic)) { namespaces to peerMetaData }
+        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerAppMetaData: AppMetaData?) =
+            with(sessionStorageRepository.getSessionByTopic(request.topic)) { namespaces to peerAppMetaData }
 
         val method = params.request.method
         Validator.validateChainIdWithMethodAuthorisation(params.chainId, method, sessionNamespaces) { error ->
@@ -659,7 +659,7 @@ internal class SignEngine(
             return
         }
 
-        scope.launch { _engineEvent.emit(params.toEngineDO(request, sessionPeerMetaData)) }
+        scope.launch { _engineEvent.emit(params.toEngineDO(request, sessionPeerAppMetaData)) }
     }
 
     // listened by DappDelegate

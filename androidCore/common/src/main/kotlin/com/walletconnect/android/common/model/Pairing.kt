@@ -7,7 +7,7 @@ import com.walletconnect.foundation.common.model.Topic
 data class Pairing(
     override val topic: Topic,
     override val expiry: Expiry,
-    val peerMetaData: MetaData? = null,
+    val peerAppMetaData: AppMetaData? = null,
     val relayProtocol: String,
     val relayData: String?,
     val uri: String,

@@ -3,7 +3,7 @@ package com.walletconnect.android.pairing
 import com.walletconnect.android.Core
 import com.walletconnect.android.common.model.Expiry
 import com.walletconnect.android.common.model.Pairing
-import com.walletconnect.android.common.model.MetaData
+import com.walletconnect.android.common.model.AppMetaData
 import com.walletconnect.android.common.model.WCRequest
 
 //todo: add ( onError: (Core.Model.Error) -> Unit) parameter to accessible functions
@@ -38,7 +38,7 @@ interface PairingInterface {
     fun updateExpiry(topic: String, expiry: Expiry, onError: (Core.Model.Error) -> Unit)
 
     // for either to update the metadata of an existing pairing.
-    fun updateMetadata(topic: String, metadata: MetaData, onError: (Core.Model.Error) -> Unit)
+    fun updateMetadata(topic: String, metadata: AppMetaData, onError: (Core.Model.Error) -> Unit)
 
     // for both to subscribe on methods requests
     fun register(method: String, onMethod: (topic: String, request: WCRequest) -> Unit) //todo: maybe use different approach with flows?
