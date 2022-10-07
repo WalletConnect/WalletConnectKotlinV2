@@ -105,10 +105,10 @@ internal class SignEngine(
             val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
             relayer.subscribe(pairingTopic)
 
+            onProposedSequence(proposedSequence)
             relayer.publishJsonRpcRequests(pairingTopic, irnParams, request,
                 onSuccess = {
                     Logger.log("Session proposal sent successfully")
-                    onProposedSequence(proposedSequence)
                 },
                 onFailure = { error ->
                     Logger.error("Failed to send a session proposal: $error")
