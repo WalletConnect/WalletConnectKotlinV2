@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.android.pairing
 
 import android.database.sqlite.SQLiteException
@@ -17,34 +19,81 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.generateId
 import com.walletconnect.util.randomBytes
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 internal object PairingClient : PairingInterface {
+    private val methodsToCallbacks: MutableMap<String, (topic: String, request: WCRequest) -> Unit> = mutableMapOf()
+
+    private val pairingEvent = MutableSharedFlow<Unit>()
+
     private lateinit var _selfMetaData: Core.Model.AppMetaData
     override val selfMetaData: Core.Model.AppMetaData
         get() = _selfMetaData
 
     private val pairingRepository: PairingStorageRepositoryInterface
-        get() = wcKoinApp.koin.getOrNull() ?: throw IllegalStateException("SDK has not been initialized")
+        get() = load()
     private val metadataRepository: MetadataStorageRepositoryInterface
-        get() = wcKoinApp.koin.getOrNull() ?: throw IllegalStateException("SDK has not been initialized")
+        get() = load()
     private val crypto: KeyManagementRepository
-        get() = wcKoinApp.koin.getOrNull() ?: throw IllegalStateException("SDK has not been initialized")
+        get() = load()
     private val jsonRpcInteractor: JsonRpcInteractorInterface
-        get() = wcKoinApp.koin.getOrNull() ?: throw IllegalStateException("SDK has not been initialized")
+        get() = load()
+    private val resubscribeToPairingJob by lazy {
+        jsonRpcInteractor.isConnectionAvailable
+            .filter { isAvailable: Boolean -> isAvailable }
+            .onEach {
+                coroutineScope {
+                    launch(Dispatchers.IO) {
+                        val (listOfExpiredPairing, listOfValidPairing) =
+                            pairingRepository.getListOfPairings().partition { pairing -> !pairing.expiry.isSequenceValid() }
 
+                        listOfExpiredPairing
+                            .map { pairing -> pairing.topic }
+                            .onEach { pairingTopic ->
+                                jsonRpcInteractor.unsubscribe(pairingTopic)
+                                crypto.removeKeys(pairingTopic.value)
+                                pairingRepository.deletePairing(pairingTopic)
+                                metadataRepository.deleteMetaData(pairingTopic)
+                            }
 
+                        listOfValidPairing
+                            .map { pairing -> pairing.topic }
+                            .onEach { pairingTopic -> jsonRpcInteractor.subscribe(pairingTopic) }
+                    }
+                }
+            }
+            .launchIn(scope)
+    }
+    private val collectJsonRpcRequestsJob by lazy {
+        jsonRpcInteractor.clientSyncJsonRpc
+            .filter { request -> request.params is PairingParams.SessionProposeParams || request.params is PairingParams.DeleteParams || request.params is PairingParams.PingParams }
+            .onEach { request ->
+                when (val requestParams = request.params) {
+                    is PairingParams.SessionProposeParams -> onSessionPropose(request, requestParams)
+                    is PairingParams.DeleteParams -> onPairingDelete(request, requestParams)
+                    is PairingParams.PingParams -> onPing(request)
+                }
+            }.launchIn(scope)
+    }
+
+    init {
+        // Match it with signEngine init {}
+    }
 
     fun initialize(metaData: Core.Model.AppMetaData) {
         _selfMetaData = metaData
     }
 
-    init {
-        // Match it with signEngine init {}
+    fun setDelegate(delegate: PairingInterface.PairingDelegate) {
+        pairingEvent.onEach { event ->
+
+            delegate.onSessionProposal(event)
+            delegate.onSessionDelete(event)
+        }.launchIn(scope)
     }
 
     override fun ping(ping: Core.Params.Ping, sessionPing: Core.Listeners.SessionPing?) {
@@ -158,28 +207,11 @@ internal object PairingClient : PairingInterface {
         TODO("Not yet implemented")
     }
 
-    private val methodsToCallbacks: MutableMap<String, (topic: String, request: WCRequest) -> Unit> = mutableMapOf()
-
     //    @Throws(MethodAlreadyRegistered::class)
     override fun register(method: String, onMethod: (topic: String, request: WCRequest) -> Unit) {
 //        if (methodsToCallbacks.containsKey(method)) throw MethodAlreadyRegistered("Method: $method already registered")
 
         methodsToCallbacks[method] = onMethod
-    }
-
-
-    private fun collectJsonRpcRequests() {
-        scope.launch {
-            jsonRpcInteractor.clientSyncJsonRpc.collect { request ->
-                val onMethod = methodsToCallbacks[request.method]
-                if (onMethod == null) {
-                    TODO("Probably respond here with error")
-//                    jsonRpcInteractor.respondWithError()
-                } else {
-                    onMethod(request.topic.value, request)
-                }
-            }
-        }
     }
 
     private fun generateTopic(): Topic = Topic(randomBytes(32).bytesToHex())
@@ -193,5 +225,47 @@ internal object PairingClient : PairingInterface {
                     is JsonRpcResponse.JsonRpcError -> onResponse(Result.failure(Throwable(result.errorMessage)))
                 }
             }
+    }
+
+    private inline fun <reified T> load(): T {
+        return wcKoinApp.koin.getOrNull<T>(T::class).also { temp ->
+            if (temp != null && !resubscribeToPairingJob.isActive) {
+                scope.launch {
+                    supervisorScope { resubscribeToPairingJob.join() }
+                    supervisorScope { collectJsonRpcRequestsJob.join() }
+                }
+            }
+        } ?: throw IllegalStateException("SDK has not been initialized")
+    }
+
+    private fun onSessionPropose(request: WCRequest, payloadParams: PairingParams.SessionProposeParams) {
+        Validator.validateProposalNamespace(payloadParams.namespaces) { error ->
+            val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+            jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
+            return
+        }
+
+        sessionProposalRequest[payloadParams.proposer.publicKey] = request
+        scope.launch { _engineEvent.emit(payloadParams.toEngineDO()) }
+    }
+
+    private fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {
+        if (!pairingRepository.isPairingValid(request.topic)) {
+            val irnParams = IrnParams(Tags.PAIRING_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
+            jsonRpcInteractor.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.PAIRING.name, request.topic.value), irnParams)
+            return
+        }
+
+        crypto.removeKeys(request.topic.value)
+        jsonRpcInteractor.unsubscribe(request.topic)
+        pairingRepository.deletePairing(request.topic)
+        metadataRepository.deleteMetaData(request.topic)
+
+        scope.launch { _engineEvent.emit(EngineDO.DeletedPairing(request.topic.value, params.message)) }
+    }
+
+    private fun onPing(request: WCRequest) {
+        val irnParams = IrnParams(Tags.PAIRING_PING, Ttl(THIRTY_SECONDS))
+        jsonRpcInteractor.respondWithSuccess(request, irnParams)
     }
 }

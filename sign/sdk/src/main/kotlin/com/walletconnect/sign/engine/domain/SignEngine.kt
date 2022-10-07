@@ -515,7 +515,6 @@ internal class SignEngine(
         scope.launch {
             relayer.clientSyncJsonRpc.collect { request ->
                 when (val requestParams = request.params) {
-
                     is SessionParamsVO.SessionSettleParams -> onSessionSettle(request, requestParams)
                     is SessionParamsVO.SessionRequestParams -> onSessionRequest(request, requestParams)
                     is SessionParamsVO.DeleteParams -> onSessionDelete(request, requestParams)

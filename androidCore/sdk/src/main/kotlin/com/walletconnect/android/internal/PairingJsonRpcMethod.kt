@@ -1,6 +1,6 @@
 package com.walletconnect.android.internal
 
-internal object JsonRpcMethod {
+object PairingJsonRpcMethod {
     @get:JvmSynthetic
     const val WC_PAIRING_PING: String = "wc_pairingPing"
     @get:JvmSynthetic

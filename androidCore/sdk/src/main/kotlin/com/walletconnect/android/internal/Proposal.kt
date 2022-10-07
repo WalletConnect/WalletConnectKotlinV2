@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-internal data class Proposal(
+data class Proposal(
     @Json(name = "chains")
     val chains: List<String>,
     @Json(name = "methods")
@@ -16,7 +16,7 @@ internal data class Proposal(
 ) {
 
     @JsonClass(generateAdapter = true)
-    internal data class Extension(
+    data class Extension(
         @Json(name = "chains")
         val chains: List<String>,
         @Json(name = "methods")

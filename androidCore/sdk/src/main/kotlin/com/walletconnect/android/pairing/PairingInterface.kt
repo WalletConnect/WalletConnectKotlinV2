@@ -42,4 +42,9 @@ interface PairingInterface {
 
     // for both to subscribe on methods requests
     fun register(method: String, onMethod: (topic: String, request: WCRequest) -> Unit) //todo: maybe use different approach with flows?
+
+    interface PairingDelegate {
+        fun onSessionProposal(sessionProposal: Core.Model.SessionProposal)
+        fun onSessionDelete(deletedSession: Core.Model.DeletedSession)
+    }
 }

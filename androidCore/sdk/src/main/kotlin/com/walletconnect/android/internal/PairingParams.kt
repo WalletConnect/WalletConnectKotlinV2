@@ -10,7 +10,7 @@ import com.walletconnect.android.utils.DefaultId
 sealed class PairingParams : ClientParams {
 
     @JsonClass(generateAdapter = true)
-    internal data class SessionProposeParams(
+    data class SessionProposeParams(
         @Json(name = "relays")
         val relays: List<RelayProtocolOptions>,
         @Json(name = "proposer")
@@ -20,7 +20,7 @@ sealed class PairingParams : ClientParams {
     ) : PairingParams()
 
     @JsonClass(generateAdapter = true)
-    internal class DeleteParams(
+    class DeleteParams(
         @Json(name = "code")
         val code: Int = Int.DefaultId,
         @Json(name = "message")
@@ -28,5 +28,5 @@ sealed class PairingParams : ClientParams {
     ) : PairingParams()
 
     @Suppress("CanSealedSubClassBeObject")
-    internal class PingParams : PairingParams()
+    class PingParams : PairingParams()
 }

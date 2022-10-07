@@ -16,49 +16,19 @@ internal fun jsonRpcModule() = module {
 
     includes(coreJsonRpcModule())
 
-    intoMultibindingSet { payload: SerializableJsonRpc ->
-        payload is PairingRpcVO.SessionPropose
-    }
+    intoMultibindingSet { payload: SerializableJsonRpc -> payload is SessionRpcVO.SessionPing }
 
-    intoMultibindingSet { payload: SerializableJsonRpc ->
-        payload is PairingRpcVO.PairingPing
-    }
+    intoMultibindingSet { payload: SerializableJsonRpc -> payload is SessionRpcVO.SessionEvent }
 
-    intoMultibindingSet { payload: SerializableJsonRpc ->
-        payload is PairingRpcVO.PairingDelete
-    }
+    intoMultibindingSet { payload: SerializableJsonRpc -> payload is SessionRpcVO.SessionUpdate }
 
-    intoMultibindingSet { payload: SerializableJsonRpc ->
-        payload is SessionRpcVO.SessionPing
-    }
+    intoMultibindingSet { payload: SerializableJsonRpc -> payload is SessionRpcVO.SessionExtend }
 
-    intoMultibindingSet { payload: SerializableJsonRpc ->
-        payload is SessionRpcVO.SessionEvent
-    }
+    intoMultibindingSet { payload: SerializableJsonRpc -> payload is SessionRpcVO.SessionRequest }
 
-    intoMultibindingSet { payload: SerializableJsonRpc ->
-        payload is SessionRpcVO.SessionUpdate
-    }
+    intoMultibindingSet { payload: SerializableJsonRpc -> payload is SessionRpcVO.SessionDelete }
 
-    intoMultibindingSet { payload: SerializableJsonRpc ->
-        payload is SessionRpcVO.SessionExtend
-    }
-
-    intoMultibindingSet { payload: SerializableJsonRpc ->
-        payload is SessionRpcVO.SessionRequest
-    }
-
-    intoMultibindingSet { payload: SerializableJsonRpc ->
-        payload is SessionRpcVO.SessionDelete
-    }
-
-    intoMultibindingSet { payload: SerializableJsonRpc ->
-        payload is SessionRpcVO.SessionSettle
-    }
-
-    intoMultibindingMap(JsonRpcMethod.WC_SESSION_PROPOSE, PairingRpcVO.SessionPropose::class)
-
-    intoMultibindingMap(JsonRpcMethod.WC_PAIRING_PING, PairingRpcVO.PairingPing::class)
+    intoMultibindingSet { payload: SerializableJsonRpc -> payload is SessionRpcVO.SessionSettle }
 
     intoMultibindingMap(JsonRpcMethod.WC_SESSION_SETTLE, SessionRpcVO.SessionSettle::class)
 

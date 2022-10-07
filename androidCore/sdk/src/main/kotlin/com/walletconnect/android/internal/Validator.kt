@@ -44,4 +44,31 @@ internal object Validator {
             symKey = SymmetricKey(symKey)
         )
     }
+
+    @JvmSynthetic
+    internal inline fun validateProposalNamespace(namespaces: Map<String, Proposal>, onError: (ValidationError) -> Unit) {
+        when {
+            !areProposalNamespacesKeysProperlyFormatted(namespaces) -> onError(ValidationError.UnsupportedNamespaceKey)
+            !areChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_MISSING_MESSAGE))
+            !areChainIdsValid(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_CAIP_2_MESSAGE))
+            !areChainsInMatchingNamespace(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE))
+            !areExtensionChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE))
+        }
+    }
+
+    private fun areProposalNamespacesKeysProperlyFormatted(namespaces: Map<String, Proposal>): Boolean =
+        namespaces.keys.all { namespaceKey -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) }
+
+    private fun areChainsNotEmpty(namespaces: Map<String, Proposal>): Boolean =
+        namespaces.values.map { namespace -> namespace.chains }.all { chains -> chains.isNotEmpty() }
+
+    private fun areChainIdsValid(namespaces: Map<String, Proposal>): Boolean =
+        namespaces.values.flatMap { namespace -> namespace.chains }.all { chain -> isChainIdCAIP2Compliant(chain) }
+
+    private fun areChainsInMatchingNamespace(namespaces: Map<String, Proposal>): Boolean =
+        namespaces.all { (key, namespace) -> namespace.chains.all { chain -> chain.contains(key, true) } }
+
+    private fun areExtensionChainsNotEmpty(namespaces: Map<String, Proposal>): Boolean =
+        namespaces.values.filter { it.extensions != null }.flatMap { namespace -> namespace.extensions!!.map { it.chains } }
+            .all { extChain -> extChain.isNotEmpty() }
 }
