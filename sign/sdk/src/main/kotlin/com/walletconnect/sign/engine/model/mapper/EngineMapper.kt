@@ -111,12 +111,12 @@ internal fun PairingParamsVO.SessionProposeParams.toSessionSettleParams(
 
 @JvmSynthetic
 internal fun toSessionProposeParams(
-    relays: List<EngineDO.RelayProtocolOptions>?,
+    relays: List<RelayProtocolOptions>?,
     namespaces: Map<String, EngineDO.Namespace.Proposal>,
     selfPublicKey: PublicKey,
     appMetaData: AppMetaData,
 ) = PairingParamsVO.SessionProposeParams(
-    relays = getSessionRelays(relays),
+    relays = relays ?: listOf(RelayProtocolOptions()),
     proposer = SessionProposer(selfPublicKey.keyAsHex, appMetaData),
     namespaces = namespaces.toNamespacesVOProposal()
 )
@@ -152,11 +152,6 @@ internal fun Map<String, EngineDO.Namespace.Session>.toMapOfNamespacesVOSession(
             NamespaceVO.Session.Extension(extension.accounts, extension.methods, extension.events)
         })
     }
-
-@JvmSynthetic
-internal fun getSessionRelays(relays: List<EngineDO.RelayProtocolOptions>?): List<RelayProtocolOptions> = relays?.map { relay ->
-    RelayProtocolOptions(relay.protocol, relay.data)
-} ?: listOf(RelayProtocolOptions())
 
 @JvmSynthetic
 internal fun com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult.toEngineDO(): EngineDO.JsonRpcResponse.JsonRpcResult =

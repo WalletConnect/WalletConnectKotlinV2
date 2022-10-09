@@ -17,7 +17,7 @@ insertOrAbortMetaData:
 INSERT OR ABORT INTO MetaData(sequence_topic, name, description, url, icons, native, type)
 VALUES (?, ?, ?, ?, ?, ?,?);
 
-updateOrAbortMetaData:
+updateMetaData:
 UPDATE MetaData
 SET name = ?, description = ?, url = ?, icons = ?, native = ?, type = ?
 WHERE sequence_topic = ?;

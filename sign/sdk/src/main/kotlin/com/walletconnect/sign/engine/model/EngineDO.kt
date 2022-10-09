@@ -4,6 +4,7 @@ package com.walletconnect.sign.engine.model
 
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.common.model.AppMetaData
+import com.walletconnect.android.common.model.Expiry
 import com.walletconnect.android.common.model.SymmetricKey
 import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.common.model.Sequence
@@ -15,7 +16,10 @@ internal sealed class EngineDO {
     
     internal sealed class ProposedSequence {
         class Pairing(val uri: String) : ProposedSequence()
-        object Session : ProposedSequence()
+        object Session : ProposedSequence(), Sequence {
+            override val topic: Topic = Topic("")
+            override val expiry: Expiry = Expiry(0L)
+        }
     }
 
     internal class WalletConnectUri(

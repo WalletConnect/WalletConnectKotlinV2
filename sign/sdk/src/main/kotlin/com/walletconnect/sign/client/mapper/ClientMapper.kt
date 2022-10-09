@@ -6,8 +6,7 @@ import android.net.Uri
 import android.os.Build
 import com.walletconnect.android.Core
 import com.walletconnect.android.common.connection.ConnectionType
-import com.walletconnect.android.common.model.AppMetaData
-import com.walletconnect.android.common.model.Redirect
+import com.walletconnect.android.common.model.*
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.sign.client.Sign
@@ -17,10 +16,10 @@ import com.walletconnect.sign.engine.model.EngineDO
 
 //TODO: Figure out what to do with models separation
 @JvmSynthetic
-internal fun EngineDO.ProposedSequence.toClientProposedSequence(): Sign.Model.ProposedSequence =
+internal fun Sequence.toClientProposedSequence(): Sign.Model.ProposedSequence =
     when (this) {
-        is EngineDO.ProposedSequence.Pairing -> Sign.Model.ProposedSequence.Pairing(this.uri)
-        is EngineDO.ProposedSequence.Session -> Sign.Model.ProposedSequence.Session
+        is Pairing -> Sign.Model.ProposedSequence.Pairing(this.uri)
+        else -> Sign.Model.ProposedSequence.Session
     }
 
 @JvmSynthetic
@@ -201,9 +200,9 @@ internal fun Map<String, Sign.Model.Namespace.Session>.toMapOfEngineNamespacesSe
     }
 
 @JvmSynthetic
-internal fun List<Sign.Model.RelayProtocolOptions>.toListEngineOfRelayProtocolOptions(): List<EngineDO.RelayProtocolOptions> =
+internal fun List<Sign.Model.RelayProtocolOptions>.toListEngineOfRelayProtocolOptions(): List<RelayProtocolOptions> =
     map { relayProtocolOptions ->
-        EngineDO.RelayProtocolOptions(relayProtocolOptions.protocol, relayProtocolOptions.data)
+        RelayProtocolOptions(relayProtocolOptions.protocol, relayProtocolOptions.data)
     }
 
 @JvmSynthetic

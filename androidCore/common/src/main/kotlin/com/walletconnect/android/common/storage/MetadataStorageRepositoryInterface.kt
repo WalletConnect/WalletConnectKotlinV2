@@ -8,7 +8,7 @@ interface MetadataStorageRepositoryInterface {
 
     fun insertOrAbortMetadata(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType)
 
-    fun updateOrAbortMetaData(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType)
+    fun updateMetaData(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType)
 
     fun deleteMetaData(topic: Topic)
 

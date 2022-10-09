@@ -8,7 +8,7 @@ import com.walletconnect.android.common.model.WCRequest
 
 //todo: add ( onError: (Core.Model.Error) -> Unit) parameter to accessible functions
 interface PairingInterface {
-    val selfMetaData: Core.Model.AppMetaData
+    val selfMetaData: AppMetaData
 
     // initializes the client with persisted storage and a network connection
 //    fun initialize(metaData: Core.Model.AppMetaData)
@@ -19,6 +19,8 @@ interface PairingInterface {
 
     // for proposer to create inactive pairing
     fun create(onPairingCreated: (String) -> Unit, onError: (Core.Model.Error) -> Unit) // todo: Maybe create Pairing data class?
+
+    fun create2(): Result<Pairing> // todo: Maybe create Pairing data class?
 
     // for responder to pair a pairing created by a proposer
     fun pair(pair: Core.Params.Pair, onError: (Core.Model.Error) -> Unit)

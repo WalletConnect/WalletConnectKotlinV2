@@ -45,4 +45,11 @@ internal sealed class PairingRpc : JsonRpcClientSync<PairingParams> {
         @Json(name = "params")
         override val params: PairingParams.PingParams,
     ) : PairingRpc()
+
+    internal data class PairingExtend(
+        override val id: Long,
+        override val method: String,
+        override val jsonrpc: String,
+        override val params: PairingParams
+    ): PairingRpc()
 }

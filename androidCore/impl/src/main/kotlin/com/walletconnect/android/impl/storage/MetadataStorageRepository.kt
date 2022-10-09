@@ -16,8 +16,8 @@ class MetadataStorageRepository(private val metaDataQueries: MetaDataQueries): M
     }
 
     @Throws(SQLiteException::class)
-    override fun updateOrAbortMetaData(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType) = with(appMetaData) {
-        metaDataQueries.updateOrAbortMetaData(name, description, url, icons, redirect?.native, appMetaDataType, topic.value)
+    override fun updateMetaData(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType) = with(appMetaData) {
+        metaDataQueries.updateMetaData(name, description, url, icons, redirect?.native, appMetaDataType, topic.value)
     }
 
     @Throws(SQLiteException::class)
@@ -25,7 +25,7 @@ class MetadataStorageRepository(private val metaDataQueries: MetaDataQueries): M
         if (!existsByTopic(topic)) {
             insertOrAbortMetadata(topic, appMetaData, appMetaDataType)
         } else {
-            updateOrAbortMetaData(topic, appMetaData, appMetaDataType)
+            updateMetaData(topic, appMetaData, appMetaDataType)
         }
     }
 

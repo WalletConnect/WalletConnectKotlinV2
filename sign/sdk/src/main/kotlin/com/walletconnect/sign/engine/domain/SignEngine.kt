@@ -89,15 +89,15 @@ internal class SignEngine(
 
     internal fun proposeSequence(
         namespaces: Map<String, EngineDO.Namespace.Proposal>,
-        relays: List<EngineDO.RelayProtocolOptions>?,
+        relays: List<RelayProtocolOptions>?,
         pairingTopic: String?,
-        onProposedSequence: (EngineDO.ProposedSequence) -> Unit,
+        onProposedSequence: (Sequence) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         fun proposeSession(
             pairingTopic: Topic,
-            proposedRelays: List<EngineDO.RelayProtocolOptions>?,
-            proposedSequence: EngineDO.ProposedSequence,
+            proposedRelays: List<RelayProtocolOptions>?,
+            proposedSequence: Sequence,
         ) {
             Validator.validateProposalNamespace(namespaces.toNamespacesVOProposal()) { error ->
                 throw InvalidNamespaceException(error.message)
@@ -127,60 +127,22 @@ internal class SignEngine(
             }
 
             val pairing: Pairing = pairingStorageRepository.getPairingOrNullByTopic(Topic(pairingTopic)) ?: return
-            val relay = EngineDO.RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
+            val relay = RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
 
             proposeSession(Topic(pairingTopic), listOf(relay), EngineDO.ProposedSequence.Session)
         } else {
-            proposePairing(::proposeSession, onFailure)
-        }
-    }
-
-    private fun proposePairing(
-        proposedSession: (Topic, List<EngineDO.RelayProtocolOptions>?, EngineDO.ProposedSequence) -> Unit,
-        onFailure: (Throwable) -> Unit,
-    ) {
-        val pairingTopic: Topic = generateTopic()
-        val symmetricKey: SymmetricKey = crypto.generateAndStoreSymmetricKey(pairingTopic)
-        val relay = RelayProtocolOptions()
-        val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
-        val inactivePairing = Pairing(pairingTopic, relay, walletConnectUri.toAbsoluteString())
-
-        try {
-            pairingStorageRepository.insertPairing(inactivePairing)
-            metadataStorageRepository.insertOrAbortMetadata(pairingTopic, selfAppMetaData, AppMetaDataType.SELF)
-            relayer.subscribe(pairingTopic)
-
-            proposedSession(pairingTopic, null, EngineDO.ProposedSequence.Pairing(walletConnectUri.toAbsoluteString()))
-        } catch (e: SQLiteException) {
-            crypto.removeKeys(pairingTopic.value)
-            relayer.unsubscribe(pairingTopic)
-            pairingStorageRepository.deletePairing(pairingTopic)
-            metadataStorageRepository.deleteMetaData(pairingTopic)
-
-            onFailure(e)
+            pairingInterface.create2().fold({
+                proposeSession(it.topic, listOf(RelayProtocolOptions(it.relayProtocol, it.relayData)), it)
+            }, {
+                onFailure(it)
+            })
         }
     }
 
     internal fun pair(uri: String) {
-//        todo: remove and delegate SignProtocol.pair to PairingClient
-//        val walletConnectUri: EngineDO.WalletConnectUri = Validator.validateWCUri(uri)
-//            ?: throw MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
-//
-//        if (sessionStorageRepository.isPairingValid(walletConnectUri.topic)) {
-//            throw PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)
-//        }
-//
-//        val activePairing = PairingVO(walletConnectUri)
-//        val symmetricKey = walletConnectUri.symKey
-//        crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
-//
-//        try {
-//            sessionStorageRepository.insertPairing(activePairing)
-//            relayer.subscribe(activePairing.topic)
-//        } catch (e: SQLiteException) {
-//            crypto.removeKeys(walletConnectUri.topic.value)
-//            relayer.unsubscribe(activePairing.topic)
-//        }
+        pairingInterface.pair(Core.Params.Pair(uri)) {
+//            throw MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
+        }
     }
 
     internal fun reject(proposerPublicKey: String, reason: String, onFailure: (Throwable) -> Unit = {}) {
@@ -488,7 +450,6 @@ internal class SignEngine(
             .filter { session -> session.isAcknowledged && session.expiry.isSequenceValid() }
             .map { session -> session.toEngineDO() }
     }
-
 
         //        todo: remove and delegate SignProtocol.getListOfSettledPairings to PairingClient getListOfPairings
     internal fun getListOfSettledPairings(): List<EngineDO.PairingSettle> {

@@ -29,4 +29,10 @@ sealed class PairingParams : ClientParams {
 
     @Suppress("CanSealedSubClassBeObject")
     class PingParams : PairingParams()
+
+    @JsonClass(generateAdapter = true)
+    data class ExtendParams(
+        @Json(name = "expiry")
+        val expiry: Long,
+    ) : PairingParams()
 }
