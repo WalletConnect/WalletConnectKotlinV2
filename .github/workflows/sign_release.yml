@@ -50,10 +50,10 @@ jobs:
         run: ./gradlew :sign:wallet:assembleDebug
 
       - name: Upload Artifact
-          uses: actions/upload-artifact@v2
-          with:
-            name: wallet
-            path: sign/wallet/build/outputs/apk/debug/wallet-debug.apk
+        uses: actions/upload-artifact@v2
+        with:
+          name: wallet
+          path: sign/wallet/build/outputs/apk/debug/wallet-debug.apk
 
   build-dapp:
     needs: [ unit-tests ]
@@ -66,19 +66,19 @@ jobs:
         run: ./gradlew :sign:dapp:assembleDebug
 
       - name: Upload Artifact
-          uses: actions/upload-artifact@v2
-          with:
-            name: dapp
-            path: sign/dapp/build/outputs/apk/debug/dapp-debug.apk
+        uses: actions/upload-artifact@v2
+        with:
+          name: dapp
+          path: sign/dapp/build/outputs/apk/debug/dapp-debug.apk
 
   deploy-wallet:
     needs: [ build-wallet ]
     runs-on: ubuntu-latest
     steps:
       - name: Download artifact
-          uses: actions/download-artifact@v2
-          with:
-            name: wallet
+        uses: actions/download-artifact@v2
+        with:
+          name: wallet
 
       - name: Upload Wallet to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -93,9 +93,9 @@ jobs:
       runs-on: ubuntu-latest
       steps:
         - name: Download artifact
-            uses: actions/download-artifact@v2
-            with:
-              name: dapp
+          uses: actions/download-artifact@v2
+          with:
+            name: dapp
 
         - name: Upload Dapp to Firebase App Distribution
           uses: wzieba/Firebase-Distribution-Github-Action@v1
