@@ -1,9 +1,10 @@
 name: Release Sign SDK
 
 on:
-  workflow_dispatch:
-#  push:
-#    branches:
+#  workflow_dispatch:
+  push:
+    branches:
+      - feature/release_workflow
 #      - master
 
 concurrency:
