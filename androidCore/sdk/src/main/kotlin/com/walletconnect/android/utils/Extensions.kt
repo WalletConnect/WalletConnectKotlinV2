@@ -39,6 +39,14 @@ internal fun String.isValidRelayServerUrl(): Boolean {
     } ?: false
 }
 
+// Assumes isValidRelayServerUrl returns true.
+@JvmSynthetic
+internal fun String.projectId(): String {
+    return Uri.parse(this)!!.let { relayUrl ->
+         relayUrl.getQueryParameter("projectId")!!
+    }
+}
+
 @get:JvmSynthetic
 internal val Throwable.toWalletConnectException: WalletConnectException
     get() =

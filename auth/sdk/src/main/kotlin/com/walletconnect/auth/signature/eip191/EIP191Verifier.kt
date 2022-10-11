@@ -14,7 +14,7 @@ internal object EIP191Verifier {
     fun verify(signature: Signature, originalMessage: String, address: String): Boolean = verify(signature, originalMessage.toByteArray(), address)
 
     fun verifyNoPrefix(signature: Signature, originalMessage: ByteArray, address: String): Boolean =
-        getAddressUsedToSignMessage(signature.toSignatureData(), originalMessage).also { println(it) }.equals(address.guaranteeNoHexPrefix(), ignoreCase = true)
+        getAddressUsedToSignMessage(signature.toSignatureData(), originalMessage).equals(address.guaranteeNoHexPrefix(), ignoreCase = true)
 
     fun verifyNoPrefix(signature: Signature, originalMessage: String, address: String): Boolean = verifyNoPrefix(signature, originalMessage.toByteArray(), address)
 

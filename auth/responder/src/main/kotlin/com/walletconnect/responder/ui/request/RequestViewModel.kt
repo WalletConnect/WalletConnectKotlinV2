@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
-import com.walletconnect.auth.signature.CacaoType
 import com.walletconnect.auth.signature.SignatureType
 import com.walletconnect.auth.signature.cacao.CacaoSigner
 import com.walletconnect.responder.domain.PRIVATE_KEY_1
@@ -32,7 +31,7 @@ class RequestViewModel : ViewModel() {
 
     fun approve() {
         val request = RequestStore.currentRequest!!
-        AuthClient.respond(Auth.Params.Respond.Result(request.id, CacaoSigner.sign(request.message, PRIVATE_KEY_1, SignatureType.EIP191))) { error ->
+        AuthClient.respond(Auth.Params.Respond.Result(request.id, CacaoSigner.sign(request.message, PRIVATE_KEY_1, SignatureType.EIP1271))) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
     }

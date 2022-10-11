@@ -1,5 +1,7 @@
 package com.walletconnect.auth.signature.cacao
 
+import com.walletconnect.android.common.model.ProjectId
+import com.walletconnect.auth.BuildConfig
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Cacao
 import com.walletconnect.auth.engine.mapper.toFormattedMessage
@@ -10,9 +12,9 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 internal class CacaoTest {
+    private val cacaoVerifier = CacaoVerifier(ProjectId(BuildConfig.PROJECT_ID))
     private val iss = "did:pkh:eip155:1:0x15bca56b6e2728aec2532df9d436bd1600e86688"
     private val chainName = "Ethereum"
-
     private val payload = Cacao.Payload(
         iss = iss,
         domain = "service.invalid",
@@ -30,13 +32,60 @@ internal class CacaoTest {
     private val privateKey = "305c6cde3846927892cd32762f6120539f3ec74c9e3a16b9b798b1e85351ae2a".hexToBytes()
 
     @Test
-    fun signAndVerifyTest() {
-
+    fun signAndVerifyWithEIP191Test() {
         print(payload.toFormattedMessage(chainName))
-
         val signature: Cacao.Signature = CacaoSigner.sign(payload.toFormattedMessage(chainName), privateKey, SignatureType.EIP191).toCommon()
-        val cacao = Cacao(Cacao.Header(CacaoType.EIP4361.header), payload, signature)
-        val result = CacaoVerifier.verify(cacao)
+        val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
+        val result: Boolean = cacaoVerifier.verify(cacao)
         Assertions.assertTrue(result)
+    }
+
+    @Test
+    fun verifyEIP1271Success() {
+        val iss = "did:pkh:eip155:1:0x2faf83c542b68f1b4cdc0e770e8cb9f567b08f71"
+        val payload = Cacao.Payload(
+            iss = iss,
+            domain = "localhost",
+            aud = "http://localhost:3000/",
+            version = "1",
+            nonce = "1665443015700",
+            iat = "2022-10-10T23:03:35.700Z",
+            nbf = null,
+            exp = "2022-10-11T23:03:35.700Z",
+            statement = null,
+            requestId = null,
+            resources = null
+        )
+
+        val signatureString = "0xc1505719b2504095116db01baaf276361efd3a73c28cf8cc28dabefa945b8d536011289ac0a3b048600c1e692ff173ca944246cf7ceb319ac2262d27b395c82b1c"
+        val signature: Cacao.Signature = Cacao.Signature(SignatureType.EIP1271.header, signatureString, payload.toFormattedMessage())
+        val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
+        val result: Boolean = cacaoVerifier.verify(cacao)
+        Assertions.assertTrue(result)
+    }
+
+
+    @Test
+    fun verifyEIP1271Failure() {
+        val iss = "did:pkh:eip155:1:0x2faf83c542b68f1b4cdc0e770e8cb9f567b08f71"
+        val payload = Cacao.Payload(
+            iss = iss,
+            domain = "localhost",
+            aud = "http://localhost:3000/",
+            version = "1",
+            nonce = "1665443015700",
+            iat = "2022-10-10T23:03:35.700Z",
+            nbf = null,
+            exp = "2022-10-11T23:03:35.700Z",
+            statement = null,
+            requestId = null,
+            resources = null
+        )
+
+        val signatureString = "0xdeaddeaddead4095116db01baaf276361efd3a73c28cf8cc28dabefa945b8d536011289ac0a3b048600c1e692ff173ca944246cf7ceb319ac2262d27b395c82b1c"
+        val signature: Cacao.Signature = Cacao.Signature(SignatureType.EIP1271.header, signatureString, payload.toFormattedMessage())
+        val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
+        val result: Boolean = cacaoVerifier.verify(cacao)
+        Assertions.assertFalse(result)
     }
 }
