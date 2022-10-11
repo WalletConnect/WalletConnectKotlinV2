@@ -90,17 +90,17 @@ jobs:
 
   deploy-dapp:
     needs: [ build-dapp ]
-      runs-on: ubuntu-latest
-      steps:
-        - name: Download artifact
-          uses: actions/download-artifact@v2
-          with:
-            name: dapp
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: dapp
 
-        - name: Upload Dapp to Firebase App Distribution
-          uses: wzieba/Firebase-Distribution-Github-Action@v1
-          with:
-            appId: ${{secrets.FIREBASE_APP_ID}}
-            token: ${{secrets.FIREBASE_TOKEN}}
-            groups: WalletConnect
-            file: dapp-debug.apk
+      - name: Upload Dapp to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{secrets.FIREBASE_APP_ID}}
+          token: ${{secrets.FIREBASE_TOKEN}}
+          groups: WalletConnect
+          file: dapp-debug.apk
