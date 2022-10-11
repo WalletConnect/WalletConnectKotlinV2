@@ -40,7 +40,7 @@ jobs:
   #Build and send the sdk artefacts
 
   build-samples:
-    needs: unit_tests
+    needs: [unit_tests]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -55,7 +55,7 @@ jobs:
         id: build_dapp
 
   deploy-samples:
-    needs: build_samples
+    needs: [build_samples]
     runs-on: ubuntu-latest
     steps:
 
