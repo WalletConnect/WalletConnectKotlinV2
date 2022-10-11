@@ -48,11 +48,9 @@ jobs:
 
       - name: Generate Wallet APK
         run: ./gradlew :sign:wallet:assembleDebug
-        id: build_wallet
 
       - name: Generate Dapp APK
         run: ./gradlew :sign:dapp:assembleDebug
-        id: build_dapp
 
   deploy-samples:
     needs: [build-samples]
