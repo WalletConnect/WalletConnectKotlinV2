@@ -15,6 +15,18 @@ internal sealed class SessionRpcVO : JsonRpcClientSync<SessionParamsVO> {
     abstract override val params: SessionParamsVO
 
     @JsonClass(generateAdapter = true)
+    internal data class SessionPropose(
+        @Json(name = "id")
+        override val id: Long,
+        @Json(name = "jsonrpc")
+        override val jsonrpc: String = "2.0",
+        @Json(name = "method")
+        override val method: String = JsonRpcMethod.WC_SESSION_PROPOSE,
+        @Json(name = "params")
+        override val params: SessionParamsVO.SessionProposeParams,
+    ) : SessionRpcVO()
+
+    @JsonClass(generateAdapter = true)
     internal data class SessionSettle(
         @Json(name = "id")
         override val id: Long,

@@ -2,7 +2,7 @@ import java.lang.Boolean;
 
 CREATE TABLE SessionDao(
    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-   topic TEXT UNIQUE NOT NULL, -- todo: this is missing pairingTopic
+   topic TEXT UNIQUE NOT NULL,
    pairingTopic TEXT UNIQUE NOT NULL,
    expiry INTEGER NOT NULL,
    relay_protocol TEXT NOT NULL,
@@ -44,6 +44,11 @@ getSessionIdByTopic:
 SELECT id
 FROM SessionDao
 WHERE topic = ?;
+
+getSessionTopicByPairingTopic:
+SELECT topic
+FROM SessionDao
+WHERE pairingTopic = ?;
 
 acknowledgeSession:
 UPDATE OR ABORT SessionDao

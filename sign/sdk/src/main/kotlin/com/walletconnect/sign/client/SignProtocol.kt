@@ -34,12 +34,12 @@ internal class SignProtocol : SignInterface {
         with(initial) {
             // TODO: re-init scope
             wcKoinApp.modules(
-                networkModule(coreClient),
+                networkModule(coreClient.Relay),
                 commonModule(),
                 cryptoModule(),
                 jsonRpcModule(),
                 storageModule(storageSuffix),
-                engineModule(coreClient)
+                engineModule(coreClient.Pairing)
             )
         }
 

@@ -8,6 +8,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
+import com.walletconnect.sign.engine.model.EngineDO.ProposedSequence.Session.topic
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceExtensionDaoQueries
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceDaoQueries
@@ -30,11 +31,6 @@ internal class SessionStorageRepository(
     private val tempNamespaceDaoQueries: TempNamespaceDaoQueries,
     private val tempExtensionsDaoQueries: TempNamespaceExtensionDaoQueries,
 ) {
-    private val _topicExpiredFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
-    val topicExpiredFlow: SharedFlow<Topic> = _topicExpiredFlow.onEach {
-        deleteSession(it)
-    }.shareIn(scope, SharingStarted.Lazily)
-
     @JvmSynthetic
     var onSequenceExpired: (topic: Topic) -> Unit = {}
 
@@ -60,6 +56,10 @@ internal class SessionStorageRepository(
     @JvmSynthetic
     fun getSessionByTopic(topic: Topic): SessionVO =
         sessionDaoQueries.getSessionByTopic(topic.value, mapper = this@SessionStorageRepository::mapSessionDaoToSessionVO).executeAsOne()
+
+    @JvmSynthetic
+    fun getSessionByPairingTopic(pairingTopic: Topic): String? =
+        sessionDaoQueries.getSessionTopicByPairingTopic(pairingTopic.value).executeAsOneOrNull()
 
     @Synchronized
     @JvmSynthetic

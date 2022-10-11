@@ -15,28 +15,23 @@ import com.walletconnect.android.exception.PairWithExistingPairingIsNotAllowed
 import com.walletconnect.android.internal.*
 import com.walletconnect.android.internal.pairing.PairingDO
 import com.walletconnect.android.internal.pairing.PeerError
-import com.walletconnect.android.internal.pairing.toEngineDO
-import com.walletconnect.android.internal.pairing.toPeerError
-import com.walletconnect.android.utils.isSequenceValid
+import com.walletconnect.android.internal.pairing.toClient
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.generateId
 import com.walletconnect.util.randomBytes
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
+import org.koin.dsl.module
 
 internal object PairingClient : PairingInterface {
-//    private val methodsToCallbacks: MutableMap<String, (topic: String, request: WCRequest) -> Unit> = mutableMapOf()
+    //    private val methodsToCallbacks: MutableMap<String, (topic: String, request: WCRequest) -> Unit> = mutableMapOf()
     private val pairingEvent = MutableSharedFlow<PairingDO>()
-
-    private lateinit var _selfMetaData: AppMetaData
+    private val _topicExpiredFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
+    override val topicExpiredFlow: SharedFlow<Topic> = _topicExpiredFlow.asSharedFlow()
     override val selfMetaData: AppMetaData
-        get() = _selfMetaData
-
+        get() = load()
     private val pairingRepository: PairingStorageRepositoryInterface
         get() = load()
     private val metadataRepository: MetadataStorageRepositoryInterface
@@ -51,84 +46,70 @@ internal object PairingClient : PairingInterface {
             .onEach {
                 coroutineScope {
                     launch(Dispatchers.IO) {
-                        val (listOfExpiredPairing, listOfValidPairing) =
-                            pairingRepository.getListOfPairings().partition { pairing -> !pairing.expiry.isSequenceValid() }
-
-                        listOfExpiredPairing
-                            .map { pairing -> pairing.topic }
-                            .onEach { pairingTopic ->
-                                jsonRpcInteractor.unsubscribe(pairingTopic)
-                                crypto.removeKeys(pairingTopic.value)
-                                pairingRepository.deletePairing(pairingTopic)
-                                metadataRepository.deleteMetaData(pairingTopic)
-                            }
-
-                        listOfValidPairing
+                        pairingRepository.getListOfPairings()
                             .map { pairing -> pairing.topic }
                             .onEach { pairingTopic -> jsonRpcInteractor.subscribe(pairingTopic) }
                     }
                 }
             }
-            .launchIn(scope)
     }
     private val collectJsonRpcRequestsJob by lazy {
         jsonRpcInteractor.clientSyncJsonRpc
-            .filter { request -> request.params is PairingParams.SessionProposeParams || request.params is PairingParams.DeleteParams || request.params is PairingParams.PingParams }
+            .filter { request -> request.params is PairingParams }
             .onEach { request ->
                 when (val requestParams = request.params) {
-                    is PairingParams.SessionProposeParams -> onSessionPropose(request, requestParams)
                     is PairingParams.DeleteParams -> onPairingDelete(request, requestParams)
                     is PairingParams.PingParams -> onPing(request)
                 }
-            }.launchIn(scope)
-    }
-    private val collectResponseJob by lazy {
-
-    }
-
-    init {
-        // Match it with signEngine init {}
+            }
     }
 
     fun initialize(metaData: Core.Model.AppMetaData) {
-        _selfMetaData = metaData // map to internal metadata type
+        wcKoinApp.modules(module {
+            single {
+                AppMetaData(metaData.name, metaData.description, metaData.url, metaData.icons, Redirect(metaData.redirect))
+            }
+        })
     }
 
-    fun setDelegate(delegate: PairingInterface.PairingDelegate) {
+    fun setDelegate(delegate: PairingInterface.Delegate) {
         pairingEvent.onEach { event ->
-            when(event) {
-
-                else -> {}
+            when (event) {
+                is PairingDO.PairingDelete -> delegate.onPairingDelete(event.toClient(Topic(event.topic)))
             }
-            delegate.onSessionProposal(event)
-            delegate.onSessionDelete(event)
         }.launchIn(scope)
     }
 
     override fun ping(ping: Core.Params.Ping, sessionPing: Core.Listeners.SessionPing?) {
-        if (pairingRepository.isPairingValid(Topic(ping.topic))) {
+        if (isPairingValid(ping.topic)) {
             val pingPayload = PairingRpc.PairingPing(id = generateId(), params = PairingParams.PingParams())
             val irnParams = IrnParams(Tags.PAIRING_PING, Ttl(THIRTY_SECONDS))
-            jsonRpcInteractor.publishJsonRpcRequests(Topic(ping.topic), irnParams, pingPayload, onSuccess = {
-                scope.launch {
-                    try {
-                        withTimeout(THIRTY_SECONDS) {
-                            collectResponse(pingPayload.id) { result ->
-                                cancel()
-                                result.fold(
-                                    onSuccess = {
-                                        sessionPing?.onSuccess(Core.Model.Ping.Success(ping.topic))
-                                    },
-                                    onFailure = { error ->
-                                        sessionPing?.onError(Core.Model.Ping.Error(error))
-                                    })
+
+            jsonRpcInteractor.publishJsonRpcRequests(Topic(ping.topic), irnParams, pingPayload,
+                onSuccess = {
+                    scope.launch {
+                        try {
+                            withTimeout(THIRTY_SECONDS) {
+                                jsonRpcInteractor.peerResponse
+                                    .filter { response -> response.response.id == pingPayload.id }
+                                    .collect { response ->
+                                        when (val result = response.response) {
+                                            is JsonRpcResponse.JsonRpcResult -> {
+                                                cancel()
+                                                sessionPing?.onSuccess(Core.Model.Ping.Success(ping.topic))
+                                            }
+                                            is JsonRpcResponse.JsonRpcError -> {
+                                                cancel()
+                                                sessionPing?.onError(Core.Model.Ping.Error(Throwable(result.errorMessage)))
+                                            }
+                                        }
+                                    }
                             }
+                        } catch (e: TimeoutCancellationException) {
+                            sessionPing?.onError(Core.Model.Ping.Error(e))
                         }
-                    } catch (e: TimeoutCancellationException) {
-                        sessionPing?.onError(Core.Model.Ping.Error(e))
                     }
-                }
-            },
+                },
                 onFailure = { error ->
                     sessionPing?.onError(Core.Model.Ping.Error(error))
                 })
@@ -137,34 +118,11 @@ internal object PairingClient : PairingInterface {
         }
     }
 
-    override fun create(onPairingCreated: (String) -> Unit, onError: (Core.Model.Error) -> Unit) {
+    override fun create(): Result<Pairing> {
         val pairingTopic: Topic = generateTopic()
         val symmetricKey: SymmetricKey = crypto.generateAndStoreSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptions()
-        val walletConnectUri = WalletConnectUri(pairingTopic, symmetricKey, relay)
-        val inactivePairing = Pairing(walletConnectUri)
-
-        try {
-            pairingRepository.insertPairing(inactivePairing)
-            metadataRepository.insertOrAbortMetadata(pairingTopic, selfMetaData, AppMetaDataType.SELF)
-            jsonRpcInteractor.subscribe(pairingTopic)
-            onPairingCreated(pairingTopic.value)
-        } catch (e: Exception) {
-            crypto.removeKeys(pairingTopic.value)
-            pairingRepository.deletePairing(pairingTopic)
-            metadataRepository.deleteMetaData(pairingTopic)
-            jsonRpcInteractor.unsubscribe(pairingTopic)
-
-            onError(Core.Model.Error(e))
-        }
-    }
-
-    override fun create2(): Result<Pairing> {
-        val pairingTopic: Topic = generateTopic()
-        val symmetricKey: SymmetricKey = crypto.generateAndStoreSymmetricKey(pairingTopic)
-        val relay = RelayProtocolOptions()
-        val walletConnectUri = WalletConnectUri(pairingTopic, symmetricKey, relay)
-        val inactivePairing = Pairing(walletConnectUri)
+        val inactivePairing = Pairing(pairingTopic, relay, symmetricKey)
 
         return inactivePairing.runCatching {
             pairingRepository.insertPairing(this)
@@ -180,84 +138,10 @@ internal object PairingClient : PairingInterface {
         }
     }
 
-    //    internal fun proposeSequence(
-//        namespaces: Map<String, EngineDO.Namespace.Proposal>,
-//        relays: List<EngineDO.RelayProtocolOptions>?,
-//        pairingTopic: String?,
-//        onProposedSequence: (EngineDO.ProposedSequence) -> Unit,
-//        onFailure: (Throwable) -> Unit,
-//    ) {
-//        fun proposeSession(
-//            pairingTopic: Topic,
-//            proposedRelays: List<EngineDO.RelayProtocolOptions>?,
-//            proposedSequence: EngineDO.ProposedSequence,
-//        ) {
-//            Validator.validateProposalNamespace(namespaces.toNamespacesVOProposal()) { error ->
-//                throw InvalidNamespaceException(error.message)
-//            }
-//
-//            val selfPublicKey: PublicKey = crypto.generateKeyPair()
-//            val sessionProposal = toSessionProposeParams(proposedRelays ?: relays, namespaces, selfPublicKey, selfAppMetaData)
-//            val request = PairingRpcVO.SessionPropose(id = generateId(), params = sessionProposal)
-//            sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequest(pairingTopic, request.id, request.method, sessionProposal)
-//            val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
-//            jsonRpcInteractor.subscribe(pairingTopic)
-//
-//            jsonRpcInteractor.publishJsonRpcRequests(pairingTopic, irnParams, request,
-//                onSuccess = {
-//                    Logger.log("Session proposal sent successfully")
-//                    onProposedSequence(proposedSequence)
-//                },
-//                onFailure = { error ->
-//                    Logger.error("Failed to send a session proposal: $error")
-//                    onFailure(error)
-//                })
-//        }
-//
-//        if (pairingTopic != null) {
-//            if (!pairingRepository.isPairingValid(Topic(pairingTopic))) {
-//                throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$pairingTopic")
-//            }
-//
-//            val pairing: Pairing = pairingRepository.getPairingOrNullByTopic(Topic(pairingTopic)) ?: return
-//            val relay = EngineDO.RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
-//
-//            proposeSession(Topic(pairingTopic), listOf(relay), EngineDO.ProposedSequence.Session)
-//        } else {
-//            proposePairing(::proposeSession, onFailure)
-//        }
-//    }
-//
-//    private fun proposePairing(
-//        proposedSession: (Topic, List<EngineDO.RelayProtocolOptions>?, EngineDO.ProposedSequence) -> Unit,
-//        onFailure: (Throwable) -> Unit,
-//    ) {
-//        val pairingTopic: Topic = generateTopic()
-//        val symmetricKey: SymmetricKey = crypto.generateAndStoreSymmetricKey(pairingTopic)
-//        val relay = RelayProtocolOptions()
-//        val walletConnectUri = EngineDO.WalletConnectUri(pairingTopic, symmetricKey, relay)
-//        val inactivePairing = Pairing(pairingTopic, relay, walletConnectUri.toAbsoluteString())
-//
-//        try {
-//            pairingRepository.insertPairing(inactivePairing)
-//            metadataRepository.insertOrAbortMetadata(pairingTopic, selfAppMetaData, AppMetaDataType.SELF)
-//            jsonRpcInteractor.subscribe(pairingTopic)
-//
-//            proposedSession(pairingTopic, null, EngineDO.ProposedSequence.Pairing(walletConnectUri.toAbsoluteString()))
-//        } catch (e: SQLiteException) {
-//            crypto.removeKeys(pairingTopic.value)
-//            jsonRpcInteractor.unsubscribe(pairingTopic)
-//            pairingRepository.deletePairing(pairingTopic)
-//            metadataRepository.deleteMetaData(pairingTopic)
-//
-//            onFailure(e)
-//        }
-//    }
-
     override fun pair(pair: Core.Params.Pair, onError: (Core.Model.Error) -> Unit) {
         val walletConnectUri: WalletConnectUri = Validator.validateWCUri(pair.uri) ?: return onError(Core.Model.Error(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)))
 
-        if (pairingRepository.isPairingValid(walletConnectUri.topic)) {
+        if (isPairingValid(walletConnectUri.topic.value)) {
             return onError(Core.Model.Error(PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)))
         }
 
@@ -276,13 +160,14 @@ internal object PairingClient : PairingInterface {
     }
 
     override fun getPairings(): List<Pairing> {
-        return pairingRepository.getListOfPairings()
-            .filter { pairing -> pairing.expiry.isSequenceValid() }
+        return pairingRepository.getListOfPairings().filter { pairing ->
+            pairing.isValid() && pairing.isActive
+        }
     }
 
     // TODO: add parameter to unsubscribe and publish SessionDelete from the RelayClient
     override fun disconnect(topic: String, onError: (Core.Model.Error) -> Unit) {
-        if (!pairingRepository.isPairingValid(Topic(topic))) {
+        if (!isPairingValid(topic)) {
             return onError(Core.Model.Error(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")))
         }
 
@@ -301,15 +186,20 @@ internal object PairingClient : PairingInterface {
     }
 
     override fun activate(topic: String, onError: (Core.Model.Error) -> Unit) {
-
+        pairingRepository.getPairingOrNullByTopic(Topic(topic))?.let { pairing ->
+            if (pairing.isValid()) {
+                pairingRepository.activatePairing(pairing.topic)
+            } else {
+                onError(Core.Model.Error(IllegalStateException("Pairing for topic $topic is expired")))
+            }
+        } ?: onError(Core.Model.Error(IllegalStateException("Pairing for topic $topic does not exist")))
     }
 
     override fun updateExpiry(topic: String, expiry: Expiry, onError: (Core.Model.Error) -> Unit) {
-        if (!pairingRepository.isPairingValid(Topic(topic))) {
-            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
-        }
+        val pairing: Pairing = pairingRepository.getPairingOrNullByTopic(Topic(topic))?.run {
+            this.takeIf { it.isValid() } ?: return onError(Core.Model.Error(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")))
+        } ?: return onError(Core.Model.Error(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")))
 
-        val pairing = requireNotNull(pairingRepository.getPairingOrNullByTopic(Topic(topic)))
         val newExpiration = pairing.expiry.seconds + expiry.seconds
         pairingRepository.updateExpiry(Topic(topic), Expiry(newExpiration))
         val pairingExtend = PairingRpc.PairingExtend(id = generateId(), params = PairingParams.ExtendParams(newExpiration))
@@ -323,9 +213,9 @@ internal object PairingClient : PairingInterface {
             })
     }
 
-    override fun updateMetadata(topic: String, metadata: AppMetaData, onError: (Core.Model.Error) -> Unit) {
+    override fun updateMetadata(topic: String, metadata: AppMetaData, metaDataType: AppMetaDataType, onError: (Core.Model.Error) -> Unit) {
         try {
-            metadataRepository.updateMetaData(Topic(topic), metadata, AppMetaDataType.SELF)
+            metadataRepository.upsertPairingPeerMetadata(Topic(topic), metadata, metaDataType)
         } catch (e: Exception) {
             onError(Core.Model.Error(e))
         }
@@ -338,30 +228,8 @@ internal object PairingClient : PairingInterface {
 //        methodsToCallbacks[method] = onMethod
     }
 
-    private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit = {}) {
-        jsonRpcInteractor.peerResponse
-            .filter { response -> response.response.id == id }
-            .collect { response ->
-                when (val result = response.response) {
-                    is JsonRpcResponse.JsonRpcResult -> onResponse(Result.success(result))
-                    is JsonRpcResponse.JsonRpcError -> onResponse(Result.failure(Throwable(result.errorMessage)))
-                }
-            }
-    }
-
-    private suspend fun onSessionPropose(request: WCRequest, payloadParams: PairingParams.SessionProposeParams) {
-        Validator.validateProposalNamespace(payloadParams.namespaces) { error ->
-            val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-            jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-            return
-        }
-
-        sessionProposalRequest[payloadParams.proposer.publicKey] = request
-        pairingEvent.emit(payloadParams.toEngineDO())
-    }
-
     private suspend fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {
-        if (!pairingRepository.isPairingValid(request.topic)) {
+        if (!isPairingValid(request.topic.value)) {
             val irnParams = IrnParams(Tags.PAIRING_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
             jsonRpcInteractor.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic("Pairing", request.topic.value), irnParams)
             return
@@ -382,13 +250,34 @@ internal object PairingClient : PairingInterface {
 
     private inline fun <reified T> load(): T {
         return wcKoinApp.koin.getOrNull<T>(T::class).also { temp ->
-            if (temp != null && !resubscribeToPairingJob.isActive) {
+            if (temp != null) {
                 scope.launch {
-                    supervisorScope { resubscribeToPairingJob.join() }
-                    supervisorScope { collectJsonRpcRequestsJob.join() }
+                    supervisorScope { resubscribeToPairingJob.launchIn(this) }
+                    supervisorScope { collectJsonRpcRequestsJob.launchIn(this) }
                 }
             }
-        } ?: throw IllegalStateException("SDK has not been initialized")
+        } ?: throw IllegalStateException("Core cannot be initialized by itself")
+    }
+
+    private fun isPairingValid(topic: String): Boolean = pairingRepository.getPairingOrNullByTopic(Topic(topic)).let { pairing ->
+        if (pairing == null) {
+            return@let false
+        } else {
+            return@let pairing.isValid()
+        }
+    }
+
+    private fun Pairing.isValid(): Boolean = (expiry.seconds > CURRENT_TIME_IN_SECONDS).also { isPairingValid ->
+        if (!isPairingValid) {
+            scope.launch {
+                jsonRpcInteractor.unsubscribe(this@isValid.topic)
+                pairingRepository.deletePairing(this@isValid.topic)
+                metadataRepository.deleteMetaData(this@isValid.topic)
+                crypto.removeKeys(this@isValid.topic.value)
+
+                _topicExpiredFlow.emit(this@isValid.topic)
+            }
+        }
     }
 
     private fun generateTopic(): Topic = Topic(randomBytes(32).bytesToHex())

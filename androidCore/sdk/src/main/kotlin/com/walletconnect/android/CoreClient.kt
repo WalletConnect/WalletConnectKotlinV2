@@ -7,8 +7,11 @@ import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.android.relay.RelayConnectionInterface
 
-object CoreClient : RelayConnectionInterface by RelayClient, PairingInterface by PairingClient {
-    interface CoreDelegate: PairingInterface.PairingDelegate
+object CoreClient {
+    val Pairing: PairingInterface = PairingClient
+    val Relay: RelayConnectionInterface = RelayClient
+
+    interface CoreDelegate: PairingInterface.Delegate
 
     fun initialize(metaData: Core.Model.AppMetaData, relayServerUrl: String, connectionType: ConnectionType, application: Application) {
         PairingClient.initialize(metaData)

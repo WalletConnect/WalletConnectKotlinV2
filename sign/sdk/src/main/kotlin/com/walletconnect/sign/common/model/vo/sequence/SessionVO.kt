@@ -3,12 +3,11 @@
 package com.walletconnect.sign.common.model.vo.sequence
 
 import com.walletconnect.android.common.model.AppMetaData
+import com.walletconnect.android.common.model.Sequence
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.android.common.model.Sequence
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
-import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toMapOfNamespacesVOSession
@@ -35,7 +34,7 @@ internal data class SessionVO(
         @JvmSynthetic
         internal fun createUnacknowledgedSession(
             sessionTopic: Topic,
-            proposal: PairingParamsVO.SessionProposeParams,
+            proposal: SessionParamsVO.SessionProposeParams,
             selfParticipant: SessionParticipantVO,
             sessionExpiry: Long,
             namespaces: Map<String, EngineDO.Namespace.Session>

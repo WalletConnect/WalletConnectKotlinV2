@@ -29,20 +29,6 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
         pairingQueries.deletePairing(topic.value)
     }
 
-    @Throws(SQLiteException::class)
-    override fun isPairingValid(topic: Topic): Boolean {
-        return if (hasTopic(topic)) {
-            if (Expiry(pairingQueries.getExpiry(topic.value).executeAsOne()).seconds > CURRENT_TIME_IN_SECONDS) {
-                true
-            } else {
-                _topicExpiredFlow.tryEmit(topic)
-                false
-            }
-        } else {
-            false
-        }
-    }
-
     override fun hasTopic(topic: Topic): Boolean = pairingQueries.hasTopic(topic.value).executeAsOneOrNull() != null
 
     @Throws(SQLiteException::class)

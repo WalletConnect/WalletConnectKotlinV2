@@ -10,7 +10,6 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
-import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
 import com.walletconnect.android.common.model.SessionProposer
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
@@ -32,7 +31,7 @@ private fun EngineDO.WalletConnectUri.getQuery(): String {
 }
 
 @JvmSynthetic
-internal fun PairingParamsVO.SessionProposeParams.toEngineDO(): EngineDO.SessionProposal =
+internal fun SessionParamsVO.SessionProposeParams.toEngineDO(): EngineDO.SessionProposal =
     EngineDO.SessionProposal(
         name = this.proposer.metadata.name,
         description = this.proposer.metadata.description,
@@ -98,7 +97,7 @@ internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
     )
 
 @JvmSynthetic
-internal fun PairingParamsVO.SessionProposeParams.toSessionSettleParams(
+internal fun SessionParamsVO.SessionProposeParams.toSessionSettleParams(
     selfParticipant: SessionParticipantVO,
     sessionExpiry: Long,
     namespaces: Map<String, EngineDO.Namespace.Session>,
@@ -115,7 +114,7 @@ internal fun toSessionProposeParams(
     namespaces: Map<String, EngineDO.Namespace.Proposal>,
     selfPublicKey: PublicKey,
     appMetaData: AppMetaData,
-) = PairingParamsVO.SessionProposeParams(
+) = SessionParamsVO.SessionProposeParams(
     relays = relays ?: listOf(RelayProtocolOptions()),
     proposer = SessionProposer(selfPublicKey.keyAsHex, appMetaData),
     namespaces = namespaces.toNamespacesVOProposal()
@@ -162,7 +161,7 @@ internal fun com.walletconnect.android.common.JsonRpcResponse.JsonRpcError.toEng
     EngineDO.JsonRpcResponse.JsonRpcError(id = id, error = EngineDO.JsonRpcResponse.Error(error.code, error.message))
 
 @JvmSynthetic
-internal fun PairingParamsVO.SessionProposeParams.toSessionApproveParams(selfPublicKey: PublicKey): SessionParamsVO.ApprovalParams =
+internal fun SessionParamsVO.SessionProposeParams.toSessionApproveParams(selfPublicKey: PublicKey): SessionParamsVO.ApprovalParams =
     SessionParamsVO.ApprovalParams(
         relay = RelayProtocolOptions(relays.first().protocol, relays.first().data),
         responderPublicKey = selfPublicKey.keyAsHex)

@@ -1,14 +1,14 @@
 package com.walletconnect.android.pairing
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.common.model.Expiry
-import com.walletconnect.android.common.model.Pairing
-import com.walletconnect.android.common.model.AppMetaData
-import com.walletconnect.android.common.model.WCRequest
+import com.walletconnect.android.common.model.*
+import com.walletconnect.foundation.common.model.Topic
+import kotlinx.coroutines.flow.SharedFlow
 
 //todo: add ( onError: (Core.Model.Error) -> Unit) parameter to accessible functions
 interface PairingInterface {
     val selfMetaData: AppMetaData
+    val topicExpiredFlow : SharedFlow<Topic>
 
     // initializes the client with persisted storage and a network connection
 //    fun initialize(metaData: Core.Model.AppMetaData)
@@ -18,9 +18,7 @@ interface PairingInterface {
     fun ping(ping: Core.Params.Ping, sessionPing: Core.Listeners.SessionPing? = null)
 
     // for proposer to create inactive pairing
-    fun create(onPairingCreated: (String) -> Unit, onError: (Core.Model.Error) -> Unit) // todo: Maybe create Pairing data class?
-
-    fun create2(): Result<Pairing> // todo: Maybe create Pairing data class?
+    fun create(): Result<Pairing> // todo: Maybe create Pairing data class?
 
     // for responder to pair a pairing created by a proposer
     fun pair(pair: Core.Params.Pair, onError: (Core.Model.Error) -> Unit)
@@ -40,13 +38,12 @@ interface PairingInterface {
     fun updateExpiry(topic: String, expiry: Expiry, onError: (Core.Model.Error) -> Unit)
 
     // for either to update the metadata of an existing pairing.
-    fun updateMetadata(topic: String, metadata: AppMetaData, onError: (Core.Model.Error) -> Unit)
+    fun updateMetadata(topic: String, metadata: AppMetaData, metaDataType: AppMetaDataType, onError: (Core.Model.Error) -> Unit)
 
     // for both to subscribe on methods requests
     fun register(method: String, onMethod: (topic: String, request: WCRequest) -> Unit) //todo: maybe use different approach with flows?
 
-    interface PairingDelegate {
-        fun onSessionProposal(sessionProposal: Core.Model.SessionProposal)
-        fun onSessionDelete(deletedSession: Core.Model.DeletedSession)
+    interface Delegate {
+        fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing)
     }
 }

@@ -14,12 +14,12 @@ data class Pairing(
     val isActive: Boolean,
 ) : Sequence {
 
-    constructor(topic: Topic, relay: RelayProtocolOptions, uri: String) : this(
+    constructor(topic: Topic, relay: RelayProtocolOptions, symmetricKey: SymmetricKey) : this(
         topic = topic,
         expiry = Expiry(INACTIVE_PAIRING),
         relayProtocol = relay.protocol,
         relayData = relay.data,
-        uri = uri,
+        uri = WalletConnectUri(topic, symmetricKey, relay).toAbsoluteString(),
         isActive = false
     )
 

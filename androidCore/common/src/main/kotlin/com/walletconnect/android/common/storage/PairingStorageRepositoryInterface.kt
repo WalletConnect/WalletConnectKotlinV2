@@ -14,8 +14,6 @@ interface PairingStorageRepositoryInterface {
 
     fun deletePairing(topic: Topic)
 
-    fun isPairingValid(topic: Topic): Boolean
-
     fun hasTopic(topic: Topic): Boolean
 
     fun getListOfPairings(): List<Pairing>
