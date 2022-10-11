@@ -3,6 +3,8 @@
 package com.walletconnect.auth.engine.domain
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.android.common.JsonRpcResponse
+import com.walletconnect.android.common.model.Tags
 import com.walletconnect.android.exception.WalletConnectException
 import com.walletconnect.android.impl.common.*
 import com.walletconnect.android.impl.common.model.*
@@ -44,6 +46,7 @@ internal class AuthEngine(
     private val storage: AuthStorageRepository,
     private val metaData: AppMetaData,
     private val issuer: Issuer?,
+    private val cacaoVerifier: CacaoVerifier
 ) {
 
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -87,7 +90,7 @@ internal class AuthEngine(
             val authParams: AuthParams.RequestParams =
                 AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams)
             val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
-            val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
+            val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
 
             onPairing(walletConnectUri.toAbsoluteString())
             relayer.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
@@ -142,16 +145,16 @@ internal class AuthEngine(
         }
 
         val authParams: AuthParams.RequestParams = jsonRpcHistoryEntry.params
-        val response: com.walletconnect.android.common.JsonRpcResponse = when (respond) {
-            is Respond.Error -> com.walletconnect.android.common.JsonRpcResponse.JsonRpcError(respond.id, error = com.walletconnect.android.common.JsonRpcResponse.Error(respond.code, respond.message))
+        val response: JsonRpcResponse = when (respond) {
+            is Respond.Error -> JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
             is Respond.Result -> {
                 val issuer: Issuer = issuer ?: throw MissingIssuerException
                 val payload: Cacao.Payload = authParams.payloadParams.toCacaoPayload(issuer)
-                val cacao = Cacao(Cacao.Header(CacaoType.EIP4361.header), payload, respond.signature.toCommon())
+                val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, respond.signature.toCommon())
                 val responseParams = AuthParams.ResponseParams(cacao.header, cacao.payload, cacao.signature)
 
-                if (!CacaoVerifier.verify(cacao)) throw InvalidCacaoException
-                com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
+                if (!cacaoVerifier.verify(cacao)) throw InvalidCacaoException
+                JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
             }
         }
 
@@ -161,7 +164,7 @@ internal class AuthEngine(
         val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
         crypto.setSymmetricKey(responseTopic, symmetricKey)
 
-        val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
+        val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
         relayer.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
             onSuccess = { Logger.log("Success Responded on topic: $responseTopic") },
@@ -172,12 +175,12 @@ internal class AuthEngine(
     internal fun getResponseById(id: Long): Response? {
         return relayer.getResponseById(id)?.let { response ->
             when (response) {
-                is com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult -> {
+                is JsonRpcResponse.JsonRpcResult -> {
                     val (header, payload, signature) = (response.result as AuthParams.ResponseParams)
                     val cacao = Cacao(header, payload, signature)
                     Response.Result(response.id, cacao)
                 }
-                is com.walletconnect.android.common.JsonRpcResponse.JsonRpcError -> Response.Error(response.id, response.error.code, response.error.message)
+                is JsonRpcResponse.JsonRpcError -> Response.Error(response.id, response.error.code, response.error.message)
             }
         }
     }
@@ -197,7 +200,7 @@ internal class AuthEngine(
                 _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, formattedMessage))
             }
         } else {
-            val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
+            val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
             relayer.respondWithError(wcRequest, PeerError.MissingIssuer, irnParams)
         }
     }
@@ -212,15 +215,15 @@ internal class AuthEngine(
         pairingTopicToResponseTopicMap.remove(pairingTopic)
 
         when (val response = wcResponse.response) {
-            is com.walletconnect.android.common.JsonRpcResponse.JsonRpcError -> {
+            is JsonRpcResponse.JsonRpcError -> {
                 scope.launch {
                     _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Error(response.error.code, response.error.message)))
                 }
             }
-            is com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult -> {
+            is JsonRpcResponse.JsonRpcResult -> {
                 val (header, payload, signature) = (response.result as AuthParams.ResponseParams)
                 val cacao = Cacao(header, payload, signature)
-                if (CacaoVerifier.verify(cacao)) {
+                if (cacaoVerifier.verify(cacao)) {
                     scope.launch {
                         _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Result(cacao)))
                     }
