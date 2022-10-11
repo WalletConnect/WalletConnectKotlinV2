@@ -1,7 +1,7 @@
 name: Release Sign SDK
 
 on:
-#  workflow_dispatch:
+  #  workflow_dispatch:
   push:
     branches:
       - feature/release_workflow
@@ -39,8 +39,8 @@ jobs:
 
   #Build and send the sdk artefacts
 
-  build-samples:
-    needs: [unit-tests]
+  build-wallet:
+    needs: [ unit-tests ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -49,13 +49,36 @@ jobs:
       - name: Generate Wallet APK
         run: ./gradlew :sign:wallet:assembleDebug
 
+      - name: Upload Artifact
+          uses: actions/upload-artifact@v2
+          with:
+            name: wallet
+            path: sign/wallet/build/outputs/apk/debug/wallet-debug.apk
+
+  build-dapp:
+    needs: [ unit-tests ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Generate Dapp APK
         run: ./gradlew :sign:dapp:assembleDebug
 
-  deploy-samples:
-    needs: [build-samples]
+      - name: Upload Artifact
+          uses: actions/upload-artifact@v2
+          with:
+            name: dapp
+            path: sign/dapp/build/outputs/apk/debug/dapp-debug.apk
+
+  deploy-wallet:
+    needs: [ build-wallet ]
     runs-on: ubuntu-latest
     steps:
+      - name: Download artifact
+          uses: actions/download-artifact@v2
+          with:
+            name: wallet
 
       - name: Upload Wallet to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -63,12 +86,21 @@ jobs:
           appId: ${{secrets.FIREBASE_APP_ID}}
           token: ${{secrets.FIREBASE_TOKEN}}
           groups: WalletConnect
-          file: sign/wallet/build/outputs/apk/debug/wallet-debug.apk
+          file: wallet-debug.apk
 
-      - name: Upload Dapp to Firebase App Distribution
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
-        with:
-          appId: ${{secrets.FIREBASE_APP_ID}}
-          token: ${{secrets.FIREBASE_TOKEN}}
-          groups: WalletConnect
-          file: sign/dapp/build/outputs/apk/debug/dapp-debug.apk
+  deploy-dapp:
+    needs: [ build-dapp ]
+      runs-on: ubuntu-latest
+      steps:
+        - name: Download artifact
+            uses: actions/download-artifact@v2
+            with:
+              name: dapp
+
+        - name: Upload Dapp to Firebase App Distribution
+          uses: wzieba/Firebase-Distribution-Github-Action@v1
+          with:
+            appId: ${{secrets.FIREBASE_APP_ID}}
+            token: ${{secrets.FIREBASE_TOKEN}}
+            groups: WalletConnect
+            file: dapp-debug.apk
