@@ -90,10 +90,11 @@ internal class AuthEngine(
                 AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, metaData.toCore()), payloadParams)
             val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
             val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
+
+            onPairing(walletConnectUri.toAbsoluteString())
             relayer.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
                 onSuccess = {
                     Logger.log("Auth request sent successfully on topic:$pairingTopic, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
-                    onPairing(walletConnectUri.toAbsoluteString())
                     relayer.subscribe(responseTopic)
                     pairingTopicToResponseTopicMap[pairingTopic] = responseTopic
                 },
