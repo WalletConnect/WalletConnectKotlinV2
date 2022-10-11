@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "362287542580",
+    "project_id": "sample-dapp-8b94b",
+    "storage_bucket": "sample-dapp-8b94b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:362287542580:android:dd25a8fe2c6c132cf87561",
+        "android_client_info": {
+          "package_name": "com.walletconnect.dapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "362287542580-rnh59hhj6vgdejuj7ttki35q5tjdrnpv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-A66x6MMnX7KH7qcKyb6bkebhQnzcAF4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "362287542580-rnh59hhj6vgdejuj7ttki35q5tjdrnpv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

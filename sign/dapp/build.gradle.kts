@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     kotlin("android")
     kotlin("kapt")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -48,6 +49,7 @@ dependencies {
     debugImplementation(project(":androidCore:sdk"))
     releaseImplementation("com.walletconnect:android-core:1.0.0")
 
+    implementation(platform("com.google.firebase:firebase-bom:30.5.0"))
     glide_N_kapt()
     implementation("com.github.kenglxn.QRGen:android:2.6.0")
 

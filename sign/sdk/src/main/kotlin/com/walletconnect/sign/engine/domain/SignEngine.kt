@@ -350,9 +350,7 @@ internal class SignEngine(
 
         relayer.publishJsonRpcRequests(Topic(topic), irnParams, pingPayload,
             onSuccess = {
-
                 Logger.log("Ping sent successfully")
-
                 scope.launch {
                     try {
                         withTimeout(THIRTY_SECONDS_TIMEOUT) {
@@ -364,9 +362,7 @@ internal class SignEngine(
                                         onSuccess(topic)
                                     },
                                     onFailure = { error ->
-
                                         Logger.log("Ping peer response error: $error")
-
                                         onFailure(error)
                                     })
                             }
