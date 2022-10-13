@@ -40,7 +40,7 @@ jobs:
 #    needs: [ unit-tests ]
 #
 #  deploy-sdk:
-#    needs: [ unit-tests ]
+##    needs: [ unit-tests ]
 
   build-wallet:
     needs: [ unit-tests ]
