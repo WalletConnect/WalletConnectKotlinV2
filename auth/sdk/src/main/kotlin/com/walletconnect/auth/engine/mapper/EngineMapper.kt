@@ -9,7 +9,7 @@ import com.walletconnect.auth.signature.Signature
 
 //todo create and move to core mapper outside
 @JvmSynthetic
-internal fun Core.Model.AppMetaData.toCore(): AppMetaData = AppMetaData(name, description, url, icons, Redirect(redirect))
+internal fun Core.Model.AppMetaData.toClient(): AppMetaData = AppMetaData(name, description, url, icons, Redirect(redirect))
 
 @JvmSynthetic
 internal fun PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.Payload(

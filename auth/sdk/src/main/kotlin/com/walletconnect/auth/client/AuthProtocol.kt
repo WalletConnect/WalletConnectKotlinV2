@@ -33,7 +33,7 @@ internal class AuthProtocol : AuthInterface {
 
         with(init) {
             wcKoinApp.modules(
-                networkModule(core),
+                networkModule(core.Relay),
                 commonModule(),
                 cryptoModule(),
                 jsonRpcModule(),

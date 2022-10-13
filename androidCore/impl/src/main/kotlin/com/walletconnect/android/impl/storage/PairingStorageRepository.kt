@@ -44,8 +44,17 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
     override fun getPairingOrNullByTopic(topic: Topic): Pairing? = pairingQueries.getPairingByTopic(topic.value, mapper = this::toPairing).executeAsOneOrNull()
 
     private fun toPairing(
-        topic: String, expirySeconds: Long, relay_protocol: String, relay_data: String?, uri: String, is_active: Boolean,
-        peerName: String?, peerDesc: String?, peerUrl: String?, peerIcons: List<String>?, native: String?,
+        topic: String,
+        expirySeconds: Long,
+        relay_protocol: String,
+        relay_data: String?,
+        uri: String,
+        is_active: Boolean,
+        peerName: String?,
+        peerDesc: String?,
+        peerUrl: String?,
+        peerIcons: List<String>?,
+        native: String?,
     ): Pairing {
         val peerAppMetaData: AppMetaData? = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
             AppMetaData(peerName, peerDesc, peerUrl, peerIcons, Redirect(native = native))

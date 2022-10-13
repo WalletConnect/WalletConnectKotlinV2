@@ -27,13 +27,9 @@ fun jsonRpcModule() = module {
         mutableMapOf<String, KClass<*>>()
     }
 
-    intoMultibindingSet { payload: SerializableJsonRpc -> payload is PairingParams.SessionProposeParams }
-
     intoMultibindingSet { payload: SerializableJsonRpc -> payload is PairingParams.PingParams }
 
     intoMultibindingSet { payload: SerializableJsonRpc -> payload is PairingParams.DeleteParams }
-
-    intoMultibindingMap(PairingJsonRpcMethod.WC_SESSION_PROPOSE, PairingParams.SessionProposeParams::class)
 
     intoMultibindingMap(PairingJsonRpcMethod.WC_PAIRING_PING, PairingParams.PingParams::class)
 

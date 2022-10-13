@@ -2,22 +2,20 @@
 
 package com.walletconnect.auth.engine.domain
 
-import android.database.sqlite.SQLiteException
 import com.walletconnect.android.common.JsonRpcResponse
 import com.walletconnect.android.common.JsonRpcResponse.JsonRpcError
 import com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult
 import com.walletconnect.android.common.crypto.KeyManagementRepository
 import com.walletconnect.android.common.exception.WalletConnectException
 import com.walletconnect.android.common.model.*
-import com.walletconnect.android.common.model.Pairing
-import com.walletconnect.android.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException
 import com.walletconnect.auth.common.exceptions.MissingAuthRequestException
@@ -31,14 +29,12 @@ import com.walletconnect.auth.engine.mapper.toFormattedMessage
 import com.walletconnect.auth.engine.mapper.toPendingRequest
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
-import com.walletconnect.auth.json_rpc.domain.GetResponseByIdUseCase
 import com.walletconnect.auth.signature.CacaoType
 import com.walletconnect.auth.signature.cacao.CacaoVerifier
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.util.generateId
-import com.walletconnect.utils.isSequenceValid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
@@ -48,10 +44,8 @@ internal class AuthEngine(
     private val relayer: JsonRpcInteractorInterface,
     private val getPendingJsonRpcHistoryEntriesUseCase: GetPendingJsonRpcHistoryEntriesUseCase,
     private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
-    private val getResponseByIdUseCase: GetResponseByIdUseCase,
     private val crypto: KeyManagementRepository,
-    private val pairingStorageRepository: PairingStorageRepositoryInterface,
-    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
+    private val pairingInterface: PairingInterface,
     private val selfAppMetaData: AppMetaData,
     private val issuer: Issuer?,
 ) {
@@ -63,7 +57,6 @@ internal class AuthEngine(
 
     init {
         resubscribeToSequences()
-        setupSequenceExpiration()
         collectJsonRpcRequests()
         collectJsonRpcResponses()
         collectInternalErrors()
@@ -79,45 +72,32 @@ internal class AuthEngine(
         onFailure: (Throwable) -> Unit,
     ) {
         // For Alpha we are assuming not authenticated only todo: Remove comment after Alpha
-        val symmetricKey: SymmetricKey = crypto.generateSymmetricKey()
-        val pairingTopic: Topic = crypto.getTopicFromKey(symmetricKey)
-        crypto.setSymmetricKey(pairingTopic, symmetricKey)
+        pairingInterface.create().fold(
+            onSuccess = { pairing ->
+                val responsePublicKey: PublicKey = crypto.generateKeyPair()
+                val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
+                val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams)
+                val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
+                val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
 
-        val relay = RelayProtocolOptions()
-        val walletConnectUri = WalletConnectUri(pairingTopic, symmetricKey, relay)
-        val inactivePairing = Pairing(pairingTopic, relay, walletConnectUri.toAbsoluteString())
-
-        try {
-            pairingStorageRepository.insertPairing(inactivePairing)
-            metadataStorageRepository.insertOrAbortMetadata(pairingTopic,
-                selfAppMetaData,
-                AppMetaDataType.SELF)
-            val responsePublicKey: PublicKey = crypto.generateKeyPair()
-            val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
-            val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams)
-            val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
-            val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
-
-            crypto.setSelfParticipant(responsePublicKey, responseTopic)
-            relayer.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
-                onSuccess = {
-                    Logger.log("Auth request sent successfully on topic:$pairingTopic, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
-                    onPairing(walletConnectUri.toAbsoluteString())
-                    relayer.subscribe(responseTopic)
-                    pairingTopicToResponseTopicMap[pairingTopic] = responseTopic
-                },
-                onFailure = { error ->
-                    Logger.error("Failed to send a auth request: $error")
-                    onFailure(error)
-                }
-            )
-        } catch (e: SQLiteException) {
-            crypto.removeKeys(pairingTopic.value)
-            pairingStorageRepository.deletePairing(pairingTopic)
-            metadataStorageRepository.deleteMetaData(pairingTopic)
-
-            onFailure(e)
-        }
+                crypto.setSelfParticipant(responsePublicKey, responseTopic)
+                relayer.publishJsonRpcRequests(pairing.topic, irnParams, authRequest,
+                    onSuccess = {
+                        Logger.log("Auth request sent successfully on topic:${pairing.topic}, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
+                        onPairing(pairing.uri)
+                        relayer.subscribe(responseTopic)
+                        pairingTopicToResponseTopicMap[pairing.topic] = responseTopic
+                    },
+                    onFailure = { error ->
+                        Logger.error("Failed to send a auth request: $error")
+                        onFailure(error)
+                    }
+                )
+            },
+            onFailure = {
+                onFailure(it)
+            }
+        )
     }
 
     internal fun respond(
@@ -160,19 +140,6 @@ internal class AuthEngine(
         )
     }
 
-    internal fun getResponseById(id: Long): Response? {
-        return getResponseByIdUseCase(id)?.let { response ->
-            when (response) {
-                is JsonRpcResult -> {
-                    val (header, payload, signature) = (response.result as AuthParams.ResponseParams)
-                    val cacao = Cacao(header, payload, signature)
-                    Response.Result(response.id, cacao)
-                }
-                is JsonRpcError -> Response.Error(response.id, response.error.code, response.error.message)
-            }
-        }
-    }
-
     internal fun getPendingRequests(): List<PendingRequest> {
         if (issuer == null) {
             throw MissingIssuerException
@@ -193,11 +160,14 @@ internal class AuthEngine(
         }
     }
 
-    private fun onAuthRequestResponse(wcResponse: WCResponse) {
+    private fun onAuthRequestResponse(wcResponse: WCResponse, requestParams: AuthParams.RequestParams) {
         val pairingTopic = wcResponse.topic
 
-        if (!pairingStorageRepository.isPairingValid(pairingTopic)) return
-        if (pairingStorageRepository.getPairingOrNullByTopic(pairingTopic)?.isActive != true) pairingStorageRepository.activatePairing(pairingTopic)
+        pairingInterface.updateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS))
+        pairingInterface.updateMetadata(pairingTopic.value, requestParams.requester.metadata, AppMetaDataType.PEER)
+        pairingInterface.activate(pairingTopic.value)
+
+        if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic }) return
 
         pairingTopicToResponseTopicMap.remove(pairingTopic)
 
@@ -238,7 +208,7 @@ internal class AuthEngine(
     private fun collectJsonRpcResponses() {
         relayer.peerResponse
             .filter { response -> response.params is AuthParams.RequestParams }
-            .onEach { response -> onAuthRequestResponse(response) }
+            .onEach { response -> onAuthRequestResponse(response, response.params as AuthParams.RequestParams) }
             .launchIn(scope)
     }
 
@@ -248,7 +218,6 @@ internal class AuthEngine(
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
                 coroutineScope {
-                    launch(Dispatchers.IO) { resubscribeToPairings() }
                     launch(Dispatchers.IO) { resubscribeToPendingRequestsTopics() }
                 }
             }
@@ -261,32 +230,6 @@ internal class AuthEngine(
             .onEach { responseTopic: Topic ->
                 relayer.subscribe(responseTopic)
             }
-    }
-
-    private fun resubscribeToPairings() {
-        val (listOfExpiredPairing, listOfValidPairing) =
-            pairingStorageRepository.getListOfPairings().partition { pairing -> !pairing.expiry.isSequenceValid() }
-
-        listOfExpiredPairing
-            .map { pairing -> pairing.topic }
-            .onEach { pairingTopic ->
-                relayer.unsubscribe(pairingTopic)
-                crypto.removeKeys(pairingTopic.value)
-                pairingStorageRepository.deletePairing(pairingTopic)
-                metadataStorageRepository.deleteMetaData(pairingTopic)
-            }
-
-        listOfValidPairing
-            .map { pairing -> pairing.topic }
-            .onEach { pairingTopic -> relayer.subscribe(pairingTopic) }
-    }
-
-    private fun setupSequenceExpiration() {
-        pairingStorageRepository.topicExpiredFlow.onEach { topic ->
-            metadataStorageRepository.deleteMetaData(topic)
-            relayer.unsubscribe(topic)
-            crypto.removeKeys(topic.value)
-        }.launchIn(scope)
     }
 
     private fun collectInternalErrors() {

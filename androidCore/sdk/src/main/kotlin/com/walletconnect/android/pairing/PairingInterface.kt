@@ -21,27 +21,27 @@ interface PairingInterface {
     fun create(): Result<Pairing> // todo: Maybe create Pairing data class?
 
     // for responder to pair a pairing created by a proposer
-    fun pair(pair: Core.Params.Pair, onError: (Core.Model.Error) -> Unit)
+    fun pair(pair: Core.Params.Pair, onError: (Core.Model.Error) -> Unit = {})
 
     // query pairings
     fun getPairings(): List<Pairing>
 
     // for either peer to disconnect a pairing
-    fun disconnect(topic: String, onError: (Core.Model.Error) -> Unit)
+    fun disconnect(topic: String, onError: (Core.Model.Error) -> Unit = {})
 
 //    idea: --- I think those below shouldn't be accessible by SDK consumers.
 
     // for either to activate a previously created pairing
-    fun activate(topic: String, onError: (Core.Model.Error) -> Unit)
+    fun activate(topic: String, onError: (Core.Model.Error) -> Unit = {})
 
     // for either to update the expiry of an existing pairing.
-    fun updateExpiry(topic: String, expiry: Expiry, onError: (Core.Model.Error) -> Unit)
+    fun updateExpiry(topic: String, expiry: Expiry, onError: (Core.Model.Error) -> Unit = {})
 
     // for either to update the metadata of an existing pairing.
-    fun updateMetadata(topic: String, metadata: AppMetaData, metaDataType: AppMetaDataType, onError: (Core.Model.Error) -> Unit)
+    fun updateMetadata(topic: String, metadata: AppMetaData, metaDataType: AppMetaDataType, onError: (Core.Model.Error) -> Unit = {})
 
     // for both to subscribe on methods requests
-    fun register(method: String, onMethod: (topic: String, request: WCRequest) -> Unit) //todo: maybe use different approach with flows?
+    fun register(method: String, onMethod: (topic: String, request: WCRequest) -> Unit = { _, _ -> }) //todo: maybe use different approach with flows?
 
     interface Delegate {
         fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing)

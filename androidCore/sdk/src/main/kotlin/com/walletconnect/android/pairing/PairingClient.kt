@@ -14,7 +14,7 @@ import com.walletconnect.android.exception.MalformedWalletConnectUri
 import com.walletconnect.android.exception.PairWithExistingPairingIsNotAllowed
 import com.walletconnect.android.internal.*
 import com.walletconnect.android.internal.pairing.PairingDO
-import com.walletconnect.android.internal.pairing.PeerError
+import com.walletconnect.android.internal.pairing.Uncategorized
 import com.walletconnect.android.internal.pairing.toClient
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -75,7 +75,7 @@ internal object PairingClient : PairingInterface {
     fun setDelegate(delegate: PairingInterface.Delegate) {
         pairingEvent.onEach { event ->
             when (event) {
-                is PairingDO.PairingDelete -> delegate.onPairingDelete(event.toClient(Topic(event.topic)))
+                is PairingDO.PairingDelete -> delegate.onPairingDelete(event.toClient())
             }
         }.launchIn(scope)
     }
@@ -126,7 +126,7 @@ internal object PairingClient : PairingInterface {
 
         return inactivePairing.runCatching {
             pairingRepository.insertPairing(this)
-            metadataRepository.insertOrAbortMetadata(pairingTopic, selfMetaData, AppMetaDataType.SELF)
+            metadataRepository.upsertPairingPeerMetadata(pairingTopic, selfMetaData, AppMetaDataType.SELF)
             jsonRpcInteractor.subscribe(pairingTopic)
 
             this
@@ -202,15 +202,6 @@ internal object PairingClient : PairingInterface {
 
         val newExpiration = pairing.expiry.seconds + expiry.seconds
         pairingRepository.updateExpiry(Topic(topic), Expiry(newExpiration))
-        val pairingExtend = PairingRpc.PairingExtend(id = generateId(), params = PairingParams.ExtendParams(newExpiration))
-        val irnParams = IrnParams(Tags.SESSION_EXTEND, Ttl(DAY_IN_SECONDS))
-
-        jsonRpcInteractor.publishJsonRpcRequests(Topic(topic), irnParams, pairingExtend,
-            onSuccess = { /*Logger.log("Session extend sent successfully")*/ },
-            onFailure = { error ->
-//                Logger.error("Sending session extend error: $error")
-                onError(Core.Model.Error(error))
-            })
     }
 
     override fun updateMetadata(topic: String, metadata: AppMetaData, metaDataType: AppMetaDataType, onError: (Core.Model.Error) -> Unit) {
@@ -231,7 +222,7 @@ internal object PairingClient : PairingInterface {
     private suspend fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {
         if (!isPairingValid(request.topic.value)) {
             val irnParams = IrnParams(Tags.PAIRING_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
-            jsonRpcInteractor.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic("Pairing", request.topic.value), irnParams)
+            jsonRpcInteractor.respondWithError(request, Uncategorized.NoMatchingTopic("Pairing", request.topic.value), irnParams)
             return
         }
 

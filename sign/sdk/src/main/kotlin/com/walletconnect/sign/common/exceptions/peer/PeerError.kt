@@ -6,8 +6,7 @@ import com.walletconnect.sign.common.exceptions.DISCONNECT_MESSAGE
 /**
  * Documentation: https://github.com/WalletConnect/walletconnect-specs/blob/main/sign/error-codes.md
  */
-internal sealed class PeerError : Error {
-
+sealed class PeerError: Error {
     sealed class Invalid: PeerError() {
 
         data class Method(val reason: String) : Invalid() {
@@ -125,14 +124,6 @@ internal sealed class PeerError : Error {
 
         data class NoSessionForTopic(override val message: String) : Failure() {
             override val code: Int = 7001
-        }
-    }
-
-    sealed class Uncategorized: PeerError() {
-
-        data class NoMatchingTopic(val sequence: String, val topic: String) : PeerError() {
-            override val message: String = "No matching $sequence with topic: $topic"
-            override val code: Int = 1301
         }
     }
 }

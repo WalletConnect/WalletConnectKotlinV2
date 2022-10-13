@@ -11,18 +11,6 @@ internal sealed class PairingRpc : JsonRpcClientSync<PairingParams> {
     abstract override val params: PairingParams
 
     @JsonClass(generateAdapter = true)
-    internal data class SessionPropose(
-        @Json(name = "id")
-        override val id: Long,
-        @Json(name = "jsonrpc")
-        override val jsonrpc: String = "2.0",
-        @Json(name = "method")
-        override val method: String = PairingJsonRpcMethod.WC_SESSION_PROPOSE,
-        @Json(name = "params")
-        override val params: PairingParams.SessionProposeParams,
-    ) : PairingRpc()
-
-    @JsonClass(generateAdapter = true)
     internal data class PairingDelete(
         @Json(name = "id")
         override val id: Long,
@@ -46,14 +34,4 @@ internal sealed class PairingRpc : JsonRpcClientSync<PairingParams> {
         override val params: PairingParams.PingParams,
     ) : PairingRpc()
 
-    internal data class PairingExtend(
-        @Json(name = "id")
-        override val id: Long,
-        @Json(name = "jsonrpc")
-        override val jsonrpc: String = "2.0",
-        @Json(name = "method")
-        override val method: String = PairingJsonRpcMethod.WC_PAIRING_EXTEND,
-        @Json(name = "params")
-        override val params: PairingParams
-    ): PairingRpc()
 }

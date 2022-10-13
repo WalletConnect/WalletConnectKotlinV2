@@ -33,8 +33,8 @@ class MetadataStorageRepository(private val metaDataQueries: MetaDataQueries): M
 
     override fun existsByTopic(topic: Topic): Boolean = metaDataQueries.getIdByTopic(topic.value).executeAsOneOrNull() == null
 
-    override fun getByTopic(topic: Topic): AppMetaData = metaDataQueries.getMetadataByTopic(topic.value, mapper = this::toMetadata).executeAsOne()
+    override fun getByTopicAndType(topic: Topic, type: AppMetaDataType): AppMetaData = metaDataQueries.getMetadataByTopicAndType(sequence_topic = topic.value, type = type, mapper = this::toMetadata).executeAsOne()
 
-    private fun toMetadata(peerName: String, peerDesc: String, peerUrl: String, peerIcons: List<String>, native: String?, type: AppMetaDataType): AppMetaData =
+    private fun toMetadata(peerName: String, peerDesc: String, peerUrl: String, peerIcons: List<String>, native: String?): AppMetaData =
         AppMetaData(peerName, peerDesc, peerUrl, peerIcons, Redirect(native = native))
 }

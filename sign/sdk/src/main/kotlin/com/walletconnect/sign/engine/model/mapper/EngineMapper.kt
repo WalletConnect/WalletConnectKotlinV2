@@ -73,13 +73,7 @@ internal fun SessionVO.toEngineDO(): EngineDO.Session =
         topic,
         expiry,
         namespaces.toMapOfEngineNamespacesSession(),
-        AppMetaData(
-            peerAppMetaData?.name ?: String.Empty,
-            peerAppMetaData?.description ?: String.Empty,
-            peerAppMetaData?.url ?: String.Empty,
-            peerAppMetaData?.icons?.map { iconUri -> iconUri } ?: listOf(),
-            peerAppMetaData?.redirect
-        )
+        peerAppMetaData
     )
 
 @JvmSynthetic

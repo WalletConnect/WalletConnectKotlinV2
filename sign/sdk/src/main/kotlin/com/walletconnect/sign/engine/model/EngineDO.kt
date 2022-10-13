@@ -63,8 +63,6 @@ internal sealed class EngineDO {
         }
     }
 
-    internal data class RelayProtocolOptions(val protocol: String, val data: String? = null) : EngineDO()
-
     internal data class SessionRequest(
         val topic: String,
         val chainId: String?,
@@ -132,19 +130,19 @@ internal sealed class EngineDO {
     ) : EngineDO(), EngineEvent
 
     internal data class PairingSettle(val topic: Topic, val appMetaData: AppMetaData?) : EngineDO(), EngineEvent
-    internal data class SessionUpdateAccounts(val topic: Topic, val accounts: List<String>) : EngineDO(), EngineEvent
+
     internal data class SessionUpdateNamespaces(val topic: Topic, val namespaces: Map<String, Namespace.Session>) : EngineDO(), EngineEvent
 
     internal data class SessionExtend(
         override val topic: Topic,
-        override val expiry: com.walletconnect.android.common.model.Expiry,
+        override val expiry: Expiry,
         val namespaces: Map<String, Namespace.Session>,
         val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, EngineEvent
 
     internal data class Session(
         override val topic: Topic,
-        override val expiry: com.walletconnect.android.common.model.Expiry,
+        override val expiry: Expiry,
         val namespaces: Map<String, Namespace.Session>,
         val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, EngineEvent

@@ -15,6 +15,7 @@ import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.storage.MetadataStorageRepository
 import com.walletconnect.android.impl.utils.*
+import com.walletconnect.android.internal.pairing.Uncategorized
 import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -47,6 +48,7 @@ internal class SignEngine(
     private val getPendingRequestsUseCase: GetPendingRequestsUseCase,
     private val crypto: KeyManagementRepository,
     private val sessionStorageRepository: SessionStorageRepository,
+    private val metadataStorageRepository: MetadataStorageRepository,
     private val pairingInterface: PairingInterface,
     private val selfAppMetaData: AppMetaData,
 ) {
@@ -123,8 +125,8 @@ internal class SignEngine(
             proposeSession(Topic(pairingTopic), listOf(relay), EngineDO.ProposedSequence.Session)
         } else {
             pairingInterface.create().fold(
-                onSuccess = {
-                    proposeSession(it.topic, listOf(RelayProtocolOptions(it.relayProtocol, it.relayData)), it)
+                onSuccess = { pairing ->
+                    proposeSession(pairing.topic, listOf(RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)), pairing)
                 }, onFailure = {
                     onFailure(it)
                 })
@@ -165,12 +167,7 @@ internal class SignEngine(
             try {
                 val peerAppMetaData = with(proposal.proposer.metadata) { AppMetaData(name, description, url, icons, redirect) }
                 sessionStorageRepository.insertSession(unacknowledgedSession, pairingTopic, requestId)
-                pairingInterface.updateMetadata(pairingTopic.value, selfAppMetaData, AppMetaDataType.SELF) { error ->
-
-                } //todo: take care of multiple metadata structures
-                pairingInterface.updateMetadata(pairingTopic.value, peerAppMetaData, AppMetaDataType.PEER) { error ->
-
-                } //todo: take care of multiple metadata structures
+                pairingInterface.updateMetadata(pairingTopic.value, peerAppMetaData, AppMetaDataType.PEER) //todo: take care of multiple metadata structures
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
                 val sessionSettle = SessionRpcVO.SessionSettle(id = generateId(), params = params)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
@@ -227,7 +224,8 @@ internal class SignEngine(
         val sessionUpdate = SessionRpcVO.SessionUpdate(id = generateId(), params = params)
         val irnParams = IrnParams(Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
 
-        sessionStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id, onSuccess = {
+        sessionStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id,
+            onSuccess = {
             relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionUpdate,
                 onSuccess = { Logger.log("Update sent successfully") },
                 onFailure = { error ->
@@ -302,65 +300,51 @@ internal class SignEngine(
 
     // TODO: Do we still want Session Ping
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
-        pairingInterface.ping(Core.Params.Ping(topic), object : Core.Listeners.SessionPing {
-            override fun onSuccess(pingSuccess: Core.Model.Ping.Success) {
-                onSuccess(pingSuccess.topic)
-            }
+        if (sessionStorageRepository.isSessionValid(Topic(topic))) {
+            val pingPayload = SessionRpcVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams())
+            val irnParams = IrnParams(Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
 
-            override fun onError(pingError: Core.Model.Ping.Error) {
-                onFailure(pingError.error)
-            }
-        })
-        //        todo: remove and delegate SignProtocol.ping to PairingClient
+            relayer.publishJsonRpcRequests(Topic(topic), irnParams, pingPayload,
+            onSuccess = {
+                Logger.log("Ping sent successfully")
+                scope.launch {
+                    try {
+                        withTimeout(THIRTY_SECONDS_TIMEOUT) {
+                            collectResponse(pingPayload.id) { result ->
+                                cancel()
+                                result.fold(
+                                    onSuccess = {
+                                        Logger.log("Ping peer response success")
+                                        onSuccess(topic)
+                                    },
+                                    onFailure = { error ->
 
-//        val (pingPayload, irnParams) = when {
-//            sessionStorageRepository.isSessionValid(Topic(topic)) ->
-//                Pair(
-//                    SessionRpcVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams()),
-//                    IrnParams(Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
-//                )
-//            sessionStorageRepository.isPairingValid(Topic(topic)) ->
-//                Pair(
-//                    PairingRpcVO.PairingPing(id = generateId(), params = PairingParamsVO.PingParams()),
-//                    IrnParams(Tags.PAIRING_PING, Ttl(THIRTY_SECONDS))
-//                )
-//            else -> throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
-//        }
-//
-//        relayer.publishJsonRpcRequests(Topic(topic), irnParams, pingPayload,
-//            onSuccess = {
-//
-//                Logger.log("Ping sent successfully")
-//
-//                scope.launch {
-//                    try {
-//                        withTimeout(THIRTY_SECONDS_TIMEOUT) {
-//                            collectResponse(pingPayload.id) { result ->
-//                                cancel()
-//                                result.fold(
-//                                    onSuccess = {
-//                                        Logger.log("Ping peer response success")
-//                                        onSuccess(topic)
-//                                    },
-//                                    onFailure = { error ->
-//
-//                                        Logger.log("Ping peer response error: $error")
-//
-//                                        onFailure(error)
-//                                    })
-//                            }
-//                        }
-//                    } catch (e: TimeoutCancellationException) {
-//                        onFailure(e)
-//                    }
-//                }
-//            },
-//            onFailure = { error ->
-//
-//                Logger.log("Ping sent error: $error")
-//
-//                onFailure(error)
-//            })
+                                        Logger.log("Ping peer response error: $error")
+
+                                        onFailure(error)
+                                    })
+                            }
+                        }
+                    } catch (e: TimeoutCancellationException) {
+                        onFailure(e)
+                    }
+                }
+            },
+            onFailure = { error ->
+                Logger.log("Ping sent error: $error")
+                onFailure(error)
+            })
+        } else {
+            pairingInterface.ping(Core.Params.Ping(topic), object : Core.Listeners.SessionPing {
+                override fun onSuccess(pingSuccess: Core.Model.Ping.Success) {
+                    onSuccess(pingSuccess.topic)
+                }
+
+                override fun onError(pingError: Core.Model.Ping.Error) {
+                    onFailure(pingError.error)
+                }
+            })
+        }
     }
 
     internal fun emit(topic: String, event: EngineDO.Event, onFailure: (Throwable) -> Unit) {
@@ -441,15 +425,17 @@ internal class SignEngine(
     internal fun getListOfSettledSessions(): List<EngineDO.Session> {
         return sessionStorageRepository.getListOfSessionVOs()
             .filter { session -> session.isAcknowledged && session.expiry.isSequenceValid() }
+            .map { session ->
+                val peerMetaData = metadataStorageRepository.getByTopicAndType(session.topic, AppMetaDataType.PEER)
+                session.copy(selfAppMetaData = selfAppMetaData, peerAppMetaData = peerMetaData)
+            }
             .map { session -> session.toEngineDO() }
     }
 
-    //        todo: remove and delegate SignProtocol.getListOfSettledPairings to PairingClient getListOfPairings
     internal fun getListOfSettledPairings(): List<EngineDO.PairingSettle> {
-//        return sessionStorageRepository.getListOfPairingVOs()
-//            .filter { pairing -> pairing.expiry.isSequenceValid() }
-//            .map { pairing -> pairing.toEngineDOSettledPairing() }
-        return emptyList() //todo: remove. added just to compile
+        return pairingInterface.getPairings().map { pairing ->
+            EngineDO.PairingSettle(pairing.topic, pairing.peerAppMetaData)
+        }
     }
 
     internal fun getPendingRequests(topic: Topic): List<PendingRequest> = getPendingRequestsUseCase(topic)
@@ -540,15 +526,13 @@ internal class SignEngine(
 
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
             sessionStorageRepository.insertSession(session, request.topic, request.id)
-//            metadataStorageRepository.upsertPairingPeerMetadata(request.topic, selfAppMetaData, AppMetaDataType.SELF)
-//            metadataStorageRepository.upsertPairingPeerMetadata(request.topic, peerMetadata, AppMetaDataType.PEER)
+            metadataStorageRepository.upsertPairingPeerMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
 
             relayer.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
             scope.launch { _engineEvent.emit(session.toSessionApproved()) }
         } catch (e: SQLiteException) {
             sessionProposalRequest[selfPublicKey.keyAsHex] = tempProposalRequest
             sessionStorageRepository.deleteSession(sessionTopic)
-//            metadataStorageRepository.deleteMetaData(request.topic)
             relayer.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
             return
         }
@@ -558,7 +542,7 @@ internal class SignEngine(
     private fun onSessionDelete(request: WCRequest, params: SessionParamsVO.DeleteParams) {
         if (!sessionStorageRepository.isSessionValid(request.topic)) {
             val irnParams = IrnParams(Tags.SESSION_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
-            relayer.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
+            relayer.respondWithError(request, Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
         }
 
@@ -578,12 +562,14 @@ internal class SignEngine(
         }
 
         if (!sessionStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
+            relayer.respondWithError(request, Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
         }
 
-        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerAppMetaData: AppMetaData?) =
-            with(sessionStorageRepository.getSessionByTopic(request.topic)) { namespaces to peerAppMetaData }
+        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerAppMetaData: AppMetaData?) = sessionStorageRepository.getSessionByTopic(request.topic).run {
+            val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
+            this.namespaces to peerAppMetaData
+        }
 
         val method = params.request.method
         Validator.validateChainIdWithMethodAuthorisation(params.chainId, method, sessionNamespaces) { error ->
@@ -603,7 +589,7 @@ internal class SignEngine(
         }
 
         if (!sessionStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
+            relayer.respondWithError(request, Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
         }
 
@@ -613,7 +599,7 @@ internal class SignEngine(
             return
         }
         if (!session.isAcknowledged) {
-            relayer.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
+            relayer.respondWithError(request, Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
         }
 
@@ -631,7 +617,7 @@ internal class SignEngine(
     private fun onSessionUpdate(request: WCRequest, params: SessionParamsVO.UpdateNamespacesParams) {
         val irnParams = IrnParams(Tags.SESSION_UPDATE_RESPONSE, Ttl(DAY_IN_SECONDS))
         if (!sessionStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
+            relayer.respondWithError(request, Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
         }
 
@@ -670,7 +656,7 @@ internal class SignEngine(
     private fun onSessionExtend(request: WCRequest, requestParams: SessionParamsVO.ExtendParams) {
         val irnParams = IrnParams(Tags.SESSION_EXTEND_RESPONSE, Ttl(DAY_IN_SECONDS))
         if (!sessionStorageRepository.isSessionValid(request.topic)) {
-            relayer.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
+            relayer.respondWithError(request, Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
         }
 
@@ -700,16 +686,9 @@ internal class SignEngine(
     private fun onSessionProposalResponse(wcResponse: WCResponse, params: SessionParamsVO.SessionProposeParams) {
         val pairingTopic = wcResponse.topic
 
-        pairingInterface.updateMetadata(pairingTopic.value, params.proposer.metadata, AppMetaDataType.PEER) { error ->
-            // TODO: Maybe we don't need this
-        }
-        pairingInterface.activate(pairingTopic.value) { error ->
-            // TODO: Maybe we don't need this
-
-            //            scope.launch {
-            //                _engineEvent.emit(EngineDO.SessionRejected(pairingTopic.value, error.throwable.stackTraceToString()))
-            //            }
-        }
+        pairingInterface.updateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS))
+        pairingInterface.updateMetadata(pairingTopic.value, params.proposer.metadata, AppMetaDataType.PEER)
+        pairingInterface.activate(pairingTopic.value)
 
         if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic }) return
 
@@ -733,7 +712,10 @@ internal class SignEngine(
     private fun onSessionSettleResponse(wcResponse: WCResponse) {
         val sessionTopic = wcResponse.topic
         if (!sessionStorageRepository.isSessionValid(sessionTopic)) return
-        val session = sessionStorageRepository.getSessionByTopic(sessionTopic)
+        val session = sessionStorageRepository.getSessionByTopic(sessionTopic).run {
+            val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
+            this.copy(selfAppMetaData = selfAppMetaData, peerAppMetaData = peerAppMetaData)
+        }
 
         when (wcResponse.response) {
             is JsonRpcResponse.JsonRpcResult -> {

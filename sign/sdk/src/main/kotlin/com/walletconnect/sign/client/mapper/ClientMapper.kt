@@ -2,13 +2,11 @@
 
 package com.walletconnect.sign.client.mapper
 
-import android.net.Uri
-import android.os.Build
 import com.walletconnect.android.Core
 import com.walletconnect.android.common.connection.ConnectionType
 import com.walletconnect.android.common.model.*
-import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.SDKError
+import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
@@ -132,7 +130,7 @@ internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSess
 
 //todo create and move to core mapper outside
 @JvmSynthetic
-internal fun Core.Model.AppMetaData.toCore() =
+internal fun Core.Model.AppMetaData.toClient() =
     AppMetaData(name, description, url, icons, Redirect(redirect))
 
 //todo create and move to core mapper outside
@@ -221,16 +219,3 @@ internal fun ConnectionState.toClientConnectionState(): Sign.Model.ConnectionSta
 internal fun SDKError.toClientError(): Sign.Model.Error =
     Sign.Model.Error(this.exception)
 
-@JvmSynthetic
-internal fun String.strippedUrl() = Uri.parse(this).run {
-    this@run.scheme + "://" + this@run.authority
-}
-
-@JvmSynthetic
-internal fun String.addUserAgent(sdkVersion: String): String {
-    return Uri.parse(this).buildUpon()
-        // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
-        .appendQueryParameter("ua", """wc-2/kotlin-$sdkVersion/android-${Build.VERSION.RELEASE}""")
-        .build()
-        .toString()
-}
