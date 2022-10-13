@@ -69,7 +69,7 @@ jobs:
           path: sign/wallet/build/outputs/apk/debug/wallet-debug.apk
 
   build-dapp:
-    needs: [ deploy-sdk ]
+    needs: [ build-and-publish-sdk ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
