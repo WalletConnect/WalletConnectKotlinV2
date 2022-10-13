@@ -9,6 +9,7 @@ plugins {
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core-common"
     extra[KEY_PUBLISH_VERSION] = "1.0.0"
+    extra[KEY_SDK_VERSION_CODE] = extra.get(KEY_PUBLISH_VERSION).toString().toHash()
     extra[KEY_SDK_NAME] = "Android Core Common"
 }
 

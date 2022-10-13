@@ -9,6 +9,7 @@ plugins {
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "chat"
     extra[KEY_PUBLISH_VERSION] = "1.0.0-alpha01"
+    extra[KEY_SDK_VERSION_CODE] = extra.get(KEY_PUBLISH_VERSION).toString().toHash()
     extra[KEY_SDK_NAME] = "Chat"
 }
 
