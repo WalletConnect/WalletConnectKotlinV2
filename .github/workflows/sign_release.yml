@@ -1,11 +1,11 @@
 name: Release Sign SDK
 
 on:
-  if: ${{ 0 > secrets.SIGN_SDK_VERSION_CODE }}
-#  push:
-#    branches:
-#      - feature/release_workflow
-#      - master
+  push:
+    branches:
+      - feature/release_workflow
+    #      - master
+    if: ${{ 0 > secrets.SIGN_SDK_VERSION_CODE }}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref_name }}
