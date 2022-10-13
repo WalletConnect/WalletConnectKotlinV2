@@ -8,7 +8,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "sign"
-    extra[KEY_PUBLISH_VERSION] = "2.0.0-rc.5"
+    extra[KEY_PUBLISH_VERSION] = "2.0.0-rc.5-TEST"
     extra[KEY_SDK_NAME] = "Sign"
 }
 
