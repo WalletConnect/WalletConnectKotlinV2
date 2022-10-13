@@ -17,27 +17,27 @@ concurrency:
 
 jobs:
 
-  unit-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Cache Gradle
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Sign Unit tests
-        env:
-          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-        run: ./gradlew :sign:sdk:testDebugUnitTest
+#  unit-tests:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#      - name: Cache Gradle
+#        uses: actions/cache@v3
+#        with:
+#          path: |
+#            ~/.gradle/caches
+#            ~/.gradle/wrapper
+#          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+#          restore-keys: |
+#            ${{ runner.os }}-gradle-
+#
+#      - name: Sign Unit tests
+#        env:
+#          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+#        run: ./gradlew :sign:sdk:testDebugUnitTest
 
   build-and-publish-sdk:
-    needs: [ unit-tests ]
+#    needs: [ unit-tests ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -47,7 +47,7 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
       - name: Publish artefact
-        run: ./gradlew :sign:wallet:publishReleasePublicationToMavenLocal
+        run: ./gradlew :sign:sdk:publishReleasePublicationToMavenLocal
 #        env:
 #          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
 #          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
