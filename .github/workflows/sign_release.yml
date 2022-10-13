@@ -1,7 +1,7 @@
 name: Release Sign SDK
 
 on:
-  if: ${{ project.extra[KEY_SDK_VERSION_CODE] > secrets.SIGN_SDK_VERSION_CODE }}
+  if: ${{ 0 > secrets.SIGN_SDK_VERSION_CODE }}
 #  push:
 #    branches:
 #      - feature/release_workflow
