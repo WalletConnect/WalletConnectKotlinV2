@@ -1,7 +1,7 @@
 package com.walletconnect.android.pairing
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.common.model.*
+import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.flow.SharedFlow
 

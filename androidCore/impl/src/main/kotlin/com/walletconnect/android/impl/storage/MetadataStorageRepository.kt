@@ -1,10 +1,10 @@
 package com.walletconnect.android.impl.storage
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.android.common.model.AppMetaDataType
-import com.walletconnect.android.common.model.AppMetaData
-import com.walletconnect.android.common.model.Redirect
-import com.walletconnect.android.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.model.AppMetaDataType
+import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.Redirect
+import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.impl.storage.data.dao.MetaDataQueries
 import com.walletconnect.foundation.common.model.Topic
 

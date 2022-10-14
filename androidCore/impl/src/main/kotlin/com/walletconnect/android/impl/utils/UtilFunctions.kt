@@ -2,8 +2,8 @@
 
 package com.walletconnect.utils
 
-import com.walletconnect.android.common.SerializableJsonRpc
-import com.walletconnect.android.common.model.Expiry
+import com.walletconnect.android.internal.common.SerializableJsonRpc
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.impl.di.AndroidCoreDITags
 import com.walletconnect.android.impl.utils.CURRENT_TIME_IN_SECONDS
 import org.koin.core.module.Module

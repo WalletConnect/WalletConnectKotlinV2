@@ -1,6 +1,6 @@
 package com.walletconnect.sign.common.exceptions.client
 
-import com.walletconnect.android.common.exception.WalletConnectException
+import com.walletconnect.android.internal.common.exception.WalletConnectException
 
 class UnauthorizedPeerException(override val message: String?) : WalletConnectException(message)
 class UnauthorizedMethodException(override val message: String?) : WalletConnectException(message)

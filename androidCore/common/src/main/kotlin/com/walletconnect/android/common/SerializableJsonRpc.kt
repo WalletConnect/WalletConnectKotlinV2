@@ -1,3 +1,0 @@
-package com.walletconnect.android.common
-
-interface SerializableJsonRpc

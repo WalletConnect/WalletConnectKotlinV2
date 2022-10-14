@@ -2,7 +2,7 @@
 
 package com.walletconnect.sign.di
 
-import com.walletconnect.android.common.SerializableJsonRpc
+import com.walletconnect.android.internal.common.SerializableJsonRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.SessionRpcVO
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.utils.intoMultibindingMap

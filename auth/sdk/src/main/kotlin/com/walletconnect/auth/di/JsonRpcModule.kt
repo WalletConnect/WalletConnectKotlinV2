@@ -1,6 +1,6 @@
 package com.walletconnect.auth.di
 
-import com.walletconnect.android.common.SerializableJsonRpc
+import com.walletconnect.android.internal.common.SerializableJsonRpc
 import com.walletconnect.auth.common.json_rpc.AuthRpc
 import com.walletconnect.auth.json_rpc.model.JsonRpcMethod
 import com.walletconnect.utils.intoMultibindingMap

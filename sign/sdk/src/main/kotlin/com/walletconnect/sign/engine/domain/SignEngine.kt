@@ -4,10 +4,9 @@ package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
-import com.walletconnect.android.common.JsonRpcResponse
-import com.walletconnect.android.common.crypto.KeyManagementRepository
-import com.walletconnect.android.common.exception.WalletConnectException
-import com.walletconnect.android.common.model.*
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.exception.GenericException
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
@@ -15,7 +14,8 @@ import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.storage.MetadataStorageRepository
 import com.walletconnect.android.impl.utils.*
-import com.walletconnect.android.internal.pairing.Uncategorized
+import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.pairing.Uncategorized
 import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic

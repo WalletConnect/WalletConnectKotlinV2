@@ -2,14 +2,13 @@
 
 package com.walletconnect.sign.client
 
-import com.walletconnect.android.common.wcKoinApp
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.di.networkModule
 import com.walletconnect.android.impl.utils.Logger
-import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.sign.di.commonModule

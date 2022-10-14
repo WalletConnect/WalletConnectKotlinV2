@@ -3,10 +3,11 @@
 package com.walletconnect.sign.client.mapper
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.common.connection.ConnectionType
-import com.walletconnect.android.common.model.*
+import com.walletconnect.android.internal.common.connection.ConnectionType
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
@@ -21,7 +22,7 @@ internal fun Sequence.toClientProposedSequence(): Sign.Model.ProposedSequence =
     }
 
 @JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponse(): com.walletconnect.android.common.JsonRpcResponse =
+internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponse(): JsonRpcResponse =
     when (this) {
         is Sign.Model.JsonRpcResponse.JsonRpcResult -> this.toRpcResult()
         is Sign.Model.JsonRpcResponse.JsonRpcError -> this.toRpcError()
@@ -76,13 +77,13 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     )
 
 @JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult =
-    com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult(id, result = result)
+internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): JsonRpcResponse.JsonRpcResult =
+    JsonRpcResponse.JsonRpcResult(id, result = result)
 
 @JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcError(): com.walletconnect.android.common.JsonRpcResponse.JsonRpcError =
+internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcError(): JsonRpcResponse.JsonRpcError =
     PeerError.CAIP25.UserRejected(message).let { error ->
-        com.walletconnect.android.common.JsonRpcResponse.JsonRpcError(id, error = com.walletconnect.android.common.JsonRpcResponse.Error(error.code, error.message))
+        JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(error.code, error.message))
     }
 
 @JvmSynthetic

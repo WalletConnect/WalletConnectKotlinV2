@@ -1,8 +1,8 @@
 package com.walletconnect.auth.engine.domain
 
-import com.walletconnect.android.common.model.RelayProtocolOptions
-import com.walletconnect.android.common.model.SymmetricKey
-import com.walletconnect.android.common.model.WalletConnectUri
+import com.walletconnect.android.internal.common.model.RelayProtocolOptions
+import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.internal.common.model.WalletConnectUri
 import com.walletconnect.foundation.common.model.Topic
 import java.net.URI
 import java.net.URISyntaxException

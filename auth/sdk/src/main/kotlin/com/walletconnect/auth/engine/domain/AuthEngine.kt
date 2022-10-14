@@ -2,12 +2,11 @@
 
 package com.walletconnect.auth.engine.domain
 
-import com.walletconnect.android.common.JsonRpcResponse
-import com.walletconnect.android.common.JsonRpcResponse.JsonRpcError
-import com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult
-import com.walletconnect.android.common.crypto.KeyManagementRepository
-import com.walletconnect.android.common.exception.WalletConnectException
-import com.walletconnect.android.common.model.*
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.JsonRpcResponse.JsonRpcError
+import com.walletconnect.android.internal.common.JsonRpcResponse.JsonRpcResult
+import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
@@ -15,6 +14,7 @@ import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException

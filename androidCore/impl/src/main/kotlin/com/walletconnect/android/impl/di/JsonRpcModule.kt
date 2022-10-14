@@ -1,11 +1,11 @@
 package com.walletconnect.android.impl.di
 
-import com.walletconnect.android.common.SerializableJsonRpc
-import com.walletconnect.android.common.model.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.SerializableJsonRpc
+import com.walletconnect.android.internal.common.model.JsonRpcInteractorInterface
 import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.impl.json_rpc.domain.JsonRpcInteractor
-import com.walletconnect.android.internal.PairingJsonRpcMethod
-import com.walletconnect.android.internal.PairingParams
+import com.walletconnect.android.pairing.PairingJsonRpcMethod
+import com.walletconnect.android.pairing.PairingParams
 import com.walletconnect.utils.intoMultibindingMap
 import com.walletconnect.utils.intoMultibindingSet
 import org.koin.core.qualifier.named

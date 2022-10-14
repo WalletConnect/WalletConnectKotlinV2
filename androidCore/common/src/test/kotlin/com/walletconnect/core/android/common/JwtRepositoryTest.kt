@@ -1,6 +1,6 @@
 package com.walletconnect.core.android.common
 
-import com.walletconnect.android.common.JwtRepositoryAndroid
+import com.walletconnect.android.internal.common.JwtRepositoryAndroid
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import io.mockk.every
@@ -13,7 +13,7 @@ import java.util.*
 
 internal class JwtRepositoryTest {
     private val keyChain = KeyChainMock()
-    private val sut = spyk(JwtRepositoryAndroid(keyChain))
+    private val sut = spyk(com.walletconnect.android.internal.common.JwtRepositoryAndroid(keyChain))
     private val tag = "key_did_keypair"
     private val serverUrl = "wss://relay.walletconnect.com"
 

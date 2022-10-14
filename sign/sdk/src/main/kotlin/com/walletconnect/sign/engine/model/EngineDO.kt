@@ -3,14 +3,14 @@
 package com.walletconnect.sign.engine.model
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android.common.model.AppMetaData
-import com.walletconnect.android.common.model.Expiry
-import com.walletconnect.android.common.model.SymmetricKey
+import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.common.model.Sequence
+import com.walletconnect.android.internal.common.model.Sequence
 import com.walletconnect.foundation.common.model.Topic
 import java.net.URI
-import com.walletconnect.android.common.model.RelayProtocolOptions as CoreRelayProtocolOptions
+import com.walletconnect.android.internal.common.model.RelayProtocolOptions as CoreRelayProtocolOptions
 
 internal sealed class EngineDO {
     

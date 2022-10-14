@@ -1,6 +1,6 @@
 package com.walletconnect.sign.common.exceptions.peer
 
-import com.walletconnect.android.common.model.Error
+import com.walletconnect.android.internal.common.model.Error
 import com.walletconnect.sign.common.exceptions.DISCONNECT_MESSAGE
 
 /**

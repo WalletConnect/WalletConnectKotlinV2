@@ -5,10 +5,9 @@ package com.walletconnect.sign.storage.sequence
 import android.database.sqlite.SQLiteException
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.android.impl.common.scope.scope
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
-import com.walletconnect.sign.engine.model.EngineDO.ProposedSequence.Session.topic
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceExtensionDaoQueries
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceDaoQueries
@@ -18,7 +17,6 @@ import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceExtensionDaoQueries
 import com.walletconnect.utils.Empty
 import com.walletconnect.utils.isSequenceValid
-import kotlinx.coroutines.flow.*
 
 // todo: ensure joining metadata is done outside of sqldelight
 // todo: Also big migration
@@ -248,7 +246,7 @@ internal class SessionStorageRepository(
     }
 
     private fun verifyExpiry(expiry: Long, topic: Topic, deleteSequence: () -> Unit): Boolean {
-        return if (com.walletconnect.android.common.model.Expiry(expiry).isSequenceValid()) {
+        return if (Expiry(expiry).isSequenceValid()) {
             true
         } else {
             deleteSequence()
@@ -294,7 +292,7 @@ internal class SessionStorageRepository(
 
         return SessionVO(
             topic = Topic(topic),
-            expiry = com.walletconnect.android.common.model.Expiry(expiry),
+            expiry = Expiry(expiry),
             selfAppMetaData = null,
             peerAppMetaData = null,
             selfPublicKey = PublicKey(self_participant),

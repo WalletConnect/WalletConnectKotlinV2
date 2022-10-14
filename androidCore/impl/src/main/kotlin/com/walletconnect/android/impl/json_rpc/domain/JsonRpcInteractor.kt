@@ -1,9 +1,8 @@
 package com.walletconnect.android.impl.json_rpc.domain
 
-import com.walletconnect.android.common.JsonRpcResponse
-import com.walletconnect.android.common.exception.WalletConnectException
-import com.walletconnect.android.common.model.*
-import com.walletconnect.android.common.wcKoinApp
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.exception.WalletConnectException
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.exception.NoRelayConnectionException
 import com.walletconnect.android.impl.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.impl.common.scope.scope
@@ -15,6 +14,7 @@ import com.walletconnect.android.impl.json_rpc.model.toRelay
 import com.walletconnect.android.impl.json_rpc.model.toWCResponse
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic

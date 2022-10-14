@@ -4,18 +4,15 @@ package com.walletconnect.android.pairing
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
-import com.walletconnect.android.common.*
-import com.walletconnect.android.common.crypto.KeyManagementRepository
-import com.walletconnect.android.common.model.*
-import com.walletconnect.android.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.common.storage.PairingStorageRepositoryInterface
+import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.android.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.exception.MalformedWalletConnectUri
 import com.walletconnect.android.exception.PairWithExistingPairingIsNotAllowed
 import com.walletconnect.android.internal.*
-import com.walletconnect.android.internal.pairing.PairingDO
-import com.walletconnect.android.internal.pairing.Uncategorized
-import com.walletconnect.android.internal.pairing.toClient
+import com.walletconnect.android.internal.common.*
+import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.util.bytesToHex
@@ -214,9 +211,7 @@ internal object PairingClient : PairingInterface {
 
     //    @Throws(MethodAlreadyRegistered::class)
     override fun register(method: String, onMethod: (topic: String, request: WCRequest) -> Unit) {
-//        if (methodsToCallbacks.containsKey(method)) throw MethodAlreadyRegistered("Method: $method already registered")
-
-//        methodsToCallbacks[method] = onMethod
+        // TODO add methods to map
     }
 
     private suspend fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {
@@ -258,7 +253,7 @@ internal object PairingClient : PairingInterface {
         }
     }
 
-    private fun Pairing.isValid(): Boolean = (expiry.seconds > CURRENT_TIME_IN_SECONDS).also { isPairingValid ->
+    private fun Pairing.isValid(): Boolean = (expiry.seconds > com.walletconnect.android.internal.common.CURRENT_TIME_IN_SECONDS).also { isPairingValid ->
         if (!isPairingValid) {
             scope.launch {
                 jsonRpcInteractor.unsubscribe(this@isValid.topic)

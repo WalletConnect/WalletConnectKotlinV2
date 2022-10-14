@@ -1,6 +1,6 @@
 package com.walletconnect.android.exception
 
-import com.walletconnect.android.common.exception.WalletConnectException
+import com.walletconnect.android.internal.common.exception.WalletConnectException
 
 class GenericException(override val message: String?) : WalletConnectException(message)
 class InternalError(override val message: String?): WalletConnectException(message)

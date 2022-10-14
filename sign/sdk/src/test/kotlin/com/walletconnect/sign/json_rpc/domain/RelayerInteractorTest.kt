@@ -1,9 +1,10 @@
 package com.walletconnect.sign.json_rpc.domain
 
-import com.walletconnect.android.common.exception.WalletConnectException
-import com.walletconnect.android.common.model.*
+import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -155,7 +156,7 @@ internal class RelayerInteractorTest {
     @Test
     fun `RespondWithParams publishes result with params and request id on request topic`() {
         val params: ClientParams = mockk()
-        val result = com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult(request.id, result = params)
+        val result = JsonRpcResponse.JsonRpcResult(request.id, result = params)
         val irnParams = IrnParams(Tags.SESSION_PING, Ttl(300))
         mockRelayPublishSuccess()
         sut.respondWithParams(request, params, irnParams)
@@ -164,7 +165,7 @@ internal class RelayerInteractorTest {
 
     @Test
     fun `RespondWithSuccess publishes result as true with request id on request topic`() {
-        val result = com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult(request.id, result = true)
+        val result = JsonRpcResponse.JsonRpcResult(request.id, result = true)
         val irnParams = IrnParams(Tags.SESSION_PING, Ttl(300))
         mockRelayPublishSuccess()
         sut.respondWithSuccess(request, irnParams)
@@ -173,8 +174,8 @@ internal class RelayerInteractorTest {
 
     @Test
     fun `RespondWithError publishes result as error with request id on request topic`() {
-        val error = com.walletconnect.android.common.JsonRpcResponse.Error(peerError.code, peerError.message)
-        val result = com.walletconnect.android.common.JsonRpcResponse.JsonRpcError(request.id, error = error)
+        val error = JsonRpcResponse.Error(peerError.code, peerError.message)
+        val result = JsonRpcResponse.JsonRpcError(request.id, error = error)
         val irnParams = IrnParams(Tags.SESSION_PING, Ttl(300))
         mockRelayPublishSuccess()
         sut.respondWithError(request, peerError, irnParams)

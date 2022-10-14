@@ -3,15 +3,15 @@
 package com.walletconnect.android.relay
 
 import android.app.Application
-import com.walletconnect.android.common.connection.ConnectivityState
-import com.walletconnect.android.common.di.AndroidCommonDITags
-import com.walletconnect.android.common.di.androidApiCryptoModule
-import com.walletconnect.android.common.di.androidApiNetworkModule
-import com.walletconnect.android.common.di.commonModule
-import com.walletconnect.android.common.exception.WRONG_CONNECTION_TYPE
-import com.walletconnect.android.common.exception.WalletConnectException
-import com.walletconnect.android.common.scope
-import com.walletconnect.android.common.wcKoinApp
+import com.walletconnect.android.internal.common.connection.ConnectivityState
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.android.internal.common.di.androidApiCryptoModule
+import com.walletconnect.android.internal.common.di.androidApiNetworkModule
+import com.walletconnect.android.internal.common.di.commonModule
+import com.walletconnect.android.internal.common.exception.WRONG_CONNECTION_TYPE
+import com.walletconnect.android.internal.common.exception.WalletConnectException
+import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.connection.ConnectionType
 import com.walletconnect.android.utils.*
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository

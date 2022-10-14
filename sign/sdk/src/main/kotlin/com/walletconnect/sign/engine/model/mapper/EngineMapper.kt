@@ -2,20 +2,21 @@
 
 package com.walletconnect.sign.engine.model.mapper
 
-import com.walletconnect.android.common.model.AppMetaData
-import com.walletconnect.android.common.model.RelayProtocolOptions
-import com.walletconnect.android.common.model.WCRequest
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.RelayProtocolOptions
+import com.walletconnect.android.internal.common.model.WCRequest
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.peer.PeerError
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
-import com.walletconnect.android.common.model.SessionProposer
+import com.walletconnect.android.internal.common.model.SessionProposer
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
-import com.walletconnect.utils.Empty
 import java.net.URI
 
 @JvmSynthetic
@@ -77,7 +78,7 @@ internal fun SessionVO.toEngineDO(): EngineDO.Session =
     )
 
 @JvmSynthetic
-internal fun SessionVO.toEngineDOSessionExtend(expiryVO: com.walletconnect.android.common.model.Expiry): EngineDO.SessionExtend =
+internal fun SessionVO.toEngineDOSessionExtend(expiryVO: Expiry): EngineDO.SessionExtend =
     EngineDO.SessionExtend(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfAppMetaData)
 
 
@@ -147,11 +148,11 @@ internal fun Map<String, EngineDO.Namespace.Session>.toMapOfNamespacesVOSession(
     }
 
 @JvmSynthetic
-internal fun com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult.toEngineDO(): EngineDO.JsonRpcResponse.JsonRpcResult =
+internal fun JsonRpcResponse.JsonRpcResult.toEngineDO(): EngineDO.JsonRpcResponse.JsonRpcResult =
     EngineDO.JsonRpcResponse.JsonRpcResult(id = id, result = result.toString())
 
 @JvmSynthetic
-internal fun com.walletconnect.android.common.JsonRpcResponse.JsonRpcError.toEngineDO(): EngineDO.JsonRpcResponse.JsonRpcError =
+internal fun JsonRpcResponse.JsonRpcError.toEngineDO(): EngineDO.JsonRpcResponse.JsonRpcError =
     EngineDO.JsonRpcResponse.JsonRpcError(id = id, error = EngineDO.JsonRpcResponse.Error(error.code, error.message))
 
 @JvmSynthetic

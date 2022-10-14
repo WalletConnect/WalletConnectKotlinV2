@@ -4,7 +4,7 @@ package com.walletconnect.android.utils
 
 import android.net.Uri
 import android.os.Build
-import com.walletconnect.android.common.exception.WalletConnectException
+import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.connection.ConnectionType
 import com.walletconnect.android.exception.GenericException
 import com.walletconnect.android.exception.InvalidProjectIdException
@@ -26,10 +26,10 @@ internal fun String.addUserAgent(sdkVersion: String): String {
 }
 
 @JvmSynthetic
-internal fun ConnectionType.toCommonConnectionType(): com.walletconnect.android.common.connection.ConnectionType =
+internal fun ConnectionType.toCommonConnectionType(): com.walletconnect.android.internal.common.connection.ConnectionType =
     when (this) {
-        ConnectionType.AUTOMATIC -> com.walletconnect.android.common.connection.ConnectionType.AUTOMATIC
-        ConnectionType.MANUAL -> com.walletconnect.android.common.connection.ConnectionType.MANUAL
+        ConnectionType.AUTOMATIC -> com.walletconnect.android.internal.common.connection.ConnectionType.AUTOMATIC
+        ConnectionType.MANUAL -> com.walletconnect.android.internal.common.connection.ConnectionType.MANUAL
     }
 
 @JvmSynthetic

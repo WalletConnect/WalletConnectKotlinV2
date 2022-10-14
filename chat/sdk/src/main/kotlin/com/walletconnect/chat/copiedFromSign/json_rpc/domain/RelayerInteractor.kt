@@ -2,7 +2,7 @@
 
 package com.walletconnect.chat.copiedFromSign.json_rpc.domain
 
-import com.walletconnect.android.common.exception.WalletConnectException
+import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.exception.GenericException
 import com.walletconnect.android.exception.NoRelayConnectionException
 import com.walletconnect.android.impl.utils.Logger

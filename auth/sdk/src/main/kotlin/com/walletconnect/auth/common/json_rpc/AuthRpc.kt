@@ -4,7 +4,7 @@ package com.walletconnect.auth.common.json_rpc
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android.common.model.JsonRpcClientSync
+import com.walletconnect.android.internal.common.model.JsonRpcClientSync
 import com.walletconnect.auth.json_rpc.model.JsonRpcMethod
 
 internal sealed class AuthRpc : JsonRpcClientSync<AuthParams> {
