@@ -1,6 +1,6 @@
-package com.walletconnect.core.android.common
+package com.walletconnect.android.internal.common
 
-import com.walletconnect.android.internal.common.JwtRepositoryAndroid
+import com.walletconnect.android.internal.KeyChainMock
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import io.mockk.every
@@ -9,11 +9,11 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.*
 
-internal class JwtRepositoryTest {
+internal class JwtRepositoryAndroidTest {
+
     private val keyChain = KeyChainMock()
-    private val sut = spyk(com.walletconnect.android.internal.common.JwtRepositoryAndroid(keyChain))
+    private val sut = spyk(JwtRepositoryAndroid(keyChain))
     private val tag = "key_did_keypair"
     private val serverUrl = "wss://relay.walletconnect.com"
 
@@ -29,7 +29,7 @@ internal class JwtRepositoryTest {
 
         every { sut.generateSubject() } returns "c479fe5dc464e771e78b193d239a65b58d278cad1c34bfb0b5716e5bb514928e"
         every { sut.encodeByteArray(any()) } answers {
-            Base64.getUrlEncoder().withoutPadding().encodeToString(firstArg())
+            java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(firstArg())
         }
         every { sut.getCurrentTimestamp() } returns 1656910097000L
     }

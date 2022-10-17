@@ -59,8 +59,8 @@ dependencies {
     debugApi(project(":androidCore:sdk"))
     releaseApi("com.walletconnect:android-core:1.0.0")
 
-    debugApi(project(":androidCore:common"))
-    releaseApi("com.walletconnect:android-core-common:1.0.0")
+//    debugApi(project(":androidCore:common"))
+//    releaseApi("com.walletconnect:android-core-common:1.0.0")
 
     bouncyCastle()
     coroutines()

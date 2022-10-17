@@ -1,11 +1,11 @@
-package com.walletconnect.core.android.common
+package com.walletconnect.android.internal
 
 import com.walletconnect.android.internal.common.storage.KeyStore
 import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
 
-internal class KeyChainMock : com.walletconnect.android.internal.common.storage.KeyStore {
+internal class KeyChainMock : KeyStore {
     private val mapOfKeys = mutableMapOf<String, String>()
 
     override fun setKey(tag: String, key: Key) {

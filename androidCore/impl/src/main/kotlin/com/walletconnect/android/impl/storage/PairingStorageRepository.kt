@@ -1,17 +1,14 @@
 package com.walletconnect.android.impl.storage
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.android.pairing.ACTIVE_PAIRING
-import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
-import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.storage.data.dao.PairingQueries
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Pairing
 import com.walletconnect.android.internal.common.model.Redirect
+import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
+import com.walletconnect.android.pairing.ACTIVE_PAIRING
 import com.walletconnect.foundation.common.model.Topic
-import kotlinx.coroutines.NonCancellable.isActive
-import kotlinx.coroutines.flow.*
 
 class PairingStorageRepository(private val pairingQueries: PairingQueries) : PairingStorageRepositoryInterface {
 

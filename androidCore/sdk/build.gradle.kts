@@ -2,6 +2,7 @@ plugins {
     id("com.android.library")
     kotlin("android")
     id("publish-module-android")
+    id("com.google.devtools.ksp") version kspVersion
 }
 
 project.apply {
@@ -39,10 +40,21 @@ android {
 }
 
 dependencies {
-    debugApi(project(":androidCore:common"))
-    releaseApi("com.walletconnect:android-core-common:1.0.0")
+    debugApi(project(":foundation"))
+    releaseApi("com.walletconnect:foundation:1.0.0")
 
+    bouncyCastle()
+    coroutines()
+    moshiKsp()
+    moshi()
+    scarlet()
+    scarletAndroid()
+    sqlDelightAndroid()
+    sqlCipher()
+    security()
     koinAndroid()
+    multibaseJava()
+    timber()
 
     jUnit5()
     jUnit5Android()
