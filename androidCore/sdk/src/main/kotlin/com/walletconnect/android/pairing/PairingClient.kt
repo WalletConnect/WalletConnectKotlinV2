@@ -230,8 +230,8 @@ internal object PairingClient : PairingInterface {
         }
     }
 
-    override fun register(methods: String) {
-        setOfRegisteredMethods.add(methods)
+    override fun register(vararg method: String) {
+        setOfRegisteredMethods.addAll(method)
     }
 
     private suspend fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {

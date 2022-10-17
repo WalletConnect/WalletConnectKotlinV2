@@ -29,6 +29,7 @@ import com.walletconnect.auth.engine.mapper.toFormattedMessage
 import com.walletconnect.auth.engine.mapper.toPendingRequest
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
+import com.walletconnect.auth.json_rpc.model.JsonRpcMethod
 import com.walletconnect.auth.signature.CacaoType
 import com.walletconnect.auth.signature.cacao.CacaoVerifier
 import com.walletconnect.foundation.common.model.PublicKey
@@ -60,6 +61,10 @@ internal class AuthEngine(
         collectJsonRpcRequests()
         collectJsonRpcResponses()
         collectInternalErrors()
+
+        pairingInterface.register(
+            JsonRpcMethod.WC_AUTH_REQUEST
+        )
     }
 
     internal fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {

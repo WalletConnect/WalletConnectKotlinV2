@@ -41,7 +41,7 @@ interface PairingInterface {
     fun updateMetadata(topic: String, metadata: AppMetaData, metaDataType: AppMetaDataType, onError: (Core.Model.Error) -> Unit = {})
 
     // for both to subscribe on methods requests
-    fun register(methods: String)
+    fun register(vararg method: String)
 
     interface Delegate {
         fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing)

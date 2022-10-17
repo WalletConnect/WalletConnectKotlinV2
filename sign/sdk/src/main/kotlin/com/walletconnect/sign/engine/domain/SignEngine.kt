@@ -35,6 +35,7 @@ import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.*
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCase
+import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import com.walletconnect.util.generateId
 import com.walletconnect.utils.Empty
@@ -62,6 +63,17 @@ internal class SignEngine(
         collectJsonRpcRequests()
         collectJsonRpcResponses()
         collectInternalErrors()
+
+        pairingInterface.register(
+            JsonRpcMethod.WC_SESSION_PROPOSE,
+            JsonRpcMethod.WC_SESSION_SETTLE,
+            JsonRpcMethod.WC_SESSION_REQUEST,
+            JsonRpcMethod.WC_SESSION_EVENT,
+            JsonRpcMethod.WC_SESSION_DELETE,
+            JsonRpcMethod.WC_SESSION_EXTEND,
+            JsonRpcMethod.WC_SESSION_PING,
+            JsonRpcMethod.WC_SESSION_UPDATE
+        )
     }
 
     fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
