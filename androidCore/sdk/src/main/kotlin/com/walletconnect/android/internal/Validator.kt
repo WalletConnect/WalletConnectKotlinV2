@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.android.internal
 
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
@@ -49,7 +51,8 @@ internal object Validator {
         )
     }
 
-    fun doesNotContainRegisteredMethods(uriMethods: String, registeredMethods: Set<String>): Boolean {
+    @JvmSynthetic
+    internal fun doesNotContainRegisteredMethods(uriMethods: String, registeredMethods: Set<String>): Boolean {
         return !registeredMethods.containsAll(uriMethods.split(","))
     }
 }

@@ -1,14 +1,15 @@
+package com.walletconnect.android.internal
+
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SymmetricKey
-import com.walletconnect.auth.engine.domain.Validator
-import com.walletconnect.auth.engine.mapper.toAbsoluteString
+import com.walletconnect.android.internal.common.model.WalletConnectUri
 import com.walletconnect.foundation.common.model.Topic
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-class ValidatorTest {
+internal class ValidatorTest {
 
     @Test
     fun `validate WC uri test`() {
@@ -62,7 +63,8 @@ class ValidatorTest {
         val uri = WalletConnectUri(
             Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
-            RelayProtocolOptions("irn", "teeestData")
+            RelayProtocolOptions("irn", "teeestData"),
+            ""
         )
 
         assertEquals(uri.toAbsoluteString(), "wc:auth-11112222244444@2?relay-protocol=irn&relay-data=teeestData&symKey=0x12321321312312312321")
@@ -70,7 +72,8 @@ class ValidatorTest {
         val uri2 = WalletConnectUri(
             Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
-            RelayProtocolOptions("irn")
+            RelayProtocolOptions("irn"),
+            ""
         )
 
         assertEquals(uri2.toAbsoluteString(), "wc:auth-11112222244444@2?relay-protocol=irn&symKey=0x12321321312312312321")

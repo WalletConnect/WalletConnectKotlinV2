@@ -20,7 +20,7 @@ data class Pairing(
         expiry = Expiry(INACTIVE_PAIRING),
         relayProtocol = relay.protocol,
         relayData = relay.data,
-        uri = WalletConnectUri(topic, symmetricKey, relay).toAbsoluteString(),
+        uri = WalletConnectUri(topic, symmetricKey, relay, registeredMethods).toAbsoluteString(),
         isActive = false,
         registeredMethods = registeredMethods
     )

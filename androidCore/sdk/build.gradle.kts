@@ -43,4 +43,8 @@ dependencies {
     releaseApi("com.walletconnect:android-core-common:1.0.0")
 
     koinAndroid()
+
+    jUnit5()
+    jUnit5Android()
+    mockk()
 }

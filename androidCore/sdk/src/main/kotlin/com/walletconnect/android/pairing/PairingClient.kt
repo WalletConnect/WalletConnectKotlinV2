@@ -273,7 +273,7 @@ internal object PairingClient : PairingInterface {
         }
     }
 
-    private fun Pairing.isValid(): Boolean = (expiry.seconds > com.walletconnect.android.internal.common.CURRENT_TIME_IN_SECONDS).also { isPairingValid ->
+    private fun Pairing.isValid(): Boolean = (expiry.seconds > CURRENT_TIME_IN_SECONDS).also { isPairingValid ->
         if (!isPairingValid) {
             scope.launch {
                 jsonRpcInteractor.unsubscribe(this@isValid.topic)
