@@ -10,19 +10,15 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Pairing
 import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.foundation.common.model.Topic
+import kotlinx.coroutines.NonCancellable.isActive
 import kotlinx.coroutines.flow.*
 
 class PairingStorageRepository(private val pairingQueries: PairingQueries) : PairingStorageRepositoryInterface {
 
-    private val _topicExpiredFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
-    override val topicExpiredFlow: SharedFlow<Topic> = _topicExpiredFlow.onEach {
-        deletePairing(it)
-    }.shareIn(scope, SharingStarted.Lazily)
-
     @Throws(SQLiteException::class)
     override fun insertPairing(pairing: Pairing) {
         with(pairing) {
-            pairingQueries.insertOrAbortPairing(topic.value, expiry.seconds, relayProtocol, relayData, uri, isActive)
+            pairingQueries.insertOrAbortPairing(topic.value, expiry.seconds, relayProtocol, relayData, uri, registeredMethods, isActive)
         }
     }
 
@@ -51,6 +47,7 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
         relay_protocol: String,
         relay_data: String?,
         uri: String,
+        methods: String,
         is_active: Boolean,
         peerName: String?,
         peerDesc: String?,
@@ -64,6 +61,15 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
             null
         }
 
-        return Pairing(topic = Topic(topic), expiry = Expiry(expirySeconds), peerAppMetaData = peerAppMetaData, relayProtocol = relay_protocol, relayData = relay_data, uri = uri, isActive = is_active)
+        return Pairing(
+            topic = Topic(topic),
+            expiry = Expiry(expirySeconds),
+            peerAppMetaData = peerAppMetaData,
+            relayProtocol = relay_protocol,
+            relayData = relay_data,
+            uri = uri,
+            registeredMethods = methods,
+            isActive = is_active
+        )
     }
 }

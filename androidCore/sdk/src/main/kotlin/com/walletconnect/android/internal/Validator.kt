@@ -12,6 +12,7 @@ internal object Validator {
     @JvmSynthetic
     internal fun validateWCUri(uri: String): WalletConnectUri? {
         if (!uri.startsWith("wc:")) return null
+
         val properUriString = when {
             uri.contains("wc://") -> uri
             uri.contains("wc:/") -> uri.replace("wc:/", "wc://")
@@ -28,6 +29,8 @@ internal object Validator {
         val mapOfQueryParameters: Map<String, String> =
             pairUri.query.split("&").associate { query -> query.substringBefore("=") to query.substringAfter("=") }
 
+        if (!mapOfQueryParameters.containsKey("methods")) return null
+
         var relayProtocol = ""
         mapOfQueryParameters["relay-protocol"]?.let { relayProtocol = it } ?: return null
         if (relayProtocol.isEmpty()) return null
@@ -41,7 +44,12 @@ internal object Validator {
         return WalletConnectUri(
             topic = Topic(pairUri.userInfo),
             relay = RelayProtocolOptions(protocol = relayProtocol, data = relayData),
-            symKey = SymmetricKey(symKey)
+            symKey = SymmetricKey(symKey),
+            registeredMethods = mapOfQueryParameters["methods"]!!
         )
+    }
+
+    fun doesNotContainRegisteredMethods(uriMethods: String, registeredMethods: Set<String>): Boolean {
+        return !registeredMethods.containsAll(uriMethods.split(","))
     }
 }

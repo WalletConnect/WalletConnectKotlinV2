@@ -4,15 +4,18 @@ package com.walletconnect.android.pairing
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
-import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.android.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.exception.MalformedWalletConnectUri
 import com.walletconnect.android.exception.PairWithExistingPairingIsNotAllowed
-import com.walletconnect.android.internal.*
+import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
+import com.walletconnect.android.internal.NO_SEQUENCE_FOR_TOPIC_MESSAGE
+import com.walletconnect.android.internal.PAIRING_NOW_ALLOWED_MESSAGE
+import com.walletconnect.android.internal.Validator
 import com.walletconnect.android.internal.common.*
+import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.util.bytesToHex
@@ -23,7 +26,9 @@ import kotlinx.coroutines.flow.*
 import org.koin.dsl.module
 
 internal object PairingClient : PairingInterface {
-    //    private val methodsToCallbacks: MutableMap<String, (topic: String, request: WCRequest) -> Unit> = mutableMapOf()
+    private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
+    private val registeredMethods: String
+        get() = setOfRegisteredMethods.joinToString(",") { it }
     private val pairingEvent = MutableSharedFlow<PairingDO>()
     private val _topicExpiredFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
     override val topicExpiredFlow: SharedFlow<Topic> = _topicExpiredFlow.asSharedFlow()
@@ -119,7 +124,8 @@ internal object PairingClient : PairingInterface {
         val pairingTopic: Topic = generateTopic()
         val symmetricKey: SymmetricKey = crypto.generateAndStoreSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptions()
-        val inactivePairing = Pairing(pairingTopic, relay, symmetricKey)
+        val registeredMethods = setOfRegisteredMethods.joinToString(",") { it }
+        val inactivePairing = Pairing(pairingTopic, relay, symmetricKey, registeredMethods)
 
         return inactivePairing.runCatching {
             pairingRepository.insertPairing(this)
@@ -142,7 +148,22 @@ internal object PairingClient : PairingInterface {
             return onError(Core.Model.Error(PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)))
         }
 
-        val activePairing = Pairing(walletConnectUri)
+        if (Validator.doesNotContainRegisteredMethods(walletConnectUri.registeredMethods, setOfRegisteredMethods)) {
+            val deleteParams = PairingParams.DeleteParams(10001, "Methods Unsupported")
+            val pairingDelete = PairingRpc.PairingDelete(id = generateId(), params = deleteParams)
+            val irnParams = IrnParams(Tags.PAIRING_DELETE, Ttl(DAY_IN_SECONDS))
+
+            return jsonRpcInteractor.publishJsonRpcRequests(walletConnectUri.topic, irnParams, pairingDelete,
+                onSuccess = {
+                    onError(Core.Model.Error(IllegalArgumentException("Peer Required RPC  Methods Missing")))
+                },
+                onFailure = {
+                    onError(Core.Model.Error(it))
+                }
+            )
+        }
+
+        val activePairing = Pairing(walletConnectUri, registeredMethods)
         val symmetricKey = walletConnectUri.symKey
         crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
 
@@ -209,9 +230,8 @@ internal object PairingClient : PairingInterface {
         }
     }
 
-    //    @Throws(MethodAlreadyRegistered::class)
-    override fun register(method: String, onMethod: (topic: String, request: WCRequest) -> Unit) {
-        // TODO add methods to map
+    override fun register(methods: String) {
+        setOfRegisteredMethods.add(methods)
     }
 
     private suspend fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {

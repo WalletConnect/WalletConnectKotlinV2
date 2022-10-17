@@ -3,12 +3,9 @@ package com.walletconnect.android.internal.common.storage
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Pairing
 import com.walletconnect.foundation.common.model.Topic
-import kotlinx.coroutines.flow.SharedFlow
 
 //todo: seperate interface might not be necessary
 interface PairingStorageRepositoryInterface {
-
-    val topicExpiredFlow : SharedFlow<Topic>
 
     fun insertPairing(pairing: Pairing)
 

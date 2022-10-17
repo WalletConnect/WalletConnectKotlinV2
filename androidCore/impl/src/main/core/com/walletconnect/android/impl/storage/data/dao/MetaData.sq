@@ -1,4 +1,4 @@
-import com.walletconnect.android.common.model.AppMetaDataType;
+import com.walletconnect.android.internal.common.model.AppMetaDataType;
 import kotlin.collections.List;
 
 CREATE TABLE MetaData(
@@ -20,11 +20,6 @@ VALUES (?, ?, ?, ?, ?, ?,?);
 updateMetaData:
 UPDATE MetaData
 SET name = ?, description = ?, url = ?, icons = ?, native = ?, type = ?
-WHERE sequence_topic = ?;
-
-getMetadataByTopic:
-SELECT name, description, url, icons, native, type
-FROM MetaData
 WHERE sequence_topic = ?;
 
 getMetadataByTopicAndType:

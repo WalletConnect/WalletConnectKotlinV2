@@ -8,6 +8,7 @@ data class WalletConnectUri(
     val topic: Topic,
     val symKey: SymmetricKey,
     val relay: RelayProtocolOptions,
+    val registeredMethods: String,
     val version: String = "2",
 ) {
     fun toAbsoluteString(): String =

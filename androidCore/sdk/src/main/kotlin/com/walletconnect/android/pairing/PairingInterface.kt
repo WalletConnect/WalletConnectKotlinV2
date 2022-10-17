@@ -41,7 +41,7 @@ interface PairingInterface {
     fun updateMetadata(topic: String, metadata: AppMetaData, metaDataType: AppMetaDataType, onError: (Core.Model.Error) -> Unit = {})
 
     // for both to subscribe on methods requests
-    fun register(method: String, onMethod: (topic: String, request: WCRequest) -> Unit = { _, _ -> }) //todo: maybe use different approach with flows?
+    fun register(methods: String)
 
     interface Delegate {
         fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing)

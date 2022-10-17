@@ -2,14 +2,14 @@ package com.walletconnect.android.impl.di
 
 import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.EnumColumnAdapter
-import com.walletconnect.android.internal.common.model.AppMetaDataType
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.android.impl.core.AndroidCoreDatabase
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.impl.storage.MetadataStorageRepository
 import com.walletconnect.android.impl.storage.PairingStorageRepository
 import com.walletconnect.android.impl.storage.data.dao.MetaData
+import com.walletconnect.android.internal.common.model.AppMetaDataType
+import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
