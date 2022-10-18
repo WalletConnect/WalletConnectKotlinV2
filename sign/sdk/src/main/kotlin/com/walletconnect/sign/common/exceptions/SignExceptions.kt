@@ -1,4 +1,4 @@
-package com.walletconnect.sign.common.exceptions.client
+package com.walletconnect.sign.common.exceptions
 
 import com.walletconnect.android.internal.common.exception.WalletConnectException
 

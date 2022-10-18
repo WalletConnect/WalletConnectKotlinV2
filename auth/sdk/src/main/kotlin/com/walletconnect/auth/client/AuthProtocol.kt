@@ -38,7 +38,7 @@ internal class AuthProtocol : AuthInterface {
                 cryptoModule(),
                 jsonRpcModule(),
                 storageModule(),
-                engineModule(core.selfMetaData, iss)
+                engineModule(iss)
             )
         }
 

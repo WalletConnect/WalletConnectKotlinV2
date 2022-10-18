@@ -1,3 +1,3 @@
 package com.walletconnect.android.internal.common.exception
 
-open class WalletConnectException(override val message: String?) : Exception(message)
+abstract class WalletConnectException(override val message: String?) : Exception(message)

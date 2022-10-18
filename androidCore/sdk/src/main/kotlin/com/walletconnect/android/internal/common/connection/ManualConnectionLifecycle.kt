@@ -10,7 +10,7 @@ import com.walletconnect.foundation.network.data.ConnectionEvent
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-class ManualConnectionLifecycle(
+internal class ManualConnectionLifecycle(
     connectionController: ConnectionController,
     private val lifecycleRegistry: LifecycleRegistry,
 ) : Lifecycle by lifecycleRegistry {

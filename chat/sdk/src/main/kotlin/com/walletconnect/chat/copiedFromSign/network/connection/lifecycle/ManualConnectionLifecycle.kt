@@ -10,6 +10,7 @@ import com.walletconnect.chat.copiedFromSign.network.connection.controller.Conne
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
+@Deprecated("Remove and use ManualConnectionLifecycle from Android Core SDK")
 internal class ManualConnectionLifecycle(
     connectionController: ConnectionController,
     private val lifecycleRegistry: LifecycleRegistry,

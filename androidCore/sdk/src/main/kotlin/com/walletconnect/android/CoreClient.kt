@@ -1,9 +1,9 @@
 package com.walletconnect.android
 
 import android.app.Application
-import com.walletconnect.android.connection.ConnectionType
 import com.walletconnect.android.pairing.PairingClient
 import com.walletconnect.android.pairing.PairingInterface
+import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.android.relay.RelayConnectionInterface
 

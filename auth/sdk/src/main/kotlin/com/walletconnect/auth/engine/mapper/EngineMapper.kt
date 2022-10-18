@@ -1,15 +1,7 @@
 package com.walletconnect.auth.engine.mapper
 
-import com.walletconnect.android.Core
-import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.internal.common.model.Redirect
-import com.walletconnect.android.internal.common.model.WalletConnectUri
 import com.walletconnect.auth.common.model.*
 import com.walletconnect.auth.signature.Signature
-
-//todo create and move to core mapper outside
-@JvmSynthetic
-internal fun Core.Model.AppMetaData.toClient(): AppMetaData = AppMetaData(name, description, url, icons, Redirect(redirect))
 
 @JvmSynthetic
 internal fun PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.Payload(
@@ -47,18 +39,6 @@ internal fun Cacao.Payload.toFormattedMessage(chainName: String = "Ethereum"): S
         resources.forEach { resource -> message += "\n- $resource" }
     }
     return message
-}
-
-@JvmSynthetic
-internal fun WalletConnectUri.toAbsoluteString(): String =
-    "wc:auth-${topic.value}@$version?${getQuery()}&symKey=${symKey.keyAsHex}"
-
-private fun WalletConnectUri.getQuery(): String {
-    var query = "relay-protocol=${relay.protocol}"
-    if (relay.data != null) {
-        query = "$query&relay-data=${relay.data}"
-    }
-    return query
 }
 
 @JvmSynthetic

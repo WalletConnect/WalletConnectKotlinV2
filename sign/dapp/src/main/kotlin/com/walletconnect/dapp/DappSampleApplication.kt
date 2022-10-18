@@ -4,7 +4,7 @@ import android.app.Application
 import android.util.Log
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.connection.ConnectionType
+import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.sample_common.BuildConfig
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample_common.tag

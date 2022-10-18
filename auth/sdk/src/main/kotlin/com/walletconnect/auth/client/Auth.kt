@@ -32,14 +32,6 @@ object Auth {
 
         data class ConnectionState(val isAvailable: Boolean) : Model()
 
-        data class AppMetaData(
-            val name: String,
-            val description: String,
-            val url: String,
-            val icons: List<String>,
-            val redirect: String?,
-        ) : Model()
-
         data class Pairing(val uri: String) : Model()
 
         data class PendingRequest(

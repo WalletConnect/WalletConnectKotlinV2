@@ -3,13 +3,13 @@
 package com.walletconnect.sign.client.mapper
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.internal.common.connection.ConnectionType
+import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.common.exceptions.peer.PeerError
+import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.engine.model.EngineDO
 

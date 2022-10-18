@@ -1,9 +1,6 @@
-package com.walletconnect.android.exception
-
-import com.walletconnect.android.internal.common.exception.WalletConnectException
+package com.walletconnect.android.internal.common.exception
 
 class GenericException(override val message: String?) : WalletConnectException(message)
-class InternalError(override val message: String?): WalletConnectException(message)
 
 class MalformedWalletConnectUri(override val message: String?) : WalletConnectException(message)
 class PairWithExistingPairingIsNotAllowed(override val message: String?) : WalletConnectException(message)

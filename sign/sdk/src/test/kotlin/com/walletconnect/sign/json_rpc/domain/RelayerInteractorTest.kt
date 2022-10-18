@@ -10,7 +10,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.foundation.network.model.RelayDTO
-import com.walletconnect.sign.common.exceptions.peer.PeerError
+import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.utils.Empty
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -204,7 +204,7 @@ internal class RelayerInteractorTest {
     @Test
     fun `InitializationErrorsFlow emits value only on OnConnectionFailed`() = runBlockingTest {
         every { relay.initializationErrorsFlow } returns flowOf(
-            WalletConnectException("Test")
+            object: WalletConnectException("Test") {}
         )
 
         val job = sut.initializationErrorsFlow.onEach { walletConnectException ->

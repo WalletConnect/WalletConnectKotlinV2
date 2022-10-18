@@ -4,9 +4,9 @@ package com.walletconnect.android.pairing
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
-import com.walletconnect.android.exception.CannotFindSequenceForTopic
-import com.walletconnect.android.exception.MalformedWalletConnectUri
-import com.walletconnect.android.exception.PairWithExistingPairingIsNotAllowed
+import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
+import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
+import com.walletconnect.android.internal.common.exception.PairWithExistingPairingIsNotAllowed
 import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
 import com.walletconnect.android.internal.NO_SEQUENCE_FOR_TOPIC_MESSAGE
 import com.walletconnect.android.internal.PAIRING_NOW_ALLOWED_MESSAGE
