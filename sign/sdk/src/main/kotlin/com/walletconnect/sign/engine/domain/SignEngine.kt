@@ -176,9 +176,9 @@ internal class SignEngine(
             val unacknowledgedSession = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces)
 
             try {
-                val peerAppMetaData = with(proposal.proposer.metadata) { AppMetaData(name, description, url, icons, redirect, AppMetaData.Type.PEER) }
+                val peerAppMetaData = with(proposal.proposer.metadata) { AppMetaData(name, description, url, icons, redirect) }
                 sessionStorageRepository.insertSession(unacknowledgedSession, pairingTopic, requestId)
-                pairingInterface.updateMetadata(pairingTopic.value, peerAppMetaData) //todo: take care of multiple metadata structures
+                pairingInterface.updateMetadata(pairingTopic.value, peerAppMetaData, AppMetaDataType.PEER) //todo: take care of multiple metadata structures
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
                 val sessionSettle = SessionRpcVO.SessionSettle(id = generateId(), params = params)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
@@ -437,7 +437,7 @@ internal class SignEngine(
         return sessionStorageRepository.getListOfSessionVOs()
             .filter { session -> session.isAcknowledged && session.expiry.isSequenceValid() }
             .map { session ->
-                val peerMetaData = metadataStorageRepository.getByTopicAndType(session.topic, AppMetaData.Type.PEER)
+                val peerMetaData = metadataStorageRepository.getByTopicAndType(session.topic, AppMetaDataType.PEER)
                 session.copy(selfAppMetaData = selfAppMetaData, peerAppMetaData = peerMetaData)
             }
             .map { session -> session.toEngineDO() }
@@ -537,7 +537,7 @@ internal class SignEngine(
 
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
             sessionStorageRepository.insertSession(session, request.topic, request.id)
-            metadataStorageRepository.upsertPairingPeerMetadata(sessionTopic, peerMetadata)
+            metadataStorageRepository.upsertPairingPeerMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
 
             relayer.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
             scope.launch { _engineEvent.emit(session.toSessionApproved()) }
@@ -578,7 +578,7 @@ internal class SignEngine(
         }
 
         val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerAppMetaData: AppMetaData?) = sessionStorageRepository.getSessionByTopic(request.topic).run {
-            val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaData.Type.PEER)
+            val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
             this.namespaces to peerAppMetaData
         }
 
@@ -698,7 +698,7 @@ internal class SignEngine(
         val pairingTopic = wcResponse.topic
 
         pairingInterface.updateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS))
-        pairingInterface.updateMetadata(pairingTopic.value, params.proposer.metadata)
+        pairingInterface.updateMetadata(pairingTopic.value, params.proposer.metadata, AppMetaDataType.PEER)
         pairingInterface.activate(pairingTopic.value)
 
         if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic }) return
@@ -724,7 +724,7 @@ internal class SignEngine(
         val sessionTopic = wcResponse.topic
         if (!sessionStorageRepository.isSessionValid(sessionTopic)) return
         val session = sessionStorageRepository.getSessionByTopic(sessionTopic).run {
-            val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaData.Type.PEER)
+            val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
             this.copy(selfAppMetaData = selfAppMetaData, peerAppMetaData = peerAppMetaData)
         }
 
