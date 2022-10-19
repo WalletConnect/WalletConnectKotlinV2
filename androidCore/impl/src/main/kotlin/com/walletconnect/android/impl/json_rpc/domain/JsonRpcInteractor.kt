@@ -5,7 +5,7 @@ import com.walletconnect.android.internal.common.exception.WalletConnectExceptio
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.impl.common.model.sync.ClientJsonRpc
-import com.walletconnect.android.impl.common.scope.scope
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.impl.json_rpc.model.toJsonRpcError

@@ -2,7 +2,7 @@ package com.walletconnect.android
 
 object Core {
     sealed interface Listeners {
-        interface SessionPing : Listeners {
+        interface PairingPing : Listeners {
             fun onSuccess(pingSuccess: Model.Ping.Success)
             fun onError(pingError: Model.Ping.Error)
         }

@@ -8,14 +8,12 @@ import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.android.relay.RelayConnectionInterface
 
 object CoreClient {
-    lateinit var selfMetaData: Core.Model.AppMetaData
-    val Pairing: PairingInterface = PairingClient
-    val Relay: RelayConnectionInterface = RelayClient
+    var Pairing: PairingInterface = PairingClient
+    var Relay: RelayConnectionInterface = RelayClient
 
     interface CoreDelegate: PairingInterface.Delegate
 
     fun initialize(metaData: Core.Model.AppMetaData, relayServerUrl: String, connectionType: ConnectionType, application: Application) {
-        selfMetaData = metaData
         PairingClient.initialize(metaData)
         RelayClient.initialize(relayServerUrl, connectionType, application)
     }

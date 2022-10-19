@@ -41,26 +41,15 @@ android {
 }
 
 sqldelight {
-    database("Database") {
-        packageName = "com.walletconnect.android.impl.shared"
-        sourceFolders = listOf("shared")
-    }
     database("AndroidCoreDatabase") {
         packageName = "com.walletconnect.android.impl.core"
         sourceFolders = listOf("core")
-    }
-
-    database("AndroidCore") {
-        packageName = "com.walletconnect.android.impl"
     }
 }
 
 dependencies {
     debugApi(project(":androidCore:sdk"))
     releaseApi("com.walletconnect:android-core:1.0.0")
-
-//    debugApi(project(":androidCore:common"))
-//    releaseApi("com.walletconnect:android-core-common:1.0.0")
 
     bouncyCastle()
     coroutines()

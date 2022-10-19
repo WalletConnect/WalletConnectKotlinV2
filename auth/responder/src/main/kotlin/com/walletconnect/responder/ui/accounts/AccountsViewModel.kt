@@ -1,18 +1,17 @@
 package com.walletconnect.responder.ui.accounts
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.auth.client.Auth
-import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.responder.domain.ResponderDelegate
 import com.walletconnect.responder.domain.mapOfAccounts1
 import com.walletconnect.responder.domain.mapOfAccounts2
 import com.walletconnect.responder.ui.events.ResponderEvents
 import com.walletconnect.responder.ui.request.RequestStore
 import com.walletconnect.sample_common.Chains
-import com.walletconnect.sample_common.tag
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 
@@ -36,9 +35,8 @@ class AccountsViewModel : ViewModel() {
     }
 
     fun pair(pairingUri: String) {
-        val pairingParams = Auth.Params.Pair(pairingUri)
-        // TODO: Replace with CoreClient
-//        AuthClient.pair(pairingParams) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
+        val pairingParams = Core.Params.Pair(pairingUri)
+        CoreClient.Pairing.pair(pairingParams)
     }
 
     fun newAccountClicked(selectedAccountIndex: Int) {

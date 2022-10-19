@@ -5,17 +5,12 @@ import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.flow.SharedFlow
 
-//todo: add ( onError: (Core.Model.Error) -> Unit) parameter to accessible functions
 interface PairingInterface {
     val selfMetaData: AppMetaData
     val topicExpiredFlow : SharedFlow<Topic>
 
-    // initializes the client with persisted storage and a network connection
-//    fun initialize(metaData: Core.Model.AppMetaData)
-    // had to be removed to not be visible in CoreClient
-
     // for either to ping a peer
-    fun ping(ping: Core.Params.Ping, sessionPing: Core.Listeners.SessionPing? = null)
+    fun ping(ping: Core.Params.Ping, pairingPing: Core.Listeners.PairingPing? = null)
 
     // for proposer to create inactive pairing
     fun create(): Result<Pairing> // todo: Maybe create Pairing data class?

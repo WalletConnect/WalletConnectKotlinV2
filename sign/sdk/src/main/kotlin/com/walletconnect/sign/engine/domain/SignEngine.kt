@@ -11,7 +11,7 @@ import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.common.scope.scope
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.impl.storage.MetadataStorageRepository
 import com.walletconnect.android.impl.utils.*
 import com.walletconnect.android.internal.common.model.*
@@ -145,9 +145,7 @@ internal class SignEngine(
     }
 
     internal fun pair(uri: String) {
-        pairingInterface.pair(Core.Params.Pair(uri)) {
-//            throw MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
-        }
+        pairingInterface.pair(Core.Params.Pair(uri)) {}
     }
 
     internal fun reject(proposerPublicKey: String, reason: String, onFailure: (Throwable) -> Unit = {}) {
@@ -176,9 +174,9 @@ internal class SignEngine(
             val unacknowledgedSession = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces)
 
             try {
-                val peerAppMetaData = with(proposal.proposer.metadata) { AppMetaData(name, description, url, icons, redirect) }
                 sessionStorageRepository.insertSession(unacknowledgedSession, pairingTopic, requestId)
-                pairingInterface.updateMetadata(pairingTopic.value, peerAppMetaData, AppMetaDataType.PEER) //todo: take care of multiple metadata structures
+                metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
+                metadataStorageRepository.insertOrAbortMetadata(sessionTopic, proposal.proposer.metadata, AppMetaDataType.PEER)
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
                 val sessionSettle = SessionRpcVO.SessionSettle(id = generateId(), params = params)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
@@ -191,6 +189,7 @@ internal class SignEngine(
         }
 
         val request = sessionProposalRequest[proposerPublicKey] ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
+        sessionProposalRequest.remove(proposerPublicKey)
         val proposal = request.params as SessionParamsVO.SessionProposeParams
 
         Validator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), proposal.namespaces) { error ->
@@ -346,7 +345,7 @@ internal class SignEngine(
                 onFailure(error)
             })
         } else {
-            pairingInterface.ping(Core.Params.Ping(topic), object : Core.Listeners.SessionPing {
+            pairingInterface.ping(Core.Params.Ping(topic), object : Core.Listeners.PairingPing {
                 override fun onSuccess(pingSuccess: Core.Model.Ping.Success) {
                     onSuccess(pingSuccess.topic)
                 }
@@ -507,6 +506,8 @@ internal class SignEngine(
         }
 
         sessionProposalRequest[payloadParams.proposer.publicKey] = request
+        pairingInterface.updateMetadata(request.topic.value, payloadParams.proposer.metadata, AppMetaDataType.PEER) //todo: take care of multiple metadata structures
+
         scope.launch { _engineEvent.emit(payloadParams.toEngineDO()) }
     }
 
@@ -537,7 +538,7 @@ internal class SignEngine(
 
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
             sessionStorageRepository.insertSession(session, request.topic, request.id)
-            metadataStorageRepository.upsertPairingPeerMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
+            metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
 
             relayer.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
             scope.launch { _engineEvent.emit(session.toSessionApproved()) }

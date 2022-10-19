@@ -2,13 +2,13 @@
 
 package com.walletconnect.auth.client
 
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
-import com.walletconnect.android.impl.common.scope.scope
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.di.networkModule
 import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Events
@@ -98,14 +98,9 @@ internal class AuthProtocol : AuthInterface {
     @Throws(Exception::class)
     override fun getPendingRequest(): List<Auth.Model.PendingRequest> {
         checkEngineInitialization()
+
         return authEngine.getPendingRequests().toClient()
     }
-
-//    @Throws(IllegalStateException::class)
-//    override fun getResponse(params: Auth.Params.RequestId): Auth.Model.Response? {
-//        checkEngineInitialization()
-//        return authEngine.getResponseById(params.id)?.toClient()
-//    }
 
     @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {

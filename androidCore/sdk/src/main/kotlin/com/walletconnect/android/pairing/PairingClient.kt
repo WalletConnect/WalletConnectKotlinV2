@@ -18,6 +18,7 @@ import com.walletconnect.android.internal.common.storage.MetadataStorageReposito
 import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.generateId
 import com.walletconnect.util.randomBytes
@@ -42,6 +43,7 @@ internal object PairingClient : PairingInterface {
         get() = load()
     private val jsonRpcInteractor: JsonRpcInteractorInterface
         get() = load()
+    private val logger: Logger by lazy { wcKoinApp.koin.get() }
     private val resubscribeToPairingJob by lazy {
         jsonRpcInteractor.isConnectionAvailable
             .filter { isAvailable: Boolean -> isAvailable }
@@ -82,7 +84,7 @@ internal object PairingClient : PairingInterface {
         }.launchIn(scope)
     }
 
-    override fun ping(ping: Core.Params.Ping, sessionPing: Core.Listeners.SessionPing?) {
+    override fun ping(ping: Core.Params.Ping, pairingPing: Core.Listeners.PairingPing?) {
         if (isPairingValid(ping.topic)) {
             val pingPayload = PairingRpc.PairingPing(id = generateId(), params = PairingParams.PingParams())
             val irnParams = IrnParams(Tags.PAIRING_PING, Ttl(THIRTY_SECONDS))
@@ -98,25 +100,25 @@ internal object PairingClient : PairingInterface {
                                         when (val result = response.response) {
                                             is JsonRpcResponse.JsonRpcResult -> {
                                                 cancel()
-                                                sessionPing?.onSuccess(Core.Model.Ping.Success(ping.topic))
+                                                pairingPing?.onSuccess(Core.Model.Ping.Success(ping.topic))
                                             }
                                             is JsonRpcResponse.JsonRpcError -> {
                                                 cancel()
-                                                sessionPing?.onError(Core.Model.Ping.Error(Throwable(result.errorMessage)))
+                                                pairingPing?.onError(Core.Model.Ping.Error(Throwable(result.errorMessage)))
                                             }
                                         }
                                     }
                             }
                         } catch (e: TimeoutCancellationException) {
-                            sessionPing?.onError(Core.Model.Ping.Error(e))
+                            pairingPing?.onError(Core.Model.Ping.Error(e))
                         }
                     }
                 },
                 onFailure = { error ->
-                    sessionPing?.onError(Core.Model.Ping.Error(error))
+                    pairingPing?.onError(Core.Model.Ping.Error(error))
                 })
         } else {
-            sessionPing?.onError(Core.Model.Ping.Error(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${ping.topic}")))
+            pairingPing?.onError(Core.Model.Ping.Error(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${ping.topic}")))
         }
     }
 
@@ -183,7 +185,6 @@ internal object PairingClient : PairingInterface {
         }
     }
 
-    // TODO: add parameter to unsubscribe and publish SessionDelete from the RelayClient
     override fun disconnect(topic: String, onError: (Core.Model.Error) -> Unit) {
         if (!isPairingValid(topic)) {
             return onError(Core.Model.Error(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")))
@@ -192,14 +193,14 @@ internal object PairingClient : PairingInterface {
         pairingRepository.deletePairing(Topic(topic))
         metadataRepository.deleteMetaData(Topic(topic))
         jsonRpcInteractor.unsubscribe(Topic(topic))
-        // TODO: Move PeerError related to either internal directory or common
+
         val deleteParams = PairingParams.DeleteParams(6000, "User disconnected")
         val pairingDelete = PairingRpc.PairingDelete(id = generateId(), params = deleteParams)
         val irnParams = IrnParams(Tags.PAIRING_DELETE, Ttl(DAY_IN_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequests(Topic(topic), irnParams, pairingDelete,
-            onSuccess = { /*TODO: add logger*/ },
-            onFailure = { error -> /*TODO: add logger*/ }
+            onSuccess = { logger.log("Disconnect sent successfully") },
+            onFailure = { error -> logger.error("Sending session disconnect error: $error") }
         )
     }
 

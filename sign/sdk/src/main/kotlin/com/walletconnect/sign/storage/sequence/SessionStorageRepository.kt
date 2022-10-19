@@ -263,30 +263,9 @@ internal class SessionStorageRepository(
         relay_data: String?,
         controller_key: String?,
         self_participant: String,
-//        selfName: String?,
-//        selfDesc: String?,
-//        selfUrl: String?,
-//        selfIcons: List<String>?,
         peer_participant: String?,
-//        peerName: String?,
-//        peerDesc: String?,
-//        peerUrl: String?,
-//        peerIcons: List<String>?,
-//        peerNative: String?,
         is_acknowledged: Boolean,
     ): SessionVO {
-//        val selfMetaData = if (selfName != null && selfDesc != null && selfUrl != null && selfIcons != null) {
-//            MetaData(selfName, selfDesc, selfUrl, selfIcons)
-//        } else {
-//            null
-//        }
-//
-//        val peerMetaData = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
-//            MetaData(peerName, peerDesc, peerUrl, peerIcons, Redirect(native = peerNative))
-//        } else {
-//            null
-//        }
-
         val sessionNamespaces: Map<String, NamespaceVO.Session> = getSessionNamespaces(id)
         val proposalNamespaces: Map<String, NamespaceVO.Proposal> = getProposalNamespaces(id)
 
