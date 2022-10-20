@@ -1,7 +1,6 @@
 package com.walletconnect.chat.client
 
 import android.app.Application
-import com.walletconnect.chat.core.model.vo.AccountIdVO
 
 object Chat {
 
@@ -22,7 +21,7 @@ object Chat {
 
         @JvmInline
         value class AccountId(val value: String) {
-            fun isValid() = AccountIdVO(value).isValid()
+            fun isValid() = com.walletconnect.chat.common.model.AccountId(value).isValid()
         }
 
         data class Invite(

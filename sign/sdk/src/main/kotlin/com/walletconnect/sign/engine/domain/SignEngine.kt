@@ -222,7 +222,7 @@ internal class SignEngine(
         }
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
-        val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(proposerPublicKey))
+        val sessionTopic = crypto.generateTopicFromKeyAgreementAndSafeSymKey(selfPublicKey, PublicKey(proposerPublicKey))
         jsonRpcInteractor.subscribe(sessionTopic)
 
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
@@ -744,7 +744,7 @@ internal class SignEngine(
                 val selfPublicKey = PublicKey(params.proposer.publicKey)
                 val approveParams = response.result as SessionParamsVO.ApprovalParams
                 val responderPublicKey = PublicKey(approveParams.responderPublicKey)
-                val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
+                val sessionTopic = crypto.generateTopicFromKeyAgreementAndSafeSymKey(selfPublicKey, responderPublicKey)
                 jsonRpcInteractor.subscribe(sessionTopic)
             }
             is JsonRpcResponse.JsonRpcError -> {

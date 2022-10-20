@@ -3,8 +3,8 @@
 package com.walletconnect.chat.client.mapper
 
 import com.walletconnect.chat.client.Chat
-import com.walletconnect.chat.core.model.vo.AccountIdVO
-import com.walletconnect.chat.core.model.vo.MediaVO
+import com.walletconnect.chat.common.model.AccountId
+import com.walletconnect.chat.common.model.Media
 import com.walletconnect.chat.engine.model.EngineDO
 
 //TODO: Figure out what to do with models separation
@@ -19,13 +19,13 @@ internal fun Chat.Params.Message.toEngineDO(): EngineDO.SendMessage {
 }
 
 @JvmSynthetic
-private fun Chat.Model.Media.toVO(): MediaVO {
-    return MediaVO(type, data)
+private fun Chat.Model.Media.toVO(): Media {
+    return Media(type, data)
 }
 
 @JvmSynthetic
-internal fun Chat.Model.AccountId.toVO(): AccountIdVO {
-    return AccountIdVO(value)
+internal fun Chat.Model.AccountId.toVO(): AccountId {
+    return AccountId(value)
 }
 
 @JvmSynthetic
@@ -39,12 +39,12 @@ internal fun EngineDO.Invite.toClient(): Chat.Model.Invite {
 }
 
 @JvmSynthetic
-internal fun AccountIdVO.toClient(): Chat.Model.AccountId {
+internal fun AccountId.toClient(): Chat.Model.AccountId {
     return Chat.Model.AccountId(value)
 }
 
 @JvmSynthetic
-internal fun MediaVO.toClient(): Chat.Model.Media {
+internal fun Media.toClient(): Chat.Model.Media {
     return Chat.Model.Media(type, data)
 }
 

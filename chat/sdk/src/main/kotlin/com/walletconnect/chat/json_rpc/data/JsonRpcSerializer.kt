@@ -1,30 +1,31 @@
 @file:JvmSynthetic
 
-package com.walletconnect.chat.copiedFromSign
+package com.walletconnect.chat.json_rpc.data
 
 import com.squareup.moshi.Moshi
 import com.walletconnect.android.common.SerializableJsonRpc
 import com.walletconnect.android.impl.common.model.type.ClientParams
-import com.walletconnect.chat.core.model.vo.clientsync.ChatRpcVO
+import com.walletconnect.chat.common.json_rpc.ChatRpc
+import com.walletconnect.chat.json_rpc.model.JsonRpcMethod
 
 //TODO: Should there be a copy for every SDK with specific methods or one file with all methods.
 internal class JsonRpcSerializer(private val moshi: Moshi) {
 
     internal fun deserialize(method: String, json: String): ClientParams? =
         when (method) {
-            JsonRpcMethod.WC_CHAT_MESSAGE -> tryDeserialize<ChatRpcVO.ChatMessage>(json)?.params
-            JsonRpcMethod.WC_CHAT_INVITE -> tryDeserialize<ChatRpcVO.ChatInvite>(json)?.params
-            JsonRpcMethod.WC_CHAT_LEAVE -> tryDeserialize<ChatRpcVO.ChatLeave>(json)?.params
-            JsonRpcMethod.WC_CHAT_PING -> tryDeserialize<ChatRpcVO.ChatPing>(json)?.params
+            JsonRpcMethod.WC_CHAT_MESSAGE -> tryDeserialize<ChatRpc.ChatMessage>(json)?.params
+            JsonRpcMethod.WC_CHAT_INVITE -> tryDeserialize<ChatRpc.ChatInvite>(json)?.params
+            JsonRpcMethod.WC_CHAT_LEAVE -> tryDeserialize<ChatRpc.ChatLeave>(json)?.params
+            JsonRpcMethod.WC_CHAT_PING -> tryDeserialize<ChatRpc.ChatPing>(json)?.params
             else -> null
         }
 
     fun serialize(payload: SerializableJsonRpc): String =
         when (payload) {
-            is ChatRpcVO.ChatMessage -> trySerialize(payload)
-            is ChatRpcVO.ChatInvite -> trySerialize(payload)
-            is ChatRpcVO.ChatLeave -> trySerialize(payload)
-            is ChatRpcVO.ChatPing -> trySerialize(payload)
+            is ChatRpc.ChatMessage -> trySerialize(payload)
+            is ChatRpc.ChatInvite -> trySerialize(payload)
+            is ChatRpc.ChatLeave -> trySerialize(payload)
+            is ChatRpc.ChatPing -> trySerialize(payload)
             is RelayerDO.JsonRpcResponse.JsonRpcResult -> trySerialize(payload)
             is RelayerDO.JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             else -> String.Empty

@@ -7,8 +7,8 @@ import com.walletconnect.android.impl.di.networkModule
 import com.walletconnect.chat.client.mapper.toClient
 import com.walletconnect.chat.client.mapper.toEngineDO
 import com.walletconnect.chat.client.mapper.toVO
-import com.walletconnect.chat.core.model.vo.AccountIdVO
-import com.walletconnect.chat.core.model.vo.AccountIdWithPublicKeyVO
+import com.walletconnect.chat.common.model.AccountId
+import com.walletconnect.chat.common.model.AccountIdWithPublicKey
 import com.walletconnect.chat.di.engineModule
 import com.walletconnect.chat.di.keyServerModule
 import com.walletconnect.chat.engine.domain.ChatEngine
@@ -70,7 +70,7 @@ internal class ChatProtocol : ChatInterface {
         checkEngineInitialization()
 
         chatEngine.registerAccount(
-            AccountIdVO(register.account.value),
+            AccountId(register.account.value),
             { publicKey -> listener.onSuccess(publicKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) },
             register.private ?: false
@@ -82,7 +82,7 @@ internal class ChatProtocol : ChatInterface {
         checkEngineInitialization()
 
         chatEngine.resolveAccount(
-            AccountIdVO(resolve.account.value),
+            AccountId(resolve.account.value),
             { publicKey -> listener.onSuccess(publicKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) }
         )
@@ -133,7 +133,7 @@ internal class ChatProtocol : ChatInterface {
     @Throws(IllegalStateException::class)
     override fun addContact(addContact: Chat.Params.AddContact, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        chatEngine.addContact(AccountIdWithPublicKeyVO(addContact.account.toVO(), PublicKey(addContact.publicKey))) { error ->
+        chatEngine.addContact(AccountIdWithPublicKey(addContact.account.toVO(), PublicKey(addContact.publicKey))) { error ->
             onError(Chat.Model.Error(error))
         }
     }

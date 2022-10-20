@@ -1,11 +1,11 @@
-package com.walletconnect.chat.core.model.vo.clientsync.params
+package com.walletconnect.chat.common.json_rpc
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.impl.common.model.type.ClientParams
-import com.walletconnect.chat.core.model.vo.MediaVO
+import com.walletconnect.chat.common.model.Media
 
-internal sealed class ChatParamsVO : ClientParams {
+internal sealed class ChatParams : ClientParams {
 
     @JsonClass(generateAdapter = true)
     internal data class InviteParams(
@@ -17,13 +17,13 @@ internal sealed class ChatParamsVO : ClientParams {
         val publicKey: String,
         @Json(name = "signature")
         val signature: String?,
-    ) : ChatParamsVO()
+    ) : ChatParams()
 
     @JsonClass(generateAdapter = true)
     internal data class AcceptanceParams(
         @Json(name = "publicKey")
         val publicKey: String,
-    ) : ChatParamsVO()
+    ) : ChatParams()
 
     @JsonClass(generateAdapter = true)
     internal data class MessageParams(
@@ -34,12 +34,12 @@ internal sealed class ChatParamsVO : ClientParams {
         @Json(name = "timestamp")
         val timestamp: Long,
         @Json(name = "media")
-        val media: MediaVO?,
-    ) : ChatParamsVO()
+        val media: Media?,
+    ) : ChatParams()
 
     @Suppress("CanSealedSubClassBeObject")
-    internal class PingParams : ChatParamsVO()
+    internal class PingParams : ChatParams()
 
     @Suppress("CanSealedSubClassBeObject")
-    internal class LeaveParams : ChatParamsVO()
+    internal class LeaveParams : ChatParams()
 }

@@ -2,41 +2,41 @@
 
 package com.walletconnect.chat.engine.model
 
-import com.walletconnect.chat.core.model.vo.AccountIdVO
-import com.walletconnect.chat.core.model.vo.AccountIdWithPublicKeyVO
-import com.walletconnect.chat.core.model.vo.MediaVO
+import com.walletconnect.chat.common.model.AccountId
+import com.walletconnect.chat.common.model.AccountIdWithPublicKey
+import com.walletconnect.chat.common.model.Media
 
 internal sealed class EngineDO {
     data class Error(val throwable: Throwable) : EngineDO() // TODO: Should this be extracted to core for easier error handling?
 
     data class Invite(
-        val accountId: AccountIdVO,
+        val accountId: AccountId,
         val message: String,
         val signature: String? = null,
     ) : EngineDO()
 
     data class Thread(
         val topic: String,
-        val selfAccountId: AccountIdVO,
-        val peerAccountId: AccountIdVO,
+        val selfAccountId: AccountId,
+        val peerAccountId: AccountId,
     ) : EngineDO()
 
     data class Message(
         val message: String,
-        val authorAccountId: AccountIdVO,
+        val authorAccountId: AccountId,
         val timestamp: Long,
-        val media: MediaVO?,
+        val media: Media?,
     ) : EngineDO()
 
     data class Contact(
-        val accountIdWithPublicKeyVO: AccountIdWithPublicKeyVO,
+        val accountIdWithPublicKeyVO: AccountIdWithPublicKey,
         val displayName: String,
     ) : EngineDO()
 
     data class SendMessage(
-        val author: AccountIdVO,
+        val author: AccountId,
         val message: String,
-        val media: MediaVO?,
+        val media: Media?,
     ) : EngineDO()
 
     sealed class Events : EngineDO() {

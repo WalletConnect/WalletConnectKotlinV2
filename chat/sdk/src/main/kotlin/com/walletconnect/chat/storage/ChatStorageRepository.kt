@@ -2,7 +2,7 @@
 
 package com.walletconnect.chat.storage
 
-import com.walletconnect.chat.core.model.vo.AccountIdVO
+import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.engine.model.EngineDO
 import com.walletconnect.chat.storage.data.dao.Contacts
 import com.walletconnect.chat.storage.data.dao.ContactsQueries
@@ -13,7 +13,7 @@ internal class ChatStorageRepository(
 
     ) {
     @JvmSynthetic
-    internal fun doesContactNotExists(accountIdVO: AccountIdVO): Boolean =
+    internal fun doesContactNotExists(accountIdVO: AccountId): Boolean =
         contactsQueries.doesContactNotExists(accountIdVO.value).executeAsOne()
 
     @JvmSynthetic
@@ -24,10 +24,10 @@ internal class ChatStorageRepository(
     )
 
     @JvmSynthetic
-    internal fun getContact(accountIdVO: AccountIdVO) : Contacts = contactsQueries.getContact(accountIdVO.value).executeAsOne()
+    internal fun getContact(accountIdVO: AccountId) : Contacts = contactsQueries.getContact(accountIdVO.value).executeAsOne()
 
     @JvmSynthetic
-    internal fun updateContact(accountIdVO: AccountIdVO, publicKey: PublicKey, displayName: String) {
+    internal fun updateContact(accountIdVO: AccountId, publicKey: PublicKey, displayName: String) {
         contactsQueries.updateContactPublicKey(publicKey.keyAsHex, accountIdVO.value)
         contactsQueries.updateContactDisplayName(displayName, accountIdVO.value)
     }

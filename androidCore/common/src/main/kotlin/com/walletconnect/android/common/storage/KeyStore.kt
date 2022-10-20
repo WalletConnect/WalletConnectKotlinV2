@@ -3,6 +3,7 @@
 package com.walletconnect.android.common.storage
 
 import com.walletconnect.foundation.common.model.Key
+import com.walletconnect.foundation.common.model.PublicKey
 
 interface KeyStore {
     fun getKey(tag: String): String
@@ -14,4 +15,10 @@ interface KeyStore {
 
     fun deleteKeys(tag: String)
     fun checkKeys(tag: String): Boolean
+
+    // Added With Chat SDK
+    fun getInviteSelfPublicKey(tag: String): String?
+    fun setInviteSelfPublicKey(tag: String, key: Key)
+    fun getPublicKey(tag: String): String
+    fun setPublicKey(tag: String, publicKey: PublicKey)
 }

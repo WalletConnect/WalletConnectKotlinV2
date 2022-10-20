@@ -52,7 +52,7 @@ internal class BouncyCastleCryptoRepositoryTest {
     @Test
     fun `Generate a shared key and return a Topic object`() {
         val peerKey = PublicKey("ff7a7d5767c362b0a17ad92299ebdb7831dcbd9a56959c01368c7404543b3342")
-        val topic = sut.generateTopicFromKeyAgreement(publicKey, peerKey)
+        val topic = sut.generateTopicFromKeyAgreementAndSafeSymKey(publicKey, peerKey)
 
         assert(topic.value.isNotBlank())
         assert(topic.value.length == 64)
