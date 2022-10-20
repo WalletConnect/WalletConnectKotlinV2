@@ -24,19 +24,4 @@ interface ChatInterface {
     fun getInvites(getInvites: Chat.Params.GetInvites): Map<String, Chat.Model.Invite>
     fun getThreads(getThreads: Chat.Params.GetThreads): Map<String, Chat.Model.Thread>
     fun getMessages(getMessages: Chat.Params.GetMessages): List<Chat.Model.Message>
-    /***
-    TODO: Relay should be extracted to core along with websocket interface
-    interface Websocket {
-    val relay: Relay
-
-    fun open(onError: (String) -> Unit) {
-    relay.connect { errorMessage -> onError(errorMessage) }
-    }
-
-    fun close(onError: (String) -> Unit) {
-    relay.disconnect { errorMessage -> onError(errorMessage) }
-    }
-    }
-     ***/
-
 }

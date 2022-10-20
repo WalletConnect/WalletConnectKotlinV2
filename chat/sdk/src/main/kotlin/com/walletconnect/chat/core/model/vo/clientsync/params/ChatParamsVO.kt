@@ -2,7 +2,7 @@ package com.walletconnect.chat.core.model.vo.clientsync.params
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.chat.copiedFromSign.core.model.type.ClientParams
+import com.walletconnect.android.impl.common.model.type.ClientParams
 import com.walletconnect.chat.core.model.vo.MediaVO
 
 internal sealed class ChatParamsVO : ClientParams {

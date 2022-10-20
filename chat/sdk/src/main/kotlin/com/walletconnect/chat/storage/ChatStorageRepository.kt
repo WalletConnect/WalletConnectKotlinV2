@@ -2,11 +2,11 @@
 
 package com.walletconnect.chat.storage
 
-import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
 import com.walletconnect.chat.core.model.vo.AccountIdVO
 import com.walletconnect.chat.engine.model.EngineDO
 import com.walletconnect.chat.storage.data.dao.Contacts
 import com.walletconnect.chat.storage.data.dao.ContactsQueries
+import com.walletconnect.foundation.common.model.PublicKey
 
 internal class ChatStorageRepository(
     private val contactsQueries: ContactsQueries,

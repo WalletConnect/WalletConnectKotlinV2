@@ -2,8 +2,8 @@
 
 package com.walletconnect.chat.core.model.vo
 
-import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
 import com.walletconnect.chat.engine.domain.Validator
+import com.walletconnect.foundation.common.model.PublicKey
 
 @JvmInline
 internal value class AccountIdVO(val value: String) {

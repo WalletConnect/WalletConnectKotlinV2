@@ -2,8 +2,8 @@ package com.walletconnect.chat.core.model.vo.clientsync
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.chat.copiedFromSign.core.model.type.JsonRpcClientSync
-import com.walletconnect.chat.copiedFromSign.json_rpc.model.JsonRpcMethod
+import com.walletconnect.android.impl.common.model.type.JsonRpcClientSync
+import com.walletconnect.chat.copiedFromSign.JsonRpcMethod
 import com.walletconnect.chat.core.model.vo.clientsync.params.ChatParamsVO
 
 internal sealed class ChatRpcVO : JsonRpcClientSync<ChatParamsVO> {

@@ -1,13 +1,10 @@
 @file:JvmSynthetic
 
-package com.walletconnect.chat.copiedFromSign.json_rpc.data
+package com.walletconnect.chat.copiedFromSign
 
 import com.squareup.moshi.Moshi
-import com.walletconnect.chat.copiedFromSign.core.model.type.ClientParams
-import com.walletconnect.chat.copiedFromSign.core.model.type.SerializableJsonRpc
-import com.walletconnect.chat.copiedFromSign.json_rpc.model.JsonRpcMethod
-import com.walletconnect.chat.copiedFromSign.json_rpc.model.RelayerDO
-import com.walletconnect.chat.copiedFromSign.util.Empty
+import com.walletconnect.android.common.SerializableJsonRpc
+import com.walletconnect.android.impl.common.model.type.ClientParams
 import com.walletconnect.chat.core.model.vo.clientsync.ChatRpcVO
 
 //TODO: Should there be a copy for every SDK with specific methods or one file with all methods.

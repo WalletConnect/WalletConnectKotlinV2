@@ -2,9 +2,9 @@
 
 package com.walletconnect.chat.discovery.keyserver.model
 
-import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
 import com.walletconnect.chat.core.model.vo.AccountIdVO
 import com.walletconnect.chat.core.model.vo.AccountIdWithPublicKeyVO
+import com.walletconnect.foundation.common.model.PublicKey
 
 @JvmSynthetic
 internal fun KeyServerDTO.Account.toVOAccount(): AccountIdWithPublicKeyVO = AccountIdWithPublicKeyVO(AccountIdVO(account), PublicKey(publicKey))

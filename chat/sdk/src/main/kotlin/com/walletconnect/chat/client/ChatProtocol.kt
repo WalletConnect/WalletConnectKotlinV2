@@ -1,17 +1,19 @@
 package com.walletconnect.chat.client
 
+import com.walletconnect.android.common.di.commonModule
+import com.walletconnect.android.common.scope
+import com.walletconnect.android.impl.di.cryptoModule
+import com.walletconnect.android.impl.di.networkModule
 import com.walletconnect.chat.client.mapper.toClient
 import com.walletconnect.chat.client.mapper.toEngineDO
 import com.walletconnect.chat.client.mapper.toVO
-import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
-import com.walletconnect.chat.copiedFromSign.core.scope.scope
-import com.walletconnect.chat.copiedFromSign.di.*
 import com.walletconnect.chat.core.model.vo.AccountIdVO
 import com.walletconnect.chat.core.model.vo.AccountIdWithPublicKeyVO
 import com.walletconnect.chat.di.engineModule
 import com.walletconnect.chat.di.keyServerModule
 import com.walletconnect.chat.engine.domain.ChatEngine
 import com.walletconnect.chat.engine.model.EngineDO
+import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
@@ -19,7 +21,6 @@ import org.koin.core.KoinApplication
 internal class ChatProtocol : ChatInterface {
     private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var chatEngine: ChatEngine
-//    val relay: Relay by lazy { wcKoinApp.koin.get() } //TODO: Figure out how to get relay as in Sign in here
 
     companion object {
         val instance = ChatProtocol()
@@ -38,8 +39,8 @@ internal class ChatProtocol : ChatInterface {
 //                    networkModule(serverUrl, relay, connectionType.toRelayConnectionType()),
                     //todo: add serverUrl as init param
                     networkModule("serverUrl"), //TODO: refactor, network module should be initialized in RelayClient
-                    relayerModule(),
-                    storageModule(),
+//                    relayerModule(),
+//                    storageModule(),
                     com.walletconnect.chat.di.storageModule(), // TODO: Refactor storage module into one
                     engineModule()
                 )

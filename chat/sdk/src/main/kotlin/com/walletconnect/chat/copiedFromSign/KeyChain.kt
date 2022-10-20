@@ -1,15 +1,14 @@
 @file:JvmSynthetic
 
-package com.walletconnect.chat.copiedFromSign.crypto.data.keystore
+package com.walletconnect.chat.copiedFromSign
 
 import android.content.SharedPreferences
-import com.walletconnect.chat.copiedFromSign.core.model.vo.Key
-import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
-import com.walletconnect.chat.copiedFromSign.crypto.KeyStore
-import com.walletconnect.chat.copiedFromSign.util.Empty
-import com.walletconnect.chat.copiedFromSign.util.bytesToHex
-import com.walletconnect.chat.copiedFromSign.util.hexToBytes
+import com.walletconnect.foundation.common.model.Key
+import com.walletconnect.util.Empty
+import com.walletconnect.util.bytesToHex
+import com.walletconnect.util.hexToBytes
 
+//todo: use KeyChain from android_common
 internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyStore {
 
     override fun setSymmetricKey(tag: String, key: Key) {

@@ -1,9 +1,9 @@
 @file:JvmSynthetic
 
-package com.walletconnect.chat.copiedFromSign.crypto
+package com.walletconnect.chat.copiedFromSign
 
-import com.walletconnect.chat.copiedFromSign.core.model.vo.Key
-import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
+import com.walletconnect.foundation.common.model.Key
+import com.walletconnect.foundation.common.model.PublicKey
 
 internal interface KeyStore {
     fun setSymmetricKey(tag: String, key: Key)

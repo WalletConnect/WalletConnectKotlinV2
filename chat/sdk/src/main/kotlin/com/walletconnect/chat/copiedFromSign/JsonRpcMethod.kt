@@ -1,4 +1,4 @@
-package com.walletconnect.chat.copiedFromSign.json_rpc.model
+package com.walletconnect.chat.copiedFromSign
 
 //TODO: Should there be a copy for every SDK with specific methods or one file with all methods.
 internal object JsonRpcMethod {
