@@ -64,18 +64,16 @@ internal class ValidatorTest {
             Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
             RelayProtocolOptions("irn", "teeestData"),
-            ""
         )
 
-        assertEquals(uri.toAbsoluteString(), "wc:auth-11112222244444@2?relay-protocol=irn&relay-data=teeestData&symKey=0x12321321312312312321")
+        assertEquals(uri.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=irn&relay-data=teeestData&symKey=0x12321321312312312321")
 
         val uri2 = WalletConnectUri(
             Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
             RelayProtocolOptions("irn"),
-            ""
         )
 
-        assertEquals(uri2.toAbsoluteString(), "wc:auth-11112222244444@2?relay-protocol=irn&symKey=0x12321321312312312321")
+        assertEquals(uri2.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=irn&symKey=0x12321321312312312321")
     }
 }

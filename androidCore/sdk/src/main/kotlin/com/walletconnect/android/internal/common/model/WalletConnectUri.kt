@@ -8,8 +8,8 @@ data class WalletConnectUri(
     val topic: Topic,
     val symKey: SymmetricKey,
     val relay: RelayProtocolOptions,
-//    val registeredMethods: String, TODO: We'll review later how we want to handle registered methods
     val version: String = "2",
+//    val registeredMethods: String, // TODO: We'll review later how we want to handle registered methods
 ) {
     fun toAbsoluteString(): String =
         "wc:${topic.value}@$version?${getQuery()}&symKey=${symKey.keyAsHex}"

@@ -222,7 +222,7 @@ internal class JsonRpcInteractor(
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 val responseVO = JsonRpcResponse.JsonRpcResult(jsonRpcResult.id, result = jsonRpcResult.result)
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(responseVO, params))
-            } ?: handleError("JsonRpcInteractor: Unknown result params")
+            } ?: handleError("JsonRpcInteractoraklsfhj: Unknown result params")
         }
     }
 

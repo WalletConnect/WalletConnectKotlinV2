@@ -2,10 +2,12 @@
 
 package com.walletconnect.utils
 
-import com.walletconnect.android.internal.common.SerializableJsonRpc
-import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.impl.di.AndroidCoreDITags
 import com.walletconnect.android.impl.utils.CURRENT_TIME_IN_SECONDS
+import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.internal.common.SerializableJsonRpc
+import com.walletconnect.android.internal.common.model.Expiry
+import org.koin.core.module.KoinDefinition
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.ext.getFullName
@@ -29,22 +31,24 @@ fun Expiry.isSequenceValid(): Boolean = seconds > CURRENT_TIME_IN_SECONDS
 val String.Companion.HexPrefix
     get() = "0x"
 
-fun Module.intoMultibindingSet(value: (SerializableJsonRpc) -> Boolean) {
+inline fun <reified T : SerializableJsonRpc> Module.intoMultibindingSet(value: KClass<T>): KoinDefinition<*> =
     single(
-        qualifier = named("key_${value::class.getFullName()}"),
+        qualifier = named("key_${T::class.getFullName()}"),
         createdAtStart = true
     ) {
-        val multiSet = get<MutableSet<(SerializableJsonRpc) -> Boolean>>(named(AndroidCoreDITags.SERIALIZER_SET))
+        Logger.log("intoMultibindingSet ${value::class.getFullName()}")
+        val multiSet: MutableSet<KClass<T>> = get(named(AndroidCoreDITags.SERIALIZER_SET))
         multiSet.add(value)
+        value
     }
-}
 
-fun Module.intoMultibindingMap(key: String, value: KClass<*>) {
+
+fun Module.intoMultibindingMap(key: String, value: KClass<*>): KoinDefinition<*> =
     single(
         qualifier = named("${key::class.getFullName()}_${value::class.getFullName()}_$key"),
         createdAtStart = true
     ) {
-        val multibindingMap = get<MutableMap<String, KClass<*>>>(named(AndroidCoreDITags.DESERIALIZER_MAP))
+        val multibindingMap: MutableMap<String, KClass<*>> = get(named(AndroidCoreDITags.DESERIALIZER_MAP))
         multibindingMap[key] == value
+        key to value
     }
-}

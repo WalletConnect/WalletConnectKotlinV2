@@ -9,27 +9,19 @@ import com.walletconnect.utils.intoMultibindingMap
 import com.walletconnect.utils.intoMultibindingSet
 import org.koin.dsl.module
 import com.walletconnect.android.impl.di.jsonRpcModule as coreJsonRpcModule
-
 @JvmSynthetic
 internal fun jsonRpcModule() = module {
 
     includes(coreJsonRpcModule())
 
-    intoMultibindingSet { payload: SerializableJsonRpc -> payload is SignRpcVO.SessionPropose }
-
-    intoMultibindingSet { payload: SerializableJsonRpc -> payload is SignRpcVO.SessionPing }
-
-    intoMultibindingSet { payload: SerializableJsonRpc -> payload is SignRpcVO.SessionEvent }
-
-    intoMultibindingSet { payload: SerializableJsonRpc -> payload is SignRpcVO.SessionUpdate }
-
-    intoMultibindingSet { payload: SerializableJsonRpc -> payload is SignRpcVO.SessionExtend }
-
-    intoMultibindingSet { payload: SerializableJsonRpc -> payload is SignRpcVO.SessionRequest }
-
-    intoMultibindingSet { payload: SerializableJsonRpc -> payload is SignRpcVO.SessionDelete }
-
-    intoMultibindingSet { payload: SerializableJsonRpc -> payload is SignRpcVO.SessionSettle }
+    intoMultibindingSet(SignRpcVO.SessionPropose::class)
+    intoMultibindingSet(SignRpcVO.SessionPing::class)
+    intoMultibindingSet(SignRpcVO.SessionEvent::class)
+    intoMultibindingSet(SignRpcVO.SessionUpdate::class)
+    intoMultibindingSet(SignRpcVO.SessionRequest::class)
+    intoMultibindingSet(SignRpcVO.SessionDelete::class)
+    intoMultibindingSet(SignRpcVO.SessionSettle::class)
+    intoMultibindingSet(SignRpcVO.SessionExtend::class)
 
     intoMultibindingMap(JsonRpcMethod.WC_SESSION_PROPOSE, SignRpcVO.SessionPropose::class)
 

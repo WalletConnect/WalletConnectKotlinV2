@@ -29,7 +29,7 @@ class PairingGenerationDialogFragment : DialogFragment(R.layout.dialog_connect_u
 
         viewModel.connectToWallet { uri ->
             val pairingUri = uri.also {
-                Log.e(tag(this@PairingGenerationDialogFragment), it)
+                Log.d(tag(this@PairingGenerationDialogFragment), it)
             }
             val deeplinkPairingUri = pairingUri.replace("wc:", "wc:/")
             val qr = QRCode.from(pairingUri).bitmap()

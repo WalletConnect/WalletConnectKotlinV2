@@ -1,9 +1,9 @@
 package com.walletconnect.android.impl.di
 
-import com.walletconnect.android.internal.common.SerializableJsonRpc
-import com.walletconnect.android.internal.common.model.JsonRpcInteractorInterface
 import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.impl.json_rpc.domain.JsonRpcInteractor
+import com.walletconnect.android.internal.common.SerializableJsonRpc
+import com.walletconnect.android.internal.common.model.JsonRpcInteractorInterface
 import com.walletconnect.android.pairing.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.PairingParams
 import com.walletconnect.utils.intoMultibindingMap
@@ -20,16 +20,16 @@ fun jsonRpcModule() = module {
     }
 
     single(named(AndroidCoreDITags.SERIALIZER_SET), createdAtStart = true) {
-        mutableSetOf<(SerializableJsonRpc) -> Boolean>()
+        mutableSetOf<KClass<SerializableJsonRpc>>()
     }
 
     single(named(AndroidCoreDITags.DESERIALIZER_MAP), createdAtStart = true) {
-        mutableMapOf<String, KClass<*>>()
+        mutableMapOf<String, KClass<SerializableJsonRpc>>()
     }
 
-    intoMultibindingSet { payload: SerializableJsonRpc -> payload is PairingParams.PingParams }
+    intoMultibindingSet(PairingParams.PingParams::class)
 
-    intoMultibindingSet { payload: SerializableJsonRpc -> payload is PairingParams.DeleteParams }
+    intoMultibindingSet(PairingParams.DeleteParams::class)
 
     intoMultibindingMap(PairingJsonRpcMethod.WC_PAIRING_PING, PairingParams.PingParams::class)
 
@@ -37,8 +37,8 @@ fun jsonRpcModule() = module {
 
     factory {
         JsonRpcSerializer(
-            serializerEntries = get(named(AndroidCoreDITags.SERIALIZER_SET)),
-            deserializerEntries = get(named(AndroidCoreDITags.DESERIALIZER_MAP))
+            serializerEntries = getAll<KClass<SerializableJsonRpc>>().toSet(),
+            deserializerEntries = getAll<Pair<String, KClass<*>>>().toMap()
         )
     }
 }

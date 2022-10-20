@@ -14,8 +14,8 @@ object CoreClient {
     interface CoreDelegate: PairingInterface.Delegate
 
     fun initialize(metaData: Core.Model.AppMetaData, relayServerUrl: String, connectionType: ConnectionType, application: Application) {
-        PairingClient.initialize(metaData)
         RelayClient.initialize(relayServerUrl, connectionType, application)
+        PairingClient.initialize(metaData)
     }
 
     fun setDelegate(delegate: CoreDelegate) {

@@ -19,6 +19,7 @@ import com.walletconnect.auth.di.storageModule
 import com.walletconnect.auth.engine.domain.AuthEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.koin.core.context.startKoin
 
 internal class AuthProtocol : AuthInterface {
     private lateinit var authEngine: AuthEngine
