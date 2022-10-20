@@ -26,10 +26,9 @@ class DappSampleApplication : Application() {
             redirect = "kotlin-dapp-wc:/request"
         ))
 
-        // Sample of how to use a URI to initialize the WalletConnect SDK
-        val initString = Sign.Params.Init(coreClient = CoreClient)
+        val initParams = Sign.Params.Init(coreClient = CoreClient)
 
-        SignClient.initialize(initString) { error ->
+        SignClient.initialize(initParams) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
     }

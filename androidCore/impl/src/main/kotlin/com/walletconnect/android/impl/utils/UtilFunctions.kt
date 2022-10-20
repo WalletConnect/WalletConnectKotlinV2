@@ -31,24 +31,13 @@ fun Expiry.isSequenceValid(): Boolean = seconds > CURRENT_TIME_IN_SECONDS
 val String.Companion.HexPrefix
     get() = "0x"
 
-inline fun <reified T : SerializableJsonRpc> Module.intoMultibindingSet(value: KClass<T>): KoinDefinition<*> =
-    single(
-        qualifier = named("key_${T::class.getFullName()}"),
-        createdAtStart = true
-    ) {
-        Logger.log("intoMultibindingSet ${value::class.getFullName()}")
-        val multiSet: MutableSet<KClass<T>> = get(named(AndroidCoreDITags.SERIALIZER_SET))
-        multiSet.add(value)
+inline fun <reified T : SerializableJsonRpc> Module.addSerializerEntry(value: KClass<T>): KoinDefinition<*> =
+    single(qualifier = named("key_${T::class.getFullName()}")) {
         value
     }
 
 
-fun Module.intoMultibindingMap(key: String, value: KClass<*>): KoinDefinition<*> =
-    single(
-        qualifier = named("${key::class.getFullName()}_${value::class.getFullName()}_$key"),
-        createdAtStart = true
-    ) {
-        val multibindingMap: MutableMap<String, KClass<*>> = get(named(AndroidCoreDITags.DESERIALIZER_MAP))
-        multibindingMap[key] == value
+fun Module.addDeserializerEntry(key: String, value: KClass<*>): KoinDefinition<*> =
+    single(qualifier = named("${key::class.getFullName()}_${value::class.getFullName()}_$key")) {
         key to value
     }
