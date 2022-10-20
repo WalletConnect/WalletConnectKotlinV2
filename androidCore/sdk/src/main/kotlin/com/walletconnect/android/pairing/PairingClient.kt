@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.*
 import org.koin.dsl.module
 
 internal object PairingClient : PairingInterface {
-    private val selfMetaData: AppMetaData by lazy { load()}
+    private val selfMetaData: AppMetaData by lazy { load() }
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
     private val registeredMethods: String
         get() = setOfRegisteredMethods.joinToString(",") { it }

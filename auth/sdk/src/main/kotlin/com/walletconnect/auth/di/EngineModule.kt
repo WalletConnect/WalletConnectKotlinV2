@@ -1,5 +1,9 @@
 package com.walletconnect.auth.di
 
+import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.JsonRpcInteractorInterface
+import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Issuer
 import com.walletconnect.auth.engine.domain.AuthEngine
@@ -11,18 +15,15 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun engineModule(issuer: String?) = module {
 
-    //todo: check if dependencies are here
     single { GetPendingJsonRpcHistoryEntriesUseCase(get(), get()) }
     single { GetPendingJsonRpcHistoryEntryByIdUseCase(get(), get()) }
     single { GetResponseByIdUseCase(get(), get()) }
 
     if (issuer != null) {
         single<Issuer> { issuer.toCommon() }
-
-        //todo: check if dependencies are here
-        single<AuthEngine> { AuthEngine(get(), get(), get(), get(), get(), get(), get()) }
+        single<AuthEngine> {
+            AuthEngine(get(), get(), get(), get(), get(), get(), get()) }
     } else {
-        //todo: check if dependencies are here
         single<AuthEngine> { AuthEngine(get(), get(), get(), get(), get(), get(), null) }
     }
 }

@@ -8,6 +8,7 @@ import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.pairing.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
@@ -120,16 +121,6 @@ internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSess
             Sign.Model.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
         })
     }
-
-//todo create and move to core mapper outside
-@JvmSynthetic
-internal fun Core.Model.AppMetaData.toClient() =
-    AppMetaData(name, description, url, icons, Redirect(redirect))
-
-//todo create and move to core mapper outside
-@JvmSynthetic
-internal fun AppMetaData.toClient() =
-    Core.Model.AppMetaData(name, description, url, icons, redirect?.native)
 
 @JvmSynthetic
 internal fun Sign.Params.Request.toEngineDORequest(): EngineDO.Request =

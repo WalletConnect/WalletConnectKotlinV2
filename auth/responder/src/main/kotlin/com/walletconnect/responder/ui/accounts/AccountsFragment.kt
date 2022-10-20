@@ -22,8 +22,11 @@ import com.walletconnect.responder.databinding.FragmentAccountsBinding
 import com.walletconnect.responder.ui.events.ResponderEvents
 import com.walletconnect.sample_common.BottomVerticalSpaceItemDecoration
 import com.walletconnect.sample_common.viewBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.runBlocking
 
 class AccountsFragment : Fragment(R.layout.fragment_accounts) {
     private val binding by viewBinding(FragmentAccountsBinding::bind)
@@ -35,7 +38,7 @@ class AccountsFragment : Fragment(R.layout.fragment_accounts) {
         setHasOptionsMenu(true)
 
         requireActivity().intent?.takeIf { intent -> intent.action == Intent.ACTION_VIEW && !intent.dataString.isNullOrBlank() }?.let { intent ->
-            viewModel.pair(intent.dataString.toString())
+            viewModel.pair(intent.dataString.toString(), 0)
             intent.data = null
         }
 
@@ -85,7 +88,7 @@ class AccountsFragment : Fragment(R.layout.fragment_accounts) {
             }.launchIn(viewLifecycleOwner.lifecycleScope)
 
         findNavController().currentBackStackEntry?.savedStateHandle?.getLiveData<String>(ACCOUNTS_ARGUMENT_KEY)?.observe(viewLifecycleOwner) { pairingUri ->
-            viewModel.pair(pairingUri)
+            viewModel.pair(pairingUri, 0)
             findNavController().currentBackStackEntry?.savedStateHandle?.remove<String>(ACCOUNTS_ARGUMENT_KEY)
         }
     }

@@ -5,7 +5,6 @@ package com.walletconnect.auth.client
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.di.cryptoModule
-import com.walletconnect.android.impl.di.networkModule
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -19,7 +18,6 @@ import com.walletconnect.auth.di.storageModule
 import com.walletconnect.auth.engine.domain.AuthEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import org.koin.core.context.startKoin
 
 internal class AuthProtocol : AuthInterface {
     private lateinit var authEngine: AuthEngine
@@ -34,7 +32,6 @@ internal class AuthProtocol : AuthInterface {
 
         with(init) {
             wcKoinApp.modules(
-                networkModule(core.Relay),
                 commonModule(),
                 cryptoModule(),
                 jsonRpcModule(),

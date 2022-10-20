@@ -17,7 +17,14 @@ class ResponderApplication : Application() {
         super.onCreate()
 
         val serverUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
-        CoreClient.initialize(Core.Model.AppMetaData("", "", serverUrl, emptyList(), null), "", ConnectionType.AUTOMATIC, this)
+
+        CoreClient.initialize(relayServerUrl = serverUrl, connectionType = ConnectionType.AUTOMATIC, application = this,
+            metaData = Core.Model.AppMetaData(name = "Kotlin.Responder",
+                description = "Kotlin AuthSDK Responder Implementation",
+                url = "kotlin.responder.walletconnect.com",
+                icons = listOf("https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png"),
+                redirect = "kotlin-responder-wc:/request")
+        )
 
         AuthClient.initialize(
             init = Auth.Params.Init(

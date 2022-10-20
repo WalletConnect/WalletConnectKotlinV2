@@ -16,6 +16,7 @@ import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.pairing.PairingInterface
+import com.walletconnect.android.pairing.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException
 import com.walletconnect.auth.common.exceptions.MissingAuthRequestException
@@ -85,13 +86,14 @@ internal class AuthEngine(
         val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams)
         val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
         val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
+        val pairingTopic = Topic(pairing.topic)
 
         crypto.setSelfParticipant(responsePublicKey, responseTopic)
-        relayer.publishJsonRpcRequests(pairing.topic, irnParams, authRequest,
+        relayer.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
             onSuccess = {
-                Logger.log("Auth request sent successfully on topic:${pairing.topic}, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
+                Logger.log("Auth request sent successfully on topic:${pairingTopic}, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
                 relayer.subscribe(responseTopic)
-                pairingTopicToResponseTopicMap[pairing.topic] = responseTopic
+                pairingTopicToResponseTopicMap[pairingTopic] = responseTopic
                 onPairing(pairing.uri)
             },
             onFailure = { error ->
@@ -165,10 +167,10 @@ internal class AuthEngine(
         val pairingTopic = wcResponse.topic
 
         pairingInterface.updateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS))
-        pairingInterface.updateMetadata(pairingTopic.value, requestParams.requester.metadata, AppMetaDataType.PEER)
+        pairingInterface.updateMetadata(pairingTopic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER)
         pairingInterface.activate(pairingTopic.value)
 
-        if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic }) return
+        if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
 
         pairingTopicToResponseTopicMap.remove(pairingTopic)
 

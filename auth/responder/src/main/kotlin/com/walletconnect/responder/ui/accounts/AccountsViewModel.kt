@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.responder.domain.ResponderDelegate
 import com.walletconnect.responder.domain.mapOfAccounts1
@@ -12,8 +11,11 @@ import com.walletconnect.responder.domain.mapOfAccounts2
 import com.walletconnect.responder.ui.events.ResponderEvents
 import com.walletconnect.responder.ui.request.RequestStore
 import com.walletconnect.sample_common.Chains
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.runBlocking
 
 class AccountsViewModel : ViewModel() {
     private val _accountUI: MutableStateFlow<List<AccountsUI>> = MutableStateFlow(INITIAL_ACCOUNTS_LIST)
@@ -34,9 +36,17 @@ class AccountsViewModel : ViewModel() {
         }.launchIn(viewModelScope)
     }
 
-    fun pair(pairingUri: String) {
+    fun pair(pairingUri: String, counter: Int) {
+        if (counter >= 3) {
+            throw IllegalStateException("Tooooooo loooong")
+        }
         val pairingParams = Core.Params.Pair(pairingUri)
-        CoreClient.Pairing.pair(pairingParams)
+        try {
+            CoreClient.Pairing.pair(pairingParams)
+        } catch (e: Exception) {
+            runBlocking(Dispatchers.IO) { delay(1000) }
+            pair(pairingUri, counter + 1)
+        }
     }
 
     fun newAccountClicked(selectedAccountIndex: Int) {

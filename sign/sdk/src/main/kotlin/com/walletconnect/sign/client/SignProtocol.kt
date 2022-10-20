@@ -7,7 +7,6 @@ import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.impl.di.cryptoModule
-import com.walletconnect.android.impl.di.networkModule
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.pairing.toPairing
 import com.walletconnect.foundation.common.model.Topic
@@ -34,12 +33,11 @@ internal class SignProtocol : SignInterface {
         with(initial) {
             // TODO: re-init scope
             wcKoinApp.modules(
-                networkModule(coreClient.Relay),
                 commonModule(),
                 cryptoModule(),
                 jsonRpcModule(),
                 storageModule(storageSuffix),
-                engineModule(coreClient.Pairing)
+                engineModule()
             )
         }
 
