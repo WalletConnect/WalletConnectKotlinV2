@@ -34,16 +34,13 @@ interface SignInterface {
     fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit)
     fun setWalletDelegate(delegate: WalletDelegate)
     fun setDappDelegate(delegate: DappDelegate)
-    @Deprecated(
-        message = "Connecting from pairing will be moved to CoreClient to make pairing SDK agnostic",
-        replaceWith = ReplaceWith(expression = "CoreClient.create()", imports = ["com.walletconnect.android.CoreClient"])
-    )
+
     fun connect(
-        connect: Sign.Params.Connect, onProposedSequence: (Sign.Model.ProposedSequence) -> Unit,
-        onError: (Sign.Model.Error) -> Unit, )
+        connect: Sign.Params.Connect, onProposedSequence: () -> Unit,
+        onError: (Sign.Model.Error) -> Unit)
     @Deprecated(
         message = "Creating a pairing will be moved to CoreClient to make pairing SDK agnostic",
-        replaceWith = ReplaceWith(expression = "CoreClient.pair()", imports = ["com.walletconnect.android.CoreClient"]))
+        replaceWith = ReplaceWith(expression = "CoreClient.Pairing.pair()", imports = ["com.walletconnect.android.CoreClient"]))
     fun pair(pair: Sign.Params.Pair, onError: (Sign.Model.Error) -> Unit)
     fun approveSession(approve: Sign.Params.Approve, onError: (Sign.Model.Error) -> Unit)
     fun rejectSession(reject: Sign.Params.Reject, onError: (Sign.Model.Error) -> Unit)
@@ -54,19 +51,17 @@ interface SignInterface {
     fun emit(emit: Sign.Params.Emit, onError: (Sign.Model.Error) -> Unit)
     @Deprecated(
         message = "Pinging a pairing will be moved to CoreClient to make pairing SDK agnostic",
-        replaceWith = ReplaceWith(expression = "CoreClient.ping()", imports = ["com.walletconnect.android.CoreClient"]))
+        replaceWith = ReplaceWith(expression = "CoreClient.Pairing.ping()", imports = ["com.walletconnect.android.CoreClient"]))
     fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing? = null)
     @Deprecated(
         message = "Disconnecting from pairing will be moved to CoreClient to make pairing SDK agnostic",
-        replaceWith = ReplaceWith(expression = "CoreClient.disconnect()", imports = ["com.walletconnect.android.CoreClient"]))
+        replaceWith = ReplaceWith(expression = "CoreClient.Pairing.disconnect()", imports = ["com.walletconnect.android.CoreClient"]))
     fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit)
     fun getListOfSettledSessions(): List<Sign.Model.Session>
     fun getSettledSessionByTopic(topic: String): Sign.Model.Session?
+    @Deprecated(
+        message = "Getting a list of Pairings will be moved to CoreClient to make pairing SDK agnostic",
+        replaceWith = ReplaceWith(expression = "CoreClient.Pairing.getPairings()", imports = ["com.walletconnect.android.CoreClient"]))
     fun getListOfSettledPairings(): List<Sign.Model.Pairing>
     fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest>
-
-//    interface Websocket {
-//        fun open(onError: (String) -> Unit)
-//        fun close(onError: (String) -> Unit)
-//    }
 }

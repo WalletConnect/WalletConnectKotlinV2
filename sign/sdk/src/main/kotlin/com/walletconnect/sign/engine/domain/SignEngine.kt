@@ -14,19 +14,23 @@ import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.impl.storage.MetadataStorageRepository
 import com.walletconnect.android.impl.utils.*
+import com.walletconnect.android.internal.common.exception.Reason
 import com.walletconnect.android.internal.common.model.*
-import com.walletconnect.android.pairing.Uncategorized
+import com.walletconnect.android.internal.common.exception.Uncategorized
+import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.pairing.PairingInterface
+import com.walletconnect.android.pairing.toPairing
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.sign.client.mapper.toClient
 import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.type.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
-import com.walletconnect.sign.common.model.vo.clientsync.session.SessionRpcVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpcVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
@@ -48,7 +52,7 @@ internal class SignEngine(
     private val getPendingRequestsUseCase: GetPendingRequestsUseCase,
     private val crypto: KeyManagementRepository,
     private val sessionStorageRepository: SessionStorageRepository,
-    private val metadataStorageRepository: MetadataStorageRepository,
+    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val pairingInterface: PairingInterface,
     private val selfAppMetaData: AppMetaData,
 ) {
@@ -93,55 +97,34 @@ internal class SignEngine(
             .launchIn(scope)
     }
 
-    internal fun proposeSequence(
+    internal fun proposeSession(
         namespaces: Map<String, EngineDO.Namespace.Proposal>,
-        relays: List<RelayProtocolOptions>?,
-        pairingTopic: String?,
-        onProposedSequence: (Sequence) -> Unit,
+        pairing: Pairing,
+        onProposedSequence: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        fun proposeSession(
-            pairingTopic: Topic,
-            proposedRelays: List<RelayProtocolOptions>?,
-            proposedSequence: Sequence,
-        ) {
-            Validator.validateProposalNamespace(namespaces.toNamespacesVOProposal()) { error ->
-                throw InvalidNamespaceException(error.message)
-            }
+        val relay = RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
 
-            val selfPublicKey: PublicKey = crypto.generateKeyPair()
-            val sessionProposal = toSessionProposeParams(proposedRelays ?: relays, namespaces, selfPublicKey, selfAppMetaData)
-            val request = SessionRpcVO.SessionPropose(id = generateId(), params = sessionProposal)
-            sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequest(pairingTopic, request.id, request.method, sessionProposal)
-            val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
-            relayer.subscribe(pairingTopic)
-
-            relayer.publishJsonRpcRequests(pairingTopic, irnParams, request,
-                onSuccess = {
-                    Logger.log("Session proposal sent successfully")
-                    onProposedSequence(proposedSequence)
-                },
-                onFailure = { error ->
-                    Logger.error("Failed to send a session proposal: $error")
-                    onFailure(error)
-                })
+        Validator.validateProposalNamespace(namespaces.toNamespacesVOProposal()) { error ->
+            throw InvalidNamespaceException(error.message)
         }
 
-        if (pairingTopic != null) {
-            val pairing = pairingInterface.getPairings().firstOrNull { pairing ->
-                pairing.topic.value == pairingTopic
-            } ?: return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$pairingTopic"))
-            val relay = RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
+        val selfPublicKey: PublicKey = crypto.generateKeyPair()
+        val sessionProposal: SessionParamsVO.SessionProposeParams = toSessionProposeParams(listOf(relay), namespaces, selfPublicKey, selfAppMetaData)
+        val request = SignRpcVO.SessionPropose(id = generateId(), params = sessionProposal)
+        sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequest(pairing.topic, request.id, request.method, sessionProposal)
+        val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
+        relayer.subscribe(pairing.topic)
 
-            proposeSession(Topic(pairingTopic), listOf(relay), EngineDO.ProposedSequence.Session)
-        } else {
-            pairingInterface.create().fold(
-                onSuccess = { pairing ->
-                    proposeSession(pairing.topic, listOf(RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)), pairing)
-                }, onFailure = {
-                    onFailure(it)
-                })
-        }
+        relayer.publishJsonRpcRequests(pairing.topic, irnParams, request,
+            onSuccess = {
+                Logger.log("Session proposal sent successfully")
+                onProposedSequence()
+            },
+            onFailure = { error ->
+                Logger.error("Failed to send a session proposal: $error")
+                onFailure(error)
+            })
     }
 
     internal fun pair(uri: String) {
@@ -178,7 +161,7 @@ internal class SignEngine(
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, proposal.proposer.metadata, AppMetaDataType.PEER)
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
-                val sessionSettle = SessionRpcVO.SessionSettle(id = generateId(), params = params)
+                val sessionSettle = SignRpcVO.SessionSettle(id = generateId(), params = params)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
                 relayer.publishJsonRpcRequests(sessionTopic, irnParams, sessionSettle, onFailure = { error -> onFailure(error) })
@@ -231,7 +214,7 @@ internal class SignEngine(
         }
 
         val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
-        val sessionUpdate = SessionRpcVO.SessionUpdate(id = generateId(), params = params)
+        val sessionUpdate = SignRpcVO.SessionUpdate(id = generateId(), params = params)
         val irnParams = IrnParams(Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
 
         sessionStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id,
@@ -264,7 +247,7 @@ internal class SignEngine(
         }
 
         val params = SessionParamsVO.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
-        val sessionPayload = SessionRpcVO.SessionRequest(id = generateId(), params = params)
+        val sessionPayload = SignRpcVO.SessionRequest(id = generateId(), params = params)
         val irnParams = IrnParams(Tags.SESSION_REQUEST, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
         relayer.publishJsonRpcRequests(
@@ -311,7 +294,7 @@ internal class SignEngine(
     // TODO: Do we still want Session Ping
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         if (sessionStorageRepository.isSessionValid(Topic(topic))) {
-            val pingPayload = SessionRpcVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams())
+            val pingPayload = SignRpcVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams())
             val irnParams = IrnParams(Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
 
             relayer.publishJsonRpcRequests(Topic(topic), irnParams, pingPayload,
@@ -377,7 +360,7 @@ internal class SignEngine(
         }
 
         val eventParams = SessionParamsVO.EventParams(SessionEventVO(event.name, event.data), event.chainId)
-        val sessionEvent = SessionRpcVO.SessionEvent(id = generateId(), params = eventParams)
+        val sessionEvent = SignRpcVO.SessionEvent(id = generateId(), params = eventParams)
         val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
         relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionEvent,
@@ -404,7 +387,7 @@ internal class SignEngine(
 
         val newExpiration = session.expiry.seconds + WEEK_IN_SECONDS
         sessionStorageRepository.extendSession(Topic(topic), newExpiration)
-        val sessionExtend = SessionRpcVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(newExpiration))
+        val sessionExtend = SignRpcVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(newExpiration))
         val irnParams = IrnParams(Tags.SESSION_EXTEND, Ttl(DAY_IN_SECONDS))
 
         relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionExtend,
@@ -420,8 +403,8 @@ internal class SignEngine(
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        val deleteParams = SessionParamsVO.DeleteParams(PeerError.Reason.UserDisconnected.code, PeerError.Reason.UserDisconnected.message)
-        val sessionDelete = SessionRpcVO.SessionDelete(id = generateId(), params = deleteParams)
+        val deleteParams = SessionParamsVO.DeleteParams(Reason.UserDisconnected.code, Reason.UserDisconnected.message)
+        val sessionDelete = SignRpcVO.SessionDelete(id = generateId(), params = deleteParams)
         sessionStorageRepository.deleteSession(Topic(topic))
         relayer.unsubscribe(Topic(topic))
         val irnParams = IrnParams(Tags.SESSION_DELETE, Ttl(DAY_IN_SECONDS))
@@ -444,7 +427,8 @@ internal class SignEngine(
 
     internal fun getListOfSettledPairings(): List<EngineDO.PairingSettle> {
         return pairingInterface.getPairings().map { pairing ->
-            EngineDO.PairingSettle(pairing.topic, pairing.peerAppMetaData)
+            val mappedPairing = pairing.toPairing()
+            EngineDO.PairingSettle(mappedPairing.topic, mappedPairing.peerAppMetaData)
         }
     }
 
@@ -479,7 +463,7 @@ internal class SignEngine(
     }
 
     private fun collectInternalErrors() {
-        relayer.internalErrors
+        merge(relayer.internalErrors, pairingInterface.findWrongMethodsFlow)
             .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
             .launchIn(scope)
     }
@@ -506,7 +490,7 @@ internal class SignEngine(
         }
 
         sessionProposalRequest[payloadParams.proposer.publicKey] = request
-        pairingInterface.updateMetadata(request.topic.value, payloadParams.proposer.metadata, AppMetaDataType.PEER) //todo: take care of multiple metadata structures
+        pairingInterface.updateMetadata(request.topic.value, payloadParams.proposer.metadata.toClient(), AppMetaDataType.PEER)
 
         scope.launch { _engineEvent.emit(payloadParams.toEngineDO()) }
     }
@@ -699,10 +683,10 @@ internal class SignEngine(
         val pairingTopic = wcResponse.topic
 
         pairingInterface.updateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS))
-        pairingInterface.updateMetadata(pairingTopic.value, params.proposer.metadata, AppMetaDataType.PEER)
+        pairingInterface.updateMetadata(pairingTopic.value, params.proposer.metadata.toClient(), AppMetaDataType.PEER)
         pairingInterface.activate(pairingTopic.value)
 
-        if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic }) return
+        if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
 
         when (val response = wcResponse.response) {
             is JsonRpcResponse.JsonRpcResult -> {

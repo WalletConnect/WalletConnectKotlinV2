@@ -15,7 +15,7 @@ import org.koin.dsl.module
 
 fun baseStorageModule() = module {
 
-    single<ColumnAdapter<List<String>, String>> {
+    single<ColumnAdapter<List<String>, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)) {
         object : ColumnAdapter<List<String>, String> {
 
             override fun decode(databaseValue: String) =
@@ -29,25 +29,27 @@ fun baseStorageModule() = module {
         }
     }
 
-    single<ColumnAdapter<AppMetaDataType, String>> { EnumColumnAdapter() }
+    single<ColumnAdapter<AppMetaDataType, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATATYPE)) { EnumColumnAdapter() }
 
     single(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)) {
         AndroidCoreDatabase(
-            get(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)),
+            get(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)),
             MetaDataAdapter = MetaData.Adapter(
-                iconsAdapter = get(),
-                typeAdapter = get()
-            )
+                iconsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
+                typeAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATATYPE))
+            ),
         )
     }
 
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).jsonRpcHistoryQueries }
+
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).pairingQueries }
+
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).metaDataQueries }
 
-    single { JsonRpcHistory(get(), get()) }
+    single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(get()) }
 
     single<PairingStorageRepositoryInterface> { PairingStorageRepository(get()) }
 
-    single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(get()) }
+    single { JsonRpcHistory(get(), get()) }
 }

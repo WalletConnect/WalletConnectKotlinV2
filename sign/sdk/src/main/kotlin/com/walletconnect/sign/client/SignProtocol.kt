@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.di.networkModule
 import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.pairing.toPairing
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.sign.di.commonModule
@@ -89,18 +90,15 @@ internal class SignProtocol : SignInterface {
     @Throws(IllegalStateException::class)
     override fun connect(
         connect: Sign.Params.Connect,
-        onProposedSequence: (Sign.Model.ProposedSequence) -> Unit,
+        onProposedSequence: () -> Unit,
         onError: (Sign.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
         try {
-            signEngine.proposeSequence(
+            signEngine.proposeSession(
                 connect.namespaces.toMapOfEngineNamespacesProposal(),
-                connect.relays?.toListEngineOfRelayProtocolOptions(),
-                connect.pairingTopic,
-                { proposedSequence -> onProposedSequence(proposedSequence.toClientProposedSequence()) },
-                { error -> onError(Sign.Model.Error(error)) }
-            )
+                connect.pairing.toPairing(), onProposedSequence
+            ) { error -> onError(Sign.Model.Error(error)) }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }

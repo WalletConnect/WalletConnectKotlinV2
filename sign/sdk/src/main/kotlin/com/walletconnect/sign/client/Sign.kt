@@ -2,6 +2,7 @@ package com.walletconnect.sign.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.internal.common.model.Pairing
 import java.net.URI
 
 object Sign {
@@ -181,8 +182,7 @@ object Sign {
 
         data class Connect(
             val namespaces: Map<String, Model.Namespace.Proposal>,
-            val relays: List<Model.RelayProtocolOptions>? = null,
-            val pairingTopic: String? = null,
+            val pairing: Core.Model.Pairing
         ) : Params()
 
         data class Pair(val uri: String) : Params()

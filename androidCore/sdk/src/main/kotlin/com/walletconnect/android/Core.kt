@@ -1,5 +1,9 @@
 package com.walletconnect.android
 
+import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.foundation.common.model.Topic
+
 object Core {
     sealed interface Listeners {
         interface PairingPing : Listeners {
@@ -19,6 +23,17 @@ object Core {
         data class AppMetaData(val name: String, val description: String, val url: String, val icons: List<String>, val redirect: String?) : Model()
 
         data class DeletedPairing(val topic: String, val reason: String) : Model()
+
+        data class Pairing(
+            val topic: String,
+            val expiry: Long,
+            val peerAppMetaData: AppMetaData? = null,
+            val relayProtocol: String,
+            val relayData: String?,
+            val uri: String,
+            val isActive: Boolean,
+            val registeredMethods: String
+        ): Model()
     }
 
     sealed class Params {

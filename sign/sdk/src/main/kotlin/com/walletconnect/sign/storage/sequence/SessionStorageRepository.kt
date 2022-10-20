@@ -18,8 +18,6 @@ import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceExtensionDaoQue
 import com.walletconnect.utils.Empty
 import com.walletconnect.utils.isSequenceValid
 
-// todo: ensure joining metadata is done outside of sqldelight
-// todo: Also big migration
 internal class SessionStorageRepository(
     private val sessionDaoQueries: SessionDaoQueries,
     private val namespaceDaoQueries: NamespaceDaoQueries,

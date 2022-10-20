@@ -13,14 +13,6 @@ import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.engine.model.EngineDO
 
-//TODO: Figure out what to do with models separation
-@JvmSynthetic
-internal fun Sequence.toClientProposedSequence(): Sign.Model.ProposedSequence =
-    when (this) {
-        is Pairing -> Sign.Model.ProposedSequence.Pairing(this.uri)
-        else -> Sign.Model.ProposedSequence.Session
-    }
-
 @JvmSynthetic
 internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponse(): JsonRpcResponse =
     when (this) {

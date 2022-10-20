@@ -106,14 +106,6 @@ sealed class PeerError: Error {
         }
     }
 
-    sealed class Reason: PeerError() {
-
-        object UserDisconnected : Reason() {
-            override val message: String = DISCONNECT_MESSAGE
-            override val code: Int = 6000
-        }
-    }
-
     sealed class Failure: PeerError() {
 
         data class SessionSettlementFailed(val reason: String) : Failure() {

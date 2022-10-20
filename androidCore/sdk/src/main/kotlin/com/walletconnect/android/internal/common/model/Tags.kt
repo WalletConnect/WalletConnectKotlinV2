@@ -1,6 +1,8 @@
 package com.walletconnect.android.internal.common.model
 
 enum class Tags(val id: Int) {
+    UNSUPPORTED_METHOD(0),
+
     PAIRING_DELETE(1000),
     PAIRING_DELETE_RESPONSE(1001),
 

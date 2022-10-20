@@ -77,30 +77,26 @@ internal class AuthEngine(
         onFailure: (Throwable) -> Unit,
     ) {
         // For Alpha we are assuming not authenticated only todo: Remove comment after Alpha
-        pairingInterface.create().fold(
-            onSuccess = { pairing ->
-                val responsePublicKey: PublicKey = crypto.generateKeyPair()
-                val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
-                val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams)
-                val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
-                val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
+        val pairing = pairingInterface.create() {
+            onFailure(it.throwable)
+        } ?: return
+        val responsePublicKey: PublicKey = crypto.generateKeyPair()
+        val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
+        val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams)
+        val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
+        val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
 
-                crypto.setSelfParticipant(responsePublicKey, responseTopic)
-                relayer.publishJsonRpcRequests(pairing.topic, irnParams, authRequest,
-                    onSuccess = {
-                        Logger.log("Auth request sent successfully on topic:${pairing.topic}, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
-                        onPairing(pairing.uri)
-                        relayer.subscribe(responseTopic)
-                        pairingTopicToResponseTopicMap[pairing.topic] = responseTopic
-                    },
-                    onFailure = { error ->
-                        Logger.error("Failed to send a auth request: $error")
-                        onFailure(error)
-                    }
-                )
+        crypto.setSelfParticipant(responsePublicKey, responseTopic)
+        relayer.publishJsonRpcRequests(pairing.topic, irnParams, authRequest,
+            onSuccess = {
+                Logger.log("Auth request sent successfully on topic:${pairing.topic}, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
+                relayer.subscribe(responseTopic)
+                pairingTopicToResponseTopicMap[pairing.topic] = responseTopic
+                onPairing(pairing.uri)
             },
-            onFailure = {
-                onFailure(it)
+            onFailure = { error ->
+                Logger.error("Failed to send a auth request: $error")
+                onFailure(error)
             }
         )
     }

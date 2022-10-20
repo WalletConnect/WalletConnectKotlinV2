@@ -13,14 +13,6 @@ import java.net.URI
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions as CoreRelayProtocolOptions
 
 internal sealed class EngineDO {
-    
-    internal sealed class ProposedSequence {
-        class Pairing(val uri: String) : ProposedSequence()
-        object Session : ProposedSequence(), Sequence {
-            override val topic: Topic = Topic("")
-            override val expiry: Expiry = Expiry(0L)
-        }
-    }
 
     internal class WalletConnectUri(
         val topic: Topic,
@@ -85,11 +77,6 @@ internal sealed class EngineDO {
     ) : EngineDO(), EngineEvent
 
     internal data class SessionDelete(
-        val topic: String,
-        val reason: String,
-    ) : EngineDO(), EngineEvent
-
-    internal data class DeletedPairing(
         val topic: String,
         val reason: String,
     ) : EngineDO(), EngineEvent

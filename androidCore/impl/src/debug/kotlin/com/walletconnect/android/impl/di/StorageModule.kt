@@ -11,7 +11,7 @@ fun coreStorageModule() = module {
 
     includes(baseStorageModule())
 
-    single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)) {
+    single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)) {
         AndroidSqliteDriver(
             schema = AndroidCoreDatabase.Schema,
             context = androidContext(),

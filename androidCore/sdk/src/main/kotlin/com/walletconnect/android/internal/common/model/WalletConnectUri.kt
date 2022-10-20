@@ -8,7 +8,7 @@ data class WalletConnectUri(
     val topic: Topic,
     val symKey: SymmetricKey,
     val relay: RelayProtocolOptions,
-    val registeredMethods: String,
+//    val registeredMethods: String, TODO: We'll review later how we want to handle registered methods
     val version: String = "2",
 ) {
     fun toAbsoluteString(): String =
