@@ -59,7 +59,7 @@ open class BaseJsonRpcInteractor(
         }
     }
 
-    fun publishJsonRpcRequests(
+    fun publishJsonRpcRequest(
         topic: Topic,
         params: IrnParams,
         payload: JsonRpcClientSync<*>,

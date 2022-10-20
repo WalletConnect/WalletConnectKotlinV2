@@ -1,53 +1,51 @@
 package com.walletconnect.chat.client
 
-import com.walletconnect.android.common.di.commonModule
 import com.walletconnect.android.common.scope
+import com.walletconnect.android.common.wcKoinApp
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.di.networkModule
+import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.chat.client.mapper.toClient
 import com.walletconnect.chat.client.mapper.toEngineDO
 import com.walletconnect.chat.client.mapper.toVO
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.AccountIdWithPublicKey
-import com.walletconnect.chat.di.engineModule
+import com.walletconnect.chat.di.*
+import com.walletconnect.chat.di.commonModule
+import com.walletconnect.chat.di.jsonRpcModule
 import com.walletconnect.chat.di.keyServerModule
 import com.walletconnect.chat.engine.domain.ChatEngine
 import com.walletconnect.chat.engine.model.EngineDO
 import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.launch
-import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 
 internal class ChatProtocol : ChatInterface {
-    private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var chatEngine: ChatEngine
 
     companion object {
         val instance = ChatProtocol()
+        const val storageSuffix: String = "_chat"
     }
 
     @Throws(IllegalStateException::class)
     override fun initialize(init: Chat.Params.Init, onError: (Chat.Model.Error) -> Unit) {
+        Logger.init()
         with(init) {
             wcKoinApp.run {
-                androidContext(application)
                 modules(
+                    networkModule(relay),
                     commonModule(),
                     cryptoModule(),
                     keyServerModule(keyServerUrl),
-//                    TODO: Figure out how to get relay as in Sign in here
-//                    networkModule(serverUrl, relay, connectionType.toRelayConnectionType()),
-                    //todo: add serverUrl as init param
-                    networkModule("serverUrl"), //TODO: refactor, network module should be initialized in RelayClient
-//                    relayerModule(),
-//                    storageModule(),
-                    com.walletconnect.chat.di.storageModule(), // TODO: Refactor storage module into one
+                    jsonRpcModule(),
+                    storageModule(storageSuffix),
                     engineModule()
                 )
-
-                chatEngine = koin.get()
             }
         }
+
+        chatEngine = wcKoinApp.koin.get()
     }
 
     override fun setChatDelegate(delegate: ChatInterface.ChatDelegate) {
@@ -58,8 +56,8 @@ internal class ChatProtocol : ChatInterface {
                 when (event) {
                     is EngineDO.Events.OnInvite -> delegate.onInvite(event.toClient())
                     is EngineDO.Events.OnJoined -> delegate.onJoined(event.toClient())
-                    is EngineDO.Events.OnLeft -> Unit
                     is EngineDO.Events.OnMessage -> delegate.onMessage(event.toClient())
+                    is EngineDO.Events.OnLeft -> Unit
                 }
             }
         }

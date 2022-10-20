@@ -106,7 +106,7 @@ internal class SignEngine(
             jsonRpcInteractor.subscribe(pairingTopic)
 
             onProposedSequence(proposedSequence)
-            jsonRpcInteractor.publishJsonRpcRequests(pairingTopic, irnParams, request,
+            jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, request,
                 onSuccess = {
                     Logger.log("Session proposal sent successfully")
                 },
@@ -181,7 +181,11 @@ internal class SignEngine(
         sessionProposalRequest.remove(proposerPublicKey)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
-        jsonRpcInteractor.respondWithError(request, PeerError.EIP1193.UserRejectedRequest(reason), irnParams, onFailure = { error -> onFailure(error) })
+        jsonRpcInteractor.respondWithError(
+            request,
+            PeerError.EIP1193.UserRejectedRequest(reason),
+            irnParams,
+            onFailure = { error -> onFailure(error) })
     }
 
     internal fun approve(
@@ -205,7 +209,7 @@ internal class SignEngine(
                 val sessionSettle = SessionRpcVO.SessionSettle(id = generateId(), params = params)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
-                jsonRpcInteractor.publishJsonRpcRequests(sessionTopic, irnParams, sessionSettle, onFailure = { error -> onFailure(error) })
+                jsonRpcInteractor.publishJsonRpcRequest(sessionTopic, irnParams, sessionSettle, onFailure = { error -> onFailure(error) })
             } catch (e: SQLiteException) {
                 onFailure(e)
             }
@@ -261,7 +265,7 @@ internal class SignEngine(
         val irnParams = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
 
         sequenceStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id, onSuccess = {
-            jsonRpcInteractor.publishJsonRpcRequests(Topic(topic), irnParams, sessionUpdate,
+            jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionUpdate,
                 onSuccess = { Logger.log("Update sent successfully") },
                 onFailure = { error ->
                     Logger.error("Sending session update error: $error")
@@ -292,7 +296,7 @@ internal class SignEngine(
         val sessionPayload = SessionRpcVO.SessionRequest(id = generateId(), params = params)
         val irnParams = IrnParams(Tags.SESSION_REQUEST, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
-        jsonRpcInteractor.publishJsonRpcRequests(
+        jsonRpcInteractor.publishJsonRpcRequest(
             Topic(request.topic),
             irnParams,
             sessionPayload,
@@ -348,11 +352,9 @@ internal class SignEngine(
             else -> throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        jsonRpcInteractor.publishJsonRpcRequests(Topic(topic), irnParams, pingPayload,
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
             onSuccess = {
-
                 Logger.log("Ping sent successfully")
-
                 scope.launch {
                     try {
                         withTimeout(THIRTY_SECONDS_TIMEOUT) {
@@ -364,9 +366,7 @@ internal class SignEngine(
                                         onSuccess(topic)
                                     },
                                     onFailure = { error ->
-
                                         Logger.log("Ping peer response error: $error")
-
                                         onFailure(error)
                                     })
                             }
@@ -407,7 +407,7 @@ internal class SignEngine(
         val sessionEvent = SessionRpcVO.SessionEvent(id = generateId(), params = eventParams)
         val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
-        jsonRpcInteractor.publishJsonRpcRequests(Topic(topic), irnParams, sessionEvent,
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionEvent,
             onSuccess = { Logger.log("Event sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending event error: $error")
@@ -434,7 +434,7 @@ internal class SignEngine(
         val sessionExtend = SessionRpcVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(newExpiration))
         val irnParams = IrnParams(Tags.SESSION_EXTEND, Ttl(DAY_IN_SECONDS))
 
-        jsonRpcInteractor.publishJsonRpcRequests(Topic(topic), irnParams, sessionExtend,
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionExtend,
             onSuccess = { Logger.log("Session extend sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending session extend error: $error")
@@ -453,7 +453,7 @@ internal class SignEngine(
         jsonRpcInteractor.unsubscribe(Topic(topic))
         val irnParams = IrnParams(Tags.SESSION_DELETE, Ttl(DAY_IN_SECONDS))
 
-        jsonRpcInteractor.publishJsonRpcRequests(Topic(topic), irnParams, sessionDelete,
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionDelete,
             onSuccess = { Logger.error("Disconnect sent successfully") },
             onFailure = { error -> Logger.error("Sending session disconnect error: $error") })
     }
@@ -576,7 +576,11 @@ internal class SignEngine(
     private fun onPairingDelete(request: WCRequest, params: PairingParamsVO.DeleteParams) {
         if (!sequenceStorageRepository.isPairingValid(request.topic)) {
             val irnParams = IrnParams(Tags.PAIRING_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
-            jsonRpcInteractor.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.PAIRING.name, request.topic.value), irnParams)
+            jsonRpcInteractor.respondWithError(
+                request,
+                PeerError.Uncategorized.NoMatchingTopic(Sequences.PAIRING.name, request.topic.value),
+                irnParams
+            )
             return
         }
 
@@ -591,7 +595,11 @@ internal class SignEngine(
     private fun onSessionDelete(request: WCRequest, params: SessionParamsVO.DeleteParams) {
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
             val irnParams = IrnParams(Tags.SESSION_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
-            jsonRpcInteractor.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
+            jsonRpcInteractor.respondWithError(
+                request,
+                PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
+                irnParams
+            )
             return
         }
 
@@ -611,7 +619,11 @@ internal class SignEngine(
         }
 
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            jsonRpcInteractor.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
+            jsonRpcInteractor.respondWithError(
+                request,
+                PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
+                irnParams
+            )
             return
         }
 
@@ -636,7 +648,11 @@ internal class SignEngine(
         }
 
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            jsonRpcInteractor.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
+            jsonRpcInteractor.respondWithError(
+                request,
+                PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
+                irnParams
+            )
             return
         }
 
@@ -646,7 +662,11 @@ internal class SignEngine(
             return
         }
         if (!session.isAcknowledged) {
-            jsonRpcInteractor.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
+            jsonRpcInteractor.respondWithError(
+                request,
+                PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
+                irnParams
+            )
             return
         }
 
@@ -664,7 +684,11 @@ internal class SignEngine(
     private fun onSessionUpdate(request: WCRequest, params: SessionParamsVO.UpdateNamespacesParams) {
         val irnParams = IrnParams(Tags.SESSION_UPDATE_RESPONSE, Ttl(DAY_IN_SECONDS))
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            jsonRpcInteractor.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
+            jsonRpcInteractor.respondWithError(
+                request,
+                PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
+                irnParams
+            )
             return
         }
 
@@ -703,7 +727,11 @@ internal class SignEngine(
     private fun onSessionExtend(request: WCRequest, requestParams: SessionParamsVO.ExtendParams) {
         val irnParams = IrnParams(Tags.SESSION_EXTEND_RESPONSE, Ttl(DAY_IN_SECONDS))
         if (!sequenceStorageRepository.isSessionValid(request.topic)) {
-            jsonRpcInteractor.respondWithError(request, PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
+            jsonRpcInteractor.respondWithError(
+                request,
+                PeerError.Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
+                irnParams
+            )
             return
         }
 

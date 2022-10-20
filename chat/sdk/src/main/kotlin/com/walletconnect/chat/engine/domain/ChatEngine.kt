@@ -3,6 +3,7 @@
 package com.walletconnect.chat.engine.domain
 
 import com.walletconnect.android.common.JsonRpcResponse
+import com.walletconnect.android.common.model.Tags
 import com.walletconnect.android.common.scope
 import com.walletconnect.android.exception.GenericException
 import com.walletconnect.android.impl.common.model.IrnParams
@@ -10,8 +11,9 @@ import com.walletconnect.android.impl.common.model.Participants
 import com.walletconnect.android.impl.common.model.sync.WCRequest
 import com.walletconnect.android.impl.common.model.sync.WCResponse
 import com.walletconnect.android.impl.common.model.type.enums.EnvelopeType
+import com.walletconnect.android.impl.crypto.KeyManagementRepository
+import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.Logger
-import com.walletconnect.chat.copiedFromSign.KeyManagementRepository
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.AccountIdWithPublicKey
 import com.walletconnect.chat.common.json_rpc.ChatRpc
@@ -19,6 +21,7 @@ import com.walletconnect.chat.common.json_rpc.ChatParams
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterAccountUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveAccountUseCase
 import com.walletconnect.chat.engine.model.EngineDO
+import com.walletconnect.chat.json_rpc.domain.JsonRpcInteractor
 import com.walletconnect.chat.storage.ChatStorageRepository
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -122,25 +125,22 @@ internal class ChatEngine(
         val inviteTopic = Topic(keyManagementRepository.getHash(publicKeyString)) // Topic I
         keyManagementRepository.setKeyAgreement(inviteTopic, senderPublicKey, receiverPublicKey)
 
-        val participantsVO = Participants(senderPublicKey = senderPublicKey, receiverPublicKey = receiverPublicKey)
-
+        val participants = Participants(senderPublicKey = senderPublicKey, receiverPublicKey = receiverPublicKey)
         val inviteParams = ChatParams.InviteParams(invite.message, invite.accountId.value, senderPublicKey.keyAsHex, invite.signature)
         val payload = ChatRpc.ChatInvite(id = generateId(), params = inviteParams)
-
         val acceptTopic = Topic(keyManagementRepository.getHash(symmetricKey.keyAsHex))
+
         keyManagementRepository.setSymmetricKey(acceptTopic, symmetricKey)
         jsonRpcInteractor.subscribe(acceptTopic)
-        val irnParams = IrnParams(Tags.CHAT_INVITE, Ttl(Time.dayInSeconds), true)
 
-        jsonRpcInteractor.publishJsonRpcRequests(inviteTopic, irnParams, payload, EnvelopeType.ONE,
-            {
-                Logger.log("Chat invite sent successfully")
-            },
+        val irnParams = IrnParams(Tags.CHAT_INVITE, Ttl(DAY_IN_SECONDS), true)
+        jsonRpcInteractor.publishJsonRpcRequest(inviteTopic, irnParams, payload, EnvelopeType.ONE, participants,
+            { Logger.log("Chat invite sent successfully") },
             { throwable ->
                 Logger.log("Chat invite error: $throwable")
                 jsonRpcInteractor.unsubscribe(acceptTopic)
                 onFailure(throwable)
-            }, participantsVO)
+            })
 
     } catch (error: Exception) {
         onFailure(error)
@@ -171,8 +171,12 @@ internal class ChatEngine(
 
         inviteRequestMap[wcRequest.id] = wcRequest // todo when to remove it?
         scope.launch {
-            _events.emit(EngineDO.Events.OnInvite(wcRequest.id,
-                EngineDO.Invite(AccountId(params.account), params.message, params.signature)))
+            _events.emit(
+                EngineDO.Events.OnInvite(
+                    wcRequest.id,
+                    EngineDO.Invite(AccountId(params.account), params.message, params.signature)
+                )
+            )
         }
 
         //TODO: Add adding invites to storage. For MVP we will use only emitted event.
@@ -193,7 +197,7 @@ internal class ChatEngine(
 
 
         val acceptanceParams = ChatParams.AcceptanceParams(publicKey.keyAsHex)
-        val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(Time.dayInSeconds))
+        val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(DAY_IN_SECONDS))
 
         jsonRpcInteractor.respondWithParams(request.copy(topic = acceptTopic), acceptanceParams, irnParams, EnvelopeType.ZERO)
 
@@ -223,11 +227,11 @@ internal class ChatEngine(
         val messageParams =
             ChatParams.MessageParams(sendMessage.message, sendMessage.author.value, System.currentTimeMillis(), sendMessage.media)
         val payload = ChatRpc.ChatMessage(id = generateId(), params = messageParams)
-        val irnParams = IrnParams(Tags.CHAT_MESSAGE, Ttl(Time.dayInSeconds), true)
+        val irnParams = IrnParams(Tags.CHAT_MESSAGE, Ttl(DAY_IN_SECONDS), true)
 
-        jsonRpcInteractor.publishJsonRpcRequests(Topic(topic), irnParams, payload, EnvelopeType.ZERO,
-            { Logger.log("Chat message sent successfully") },
-            { throwable ->
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, payload,
+            onSuccess = { Logger.log("Chat message sent successfully") },
+            onFailure = { throwable ->
                 Logger.log("Chat message error: $throwable")
                 onFailure(throwable)
             })
@@ -235,8 +239,12 @@ internal class ChatEngine(
 
     private fun onMessage(wcRequest: WCRequest, params: ChatParams.MessageParams) {
         scope.launch {
-            _events.emit(EngineDO.Events.OnMessage(wcRequest.topic.value,
-                EngineDO.Message(params.message, AccountId(params.authorAccount), params.timestamp, params.media)))
+            _events.emit(
+                EngineDO.Events.OnMessage(
+                    wcRequest.topic.value,
+                    EngineDO.Message(params.message, AccountId(params.authorAccount), params.timestamp, params.media)
+                )
+            )
         }
 
         //TODO: Add adding messages to storage. For MVP we will use only emitted event.
@@ -246,11 +254,11 @@ internal class ChatEngine(
         //todo: correct define params
         val leaveParams = ChatParams.LeaveParams()
         val payload = ChatRpc.ChatLeave(id = generateId(), params = leaveParams)
-        val irnParams = IrnParams(Tags.CHAT_LEAVE, Ttl(Time.dayInSeconds), true)
+        val irnParams = IrnParams(Tags.CHAT_LEAVE, Ttl(DAY_IN_SECONDS), true)
 
-        jsonRpcInteractor.publishJsonRpcRequests(Topic(topic), irnParams, payload, EnvelopeType.ZERO,
-            { Logger.log("Chat message sent successfully") },
-            { throwable ->
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, payload, EnvelopeType.ZERO,
+            onSuccess = { Logger.log("Chat message sent successfully") },
+            onFailure = { throwable ->
                 Logger.log("Chat message error: $throwable")
                 onFailure(throwable)
             })
@@ -285,9 +293,11 @@ internal class ChatEngine(
         if (chatStorage.doesContactNotExists(accountIdWithPublicKeyVO.accountId)) {
             chatStorage.createContact(EngineDO.Contact(accountIdWithPublicKeyVO, accountIdWithPublicKeyVO.accountId.value))
         } else {
-            chatStorage.updateContact(accountIdWithPublicKeyVO.accountId,
+            chatStorage.updateContact(
+                accountIdWithPublicKeyVO.accountId,
                 accountIdWithPublicKeyVO.publicKey,
-                accountIdWithPublicKeyVO.accountId.value)
+                accountIdWithPublicKeyVO.accountId.value
+            )
         }
     } catch (error: Exception) {
         onFailure(error)

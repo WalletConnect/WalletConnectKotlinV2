@@ -6,7 +6,6 @@ import com.walletconnect.android.impl.common.model.type.ClientParams
 import com.walletconnect.android.impl.common.model.type.JsonRpcClientSync
 import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.RelayConnectionInterface
-import com.walletconnect.android.common.connection.ConnectivityState
 import com.walletconnect.android.exception.WalletConnectException
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.impl.utils.Logger
@@ -102,7 +101,7 @@ internal class RelayerInteractorTest {
 
     private fun publishJsonRpcRequests() {
         val irnParamsVO = IrnParams(com.walletconnect.android.common.model.Tags.SESSION_PING, Ttl(300))
-        sut.publishJsonRpcRequests(
+        sut.publishJsonRpcRequest(
             topicVO,
             irnParamsVO,
             settlementSequence,

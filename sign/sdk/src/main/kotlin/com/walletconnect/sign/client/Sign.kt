@@ -181,7 +181,6 @@ object Sign {
 
     sealed class Params {
 
-        // TODO: Maybe convert this into a Builder
         data class Init constructor(
             val metadata: Model.AppMetaData,
             val relay: RelayConnectionInterface,

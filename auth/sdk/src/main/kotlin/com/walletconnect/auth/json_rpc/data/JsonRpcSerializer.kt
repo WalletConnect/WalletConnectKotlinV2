@@ -17,7 +17,7 @@ internal class JsonRpcSerializer(override val moshi: Moshi) : JsonRpcSerializerA
         else -> null
     }
 
-    override fun sdkSpecificSerialize(payload: com.walletconnect.android.common.SerializableJsonRpc): String = when (payload) {
+    override fun sdkSpecificSerialize(payload: SerializableJsonRpc): String = when (payload) {
         is AuthRpc.AuthRequest -> trySerialize(payload)
         else -> String.Empty
     }

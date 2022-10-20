@@ -93,7 +93,7 @@ internal class AuthEngine(
             val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
 
             onPairing(walletConnectUri.toAbsoluteString())
-            jsonRpcInteractor.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
+            jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
                 onSuccess = {
                     Logger.log("Auth request sent successfully on topic:$pairingTopic, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
                     jsonRpcInteractor.subscribe(responseTopic)
