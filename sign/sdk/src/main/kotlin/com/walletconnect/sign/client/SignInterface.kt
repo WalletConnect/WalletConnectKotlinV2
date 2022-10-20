@@ -49,13 +49,7 @@ interface SignInterface {
     fun update(update: Sign.Params.Update, onError: (Sign.Model.Error) -> Unit)
     fun extend(extend: Sign.Params.Extend, onError: (Sign.Model.Error) -> Unit)
     fun emit(emit: Sign.Params.Emit, onError: (Sign.Model.Error) -> Unit)
-    @Deprecated(
-        message = "Pinging a pairing will be moved to CoreClient to make pairing SDK agnostic",
-        replaceWith = ReplaceWith(expression = "CoreClient.Pairing.ping()", imports = ["com.walletconnect.android.CoreClient"]))
     fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing? = null)
-    @Deprecated(
-        message = "Disconnecting from pairing will be moved to CoreClient to make pairing SDK agnostic",
-        replaceWith = ReplaceWith(expression = "CoreClient.Pairing.disconnect()", imports = ["com.walletconnect.android.CoreClient"]))
     fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit)
     fun getListOfSettledSessions(): List<Sign.Model.Session>
     fun getSettledSessionByTopic(topic: String): Sign.Model.Session?
