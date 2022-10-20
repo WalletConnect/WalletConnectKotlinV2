@@ -1,8 +1,6 @@
 package com.walletconnect.android.impl.json_rpc.data
 
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
-import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.SerializableJsonRpc
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
@@ -10,7 +8,6 @@ import com.walletconnect.android.internal.common.model.ClientParams
 import com.walletconnect.android.internal.common.model.JsonRpcClientSync
 import com.walletconnect.android.internal.common.wcKoinApp
 import org.koin.core.qualifier.named
-import java.lang.reflect.ParameterizedType
 import kotlin.reflect.KClass
 
 //todo: Verify if consequent initialisations of child class append moshi adapters and store entries.
@@ -22,10 +19,10 @@ class JsonRpcSerializer(
         get() = wcKoinApp.koin.get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)).build()
 
     fun deserialize(method: String, json: String): ClientParams? {
-        val deserializedObject = tryDeserialize<JsonRpcClientSync<*>>(json) ?: return null
-        val type = deserializerEntries[method]
+        val type = deserializerEntries[method] ?: return null
+        val deserializedObject = tryDeserialize(json, type) ?: return null
 
-        return if (deserializedObject::class == type) {
+        return if (deserializedObject::class == type && deserializedObject is JsonRpcClientSync<*>) {
             deserializedObject.params
         } else {
             null
@@ -46,6 +43,7 @@ class JsonRpcSerializer(
     }
 
     inline fun <reified T> tryDeserialize(json: String): T? = runCatching { moshi.adapter(T::class.java).fromJson(json) }.getOrNull()
+    private fun tryDeserialize(json: String, type: KClass<*>): Any? = runCatching { moshi.adapter(type.java).fromJson(json) }.getOrNull()
     private inline fun <reified T> trySerialize(type: T): String = moshi.adapter(T::class.java).toJson(type)
     private fun trySerialize(payload: Any, type: KClass<*>): String = moshi.adapter<Any>(type.java).toJson(payload)
 }
