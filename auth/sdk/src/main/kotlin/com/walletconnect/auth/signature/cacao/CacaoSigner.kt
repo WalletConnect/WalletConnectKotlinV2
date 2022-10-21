@@ -10,7 +10,7 @@ import com.walletconnect.auth.signature.toCacaoSignature
 object CacaoSigner {
     fun sign(message: ByteArray, privateKey: ByteArray, type: SignatureType): Auth.Model.Cacao.Signature =
         when (type) {
-            SignatureType.EIP191 -> Auth.Model.Cacao.Signature(type.header, EIP191Signer.sign(message, privateKey).toCacaoSignature())
+            SignatureType.EIP191, SignatureType.EIP1271 -> Auth.Model.Cacao.Signature(type.header, EIP191Signer.sign(message, privateKey).toCacaoSignature())
         }
 
     fun sign(message: String, privateKey: ByteArray, type: SignatureType): Auth.Model.Cacao.Signature = sign(message.toByteArray(), privateKey, type)

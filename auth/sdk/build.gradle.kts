@@ -21,6 +21,7 @@ android {
         targetSdk = TARGET_SDK
 
         buildConfigField(type = "String", name= "sdkVersion", value = "\"1.0.0-alpha01\"")
+        buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -50,6 +51,7 @@ dependencies {
     debugImplementation(project(":androidCore:impl"))
     releaseImplementation("com.walletconnect:android-core-impl:1.0.0")
 
+    okhttp()
     timber()
     moshiKsp()
     androidXTest()

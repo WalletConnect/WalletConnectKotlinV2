@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.di.androidApiCryptoModule
 import com.walletconnect.android.internal.common.di.androidApiNetworkModule
 import com.walletconnect.android.internal.common.di.commonModule
 import com.walletconnect.android.internal.common.exception.WRONG_CONNECTION_TYPE
+import com.walletconnect.android.common.model.ProjectId
 import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -20,6 +21,7 @@ import com.walletconnect.foundation.network.model.Relay
 import kotlinx.coroutines.flow.*
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
+import org.koin.dsl.module
 
 object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     private val connectionController: ConnectionController by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.CONNECTION_CONTROLLER)) }
@@ -33,7 +35,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
 
         wcKoinApp.run {
             androidContext(application)
-            modules(commonModule(), androidApiCryptoModule())
+            modules(commonModule(), androidApiCryptoModule(), module { single { ProjectId(relayServerUrl.projectId()) } })
         }
 
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
