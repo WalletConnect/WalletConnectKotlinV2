@@ -19,8 +19,8 @@ object CoreClient {
         RelayClient.initialize(relayServerUrl, connectionType, application)
         PairingClient.initialize(metaData)
         wcKoinApp.modules(module {
-            single<PairingInterface> { PairingClient }
-            single<RelayConnectionInterface> { RelayClient }
+            single { Pairing }
+            single { Relay }
         })
     }
 
