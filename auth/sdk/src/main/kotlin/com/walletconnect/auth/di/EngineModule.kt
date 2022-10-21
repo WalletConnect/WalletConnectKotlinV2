@@ -25,7 +25,7 @@ internal fun engineModule(issuer: String?) = module {
     if (issuer != null) {
         single<Issuer> { issuer.toCommon() }
         single<AuthEngine> {
-            AuthEngine(get(), get(), get(), get(), get(), get(), get()) }
+            AuthEngine(get(), get(), get(), get(), get(), get(), get(), get()) }
     } else {
         single<AuthEngine> { AuthEngine(get(), get(), get(), get(), get(), get(), null, get()) }
     }

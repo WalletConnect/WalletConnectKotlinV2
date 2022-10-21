@@ -3,10 +3,6 @@
 package com.walletconnect.auth.engine.domain
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.common.JsonRpcResponse
-import com.walletconnect.android.common.model.Tags
-import com.walletconnect.android.internal.common.JsonRpcResponse.JsonRpcError
-import com.walletconnect.android.internal.common.JsonRpcResponse.JsonRpcResult
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.impl.common.SDKError
@@ -127,7 +123,7 @@ internal class AuthEngine(
                 val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, respond.signature.toCommon())
                 val responseParams = AuthParams.ResponseParams(cacao.header, cacao.payload, cacao.signature)
 
-                if (!CacaoVerifier.verify(cacao)) throw InvalidCacaoException
+                if (!cacaoVerifier.verify(cacao)) throw InvalidCacaoException
                 JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
             }
         }

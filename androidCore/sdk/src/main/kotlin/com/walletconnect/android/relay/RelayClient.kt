@@ -9,8 +9,8 @@ import com.walletconnect.android.internal.common.di.androidApiCryptoModule
 import com.walletconnect.android.internal.common.di.androidApiNetworkModule
 import com.walletconnect.android.internal.common.di.commonModule
 import com.walletconnect.android.internal.common.exception.WRONG_CONNECTION_TYPE
-import com.walletconnect.android.common.model.ProjectId
 import com.walletconnect.android.internal.common.exception.WalletConnectException
+import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.utils.*
