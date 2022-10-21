@@ -13,9 +13,8 @@ import com.walletconnect.responder.ui.request.RequestStore
 import com.walletconnect.sample_common.Chains
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 
 class AccountsViewModel : ViewModel() {
     private val _accountUI: MutableStateFlow<List<AccountsUI>> = MutableStateFlow(INITIAL_ACCOUNTS_LIST)
@@ -36,16 +35,16 @@ class AccountsViewModel : ViewModel() {
         }.launchIn(viewModelScope)
     }
 
-    fun pair(pairingUri: String, counter: Int) {
-        if (counter >= 3) {
-            throw IllegalStateException("Tooooooo loooong")
-        }
+    fun pair(pairingUri: String) {
         val pairingParams = Core.Params.Pair(pairingUri)
-        try {
-            CoreClient.Pairing.pair(pairingParams)
-        } catch (e: Exception) {
-            runBlocking(Dispatchers.IO) { delay(1000) }
-            pair(pairingUri, counter + 1)
+
+        viewModelScope.launch(Dispatchers.IO) {
+            while (true) {
+                if (CoreClient.Relay.isConnectionAvailable.value) {
+                    CoreClient.Pairing.pair(pairingParams)
+                    return@launch
+                }
+            }
         }
     }
 
