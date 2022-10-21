@@ -23,14 +23,7 @@ class AccountsViewModel : ViewModel() {
 
     fun pair(pairingUri: String) {
         val pairingParams = Core.Params.Pair(pairingUri)
-        viewModelScope.launch(Dispatchers.IO) {
-            while (true) {
-                if (CoreClient.Relay.isConnectionAvailable.value) {
-                    CoreClient.Pairing.pair(pairingParams) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
-                    return@launch
-                }
-            }
-        }
+        CoreClient.Pairing.pair(pairingParams) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
 
         val selectedAccountInfoSet: Set<Pair<String, String>> = _accountUI.value.first { it.isSelected }.chainAddressList.map { it.chainName to it.accountAddress }.toSet()
         val allAccountsMappedToUIDomainSetWAccountId: Map<Set<Pair<String, String>>, Int> = mapOfAllAccounts.map { (accountsId: Int, mapOfAccounts: Map<Chains, String>) ->

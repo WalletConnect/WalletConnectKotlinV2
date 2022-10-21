@@ -13,8 +13,10 @@ import com.walletconnect.responder.ui.request.RequestStore
 import com.walletconnect.sample_common.Chains
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 class AccountsViewModel : ViewModel() {
     private val _accountUI: MutableStateFlow<List<AccountsUI>> = MutableStateFlow(INITIAL_ACCOUNTS_LIST)
@@ -37,15 +39,18 @@ class AccountsViewModel : ViewModel() {
 
     fun pair(pairingUri: String) {
         val pairingParams = Core.Params.Pair(pairingUri)
+        CoreClient.Pairing.pair(pairingParams)
 
-        viewModelScope.launch(Dispatchers.IO) {
-            while (true) {
-                if (CoreClient.Relay.isConnectionAvailable.value) {
-                    CoreClient.Pairing.pair(pairingParams)
-                    return@launch
-                }
-            }
-        }
+//        viewModelScope.launch(Dispatchers.IO) {
+//            withTimeout(2000) {
+//                while (true) {
+//                    if (CoreClient.Relay.isConnectionAvailable.value) {
+//                        CoreClient.Pairing.pair(pairingParams)
+//                        return@withTimeout
+//                    }
+//                }
+//            }
+//        }
     }
 
     fun newAccountClicked(selectedAccountIndex: Int) {
