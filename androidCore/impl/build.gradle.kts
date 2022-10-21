@@ -44,6 +44,8 @@ sqldelight {
     database("AndroidCoreDatabase") {
         packageName = "com.walletconnect.android.impl.core"
         sourceFolders = listOf("core")
+        schemaOutputDirectory = file("src/main/sqldelight/databases")
+        verifyMigrations = true
     }
 }
 
