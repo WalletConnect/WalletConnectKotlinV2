@@ -32,7 +32,7 @@
                 app:destination="@id/dialog_paste_uri" />
             <deepLink
                 app:action="android.intent.action.VIEW"
-                app:uri="wc:/auth-{topic}@2" />
+                app:uri="wc:/{topic}@2" />
 
 
         </fragment>

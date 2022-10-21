@@ -14,7 +14,7 @@ internal class ValidatorTest {
     @Test
     fun `validate WC uri test`() {
         val validUri =
-            "wc:auth-7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
+            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
 
         Validator.validateWCUri("").apply { assertEquals(null, this) }
         Validator.validateWCUri(validUri).apply {
@@ -45,7 +45,7 @@ internal class ValidatorTest {
     @Test
     fun `validate WC uri test optional data field`() {
         val validUri =
-            "wc:auth-7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&relay-data=testData&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
+            "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&relay-data=testData&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
 
         Validator.validateWCUri("").apply { assertEquals(null, this) }
         Validator.validateWCUri(validUri).apply {
