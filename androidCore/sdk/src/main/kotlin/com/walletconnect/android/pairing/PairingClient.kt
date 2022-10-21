@@ -4,6 +4,7 @@ package com.walletconnect.android.pairing
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
+import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
 import com.walletconnect.android.internal.NO_SEQUENCE_FOR_TOPIC_MESSAGE
 import com.walletconnect.android.internal.PAIRING_NOW_ALLOWED_MESSAGE
@@ -148,13 +149,15 @@ internal object PairingClient : PairingInterface {
     }
 
     override fun pair(pair: Core.Params.Pair, onError: (Core.Model.Error) -> Unit) {
-        val walletConnectUri: WalletConnectUri = Validator.validateWCUri(pair.uri) ?: return onError(Core.Model.Error(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)))
+        scope.launch {
+            awaitConnection({
+                val walletConnectUri: WalletConnectUri = Validator.validateWCUri(pair.uri) ?: return@awaitConnection onError(Core.Model.Error(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)))
 
-        if (isPairingValid(walletConnectUri.topic.value)) {
-            return onError(Core.Model.Error(PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)))
-        }
+                if (isPairingValid(walletConnectUri.topic.value)) {
+                    return@awaitConnection onError(Core.Model.Error(PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)))
+                }
 
-        // TODO: Will add back in after initial release of Auth
+                // TODO: Will add back in after initial release of Auth
 //        if (Validator.doesNotContainRegisteredMethods(walletConnectUri.registeredMethods, setOfRegisteredMethods)) {
 //            val deleteParams = PairingParams.DeleteParams(10001, "Methods Unsupported")
 //            val pairingDelete = PairingRpc.PairingDelete(id = generateId(), params = deleteParams)
@@ -170,17 +173,22 @@ internal object PairingClient : PairingInterface {
 //            )
 //        }
 
-        val activePairing = Pairing(walletConnectUri, registeredMethods)
-        val symmetricKey = walletConnectUri.symKey
-        crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
+                val activePairing = Pairing(walletConnectUri, registeredMethods)
+                val symmetricKey = walletConnectUri.symKey
+                crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
 
-        try {
-            pairingRepository.insertPairing(activePairing)
-            jsonRpcInteractor.subscribe(activePairing.topic)
-        } catch (e: SQLiteException) {
-            crypto.removeKeys(walletConnectUri.topic.value)
-            jsonRpcInteractor.unsubscribe(activePairing.topic)
-            onError(Core.Model.Error(e))
+                try {
+                    pairingRepository.insertPairing(activePairing)
+                    jsonRpcInteractor.subscribe(activePairing.topic)
+                } catch (e: SQLiteException) {
+                    crypto.removeKeys(walletConnectUri.topic.value)
+                    jsonRpcInteractor.unsubscribe(activePairing.topic)
+                    onError(Core.Model.Error(e))
+                }
+            }, { throwable ->
+                logger.error(throwable)
+                onError(Core.Model.Error(throwable))
+            })
         }
     }
 
@@ -296,4 +304,20 @@ internal object PairingClient : PairingInterface {
     }
 
     private fun generateTopic(): Topic = Topic(randomBytes(32).bytesToHex())
+
+    private suspend fun awaitConnection(onConnection: () -> Unit, errorLambda: (Throwable) -> Unit = {}) {
+        try {
+            withTimeout(2000) {
+                while (true) {
+                    if (CoreClient.Relay.isConnectionAvailable.value) {
+                        onConnection()
+                        return@withTimeout
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            errorLambda(e)
+        }
+
+    }
 }
