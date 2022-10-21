@@ -1,5 +1,6 @@
 package com.walletconnect.responder.ui.accounts
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.Core
@@ -11,6 +12,7 @@ import com.walletconnect.responder.domain.mapOfAccounts2
 import com.walletconnect.responder.ui.events.ResponderEvents
 import com.walletconnect.responder.ui.request.RequestStore
 import com.walletconnect.sample_common.Chains
+import com.walletconnect.sample_common.tag
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -39,18 +41,7 @@ class AccountsViewModel : ViewModel() {
 
     fun pair(pairingUri: String) {
         val pairingParams = Core.Params.Pair(pairingUri)
-        CoreClient.Pairing.pair(pairingParams)
-
-//        viewModelScope.launch(Dispatchers.IO) {
-//            withTimeout(2000) {
-//                while (true) {
-//                    if (CoreClient.Relay.isConnectionAvailable.value) {
-//                        CoreClient.Pairing.pair(pairingParams)
-//                        return@withTimeout
-//                    }
-//                }
-//            }
-//        }
+        CoreClient.Pairing.pair(pairingParams) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
     }
 
     fun newAccountClicked(selectedAccountIndex: Int) {

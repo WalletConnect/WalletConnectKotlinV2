@@ -99,7 +99,7 @@ internal class SignEngine(
     internal fun proposeSession(
         namespaces: Map<String, EngineDO.Namespace.Proposal>,
         pairing: Pairing,
-        onProposedSequence: () -> Unit,
+        onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         val relay = RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
@@ -118,7 +118,7 @@ internal class SignEngine(
         relayer.publishJsonRpcRequests(pairing.topic, irnParams, request,
             onSuccess = {
                 Logger.log("Session proposal sent successfully")
-                onProposedSequence()
+                onSuccess()
             },
             onFailure = { error ->
                 Logger.error("Failed to send a session proposal: $error")

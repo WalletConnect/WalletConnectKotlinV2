@@ -78,7 +78,7 @@ class ConnectViewModel : ViewModel() {
         val connectParams = Sign.Params.Connect(namespaces, pairing)
 
         SignClient.connect(connectParams,
-            onProposedSequence = {
+            onSuccess = {
                 viewModelScope.launch(Dispatchers.Main) {
                     onProposedSequence(pairing.uri)
                 }

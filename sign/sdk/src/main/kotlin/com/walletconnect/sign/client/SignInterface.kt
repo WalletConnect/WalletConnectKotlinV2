@@ -36,7 +36,7 @@ interface SignInterface {
     fun setDappDelegate(delegate: DappDelegate)
 
     fun connect(
-        connect: Sign.Params.Connect, onProposedSequence: () -> Unit,
+        connect: Sign.Params.Connect, onSuccess: () -> Unit,
         onError: (Sign.Model.Error) -> Unit)
     @Deprecated(
         message = "Creating a pairing will be moved to CoreClient to make pairing SDK agnostic",

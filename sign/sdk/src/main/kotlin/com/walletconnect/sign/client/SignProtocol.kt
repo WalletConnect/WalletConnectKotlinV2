@@ -88,14 +88,14 @@ internal class SignProtocol : SignInterface {
     @Throws(IllegalStateException::class)
     override fun connect(
         connect: Sign.Params.Connect,
-        onProposedSequence: () -> Unit,
+        onSuccess: () -> Unit,
         onError: (Sign.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
         try {
             signEngine.proposeSession(
                 connect.namespaces.toMapOfEngineNamespacesProposal(),
-                connect.pairing.toPairing(), onProposedSequence
+                connect.pairing.toPairing(), onSuccess
             ) { error -> onError(Sign.Model.Error(error)) }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))

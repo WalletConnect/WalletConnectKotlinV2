@@ -149,7 +149,7 @@ internal object PairingClient : PairingInterface {
     }
 
     override fun pair(pair: Core.Params.Pair, onError: (Core.Model.Error) -> Unit) {
-        scope.launch {
+        scope.launch(Dispatchers.IO) {
             awaitConnection({
                 val walletConnectUri: WalletConnectUri = Validator.validateWCUri(pair.uri) ?: return@awaitConnection onError(Core.Model.Error(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)))
 
@@ -313,6 +313,7 @@ internal object PairingClient : PairingInterface {
                         onConnection()
                         return@withTimeout
                     }
+                    delay(100)
                 }
             }
         } catch (e: Exception) {

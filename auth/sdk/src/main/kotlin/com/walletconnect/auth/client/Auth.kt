@@ -1,5 +1,6 @@
 package com.walletconnect.auth.client
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.RelayConnectionInterface
 
@@ -109,6 +110,7 @@ object Auth {
         data class Pair(val uri: String) : Params()
 
         data class Request(
+            val pairing: Core.Model.Pairing,
             val chainId: String,
             val domain: String,
             val nonce: String,
