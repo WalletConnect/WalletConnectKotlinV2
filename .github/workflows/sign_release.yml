@@ -18,10 +18,10 @@ jobs:
       sdk-version: ${{ steps.sdk-version.outputs.defined }}
     steps:
       - id: sdk-version
-        if: ${{ env.SDK_VERSION == 0 }} #get hash from sdk version
-        run: echo "::set-output name=defined::true"
         env:
           SDK_VERSION: ${{ secrets.SIGN_SDK_VERSION_CODE }}
+        if: "${{ env.SDK_VERSION == 0 }}" #get hash from sdk version
+        run: echo "::set-output name=defined::true"
 
   unit-tests:
     needs: [ check-version ]
