@@ -46,6 +46,7 @@ internal class AuthEngine(
     private val storage: AuthStorageRepository,
     private val metaData: AppMetaData,
     private val issuer: Issuer?,
+    private val cacaoVerifier: CacaoVerifier
 ) {
 
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -149,10 +150,10 @@ internal class AuthEngine(
             is Respond.Result -> {
                 val issuer: Issuer = issuer ?: throw MissingIssuerException
                 val payload: Cacao.Payload = authParams.payloadParams.toCacaoPayload(issuer)
-                val cacao = Cacao(Cacao.Header(CacaoType.EIP4361.header), payload, respond.signature.toCommon())
+                val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, respond.signature.toCommon())
                 val responseParams = AuthParams.ResponseParams(cacao.header, cacao.payload, cacao.signature)
 
-                if (!CacaoVerifier.verify(cacao)) throw InvalidCacaoException
+                if (!cacaoVerifier.verify(cacao)) throw InvalidCacaoException
                 JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
             }
         }
@@ -222,7 +223,7 @@ internal class AuthEngine(
             is JsonRpcResponse.JsonRpcResult -> {
                 val (header, payload, signature) = (response.result as AuthParams.ResponseParams)
                 val cacao = Cacao(header, payload, signature)
-                if (CacaoVerifier.verify(cacao)) {
+                if (cacaoVerifier.verify(cacao)) {
                     scope.launch {
                         _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Result(cacao)))
                     }

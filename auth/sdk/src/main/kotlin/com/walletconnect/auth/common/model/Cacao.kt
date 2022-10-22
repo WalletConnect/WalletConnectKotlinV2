@@ -4,6 +4,7 @@ package com.walletconnect.auth.common.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import com.walletconnect.auth.signature.CacaoType
 
 @JsonClass(generateAdapter = true)
 internal data class Cacao(

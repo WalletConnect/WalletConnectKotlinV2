@@ -1,6 +1,5 @@
 package com.walletconnect.auth.signature
 
-import com.walletconnect.auth.client.Auth
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.utils.HexPrefix
 import org.web3j.crypto.Sign
