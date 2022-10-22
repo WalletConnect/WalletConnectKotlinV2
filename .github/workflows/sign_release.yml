@@ -11,10 +11,21 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      sdk-version: ${{ steps.sdk-version.outputs.defined }}
+    steps:
+      - id: sdk-version
+        if: ${{ env.SDK_VERSION != 0 }} #get hash from sdk version
+        run: echo "::set-output name=defined::true"
+        env:
+          SDK_VERSION: ${{ secrets.SIGN_SDK_VERSION_CODE }}
+
   unit-tests:
-    env:
-      SDK_VERSION: ${{ secrets.SIGN_SDK_VERSION_CODE }}
-    if: ${{ 0 > env.SDK_VERSION }}
+    needs: [ check-version ]
+    if: needs.check-version.output.sdk-version == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
