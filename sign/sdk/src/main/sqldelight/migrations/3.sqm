@@ -1,25 +1,84 @@
-import com.walletconnect.android.common.model.AppMetaDataType;
-import java.util.List;
+import com.walletconnect.android.internal.common.model.AppMetaDataType;
+import kotlin.collections.List;
 
-ALTER TABLE MetaDataDao RENAME TO MetaDataDaoBak;
+-- DROP TABLES
+DROP TABLE IF EXISTS JsonRpcHistoryDao;
+DROP TABLE IF EXISTS MetaDataDao;
+DROP TABLE IF EXISTS MetaDataDao;
+DROP TABLE IF EXISTS NamespaceDao;
+DROP TABLE IF EXISTS NamespaceExtensionsDao;
+DROP TABLE IF EXISTS NamespaceExtensionsDao;
+DROP TABLE IF EXISTS PairingDao;
+DROP TABLE IF EXISTS ProposalNamespaceDao;
+DROP TABLE IF EXISTS ProposalNamespaceExtensionsDao;
+DROP TABLE IF EXISTS SessionDao;
+DROP TABLE IF EXISTS TempNamespaceDao;
+DROP TABLE IF EXISTS TempNamespaceExtensionsDao;
 
-CREATE TABLE IF NOT EXISTS MetaDataDao(
+-- CREAT V4 SCHEMA
+CREATE TABLE JsonRpcHistoryDao(
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  request_id INTEGER UNIQUE NOT NULL,
+  topic TEXT NOT NULL,
+  method TEXT NOT NULL,
+  body TEXT NOT NULL,
+  response TEXT
+);
+CREATE TABLE MetaDataDao(
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	sequence_topic TEXT NOT NULL,
   	name TEXT NOT NULL,
   	description TEXT NOT NULL,
   	url TEXT NOT NULL,
   	icons TEXT AS List<String> NOT NULL,
-  	native TEXT,
   	type TEXT AS AppMetaDataType NOT NULL,
-  	UNIQUE(sequence_topic, type)
+  	UNIQUE(sequence_topic)
 );
-
-DROP TABLE IF EXISTS MetaDataDaoBak;
-
-ALTER TABLE SessionDao RENAME TO SessionDaoBak;
-
-CREATE TABLE IF NOT EXISTS  SessionDao(
+CREATE TABLE NamespaceDao(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    session_id INTEGER NOT NULL,
+    key TEXT NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String> NOT NULL,
+    request_id INTEGER NOT NULL,
+    UNIQUE(session_id, key)
+);
+CREATE TABLE NamespaceExtensionsDao(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    namespace_key TEXT NOT NULL,
+    session_id INTEGER NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String>  NOT NULL
+);
+CREATE TABLE PairingDao (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    topic TEXT UNIQUE NOT NULL,
+    expiry INTEGER NOT NULL,
+    relay_protocol TEXT NOT NULL,
+    relay_data TEXT,
+    uri TEXT NOT NULL,
+    is_active INTEGER AS Boolean NOT NULL
+);
+CREATE TABLE ProposalNamespaceDao (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    session_id INTEGER NOT NULL,
+    key TEXT NOT NULL,
+    chains TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String> NOT NULL,
+    UNIQUE(session_id, key)
+);
+CREATE TABLE ProposalNamespaceExtensionsDao (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    namespace_key TEXT NOT NULL,
+    session_id INTEGER NOT NULL,
+    chains TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String> NOT NULL
+);
+CREATE TABLE SessionDao(
    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
    topic TEXT UNIQUE NOT NULL,
    expiry INTEGER NOT NULL,
@@ -30,8 +89,23 @@ CREATE TABLE IF NOT EXISTS  SessionDao(
    peer_participant TEXT,
    is_acknowledged INTEGER AS Boolean NOT NULL
 );
-
-DROP TABLE IF EXISTS SessionDaoBak;
-
--- android_metadata
-DROP TABLE IF EXISTS android_metadata;
+CREATE TABLE TempNamespaceDao(
+    request_id INTEGER PRIMARY KEY NOT NULL,
+    session_id INTEGER NOT NULL,
+    topic TEXT NOT NULL,
+    key TEXT NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String> NOT NULL,
+    isAcknowledged INTEGER DEFAULT 0
+);
+CREATE TABLE TempNamespaceExtensionsDao(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    namespace_key TEXT NOT NULL,
+    session_id INTEGER NOT NULL,
+    topic TEXT NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String>  NOT NULL,
+    request_id INTEGER NOT NULL
+);

@@ -1,8 +1,20 @@
 import kotlin.collections.List;
 
-DROP TABLE IF EXISTS MetaDataDao;
 
+-- DROP TABLES
+DROP TABLE IF EXISTS JsonRpcHistoryDao;
+DROP TABLE IF EXISTS MetaDataDao;
+DROP TABLE IF EXISTS MetaDataDao;
 DROP TABLE IF EXISTS NamespaceDao;
+DROP TABLE IF EXISTS NamespaceExtensionsDao;
+DROP TABLE IF EXISTS PairingDao;
+DROP TABLE IF EXISTS ProposalNamespaceDao;
+DROP TABLE IF EXISTS ProposalNamespaceExtensionsDao;
+DROP TABLE IF EXISTS SessionDao;
+DROP TABLE IF EXISTS TempNamespaceDao;
+DROP TABLE IF EXISTS TempNamespaceExtensionsDao;
+
+-- CREATE V6 SCHEMA
 CREATE TABLE NamespaceDao(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     session_id INTEGER NOT NULL,
@@ -13,8 +25,6 @@ CREATE TABLE NamespaceDao(
     request_id INTEGER NOT NULL,
     UNIQUE(session_id, key)
 );
-
-DROP TABLE IF EXISTS NamespaceExtensionsDao;
 CREATE TABLE NamespaceExtensionsDao(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     namespace_key TEXT NOT NULL,
@@ -23,8 +33,6 @@ CREATE TABLE NamespaceExtensionsDao(
     methods TEXT AS List<String> NOT NULL,
     events TEXT AS List<String>  NOT NULL
 );
-
-DROP TABLE IF EXISTS ProposalNamespaceDao;
 CREATE TABLE ProposalNamespaceDao (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     session_id INTEGER NOT NULL,
@@ -34,18 +42,14 @@ CREATE TABLE ProposalNamespaceDao (
     events TEXT AS List<String> NOT NULL,
     UNIQUE(session_id, key)
 );
-
-DROP TABLE IF EXISTS ProposalNamespaceExtensionsDao;
 CREATE TABLE ProposalNamespaceExtensionsDao (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     namespace_key TEXT NOT NULL,
     session_id INTEGER NOT NULL,
     chains TEXT AS List<String> NOT NULL,
     methods TEXT AS List<String> NOT NULL,
-    events TEXT AS List<String>  NOT NULL
+    events TEXT AS List<String> NOT NULL
 );
-
-DROP TABLE IF EXISTS SessionDao;
 CREATE TABLE SessionDao(
    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
    topic TEXT UNIQUE NOT NULL,
@@ -58,8 +62,6 @@ CREATE TABLE SessionDao(
    peer_participant TEXT,
    is_acknowledged INTEGER AS Boolean NOT NULL
 );
-
-DROP TABLE IF EXISTS TempNamespaceDao;
 CREATE TABLE TempNamespaceDao(
     request_id INTEGER PRIMARY KEY NOT NULL,
     session_id INTEGER NOT NULL,
@@ -70,8 +72,6 @@ CREATE TABLE TempNamespaceDao(
     events TEXT AS List<String> NOT NULL,
     isAcknowledged INTEGER DEFAULT 0
 );
-
-DROP TABLE IF EXISTS TempNamespaceExtensionsDao;
 CREATE TABLE TempNamespaceExtensionsDao(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     namespace_key TEXT NOT NULL,

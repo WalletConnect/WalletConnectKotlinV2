@@ -10,7 +10,7 @@ CREATE TABLE MetaData(
   	icons TEXT AS List<String> NOT NULL,
   	native TEXT,
   	type TEXT AS AppMetaDataType NOT NULL,
-  	UNIQUE(sequence_topic, type)
+  	UNIQUE(sequence_topic)
 );
 
 insertOrAbortMetaData:

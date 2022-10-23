@@ -1,46 +1,71 @@
+import com.walletconnect.android.internal.common.model.AppMetaDataType;
 import kotlin.collections.List;
 
--- NamespaceDao
-ALTER TABLE NamespaceDao RENAME TO NamespaceDaoBak;
+-- DROP TABLES
+DROP TABLE IF EXISTS JsonRpcHistoryDao;
+DROP TABLE IF EXISTS MetaDataDao;
+DROP TABLE IF EXISTS NamespaceDao;
+DROP TABLE IF EXISTS NamespaceExtensionsDao;
+DROP TABLE IF EXISTS PairingDao;
+DROP TABLE IF EXISTS ProposalNamespaceDao;
+DROP TABLE IF EXISTS ProposalNamespaceExtensionsDao;
+DROP TABLE IF EXISTS SessionDao;
+DROP TABLE IF EXISTS TempNamespaceDao;
+DROP TABLE IF EXISTS TempNamespaceExtensionsDao;
 
-CREATE TABLE IF NOT EXISTS NamespaceDao(
-   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-   session_id INTEGER NOT NULL,
-   key TEXT NOT NULL,
-   accounts TEXT AS List<String> NOT NULL,
-   methods TEXT AS List<String> NOT NULL,
-   events TEXT AS List<String> NOT NULL,
-   request_id INTEGER NOT NULL,
-   UNIQUE(session_id, key)
+-- CREATE V2 SCHEMA
+CREATE TABLE JsonRpcHistoryDao(
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  request_id INTEGER UNIQUE NOT NULL,
+  topic TEXT NOT NULL,
+  method TEXT NOT NULL,
+  body TEXT NOT NULL,
+  response TEXT
 );
-
-DROP TABLE NamespaceDaoBak;
-
--- NamespaceExtensionsDao
-DELETE FROM NamespaceExtensionsDao;
-
--- TempNamespaceDao
-CREATE TABLE IF NOT EXISTS TempNamespaceDao(
+CREATE TABLE MetaDataDao(
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	sequence_topic TEXT NOT NULL,
+  	name TEXT NOT NULL,
+  	description TEXT NOT NULL,
+  	url TEXT NOT NULL,
+  	icons TEXT AS List<String> NOT NULL,
+  	type TEXT AS AppMetaDataType NOT NULL,
+  	UNIQUE(sequence_topic)
+);
+CREATE TABLE NamespaceDao(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     session_id INTEGER NOT NULL,
-    topic TEXT NOT NULL,
     key TEXT NOT NULL,
     accounts TEXT AS List<String> NOT NULL,
     methods TEXT AS List<String> NOT NULL,
     events TEXT AS List<String> NOT NULL,
-    request_id INTEGER NOT NULL,
-    isAcknowledged INTEGER DEFAULT 0,
     UNIQUE(session_id, key)
 );
-
--- TempNamespaceExtensionsDao
-CREATE TABLE IF NOT EXISTS TempNamespaceExtensionsDao(
+CREATE TABLE NamespaceExtensionsDao(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     namespace_key TEXT NOT NULL,
     session_id INTEGER NOT NULL,
-    topic TEXT NOT NULL,
     accounts TEXT AS List<String> NOT NULL,
     methods TEXT AS List<String> NOT NULL,
-    events TEXT AS List<String>  NOT NULL,
-    request_id INTEGER NOT NULL
+    events TEXT AS List<String>  NOT NULL
+);
+CREATE TABLE PairingDao (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    topic TEXT UNIQUE NOT NULL,
+    expiry INTEGER NOT NULL,
+    relay_protocol TEXT NOT NULL,
+    relay_data TEXT,
+    uri TEXT NOT NULL,
+    is_active INTEGER AS Boolean NOT NULL
+);
+CREATE TABLE SessionDao(
+   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+   topic TEXT UNIQUE NOT NULL,
+   expiry INTEGER NOT NULL,
+   relay_protocol TEXT NOT NULL,
+   relay_data TEXT,
+   controller_key TEXT,
+   self_participant TEXT NOT NULL,
+   peer_participant TEXT,
+   is_acknowledged INTEGER AS Boolean NOT NULL
 );

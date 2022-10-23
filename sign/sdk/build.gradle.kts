@@ -56,7 +56,7 @@ android {
 sqldelight {
     database("SignDatabase") {
         packageName = "com.walletconnect.sign"
-        schemaOutputDirectory = file("src/main/sqldelight/databases")
+        schemaOutputDirectory = file("src/debug/sqldelight/databases")
         verifyMigrations = false
     }
 }
