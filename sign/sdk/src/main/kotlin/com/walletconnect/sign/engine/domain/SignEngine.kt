@@ -521,6 +521,7 @@ internal class SignEngine(
 
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
             sessionStorageRepository.insertSession(session, request.topic, request.id)
+            pairingInterface.updateMetadata(proposal.topic.value, peerMetadata.toClient(), AppMetaDataType.PEER)
             metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
 
             relayer.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
@@ -682,7 +683,6 @@ internal class SignEngine(
         val pairingTopic = wcResponse.topic
 
         pairingInterface.updateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS))
-        pairingInterface.updateMetadata(pairingTopic.value, params.proposer.metadata.toClient(), AppMetaDataType.PEER)
         pairingInterface.activate(pairingTopic.value)
 
         if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return

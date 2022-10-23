@@ -22,7 +22,7 @@ class MetadataStorageRepository(private val metaDataQueries: MetaDataQueries): M
 
     @Throws(SQLiteException::class)
     override fun upsertPairingPeerMetadata(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType) {
-        if (!existsByTopic(topic)) {
+        if (!existsByTopicAndType(topic, appMetaDataType)) {
             insertOrAbortMetadata(topic, appMetaData, appMetaDataType)
         } else {
             updateMetaData(topic, appMetaData, appMetaDataType)
@@ -31,7 +31,7 @@ class MetadataStorageRepository(private val metaDataQueries: MetaDataQueries): M
 
     override fun deleteMetaData(topic: Topic): Unit = metaDataQueries.deleteMetaDataFromTopic(topic.value)
 
-    override fun existsByTopic(topic: Topic): Boolean = metaDataQueries.getIdByTopic(topic.value).executeAsOneOrNull() == null
+    override fun existsByTopicAndType(topic: Topic, type: AppMetaDataType): Boolean = metaDataQueries.getIdByTopicAndType(topic.value, type).executeAsOneOrNull() != null
 
     override fun getByTopicAndType(topic: Topic, type: AppMetaDataType): AppMetaData = metaDataQueries.getMetadataByTopicAndType(sequence_topic = topic.value, type = type, mapper = this::toMetadata).executeAsOne()
 

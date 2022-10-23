@@ -27,10 +27,10 @@ SELECT name, description, url, icons, native
 FROM MetaData
 WHERE sequence_topic = ? AND type = ?;
 
-getIdByTopic:
+getIdByTopicAndType:
 SELECT id
 FROM MetaData
-WHERE sequence_topic = ?;
+WHERE sequence_topic = ? AND type = ?;
 
 deleteMetaDataFromTopic:
 DELETE FROM MetaData
