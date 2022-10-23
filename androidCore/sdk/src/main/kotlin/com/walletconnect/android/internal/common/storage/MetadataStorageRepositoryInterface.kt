@@ -12,7 +12,7 @@ interface MetadataStorageRepositoryInterface {
 
     fun deleteMetaData(topic: Topic)
 
-    fun existsByTopic(topic: Topic): Boolean
+    fun existsByTopicAndType(topic: Topic, type: AppMetaDataType): Boolean
 
     fun getByTopicAndType(topic: Topic, type: AppMetaDataType): AppMetaData
 
