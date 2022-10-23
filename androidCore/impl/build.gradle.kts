@@ -69,4 +69,5 @@ dependencies {
     jUnit5()
     jUnit5Android()
     mockk()
+    coroutinesTest()
 }

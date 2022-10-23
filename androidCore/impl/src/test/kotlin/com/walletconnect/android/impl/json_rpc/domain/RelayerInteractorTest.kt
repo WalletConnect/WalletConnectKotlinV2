@@ -1,22 +1,25 @@
-package com.walletconnect.sign.json_rpc.domain
+package com.walletconnect.android.impl.json_rpc.domain
 
-import com.walletconnect.android.internal.common.exception.WalletConnectException
+import com.walletconnect.android.impl.crypto.Codec
+import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.foundation.network.model.RelayDTO
-import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.utils.Empty
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -34,8 +37,12 @@ internal class RelayerInteractorTest {
         every { updateRequestWithResponse(any(), any()) } returns mockk()
     }
 
+    private val codec: Codec = mockk {
+        every { encrypt(any(), any(), any()) } returns ""
+    }
+
     private val sut =
-        spyk<JsonRpcInteractorInterface>(recordPrivateCalls = true) {
+        spyk(JsonRpcInteractor(relay, codec, jsonRpcHistory), recordPrivateCalls = true) {
             every { checkConnectionWorking() } answers { }
         }
 
@@ -51,7 +58,7 @@ internal class RelayerInteractorTest {
         every { topic } returns topicVO
     }
 
-    val peerError: PeerError = mockk {
+    val peerError: Error = mockk {
         every { message } returns "message"
         every { code } returns -1
     }
@@ -102,8 +109,12 @@ internal class RelayerInteractorTest {
         @JvmStatic
         fun beforeAll() {
             mockkObject(Logger)
+            mockkObject(wcKoinApp)
+
             every { Logger.error(any<String>()) } answers {}
             every { Logger.log(any<String>()) } answers {}
+            every { wcKoinApp.koin.get<JsonRpcSerializer>() } returns mockk()
+            every { wcKoinApp.koin.get<JsonRpcSerializer>().serialize(any()) } returns ""
         }
 
         @AfterAll
