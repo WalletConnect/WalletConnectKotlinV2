@@ -26,7 +26,7 @@ CREATE TABLE MetaDataDao(
   	url TEXT NOT NULL,
   	icons TEXT AS List<String> NOT NULL,
   	type TEXT AS AppMetaDataType NOT NULL,
-  	UNIQUE(sequence_topic)
+  	UNIQUE(sequence_topic, type)
 );
 CREATE TABLE NamespaceDao(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
