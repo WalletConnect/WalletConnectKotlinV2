@@ -9,7 +9,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
-import com.walletconnect.android.impl.Database
+import com.walletconnect.android.impl.core.AndroidCoreDatabase
 import com.walletconnect.util.randomBytes
 import net.sqlcipher.database.SupportFactory
 import org.koin.android.ext.koin.androidContext
@@ -37,9 +37,9 @@ fun generateSecretKey(secretKeyAlias: String): SecretKey {
 }
 
 @SuppressLint("HardwareIds")
-inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
+fun coreStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
 
-    includes(baseStorageModule<T>())
+    includes(baseStorageModule())
 
     single<KeyStore> {
         KeyStore.getInstance("AndroidKeyStore").apply {
