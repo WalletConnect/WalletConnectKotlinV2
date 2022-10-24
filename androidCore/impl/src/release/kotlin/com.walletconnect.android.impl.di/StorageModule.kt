@@ -36,10 +36,7 @@ fun generateSecretKey(secretKeyAlias: String): SecretKey {
     }
 }
 
-@SuppressLint("HardwareIds")
-fun coreStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
-
-    includes(baseStorageModule())
+private fun signingModule() = module {
 
     single<KeyStore> {
         KeyStore.getInstance("AndroidKeyStore").apply {
@@ -130,15 +127,12 @@ fun coreStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) =
             cipher.doFinal(encryptedKey)
         }
     }
+}
 
-    single<SqlDriver> {
-        AndroidSqliteDriver(
-            schema = databaseSchema,
-            context = androidContext(),
-            name = "WalletConnectV2$storageSuffix.db",
-            factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false)
-        )
-    }
+@SuppressLint("HardwareIds")
+fun coreStorageModule() = module {
+
+    includes(baseStorageModule(), signingModule())
 
     single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)) {
         AndroidSqliteDriver(
@@ -146,6 +140,21 @@ fun coreStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) =
             context = androidContext(),
             name = "WalletConnectAndroidCore.db",
             factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false) //todo: create a separate DB_PASSHPHRASE
+        )
+    }
+}
+
+@SuppressLint("HardwareIds")
+fun sdkBaseStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
+
+    includes(signingModule())
+
+    single<SqlDriver> {
+        AndroidSqliteDriver(
+            schema = databaseSchema,
+            context = androidContext(),
+            name = "WalletConnectV2$storageSuffix.db",
+            factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false)
         )
     }
 }
