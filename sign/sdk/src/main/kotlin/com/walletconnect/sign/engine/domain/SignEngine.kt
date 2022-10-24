@@ -543,7 +543,6 @@ internal class SignEngine(
         }
 
         relayer.unsubscribe(request.topic, onSuccess = {
-            Logger.log("unsubscribe onSuccess")
             crypto.removeKeys(request.topic.value)
             sessionStorageRepository.deleteSession(request.topic)
             scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
@@ -723,9 +722,10 @@ internal class SignEngine(
             }
             is JsonRpcResponse.JsonRpcError -> {
                 Logger.error("Peer failed to settle session: ${(wcResponse.response as JsonRpcResponse.JsonRpcError).errorMessage}")
-                relayer.unsubscribe(sessionTopic)
-                sessionStorageRepository.deleteSession(sessionTopic)
-                crypto.removeKeys(sessionTopic.value)
+                relayer.unsubscribe(sessionTopic, onSuccess = {
+                    sessionStorageRepository.deleteSession(sessionTopic)
+                    crypto.removeKeys(sessionTopic.value)
+                })
             }
         }
     }
@@ -785,9 +785,10 @@ internal class SignEngine(
         listOfExpiredSession
             .map { session -> session.topic }
             .onEach { sessionTopic ->
-                relayer.unsubscribe(sessionTopic)
-                crypto.removeKeys(sessionTopic.value)
-                sessionStorageRepository.deleteSession(sessionTopic)
+                relayer.unsubscribe(sessionTopic, onSuccess = {
+                    crypto.removeKeys(sessionTopic.value)
+                    sessionStorageRepository.deleteSession(sessionTopic)
+                })
             }
 
         listOfValidSessions
@@ -795,16 +796,19 @@ internal class SignEngine(
     }
 
     private fun setupSequenceExpiration() {
-        sessionStorageRepository.onSequenceExpired = { topic ->
-            relayer.unsubscribe(topic)
-            crypto.removeKeys(topic.value)
+        sessionStorageRepository.onSessionExpired = { sessionTopic ->
+            relayer.unsubscribe(sessionTopic, onSuccess = {
+                sessionStorageRepository.deleteSession(sessionTopic)
+                crypto.removeKeys(sessionTopic.value)
+            })
         }
 
         pairingInterface.topicExpiredFlow.onEach { topic ->
             sessionStorageRepository.getAllSessionTopicsByPairingTopic(topic).onEach { sessionTopic ->
-                sessionStorageRepository.deleteSession(Topic(sessionTopic))
-                relayer.unsubscribe(Topic(sessionTopic))
-                crypto.removeKeys(sessionTopic)
+                relayer.unsubscribe(Topic(sessionTopic), onSuccess = {
+                    sessionStorageRepository.deleteSession(Topic(sessionTopic))
+                    crypto.removeKeys(sessionTopic)
+                })
             }
         }.launchIn(scope)
     }

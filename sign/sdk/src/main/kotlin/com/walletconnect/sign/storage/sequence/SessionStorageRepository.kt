@@ -28,7 +28,7 @@ internal class SessionStorageRepository(
     private val tempExtensionsDaoQueries: TempNamespaceExtensionDaoQueries,
 ) {
     @JvmSynthetic
-    var onSequenceExpired: (topic: Topic) -> Unit = {}
+    var onSessionExpired: (topic: Topic) -> Unit = {}
 
     @JvmSynthetic
     fun getListOfSessionVOsWithoutMetadata(): List<SessionVO> =
@@ -248,7 +248,7 @@ internal class SessionStorageRepository(
             true
         } else {
             deleteSequence()
-            onSequenceExpired(topic)
+            onSessionExpired(topic)
             false
         }
     }

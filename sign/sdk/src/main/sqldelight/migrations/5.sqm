@@ -53,7 +53,7 @@ CREATE TABLE ProposalNamespaceExtensionsDao (
 CREATE TABLE SessionDao(
    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
    topic TEXT UNIQUE NOT NULL,
-   pairingTopic TEXT UNIQUE NOT NULL,
+   pairingTopic TEXT NOT NULL,
    expiry INTEGER NOT NULL,
    relay_protocol TEXT NOT NULL,
    relay_data TEXT,
