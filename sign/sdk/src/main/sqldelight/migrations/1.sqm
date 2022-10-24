@@ -1,9 +1,54 @@
-import com.walletconnect.sign.common.model.type.enums.MetaDataType;
+import com.walletconnect.android.internal.common.model.AppMetaDataType;
 import kotlin.collections.List;
 
--- PairingDao
+-- DROP TABLES
+DROP TABLE IF EXISTS JsonRpcHistoryDao;
+DROP TABLE IF EXISTS MetaDataDao;
+DROP TABLE IF EXISTS NamespaceDao;
+DROP TABLE IF EXISTS NamespaceExtensionsDao;
 DROP TABLE IF EXISTS PairingDao;
+DROP TABLE IF EXISTS ProposalNamespaceDao;
+DROP TABLE IF EXISTS ProposalNamespaceExtensionsDao;
+DROP TABLE IF EXISTS SessionDao;
+DROP TABLE IF EXISTS TempNamespaceDao;
+DROP TABLE IF EXISTS TempNamespaceExtensionsDao;
 
+-- CREATE V2 SCHEMA
+CREATE TABLE JsonRpcHistoryDao(
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  request_id INTEGER UNIQUE NOT NULL,
+  topic TEXT NOT NULL,
+  method TEXT NOT NULL,
+  body TEXT NOT NULL,
+  response TEXT
+);
+CREATE TABLE MetaDataDao(
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	sequence_topic TEXT NOT NULL,
+  	name TEXT NOT NULL,
+  	description TEXT NOT NULL,
+  	url TEXT NOT NULL,
+  	icons TEXT AS List<String> NOT NULL,
+  	type TEXT AS AppMetaDataType NOT NULL,
+  	UNIQUE(sequence_topic, type)
+);
+CREATE TABLE NamespaceDao(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    session_id INTEGER NOT NULL,
+    key TEXT NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String> NOT NULL,
+    UNIQUE(session_id, key)
+);
+CREATE TABLE NamespaceExtensionsDao(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    namespace_key TEXT NOT NULL,
+    session_id INTEGER NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String>  NOT NULL
+);
 CREATE TABLE PairingDao (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     topic TEXT UNIQUE NOT NULL,
@@ -13,10 +58,6 @@ CREATE TABLE PairingDao (
     uri TEXT NOT NULL,
     is_active INTEGER AS Boolean NOT NULL
 );
-
--- SessionDao
-DROP TABLE IF EXISTS SessionDao;
-
 CREATE TABLE SessionDao(
    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
    topic TEXT UNIQUE NOT NULL,
@@ -28,76 +69,3 @@ CREATE TABLE SessionDao(
    peer_participant TEXT,
    is_acknowledged INTEGER AS Boolean NOT NULL
 );
-
--- MetaDataDao
-DROP TABLE IF EXISTS MetaDataDao;
-
-CREATE TABLE MetaDataDao(
-	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-	sequence_topic TEXT NOT NULL,
-  	name TEXT NOT NULL,
-  	description TEXT NOT NULL,
-  	url TEXT NOT NULL,
-  	icons TEXT AS List<String> NOT NULL,
-  	type TEXT AS MetaDataType NOT NULL,
-  	UNIQUE(sequence_topic, type)
-);
-
--- JsonRpcHistoryDao
-DROP TABLE IF EXISTS JsonRpcHistoryDao;
-
-CREATE TABLE JsonRpcHistoryDao(
-  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-  request_id INTEGER UNIQUE NOT NULL,
-  topic TEXT NOT NULL,
-  method TEXT NOT NULL,
-  body TEXT NOT NULL,
-  response TEXT AS String
-);
-
--- NamespaceDao
-DROP TABLE IF EXISTS NamespaceDao;
-
-CREATE TABLE NamespaceDao(
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    session_id INTEGER NOT NULL,
-    key TEXT NOT NULL,
-    accounts TEXT AS List<String> NOT NULL,
-    methods TEXT AS List<String> NOT NULL,
-    events TEXT AS List<String> NOT NULL,
-    UNIQUE(session_id, key)
-);
-
--- NamespaceExtensionsDao
-CREATE TABLE IF NOT EXISTS NamespaceExtensionsDao(
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    namespace_key TEXT NOT NULL,
-    session_id INTEGER NOT NULL,
-    accounts TEXT AS List<String> NOT NULL,
-    methods TEXT AS List<String> NOT NULL,
-    events TEXT AS List<String>  NOT NULL
-);
-
--- ProposalNamespaceDao
-CREATE TABLE IF NOT EXISTS ProposalNamespaceDao (
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    session_id INTEGER NOT NULL,
-    key TEXT NOT NULL,
-    chains TEXT AS List<String> NOT NULL,
-    methods TEXT AS List<String> NOT NULL,
-    events TEXT AS List<String> NOT NULL,
-    UNIQUE(session_id, key)
-);
-
--- ProposalNamespaceExtensionsDao
-CREATE TABLE IF NOT EXISTS ProposalNamespaceExtensionsDao (
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    namespace_key TEXT NOT NULL,
-    session_id INTEGER NOT NULL,
-    chains TEXT AS List<String> NOT NULL,
-    methods TEXT AS List<String> NOT NULL,
-    events TEXT AS List<String>  NOT NULL
-);
-
--- android_metadata
-DROP TABLE IF EXISTS android_metadata;

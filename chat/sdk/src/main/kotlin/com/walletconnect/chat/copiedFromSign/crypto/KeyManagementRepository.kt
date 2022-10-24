@@ -7,6 +7,7 @@ import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
 import com.walletconnect.chat.copiedFromSign.core.model.vo.SymmetricKey
 import com.walletconnect.chat.copiedFromSign.core.model.vo.TopicVO
 
+@Deprecated("Replace with usage from Android Core SDK")
 internal interface KeyManagementRepository {
     fun generateSymmetricKey(topic: TopicVO): SymmetricKey
     fun setSymmetricKey(topic: TopicVO, symmetricKey: SymmetricKey)

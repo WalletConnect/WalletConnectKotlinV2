@@ -7,10 +7,8 @@ import com.squareup.moshi.JsonReader
 import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
-import com.walletconnect.android.common.JsonRpcResponse
-//import com.walletconnect.android.api.JsonRpc
-//import com.walletconnect.android_core.json_rpc.model.JsonRpcResponse
-import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParamsVO
 import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.reflect.Constructor
@@ -19,22 +17,22 @@ import kotlin.Long
 import kotlin.String
 
 // TODO: figure out how to share this with other modules
-internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult>() {
+internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<JsonRpcResponse.JsonRpcResult>() {
     private val options: JsonReader.Options = JsonReader.Options.of("id", "jsonrpc", "result")
     private val longAdapter: JsonAdapter<Long> = moshi.adapter(Long::class.java, emptySet(), "id")
     private val stringAdapter: JsonAdapter<String> = moshi.adapter(String::class.java, emptySet(), "jsonrpc")
     private val booleanAdapter: JsonAdapter<Long> = moshi.adapter(Boolean::class.java, emptySet(), "result")
     private val anyAdapter: JsonAdapter<Any> = moshi.adapter(Any::class.java, emptySet(), "result")
-    private val approvalParamsAdapter: JsonAdapter<SessionParamsVO.ApprovalParams> = moshi.adapter(SessionParamsVO.ApprovalParams::class.java)
+    private val approvalParamsAdapter: JsonAdapter<SignParamsVO.ApprovalParams> = moshi.adapter(SignParamsVO.ApprovalParams::class.java)
 
     @Volatile
-    private var constructorRef: Constructor<com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult>? = null
+    private var constructorRef: Constructor<JsonRpcResponse.JsonRpcResult>? = null
 
     override fun toString(): String = buildString(59) {
         append("GeneratedJsonAdapter(").append("RelayDO.JsonRpcResponse.JsonRpcResult").append(')')
     }
 
-    override fun fromJson(reader: JsonReader): com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult {
+    override fun fromJson(reader: JsonReader): JsonRpcResponse.JsonRpcResult {
         var id: Long? = null
         var jsonrpc: String? = null
         var result: Any? = null
@@ -66,7 +64,7 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<com.walletconnec
         reader.endObject()
         if (mask0 == 0xfffffffd.toInt()) {
             // All parameters with defaults are set, invoke the constructor directly
-            return com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult(
+            return JsonRpcResponse.JsonRpcResult(
                 id = id ?: throw Util.missingProperty("id", "id", reader),
                 jsonrpc = jsonrpc as String,
                 result = result ?: throw Util.missingProperty("result", "result", reader)
@@ -74,9 +72,9 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<com.walletconnec
         } else {
             // Reflectively invoke the synthetic defaults constructor
             @Suppress("UNCHECKED_CAST")
-            val localConstructor: Constructor<com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult> =
+            val localConstructor: Constructor<JsonRpcResponse.JsonRpcResult> =
                 this.constructorRef
-                    ?: com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult::class.java.getDeclaredConstructor(Long::class.javaPrimitiveType,
+                    ?: JsonRpcResponse.JsonRpcResult::class.java.getDeclaredConstructor(Long::class.javaPrimitiveType,
                         String::class.java, Any::class.java, Int::class.javaPrimitiveType,
                         Util.DEFAULT_CONSTRUCTOR_MARKER).also { this.constructorRef = it }
             return localConstructor.newInstance(
@@ -89,7 +87,7 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<com.walletconnec
         }
     }
 
-    override fun toJson(writer: JsonWriter, value_: com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult?) {
+    override fun toJson(writer: JsonWriter, value_: JsonRpcResponse.JsonRpcResult?) {
         if (value_ == null) {
             throw NullPointerException("value_ was null! Wrap in .nullSafe() to write nullable values.")
         }
@@ -102,8 +100,8 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<com.walletconnec
         writer.name("result")
 
         when {
-            (value_.result as? SessionParamsVO.ApprovalParams) != null -> {
-                val approvalParamsString = approvalParamsAdapter.toJson(value_.result as SessionParamsVO.ApprovalParams)
+            (value_.result as? SignParamsVO.ApprovalParams) != null -> {
+                val approvalParamsString = approvalParamsAdapter.toJson(value_.result as SignParamsVO.ApprovalParams)
                 writer.valueSink().use {
                     it.writeUtf8(approvalParamsString)
                 }

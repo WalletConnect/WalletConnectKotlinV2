@@ -6,9 +6,9 @@ import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
+import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.chat.copiedFromSign.network.RelayInterface
 import com.walletconnect.chat.copiedFromSign.network.adapter.FlowStreamAdapter
-import com.walletconnect.chat.copiedFromSign.network.connection.ConnectionType
 import com.walletconnect.chat.copiedFromSign.network.connection.controller.ConnectionController
 import com.walletconnect.chat.copiedFromSign.network.connection.lifecycle.ManualConnectionLifecycle
 import com.walletconnect.chat.copiedFromSign.network.domain.RelayClient

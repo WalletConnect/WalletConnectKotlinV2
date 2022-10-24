@@ -1,6 +1,25 @@
 rootProject.name = "WalletConnect"
 
-val excludedDirs = listOf(".idea", ".git", "build", ".gradle", ".github", "buildSrc", "gradle", "docs", "licenses")
+val excludedDirs = listOf(
+    ".idea",
+    ".git",
+    "build",
+    ".gradle",
+    ".github",
+    "buildSrc",
+    "gradle",
+    "docs",
+    "licenses",
+    "signSDK",
+    "chatSDK",
+    "authSDK",
+    "common",
+    "signSDK",
+    "chatSDK",
+    "authSDK",
+    "coreSDK",
+    "walletconnectv2"
+)
 // TODO: Add to rootModules when new module is added to the project root directory
 val rootModules = listOf("showcase", "foundation")
 

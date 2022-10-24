@@ -8,7 +8,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core-impl"
-    extra[KEY_PUBLISH_VERSION] = "1.0.0"
+    extra[KEY_PUBLISH_VERSION] = "1.1.0"
     extra[KEY_SDK_NAME] = "Android Core Impl"
 }
 
@@ -41,17 +41,17 @@ android {
 }
 
 sqldelight {
-    database("Database") {
-        packageName = "com.walletconnect.android.impl"
+    database("AndroidCoreDatabase") {
+        packageName = "com.walletconnect.android.impl.core"
+        sourceFolders = listOf("core")
+        schemaOutputDirectory = file("src/main/sqldelight/databases")
+        verifyMigrations = true
     }
 }
 
 dependencies {
     debugApi(project(":androidCore:sdk"))
     releaseApi("com.walletconnect:android-core:1.0.0")
-
-    debugApi(project(":androidCore:common"))
-    releaseApi("com.walletconnect:android-core-common:1.0.0")
 
     bouncyCastle()
     coroutines()
@@ -69,4 +69,5 @@ dependencies {
     jUnit5()
     jUnit5Android()
     mockk()
+    coroutinesTest()
 }

@@ -9,7 +9,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "auth"
-    extra[KEY_PUBLISH_VERSION] = "1.0.0-alpha01"
+    extra[KEY_PUBLISH_VERSION] = "1.0.0"
     extra[KEY_SDK_NAME] = "Auth"
 }
 
@@ -42,9 +42,10 @@ android {
 }
 
 sqldelight {
-    database("Database") {
+    database("AuthDatabase") {
         packageName = "com.walletconnect.auth"
-        dependency(project(":androidCore:impl"))
+        schemaOutputDirectory = file("src/main/sqldelight/databases")
+        verifyMigrations = true
     }
 }
 

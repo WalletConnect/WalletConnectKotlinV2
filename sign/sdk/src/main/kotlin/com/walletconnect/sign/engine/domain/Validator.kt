@@ -2,8 +2,8 @@
 
 package com.walletconnect.sign.engine.domain
 
-import com.walletconnect.android.impl.common.model.RelayProtocolOptions
-import com.walletconnect.android.impl.common.model.SymmetricKey
+import com.walletconnect.android.internal.common.model.RelayProtocolOptions
+import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.impl.utils.WEEK_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.*

@@ -2,13 +2,13 @@
 
 package com.walletconnect.sign.client
 
-import com.walletconnect.android.common.wcKoinApp
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
-import com.walletconnect.android.impl.common.scope.scope
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.impl.di.cryptoModule
-import com.walletconnect.android.impl.di.networkModule
 import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.pairing.toPairing
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.sign.di.commonModule
@@ -28,21 +28,16 @@ internal class SignProtocol : SignInterface {
         const val storageSuffix: String = ""
     }
 
-    override fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
+    override fun initialize(init: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
         Logger.init()
-        with(initial) {
-            // TODO: re-init scope
-            wcKoinApp.run {
-                modules(
-                    networkModule(relay),
-                    commonModule(),
-                    cryptoModule(),
-                    jsonRpcModule(),
-                    storageModule(storageSuffix),
-                    engineModule(metadata)
-                )
-            }
-        }
+        // TODO: re-init scope
+        wcKoinApp.modules(
+            commonModule(),
+            cryptoModule(),
+            jsonRpcModule(),
+            storageModule(storageSuffix),
+            engineModule()
+        )
 
         signEngine = wcKoinApp.koin.get()
         signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
@@ -90,18 +85,16 @@ internal class SignProtocol : SignInterface {
 
     @Throws(IllegalStateException::class)
     override fun connect(
-        connect: Sign.Params.Connect, onProposedSequence: (Sign.Model.ProposedSequence) -> Unit,
+        connect: Sign.Params.Connect,
+        onSuccess: () -> Unit,
         onError: (Sign.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
         try {
-            signEngine.proposeSequence(
+            signEngine.proposeSession(
                 connect.namespaces.toMapOfEngineNamespacesProposal(),
-                connect.relays?.toListEngineOfRelayProtocolOptions(),
-                connect.pairingTopic,
-                { proposedSequence -> onProposedSequence(proposedSequence.toClientProposedSequence()) },
-                { error -> onError(Sign.Model.Error(error)) }
-            )
+                connect.pairing.toPairing(), onSuccess
+            ) { error -> onError(Sign.Model.Error(error)) }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }

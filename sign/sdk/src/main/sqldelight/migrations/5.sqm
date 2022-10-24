@@ -1,0 +1,84 @@
+import kotlin.collections.List;
+
+
+-- DROP TABLES
+DROP TABLE IF EXISTS JsonRpcHistoryDao;
+DROP TABLE IF EXISTS MetaDataDao;
+DROP TABLE IF EXISTS MetaDataDao;
+DROP TABLE IF EXISTS NamespaceDao;
+DROP TABLE IF EXISTS NamespaceExtensionsDao;
+DROP TABLE IF EXISTS PairingDao;
+DROP TABLE IF EXISTS ProposalNamespaceDao;
+DROP TABLE IF EXISTS ProposalNamespaceExtensionsDao;
+DROP TABLE IF EXISTS SessionDao;
+DROP TABLE IF EXISTS TempNamespaceDao;
+DROP TABLE IF EXISTS TempNamespaceExtensionsDao;
+
+-- CREATE V6 SCHEMA
+CREATE TABLE NamespaceDao(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    session_id INTEGER NOT NULL,
+    key TEXT NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String> NOT NULL,
+    request_id INTEGER NOT NULL,
+    UNIQUE(session_id, key)
+);
+CREATE TABLE NamespaceExtensionsDao(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    namespace_key TEXT NOT NULL,
+    session_id INTEGER NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String>  NOT NULL
+);
+CREATE TABLE ProposalNamespaceDao (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    session_id INTEGER NOT NULL,
+    key TEXT NOT NULL,
+    chains TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String> NOT NULL,
+    UNIQUE(session_id, key)
+);
+CREATE TABLE ProposalNamespaceExtensionsDao (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    namespace_key TEXT NOT NULL,
+    session_id INTEGER NOT NULL,
+    chains TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String> NOT NULL
+);
+CREATE TABLE SessionDao(
+   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+   topic TEXT UNIQUE NOT NULL,
+   pairingTopic TEXT NOT NULL,
+   expiry INTEGER NOT NULL,
+   relay_protocol TEXT NOT NULL,
+   relay_data TEXT,
+   controller_key TEXT,
+   self_participant TEXT NOT NULL,
+   peer_participant TEXT,
+   is_acknowledged INTEGER AS Boolean NOT NULL
+);
+CREATE TABLE TempNamespaceDao(
+    request_id INTEGER PRIMARY KEY NOT NULL,
+    session_id INTEGER NOT NULL,
+    topic TEXT NOT NULL,
+    key TEXT NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String> NOT NULL,
+    isAcknowledged INTEGER DEFAULT 0
+);
+CREATE TABLE TempNamespaceExtensionsDao(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    namespace_key TEXT NOT NULL,
+    session_id INTEGER NOT NULL,
+    topic TEXT NOT NULL,
+    accounts TEXT AS List<String> NOT NULL,
+    methods TEXT AS List<String> NOT NULL,
+    events TEXT AS List<String>  NOT NULL,
+    request_id INTEGER NOT NULL
+);

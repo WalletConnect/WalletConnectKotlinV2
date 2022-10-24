@@ -3,6 +3,8 @@ package com.walletconnect.requester.ui.connect
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.android.Core
+import com.walletconnect.android.CoreClient
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.requester.domain.RequesterDelegate
@@ -15,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.lang.IllegalStateException
 
 class ConnectViewModel : ViewModel() {
 
@@ -50,9 +53,17 @@ class ConnectViewModel : ViewModel() {
     //    fun anySettledPairingExist(): Boolean = AuthClient.getListOfSettledPairings().isNotEmpty()
     fun anySettledPairingExist(): Boolean = false
 
-    //todo: Reimplement pairingTopicPosition. Right now only for demo purposes
     fun connectToWallet(pairingTopicPosition: Int = -1, onProposedSequence: (uri: String) -> Unit = {}) {
+        val pairing: Core.Model.Pairing = if (pairingTopicPosition > -1) {
+            CoreClient.Pairing.getPairings()[pairingTopicPosition]
+        } else {
+            CoreClient.Pairing.create() { error ->
+                throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
+            }!!
+        }
+
         val requestParams = Auth.Params.Request(
+            pairing = pairing,
             chainId = Chains.ETHEREUM_MAIN.chainId,
             domain = "kotlin.requester.walletconnect.com",
             nonce = randomNonce(),
@@ -66,7 +77,7 @@ class ConnectViewModel : ViewModel() {
         )
 
         AuthClient.request(requestParams,
-            onPairing = { pairing ->
+            onSuccess = {
                 viewModelScope.launch(Dispatchers.Main) {
                     onProposedSequence(pairing.uri)
                 }

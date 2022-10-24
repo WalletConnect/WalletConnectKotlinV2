@@ -2,23 +2,21 @@
 
 package com.walletconnect.sign.engine.model.mapper
 
-import com.walletconnect.android.impl.common.model.MetaData
-import com.walletconnect.android.impl.common.model.Redirect
-import com.walletconnect.android.impl.common.model.RelayProtocolOptions
-import com.walletconnect.android.impl.common.model.sync.WCRequest
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.RelayProtocolOptions
+import com.walletconnect.android.internal.common.model.WCRequest
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.common.exceptions.peer.PeerError
+import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
-import com.walletconnect.sign.common.model.vo.clientsync.pairing.params.PairingParamsVO
-import com.walletconnect.sign.common.model.vo.clientsync.pairing.payload.SessionProposerVO
-import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
-import com.walletconnect.sign.common.model.vo.sequence.PairingVO
+import com.walletconnect.android.internal.common.model.SessionProposer
+import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParamsVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
-import com.walletconnect.utils.Empty
 import java.net.URI
 
 @JvmSynthetic
@@ -34,11 +32,7 @@ private fun EngineDO.WalletConnectUri.getQuery(): String {
 }
 
 @JvmSynthetic
-internal fun EngineDO.AppMetaData.toCore() =
-    MetaData(name, description, url, icons, Redirect(redirect))
-
-@JvmSynthetic
-internal fun PairingParamsVO.SessionProposeParams.toEngineDO(): EngineDO.SessionProposal =
+internal fun SignParamsVO.SessionProposeParams.toEngineDO(): EngineDO.SessionProposal =
     EngineDO.SessionProposal(
         name = this.proposer.metadata.name,
         description = this.proposer.metadata.description,
@@ -51,14 +45,14 @@ internal fun PairingParamsVO.SessionProposeParams.toEngineDO(): EngineDO.Session
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.SessionRequestParams.toEngineDO(
+internal fun SignParamsVO.SessionRequestParams.toEngineDO(
     request: WCRequest,
-    peerMetaData: MetaData?,
+    peerAppMetaData: AppMetaData?,
 ): EngineDO.SessionRequest =
     EngineDO.SessionRequest(
         topic = request.topic.value,
         chainId = chainId,
-        peerAppMetaData = peerMetaData?.toEngineDO(),
+        peerAppMetaData = peerAppMetaData,
         request = EngineDO.SessionRequest.JSONRPCRequest(
             id = request.id,
             method = this.request.method,
@@ -67,11 +61,11 @@ internal fun SessionParamsVO.SessionRequestParams.toEngineDO(
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.DeleteParams.toEngineDO(topic: Topic): EngineDO.SessionDelete =
+internal fun SignParamsVO.DeleteParams.toEngineDO(topic: Topic): EngineDO.SessionDelete =
     EngineDO.SessionDelete(topic.value, message)
 
 @JvmSynthetic
-internal fun SessionParamsVO.EventParams.toEngineDO(topic: Topic): EngineDO.SessionEvent =
+internal fun SignParamsVO.EventParams.toEngineDO(topic: Topic): EngineDO.SessionEvent =
     EngineDO.SessionEvent(topic.value, event.name, event.data.toString(), chainId)
 
 @JvmSynthetic
@@ -80,44 +74,30 @@ internal fun SessionVO.toEngineDO(): EngineDO.Session =
         topic,
         expiry,
         namespaces.toMapOfEngineNamespacesSession(),
-        EngineDO.AppMetaData(
-            peerMetaData?.name ?: String.Empty,
-            peerMetaData?.description ?: String.Empty,
-            peerMetaData?.url ?: String.Empty,
-            peerMetaData?.icons?.map { iconUri -> iconUri } ?: listOf(),
-            peerMetaData?.redirect?.native
-        )
+        peerAppMetaData
     )
 
 @JvmSynthetic
-internal fun SessionVO.toEngineDOSessionExtend(expiryVO: com.walletconnect.android.common.model.Expiry): EngineDO.SessionExtend =
-    EngineDO.SessionExtend(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfMetaData?.toEngineDO())
+internal fun SessionVO.toEngineDOSessionExtend(expiryVO: Expiry): EngineDO.SessionExtend =
+    EngineDO.SessionExtend(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfAppMetaData)
 
-@JvmSynthetic
-internal fun MetaData.toEngineDO(): EngineDO.AppMetaData =
-    EngineDO.AppMetaData(name, description, url, icons, redirect?.native)
-
-
-@JvmSynthetic
-internal fun PairingVO.toEngineDOSettledPairing(): EngineDO.PairingSettle =
-    EngineDO.PairingSettle(topic, peerMetaData?.toEngineDO())
 
 @JvmSynthetic
 internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
     EngineDO.SessionApproved(
         topic = topic.value,
-        peerAppMetaData = peerMetaData?.toEngineDO(),
+        peerAppMetaData = peerAppMetaData,
         accounts = namespaces.flatMap { (_, namespace) -> namespace.accounts },
         namespaces = namespaces.toMapOfEngineNamespacesSession()
     )
 
 @JvmSynthetic
-internal fun PairingParamsVO.SessionProposeParams.toSessionSettleParams(
+internal fun SignParamsVO.SessionProposeParams.toSessionSettleParams(
     selfParticipant: SessionParticipantVO,
     sessionExpiry: Long,
     namespaces: Map<String, EngineDO.Namespace.Session>,
-): SessionParamsVO.SessionSettleParams =
-    SessionParamsVO.SessionSettleParams(
+): SignParamsVO.SessionSettleParams =
+    SignParamsVO.SessionSettleParams(
         relay = RelayProtocolOptions(relays.first().protocol, relays.first().data),
         controller = selfParticipant,
         namespaces = namespaces.toMapOfNamespacesVOSession(),
@@ -125,13 +105,13 @@ internal fun PairingParamsVO.SessionProposeParams.toSessionSettleParams(
 
 @JvmSynthetic
 internal fun toSessionProposeParams(
-    relays: List<EngineDO.RelayProtocolOptions>?,
+    relays: List<RelayProtocolOptions>?,
     namespaces: Map<String, EngineDO.Namespace.Proposal>,
     selfPublicKey: PublicKey,
-    metaData: EngineDO.AppMetaData,
-) = PairingParamsVO.SessionProposeParams(
-    relays = getSessionRelays(relays),
-    proposer = SessionProposerVO(selfPublicKey.keyAsHex, metaData.toCore()),
+    appMetaData: AppMetaData,
+) = SignParamsVO.SessionProposeParams(
+    relays = relays ?: listOf(RelayProtocolOptions()),
+    proposer = SessionProposer(selfPublicKey.keyAsHex, appMetaData),
     namespaces = namespaces.toNamespacesVOProposal()
 )
 
@@ -168,30 +148,25 @@ internal fun Map<String, EngineDO.Namespace.Session>.toMapOfNamespacesVOSession(
     }
 
 @JvmSynthetic
-internal fun getSessionRelays(relays: List<EngineDO.RelayProtocolOptions>?): List<RelayProtocolOptions> = relays?.map { relay ->
-    RelayProtocolOptions(relay.protocol, relay.data)
-} ?: listOf(RelayProtocolOptions())
-
-@JvmSynthetic
-internal fun com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult.toEngineDO(): EngineDO.JsonRpcResponse.JsonRpcResult =
+internal fun JsonRpcResponse.JsonRpcResult.toEngineDO(): EngineDO.JsonRpcResponse.JsonRpcResult =
     EngineDO.JsonRpcResponse.JsonRpcResult(id = id, result = result.toString())
 
 @JvmSynthetic
-internal fun com.walletconnect.android.common.JsonRpcResponse.JsonRpcError.toEngineDO(): EngineDO.JsonRpcResponse.JsonRpcError =
+internal fun JsonRpcResponse.JsonRpcError.toEngineDO(): EngineDO.JsonRpcResponse.JsonRpcError =
     EngineDO.JsonRpcResponse.JsonRpcError(id = id, error = EngineDO.JsonRpcResponse.Error(error.code, error.message))
 
 @JvmSynthetic
-internal fun PairingParamsVO.SessionProposeParams.toSessionApproveParams(selfPublicKey: PublicKey): SessionParamsVO.ApprovalParams =
-    SessionParamsVO.ApprovalParams(
+internal fun SignParamsVO.SessionProposeParams.toSessionApproveParams(selfPublicKey: PublicKey): SignParamsVO.ApprovalParams =
+    SignParamsVO.ApprovalParams(
         relay = RelayProtocolOptions(relays.first().protocol, relays.first().data),
         responderPublicKey = selfPublicKey.keyAsHex)
 
 @JvmSynthetic
-internal fun SessionParamsVO.SessionRequestParams.toEngineDO(topic: Topic): EngineDO.Request =
+internal fun SignParamsVO.SessionRequestParams.toEngineDO(topic: Topic): EngineDO.Request =
     EngineDO.Request(topic.value, request.method, request.params, chainId)
 
 @JvmSynthetic
-internal fun SessionParamsVO.EventParams.toEngineDOEvent(): EngineDO.Event =
+internal fun SignParamsVO.EventParams.toEngineDOEvent(): EngineDO.Event =
     EngineDO.Event(event.name, event.data.toString(), chainId)
 
 

@@ -1,6 +1,8 @@
 package com.walletconnect.sign.client
 
-import com.walletconnect.android.RelayConnectionInterface
+import com.walletconnect.android.Core
+import com.walletconnect.android.CoreClient
+import com.walletconnect.android.internal.common.model.Pairing
 import java.net.URI
 
 object Sign {
@@ -39,7 +41,7 @@ object Sign {
         data class SessionRequest(
             val topic: String,
             val chainId: String?,
-            val peerMetaData: AppMetaData?,
+            val peerMetaData: Core.Model.AppMetaData?,
             val request: JSONRPCRequest,
         ) : Model() {
 
@@ -83,7 +85,7 @@ object Sign {
 
         data class RelayProtocolOptions(val protocol: String, val data: String? = null) : Model()
 
-        data class Pairing(val topic: String, val metaData: AppMetaData?) : Model()
+        data class Pairing(val topic: String, val metaData: Core.Model.AppMetaData?) : Model()
 
         sealed class SettledSessionResponse : Model() {
             data class Result(val session: Session) : SettledSessionResponse()
@@ -116,7 +118,7 @@ object Sign {
 
         data class ApprovedSession(
             val topic: String,
-            val metaData: AppMetaData?,
+            val metaData: Core.Model.AppMetaData?,
             val namespaces: Map<String, Namespace.Session>,
             val accounts: List<String>,
         ) : Model()
@@ -125,7 +127,7 @@ object Sign {
             val topic: String,
             val expiry: Long,
             val namespaces: Map<String, Namespace.Session>,
-            val metaData: AppMetaData?,
+            val metaData: Core.Model.AppMetaData?,
         ) : Model() {
             val redirect: String? = metaData?.redirect
         }
@@ -158,14 +160,6 @@ object Sign {
             ) : JsonRpcResponse()
         }
 
-        data class AppMetaData(
-            val name: String,
-            val description: String,
-            val url: String,
-            val icons: List<String>,
-            val redirect: String?,
-        ) : Model()
-
         data class PendingRequest(
             val requestId: Long,
             val topic: String,
@@ -183,14 +177,12 @@ object Sign {
 
         // TODO: Maybe convert this into a Builder
         data class Init constructor(
-            val metadata: Model.AppMetaData,
-            val relay: RelayConnectionInterface,
+            val core: CoreClient
         ) : Params()
 
         data class Connect(
             val namespaces: Map<String, Model.Namespace.Proposal>,
-            val relays: List<Model.RelayProtocolOptions>? = null,
-            val pairingTopic: String? = null,
+            val pairing: Core.Model.Pairing
         ) : Params()
 
         data class Pair(val uri: String) : Params()
