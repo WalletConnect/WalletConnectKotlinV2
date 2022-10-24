@@ -31,7 +31,7 @@ internal class SessionStorageRepository(
     var onSequenceExpired: (topic: Topic) -> Unit = {}
 
     @JvmSynthetic
-    fun getListOfSessionVOs(): List<SessionVO> =
+    fun getListOfSessionVOsWithoutMetadata(): List<SessionVO> =
         sessionDaoQueries.getListOfSessionDaos(mapper = this@SessionStorageRepository::mapSessionDaoToSessionVO).executeAsList()
 
     @JvmSynthetic
@@ -50,12 +50,12 @@ internal class SessionStorageRepository(
     }
 
     @JvmSynthetic
-    fun getSessionByTopic(topic: Topic): SessionVO =
+    fun getSessionWithoutMetadataByTopic(topic: Topic): SessionVO =
         sessionDaoQueries.getSessionByTopic(topic.value, mapper = this@SessionStorageRepository::mapSessionDaoToSessionVO).executeAsOne()
 
     @JvmSynthetic
-    fun getSessionByPairingTopic(pairingTopic: Topic): String? =
-        sessionDaoQueries.getSessionTopicByPairingTopic(pairingTopic.value).executeAsOneOrNull()
+    fun getAllSessionTopicsByPairingTopic(pairingTopic: Topic): List<String> =
+        sessionDaoQueries.getAllSessionTopicsByPairingTopic(pairingTopic.value).executeAsList()
 
     @Synchronized
     @JvmSynthetic

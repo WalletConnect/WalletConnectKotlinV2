@@ -166,6 +166,7 @@ internal class SignEngine(
                 relayer.publishJsonRpcRequests(sessionTopic, irnParams, sessionSettle, onFailure = { error -> onFailure(error) })
             } catch (e: SQLiteException) {
                 sessionStorageRepository.deleteSession(sessionTopic)
+                // todo: missing metadata deletion. Also check other try catches
                 onFailure(e)
             }
         }
@@ -198,7 +199,7 @@ internal class SignEngine(
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        val session = sessionStorageRepository.getSessionByTopic(Topic(topic))
+        val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(topic))
 
         if (!session.isSelfController) {
             throw UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
@@ -240,7 +241,7 @@ internal class SignEngine(
             throw InvalidRequestException(error.message)
         }
 
-        val namespaces: Map<String, NamespaceVO.Session> = sessionStorageRepository.getSessionByTopic(Topic(request.topic)).namespaces
+        val namespaces: Map<String, NamespaceVO.Session> = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic)).namespaces
         Validator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { error ->
             throw UnauthorizedMethodException(error.message)
         }
@@ -344,7 +345,7 @@ internal class SignEngine(
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        val session = sessionStorageRepository.getSessionByTopic(Topic(topic))
+        val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(topic))
         if (!session.isSelfController) {
             throw UnauthorizedPeerException(UNAUTHORIZED_EMIT_MESSAGE)
         }
@@ -376,7 +377,7 @@ internal class SignEngine(
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        val session = sessionStorageRepository.getSessionByTopic(Topic(topic))
+        val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(topic))
         if (!session.isSelfController) {
             throw UnauthorizedPeerException(UNAUTHORIZED_EXTEND_MESSAGE)
         }
@@ -415,7 +416,7 @@ internal class SignEngine(
     }
 
     internal fun getListOfSettledSessions(): List<EngineDO.Session> {
-        return sessionStorageRepository.getListOfSessionVOs()
+        return sessionStorageRepository.getListOfSessionVOsWithoutMetadata()
             .filter { session -> session.isAcknowledged && session.expiry.isSequenceValid() }
             .map { session ->
                 val peerMetaData = metadataStorageRepository.getByTopicAndType(session.topic, AppMetaDataType.PEER)
@@ -562,7 +563,7 @@ internal class SignEngine(
             return
         }
 
-        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerAppMetaData: AppMetaData?) = sessionStorageRepository.getSessionByTopic(request.topic).run {
+        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerAppMetaData: AppMetaData?) = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic).run {
             val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
             this.namespaces to peerAppMetaData
         }
@@ -589,7 +590,7 @@ internal class SignEngine(
             return
         }
 
-        val session = sessionStorageRepository.getSessionByTopic(request.topic)
+        val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
         if (!session.isPeerController) {
             relayer.respondWithError(request, PeerError.Unauthorized.Event(Sequences.SESSION.name), irnParams)
             return
@@ -617,7 +618,7 @@ internal class SignEngine(
             return
         }
 
-        val session: SessionVO = sessionStorageRepository.getSessionByTopic(request.topic)
+        val session: SessionVO = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
         if (!session.isPeerController) {
             relayer.respondWithError(request, PeerError.Unauthorized.UpdateRequest(Sequences.SESSION.name), irnParams)
             return
@@ -656,7 +657,7 @@ internal class SignEngine(
             return
         }
 
-        val session = sessionStorageRepository.getSessionByTopic(request.topic)
+        val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
         if (!session.isPeerController) {
             relayer.respondWithError(request, PeerError.Unauthorized.ExtendRequest(Sequences.SESSION.name), irnParams)
             return
@@ -681,7 +682,7 @@ internal class SignEngine(
     // listened by DappDelegate
     private fun onSessionProposalResponse(wcResponse: WCResponse, params: SessionParamsVO.SessionProposeParams) {
         val pairingTopic = wcResponse.topic
-
+        Logger.log("pairingTopic: $pairingTopic")
         pairingInterface.updateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS))
         pairingInterface.activate(pairingTopic.value)
 
@@ -707,7 +708,7 @@ internal class SignEngine(
     private fun onSessionSettleResponse(wcResponse: WCResponse) {
         val sessionTopic = wcResponse.topic
         if (!sessionStorageRepository.isSessionValid(sessionTopic)) return
-        val session = sessionStorageRepository.getSessionByTopic(sessionTopic).run {
+        val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(sessionTopic).run {
             val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
             this.copy(selfAppMetaData = selfAppMetaData, peerAppMetaData = peerAppMetaData)
         }
@@ -731,7 +732,7 @@ internal class SignEngine(
     private fun onSessionUpdateResponse(wcResponse: WCResponse) {
         val sessionTopic = wcResponse.topic
         if (!sessionStorageRepository.isSessionValid(sessionTopic)) return
-        val session = sessionStorageRepository.getSessionByTopic(sessionTopic)
+        val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(sessionTopic)
         if (!sessionStorageRepository.isUpdatedNamespaceResponseValid(session.topic.value, wcResponse.response.id.extractTimestamp())) {
             return
         }
@@ -777,7 +778,7 @@ internal class SignEngine(
 
     private fun resubscribeToSession() {
         val (listOfExpiredSession, listOfValidSessions) =
-            sessionStorageRepository.getListOfSessionVOs().partition { session -> !session.expiry.isSequenceValid() }
+            sessionStorageRepository.getListOfSessionVOsWithoutMetadata().partition { session -> !session.expiry.isSequenceValid() }
 
         listOfExpiredSession
             .map { session -> session.topic }
@@ -798,7 +799,7 @@ internal class SignEngine(
         }
 
         pairingInterface.topicExpiredFlow.onEach { topic ->
-            sessionStorageRepository.getSessionByPairingTopic(topic)?.let { sessionTopic ->
+            sessionStorageRepository.getAllSessionTopicsByPairingTopic(topic).onEach { sessionTopic ->
                 sessionStorageRepository.deleteSession(Topic(sessionTopic))
                 relayer.unsubscribe(Topic(sessionTopic))
                 crypto.removeKeys(sessionTopic)
