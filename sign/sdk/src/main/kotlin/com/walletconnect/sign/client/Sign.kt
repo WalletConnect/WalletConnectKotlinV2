@@ -177,7 +177,7 @@ object Sign {
 
         // TODO: Maybe convert this into a Builder
         data class Init constructor(
-            val coreClient: CoreClient
+            val core: CoreClient
         ) : Params()
 
         data class Connect(

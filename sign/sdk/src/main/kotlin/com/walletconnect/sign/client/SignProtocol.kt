@@ -28,7 +28,7 @@ internal class SignProtocol : SignInterface {
         const val storageSuffix: String = ""
     }
 
-    override fun initialize(initial: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
+    override fun initialize(init: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
         Logger.init()
         // TODO: re-init scope
         wcKoinApp.modules(
