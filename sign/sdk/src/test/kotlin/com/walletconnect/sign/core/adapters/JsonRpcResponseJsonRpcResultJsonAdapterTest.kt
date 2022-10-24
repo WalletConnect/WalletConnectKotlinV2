@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.sign.common.adapters.JsonRpcResultAdapter
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
-import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParamsVO
 import org.junit.jupiter.api.Test
 import kotlin.reflect.jvm.jvmName
 
@@ -24,7 +24,7 @@ internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {
         val adapter = moshi.adapter(JsonRpcResponse.JsonRpcResult::class.java)
         val metadata = AppMetaData("name", "desc", "url", listOf("icon"))
         val approvalParams =
-            SessionParamsVO.ApprovalParams(relay = RelayProtocolOptions("irn"), responderPublicKey = "124")
+            SignParamsVO.ApprovalParams(relay = RelayProtocolOptions("irn"), responderPublicKey = "124")
         val jsonResult = JsonRpcResponse.JsonRpcResult(
             id = 1L,
             jsonrpc = "2.0",
@@ -49,7 +49,7 @@ internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {
 
         val metadata = AppMetaData("name", "desc", "url", listOf("icon"))
         val approvalParamsJsonResult = JsonRpcResponse.JsonRpcResult(id = 11L,
-            result = SessionParamsVO.ApprovalParams(relay = RelayProtocolOptions("irn"), responderPublicKey = "124"))
+            result = SignParamsVO.ApprovalParams(relay = RelayProtocolOptions("irn"), responderPublicKey = "124"))
         val resultString = moshi.adapter(JsonRpcResponse.JsonRpcResult::class.java).toJson(approvalParamsJsonResult)
         val result = adapter.fromJson(resultString)
         result is JsonRpcResponse.JsonRpcResult

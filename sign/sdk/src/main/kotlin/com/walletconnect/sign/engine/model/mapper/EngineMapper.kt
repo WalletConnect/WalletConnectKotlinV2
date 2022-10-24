@@ -13,7 +13,7 @@ import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.android.internal.common.model.SessionProposer
-import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParamsVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
@@ -32,7 +32,7 @@ private fun EngineDO.WalletConnectUri.getQuery(): String {
 }
 
 @JvmSynthetic
-internal fun SessionParamsVO.SessionProposeParams.toEngineDO(): EngineDO.SessionProposal =
+internal fun SignParamsVO.SessionProposeParams.toEngineDO(): EngineDO.SessionProposal =
     EngineDO.SessionProposal(
         name = this.proposer.metadata.name,
         description = this.proposer.metadata.description,
@@ -45,7 +45,7 @@ internal fun SessionParamsVO.SessionProposeParams.toEngineDO(): EngineDO.Session
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.SessionRequestParams.toEngineDO(
+internal fun SignParamsVO.SessionRequestParams.toEngineDO(
     request: WCRequest,
     peerAppMetaData: AppMetaData?,
 ): EngineDO.SessionRequest =
@@ -61,11 +61,11 @@ internal fun SessionParamsVO.SessionRequestParams.toEngineDO(
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.DeleteParams.toEngineDO(topic: Topic): EngineDO.SessionDelete =
+internal fun SignParamsVO.DeleteParams.toEngineDO(topic: Topic): EngineDO.SessionDelete =
     EngineDO.SessionDelete(topic.value, message)
 
 @JvmSynthetic
-internal fun SessionParamsVO.EventParams.toEngineDO(topic: Topic): EngineDO.SessionEvent =
+internal fun SignParamsVO.EventParams.toEngineDO(topic: Topic): EngineDO.SessionEvent =
     EngineDO.SessionEvent(topic.value, event.name, event.data.toString(), chainId)
 
 @JvmSynthetic
@@ -92,12 +92,12 @@ internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
     )
 
 @JvmSynthetic
-internal fun SessionParamsVO.SessionProposeParams.toSessionSettleParams(
+internal fun SignParamsVO.SessionProposeParams.toSessionSettleParams(
     selfParticipant: SessionParticipantVO,
     sessionExpiry: Long,
     namespaces: Map<String, EngineDO.Namespace.Session>,
-): SessionParamsVO.SessionSettleParams =
-    SessionParamsVO.SessionSettleParams(
+): SignParamsVO.SessionSettleParams =
+    SignParamsVO.SessionSettleParams(
         relay = RelayProtocolOptions(relays.first().protocol, relays.first().data),
         controller = selfParticipant,
         namespaces = namespaces.toMapOfNamespacesVOSession(),
@@ -109,7 +109,7 @@ internal fun toSessionProposeParams(
     namespaces: Map<String, EngineDO.Namespace.Proposal>,
     selfPublicKey: PublicKey,
     appMetaData: AppMetaData,
-) = SessionParamsVO.SessionProposeParams(
+) = SignParamsVO.SessionProposeParams(
     relays = relays ?: listOf(RelayProtocolOptions()),
     proposer = SessionProposer(selfPublicKey.keyAsHex, appMetaData),
     namespaces = namespaces.toNamespacesVOProposal()
@@ -156,17 +156,17 @@ internal fun JsonRpcResponse.JsonRpcError.toEngineDO(): EngineDO.JsonRpcResponse
     EngineDO.JsonRpcResponse.JsonRpcError(id = id, error = EngineDO.JsonRpcResponse.Error(error.code, error.message))
 
 @JvmSynthetic
-internal fun SessionParamsVO.SessionProposeParams.toSessionApproveParams(selfPublicKey: PublicKey): SessionParamsVO.ApprovalParams =
-    SessionParamsVO.ApprovalParams(
+internal fun SignParamsVO.SessionProposeParams.toSessionApproveParams(selfPublicKey: PublicKey): SignParamsVO.ApprovalParams =
+    SignParamsVO.ApprovalParams(
         relay = RelayProtocolOptions(relays.first().protocol, relays.first().data),
         responderPublicKey = selfPublicKey.keyAsHex)
 
 @JvmSynthetic
-internal fun SessionParamsVO.SessionRequestParams.toEngineDO(topic: Topic): EngineDO.Request =
+internal fun SignParamsVO.SessionRequestParams.toEngineDO(topic: Topic): EngineDO.Request =
     EngineDO.Request(topic.value, request.method, request.params, chainId)
 
 @JvmSynthetic
-internal fun SessionParamsVO.EventParams.toEngineDOEvent(): EngineDO.Event =
+internal fun SignParamsVO.EventParams.toEngineDOEvent(): EngineDO.Event =
     EngineDO.Event(event.name, event.data.toString(), chainId)
 
 

@@ -18,7 +18,7 @@ interface JsonRpcInteractorInterface {
 
     fun subscribe(topic: Topic)
 
-    fun unsubscribe(topic: Topic)
+    fun unsubscribe(topic: Topic, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {})
 
     fun publishJsonRpcRequests(
         topic: Topic,

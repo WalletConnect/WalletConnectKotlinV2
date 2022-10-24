@@ -8,7 +8,7 @@ import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParamsVO
 import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.reflect.Constructor
@@ -23,7 +23,7 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<JsonRpcResponse.
     private val stringAdapter: JsonAdapter<String> = moshi.adapter(String::class.java, emptySet(), "jsonrpc")
     private val booleanAdapter: JsonAdapter<Long> = moshi.adapter(Boolean::class.java, emptySet(), "result")
     private val anyAdapter: JsonAdapter<Any> = moshi.adapter(Any::class.java, emptySet(), "result")
-    private val approvalParamsAdapter: JsonAdapter<SessionParamsVO.ApprovalParams> = moshi.adapter(SessionParamsVO.ApprovalParams::class.java)
+    private val approvalParamsAdapter: JsonAdapter<SignParamsVO.ApprovalParams> = moshi.adapter(SignParamsVO.ApprovalParams::class.java)
 
     @Volatile
     private var constructorRef: Constructor<JsonRpcResponse.JsonRpcResult>? = null
@@ -100,8 +100,8 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<JsonRpcResponse.
         writer.name("result")
 
         when {
-            (value_.result as? SessionParamsVO.ApprovalParams) != null -> {
-                val approvalParamsString = approvalParamsAdapter.toJson(value_.result as SessionParamsVO.ApprovalParams)
+            (value_.result as? SignParamsVO.ApprovalParams) != null -> {
+                val approvalParamsString = approvalParamsAdapter.toJson(value_.result as SignParamsVO.ApprovalParams)
                 writer.valueSink().use {
                     it.writeUtf8(approvalParamsString)
                 }

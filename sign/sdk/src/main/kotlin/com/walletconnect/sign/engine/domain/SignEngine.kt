@@ -4,18 +4,18 @@ package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
-import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.WalletConnectException
-import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.impl.utils.*
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.exception.Reason
-import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.exception.Uncategorized
+import com.walletconnect.android.internal.common.exception.WalletConnectException
+import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.android.pairing.toClient
@@ -24,13 +24,12 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.sign.common.exceptions.*
-import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.type.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpcVO
-import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParamsVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
@@ -109,7 +108,7 @@ internal class SignEngine(
         }
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
-        val sessionProposal: SessionParamsVO.SessionProposeParams = toSessionProposeParams(listOf(relay), namespaces, selfPublicKey, selfAppMetaData)
+        val sessionProposal: SignParamsVO.SessionProposeParams = toSessionProposeParams(listOf(relay), namespaces, selfPublicKey, selfAppMetaData)
         val request = SignRpcVO.SessionPropose(id = generateId(), params = sessionProposal)
         sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequest(pairing.topic, request.id, request.method, sessionProposal)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
@@ -146,7 +145,7 @@ internal class SignEngine(
     ) {
         fun sessionSettle(
             requestId: Long,
-            proposal: SessionParamsVO.SessionProposeParams,
+            proposal: SignParamsVO.SessionProposeParams,
             sessionTopic: Topic,
             pairingTopic: Topic,
         ) {
@@ -173,7 +172,7 @@ internal class SignEngine(
 
         val request = sessionProposalRequest[proposerPublicKey] ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
-        val proposal = request.params as SessionParamsVO.SessionProposeParams
+        val proposal = request.params as SignParamsVO.SessionProposeParams
 
         Validator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), proposal.namespaces) { error ->
             throw InvalidNamespaceException(error.message)
@@ -213,23 +212,23 @@ internal class SignEngine(
             throw InvalidNamespaceException(error.message)
         }
 
-        val params = SessionParamsVO.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
+        val params = SignParamsVO.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
         val sessionUpdate = SignRpcVO.SessionUpdate(id = generateId(), params = params)
         val irnParams = IrnParams(Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
 
         sessionStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id,
             onSuccess = {
-            relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionUpdate,
-                onSuccess = { Logger.log("Update sent successfully") },
-                onFailure = { error ->
-                    Logger.error("Sending session update error: $error")
-                    sessionStorageRepository.deleteTempNamespacesByRequestId(sessionUpdate.id)
-                    onFailure(error)
-                }
-            )
-        }, onFailure = {
-            onFailure(GenericException("Error updating namespaces"))
-        })
+                relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionUpdate,
+                    onSuccess = { Logger.log("Update sent successfully") },
+                    onFailure = { error ->
+                        Logger.error("Sending session update error: $error")
+                        sessionStorageRepository.deleteTempNamespacesByRequestId(sessionUpdate.id)
+                        onFailure(error)
+                    }
+                )
+            }, onFailure = {
+                onFailure(GenericException("Error updating namespaces"))
+            })
     }
 
     internal fun sessionRequest(request: EngineDO.Request, onFailure: (Throwable) -> Unit) {
@@ -246,7 +245,7 @@ internal class SignEngine(
             throw UnauthorizedMethodException(error.message)
         }
 
-        val params = SessionParamsVO.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
+        val params = SignParamsVO.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
         val sessionPayload = SignRpcVO.SessionRequest(id = generateId(), params = params)
         val irnParams = IrnParams(Tags.SESSION_REQUEST, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
@@ -294,39 +293,39 @@ internal class SignEngine(
     // TODO: Do we still want Session Ping
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         if (sessionStorageRepository.isSessionValid(Topic(topic))) {
-            val pingPayload = SignRpcVO.SessionPing(id = generateId(), params = SessionParamsVO.PingParams())
+            val pingPayload = SignRpcVO.SessionPing(id = generateId(), params = SignParamsVO.PingParams())
             val irnParams = IrnParams(Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
 
             relayer.publishJsonRpcRequests(Topic(topic), irnParams, pingPayload,
-            onSuccess = {
-                Logger.log("Ping sent successfully")
-                scope.launch {
-                    try {
-                        withTimeout(THIRTY_SECONDS_TIMEOUT) {
-                            collectResponse(pingPayload.id) { result ->
-                                cancel()
-                                result.fold(
-                                    onSuccess = {
-                                        Logger.log("Ping peer response success")
-                                        onSuccess(topic)
-                                    },
-                                    onFailure = { error ->
+                onSuccess = {
+                    Logger.log("Ping sent successfully")
+                    scope.launch {
+                        try {
+                            withTimeout(THIRTY_SECONDS_TIMEOUT) {
+                                collectResponse(pingPayload.id) { result ->
+                                    cancel()
+                                    result.fold(
+                                        onSuccess = {
+                                            Logger.log("Ping peer response success")
+                                            onSuccess(topic)
+                                        },
+                                        onFailure = { error ->
 
-                                        Logger.log("Ping peer response error: $error")
+                                            Logger.log("Ping peer response error: $error")
 
-                                        onFailure(error)
-                                    })
+                                            onFailure(error)
+                                        })
+                                }
                             }
+                        } catch (e: TimeoutCancellationException) {
+                            onFailure(e)
                         }
-                    } catch (e: TimeoutCancellationException) {
-                        onFailure(e)
                     }
-                }
-            },
-            onFailure = { error ->
-                Logger.log("Ping sent error: $error")
-                onFailure(error)
-            })
+                },
+                onFailure = { error ->
+                    Logger.log("Ping sent error: $error")
+                    onFailure(error)
+                })
         } else {
             pairingInterface.ping(Core.Params.Ping(topic), object : Core.Listeners.PairingPing {
                 override fun onSuccess(pingSuccess: Core.Model.Ping.Success) {
@@ -359,7 +358,7 @@ internal class SignEngine(
             throw UnauthorizedEventException(error.message)
         }
 
-        val eventParams = SessionParamsVO.EventParams(SessionEventVO(event.name, event.data), event.chainId)
+        val eventParams = SignParamsVO.EventParams(SessionEventVO(event.name, event.data), event.chainId)
         val sessionEvent = SignRpcVO.SessionEvent(id = generateId(), params = eventParams)
         val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
@@ -387,7 +386,7 @@ internal class SignEngine(
 
         val newExpiration = session.expiry.seconds + WEEK_IN_SECONDS
         sessionStorageRepository.extendSession(Topic(topic), newExpiration)
-        val sessionExtend = SignRpcVO.SessionExtend(id = generateId(), params = SessionParamsVO.ExtendParams(newExpiration))
+        val sessionExtend = SignRpcVO.SessionExtend(id = generateId(), params = SignParamsVO.ExtendParams(newExpiration))
         val irnParams = IrnParams(Tags.SESSION_EXTEND, Ttl(DAY_IN_SECONDS))
 
         relayer.publishJsonRpcRequests(Topic(topic), irnParams, sessionExtend,
@@ -403,7 +402,7 @@ internal class SignEngine(
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
-        val deleteParams = SessionParamsVO.DeleteParams(Reason.UserDisconnected.code, Reason.UserDisconnected.message)
+        val deleteParams = SignParamsVO.DeleteParams(Reason.UserDisconnected.code, Reason.UserDisconnected.message)
         val sessionDelete = SignRpcVO.SessionDelete(id = generateId(), params = deleteParams)
         sessionStorageRepository.deleteSession(Topic(topic))
         relayer.unsubscribe(Topic(topic))
@@ -447,17 +446,17 @@ internal class SignEngine(
 
     private fun collectJsonRpcRequests() {
         relayer.clientSyncJsonRpc
-            .filter { request -> request.params is SessionParamsVO }
+            .filter { request -> request.params is SignParamsVO }
             .onEach { request ->
                 when (val requestParams = request.params) {
-                    is SessionParamsVO.SessionProposeParams -> onSessionPropose(request, requestParams)
-                    is SessionParamsVO.SessionSettleParams -> onSessionSettle(request, requestParams)
-                    is SessionParamsVO.SessionRequestParams -> onSessionRequest(request, requestParams)
-                    is SessionParamsVO.DeleteParams -> onSessionDelete(request, requestParams)
-                    is SessionParamsVO.EventParams -> onSessionEvent(request, requestParams)
-                    is SessionParamsVO.UpdateNamespacesParams -> onSessionUpdate(request, requestParams)
-                    is SessionParamsVO.ExtendParams -> onSessionExtend(request, requestParams)
-                    is SessionParamsVO.PingParams -> onPing(request)
+                    is SignParamsVO.SessionProposeParams -> onSessionPropose(request, requestParams)
+                    is SignParamsVO.SessionSettleParams -> onSessionSettle(request, requestParams)
+                    is SignParamsVO.SessionRequestParams -> onSessionRequest(request, requestParams)
+                    is SignParamsVO.DeleteParams -> onSessionDelete(request, requestParams)
+                    is SignParamsVO.EventParams -> onSessionEvent(request, requestParams)
+                    is SignParamsVO.UpdateNamespacesParams -> onSessionUpdate(request, requestParams)
+                    is SignParamsVO.ExtendParams -> onSessionExtend(request, requestParams)
+                    is SignParamsVO.PingParams -> onPing(request)
                 }
             }.launchIn(scope)
     }
@@ -472,17 +471,17 @@ internal class SignEngine(
         scope.launch {
             relayer.peerResponse.collect { response ->
                 when (val params = response.params) {
-                    is SessionParamsVO.SessionProposeParams -> onSessionProposalResponse(response, params)
-                    is SessionParamsVO.SessionSettleParams -> onSessionSettleResponse(response)
-                    is SessionParamsVO.UpdateNamespacesParams -> onSessionUpdateResponse(response)
-                    is SessionParamsVO.SessionRequestParams -> onSessionRequestResponse(response, params)
+                    is SignParamsVO.SessionProposeParams -> onSessionProposalResponse(response, params)
+                    is SignParamsVO.SessionSettleParams -> onSessionSettleResponse(response)
+                    is SignParamsVO.UpdateNamespacesParams -> onSessionUpdateResponse(response)
+                    is SignParamsVO.SessionRequestParams -> onSessionRequestResponse(response, params)
                 }
             }
         }
     }
 
     // listened by WalletDelegate
-    private fun onSessionPropose(request: WCRequest, payloadParams: SessionParamsVO.SessionProposeParams) {
+    private fun onSessionPropose(request: WCRequest, payloadParams: SignParamsVO.SessionProposeParams) {
         Validator.validateProposalNamespace(payloadParams.namespaces) { error ->
             val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
             relayer.respondWithError(request, error.toPeerError(), irnParams)
@@ -496,19 +495,19 @@ internal class SignEngine(
     }
 
     // listened by DappDelegate
-    private fun onSessionSettle(request: WCRequest, settleParams: SessionParamsVO.SessionSettleParams) {
+    private fun onSessionSettle(request: WCRequest, settleParams: SignParamsVO.SessionSettleParams) {
         val sessionTopic = request.topic
         val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
         val peerMetadata = settleParams.controller.metadata
         val proposal = sessionProposalRequest[selfPublicKey.keyAsHex] ?: return
         val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
-        if (proposal.params !is SessionParamsVO.SessionProposeParams) {
+        if (proposal.params !is SignParamsVO.SessionProposeParams) {
             relayer.respondWithError(request, PeerError.Failure.SessionSettlementFailed(NAMESPACE_MISSING_PROPOSAL_MESSAGE), irnParams)
             return
         }
 
-        val proposalNamespaces = (proposal.params as SessionParamsVO.SessionProposeParams).namespaces
+        val proposalNamespaces = (proposal.params as SignParamsVO.SessionProposeParams).namespaces
 
         Validator.validateSessionNamespace(settleParams.namespaces, proposalNamespaces) { error ->
             relayer.respondWithError(request, error.toPeerError(), irnParams)
@@ -535,23 +534,26 @@ internal class SignEngine(
         }
     }
 
-    // listened by WalletDelegate
-    private fun onSessionDelete(request: WCRequest, params: SessionParamsVO.DeleteParams) {
+    // listened by both Delegates
+    private fun onSessionDelete(request: WCRequest, params: SignParamsVO.DeleteParams) {
         if (!sessionStorageRepository.isSessionValid(request.topic)) {
             val irnParams = IrnParams(Tags.SESSION_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
             relayer.respondWithError(request, Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
             return
         }
 
-        crypto.removeKeys(request.topic.value)
-        sessionStorageRepository.deleteSession(request.topic)
-        relayer.unsubscribe(request.topic)
-
-        scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
+        relayer.unsubscribe(request.topic, onSuccess = {
+            Logger.log("unsubscribe onSuccess")
+            crypto.removeKeys(request.topic.value)
+            sessionStorageRepository.deleteSession(request.topic)
+            scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
+        }, onFailure = { error ->
+            Logger.error(error)
+        })
     }
 
     // listened by WalletDelegate
-    private fun onSessionRequest(request: WCRequest, params: SessionParamsVO.SessionRequestParams) {
+    private fun onSessionRequest(request: WCRequest, params: SignParamsVO.SessionRequestParams) {
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         Validator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->
             relayer.respondWithError(request, error.toPeerError(), irnParams)
@@ -578,7 +580,7 @@ internal class SignEngine(
     }
 
     // listened by DappDelegate
-    private fun onSessionEvent(request: WCRequest, params: SessionParamsVO.EventParams) {
+    private fun onSessionEvent(request: WCRequest, params: SignParamsVO.EventParams) {
         val irnParams = IrnParams(Tags.SESSION_EVENT_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         Validator.validateEvent(params.toEngineDOEvent()) { error ->
             relayer.respondWithError(request, error.toPeerError(), irnParams)
@@ -611,7 +613,7 @@ internal class SignEngine(
     }
 
     // listened by DappDelegate
-    private fun onSessionUpdate(request: WCRequest, params: SessionParamsVO.UpdateNamespacesParams) {
+    private fun onSessionUpdate(request: WCRequest, params: SignParamsVO.UpdateNamespacesParams) {
         val irnParams = IrnParams(Tags.SESSION_UPDATE_RESPONSE, Ttl(DAY_IN_SECONDS))
         if (!sessionStorageRepository.isSessionValid(request.topic)) {
             relayer.respondWithError(request, Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
@@ -650,7 +652,7 @@ internal class SignEngine(
     }
 
     // listened by DappDelegate
-    private fun onSessionExtend(request: WCRequest, requestParams: SessionParamsVO.ExtendParams) {
+    private fun onSessionExtend(request: WCRequest, requestParams: SignParamsVO.ExtendParams) {
         val irnParams = IrnParams(Tags.SESSION_EXTEND_RESPONSE, Ttl(DAY_IN_SECONDS))
         if (!sessionStorageRepository.isSessionValid(request.topic)) {
             relayer.respondWithError(request, Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
@@ -680,7 +682,7 @@ internal class SignEngine(
     }
 
     // listened by DappDelegate
-    private fun onSessionProposalResponse(wcResponse: WCResponse, params: SessionParamsVO.SessionProposeParams) {
+    private fun onSessionProposalResponse(wcResponse: WCResponse, params: SignParamsVO.SessionProposeParams) {
         val pairingTopic = wcResponse.topic
         Logger.log("pairingTopic: $pairingTopic")
         pairingInterface.updateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS))
@@ -692,7 +694,7 @@ internal class SignEngine(
             is JsonRpcResponse.JsonRpcResult -> {
                 Logger.log("Session proposal approve received")
                 val selfPublicKey = PublicKey(params.proposer.publicKey)
-                val approveParams = response.result as SessionParamsVO.ApprovalParams
+                val approveParams = response.result as SignParamsVO.ApprovalParams
                 val responderPublicKey = PublicKey(approveParams.responderPublicKey)
                 val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
                 relayer.subscribe(sessionTopic)
@@ -767,7 +769,7 @@ internal class SignEngine(
     }
 
     // listened by DappDelegate
-    private fun onSessionRequestResponse(response: WCResponse, params: SessionParamsVO.SessionRequestParams) {
+    private fun onSessionRequestResponse(response: WCResponse, params: SignParamsVO.SessionRequestParams) {
         val result = when (response.response) {
             is JsonRpcResponse.JsonRpcResult -> (response.response as JsonRpcResponse.JsonRpcResult).toEngineDO()
             is JsonRpcResponse.JsonRpcError -> (response.response as JsonRpcResponse.JsonRpcError).toEngineDO()

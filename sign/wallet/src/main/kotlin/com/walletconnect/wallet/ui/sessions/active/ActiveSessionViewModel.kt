@@ -2,8 +2,10 @@ package com.walletconnect.wallet.ui.sessions.active
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.wallet.domain.WalletDelegate
+import com.walletconnect.wallet.ui.SampleWalletEvents
 import kotlinx.coroutines.flow.*
 
 class ActiveSessionViewModel : ViewModel() {

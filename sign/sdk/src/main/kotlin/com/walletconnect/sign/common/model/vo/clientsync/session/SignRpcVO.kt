@@ -5,14 +5,14 @@ package com.walletconnect.sign.common.model.vo.clientsync.session
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.JsonRpcClientSync
-import com.walletconnect.sign.common.model.vo.clientsync.session.params.SessionParamsVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParamsVO
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 
-internal sealed class SignRpcVO : JsonRpcClientSync<SessionParamsVO> {
+internal sealed class SignRpcVO : JsonRpcClientSync<SignParamsVO> {
     abstract override val id: Long
     abstract override val method: String
     abstract override val jsonrpc: String
-    abstract override val params: SessionParamsVO
+    abstract override val params: SignParamsVO
 
     @JsonClass(generateAdapter = true)
     internal data class SessionPropose(
@@ -23,7 +23,7 @@ internal sealed class SignRpcVO : JsonRpcClientSync<SessionParamsVO> {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_PROPOSE,
         @Json(name = "params")
-        override val params: SessionParamsVO.SessionProposeParams,
+        override val params: SignParamsVO.SessionProposeParams,
     ) : SignRpcVO()
 
     @JsonClass(generateAdapter = true)
@@ -35,7 +35,7 @@ internal sealed class SignRpcVO : JsonRpcClientSync<SessionParamsVO> {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_SETTLE,
         @Json(name = "params")
-        override val params: SessionParamsVO.SessionSettleParams
+        override val params: SignParamsVO.SessionSettleParams
     ) : SignRpcVO()
 
     @JsonClass(generateAdapter = true)
@@ -47,7 +47,7 @@ internal sealed class SignRpcVO : JsonRpcClientSync<SessionParamsVO> {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_REQUEST,
         @Json(name = "params")
-        override val params: SessionParamsVO.SessionRequestParams
+        override val params: SignParamsVO.SessionRequestParams
     ) : SignRpcVO()
 
     @JsonClass(generateAdapter = true)
@@ -59,7 +59,7 @@ internal sealed class SignRpcVO : JsonRpcClientSync<SessionParamsVO> {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_DELETE,
         @Json(name = "params")
-        override val params: SessionParamsVO.DeleteParams
+        override val params: SignParamsVO.DeleteParams
     ) : SignRpcVO()
 
     @JsonClass(generateAdapter = true)
@@ -71,7 +71,7 @@ internal sealed class SignRpcVO : JsonRpcClientSync<SessionParamsVO> {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_PING,
         @Json(name = "params")
-        override val params: SessionParamsVO.PingParams,
+        override val params: SignParamsVO.PingParams,
     ) : SignRpcVO()
 
     @JsonClass(generateAdapter = true)
@@ -83,7 +83,7 @@ internal sealed class SignRpcVO : JsonRpcClientSync<SessionParamsVO> {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_EVENT,
         @Json(name = "params")
-        override val params: SessionParamsVO.EventParams,
+        override val params: SignParamsVO.EventParams,
     ) : SignRpcVO()
 
     @JsonClass(generateAdapter = true)
@@ -95,7 +95,7 @@ internal sealed class SignRpcVO : JsonRpcClientSync<SessionParamsVO> {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_UPDATE,
         @Json(name = "params")
-        override val params: SessionParamsVO.UpdateNamespacesParams,
+        override val params: SignParamsVO.UpdateNamespacesParams,
     ) : SignRpcVO()
 
     @JsonClass(generateAdapter = true)
@@ -107,6 +107,6 @@ internal sealed class SignRpcVO : JsonRpcClientSync<SessionParamsVO> {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_EXTEND,
         @Json(name = "params")
-        override val params: SessionParamsVO.ExtendParams,
+        override val params: SignParamsVO.ExtendParams,
     ) : SignRpcVO()
 }

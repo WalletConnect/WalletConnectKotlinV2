@@ -293,7 +293,7 @@ internal object PairingClient : PairingInterface {
     private fun Pairing.isValid(): Boolean = (expiry.seconds > CURRENT_TIME_IN_SECONDS).also { isPairingValid ->
         if (!isPairingValid) {
             scope.launch {
-                jsonRpcInteractor.unsubscribe(this@isValid.topic)
+                jsonRpcInteractor.unsubscribe(topic = this@isValid.topic)
                 pairingRepository.deletePairing(this@isValid.topic)
                 metadataRepository.deleteMetaData(this@isValid.topic)
                 crypto.removeKeys(this@isValid.topic.value)

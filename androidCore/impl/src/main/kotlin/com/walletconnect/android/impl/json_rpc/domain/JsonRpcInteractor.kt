@@ -1,11 +1,6 @@
 package com.walletconnect.android.impl.json_rpc.domain
 
-import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.exception.WalletConnectException
-import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.impl.common.model.sync.ClientJsonRpc
-import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.impl.json_rpc.model.toJsonRpcError
@@ -14,7 +9,12 @@ import com.walletconnect.android.impl.json_rpc.model.toRelay
 import com.walletconnect.android.impl.json_rpc.model.toWCResponse
 import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
+import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
@@ -27,7 +27,7 @@ internal class JsonRpcInteractor(
     private val relay: RelayConnectionInterface,
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
-): JsonRpcInteractorInterface {
+) : JsonRpcInteractorInterface {
     private val serializer: JsonRpcSerializer
         get() = wcKoinApp.koin.get()
 
@@ -168,7 +168,7 @@ internal class JsonRpcInteractor(
         }
     }
 
-    override fun unsubscribe(topic: Topic) {
+    override fun unsubscribe(topic: Topic, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         checkConnectionWorking()
         if (subscriptions.contains(topic.value)) {
             val subscriptionId = SubscriptionId(subscriptions[topic.value].toString())
@@ -178,7 +178,10 @@ internal class JsonRpcInteractor(
                         jsonRpcHistory.deleteRecordsByTopic(topic)
                         subscriptions.remove(topic.value)
                     },
-                    onFailure = { error -> Logger.error("Unsubscribe to topic: $topic error: $error") }
+                    onFailure = { error ->
+                        Logger.error("Unsubscribe to topic: $topic error: $error")
+                        onFailure(error)
+                    }
                 )
             }
         }
@@ -189,7 +192,9 @@ internal class JsonRpcInteractor(
             relay.subscriptionRequest
                 .map { relayRequest ->
                     val topic = Topic(relayRequest.subscriptionTopic)
+                    Logger.log(relayRequest.method)
                     val message = chaChaPolyCodec.decrypt(topic, relayRequest.message)
+                    Logger.log(message)
 
                     Pair(message, topic)
                 }.collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
