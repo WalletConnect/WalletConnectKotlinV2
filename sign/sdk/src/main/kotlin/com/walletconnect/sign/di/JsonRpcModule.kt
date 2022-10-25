@@ -8,6 +8,7 @@ import com.walletconnect.utils.addDeserializerEntry
 import com.walletconnect.utils.addSerializerEntry
 import org.koin.dsl.module
 import com.walletconnect.android.impl.di.jsonRpcModule as coreJsonRpcModule
+
 @JvmSynthetic
 internal fun jsonRpcModule() = module {
 

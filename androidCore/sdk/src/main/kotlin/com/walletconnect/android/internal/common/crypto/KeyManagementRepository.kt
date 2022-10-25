@@ -24,8 +24,10 @@ interface KeyManagementRepository {
 
     //Added with Chat SDK
     fun generateInviteSelfKeyPair(): Pair<PublicKey, PrivateKey>
+
     fun getInviteSelfPublicKey(): PublicKey
     fun setInviteSelfPublicKey(topic: Topic, publicKey: PublicKey)
+
     fun getHash(string: String): String
     fun getInvitePublicKey(topic: Topic): PublicKey
     fun setKeyAgreement(topic: Topic, self: PublicKey, peer: PublicKey)

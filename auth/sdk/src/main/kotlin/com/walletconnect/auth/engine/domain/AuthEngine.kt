@@ -162,13 +162,10 @@ internal class AuthEngine(
 
     private fun onAuthRequestResponse(wcResponse: WCResponse, requestParams: AuthParams.RequestParams) {
         val pairingTopic = wcResponse.topic
-
         pairingInterface.updateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS))
         pairingInterface.updateMetadata(pairingTopic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER)
         pairingInterface.activate(pairingTopic.value)
-
         if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
-
         pairingTopicToResponseTopicMap.remove(pairingTopic)
 
         when (val response = wcResponse.response) {

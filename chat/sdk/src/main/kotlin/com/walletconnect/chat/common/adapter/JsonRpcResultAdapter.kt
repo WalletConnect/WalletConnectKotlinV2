@@ -7,7 +7,7 @@ import com.squareup.moshi.JsonReader
 import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
-import com.walletconnect.android.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.chat.common.json_rpc.ChatParams
 import org.json.JSONArray
 import org.json.JSONObject

@@ -1,24 +1,19 @@
 package com.walletconnect.chat.client
 
-import com.walletconnect.android.common.scope
-import com.walletconnect.android.common.wcKoinApp
 import com.walletconnect.android.impl.di.cryptoModule
-import com.walletconnect.android.impl.di.networkModule
 import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.mapper.toClient
 import com.walletconnect.chat.client.mapper.toEngineDO
 import com.walletconnect.chat.client.mapper.toVO
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.AccountIdWithPublicKey
 import com.walletconnect.chat.di.*
-import com.walletconnect.chat.di.commonModule
-import com.walletconnect.chat.di.jsonRpcModule
-import com.walletconnect.chat.di.keyServerModule
 import com.walletconnect.chat.engine.domain.ChatEngine
 import com.walletconnect.chat.engine.model.EngineDO
 import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.launch
-import org.koin.core.KoinApplication
 
 internal class ChatProtocol : ChatInterface {
     private lateinit var chatEngine: ChatEngine
@@ -34,7 +29,6 @@ internal class ChatProtocol : ChatInterface {
         with(init) {
             wcKoinApp.run {
                 modules(
-                    networkModule(relay),
                     commonModule(),
                     cryptoModule(),
                     keyServerModule(keyServerUrl),

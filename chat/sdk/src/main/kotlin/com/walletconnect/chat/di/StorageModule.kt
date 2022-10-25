@@ -1,6 +1,7 @@
 package com.walletconnect.chat.di
 
 import com.walletconnect.android.impl.di.coreStorageModule
+import com.walletconnect.android.impl.di.sdkBaseStorageModule
 import com.walletconnect.chat.Database
 import com.walletconnect.chat.storage.ChatStorageRepository
 import org.koin.dsl.module
@@ -8,7 +9,7 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun storageModule(storageSuffix: String) = module {
 
-    includes(coreStorageModule<Database>(Database.Schema, storageSuffix))
+    includes(coreStorageModule(), sdkBaseStorageModule(Database.Schema, storageSuffix))
 
     single {
         Database(get())

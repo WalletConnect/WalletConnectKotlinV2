@@ -41,6 +41,7 @@ internal class ChatEngine(
     init {
         collectJsonRpcRequests()
         collectPeerResponses()
+
         jsonRpcInteractor.initializationErrorsFlow.onEach { error -> Logger.error(error) }.launchIn(scope)
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable ->
@@ -76,6 +77,7 @@ internal class ChatEngine(
         fun _onSuccess(publicKey: PublicKey) {
             val topic = Topic(keyManagementRepository.getHash(publicKey.keyAsHex))
             keyManagementRepository.setInviteSelfPublicKey(topic, publicKey)
+            keyManagementRepository.setSelfParticipant(publicKey, topic)
             trySubscribeToInviteTopic()
             onSuccess(publicKey.keyAsHex)
         }
@@ -207,7 +209,6 @@ internal class ChatEngine(
         onFailure(error)
     }
 
-
     internal fun reject(inviteId: String, onFailure: (Throwable) -> Unit) {
 //        //todo: correct define params
 //        val request = WCRequest()
@@ -276,7 +277,7 @@ internal class ChatEngine(
     private fun collectPeerResponses() {
         scope.launch {
             jsonRpcInteractor.peerResponse.collect { response ->
-                when (val params = response.params) {
+                when (response.params) {
                     is ChatParams.InviteParams -> onInviteResponse(response)
                 }
             }

@@ -1,6 +1,6 @@
 package com.walletconnect.chat.client
 
-import com.walletconnect.android.RelayConnectionInterface
+import com.walletconnect.android.CoreClient
 
 object Chat {
 
@@ -60,7 +60,7 @@ object Chat {
     }
 
     sealed class Params {
-        data class Init(val relay: RelayConnectionInterface, val keyServerUrl: String) : Params()
+        data class Init(val core: CoreClient, val keyServerUrl: String) : Params()
 
         data class Register(val account: Model.AccountId, val private: Boolean? = false) : Params()
 
