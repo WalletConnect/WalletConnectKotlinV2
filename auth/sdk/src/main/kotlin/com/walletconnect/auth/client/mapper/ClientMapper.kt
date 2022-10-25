@@ -2,6 +2,7 @@
 
 package com.walletconnect.auth.client.mapper
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.auth.client.Auth
@@ -10,9 +11,6 @@ import com.walletconnect.auth.signature.CacaoType
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-@JvmSynthetic
-internal fun Auth.Model.AppMetaData.toCommon(): AppMetaData =
-    AppMetaData(name, description, url, icons, redirect)
 
 @JvmSynthetic
 internal fun String.toCommon(): Issuer = Issuer(this)
@@ -41,9 +39,6 @@ internal fun Events.OnAuthResponse.toClient(): Auth.Event.AuthResponse = when (v
     is AuthResponse.Error -> Auth.Event.AuthResponse(id, Auth.Model.Response.Error(id, response.code, response.message))
     is AuthResponse.Result -> Auth.Event.AuthResponse(id, Auth.Model.Response.Result(id, response.cacao.toClient()))
 }
-
-@JvmSynthetic
-internal fun Pairing.toClient(): Auth.Model.Pairing = Auth.Model.Pairing(uri)
 
 @JvmSynthetic
 internal fun Auth.Params.Request.toCommon(): PayloadParams = PayloadParams(

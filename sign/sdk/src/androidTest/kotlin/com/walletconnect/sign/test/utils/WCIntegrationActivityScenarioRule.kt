@@ -7,14 +7,10 @@ import androidx.test.core.app.ApplicationProvider
 import com.walletconnect.sign.BuildConfig
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignProtocol
-import com.walletconnect.sign.core.model.client.Relay
-import com.walletconnect.sign.core.scope.scope
-import com.walletconnect.sign.util.Logger
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.withLock
 import org.junit.Assert
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.rules.ExternalResource
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit

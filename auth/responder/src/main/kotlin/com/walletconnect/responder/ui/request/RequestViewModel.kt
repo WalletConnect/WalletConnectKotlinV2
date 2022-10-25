@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
-import com.walletconnect.auth.signature.CacaoType
 import com.walletconnect.auth.signature.SignatureType
 import com.walletconnect.auth.signature.cacao.CacaoSigner
 import com.walletconnect.responder.domain.PRIVATE_KEY_1

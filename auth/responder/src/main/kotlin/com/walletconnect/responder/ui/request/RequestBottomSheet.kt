@@ -52,6 +52,7 @@ class RequestBottomSheet : BottomSheetDialogFragment() {
             findNavController().popBackStack()
 
             try {
+
                 val trickyRequesterDeeplink = "kotlin-requester-wc:/request"
                 requireActivity().startActivity(Intent(Intent.ACTION_VIEW, trickyRequesterDeeplink.toUri()))
             } catch (exception: ActivityNotFoundException) {

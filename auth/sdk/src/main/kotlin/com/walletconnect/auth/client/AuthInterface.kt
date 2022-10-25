@@ -21,9 +21,7 @@ interface AuthInterface {
 
     fun initialize(init: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit)
 
-    fun pair(pair: Auth.Params.Pair, onError: (Auth.Model.Error) -> Unit)
-
-    fun request(params: Auth.Params.Request, onPairing: (Auth.Model.Pairing) -> Unit, onError: (Auth.Model.Error) -> Unit)
+    fun request(params: Auth.Params.Request, onSuccess: () -> Unit, onError: (Auth.Model.Error) -> Unit)
 
     fun respond(params: Auth.Params.Respond, onError: (Auth.Model.Error) -> Unit)
 

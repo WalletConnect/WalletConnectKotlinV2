@@ -3,5 +3,6 @@
 package com.walletconnect.sign.di
 
 internal enum class SignDITags {
-    METADATA_TYPE
+    SERIALIZER_SET,
+    DESERIALIZER_MAP
 }

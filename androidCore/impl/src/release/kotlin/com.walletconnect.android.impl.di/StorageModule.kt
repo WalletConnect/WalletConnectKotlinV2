@@ -9,8 +9,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
-import com.walletconnect.android.impl.Database
-import com.walletconnect.android_core.di.generateSecretKey
+import com.walletconnect.android.impl.core.AndroidCoreDatabase
 import com.walletconnect.util.randomBytes
 import net.sqlcipher.database.SupportFactory
 import org.koin.android.ext.koin.androidContext
@@ -20,30 +19,24 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.KeyStore
 import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-@SuppressLint("HardwareIds")
-inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
+fun generateSecretKey(secretKeyAlias: String): SecretKey {
+    val spec = KeyGenParameterSpec
+        .Builder(secretKeyAlias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+        .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+        .build()
 
-    includes(baseStorageModule<T>())
-
-    single(named(AndroidCoreDITags.RPC_STORE_ALIAS)) {
-        val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
-        MasterKeys.getOrCreate(keyGenParameterSpec)
+    return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore").run {
+        init(spec)
+        generateKey()
     }
+}
 
-    single(named(AndroidCoreDITags.RPC_STORE)) {
-        val sharedPrefsFile = "wc_rpc_store$storageSuffix"
-
-        EncryptedSharedPreferences.create(
-            sharedPrefsFile,
-            get(named(AndroidCoreDITags.RPC_STORE_ALIAS)),
-            androidContext(),
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-    }
+private fun signingModule() = module {
 
     single<KeyStore> {
         KeyStore.getInstance("AndroidKeyStore").apply {
@@ -58,7 +51,7 @@ inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Sc
     }
 
     single(named(AndroidCoreDITags.DB_ALIAS)) {
-        val alias = "_wc_db_key_"
+        val alias = "_wc_db_key_" // TODO: add storageSuffix to alias
         val keySize = 256
         val keyGenParameterSpec = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
             .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
@@ -66,6 +59,7 @@ inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Sc
             .setKeySize(keySize)
             .build()
 
+        // TODO: Replace with new MasterKey API
         MasterKeys.getOrCreate(keyGenParameterSpec)
     }
 
@@ -133,6 +127,24 @@ inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Sc
             cipher.doFinal(encryptedKey)
         }
     }
+}
+
+fun coreStorageModule() = module {
+
+    includes(baseStorageModule(), signingModule())
+
+    single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)) {
+        AndroidSqliteDriver(
+            schema = AndroidCoreDatabase.Schema,
+            context = androidContext(),
+            name = "WalletConnectAndroidCore.db",
+            factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false) //todo: create a separate DB_PASSHPHRASE
+        )
+    }
+}
+
+@SuppressLint("HardwareIds")
+fun sdkBaseStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
 
     single<SqlDriver> {
         AndroidSqliteDriver(

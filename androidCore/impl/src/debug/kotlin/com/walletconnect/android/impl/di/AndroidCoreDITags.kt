@@ -1,9 +1,8 @@
 package com.walletconnect.android.impl.di
 
 enum class AndroidCoreDITags {
-    KEY_STORE,
-    RPC_STORE,
-    MOSHI,
-    INTERCEPTOR,
-    OK_HTTP
+    ANDROID_CORE_DATABASE_DRIVER,
+    ANDROID_CORE_DATABASE,
+    COLUMN_ADAPTER_LIST,
+    COLUMN_ADAPTER_APPMETADATATYPE
 }

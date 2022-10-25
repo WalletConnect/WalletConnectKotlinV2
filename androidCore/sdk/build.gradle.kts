@@ -2,11 +2,12 @@ plugins {
     id("com.android.library")
     kotlin("android")
     id("publish-module-android")
+    id("com.google.devtools.ksp") version kspVersion
 }
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core"
-    extra[KEY_PUBLISH_VERSION] = "1.0.0"
+    extra[KEY_PUBLISH_VERSION] = "1.1.0"
     extra[KEY_SDK_NAME] = "Android Core"
 }
 
@@ -17,6 +18,7 @@ android {
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
 
+        buildConfigField(type = "String", name = "sdkVersion", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -39,8 +41,23 @@ android {
 }
 
 dependencies {
-    debugApi(project(":androidCore:common"))
-    releaseApi("com.walletconnect:android-core-common:1.0.0")
+    debugApi(project(":foundation"))
+    releaseApi("com.walletconnect:foundation:1.1.0")
 
+    bouncyCastle()
+    coroutines()
+    moshiKsp()
+    moshi()
+    scarlet()
+    scarletAndroid()
+    sqlDelightAndroid()
+    sqlCipher()
+    security()
     koinAndroid()
+    multibaseJava()
+    timber()
+
+    jUnit5()
+    jUnit5Android()
+    mockk()
 }

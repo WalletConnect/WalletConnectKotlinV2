@@ -5,10 +5,10 @@ package com.walletconnect.sign.json_rpc.model
 import com.walletconnect.android.impl.json_rpc.model.JsonRpcHistoryRecord
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.PendingRequest
-import com.walletconnect.sign.common.model.vo.clientsync.session.SessionRpcVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpcVO
 
 @JvmSynthetic
-internal fun SessionRpcVO.SessionRequest.toPendingRequest(entry: JsonRpcHistoryRecord): PendingRequest =
+internal fun SignRpcVO.SessionRequest.toPendingRequest(entry: JsonRpcHistoryRecord): PendingRequest =
     PendingRequest(
         entry.id,
         Topic(entry.topic),

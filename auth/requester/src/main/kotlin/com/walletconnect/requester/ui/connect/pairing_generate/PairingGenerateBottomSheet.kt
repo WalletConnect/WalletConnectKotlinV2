@@ -28,7 +28,6 @@ class PairingGenerateBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) = with(DialogConnectUriBinding.bind(view)) {
         super.onViewCreated(view, savedInstanceState)
-//todo: fix no connection available
         viewModel.connectToWallet { uri ->
             val deeplinkPairingUri = uri.replace("wc:", "wc:/")
             val data = QrData.Url(uri)

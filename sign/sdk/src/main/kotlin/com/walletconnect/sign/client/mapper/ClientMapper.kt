@@ -2,26 +2,20 @@
 
 package com.walletconnect.sign.client.mapper
 
-import android.net.Uri
-import android.os.Build
-import com.walletconnect.android.common.connection.ConnectionType
-import com.walletconnect.android.impl.common.model.ConnectionState
+import com.walletconnect.android.Core
+import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.impl.common.SDKError
+import com.walletconnect.android.impl.common.model.ConnectionState
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.pairing.toClient
 import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.common.exceptions.peer.PeerError
+import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.engine.model.EngineDO
 
-//TODO: Figure out what to do with models separation
 @JvmSynthetic
-internal fun EngineDO.ProposedSequence.toClientProposedSequence(): Sign.Model.ProposedSequence =
-    when (this) {
-        is EngineDO.ProposedSequence.Pairing -> Sign.Model.ProposedSequence.Pairing(this.uri)
-        is EngineDO.ProposedSequence.Session -> Sign.Model.ProposedSequence.Session
-    }
-
-@JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponse(): com.walletconnect.android.common.JsonRpcResponse =
+internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponse(): JsonRpcResponse =
     when (this) {
         is Sign.Model.JsonRpcResponse.JsonRpcResult -> this.toRpcResult()
         is Sign.Model.JsonRpcResponse.JsonRpcError -> this.toRpcError()
@@ -67,7 +61,7 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     Sign.Model.SessionRequest(
         topic = topic,
         chainId = chainId,
-        peerMetaData = peerAppMetaData?.toClientAppMetaData(),
+        peerMetaData = peerAppMetaData?.toClient(),
         request = Sign.Model.SessionRequest.JSONRPCRequest(
             id = request.id,
             method = request.method,
@@ -76,13 +70,13 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     )
 
 @JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult =
-    com.walletconnect.android.common.JsonRpcResponse.JsonRpcResult(id, result = result)
+internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): JsonRpcResponse.JsonRpcResult =
+    JsonRpcResponse.JsonRpcResult(id, result = result)
 
 @JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcError(): com.walletconnect.android.common.JsonRpcResponse.JsonRpcError =
+internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcError(): JsonRpcResponse.JsonRpcError =
     PeerError.CAIP25.UserRejected(message).let { error ->
-        com.walletconnect.android.common.JsonRpcResponse.JsonRpcError(id, error = com.walletconnect.android.common.JsonRpcResponse.Error(error.code, error.message))
+        JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(error.code, error.message))
     }
 
 @JvmSynthetic
@@ -101,7 +95,7 @@ internal fun EngineDO.Session.toClientSettledSession(): Sign.Model.Session =
     Sign.Model.Session(topic.value,
         expiry.seconds,
         namespaces.toMapOfClientNamespacesSession(),
-        peerAppMetaData?.toClientAppMetaData())
+        peerAppMetaData?.toClient())
 
 @JvmSynthetic
 internal fun EngineDO.SessionExtend.toClientSettledSession(): Sign.Model.Session =
@@ -109,7 +103,7 @@ internal fun EngineDO.SessionExtend.toClientSettledSession(): Sign.Model.Session
         topic.value,
         expiry.seconds,
         namespaces.toMapOfClientNamespacesSession(),
-        peerAppMetaData?.toClientAppMetaData()
+        peerAppMetaData?.toClient()
     )
 
 @JvmSynthetic
@@ -118,7 +112,7 @@ internal fun EngineDO.SessionRejected.toClientSessionRejected(): Sign.Model.Reje
 
 @JvmSynthetic
 internal fun EngineDO.SessionApproved.toClientSessionApproved(): Sign.Model.ApprovedSession =
-    Sign.Model.ApprovedSession(topic, peerAppMetaData?.toClientAppMetaData(), namespaces.toMapOfClientNamespacesSession(), accounts)
+    Sign.Model.ApprovedSession(topic, peerAppMetaData?.toClient(), namespaces.toMapOfClientNamespacesSession(), accounts)
 
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSession(): Map<String, Sign.Model.Namespace.Session> =
@@ -127,14 +121,6 @@ internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSess
             Sign.Model.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
         })
     }
-
-@JvmSynthetic
-internal fun Sign.Model.AppMetaData.toEngineAppMetaData() =
-    EngineDO.AppMetaData(name, description, url, icons, redirect)
-
-@JvmSynthetic
-internal fun EngineDO.AppMetaData.toClientAppMetaData() =
-    Sign.Model.AppMetaData(name, description, url, icons, redirect)
 
 @JvmSynthetic
 internal fun Sign.Params.Request.toEngineDORequest(): EngineDO.Request =
@@ -154,7 +140,7 @@ internal fun EngineDO.JsonRpcResponse.JsonRpcError.toClientJsonRpcError(): Sign.
 
 @JvmSynthetic
 internal fun EngineDO.PairingSettle.toClientSettledPairing(): Sign.Model.Pairing =
-    Sign.Model.Pairing(topic.value, metaData?.toClientAppMetaData())
+    Sign.Model.Pairing(topic.value, appMetaData?.toClient())
 
 @JvmSynthetic
 internal fun List<PendingRequest>.mapToPendingRequests(): List<Sign.Model.PendingRequest> = map { request ->
@@ -196,9 +182,9 @@ internal fun Map<String, Sign.Model.Namespace.Session>.toMapOfEngineNamespacesSe
     }
 
 @JvmSynthetic
-internal fun List<Sign.Model.RelayProtocolOptions>.toListEngineOfRelayProtocolOptions(): List<EngineDO.RelayProtocolOptions> =
+internal fun List<Sign.Model.RelayProtocolOptions>.toListEngineOfRelayProtocolOptions(): List<RelayProtocolOptions> =
     map { relayProtocolOptions ->
-        EngineDO.RelayProtocolOptions(relayProtocolOptions.protocol, relayProtocolOptions.data)
+        RelayProtocolOptions(relayProtocolOptions.protocol, relayProtocolOptions.data)
     }
 
 @JvmSynthetic
@@ -217,16 +203,3 @@ internal fun ConnectionState.toClientConnectionState(): Sign.Model.ConnectionSta
 internal fun SDKError.toClientError(): Sign.Model.Error =
     Sign.Model.Error(this.exception)
 
-@JvmSynthetic
-internal fun String.strippedUrl() = Uri.parse(this).run {
-    this@run.scheme + "://" + this@run.authority
-}
-
-@JvmSynthetic
-internal fun String.addUserAgent(sdkVersion: String): String {
-    return Uri.parse(this).buildUpon()
-        // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
-        .appendQueryParameter("ua", """wc-2/kotlin-$sdkVersion/android-${Build.VERSION.RELEASE}""")
-        .build()
-        .toString()
-}
