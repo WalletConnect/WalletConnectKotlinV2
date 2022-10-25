@@ -46,7 +46,7 @@ dependencies {
     releaseImplementation("com.walletconnect:sign:2.0.0")
 
     debugImplementation(project(":androidCore:sdk"))
-    releaseImplementation("com.walletconnect:android-core:1.0.0")
+    releaseImplementation("com.walletconnect:android-core:1.1.0")
 
     glide_N_kapt()
     implementation("com.github.kenglxn.QRGen:android:2.6.0")

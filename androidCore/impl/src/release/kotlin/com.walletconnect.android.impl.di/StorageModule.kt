@@ -129,12 +129,11 @@ private fun signingModule() = module {
     }
 }
 
-@SuppressLint("HardwareIds")
 fun coreStorageModule() = module {
 
     includes(baseStorageModule(), signingModule())
 
-    single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)) {
+    single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)) {
         AndroidSqliteDriver(
             schema = AndroidCoreDatabase.Schema,
             context = androidContext(),
@@ -146,8 +145,6 @@ fun coreStorageModule() = module {
 
 @SuppressLint("HardwareIds")
 fun sdkBaseStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
-
-    includes(signingModule())
 
     single<SqlDriver> {
         AndroidSqliteDriver(
