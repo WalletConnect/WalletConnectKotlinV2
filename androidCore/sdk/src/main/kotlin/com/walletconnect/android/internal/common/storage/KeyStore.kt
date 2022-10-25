@@ -3,7 +3,6 @@
 package com.walletconnect.android.internal.common.storage
 
 import com.walletconnect.foundation.common.model.Key
-import com.walletconnect.foundation.common.model.PublicKey
 
 interface KeyStore {
     fun getKey(tag: String): String?

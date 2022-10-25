@@ -722,7 +722,7 @@ onFailure(error)
                 val selfPublicKey = PublicKey(params.proposer.publicKey)
                 val approveParams = response.result as SignParamsVO.ApprovalParams
                 val responderPublicKey = PublicKey(approveParams.responderPublicKey)
-                val sessionTopic = crypto.generateTopicFromKeyAgreementAndSafeSymKey(selfPublicKey, responderPublicKey)
+                val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
                 jsonRpcInteractor.subscribe(sessionTopic)
             }
             is JsonRpcResponse.JsonRpcError -> {

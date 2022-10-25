@@ -151,7 +151,11 @@ internal object PairingClient : PairingInterface {
     override fun pair(pair: Core.Params.Pair, onError: (Core.Model.Error) -> Unit) {
         scope.launch(Dispatchers.IO) {
             awaitConnection({
-                val walletConnectUri: WalletConnectUri = Validator.validateWCUri(pair.uri) ?: return@awaitConnection onError(Core.Model.Error(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)))
+                val walletConnectUri: WalletConnectUri = Validator.validateWCUri(pair.uri) ?: return@awaitConnection onError(
+                    Core.Model.Error(
+                        MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
+                    )
+                )
 
                 if (isPairingValid(walletConnectUri.topic.value)) {
                     return@awaitConnection onError(Core.Model.Error(PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)))
@@ -175,7 +179,7 @@ internal object PairingClient : PairingInterface {
 
                 val activePairing = Pairing(walletConnectUri, registeredMethods)
                 val symmetricKey = walletConnectUri.symKey
-                crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
+                crypto.setKey(symmetricKey, walletConnectUri.topic.value)
 
                 try {
                     pairingRepository.insertPairing(activePairing)

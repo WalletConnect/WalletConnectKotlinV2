@@ -12,6 +12,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.android.pairing.toClient
@@ -85,7 +86,9 @@ internal class AuthEngine(
         val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
         val pairingTopic = pairing.topic
 
-        crypto.setSelfParticipant(responsePublicKey, responseTopic)
+//        crypto.setSelfParticipant(responsePublicKey, responseTopic)
+        crypto.setKey(responsePublicKey, "${SELF_PARTICIPANT_CONTEXT}${responseTopic}")
+
         jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
             onSuccess = {
                 Logger.log("Auth request sent successfully on topic:${pairingTopic}, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
@@ -130,7 +133,7 @@ internal class AuthEngine(
         val senderPublicKey: PublicKey = crypto.generateKeyPair()
         val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(senderPublicKey, receiverPublicKey)
         val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
-        crypto.setSymmetricKey(responseTopic, symmetricKey)
+        crypto.setKey(symmetricKey, responseTopic.value)
 
         val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
         jsonRpcInteractor.publishJsonRpcResponse(
