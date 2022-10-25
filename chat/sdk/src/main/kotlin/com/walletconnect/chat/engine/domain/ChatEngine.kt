@@ -76,7 +76,7 @@ internal class ChatEngine(
     ) {
         fun _onSuccess(publicKey: PublicKey) {
             val topic = Topic(keyManagementRepository.getHash(publicKey.keyAsHex))
-            keyManagementRepository.setInviteSelfPublicKey(topic, publicKey)
+            keyManagementRepository.setInviteSelfPublicKey(publicKey, topic)
             keyManagementRepository.setSelfParticipant(publicKey, topic)
             trySubscribeToInviteTopic()
             onSuccess(publicKey.keyAsHex)

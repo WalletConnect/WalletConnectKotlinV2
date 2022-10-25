@@ -35,7 +35,7 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
     }
 
     override fun getSymmetricKey(topic: Topic): SymmetricKey {
-        val symmetricKey = keyChain.getKey(topic.value)
+        val symmetricKey = keyChain.getKey(topic.value) ?: throw Exception("Unable to find symmetric key")
 
         return SymmetricKey(symmetricKey)
     }
@@ -67,7 +67,7 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
     }
 
     override fun getSelfParticipant(topic: Topic): PublicKey? {
-        val keyAsHex = keyChain.getKey("$SELF_PARTICIPANT_CONTEXT${topic.value}")
+        val keyAsHex = keyChain.getKey("$SELF_PARTICIPANT_CONTEXT${topic.value}") ?: throw Exception("Unable to find self participant key")
         return if (keyAsHex == String.Empty) null else PublicKey(keyAsHex)
     }
 
@@ -146,7 +146,6 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
 
         const val KEY_AGREEMENT_CONTEXT = "key_agreement/"
         const val SELF_PARTICIPANT_CONTEXT = "self_participant/"
-        const val INVITE_CONTEXT = "invite/"
         const val SELF_INVITE_PUBLIC_KEY = "selfInviteKey/"
     }
 
@@ -162,14 +161,13 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
 
     // Added with Chat SDK
     override fun getInviteSelfPublicKey(): PublicKey {
-        val publicKey = keyChain.getInviteSelfPublicKey(SELF_INVITE_PUBLIC_KEY) ?: throw Exception("TODO: Name me / Create exception")
+        val publicKey = keyChain.getKey(SELF_INVITE_PUBLIC_KEY) ?: throw Exception("No Invite SelfPublicKey")
         return PublicKey(publicKey)
     }
 
     // Added with Chat SDK
-    override fun setInviteSelfPublicKey(topic: Topic, publicKey: PublicKey) {
-        keyChain.setInviteSelfPublicKey(SELF_INVITE_PUBLIC_KEY, publicKey)
-        keyChain.setPublicKey("$INVITE_CONTEXT${topic.value}", publicKey)
+    override fun setInviteSelfPublicKey(publicKey: PublicKey, topic: Topic) {
+        keyChain.setKey(SELF_INVITE_PUBLIC_KEY, publicKey)
     }
 
     // Added with Chat SDK. TODO: This could be removed after proper refactor
@@ -199,8 +197,4 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
 
     // Added with Chat SDK
     override fun getHash(string: String): String = sha256(string)
-
-
-    // Added with Chat SDK
-    override fun getInvitePublicKey(topic: Topic): PublicKey = PublicKey(keyChain.getPublicKey("$INVITE_CONTEXT${topic.value}"))
 }

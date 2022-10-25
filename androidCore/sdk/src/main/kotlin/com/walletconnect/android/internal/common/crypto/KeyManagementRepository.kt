@@ -26,10 +26,11 @@ interface KeyManagementRepository {
     fun generateInviteSelfKeyPair(): Pair<PublicKey, PrivateKey>
 
     fun getInviteSelfPublicKey(): PublicKey
-    fun setInviteSelfPublicKey(topic: Topic, publicKey: PublicKey)
+    fun setInviteSelfPublicKey(publicKey: PublicKey, topic: Topic)
 
     fun getHash(string: String): String
-    fun getInvitePublicKey(topic: Topic): PublicKey
+
+    //    fun getInvitePublicKey(topic: Topic): PublicKey
     fun setKeyAgreement(topic: Topic, self: PublicKey, peer: PublicKey)
     fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): Topic
 }
