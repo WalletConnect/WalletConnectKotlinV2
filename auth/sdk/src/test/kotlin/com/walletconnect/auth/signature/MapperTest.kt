@@ -1,5 +1,6 @@
 package com.walletconnect.auth.signature
 
+import com.walletconnect.android.Core
 import com.walletconnect.auth.client.Auth.Params.Request
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Cacao.Payload
@@ -19,6 +20,7 @@ import kotlin.test.assertTrue
 internal class MapperTest {
     private val iss = "did:pkh:eip155:1:0x15bca56b6e2728aec2532df9d436bd1600e86688"
     private val chainName = "Ethereum"
+    private val dummyPairing = Core.Model.Pairing("", 0L, null, "", null, "", true, "")
 
     private fun Payload.mockIatAsNbf(request: Request): Payload {
         return this.copy(iat = request.nbf!!)
@@ -28,6 +30,7 @@ internal class MapperTest {
     @Test
     fun `Payload based on Request mapping with supplied issuer`() {
         val request = Request(
+            pairing = dummyPairing,
             type = "eip191",
             chainId = "eip155:1",
             domain = "service.invalid",
@@ -62,6 +65,7 @@ internal class MapperTest {
         val before = ZonedDateTime.now(Clock.offset(systemDefaultZone(), Duration.ofSeconds(-2)))
 
         val payload = Request(
+            pairing = dummyPairing,
             type = "eip191",
             chainId = "eip155:1",
             domain = "service.invalid",

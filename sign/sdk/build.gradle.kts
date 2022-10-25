@@ -8,7 +8,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "sign"
-    extra[KEY_PUBLISH_VERSION] = "2.0.0-rc.5"
+    extra[KEY_PUBLISH_VERSION] = "2.0.0"
     extra[KEY_SDK_NAME] = "Sign"
 }
 
@@ -54,15 +54,16 @@ android {
 }
 
 sqldelight {
-    database("Database") {
+    database("SignDatabase") {
         packageName = "com.walletconnect.sign"
-        dependency(project(":androidCore:impl"))
+        schemaOutputDirectory = file("src/debug/sqldelight/databases")
+        verifyMigrations = false
     }
 }
 
 dependencies {
     debugImplementation(project(":androidCore:impl"))
-    releaseImplementation("com.walletconnect:android-core-impl:1.0.0")
+    releaseImplementation("com.walletconnect:android-core-impl:1.1.0")
 
     moshiKsp()
     androidXTest()

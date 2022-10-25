@@ -1,6 +1,8 @@
 package com.walletconnect.auth.client
 
-import com.walletconnect.android.RelayConnectionInterface
+import com.walletconnect.android.Core
+import com.walletconnect.android.CoreClient
+import com.walletconnect.android.relay.RelayConnectionInterface
 
 object Auth {
 
@@ -30,14 +32,6 @@ object Auth {
         data class Error(val throwable: Throwable) : Model() // TODO: Should this be extracted to core for easier error handling?
 
         data class ConnectionState(val isAvailable: Boolean) : Model()
-
-        data class AppMetaData(
-            val name: String,
-            val description: String,
-            val url: String,
-            val icons: List<String>,
-            val redirect: String?,
-        ) : Model()
 
         data class Pairing(val uri: String) : Model()
 
@@ -111,11 +105,12 @@ object Auth {
 
     sealed class Params {
 
-        data class Init(val relay: RelayConnectionInterface, val appMetaData: Model.AppMetaData, val iss: String?) : Params()
+        data class Init(val core: CoreClient, val iss: String?) : Params()
 
         data class Pair(val uri: String) : Params()
 
         data class Request(
+            val pairing: Core.Model.Pairing,
             val chainId: String,
             val domain: String,
             val nonce: String,

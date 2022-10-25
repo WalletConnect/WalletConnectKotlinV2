@@ -3,6 +3,8 @@ package com.walletconnect.dapp.ui.connect
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.android.Core
+import com.walletconnect.android.CoreClient
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.dapp.ui.connect.chain_select.ChainSelectionUI
@@ -14,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.lang.IllegalStateException
 
 class ConnectViewModel : ViewModel() {
     private val _listOfChainUI: MutableList<ChainSelectionUI> = mutableListOf()
@@ -49,15 +52,16 @@ class ConnectViewModel : ViewModel() {
 
     fun anyChainsSelected(): Boolean = listOfChainUI.any { it.isSelected }
 
-    fun anySettledPairingExist(): Boolean = SignClient.getListOfSettledPairings().isNotEmpty()
+    fun anySettledPairingExist(): Boolean = CoreClient.Pairing.getPairings().isNotEmpty()
 
-    fun connectToWallet(pairingTopicPosition: Int = -1, onProposedSequence: (Sign.Model.ProposedSequence) -> Unit = {}) {
-        var pairingTopic: String? = null
-
-        if (pairingTopicPosition > -1) {
-            pairingTopic = SignClient.getListOfSettledPairings()[pairingTopicPosition].topic
+    fun connectToWallet(pairingTopicPosition: Int = -1, onProposedSequence: (String) -> Unit = {}) {
+        val pairing: Core.Model.Pairing = if (pairingTopicPosition > -1) {
+            CoreClient.Pairing.getPairings()[pairingTopicPosition]
+        } else {
+            CoreClient.Pairing.create() { error ->
+                throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
+            }!!
         }
-
         val namespaces: Map<String, Sign.Model.Namespace.Proposal> =
             listOfChainUI
                 .filter { it.isSelected }
@@ -71,15 +75,12 @@ class ConnectViewModel : ViewModel() {
                     )
                 }.toMap()
 
-        val connectParams = Sign.Params.Connect(
-            namespaces = namespaces,
-            pairingTopic = pairingTopic
-        )
+        val connectParams = Sign.Params.Connect(namespaces, pairing)
 
         SignClient.connect(connectParams,
-            onProposedSequence = { proposedSequence ->
+            onSuccess = {
                 viewModelScope.launch(Dispatchers.Main) {
-                    onProposedSequence(proposedSequence)
+                    onProposedSequence(pairing.uri)
                 }
             },
             onError = { error ->

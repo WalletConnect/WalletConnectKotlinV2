@@ -9,8 +9,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
-import com.walletconnect.android.impl.Database
-import com.walletconnect.android_core.di.generateSecretKey
+import com.walletconnect.android.impl.core.AndroidCoreDatabase
 import com.walletconnect.util.randomBytes
 import net.sqlcipher.database.SupportFactory
 import org.koin.android.ext.koin.androidContext
@@ -20,13 +19,24 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.KeyStore
 import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-@SuppressLint("HardwareIds")
-inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
+fun generateSecretKey(secretKeyAlias: String): SecretKey {
+    val spec = KeyGenParameterSpec
+        .Builder(secretKeyAlias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+        .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+        .build()
 
-    includes(baseStorageModule<T>())
+    return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore").run {
+        init(spec)
+        generateKey()
+    }
+}
+
+private fun signingModule() = module {
 
     single<KeyStore> {
         KeyStore.getInstance("AndroidKeyStore").apply {
@@ -117,6 +127,27 @@ inline fun <reified T : Database> coreStorageModule(databaseSchema: SqlDriver.Sc
             cipher.doFinal(encryptedKey)
         }
     }
+}
+
+@SuppressLint("HardwareIds")
+fun coreStorageModule() = module {
+
+    includes(baseStorageModule(), signingModule())
+
+    single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)) {
+        AndroidSqliteDriver(
+            schema = AndroidCoreDatabase.Schema,
+            context = androidContext(),
+            name = "WalletConnectAndroidCore.db",
+            factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false) //todo: create a separate DB_PASSHPHRASE
+        )
+    }
+}
+
+@SuppressLint("HardwareIds")
+fun sdkBaseStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
+
+    includes(signingModule())
 
     single<SqlDriver> {
         AndroidSqliteDriver(

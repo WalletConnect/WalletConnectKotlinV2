@@ -31,7 +31,7 @@ class RequestViewModel : ViewModel() {
 
     fun approve() {
         val request = RequestStore.currentRequest!!
-        AuthClient.respond(Auth.Params.Respond.Result(request.id, CacaoSigner.sign(request.message, PRIVATE_KEY_1, SignatureType.EIP1271))) { error ->
+        AuthClient.respond(Auth.Params.Respond.Result(request.id, CacaoSigner.sign(request.message, PRIVATE_KEY_1, SignatureType.EIP191))) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
     }

@@ -1,6 +1,6 @@
 package com.walletconnect.auth.signature.cacao
 
-import com.walletconnect.android.common.model.ProjectId
+import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.auth.common.model.Cacao
 import com.walletconnect.auth.engine.mapper.toFormattedMessage
 import com.walletconnect.auth.engine.mapper.toSignature

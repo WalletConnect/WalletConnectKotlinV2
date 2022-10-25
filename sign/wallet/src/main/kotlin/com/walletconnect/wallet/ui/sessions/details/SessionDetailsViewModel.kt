@@ -3,6 +3,7 @@ package com.walletconnect.wallet.ui.sessions.details
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.android.Core
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
@@ -52,7 +53,7 @@ class SessionDetailsViewModel : ViewModel() {
 
             val listOfChainAccountInfo =
                 filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession)
-            val selectedSessionPeerData: Sign.Model.AppMetaData =
+            val selectedSessionPeerData: Core.Model.AppMetaData =
                 requireNotNull(selectedSession.metaData)
             val uiState = SessionDetailsUI.Content(
                 icon = selectedSessionPeerData.icons.firstOrNull(),

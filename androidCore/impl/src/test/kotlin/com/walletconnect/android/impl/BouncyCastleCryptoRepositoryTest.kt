@@ -1,6 +1,6 @@
 package com.walletconnect.android.impl
 
-import com.walletconnect.android.common.storage.KeyStore
+import com.walletconnect.android.internal.common.storage.KeyStore
 import com.walletconnect.android.impl.data.repository.BouncyCastleKeyManagementRepository
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey

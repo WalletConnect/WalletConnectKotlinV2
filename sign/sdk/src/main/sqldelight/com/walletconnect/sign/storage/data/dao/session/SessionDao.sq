@@ -3,6 +3,7 @@ import java.lang.Boolean;
 CREATE TABLE SessionDao(
    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
    topic TEXT UNIQUE NOT NULL,
+   pairingTopic TEXT NOT NULL,
    expiry INTEGER NOT NULL,
    relay_protocol TEXT NOT NULL,
    relay_data TEXT,
@@ -13,8 +14,8 @@ CREATE TABLE SessionDao(
 );
 
 insertOrAbortSession:
-INSERT OR ABORT INTO SessionDao(topic, expiry, relay_protocol, relay_data, controller_key, self_participant, peer_participant, is_acknowledged)
-VALUES (?,  ?, ?,?, ?, ?, ?, ?);
+INSERT OR ABORT INTO SessionDao(topic, pairingTopic, expiry, relay_protocol, relay_data, controller_key, self_participant, peer_participant, is_acknowledged)
+VALUES (?,  ?, ?,?, ?, ?, ?, ?, ?);
 
 lastInsertedRow:
 SELECT id
@@ -22,22 +23,23 @@ FROM SessionDao
 WHERE id = (SELECT MAX(id) FROM SessionDao);
 
 getListOfSessionDaos:
-SELECT sd.id, sd.topic, sd.expiry, sd.relay_protocol, sd.relay_data, sd.controller_key, sd.self_participant, self_mdd.name, self_mdd.description, self_mdd.url, self_mdd.icons, sd.peer_participant, peer_mdd.name, peer_mdd.description, peer_mdd.url, peer_mdd.icons, peer_mdd.native, sd.is_acknowledged
-FROM SessionDao sd
-    LEFT JOIN MetaDataDao self_mdd ON sd.topic = self_mdd.sequence_topic AND self_mdd.type = "SELF"
-    LEFT JOIN MetaDataDao peer_mdd ON sd.topic = peer_mdd.sequence_topic AND peer_mdd.type = "PEER";
+SELECT sd.id, sd.topic, sd.expiry, sd.relay_protocol, sd.relay_data, sd.controller_key, sd.self_participant, sd.peer_participant, sd.is_acknowledged
+FROM SessionDao sd;
 
 getSessionByTopic:
-SELECT sd.id, sd.topic, sd.expiry, sd.relay_protocol, sd.relay_data, sd.controller_key, sd.self_participant, self_mdd.name, self_mdd.description, self_mdd.url, self_mdd.icons, sd.peer_participant, peer_mdd.name, peer_mdd.description, peer_mdd.url, peer_mdd.icons, peer_mdd.native, sd.is_acknowledged
+SELECT sd.id, sd.topic, sd.expiry, sd.relay_protocol, sd.relay_data, sd.controller_key, sd.self_participant, sd.peer_participant, sd.is_acknowledged
 FROM SessionDao sd
-    LEFT JOIN MetaDataDao self_mdd ON sd.topic = self_mdd.sequence_topic AND self_mdd.type = "SELF"
-    LEFT JOIN MetaDataDao peer_mdd ON sd.topic = peer_mdd.sequence_topic AND peer_mdd.type = "PEER"
 WHERE topic = ?;
 
 getSessionIdByTopic:
 SELECT id
 FROM SessionDao
 WHERE topic = ?;
+
+getAllSessionTopicsByPairingTopic:
+SELECT topic
+FROM SessionDao
+WHERE pairingTopic = ?;
 
 acknowledgeSession:
 UPDATE OR ABORT SessionDao
