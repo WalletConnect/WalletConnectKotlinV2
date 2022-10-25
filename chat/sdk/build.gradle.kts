@@ -39,7 +39,7 @@ android {
 }
 
 sqldelight {
-    database("Database") {
+    database("ChatDatabase") {
         packageName = "com.walletconnect.chat"
         schemaOutputDirectory = file("src/debug/sqldelight/databases")
         verifyMigrations = false
