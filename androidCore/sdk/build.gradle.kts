@@ -42,7 +42,7 @@ android {
 
 dependencies {
     debugApi(project(":foundation"))
-    releaseApi("com.walletconnect:foundation:1.0.0")
+    releaseApi("com.walletconnect:foundation:1.1.0")
 
     bouncyCastle()
     coroutines()

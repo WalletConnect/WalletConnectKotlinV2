@@ -19,7 +19,6 @@ import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.model.Relay
-import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.flow.*
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
@@ -30,7 +29,6 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     private val networkState: ConnectivityState by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.CONNECTIVITY_STATE)) }
     private val isNetworkAvailable: StateFlow<Boolean> by lazy { networkState.isAvailable }
     private val isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    private lateinit var logger: Logger
 
     fun initialize(relayServerUrl: String, connectionType: ConnectionType, application: Application) {
         require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
