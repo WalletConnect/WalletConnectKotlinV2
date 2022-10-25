@@ -114,7 +114,7 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
         jsonRpcInteractor.subscribe(pairing.topic)
 
-        relayer.publishJsonRpcRequests(pairing.topic, irnParams, request,
+        jsonRpcInteractor.publishJsonRpcRequest(pairing.topic, irnParams, request,
             onSuccess = {
                 Logger.log("Session proposal sent successfully")
                 onSuccess()
@@ -187,8 +187,8 @@ internal class SignEngine(
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
-        relayer.subscribe(sessionTopic)
-        relayer.respondWithParams(request, approvalParams, irnParams)
+        jsonRpcInteractor.subscribe(sessionTopic)
+        jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams)
 
         sessionSettle(request.id, proposal, sessionTopic, request.topic)
     }
@@ -448,7 +448,7 @@ onFailure(error)
     }
 
     private fun collectJsonRpcRequests() {
-        relayer.clientSyncJsonRpc
+        jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is SignParamsVO }
             .onEach { request ->
                 when (val requestParams = request.params) {
@@ -465,7 +465,7 @@ onFailure(error)
     }
 
     private fun collectInternalErrors() {
-        merge(relayer.internalErrors, pairingInterface.findWrongMethodsFlow)
+        merge(jsonRpcInteractor.internalErrors, pairingInterface.findWrongMethodsFlow)
             .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
             .launchIn(scope)
     }
@@ -549,7 +549,7 @@ onFailure(error)
             return
         }
 
-        relayer.unsubscribe(request.topic, onSuccess = {
+        jsonRpcInteractor.unsubscribe(request.topic, onSuccess = {
             crypto.removeKeys(request.topic.value)
             sessionStorageRepository.deleteSession(request.topic)
             scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
@@ -832,7 +832,7 @@ onFailure(error)
 
         pairingInterface.topicExpiredFlow.onEach { topic ->
             sessionStorageRepository.getAllSessionTopicsByPairingTopic(topic).onEach { sessionTopic ->
-                relayer.unsubscribe(Topic(sessionTopic), onSuccess = {
+                jsonRpcInteractor.unsubscribe(Topic(sessionTopic), onSuccess = {
                     sessionStorageRepository.deleteSession(Topic(sessionTopic))
                     crypto.removeKeys(sessionTopic)
                 })

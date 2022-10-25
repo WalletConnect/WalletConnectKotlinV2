@@ -41,7 +41,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 internal class AuthEngine(
-    private val relayer: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val getPendingJsonRpcHistoryEntriesUseCase: GetPendingJsonRpcHistoryEntriesUseCase,
     private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
     private val crypto: KeyManagementRepository,
@@ -68,7 +68,7 @@ internal class AuthEngine(
     }
 
     internal fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-        relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
+        jsonRpcInteractor.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
 
     internal fun request(
@@ -86,10 +86,10 @@ internal class AuthEngine(
         val pairingTopic = pairing.topic
 
         crypto.setSelfParticipant(responsePublicKey, responseTopic)
-        relayer.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
+        jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
             onSuccess = {
                 Logger.log("Auth request sent successfully on topic:${pairingTopic}, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
-                relayer.subscribe(responseTopic)
+                jsonRpcInteractor.subscribe(responseTopic)
                 pairingTopicToResponseTopicMap[pairingTopic] = responseTopic
                 onSuccess()
             },
@@ -133,7 +133,7 @@ internal class AuthEngine(
         crypto.setSymmetricKey(responseTopic, symmetricKey)
 
         val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
-        relayer.publishJsonRpcResponse(
+        jsonRpcInteractor.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
             onSuccess = { Logger.log("Success Responded on topic: $responseTopic") },
             onFailure = { Logger.error("Error Responded on topic: $responseTopic") }
@@ -156,7 +156,7 @@ internal class AuthEngine(
             }
         } else {
             val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
-            relayer.respondWithError(wcRequest, PeerError.MissingIssuer, irnParams)
+            jsonRpcInteractor.respondWithError(wcRequest, PeerError.MissingIssuer, irnParams)
         }
     }
 
@@ -199,21 +199,21 @@ internal class AuthEngine(
     }
 
     private fun collectJsonRpcRequests() {
-        relayer.clientSyncJsonRpc
+        jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is AuthParams.RequestParams }
             .onEach { request -> onAuthRequest(request, request.params as AuthParams.RequestParams) }
             .launchIn(scope)
     }
 
     private fun collectJsonRpcResponses() {
-        relayer.peerResponse
+        jsonRpcInteractor.peerResponse
             .filter { response -> response.params is AuthParams.RequestParams }
             .onEach { response -> onAuthRequestResponse(response, response.params as AuthParams.RequestParams) }
             .launchIn(scope)
     }
 
     private fun resubscribeToSequences() {
-        relayer.isConnectionAvailable
+        jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
@@ -228,12 +228,12 @@ internal class AuthEngine(
         pairingTopicToResponseTopicMap
             .map { it.value }
             .onEach { responseTopic: Topic ->
-                relayer.subscribe(responseTopic)
+                jsonRpcInteractor.subscribe(responseTopic)
             }
     }
 
     private fun collectInternalErrors() {
-        relayer.internalErrors
+        jsonRpcInteractor.internalErrors
             .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
             .launchIn(scope)
     }

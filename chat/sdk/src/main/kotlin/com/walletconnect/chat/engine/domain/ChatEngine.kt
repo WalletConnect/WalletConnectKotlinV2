@@ -2,18 +2,13 @@
 
 package com.walletconnect.chat.engine.domain
 
-import com.walletconnect.android.common.JsonRpcResponse
-import com.walletconnect.android.common.model.Tags
-import com.walletconnect.android.common.scope
-import com.walletconnect.android.exception.GenericException
-import com.walletconnect.android.impl.common.model.IrnParams
-import com.walletconnect.android.impl.common.model.Participants
-import com.walletconnect.android.impl.common.model.sync.WCRequest
-import com.walletconnect.android.impl.common.model.sync.WCResponse
-import com.walletconnect.android.impl.common.model.type.enums.EnvelopeType
-import com.walletconnect.android.impl.crypto.KeyManagementRepository
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.GenericException
+import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.AccountIdWithPublicKey
 import com.walletconnect.chat.common.json_rpc.ChatRpc
@@ -21,7 +16,6 @@ import com.walletconnect.chat.common.json_rpc.ChatParams
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterAccountUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveAccountUseCase
 import com.walletconnect.chat.engine.model.EngineDO
-import com.walletconnect.chat.json_rpc.domain.JsonRpcInteractor
 import com.walletconnect.chat.storage.ChatStorageRepository
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -37,7 +31,7 @@ internal class ChatEngine(
     private val registerAccountUseCase: RegisterAccountUseCase,
     private val resolveAccountUseCase: ResolveAccountUseCase,
     private val keyManagementRepository: KeyManagementRepository,
-    private val jsonRpcInteractor: JsonRpcInteractor,
+    private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val chatStorage: ChatStorageRepository,
 ) {
     private val _events: MutableSharedFlow<EngineDO.Events> = MutableSharedFlow()

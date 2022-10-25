@@ -41,13 +41,14 @@ android {
 sqldelight {
     database("Database") {
         packageName = "com.walletconnect.chat"
-        dependency(project(":androidCore:impl"))
+        schemaOutputDirectory = file("src/debug/sqldelight/databases")
+        verifyMigrations = false
     }
 }
 
 dependencies {
     debugImplementation(project(":androidCore:impl"))
-    releaseImplementation("com.walletconnect:android-core-impl:1.0.0")
+    releaseImplementation("com.walletconnect:android-core-impl:1.1.0")
 
     retrofit()
     navigationComponent()

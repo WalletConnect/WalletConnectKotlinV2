@@ -93,7 +93,7 @@ internal object PairingClient : PairingInterface {
             val pingPayload = PairingRpc.PairingPing(id = generateId(), params = PairingParams.PingParams())
             val irnParams = IrnParams(Tags.PAIRING_PING, Ttl(THIRTY_SECONDS))
 
-            jsonRpcInteractor.publishJsonRpcRequests(Topic(ping.topic), irnParams, pingPayload,
+            jsonRpcInteractor.publishJsonRpcRequest(Topic(ping.topic), irnParams, pingPayload,
                 onSuccess = {
                     scope.launch {
                         try {
@@ -213,7 +213,7 @@ internal object PairingClient : PairingInterface {
         val pairingDelete = PairingRpc.PairingDelete(id = generateId(), params = deleteParams)
         val irnParams = IrnParams(Tags.PAIRING_DELETE, Ttl(DAY_IN_SECONDS))
 
-        jsonRpcInteractor.publishJsonRpcRequests(Topic(topic), irnParams, pairingDelete,
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pairingDelete,
             onSuccess = { logger.log("Disconnect sent successfully") },
             onFailure = { error -> logger.error("Sending session disconnect error: $error") }
         )
