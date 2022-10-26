@@ -10,21 +10,21 @@ import com.walletconnect.chat.engine.model.EngineDO
 //TODO: Figure out what to do with models separation
 @JvmSynthetic
 internal fun Chat.Params.Invite.toEngineDO(): EngineDO.Invite {
-    return EngineDO.Invite(invite.account.toVO(), invite.message, invite.signature)
+    return EngineDO.Invite(invite.account.toCommon(), invite.message, invite.signature)
 }
 
 @JvmSynthetic
 internal fun Chat.Params.Message.toEngineDO(): EngineDO.SendMessage {
-    return EngineDO.SendMessage(author.toVO(), message, media?.toVO())
+    return EngineDO.SendMessage(author.toCommon(), message, media?.toCommon())
 }
 
 @JvmSynthetic
-private fun Chat.Model.Media.toVO(): Media {
+private fun Chat.Model.Media.toCommon(): Media {
     return Media(type, data)
 }
 
 @JvmSynthetic
-internal fun Chat.Model.AccountId.toVO(): AccountId {
+internal fun Chat.Model.AccountId.toCommon(): AccountId {
     return AccountId(value)
 }
 

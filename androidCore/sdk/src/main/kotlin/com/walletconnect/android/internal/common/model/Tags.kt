@@ -47,4 +47,6 @@ enum class Tags(val id: Int) {
 
     AUTH_REQUEST(3000),
     AUTH_REQUEST_RESPONSE(3001)
+
+    //todo: Discuss: Should Tags be in specific SDKs?
 }

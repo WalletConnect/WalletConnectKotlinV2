@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.mapper.toClient
 import com.walletconnect.chat.client.mapper.toEngineDO
-import com.walletconnect.chat.client.mapper.toVO
+import com.walletconnect.chat.client.mapper.toCommon
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.AccountIdWithPublicKey
 import com.walletconnect.chat.di.*
@@ -84,7 +84,7 @@ internal class ChatProtocol : ChatInterface {
     override fun invite(invite: Chat.Params.Invite, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        chatEngine.invite(invite.account.toVO(), invite.toEngineDO()) { error -> onError(Chat.Model.Error(error)) }
+        chatEngine.invite(invite.account.toCommon(), invite.toEngineDO()) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
@@ -125,7 +125,7 @@ internal class ChatProtocol : ChatInterface {
     @Throws(IllegalStateException::class)
     override fun addContact(addContact: Chat.Params.AddContact, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        chatEngine.addContact(AccountIdWithPublicKey(addContact.account.toVO(), PublicKey(addContact.publicKey))) { error ->
+        chatEngine.addContact(AccountIdWithPublicKey(addContact.account.toCommon(), PublicKey(addContact.publicKey))) { error ->
             onError(Chat.Model.Error(error))
         }
     }
