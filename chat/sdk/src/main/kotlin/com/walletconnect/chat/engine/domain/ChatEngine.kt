@@ -11,6 +11,7 @@ import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.chat.common.exceptions.PeerError
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.AccountIdWithPublicKey
 import com.walletconnect.chat.common.json_rpc.ChatRpc
@@ -60,6 +61,9 @@ internal class ChatEngine(
     }
 
     internal fun resolveAccount(accountId: AccountId, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
+        //todo: add CAIP25 compatibility check
+
+        //tod check if there's pubKey under given accountId if yes use it if not register
         scope.launch {
             supervisorScope {
                 resolveAccountUseCase(accountId).fold(
@@ -147,6 +151,9 @@ internal class ChatEngine(
         when (val response = wcResponse.response) {
             is JsonRpcResponse.JsonRpcError -> {
                 Logger.log("Chat invite was rejected")
+                scope.launch {
+                    _events.emit(EngineDO.Events.OnReject(wcResponse.topic.value))
+                }
             }
             is JsonRpcResponse.JsonRpcResult -> {
                 Logger.log("Chat invite was accepted")
@@ -155,6 +162,7 @@ internal class ChatEngine(
                 val (selfPubKey, _) = keyManagementRepository.getKeyAgreement(wcResponse.topic)
                 val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(selfPubKey, pubKeyZ) // SymKey T
                 val threadTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
+                //todo: add thread to storage
                 keyManagementRepository.setKey(symmetricKey, threadTopic.value)
                 jsonRpcInteractor.subscribe(threadTopic)
                 scope.launch {
@@ -180,7 +188,7 @@ internal class ChatEngine(
     }
 
 
-    internal fun accept(inviteId: Long, onFailure: (Throwable) -> Unit) = try {
+    internal fun accept(inviteId: Long, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) = try {
         val request = inviteRequestMap[inviteId] ?: throw GenericException("No request for inviteId")
         val senderPublicKey = PublicKey((request.params as ChatParams.InviteParams).publicKey) // PubKey Y
         inviteRequestMap.remove(inviteId)
@@ -192,7 +200,6 @@ internal class ChatEngine(
 
         val publicKey = keyManagementRepository.generateKeyPair() // KeyPair Z
 
-
         val acceptanceParams = ChatParams.AcceptanceParams(publicKey.keyAsHex)
         val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(DAY_IN_SECONDS))
 
@@ -203,19 +210,32 @@ internal class ChatEngine(
         keyManagementRepository.setKey(threadSymmetricKey, threadTopic.value)
         jsonRpcInteractor.subscribe(threadTopic)
 
-        scope.launch {
-            _events.emit(EngineDO.Events.OnJoined(threadTopic.value))
-        }
+        onSuccess(threadTopic.value)
+
+//        scope.launch {
+//            _events.emit(EngineDO.Events.OnJoined(threadTopic.value))
+//        }
     } catch (error: Exception) {
         onFailure(error)
     }
 
-    internal fun reject(inviteId: String, onFailure: (Throwable) -> Unit) {
-//        //todo: correct define params
-//        val request = WCRequest()
-//        val error = PeerError.Error("reason", 1)
-//
-//        jsonRpcInteractor.respondWithError(request, error, EnvelopeType.ZERO) { throwable -> onFailure(throwable) }
+    internal fun reject(inviteId: Long, onFailure: (Throwable) -> Unit) {
+        val request = inviteRequestMap[inviteId] ?: throw GenericException("No request for inviteId")
+        val senderPublicKey = PublicKey((request.params as ChatParams.InviteParams).publicKey) // PubKey Y
+        inviteRequestMap.remove(inviteId)
+
+        val invitePublicKey = keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)// PubKey X
+        val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(invitePublicKey, senderPublicKey) // SymKey I
+        val rejectTopic = keyManagementRepository.getTopicFromKey(symmetricKey) // Topic T
+        keyManagementRepository.setKey(symmetricKey, rejectTopic.value)
+
+        val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(DAY_IN_SECONDS))
+        jsonRpcInteractor.respondWithError(
+            request.copy(topic = rejectTopic),
+            PeerError.UserRejectedInvitation("Invitation rejected by a user"),
+            irnParams
+        )
+        { throwable -> onFailure(throwable) }
     }
 
     internal fun message(topic: String, sendMessage: EngineDO.SendMessage, onFailure: (Throwable) -> Unit) {

@@ -51,12 +51,17 @@ class MessagesFragment : Fragment(R.layout.fragment_messages) {
         }
 
         binding.tvThreadTime.text = "TODAY ${SimpleDateFormat("h:mm a").format(Date())}"
-        binding.ivPeerIcon.setImageDrawable(resources.getDrawable(ChatSharedViewModel.ensToIconMap[peerName]!!, null))
+        binding.ivPeerIcon.setImageDrawable(
+            resources.getDrawable(
+                ChatSharedViewModel.ensToIconMap[peerName] ?: R.drawable.ic_chat_icon_3,
+                null
+            )
+        )
 
         viewModel.listOfMessagesStateFlow
             .flowWithLifecycle(viewLifecycleOwner.lifecycle)
             .onEach { messages ->
-                messagesAdapter.submitList( messages
+                messagesAdapter.submitList(messages
                     .filter { it.peerName == peerName }
                     .map { it.toMessageBubbleUI() })
             }
@@ -64,7 +69,7 @@ class MessagesFragment : Fragment(R.layout.fragment_messages) {
     }
 
     private fun MessageUI.toMessageBubbleUI(): MessageBubbleUI = when (peerName) {
-        author -> MessageBubbleUI.Peer(ChatSharedViewModel.ensToIconMap[peerName]!!, text)
+        author -> MessageBubbleUI.Peer(ChatSharedViewModel.ensToIconMap[peerName] ?: R.drawable.ic_chat_icon_3, text)
         else -> MessageBubbleUI.Self(text)
     }
 

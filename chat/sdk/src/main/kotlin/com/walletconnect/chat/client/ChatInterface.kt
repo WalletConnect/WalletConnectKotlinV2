@@ -5,6 +5,7 @@ interface ChatInterface {
     interface ChatDelegate {
         fun onInvite(onInvite: Chat.Model.Events.OnInvite)
         fun onJoined(onJoined: Chat.Model.Events.OnJoined)
+        fun onReject(onReject: Chat.Model.Events.OnReject)
         fun onMessage(onMessage: Chat.Model.Events.OnMessage)
         fun onLeft(onLeft: Chat.Model.Events.OnLeft)
     }
@@ -15,7 +16,7 @@ interface ChatInterface {
     fun register(register: Chat.Params.Register, listener: Chat.Listeners.Register)
     fun resolve(resolve: Chat.Params.Resolve, listener: Chat.Listeners.Resolve)
     fun invite(invite: Chat.Params.Invite, onError: (Chat.Model.Error) -> Unit)
-    fun accept(accept: Chat.Params.Accept, onError: (Chat.Model.Error) -> Unit)
+    fun accept(accept: Chat.Params.Accept, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit)
     fun reject(reject: Chat.Params.Reject, onError: (Chat.Model.Error) -> Unit)
     fun message(message: Chat.Params.Message, onError: (Chat.Model.Error) -> Unit)
     fun ping(ping: Chat.Params.Ping, onError: (Chat.Model.Error) -> Unit)

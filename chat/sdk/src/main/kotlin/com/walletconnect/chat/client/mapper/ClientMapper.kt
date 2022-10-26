@@ -59,6 +59,16 @@ internal fun EngineDO.Events.OnMessage.toClient(): Chat.Model.Events.OnMessage {
 }
 
 @JvmSynthetic
+internal fun EngineDO.Events.OnLeft.toClient(): Chat.Model.Events.OnLeft {
+    return Chat.Model.Events.OnLeft(topic)
+}
+
+@JvmSynthetic
+internal fun EngineDO.Events.OnReject.toClient(): Chat.Model.Events.OnReject {
+    return Chat.Model.Events.OnReject(topic)
+}
+
+@JvmSynthetic
 internal fun EngineDO.Message.toClient(): Chat.Model.Message {
     return Chat.Model.Message(message, authorAccountId.toClient(), timestamp, media?.toClient())
 }

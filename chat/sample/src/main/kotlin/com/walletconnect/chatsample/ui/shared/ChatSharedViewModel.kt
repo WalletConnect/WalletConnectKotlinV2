@@ -14,7 +14,7 @@ import kotlinx.coroutines.runBlocking
 
 class ChatSharedViewModel : ViewModel() {
     var currentInvite: Chat.Model.Invite? = null
-    var whoWasInvitedENS: String? = null
+    var whoWasInvitedContact: String? = null
     val userNameToTopicMap: MutableMap<String, String> = mutableMapOf()
 
     val listOfInvites: MutableList<ChatUI> = mutableListOf()
@@ -38,7 +38,7 @@ class ChatSharedViewModel : ViewModel() {
             is Chat.Model.Events.OnInvite -> walletEvent.toChatSharedEvents().also { onInvite(it) }
             is Chat.Model.Events.OnJoined -> walletEvent.toChatSharedEvents().also { onJoined(it) }
             is Chat.Model.Events.OnMessage -> walletEvent.toChatSharedEvents().also { onMessage(it) }
-            is Chat.Model.Events.OnLeft -> walletEvent.toChatSharedEvents()
+            is Chat.Model.Events.OnReject -> walletEvent.toChatSharedEvents().also { onReject(it) }
             else -> ChatSharedEvents.NoAction
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
@@ -47,15 +47,14 @@ class ChatSharedViewModel : ViewModel() {
     private fun onInvite(event: ChatSharedEvents.OnInvite) {
         Log.d(tag(this), "Invited: ${event.invite.message}")
 
-        accountIdToEnsMap[event.invite.account.value]?.let { ens ->
-            currentInvite = event.invite
+        val contact = accountIdToEnsMap[event.invite.account.value] ?: event.invite.account.value
+        currentInvite = event.invite
 
-            listOfInvites.add(ChatUI(ensToIconMap[ens]!!, ens, event.invite.message, event.id))
-            _listOfInvitesStateFlow.update { listOfInvites.toList() }
+        listOfInvites.add(ChatUI(ensToIconMap[contact] ?: R.drawable.ic_chat_icon_3, contact, event.invite.message, event.id))
+        _listOfInvitesStateFlow.update { listOfInvites.toList() }
 
-            listOfMessages.add(MessageUI(ens, event.invite.message, System.currentTimeMillis(), ens))
-            _listOfMessagesStateFlow.value = listOfMessages.toList()
-        } ?: Log.e(tag(this), "Unable to find accountId: ${event.invite.account.value}")
+        listOfMessages.add(MessageUI(contact, event.invite.message, System.currentTimeMillis(), contact))
+        _listOfMessagesStateFlow.value = listOfMessages.toList()
     }
 
     private fun onJoined(event: ChatSharedEvents.OnJoined) {
@@ -66,16 +65,25 @@ class ChatSharedViewModel : ViewModel() {
                 if (ens != SELF_ENS) {
                     Log.e(tag(this), "ens != SELF_ENS")
 
-                    listOfThreads.add(ChatUI(ensToIconMap[ens]!!, ens, currentInvite!!.message, null))
+                    listOfThreads.add(ChatUI(ensToIconMap[ens] ?: R.drawable.ic_chat_icon_3, ens, currentInvite!!.message, null))
                     _listOfThreadsStateFlow.value = listOfThreads.toList()
 
                     userNameToTopicMap.put(ens, event.topic)
                 } else {
                     Log.e(tag(this), "ens == SELF_ENS")
-                    listOfThreads.add(ChatUI(ensToIconMap[whoWasInvitedENS]!!, whoWasInvitedENS!!, currentInvite!!.message, null))
+
+                    listOfThreads.add(
+                        ChatUI(
+                            ensToIconMap[whoWasInvitedContact] ?: R.drawable.ic_chat_icon_3,
+                            whoWasInvitedContact!!,
+                            currentInvite!!.message,
+                            null
+                        )
+                    )
                     _listOfThreadsStateFlow.value = listOfThreads.toList()
-                    userNameToTopicMap.put(whoWasInvitedENS!!, event.topic)
+                    userNameToTopicMap.put(whoWasInvitedContact!!, event.topic)
                 }
+
             }
         } else Log.e(tag(this), "Unable to find currentInvite: $event")
     }
@@ -93,55 +101,59 @@ class ChatSharedViewModel : ViewModel() {
         }
     }
 
-    fun acceptRequest(chatUI: ChatUI) {
+    private fun onReject(event: ChatSharedEvents.OnReject) {
+
+        Log.e("Kobe", "ON REJECT VM")
+
+    }
+
+    fun acceptInvitation(chatUI: ChatUI) {
         chatUI.id?.let { id ->
-            ChatClient.accept(Chat.Params.Accept(id)) { error ->
-                Log.e(tag(this), error.throwable.stackTraceToString())
-            }
+            ChatClient.accept(Chat.Params.Accept(id), onSuccess = { threadTopic ->
+
+                if (currentInvite != null) {
+                    accountIdToEnsMap[currentInvite?.account?.value]?.let { ens ->
+                        if (ens != SELF_ENS) {
+                            Log.e(tag(this), "ens != SELF_ENS")
+
+                            listOfThreads.add(ChatUI(ensToIconMap[ens] ?: R.drawable.ic_chat_icon_3, ens, currentInvite!!.message, null))
+                            _listOfThreadsStateFlow.value = listOfThreads.toList()
+
+                            userNameToTopicMap.put(ens, threadTopic)
+                        } else {
+                            Log.e(tag(this), "ens == SELF_ENS")
+
+                            listOfThreads.add(
+                                ChatUI(
+                                    ensToIconMap[whoWasInvitedContact] ?: R.drawable.ic_chat_icon_3,
+                                    whoWasInvitedContact!!,
+                                    currentInvite!!.message,
+                                    null
+                                )
+                            )
+                            _listOfThreadsStateFlow.value = listOfThreads.toList()
+                            userNameToTopicMap.put(whoWasInvitedContact!!, threadTopic)
+                        }
+
+                    }
+                } else Log.e(tag(this), "Unable to find currentInvite")
+
+            }, { error -> Log.e(tag(this), error.throwable.stackTraceToString()) })
 
             listOfInvites.removeIf { it.username == chatUI.username }
             _listOfInvitesStateFlow.value = listOfInvites.toList()
-        } ?: Log.e(tag(this), "Unable to find id: $chatUI")
+
+        } ?: Log.e(tag(this), "Unable to find id on accpet invitation: $chatUI")
     }
 
-    fun register(listener: Chat.Listeners.Register) {
-        ChatClient.register(Chat.Params.Register(Chat.Model.AccountId(SELF_ACCOUNT)), listener)
-    }
+    fun rejectInvitation(id: Long?) {
+        id?.let {
+            val reject = Chat.Params.Reject(it)
+            ChatClient.reject(reject) { error -> Log.e(tag(this), "Unable to find reject invitation: $error") }
 
-    fun invite(contact: String, openingMessage: String, afterInviteSent: () -> Unit) {
-
-        ensToAccountIdMap[contact]?.let { accountId ->
-
-            ChatClient.resolve(Chat.Params.Resolve(Chat.Model.AccountId(accountId)), object : Chat.Listeners.Resolve {
-                override fun onError(error: Chat.Model.Error) {
-                    runBlocking(Dispatchers.Main) {
-                        Log.e(tag(this), error.throwable.stackTraceToString())
-                    }
-                }
-
-                override fun onSuccess(publicKey: String) {
-                    ChatClient.addContact(Chat.Params.AddContact(Chat.Model.AccountId(accountId), publicKey)) { error ->
-                        runBlocking(Dispatchers.Main) {
-                            Log.e(tag(this), error.throwable.stackTraceToString())
-                        }
-                    }
-
-                    val inviteModel = Chat.Model.Invite(Chat.Model.AccountId(SELF_ACCOUNT), openingMessage)
-                    Chat.Params.Invite(Chat.Model.AccountId(accountId), inviteModel).also { invite ->
-                        ChatClient.invite(invite) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
-                    }
-                    runBlocking(Dispatchers.Main) {
-                        currentInvite = inviteModel
-                        whoWasInvitedENS = contact
-                        Log.e(tag(this), "invite: $currentInvite")
-                        listOfMessages.add(MessageUI(contact, inviteModel.message, System.currentTimeMillis(), SELF_ENS))
-                        _listOfMessagesStateFlow.value = listOfMessages.toList()
-                        afterInviteSent()
-                    }
-                }
-            })
-
-        } ?: Log.e(tag(this), "Unable to find contact: $contact")
+            listOfInvites.removeIf { invite -> invite.id == id }
+            _listOfInvitesStateFlow.value = listOfInvites.toList()
+        } ?: Log.e(tag(this), "Unable to find id on reject invitation: $id")
     }
 
     fun sendMessage(message: String, peername: String) {
@@ -151,15 +163,61 @@ class ChatSharedViewModel : ViewModel() {
         listOfMessages.add(MessageUI(ens, message, System.currentTimeMillis(), SELF_ENS))
         _listOfMessagesStateFlow.value = listOfMessages.toList()
 
-        if (ensToAccountIdMap[ens] != null) {
-            ChatClient.message(Chat.Params.Message(topic, Chat.Model.AccountId(ensToAccountIdMap[SELF_ENS]!!), message)) { error ->
+//        if (ensToAccountIdMap[ens] != null) {
+
+        //todo: fix state
+        ChatClient.message(
+            Chat.Params.Message(
+                topic,
+                Chat.Model.AccountId(ensToAccountIdMap[SELF_ENS] ?: "eip155:4:0xab16a96d359ec26a11e2c2b3d8f8b89488888888"),
+                message
+            )
+        ) { error ->
+            runBlocking(Dispatchers.Main) {
+                Log.e(tag(this), error.throwable.stackTraceToString())
+            }
+        }
+//        } else {
+//            Log.e(tag(this), "Unable to find contact: $ens")
+//        }
+    }
+
+    fun register(listener: Chat.Listeners.Register) {
+        ChatClient.register(Chat.Params.Register(Chat.Model.AccountId(SELF_ACCOUNT)), listener)
+    }
+
+    fun invite(contact: String, openingMessage: String, afterInviteSent: () -> Unit) {
+
+        val accountId = ensToAccountIdMap[contact] ?: contact
+
+        ChatClient.resolve(Chat.Params.Resolve(Chat.Model.AccountId(accountId)), object : Chat.Listeners.Resolve {
+            override fun onError(error: Chat.Model.Error) {
                 runBlocking(Dispatchers.Main) {
                     Log.e(tag(this), error.throwable.stackTraceToString())
                 }
             }
-        } else {
-            Log.e(tag(this), "Unable to find contact: $ens")
-        }
+
+            override fun onSuccess(publicKey: String) {
+                ChatClient.addContact(Chat.Params.AddContact(Chat.Model.AccountId(accountId), publicKey)) { error ->
+                    runBlocking(Dispatchers.Main) {
+                        Log.e(tag(this), error.throwable.stackTraceToString())
+                    }
+                }
+
+                val inviteModel = Chat.Model.Invite(Chat.Model.AccountId(SELF_ACCOUNT), openingMessage)
+                Chat.Params.Invite(Chat.Model.AccountId(accountId), inviteModel).also { invite ->
+                    ChatClient.invite(invite) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
+                }
+                runBlocking(Dispatchers.Main) {
+                    currentInvite = inviteModel
+                    whoWasInvitedContact = contact
+                    Log.e(tag(this), "invite: $currentInvite")
+                    listOfMessages.add(MessageUI(contact, inviteModel.message, System.currentTimeMillis(), SELF_ENS))
+                    _listOfMessagesStateFlow.value = listOfMessages.toList()
+                    afterInviteSent()
+                }
+            }
+        })
     }
 
     companion object {
@@ -175,8 +233,9 @@ class ChatSharedViewModel : ViewModel() {
 
 
         private const val isPrimary = true
-        val SELF_ACCOUNT = SWIFT_ACCOUNT_ID //if (isPrimary) KOTLIN_ACCOUNT_ID else TEST_ACCOUNT_ID //
-        val SELF_ENS = SWIFT_ENS //if (isPrimary) KOTLIN_ENS else TEST_ENS //
+        val SELF_ACCOUNT =
+             if (isPrimary)  KOTLIN_ACCOUNT_ID else TEST_ACCOUNT_ID //SWIFT_ACCOUNT_ID
+        val SELF_ENS =  if (isPrimary) KOTLIN_ENS else TEST_ENS //SWIFT_ENS
 
         val ensToAccountIdMap = mapOf(
             SWIFT_ENS to SWIFT_ACCOUNT_ID,

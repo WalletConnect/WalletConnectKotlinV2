@@ -16,8 +16,8 @@ internal class ChatStorageRepository(private val contactsQueries: ContactsQuerie
 
     @JvmSynthetic
     internal fun createContact(contact: EngineDO.Contact) = contactsQueries.insertOrAbortContact(
-        contact.accountIdWithPublicKeyVO.accountId.value,
-        contact.accountIdWithPublicKeyVO.publicKey.keyAsHex,
+        contact.accountIdWithPublicKey.accountId.value,
+        contact.accountIdWithPublicKey.publicKey.keyAsHex,
         contact.displayName
     )
 

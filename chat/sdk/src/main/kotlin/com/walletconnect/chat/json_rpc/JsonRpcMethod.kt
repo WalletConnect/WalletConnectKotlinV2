@@ -1,4 +1,4 @@
-package com.walletconnect.chat.json_rpc.model
+package com.walletconnect.chat.json_rpc
 
 internal object JsonRpcMethod {
     @get:JvmSynthetic

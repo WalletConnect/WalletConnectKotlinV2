@@ -1,5 +1,6 @@
 package com.walletconnect.chatsample.domain
 
+import android.util.Log
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatClient
 import kotlinx.coroutines.*
@@ -24,7 +25,15 @@ object ChatDelegate : ChatClient.ChatDelegate {
 
     override fun onJoined(onJoined: Chat.Model.Events.OnJoined) {
         scope.launch {
+            Log.e("kobe", "onJoined DELEGATE")
             _wcEventModels.emit(onJoined)
+            clearCache()
+        }
+    }
+
+    override fun onReject(onReject: Chat.Model.Events.OnReject) {
+        scope.launch {
+            _wcEventModels.emit(onReject)
             clearCache()
         }
     }
@@ -33,14 +42,15 @@ object ChatDelegate : ChatClient.ChatDelegate {
         scope.launch {
             _wcEventModels.emit(onMessage)
             clearCache()
-        }}
+        }
+    }
 
     override fun onLeft(onLeft: Chat.Model.Events.OnLeft) {
         TODO("Not yet implemented")
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun clearCache() {
+    fun clearCache() {
         _wcEventModels.resetReplayCache()
     }
 }

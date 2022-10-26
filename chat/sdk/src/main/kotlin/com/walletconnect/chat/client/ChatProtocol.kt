@@ -50,8 +50,9 @@ internal class ChatProtocol : ChatInterface {
                 when (event) {
                     is EngineDO.Events.OnInvite -> delegate.onInvite(event.toClient())
                     is EngineDO.Events.OnJoined -> delegate.onJoined(event.toClient())
+                    is EngineDO.Events.OnReject -> delegate.onReject(event.toClient())
                     is EngineDO.Events.OnMessage -> delegate.onMessage(event.toClient())
-                    is EngineDO.Events.OnLeft -> Unit
+                    is EngineDO.Events.OnLeft -> delegate.onLeft(event.toClient())
                 }
             }
         }
@@ -88,10 +89,10 @@ internal class ChatProtocol : ChatInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun accept(accept: Chat.Params.Accept, onError: (Chat.Model.Error) -> Unit) {
+    override fun accept(accept: Chat.Params.Accept, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        chatEngine.accept(accept.inviteId) { error -> onError(Chat.Model.Error(error)) }
+        chatEngine.accept(accept.inviteId, { threadTopic -> onSuccess(threadTopic) }, { error -> onError(Chat.Model.Error(error)) })
     }
 
     @Throws(IllegalStateException::class)

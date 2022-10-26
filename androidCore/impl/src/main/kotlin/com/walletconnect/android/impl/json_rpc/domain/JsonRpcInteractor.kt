@@ -193,6 +193,8 @@ internal class JsonRpcInteractor(
                     val topic = Topic(relayRequest.subscriptionTopic)
                     val message = chaChaPolyCodec.decrypt(topic, relayRequest.message)
 
+                    Logger.error("Peer message: $message")
+
                     Pair(message, topic)
                 }.collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
         }

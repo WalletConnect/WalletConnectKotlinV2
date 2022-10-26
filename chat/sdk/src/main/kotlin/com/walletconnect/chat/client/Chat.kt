@@ -53,6 +53,8 @@ object Chat {
 
             data class OnJoined(val topic: String) : Events()
 
+            data class OnReject(val topic: String) : Events()
+
             data class OnMessage(val topic: String, val message: Message) : Events()
 
             data class OnLeft(val topic: String) : Events()
@@ -70,7 +72,7 @@ object Chat {
 
         data class Accept(val inviteId: Long) : Params()
 
-        data class Reject(val inviteId: String) : Params()
+        data class Reject(val inviteId: Long) : Params()
 
         data class Message(val topic: String, val author: Model.AccountId, val message: String, val media: Model.Media? = null) : Params()
 

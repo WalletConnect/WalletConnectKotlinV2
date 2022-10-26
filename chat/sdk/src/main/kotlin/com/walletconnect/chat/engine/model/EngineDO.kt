@@ -29,7 +29,7 @@ internal sealed class EngineDO {
     ) : EngineDO()
 
     data class Contact(
-        val accountIdWithPublicKeyVO: AccountIdWithPublicKey,
+        val accountIdWithPublicKey: AccountIdWithPublicKey,
         val displayName: String,
     ) : EngineDO()
 
@@ -41,11 +41,9 @@ internal sealed class EngineDO {
 
     sealed class Events : EngineDO() {
         data class OnInvite(val id: Long, val invite: Invite) : Events()
-
         data class OnJoined(val topic: String) : Events()
-
+        data class OnReject(val topic: String) : Events()
         data class OnMessage(val topic: String, val message: Message) : Events()
-
         data class OnLeft(val topic: String) : Events()
     }
 }
