@@ -2,10 +2,10 @@
 
 package com.walletconnect.android.impl.data.repository
 
+import com.walletconnect.android.impl.common.MissingKeyException
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.storage.KeyStore
-import com.walletconnect.android.utils.KeyType
 import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
@@ -25,12 +25,14 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         keyChain.setKey(tag, key)
     }
 
-    override fun getKey(tag: String, type: KeyType): Key {
-        val key = keyChain.getKey(tag) ?: throw Exception("No Key for tag: $tag")
-        return when (type) {
-            KeyType.SymmetricKey -> PublicKey(key)
-            KeyType.PublicKey -> SymmetricKey(key)
-        }
+    override fun getPublicKey(tag: String): PublicKey {
+        val key = keyChain.getKey(tag) ?: throw MissingKeyException("No SymmetricKey for tag: $tag")
+        return PublicKey(key)
+    }
+
+    override fun getSymmetricKey(tag: String): SymmetricKey {
+        val key = keyChain.getKey(tag) ?: throw MissingKeyException("No PublicKey for tag: $tag")
+        return SymmetricKey(key)
     }
 
     override fun getKeyAgreement(topic: Topic): Pair<PublicKey, PublicKey> {

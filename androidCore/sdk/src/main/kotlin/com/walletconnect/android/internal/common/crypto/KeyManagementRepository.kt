@@ -1,15 +1,15 @@
 package com.walletconnect.android.internal.common.crypto
 
 import com.walletconnect.android.internal.common.model.SymmetricKey
-import com.walletconnect.android.utils.KeyType
 import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 
 interface KeyManagementRepository {
     fun setKey(key: Key, tag: String)
-    fun getKey(tag: String, type: KeyType): Key
     fun removeKeys(tag: String)
+    fun getPublicKey(tag: String): PublicKey
+    fun getSymmetricKey(tag: String): SymmetricKey
 
     fun generateKeyPair(): PublicKey
     fun setKeyAgreement(topic: Topic, self: PublicKey, peer: PublicKey)

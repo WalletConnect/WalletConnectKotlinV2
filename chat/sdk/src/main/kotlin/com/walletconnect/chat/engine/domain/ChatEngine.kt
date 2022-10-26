@@ -101,7 +101,7 @@ internal class ChatEngine(
 
     private fun trySubscribeToInviteTopic() {
         try {
-            val publicKey = keyManagementRepository.getKey(SELF_INVITE_PUBLIC_KEY_CONTEXT, PublicKey::class) as PublicKey
+            val publicKey = keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)
             val topic = keyManagementRepository.getTopicFromKey(publicKey)
             jsonRpcInteractor.subscribe(topic)
             Logger.log("Listening for invite on: $topic, pubKey X:$publicKey")
@@ -185,7 +185,7 @@ internal class ChatEngine(
         val senderPublicKey = PublicKey((request.params as ChatParams.InviteParams).publicKey) // PubKey Y
         inviteRequestMap.remove(inviteId)
 
-        val invitePublicKey = keyManagementRepository.getKey(SELF_INVITE_PUBLIC_KEY_CONTEXT, PublicKey::class) as PublicKey // PubKey X
+        val invitePublicKey = keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)// PubKey X
         val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(invitePublicKey, senderPublicKey) // SymKey I
         val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey) // Topic T
         keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
