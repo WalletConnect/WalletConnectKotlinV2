@@ -3,6 +3,7 @@ package com.walletconnect.android.impl
 import com.walletconnect.android.internal.common.storage.KeyStore
 import com.walletconnect.android.impl.data.repository.BouncyCastleKeyManagementRepository
 import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.utils.KeyType
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -45,7 +46,7 @@ internal class BouncyCastleCryptoRepositoryTest {
         val symKey = sut.generateAndStoreSymmetricKey(topicVO)
         assert(symKey.keyAsHex.length == 64)
 
-        val secretKey = sut.getKey(topicVO.value, SymmetricKey::class) as SymmetricKey
+        val secretKey = sut.getKey(topicVO.value, KeyType.SymmetricKey) as SymmetricKey
         assertEquals(symKey.keyAsHex, secretKey.keyAsHex)
         assert(secretKey.keyAsHex.length == 64)
     }
@@ -100,12 +101,12 @@ internal class BouncyCastleCryptoRepositoryTest {
     fun `Generated SymmetricKey gets removed when using a TopicVO as the tag for removeKeys`() {
         val symKey = sut.generateAndStoreSymmetricKey(topicVO)
 
-        val secretKey = sut.getKey(topicVO.value, SymmetricKey::class) as SymmetricKey
+        val secretKey = sut.getKey(topicVO.value, KeyType.SymmetricKey) as SymmetricKey
         assertEquals(symKey.keyAsHex, secretKey.keyAsHex)
 
         sut.removeKeys(topicVO.value)
 
-        val secretKeyAfterRemoval = sut.getKey(topicVO.value, SymmetricKey::class) as SymmetricKey
+        val secretKeyAfterRemoval = sut.getKey(topicVO.value, KeyType.SymmetricKey) as SymmetricKey
         assertEquals(String.Empty, secretKeyAfterRemoval.keyAsHex)
     }
 }

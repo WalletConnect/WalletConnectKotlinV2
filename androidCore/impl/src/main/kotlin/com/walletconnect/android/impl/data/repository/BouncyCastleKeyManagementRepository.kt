@@ -5,6 +5,7 @@ package com.walletconnect.android.impl.data.repository
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.storage.KeyStore
+import com.walletconnect.android.utils.KeyType
 import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
@@ -18,21 +19,17 @@ import org.bouncycastle.math.ec.rfc7748.X25519
 import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.KeyGenerator
-import kotlin.reflect.KClass
 
 internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStore) : KeyManagementRepository {
-
     override fun setKey(key: Key, tag: String) {
         keyChain.setKey(tag, key)
     }
 
-    override fun <T : Key> getKey(tag: String, clazz: KClass<T>): Key {
+    override fun getKey(tag: String, type: KeyType): Key {
         val key = keyChain.getKey(tag) ?: throw Exception("No Key for tag: $tag")
-        return when (clazz) {
-            PublicKey::class -> PublicKey(key)
-            SymmetricKey::class -> SymmetricKey(key)
-            PrivateKey::class -> PrivateKey(key)
-            else -> throw Exception("Wrong key type: $clazz")
+        return when (type) {
+            KeyType.SymmetricKey -> PublicKey(key)
+            KeyType.PublicKey -> SymmetricKey(key)
         }
     }
 

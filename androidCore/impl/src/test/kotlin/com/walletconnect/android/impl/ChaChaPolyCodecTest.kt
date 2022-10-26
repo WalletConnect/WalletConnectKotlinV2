@@ -8,6 +8,8 @@ import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.impl.data.codec.ChaChaPolyCodec
 import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.utils.KeyType
+import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.utils.Empty
@@ -38,7 +40,7 @@ class ChaChaPolyCodecTest {
 
     @Test
     fun `ChaCha20-Poly1305 encryption and decryption envelope type 0 with the same key`() {
-        every { keyManagementRepository.getKey(topic.value, SymmetricKey::class) as SymmetricKey } returns symmetricKey
+        every { keyManagementRepository.getKey(topic.value, KeyType.SymmetricKey) } returns symmetricKey
 
         listOf("secretMessage", "", "👍🏻").forEach { message ->
             val encryptedMessage = codec.encrypt(topic, message, EnvelopeType.ZERO)
@@ -48,10 +50,10 @@ class ChaChaPolyCodecTest {
 
     @Test
     fun `ChaCha20-Poly1305 encryption and decryption envelope type 1 with the same key`() {
-        every { keyManagementRepository.getKey(topic.value, SymmetricKey::class) as SymmetricKey } returns symmetricKey
+        every { keyManagementRepository.getKey(topic.value, KeyType.SymmetricKey) } returns symmetricKey
         every { keyManagementRepository.generateSymmetricKeyFromKeyAgreement(self, peer) } returns symmetricKey
         every { keyManagementRepository.generateSymmetricKeyFromKeyAgreement(peer, self) } returns symmetricKey
-        every { keyManagementRepository.getKey(topic.value, PublicKey::class) as PublicKey } returns peer
+        every { keyManagementRepository.getKey(topic.value, KeyType.PublicKey) as PublicKey } returns peer
 
         listOf("secretMessage", "", "👍🏻").forEach { message ->
             val encryptedMessage = codec.encrypt(topic, message, EnvelopeType.ONE, participants)
@@ -69,9 +71,9 @@ class ChaChaPolyCodecTest {
     @Test
     fun `ChaCha20-Poly1305 decryption envelope type 1 throws missing receiver key`() {
         assertThrows(MissingReceiverPublicKeyException::class.java) {
-            every { keyManagementRepository.getKey(topic.value, SymmetricKey::class) as SymmetricKey } returns symmetricKey
+            every { keyManagementRepository.getKey(topic.value, KeyType.SymmetricKey) as SymmetricKey } returns symmetricKey
             every { keyManagementRepository.generateSymmetricKeyFromKeyAgreement(self, peer) } returns symmetricKey
-            every { keyManagementRepository.getKey(topic.value, PublicKey::class) as PublicKey } throws  Exception("Missing key")
+            every { keyManagementRepository.getKey(topic.value, KeyType.PublicKey) as PublicKey } throws  Exception("Missing key")
 
             val encryptedMessage = codec.encrypt(topic, MESSAGE, EnvelopeType.ONE, participants)
             codec.decrypt(topic, encryptedMessage)
@@ -81,7 +83,7 @@ class ChaChaPolyCodecTest {
     @Test
     fun `ChaCha20-Poly1305 encryption envelope type 0 with key that is not 64 Byte long throws`() {
         listOf(String.Empty, KEY_32_BYTES, KEY_128_BYTES).forEach { encryptionKeyAsHex ->
-            every { keyManagementRepository.getKey(topic.value, SymmetricKey::class) as SymmetricKey } returns SymmetricKey(encryptionKeyAsHex)
+            every { keyManagementRepository.getKey(topic.value, KeyType.SymmetricKey) as SymmetricKey } returns SymmetricKey(encryptionKeyAsHex)
             assertThrows(Exception::class.java) {
                 codec.encrypt(topic, MESSAGE, EnvelopeType.ZERO)
             }
@@ -91,10 +93,10 @@ class ChaChaPolyCodecTest {
     @Test
     fun `ChaCha20-Poly1305 encryption and decryption envelope type 0 with the different key throws`() {
         assertThrows(Exception::class.java) {
-            every { keyManagementRepository.getKey(topic.value, SymmetricKey::class) as SymmetricKey } returns symmetricKey
+            every { keyManagementRepository.getKey(topic.value, KeyType.SymmetricKey) as SymmetricKey } returns symmetricKey
             val encryptedMessage = codec.encrypt(topic, MESSAGE, EnvelopeType.ZERO)
 
-            every { keyManagementRepository.getKey(topic.value, SymmetricKey::class) as SymmetricKey } returns invalidKey
+            every { keyManagementRepository.getKey(topic.value, KeyType.SymmetricKey) as SymmetricKey } returns invalidKey
             codec.decrypt(topic, encryptedMessage)
         }
     }

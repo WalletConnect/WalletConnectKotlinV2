@@ -11,6 +11,7 @@ import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.utils.KeyType
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.util.bytesToHex
@@ -57,7 +58,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
             EnvelopeType.ZERO.id -> decryptType0(topic, encryptedPayloadBytes)
             EnvelopeType.ONE.id -> decryptType1(
                 encryptedPayloadBytes,
-                keyManagementRepository.getKey("$SELF_PARTICIPANT_CONTEXT${topic.value}", PublicKey::class) as PublicKey
+                keyManagementRepository.getKey("$SELF_PARTICIPANT_CONTEXT${topic.value}", KeyType.PublicKey) as PublicKey
             )
             else -> throw UnknownEnvelopeTypeException("Decrypt; Unknown envelope type: $envelopeType")
         }
@@ -74,7 +75,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         byteBuffer.get(nonce)
         byteBuffer.get(encryptedMessageBytes)
 
-        val symmetricKey = keyManagementRepository.getKey(topic.value, SymmetricKey::class) as SymmetricKey
+        val symmetricKey = keyManagementRepository.getKey(topic.value, KeyType.SymmetricKey) as SymmetricKey
         val decryptedTextBytes = decryptPayload(symmetricKey, nonce, encryptedMessageBytes)
 
         return String(decryptedTextBytes, Charsets.UTF_8)
@@ -103,8 +104,8 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
     }
 
     private fun encryptEnvelopeType0(topic: Topic, nonceBytes: ByteArray, input: ByteArray, envelopeType: EnvelopeType): String {
-        val symmetricKey = keyManagementRepository.getKey(topic.value, SymmetricKey::class) as SymmetricKey
-        val cipherBytes = encryptPayload(symmetricKey, nonceBytes, input)
+        val symmetricKey = keyManagementRepository.getKey(topic.value, KeyType.SymmetricKey)
+        val cipherBytes = encryptPayload(symmetricKey as SymmetricKey, nonceBytes, input)
         val payloadSize = cipherBytes.size + NONCE_SIZE + ENVELOPE_TYPE_SIZE
 
         //tp + iv + sb
