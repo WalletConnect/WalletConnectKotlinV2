@@ -175,8 +175,8 @@ class ChatSharedViewModel : ViewModel() {
 
 
         private const val isPrimary = true
-        val SELF_ACCOUNT = if (isPrimary) KOTLIN_ACCOUNT_ID else TEST_ACCOUNT_ID // SWIFT_ACCOUNT_ID
-        val SELF_ENS = if (isPrimary) KOTLIN_ENS else TEST_ENS // SWIFT_ENS
+        val SELF_ACCOUNT = SWIFT_ACCOUNT_ID //if (isPrimary) KOTLIN_ACCOUNT_ID else TEST_ACCOUNT_ID //
+        val SELF_ENS = SWIFT_ENS //if (isPrimary) KOTLIN_ENS else TEST_ENS //
 
         val ensToAccountIdMap = mapOf(
             SWIFT_ENS to SWIFT_ACCOUNT_ID,

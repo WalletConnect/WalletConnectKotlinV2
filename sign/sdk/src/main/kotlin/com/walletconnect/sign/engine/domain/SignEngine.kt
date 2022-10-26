@@ -551,11 +551,12 @@ onFailure(error)
 
         jsonRpcInteractor.unsubscribe(request.topic, onSuccess = {
             crypto.removeKeys(request.topic.value)
-            sessionStorageRepository.deleteSession(request.topic)
-            scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
         }, onFailure = { error ->
             Logger.error(error)
         })
+
+        sessionStorageRepository.deleteSession(request.topic)
+        scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
     }
 
     // listened by WalletDelegate
