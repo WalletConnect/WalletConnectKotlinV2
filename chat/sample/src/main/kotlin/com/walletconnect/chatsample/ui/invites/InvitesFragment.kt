@@ -18,10 +18,7 @@ class InvitesFragment : Fragment(R.layout.fragment_invites) {
     private val binding by viewBinding(FragmentInvitesBinding::bind)
     private val viewModel: ChatSharedViewModel by activityViewModels()
     private val invitesAdapter by lazy {
-        InvitesAdapter(onAccept = { chatUI ->
-            viewModel.acceptInvitation(chatUI)
-//            findNavController().navigateUp()
-        }, onReject = { id -> viewModel.rejectInvitation(id) })
+        InvitesAdapter(onAccept = { chatUI -> viewModel.acceptInvitation(chatUI) }, onReject = { id -> viewModel.rejectInvitation(id) })
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
