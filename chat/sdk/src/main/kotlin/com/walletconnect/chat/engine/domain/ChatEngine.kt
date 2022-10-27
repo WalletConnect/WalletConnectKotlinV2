@@ -34,7 +34,7 @@ internal class ChatEngine(
     private val resolveAccountUseCase: ResolveAccountUseCase,
     private val keyManagementRepository: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val chatStorage: ChatStorageRepository,
+    private val chatStorage: ChatStorageRepository
 ) {
     private val _events: MutableSharedFlow<EngineDO.Events> = MutableSharedFlow()
     val events: SharedFlow<EngineDO.Events> = _events.asSharedFlow()
