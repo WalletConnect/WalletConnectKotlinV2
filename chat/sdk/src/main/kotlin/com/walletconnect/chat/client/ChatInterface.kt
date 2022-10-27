@@ -8,6 +8,7 @@ interface ChatInterface {
         fun onReject(onReject: Chat.Model.Events.OnReject)
         fun onMessage(onMessage: Chat.Model.Events.OnMessage)
         fun onLeft(onLeft: Chat.Model.Events.OnLeft)
+        fun onConnectionStateChange(state: Chat.Model.ConnectionState)
     }
 
     fun setChatDelegate(delegate: ChatDelegate)

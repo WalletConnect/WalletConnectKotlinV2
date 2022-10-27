@@ -17,12 +17,12 @@ object Chat {
 
 
     sealed class Model {
-        data class Error(val throwable: Throwable) : Model() // TODO: Should this be extracted to core for easier error handling?
+        data class Error(val throwable: Throwable) : Model()
+
+        data class ConnectionState(val isAvailable: Boolean) : Model()
 
         @JvmInline
-        value class AccountId(val value: String) {
-            fun isValid() = com.walletconnect.chat.common.model.AccountId(value).isValid()
-        }
+        value class AccountId(val value: String)
 
         data class Invite(
             val account: AccountId,

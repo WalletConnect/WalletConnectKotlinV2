@@ -46,7 +46,12 @@ object ChatDelegate : ChatClient.ChatDelegate {
     }
 
     override fun onLeft(onLeft: Chat.Model.Events.OnLeft) {
-        TODO("Not yet implemented")
+        //todo: implement me
+        Log.e("ChatDelegate", "On thread left")
+    }
+
+    override fun onConnectionStateChange(state: Chat.Model.ConnectionState) {
+        Log.e("ChatDelegate", "On connection changed:$state")
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

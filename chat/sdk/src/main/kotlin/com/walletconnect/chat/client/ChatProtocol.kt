@@ -1,5 +1,6 @@
 package com.walletconnect.chat.client
 
+import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.internal.common.scope
@@ -40,6 +41,7 @@ internal class ChatProtocol : ChatInterface {
         }
 
         chatEngine = wcKoinApp.koin.get()
+        chatEngine.handleInitializationErrors { error -> onError(Chat.Model.Error(error)) }
     }
 
     override fun setChatDelegate(delegate: ChatInterface.ChatDelegate) {
@@ -53,6 +55,7 @@ internal class ChatProtocol : ChatInterface {
                     is EngineDO.Events.OnReject -> delegate.onReject(event.toClient())
                     is EngineDO.Events.OnMessage -> delegate.onMessage(event.toClient())
                     is EngineDO.Events.OnLeft -> delegate.onLeft(event.toClient())
+                    is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
                 }
             }
         }

@@ -2,6 +2,7 @@
 
 package com.walletconnect.chat.client.mapper
 
+import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.Media
@@ -73,3 +74,6 @@ internal fun EngineDO.Message.toClient(): Chat.Model.Message {
     return Chat.Model.Message(message, authorAccountId.toClient(), timestamp, media?.toClient())
 }
 
+@JvmSynthetic
+internal fun ConnectionState.toClient(): Chat.Model.ConnectionState =
+    Chat.Model.ConnectionState(isAvailable)

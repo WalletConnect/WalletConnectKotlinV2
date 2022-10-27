@@ -2,12 +2,13 @@
 
 package com.walletconnect.chat.engine.model
 
+import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.AccountIdWithPublicKey
 import com.walletconnect.chat.common.model.Media
 
 internal sealed class EngineDO {
-    data class Error(val throwable: Throwable) : EngineDO() // TODO: Should this be extracted to core for easier error handling?
+    data class Error(val throwable: Throwable) : EngineDO()
 
     data class Invite(
         val accountId: AccountId,
@@ -39,7 +40,7 @@ internal sealed class EngineDO {
         val media: Media?,
     ) : EngineDO()
 
-    sealed class Events : EngineDO() {
+    sealed class Events : EngineDO(), EngineEvent {
         data class OnInvite(val id: Long, val invite: Invite) : Events()
         data class OnJoined(val topic: String) : Events()
         data class OnReject(val topic: String) : Events()
