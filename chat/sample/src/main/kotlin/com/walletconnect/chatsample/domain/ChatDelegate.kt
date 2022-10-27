@@ -54,6 +54,10 @@ object ChatDelegate : ChatClient.ChatDelegate {
         Log.e("ChatDelegate", "On connection changed:$state")
     }
 
+    override fun onError(error: Chat.Model.Error) {
+        Log.e("ChatDelegate", "Internal error: $error")
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     fun clearCache() {
         _wcEventModels.resetReplayCache()

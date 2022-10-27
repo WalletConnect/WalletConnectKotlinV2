@@ -2,6 +2,7 @@
 
 package com.walletconnect.chat.engine.domain
 
+import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.utils.*
@@ -33,7 +34,7 @@ internal class ChatEngine(
     private val resolveAccountUseCase: ResolveAccountUseCase,
     private val keyManagementRepository: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val chatStorage: ChatStorageRepository,
+    private val chatStorage: ChatStorageRepository
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
@@ -43,6 +44,7 @@ internal class ChatEngine(
         collectJsonRpcRequests()
         collectPeerResponses()
         resubscribeToInviteTopic()
+        collectInternalErrors()
     }
 
     fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
@@ -338,8 +340,7 @@ internal class ChatEngine(
             jsonRpcInteractor.subscribe(topic)
             Logger.log("Listening for invite on: $topic, pubKey X:$publicKey")
         } catch (error: Exception) {
-            Logger.log(error) // It will log if run before registerAccount()
-            //TODO: Create exception if there is no key created
+            scope.launch { _events.emit(SDKError(InternalError(error))) }
         }
     }
 
@@ -352,6 +353,12 @@ internal class ChatEngine(
                     is JsonRpcResponse.JsonRpcError -> onResponse(Result.failure(Throwable(result.errorMessage)))
                 }
             }
+    }
+
+    private fun collectInternalErrors() {
+        jsonRpcInteractor.internalErrors
+            .onEach { exception -> _events.emit(SDKError(exception)) }
+            .launchIn(scope)
     }
 
     companion object {
