@@ -4,10 +4,7 @@ package com.walletconnect.chat.engine.domain
 
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
-import com.walletconnect.android.impl.utils.Logger
-import com.walletconnect.android.impl.utils.SELF_INVITE_PUBLIC_KEY_CONTEXT
-import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
+import com.walletconnect.android.impl.utils.*
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.GenericException
@@ -28,11 +25,8 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.util.generateId
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 
 internal class ChatEngine(
     private val registerAccountUseCase: RegisterAccountUseCase,
@@ -205,21 +199,56 @@ internal class ChatEngine(
     }
 
     internal fun leave(topic: String, onFailure: (Throwable) -> Unit) {
-        //todo: correct define params
-        val leaveParams = ChatParams.LeaveParams()
-        val payload = ChatRpc.ChatLeave(id = generateId(), params = leaveParams)
+        val payload = ChatRpc.ChatLeave(id = generateId(), params = ChatParams.LeaveParams())
         val irnParams = IrnParams(Tags.CHAT_LEAVE, Ttl(DAY_IN_SECONDS), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, payload, EnvelopeType.ZERO,
-            onSuccess = { Logger.log("Chat message sent successfully") },
+            onSuccess = { Logger.log("Chat leave sent successfully") },
             onFailure = { throwable ->
-                Logger.log("Chat message error: $throwable")
+                Logger.log("Chat leave error: $throwable")
                 onFailure(throwable)
             })
     }
 
-    internal fun ping(topic: String, onFailure: (Throwable) -> Unit) {
-        //TODO
+    internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
+        val pingPayload = ChatRpc.ChatPing(id = generateId(), params = ChatParams.PingParams())
+        val irnParams = IrnParams(Tags.CHAT_PING, Ttl(THIRTY_SECONDS))
+
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
+            onSuccess = { pingSuccess(pingPayload, onSuccess, topic, onFailure) },
+            onFailure = { error ->
+                Logger.log("Ping sent error: $error")
+                onFailure(error)
+            })
+    }
+
+    private fun pingSuccess(
+        pingPayload: ChatRpc.ChatPing,
+        onSuccess: (String) -> Unit,
+        topic: String,
+        onFailure: (Throwable) -> Unit
+    ) {
+        Logger.log("Ping sent successfully")
+        scope.launch {
+            try {
+                withTimeout(THIRTY_SECONDS_TIMEOUT) {
+                    collectResponse(pingPayload.id) { result ->
+                        cancel()
+                        result.fold(
+                            onSuccess = {
+                                Logger.log("Ping peer response success")
+                                onSuccess(topic)
+                            },
+                            onFailure = { error ->
+                                Logger.log("Ping peer response error: $error")
+                                onFailure(error)
+                            })
+                    }
+                }
+            } catch (e: TimeoutCancellationException) {
+                onFailure(e)
+            }
+        }
     }
 
     private fun collectJsonRpcRequests() {
@@ -228,6 +257,8 @@ internal class ChatEngine(
                 when (val params = request.params) {
                     is ChatParams.InviteParams -> onInviteRequest(request, params)
                     is ChatParams.MessageParams -> onMessage(request, params)
+                    is ChatParams.LeaveParams -> onLeft(request)
+                    is ChatParams.PingParams -> onPong(request)
                 }
             }
         }
@@ -239,7 +270,7 @@ internal class ChatEngine(
             val invite = EngineDO.Invite(AccountId(params.account), params.message, params.signature)
             _events.emit(EngineDO.Events.OnInvite(wcRequest.id, invite))
         }
-        //TODO: Add adding invites to storage. For MVP we will use only emitted event.
+        //TODO: Add adding invites to storage. For Alpha we will use only emitted event.
     }
 
     private fun onMessage(wcRequest: WCRequest, params: ChatParams.MessageParams) {
@@ -247,7 +278,18 @@ internal class ChatEngine(
             val message = EngineDO.Message(params.message, AccountId(params.authorAccount), params.timestamp, params.media)
             _events.emit(EngineDO.Events.OnMessage(wcRequest.topic.value, message))
         }
-        //TODO: Add adding messages to storage. For MVP we will use only emitted event.
+        //TODO: Add adding messages to storage. For Alpha we will use only emitted event.
+    }
+
+    private fun onLeft(request: WCRequest) {
+        scope.launch {
+            _events.emit(EngineDO.Events.OnLeft(request.topic.value))
+        }
+        //TODO: Add removing threads from storage. For Alpha we will use only emitted event.
+    }
+
+    private fun onPong(request: WCRequest) {
+        jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_PING_RESPONSE, Ttl(THIRTY_SECONDS)))
     }
 
     private fun collectPeerResponses() {
@@ -275,6 +317,7 @@ internal class ChatEngine(
                 val threadTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
                 keyManagementRepository.setKey(symmetricKey, threadTopic.value)
                 jsonRpcInteractor.subscribe(threadTopic)
+                //TODO: Add adding thread to storage. For Alpha we will use only emitted event.
                 scope.launch { _events.emit(EngineDO.Events.OnJoined(threadTopic.value)) }
             }
         }
@@ -298,5 +341,20 @@ internal class ChatEngine(
             Logger.log(error) // It will log if run before registerAccount()
             //TODO: Create exception if there is no key created
         }
+    }
+
+    private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit = {}) {
+        jsonRpcInteractor.peerResponse
+            .filter { response -> response.response.id == id }
+            .collect { response ->
+                when (val result = response.response) {
+                    is JsonRpcResponse.JsonRpcResult -> onResponse(Result.success(result))
+                    is JsonRpcResponse.JsonRpcError -> onResponse(Result.failure(Throwable(result.errorMessage)))
+                }
+            }
+    }
+
+    companion object {
+        const val THIRTY_SECONDS_TIMEOUT: Long = 30000L
     }
 }

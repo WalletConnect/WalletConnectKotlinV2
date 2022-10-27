@@ -113,10 +113,10 @@ internal class ChatProtocol : ChatInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun ping(ping: Chat.Params.Ping, onError: (Chat.Model.Error) -> Unit) {
+    override fun ping(ping: Chat.Params.Ping, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        chatEngine.ping(ping.topic) { error -> onError(Chat.Model.Error(error)) }
+        chatEngine.ping(ping.topic, onSuccess = { topic -> onSuccess(topic) }, { error -> onError(Chat.Model.Error(error)) })
     }
 
     @Throws(IllegalStateException::class)

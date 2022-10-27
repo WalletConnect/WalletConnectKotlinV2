@@ -20,7 +20,7 @@ interface ChatInterface {
     fun accept(accept: Chat.Params.Accept, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit)
     fun reject(reject: Chat.Params.Reject, onError: (Chat.Model.Error) -> Unit)
     fun message(message: Chat.Params.Message, onError: (Chat.Model.Error) -> Unit)
-    fun ping(ping: Chat.Params.Ping, onError: (Chat.Model.Error) -> Unit)
+    fun ping(ping: Chat.Params.Ping, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit)
     fun leave(leave: Chat.Params.Leave, onError: (Chat.Model.Error) -> Unit)
     fun addContact(addContact: Chat.Params.AddContact, onError: (Chat.Model.Error) -> Unit)
     fun getInvites(getInvites: Chat.Params.GetInvites): Map<String, Chat.Model.Invite>

@@ -24,7 +24,7 @@ internal class ChatStorageRepository(private val contactsQueries: ContactsQuerie
 
     @JvmSynthetic
     internal fun getContact(accountId: AccountId): Contact =
-        contactsQueries.getContact(accountId.value, mapper = ::mapContactDaoToContact).executeAsOne()
+        contactsQueries.getContact(accountId.value,  mapper = ::mapContactDaoToContact).executeAsOne()
 
     @JvmSynthetic
     internal fun updateContact(accountId: AccountId, publicKey: PublicKey, displayName: String) {
