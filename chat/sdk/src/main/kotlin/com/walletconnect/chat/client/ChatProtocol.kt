@@ -1,10 +1,12 @@
 package com.walletconnect.chat.client
 
+import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.mapper.toClient
+import com.walletconnect.chat.client.mapper.toClientError
 import com.walletconnect.chat.client.mapper.toEngineDO
 import com.walletconnect.chat.client.mapper.toCommon
 import com.walletconnect.chat.common.model.AccountId
@@ -52,6 +54,7 @@ internal class ChatProtocol : ChatInterface {
                     is EngineDO.Events.OnJoined -> delegate.onJoined(event.toClient())
                     is EngineDO.Events.OnMessage -> delegate.onMessage(event.toClient())
                     is EngineDO.Events.OnLeft -> Unit
+                    is SDKError -> delegate.onError(event.toClientError())
                 }
             }
         }
