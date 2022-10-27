@@ -51,11 +51,12 @@ class ChatSampleActivity : AppCompatActivity() {
 
     }
 
-    private fun showOnInviteSnackbar(event: ChatSharedEvents.OnInvite) = Snackbar.make(
-        binding.root,
-        "\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31 You got an invite from: ${ChatSharedViewModel.accountIdToEnsMap[event.invite.account.value] ?: event.invite.account.value}",
-        Snackbar.LENGTH_LONG
-    ).show()
+    private fun showOnInviteSnackbar(event: ChatSharedEvents.OnInvite) =
+        Snackbar.make(
+            binding.root,
+            "\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31 You got an invite from: ${event.invite.account.value}",
+            Snackbar.LENGTH_LONG
+        ).show()
 
     override fun onSupportNavigateUp(): Boolean {
         return navHostFragment.navController.navigateUp() || super.onSupportNavigateUp()

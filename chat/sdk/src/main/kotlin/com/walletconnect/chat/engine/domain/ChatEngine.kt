@@ -209,12 +209,7 @@ internal class ChatEngine(
         val threadTopic = keyManagementRepository.getTopicFromKey(threadSymmetricKey) // Topic T
         keyManagementRepository.setKey(threadSymmetricKey, threadTopic.value)
         jsonRpcInteractor.subscribe(threadTopic)
-
         onSuccess(threadTopic.value)
-
-//        scope.launch {
-//            _events.emit(EngineDO.Events.OnJoined(threadTopic.value))
-//        }
     } catch (error: Exception) {
         onFailure(error)
     }

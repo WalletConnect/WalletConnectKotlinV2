@@ -31,60 +31,58 @@ class ThreadsFragment : Fragment(R.layout.fragment_threads) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.rvChatLists.adapter = threadsAdapter
-        binding.rvChatLists.itemAnimator = null
+        with(binding) {
+            rvChatLists.adapter = threadsAdapter
+            rvChatLists.itemAnimator = null
+            flChatRequests.setOnClickListener { findNavController().navigate(R.id.action_threadsFragment_to_invitesFragment) }
+            btnInvite.setOnClickListener { findNavController().navigate(R.id.action_threadsFragment_to_threadInviteDialogFragment) }
 
-        binding.flChatRequests.setOnClickListener {
-            findNavController().navigate(R.id.action_threadsFragment_to_invitesFragment)
-        }
-
-        binding.btnInvite.setOnClickListener {
-            findNavController().navigate(R.id.action_threadsFragment_to_threadInviteDialogFragment)
-        }
-
-        viewModel.emittedEvents
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-            .onEach { event ->
-                when (event) {
-                    is ChatSharedEvents.OnMessage -> {
-                        Snackbar.make(binding.root,
-                            "New message from: ${viewModel.userNameToTopicMap.entries.single { it.value == event.topic }.key}",
-                            Snackbar.LENGTH_LONG).show()
+            viewModel.emittedEvents
+                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                .onEach { event ->
+                    when (event) {
+                        is ChatSharedEvents.OnMessage -> {
+                            Snackbar.make(
+                                binding.root, "New message from: ${viewModel.userNameToTopicMap.entries.single { it.value == event.topic }.key}",
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
+                        else -> Unit
                     }
-                    else -> Unit
+                }.launchIn(lifecycleScope)
+
+            viewModel
+                .listOfMessagesStateFlow
+                .flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                .onEach { threadsAdapter.submitList(viewModel.listOfThreads.toList()) }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+            viewModel
+                .listOfThreadsStateFlow
+                .flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                .onEach { threadsAdapter.submitList(it.toList()) }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+            viewModel
+                .listOfInvitesStateFlow
+                .flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                .onEach { flChatRequests.findViewById<TextView>(R.id.tvChatRequestsCount).text = it.size.toString() }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+            viewModel.register(object : Chat.Listeners.Register {
+                override fun onError(error: Chat.Model.Error) {
+                    runBlocking(Dispatchers.Main) {
+                        Log.e(tag(this), error.throwable.stackTraceToString())
+                    }
                 }
-            }.launchIn(lifecycleScope)
 
-        viewModel
-            .listOfMessagesStateFlow
-            .flowWithLifecycle(viewLifecycleOwner.lifecycle)
-            .onEach { threadsAdapter.submitList(viewModel.listOfThreads.toList()) }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
-
-        viewModel
-            .listOfThreadsStateFlow
-            .flowWithLifecycle(viewLifecycleOwner.lifecycle)
-            .onEach { threadsAdapter.submitList(it.toList()) }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
-
-        viewModel
-            .listOfInvitesStateFlow
-            .flowWithLifecycle(viewLifecycleOwner.lifecycle)
-            .onEach { binding.flChatRequests.findViewById<TextView>(R.id.tvChatRequestsCount).text = it.size.toString() }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
-
-        viewModel.register(object : Chat.Listeners.Register {
-            override fun onError(error: Chat.Model.Error) {
-                runBlocking(Dispatchers.Main) {
-                    Log.e(tag(this), error.throwable.stackTraceToString())
+                override fun onSuccess(publicKey: String) {
+                    runBlocking(Dispatchers.Main) {
+                        Log.d(tag(this), "Registered successfully")
+                    }
                 }
-            }
+            })
+        }
 
-            override fun onSuccess(publicKey: String) {
-                runBlocking(Dispatchers.Main) {
-                    Log.d(tag(this), "Registered successfully")
-                }
-            }
-        })
     }
 }

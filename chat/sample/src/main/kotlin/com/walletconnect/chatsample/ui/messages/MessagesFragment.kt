@@ -57,7 +57,7 @@ class MessagesFragment : Fragment(R.layout.fragment_messages) {
         }
 
         tvThreadTime.text = "TODAY ${SimpleDateFormat("h:mm a").format(Date())}"
-        ivPeerIcon.setImageDrawable(resources.getDrawable(ChatSharedViewModel.ensToIconMap[peerName] ?: R.drawable.ic_chat_icon_3, null))
+        ivPeerIcon.setImageDrawable(resources.getDrawable(R.drawable.ic_chat_icon_3, null))
         viewModel.listOfMessagesStateFlow
             .flowWithLifecycle(viewLifecycleOwner.lifecycle)
             .onEach { messages ->
@@ -68,7 +68,7 @@ class MessagesFragment : Fragment(R.layout.fragment_messages) {
 
 
     private fun MessageUI.toMessageBubbleUI(): MessageBubbleUI = when (peerName) {
-        author -> MessageBubbleUI.Peer(ChatSharedViewModel.ensToIconMap[peerName] ?: R.drawable.ic_chat_icon_3, text)
+        author -> MessageBubbleUI.Peer(R.drawable.ic_chat_icon_3, text)
         else -> MessageBubbleUI.Self(text)
     }
 

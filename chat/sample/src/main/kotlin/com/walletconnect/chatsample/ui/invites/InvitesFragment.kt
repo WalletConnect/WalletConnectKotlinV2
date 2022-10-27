@@ -28,5 +28,6 @@ class InvitesFragment : Fragment(R.layout.fragment_invites) {
             .flowWithLifecycle(viewLifecycleOwner.lifecycle)
             .onEach { chatUIList -> invitesAdapter.submitList(chatUIList) }
             .launchIn(viewLifecycleOwner.lifecycleScope)
+        binding.clBackButton.setOnClickListener { findNavController().navigateUp() }
     }
 }
