@@ -2,6 +2,7 @@
 
 package com.walletconnect.chat.client.mapper
 
+import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.Media
@@ -63,3 +64,6 @@ internal fun EngineDO.Message.toClient(): Chat.Model.Message {
     return Chat.Model.Message(message, authorAccountId.toClient(), timestamp, media?.toClient())
 }
 
+@JvmSynthetic
+internal fun SDKError.toClientError(): Chat.Model.Error =
+    Chat.Model.Error(this.exception)

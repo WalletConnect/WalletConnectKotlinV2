@@ -551,11 +551,12 @@ onFailure(error)
 
         jsonRpcInteractor.unsubscribe(request.topic, onSuccess = {
             crypto.removeKeys(request.topic.value)
-            sessionStorageRepository.deleteSession(request.topic)
-            scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
         }, onFailure = { error ->
             Logger.error(error)
         })
+
+        sessionStorageRepository.deleteSession(request.topic)
+        scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
     }
 
     // listened by WalletDelegate
@@ -722,7 +723,7 @@ onFailure(error)
                 val selfPublicKey = PublicKey(params.proposer.publicKey)
                 val approveParams = response.result as SignParamsVO.ApprovalParams
                 val responderPublicKey = PublicKey(approveParams.responderPublicKey)
-                val sessionTopic = crypto.generateTopicFromKeyAgreementAndSafeSymKey(selfPublicKey, responderPublicKey)
+                val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
                 jsonRpcInteractor.subscribe(sessionTopic)
             }
             is JsonRpcResponse.JsonRpcError -> {

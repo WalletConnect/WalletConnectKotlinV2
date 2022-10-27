@@ -1,5 +1,6 @@
 package com.walletconnect.chatsample.domain
 
+import android.util.Log
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatClient
 import kotlinx.coroutines.*
@@ -37,6 +38,10 @@ object ChatDelegate : ChatClient.ChatDelegate {
 
     override fun onLeft(onLeft: Chat.Model.Events.OnLeft) {
         TODO("Not yet implemented")
+    }
+
+    override fun onError(error: Chat.Model.Error) {
+        Log.e("ChatDelegate", "Internal error: $error")
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
