@@ -109,7 +109,9 @@ class ChatSharedViewModel : ViewModel() {
     }
 
     fun invite(contact: String, openingMessage: String, afterInviteSent: () -> Unit) {
+
         ensToAccountIdMap[contact]?.let { accountId ->
+
             ChatClient.resolve(Chat.Params.Resolve(Chat.Model.AccountId(accountId)), object : Chat.Listeners.Resolve {
                 override fun onError(error: Chat.Model.Error) {
                     runBlocking(Dispatchers.Main) {
@@ -173,8 +175,8 @@ class ChatSharedViewModel : ViewModel() {
 
 
         private const val isPrimary = true
-        val SELF_ACCOUNT = if (isPrimary) KOTLIN_ACCOUNT_ID else TEST_ACCOUNT_ID
-        val SELF_ENS = if (isPrimary) KOTLIN_ENS else TEST_ENS
+        val SELF_ACCOUNT = if (isPrimary) KOTLIN_ACCOUNT_ID else TEST_ACCOUNT_ID // SWIFT_ACCOUNT_ID
+        val SELF_ENS = if (isPrimary) KOTLIN_ENS else TEST_ENS // SWIFT_ENS
 
         val ensToAccountIdMap = mapOf(
             SWIFT_ENS to SWIFT_ACCOUNT_ID,

@@ -28,8 +28,7 @@ internal class JsonRpcInteractor(
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
 ) : JsonRpcInteractorInterface {
-    private val serializer: JsonRpcSerializer
-        get() = wcKoinApp.koin.get()
+    private val serializer: JsonRpcSerializer get() = wcKoinApp.koin.get()
 
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequest> = MutableSharedFlow()
     override val clientSyncJsonRpc: SharedFlow<WCRequest> = _clientSyncJsonRpc.asSharedFlow()
@@ -57,7 +56,7 @@ internal class JsonRpcInteractor(
         }
     }
 
-    override fun publishJsonRpcRequests(
+    override fun publishJsonRpcRequest(
         topic: Topic,
         params: IrnParams,
         payload: JsonRpcClientSync<*>,

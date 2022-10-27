@@ -57,7 +57,7 @@ sqldelight {
     database("SignDatabase") {
         packageName = "com.walletconnect.sign"
         schemaOutputDirectory = file("src/debug/sqldelight/databases")
-        verifyMigrations = false
+        verifyMigrations = true
     }
 }
 

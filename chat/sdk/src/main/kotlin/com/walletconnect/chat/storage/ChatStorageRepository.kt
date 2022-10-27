@@ -2,18 +2,16 @@
 
 package com.walletconnect.chat.storage
 
-import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
-import com.walletconnect.chat.core.model.vo.AccountIdVO
+import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.engine.model.EngineDO
 import com.walletconnect.chat.storage.data.dao.Contacts
 import com.walletconnect.chat.storage.data.dao.ContactsQueries
+import com.walletconnect.foundation.common.model.PublicKey
 
-internal class ChatStorageRepository(
-    private val contactsQueries: ContactsQueries,
+internal class ChatStorageRepository(private val contactsQueries: ContactsQueries) {
 
-    ) {
     @JvmSynthetic
-    internal fun doesContactNotExists(accountIdVO: AccountIdVO): Boolean =
+    internal fun doesContactNotExists(accountIdVO: AccountId): Boolean =
         contactsQueries.doesContactNotExists(accountIdVO.value).executeAsOne()
 
     @JvmSynthetic
@@ -24,11 +22,11 @@ internal class ChatStorageRepository(
     )
 
     @JvmSynthetic
-    internal fun getContact(accountIdVO: AccountIdVO) : Contacts = contactsQueries.getContact(accountIdVO.value).executeAsOne()
+    internal fun getContact(accountId: AccountId): Contacts = contactsQueries.getContact(accountId.value).executeAsOne()
 
     @JvmSynthetic
-    internal fun updateContact(accountIdVO: AccountIdVO, publicKey: PublicKey, displayName: String) {
-        contactsQueries.updateContactPublicKey(publicKey.keyAsHex, accountIdVO.value)
-        contactsQueries.updateContactDisplayName(displayName, accountIdVO.value)
+    internal fun updateContact(accountId: AccountId, publicKey: PublicKey, displayName: String) {
+        contactsQueries.updateContactPublicKey(publicKey.keyAsHex, accountId.value)
+        contactsQueries.updateContactDisplayName(displayName, accountId.value)
     }
 }

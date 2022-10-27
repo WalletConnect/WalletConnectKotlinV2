@@ -50,7 +50,7 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         return PublicKey(publicKey.bytesToHex().lowercase())
     }
 
-    override fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): Topic {
+    override fun generateTopicFromKeyAgreementAndSafeSymKey(self: PublicKey, peer: PublicKey): Topic {
         val symmetricKey = generateSymmetricKeyFromKeyAgreement(self, peer)
         val topic = Topic(sha256(symmetricKey.keyAsHex))
         keyChain.setKey(topic.value.lowercase(), symmetricKey)
@@ -96,7 +96,7 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         return Pair(PublicKey(selfPublic), PublicKey(peerPublic))
     }
 
-    private fun setKeyAgreement(topic: Topic, self: PublicKey, peer: PublicKey) {
+    override fun setKeyAgreement(topic: Topic, self: PublicKey, peer: PublicKey) {
         val tag = "$KEY_AGREEMENT_CONTEXT${topic.value}"
         keyChain.setKeys(tag, self, peer)
     }
@@ -146,5 +146,61 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
 
         const val KEY_AGREEMENT_CONTEXT = "key_agreement/"
         const val SELF_PARTICIPANT_CONTEXT = "self_participant/"
+        const val INVITE_CONTEXT = "invite/"
+        const val SELF_INVITE_PUBLIC_KEY = "selfInviteKey/"
     }
+
+
+    // Added with Chat SDK
+    override fun generateInviteSelfKeyPair(): Pair<PublicKey, PrivateKey> {
+        val keyPair: Pair<PublicKey, PrivateKey> = generateWithoutSavingKeyPair() // TODO: Refactor on extracting core.
+        // Note: This could be cleaner with refactor of such method as generateKeyPair so it wont save keys
+        // Note: I wont do it here because I don't want two versions of this file
+        setKeyPair(keyPair.first, keyPair.second)
+        return keyPair
+    }
+
+    // Added with Chat SDK
+    override fun getInviteSelfPublicKey(): PublicKey {
+        val publicKey = keyChain.getInviteSelfPublicKey(SELF_INVITE_PUBLIC_KEY) ?: throw Exception("TODO: Name me / Create exception")
+        return PublicKey(publicKey)
+    }
+
+    // Added with Chat SDK
+    override fun setInviteSelfPublicKey(topic: Topic, publicKey: PublicKey) {
+        keyChain.setInviteSelfPublicKey(SELF_INVITE_PUBLIC_KEY, publicKey)
+        keyChain.setPublicKey("$INVITE_CONTEXT${topic.value}", publicKey)
+    }
+
+    // Added with Chat SDK. TODO: This could be removed after proper refactor
+    private fun generateWithoutSavingKeyPair(): Pair<PublicKey, PrivateKey> {
+        val publicKey = ByteArray(KEY_SIZE)
+        val privateKey = ByteArray(KEY_SIZE)
+        X25519.generatePrivateKey(SecureRandom(ByteArray(KEY_SIZE)), privateKey)
+        X25519.generatePublicKey(privateKey, 0, publicKey, 0)
+
+        return PublicKey(publicKey.bytesToHex().lowercase()) to PrivateKey(privateKey.bytesToHex().lowercase())
+    }
+
+    // Added with Chat SDK
+    override fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): Topic {
+        val symmetricKey = generateSymmetricKeyFromKeyAgreement(self, peer)
+        val topic = generateTopicFromSymmetricKey(symmetricKey)
+        setKeyAgreement(topic, self, peer)
+        return topic
+    }
+
+    // Added with Chat SDK
+    private fun generateTopicFromSymmetricKey(symmetricKey: SymmetricKey): Topic {
+        val topic = Topic(sha256(symmetricKey.keyAsHex))
+        keyChain.setKey(topic.value.lowercase(), symmetricKey)
+        return topic
+    }
+
+    // Added with Chat SDK
+    override fun getHash(string: String): String = sha256(string)
+
+
+    // Added with Chat SDK
+    override fun getInvitePublicKey(topic: Topic): PublicKey = PublicKey(keyChain.getPublicKey("$INVITE_CONTEXT${topic.value}"))
 }

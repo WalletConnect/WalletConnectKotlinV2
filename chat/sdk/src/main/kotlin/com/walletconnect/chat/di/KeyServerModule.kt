@@ -2,11 +2,13 @@
 
 package com.walletconnect.chat.di
 
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.chat.discovery.keyserver.data.client.KeyServerClient
 import com.walletconnect.chat.discovery.keyserver.data.service.KeyServerService
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterAccountUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveAccountUseCase
 import okhttp3.OkHttpClient
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -30,7 +32,7 @@ internal fun keyServerModule(keyServerUrl: String) = module {
         Retrofit.Builder()
             .baseUrl(keyServerUrl)
             .client(get())
-            .addConverterFactory(MoshiConverterFactory.create(get()))
+            .addConverterFactory(MoshiConverterFactory.create(get(named(AndroidCommonDITags.MOSHI))))
             .build()
     }
 

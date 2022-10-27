@@ -1,52 +1,45 @@
 package com.walletconnect.chat.client
 
+import com.walletconnect.android.impl.di.cryptoModule
+import com.walletconnect.android.impl.utils.Logger
+import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.mapper.toClient
 import com.walletconnect.chat.client.mapper.toEngineDO
-import com.walletconnect.chat.client.mapper.toVO
-import com.walletconnect.chat.copiedFromSign.core.model.vo.PublicKey
-import com.walletconnect.chat.copiedFromSign.core.scope.scope
-import com.walletconnect.chat.copiedFromSign.di.*
-import com.walletconnect.chat.core.model.vo.AccountIdVO
-import com.walletconnect.chat.core.model.vo.AccountIdWithPublicKeyVO
-import com.walletconnect.chat.di.engineModule
-import com.walletconnect.chat.di.keyServerModule
+import com.walletconnect.chat.client.mapper.toCommon
+import com.walletconnect.chat.common.model.AccountId
+import com.walletconnect.chat.common.model.AccountIdWithPublicKey
+import com.walletconnect.chat.di.*
 import com.walletconnect.chat.engine.domain.ChatEngine
 import com.walletconnect.chat.engine.model.EngineDO
+import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.launch
-import org.koin.android.ext.koin.androidContext
-import org.koin.core.KoinApplication
 
 internal class ChatProtocol : ChatInterface {
-    private val wcKoinApp: KoinApplication = KoinApplication.init()
     private lateinit var chatEngine: ChatEngine
-//    val relay: Relay by lazy { wcKoinApp.koin.get() } //TODO: Figure out how to get relay as in Sign in here
 
     companion object {
         val instance = ChatProtocol()
+        const val storageSuffix: String = "_chat"
     }
 
     @Throws(IllegalStateException::class)
     override fun initialize(init: Chat.Params.Init, onError: (Chat.Model.Error) -> Unit) {
+        Logger.init()
         with(init) {
             wcKoinApp.run {
-                androidContext(application)
                 modules(
                     commonModule(),
                     cryptoModule(),
                     keyServerModule(keyServerUrl),
-//                    TODO: Figure out how to get relay as in Sign in here
-//                    networkModule(serverUrl, relay, connectionType.toRelayConnectionType()),
-                    //todo: add serverUrl as init param
-                    networkModule("serverUrl"), //TODO: refactor, network module should be initialized in RelayClient
-                    relayerModule(),
-                    storageModule(),
-                    com.walletconnect.chat.di.storageModule(), // TODO: Refactor storage module into one
+                    jsonRpcModule(),
+                    storageModule(storageSuffix),
                     engineModule()
                 )
-
-                chatEngine = koin.get()
             }
         }
+
+        chatEngine = wcKoinApp.koin.get()
     }
 
     override fun setChatDelegate(delegate: ChatInterface.ChatDelegate) {
@@ -57,8 +50,8 @@ internal class ChatProtocol : ChatInterface {
                 when (event) {
                     is EngineDO.Events.OnInvite -> delegate.onInvite(event.toClient())
                     is EngineDO.Events.OnJoined -> delegate.onJoined(event.toClient())
-                    is EngineDO.Events.OnLeft -> Unit
                     is EngineDO.Events.OnMessage -> delegate.onMessage(event.toClient())
+                    is EngineDO.Events.OnLeft -> Unit
                 }
             }
         }
@@ -69,7 +62,7 @@ internal class ChatProtocol : ChatInterface {
         checkEngineInitialization()
 
         chatEngine.registerAccount(
-            AccountIdVO(register.account.value),
+            AccountId(register.account.value),
             { publicKey -> listener.onSuccess(publicKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) },
             register.private ?: false
@@ -81,7 +74,7 @@ internal class ChatProtocol : ChatInterface {
         checkEngineInitialization()
 
         chatEngine.resolveAccount(
-            AccountIdVO(resolve.account.value),
+            AccountId(resolve.account.value),
             { publicKey -> listener.onSuccess(publicKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) }
         )
@@ -91,7 +84,7 @@ internal class ChatProtocol : ChatInterface {
     override fun invite(invite: Chat.Params.Invite, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        chatEngine.invite(invite.account.toVO(), invite.toEngineDO()) { error -> onError(Chat.Model.Error(error)) }
+        chatEngine.invite(invite.account.toCommon(), invite.toEngineDO()) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
@@ -132,7 +125,7 @@ internal class ChatProtocol : ChatInterface {
     @Throws(IllegalStateException::class)
     override fun addContact(addContact: Chat.Params.AddContact, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        chatEngine.addContact(AccountIdWithPublicKeyVO(addContact.account.toVO(), PublicKey(addContact.publicKey))) { error ->
+        chatEngine.addContact(AccountIdWithPublicKey(addContact.account.toCommon(), PublicKey(addContact.publicKey))) { error ->
             onError(Chat.Model.Error(error))
         }
     }

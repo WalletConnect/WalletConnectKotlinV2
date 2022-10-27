@@ -4,6 +4,7 @@ package com.walletconnect.android.internal.common.storage
 
 import android.content.SharedPreferences
 import com.walletconnect.foundation.common.model.Key
+import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.util.Empty
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
@@ -47,5 +48,25 @@ internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyS
         val keyB = concatKeysByteArray.sliceArray((concatKeysByteArray.size / 2) until concatKeysByteArray.size)
 
         return keyA.bytesToHex() to keyB.bytesToHex()
+    }
+
+    // Added With Chat SDK
+    override fun getInviteSelfPublicKey(tag: String): String? {
+        return sharedPreferences.getString(tag, null)
+    }
+
+    // Added With Chat SDK
+    override fun setInviteSelfPublicKey(tag: String, key: Key) {
+        sharedPreferences.edit().putString(tag, key.keyAsHex).apply()
+    }
+
+    // Added With Chat SDK
+    override fun getPublicKey(tag: String): String {
+        return sharedPreferences.getString(tag, String.Empty) ?: String.Empty
+    }
+
+    // Added With Chat SDK
+    override fun setPublicKey(tag: String, publicKey: PublicKey) {
+        sharedPreferences.edit().putString(tag, publicKey.keyAsHex).apply()
     }
 }

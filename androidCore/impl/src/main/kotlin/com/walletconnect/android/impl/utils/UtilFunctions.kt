@@ -2,9 +2,7 @@
 
 package com.walletconnect.utils
 
-import com.walletconnect.android.impl.di.AndroidCoreDITags
 import com.walletconnect.android.impl.utils.CURRENT_TIME_IN_SECONDS
-import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.internal.common.SerializableJsonRpc
 import com.walletconnect.android.internal.common.model.Expiry
 import org.koin.core.module.KoinDefinition
@@ -32,12 +30,7 @@ val String.Companion.HexPrefix
     get() = "0x"
 
 inline fun <reified T : SerializableJsonRpc> Module.addSerializerEntry(value: KClass<T>): KoinDefinition<*> =
-    single(qualifier = named("key_${T::class.getFullName()}")) {
-        value
-    }
-
+    single(qualifier = named("key_${T::class.getFullName()}")) { value }
 
 fun Module.addDeserializerEntry(key: String, value: KClass<*>): KoinDefinition<*> =
-    single(qualifier = named("${key::class.getFullName()}_${value::class.getFullName()}_$key")) {
-        key to value
-    }
+    single(qualifier = named("${key::class.getFullName()}_${value::class.getFullName()}_$key")) { key to value }
