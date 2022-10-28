@@ -14,7 +14,6 @@ import com.walletconnect.android.internal.common.exception.*
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.android.pairing.toClient
 import com.walletconnect.android.pairing.toPairing
@@ -118,7 +117,7 @@ internal class SignEngine(
             return onFailure(e)
         }
 
-        jsonRpcInteractor.publishJsonRpcRequests(pairing.topic, irnParams, request,
+        jsonRpcInteractor.publishJsonRpcRequest(pairing.topic, irnParams, request,
             onSuccess = {
                 Logger.log("Session proposal sent successfully")
                 onSuccess()
@@ -170,7 +169,7 @@ internal class SignEngine(
                 val sessionSettle = SignRpcVO.SessionSettle(id = generateId(), params = params)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
-                jsonRpcInteractor.publishJsonRpcRequests(sessionTopic, irnParams, sessionSettle, onFailure = { error -> onFailure(error) })
+                jsonRpcInteractor.publishJsonRpcRequest(sessionTopic, irnParams, sessionSettle, onFailure = { error -> onFailure(error) })
             } catch (e: SQLiteException) {
                 sessionStorageRepository.deleteSession(sessionTopic)
                 // todo: missing metadata deletion. Also check other try catches
@@ -261,7 +260,7 @@ internal class SignEngine(
         val sessionPayload = SignRpcVO.SessionRequest(id = generateId(), params = params)
         val irnParams = IrnParams(Tags.SESSION_REQUEST, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
-        jsonRpcInteractor.publishJsonRpcRequests(
+        jsonRpcInteractor.publishJsonRpcRequest(
             Topic(request.topic),
             irnParams,
             sessionPayload,
@@ -308,33 +307,33 @@ internal class SignEngine(
             val pingPayload = SignRpcVO.SessionPing(id = generateId(), params = SignParamsVO.PingParams())
             val irnParams = IrnParams(Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
 
-            jsonRpcInteractor.publishJsonRpcRequests(Topic(topic), irnParams, pingPayload,
-            onSuccess = {
-                Logger.log("Ping sent successfully")
-                scope.launch {
-                    try {
-                        withTimeout(THIRTY_SECONDS_TIMEOUT) {
-                            collectResponse(pingPayload.id) { result ->
-                                cancel()
-                                result.fold(
-                                    onSuccess = {
-                                        Logger.log("Ping peer response success")
-                                        onSuccess(topic)
-                                    },
-                                    onFailure = { error ->
-                                        Logger.log("Ping peer response error: $error")
-                                        onFailure(error)
-                                    })
+            jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
+                onSuccess = {
+                    Logger.log("Ping sent successfully")
+                    scope.launch {
+                        try {
+                            withTimeout(THIRTY_SECONDS_TIMEOUT) {
+                                collectResponse(pingPayload.id) { result ->
+                                    cancel()
+                                    result.fold(
+                                        onSuccess = {
+                                            Logger.log("Ping peer response success")
+                                            onSuccess(topic)
+                                        },
+                                        onFailure = { error ->
+                                            Logger.log("Ping peer response error: $error")
+                                            onFailure(error)
+                                        })
+                                }
                             }
+                        } catch (e: TimeoutCancellationException) {
+                            onFailure(e)
                         }
-                    } catch (e: TimeoutCancellationException) {
-                        onFailure(e)
                     }
-                }
-            },
-            onFailure = { error ->
-                Logger.log("Ping sent error: $error")
-                onFailure(error)
+                },
+                onFailure = { error ->
+                    Logger.log("Ping sent error: $error")
+                    onFailure(error)
                 })
         } else {
             pairingInterface.ping(Core.Params.Ping(topic), object : Core.Listeners.PairingPing {
@@ -372,7 +371,7 @@ internal class SignEngine(
         val sessionEvent = SignRpcVO.SessionEvent(id = generateId(), params = eventParams)
         val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
-        jsonRpcInteractor.publishJsonRpcRequests(Topic(topic), irnParams, sessionEvent,
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionEvent,
             onSuccess = { Logger.log("Event sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending event error: $error")
@@ -399,7 +398,7 @@ internal class SignEngine(
         val sessionExtend = SignRpcVO.SessionExtend(id = generateId(), params = SignParamsVO.ExtendParams(newExpiration))
         val irnParams = IrnParams(Tags.SESSION_EXTEND, Ttl(DAY_IN_SECONDS))
 
-        jsonRpcInteractor.publishJsonRpcRequests(Topic(topic), irnParams, sessionExtend,
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionExtend,
             onSuccess = { Logger.log("Session extend sent successfully") },
             onFailure = { error ->
                 Logger.error("Sending session extend error: $error")
@@ -418,7 +417,7 @@ internal class SignEngine(
         jsonRpcInteractor.unsubscribe(Topic(topic))
         val irnParams = IrnParams(Tags.SESSION_DELETE, Ttl(DAY_IN_SECONDS))
 
-        jsonRpcInteractor.publishJsonRpcRequests(Topic(topic), irnParams, sessionDelete,
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionDelete,
             onSuccess = { Logger.error("Disconnect sent successfully") },
             onFailure = { error -> Logger.error("Sending session disconnect error: $error") }
         )
@@ -831,7 +830,8 @@ internal class SignEngine(
             .onEach { session ->
                 try {
                     jsonRpcInteractor.subscribe(session.topic)
-                } catch (_: NoRelayConnectionException) {}
+                } catch (_: NoRelayConnectionException) {
+                }
             }
     }
 

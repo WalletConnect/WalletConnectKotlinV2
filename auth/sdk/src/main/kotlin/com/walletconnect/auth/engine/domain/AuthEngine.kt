@@ -88,14 +88,14 @@ internal class AuthEngine(
         val pairingTopic = pairing.topic
         crypto.setKey(responsePublicKey, "${SELF_PARTICIPANT_CONTEXT}${responseTopic.value}")
 
-        jsonRpcInteractor.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
+        jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
             onSuccess = {
                 Logger.log("Auth request sent successfully on topic:${pairingTopic}, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
 
                 try {
                     jsonRpcInteractor.subscribe(responseTopic)
                 } catch (e: NoRelayConnectionException) {
-                    return@publishJsonRpcRequests onFailure(e)
+                    return@publishJsonRpcRequest onFailure(e)
                 }
 
                 pairingTopicToResponseTopicMap[pairingTopic] = responseTopic
