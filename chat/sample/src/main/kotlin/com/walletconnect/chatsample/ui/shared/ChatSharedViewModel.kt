@@ -50,7 +50,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
     fun register() {
         val accountId = sharedPreferences.getString(ACCOUNT_TAG, null)
         if (accountId == null) {
-            SELF_ACCOUNT = "eip155:1:0x${randomBytes(24).bytesToHex()}"
+            SELF_ACCOUNT = generateEthereumAccount()
             sharedPreferences.edit().putString(ACCOUNT_TAG, SELF_ACCOUNT).apply()
             val register = Chat.Params.Register(Chat.Model.AccountId(SELF_ACCOUNT))
 
@@ -189,6 +189,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
         return hexString.toString()
     }
 
+    private fun generateEthereumAccount() = "eip155:1:0x${randomBytes(24).bytesToHex()}"
 
     companion object {
         private const val TAG = "ChatSharedViewModel"
