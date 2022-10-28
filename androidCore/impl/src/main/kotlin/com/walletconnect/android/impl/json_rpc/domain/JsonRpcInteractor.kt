@@ -11,6 +11,7 @@ import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
+import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
@@ -65,7 +66,12 @@ internal class JsonRpcInteractor(
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        checkConnectionWorking()
+        try {
+            checkConnectionWorking()
+        } catch (e: NoRelayConnectionException) {
+            return onFailure(e)
+        }
+
         val requestJson = serializer.serialize(payload) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
 
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
@@ -89,7 +95,11 @@ internal class JsonRpcInteractor(
         participants: Participants?,
         envelopeType: EnvelopeType,
     ) {
-        checkConnectionWorking()
+        try {
+            checkConnectionWorking()
+        } catch (e: NoRelayConnectionException) {
+            return onFailure(e)
+        }
 
         val jsonResponseDO = response.toJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
@@ -158,7 +168,7 @@ internal class JsonRpcInteractor(
     }
 
     override fun subscribe(topic: Topic) {
-        checkConnectionWorking()
+        checkConnectionWorking() // TODO: Should we add an onFailure callback?
         relay.subscribe(topic.value) { result ->
             result.fold(
                 onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result },
@@ -168,7 +178,12 @@ internal class JsonRpcInteractor(
     }
 
     override fun unsubscribe(topic: Topic, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        checkConnectionWorking()
+        try {
+            checkConnectionWorking()
+        } catch (e: NoRelayConnectionException) {
+            return onFailure(e)
+        }
+
         if (subscriptions.contains(topic.value)) {
             val subscriptionId = SubscriptionId(subscriptions[topic.value].toString())
             relay.unsubscribe(topic.value, subscriptionId.id) { result ->
@@ -183,6 +198,8 @@ internal class JsonRpcInteractor(
                     }
                 )
             }
+        } else {
+            onFailure(NoSuchElementException(Uncategorized.NoMatchingTopic("Session", topic.value).message))
         }
     }
 

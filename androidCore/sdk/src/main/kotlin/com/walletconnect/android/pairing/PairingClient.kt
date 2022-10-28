@@ -2,7 +2,6 @@
 
 package com.walletconnect.android.pairing
 
-import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
@@ -46,7 +45,11 @@ internal object PairingClient : PairingInterface {
                     launch(Dispatchers.IO) {
                         pairingRepository.getListOfPairings()
                             .map { pairing -> pairing.topic }
-                            .onEach { pairingTopic -> jsonRpcInteractor.subscribe(pairingTopic) }
+                            .onEach { pairingTopic ->
+                                try {
+                                    jsonRpcInteractor.subscribe(pairingTopic)
+                                } catch (_: NoRelayConnectionException) {}
+                            }
                     }
                 }
             }
@@ -184,7 +187,7 @@ internal object PairingClient : PairingInterface {
                 try {
                     pairingRepository.insertPairing(activePairing)
                     jsonRpcInteractor.subscribe(activePairing.topic)
-                } catch (e: SQLiteException) {
+                } catch (e: Exception) {
                     crypto.removeKeys(walletConnectUri.topic.value)
                     jsonRpcInteractor.unsubscribe(activePairing.topic)
                     onError(Core.Model.Error(e))

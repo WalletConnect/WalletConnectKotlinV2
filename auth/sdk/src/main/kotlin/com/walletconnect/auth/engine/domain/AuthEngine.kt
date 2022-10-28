@@ -12,6 +12,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.pairing.PairingInterface
@@ -87,10 +88,16 @@ internal class AuthEngine(
         val pairingTopic = pairing.topic
         crypto.setKey(responsePublicKey, "${SELF_PARTICIPANT_CONTEXT}${responseTopic.value}")
 
-        jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
+        jsonRpcInteractor.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
             onSuccess = {
                 Logger.log("Auth request sent successfully on topic:${pairingTopic}, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
-                jsonRpcInteractor.subscribe(responseTopic)
+
+                try {
+                    jsonRpcInteractor.subscribe(responseTopic)
+                } catch (e: NoRelayConnectionException) {
+                    return@publishJsonRpcRequests onFailure(e)
+                }
+
                 pairingTopicToResponseTopicMap[pairingTopic] = responseTopic
                 onSuccess()
             },
@@ -226,7 +233,9 @@ internal class AuthEngine(
         pairingTopicToResponseTopicMap
             .map { it.value }
             .onEach { responseTopic: Topic ->
-                jsonRpcInteractor.subscribe(responseTopic)
+                try {
+                    jsonRpcInteractor.subscribe(responseTopic)
+                } catch (_: NoRelayConnectionException) {}
             }
     }
 
