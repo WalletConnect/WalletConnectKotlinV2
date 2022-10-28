@@ -25,7 +25,6 @@ object ChatDelegate : ChatClient.ChatDelegate {
 
     override fun onJoined(onJoined: Chat.Model.Events.OnJoined) {
         scope.launch {
-            Log.e("kobe", "onJoined DELEGATE")
             _wcEventModels.emit(onJoined)
             clearCache()
         }
