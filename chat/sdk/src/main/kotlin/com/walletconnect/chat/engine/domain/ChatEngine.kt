@@ -66,7 +66,6 @@ internal class ChatEngine(
             val topic = keyManagementRepository.getTopicFromKey(publicKey)
             keyManagementRepository.setKey(publicKey, SELF_INVITE_PUBLIC_KEY_CONTEXT)
             keyManagementRepository.setKey(publicKey, "$SELF_PARTICIPANT_CONTEXT${topic.value}")
-            Logger.error("Kobe; Return: $publicKey")
             onSuccess(publicKey.keyAsHex)
         }
 
