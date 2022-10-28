@@ -36,6 +36,11 @@ android {
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
     }
+
+    testOptions.unitTests {
+        isIncludeAndroidResources = true
+        isReturnDefaultValues = true
+    }
 }
 
 sqldelight {

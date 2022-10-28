@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.walletconnect.chatsample.R
 import com.walletconnect.chatsample.databinding.FragmentInvitesBinding
 import com.walletconnect.chatsample.ui.shared.ChatSharedViewModel
@@ -16,16 +17,15 @@ import kotlinx.coroutines.flow.onEach
 class InvitesFragment : Fragment(R.layout.fragment_invites) {
     private val binding by viewBinding(FragmentInvitesBinding::bind)
     private val viewModel: ChatSharedViewModel by activityViewModels()
-    private val invitesAdapter by lazy { InvitesAdapter(viewModel::acceptRequest) }
+    private val invitesAdapter by lazy { InvitesAdapter(onAccept = { viewModel::acceptInvitation }, onReject = { viewModel::rejectInvitation }) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         binding.rvChatRequests.adapter = invitesAdapter
-
         viewModel.listOfInvitesStateFlow
             .flowWithLifecycle(viewLifecycleOwner.lifecycle)
-            .onEach { invitesAdapter.submitList(it.toList()) }
+            .onEach { chatUIList -> invitesAdapter.submitList(chatUIList) }
             .launchIn(viewLifecycleOwner.lifecycleScope)
+        binding.clBackButton.setOnClickListener { findNavController().navigateUp() }
     }
 }

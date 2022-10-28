@@ -1,14 +1,15 @@
 package com.walletconnect.chat.client
 
 import com.walletconnect.android.impl.common.SDKError
+import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.mapper.toClient
 import com.walletconnect.chat.client.mapper.toClientError
-import com.walletconnect.chat.client.mapper.toEngineDO
 import com.walletconnect.chat.client.mapper.toCommon
+import com.walletconnect.chat.client.mapper.toEngineDO
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.AccountIdWithPublicKey
 import com.walletconnect.chat.di.*
@@ -18,6 +19,7 @@ import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.launch
 
 internal class ChatProtocol : ChatInterface {
+    private val keyServerUrl = "https://keys.walletconnect.com"
     private lateinit var chatEngine: ChatEngine
 
     companion object {
@@ -28,20 +30,19 @@ internal class ChatProtocol : ChatInterface {
     @Throws(IllegalStateException::class)
     override fun initialize(init: Chat.Params.Init, onError: (Chat.Model.Error) -> Unit) {
         Logger.init()
-        with(init) {
-            wcKoinApp.run {
-                modules(
-                    commonModule(),
-                    cryptoModule(),
-                    keyServerModule(keyServerUrl),
-                    jsonRpcModule(),
-                    storageModule(storageSuffix),
-                    engineModule()
-                )
-            }
+        wcKoinApp.run {
+            modules(
+                commonModule(),
+                cryptoModule(),
+                keyServerModule(keyServerUrl),
+                jsonRpcModule(),
+                storageModule(storageSuffix),
+                engineModule()
+            )
         }
 
         chatEngine = wcKoinApp.koin.get()
+        chatEngine.handleInitializationErrors { error -> onError(Chat.Model.Error(error)) }
     }
 
     override fun setChatDelegate(delegate: ChatInterface.ChatDelegate) {
@@ -52,8 +53,10 @@ internal class ChatProtocol : ChatInterface {
                 when (event) {
                     is EngineDO.Events.OnInvite -> delegate.onInvite(event.toClient())
                     is EngineDO.Events.OnJoined -> delegate.onJoined(event.toClient())
+                    is EngineDO.Events.OnReject -> delegate.onReject(event.toClient())
                     is EngineDO.Events.OnMessage -> delegate.onMessage(event.toClient())
-                    is EngineDO.Events.OnLeft -> Unit
+                    is EngineDO.Events.OnLeft -> delegate.onLeft(event.toClient())
+                    is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
                     is SDKError -> delegate.onError(event.toClientError())
                 }
             }
@@ -91,10 +94,10 @@ internal class ChatProtocol : ChatInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun accept(accept: Chat.Params.Accept, onError: (Chat.Model.Error) -> Unit) {
+    override fun accept(accept: Chat.Params.Accept, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        chatEngine.accept(accept.inviteId) { error -> onError(Chat.Model.Error(error)) }
+        chatEngine.accept(accept.inviteId, { threadTopic -> onSuccess(threadTopic) }, { error -> onError(Chat.Model.Error(error)) })
     }
 
     @Throws(IllegalStateException::class)
@@ -112,10 +115,10 @@ internal class ChatProtocol : ChatInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun ping(ping: Chat.Params.Ping, onError: (Chat.Model.Error) -> Unit) {
+    override fun ping(ping: Chat.Params.Ping, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        chatEngine.ping(ping.topic) { error -> onError(Chat.Model.Error(error)) }
+        chatEngine.ping(ping.topic, onSuccess = { topic -> onSuccess(topic) }, { error -> onError(Chat.Model.Error(error)) })
     }
 
     @Throws(IllegalStateException::class)

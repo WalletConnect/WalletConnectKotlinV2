@@ -301,33 +301,32 @@ internal class SignEngine(
             val irnParams = IrnParams(Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
 
             jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
-            onSuccess = {
-                Logger.log("Ping sent successfully")
-                scope.launch {
-                    try {
-                        withTimeout(THIRTY_SECONDS_TIMEOUT) {
-                            collectResponse(pingPayload.id) { result ->
-                                cancel()
-                                result.fold(
-                                    onSuccess = {
-                                        Logger.log("Ping peer response success")
-                                        onSuccess(topic)
-                                    },
-                                    onFailure = { error ->
-                                        Logger.log("Ping peer response error: $error")
-                                        onFailure(error)
-                                    })
+                onSuccess = {
+                    Logger.log("Ping sent successfully")
+                    scope.launch {
+                        try {
+                            withTimeout(THIRTY_SECONDS_TIMEOUT) {
+                                collectResponse(pingPayload.id) { result ->
+                                    cancel()
+                                    result.fold(
+                                        onSuccess = {
+                                            Logger.log("Ping peer response success")
+                                            onSuccess(topic)
+                                        },
+                                        onFailure = { error ->
+                                            Logger.log("Ping peer response error: $error")
+                                            onFailure(error)
+                                        })
+                                }
                             }
+                        } catch (e: TimeoutCancellationException) {
+                            onFailure(e)
                         }
-                    } catch (e: TimeoutCancellationException) {
-                        onFailure(e)
                     }
-                }
-            },
-            onFailure = { error ->
-
-                Logger.log("Ping sent error: $error")
-onFailure(error)
+                },
+                onFailure = { error ->
+                    Logger.log("Ping sent error: $error")
+                    onFailure(error)
                 })
         } else {
             pairingInterface.ping(Core.Params.Ping(topic), object : Core.Listeners.PairingPing {
@@ -576,7 +575,9 @@ onFailure(error)
             return
         }
 
-        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerAppMetaData: AppMetaData?) = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic).run {
+        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerAppMetaData: AppMetaData?) = sessionStorageRepository.getSessionWithoutMetadataByTopic(
+            request.topic
+        ).run {
             val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
             this.namespaces to peerAppMetaData
         }

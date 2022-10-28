@@ -17,16 +17,17 @@ object Chat {
 
 
     sealed class Model {
-        data class Error(val throwable: Throwable) : Model() // TODO: Should this be extracted to core for easier error handling?
+        data class Error(val throwable: Throwable) : Model()
+
+        data class ConnectionState(val isAvailable: Boolean) : Model()
 
         @JvmInline
-        value class AccountId(val value: String) {
-            fun isValid() = com.walletconnect.chat.common.model.AccountId(value).isValid()
-        }
+        value class AccountId(val value: String)
 
         data class Invite(
             val account: AccountId,
             val message: String,
+            val publicKey: String,
             val signature: String? = null,
         ) : Model()
 
@@ -53,6 +54,8 @@ object Chat {
 
             data class OnJoined(val topic: String) : Events()
 
+            data class OnReject(val topic: String) : Events()
+
             data class OnMessage(val topic: String, val message: Message) : Events()
 
             data class OnLeft(val topic: String) : Events()
@@ -60,7 +63,7 @@ object Chat {
     }
 
     sealed class Params {
-        data class Init(val core: CoreClient, val keyServerUrl: String) : Params()
+        data class Init(val core: CoreClient) : Params()
 
         data class Register(val account: Model.AccountId, val private: Boolean? = false) : Params()
 
@@ -70,7 +73,7 @@ object Chat {
 
         data class Accept(val inviteId: Long) : Params()
 
-        data class Reject(val inviteId: String) : Params()
+        data class Reject(val inviteId: Long) : Params()
 
         data class Message(val topic: String, val author: Model.AccountId, val message: String, val media: Model.Media? = null) : Params()
 

@@ -129,7 +129,7 @@ class ScannerFragment : Fragment(R.layout.fragment_scanner) {
                 }
                 .addOnFailureListener {
                     Log.e(tag(this@ScannerFragment), it.message.toString())
-                    Toast.makeText(requireContext(), "Failed to capture QR Code", Toast.LENGTH_SHORT).show()
+
 
                     clearAnalyzer()
                     findNavController().popBackStack()
