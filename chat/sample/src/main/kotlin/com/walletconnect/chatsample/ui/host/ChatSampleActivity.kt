@@ -30,8 +30,6 @@ class ChatSampleActivity : AppCompatActivity() {
         supportFragmentManager.findFragmentById(R.id.fcvHost) as NavHostFragment
     }
 
-//    val viewModelProvider = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application))
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
