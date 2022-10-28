@@ -4,6 +4,7 @@ package com.walletconnect.android.internal.common.storage
 
 import android.content.SharedPreferences
 import com.walletconnect.foundation.common.model.Key
+import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.util.Empty
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
@@ -14,18 +15,18 @@ internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyS
         sharedPreferences.edit().putString(tag, key.keyAsHex).apply()
     }
 
-    override fun getKey(tag: String): String {
-        return sharedPreferences.getString(tag, String.Empty) ?: String.Empty //todo: Return null instead of String.Empty
+    override fun getKey(tag: String): String? {
+        return sharedPreferences.getString(tag, null)
     }
 
-    override fun setKeys(tag: String, keyA: Key, keyB: Key) {
-        val keys = concatKeys(keyA, keyB)
+    override fun setKeys(tag: String, key1: Key, key2: Key) {
+        val keys = concatKeys(key1, key2)
         sharedPreferences.edit().putString(tag, keys).apply()
     }
 
     @Throws(InternalError::class)
     override fun getKeys(tag: String): Pair<String, String> {
-        val concatKeys = sharedPreferences.getString(tag, null) ?: throw InternalError("unable to find keys")
+        val concatKeys = sharedPreferences.getString(tag, null) ?: throw InternalError("Unable to find keys")
         return splitKeys(concatKeys)
     }
 

@@ -36,11 +36,24 @@ android {
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
     }
+
+    testOptions.unitTests {
+        isIncludeAndroidResources = true
+        isReturnDefaultValues = true
+    }
+}
+
+sqldelight {
+    database("ChatDatabase") {
+        packageName = "com.walletconnect.chat"
+        schemaOutputDirectory = file("src/debug/sqldelight/databases")
+        verifyMigrations = true
+    }
 }
 
 dependencies {
     debugImplementation(project(":androidCore:impl"))
-    releaseImplementation("com.walletconnect:android-core-impl:1.0.0")
+    releaseImplementation("com.walletconnect:android-core-impl:1.2.0")
 
     retrofit()
     navigationComponent()

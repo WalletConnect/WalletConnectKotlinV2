@@ -93,7 +93,7 @@ internal class RelayerInteractorTest {
 
     private fun publishJsonRpcRequests() {
         val irnParamsVO = IrnParams(Tags.SESSION_PING, Ttl(300))
-        sut.publishJsonRpcRequests(
+        sut.publishJsonRpcRequest(
             topicVO,
             irnParamsVO,
             settlementSequence,

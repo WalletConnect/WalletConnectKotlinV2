@@ -5,7 +5,7 @@ package com.walletconnect.android.internal.common.storage
 import com.walletconnect.foundation.common.model.Key
 
 interface KeyStore {
-    fun getKey(tag: String): String
+    fun getKey(tag: String): String?
     fun setKey(tag: String, key: Key)
 
     @Throws(InternalError::class)

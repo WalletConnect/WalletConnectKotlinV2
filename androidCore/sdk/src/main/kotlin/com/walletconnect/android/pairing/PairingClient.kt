@@ -93,7 +93,7 @@ internal object PairingClient : PairingInterface {
             val pingPayload = PairingRpc.PairingPing(id = generateId(), params = PairingParams.PingParams())
             val irnParams = IrnParams(Tags.PAIRING_PING, Ttl(THIRTY_SECONDS))
 
-            jsonRpcInteractor.publishJsonRpcRequests(Topic(ping.topic), irnParams, pingPayload,
+            jsonRpcInteractor.publishJsonRpcRequest(Topic(ping.topic), irnParams, pingPayload,
                 onSuccess = {
                     scope.launch {
                         try {
@@ -151,7 +151,11 @@ internal object PairingClient : PairingInterface {
     override fun pair(pair: Core.Params.Pair, onError: (Core.Model.Error) -> Unit) {
         scope.launch(Dispatchers.IO) {
             awaitConnection({
-                val walletConnectUri: WalletConnectUri = Validator.validateWCUri(pair.uri) ?: return@awaitConnection onError(Core.Model.Error(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)))
+                val walletConnectUri: WalletConnectUri = Validator.validateWCUri(pair.uri) ?: return@awaitConnection onError(
+                    Core.Model.Error(
+                        MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE)
+                    )
+                )
 
                 if (isPairingValid(walletConnectUri.topic.value)) {
                     return@awaitConnection onError(Core.Model.Error(PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE)))
@@ -175,7 +179,7 @@ internal object PairingClient : PairingInterface {
 
                 val activePairing = Pairing(walletConnectUri, registeredMethods)
                 val symmetricKey = walletConnectUri.symKey
-                crypto.setSymmetricKey(walletConnectUri.topic, symmetricKey)
+                crypto.setKey(symmetricKey, walletConnectUri.topic.value)
 
                 try {
                     pairingRepository.insertPairing(activePairing)
@@ -213,7 +217,7 @@ internal object PairingClient : PairingInterface {
         val pairingDelete = PairingRpc.PairingDelete(id = generateId(), params = deleteParams)
         val irnParams = IrnParams(Tags.PAIRING_DELETE, Ttl(DAY_IN_SECONDS))
 
-        jsonRpcInteractor.publishJsonRpcRequests(Topic(topic), irnParams, pairingDelete,
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pairingDelete,
             onSuccess = { logger.log("Disconnect sent successfully") },
             onFailure = { error -> logger.error("Sending session disconnect error: $error") }
         )

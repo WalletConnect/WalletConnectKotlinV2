@@ -175,7 +175,6 @@ object Sign {
 
     sealed class Params {
 
-        // TODO: Maybe convert this into a Builder
         data class Init constructor(
             val core: CoreClient
         ) : Params()

@@ -6,18 +6,18 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 
 interface KeyManagementRepository {
-    fun generateAndStoreSymmetricKey(topic: Topic): SymmetricKey
-    fun generateSymmetricKey(): SymmetricKey
-    fun setSymmetricKey(topic: Topic, symmetricKey: SymmetricKey)
-    fun getSymmetricKey(topic: Topic): SymmetricKey
-
-    fun generateSymmetricKeyFromKeyAgreement(self: PublicKey, peer: PublicKey): SymmetricKey
-    fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): Topic
-    fun getTopicFromKey(key: Key): Topic
-    fun getKeyAgreement(topic: Topic): Pair<PublicKey, PublicKey>
-    fun generateKeyPair(): PublicKey
-
+    fun setKey(key: Key, tag: String)
     fun removeKeys(tag: String)
-    fun setSelfParticipant(key: PublicKey, topic: Topic)
-    fun getSelfParticipant(topic: Topic): PublicKey?
+    fun getPublicKey(tag: String): PublicKey
+    fun getSymmetricKey(tag: String): SymmetricKey
+
+    fun generateKeyPair(): PublicKey
+    fun setKeyAgreement(topic: Topic, self: PublicKey, peer: PublicKey)
+    fun getKeyAgreement(topic: Topic): Pair<PublicKey, PublicKey>
+
+    fun generateAndStoreSymmetricKey(topic: Topic): SymmetricKey
+    fun generateSymmetricKeyFromKeyAgreement(self: PublicKey, peer: PublicKey): SymmetricKey
+
+    fun getTopicFromKey(key: Key): Topic
+    fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): Topic
 }
