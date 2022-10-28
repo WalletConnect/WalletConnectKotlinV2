@@ -60,11 +60,12 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
                 }
 
                 override fun onSuccess(publicKey: String) {
-                    Log.d(TAG, "Registered successfully")
+                    Log.d(TAG, "Registered successfully, $SELF_ACCOUNT")
                 }
             })
         } else {
             SELF_ACCOUNT = accountId
+            Log.d(TAG, "Registered successfully, $SELF_ACCOUNT")
         }
     }
 
