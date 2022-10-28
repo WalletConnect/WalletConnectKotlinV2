@@ -19,6 +19,7 @@ import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.launch
 
 internal class ChatProtocol : ChatInterface {
+    private val keyServerUrl = "https://keys.walletconnect.com"
     private lateinit var chatEngine: ChatEngine
 
     companion object {
@@ -29,17 +30,15 @@ internal class ChatProtocol : ChatInterface {
     @Throws(IllegalStateException::class)
     override fun initialize(init: Chat.Params.Init, onError: (Chat.Model.Error) -> Unit) {
         Logger.init()
-        with(init) {
-            wcKoinApp.run {
-                modules(
-                    commonModule(),
-                    cryptoModule(),
-                    keyServerModule(keyServerUrl),
-                    jsonRpcModule(),
-                    storageModule(storageSuffix),
-                    engineModule()
-                )
-            }
+        wcKoinApp.run {
+            modules(
+                commonModule(),
+                cryptoModule(),
+                keyServerModule(keyServerUrl),
+                jsonRpcModule(),
+                storageModule(storageSuffix),
+                engineModule()
+            )
         }
 
         chatEngine = wcKoinApp.koin.get()

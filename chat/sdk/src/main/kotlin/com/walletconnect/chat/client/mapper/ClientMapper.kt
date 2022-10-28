@@ -12,7 +12,7 @@ import com.walletconnect.chat.engine.model.EngineDO
 //TODO: Figure out what to do with models separation
 @JvmSynthetic
 internal fun Chat.Params.Invite.toEngineDO(): EngineDO.Invite {
-    return EngineDO.Invite(invite.account.toCommon(), invite.message, invite.signature)
+    return EngineDO.Invite(invite.account.toCommon(), invite.message, invite.publicKey, invite.signature)
 }
 
 @JvmSynthetic
@@ -37,7 +37,7 @@ internal fun EngineDO.Events.OnInvite.toClient(): Chat.Model.Events.OnInvite {
 
 @JvmSynthetic
 internal fun EngineDO.Invite.toClient(): Chat.Model.Invite {
-    return Chat.Model.Invite(accountId.toClient(), message, signature)
+    return Chat.Model.Invite(accountId.toClient(), message, publicKey, signature)
 }
 
 @JvmSynthetic
@@ -78,6 +78,7 @@ internal fun EngineDO.Message.toClient(): Chat.Model.Message {
 @JvmSynthetic
 internal fun SDKError.toClientError(): Chat.Model.Error =
     Chat.Model.Error(this.exception)
+
 @JvmSynthetic
 internal fun ConnectionState.toClient(): Chat.Model.ConnectionState =
     Chat.Model.ConnectionState(isAvailable)

@@ -27,6 +27,7 @@ object Chat {
         data class Invite(
             val account: AccountId,
             val message: String,
+            val publicKey: String,
             val signature: String? = null,
         ) : Model()
 
@@ -62,7 +63,7 @@ object Chat {
     }
 
     sealed class Params {
-        data class Init(val core: CoreClient, val keyServerUrl: String) : Params()
+        data class Init(val core: CoreClient) : Params()
 
         data class Register(val account: Model.AccountId, val private: Boolean? = false) : Params()
 

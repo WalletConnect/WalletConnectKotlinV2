@@ -69,19 +69,7 @@ class ThreadsFragment : Fragment(R.layout.fragment_threads) {
                 .onEach { flChatRequests.findViewById<TextView>(R.id.tvChatRequestsCount).text = it.size.toString() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
-            viewModel.register(object : Chat.Listeners.Register {
-                override fun onError(error: Chat.Model.Error) {
-                    runBlocking(Dispatchers.Main) {
-                        Log.e(tag(this), error.throwable.stackTraceToString())
-                    }
-                }
-
-                override fun onSuccess(publicKey: String) {
-                    runBlocking(Dispatchers.Main) {
-                        Log.d(tag(this), "Registered successfully")
-                    }
-                }
-            })
+            viewModel.register()
         }
 
     }

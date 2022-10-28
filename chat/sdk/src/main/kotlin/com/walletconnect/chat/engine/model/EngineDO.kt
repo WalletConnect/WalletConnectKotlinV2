@@ -13,6 +13,7 @@ internal sealed class EngineDO {
     data class Invite(
         val accountId: AccountId,
         val message: String,
+        val publicKey: String,
         val signature: String? = null,
     ) : EngineDO()
 
