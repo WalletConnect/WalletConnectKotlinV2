@@ -1,7 +1,10 @@
 package com.walletconnect.chatsample.ui.shared
 
+import android.app.Application
+import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatClient
@@ -11,8 +14,10 @@ import com.walletconnect.chatsample.utils.tag
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
+import java.security.SecureRandom
 
-class ChatSharedViewModel : ViewModel() {
+class ChatSharedViewModel(application: Application) : AndroidViewModel(application) {
+    private val sharedPreferences: SharedPreferences = application.getSharedPreferences("Chat_Shared_Prefs", Context.MODE_PRIVATE)
     var currentInvite: Chat.Model.Invite? = null
     var whoWasInvitedContact: String? = null
     val userNameToTopicMap: MutableMap<String, String> = mutableMapOf()
@@ -43,16 +48,24 @@ class ChatSharedViewModel : ViewModel() {
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     fun register() {
-        val register = Chat.Params.Register(Chat.Model.AccountId(SELF_ACCOUNT))
-        ChatClient.register(register, object : Chat.Listeners.Register {
-            override fun onError(error: Chat.Model.Error) {
-                Log.e(TAG, "Register error: ${error.throwable.stackTraceToString()}")
-            }
+        val accountId = sharedPreferences.getString(ACCOUNT_TAG, null)
+        if (accountId == null) {
+            SELF_ACCOUNT = "eip155:1:0x${randomBytes(24).bytesToHex()}"
+            sharedPreferences.edit().putString(ACCOUNT_TAG, SELF_ACCOUNT).apply()
+            val register = Chat.Params.Register(Chat.Model.AccountId(SELF_ACCOUNT))
 
-            override fun onSuccess(publicKey: String) {
-                Log.d(TAG, "Registered successfully")
-            }
-        })
+            ChatClient.register(register, object : Chat.Listeners.Register {
+                override fun onError(error: Chat.Model.Error) {
+                    Log.e(TAG, "Register error: ${error.throwable.stackTraceToString()}")
+                }
+
+                override fun onSuccess(publicKey: String) {
+                    Log.d(TAG, "Registered successfully")
+                }
+            })
+        } else {
+            SELF_ACCOUNT = accountId
+        }
     }
 
     fun invite(contact: String, openingMessage: String, afterInviteSent: () -> Unit) {
@@ -158,9 +171,30 @@ class ChatSharedViewModel : ViewModel() {
         _listOfInvitesStateFlow.value = listOfInvites.toList()
     }
 
+    private fun randomBytes(size: Int): ByteArray = ByteArray(size).apply {
+        SecureRandom().nextBytes(this)
+    }
+
+    private fun ByteArray.bytesToHex(): String {
+        val hexString = StringBuilder(2 * this.size)
+
+        this.indices.forEach { i ->
+            val hex = Integer.toHexString(0xff and this[i].toInt())
+
+            if (hex.length == 1) {
+                hexString.append('0')
+            }
+
+            hexString.append(hex)
+        }
+
+        return hexString.toString()
+    }
+
+
     companion object {
         private const val TAG = "ChatSharedViewModel"
-        private const val KOTLIN_ACCOUNT_ID = "eip155:2:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb"
-        val SELF_ACCOUNT = KOTLIN_ACCOUNT_ID
+        const val ACCOUNT_TAG = "self_account_tag"
+        var SELF_ACCOUNT = ""
     }
 }

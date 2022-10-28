@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.os.bundleOf
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
@@ -28,6 +29,8 @@ class ChatSampleActivity : AppCompatActivity() {
     private val navHostFragment by lazy {
         supportFragmentManager.findFragmentById(R.id.fcvHost) as NavHostFragment
     }
+
+//    val viewModelProvider = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

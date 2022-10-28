@@ -2,7 +2,6 @@
 
 package com.walletconnect.chat.engine.domain
 
-import android.util.Log
 import com.walletconnect.android.impl.common.MissingKeyException
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
@@ -14,14 +13,12 @@ import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.chat.client.Chat
-import com.walletconnect.chat.client.ChatClient
 import com.walletconnect.chat.common.exceptions.InvalidAccountIdException
 import com.walletconnect.chat.common.exceptions.PeerError
+import com.walletconnect.chat.common.json_rpc.ChatParams
+import com.walletconnect.chat.common.json_rpc.ChatRpc
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.AccountIdWithPublicKey
-import com.walletconnect.chat.common.json_rpc.ChatRpc
-import com.walletconnect.chat.common.json_rpc.ChatParams
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterAccountUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveAccountUseCase
 import com.walletconnect.chat.engine.model.EngineDO
@@ -32,7 +29,6 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlin.Error
 
 internal class ChatEngine(
     private val registerAccountUseCase: RegisterAccountUseCase,
