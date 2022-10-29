@@ -1,7 +1,7 @@
 package com.walletconnect.android.internal.common.di
 
 import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKeys
+import androidx.security.crypto.MasterKey
 import com.walletconnect.android.internal.common.JwtRepositoryAndroid
 import com.walletconnect.android.internal.common.storage.KeyChain
 import com.walletconnect.android.internal.common.storage.KeyStore
@@ -12,16 +12,17 @@ import org.koin.dsl.module
 fun androidApiCryptoModule() = module {
 
     val sharedPrefsFile = "wc_key_store"
-    val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
-    val mainKeyAlias = MasterKeys.getOrCreate(keyGenParameterSpec)
 
     single {
+        val masterKey = MasterKey.Builder(androidContext())
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
         EncryptedSharedPreferences.create(
-            sharedPrefsFile,
-            mainKeyAlias,
             androidContext(),
+            sharedPrefsFile,
+            masterKey,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
         )
     }
 
