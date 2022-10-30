@@ -2,6 +2,7 @@
 
 package com.walletconnect.chat.client.mapper
 
+import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.common.model.AccountId
@@ -11,7 +12,7 @@ import com.walletconnect.chat.engine.model.EngineDO
 //TODO: Figure out what to do with models separation
 @JvmSynthetic
 internal fun Chat.Params.Invite.toEngineDO(): EngineDO.Invite {
-    return EngineDO.Invite(invite.account.toCommon(), invite.message, invite.signature)
+    return EngineDO.Invite(invite.account.toCommon(), invite.message, invite.publicKey, invite.signature)
 }
 
 @JvmSynthetic
@@ -36,7 +37,7 @@ internal fun EngineDO.Events.OnInvite.toClient(): Chat.Model.Events.OnInvite {
 
 @JvmSynthetic
 internal fun EngineDO.Invite.toClient(): Chat.Model.Invite {
-    return Chat.Model.Invite(accountId.toClient(), message, signature)
+    return Chat.Model.Invite(accountId.toClient(), message, publicKey, signature)
 }
 
 @JvmSynthetic
@@ -60,6 +61,16 @@ internal fun EngineDO.Events.OnMessage.toClient(): Chat.Model.Events.OnMessage {
 }
 
 @JvmSynthetic
+internal fun EngineDO.Events.OnLeft.toClient(): Chat.Model.Events.OnLeft {
+    return Chat.Model.Events.OnLeft(topic)
+}
+
+@JvmSynthetic
+internal fun EngineDO.Events.OnReject.toClient(): Chat.Model.Events.OnReject {
+    return Chat.Model.Events.OnReject(topic)
+}
+
+@JvmSynthetic
 internal fun EngineDO.Message.toClient(): Chat.Model.Message {
     return Chat.Model.Message(message, authorAccountId.toClient(), timestamp, media?.toClient())
 }
@@ -67,3 +78,7 @@ internal fun EngineDO.Message.toClient(): Chat.Model.Message {
 @JvmSynthetic
 internal fun SDKError.toClientError(): Chat.Model.Error =
     Chat.Model.Error(this.exception)
+
+@JvmSynthetic
+internal fun ConnectionState.toClient(): Chat.Model.ConnectionState =
+    Chat.Model.ConnectionState(isAvailable)

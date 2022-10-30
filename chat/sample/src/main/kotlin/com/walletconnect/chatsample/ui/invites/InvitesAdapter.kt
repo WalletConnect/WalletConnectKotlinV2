@@ -12,7 +12,10 @@ import com.walletconnect.chatsample.databinding.ListItemInviteBinding
 import com.walletconnect.chatsample.ui.messages.MessagesFragment
 import com.walletconnect.chatsample.ui.shared.ChatUI
 
-class InvitesAdapter(private val onClick: (ChatUI) -> Unit) : ListAdapter<ChatUI, InvitesAdapter.ViewHolder>(DIFF_UTIL) {
+class InvitesAdapter(
+    private val onAccept: (ChatUI) -> Unit,
+    private val onReject: (id: Long?) -> Unit
+) : ListAdapter<ChatUI, InvitesAdapter.ViewHolder>(DIFF_UTIL) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
         ViewHolder(ListItemInviteBinding.inflate(LayoutInflater.from(parent.context), parent, false))
@@ -20,15 +23,17 @@ class InvitesAdapter(private val onClick: (ChatUI) -> Unit) : ListAdapter<ChatUI
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val invite = getItem(position)
 
-        holder.binding.ivChatIcon.setImageResource(invite.icon)
-        holder.binding.tvUsername.text = invite.username
-        holder.binding.tvLastMsg.text = invite.lastMessage
+        with(holder.binding) {
+            ivChatIcon.setImageResource(invite.icon)
+            tvUsername.text = invite.username
+            tvLastMsg.text = invite.lastMessage
+            ivReject.setOnClickListener { onReject(invite.id) }
+            ivAccept.setOnClickListener {
+                onAccept(invite)
 
-        holder.binding.ivAccept.setOnClickListener {
-            onClick(invite)
-
-            holder.binding.root.findNavController()
-                .navigate(R.id.action_invitesFragment_to_messagesFragment, bundleOf(MessagesFragment.peerNameKey to invite.username))
+                root.findNavController()
+                    .navigate(R.id.action_invitesFragment_to_messagesFragment, bundleOf(MessagesFragment.peerNameKey to invite.username))
+            }
         }
     }
 

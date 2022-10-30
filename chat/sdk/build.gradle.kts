@@ -36,6 +36,11 @@ android {
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
     }
+
+    testOptions.unitTests {
+        isIncludeAndroidResources = true
+        isReturnDefaultValues = true
+    }
 }
 
 sqldelight {
@@ -48,7 +53,7 @@ sqldelight {
 
 dependencies {
     debugImplementation(project(":androidCore:impl"))
-    releaseImplementation("com.walletconnect:android-core-impl:1.1.0")
+    releaseImplementation("com.walletconnect:android-core-impl:1.2.0")
 
     retrofit()
     navigationComponent()

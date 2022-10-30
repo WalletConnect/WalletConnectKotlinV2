@@ -581,7 +581,9 @@ internal class SignEngine(
             return
         }
 
-        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerAppMetaData: AppMetaData?) = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic).run {
+        val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerAppMetaData: AppMetaData?) = sessionStorageRepository.getSessionWithoutMetadataByTopic(
+            request.topic
+        ).run {
             val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
             this.namespaces to peerAppMetaData
         }

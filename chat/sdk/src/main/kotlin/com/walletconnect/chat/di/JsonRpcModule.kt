@@ -3,7 +3,7 @@
 package com.walletconnect.chat.di
 
 import com.walletconnect.chat.common.json_rpc.ChatRpc
-import com.walletconnect.chat.json_rpc.model.JsonRpcMethod
+import com.walletconnect.chat.json_rpc.JsonRpcMethod
 import com.walletconnect.utils.addDeserializerEntry
 import com.walletconnect.utils.addSerializerEntry
 import org.koin.dsl.module

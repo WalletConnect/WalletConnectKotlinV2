@@ -8,11 +8,12 @@ import com.walletconnect.chat.common.model.AccountIdWithPublicKey
 import com.walletconnect.chat.common.model.Media
 
 internal sealed class EngineDO {
-    data class Error(val throwable: Throwable) : EngineDO() // TODO: Should this be extracted to core for easier error handling?
+    data class Error(val throwable: Throwable) : EngineDO()
 
     data class Invite(
         val accountId: AccountId,
         val message: String,
+        val publicKey: String,
         val signature: String? = null,
     ) : EngineDO()
 
@@ -30,7 +31,7 @@ internal sealed class EngineDO {
     ) : EngineDO()
 
     data class Contact(
-        val accountIdWithPublicKeyVO: AccountIdWithPublicKey,
+        val accountIdWithPublicKey: AccountIdWithPublicKey,
         val displayName: String,
     ) : EngineDO()
 
@@ -42,11 +43,9 @@ internal sealed class EngineDO {
 
     sealed class Events : EngineDO(), EngineEvent {
         data class OnInvite(val id: Long, val invite: Invite) : Events()
-
         data class OnJoined(val topic: String) : Events()
-
+        data class OnReject(val topic: String) : Events()
         data class OnMessage(val topic: String, val message: Message) : Events()
-
         data class OnLeft(val topic: String) : Events()
     }
 }

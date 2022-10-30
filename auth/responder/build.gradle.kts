@@ -40,10 +40,10 @@ dependencies {
     implementation(project(":sign:samples_common")) //todo: Move samples common module out of signSDK
 
     debugImplementation(project(":auth:sdk"))
-    releaseImplementation("com.walletconnect:auth:1.0.0")
+    releaseImplementation("com.walletconnect:auth:1.1.0")
 
     debugImplementation(project(":androidCore:sdk"))
-    releaseImplementation("com.walletconnect:android-core:1.1.0")
+    releaseImplementation("com.walletconnect:android-core:1.2.0")
 
     glide_N_kapt()
     scanner()
