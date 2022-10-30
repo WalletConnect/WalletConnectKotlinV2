@@ -45,7 +45,7 @@ internal class JsonRpcInteractor(
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
     private val exceptionHandler = CoroutineExceptionHandler { _, exception -> handleError(exception.message ?: String.Empty) }
 
-    override val initializationErrorsFlow: Flow<WalletConnectException> get() = relay.initializationErrorsFlow
+    override val wsConnectionFailedFlow: Flow<WalletConnectException> get() = relay.wsConnectionFailedFlow
 
     init {
         manageSubscriptions()

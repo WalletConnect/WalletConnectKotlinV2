@@ -57,12 +57,6 @@ internal class SignEngine(
     private val sessionProposalRequest: MutableMap<String, WCRequest> = mutableMapOf()
 
     init {
-        resubscribeToSequences()
-        setupSequenceExpiration()
-        collectJsonRpcRequests()
-        collectJsonRpcResponses()
-        collectInternalErrors()
-
         pairingInterface.register(
             JsonRpcMethod.WC_SESSION_PROPOSE,
             JsonRpcMethod.WC_SESSION_SETTLE,
@@ -75,20 +69,25 @@ internal class SignEngine(
         )
     }
 
-    fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-        jsonRpcInteractor.initializationErrorsFlow.onEach { walletConnectException ->
-            onError(walletConnectException)
+    fun setup() {
+        jsonRpcInteractor.wsConnectionFailedFlow.onEach { walletConnectException ->
+            when(walletConnectException) {
+                is ProjectIdDoesNotExistException, is InvalidProjectIdException -> _engineEvent.emit(ConnectionState(false, walletConnectException))
+                else -> _engineEvent.emit(SDKError(InternalError(walletConnectException)))
+            }
         }.launchIn(scope)
-    }
 
-    private fun resubscribeToSequences() {
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
-                coroutineScope {
+                supervisorScope {
                     launch(Dispatchers.IO) { resubscribeToSession() }
                 }
+                setupSequenceExpiration()
+                collectJsonRpcRequests()
+                collectJsonRpcResponses()
+                collectInternalErrors()
             }
             .launchIn(scope)
     }

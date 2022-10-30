@@ -46,7 +46,7 @@ internal class ChatEngine(
         collectJsonRpcRequests()
         collectPeerResponses()
 
-        jsonRpcInteractor.initializationErrorsFlow.onEach { error -> Logger.error(error) }.launchIn(scope)
+        jsonRpcInteractor.wsConnectionFailedFlow.onEach { error -> Logger.error(error) }.launchIn(scope)
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable ->
 //                _events.emit(EngineDO.ConnectionState(isAvailable)) todo add connection state callbacks

@@ -70,7 +70,7 @@ internal class AuthEngine(
     }
 
     internal fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-        jsonRpcInteractor.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
+        jsonRpcInteractor.wsConnectionFailedFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
 
     internal fun request(
