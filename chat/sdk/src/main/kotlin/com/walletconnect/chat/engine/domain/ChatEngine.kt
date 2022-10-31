@@ -11,6 +11,7 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.exception.InvalidProjectIdException
+import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
@@ -155,7 +156,9 @@ internal class ChatEngine(
             val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
 
             keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
-            jsonRpcInteractor.subscribe(acceptTopic)
+            jsonRpcInteractor.subscribe(acceptTopic) { error ->
+                return@subscribe onFailure(error)
+            }
 
             val irnParams = IrnParams(Tags.CHAT_INVITE, Ttl(DAY_IN_SECONDS), true)
             jsonRpcInteractor.publishJsonRpcRequest(inviteTopic, irnParams, payload, EnvelopeType.ONE, participants,
@@ -205,7 +208,9 @@ internal class ChatEngine(
         val threadSymmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(publicKey, senderPublicKey)
         val threadTopic = keyManagementRepository.getTopicFromKey(threadSymmetricKey)
         keyManagementRepository.setKey(threadSymmetricKey, threadTopic.value)
-        jsonRpcInteractor.subscribe(threadTopic)
+        jsonRpcInteractor.subscribe(threadTopic) { error ->
+            return@subscribe onFailure(error)
+        }
         onSuccess(threadTopic.value)
     } catch (error: Exception) {
         onFailure(error)
@@ -338,7 +343,17 @@ internal class ChatEngine(
                 val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(selfPubKey, pubKeyZ)
                 val threadTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
                 keyManagementRepository.setKey(symmetricKey, threadTopic.value)
-                jsonRpcInteractor.subscribe(threadTopic)
+                try {
+                    jsonRpcInteractor.subscribe(threadTopic) { error ->
+                        scope.launch {
+                            _events.emit(SDKError(InternalError(error)))
+                        }
+                    }
+                } catch (e: NoRelayConnectionException) {
+                    scope.launch {
+                        _events.emit(SDKError(InternalError(e)))
+                    }
+                }
                 //TODO: Add adding thread to storage. For Alpha we will use only emitted event.
                 scope.launch { _events.emit(EngineDO.Events.OnJoined(threadTopic.value)) }
             }
@@ -383,7 +398,9 @@ internal class ChatEngine(
         try {
             val publicKey = keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)
             val topic = keyManagementRepository.getTopicFromKey(publicKey)
-            jsonRpcInteractor.subscribe(topic)
+            jsonRpcInteractor.subscribe(topic) { error ->
+                scope.launch { _events.emit(SDKError(InternalError(error))) }
+            }
             Logger.log("Listening for invite on: $topic, pubKey X:$publicKey")
         } catch (error: Exception) {
             scope.launch { _events.emit(SDKError(InternalError(error))) }

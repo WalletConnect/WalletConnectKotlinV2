@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.chat.client
 
 import com.walletconnect.android.impl.common.SDKError

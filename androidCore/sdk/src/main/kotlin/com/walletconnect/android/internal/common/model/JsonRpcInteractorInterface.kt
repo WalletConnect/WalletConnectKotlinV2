@@ -16,7 +16,7 @@ interface JsonRpcInteractorInterface {
 
     fun checkConnectionWorking()
 
-    fun subscribe(topic: Topic)
+    fun subscribe(topic: Topic, onFailure: (Throwable) -> Unit = {})
 
     fun unsubscribe(topic: Topic, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {})
 

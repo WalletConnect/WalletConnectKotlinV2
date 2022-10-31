@@ -111,7 +111,9 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
         try {
-            jsonRpcInteractor.subscribe(pairing.topic)
+            jsonRpcInteractor.subscribe(pairing.topic) { error ->
+                return@subscribe onFailure(error)
+            }
         } catch (e: NoRelayConnectionException) {
             return onFailure(e)
         }
@@ -190,7 +192,9 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         try {
-            jsonRpcInteractor.subscribe(sessionTopic)
+            jsonRpcInteractor.subscribe(sessionTopic) { error ->
+                return@subscribe onFailure(error)
+            }
             jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams)
         } catch (e: NoRelayConnectionException) {
             return onFailure(e)
@@ -731,8 +735,11 @@ internal class SignEngine(
                 val approveParams = response.result as SignParams.ApprovalParams
                 val responderPublicKey = PublicKey(approveParams.responderPublicKey)
                 val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
-                // TODO: Should we emit an internal error here?
-                jsonRpcInteractor.subscribe(sessionTopic)
+                jsonRpcInteractor.subscribe(sessionTopic) { error ->
+                    scope.launch {
+                        _engineEvent.emit(SDKError(InternalError(error)))
+                    }
+                }
             }
             is JsonRpcResponse.JsonRpcError -> {
                 Logger.log("Session proposal reject received: ${response.error}")
@@ -830,8 +837,15 @@ internal class SignEngine(
         listOfValidSessions
             .onEach { session ->
                 try {
-                    jsonRpcInteractor.subscribe(session.topic)
-                } catch (_: NoRelayConnectionException) {
+                    jsonRpcInteractor.subscribe(session.topic) { error ->
+                        scope.launch {
+                            _engineEvent.emit(SDKError(InternalError(error)))
+                        }
+                    }
+                } catch (e: NoRelayConnectionException) {
+                    scope.launch {
+                        _engineEvent.emit(SDKError(InternalError(e)))
+                    }
                 }
             }
     }

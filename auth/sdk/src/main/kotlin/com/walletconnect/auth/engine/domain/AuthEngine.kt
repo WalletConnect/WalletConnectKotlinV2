@@ -14,6 +14,8 @@ import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
+import com.walletconnect.android.internal.common.exception.InvalidProjectIdException
+import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.android.pairing.toClient
@@ -41,6 +43,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 internal class AuthEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -59,18 +62,32 @@ internal class AuthEngine(
     private val pairingTopicToResponseTopicMap: MutableMap<Topic, Topic> = mutableMapOf()
 
     init {
-        resubscribeToSequences()
-        collectJsonRpcRequests()
-        collectJsonRpcResponses()
-        collectInternalErrors()
-
         pairingInterface.register(
             JsonRpcMethod.WC_AUTH_REQUEST
         )
     }
 
-    internal fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-        jsonRpcInteractor.wsConnectionFailedFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
+    fun setup() {
+        jsonRpcInteractor.wsConnectionFailedFlow.onEach { walletConnectException ->
+            when(walletConnectException) {
+                is ProjectIdDoesNotExistException, is InvalidProjectIdException -> _engineEvent.emit(ConnectionState(false, walletConnectException))
+                else -> _engineEvent.emit(SDKError(InternalError(walletConnectException)))
+            }
+        }.launchIn(scope)
+
+        jsonRpcInteractor.isConnectionAvailable
+            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
+            .filter { isAvailable: Boolean -> isAvailable }
+            .onEach {
+                supervisorScope {
+                    launch(Dispatchers.IO) { resubscribeToPendingRequestsTopics() }
+                }
+
+                collectJsonRpcRequests()
+                collectJsonRpcResponses()
+                collectInternalErrors()
+            }
+            .launchIn(scope)
     }
 
     internal fun request(
@@ -93,7 +110,9 @@ internal class AuthEngine(
                 Logger.log("Auth request sent successfully on topic:${pairingTopic}, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
 
                 try {
-                    jsonRpcInteractor.subscribe(responseTopic)
+                    jsonRpcInteractor.subscribe(responseTopic) { error ->
+                        return@subscribe onFailure(error)
+                    }
                 } catch (e: NoRelayConnectionException) {
                     return@publishJsonRpcRequest onFailure(e)
                 }
@@ -217,30 +236,26 @@ internal class AuthEngine(
             .launchIn(scope)
     }
 
-    private fun resubscribeToSequences() {
-        jsonRpcInteractor.isConnectionAvailable
-            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
-            .filter { isAvailable: Boolean -> isAvailable }
-            .onEach {
-                coroutineScope {
-                    launch(Dispatchers.IO) { resubscribeToPendingRequestsTopics() }
-                }
-            }
-            .launchIn(scope)
-    }
-
     private fun resubscribeToPendingRequestsTopics() {
         pairingTopicToResponseTopicMap
             .map { it.value }
             .onEach { responseTopic: Topic ->
                 try {
-                    jsonRpcInteractor.subscribe(responseTopic)
-                } catch (_: NoRelayConnectionException) {}
+                    jsonRpcInteractor.subscribe(responseTopic) { error ->
+                        scope.launch {
+                            _engineEvent.emit(SDKError(InternalError(error)))
+                        }
+                    }
+                } catch (e: NoRelayConnectionException) {
+                    scope.launch {
+                        _engineEvent.emit(SDKError(InternalError(e)))
+                    }
+                }
             }
     }
 
     private fun collectInternalErrors() {
-        jsonRpcInteractor.internalErrors
+        merge(jsonRpcInteractor.internalErrors, pairingInterface.findWrongMethodsFlow)
             .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
             .launchIn(scope)
     }
