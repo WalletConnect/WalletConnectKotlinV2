@@ -114,7 +114,7 @@ internal class SignEngine(
             jsonRpcInteractor.subscribe(pairing.topic) { error ->
                 return@subscribe onFailure(error)
             }
-        } catch (e: NoRelayConnectionException) {
+        } catch (e: Exception) {
             return onFailure(e)
         }
 
@@ -196,7 +196,7 @@ internal class SignEngine(
                 return@subscribe onFailure(error)
             }
             jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams)
-        } catch (e: NoRelayConnectionException) {
+        } catch (e: Exception) {
             return onFailure(e)
         }
 
@@ -735,9 +735,15 @@ internal class SignEngine(
                 val approveParams = response.result as SignParams.ApprovalParams
                 val responderPublicKey = PublicKey(approveParams.responderPublicKey)
                 val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
-                jsonRpcInteractor.subscribe(sessionTopic) { error ->
+                try {
+                    jsonRpcInteractor.subscribe(sessionTopic) { error ->
+                        scope.launch {
+                            _engineEvent.emit(SDKError(InternalError(error)))
+                        }
+                    }
+                } catch (e: Exception) {
                     scope.launch {
-                        _engineEvent.emit(SDKError(InternalError(error)))
+                        _engineEvent.emit(SDKError(InternalError(e)))
                     }
                 }
             }
@@ -842,7 +848,7 @@ internal class SignEngine(
                             _engineEvent.emit(SDKError(InternalError(error)))
                         }
                     }
-                } catch (e: NoRelayConnectionException) {
+                } catch (e: Exception) {
                     scope.launch {
                         _engineEvent.emit(SDKError(InternalError(e)))
                     }

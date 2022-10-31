@@ -48,7 +48,7 @@ internal object PairingClient : PairingInterface {
                             .onEach { pairingTopic ->
                                 try {
                                     jsonRpcInteractor.subscribe(pairingTopic)
-                                } catch (_: NoRelayConnectionException) {}
+                                } catch (_: Exception) {}
                             }
                     }
                 }

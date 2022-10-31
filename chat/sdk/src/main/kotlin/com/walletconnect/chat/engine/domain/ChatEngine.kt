@@ -349,7 +349,7 @@ internal class ChatEngine(
                             _events.emit(SDKError(InternalError(error)))
                         }
                     }
-                } catch (e: NoRelayConnectionException) {
+                } catch (e: Exception) {
                     scope.launch {
                         _events.emit(SDKError(InternalError(e)))
                     }

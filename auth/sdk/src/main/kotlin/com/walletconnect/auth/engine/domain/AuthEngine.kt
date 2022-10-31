@@ -113,7 +113,7 @@ internal class AuthEngine(
                     jsonRpcInteractor.subscribe(responseTopic) { error ->
                         return@subscribe onFailure(error)
                     }
-                } catch (e: NoRelayConnectionException) {
+                } catch (e: Exception) {
                     return@publishJsonRpcRequest onFailure(e)
                 }
 
@@ -246,7 +246,7 @@ internal class AuthEngine(
                             _engineEvent.emit(SDKError(InternalError(error)))
                         }
                     }
-                } catch (e: NoRelayConnectionException) {
+                } catch (e: Exception) {
                     scope.launch {
                         _engineEvent.emit(SDKError(InternalError(e)))
                     }
