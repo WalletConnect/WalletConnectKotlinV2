@@ -30,19 +30,24 @@ internal class ChatProtocol : ChatInterface {
     @Throws(IllegalStateException::class)
     override fun initialize(init: Chat.Params.Init, onError: (Chat.Model.Error) -> Unit) {
         Logger.init()
-        wcKoinApp.run {
-            modules(
-                commonModule(),
-                cryptoModule(),
-                keyServerModule(keyServerUrl),
-                jsonRpcModule(),
-                storageModule(storageSuffix),
-                engineModule()
-            )
-        }
 
-        chatEngine = wcKoinApp.koin.get()
-        chatEngine.handleInitializationErrors { error -> onError(Chat.Model.Error(error)) }
+        try {
+            wcKoinApp.run {
+                modules(
+                    commonModule(),
+                    cryptoModule(),
+                    keyServerModule(keyServerUrl),
+                    jsonRpcModule(),
+                    storageModule(storageSuffix),
+                    engineModule()
+                )
+            }
+
+            chatEngine = wcKoinApp.koin.get()
+            chatEngine.setup()
+        } catch (e: Exception) {
+            onError(Chat.Model.Error(e))
+        }
     }
 
     override fun setChatDelegate(delegate: ChatInterface.ChatDelegate) {
