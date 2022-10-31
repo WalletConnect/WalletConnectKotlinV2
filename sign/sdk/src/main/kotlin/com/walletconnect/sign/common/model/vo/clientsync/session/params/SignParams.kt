@@ -13,7 +13,7 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.payload.Session
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
 import com.walletconnect.utils.DefaultId
 
-internal sealed class SignParamsVO : ClientParams {
+internal sealed class SignParams : ClientParams {
 
     @JsonClass(generateAdapter = true)
     internal data class SessionProposeParams(
@@ -23,7 +23,7 @@ internal sealed class SignParamsVO : ClientParams {
         val proposer: SessionProposer,
         @Json(name = "requiredNamespaces")
         val namespaces: Map<String, NamespaceVO.Proposal>,
-    ) : SignParamsVO()
+    ) : SignParams()
 
     @JsonClass(generateAdapter = true)
     internal data class ApprovalParams(
@@ -31,7 +31,7 @@ internal sealed class SignParamsVO : ClientParams {
         val relay: RelayProtocolOptions,
         @Json(name = "responderPublicKey")
         val responderPublicKey: String,
-    ) : SignParamsVO()
+    ) : SignParams()
 
     @JsonClass(generateAdapter = true)
     internal data class SessionSettleParams(
@@ -43,7 +43,7 @@ internal sealed class SignParamsVO : ClientParams {
         val namespaces: Map<String, NamespaceVO.Session>,
         @Json(name = "expiry")
         val expiry: Long,
-    ) : SignParamsVO()
+    ) : SignParams()
 
     @JsonClass(generateAdapter = true)
     internal data class SessionRequestParams(
@@ -51,24 +51,24 @@ internal sealed class SignParamsVO : ClientParams {
         val request: SessionRequestVO,
         @Json(name = "chainId")
         val chainId: String,
-    ) : SignParamsVO()
+    ) : SignParams()
 
     internal data class EventParams(
         @Json(name = "event")
         val event: SessionEventVO,
         @Json(name = "chainId")
         val chainId: String,
-    ) : SignParamsVO()
+    ) : SignParams()
 
     internal class UpdateNamespacesParams(
         @Json(name = "namespaces")
         val namespaces: Map<String, NamespaceVO.Session>,
-    ) : SignParamsVO()
+    ) : SignParams()
 
     internal data class ExtendParams(
         @Json(name = "expiry")
         val expiry: Long,
-    ) : SignParamsVO()
+    ) : SignParams()
 
     @JsonClass(generateAdapter = true)
     internal class DeleteParams(
@@ -76,8 +76,8 @@ internal sealed class SignParamsVO : ClientParams {
         val code: Int = Int.DefaultId,
         @Json(name = "message")
         val message: String,
-    ) : SignParamsVO()
+    ) : SignParams()
 
     @Suppress("CanSealedSubClassBeObject")
-    internal class PingParams : SignParamsVO()
+    internal class PingParams : SignParams()
 }

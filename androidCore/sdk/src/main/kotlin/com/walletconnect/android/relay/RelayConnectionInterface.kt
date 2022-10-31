@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface RelayConnectionInterface : RelayInterface {
     val isConnectionAvailable: StateFlow<Boolean>
-    val initializationErrorsFlow: Flow<WalletConnectException>
+    val wsConnectionFailedFlow: Flow<WalletConnectException>
 
     fun connect(onError: (String) -> Unit)
     fun disconnect(onError: (String) -> Unit)

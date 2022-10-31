@@ -31,18 +31,22 @@ internal class AuthProtocol : AuthInterface {
     override fun initialize(init: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit) {
         Logger.init()
 
-        with(init) {
-            wcKoinApp.modules(
-                commonModule(),
-                cryptoModule(),
-                jsonRpcModule(),
-                storageModule(),
-                engineModule(iss)
-            )
-        }
+        try {
+            with(init) {
+                wcKoinApp.modules(
+                    commonModule(),
+                    cryptoModule(),
+                    jsonRpcModule(),
+                    storageModule(),
+                    engineModule(iss)
+                )
+            }
 
-        authEngine = wcKoinApp.koin.get()
-        authEngine.handleInitializationErrors { error -> onError(Auth.Model.Error(error)) }
+            authEngine = wcKoinApp.koin.get()
+            authEngine.setup()
+        } catch (e: Exception) {
+            onError(Auth.Model.Error(e))
+        }
     }
 
     @Throws(IllegalStateException::class)

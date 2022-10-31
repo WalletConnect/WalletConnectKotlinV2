@@ -2,7 +2,6 @@
 
 package com.walletconnect.android.pairing
 
-import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
@@ -46,7 +45,15 @@ internal object PairingClient : PairingInterface {
                     launch(Dispatchers.IO) {
                         pairingRepository.getListOfPairings()
                             .map { pairing -> pairing.topic }
-                            .onEach { pairingTopic -> jsonRpcInteractor.subscribe(pairingTopic) }
+                            .onEach { pairingTopic ->
+                                try {
+                                    jsonRpcInteractor.subscribe(pairingTopic)
+                                } catch (e: Exception) {
+                                    scope.launch {
+                                        internalErrorFlow.emit(InternalError(e))
+                                    }
+                                }
+                            }
                     }
                 }
             }
@@ -61,7 +68,8 @@ internal object PairingClient : PairingInterface {
                 }
             }
     }
-    override val findWrongMethodsFlow: Flow<InternalError> by lazy {
+    private val internalErrorFlow = MutableSharedFlow<InternalError>()
+    private val jsonRpcErrorFlow: Flow<InternalError> by lazy {
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.method !in setOfRegisteredMethods }
             .onEach {
@@ -71,6 +79,7 @@ internal object PairingClient : PairingInterface {
                 InternalError(Exception(Invalid.MethodUnsupported(it.method).message))
             }
     }
+    override val findWrongMethodsFlow: Flow<InternalError> by lazy { merge(internalErrorFlow, jsonRpcErrorFlow) }
 
     fun initialize(metaData: Core.Model.AppMetaData) {
         wcKoinApp.modules(module {
@@ -184,7 +193,7 @@ internal object PairingClient : PairingInterface {
                 try {
                     pairingRepository.insertPairing(activePairing)
                     jsonRpcInteractor.subscribe(activePairing.topic)
-                } catch (e: SQLiteException) {
+                } catch (e: Exception) {
                     crypto.removeKeys(walletConnectUri.topic.value)
                     jsonRpcInteractor.unsubscribe(activePairing.topic)
                     onError(Core.Model.Error(e))
@@ -280,7 +289,6 @@ internal object PairingClient : PairingInterface {
                 scope.launch {
                     supervisorScope { resubscribeToPairingFlow.launchIn(this) }
                     supervisorScope { collectJsonRpcRequestsFlow.launchIn(this) }
-                    supervisorScope { findWrongMethodsFlow.launchIn(this) }
                 }
             }
         } ?: throw IllegalStateException("Core cannot be initialized by itself")
@@ -323,6 +331,5 @@ internal object PairingClient : PairingInterface {
         } catch (e: Exception) {
             errorLambda(e)
         }
-
     }
 }

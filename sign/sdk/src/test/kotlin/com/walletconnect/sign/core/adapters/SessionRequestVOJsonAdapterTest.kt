@@ -4,7 +4,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.sign.common.adapters.SessionRequestVOJsonAdapter
-import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpcVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
 import org.intellij.lang.annotations.Language
 import org.json.JSONArray
@@ -41,7 +41,7 @@ internal class SessionRequestVOJsonAdapterTest {
           }
         """.trimIndent()
     }
-    private val adapter by lazy { moshi.adapter(SignRpcVO.SessionRequest::class.java) }
+    private val adapter by lazy { moshi.adapter(SignRpc.SessionRequest::class.java) }
     private val deserializedJson by lazy { adapter.fromJson(stringParamsWithNamedJsonArray) }
     private val serializedParams by lazy { requireNotNull(deserializedJson?.params?.request?.params) }
 

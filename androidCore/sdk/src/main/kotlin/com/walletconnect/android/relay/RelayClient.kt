@@ -52,7 +52,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
             .stateIn(scope, SharingStarted.Eagerly, false)
     }
 
-    override val initializationErrorsFlow: Flow<WalletConnectException>
+    override val wsConnectionFailedFlow: Flow<WalletConnectException>
         get() =
             eventsFlow
                 .onEach { event: Relay.Model.Event ->
