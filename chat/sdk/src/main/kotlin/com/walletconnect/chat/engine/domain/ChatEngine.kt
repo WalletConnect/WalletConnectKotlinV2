@@ -11,7 +11,6 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.exception.InvalidProjectIdException
-import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope

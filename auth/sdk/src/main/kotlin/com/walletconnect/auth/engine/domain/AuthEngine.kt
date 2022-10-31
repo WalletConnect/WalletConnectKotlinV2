@@ -2,21 +2,19 @@
 
 package com.walletconnect.auth.engine.domain
 
-import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
-import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.InvalidProjectIdException
 import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.android.pairing.toClient
 import com.walletconnect.auth.client.mapper.toCommon
@@ -40,7 +38,6 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope

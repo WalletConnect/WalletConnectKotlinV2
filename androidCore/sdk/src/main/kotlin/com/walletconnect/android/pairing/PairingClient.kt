@@ -48,7 +48,11 @@ internal object PairingClient : PairingInterface {
                             .onEach { pairingTopic ->
                                 try {
                                     jsonRpcInteractor.subscribe(pairingTopic)
-                                } catch (_: Exception) {}
+                                } catch (e: Exception) {
+                                    scope.launch {
+                                        internalErrorFlow.emit(InternalError(e))
+                                    }
+                                }
                             }
                     }
                 }
@@ -64,7 +68,8 @@ internal object PairingClient : PairingInterface {
                 }
             }
     }
-    override val findWrongMethodsFlow: Flow<InternalError> by lazy {
+    private val internalErrorFlow = MutableSharedFlow<InternalError>()
+    private val jsonRpcErrorFlow: Flow<InternalError> by lazy {
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.method !in setOfRegisteredMethods }
             .onEach {
@@ -74,6 +79,7 @@ internal object PairingClient : PairingInterface {
                 InternalError(Exception(Invalid.MethodUnsupported(it.method).message))
             }
     }
+    override val findWrongMethodsFlow: Flow<InternalError> by lazy { merge(internalErrorFlow, jsonRpcErrorFlow) }
 
     fun initialize(metaData: Core.Model.AppMetaData) {
         wcKoinApp.modules(module {
@@ -283,7 +289,6 @@ internal object PairingClient : PairingInterface {
                 scope.launch {
                     supervisorScope { resubscribeToPairingFlow.launchIn(this) }
                     supervisorScope { collectJsonRpcRequestsFlow.launchIn(this) }
-                    supervisorScope { findWrongMethodsFlow.launchIn(this) }
                 }
             }
         } ?: throw IllegalStateException("Core cannot be initialized by itself")
@@ -326,6 +331,5 @@ internal object PairingClient : PairingInterface {
         } catch (e: Exception) {
             errorLambda(e)
         }
-
     }
 }
