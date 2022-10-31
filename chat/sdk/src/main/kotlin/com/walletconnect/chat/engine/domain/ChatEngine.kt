@@ -10,9 +10,11 @@ import com.walletconnect.android.impl.utils.*
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.GenericException
-import com.walletconnect.android.internal.common.exception.WalletConnectException
+import com.walletconnect.android.internal.common.exception.InvalidProjectIdException
+import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.chat.common.exceptions.InvalidAccountIdException
 import com.walletconnect.chat.common.exceptions.PeerError
 import com.walletconnect.chat.common.json_rpc.ChatParams
@@ -22,6 +24,7 @@ import com.walletconnect.chat.common.model.AccountIdWithPublicKey
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterAccountUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveAccountUseCase
 import com.walletconnect.chat.engine.model.EngineDO
+import com.walletconnect.chat.json_rpc.JsonRpcMethod
 import com.walletconnect.chat.storage.ChatStorageRepository
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -35,21 +38,44 @@ internal class ChatEngine(
     private val resolveAccountUseCase: ResolveAccountUseCase,
     private val keyManagementRepository: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val chatStorage: ChatStorageRepository
+    private val chatStorage: ChatStorageRepository,
+    private val pairingInterface: PairingInterface
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
     private val inviteRequestMap: MutableMap<Long, WCRequest> = mutableMapOf()
 
     init {
-        collectJsonRpcRequests()
-        collectPeerResponses()
-        resubscribeToInviteTopic()
-        collectInternalErrors()
+        pairingInterface.register(
+            JsonRpcMethod.WC_CHAT_INVITE,
+            JsonRpcMethod.WC_CHAT_MESSAGE,
+            JsonRpcMethod.WC_CHAT_LEAVE,
+            JsonRpcMethod.WC_CHAT_PING
+        )
     }
 
-    fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-        jsonRpcInteractor.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
+    fun setup() {
+        jsonRpcInteractor.wsConnectionFailedFlow.onEach { walletConnectException ->
+            when (walletConnectException) {
+                is ProjectIdDoesNotExistException, is InvalidProjectIdException -> _events.emit(ConnectionState(false, walletConnectException))
+                else -> _events.emit(SDKError(InternalError(walletConnectException)))
+            }
+        }.launchIn(scope)
+
+        jsonRpcInteractor.isConnectionAvailable
+            .onEach { isAvailable -> _events.emit(ConnectionState(isAvailable)) }
+            .filter { isAvailable: Boolean -> isAvailable }
+            .onEach {
+                coroutineScope {
+                    launch(Dispatchers.IO) {
+                        trySubscribeToInviteTopic()
+                    }
+                }
+                collectJsonRpcRequests()
+                collectPeerResponses()
+                collectInternalErrors()
+            }
+            .launchIn(scope)
     }
 
     internal fun registerAccount(
@@ -105,36 +131,47 @@ internal class ChatEngine(
         }
     }
 
-    internal fun invite(peerAccount: AccountId, invite: EngineDO.Invite, onFailure: (Throwable) -> Unit) = try {
+    internal fun invite(peerAccount: AccountId, invite: EngineDO.Invite, onFailure: (Throwable) -> Unit) {
         addContact(AccountIdWithPublicKey(peerAccount, PublicKey(invite.publicKey))) { error ->
             Logger.error("Error while adding new account: $error")
+            return@addContact onFailure(error)
         }
-        val senderPublicKey = keyManagementRepository.generateKeyPair()
-        val peerPublicKey = PublicKey(invite.publicKey)
-        val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(senderPublicKey, peerPublicKey)
-        val inviteTopic = keyManagementRepository.getTopicFromKey(peerPublicKey)
-        keyManagementRepository.setKeyAgreement(inviteTopic, senderPublicKey, peerPublicKey)
+        val senderPublicKey = try {
+            keyManagementRepository.generateKeyPair()
+        } catch (e: Exception) {
+            return onFailure(e)
+        }
 
-        val participants = Participants(senderPublicKey = senderPublicKey, receiverPublicKey = peerPublicKey)
-        val inviteParams = ChatParams.InviteParams(invite.message, invite.accountId.value, senderPublicKey.keyAsHex, invite.signature)
+        try {
+            val peerPublicKey = PublicKey(invite.publicKey)
+            val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(senderPublicKey, peerPublicKey)
+            val inviteTopic = keyManagementRepository.getTopicFromKey(peerPublicKey)
+            keyManagementRepository.setKeyAgreement(inviteTopic, senderPublicKey, peerPublicKey)
 
-        val payload = ChatRpc.ChatInvite(id = generateId(), params = inviteParams)
-        val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
+            val participants = Participants(senderPublicKey = senderPublicKey, receiverPublicKey = peerPublicKey)
+            val inviteParams = ChatParams.InviteParams(invite.message, invite.accountId.value, senderPublicKey.keyAsHex, invite.signature)
 
-        keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
-        jsonRpcInteractor.subscribe(acceptTopic)
+            val payload = ChatRpc.ChatInvite(id = generateId(), params = inviteParams)
+            val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
 
-        val irnParams = IrnParams(Tags.CHAT_INVITE, Ttl(DAY_IN_SECONDS), true)
-        jsonRpcInteractor.publishJsonRpcRequest(inviteTopic, irnParams, payload, EnvelopeType.ONE, participants,
-            { Logger.log("Chat invite sent successfully") },
-            { throwable ->
-                Logger.log("Chat invite error: $throwable")
-                jsonRpcInteractor.unsubscribe(acceptTopic)
-                onFailure(throwable)
-            })
+            keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
+            jsonRpcInteractor.subscribe(acceptTopic) { error ->
+                return@subscribe onFailure(error)
+            }
 
-    } catch (error: Exception) {
-        onFailure(error)
+            val irnParams = IrnParams(Tags.CHAT_INVITE, Ttl(DAY_IN_SECONDS), true)
+            jsonRpcInteractor.publishJsonRpcRequest(inviteTopic, irnParams, payload, EnvelopeType.ONE, participants,
+                { Logger.log("Chat invite sent successfully") },
+                { throwable ->
+                    Logger.log("Chat invite error: $throwable")
+                    jsonRpcInteractor.unsubscribe(acceptTopic)
+                    onFailure(throwable)
+                }
+            )
+        } catch (error: Exception) {
+            keyManagementRepository.removeKeys(senderPublicKey.keyAsHex)
+            onFailure(error)
+        }
     }
 
     internal fun addContact(accountIdWithPublicKeyVO: AccountIdWithPublicKey, onFailure: (Throwable) -> Unit) = try {
@@ -170,7 +207,9 @@ internal class ChatEngine(
         val threadSymmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(publicKey, senderPublicKey)
         val threadTopic = keyManagementRepository.getTopicFromKey(threadSymmetricKey)
         keyManagementRepository.setKey(threadSymmetricKey, threadTopic.value)
-        jsonRpcInteractor.subscribe(threadTopic)
+        jsonRpcInteractor.subscribe(threadTopic) { error ->
+            return@subscribe onFailure(error)
+        }
         onSuccess(threadTopic.value)
     } catch (error: Exception) {
         onFailure(error)
@@ -236,7 +275,7 @@ internal class ChatEngine(
         pingPayload: ChatRpc.ChatPing,
         onSuccess: (String) -> Unit,
         topic: String,
-        onFailure: (Throwable) -> Unit
+        onFailure: (Throwable) -> Unit,
     ) {
         Logger.log("Ping sent successfully")
         scope.launch {
@@ -257,19 +296,6 @@ internal class ChatEngine(
                 }
             } catch (e: TimeoutCancellationException) {
                 onFailure(e)
-            }
-        }
-    }
-
-    private fun collectJsonRpcRequests() {
-        scope.launch {
-            jsonRpcInteractor.clientSyncJsonRpc.collect { request ->
-                when (val params = request.params) {
-                    is ChatParams.InviteParams -> onInviteRequest(request, params)
-                    is ChatParams.MessageParams -> onMessage(request, params)
-                    is ChatParams.LeaveParams -> onLeft(request)
-                    is ChatParams.PingParams -> onPong(request)
-                }
             }
         }
     }
@@ -302,16 +328,6 @@ internal class ChatEngine(
         jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_PING_RESPONSE, Ttl(THIRTY_SECONDS)))
     }
 
-    private fun collectPeerResponses() {
-        scope.launch {
-            jsonRpcInteractor.peerResponse.collect { response ->
-                when (response.params) {
-                    is ChatParams.InviteParams -> onInviteResponse(response)
-                }
-            }
-        }
-    }
-
     private fun onInviteResponse(wcResponse: WCResponse) {
         when (val response = wcResponse.response) {
             is JsonRpcResponse.JsonRpcError -> {
@@ -326,7 +342,17 @@ internal class ChatEngine(
                 val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(selfPubKey, pubKeyZ)
                 val threadTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
                 keyManagementRepository.setKey(symmetricKey, threadTopic.value)
-                jsonRpcInteractor.subscribe(threadTopic)
+                try {
+                    jsonRpcInteractor.subscribe(threadTopic) { error ->
+                        scope.launch {
+                            _events.emit(SDKError(InternalError(error)))
+                        }
+                    }
+                } catch (e: Exception) {
+                    scope.launch {
+                        _events.emit(SDKError(InternalError(e)))
+                    }
+                }
                 //TODO: Add adding thread to storage. For Alpha we will use only emitted event.
                 scope.launch { _events.emit(EngineDO.Events.OnJoined(threadTopic.value)) }
             }
@@ -344,19 +370,36 @@ internal class ChatEngine(
             }
     }
 
-    private fun resubscribeToInviteTopic() {
-        jsonRpcInteractor.isConnectionAvailable
-            .onEach { isAvailable -> _events.emit(ConnectionState(isAvailable)) }
-            .filter { isAvailable: Boolean -> isAvailable }
-            .onEach { coroutineScope { launch(Dispatchers.IO) { trySubscribeToInviteTopic() } } }
-            .launchIn(scope)
+    private fun collectJsonRpcRequests() {
+        jsonRpcInteractor.clientSyncJsonRpc
+            .filter { request -> request.params is ChatParams }
+            .onEach { request ->
+                when (val params = request.params) {
+                    is ChatParams.InviteParams -> onInviteRequest(request, params)
+                    is ChatParams.MessageParams -> onMessage(request, params)
+                    is ChatParams.LeaveParams -> onLeft(request)
+                    is ChatParams.PingParams -> onPong(request)
+                }
+            }.launchIn(scope)
+    }
+
+    private fun collectPeerResponses() {
+        scope.launch {
+            jsonRpcInteractor.peerResponse.collect { response ->
+                when (response.params) {
+                    is ChatParams.InviteParams -> onInviteResponse(response)
+                }
+            }
+        }
     }
 
     private fun trySubscribeToInviteTopic() {
         try {
             val publicKey = keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)
             val topic = keyManagementRepository.getTopicFromKey(publicKey)
-            jsonRpcInteractor.subscribe(topic)
+            jsonRpcInteractor.subscribe(topic) { error ->
+                scope.launch { _events.emit(SDKError(InternalError(error))) }
+            }
             Logger.log("Listening for invite on: $topic, pubKey X:$publicKey")
         } catch (error: Exception) {
             scope.launch { _events.emit(SDKError(InternalError(error))) }
@@ -364,7 +407,7 @@ internal class ChatEngine(
     }
 
     private fun collectInternalErrors() {
-        jsonRpcInteractor.internalErrors
+        merge(jsonRpcInteractor.internalErrors, pairingInterface.findWrongMethodsFlow)
             .onEach { exception -> _events.emit(SDKError(exception)) }
             .launchIn(scope)
     }
