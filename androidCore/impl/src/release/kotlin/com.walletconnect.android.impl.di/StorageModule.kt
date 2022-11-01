@@ -6,6 +6,7 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import androidx.security.crypto.MasterKeys
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
@@ -14,6 +15,7 @@ import com.walletconnect.util.randomBytes
 import net.sqlcipher.database.SupportFactory
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
+import org.koin.core.scope.Scope
 import org.koin.dsl.module
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -23,75 +25,168 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-fun generateSecretKey(secretKeyAlias: String): SecretKey {
-    val spec = KeyGenParameterSpec
-        .Builder(secretKeyAlias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
-        .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+private const val ANDROID_KEYSTORE = "AndroidKeyStore"
+private const val KEYSTORE_ALIAS = "_wc_db_key_"
+private const val SHARED_PREFS_FILENAME = "db_key_store"
+private const val KEY_SIZE = 256
+private val keyStore: KeyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+private val cipher: Cipher = "${KeyProperties.KEY_ALGORITHM_AES}/${KeyProperties.BLOCK_MODE_GCM}/${KeyProperties.ENCRYPTION_PADDING_NONE}".let { transformation ->
+    Cipher.getInstance(transformation)
+}
+private val keyGenParameterSpec: KeyGenParameterSpec = KeyGenParameterSpec.Builder(KEYSTORE_ALIAS, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+    .setKeySize(KEY_SIZE)
+    .build()
+
+private fun Scope.createSharedPreferences(): SharedPreferences {
+    val masterKey = MasterKey.Builder(androidContext())
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .setKeyGenParameterSpec(keyGenParameterSpec)
         .build()
 
-    return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore").run {
-        init(spec)
+    return EncryptedSharedPreferences.create(
+        androidContext(),
+        SHARED_PREFS_FILENAME,
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
+}
+
+private fun Scope.deleteSharedPreferences() {
+    androidContext().deleteSharedPreferences(SHARED_PREFS_FILENAME)
+    keyStore.deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+}
+
+private fun Scope.deleteDBs() {
+    androidContext().databaseList().forEach { dbName ->
+        androidContext().deleteDatabase(dbName)
+    }
+}
+
+private fun getSecretKey(): SecretKey {
+    return (keyStore.getEntry(keyGenParameterSpec.keystoreAlias, null) as? KeyStore.SecretKeyEntry)?.secretKey ?: KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE).run {
+        init(keyGenParameterSpec)
         generateKey()
     }
 }
 
+//private fun generateSecretKey(): SecretKey {
+//    return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore").run {
+//        init(keyGenParameterSpec)
+//        generateKey()
+//    }
+//}
+
 private fun signingModule() = module {
 
-    single<KeyStore> {
-        KeyStore.getInstance("AndroidKeyStore").apply {
-            load(null)
-        }
-    }
+//    single<KeyStore> {
+//        KeyStore.getInstance("AndroidKeyStore").apply {
+//            load(null)
+//        }
+//    }
 
-    single<Cipher> {
-        val TRANSFORMATION = "${KeyProperties.KEY_ALGORITHM_AES}/${KeyProperties.BLOCK_MODE_GCM}/${KeyProperties.ENCRYPTION_PADDING_NONE}"
+//    single<Cipher> {
+//        val TRANSFORMATION = "${KeyProperties.KEY_ALGORITHM_AES}/${KeyProperties.BLOCK_MODE_GCM}/${KeyProperties.ENCRYPTION_PADDING_NONE}"
+//
+//        Cipher.getInstance(TRANSFORMATION)
+//    }
 
-        Cipher.getInstance(TRANSFORMATION)
-    }
+//    single(named(AndroidCoreDITags.DB_ALIAS)) {
+//        val alias = "_wc_db_key_" // TODO: add storageSuffix to alias
+//        val keySize = 256
+//        val keyGenParameterSpec = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+//            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+//            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+//            .setKeySize(keySize)
+//            .build()
+//
+//        // TODO: Replace with new MasterKey API
+//        MasterKeys.getOrCreate(keyGenParameterSpec)
+//    }
 
-    single(named(AndroidCoreDITags.DB_ALIAS)) {
-        val alias = "_wc_db_key_" // TODO: add storageSuffix to alias
-        val keySize = 256
-        val keyGenParameterSpec = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
-            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-            .setKeySize(keySize)
-            .build()
+//    single(named(AndroidCoreDITags.DB_SECRET_KEY)) {
+//        val alias = get<String>(named(AndroidCoreDITags.DB_ALIAS))
+//        val keyStore: KeyStore = get()
+//        val secretKeyEntry = keyStore.getEntry(alias, null) as? KeyStore.SecretKeyEntry
+//
+//        secretKeyEntry?.secretKey ?: generateSecretKey()
+//    }
 
-        // TODO: Replace with new MasterKey API
-        MasterKeys.getOrCreate(keyGenParameterSpec)
-    }
+//    single(named(AndroidCoreDITags.DB_KEY_STORAGE)) {
+//        val sharedPrefsFile = "db_key_store"
+//
+//        EncryptedSharedPreferences.create(
+//            sharedPrefsFile,
+//            get(named(AndroidCoreDITags.DB_ALIAS)),
+//            androidContext(),
+//            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+//            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+//        )
+//    }
 
-    single(named(AndroidCoreDITags.DB_SECRET_KEY)) {
-        val alias = get<String>(named(AndroidCoreDITags.DB_ALIAS))
-        val keyStore: KeyStore = get()
-        val secretKeyEntry = keyStore.getEntry(alias, null) as? KeyStore.SecretKeyEntry
-
-        secretKeyEntry?.secretKey ?: generateSecretKey(alias)
-    }
-
-    single(named(AndroidCoreDITags.DB_KEY_STORAGE)) {
-        val sharedPrefsFile = "db_key_store"
-
-        EncryptedSharedPreferences.create(
-            sharedPrefsFile,
-            get(named(AndroidCoreDITags.DB_ALIAS)),
-            androidContext(),
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-    }
+//    single<ByteArray>(named(AndroidCoreDITags.DB_PASSPHRASE)) {
+//        val SP_ENCRYPTED_KEY = "encryptedDBKey"
+//        val cipher: Cipher = get()
+//        val sharedPreferences: SharedPreferences = get(named(AndroidCoreDITags.DB_KEY_STORAGE))
+//        val encryptedDBKeyFromStore: ByteArray? = sharedPreferences.getString(SP_ENCRYPTED_KEY, null)?.let { Base64.decode(it, Base64.DEFAULT) }
+//
+//        if (encryptedDBKeyFromStore == null) {
+//            val generatedKeyForDBByteArray = randomBytes(32)
+//            val secretKey: SecretKey = get(named(AndroidCoreDITags.DB_SECRET_KEY))
+//            cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+//
+//            val encryptedKey: ByteArray = cipher.doFinal(generatedKeyForDBByteArray)
+//            val iv: ByteArray = cipher.iv
+//            val ivAndEncryptedKey = ByteArray(Integer.BYTES + iv.size + encryptedKey.size)
+//
+//            ByteBuffer.wrap(ivAndEncryptedKey).run {
+//                order(ByteOrder.BIG_ENDIAN)
+//                putInt(iv.size)
+//                put(iv)
+//                put(encryptedKey)
+//            }
+//
+//            sharedPreferences.edit().putString(SP_ENCRYPTED_KEY, Base64.encodeToString(ivAndEncryptedKey, Base64.NO_WRAP)).apply()
+//
+//            generatedKeyForDBByteArray
+//        } else {
+//            val buffer = ByteBuffer.wrap(encryptedDBKeyFromStore).apply {
+//                order(ByteOrder.BIG_ENDIAN)
+//            }
+//            val ivLength = buffer.int
+//            val iv = ByteArray(ivLength).apply {
+//                buffer.get(this)
+//            }
+//            val encryptedKey = ByteArray(encryptedDBKeyFromStore.size - Integer.BYTES - ivLength).apply {
+//                buffer.get(this)
+//            }
+//
+//            val secretKey: SecretKey = get(named(AndroidCoreDITags.DB_SECRET_KEY))
+//            val ivSpec = GCMParameterSpec(128, iv)
+//            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
+//
+//            cipher.doFinal(encryptedKey)
+//        }
+//    }
 
     single<ByteArray>(named(AndroidCoreDITags.DB_PASSPHRASE)) {
         val SP_ENCRYPTED_KEY = "encryptedDBKey"
-        val cipher: Cipher = get()
-        val sharedPreferences: SharedPreferences = get(named(AndroidCoreDITags.DB_KEY_STORAGE))
-        val encryptedDBKeyFromStore: ByteArray? = sharedPreferences.getString(SP_ENCRYPTED_KEY, null)?.let { Base64.decode(it, Base64.DEFAULT) }
+        val sharedPreferences: SharedPreferences = try {
+            createSharedPreferences()
+        } catch (e: Exception) {
+            deleteSharedPreferences()
+            deleteDBs()
+            createSharedPreferences()
+        }
+        val encryptedDBKeyFromStore: ByteArray? = sharedPreferences.getString(SP_ENCRYPTED_KEY, null)?.let { encryptedDBKey ->
+            Base64.decode(encryptedDBKey, Base64.DEFAULT)
+        }
 
         if (encryptedDBKeyFromStore == null) {
             val generatedKeyForDBByteArray = randomBytes(32)
-            val secretKey: SecretKey = get(named(AndroidCoreDITags.DB_SECRET_KEY))
+            val secretKey: SecretKey = getSecretKey()
             cipher.init(Cipher.ENCRYPT_MODE, secretKey)
 
             val encryptedKey: ByteArray = cipher.doFinal(generatedKeyForDBByteArray)
@@ -120,7 +215,7 @@ private fun signingModule() = module {
                 buffer.get(this)
             }
 
-            val secretKey: SecretKey = get(named(AndroidCoreDITags.DB_SECRET_KEY))
+            val secretKey: SecretKey = getSecretKey()
             val ivSpec = GCMParameterSpec(128, iv)
             cipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
 
