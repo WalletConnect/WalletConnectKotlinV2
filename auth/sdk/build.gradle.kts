@@ -9,7 +9,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "auth"
-    extra[KEY_PUBLISH_VERSION] = "1.0.0"
+    extra[KEY_PUBLISH_VERSION] = "1.1.0"
     extra[KEY_SDK_NAME] = "Auth"
 }
 
@@ -20,7 +20,7 @@ android {
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
 
-        buildConfigField(type = "String", name= "sdkVersion", value = "\"1.0.0-alpha01\"")
+        buildConfigField(type = "String", name = "sdkVersion", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -51,7 +51,7 @@ sqldelight {
 
 dependencies {
     debugImplementation(project(":androidCore:impl"))
-    releaseImplementation("com.walletconnect:android-core-impl:1.1.0")
+    releaseImplementation("com.walletconnect:android-core-impl:1.2.0")
 
     okhttp()
     timber()

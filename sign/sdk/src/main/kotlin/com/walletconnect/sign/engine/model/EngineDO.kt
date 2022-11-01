@@ -93,12 +93,6 @@ internal sealed class EngineDO {
         data class Error(val errorMessage: String) : SettledSessionResponse()
     }
 
-    //todo: remove
-    internal sealed class SessionUpdateAccountsResponse : EngineDO(), EngineEvent {
-        data class Result(val topic: Topic, val accounts: List<String>) : SessionUpdateAccountsResponse()
-        data class Error(val errorMessage: String) : SessionUpdateAccountsResponse()
-    }
-
     internal sealed class SessionUpdateNamespacesResponse : EngineDO(), EngineEvent {
         data class Result(val topic: Topic, val namespaces: Map<String, Namespace.Session>) : SessionUpdateNamespacesResponse()
         data class Error(val errorMessage: String) : SessionUpdateNamespacesResponse()

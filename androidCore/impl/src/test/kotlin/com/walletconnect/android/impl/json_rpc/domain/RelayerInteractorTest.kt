@@ -19,7 +19,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.runBlockingTest
-import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -93,7 +92,7 @@ internal class RelayerInteractorTest {
 
     private fun publishJsonRpcRequests() {
         val irnParamsVO = IrnParams(Tags.SESSION_PING, Ttl(300))
-        sut.publishJsonRpcRequests(
+        sut.publishJsonRpcRequest(
             topicVO,
             irnParamsVO,
             settlementSequence,
@@ -214,11 +213,11 @@ internal class RelayerInteractorTest {
 
     @Test
     fun `InitializationErrorsFlow emits value only on OnConnectionFailed`() = runBlockingTest {
-        every { relay.initializationErrorsFlow } returns flowOf(
+        every { relay.wsConnectionFailedFlow } returns flowOf(
             object: WalletConnectException("Test") {}
         )
 
-        val job = sut.initializationErrorsFlow.onEach { walletConnectException ->
+        val job = sut.wsConnectionFailedFlow.onEach { walletConnectException ->
             onError(walletConnectException)
         }.launchIn(this)
 

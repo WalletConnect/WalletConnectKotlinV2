@@ -10,17 +10,17 @@ import kotlinx.coroutines.flow.StateFlow
 interface JsonRpcInteractorInterface {
     val clientSyncJsonRpc: SharedFlow<WCRequest>
     val peerResponse: SharedFlow<WCResponse>
-    val initializationErrorsFlow: Flow<WalletConnectException>
+    val wsConnectionFailedFlow: Flow<WalletConnectException>
     val isConnectionAvailable: StateFlow<Boolean>
     val internalErrors: SharedFlow<InternalError>
 
     fun checkConnectionWorking()
 
-    fun subscribe(topic: Topic)
+    fun subscribe(topic: Topic, onFailure: (Throwable) -> Unit = {})
 
     fun unsubscribe(topic: Topic, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {})
 
-    fun publishJsonRpcRequests(
+    fun publishJsonRpcRequest(
         topic: Topic,
         params: IrnParams,
         payload: JsonRpcClientSync<*>,

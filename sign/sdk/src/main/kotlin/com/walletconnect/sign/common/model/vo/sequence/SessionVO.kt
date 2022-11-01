@@ -9,7 +9,7 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
-import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParamsVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toMapOfNamespacesVOSession
 
@@ -35,7 +35,7 @@ internal data class SessionVO(
         @JvmSynthetic
         internal fun createUnacknowledgedSession(
             sessionTopic: Topic,
-            proposal: SignParamsVO.SessionProposeParams,
+            proposal: SignParams.SessionProposeParams,
             selfParticipant: SessionParticipantVO,
             sessionExpiry: Long,
             namespaces: Map<String, EngineDO.Namespace.Session>
@@ -59,7 +59,7 @@ internal data class SessionVO(
         @JvmSynthetic
         internal fun createAcknowledgedSession(
             sessionTopic: Topic,
-            settleParams: SignParamsVO.SessionSettleParams,
+            settleParams: SignParams.SessionSettleParams,
             selfPublicKey: PublicKey,
             selfMetadata: AppMetaData,
             proposalNamespaces: Map<String, NamespaceVO.Proposal>

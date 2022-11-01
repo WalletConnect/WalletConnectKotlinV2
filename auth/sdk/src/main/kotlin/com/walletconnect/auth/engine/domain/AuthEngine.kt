@@ -2,17 +2,19 @@
 
 package com.walletconnect.auth.engine.domain
 
-import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.InvalidProjectIdException
+import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.android.pairing.toClient
 import com.walletconnect.auth.client.mapper.toCommon
@@ -36,12 +38,12 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 internal class AuthEngine(
-    private val relayer: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val getPendingJsonRpcHistoryEntriesUseCase: GetPendingJsonRpcHistoryEntriesUseCase,
     private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
     private val crypto: KeyManagementRepository,
@@ -57,18 +59,32 @@ internal class AuthEngine(
     private val pairingTopicToResponseTopicMap: MutableMap<Topic, Topic> = mutableMapOf()
 
     init {
-        resubscribeToSequences()
-        collectJsonRpcRequests()
-        collectJsonRpcResponses()
-        collectInternalErrors()
-
         pairingInterface.register(
             JsonRpcMethod.WC_AUTH_REQUEST
         )
     }
 
-    internal fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-        relayer.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
+    fun setup() {
+        jsonRpcInteractor.wsConnectionFailedFlow.onEach { walletConnectException ->
+            when(walletConnectException) {
+                is ProjectIdDoesNotExistException, is InvalidProjectIdException -> _engineEvent.emit(ConnectionState(false, walletConnectException))
+                else -> _engineEvent.emit(SDKError(InternalError(walletConnectException)))
+            }
+        }.launchIn(scope)
+
+        jsonRpcInteractor.isConnectionAvailable
+            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
+            .filter { isAvailable: Boolean -> isAvailable }
+            .onEach {
+                supervisorScope {
+                    launch(Dispatchers.IO) { resubscribeToPendingRequestsTopics() }
+                }
+
+                collectJsonRpcRequests()
+                collectJsonRpcResponses()
+                collectInternalErrors()
+            }
+            .launchIn(scope)
     }
 
     internal fun request(
@@ -84,12 +100,20 @@ internal class AuthEngine(
         val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
         val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
         val pairingTopic = pairing.topic
+        crypto.setKey(responsePublicKey, "${SELF_PARTICIPANT_CONTEXT}${responseTopic.value}")
 
-        crypto.setSelfParticipant(responsePublicKey, responseTopic)
-        relayer.publishJsonRpcRequests(pairingTopic, irnParams, authRequest,
+        jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
             onSuccess = {
                 Logger.log("Auth request sent successfully on topic:${pairingTopic}, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
-                relayer.subscribe(responseTopic)
+
+                try {
+                    jsonRpcInteractor.subscribe(responseTopic) { error ->
+                        return@subscribe onFailure(error)
+                    }
+                } catch (e: Exception) {
+                    return@publishJsonRpcRequest onFailure(e)
+                }
+
                 pairingTopicToResponseTopicMap[pairingTopic] = responseTopic
                 onSuccess()
             },
@@ -130,10 +154,10 @@ internal class AuthEngine(
         val senderPublicKey: PublicKey = crypto.generateKeyPair()
         val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(senderPublicKey, receiverPublicKey)
         val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
-        crypto.setSymmetricKey(responseTopic, symmetricKey)
+        crypto.setKey(symmetricKey, responseTopic.value)
 
         val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
-        relayer.publishJsonRpcResponse(
+        jsonRpcInteractor.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
             onSuccess = { Logger.log("Success Responded on topic: $responseTopic") },
             onFailure = { Logger.error("Error Responded on topic: $responseTopic") }
@@ -156,19 +180,16 @@ internal class AuthEngine(
             }
         } else {
             val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
-            relayer.respondWithError(wcRequest, PeerError.MissingIssuer, irnParams)
+            jsonRpcInteractor.respondWithError(wcRequest, PeerError.MissingIssuer, irnParams)
         }
     }
 
     private fun onAuthRequestResponse(wcResponse: WCResponse, requestParams: AuthParams.RequestParams) {
         val pairingTopic = wcResponse.topic
-
         pairingInterface.updateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS))
         pairingInterface.updateMetadata(pairingTopic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER)
         pairingInterface.activate(pairingTopic.value)
-
         if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
-
         pairingTopicToResponseTopicMap.remove(pairingTopic)
 
         when (val response = wcResponse.response) {
@@ -199,28 +220,16 @@ internal class AuthEngine(
     }
 
     private fun collectJsonRpcRequests() {
-        relayer.clientSyncJsonRpc
+        jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is AuthParams.RequestParams }
             .onEach { request -> onAuthRequest(request, request.params as AuthParams.RequestParams) }
             .launchIn(scope)
     }
 
     private fun collectJsonRpcResponses() {
-        relayer.peerResponse
+        jsonRpcInteractor.peerResponse
             .filter { response -> response.params is AuthParams.RequestParams }
             .onEach { response -> onAuthRequestResponse(response, response.params as AuthParams.RequestParams) }
-            .launchIn(scope)
-    }
-
-    private fun resubscribeToSequences() {
-        relayer.isConnectionAvailable
-            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
-            .filter { isAvailable: Boolean -> isAvailable }
-            .onEach {
-                coroutineScope {
-                    launch(Dispatchers.IO) { resubscribeToPendingRequestsTopics() }
-                }
-            }
             .launchIn(scope)
     }
 
@@ -228,12 +237,22 @@ internal class AuthEngine(
         pairingTopicToResponseTopicMap
             .map { it.value }
             .onEach { responseTopic: Topic ->
-                relayer.subscribe(responseTopic)
+                try {
+                    jsonRpcInteractor.subscribe(responseTopic) { error ->
+                        scope.launch {
+                            _engineEvent.emit(SDKError(InternalError(error)))
+                        }
+                    }
+                } catch (e: Exception) {
+                    scope.launch {
+                        _engineEvent.emit(SDKError(InternalError(e)))
+                    }
+                }
             }
     }
 
     private fun collectInternalErrors() {
-        relayer.internalErrors
+        merge(jsonRpcInteractor.internalErrors, pairingInterface.findWrongMethodsFlow)
             .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
             .launchIn(scope)
     }

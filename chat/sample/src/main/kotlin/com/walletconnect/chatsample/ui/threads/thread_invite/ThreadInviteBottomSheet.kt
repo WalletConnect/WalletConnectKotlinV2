@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -29,9 +30,8 @@ class ThreadInviteBottomSheet : BottomSheetDialogFragment() {
         with(binding) {
             btnInvite.setOnClickListener {
                 viewModel.invite(etContact.text.toString(), OPENING_MESSAGE) {
-                    findNavController().navigate(
-                        R.id.action_threadInviteDialogFragment_to_messagesFragment,
-                        bundleOf(MessagesFragment.peerNameKey to etContact.text.toString()))
+                    Toast.makeText(requireContext(), "Invitation send successfully, wait for response!", Toast.LENGTH_SHORT).show()
+                    findNavController().navigateUp()
                 }
             }
 

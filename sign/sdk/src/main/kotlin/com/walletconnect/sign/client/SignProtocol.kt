@@ -31,16 +31,20 @@ internal class SignProtocol : SignInterface {
     override fun initialize(init: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
         Logger.init()
         // TODO: re-init scope
-        wcKoinApp.modules(
-            commonModule(),
-            cryptoModule(),
-            jsonRpcModule(),
-            storageModule(storageSuffix),
-            engineModule()
-        )
+        try {
+            wcKoinApp.modules(
+                commonModule(),
+                cryptoModule(),
+                jsonRpcModule(),
+                storageModule(storageSuffix),
+                engineModule()
+            )
 
-        signEngine = wcKoinApp.koin.get()
-        signEngine.handleInitializationErrors { error -> onError(Sign.Model.Error(error)) }
+            signEngine = wcKoinApp.koin.get()
+            signEngine.setup()
+        } catch (e: Exception) {
+            onError(Sign.Model.Error(e))
+        }
     }
 
     @Throws(IllegalStateException::class)

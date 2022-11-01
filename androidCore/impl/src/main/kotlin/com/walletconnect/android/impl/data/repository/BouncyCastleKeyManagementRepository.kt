@@ -2,15 +2,16 @@
 
 package com.walletconnect.android.impl.data.repository
 
-import com.walletconnect.android.internal.common.storage.KeyStore
-import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.impl.common.MissingKeyException
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.internal.common.storage.KeyStore
+import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
-import com.walletconnect.utils.Empty
 import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator
 import org.bouncycastle.crypto.params.HKDFParameters
@@ -18,26 +19,32 @@ import org.bouncycastle.math.ec.rfc7748.X25519
 import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.KeyGenerator
-import com.walletconnect.foundation.common.model.Key as WCKey
 
-//todo: Refactor
 internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStore) : KeyManagementRepository {
-    override fun generateAndStoreSymmetricKey(topic: Topic): SymmetricKey {
-        val symmetricKey = generateSymmetricKey()
-        keyChain.setKey(topic.value, symmetricKey)
-        return symmetricKey
+    override fun setKey(key: Key, tag: String) {
+        keyChain.setKey(tag, key)
     }
 
-    override fun generateSymmetricKey(): SymmetricKey = SymmetricKey(createSymmetricKey().bytesToHex())
-
-    override fun setSymmetricKey(topic: Topic, symmetricKey: SymmetricKey) {
-        keyChain.setKey(topic.value, symmetricKey)
+    override fun getPublicKey(tag: String): PublicKey {
+        val key = keyChain.getKey(tag) ?: throw MissingKeyException("No SymmetricKey for tag: $tag")
+        return PublicKey(key)
     }
 
-    override fun getSymmetricKey(topic: Topic): SymmetricKey {
-        val symmetricKey = keyChain.getKey(topic.value)
+    override fun getSymmetricKey(tag: String): SymmetricKey {
+        val key = keyChain.getKey(tag) ?: throw MissingKeyException("No PublicKey for tag: $tag")
+        return SymmetricKey(key)
+    }
 
-        return SymmetricKey(symmetricKey)
+    override fun getKeyAgreement(topic: Topic): Pair<PublicKey, PublicKey> {
+        val tag = "$KEY_AGREEMENT_CONTEXT${topic.value}"
+        val (selfPublic, peerPublic) = keyChain.getKeys(tag)
+
+        return Pair(PublicKey(selfPublic), PublicKey(peerPublic))
+    }
+
+    override fun setKeyAgreement(topic: Topic, self: PublicKey, peer: PublicKey) {
+        val tag = "$KEY_AGREEMENT_CONTEXT${topic.value}"
+        keyChain.setKeys(tag, self, peer)
     }
 
     override fun generateKeyPair(): PublicKey {
@@ -45,30 +52,15 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         val privateKey = ByteArray(KEY_SIZE)
         X25519.generatePrivateKey(SecureRandom(ByteArray(KEY_SIZE)), privateKey)
         X25519.generatePublicKey(privateKey, 0, publicKey, 0)
-        setKeyPair(PublicKey(publicKey.bytesToHex().lowercase()), PrivateKey(privateKey.bytesToHex().lowercase()))
 
+        setKeyPair(PublicKey(publicKey.bytesToHex().lowercase()), PrivateKey(privateKey.bytesToHex().lowercase()))
         return PublicKey(publicKey.bytesToHex().lowercase())
     }
 
-    override fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): Topic {
-        val symmetricKey = generateSymmetricKeyFromKeyAgreement(self, peer)
-        val topic = Topic(sha256(symmetricKey.keyAsHex))
-        keyChain.setKey(topic.value.lowercase(), symmetricKey)
-        setKeyAgreement(topic, self, peer)
-
-        return topic
-    }
-
-    override fun getTopicFromKey(key: WCKey): Topic = Topic(sha256(key.keyAsHex))
-
-    override fun setSelfParticipant(key: PublicKey, topic: Topic) {
-        val tag = "$SELF_PARTICIPANT_CONTEXT${topic.value}"
-        keyChain.setKey(tag, key)
-    }
-
-    override fun getSelfParticipant(topic: Topic): PublicKey? {
-        val keyAsHex = keyChain.getKey("$SELF_PARTICIPANT_CONTEXT${topic.value}")
-        return if (keyAsHex == String.Empty) null else PublicKey(keyAsHex)
+    override fun generateAndStoreSymmetricKey(topic: Topic): SymmetricKey {
+        val symmetricKey = SymmetricKey(createSymmetricKey().bytesToHex())
+        keyChain.setKey(topic.value, symmetricKey)
+        return symmetricKey
     }
 
     override fun generateSymmetricKeyFromKeyAgreement(self: PublicKey, peer: PublicKey): SymmetricKey {
@@ -81,6 +73,16 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         return SymmetricKey(symmetricKeyBytes.bytesToHex())
     }
 
+    override fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): Topic {
+        val symmetricKey = generateSymmetricKeyFromKeyAgreement(self, peer)
+        val topic = Topic(sha256(symmetricKey.keyAsHex))
+        keyChain.setKey(topic.value.lowercase(), symmetricKey)
+        setKeyAgreement(topic, self, peer)
+        return topic
+    }
+
+    override fun getTopicFromKey(key: Key): Topic = Topic(sha256(key.keyAsHex))
+
     override fun removeKeys(tag: String) {
         val (publicKey, _) = keyChain.getKeys(tag)
         with(keyChain) {
@@ -89,23 +91,11 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         }
     }
 
-    override fun getKeyAgreement(topic: Topic): Pair<PublicKey, PublicKey> {
-        val tag = "$KEY_AGREEMENT_CONTEXT${topic.value}"
-        val (selfPublic, peerPublic) = keyChain.getKeys(tag)
-
-        return Pair(PublicKey(selfPublic), PublicKey(peerPublic))
-    }
-
-    private fun setKeyAgreement(topic: Topic, self: PublicKey, peer: PublicKey) {
-        val tag = "$KEY_AGREEMENT_CONTEXT${topic.value}"
-        keyChain.setKeys(tag, self, peer)
-    }
-
     internal fun setKeyPair(publicKey: PublicKey, privateKey: PrivateKey) {
         keyChain.setKeys(publicKey.keyAsHex, publicKey, privateKey)
     }
 
-    internal fun getKeyPair(wcKey: WCKey): Pair<PublicKey, PrivateKey> {
+    internal fun getKeyPair(wcKey: Key): Pair<PublicKey, PrivateKey> {
         val (publicKeyHex, privateKeyHex) = keyChain.getKeys(wcKey.keyAsHex)
 
         return Pair(PublicKey(publicKeyHex), PrivateKey(privateKeyHex))
@@ -145,6 +135,5 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         const val AES: String = "AES"
 
         const val KEY_AGREEMENT_CONTEXT = "key_agreement/"
-        const val SELF_PARTICIPANT_CONTEXT = "self_participant/"
     }
 }
