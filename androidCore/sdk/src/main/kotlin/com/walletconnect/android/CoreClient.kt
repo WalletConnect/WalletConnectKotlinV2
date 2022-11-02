@@ -22,10 +22,12 @@ object CoreClient {
             RelayClient.initialize(relayServerUrl, connectionType, application)
         }
         PairingClient.initialize(metaData)
-        wcKoinApp.modules(module {
-            single { Pairing }
-            single { Relay }
-        })
+        wcKoinApp.modules(
+            module {
+                single { Pairing }
+                single { Relay }
+            }
+        )
     }
 
     fun setDelegate(delegate: CoreDelegate) {
