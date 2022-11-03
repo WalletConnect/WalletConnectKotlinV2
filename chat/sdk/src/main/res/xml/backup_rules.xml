@@ -2,5 +2,5 @@
 <full-backup-content>
     <exclude
         domain="database"
-        path="WalletConnectV2.db" />
+        path="WalletConnectV2_chat.db" />
 </full-backup-content>
