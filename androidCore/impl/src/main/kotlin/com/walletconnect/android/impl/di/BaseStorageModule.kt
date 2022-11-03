@@ -10,10 +10,19 @@ import com.walletconnect.android.impl.storage.data.dao.MetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
+import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
 fun baseStorageModule() = module {
+    fun Scope.createCoreDB(): AndroidCoreDatabase = AndroidCoreDatabase(
+        get(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)),
+        MetaDataAdapter = MetaData.Adapter(
+            iconsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
+            typeAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATATYPE))
+        ),
+    )
 
     single<ColumnAdapter<List<String>, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)) {
         object : ColumnAdapter<List<String>, String> {
@@ -32,13 +41,14 @@ fun baseStorageModule() = module {
     single<ColumnAdapter<AppMetaDataType, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATATYPE)) { EnumColumnAdapter() }
 
     single(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)) {
-        AndroidCoreDatabase(
-            get(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)),
-            MetaDataAdapter = MetaData.Adapter(
-                iconsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
-                typeAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATATYPE))
-            ),
-        )
+        try {
+            createCoreDB().also {
+                it.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull()
+            }
+        } catch (e: Exception) {
+            deleteDBs(DBNames.ANDROID_CORE_DB_NAME)
+            createCoreDB()
+        }
     }
 
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).jsonRpcHistoryQueries }
@@ -52,4 +62,14 @@ fun baseStorageModule() = module {
     single<PairingStorageRepositoryInterface> { PairingStorageRepository(get()) }
 
     single { JsonRpcHistory(get(), get()) }
+}
+
+object DBNames {
+    const val ANDROID_CORE_DB_NAME = "WalletConnectAndroidCore.db"
+
+    fun getSdkDBName(storageSuffix: String) = "WalletConnectV2$storageSuffix.db"
+}
+
+fun Scope.deleteDBs(dbName: String) {
+    androidContext().deleteDatabase(dbName)
 }
