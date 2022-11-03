@@ -35,6 +35,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Android-Core SDK Unit tests
+        env:
+          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+        run: ./gradlew :androidCore:sdk:testDebugUnitTest
+
+      - name: Android-Core Impl Unit tests
+        env:
+          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+        run: ./gradlew :androidCore:impl:testDebugUnitTest
+
       - name: Sign Unit tests
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
@@ -44,6 +54,11 @@ jobs:
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
         run: ./gradlew :auth:sdk:testDebugUnitTest
+
+      - name: Chat Unit tests
+        env:
+          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+        run: ./gradlew :chat:sdk:testDebugUnitTest
 
       - name: Stop Gradle
         run: ./gradlew --stop
