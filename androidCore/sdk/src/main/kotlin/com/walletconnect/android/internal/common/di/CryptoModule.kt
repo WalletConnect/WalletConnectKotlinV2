@@ -8,12 +8,14 @@ import com.walletconnect.android.internal.common.JwtRepositoryAndroid
 import com.walletconnect.android.internal.common.storage.KeyChain
 import com.walletconnect.android.internal.common.storage.KeyStore
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
+import com.walletconnect.foundation.util.Logger
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
 fun androidApiCryptoModule() = module {
-    val keystoreAlias = "_wc_keystore_key_"
+    val keystoreAlias = "wc_keystore_key"
     val sharedPrefsFile = "wc_key_store"
 
     fun Scope.createSharedPreferences(): SharedPreferences {
@@ -40,6 +42,7 @@ fun androidApiCryptoModule() = module {
         try {
             createSharedPreferences()
         } catch (e: Exception) {
+            get<Logger>(named(AndroidCommonDITags.LOGGER)).error(e)
             deleteSharedPreferences()
             createSharedPreferences()
         }
