@@ -41,6 +41,9 @@ internal class ChatEngine(
     private val chatStorage: ChatStorageRepository,
     private val pairingInterface: PairingInterface
 ) {
+    private var jsonRpcRequestsJob: Job? = null
+    private var jsonRpcResponsesJob: Job? = null
+    private var internalErrorsJob: Job? = null
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
     private val inviteRequestMap: MutableMap<Long, WCRequest> = mutableMapOf()
@@ -71,9 +74,15 @@ internal class ChatEngine(
                         trySubscribeToInviteTopic()
                     }
                 }
-                collectJsonRpcRequests()
-                collectPeerResponses()
-                collectInternalErrors()
+                if (jsonRpcRequestsJob == null) {
+                    jsonRpcRequestsJob = collectJsonRpcRequests()
+                }
+                if (jsonRpcResponsesJob == null) {
+                    jsonRpcResponsesJob = collectPeerResponses()
+                }
+                if (internalErrorsJob == null) {
+                    internalErrorsJob = collectInternalErrors()
+                }
             }
             .launchIn(scope)
     }
@@ -370,7 +379,7 @@ internal class ChatEngine(
             }
     }
 
-    private fun collectJsonRpcRequests() {
+    private fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is ChatParams }
             .onEach { request ->
@@ -381,9 +390,8 @@ internal class ChatEngine(
                     is ChatParams.PingParams -> onPong(request)
                 }
             }.launchIn(scope)
-    }
 
-    private fun collectPeerResponses() {
+    private fun collectPeerResponses(): Job =
         scope.launch {
             jsonRpcInteractor.peerResponse.collect { response ->
                 when (response.params) {
@@ -391,7 +399,6 @@ internal class ChatEngine(
                 }
             }
         }
-    }
 
     private fun trySubscribeToInviteTopic() {
         try {
@@ -406,11 +413,10 @@ internal class ChatEngine(
         }
     }
 
-    private fun collectInternalErrors() {
+    private fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingInterface.findWrongMethodsFlow)
             .onEach { exception -> _events.emit(SDKError(exception)) }
             .launchIn(scope)
-    }
 
     companion object {
         const val THIRTY_SECONDS_TIMEOUT: Long = 30000L
