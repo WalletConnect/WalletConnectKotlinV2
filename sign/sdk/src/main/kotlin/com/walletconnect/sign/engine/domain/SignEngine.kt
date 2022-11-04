@@ -52,6 +52,9 @@ internal class SignEngine(
     private val pairingInterface: PairingInterface,
     private val selfAppMetaData: AppMetaData,
 ) {
+    private var jsonRpcRequestsJob: Job? = null
+    private var jsonRpcResponsesJob: Job? = null
+    private var internalErrorsJob: Job? = null
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
     private val sessionProposalRequest: MutableMap<String, WCRequest> = mutableMapOf()
@@ -67,11 +70,12 @@ internal class SignEngine(
             JsonRpcMethod.WC_SESSION_PING,
             JsonRpcMethod.WC_SESSION_UPDATE
         )
+        setupSequenceExpiration()
     }
 
     fun setup() {
         jsonRpcInteractor.wsConnectionFailedFlow.onEach { walletConnectException ->
-            when(walletConnectException) {
+            when (walletConnectException) {
                 is ProjectIdDoesNotExistException, is InvalidProjectIdException -> _engineEvent.emit(ConnectionState(false, walletConnectException))
                 else -> _engineEvent.emit(SDKError(InternalError(walletConnectException)))
             }
@@ -82,12 +86,22 @@ internal class SignEngine(
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
                 supervisorScope {
-                    launch(Dispatchers.IO) { resubscribeToSession() }
+                    launch(Dispatchers.IO) {
+                        resubscribeToSession()
+                    }
                 }
-                setupSequenceExpiration()
-                collectJsonRpcRequests()
-                collectJsonRpcResponses()
-                collectInternalErrors()
+
+                if (jsonRpcRequestsJob == null) {
+                    jsonRpcRequestsJob = collectJsonRpcRequests()
+                }
+
+                if (jsonRpcResponsesJob == null) {
+                    jsonRpcResponsesJob = collectJsonRpcResponses()
+                }
+
+                if (internalErrorsJob == null) {
+                    internalErrorsJob = collectInternalErrors()
+                }
             }
             .launchIn(scope)
     }
@@ -456,7 +470,7 @@ internal class SignEngine(
             }
     }
 
-    private fun collectJsonRpcRequests() {
+    private fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is SignParams }
             .onEach { request ->
@@ -471,15 +485,13 @@ internal class SignEngine(
                     is SignParams.PingParams -> onPing(request)
                 }
             }.launchIn(scope)
-    }
 
-    private fun collectInternalErrors() {
+    private fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingInterface.findWrongMethodsFlow)
             .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
             .launchIn(scope)
-    }
 
-    private fun collectJsonRpcResponses() {
+    private fun collectJsonRpcResponses(): Job =
         scope.launch {
             jsonRpcInteractor.peerResponse.collect { response ->
                 when (val params = response.params) {
@@ -490,7 +502,6 @@ internal class SignEngine(
                 }
             }
         }
-    }
 
     // listened by WalletDelegate
     private fun onSessionPropose(request: WCRequest, payloadParams: SignParams.SessionProposeParams) {
@@ -520,7 +531,6 @@ internal class SignEngine(
         }
 
         val proposalNamespaces = (proposal.params as SignParams.SessionProposeParams).namespaces
-
         Validator.validateSessionNamespace(settleParams.namespaces, proposalNamespaces) { error ->
             jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
             return
