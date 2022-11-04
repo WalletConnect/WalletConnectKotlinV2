@@ -148,7 +148,7 @@ fun DependencyHandlerScope.timber() {
 }
 
 fun DependencyHandlerScope.security() {
-    "api"("androidx.security:security-crypto:$androidSecurityVersion")
+    "api"("androidx.security:security-crypto-ktx:$androidSecurityVersion")
 }
 
 
