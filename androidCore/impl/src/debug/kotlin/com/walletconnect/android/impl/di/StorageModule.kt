@@ -15,7 +15,7 @@ fun coreStorageModule() = module {
         AndroidSqliteDriver(
             schema = AndroidCoreDatabase.Schema,
             context = androidContext(),
-            name = "WalletConnectAndroidCore.db"
+            name = DBNames.ANDROID_CORE_DB_NAME,
         )
     }
 }
@@ -26,7 +26,7 @@ fun sdkBaseStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String
         AndroidSqliteDriver(
             schema = databaseSchema,
             context = androidContext(),
-            name = "WalletConnectV2$storageSuffix.db"
+            name = DBNames.getSdkDBName(storageSuffix),
         )
     }
 }

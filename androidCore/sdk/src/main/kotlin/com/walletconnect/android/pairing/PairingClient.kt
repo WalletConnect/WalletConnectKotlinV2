@@ -2,7 +2,6 @@
 
 package com.walletconnect.android.pairing
 
-import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
@@ -26,51 +25,23 @@ import kotlinx.coroutines.flow.*
 import org.koin.dsl.module
 
 internal object PairingClient : PairingInterface {
-    private val selfMetaData: AppMetaData by lazy { load() }
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
-    private val registeredMethods: String
-        get() = setOfRegisteredMethods.joinToString(",") { it }
+    private val registeredMethods: String get() = setOfRegisteredMethods.joinToString(",") { it }
     private val pairingEvent = MutableSharedFlow<PairingDO>()
     private val _topicExpiredFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
     override val topicExpiredFlow: SharedFlow<Topic> = _topicExpiredFlow.asSharedFlow()
+    private val internalErrorFlow = MutableSharedFlow<InternalError>()
+    private var resubscribeToPairingsJob: Job? = null
+    private var jsonRpcRequestsJob: Job? = null
+
+    private val selfMetaData: AppMetaData by lazy { load() }
     private val pairingRepository: PairingStorageRepositoryInterface by lazy { load() }
     private val metadataRepository: MetadataStorageRepositoryInterface by lazy { load() }
     private val crypto: KeyManagementRepository by lazy { load() }
     private val jsonRpcInteractor: JsonRpcInteractorInterface by lazy { load() }
     private val logger: Logger by lazy { wcKoinApp.koin.get() }
-    private val resubscribeToPairingFlow: Flow<Boolean> by lazy {
-        jsonRpcInteractor.isConnectionAvailable
-            .filter { isAvailable: Boolean -> isAvailable }
-            .onEach {
-                coroutineScope {
-                    launch(Dispatchers.IO) {
-                        pairingRepository.getListOfPairings()
-                            .map { pairing -> pairing.topic }
-                            .onEach { pairingTopic -> jsonRpcInteractor.subscribe(pairingTopic) }
-                    }
-                }
-            }
-    }
-    private val collectJsonRpcRequestsFlow: Flow<WCRequest> by lazy {
-        jsonRpcInteractor.clientSyncJsonRpc
-            .filter { request -> request.params is PairingParams }
-            .onEach { request ->
-                when (val requestParams = request.params) {
-                    is PairingParams.DeleteParams -> onPairingDelete(request, requestParams)
-                    is PairingParams.PingParams -> onPing(request)
-                }
-            }
-    }
-    override val findWrongMethodsFlow: Flow<InternalError> by lazy {
-        jsonRpcInteractor.clientSyncJsonRpc
-            .filter { request -> request.method !in setOfRegisteredMethods }
-            .onEach {
-                val irnParams = IrnParams(Tags.UNSUPPORTED_METHOD, Ttl(DAY_IN_SECONDS))
-                jsonRpcInteractor.respondWithError(it, Invalid.MethodUnsupported(it.method), irnParams)
-            }.map {
-                InternalError(Exception(Invalid.MethodUnsupported(it.method).message))
-            }
-    }
+
+    override val findWrongMethodsFlow: Flow<InternalError> by lazy { merge(internalErrorFlow, jsonRpcErrorFlow) }
 
     fun initialize(metaData: Core.Model.AppMetaData) {
         wcKoinApp.modules(module {
@@ -184,7 +155,7 @@ internal object PairingClient : PairingInterface {
                 try {
                     pairingRepository.insertPairing(activePairing)
                     jsonRpcInteractor.subscribe(activePairing.topic)
-                } catch (e: SQLiteException) {
+                } catch (e: Exception) {
                     crypto.removeKeys(walletConnectUri.topic.value)
                     jsonRpcInteractor.unsubscribe(activePairing.topic)
                     onError(Core.Model.Error(e))
@@ -278,12 +249,59 @@ internal object PairingClient : PairingInterface {
         return wcKoinApp.koin.getOrNull<T>(T::class).also { temp ->
             if (temp != null) {
                 scope.launch {
-                    supervisorScope { resubscribeToPairingFlow.launchIn(this) }
-                    supervisorScope { collectJsonRpcRequestsFlow.launchIn(this) }
-                    supervisorScope { findWrongMethodsFlow.launchIn(this) }
+                    if (resubscribeToPairingsJob == null) {
+                        supervisorScope { resubscribeToPairingsJob = resubscribeToPairingFlow.launchIn(this) }
+                    }
+                    if (jsonRpcRequestsJob == null) {
+                        supervisorScope { jsonRpcRequestsJob = collectJsonRpcRequestsFlow.launchIn(this) }
+                    }
                 }
             }
         } ?: throw IllegalStateException("Core cannot be initialized by itself")
+    }
+
+    private val resubscribeToPairingFlow: Flow<Boolean> by lazy {
+        jsonRpcInteractor.isConnectionAvailable
+            .filter { isAvailable: Boolean -> isAvailable }
+            .onEach {
+                coroutineScope {
+                    launch(Dispatchers.IO) {
+                        pairingRepository.getListOfPairings()
+                            .map { pairing -> pairing.topic }
+                            .onEach { pairingTopic ->
+                                try {
+                                    jsonRpcInteractor.subscribe(pairingTopic)
+                                } catch (e: Exception) {
+                                    scope.launch {
+                                        internalErrorFlow.emit(InternalError(e))
+                                    }
+                                }
+                            }
+                    }
+                }
+            }
+    }
+
+    private val collectJsonRpcRequestsFlow: Flow<WCRequest> by lazy {
+        jsonRpcInteractor.clientSyncJsonRpc
+            .filter { request -> request.params is PairingParams }
+            .onEach { request ->
+                when (val requestParams = request.params) {
+                    is PairingParams.DeleteParams -> onPairingDelete(request, requestParams)
+                    is PairingParams.PingParams -> onPing(request)
+                }
+            }
+    }
+
+    private val jsonRpcErrorFlow: Flow<InternalError> by lazy {
+        jsonRpcInteractor.clientSyncJsonRpc
+            .filter { request -> request.method !in setOfRegisteredMethods }
+            .onEach {
+                val irnParams = IrnParams(Tags.UNSUPPORTED_METHOD, Ttl(DAY_IN_SECONDS))
+                jsonRpcInteractor.respondWithError(it, Invalid.MethodUnsupported(it.method), irnParams)
+            }.map {
+                InternalError(Exception(Invalid.MethodUnsupported(it.method).message))
+            }
     }
 
     private fun isPairingValid(topic: String): Boolean = pairingRepository.getPairingOrNullByTopic(Topic(topic)).let { pairing ->
@@ -323,6 +341,5 @@ internal object PairingClient : PairingInterface {
         } catch (e: Exception) {
             errorLambda(e)
         }
-
     }
 }

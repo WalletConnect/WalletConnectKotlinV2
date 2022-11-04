@@ -2,18 +2,19 @@
 
 package com.walletconnect.auth.engine.domain
 
-import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
 import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.InvalidProjectIdException
+import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.android.pairing.toClient
 import com.walletconnect.auth.client.mapper.toCommon
@@ -37,9 +38,10 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 internal class AuthEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -51,6 +53,9 @@ internal class AuthEngine(
     private val issuer: Issuer?,
     private val cacaoVerifier: CacaoVerifier
 ) {
+    private var jsonRpcRequestsJob: Job? = null
+    private var jsonRpcResponsesJob: Job? = null
+    private var internalErrorsJob: Job? = null
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
 
@@ -58,18 +63,36 @@ internal class AuthEngine(
     private val pairingTopicToResponseTopicMap: MutableMap<Topic, Topic> = mutableMapOf()
 
     init {
-        resubscribeToSequences()
-        collectJsonRpcRequests()
-        collectJsonRpcResponses()
-        collectInternalErrors()
-
-        pairingInterface.register(
-            JsonRpcMethod.WC_AUTH_REQUEST
-        )
+        pairingInterface.register(JsonRpcMethod.WC_AUTH_REQUEST)
     }
 
-    internal fun handleInitializationErrors(onError: (WalletConnectException) -> Unit) {
-        jsonRpcInteractor.initializationErrorsFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
+    fun setup() {
+        jsonRpcInteractor.wsConnectionFailedFlow.onEach { walletConnectException ->
+            when (walletConnectException) {
+                is ProjectIdDoesNotExistException, is InvalidProjectIdException -> _engineEvent.emit(ConnectionState(false, walletConnectException))
+                else -> _engineEvent.emit(SDKError(InternalError(walletConnectException)))
+            }
+        }.launchIn(scope)
+
+        jsonRpcInteractor.isConnectionAvailable
+            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
+            .filter { isAvailable: Boolean -> isAvailable }
+            .onEach {
+                supervisorScope {
+                    launch(Dispatchers.IO) { resubscribeToPendingRequestsTopics() }
+                }
+
+                if (jsonRpcRequestsJob == null) {
+                    jsonRpcRequestsJob = collectJsonRpcRequests()
+                }
+                if (jsonRpcResponsesJob == null) {
+                    jsonRpcResponsesJob = collectJsonRpcResponses()
+                }
+                if (internalErrorsJob == null) {
+                    internalErrorsJob = collectInternalErrors()
+                }
+            }
+            .launchIn(scope)
     }
 
     internal fun request(
@@ -90,7 +113,15 @@ internal class AuthEngine(
         jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
             onSuccess = {
                 Logger.log("Auth request sent successfully on topic:${pairingTopic}, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
-                jsonRpcInteractor.subscribe(responseTopic)
+
+                try {
+                    jsonRpcInteractor.subscribe(responseTopic) { error ->
+                        return@subscribe onFailure(error)
+                    }
+                } catch (e: Exception) {
+                    return@publishJsonRpcRequest onFailure(e)
+                }
+
                 pairingTopicToResponseTopicMap[pairingTopic] = responseTopic
                 onSuccess()
             },
@@ -196,43 +227,38 @@ internal class AuthEngine(
         }
     }
 
-    private fun collectJsonRpcRequests() {
+    private fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is AuthParams.RequestParams }
             .onEach { request -> onAuthRequest(request, request.params as AuthParams.RequestParams) }
             .launchIn(scope)
-    }
 
-    private fun collectJsonRpcResponses() {
+    private fun collectJsonRpcResponses(): Job =
         jsonRpcInteractor.peerResponse
             .filter { response -> response.params is AuthParams.RequestParams }
             .onEach { response -> onAuthRequestResponse(response, response.params as AuthParams.RequestParams) }
             .launchIn(scope)
-    }
-
-    private fun resubscribeToSequences() {
-        jsonRpcInteractor.isConnectionAvailable
-            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
-            .filter { isAvailable: Boolean -> isAvailable }
-            .onEach {
-                coroutineScope {
-                    launch(Dispatchers.IO) { resubscribeToPendingRequestsTopics() }
-                }
-            }
-            .launchIn(scope)
-    }
 
     private fun resubscribeToPendingRequestsTopics() {
         pairingTopicToResponseTopicMap
             .map { it.value }
             .onEach { responseTopic: Topic ->
-                jsonRpcInteractor.subscribe(responseTopic)
+                try {
+                    jsonRpcInteractor.subscribe(responseTopic) { error ->
+                        scope.launch {
+                            _engineEvent.emit(SDKError(InternalError(error)))
+                        }
+                    }
+                } catch (e: Exception) {
+                    scope.launch {
+                        _engineEvent.emit(SDKError(InternalError(e)))
+                    }
+                }
             }
     }
 
-    private fun collectInternalErrors() {
-        jsonRpcInteractor.internalErrors
+    private fun collectInternalErrors(): Job =
+        merge(jsonRpcInteractor.internalErrors, pairingInterface.findWrongMethodsFlow)
             .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
             .launchIn(scope)
-    }
 }
