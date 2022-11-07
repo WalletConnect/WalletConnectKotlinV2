@@ -24,7 +24,7 @@ android {
             targetSdk = TARGET_SDK
         }
 
-        buildConfigField(type = "String", name = "sdkVersion", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
+        buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         testInstrumentationRunner = "com.walletconnect.sign.test.utils.WCTestRunner"
         testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")
         testInstrumentationRunnerArguments += mutableMapOf("clearPackageData" to "true")
