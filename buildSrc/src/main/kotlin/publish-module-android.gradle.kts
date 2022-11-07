@@ -38,7 +38,7 @@ afterEvaluate {
 
                 pom {
                     name.set("WalletConnect ${requireNotNull(extra.get(KEY_SDK_NAME))}")
-                    description.set("Sign SDK for WalletConnect.")
+                    description.set("${requireNotNull(extra.get(KEY_SDK_DESCRIPTION))}")
                     url.set("https://github.com/WalletConnect/WalletConnectKotlinV2")
 
                     licenses {
