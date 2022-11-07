@@ -4,7 +4,7 @@ import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.auth.BuildConfig
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Cacao
-import com.walletconnect.auth.engine.mapper.toFormattedMessage
+import com.walletconnect.auth.engine.mapper.toCAIP122Message
 import com.walletconnect.auth.signature.CacaoType
 import com.walletconnect.auth.signature.SignatureType
 import com.walletconnect.util.hexToBytes
@@ -33,8 +33,8 @@ internal class CacaoTest {
 
     @Test
     fun signAndVerifyWithEIP191Test() {
-        print(payload.toFormattedMessage(chainName))
-        val signature: Cacao.Signature = CacaoSigner.sign(payload.toFormattedMessage(chainName), privateKey, SignatureType.EIP191).toCommon()
+        print(payload.toCAIP122Message(chainName))
+        val signature: Cacao.Signature = CacaoSigner.sign(payload.toCAIP122Message(chainName), privateKey, SignatureType.EIP191).toCommon()
         val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
         val result: Boolean = cacaoVerifier.verify(cacao)
         Assertions.assertTrue(result)
@@ -58,7 +58,7 @@ internal class CacaoTest {
         )
 
         val signatureString = "0xc1505719b2504095116db01baaf276361efd3a73c28cf8cc28dabefa945b8d536011289ac0a3b048600c1e692ff173ca944246cf7ceb319ac2262d27b395c82b1c"
-        val signature: Cacao.Signature = Cacao.Signature(SignatureType.EIP1271.header, signatureString, payload.toFormattedMessage())
+        val signature: Cacao.Signature = Cacao.Signature(SignatureType.EIP1271.header, signatureString, payload.toCAIP122Message())
         val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
         val result: Boolean = cacaoVerifier.verify(cacao)
         Assertions.assertTrue(result)
@@ -83,7 +83,7 @@ internal class CacaoTest {
         )
 
         val signatureString = "0xdeaddeaddead4095116db01baaf276361efd3a73c28cf8cc28dabefa945b8d536011289ac0a3b048600c1e692ff173ca944246cf7ceb319ac2262d27b395c82b1c"
-        val signature: Cacao.Signature = Cacao.Signature(SignatureType.EIP1271.header, signatureString, payload.toFormattedMessage())
+        val signature: Cacao.Signature = Cacao.Signature(SignatureType.EIP1271.header, signatureString, payload.toCAIP122Message())
         val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
         val result: Boolean = cacaoVerifier.verify(cacao)
         Assertions.assertFalse(result)

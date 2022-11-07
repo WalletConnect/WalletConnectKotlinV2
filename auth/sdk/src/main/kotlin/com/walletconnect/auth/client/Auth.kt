@@ -2,7 +2,6 @@ package com.walletconnect.auth.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.relay.RelayConnectionInterface
 
 object Auth {
 
@@ -12,7 +11,6 @@ object Auth {
             val message: String,
         ) : Event()
 
-        //idea: Protocol Improvement. Remove id in AuthResponse
         data class AuthResponse(
             val id: Long,
             val response: Model.Response,
@@ -29,7 +27,7 @@ object Auth {
 
     sealed class Model {
 
-        data class Error(val throwable: Throwable) : Model() // TODO: Should this be extracted to core for easier error handling?
+        data class Error(val throwable: Throwable) : Model()
 
         data class ConnectionState(val isAvailable: Boolean) : Model()
 
@@ -107,8 +105,6 @@ object Auth {
 
         data class Init(val core: CoreClient, val iss: String?) : Params()
 
-        data class Pair(val uri: String) : Params()
-
         data class Request(
             val pairing: Core.Model.Pairing,
             val chainId: String,
@@ -129,7 +125,5 @@ object Auth {
             data class Result(override val id: Long, val signature: Model.Cacao.Signature) : Respond()
             data class Error(override val id: Long, val code: Int, val message: String) : Respond()
         }
-
-        data class RequestId(val id: Long)
     }
 }

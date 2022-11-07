@@ -19,15 +19,14 @@ internal fun PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.Pa
 )
 
 @JvmSynthetic
-internal fun PayloadParams.toFormattedMessage(iss: Issuer, chainName: String = "Ethereum"): String =
-    this.toCacaoPayload(iss).toFormattedMessage(chainName)
+internal fun PayloadParams.toCAIP122Message(iss: Issuer, chainName: String = "Ethereum"): String =
+    this.toCacaoPayload(iss).toCAIP122Message(chainName)
 
 @JvmSynthetic
 internal fun Cacao.Signature.toSignature(): Signature = Signature.fromString(s)
 
-// todo: Figure out chain name resolving to support chain agnosticism
 @JvmSynthetic
-internal fun Cacao.Payload.toFormattedMessage(chainName: String = "Ethereum"): String {
+internal fun Cacao.Payload.toCAIP122Message(chainName: String = "Ethereum"): String {
     var message = "$domain wants you to sign in with your $chainName account:\n$address\n"
     if (statement != null) message += "\n$statement\n"
     message += "\nURI: $aud\nVersion: $version\nChain ID: $chainId\nNonce: $nonce\nIssued At: $iat"
@@ -43,4 +42,4 @@ internal fun Cacao.Payload.toFormattedMessage(chainName: String = "Ethereum"): S
 
 @JvmSynthetic
 internal fun JsonRpcHistoryEntry.toPendingRequest(issuer: Issuer): PendingRequest =
-    PendingRequest(id, params.payloadParams, params.payloadParams.toFormattedMessage(issuer))
+    PendingRequest(id, params.payloadParams, params.payloadParams.toCAIP122Message(issuer))

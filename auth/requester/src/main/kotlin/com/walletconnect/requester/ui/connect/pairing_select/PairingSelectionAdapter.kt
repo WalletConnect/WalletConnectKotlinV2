@@ -7,7 +7,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.walletconnect.requester.databinding.ListItemPairingBinding
 
-//todo: Decide after Alpha if this is obsolete
 class PairingSelectionAdapter(
     private val listOfPairings: List<Pair<String, String>>,
     private val pairingTopic: (Int) -> Unit,
