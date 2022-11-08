@@ -11,7 +11,6 @@ project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "auth"
     extra[KEY_PUBLISH_VERSION] = "1.1.0"
     extra[KEY_SDK_NAME] = "Auth"
-    extra[KEY_SDK_DESCRIPTION] = "Auth SDK for WalletConnect"
 }
 
 android {

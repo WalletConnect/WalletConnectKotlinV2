@@ -10,7 +10,6 @@ project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "chat"
     extra[KEY_PUBLISH_VERSION] = "1.0.0-alpha02"
     extra[KEY_SDK_NAME] = "Chat"
-    extra[KEY_SDK_DESCRIPTION] = "Chat SDK for WalletConnect"
 }
 
 android {

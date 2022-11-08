@@ -10,7 +10,6 @@ project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "sign"
     extra[KEY_PUBLISH_VERSION] = "2.1.0"
     extra[KEY_SDK_NAME] = "Sign"
-    extra[KEY_SDK_DESCRIPTION] = "Sign SDK for WalletConnect"
 }
 
 android {
