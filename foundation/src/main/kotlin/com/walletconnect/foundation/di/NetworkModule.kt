@@ -1,12 +1,10 @@
 package com.walletconnect.foundation.di
 
 import com.tinder.scarlet.Scarlet
-import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.foundation.network.BaseRelayClient
-import com.walletconnect.foundation.network.RelayInterface
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
@@ -26,7 +24,7 @@ fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = 
     single(named(FoundationDITags.INTERCEPTOR)) {
         Interceptor {
             val updatedRequest = it.request().newBuilder()
-                .addHeader("User-Agent", "wc-2/kotlin-$sdkVersion-relayTest")
+                .addHeader("User-Agent", "wc-2/kotlin-$sdkVersion")
                 .build()
 
             it.proceed(updatedRequest)

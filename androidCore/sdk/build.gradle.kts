@@ -18,7 +18,7 @@ android {
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
 
-        buildConfigField(type = "String", name = "sdkVersion", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
+        buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
