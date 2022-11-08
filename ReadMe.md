@@ -24,4 +24,4 @@ WalletConnect v2 protocols for Android applications.
 
 
 ## License
-WalletConnect v2 is released under the Apache 2.0 license. [See LICENSE](https://github.com/WalletConnect/WalletConnectKotlinV2/blob/feature/develop/LICENSE) for details.
+WalletConnect v2 is released under the Apache 2.0 license. [See LICENSE](https://github.com/WalletConnect/WalletConnectKotlinV2/blob/develop/LICENSE) for details.
