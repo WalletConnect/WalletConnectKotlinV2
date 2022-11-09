@@ -1,9 +1,5 @@
 package com.walletconnect.android
 
-import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.internal.common.model.Expiry
-import com.walletconnect.foundation.common.model.Topic
-
 object Core {
     sealed interface Listeners {
         interface PairingPing : Listeners {

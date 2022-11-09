@@ -51,7 +51,7 @@ sqldelight {
 
 dependencies {
     debugApi(project(":androidCore:sdk"))
-    releaseApi("com.walletconnect:android-core:1.3.0")
+    releaseApi("com.walletconnect:android-core:1.4.0")
 
     bouncyCastle()
     coroutines()
