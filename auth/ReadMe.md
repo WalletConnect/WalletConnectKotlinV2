@@ -11,7 +11,7 @@ Kotlin implementation of WalletConnect Auth protocol for Android applications.
 
 ## Documentation and usage
 
-* [Installation guide](https://docs.walletconnect.com/2.0/kotlin/auth/installation) 
+* [Installation guide](https://docs.walletconnect.com/2.0/kotlin/auth/installation)
 * [Responder](https://docs.walletconnect.com/2.0/kotlin/auth/wallet-or-responder-usage)
 * [Requester](https://docs.walletconnect.com/2.0/kotlin/auth/dapp-or-requester-usage)
 * [Protocol specification](https://docs.walletconnect.com/2.0/specs/auth/)
@@ -25,7 +25,8 @@ root/build.gradle.kts:
 ```gradle
 allprojects {
  repositories {
-    mavenCentral()
+    maven { url "https://repo1.maven.org/maven2/" }
+    maven { url "https://jitpack.io" }
  }
 }
 ```
