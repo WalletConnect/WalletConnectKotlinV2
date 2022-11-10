@@ -1,8 +1,8 @@
 import org.gradle.api.JavaVersion
 
-val KEY_PUBLISH_VERSION = "PUBLISH_VERSION"
-val KEY_PUBLISH_ARTIFACT_ID = "PUBLISH_ARTIFACT_ID"
-val KEY_SDK_NAME = "SDK_NAME"
+const val KEY_PUBLISH_VERSION = "PUBLISH_VERSION"
+const val KEY_PUBLISH_ARTIFACT_ID = "PUBLISH_ARTIFACT_ID"
+const val KEY_SDK_NAME = "SDK_NAME"
 const val dokkaVersion = "1.6.21"
 
 val jvmVersion = JavaVersion.VERSION_11

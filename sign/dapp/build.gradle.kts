@@ -43,7 +43,7 @@ dependencies {
     implementation(project(":sign:samples_common"))
 
     debugImplementation(project(":sign:sdk"))
-    releaseImplementation("com.walletconnect:sign:2.2.0")
+    releaseImplementation("com.walletconnect:sign:2.3.0")
 
     debugImplementation(project(":androidCore:sdk"))
     releaseImplementation("com.walletconnect:android-core:1.4.0")

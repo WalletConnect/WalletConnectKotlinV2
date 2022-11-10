@@ -58,4 +58,4 @@
 #    <methods>;
 #}
 
--keepnames public class com.walletconnect.android.** { *; }
+-keep public class com.walletconnect.android.** { *; }
