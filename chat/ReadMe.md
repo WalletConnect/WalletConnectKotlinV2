@@ -1,4 +1,4 @@
-\# **WalletConnect Chat - Kotlin**
+# **WalletConnect Chat - Kotlin**
 
 Kotlin implementation of WalletConnect v2 Chat protocol for Android applications.
 
