@@ -24,9 +24,8 @@ internal class KeyChain(private val sharedPreferences: SharedPreferences) : KeyS
         sharedPreferences.edit().putString(tag, keys).apply()
     }
 
-    @Throws(InternalError::class)
-    override fun getKeys(tag: String): Pair<String, String> {
-        val concatKeys = sharedPreferences.getString(tag, null) ?: throw InternalError("Unable to find keys")
+    override fun getKeys(tag: String): Pair<String, String>? {
+        val concatKeys = sharedPreferences.getString(tag, null) ?: return null
         return splitKeys(concatKeys)
     }
 

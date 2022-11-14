@@ -8,6 +8,7 @@ import com.walletconnect.foundation.common.model.Topic
 interface KeyManagementRepository {
     fun setKey(key: Key, tag: String)
     fun removeKeys(tag: String)
+
     fun getPublicKey(tag: String): PublicKey
     fun getSymmetricKey(tag: String): SymmetricKey
 
