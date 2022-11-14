@@ -48,9 +48,8 @@ class ConnectViewModel : ViewModel() {
         }.launchIn(viewModelScope)
     }
 
-    //todo: Reimplement. Right now only for demo purposes. Also remove todo at function call
-
     //    fun anySettledPairingExist(): Boolean = AuthClient.getListOfSettledPairings().isNotEmpty()
+    //todo: Reimplement. Right now only for demo purposes. Also remove todo at function call
     fun anySettledPairingExist(): Boolean = false
 
     fun connectToWallet(pairingTopicPosition: Int = -1, onProposedSequence: (uri: String) -> Unit = {}) {
