@@ -52,7 +52,7 @@ class HorizontalStripesShape(
 
 class RoundCornersWidthShape(
     @FloatRange(from = 0.0, to = 0.5) private val corner: Float,
-    @FloatRange(from = .0, to = 1.0) private val width: Float,
+    @FloatRange(from = .5, to = 1.0) private val width: Float,
     private val topLeft: Boolean = true,
     private val topRight: Boolean = true,
     private val bottomLeft: Boolean = true,
@@ -106,7 +106,7 @@ class RoundCornersWidthShape(
 }
 
 class WidthShape(
-    @FloatRange(from = .0, to = 1.0)
+    @FloatRange(from = .5, to = 1.0)
     private val width: Float = 1f,
 ) : QrPixelShape {
     override fun invoke(i: Int, j: Int, elementSize: Int, neighbors: Neighbors): Boolean {

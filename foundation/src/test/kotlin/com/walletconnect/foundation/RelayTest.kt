@@ -17,7 +17,6 @@ import org.koin.core.KoinApplication
 import org.koin.core.qualifier.named
 import kotlin.random.Random
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import kotlin.test.fail
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
@@ -34,7 +33,7 @@ class RelayTest {
     private val testProjectId: String = System.getProperty("TEST_PROJECT_ID")
     private val testRelayUrl: String = System.getProperty("TEST_RELAY_URL")
     private val serverUrl = "$testRelayUrl?projectId=$testProjectId"
-    private val sdkVersion: String = System.getProperty("SDK_VERSION")
+    private val sdkVersion: String = System.getProperty("SDK_VERSION") + "-relayTest"
     private val testJob: CompletableJob = SupervisorJob()
     private val testScope: CoroutineScope = CoroutineScope(testJob + Dispatchers.IO)
 
@@ -155,7 +154,7 @@ class RelayTest {
                 val jwt = koinApp.koin.get<JwtRepository>().generateJWT(serverUrl) { clientId ->
                     println("ClientA id: $clientId")
                 }
-                koinApp.modules(networkModule(serverUrl.addUserAgent(), sdkVersion, jwt))
+                koinApp.modules(networkModule(serverUrl.addUserAgent(sdkVersion), sdkVersion, jwt))
             }
 
         val koinAppB: KoinApplication = KoinApplication.init()
@@ -163,7 +162,7 @@ class RelayTest {
                 val jwt = koinApp.koin.get<JwtRepository>().generateJWT(serverUrl) { clientId ->
                     println("ClientB id: $clientId")
                 }
-                koinApp.modules(networkModule(serverUrl.addUserAgent(), sdkVersion, jwt))
+                koinApp.modules(networkModule(serverUrl.addUserAgent(sdkVersion), sdkVersion, jwt))
             }
 
         val clientA: BaseRelayClient = koinAppA.koin.get()
