@@ -8,17 +8,12 @@ import com.walletconnect.android.CoreClient
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.responder.domain.ResponderDelegate
 import com.walletconnect.responder.domain.mapOfAccounts1
-import com.walletconnect.responder.domain.mapOfAccounts2
 import com.walletconnect.responder.ui.events.ResponderEvents
 import com.walletconnect.responder.ui.request.RequestStore
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 
 class AccountsViewModel : ViewModel() {
     private val _accountUI: MutableStateFlow<List<AccountsUI>> = MutableStateFlow(INITIAL_ACCOUNTS_LIST)
@@ -54,12 +49,8 @@ class AccountsViewModel : ViewModel() {
         val INITIAL_CHAIN_ADDRESS_LIST_1: List<ChainAddressUI> = mapOfAccounts1.map { (chain: Chains, accountAddress: String) ->
             ChainAddressUI(chain.icon, chain.chainName, accountAddress)
         }
-        val INITIAL_CHAIN_ADDRESS_LIST_2: List<ChainAddressUI> = mapOfAccounts2.map { (chain: Chains, accountAddress: String) ->
-            ChainAddressUI(chain.icon, chain.chainName, accountAddress)
-        }
         val INITIAL_ACCOUNTS_LIST = listOf(
             AccountsUI(true, "Account 1", INITIAL_CHAIN_ADDRESS_LIST_1),
-            AccountsUI(false, "Account 2", INITIAL_CHAIN_ADDRESS_LIST_2)
         )
     }
 }

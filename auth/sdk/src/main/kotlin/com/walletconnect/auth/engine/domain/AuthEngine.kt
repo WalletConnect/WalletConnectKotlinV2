@@ -26,7 +26,7 @@ import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.json_rpc.AuthRpc
 import com.walletconnect.auth.common.model.*
 import com.walletconnect.auth.engine.mapper.toCacaoPayload
-import com.walletconnect.auth.engine.mapper.toFormattedMessage
+import com.walletconnect.auth.engine.mapper.toCAIP122Message
 import com.walletconnect.auth.engine.mapper.toPendingRequest
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
@@ -101,7 +101,6 @@ internal class AuthEngine(
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        // For Alpha we are assuming not authenticated only todo: Remove comment after Alpha
         val responsePublicKey: PublicKey = crypto.generateKeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
         val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams)
@@ -112,8 +111,6 @@ internal class AuthEngine(
 
         jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
             onSuccess = {
-                Logger.log("Auth request sent successfully on topic:${pairingTopic}, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
-
                 try {
                     jsonRpcInteractor.subscribe(responseTopic) { error ->
                         return@subscribe onFailure(error)
@@ -183,7 +180,7 @@ internal class AuthEngine(
     private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
         if (issuer != null) {
             scope.launch {
-                val formattedMessage: String = authParams.payloadParams.toFormattedMessage(issuer)
+                val formattedMessage: String = authParams.payloadParams.toCAIP122Message(issuer)
                 _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, formattedMessage))
             }
         } else {

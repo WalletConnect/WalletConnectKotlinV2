@@ -12,7 +12,7 @@ import com.walletconnect.sample_common.tag
 class RequestViewModel : ViewModel() {
 
     fun fetchRequestProposal(sessionExists: (RequestUI) -> Unit, sessionDNE: () -> Unit) {
-        //todo: here goes fetching request
+        Log.d(RequestViewModel::class.java.name, AuthClient.getPendingRequest().size.toString())
         if (RequestStore.currentRequest != null) {
             sessionExists(
                 //todo: How to get Requester Metadata here?
