@@ -1,4 +1,4 @@
-package com.walletconnect.android.pairing
+package com.walletconnect.android.pairing.model
 
 object PairingJsonRpcMethod {
     @JvmSynthetic

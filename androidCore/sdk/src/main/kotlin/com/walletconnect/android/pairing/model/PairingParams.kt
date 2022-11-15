@@ -1,4 +1,4 @@
-package com.walletconnect.android.pairing
+package com.walletconnect.android.pairing.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

@@ -2,6 +2,7 @@
 
 package com.walletconnect.auth.engine.domain
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
@@ -15,8 +16,8 @@ import com.walletconnect.android.internal.common.exception.InvalidProjectIdExcep
 import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.pairing.PairingInterface
-import com.walletconnect.android.pairing.toClient
+import com.walletconnect.android.pairing.client.PairingInterface
+import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException
 import com.walletconnect.auth.common.exceptions.MissingAuthRequestException
@@ -194,9 +195,7 @@ internal class AuthEngine(
 
     private fun onAuthRequestResponse(wcResponse: WCResponse, requestParams: AuthParams.RequestParams) {
         val pairingTopic = wcResponse.topic
-        pairingInterface.updateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS))
-        pairingInterface.updateMetadata(pairingTopic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER)
-        pairingInterface.activate(pairingTopic.value)
+        updatePairing(pairingTopic, requestParams)
         if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
         pairingTopicToResponseTopicMap.remove(pairingTopic)
 
@@ -225,6 +224,15 @@ internal class AuthEngine(
                 }
             }
         }
+    }
+
+    private fun updatePairing(
+        topic: Topic,
+        requestParams: AuthParams.RequestParams
+    ) {
+        pairingInterface.updateExpiry(Core.Params.UpdateExpiry(topic.value, Expiry(MONTH_IN_SECONDS)))
+        pairingInterface.updateMetadata(Core.Params.UpdateMetadata(topic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER))
+        pairingInterface.activate(Core.Params.Activate(topic.value))
     }
 
     private fun collectJsonRpcRequests(): Job =

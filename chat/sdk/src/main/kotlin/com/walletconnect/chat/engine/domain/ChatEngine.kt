@@ -14,7 +14,7 @@ import com.walletconnect.android.internal.common.exception.InvalidProjectIdExcep
 import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.pairing.PairingInterface
+import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.chat.common.exceptions.InvalidAccountIdException
 import com.walletconnect.chat.common.exceptions.PeerError
 import com.walletconnect.chat.common.json_rpc.ChatParams
@@ -197,39 +197,45 @@ internal class ChatEngine(
         onFailure(error)
     }
 
-    internal fun accept(inviteId: Long, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) = try {
-        val request = inviteRequestMap[inviteId] ?: throw GenericException("No request for inviteId")
-        val senderPublicKey = PublicKey((request.params as ChatParams.InviteParams).publicKey)
-        inviteRequestMap.remove(inviteId)
+    internal fun accept(inviteId: Long, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) =
+        try {
+            val request = inviteRequestMap[inviteId] ?: throw GenericException("No request for inviteId")
+            val senderPublicKey = PublicKey((request.params as ChatParams.InviteParams).publicKey)
+            inviteRequestMap.remove(inviteId)
 
-        val invitePublicKey = keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)
-        val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(invitePublicKey, senderPublicKey)
-        val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
-        keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
+            val invitePublicKey = keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)
+            val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(invitePublicKey, senderPublicKey)
+            val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
+            keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
 
-        val publicKey = keyManagementRepository.generateKeyPair()
-        val acceptanceParams = ChatParams.AcceptanceParams(publicKey.keyAsHex)
-        val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(DAY_IN_SECONDS))
+            val publicKey = keyManagementRepository.generateKeyPair()
+            val acceptanceParams = ChatParams.AcceptanceParams(publicKey.keyAsHex)
+            val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(DAY_IN_SECONDS))
 
-        jsonRpcInteractor.respondWithParams(request.copy(topic = acceptTopic), acceptanceParams, irnParams, EnvelopeType.ZERO)
+            jsonRpcInteractor.respondWithParams(request.copy(topic = acceptTopic), acceptanceParams, irnParams, EnvelopeType.ZERO)
 
-        val threadSymmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(publicKey, senderPublicKey)
-        val threadTopic = keyManagementRepository.getTopicFromKey(threadSymmetricKey)
-        keyManagementRepository.setKey(threadSymmetricKey, threadTopic.value)
-        jsonRpcInteractor.subscribe(threadTopic) { error ->
-            return@subscribe onFailure(error)
+            val threadSymmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(publicKey, senderPublicKey)
+            val threadTopic = keyManagementRepository.getTopicFromKey(threadSymmetricKey)
+            keyManagementRepository.setKey(threadSymmetricKey, threadTopic.value)
+            jsonRpcInteractor.subscribe(threadTopic) { error ->
+                return@subscribe onFailure(error)
+            }
+            onSuccess(threadTopic.value)
+        } catch (error: Exception) {
+            onFailure(error)
         }
-        onSuccess(threadTopic.value)
-    } catch (error: Exception) {
-        onFailure(error)
-    }
 
     internal fun reject(inviteId: Long, onFailure: (Throwable) -> Unit) {
         val request = inviteRequestMap[inviteId] ?: throw GenericException("No request for inviteId")
         val senderPublicKey = PublicKey((request.params as ChatParams.InviteParams).publicKey)
         inviteRequestMap.remove(inviteId)
 
-        val invitePublicKey = keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)
+        val invitePublicKey = try {
+            keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)
+        } catch (e: MissingKeyException) {
+            return onFailure(e)
+        }
+
         val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(invitePublicKey, senderPublicKey)
         val rejectTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
         keyManagementRepository.setKey(symmetricKey, rejectTopic.value)

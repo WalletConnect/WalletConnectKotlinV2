@@ -1,9 +1,5 @@
 package com.walletconnect.auth.di
 
-import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
-import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.internal.common.model.JsonRpcInteractorInterface
-import com.walletconnect.android.pairing.PairingInterface
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Issuer
 import com.walletconnect.auth.engine.domain.AuthEngine

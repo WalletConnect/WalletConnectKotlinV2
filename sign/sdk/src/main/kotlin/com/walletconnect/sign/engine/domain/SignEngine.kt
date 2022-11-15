@@ -14,9 +14,9 @@ import com.walletconnect.android.internal.common.exception.*
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.pairing.PairingInterface
-import com.walletconnect.android.pairing.toClient
-import com.walletconnect.android.pairing.toPairing
+import com.walletconnect.android.pairing.client.PairingInterface
+import com.walletconnect.android.pairing.model.mapper.toClient
+import com.walletconnect.android.pairing.model.mapper.toPairing
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -512,7 +512,13 @@ internal class SignEngine(
         }
 
         sessionProposalRequest[payloadParams.proposer.publicKey] = request
-        pairingInterface.updateMetadata(request.topic.value, payloadParams.proposer.metadata.toClient(), AppMetaDataType.PEER)
+        pairingInterface.updateMetadata(
+            Core.Params.UpdateMetadata(
+                request.topic.value,
+                payloadParams.proposer.metadata.toClient(),
+                AppMetaDataType.PEER
+            )
+        )
 
         scope.launch { _engineEvent.emit(payloadParams.toEngineDO()) }
     }
@@ -543,7 +549,7 @@ internal class SignEngine(
 
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
             sessionStorageRepository.insertSession(session, request.topic, request.id)
-            pairingInterface.updateMetadata(proposal.topic.value, peerMetadata.toClient(), AppMetaDataType.PEER)
+            pairingInterface.updateMetadata(Core.Params.UpdateMetadata(proposal.topic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
             metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
 
             jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
@@ -732,9 +738,8 @@ internal class SignEngine(
     // listened by DappDelegate
     private fun onSessionProposalResponse(wcResponse: WCResponse, params: SignParams.SessionProposeParams) {
         val pairingTopic = wcResponse.topic
-        Logger.log("pairingTopic: $pairingTopic")
-        pairingInterface.updateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS))
-        pairingInterface.activate(pairingTopic.value)
+        pairingInterface.updateExpiry(Core.Params.UpdateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS)))
+        pairingInterface.activate(Core.Params.Activate(pairingTopic.value))
 
         if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
 
