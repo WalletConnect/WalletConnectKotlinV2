@@ -39,11 +39,11 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
     }
 
     @Throws(MissingKeyException::class)
-    override fun getKeyAgreement(topic: Topic): Pair<PublicKey, PublicKey> {
+    override fun getSelfPublicFromKeyAgreement(topic: Topic): PublicKey {
         val tag = "$KEY_AGREEMENT_CONTEXT${topic.value}"
-        val (selfPublic, peerPublic) = keyChain.getKeys(tag) ?: throw MissingKeyException("No key pair for tag: $tag")
+        val (selfPublic, _) = keyChain.getKeys(tag) ?: throw MissingKeyException("No key pair for tag: $tag")
 
-        return Pair(PublicKey(selfPublic), PublicKey(peerPublic))
+        return PublicKey(selfPublic)
     }
 
     override fun setKeyAgreement(topic: Topic, self: PublicKey, peer: PublicKey) {

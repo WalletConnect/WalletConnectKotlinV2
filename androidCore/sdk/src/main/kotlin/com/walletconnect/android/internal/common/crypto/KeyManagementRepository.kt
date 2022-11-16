@@ -14,7 +14,7 @@ interface KeyManagementRepository {
 
     fun generateKeyPair(): PublicKey
     fun setKeyAgreement(topic: Topic, self: PublicKey, peer: PublicKey)
-    fun getKeyAgreement(topic: Topic): Pair<PublicKey, PublicKey>
+    fun getSelfPublicFromKeyAgreement(topic: Topic): PublicKey
 
     fun generateAndStoreSymmetricKey(topic: Topic): SymmetricKey
     fun generateSymmetricKeyFromKeyAgreement(self: PublicKey, peer: PublicKey): SymmetricKey

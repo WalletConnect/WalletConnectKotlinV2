@@ -30,9 +30,7 @@ internal object PairingProtocol : PairingInterface {
     fun initialize(metaData: Core.Model.AppMetaData) {
         pairingEngine = PairingEngine()
 
-        wcKoinApp.modules(module {
-            with(metaData) { single { AppMetaData(name, description, url, icons, Redirect(redirect)) } }
-        })
+        wcKoinApp.modules(module { with(metaData) { single { AppMetaData(name, description, url, icons, Redirect(redirect)) } } })
     }
 
     fun setDelegate(delegate: PairingInterface.Delegate) {
@@ -49,7 +47,12 @@ internal object PairingProtocol : PairingInterface {
     override fun create(onError: (Core.Model.Error) -> Unit): Core.Model.Pairing? {
         checkEngineInitialization()
 
-        return pairingEngine.create { error -> onError(Core.Model.Error(error)) }
+        return try {
+            pairingEngine.create { error -> onError(Core.Model.Error(error)) }
+        } catch (e: Exception) {
+            onError(Core.Model.Error(e))
+            null
+        }
     }
 
     @Throws(IllegalStateException::class)
@@ -57,12 +60,18 @@ internal object PairingProtocol : PairingInterface {
         checkEngineInitialization()
 
         scope.launch(Dispatchers.IO) {
-            awaitConnection({
-                pairingEngine.pair(pair.uri) { error -> onError(Core.Model.Error(error)) }
-            }, { throwable ->
-                logger.error(throwable)
-                onError(Core.Model.Error(throwable))
-            })
+            awaitConnection(
+                {
+                    try {
+                        pairingEngine.pair(pair.uri) { error -> onError(Core.Model.Error(error)) }
+                    } catch (e: Exception) {
+                        onError(Core.Model.Error(e))
+                    }
+                },
+                { throwable ->
+                    logger.error(throwable)
+                    onError(Core.Model.Error(throwable))
+                })
         }
     }
 

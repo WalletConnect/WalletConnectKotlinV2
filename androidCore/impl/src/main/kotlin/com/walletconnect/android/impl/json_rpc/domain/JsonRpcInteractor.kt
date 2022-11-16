@@ -145,7 +145,7 @@ internal class JsonRpcInteractor(
 
         try {
             publishJsonRpcResponse(request.topic, irnParams, result, envelopeType = envelopeType, participants = participants,
-                onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
+                onFailure = { error -> handleError("Cannot send the response, error: $error") })
         } catch (e: Exception) {
             handleError(e.message ?: String.Empty)
         }
@@ -165,7 +165,7 @@ internal class JsonRpcInteractor(
         try {
             publishJsonRpcResponse(request.topic, irnParams, jsonRpcError, envelopeType = envelopeType, participants = participants,
                 onFailure = { failure ->
-                    Logger.error("Cannot respond with error: $failure")
+                    handleError("Cannot respond with error: $failure")
                     onFailure(failure)
                 })
         } catch (e: Exception) {
@@ -274,7 +274,7 @@ internal class JsonRpcInteractor(
     }
 
     private fun handleError(errorMessage: String) {
-        Logger.error(errorMessage)
+        Logger.error("JsonRpcInteractor error: $errorMessage")
         scope.launch {
             _internalErrors.emit(InternalError(errorMessage))
         }

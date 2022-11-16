@@ -171,7 +171,7 @@ internal class SignEngine(
             sessionTopic: Topic,
             pairingTopic: Topic,
         ) {
-            val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
+            val selfPublicKey = crypto.getSelfPublicFromKeyAgreement(sessionTopic)
             val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, selfAppMetaData)
             val sessionExpiry = ACTIVE_SESSION
             val unacknowledgedSession = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces)
@@ -206,9 +206,7 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         try {
-            jsonRpcInteractor.subscribe(sessionTopic) { error ->
-                return@subscribe onFailure(error)
-            }
+            jsonRpcInteractor.subscribe(sessionTopic) { error -> return@subscribe onFailure(error) }
             jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams)
         } catch (e: Exception) {
             return onFailure(e)
@@ -526,10 +524,15 @@ internal class SignEngine(
     // listened by DappDelegate
     private fun onSessionSettle(request: WCRequest, settleParams: SignParams.SessionSettleParams) {
         val sessionTopic = request.topic
-        val (selfPublicKey, _) = crypto.getKeyAgreement(sessionTopic)
+        val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        val selfPublicKey: PublicKey = try {
+            crypto.getSelfPublicFromKeyAgreement(sessionTopic)
+        } catch (e: Exception) {
+            jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
+            return
+        }
         val peerMetadata = settleParams.controller.metadata
         val proposal = sessionProposalRequest[selfPublicKey.keyAsHex] ?: return
-        val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         if (proposal.params !is SignParams.SessionProposeParams) {
             jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(NAMESPACE_MISSING_PROPOSAL_MESSAGE), irnParams)
@@ -564,24 +567,31 @@ internal class SignEngine(
 
     // listened by both Delegates
     private fun onSessionDelete(request: WCRequest, params: SignParams.DeleteParams) {
-        if (!sessionStorageRepository.isSessionValid(request.topic)) {
-            val irnParams = IrnParams(Tags.SESSION_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
+        try {
+            if (!sessionStorageRepository.isSessionValid(request.topic)) {
+                jsonRpcInteractor.respondWithError(
+                    request,
+                    Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
+                    irnParams
+                )
+                return
+            }
+
+            jsonRpcInteractor.unsubscribe(request.topic,
+                onSuccess = { crypto.removeKeys(request.topic.value) },
+                onFailure = { error -> Logger.error(error) })
+            sessionStorageRepository.deleteSession(request.topic)
+
+            scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
+        } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
                 request,
-                Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
+                Uncategorized.GenericError("Cannot delete a session: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
             return
         }
-
-        jsonRpcInteractor.unsubscribe(request.topic, onSuccess = {
-            crypto.removeKeys(request.topic.value)
-        }, onFailure = { error ->
-            Logger.error(error)
-        })
-
-        sessionStorageRepository.deleteSession(request.topic)
-        scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
     }
 
     // listened by WalletDelegate
@@ -749,8 +759,8 @@ internal class SignEngine(
                 val selfPublicKey = PublicKey(params.proposer.publicKey)
                 val approveParams = response.result as SignParams.ApprovalParams
                 val responderPublicKey = PublicKey(approveParams.responderPublicKey)
-                val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
                 try {
+                    val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
                     jsonRpcInteractor.subscribe(sessionTopic) { error ->
                         scope.launch {
                             _engineEvent.emit(SDKError(InternalError(error)))
@@ -771,26 +781,30 @@ internal class SignEngine(
 
     // listened by WalletDelegate
     private fun onSessionSettleResponse(wcResponse: WCResponse) {
-        val sessionTopic = wcResponse.topic
-        if (!sessionStorageRepository.isSessionValid(sessionTopic)) return
-        val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(sessionTopic).run {
-            val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
-            this.copy(selfAppMetaData = selfAppMetaData, peerAppMetaData = peerAppMetaData)
-        }
+        try {
+            val sessionTopic = wcResponse.topic
+            if (!sessionStorageRepository.isSessionValid(sessionTopic)) return
+            val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(sessionTopic).run {
+                val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
+                this.copy(selfAppMetaData = selfAppMetaData, peerAppMetaData = peerAppMetaData)
+            }
 
-        when (wcResponse.response) {
-            is JsonRpcResponse.JsonRpcResult -> {
-                Logger.log("Session settle success received")
-                sessionStorageRepository.acknowledgeSession(sessionTopic)
-                scope.launch { _engineEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDO())) }
+            when (wcResponse.response) {
+                is JsonRpcResponse.JsonRpcResult -> {
+                    Logger.log("Session settle success received")
+                    sessionStorageRepository.acknowledgeSession(sessionTopic)
+                    scope.launch { _engineEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDO())) }
+                }
+                is JsonRpcResponse.JsonRpcError -> {
+                    Logger.error("Peer failed to settle session: ${(wcResponse.response as JsonRpcResponse.JsonRpcError).errorMessage}")
+                    jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
+                        sessionStorageRepository.deleteSession(sessionTopic)
+                        crypto.removeKeys(sessionTopic.value)
+                    })
+                }
             }
-            is JsonRpcResponse.JsonRpcError -> {
-                Logger.error("Peer failed to settle session: ${(wcResponse.response as JsonRpcResponse.JsonRpcError).errorMessage}")
-                jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
-                    sessionStorageRepository.deleteSession(sessionTopic)
-                    crypto.removeKeys(sessionTopic.value)
-                })
-            }
+        } catch (e: Exception) {
+            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
         }
     }
 
@@ -843,50 +857,52 @@ internal class SignEngine(
     }
 
     private fun resubscribeToSession() {
-        val (listOfExpiredSession, listOfValidSessions) =
-            sessionStorageRepository.getListOfSessionVOsWithoutMetadata().partition { session -> !session.expiry.isSequenceValid() }
+        try {
+            val (listOfExpiredSession, listOfValidSessions) =
+                sessionStorageRepository.getListOfSessionVOsWithoutMetadata().partition { session -> !session.expiry.isSequenceValid() }
 
-        listOfExpiredSession
-            .map { session -> session.topic }
-            .onEach { sessionTopic ->
-                jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
-                    crypto.removeKeys(sessionTopic.value)
-                    sessionStorageRepository.deleteSession(sessionTopic)
-                })
-            }
+            listOfExpiredSession
+                .map { session -> session.topic }
+                .onEach { sessionTopic ->
+                    jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
+                        crypto.removeKeys(sessionTopic.value)
+                        sessionStorageRepository.deleteSession(sessionTopic)
+                    })
+                }
 
-        listOfValidSessions
-            .onEach { session ->
-                try {
+            listOfValidSessions
+                .onEach { session ->
                     jsonRpcInteractor.subscribe(session.topic) { error ->
                         scope.launch {
                             _engineEvent.emit(SDKError(InternalError(error)))
                         }
                     }
-                } catch (e: Exception) {
-                    scope.launch {
-                        _engineEvent.emit(SDKError(InternalError(e)))
-                    }
                 }
-            }
+        } catch (e: Exception) {
+            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+        }
     }
 
     private fun setupSequenceExpiration() {
-        sessionStorageRepository.onSessionExpired = { sessionTopic ->
-            jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
-                sessionStorageRepository.deleteSession(sessionTopic)
-                crypto.removeKeys(sessionTopic.value)
-            })
-        }
-
-        pairingInterface.topicExpiredFlow.onEach { topic ->
-            sessionStorageRepository.getAllSessionTopicsByPairingTopic(topic).onEach { sessionTopic ->
-                jsonRpcInteractor.unsubscribe(Topic(sessionTopic), onSuccess = {
-                    sessionStorageRepository.deleteSession(Topic(sessionTopic))
-                    crypto.removeKeys(sessionTopic)
+        try {
+            sessionStorageRepository.onSessionExpired = { sessionTopic ->
+                jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
+                    sessionStorageRepository.deleteSession(sessionTopic)
+                    crypto.removeKeys(sessionTopic.value)
                 })
             }
-        }.launchIn(scope)
+
+            pairingInterface.topicExpiredFlow.onEach { topic ->
+                sessionStorageRepository.getAllSessionTopicsByPairingTopic(topic).onEach { sessionTopic ->
+                    jsonRpcInteractor.unsubscribe(Topic(sessionTopic), onSuccess = {
+                        sessionStorageRepository.deleteSession(Topic(sessionTopic))
+                        crypto.removeKeys(sessionTopic)
+                    })
+                }
+            }.launchIn(scope)
+        } catch (e: Exception) {
+            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+        }
     }
 
     private companion object {

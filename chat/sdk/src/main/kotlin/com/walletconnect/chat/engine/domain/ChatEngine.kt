@@ -164,9 +164,7 @@ internal class ChatEngine(
             val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
 
             keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
-            jsonRpcInteractor.subscribe(acceptTopic) { error ->
-                return@subscribe onFailure(error)
-            }
+            jsonRpcInteractor.subscribe(acceptTopic) { error -> return@subscribe onFailure(error) }
 
             val irnParams = IrnParams(Tags.CHAT_INVITE, Ttl(DAY_IN_SECONDS), true)
             jsonRpcInteractor.publishJsonRpcRequest(inviteTopic, irnParams, payload, EnvelopeType.ONE, participants,
@@ -349,28 +347,31 @@ internal class ChatEngine(
                 Logger.log("Chat invite was rejected")
                 scope.launch { _events.emit(EngineDO.Events.OnReject(wcResponse.topic.value)) }
             }
-            is JsonRpcResponse.JsonRpcResult -> {
-                Logger.log("Chat invite was accepted")
-                val acceptParams = response.result as ChatParams.AcceptanceParams
-                val pubKeyZ = PublicKey(acceptParams.publicKey)
-                val (selfPubKey, _) = keyManagementRepository.getKeyAgreement(wcResponse.topic)
-                val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(selfPubKey, pubKeyZ)
-                val threadTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
-                keyManagementRepository.setKey(symmetricKey, threadTopic.value)
-                try {
-                    jsonRpcInteractor.subscribe(threadTopic) { error ->
-                        scope.launch {
-                            _events.emit(SDKError(InternalError(error)))
-                        }
-                    }
-                } catch (e: Exception) {
-                    scope.launch {
-                        _events.emit(SDKError(InternalError(e)))
-                    }
+            is JsonRpcResponse.JsonRpcResult -> onInviteAccepted(response, wcResponse)
+        }
+    }
+
+    private fun onInviteAccepted(response: JsonRpcResponse.JsonRpcResult, wcResponse: WCResponse) {
+        Logger.log("Chat invite was accepted")
+        val acceptParams = response.result as ChatParams.AcceptanceParams
+        val pubKeyZ = PublicKey(acceptParams.publicKey)
+
+        try {
+            val selfPubKey: PublicKey = keyManagementRepository.getSelfPublicFromKeyAgreement(wcResponse.topic)
+            val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(selfPubKey, pubKeyZ)
+            val threadTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
+            keyManagementRepository.setKey(symmetricKey, threadTopic.value)
+            jsonRpcInteractor.subscribe(threadTopic) { error ->
+                scope.launch {
+                    _events.emit(SDKError(InternalError(error)))
                 }
-                //TODO: Add adding thread to storage. For Alpha we will use only emitted event.
-                scope.launch { _events.emit(EngineDO.Events.OnJoined(threadTopic.value)) }
+                return@subscribe
             }
+            //TODO: Add adding thread to storage. For Alpha we will use only emitted event.
+            scope.launch { _events.emit(EngineDO.Events.OnJoined(threadTopic.value)) }
+        } catch (e: Exception) {
+            scope.launch { _events.emit(SDKError(InternalError(e))) }
+            return
         }
     }
 

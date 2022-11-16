@@ -49,11 +49,11 @@ internal class PairingEngine {
     val jsonRpcErrorFlow: Flow<InternalError> by lazy {
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.method !in setOfRegisteredMethods }
-            .onEach {
+            .onEach { request ->
                 val irnParams = IrnParams(Tags.UNSUPPORTED_METHOD, Ttl(DAY_IN_SECONDS))
-                jsonRpcInteractor.respondWithError(it, Invalid.MethodUnsupported(it.method), irnParams)
-            }.map {
-                InternalError(Exception(Invalid.MethodUnsupported(it.method).message))
+                jsonRpcInteractor.respondWithError(request, Invalid.MethodUnsupported(request.method), irnParams)
+            }.map { request ->
+                InternalError(Exception(Invalid.MethodUnsupported(request.method).message))
             }
     }
 
@@ -172,7 +172,7 @@ internal class PairingEngine {
 
     fun updateExpiry(topic: String, expiry: Expiry, onFailure: (Throwable) -> Unit) {
         val pairing: Pairing = pairingRepository.getPairingOrNullByTopic(Topic(topic))?.run {
-            this.takeIf { it.isValid() } ?: return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
+            this.takeIf { pairing -> pairing.isValid() } ?: return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
         } ?: return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
 
         val newExpiration = pairing.expiry.seconds + expiry.seconds
@@ -232,18 +232,23 @@ internal class PairingEngine {
     }
 
     private suspend fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {
-        if (!isPairingValid(request.topic.value)) {
-            val irnParams = IrnParams(Tags.PAIRING_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
-            jsonRpcInteractor.respondWithError(request, Uncategorized.NoMatchingTopic("Pairing", request.topic.value), irnParams)
+        val irnParams = IrnParams(Tags.PAIRING_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
+        try {
+            if (!isPairingValid(request.topic.value)) {
+                jsonRpcInteractor.respondWithError(request, Uncategorized.NoMatchingTopic("Pairing", request.topic.value), irnParams)
+                return
+            }
+
+            crypto.removeKeys(request.topic.value)
+            jsonRpcInteractor.unsubscribe(request.topic)
+            pairingRepository.deletePairing(request.topic)
+            metadataRepository.deleteMetaData(request.topic)
+
+            _engineEvent.emit(EngineDO.PairingDelete(request.topic.value, params.message))
+        } catch (e: Exception) {
+            jsonRpcInteractor.respondWithError(request, Uncategorized.GenericError("Cannot delete pairing: ${e.message}"), irnParams)
             return
         }
-
-        crypto.removeKeys(request.topic.value)
-        jsonRpcInteractor.unsubscribe(request.topic)
-        pairingRepository.deletePairing(request.topic)
-        metadataRepository.deleteMetaData(request.topic)
-
-        _engineEvent.emit(EngineDO.PairingDelete(request.topic.value, params.message))
     }
 
     private fun onPing(request: WCRequest) {
