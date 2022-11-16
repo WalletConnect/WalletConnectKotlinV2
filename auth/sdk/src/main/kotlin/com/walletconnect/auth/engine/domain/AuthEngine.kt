@@ -26,8 +26,8 @@ import com.walletconnect.auth.common.exceptions.PeerError
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.json_rpc.AuthRpc
 import com.walletconnect.auth.common.model.*
-import com.walletconnect.auth.engine.mapper.toCacaoPayload
 import com.walletconnect.auth.engine.mapper.toCAIP122Message
+import com.walletconnect.auth.engine.mapper.toCacaoPayload
 import com.walletconnect.auth.engine.mapper.toPendingRequest
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
@@ -191,35 +191,39 @@ internal class AuthEngine(
     }
 
     private fun onAuthRequestResponse(wcResponse: WCResponse, requestParams: AuthParams.RequestParams) {
-        val pairingTopic = wcResponse.topic
-        updatePairing(pairingTopic, requestParams)
-        if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
-        pairingTopicToResponseTopicMap.remove(pairingTopic)
+        try {
+            val pairingTopic = wcResponse.topic
+            updatePairing(pairingTopic, requestParams)
+            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
+            pairingTopicToResponseTopicMap.remove(pairingTopic)
 
-        when (val response = wcResponse.response) {
-            is JsonRpcResponse.JsonRpcError -> {
-                scope.launch {
-                    _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Error(response.error.code, response.error.message)))
-                }
-            }
-            is JsonRpcResponse.JsonRpcResult -> {
-                val (header, payload, signature) = (response.result as AuthParams.ResponseParams)
-                val cacao = Cacao(header, payload, signature)
-                if (cacaoVerifier.verify(cacao)) {
+            when (val response = wcResponse.response) {
+                is JsonRpcResponse.JsonRpcError -> {
                     scope.launch {
-                        _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Result(cacao)))
+                        _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Error(response.error.code, response.error.message)))
                     }
-                } else {
-                    scope.launch {
-                        _engineEvent.emit(
-                            Events.OnAuthResponse(
-                                response.id,
-                                AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)
+                }
+                is JsonRpcResponse.JsonRpcResult -> {
+                    val (header, payload, signature) = (response.result as AuthParams.ResponseParams)
+                    val cacao = Cacao(header, payload, signature)
+                    if (cacaoVerifier.verify(cacao)) {
+                        scope.launch {
+                            _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Result(cacao)))
+                        }
+                    } else {
+                        scope.launch {
+                            _engineEvent.emit(
+                                Events.OnAuthResponse(
+                                    response.id,
+                                    AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }
+        } catch (e: Exception) {
+            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
         }
     }
 
