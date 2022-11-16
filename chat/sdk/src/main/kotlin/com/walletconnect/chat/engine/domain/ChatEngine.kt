@@ -224,26 +224,25 @@ internal class ChatEngine(
         }
 
     internal fun reject(inviteId: Long, onFailure: (Throwable) -> Unit) {
-        val request = inviteRequestMap[inviteId] ?: throw GenericException("No request for inviteId")
-        val senderPublicKey = PublicKey((request.params as ChatParams.InviteParams).publicKey)
-        inviteRequestMap.remove(inviteId)
+        try {
+            val request = inviteRequestMap[inviteId] ?: throw GenericException("No request for inviteId")
+            val senderPublicKey = PublicKey((request.params as ChatParams.InviteParams).publicKey)
+            inviteRequestMap.remove(inviteId)
 
-        val invitePublicKey = try {
-            keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)
+            val invitePublicKey = keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)
+            val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(invitePublicKey, senderPublicKey)
+            val rejectTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
+            keyManagementRepository.setKey(symmetricKey, rejectTopic.value)
+
+            val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(DAY_IN_SECONDS))
+            jsonRpcInteractor.respondWithError(
+                request.copy(topic = rejectTopic),
+                PeerError.UserRejectedInvitation("Invitation rejected by a user"),
+                irnParams
+            ) { throwable -> onFailure(throwable) }
         } catch (e: MissingKeyException) {
             return onFailure(e)
         }
-
-        val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(invitePublicKey, senderPublicKey)
-        val rejectTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
-        keyManagementRepository.setKey(symmetricKey, rejectTopic.value)
-
-        val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(DAY_IN_SECONDS))
-        jsonRpcInteractor.respondWithError(
-            request.copy(topic = rejectTopic),
-            PeerError.UserRejectedInvitation("Invitation rejected by a user"),
-            irnParams
-        ) { throwable -> onFailure(throwable) }
     }
 
     internal fun message(topic: String, sendMessage: EngineDO.SendMessage, onFailure: (Throwable) -> Unit) {
