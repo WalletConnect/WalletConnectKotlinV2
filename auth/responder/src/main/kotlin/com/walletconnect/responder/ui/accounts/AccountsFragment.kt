@@ -69,18 +69,6 @@ class AccountsFragment : Fragment(R.layout.fragment_accounts) {
 
                 (requireActivity() as AppCompatActivity).supportActionBar?.customView?.findViewById<TextView>(R.id.tvAccountsSelector)?.run {
                     text = selectedAccount.title
-                    setOnClickListener {
-                        PopupMenu(requireContext(), this).apply {
-                            mapOfTotalAccounts.onEachIndexed { index, accountUI ->
-                                menu.add(1, index, 0, accountUI.title)
-                            }
-                            setOnMenuItemClickListener { menuItem ->
-                                viewModel.newAccountClicked(menuItem.itemId)
-
-                                false
-                            }
-                        }.show()
-                    }
                 }
             }.launchIn(viewLifecycleOwner.lifecycleScope)
 

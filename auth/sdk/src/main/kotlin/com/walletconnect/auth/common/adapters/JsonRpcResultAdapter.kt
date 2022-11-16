@@ -100,7 +100,7 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<JsonRpcResponse.
         writer.name("result")
 
         when {
-            (value_.result as? Cacao) != null -> {
+            (value_.result as? AuthParams.ResponseParams) != null -> {
                 val responseParamsString = cacaoAdapter.toJson(value_.result as AuthParams.ResponseParams)
                 writer.valueSink().use {
                     it.writeUtf8(responseParamsString)

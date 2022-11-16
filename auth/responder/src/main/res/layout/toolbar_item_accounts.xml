@@ -12,6 +12,5 @@
     android:paddingEnd="40dp"
     android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
     android:textColor="?colorOnPrimary"
-    app:drawableEndCompat="@drawable/ic_arrow_down"
     tools:background="?colorPrimary"
     tools:text="Account 1" />
