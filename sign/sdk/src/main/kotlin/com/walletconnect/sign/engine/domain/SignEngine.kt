@@ -123,14 +123,7 @@ internal class SignEngine(
         val request = SignRpc.SessionPropose(id = generateId(), params = sessionProposal)
         sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequest(pairing.topic, request.id, request.method, sessionProposal)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
-
-        try {
-            jsonRpcInteractor.subscribe(pairing.topic) { error ->
-                return@subscribe onFailure(error)
-            }
-        } catch (e: Exception) {
-            return onFailure(e)
-        }
+        jsonRpcInteractor.subscribe(pairing.topic) { error -> return@subscribe onFailure(error) }
 
         jsonRpcInteractor.publishJsonRpcRequest(pairing.topic, irnParams, request,
             onSuccess = {
@@ -204,13 +197,8 @@ internal class SignEngine(
         val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(proposerPublicKey))
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-
-        try {
-            jsonRpcInteractor.subscribe(sessionTopic) { error -> return@subscribe onFailure(error) }
-            jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams)
-        } catch (e: Exception) {
-            return onFailure(e)
-        }
+        jsonRpcInteractor.subscribe(sessionTopic) { error -> return@subscribe onFailure(error) }
+        jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams)
 
         sessionSettle(request.id, proposal, sessionTopic, request.topic)
     }

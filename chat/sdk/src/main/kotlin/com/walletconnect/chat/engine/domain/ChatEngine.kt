@@ -215,9 +215,7 @@ internal class ChatEngine(
             val threadSymmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(publicKey, senderPublicKey)
             val threadTopic = keyManagementRepository.getTopicFromKey(threadSymmetricKey)
             keyManagementRepository.setKey(threadSymmetricKey, threadTopic.value)
-            jsonRpcInteractor.subscribe(threadTopic) { error ->
-                return@subscribe onFailure(error)
-            }
+            jsonRpcInteractor.subscribe(threadTopic) { error -> return@subscribe onFailure(error) }
             onSuccess(threadTopic.value)
         } catch (error: Exception) {
             onFailure(error)

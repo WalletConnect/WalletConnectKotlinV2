@@ -67,7 +67,7 @@ internal class PairingEngine {
         return inactivePairing.runCatching {
             pairingRepository.insertPairing(this)
             metadataRepository.upsertPairingPeerMetadata(pairingTopic, selfMetaData, AppMetaDataType.SELF)
-            jsonRpcInteractor.subscribe(pairingTopic)
+            jsonRpcInteractor.subscribe(pairingTopic) { error -> return@subscribe onFailure(error) }
 
             this.toClient()
         }.onFailure { throwable ->
@@ -109,7 +109,7 @@ internal class PairingEngine {
 
         try {
             pairingRepository.insertPairing(activePairing)
-            jsonRpcInteractor.subscribe(activePairing.topic)
+            jsonRpcInteractor.subscribe(activePairing.topic) { error -> return@subscribe onFailure(error) }
         } catch (e: Exception) {
             crypto.removeKeys(walletConnectUri.topic.value)
             jsonRpcInteractor.unsubscribe(activePairing.topic)
@@ -219,7 +219,7 @@ internal class PairingEngine {
                             .map { pairing -> pairing.topic }
                             .onEach { pairingTopic ->
                                 try {
-                                    jsonRpcInteractor.subscribe(pairingTopic)
+                                    jsonRpcInteractor.subscribe(pairingTopic) { error -> scope.launch { internalErrorFlow.emit(InternalError(error)) } }
                                 } catch (e: Exception) {
                                     scope.launch {
                                         internalErrorFlow.emit(InternalError(e))
