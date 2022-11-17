@@ -25,7 +25,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -42,7 +42,7 @@ android {
 
 dependencies {
     debugApi(project(":foundation"))
-    releaseApi("com.walletconnect:foundation:1.1.0")
+    releaseApi("com.walletconnect:foundation:1.2.0")
 
     bouncyCastle()
     coroutines()

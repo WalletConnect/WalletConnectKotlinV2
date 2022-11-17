@@ -8,7 +8,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core-impl"
-    extra[KEY_PUBLISH_VERSION] = "1.4.0"
+    extra[KEY_PUBLISH_VERSION] = "1.4.1"
     extra[KEY_SDK_NAME] = "Android Core Impl"
 }
 
@@ -24,7 +24,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

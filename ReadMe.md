@@ -7,10 +7,10 @@ WalletConnect v2 protocols for Android applications.
 
 ## SDks
 
-* [Core SDK](https://github.com/WalletConnect/WalletConnectKotlinV2/tree/develop/androidCore)
-* [Sign SDK](https://github.com/WalletConnect/WalletConnectKotlinV2/tree/develop/sign)
-* [Auth SDK](https://github.com/WalletConnect/WalletConnectKotlinV2/tree/develop/auth)
-* [Chat SDK](https://github.com/WalletConnect/WalletConnectKotlinV2/tree/develop/chat)
+* [Core SDK](androidCore)
+* [Sign SDK](sign)
+* [Auth SDK](auth)
+* [Chat SDK](chat)
 
 ####
 ## SDK Compatibility Chart

@@ -1,9 +1,3 @@
--keep class com.walletconnect.sign.** { *; }
-
--repackageclasses 'com.walletconnect.sign'
--allowaccessmodification
--keeppackagenames doNotKeepAThing
-
 -keep,includedescriptorclasses class net.sqlcipher.** { *; }
 -keep,includedescriptorclasses interface net.sqlcipher.** { *; }
 
@@ -13,8 +7,3 @@
 -keepclassmembers,allowshrinking,allowobfuscation interface * {
     @com.tinder.scarlet.ws.* <methods>;
 }
-
-#-dontobfuscate
-#-dontshrink
-#-dontoptimize
-#-dontusemixedcaseclassnames
