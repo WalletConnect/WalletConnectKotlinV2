@@ -14,7 +14,7 @@ import com.walletconnect.android.internal.common.exception.InvalidProjectIdExcep
 import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.pairing.client.PairingInterface
+import com.walletconnect.android.pairing.handler.PairingHandlerInterface
 import com.walletconnect.chat.common.exceptions.InvalidAccountIdException
 import com.walletconnect.chat.common.exceptions.PeerError
 import com.walletconnect.chat.common.json_rpc.ChatParams
@@ -39,7 +39,7 @@ internal class ChatEngine(
     private val keyManagementRepository: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val chatStorage: ChatStorageRepository,
-    private val pairingInterface: PairingInterface
+    private val pairingHandler: PairingHandlerInterface
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
@@ -49,7 +49,7 @@ internal class ChatEngine(
     private val inviteRequestMap: MutableMap<Long, WCRequest> = mutableMapOf()
 
     init {
-        pairingInterface.register(
+        pairingHandler.register(
             JsonRpcMethod.WC_CHAT_INVITE,
             JsonRpcMethod.WC_CHAT_MESSAGE,
             JsonRpcMethod.WC_CHAT_LEAVE,
@@ -418,7 +418,7 @@ internal class ChatEngine(
     }
 
     private fun collectInternalErrors(): Job =
-        merge(jsonRpcInteractor.internalErrors, pairingInterface.findWrongMethodsFlow)
+        merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
             .onEach { exception -> _events.emit(SDKError(exception)) }
             .launchIn(scope)
 

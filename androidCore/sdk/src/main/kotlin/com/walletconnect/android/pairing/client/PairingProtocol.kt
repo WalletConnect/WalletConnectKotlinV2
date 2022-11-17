@@ -10,9 +10,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.engine.domain.PairingEngine
 import com.walletconnect.android.pairing.engine.model.EngineDO
-import com.walletconnect.android.pairing.model.mapper.toAppMetaData
 import com.walletconnect.android.pairing.model.mapper.toClient
-import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -24,12 +22,9 @@ import org.koin.dsl.module
 internal object PairingProtocol : PairingInterface {
     private lateinit var pairingEngine: PairingEngine
     private val logger: Logger by lazy { wcKoinApp.koin.get() }
-    override val topicExpiredFlow: SharedFlow<Topic> by lazy { pairingEngine.topicExpiredFlow }
-    override val findWrongMethodsFlow: Flow<InternalError> by lazy { merge(pairingEngine.internalErrorFlow, pairingEngine.jsonRpcErrorFlow) }
 
-    fun initialize(metaData: Core.Model.AppMetaData) {
-        pairingEngine = PairingEngine()
-
+    internal fun initialize(metaData: Core.Model.AppMetaData, pairingEngine: PairingEngine) {
+        this.pairingEngine = pairingEngine
         wcKoinApp.modules(module { with(metaData) { single { AppMetaData(name, description, url, icons, Redirect(redirect)) } } })
     }
 
@@ -116,46 +111,6 @@ internal object PairingProtocol : PairingInterface {
         checkEngineInitialization()
 
         return pairingEngine.getPairings().map { pairing -> pairing.toClient() }
-    }
-
-    @Throws(IllegalStateException::class)
-    override fun register(vararg method: String) {
-        checkEngineInitialization()
-
-        pairingEngine.register(*method)
-    }
-
-    @Throws(IllegalStateException::class)
-    override fun activate(activate: Core.Params.Activate, onError: (Core.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
-        try {
-            pairingEngine.activate(activate.topic) { error -> onError(Core.Model.Error(error)) }
-        } catch (e: Exception) {
-            onError(Core.Model.Error(e))
-        }
-    }
-
-    @Throws(IllegalStateException::class)
-    override fun updateExpiry(updateExpiry: Core.Params.UpdateExpiry, onError: (Core.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
-        try {
-            pairingEngine.updateExpiry(updateExpiry.topic, updateExpiry.expiry) { error -> onError(Core.Model.Error(error)) }
-        } catch (e: Exception) {
-            onError(Core.Model.Error(e))
-        }
-    }
-
-    @Throws(IllegalStateException::class)
-    override fun updateMetadata(updateMetadata: Core.Params.UpdateMetadata, onError: (Core.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
-        try {
-            pairingEngine.updateMetadata(updateMetadata.topic, updateMetadata.metadata.toAppMetaData(), updateMetadata.metaDataType)
-        } catch (e: Exception) {
-            onError(Core.Model.Error(e))
-        }
     }
 
     private suspend fun awaitConnection(onConnection: () -> Unit, errorLambda: (Throwable) -> Unit = {}) {

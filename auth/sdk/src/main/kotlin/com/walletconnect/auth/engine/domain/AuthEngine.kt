@@ -17,6 +17,7 @@ import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExist
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.client.PairingInterface
+import com.walletconnect.android.pairing.handler.PairingHandlerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException
@@ -49,6 +50,7 @@ internal class AuthEngine(
     private val getPendingJsonRpcHistoryEntriesUseCase: GetPendingJsonRpcHistoryEntriesUseCase,
     private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
     private val crypto: KeyManagementRepository,
+    private val pairingHandler: PairingHandlerInterface,
     private val pairingInterface: PairingInterface,
     private val selfAppMetaData: AppMetaData,
     private val issuer: Issuer?,
@@ -64,7 +66,7 @@ internal class AuthEngine(
     private val pairingTopicToResponseTopicMap: MutableMap<Topic, Topic> = mutableMapOf()
 
     init {
-        pairingInterface.register(JsonRpcMethod.WC_AUTH_REQUEST)
+        pairingHandler.register(JsonRpcMethod.WC_AUTH_REQUEST)
     }
 
     fun setup() {
@@ -231,9 +233,9 @@ internal class AuthEngine(
         topic: Topic,
         requestParams: AuthParams.RequestParams
     ) {
-        pairingInterface.updateExpiry(Core.Params.UpdateExpiry(topic.value, Expiry(MONTH_IN_SECONDS)))
-        pairingInterface.updateMetadata(Core.Params.UpdateMetadata(topic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER))
-        pairingInterface.activate(Core.Params.Activate(topic.value))
+        pairingHandler.updateExpiry(Core.Params.UpdateExpiry(topic.value, Expiry(MONTH_IN_SECONDS)))
+        pairingHandler.updateMetadata(Core.Params.UpdateMetadata(topic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER))
+        pairingHandler.activate(Core.Params.Activate(topic.value))
     }
 
     private fun collectJsonRpcRequests(): Job =
@@ -267,7 +269,7 @@ internal class AuthEngine(
     }
 
     private fun collectInternalErrors(): Job =
-        merge(jsonRpcInteractor.internalErrors, pairingInterface.findWrongMethodsFlow)
+        merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
             .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
             .launchIn(scope)
 }
