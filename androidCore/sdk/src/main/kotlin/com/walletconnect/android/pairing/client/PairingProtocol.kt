@@ -87,6 +87,18 @@ internal object PairingProtocol : PairingInterface {
     }
 
     @Throws(IllegalStateException::class)
+    override fun disconnect(topic: String, onError: (Core.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        try {
+            pairingEngine.disconnect(topic) { error -> onError(Core.Model.Error(error)) }
+        } catch (e: Exception) {
+            onError(Core.Model.Error(e))
+        }
+    }
+
+
+    @Throws(IllegalStateException::class)
     override fun ping(ping: Core.Params.Ping, pairingPing: Core.Listeners.PairingPing?) {
         checkEngineInitialization()
 

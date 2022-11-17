@@ -17,6 +17,12 @@ interface PairingInterface {
 
     fun getPairings(): List<Core.Model.Pairing>
 
+    @Deprecated(
+        message = "Disconnect method has been replaced",
+        replaceWith = ReplaceWith(expression = "disconnect(disconnect: Core.Params.Disconnect, onError: (Core.Model.Error) -> Unit = {})")
+    )
+    fun disconnect(topic: String, onError: (Core.Model.Error) -> Unit = {})
+
     fun disconnect(disconnect: Core.Params.Disconnect, onError: (Core.Model.Error) -> Unit = {})
 
     //  idea: --- I think those below shouldn't be accessible by SDK consumers.
