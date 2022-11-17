@@ -73,9 +73,6 @@ internal class JsonRpcInteractor(
         }
 
         val requestJson = serializer.serialize(payload) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
-
-        Logger.error("kobe; Request: $requestJson")
-
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
 
             val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
@@ -106,9 +103,6 @@ internal class JsonRpcInteractor(
 
         val jsonResponseDO = response.toJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
-
-        Logger.error("kobe; Response: $response")
-
         val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
 
         relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
@@ -128,11 +122,15 @@ internal class JsonRpcInteractor(
         irnParams: IrnParams,
         envelopeType: EnvelopeType,
         participants: Participants?,
+        onFailure: (Throwable) -> Unit
     ) {
         val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = clientParams)
 
         publishJsonRpcResponse(request.topic, irnParams, result, envelopeType = envelopeType, participants = participants,
-            onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
+            onFailure = { error ->
+                Logger.error("Cannot send the response, error: $error")
+                onFailure(error)
+            })
     }
 
     override fun respondWithSuccess(
@@ -224,8 +222,6 @@ internal class JsonRpcInteractor(
                 .map { relayRequest ->
                     val topic = Topic(relayRequest.subscriptionTopic)
                     val message = chaChaPolyCodec.decrypt(topic, relayRequest.message)
-
-                    Logger.error("kobe; Message: $message")
 
                     Pair(message, topic)
                 }.collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
