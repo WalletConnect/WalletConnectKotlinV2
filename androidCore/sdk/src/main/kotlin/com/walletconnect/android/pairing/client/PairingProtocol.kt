@@ -23,8 +23,8 @@ internal object PairingProtocol : PairingInterface {
     private lateinit var pairingEngine: PairingEngine
     private val logger: Logger by lazy { wcKoinApp.koin.get() }
 
-    internal fun initialize(metaData: Core.Model.AppMetaData, pairingEngine: PairingEngine) {
-        this.pairingEngine = pairingEngine
+    internal fun initialize(metaData: Core.Model.AppMetaData) {
+        pairingEngine = wcKoinApp.koin.get()
         wcKoinApp.modules(module { with(metaData) { single { AppMetaData(name, description, url, icons, Redirect(redirect)) } } })
     }
 

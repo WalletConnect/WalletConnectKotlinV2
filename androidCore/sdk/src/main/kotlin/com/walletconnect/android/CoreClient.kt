@@ -15,7 +15,6 @@ import org.koin.dsl.module
 object CoreClient {
     val Pairing: PairingInterface = PairingProtocol
     var Relay: RelayConnectionInterface = RelayClient
-    private lateinit var pairingEngine: PairingEngine
 
     interface CoreDelegate : PairingInterface.Delegate
 
@@ -26,22 +25,21 @@ object CoreClient {
         application: Application,
         relay: RelayConnectionInterface? = null
     ) {
-        pairingEngine = PairingEngine()
-
         if (relay != null) {
             Relay = relay
         } else {
             RelayClient.initialize(relayServerUrl, connectionType, application)
         }
-        PairingProtocol.initialize(metaData, pairingEngine)
-        PairingHandler.initialize(pairingEngine)
         wcKoinApp.modules(
             module {
+                single { PairingEngine() }
                 single { Pairing }
                 single<PairingHandlerInterface> { PairingHandler }
                 single { Relay }
             }
         )
+        PairingProtocol.initialize(metaData)
+        PairingHandler.initialize()
     }
 
     fun setDelegate(delegate: CoreDelegate) {
