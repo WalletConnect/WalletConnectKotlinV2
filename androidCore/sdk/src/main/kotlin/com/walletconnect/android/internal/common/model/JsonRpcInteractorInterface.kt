@@ -46,6 +46,7 @@ interface JsonRpcInteractorInterface {
         irnParams: IrnParams,
         envelopeType: EnvelopeType = EnvelopeType.ZERO,
         participants: Participants? = null,
+        onFailure: (Throwable) -> Unit
     )
 
     fun respondWithSuccess(

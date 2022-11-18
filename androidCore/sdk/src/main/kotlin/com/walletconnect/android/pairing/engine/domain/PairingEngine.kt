@@ -87,22 +87,6 @@ internal class PairingEngine {
             return onFailure(PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE))
         }
 
-        // TODO: Will add back in after initial release of Auth
-//        if (Validator.doesNotContainRegisteredMethods(walletConnectUri.registeredMethods, setOfRegisteredMethods)) {
-//            val deleteParams = PairingParams.DeleteParams(10001, "Methods Unsupported")
-//            val pairingDelete = PairingRpc.PairingDelete(id = generateId(), params = deleteParams)
-//            val irnParams = IrnParams(Tags.PAIRING_DELETE, Ttl(DAY_IN_SECONDS))
-//
-//            return jsonRpcInteractor.publishJsonRpcRequests(walletConnectUri.topic, irnParams, pairingDelete,
-//                onSuccess = {
-//                    onError(Core.Model.Error(IllegalArgumentException("Peer Required RPC  Methods Missing")))
-//                },
-//                onFailure = {
-//                    onError(Core.Model.Error(it))
-//                }
-//            )
-//        }
-
         val activePairing = Pairing(walletConnectUri, registeredMethods)
         val symmetricKey = walletConnectUri.symKey
         crypto.setKey(symmetricKey, walletConnectUri.topic.value)

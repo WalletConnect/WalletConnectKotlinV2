@@ -200,7 +200,7 @@ internal class SignEngine(
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         jsonRpcInteractor.subscribe(sessionTopic) { error -> return@subscribe onFailure(error) }
-        jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams)
+        jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams) { error -> return@respondWithParams onFailure(error) }
 
         sessionSettle(request.id, proposal, sessionTopic, request.topic)
     }

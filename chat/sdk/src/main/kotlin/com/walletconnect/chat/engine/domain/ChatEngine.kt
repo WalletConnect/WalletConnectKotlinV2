@@ -210,7 +210,10 @@ internal class ChatEngine(
             val acceptanceParams = ChatParams.AcceptanceParams(publicKey.keyAsHex)
             val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(DAY_IN_SECONDS))
 
-            jsonRpcInteractor.respondWithParams(request.copy(topic = acceptTopic), acceptanceParams, irnParams, EnvelopeType.ZERO)
+            jsonRpcInteractor.respondWithParams(request.copy(topic = acceptTopic), acceptanceParams, irnParams, EnvelopeType.ZERO) { error ->
+                onFailure(error)
+                return@respondWithParams
+            }
 
             val threadSymmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(publicKey, senderPublicKey)
             val threadTopic = keyManagementRepository.getTopicFromKey(threadSymmetricKey)
