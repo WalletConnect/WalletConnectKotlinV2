@@ -1,7 +1,7 @@
 package com.walletconnect.android.internal.common.model
 
-import com.walletconnect.android.pairing.ACTIVE_PAIRING
-import com.walletconnect.android.pairing.INACTIVE_PAIRING
+import com.walletconnect.android.pairing.model.ACTIVE_PAIRING
+import com.walletconnect.android.pairing.model.INACTIVE_PAIRING
 import com.walletconnect.foundation.common.model.Topic
 
 data class Pairing(

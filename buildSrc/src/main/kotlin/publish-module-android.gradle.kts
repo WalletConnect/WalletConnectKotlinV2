@@ -1,5 +1,6 @@
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.LibraryExtension
+import com.android.build.gradle.internal.api.DefaultAndroidSourceDirectorySet
 
 plugins {
     `maven-publish`
@@ -14,9 +15,13 @@ tasks {
         from("$buildDir/dokka/html")
     }
 
+    @Suppress("UnstableApiUsage")
     register("sourcesJar", Jar::class) {
         archiveClassifier.set("sources")
-        from(project.extensions.getByType<BaseExtension>().sourceSets.getByName("main").java.srcDirs)
+        from(
+            (project.extensions.getByType<BaseExtension>().sourceSets.getByName("main").kotlin.srcDirs("kotlin") as DefaultAndroidSourceDirectorySet).srcDirs,
+            (project.extensions.getByType<BaseExtension>().sourceSets.getByName("release").kotlin.srcDirs("kotlin") as DefaultAndroidSourceDirectorySet).srcDirs
+        )
     }
 }
 
@@ -38,7 +43,7 @@ afterEvaluate {
 
                 pom {
                     name.set("WalletConnect ${requireNotNull(extra.get(KEY_SDK_NAME))}")
-                    description.set("Sign SDK for WalletConnect.")
+                    description.set("${requireNotNull(extra.get(KEY_SDK_NAME))} SDK for WalletConnect")
                     url.set("https://github.com/WalletConnect/WalletConnectKotlinV2")
 
                     licenses {

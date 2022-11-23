@@ -73,8 +73,8 @@ internal class JsonRpcInteractor(
         }
 
         val requestJson = serializer.serialize(payload) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
-
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
+
             val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
 
             relay.publish(topic.value, encryptedRequest, params.toRelay()) { result ->
@@ -122,11 +122,15 @@ internal class JsonRpcInteractor(
         irnParams: IrnParams,
         envelopeType: EnvelopeType,
         participants: Participants?,
+        onFailure: (Throwable) -> Unit
     ) {
         val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = clientParams)
 
         publishJsonRpcResponse(request.topic, irnParams, result, envelopeType = envelopeType, participants = participants,
-            onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
+            onFailure = { error ->
+                Logger.error("Cannot send the response, error: $error")
+                onFailure(error)
+            })
     }
 
     override fun respondWithSuccess(
@@ -139,7 +143,7 @@ internal class JsonRpcInteractor(
 
         try {
             publishJsonRpcResponse(request.topic, irnParams, result, envelopeType = envelopeType, participants = participants,
-                onFailure = { error -> Logger.error("Cannot send the response, error: $error") })
+                onFailure = { error -> handleError("Cannot send the response, error: $error") })
         } catch (e: Exception) {
             handleError(e.message ?: String.Empty)
         }
@@ -159,7 +163,7 @@ internal class JsonRpcInteractor(
         try {
             publishJsonRpcResponse(request.topic, irnParams, jsonRpcError, envelopeType = envelopeType, participants = participants,
                 onFailure = { failure ->
-                    Logger.error("Cannot respond with error: $failure")
+                    handleError("Cannot respond with error: $failure")
                     onFailure(failure)
                 })
         } catch (e: Exception) {
@@ -266,7 +270,7 @@ internal class JsonRpcInteractor(
     }
 
     private fun handleError(errorMessage: String) {
-        Logger.error(errorMessage)
+        Logger.error("JsonRpcInteractor error: $errorMessage")
         scope.launch {
             _internalErrors.emit(InternalError(errorMessage))
         }

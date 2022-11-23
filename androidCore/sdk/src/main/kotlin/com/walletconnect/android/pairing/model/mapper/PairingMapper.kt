@@ -1,14 +1,15 @@
-package com.walletconnect.android.pairing
+package com.walletconnect.android.pairing.model.mapper
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Pairing
 import com.walletconnect.android.internal.common.model.Redirect
+import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.foundation.common.model.Topic
 
 @JvmSynthetic
-internal fun PairingDO.PairingDelete.toClient(): Core.Model.DeletedPairing =
+internal fun EngineDO.PairingDelete.toClient(): Core.Model.DeletedPairing =
     Core.Model.DeletedPairing(topic, reason)
 
 @JvmSynthetic

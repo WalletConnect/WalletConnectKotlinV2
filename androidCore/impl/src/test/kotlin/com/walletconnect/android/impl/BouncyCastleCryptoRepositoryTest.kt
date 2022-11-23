@@ -1,7 +1,7 @@
 package com.walletconnect.android.impl
 
-import com.walletconnect.android.internal.common.storage.KeyStore
 import com.walletconnect.android.impl.data.repository.BouncyCastleKeyManagementRepository
+import com.walletconnect.android.internal.common.storage.KeyStore
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -63,8 +63,8 @@ internal class BouncyCastleCryptoRepositoryTest {
     @Test
     fun `SetKeyPair sets the concatenated keys to storage`() {
         assertNotNull(sut.getKeyPair(publicKey))
-        assertEquals(publicKey.keyAsHex, keyChain.getKeys(publicKey.keyAsHex).first)
-        assertEquals(privateKey.keyAsHex, keyChain.getKeys(publicKey.keyAsHex).second)
+        assertEquals(publicKey.keyAsHex, keyChain.getKeys(publicKey.keyAsHex)?.first)
+        assertEquals(privateKey.keyAsHex, keyChain.getKeys(publicKey.keyAsHex)?.second)
     }
 
     @Test

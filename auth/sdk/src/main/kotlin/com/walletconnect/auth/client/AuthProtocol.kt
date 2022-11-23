@@ -8,7 +8,7 @@ import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.pairing.toPairing
+import com.walletconnect.android.pairing.model.mapper.toPairing
 import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Events

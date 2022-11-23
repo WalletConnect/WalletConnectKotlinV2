@@ -2,6 +2,7 @@
 
 package com.walletconnect.auth.engine.domain
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
@@ -15,8 +16,9 @@ import com.walletconnect.android.internal.common.exception.InvalidProjectIdExcep
 import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.pairing.PairingInterface
-import com.walletconnect.android.pairing.toClient
+import com.walletconnect.android.pairing.client.PairingInterface
+import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException
 import com.walletconnect.auth.common.exceptions.MissingAuthRequestException
@@ -25,8 +27,8 @@ import com.walletconnect.auth.common.exceptions.PeerError
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.json_rpc.AuthRpc
 import com.walletconnect.auth.common.model.*
+import com.walletconnect.auth.engine.mapper.toCAIP122Message
 import com.walletconnect.auth.engine.mapper.toCacaoPayload
-import com.walletconnect.auth.engine.mapper.toFormattedMessage
 import com.walletconnect.auth.engine.mapper.toPendingRequest
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
@@ -48,6 +50,7 @@ internal class AuthEngine(
     private val getPendingJsonRpcHistoryEntriesUseCase: GetPendingJsonRpcHistoryEntriesUseCase,
     private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
     private val crypto: KeyManagementRepository,
+    private val pairingHandler: PairingControllerInterface,
     private val pairingInterface: PairingInterface,
     private val selfAppMetaData: AppMetaData,
     private val issuer: Issuer?,
@@ -63,7 +66,7 @@ internal class AuthEngine(
     private val pairingTopicToResponseTopicMap: MutableMap<Topic, Topic> = mutableMapOf()
 
     init {
-        pairingInterface.register(JsonRpcMethod.WC_AUTH_REQUEST)
+        pairingHandler.register(JsonRpcMethod.WC_AUTH_REQUEST)
     }
 
     fun setup() {
@@ -101,7 +104,6 @@ internal class AuthEngine(
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        // For Alpha we are assuming not authenticated only todo: Remove comment after Alpha
         val responsePublicKey: PublicKey = crypto.generateKeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
         val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams)
@@ -112,8 +114,6 @@ internal class AuthEngine(
 
         jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
             onSuccess = {
-                Logger.log("Auth request sent successfully on topic:${pairingTopic}, awaiting response on topic:$responseTopic") // todo: Remove after Alpha
-
                 try {
                     jsonRpcInteractor.subscribe(responseTopic) { error ->
                         return@subscribe onFailure(error)
@@ -183,7 +183,7 @@ internal class AuthEngine(
     private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
         if (issuer != null) {
             scope.launch {
-                val formattedMessage: String = authParams.payloadParams.toFormattedMessage(issuer)
+                val formattedMessage: String = authParams.payloadParams.toCAIP122Message(issuer)
                 _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, formattedMessage))
             }
         } else {
@@ -193,38 +193,49 @@ internal class AuthEngine(
     }
 
     private fun onAuthRequestResponse(wcResponse: WCResponse, requestParams: AuthParams.RequestParams) {
-        val pairingTopic = wcResponse.topic
-        pairingInterface.updateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS))
-        pairingInterface.updateMetadata(pairingTopic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER)
-        pairingInterface.activate(pairingTopic.value)
-        if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
-        pairingTopicToResponseTopicMap.remove(pairingTopic)
+        try {
+            val pairingTopic = wcResponse.topic
+            updatePairing(pairingTopic, requestParams)
+            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
+            pairingTopicToResponseTopicMap.remove(pairingTopic)
 
-        when (val response = wcResponse.response) {
-            is JsonRpcResponse.JsonRpcError -> {
-                scope.launch {
-                    _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Error(response.error.code, response.error.message)))
-                }
-            }
-            is JsonRpcResponse.JsonRpcResult -> {
-                val (header, payload, signature) = (response.result as AuthParams.ResponseParams)
-                val cacao = Cacao(header, payload, signature)
-                if (cacaoVerifier.verify(cacao)) {
+            when (val response = wcResponse.response) {
+                is JsonRpcResponse.JsonRpcError -> {
                     scope.launch {
-                        _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Result(cacao)))
+                        _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Error(response.error.code, response.error.message)))
                     }
-                } else {
-                    scope.launch {
-                        _engineEvent.emit(
-                            Events.OnAuthResponse(
-                                response.id,
-                                AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)
+                }
+                is JsonRpcResponse.JsonRpcResult -> {
+                    val (header, payload, signature) = (response.result as AuthParams.ResponseParams)
+                    val cacao = Cacao(header, payload, signature)
+                    if (cacaoVerifier.verify(cacao)) {
+                        scope.launch {
+                            _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Result(cacao)))
+                        }
+                    } else {
+                        scope.launch {
+                            _engineEvent.emit(
+                                Events.OnAuthResponse(
+                                    response.id,
+                                    AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }
+        } catch (e: Exception) {
+            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
         }
+    }
+
+    private fun updatePairing(
+        topic: Topic,
+        requestParams: AuthParams.RequestParams
+    ) {
+        pairingHandler.updateExpiry(Core.Params.UpdateExpiry(topic.value, Expiry(MONTH_IN_SECONDS)))
+        pairingHandler.updateMetadata(Core.Params.UpdateMetadata(topic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER))
+        pairingHandler.activate(Core.Params.Activate(topic.value))
     }
 
     private fun collectJsonRpcRequests(): Job =
@@ -258,7 +269,7 @@ internal class AuthEngine(
     }
 
     private fun collectInternalErrors(): Job =
-        merge(jsonRpcInteractor.internalErrors, pairingInterface.findWrongMethodsFlow)
+        merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
             .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
             .launchIn(scope)
 }

@@ -8,7 +8,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "sign"
-    extra[KEY_PUBLISH_VERSION] = "2.1.0"
+    extra[KEY_PUBLISH_VERSION] = "2.2.0"
     extra[KEY_SDK_NAME] = "Sign"
 }
 
@@ -24,7 +24,7 @@ android {
             targetSdk = TARGET_SDK
         }
 
-        buildConfigField(type = "String", name = "sdkVersion", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
+        buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         testInstrumentationRunner = "com.walletconnect.sign.test.utils.WCTestRunner"
         testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")
         testInstrumentationRunnerArguments += mutableMapOf("clearPackageData" to "true")
@@ -63,7 +63,7 @@ sqldelight {
 
 dependencies {
     debugImplementation(project(":androidCore:impl"))
-    releaseImplementation("com.walletconnect:android-core-impl:1.3.0")
+    releaseImplementation("com.walletconnect:android-core-impl:1.4.0")
 
     moshiKsp()
     androidXTest()

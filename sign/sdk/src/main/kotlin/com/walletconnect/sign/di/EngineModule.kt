@@ -11,5 +11,5 @@ internal fun engineModule() = module {
 
     single { GetPendingRequestsUseCase(get(), get())}
 
-    single { SignEngine(get(), get(), get(), get(), get(), get(), get()) }
+    single { SignEngine(get(), get(), get(), get(), get(), get(), get(), get()) }
 }

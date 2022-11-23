@@ -7,7 +7,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core"
-    extra[KEY_PUBLISH_VERSION] = "1.3.0"
+    extra[KEY_PUBLISH_VERSION] = "1.4.0"
     extra[KEY_SDK_NAME] = "Android Core"
 }
 
@@ -18,7 +18,7 @@ android {
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
 
-        buildConfigField(type = "String", name = "sdkVersion", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
+        buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
