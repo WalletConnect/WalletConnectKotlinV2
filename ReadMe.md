@@ -21,6 +21,8 @@ WalletConnect v2 protocols for Android applications.
 | 1.1.0 | 2.0.0      | 1.0.0         |               |
 | 1.2.0 |            |               | 1.0.0-alpha01 |
 | 1.3.0 | 2.1.0      | 1.1.0         | 1.0.0-alpha02 |
+| 1.4.0 | 2.2.0      | 1.2.0         | 1.0.0-alpha03 |
+
 
 
 ## License
