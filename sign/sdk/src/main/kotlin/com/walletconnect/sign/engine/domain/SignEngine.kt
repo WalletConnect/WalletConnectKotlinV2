@@ -15,7 +15,7 @@ import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.pairing.client.PairingInterface
-import com.walletconnect.android.pairing.handler.PairingHandlerInterface
+import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.android.pairing.model.mapper.toPairing
 import com.walletconnect.foundation.common.model.PublicKey
@@ -51,7 +51,7 @@ internal class SignEngine(
     private val sessionStorageRepository: SessionStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val pairingInterface: PairingInterface,
-    private val pairingHandler: PairingHandlerInterface,
+    private val pairingHandler: PairingControllerInterface,
     private val selfAppMetaData: AppMetaData,
 ) {
     private var jsonRpcRequestsJob: Job? = null

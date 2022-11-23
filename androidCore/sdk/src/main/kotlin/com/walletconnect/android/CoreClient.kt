@@ -5,8 +5,8 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.client.PairingProtocol
 import com.walletconnect.android.pairing.engine.domain.PairingEngine
-import com.walletconnect.android.pairing.handler.PairingHandler
-import com.walletconnect.android.pairing.handler.PairingHandlerInterface
+import com.walletconnect.android.pairing.handler.PairingController
+import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.android.relay.RelayConnectionInterface
@@ -34,12 +34,12 @@ object CoreClient {
             module {
                 single { PairingEngine() }
                 single { Pairing }
-                single<PairingHandlerInterface> { PairingHandler }
+                single<PairingControllerInterface> { PairingController }
                 single { Relay }
             }
         )
         PairingProtocol.initialize(metaData)
-        PairingHandler.initialize()
+        PairingController.initialize()
     }
 
     fun setDelegate(delegate: CoreDelegate) {

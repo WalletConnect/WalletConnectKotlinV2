@@ -17,7 +17,7 @@ import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExist
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.client.PairingInterface
-import com.walletconnect.android.pairing.handler.PairingHandlerInterface
+import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException
@@ -50,7 +50,7 @@ internal class AuthEngine(
     private val getPendingJsonRpcHistoryEntriesUseCase: GetPendingJsonRpcHistoryEntriesUseCase,
     private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
     private val crypto: KeyManagementRepository,
-    private val pairingHandler: PairingHandlerInterface,
+    private val pairingHandler: PairingControllerInterface,
     private val pairingInterface: PairingInterface,
     private val selfAppMetaData: AppMetaData,
     private val issuer: Issuer?,

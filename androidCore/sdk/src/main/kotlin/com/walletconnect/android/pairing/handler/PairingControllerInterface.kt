@@ -5,7 +5,7 @@ import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 
-interface PairingHandlerInterface {
+interface PairingControllerInterface {
     val topicExpiredFlow: SharedFlow<Topic>
     val findWrongMethodsFlow: Flow<InternalError>
 
