@@ -15,6 +15,7 @@ import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.pairing.client.PairingInterface
+import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.android.pairing.model.mapper.toPairing
 import com.walletconnect.foundation.common.model.PublicKey
@@ -50,6 +51,7 @@ internal class SignEngine(
     private val sessionStorageRepository: SessionStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val pairingInterface: PairingInterface,
+    private val pairingHandler: PairingControllerInterface,
     private val selfAppMetaData: AppMetaData,
 ) {
     private var jsonRpcRequestsJob: Job? = null
@@ -60,7 +62,7 @@ internal class SignEngine(
     private val sessionProposalRequest: MutableMap<String, WCRequest> = mutableMapOf()
 
     init {
-        pairingInterface.register(
+        pairingHandler.register(
             JsonRpcMethod.WC_SESSION_PROPOSE,
             JsonRpcMethod.WC_SESSION_SETTLE,
             JsonRpcMethod.WC_SESSION_REQUEST,
@@ -473,7 +475,7 @@ internal class SignEngine(
             }.launchIn(scope)
 
     private fun collectInternalErrors(): Job =
-        merge(jsonRpcInteractor.internalErrors, pairingInterface.findWrongMethodsFlow)
+        merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
             .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
             .launchIn(scope)
 
@@ -499,7 +501,7 @@ internal class SignEngine(
             }
 
             sessionProposalRequest[payloadParams.proposer.publicKey] = request
-            pairingInterface.updateMetadata(
+            pairingHandler.updateMetadata(
                 Core.Params.UpdateMetadata(
                     request.topic.value,
                     payloadParams.proposer.metadata.toClient(),
@@ -548,7 +550,7 @@ internal class SignEngine(
 
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
             sessionStorageRepository.insertSession(session, request.topic, request.id)
-            pairingInterface.updateMetadata(Core.Params.UpdateMetadata(proposal.topic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
+            pairingHandler.updateMetadata(Core.Params.UpdateMetadata(proposal.topic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
             metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
 
             jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
@@ -781,8 +783,8 @@ internal class SignEngine(
     private fun onSessionProposalResponse(wcResponse: WCResponse, params: SignParams.SessionProposeParams) {
         try {
             val pairingTopic = wcResponse.topic
-            pairingInterface.updateExpiry(Core.Params.UpdateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS)))
-            pairingInterface.activate(Core.Params.Activate(pairingTopic.value))
+            pairingHandler.updateExpiry(Core.Params.UpdateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS)))
+            pairingHandler.activate(Core.Params.Activate(pairingTopic.value))
             if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
 
             when (val response = wcResponse.response) {
@@ -925,7 +927,7 @@ internal class SignEngine(
                 })
             }
 
-            pairingInterface.topicExpiredFlow.onEach { topic ->
+            pairingHandler.topicExpiredFlow.onEach { topic ->
                 sessionStorageRepository.getAllSessionTopicsByPairingTopic(topic).onEach { sessionTopic ->
                     jsonRpcInteractor.unsubscribe(Topic(sessionTopic), onSuccess = {
                         sessionStorageRepository.deleteSession(Topic(sessionTopic))

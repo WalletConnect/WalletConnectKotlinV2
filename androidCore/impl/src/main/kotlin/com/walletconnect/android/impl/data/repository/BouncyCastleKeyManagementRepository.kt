@@ -27,13 +27,13 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
 
     @Throws(MissingKeyException::class)
     override fun getPublicKey(tag: String): PublicKey {
-        val key = keyChain.getKey(tag) ?: throw MissingKeyException("No SymmetricKey for tag: $tag")
+        val key = keyChain.getKey(tag) ?: throw MissingKeyException("No PublicKey for tag: $tag")
         return PublicKey(key)
     }
 
     @Throws(MissingKeyException::class)
     override fun getSymmetricKey(tag: String): SymmetricKey {
-        val key = keyChain.getKey(tag) ?: throw MissingKeyException("No PublicKey for tag: $tag")
+        val key = keyChain.getKey(tag) ?: throw MissingKeyException("No SymmetricKey for tag: $tag")
         return SymmetricKey(key)
     }
 
