@@ -143,7 +143,7 @@ internal class JsonRpcInteractor(
             publishJsonRpcResponse(request.topic, irnParams, result, envelopeType = envelopeType, participants = participants,
                 onFailure = { error -> handleError("Cannot send the responseWithSuccess, error: ${error.stackTraceToString()}") })
         } catch (e: Exception) {
-            handleError("responseWithSuccess; ${e.stackTraceToString()}")
+            handleError("publishFailure; ${e.stackTraceToString()}")
         }
     }
 
@@ -161,11 +161,11 @@ internal class JsonRpcInteractor(
         try {
             publishJsonRpcResponse(request.topic, irnParams, jsonRpcError, envelopeType = envelopeType, participants = participants,
                 onFailure = { failure ->
-                    handleError("Cannot send respondWithError: ${failure.stackTraceToString()}")
                     onFailure(failure)
+                    handleError("Cannot send respondWithError: ${failure.stackTraceToString()}")
                 })
         } catch (e: Exception) {
-            handleError("respondWithError; ${e.stackTraceToString()}")
+            handleError("publishFailure; ${e.stackTraceToString()}")
         }
     }
 
