@@ -595,21 +595,20 @@ internal class SignEngine(
     // listened by WalletDelegate
     private fun onSessionRequest(request: WCRequest, params: SignParams.SessionRequestParams) {
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-        Validator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->
-            jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-            return
-        }
-
-        if (!sessionStorageRepository.isSessionValid(request.topic)) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
-                irnParams
-            )
-            return
-        }
-
         try {
+            Validator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->
+                jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
+                return
+            }
+
+            if (!sessionStorageRepository.isSessionValid(request.topic)) {
+                jsonRpcInteractor.respondWithError(
+                    request,
+                    Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
+                    irnParams
+                )
+                return
+            }
             val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerAppMetaData: AppMetaData?) =
                 sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
                     .run {
@@ -637,21 +636,21 @@ internal class SignEngine(
     // listened by DappDelegate
     private fun onSessionEvent(request: WCRequest, params: SignParams.EventParams) {
         val irnParams = IrnParams(Tags.SESSION_EVENT_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-        Validator.validateEvent(params.toEngineDOEvent()) { error ->
-            jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-            return
-        }
-
-        if (!sessionStorageRepository.isSessionValid(request.topic)) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
-                irnParams
-            )
-            return
-        }
-
         try {
+            Validator.validateEvent(params.toEngineDOEvent()) { error ->
+                jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
+                return
+            }
+
+            if (!sessionStorageRepository.isSessionValid(request.topic)) {
+                jsonRpcInteractor.respondWithError(
+                    request,
+                    Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
+                    irnParams
+                )
+                return
+            }
+
             val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
             if (!session.isPeerController) {
                 jsonRpcInteractor.respondWithError(request, PeerError.Unauthorized.Event(Sequences.SESSION.name), irnParams)
@@ -739,16 +738,16 @@ internal class SignEngine(
     // listened by DappDelegate
     private fun onSessionExtend(request: WCRequest, requestParams: SignParams.ExtendParams) {
         val irnParams = IrnParams(Tags.SESSION_EXTEND_RESPONSE, Ttl(DAY_IN_SECONDS))
-        if (!sessionStorageRepository.isSessionValid(request.topic)) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
-                irnParams
-            )
-            return
-        }
-
         try {
+            if (!sessionStorageRepository.isSessionValid(request.topic)) {
+                jsonRpcInteractor.respondWithError(
+                    request,
+                    Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
+                    irnParams
+                )
+                return
+            }
+
             val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
             if (!session.isPeerController) {
                 jsonRpcInteractor.respondWithError(request, PeerError.Unauthorized.ExtendRequest(Sequences.SESSION.name), irnParams)
@@ -883,12 +882,16 @@ internal class SignEngine(
 
     // listened by DappDelegate
     private fun onSessionRequestResponse(response: WCResponse, params: SignParams.SessionRequestParams) {
-        val result = when (response.response) {
-            is JsonRpcResponse.JsonRpcResult -> (response.response as JsonRpcResponse.JsonRpcResult).toEngineDO()
-            is JsonRpcResponse.JsonRpcError -> (response.response as JsonRpcResponse.JsonRpcError).toEngineDO()
+        try {
+            val result = when (response.response) {
+                is JsonRpcResponse.JsonRpcResult -> (response.response as JsonRpcResponse.JsonRpcResult).toEngineDO()
+                is JsonRpcResponse.JsonRpcError -> (response.response as JsonRpcResponse.JsonRpcError).toEngineDO()
+            }
+            val method = params.request.method
+            scope.launch { _engineEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
+        } catch (e: Exception) {
+            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
         }
-        val method = params.request.method
-        scope.launch { _engineEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
     }
 
     private fun resubscribeToSession() {
