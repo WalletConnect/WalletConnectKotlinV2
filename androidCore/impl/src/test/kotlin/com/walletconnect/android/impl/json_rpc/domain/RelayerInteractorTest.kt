@@ -12,6 +12,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.foundation.network.model.RelayDTO
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.utils.Empty
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -39,8 +40,26 @@ internal class RelayerInteractorTest {
         every { encrypt(any(), any(), any()) } returns ""
     }
 
+    private val logger: Logger = object : Logger {
+        override fun log(logMsg: String?) {
+            println(logMsg)
+        }
+
+        override fun log(throwable: Throwable?) {
+            println(throwable)
+        }
+
+        override fun error(errorMsg: String?) {
+            println(errorMsg)
+        }
+
+        override fun error(throwable: Throwable?) {
+            println(throwable)
+        }
+    }
+
     private val sut =
-        spyk(JsonRpcInteractor(relay, codec, jsonRpcHistory), recordPrivateCalls = true) {
+        spyk(JsonRpcInteractor(relay, codec, jsonRpcHistory, logger), recordPrivateCalls = true) {
             every { checkConnectionWorking() } answers { }
         }
 
@@ -106,11 +125,11 @@ internal class RelayerInteractorTest {
         @BeforeAll
         @JvmStatic
         fun beforeAll() {
-            mockkObject(Logger)
+//            mockkObject(Logger)
             mockkObject(wcKoinApp)
 
-            every { Logger.error(any<String>()) } answers {}
-            every { Logger.log(any<String>()) } answers {}
+//            every { Logger.error(any<String>()) } answers {}
+//            every { Logger.log(any<String>()) } answers {}
             every { wcKoinApp.koin.get<JsonRpcSerializer>() } returns mockk()
             every { wcKoinApp.koin.get<JsonRpcSerializer>().serialize(any()) } returns ""
         }
@@ -118,7 +137,7 @@ internal class RelayerInteractorTest {
         @AfterAll
         @JvmStatic
         fun afterAll() {
-            unmockkObject(Logger)
+//            unmockkObject(Logger)
         }
     }
 
@@ -206,8 +225,8 @@ internal class RelayerInteractorTest {
                 Result.failure(mockk())
             )
         }
-        sut.subscribe(topicVO)
-        verify { Logger.error(any<String>()) }
+        sut.subscribe(topicVO, onFailure)
+        verify { onFailure(any()) }
     }
 
     @Test
