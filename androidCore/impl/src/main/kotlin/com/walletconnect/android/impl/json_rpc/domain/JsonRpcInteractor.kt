@@ -8,7 +8,6 @@ import com.walletconnect.android.impl.json_rpc.model.toJsonRpcResponse
 import com.walletconnect.android.impl.json_rpc.model.toRelay
 import com.walletconnect.android.impl.json_rpc.model.toWCResponse
 import com.walletconnect.android.impl.storage.JsonRpcHistory
-import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.Uncategorized
@@ -19,6 +18,7 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.utils.Empty
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
@@ -28,6 +28,7 @@ internal class JsonRpcInteractor(
     private val relay: RelayConnectionInterface,
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
+    private val logger: Logger
 ) : JsonRpcInteractorInterface {
     private val serializer: JsonRpcSerializer get() = wcKoinApp.koin.get()
 
@@ -128,7 +129,7 @@ internal class JsonRpcInteractor(
 
         publishJsonRpcResponse(request.topic, irnParams, result, envelopeType = envelopeType, participants = participants,
             onFailure = { error ->
-                Logger.error("Cannot send the response, error: $error")
+                logger.error("Cannot send the response, error: $error")
                 onFailure(error)
             })
     }
@@ -157,7 +158,7 @@ internal class JsonRpcInteractor(
         participants: Participants?,
         onFailure: (Throwable) -> Unit,
     ) {
-        Logger.error("Responding with error: ${error.message}: ${error.code}")
+        logger.error("Responding with error: ${error.message}: ${error.code}")
         val jsonRpcError = JsonRpcResponse.JsonRpcError(id = request.id, error = JsonRpcResponse.Error(error.code, error.message))
 
         try {
@@ -182,7 +183,7 @@ internal class JsonRpcInteractor(
             result.fold(
                 onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result },
                 onFailure = { error ->
-                    Logger.error("Subscribe to topic error: $topic error: $error")
+                    logger.error("Subscribe to topic error: $topic error: $error")
                     onFailure(error)
                 }
             )
@@ -206,7 +207,7 @@ internal class JsonRpcInteractor(
                         onSuccess()
                     },
                     onFailure = { error ->
-                        Logger.error("Unsubscribe to topic: $topic error: $error")
+                        logger.error("Unsubscribe to topic: $topic error: $error")
                         onFailure(error)
                     }
                 )
@@ -270,7 +271,7 @@ internal class JsonRpcInteractor(
     }
 
     private fun handleError(errorMessage: String) {
-        Logger.error("JsonRpcInteractor error: $errorMessage")
+        logger.error("JsonRpcInteractor error: $errorMessage")
         scope.launch {
             _internalErrors.emit(InternalError(errorMessage))
         }

@@ -3,7 +3,6 @@ package com.walletconnect.android.impl.json_rpc.domain
 import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.impl.storage.JsonRpcHistory
-import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.model.*
