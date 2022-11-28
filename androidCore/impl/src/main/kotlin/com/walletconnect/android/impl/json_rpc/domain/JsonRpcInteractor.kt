@@ -20,7 +20,6 @@ import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.utils.Empty
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -43,7 +42,6 @@ internal class JsonRpcInteractor(
     override val isConnectionAvailable: StateFlow<Boolean> get() = relay.isConnectionAvailable
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
-    private val exceptionHandler = CoroutineExceptionHandler { _, exception -> handleError(exception.message ?: String.Empty) }
 
     override val wsConnectionFailedFlow: Flow<WalletConnectException> get() = relay.wsConnectionFailedFlow
 
@@ -143,9 +141,9 @@ internal class JsonRpcInteractor(
 
         try {
             publishJsonRpcResponse(request.topic, irnParams, result, envelopeType = envelopeType, participants = participants,
-                onFailure = { error -> handleError("Cannot send the response, error: $error") })
+                onFailure = { error -> handleError("Cannot send the responseWithSuccess, error: ${error.stackTraceToString()}") })
         } catch (e: Exception) {
-            handleError(e.message ?: String.Empty)
+            handleError("publishFailure; ${e.stackTraceToString()}")
         }
     }
 
@@ -163,11 +161,11 @@ internal class JsonRpcInteractor(
         try {
             publishJsonRpcResponse(request.topic, irnParams, jsonRpcError, envelopeType = envelopeType, participants = participants,
                 onFailure = { failure ->
-                    handleError("Cannot respond with error: $failure")
                     onFailure(failure)
+                    handleError("Cannot send respondWithError: ${failure.stackTraceToString()}")
                 })
         } catch (e: Exception) {
-            handleError(e.message ?: String.Empty)
+            handleError("publishFailure; ${e.stackTraceToString()}")
         }
     }
 
@@ -217,14 +215,27 @@ internal class JsonRpcInteractor(
     }
 
     private fun manageSubscriptions() {
-        scope.launch(exceptionHandler) {
+        scope.launch {
             relay.subscriptionRequest
                 .map { relayRequest ->
                     val topic = Topic(relayRequest.subscriptionTopic)
-                    val message = chaChaPolyCodec.decrypt(topic, relayRequest.message)
+                    val message = try {
+                        chaChaPolyCodec.decrypt(topic, relayRequest.message)
+                    } catch (e: Exception) {
+                        handleError("ManSub: ${e.stackTraceToString()}")
+                        String.Empty
+                    }
 
                     Pair(message, topic)
-                }.collect { (decryptedMessage, topic) -> manageSubscriptions(decryptedMessage, topic) }
+                }.collect { (decryptedMessage, topic) ->
+                    if (decryptedMessage.isNotEmpty()) {
+                        try {
+                            manageSubscriptions(decryptedMessage, topic)
+                        } catch (e: Exception) {
+                            handleError("ManSub: ${e.stackTraceToString()}")
+                        }
+                    }
+                }
         }
     }
 
