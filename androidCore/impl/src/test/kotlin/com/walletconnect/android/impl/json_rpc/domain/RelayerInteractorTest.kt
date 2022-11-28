@@ -19,7 +19,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.runBlockingTest
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import kotlin.test.assertFalse
@@ -125,19 +124,10 @@ internal class RelayerInteractorTest {
         @BeforeAll
         @JvmStatic
         fun beforeAll() {
-//            mockkObject(Logger)
             mockkObject(wcKoinApp)
 
-//            every { Logger.error(any<String>()) } answers {}
-//            every { Logger.log(any<String>()) } answers {}
             every { wcKoinApp.koin.get<JsonRpcSerializer>() } returns mockk()
             every { wcKoinApp.koin.get<JsonRpcSerializer>().serialize(any()) } returns ""
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun afterAll() {
-//            unmockkObject(Logger)
         }
     }
 
