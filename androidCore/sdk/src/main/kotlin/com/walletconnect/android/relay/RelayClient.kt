@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.*
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import timber.log.Timber
 
 object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     private val connectionController: ConnectionController by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.CONNECTION_CONTROLLER)) }
@@ -38,6 +39,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
             modules(commonModule(), androidApiCryptoModule(), module { single { ProjectId(relayServerUrl.projectId()) } })
         }
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
+        plantTimber()
 
         val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
         val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl())
@@ -56,7 +58,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
         get() =
             eventsFlow
                 .onEach { event: Relay.Model.Event ->
-                    logger.log("$event")
+                    logger.log("kobe; $event")
                     setIsWSSConnectionOpened(event)
                 }
                 .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
@@ -81,6 +83,20 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
             isWSSConnectionOpened.compareAndSet(expect = false, update = true)
         } else if (event is Relay.Model.Event.OnConnectionClosed || event is Relay.Model.Event.OnConnectionFailed) {
             isWSSConnectionOpened.compareAndSet(expect = true, update = false)
+        }
+    }
+
+    private fun plantTimber() {
+        if (BuildConfig.DEBUG) {
+            Timber.plant(
+                object : Timber.DebugTree() {
+                    /**
+                     * Override [log] to modify the tag and add a "global tag" prefix to it. You can rename the String "global_tag_" as you see fit.
+                     */
+                    override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+                        super.log(priority, "WalletConnectV2", message, t)
+                    }
+                })
         }
     }
 }
