@@ -3,7 +3,6 @@ package com.walletconnect.android.internal.common.di
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
-import com.walletconnect.android.api.BuildConfig
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.adapter.ExpiryAdapter
 import com.walletconnect.android.internal.common.adapter.TagsAdapter
@@ -20,8 +19,6 @@ import com.walletconnect.foundation.di.commonModule as foundationCommonModule
 fun commonModule() = module {
 
     includes(foundationCommonModule())
-
-    plantTimber()
 
     single<PolymorphicJsonAdapterFactory<JsonRpcResponse>> {
         PolymorphicJsonAdapterFactory.of(JsonRpcResponse::class.java, "type")
@@ -60,19 +57,5 @@ fun commonModule() = module {
                 Timber.e(throwable)
             }
         }
-    }
-}
-
-private fun plantTimber() {
-    if (BuildConfig.DEBUG) {
-        Timber.plant(
-            object : Timber.DebugTree() {
-                /**
-                 * Override [log] to modify the tag and add a "global tag" prefix to it. You can rename the String "global_tag_" as you see fit.
-                 */
-                override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-                    super.log(priority, "WalletConnectV2", message, t)
-                }
-            })
     }
 }
