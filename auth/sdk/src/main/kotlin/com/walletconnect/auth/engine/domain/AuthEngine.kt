@@ -7,7 +7,6 @@ import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
-import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
 import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.internal.common.JsonRpcResponse
@@ -38,6 +37,7 @@ import com.walletconnect.auth.signature.cacao.CacaoVerifier
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -54,7 +54,8 @@ internal class AuthEngine(
     private val pairingInterface: PairingInterface,
     private val selfAppMetaData: AppMetaData,
     private val issuer: Issuer?,
-    private val cacaoVerifier: CacaoVerifier
+    private val cacaoVerifier: CacaoVerifier,
+    private val logger: Logger
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
@@ -126,7 +127,7 @@ internal class AuthEngine(
                 onSuccess()
             },
             onFailure = { error ->
-                Logger.error("Failed to send a auth request: $error")
+                logger.error("Failed to send a auth request: $error")
                 onFailure(error)
             }
         )
@@ -139,7 +140,7 @@ internal class AuthEngine(
         val jsonRpcHistoryEntry = getPendingJsonRpcHistoryEntryByIdUseCase(respond.id)
 
         if (jsonRpcHistoryEntry == null) {
-            Logger.error(MissingAuthRequestException.message)
+            logger.error(MissingAuthRequestException.message)
             onFailure(MissingAuthRequestException)
             return
         }
@@ -167,8 +168,8 @@ internal class AuthEngine(
         val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
         jsonRpcInteractor.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
-            onSuccess = { Logger.log("Success Responded on topic: $responseTopic") },
-            onFailure = { Logger.error("Error Responded on topic: $responseTopic") }
+            onSuccess = { logger.log("Success Responded on topic: $responseTopic") },
+            onFailure = { logger.error("Error Responded on topic: $responseTopic") }
         )
     }
 

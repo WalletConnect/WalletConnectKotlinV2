@@ -37,8 +37,8 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
             androidContext(application)
             modules(commonModule(), androidApiCryptoModule(), module { single { ProjectId(relayServerUrl.projectId()) } })
         }
-
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
+
         val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
         val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl())
         val serverUrl = relayServerUrl.addUserAgent(BuildConfig.SDK_VERSION)

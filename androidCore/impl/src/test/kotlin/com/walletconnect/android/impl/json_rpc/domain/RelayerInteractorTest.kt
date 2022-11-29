@@ -3,7 +3,6 @@ package com.walletconnect.android.impl.json_rpc.domain
 import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.impl.storage.JsonRpcHistory
-import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.model.*
@@ -13,13 +12,13 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.foundation.network.model.RelayDTO
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.utils.Empty
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.runBlockingTest
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import kotlin.test.assertFalse
@@ -40,8 +39,26 @@ internal class RelayerInteractorTest {
         every { encrypt(any(), any(), any()) } returns ""
     }
 
+    private val logger: Logger = object : Logger {
+        override fun log(logMsg: String?) {
+            println(logMsg)
+        }
+
+        override fun log(throwable: Throwable?) {
+            println(throwable)
+        }
+
+        override fun error(errorMsg: String?) {
+            println(errorMsg)
+        }
+
+        override fun error(throwable: Throwable?) {
+            println(throwable)
+        }
+    }
+
     private val sut =
-        spyk(JsonRpcInteractor(relay, codec, jsonRpcHistory), recordPrivateCalls = true) {
+        spyk(JsonRpcInteractor(relay, codec, jsonRpcHistory, logger), recordPrivateCalls = true) {
             every { checkConnectionWorking() } answers { }
         }
 
@@ -107,19 +124,10 @@ internal class RelayerInteractorTest {
         @BeforeAll
         @JvmStatic
         fun beforeAll() {
-            mockkObject(Logger)
             mockkObject(wcKoinApp)
 
-            every { Logger.error(any<String>()) } answers {}
-            every { Logger.log(any<String>()) } answers {}
             every { wcKoinApp.koin.get<JsonRpcSerializer>() } returns mockk()
             every { wcKoinApp.koin.get<JsonRpcSerializer>().serialize(any()) } returns ""
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun afterAll() {
-            unmockkObject(Logger)
         }
     }
 
@@ -207,8 +215,8 @@ internal class RelayerInteractorTest {
                 Result.failure(mockk())
             )
         }
-        sut.subscribe(topicVO)
-        verify { Logger.error(any<String>()) }
+        sut.subscribe(topicVO, onFailure)
+        verify { onFailure(any()) }
     }
 
     @Test
