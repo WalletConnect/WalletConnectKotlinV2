@@ -43,7 +43,7 @@ dependencies {
     releaseImplementation("com.walletconnect:auth:1.2.0")
 
     debugImplementation(project(":androidCore:sdk"))
-    releaseImplementation("com.walletconnect:android-core:1.3.0")
+    releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 
     glide_N_kapt()
     implementation("com.github.alexzhirkevich:custom-qr-generator:1.4.1")

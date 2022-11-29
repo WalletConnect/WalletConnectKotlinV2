@@ -63,7 +63,7 @@ sqldelight {
 
 dependencies {
     debugImplementation(project(":androidCore:impl"))
-    releaseImplementation("com.walletconnect:android-core-impl:1.3.0")
+    releaseImplementation("com.walletconnect:android-core-impl:$CORE_VERSION")
 
     moshiKsp()
     androidXTest()

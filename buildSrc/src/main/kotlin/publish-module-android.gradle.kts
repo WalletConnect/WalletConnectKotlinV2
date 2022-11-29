@@ -1,6 +1,5 @@
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.LibraryExtension
-import org.gradle.kotlin.dsl.accessors.runtime.addDependencyTo
 
 plugins {
     `maven-publish`
@@ -66,51 +65,6 @@ afterEvaluate {
                         developerConnection.set("scm:git:ssh://github.com/WalletConnect/WalletConnectKotlinV2.git")
                         url.set("https://github.com/WalletConnect/WalletConnectKotlinV2")
                     }
-                }
-            }
-
-            register<MavenPublication>("releaseBOM") {
-                if (project.parent?.name != "androidCore" && project.name != "core") throw Exception()
-
-                afterEvaluate { from(components["release"]) }
-                artifact(tasks.getByName("javadocJar"))
-                artifact(tasks.getByName("sourcesJar"))
-
-                groupId = "com.walletconnect"
-                artifactId = requireNotNull(project.extra[KEY_PUBLISH_ARTIFACT_ID]).toString()
-                version = requireNotNull(project.extra[KEY_PUBLISH_VERSION]).toString()
-
-                pom {
-                    name.set("WalletConnect ${requireNotNull(extra.get(KEY_SDK_NAME))}")
-                    description.set("${requireNotNull(extra.get(KEY_SDK_NAME))} SDK for WalletConnect")
-                    url.set("https://github.com/WalletConnect/WalletConnectKotlinV2")
-
-                    licenses {
-                        license {
-                            name.set("The Apache License, Version 2.0")
-                            url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-                        }
-                        license {
-                            name.set("SQLCipher Community Edition")
-                            url.set("https://www.zetetic.net/sqlcipher/license/")
-                        }
-                    }
-
-                    developers {
-                        developer {
-                            id.set("KotlinSDKTeam")
-                            name.set("WalletConnect Kotlin")
-                            email.set("Kotlin@WalletConnect.com")
-                        }
-                    }
-
-                    scm {
-                        connection.set("scm:git:git://github.com/WalletConnect/WalletConnectKotlinV2.git")
-                        developerConnection.set("scm:git:ssh://github.com/WalletConnect/WalletConnectKotlinV2.git")
-                        url.set("https://github.com/WalletConnect/WalletConnectKotlinV2")
-                    }
-
-                    this.
                 }
             }
         }

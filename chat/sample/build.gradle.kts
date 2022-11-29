@@ -41,7 +41,7 @@ dependencies {
     releaseImplementation("com.walletconnect:chat:1.0.0-alpha02")
 
     debugImplementation(project(":androidCore:sdk"))
-    releaseImplementation("com.walletconnect:android-core:1.3.0")
+    releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 
     lifecycle()
     implementation("com.google.android.material:material:1.6.1")
