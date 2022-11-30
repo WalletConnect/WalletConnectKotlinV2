@@ -5,7 +5,6 @@ package com.walletconnect.chat.client
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.di.cryptoModule
-import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.mapper.toClient
@@ -31,8 +30,6 @@ internal class ChatProtocol : ChatInterface {
 
     @Throws(IllegalStateException::class)
     override fun initialize(init: Chat.Params.Init, onError: (Chat.Model.Error) -> Unit) {
-        Logger.init()
-
         try {
             wcKoinApp.run {
                 modules(

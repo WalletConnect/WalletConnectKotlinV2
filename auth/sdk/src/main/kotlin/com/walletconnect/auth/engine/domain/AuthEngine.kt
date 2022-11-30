@@ -2,11 +2,11 @@
 
 package com.walletconnect.auth.engine.domain
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
-import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
 import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.internal.common.JsonRpcResponse
@@ -15,8 +15,9 @@ import com.walletconnect.android.internal.common.exception.InvalidProjectIdExcep
 import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.pairing.PairingInterface
-import com.walletconnect.android.pairing.toClient
+import com.walletconnect.android.pairing.client.PairingInterface
+import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException
 import com.walletconnect.auth.common.exceptions.MissingAuthRequestException
@@ -25,8 +26,8 @@ import com.walletconnect.auth.common.exceptions.PeerError
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.json_rpc.AuthRpc
 import com.walletconnect.auth.common.model.*
-import com.walletconnect.auth.engine.mapper.toCacaoPayload
 import com.walletconnect.auth.engine.mapper.toCAIP122Message
+import com.walletconnect.auth.engine.mapper.toCacaoPayload
 import com.walletconnect.auth.engine.mapper.toPendingRequest
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
@@ -36,6 +37,7 @@ import com.walletconnect.auth.signature.cacao.CacaoVerifier
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -48,10 +50,12 @@ internal class AuthEngine(
     private val getPendingJsonRpcHistoryEntriesUseCase: GetPendingJsonRpcHistoryEntriesUseCase,
     private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
     private val crypto: KeyManagementRepository,
+    private val pairingHandler: PairingControllerInterface,
     private val pairingInterface: PairingInterface,
     private val selfAppMetaData: AppMetaData,
     private val issuer: Issuer?,
-    private val cacaoVerifier: CacaoVerifier
+    private val cacaoVerifier: CacaoVerifier,
+    private val logger: Logger
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
@@ -63,7 +67,7 @@ internal class AuthEngine(
     private val pairingTopicToResponseTopicMap: MutableMap<Topic, Topic> = mutableMapOf()
 
     init {
-        pairingInterface.register(JsonRpcMethod.WC_AUTH_REQUEST)
+        pairingHandler.register(JsonRpcMethod.WC_AUTH_REQUEST)
     }
 
     fun setup() {
@@ -123,7 +127,7 @@ internal class AuthEngine(
                 onSuccess()
             },
             onFailure = { error ->
-                Logger.error("Failed to send a auth request: $error")
+                logger.error("Failed to send a auth request: $error")
                 onFailure(error)
             }
         )
@@ -136,7 +140,7 @@ internal class AuthEngine(
         val jsonRpcHistoryEntry = getPendingJsonRpcHistoryEntryByIdUseCase(respond.id)
 
         if (jsonRpcHistoryEntry == null) {
-            Logger.error(MissingAuthRequestException.message)
+            logger.error(MissingAuthRequestException.message)
             onFailure(MissingAuthRequestException)
             return
         }
@@ -164,8 +168,8 @@ internal class AuthEngine(
         val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
         jsonRpcInteractor.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
-            onSuccess = { Logger.log("Success Responded on topic: $responseTopic") },
-            onFailure = { Logger.error("Error Responded on topic: $responseTopic") }
+            onSuccess = { logger.log("Success Responded on topic: $responseTopic") },
+            onFailure = { logger.error("Error Responded on topic: $responseTopic") }
         )
     }
 
@@ -190,38 +194,49 @@ internal class AuthEngine(
     }
 
     private fun onAuthRequestResponse(wcResponse: WCResponse, requestParams: AuthParams.RequestParams) {
-        val pairingTopic = wcResponse.topic
-        pairingInterface.updateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS))
-        pairingInterface.updateMetadata(pairingTopic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER)
-        pairingInterface.activate(pairingTopic.value)
-        if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
-        pairingTopicToResponseTopicMap.remove(pairingTopic)
+        try {
+            val pairingTopic = wcResponse.topic
+            updatePairing(pairingTopic, requestParams)
+            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
+            pairingTopicToResponseTopicMap.remove(pairingTopic)
 
-        when (val response = wcResponse.response) {
-            is JsonRpcResponse.JsonRpcError -> {
-                scope.launch {
-                    _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Error(response.error.code, response.error.message)))
-                }
-            }
-            is JsonRpcResponse.JsonRpcResult -> {
-                val (header, payload, signature) = (response.result as AuthParams.ResponseParams)
-                val cacao = Cacao(header, payload, signature)
-                if (cacaoVerifier.verify(cacao)) {
+            when (val response = wcResponse.response) {
+                is JsonRpcResponse.JsonRpcError -> {
                     scope.launch {
-                        _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Result(cacao)))
+                        _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Error(response.error.code, response.error.message)))
                     }
-                } else {
-                    scope.launch {
-                        _engineEvent.emit(
-                            Events.OnAuthResponse(
-                                response.id,
-                                AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)
+                }
+                is JsonRpcResponse.JsonRpcResult -> {
+                    val (header, payload, signature) = (response.result as AuthParams.ResponseParams)
+                    val cacao = Cacao(header, payload, signature)
+                    if (cacaoVerifier.verify(cacao)) {
+                        scope.launch {
+                            _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Result(cacao)))
+                        }
+                    } else {
+                        scope.launch {
+                            _engineEvent.emit(
+                                Events.OnAuthResponse(
+                                    response.id,
+                                    AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }
+        } catch (e: Exception) {
+            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
         }
+    }
+
+    private fun updatePairing(
+        topic: Topic,
+        requestParams: AuthParams.RequestParams
+    ) {
+        pairingHandler.updateExpiry(Core.Params.UpdateExpiry(topic.value, Expiry(MONTH_IN_SECONDS)))
+        pairingHandler.updateMetadata(Core.Params.UpdateMetadata(topic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER))
+        pairingHandler.activate(Core.Params.Activate(topic.value))
     }
 
     private fun collectJsonRpcRequests(): Job =
@@ -255,7 +270,7 @@ internal class AuthEngine(
     }
 
     private fun collectInternalErrors(): Job =
-        merge(jsonRpcInteractor.internalErrors, pairingInterface.findWrongMethodsFlow)
+        merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
             .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
             .launchIn(scope)
 }

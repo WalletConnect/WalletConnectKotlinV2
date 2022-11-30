@@ -1,11 +1,11 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.pairing
+package com.walletconnect.android.pairing.engine.model
 
-internal sealed class PairingDO {
+internal sealed class EngineDO {
 
     data class PairingDelete(
         val topic: String,
         val reason: String,
-    ): PairingDO()
+    ) : EngineDO()
 }

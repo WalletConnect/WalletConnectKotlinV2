@@ -1,6 +1,6 @@
 @file:JvmName("Expiration")
 
-package com.walletconnect.android.pairing
+package com.walletconnect.android.pairing.model
 
 import com.walletconnect.android.internal.common.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.common.FIVE_MINUTES_IN_SECONDS

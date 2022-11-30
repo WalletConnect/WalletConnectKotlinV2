@@ -9,3 +9,4 @@ class CannotFindSequenceForTopic(override val message: String?) : WalletConnectE
 class InvalidProjectIdException(override val message: String?) : WalletConnectException(message)
 class ProjectIdDoesNotExistException(override val message: String?) : WalletConnectException(message)
 class NoRelayConnectionException(override val message: String?) : WalletConnectException(message)
+class CannotFindKeyPairException(override val message: String?) : WalletConnectException(message)
