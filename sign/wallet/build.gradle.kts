@@ -44,10 +44,13 @@ dependencies {
     implementation(project(":sign:samples_common"))
 
     debugImplementation(project(":sign:sdk"))
-    releaseImplementation("com.walletconnect:sign:2.2.0")
+//    releaseImplementation("com.walletconnect:sign:2.2.0")
 
     debugImplementation(project(":androidCore:sdk"))
-    releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
+//    releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
+    releaseImplementation("com.walletconnect:android-bom:1.5.0")
+    releaseImplementation("com.walletconnect:android-core")
+    releaseImplementation("com.walletconnect:sign")
 
     scanner()
     glide_N_kapt()

@@ -3,7 +3,7 @@
 package com.walletconnect.android.relay
 
 import android.app.Application
-import com.walletconnect.android.api.BuildConfig
+import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.di.androidApiCryptoModule
