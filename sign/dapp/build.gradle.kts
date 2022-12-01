@@ -42,11 +42,12 @@ android {
 dependencies {
     implementation(project(":sign:samples_common"))
 
-    debugImplementation(project(":sign:sdk"))
-    releaseImplementation("com.walletconnect:sign:2.2.0")
-
     debugImplementation(project(":androidCore:sdk"))
-    releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
+    debugImplementation(project(":sign:sdk"))
+
+    releaseImplementation(platform("com.walletconnect:android-bom:1.0.0"))
+    releaseImplementation("com.walletconnect:android-core")
+    releaseImplementation("com.walletconnect:sign")
 
     glide_N_kapt()
     implementation("com.github.kenglxn.QRGen:android:2.6.0")
