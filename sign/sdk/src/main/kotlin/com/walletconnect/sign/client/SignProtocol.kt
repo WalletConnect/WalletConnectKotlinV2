@@ -48,6 +48,9 @@ internal class SignProtocol : SignInterface {
 
             signEngine = wcKoinApp.koin.get()
             signEngine.setup()
+
+            println("kobe; Sign engine initialized")
+
         } catch (e: Exception) {
             onError(Sign.Model.Error(e))
         }
