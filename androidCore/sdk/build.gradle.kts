@@ -7,7 +7,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core"
-    extra[KEY_PUBLISH_VERSION] = "1.4.0"
+    extra[KEY_PUBLISH_VERSION] = CORE_VERSION
     extra[KEY_SDK_NAME] = "Android Core"
 }
 
