@@ -27,6 +27,14 @@ internal class SignProtocol : SignInterface {
         const val storageSuffix: String = ""
     }
 
+    override fun insert(): String {
+        return signEngine.insertSession()
+    }
+
+    override fun get() {
+        signEngine.getSession()
+    }
+
     override fun initialize(init: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
         // TODO: re-init scope
         try {

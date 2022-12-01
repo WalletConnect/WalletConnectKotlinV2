@@ -3,9 +3,9 @@
 package com.walletconnect.sign.storage.sequence
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDaoQueries
@@ -56,6 +56,25 @@ internal class SessionStorageRepository(
     @JvmSynthetic
     fun getAllSessionTopicsByPairingTopic(pairingTopic: Topic): List<String> =
         sessionDaoQueries.getAllSessionTopicsByPairingTopic(pairingTopic.value).executeAsList()
+
+    @Synchronized
+    @JvmSynthetic
+    @Throws(SQLiteException::class)
+    fun insertSessionWIthNoNamespaces(session: SessionVO, pairingTopic: Topic, requestId: Long) {
+        with(session) {
+            sessionDaoQueries.insertOrAbortSession(
+                topic = topic.value,
+                pairingTopic = pairingTopic.value,
+                expiry = expiry.seconds,
+                self_participant = selfPublicKey.keyAsHex,
+                relay_protocol = relayProtocol,
+                controller_key = controllerKey?.keyAsHex,
+                peer_participant = peerPublicKey?.keyAsHex,
+                relay_data = relayData,
+                is_acknowledged = isAcknowledged
+            )
+        }
+    }
 
     @Synchronized
     @JvmSynthetic
@@ -317,8 +336,10 @@ internal class SessionStorageRepository(
         methods: List<String>,
         events: List<String>,
     ): Pair<String, NamespaceVO.Session> {
-        val extensions = tempExtensionsDaoQueries.getNamespaceExtensionByNamespaceKeyAndSessionId(key, sessionId,
-            mapper = ::mapTempNamespaceExtensionToNamespaceExtensionVO).executeAsList().takeIf { extensions -> extensions.isNotEmpty() }
+        val extensions = tempExtensionsDaoQueries.getNamespaceExtensionByNamespaceKeyAndSessionId(
+            key, sessionId,
+            mapper = ::mapTempNamespaceExtensionToNamespaceExtensionVO
+        ).executeAsList().takeIf { extensions -> extensions.isNotEmpty() }
 
         return key to NamespaceVO.Session(accounts, methods, events, extensions)
     }

@@ -31,16 +31,22 @@ interface SignInterface {
         fun onError(error: Sign.Model.Error)
     }
 
+    fun insert(): String
+    fun get()
+
     fun initialize(init: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit)
     fun setWalletDelegate(delegate: WalletDelegate)
     fun setDappDelegate(delegate: DappDelegate)
 
     fun connect(
         connect: Sign.Params.Connect, onSuccess: () -> Unit,
-        onError: (Sign.Model.Error) -> Unit)
+        onError: (Sign.Model.Error) -> Unit
+    )
+
     @Deprecated(
         message = "Creating a pairing will be moved to CoreClient to make pairing SDK agnostic",
-        replaceWith = ReplaceWith(expression = "CoreClient.Pairing.pair()", imports = ["com.walletconnect.android.CoreClient"]))
+        replaceWith = ReplaceWith(expression = "CoreClient.Pairing.pair()", imports = ["com.walletconnect.android.CoreClient"])
+    )
     fun pair(pair: Sign.Params.Pair, onError: (Sign.Model.Error) -> Unit)
     fun approveSession(approve: Sign.Params.Approve, onError: (Sign.Model.Error) -> Unit)
     fun rejectSession(reject: Sign.Params.Reject, onError: (Sign.Model.Error) -> Unit)
@@ -53,9 +59,11 @@ interface SignInterface {
     fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit)
     fun getListOfSettledSessions(): List<Sign.Model.Session>
     fun getSettledSessionByTopic(topic: String): Sign.Model.Session?
+
     @Deprecated(
         message = "Getting a list of Pairings will be moved to CoreClient to make pairing SDK agnostic",
-        replaceWith = ReplaceWith(expression = "CoreClient.Pairing.getPairings()", imports = ["com.walletconnect.android.CoreClient"]))
+        replaceWith = ReplaceWith(expression = "CoreClient.Pairing.getPairings()", imports = ["com.walletconnect.android.CoreClient"])
+    )
     fun getListOfSettledPairings(): List<Sign.Model.Pairing>
     fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest>
 }

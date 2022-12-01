@@ -77,6 +77,32 @@ internal class SignEngine(
         setupSequenceExpiration()
     }
 
+    fun insertSession(): String {
+
+        val session = SessionVO(
+            Topic("kobe"),
+            expiry = Expiry(123L),
+            relayProtocol = "",
+            relayData = "",
+            PublicKey("pub"),
+            PublicKey("asd"),
+            selfAppMetaData,
+            null,
+            selfAppMetaData,
+            namespaces = mapOf("asd" to NamespaceVO.Session(listOf(), listOf(), listOf(), null)),
+            proposalNamespaces = mapOf("asd" to NamespaceVO.Proposal(listOf(), listOf(), listOf(), null)),
+            true
+        )
+
+        sessionStorageRepository.insertSessionWIthNoNamespaces(session, Topic("kobe"), 1)
+
+        return sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic("kobe")).topic.value
+    }
+
+    fun getSession(): String {
+        return sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic("kobe")).topic.value
+    }
+
     fun setup() {
         jsonRpcInteractor.wsConnectionFailedFlow.onEach { walletConnectException ->
             when (walletConnectException) {
