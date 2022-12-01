@@ -1,6 +1,3 @@
-import com.android.build.gradle.BaseExtension
-import com.android.builder.model.JavaArtifact
-
 plugins {
     `maven-publish`
     signing
@@ -8,14 +5,16 @@ plugins {
 }
 
 tasks {
-    register("javadocJar", Jar::class) {
-        dependsOn(named("dokkaHtml"))
-        archiveClassifier.set("javadoc")
-        from("$buildDir/dokka/html")
-    }
-    register("sourceJar", Jar::class) {
-        archiveClassifier.set("sources")
-        from(((project as ExtensionAware).extensions.getByName("sourceSets") as SourceSetContainer).getByName("main").allSource)
+    plugins.withId("java") {
+        register("javadocJar", Jar::class) {
+            dependsOn(named("dokkaHtml"))
+            archiveClassifier.set("javadoc")
+            from("$buildDir/dokka/html")
+        }
+        register("sourceJar", Jar::class) {
+            archiveClassifier.set("sources")
+            from(((project as ExtensionAware).extensions.getByName("sourceSets") as SourceSetContainer).getByName("main").allSource)
+        }
     }
 }
 
@@ -23,9 +22,15 @@ afterEvaluate {
     publishing {
         publications {
             register<MavenPublication>("mavenJvm") {
-                from(components["java"])
-                artifact(tasks.getByName("sourceJar"))
-                artifact(tasks.getByName("javadocJar"))
+                plugins.withId("java") {
+                    from(components["java"])
+                    artifact(tasks.getByName("sourceJar"))
+                    artifact(tasks.getByName("javadocJar"))
+                }
+
+                plugins.withId("java-platform") {
+                    from(components["javaPlatform"])
+                }
 
                 groupId = "com.walletconnect"
                 artifactId = requireNotNull(extra.get(KEY_PUBLISH_ARTIFACT_ID)).toString()
