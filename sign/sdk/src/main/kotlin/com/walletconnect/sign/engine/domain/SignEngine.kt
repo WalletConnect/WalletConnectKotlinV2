@@ -44,6 +44,7 @@ import com.walletconnect.utils.extractTimestamp
 import com.walletconnect.utils.isSequenceValid
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlin.random.Random
 
 internal class SignEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -54,7 +55,7 @@ internal class SignEngine(
     private val pairingInterface: PairingInterface,
     private val pairingHandler: PairingControllerInterface,
     private val selfAppMetaData: AppMetaData,
-    private val logger: Logger
+    private val logger: Logger,
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
@@ -81,10 +82,10 @@ internal class SignEngine(
 
         val session = SessionVO(
             Topic("kobe"),
-            expiry = Expiry(123L),
+            expiry = Expiry(Random.nextLong(0, 100)),
             relayProtocol = "",
             relayData = "",
-            PublicKey("pub"),
+            controllerKey = PublicKey("e002642656e99d802437eb2c7fcd151dc292cc25e54447bf2cc18153b71233de"),
             PublicKey("asd"),
             selfAppMetaData,
             null,
@@ -99,8 +100,15 @@ internal class SignEngine(
         return sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic("kobe")).topic.value
     }
 
-    fun getSession(): String {
-        return sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic("kobe")).topic.value
+    fun getSession(): Pair<String, String> {
+        return Pair(
+            sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic("kobe")).expiry.seconds.toString(),
+            sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic("kobe")).controllerKey!!.keyAsHex
+        )
+    }
+
+    fun decrypt(key: String, message: String): String {
+        return jsonRpcInteractor.decryptMessage(key, message)
     }
 
     fun setup() {

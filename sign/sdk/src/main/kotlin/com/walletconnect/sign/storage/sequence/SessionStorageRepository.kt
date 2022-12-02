@@ -51,7 +51,7 @@ internal class SessionStorageRepository(
 
     @JvmSynthetic
     fun getSessionWithoutMetadataByTopic(topic: Topic): SessionVO =
-        sessionDaoQueries.getSessionByTopic(topic.value, mapper = this@SessionStorageRepository::mapSessionDaoToSessionVO).executeAsOne()
+        sessionDaoQueries.getSessionByTopic(topic.value, mapper = this@SessionStorageRepository::mapSessionDaoToSessionVO).executeAsList().last()
 
     @JvmSynthetic
     fun getAllSessionTopicsByPairingTopic(pairingTopic: Topic): List<String> =

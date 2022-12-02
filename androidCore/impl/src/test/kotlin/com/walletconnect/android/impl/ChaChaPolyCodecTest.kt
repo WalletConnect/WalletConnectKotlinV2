@@ -1,7 +1,7 @@
 package com.walletconnect.android.impl
 
-import com.walletconnect.android.impl.common.MissingParticipantsException
 import com.walletconnect.android.impl.common.MissingKeyException
+import com.walletconnect.android.impl.common.MissingParticipantsException
 import com.walletconnect.android.impl.data.codec.ChaChaPolyCodec
 import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
@@ -40,10 +40,13 @@ class ChaChaPolyCodecTest {
     fun `ChaCha20-Poly1305 encryption and decryption envelope type 0 with the same key`() {
         every { keyManagementRepository.getSymmetricKey(topic.value) } returns symmetricKey
 
-        listOf("secretMessage", "", "👍🏻").forEach { message ->
-            val encryptedMessage = codec.encrypt(topic, message, EnvelopeType.ZERO)
-            assertEquals(message, codec.decrypt(topic, encryptedMessage))
-        }
+//        listOf("secretMessage", "", "👍🏻").forEach { message ->
+            val encryptedMessage = codec.encrypt(topic, "WalletConnect", EnvelopeType.ZERO)
+
+            println(encryptedMessage)
+
+            assertEquals("WalletConnect", codec.decrypt(topic, encryptedMessage))
+//        }
     }
 
     @Test

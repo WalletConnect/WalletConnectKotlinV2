@@ -20,6 +20,8 @@ class MainActivity : AppCompatActivity() {
 
         var token: String? = null
 
+        Log.e("kobe", "INIT activity")
+
         FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
             if (!task.isSuccessful) {
                 Log.w("kobe", "Fetching FCM registration token failed", task.exception)

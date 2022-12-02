@@ -50,6 +50,10 @@ internal class JsonRpcInteractor(
         manageSubscriptions()
     }
 
+    override fun decryptMessage(key: String, message: String): String {
+        return chaChaPolyCodec.decryptMessage(key, message)
+    }
+
     override fun checkConnectionWorking() {
         if (!relay.isConnectionAvailable.value) {
             throw NoRelayConnectionException("No connection available")

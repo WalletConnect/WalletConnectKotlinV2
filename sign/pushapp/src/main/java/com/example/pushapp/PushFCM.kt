@@ -12,9 +12,12 @@ class PushFCM : FirebaseMessagingService() {
 
         Log.e("kobe", "RemoteMessage: ${message.data["title"]}")
 
-        val topic = SignClient.insert()
+        Log.e("kobe", "Insering CALLBACK")
 
-//        Log.e("kobe", "Topic: $topic")
-//        SignClient.get()
+        val topic = SignClient.insert()
+        Log.e("kobe", "Topic: $topic")
+
+        val exo = SignClient.get()
+        Log.e("kobe", "Expiry: $exo")
     }
 }

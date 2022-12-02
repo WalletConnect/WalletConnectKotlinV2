@@ -8,7 +8,7 @@ plugins {
 }
 
 project.apply {
-    extra[KEY_PUBLISH_ARTIFACT_ID] = "foundation"
+    extra[KEY_PUBLISH_ARTIFACT_ID] = "foundation-j"
     extra[KEY_PUBLISH_VERSION] = "1.1.0"
     extra[KEY_SDK_NAME] = "Foundation"
 }

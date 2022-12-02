@@ -6,7 +6,7 @@ plugins {
 }
 
 project.apply {
-    extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core"
+    extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core-j"
     extra[KEY_PUBLISH_VERSION] = "1.4.0"
     extra[KEY_SDK_NAME] = "Android Core"
 }
@@ -42,7 +42,7 @@ android {
 
 dependencies {
     debugApi(project(":foundation"))
-    releaseApi("com.walletconnect:foundation:1.1.0")
+    releaseApi("com.walletconnect:foundation-j:1.1.0")
 
     bouncyCastle()
     coroutines()

@@ -2,7 +2,7 @@ import java.lang.Boolean;
 
 CREATE TABLE SessionDao(
    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-   topic TEXT UNIQUE NOT NULL,
+   topic TEXT NOT NULL,
    pairingTopic TEXT NOT NULL,
    expiry INTEGER NOT NULL,
    relay_protocol TEXT NOT NULL,

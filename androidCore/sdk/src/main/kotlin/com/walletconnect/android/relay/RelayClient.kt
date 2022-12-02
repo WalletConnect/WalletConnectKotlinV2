@@ -45,6 +45,8 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
         val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl())
         val serverUrl = relayServerUrl.addUserAgent(BuildConfig.SDK_VERSION)
 
+        logger.log("KOBE; $serverUrl")
+
         wcKoinApp.modules(androidApiNetworkModule(serverUrl, jwt, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION))
         relayService = wcKoinApp.koin.get(named(AndroidCommonDITags.RELAY_SERVICE))
     }

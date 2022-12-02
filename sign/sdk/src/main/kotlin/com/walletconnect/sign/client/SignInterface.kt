@@ -32,7 +32,8 @@ interface SignInterface {
     }
 
     fun insert(): String
-    fun get()
+    fun get(): Pair<String, String>
+    fun decryptMessage(key: String, message: String): String
 
     fun initialize(init: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit)
     fun setWalletDelegate(delegate: WalletDelegate)

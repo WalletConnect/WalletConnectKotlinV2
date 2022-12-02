@@ -27,14 +27,6 @@ internal class SignProtocol : SignInterface {
         const val storageSuffix: String = ""
     }
 
-    override fun insert(): String {
-        return signEngine.insertSession()
-    }
-
-    override fun get() {
-        signEngine.getSession()
-    }
-
     override fun initialize(init: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
         // TODO: re-init scope
         try {
@@ -54,6 +46,21 @@ internal class SignProtocol : SignInterface {
         } catch (e: Exception) {
             onError(Sign.Model.Error(e))
         }
+    }
+
+    override fun insert(): String {
+        checkEngineInitialization()
+        println("kobe; Inserting")
+
+        return signEngine.insertSession()
+    }
+
+    override fun get(): Pair<String, String> {
+        return signEngine.getSession()
+    }
+
+    override fun decryptMessage(key: String, message: String): String {
+        return signEngine.decrypt(key, message)
     }
 
     @Throws(IllegalStateException::class)

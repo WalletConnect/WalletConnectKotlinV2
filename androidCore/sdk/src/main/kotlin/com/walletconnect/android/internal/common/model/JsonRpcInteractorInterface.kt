@@ -14,6 +14,8 @@ interface JsonRpcInteractorInterface {
     val isConnectionAvailable: StateFlow<Boolean>
     val internalErrors: SharedFlow<InternalError>
 
+    fun decryptMessage(key: String, message: String): String
+
     fun checkConnectionWorking()
 
     fun subscribe(topic: Topic, onFailure: (Throwable) -> Unit = {})

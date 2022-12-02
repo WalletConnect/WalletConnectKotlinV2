@@ -2,15 +2,15 @@
 
 package com.walletconnect.android.impl.data.codec
 
-import com.walletconnect.android.impl.common.MissingParticipantsException
 import com.walletconnect.android.impl.common.MissingKeyException
+import com.walletconnect.android.impl.common.MissingParticipantsException
 import com.walletconnect.android.impl.common.UnknownEnvelopeTypeException
-import com.walletconnect.android.internal.common.model.Participants
-import com.walletconnect.android.internal.common.model.SymmetricKey
-import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.impl.crypto.Codec
 import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.model.EnvelopeType
+import com.walletconnect.android.internal.common.model.Participants
+import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.util.bytesToHex
@@ -28,7 +28,7 @@ import java.nio.ByteBuffer
 * EnvelopeType.ONE -> tp + pk + iv + sb
  */
 
-internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagementRepository) : Codec {
+class ChaChaPolyCodec(private val keyManagementRepository: KeyManagementRepository) : Codec {
     private val cha20Poly1305 = ChaCha20Poly1305()
 
     @Throws(
@@ -61,6 +61,29 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
             )
             else -> throw UnknownEnvelopeTypeException("Decrypt; Unknown envelope type: $envelopeType")
         }
+    }
+
+    override fun decryptMessage(key: String, cipherText: String): String {
+        val encryptedPayloadBytes = Base64.decode(cipherText)
+
+        return decryptType0Test(key, encryptedPayloadBytes)
+    }
+
+    private fun decryptType0Test(symKey: String, encryptedPayloadBytes: ByteArray): String {
+        val envelopeType = ByteArray(ENVELOPE_TYPE_SIZE)
+        val nonce = ByteArray(NONCE_SIZE)
+        val encryptedMessageBytes = ByteArray(encryptedPayloadBytes.size - NONCE_SIZE - ENVELOPE_TYPE_SIZE)
+
+        //tp + iv + sb
+        val byteBuffer: ByteBuffer = ByteBuffer.wrap(encryptedPayloadBytes)
+        byteBuffer.get(envelopeType)
+        byteBuffer.get(nonce)
+        byteBuffer.get(encryptedMessageBytes)
+
+        val symmetricKey = SymmetricKey(symKey)//keyManagementRepository.getSymmetricKey(topic.value)
+        val decryptedTextBytes = decryptPayload(symmetricKey, nonce, encryptedMessageBytes)
+
+        return String(decryptedTextBytes, Charsets.UTF_8)
     }
 
     private fun decryptType0(topic: Topic, encryptedPayloadBytes: ByteArray): String {
