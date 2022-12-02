@@ -18,10 +18,10 @@ WalletConnect v2 protocols for Android applications.
 | 1.0.0 | 1.5.0                   | 2.3.0            | 1.3.0            | 1.0.0-alpha04    |
 
 
-##BOM Instructions:
+## BOM Instructions:
 To help manage compatible dependencies stay in sync, we've introduced a [BOM](https://docs.gradle.org/current/userguide/platforms.html#sub:bom_import) to the Kotlin SDK. With this, you only need to update the BOM version to get the latest SDKs. Just add the BOM as a dependency and then list the SDKs you want to include into your project.    
 
-###example build.gradle.kts
+### example build.gradle.kts
 ```kotlin
 dependencies {
     implementation(platform("com.walletconnect:android-bom:{BOM version}"))
