@@ -1,5 +1,8 @@
 package com.walletconnect.android
 
+import com.walletconnect.android.internal.common.model.AppMetaDataType
+import com.walletconnect.android.internal.common.model.Expiry
+
 object Core {
     sealed interface Listeners {
         interface PairingPing : Listeners {
@@ -29,7 +32,7 @@ object Core {
             val uri: String,
             val isActive: Boolean,
             val registeredMethods: String
-        ): Model()
+        ) : Model()
     }
 
     sealed class Params {
@@ -37,5 +40,13 @@ object Core {
         data class Ping(val topic: String) : Params()
 
         data class Pair(val uri: String) : Params()
+
+        data class Disconnect(val topic: String) : Params()
+
+        data class Activate(val topic: String) : Params()
+
+        data class UpdateExpiry(val topic: String, val expiry: Expiry) : Params()
+
+        data class UpdateMetadata(val topic: String, val metadata: Model.AppMetaData, val metaDataType: AppMetaDataType) : Params()
     }
 }

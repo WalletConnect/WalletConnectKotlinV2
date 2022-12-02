@@ -86,7 +86,7 @@ class RelayTest {
         runBlocking {
             val start = System.currentTimeMillis()
             // Await test finish or check if timeout occurred
-            while (testState.value is TestState.Idle && !didTimeout(start, 10000L)) {
+            while (testState.value is TestState.Idle && !didTimeout(start, 20000L)) {
                 delay(10)
             }
 
@@ -151,7 +151,7 @@ class RelayTest {
     private fun initTwoClients(): Pair<RelayInterface, RelayInterface> {
         val koinAppA: KoinApplication = KoinApplication.init()
             .apply { modules(commonModule(), cryptoModule()) }.also { koinApp ->
-                val jwt = koinApp.koin.get<JwtRepository>().generateJWT(serverUrl) { clientId ->
+                val jwt = koinApp.koin.get<JwtRepository>().generateJWT(testRelayUrl) { clientId ->
                     println("ClientA id: $clientId")
                 }
                 koinApp.modules(networkModule(serverUrl.addUserAgent(sdkVersion), sdkVersion, jwt))
@@ -159,7 +159,7 @@ class RelayTest {
 
         val koinAppB: KoinApplication = KoinApplication.init()
             .apply { modules(commonModule(), cryptoModule()) }.also { koinApp ->
-                val jwt = koinApp.koin.get<JwtRepository>().generateJWT(serverUrl) { clientId ->
+                val jwt = koinApp.koin.get<JwtRepository>().generateJWT(testRelayUrl) { clientId ->
                     println("ClientB id: $clientId")
                 }
                 koinApp.modules(networkModule(serverUrl.addUserAgent(sdkVersion), sdkVersion, jwt))

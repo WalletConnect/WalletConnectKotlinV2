@@ -8,7 +8,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core-impl"
-    extra[KEY_PUBLISH_VERSION] = "1.4.0-SNAPSHOT"
+    extra[KEY_PUBLISH_VERSION] = CORE_VERSION
     extra[KEY_SDK_NAME] = "Android Core Impl"
 }
 
@@ -50,7 +50,7 @@ sqldelight {
 
 dependencies {
     debugApi(project(":androidCore:sdk"))
-    releaseApi("com.walletconnect:android-core:1.4.0-SNAPSHOT")
+    releaseApi("com.walletconnect:android-core:$CORE_VERSION")
 
     bouncyCastle()
     coroutines()
