@@ -6,7 +6,10 @@ import com.walletconnect.android.impl.common.MissingKeyException
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.utils.*
+import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
+import com.walletconnect.android.impl.utils.SELF_INVITE_PUBLIC_KEY_CONTEXT
+import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
+import com.walletconnect.android.impl.utils.THIRTY_SECONDS
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.GenericException
@@ -29,6 +32,7 @@ import com.walletconnect.chat.storage.ChatStorageRepository
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -39,7 +43,8 @@ internal class ChatEngine(
     private val keyManagementRepository: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val chatStorage: ChatStorageRepository,
-    private val pairingHandler: PairingControllerInterface
+    private val pairingHandler: PairingControllerInterface,
+    private val logger: Logger
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
@@ -142,7 +147,7 @@ internal class ChatEngine(
 
     internal fun invite(peerAccount: AccountId, invite: EngineDO.Invite, onFailure: (Throwable) -> Unit) {
         addContact(AccountIdWithPublicKey(peerAccount, PublicKey(invite.publicKey))) { error ->
-            Logger.error("Error while adding new account: $error")
+            logger.error("Error while adding new account: $error")
             return@addContact onFailure(error)
         }
         val senderPublicKey = try {
@@ -168,9 +173,9 @@ internal class ChatEngine(
 
             val irnParams = IrnParams(Tags.CHAT_INVITE, Ttl(DAY_IN_SECONDS), true)
             jsonRpcInteractor.publishJsonRpcRequest(inviteTopic, irnParams, payload, EnvelopeType.ONE, participants,
-                { Logger.log("Chat invite sent successfully") },
+                { logger.log("Chat invite sent successfully") },
                 { throwable ->
-                    Logger.log("Chat invite error: $throwable")
+                    logger.log("Chat invite error: $throwable")
                     jsonRpcInteractor.unsubscribe(acceptTopic)
                     onFailure(throwable)
                 }
@@ -253,9 +258,9 @@ internal class ChatEngine(
         val irnParams = IrnParams(Tags.CHAT_MESSAGE, Ttl(DAY_IN_SECONDS), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, payload,
-            onSuccess = { Logger.log("Chat message sent successfully") },
+            onSuccess = { logger.log("Chat message sent successfully") },
             onFailure = { throwable ->
-                Logger.log("Chat message error: $throwable")
+                logger.log("Chat message error: $throwable")
                 onFailure(throwable)
             })
     }
@@ -265,9 +270,9 @@ internal class ChatEngine(
         val irnParams = IrnParams(Tags.CHAT_LEAVE, Ttl(DAY_IN_SECONDS), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, payload, EnvelopeType.ZERO,
-            onSuccess = { Logger.log("Chat leave sent successfully") },
+            onSuccess = { logger.log("Chat leave sent successfully") },
             onFailure = { throwable ->
-                Logger.log("Chat leave error: $throwable")
+                logger.log("Chat leave error: $throwable")
                 onFailure(throwable)
             })
     }
@@ -279,7 +284,7 @@ internal class ChatEngine(
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
             onSuccess = { pingSuccess(pingPayload, onSuccess, topic, onFailure) },
             onFailure = { error ->
-                Logger.log("Ping sent error: $error")
+                logger.log("Ping sent error: $error")
                 onFailure(error)
             })
     }
@@ -290,7 +295,7 @@ internal class ChatEngine(
         topic: String,
         onFailure: (Throwable) -> Unit,
     ) {
-        Logger.log("Ping sent successfully")
+        logger.log("Ping sent successfully")
         scope.launch {
             try {
                 withTimeout(THIRTY_SECONDS_TIMEOUT) {
@@ -298,11 +303,11 @@ internal class ChatEngine(
                         cancel()
                         result.fold(
                             onSuccess = {
-                                Logger.log("Ping peer response success")
+                                logger.log("Ping peer response success")
                                 onSuccess(topic)
                             },
                             onFailure = { error ->
-                                Logger.log("Ping peer response error: $error")
+                                logger.log("Ping peer response error: $error")
                                 onFailure(error)
                             })
                     }
@@ -344,7 +349,7 @@ internal class ChatEngine(
     private fun onInviteResponse(wcResponse: WCResponse) {
         when (val response = wcResponse.response) {
             is JsonRpcResponse.JsonRpcError -> {
-                Logger.log("Chat invite was rejected")
+                logger.log("Chat invite was rejected")
                 scope.launch { _events.emit(EngineDO.Events.OnReject(wcResponse.topic.value)) }
             }
             is JsonRpcResponse.JsonRpcResult -> onInviteAccepted(response, wcResponse)
@@ -352,7 +357,7 @@ internal class ChatEngine(
     }
 
     private fun onInviteAccepted(response: JsonRpcResponse.JsonRpcResult, wcResponse: WCResponse) {
-        Logger.log("Chat invite was accepted")
+        logger.log("Chat invite was accepted")
         val acceptParams = response.result as ChatParams.AcceptanceParams
         val pubKeyZ = PublicKey(acceptParams.publicKey)
 
@@ -414,7 +419,7 @@ internal class ChatEngine(
             jsonRpcInteractor.subscribe(topic) { error ->
                 scope.launch { _events.emit(SDKError(InternalError(error))) }
             }
-            Logger.log("Listening for invite on: $topic, pubKey X:$publicKey")
+            logger.log("Listening for invite on: $topic, pubKey X:$publicKey")
         } catch (error: Exception) {
             scope.launch { _events.emit(SDKError(InternalError(error))) }
         }

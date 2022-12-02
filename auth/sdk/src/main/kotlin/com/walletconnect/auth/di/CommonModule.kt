@@ -15,7 +15,7 @@ internal fun commonModule() = module {
 
     includes(androidCommonModule())
 
-    single() {
+    single {
         get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))
             .add { type, _, moshi ->
                 when (type.getRawType().name) {

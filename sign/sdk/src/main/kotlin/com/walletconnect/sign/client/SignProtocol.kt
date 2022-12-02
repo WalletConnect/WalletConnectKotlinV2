@@ -5,7 +5,6 @@ package com.walletconnect.sign.client
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.di.cryptoModule
-import com.walletconnect.android.impl.utils.Logger
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.model.mapper.toPairing
@@ -29,7 +28,6 @@ internal class SignProtocol : SignInterface {
     }
 
     override fun initialize(init: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
-        Logger.init()
         // TODO: re-init scope
         try {
             wcKoinApp.modules(

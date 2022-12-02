@@ -8,7 +8,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "chat"
-    extra[KEY_PUBLISH_VERSION] = "1.0.0-alpha03"
+    extra[KEY_PUBLISH_VERSION] = "1.0.0-alpha04"
     extra[KEY_SDK_NAME] = "Chat"
 }
 
@@ -53,7 +53,7 @@ sqldelight {
 
 dependencies {
     debugImplementation(project(":androidCore:impl"))
-    releaseImplementation("com.walletconnect:android-core-impl:1.4.0")
+    releaseImplementation("com.walletconnect:android-core-impl:$CORE_VERSION")
 
     retrofit()
     navigationComponent()

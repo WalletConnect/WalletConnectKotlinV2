@@ -21,6 +21,7 @@ import com.walletconnect.android.pairing.model.mapper.toPairing
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.exceptions.CannotFindSequenceForTopic
 import com.walletconnect.sign.common.model.PendingRequest
@@ -53,6 +54,7 @@ internal class SignEngine(
     private val pairingInterface: PairingInterface,
     private val pairingHandler: PairingControllerInterface,
     private val selfAppMetaData: AppMetaData,
+    private val logger: Logger
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
@@ -129,11 +131,11 @@ internal class SignEngine(
 
         jsonRpcInteractor.publishJsonRpcRequest(pairing.topic, irnParams, request,
             onSuccess = {
-                Logger.log("Session proposal sent successfully")
+                logger.log("Session proposal sent successfully")
                 onSuccess()
             },
             onFailure = { error ->
-                Logger.error("Failed to send a session proposal: $error")
+                logger.error("Failed to send a session proposal: $error")
                 onFailure(error)
             })
     }
@@ -235,9 +237,9 @@ internal class SignEngine(
         sessionStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id,
             onSuccess = {
                 jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionUpdate,
-                    onSuccess = { Logger.log("Update sent successfully") },
+                    onSuccess = { logger.log("Update sent successfully") },
                     onFailure = { error ->
-                        Logger.error("Sending session update error: $error")
+                        logger.error("Sending session update error: $error")
                         sessionStorageRepository.deleteTempNamespacesByRequestId(sessionUpdate.id)
                         onFailure(error)
                     }
@@ -270,7 +272,7 @@ internal class SignEngine(
             irnParams,
             sessionPayload,
             onSuccess = {
-                Logger.log("Session request sent successfully")
+                logger.log("Session request sent successfully")
                 scope.launch {
                     try {
                         withTimeout(FIVE_MINUTES_TIMEOUT) {
@@ -282,7 +284,7 @@ internal class SignEngine(
                 }
             },
             onFailure = { error ->
-                Logger.error("Sending session request error: $error")
+                logger.error("Sending session request error: $error")
                 onFailure(error)
             }
         )
@@ -299,9 +301,9 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcResponse(Topic(topic), irnParams, jsonRpcResponse,
-            { Logger.log("Session payload sent successfully") },
+            { logger.log("Session payload sent successfully") },
             { error ->
-                Logger.error("Sending session payload response error: $error")
+                logger.error("Sending session payload response error: $error")
                 onFailure(error)
             })
     }
@@ -314,7 +316,7 @@ internal class SignEngine(
 
             jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
                 onSuccess = {
-                    Logger.log("Ping sent successfully")
+                    logger.log("Ping sent successfully")
                     scope.launch {
                         try {
                             withTimeout(THIRTY_SECONDS_TIMEOUT) {
@@ -322,11 +324,11 @@ internal class SignEngine(
                                     cancel()
                                     result.fold(
                                         onSuccess = {
-                                            Logger.log("Ping peer response success")
+                                            logger.log("Ping peer response success")
                                             onSuccess(topic)
                                         },
                                         onFailure = { error ->
-                                            Logger.log("Ping peer response error: $error")
+                                            logger.log("Ping peer response error: $error")
                                             onFailure(error)
                                         })
                                 }
@@ -337,7 +339,7 @@ internal class SignEngine(
                     }
                 },
                 onFailure = { error ->
-                    Logger.log("Ping sent error: $error")
+                    logger.log("Ping sent error: $error")
                     onFailure(error)
                 })
         } else {
@@ -377,9 +379,9 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionEvent,
-            onSuccess = { Logger.log("Event sent successfully") },
+            onSuccess = { logger.log("Event sent successfully") },
             onFailure = { error ->
-                Logger.error("Sending event error: $error")
+                logger.error("Sending event error: $error")
                 onFailure(error)
             }
         )
@@ -404,9 +406,9 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_EXTEND, Ttl(DAY_IN_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionExtend,
-            onSuccess = { Logger.log("Session extend sent successfully") },
+            onSuccess = { logger.log("Session extend sent successfully") },
             onFailure = { error ->
-                Logger.error("Sending session extend error: $error")
+                logger.error("Sending session extend error: $error")
                 onFailure(error)
             })
     }
@@ -423,8 +425,8 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_DELETE, Ttl(DAY_IN_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionDelete,
-            onSuccess = { Logger.error("Disconnect sent successfully") },
-            onFailure = { error -> Logger.error("Sending session disconnect error: $error") }
+            onSuccess = { logger.error("Disconnect sent successfully") },
+            onFailure = { error -> logger.error("Sending session disconnect error: $error") }
         )
     }
 
@@ -578,7 +580,7 @@ internal class SignEngine(
 
             jsonRpcInteractor.unsubscribe(request.topic,
                 onSuccess = { crypto.removeKeys(request.topic.value) },
-                onFailure = { error -> Logger.error(error) })
+                onFailure = { error -> logger.error(error) })
             sessionStorageRepository.deleteSession(request.topic)
 
             scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
@@ -595,21 +597,20 @@ internal class SignEngine(
     // listened by WalletDelegate
     private fun onSessionRequest(request: WCRequest, params: SignParams.SessionRequestParams) {
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-        Validator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->
-            jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-            return
-        }
-
-        if (!sessionStorageRepository.isSessionValid(request.topic)) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
-                irnParams
-            )
-            return
-        }
-
         try {
+            Validator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->
+                jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
+                return
+            }
+
+            if (!sessionStorageRepository.isSessionValid(request.topic)) {
+                jsonRpcInteractor.respondWithError(
+                    request,
+                    Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
+                    irnParams
+                )
+                return
+            }
             val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerAppMetaData: AppMetaData?) =
                 sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
                     .run {
@@ -637,21 +638,21 @@ internal class SignEngine(
     // listened by DappDelegate
     private fun onSessionEvent(request: WCRequest, params: SignParams.EventParams) {
         val irnParams = IrnParams(Tags.SESSION_EVENT_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-        Validator.validateEvent(params.toEngineDOEvent()) { error ->
-            jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-            return
-        }
-
-        if (!sessionStorageRepository.isSessionValid(request.topic)) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
-                irnParams
-            )
-            return
-        }
-
         try {
+            Validator.validateEvent(params.toEngineDOEvent()) { error ->
+                jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
+                return
+            }
+
+            if (!sessionStorageRepository.isSessionValid(request.topic)) {
+                jsonRpcInteractor.respondWithError(
+                    request,
+                    Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
+                    irnParams
+                )
+                return
+            }
+
             val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
             if (!session.isPeerController) {
                 jsonRpcInteractor.respondWithError(request, PeerError.Unauthorized.Event(Sequences.SESSION.name), irnParams)
@@ -739,16 +740,16 @@ internal class SignEngine(
     // listened by DappDelegate
     private fun onSessionExtend(request: WCRequest, requestParams: SignParams.ExtendParams) {
         val irnParams = IrnParams(Tags.SESSION_EXTEND_RESPONSE, Ttl(DAY_IN_SECONDS))
-        if (!sessionStorageRepository.isSessionValid(request.topic)) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
-                irnParams
-            )
-            return
-        }
-
         try {
+            if (!sessionStorageRepository.isSessionValid(request.topic)) {
+                jsonRpcInteractor.respondWithError(
+                    request,
+                    Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
+                    irnParams
+                )
+                return
+            }
+
             val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
             if (!session.isPeerController) {
                 jsonRpcInteractor.respondWithError(request, PeerError.Unauthorized.ExtendRequest(Sequences.SESSION.name), irnParams)
@@ -789,7 +790,7 @@ internal class SignEngine(
 
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
-                    Logger.log("Session proposal approve received")
+                    logger.log("Session proposal approve received")
                     val selfPublicKey = PublicKey(params.proposer.publicKey)
                     val approveParams = response.result as SignParams.ApprovalParams
                     val responderPublicKey = PublicKey(approveParams.responderPublicKey)
@@ -801,7 +802,7 @@ internal class SignEngine(
                     }
                 }
                 is JsonRpcResponse.JsonRpcError -> {
-                    Logger.log("Session proposal reject received: ${response.error}")
+                    logger.log("Session proposal reject received: ${response.error}")
                     scope.launch { _engineEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
                 }
             }
@@ -822,12 +823,12 @@ internal class SignEngine(
 
             when (wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
-                    Logger.log("Session settle success received")
+                    logger.log("Session settle success received")
                     sessionStorageRepository.acknowledgeSession(sessionTopic)
                     scope.launch { _engineEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDO())) }
                 }
                 is JsonRpcResponse.JsonRpcError -> {
-                    Logger.error("Peer failed to settle session: ${(wcResponse.response as JsonRpcResponse.JsonRpcError).errorMessage}")
+                    logger.error("Peer failed to settle session: ${(wcResponse.response as JsonRpcResponse.JsonRpcError).errorMessage}")
                     jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
                         sessionStorageRepository.deleteSession(sessionTopic)
                         crypto.removeKeys(sessionTopic.value)
@@ -851,7 +852,7 @@ internal class SignEngine(
 
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
-                    Logger.log("Session update namespaces response received")
+                    logger.log("Session update namespaces response received")
                     val responseId = wcResponse.response.id
                     val namespaces = sessionStorageRepository.getTempNamespaces(responseId)
 
@@ -872,7 +873,7 @@ internal class SignEngine(
                         })
                 }
                 is JsonRpcResponse.JsonRpcError -> {
-                    Logger.error("Peer failed to update session namespaces: ${response.error}")
+                    logger.error("Peer failed to update session namespaces: ${response.error}")
                     scope.launch { _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error(response.errorMessage)) }
                 }
             }
@@ -883,12 +884,16 @@ internal class SignEngine(
 
     // listened by DappDelegate
     private fun onSessionRequestResponse(response: WCResponse, params: SignParams.SessionRequestParams) {
-        val result = when (response.response) {
-            is JsonRpcResponse.JsonRpcResult -> (response.response as JsonRpcResponse.JsonRpcResult).toEngineDO()
-            is JsonRpcResponse.JsonRpcError -> (response.response as JsonRpcResponse.JsonRpcError).toEngineDO()
+        try {
+            val result = when (response.response) {
+                is JsonRpcResponse.JsonRpcResult -> (response.response as JsonRpcResponse.JsonRpcResult).toEngineDO()
+                is JsonRpcResponse.JsonRpcError -> (response.response as JsonRpcResponse.JsonRpcError).toEngineDO()
+            }
+            val method = params.request.method
+            scope.launch { _engineEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
+        } catch (e: Exception) {
+            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
         }
-        val method = params.request.method
-        scope.launch { _engineEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
     }
 
     private fun resubscribeToSession() {
