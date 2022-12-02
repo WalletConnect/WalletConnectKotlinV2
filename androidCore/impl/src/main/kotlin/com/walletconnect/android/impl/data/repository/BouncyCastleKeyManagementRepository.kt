@@ -25,21 +25,24 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         keyChain.setKey(tag, key)
     }
 
+    @Throws(MissingKeyException::class)
     override fun getPublicKey(tag: String): PublicKey {
-        val key = keyChain.getKey(tag) ?: throw MissingKeyException("No SymmetricKey for tag: $tag")
+        val key = keyChain.getKey(tag) ?: throw MissingKeyException("No PublicKey for tag: $tag")
         return PublicKey(key)
     }
 
+    @Throws(MissingKeyException::class)
     override fun getSymmetricKey(tag: String): SymmetricKey {
-        val key = keyChain.getKey(tag) ?: throw MissingKeyException("No PublicKey for tag: $tag")
+        val key = keyChain.getKey(tag) ?: throw MissingKeyException("No SymmetricKey for tag: $tag")
         return SymmetricKey(key)
     }
 
-    override fun getKeyAgreement(topic: Topic): Pair<PublicKey, PublicKey> {
+    @Throws(MissingKeyException::class)
+    override fun getSelfPublicFromKeyAgreement(topic: Topic): PublicKey {
         val tag = "$KEY_AGREEMENT_CONTEXT${topic.value}"
-        val (selfPublic, peerPublic) = keyChain.getKeys(tag)
+        val (selfPublic, _) = keyChain.getKeys(tag) ?: throw MissingKeyException("No key pair for tag: $tag")
 
-        return Pair(PublicKey(selfPublic), PublicKey(peerPublic))
+        return PublicKey(selfPublic)
     }
 
     override fun setKeyAgreement(topic: Topic, self: PublicKey, peer: PublicKey) {
@@ -83,8 +86,9 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
 
     override fun getTopicFromKey(key: Key): Topic = Topic(sha256(key.keyAsHex))
 
+    @Throws(MissingKeyException::class)
     override fun removeKeys(tag: String) {
-        val (publicKey, _) = keyChain.getKeys(tag)
+        val (publicKey, _) = keyChain.getKeys(tag) ?: throw MissingKeyException("No key pair for tag: $tag")
         with(keyChain) {
             deleteKeys(publicKey.lowercase())
             deleteKeys(tag)
@@ -95,8 +99,9 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         keyChain.setKeys(publicKey.keyAsHex, publicKey, privateKey)
     }
 
-    internal fun getKeyPair(wcKey: Key): Pair<PublicKey, PrivateKey> {
-        val (publicKeyHex, privateKeyHex) = keyChain.getKeys(wcKey.keyAsHex)
+    @Throws(MissingKeyException::class)
+    internal fun getKeyPair(key: Key): Pair<PublicKey, PrivateKey> {
+        val (publicKeyHex, privateKeyHex) = keyChain.getKeys(key.keyAsHex) ?: throw MissingKeyException("No key pair for tag: ${key.keyAsHex}")
 
         return Pair(PublicKey(publicKeyHex), PrivateKey(privateKeyHex))
     }
