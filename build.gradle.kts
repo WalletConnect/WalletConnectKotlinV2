@@ -27,6 +27,7 @@ allprojects {
         mavenLocal()
         mavenCentral()
         maven(url = "https://jitpack.io")
+        maven(url = "https://s01.oss.sonatype.org/content/repositories/snapshots/")
         jcenter() // Warning: this repository is going to shut down soon
     }
 }
@@ -45,6 +46,17 @@ subprojects {
                 }
             }
         }
+
+//        if (plugins.hasPlugin("com.android.application")) {
+//            extensions.configure(BaseExtension::class.java) {
+//                buildTypes {
+//                    getByName("release") {
+//                        val proguards = fileTree("$rootDir/proguard") { include("*.pro")}
+//                        proguardFiles(*proguards.toList().toTypedArray())
+//                    }
+//                }
+//            }
+//        }
     }
 
     tasks.withType<Test> {
@@ -58,6 +70,7 @@ task<Delete>("clean") {
 
 nexusPublishing {
     repositories {
+        project.version = "-SNAPSHOT"
         sonatype {
             stagingProfileId.set(System.getenv("SONATYPE_STAGING_PROFILE_ID"))
             username.set(System.getenv("OSSRH_USERNAME"))

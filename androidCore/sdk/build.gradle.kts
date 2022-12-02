@@ -7,7 +7,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core"
-    extra[KEY_PUBLISH_VERSION] = "1.4.0"
+    extra[KEY_PUBLISH_VERSION] = "1.4.0-SNAPSHOT"
     extra[KEY_SDK_NAME] = "Android Core"
 }
 
@@ -20,6 +20,7 @@ android {
 
         buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
         consumerProguardFiles("consumer-rules.pro")
     }
 
@@ -42,7 +43,7 @@ android {
 
 dependencies {
     debugApi(project(":foundation"))
-    releaseApi("com.walletconnect:foundation:1.2.0")
+    releaseApi("com.walletconnect:foundation:1.2.0-SNAPSHOT")
 
     bouncyCastle()
     coroutines()

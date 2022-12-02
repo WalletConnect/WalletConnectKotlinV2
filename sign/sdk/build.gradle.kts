@@ -8,7 +8,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "sign"
-    extra[KEY_PUBLISH_VERSION] = "2.2.0"
+    extra[KEY_PUBLISH_VERSION] = "2.2.0-SNAPSHOT"
     extra[KEY_SDK_NAME] = "Sign"
 }
 
@@ -32,9 +32,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            consumerProguardFile("proguard-rules.pro")
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            isMinifyEnabled = false
+            consumerProguardFiles("proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
@@ -64,7 +64,7 @@ sqldelight {
 
 dependencies {
     debugImplementation(project(":androidCore:impl"))
-    releaseImplementation("com.walletconnect:android-core-impl:1.4.0")
+    releaseImplementation("com.walletconnect:android-core-impl:1.4.0-SNAPSHOT")
 
     moshiKsp()
     androidXTest()

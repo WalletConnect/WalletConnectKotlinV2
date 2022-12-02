@@ -1,6 +1,7 @@
--keep class com.walletconnect.sign.** { *; }
+-keep class com.walletconnect.** { *; }
+-keep interface com.walletconnect.** { *; }
 
--repackageclasses 'com.walletconnect.sign'
+-repackageclasses 'com.walletconnect'
 -allowaccessmodification
 -keeppackagenames doNotKeepAThing
 
@@ -13,8 +14,3 @@
 -keepclassmembers,allowshrinking,allowobfuscation interface * {
     @com.tinder.scarlet.ws.* <methods>;
 }
-
-#-dontobfuscate
-#-dontshrink
-#-dontoptimize
-#-dontusemixedcaseclassnames

@@ -19,6 +19,7 @@ android {
 
     buildTypes {
         release {
+            isDebuggable = true
             isMinifyEnabled = true
             signingConfig = signingConfigs.getByName("debug")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -43,10 +44,12 @@ dependencies {
     implementation(project(":sign:samples_common"))
 
     debugImplementation(project(":sign:sdk"))
-    releaseImplementation("com.walletconnect:sign:2.2.0")
+//    releaseImplementation(project(":sign:sdk"))
+    releaseImplementation("com.walletconnect:sign:2.2.0-SNAPSHOT")
 
     debugImplementation(project(":androidCore:sdk"))
-    releaseImplementation("com.walletconnect:android-core:1.4.0")
+//    releaseImplementation(project(":androidCore:sdk"))
+    releaseImplementation("com.walletconnect:android-core:1.4.0-SNAPSHOT")
 
     glide_N_kapt()
     implementation("com.github.kenglxn.QRGen:android:2.6.0")
