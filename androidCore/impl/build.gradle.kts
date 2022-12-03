@@ -8,7 +8,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core-impl"
-    extra[KEY_PUBLISH_VERSION] = CORE_VERSION
+    extra[KEY_PUBLISH_VERSION] = "$CORE_VERSION"
     extra[KEY_SDK_NAME] = "Android Core Impl"
 }
 
@@ -24,8 +24,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro")
         }
     }
     compileOptions {
@@ -50,6 +50,7 @@ sqldelight {
 
 dependencies {
     debugApi(project(":androidCore:sdk"))
+//    releaseApi(project(":androidCore:sdk"))
     releaseApi("com.walletconnect:android-core:$CORE_VERSION")
 
     bouncyCastle()

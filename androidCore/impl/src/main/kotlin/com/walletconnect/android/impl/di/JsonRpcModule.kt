@@ -9,6 +9,7 @@ import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.utils.addDeserializerEntry
 import com.walletconnect.utils.addSerializerEntry
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import kotlin.reflect.KClass
 
