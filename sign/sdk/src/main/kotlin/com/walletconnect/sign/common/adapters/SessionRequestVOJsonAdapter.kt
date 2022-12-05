@@ -39,16 +39,20 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
                             val paramsMapEntry: Map.Entry<*, *> = paramsAny.firstNotNullOf { it }
                             val key = paramsMapEntry.key as String
 
-                            if (paramsMapEntry.value is List<*>) {
-                                val jsonArray = upsertArray(JSONArray(), paramsMapEntry.value as List<*>).toString()
+                            when (paramsMapEntry.value) {
+                                is List<*> -> {
+                                    val jsonArray = upsertArray(JSONArray(), paramsMapEntry.value as List<*>).toString()
 
-                                "\"$key\":$jsonArray"
-                            } else if (paramsMapEntry.value is Map<*, *>) {
-                                val jsonObject = upsertObject(JSONObject(), paramsMapEntry.value as Map<*, *>)
+                                    "\"$key\":$jsonArray"
+                                }
+                                is Map<*, *> -> {
+                                    val jsonObject = upsertObject(JSONObject(), paramsMapEntry.value as Map<*, *>)
 
-                                "\"$key\":$jsonObject"
-                            } else {
-                                upsertObject(JSONObject(), paramsMap).toString()
+                                    "\"$key\":$jsonObject"
+                                }
+                                else -> {
+                                    upsertObject(JSONObject(), paramsMap).toString()
+                                }
                             }
                         } else {
                             upsertObject(JSONObject(), paramsMap).toString()
@@ -100,6 +104,7 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
                     when (val deserializedJson = anyAdapter.fromJson(value)) {
                         is List<*> -> rootArray.put(upsertArray(JSONArray(), deserializedJson))
                         is Map<*, *> -> rootArray.put(upsertObject(JSONObject(), deserializedJson))
+                        is Number -> rootArray.put(value.toString())
                         else -> throw IllegalArgumentException("Failed Deserializing Unknown Type $value")
                     }
                 } catch (e: JsonEncodingException) {
