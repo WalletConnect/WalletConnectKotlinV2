@@ -38,7 +38,7 @@ dependencies {
     moshiKsp()
     bouncyCastle()
     multibaseJava()
-    restEasyJava()
+    wsRestJava()
 
     jUnit5()
     mockk()
