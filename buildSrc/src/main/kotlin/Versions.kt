@@ -6,6 +6,7 @@ val KEY_SDK_NAME = "SDK_NAME"
 const val dokkaVersion = "1.6.21"
 
 const val CORE_VERSION = "1.5.0"
+const val BOM_VERSION = "1.0.1"
 
 val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23

@@ -5,7 +5,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "android-bom"
-    extra[KEY_PUBLISH_VERSION] = "1.0.0"
+    extra[KEY_PUBLISH_VERSION] = BOM_VERSION
     extra[KEY_SDK_NAME] = "Android BOM"
 }
 
