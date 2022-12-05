@@ -46,17 +46,6 @@ subprojects {
                 }
             }
         }
-
-//        if (plugins.hasPlugin("com.android.application")) {
-//            extensions.configure(BaseExtension::class.java) {
-//                buildTypes {
-//                    getByName("release") {
-//                        val proguards = fileTree("$rootDir/proguard") { include("*.pro")}
-//                        proguardFiles(*proguards.toList().toTypedArray())
-//                    }
-//                }
-//            }
-//        }
     }
 
     tasks.withType<Test> {

@@ -7,7 +7,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core"
-    extra[KEY_PUBLISH_VERSION] = CORE_VERSION
+    extra[KEY_PUBLISH_VERSION] = "$CORE_VERSION-SNAPSHOT"
     extra[KEY_SDK_NAME] = "Android Core"
 }
 
@@ -21,7 +21,7 @@ android {
         buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        File("${rootDir.path}/gradle/consumer-rules").listFiles().forEach { proguardFile ->
+        File("${rootDir.path}/gradle/consumer-rules").listFiles()?.forEach { proguardFile ->
             consumerProguardFiles(proguardFile.path)
         }
     }
@@ -46,7 +46,7 @@ android {
 dependencies {
     debugApi(project(":foundation"))
 //    releaseApi(project(":foundation"))
-    releaseApi("com.walletconnect:foundation:1.2.0")
+    releaseApi("com.walletconnect:foundation:1.2.0-SNAPSHOT")
 
     bouncyCastle()
     coroutines()

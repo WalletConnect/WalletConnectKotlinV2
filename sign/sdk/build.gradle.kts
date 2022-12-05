@@ -8,7 +8,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "sign"
-    extra[KEY_PUBLISH_VERSION] = "2.3.0"
+    extra[KEY_PUBLISH_VERSION] = "2.4.0-SNAPSHOT"
     extra[KEY_SDK_NAME] = "Sign"
 }
 
@@ -65,7 +65,7 @@ sqldelight {
 dependencies {
     debugImplementation(project(":androidCore:impl"))
 //    releaseImplementation(project(":androidCore:impl"))
-    releaseImplementation("com.walletconnect:android-core-impl:$CORE_VERSION")
+    releaseImplementation("com.walletconnect:android-core-impl:$CORE_VERSION-SNAPSHOT")
 
     moshiKsp()
     androidXTest()
