@@ -106,8 +106,8 @@ fun DependencyHandlerScope.multibaseJava() {
 }
 
 fun DependencyHandlerScope.wsRestJava() {
-    "implementation"("javax.ws.rs:javax.ws.rs-api:$wsRestJavaVersion")
-    "testImplementation"("org.glassfish.jersey.core:jersey-common:2.24")
+    "implementation"("jakarta.ws.rs:jakarta.ws.rs-api:$wsRestJavaVersion")
+    "testImplementation"("org.glassfish.jersey.core:jersey-common:3.1.0")
 }
 
 fun DependencyHandlerScope.jUnit5() {
