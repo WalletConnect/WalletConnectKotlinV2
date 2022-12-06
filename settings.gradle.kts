@@ -31,3 +31,5 @@ File(rootDir.path).listFiles { file -> file.isDirectory && file.name !in exclude
         include(":${childDir.name}")
     }
 }
+include(":wallet")
+include(":wallet:sdk")
