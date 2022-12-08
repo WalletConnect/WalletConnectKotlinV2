@@ -42,7 +42,7 @@ dependencies {
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":auth:sdk"))
 
-    releaseImplementation(platform("com.walletconnect:android-bom:1.0.0"))
+    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
     releaseImplementation("com.walletconnect:auth")
 
