@@ -32,8 +32,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            isMinifyEnabled = true
+//            consumerProguardFiles("proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro")
         }
     }
 
@@ -63,7 +64,8 @@ sqldelight {
 
 dependencies {
     debugImplementation(project(":androidCore:impl"))
-    releaseImplementation("com.walletconnect:android-core-impl:$CORE_VERSION")
+//    releaseImplementation(project(":androidCore:impl"))
+    releaseImplementation("com.walletconnect:android-core-impl:$CORE_VERSION-SNAPSHOT")
 
     moshiKsp()
     androidXTest()

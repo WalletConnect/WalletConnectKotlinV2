@@ -29,8 +29,8 @@ fun Expiry.isSequenceValid(): Boolean = seconds > CURRENT_TIME_IN_SECONDS
 val String.Companion.HexPrefix
     get() = "0x"
 
-inline fun <reified T : SerializableJsonRpc> Module.addSerializerEntry(value: KClass<T>): KoinDefinition<*> =
-    single(qualifier = named("key_${T::class.getFullName()}")) { value }
+fun <T : SerializableJsonRpc> Module.addSerializerEntry(value: KClass<T>): KoinDefinition<*> =
+    single(qualifier = named("key_${value.getFullName()}")) { value }
 
 fun Module.addDeserializerEntry(key: String, value: KClass<*>): KoinDefinition<*> =
-    single(qualifier = named("${key::class.getFullName()}_${value::class.getFullName()}_$key")) { key to value }
+    single(qualifier = named("${key}_${value.getFullName()}")) { key to value }
