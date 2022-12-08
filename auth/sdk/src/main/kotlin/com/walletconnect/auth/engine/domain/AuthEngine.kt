@@ -21,7 +21,6 @@ import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException
 import com.walletconnect.auth.common.exceptions.MissingAuthRequestException
-import com.walletconnect.auth.common.exceptions.MissingIssuerException
 import com.walletconnect.auth.common.exceptions.PeerError
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.json_rpc.AuthRpc
@@ -53,7 +52,6 @@ internal class AuthEngine(
     private val pairingHandler: PairingControllerInterface,
     private val pairingInterface: PairingInterface,
     private val selfAppMetaData: AppMetaData,
-    private val issuer: Issuer?,
     private val cacaoVerifier: CacaoVerifier,
     private val logger: Logger
 ) {
@@ -101,7 +99,7 @@ internal class AuthEngine(
 
     internal fun request(
         payloadParams: PayloadParams,
-        pairing: Pairing,
+        topic: String,
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
@@ -110,7 +108,7 @@ internal class AuthEngine(
         val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams)
         val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
         val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
-        val pairingTopic = pairing.topic
+        val pairingTopic = Topic(topic)
         crypto.setKey(responsePublicKey, "${SELF_PARTICIPANT_CONTEXT}${responseTopic.value}")
 
         jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
@@ -149,9 +147,12 @@ internal class AuthEngine(
         val response: JsonRpcResponse = when (respond) {
             is Respond.Error -> JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
             is Respond.Result -> {
-                val issuer: Issuer = issuer ?: throw MissingIssuerException
+                val issuer = Issuer(respond.iss)
+
                 val payload: Cacao.Payload = authParams.payloadParams.toCacaoPayload(issuer)
+
                 val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, respond.signature.toCommon())
+
                 val responseParams = AuthParams.ResponseParams(cacao.header, cacao.payload, cacao.signature)
 
                 if (!cacaoVerifier.verify(cacao)) throw InvalidCacaoException
@@ -173,23 +174,19 @@ internal class AuthEngine(
         )
     }
 
+    internal fun formatMessage(payloadParams: PayloadParams, issuer: Issuer): String {
+        //todo: add iss chain validation + caip-10 calidation, chainId validation
+        return payloadParams.toCAIP122Message(issuer)
+    }
+
     internal fun getPendingRequests(): List<PendingRequest> {
-        if (issuer == null) {
-            throw MissingIssuerException
-        }
         return getPendingJsonRpcHistoryEntriesUseCase()
-            .map { jsonRpcHistoryEntry -> jsonRpcHistoryEntry.toPendingRequest(issuer) }
+            .map { jsonRpcHistoryEntry -> jsonRpcHistoryEntry.toPendingRequest() }
     }
 
     private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
-        if (issuer != null) {
-            scope.launch {
-                val formattedMessage: String = authParams.payloadParams.toCAIP122Message(issuer)
-                _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, formattedMessage))
-            }
-        } else {
-            val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
-            jsonRpcInteractor.respondWithError(wcRequest, PeerError.MissingIssuer, irnParams)
+        scope.launch {
+            _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, authParams.payloadParams))
         }
     }
 

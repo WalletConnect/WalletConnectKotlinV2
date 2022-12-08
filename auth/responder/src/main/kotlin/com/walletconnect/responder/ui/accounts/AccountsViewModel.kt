@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.auth.client.Auth
+import com.walletconnect.auth.client.AuthClient
+import com.walletconnect.responder.domain.ISSUER
 import com.walletconnect.responder.domain.ResponderDelegate
 import com.walletconnect.responder.domain.mapOfAccounts1
 import com.walletconnect.responder.ui.events.ResponderEvents
@@ -26,7 +28,10 @@ class AccountsViewModel : ViewModel() {
         ResponderDelegate.wcEvents.map { event: Auth.Event ->
             when (event) {
                 //todo: remove `.also { RequestStore.currentRequest = it }` after implementing pending request
-                is Auth.Event.AuthRequest -> ResponderEvents.OnRequest(event.id, event.message).also { RequestStore.currentRequest = it }
+                is Auth.Event.AuthRequest -> {
+                    val formatMessage = Auth.Params.FormatMessage(event.payloadParams, ISSUER)
+                    ResponderEvents.OnRequest(event.id, AuthClient.formatMessage(formatMessage)).also { RequestStore.currentRequest = it }
+                }
                 else -> ResponderEvents.NoAction
             }
         }.onEach { event ->

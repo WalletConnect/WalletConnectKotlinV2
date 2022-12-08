@@ -41,5 +41,4 @@ internal fun Cacao.Payload.toCAIP122Message(chainName: String = "Ethereum"): Str
 }
 
 @JvmSynthetic
-internal fun JsonRpcHistoryEntry.toPendingRequest(issuer: Issuer): PendingRequest =
-    PendingRequest(id, params.payloadParams, params.payloadParams.toCAIP122Message(issuer))
+internal fun JsonRpcHistoryEntry.toPendingRequest(): PendingRequest = PendingRequest(id, params.payloadParams)

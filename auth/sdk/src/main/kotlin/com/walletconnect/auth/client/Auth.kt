@@ -1,6 +1,5 @@
 package com.walletconnect.auth.client
 
-import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 
 object Auth {
@@ -8,7 +7,7 @@ object Auth {
     sealed class Event {
         data class AuthRequest(
             val id: Long,
-            val message: String,
+            val payloadParams: Model.PayloadParams
         ) : Event()
 
         data class AuthResponse(
@@ -31,29 +30,25 @@ object Auth {
 
         data class ConnectionState(val isAvailable: Boolean) : Model()
 
-        data class Pairing(val uri: String) : Model()
-
         data class PendingRequest(
             val id: Long,
-            val payloadParams: PayloadParams,
-            val message: String,
-        ) : Model() {
+            val payloadParams: PayloadParams
+        ) : Model()
 
-            data class PayloadParams(
-                val type: String,
-                val chainId: String,
-                val domain: String,
-                val aud: String,
-                val version: String,
-                val nonce: String,
-                val iat: String,
-                val nbf: String?,
-                val exp: String?,
-                val statement: String?,
-                val requestId: String?,
-                val resources: List<String>?,
-            )
-        }
+        data class PayloadParams(
+            val type: String,
+            val chainId: String,
+            val domain: String,
+            val aud: String,
+            val version: String,
+            val nonce: String,
+            val iat: String,
+            val nbf: String?,
+            val exp: String?,
+            val statement: String?,
+            val requestId: String?,
+            val resources: List<String>?,
+        ) : Model()
 
         data class Cacao(
             val header: Header,
@@ -103,10 +98,10 @@ object Auth {
 
     sealed class Params {
 
-        data class Init(val core: CoreClient, val iss: String?) : Params()
+        data class Init(val core: CoreClient) : Params()
 
         data class Request(
-            val pairing: Core.Model.Pairing,
+            val topic: String,
             val chainId: String,
             val domain: String,
             val nonce: String,
@@ -122,8 +117,10 @@ object Auth {
         sealed class Respond : Params() {
             abstract val id: Long
 
-            data class Result(override val id: Long, val signature: Model.Cacao.Signature) : Respond()
+            data class Result(override val id: Long, val signature: Model.Cacao.Signature, val issuer: String) : Respond()
             data class Error(override val id: Long, val code: Int, val message: String) : Respond()
         }
+
+        data class FormatMessage(val payloadParams: Model.PayloadParams, val issuer: String) : Params()
     }
 }

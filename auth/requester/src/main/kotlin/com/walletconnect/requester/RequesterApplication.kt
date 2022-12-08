@@ -17,17 +17,18 @@ class RequesterApplication : Application() {
 
         val serverUrl = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
 
-        CoreClient.initialize(relayServerUrl = serverUrl, connectionType = ConnectionType.AUTOMATIC, application = this,
-            metaData = Core.Model.AppMetaData(name = "Kotlin.Requester",
+        CoreClient.initialize(
+            relayServerUrl = serverUrl, connectionType = ConnectionType.AUTOMATIC, application = this,
+            metaData = Core.Model.AppMetaData(
+                name = "Kotlin.Requester",
                 description = "Kotlin AuthSDK Requester Implementation",
                 url = "kotlin.requester.walletconnect.com",
                 icons = listOf("https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png"),
-                redirect = "kotlin-requester-wc:/request")
+                redirect = "kotlin-requester-wc:/request"
+            )
         )
 
-        AuthClient.initialize(
-            init = Auth.Params.Init(core = CoreClient, iss = null)
-        ) { error ->
+        AuthClient.initialize(params = Auth.Params.Init(core = CoreClient)) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
     }
