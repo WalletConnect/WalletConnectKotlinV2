@@ -4,7 +4,7 @@ object Relay {
 
     sealed class Model {
 
-        sealed class Call : Relay.Model() {
+        sealed class Call : Model() {
             abstract val id: Long
             abstract val jsonrpc: String
 
@@ -135,11 +135,11 @@ object Relay {
         data class Error(
             val code: Long,
             val message: String,
-        ) : Relay.Model() {
+        ) : Model() {
             val errorMessage: String = "Error code: $code; Error message: $message"
         }
 
-        sealed class Event : Relay.Model() {
+        sealed class Event : Model() {
             data class OnConnectionOpened<out WEB_SOCKET : Any>(val webSocket: WEB_SOCKET) : Event()
             data class OnMessageReceived(val message: Message) : Event()
             data class OnConnectionClosing(val shutdownReason: ShutdownReason) : Event()
@@ -147,13 +147,13 @@ object Relay {
             data class OnConnectionFailed(val throwable: Throwable) : Event()
         }
 
-        sealed class Message : Relay.Model() {
+        sealed class Message : Model() {
             data class Text(val value: String) : Message()
             class Bytes(val value: ByteArray) : Message()
         }
 
-        data class ShutdownReason(val code: Int, val reason: String) : Relay.Model()
+        data class ShutdownReason(val code: Int, val reason: String) : Model()
 
-        data class IrnParams(val tag: Int, val ttl: Long, val prompt: Boolean = false) : Relay.Model()
+        data class IrnParams(val tag: Int, val ttl: Long, val prompt: Boolean = false) : Model()
     }
 }

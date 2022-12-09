@@ -27,6 +27,7 @@ allprojects {
         mavenLocal()
         mavenCentral()
         maven(url = "https://jitpack.io")
+        maven(url = "https://s01.oss.sonatype.org/content/repositories/snapshots/")
         jcenter() // Warning: this repository is going to shut down soon
     }
 }
@@ -58,6 +59,7 @@ task<Delete>("clean") {
 
 nexusPublishing {
     repositories {
+        project.version = "-SNAPSHOT"
         sonatype {
             stagingProfileId.set(System.getenv("SONATYPE_STAGING_PROFILE_ID"))
             username.set(System.getenv("OSSRH_USERNAME"))

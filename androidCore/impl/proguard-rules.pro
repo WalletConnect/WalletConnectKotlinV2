@@ -1,0 +1,4 @@
+-dontobfuscate
+-dontshrink
+-dontoptimize
+#-dontusemixedcaseclassnames
