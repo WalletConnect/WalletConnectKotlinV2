@@ -46,6 +46,7 @@ sealed class RelayDTO {
 
         sealed class Result : Publish() {
 
+            @JsonClass(generateAdapter = true)
             data class Acknowledgement(
                 @Json(name = "id")
                 override val id: Long,
@@ -55,6 +56,7 @@ sealed class RelayDTO {
                 val result: Boolean,
             ) : Result()
 
+            @JsonClass(generateAdapter = true)
             data class JsonRpcError(
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
@@ -90,6 +92,7 @@ sealed class RelayDTO {
 
         sealed class Result : Subscribe() {
 
+            @JsonClass(generateAdapter = true)
             data class Acknowledgement(
                 @Json(name = "id")
                 override val id: Long,
@@ -100,6 +103,7 @@ sealed class RelayDTO {
                 val result: SubscriptionId,
             ) : Result()
 
+            @JsonClass(generateAdapter = true)
             data class JsonRpcError(
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
@@ -147,6 +151,7 @@ sealed class RelayDTO {
 
         sealed class Result : Subscription() {
 
+            @JsonClass(generateAdapter = true)
             data class Acknowledgement(
                 @Json(name = "id")
                 override val id: Long,
@@ -156,6 +161,7 @@ sealed class RelayDTO {
                 val result: Boolean,
             ) : Subscription()
 
+            @JsonClass(generateAdapter = true)
             data class JsonRpcError(
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
@@ -169,6 +175,7 @@ sealed class RelayDTO {
 
     sealed class Unsubscribe : RelayDTO() {
 
+        @JsonClass(generateAdapter = true)
         data class Request(
             @Json(name = "id")
             override val id: Long,
@@ -180,6 +187,7 @@ sealed class RelayDTO {
             val params: Params,
         ) : Unsubscribe() {
 
+            @JsonClass(generateAdapter = true)
             data class Params(
                 @Json(name = "topic")
                 @field:TopicAdapter.Qualifier
@@ -192,6 +200,7 @@ sealed class RelayDTO {
 
         sealed class Result : Unsubscribe() {
 
+            @JsonClass(generateAdapter = true)
             data class Acknowledgement(
                 @Json(name = "id")
                 override val id: Long,
@@ -201,6 +210,7 @@ sealed class RelayDTO {
                 val result: Boolean,
             ) : Result()
 
+            @JsonClass(generateAdapter = true)
             data class JsonRpcError(
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
@@ -212,6 +222,7 @@ sealed class RelayDTO {
         }
     }
 
+    @JsonClass(generateAdapter = true)
     data class Error(
         @Json(name = "code")
         val code: Long,
