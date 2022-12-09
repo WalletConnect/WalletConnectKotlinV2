@@ -1,2 +1,2 @@
-package com.walletconnect.push.dapp.di
+package com.walletconnect.push.wallet.di
 
