@@ -27,9 +27,9 @@ internal fun Cacao.Signature.toSignature(): Signature = Signature.fromString(s)
 
 @JvmSynthetic
 internal fun Cacao.Payload.toCAIP122Message(chainName: String = "Ethereum"): String {
-    var message = "$domain wants you to sign in with your $chainName account:\n$address\n"
+    var message = "$domain wants you to sign in with your $chainName account:\n${issuer.address}\n"
     if (statement != null) message += "\n$statement\n"
-    message += "\nURI: $aud\nVersion: $version\nChain ID: $chainId\nNonce: $nonce\nIssued At: $iat"
+    message += "\nURI: $aud\nVersion: $version\nChain ID: ${issuer.chainIdReference}\nNonce: $nonce\nIssued At: $iat"
     if (exp != null) message += "\nExpiration Time: $exp"
     if (nbf != null) message += "\nNot Before: $nbf"
     if (requestId != null) message += "\nRequest ID: $requestId"

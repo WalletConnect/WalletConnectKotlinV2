@@ -1,6 +1,7 @@
 package com.walletconnect.auth.client
 
 import com.walletconnect.android.CoreClient
+import com.walletconnect.auth.common.model.Issuer
 
 object Auth {
 
@@ -70,21 +71,7 @@ object Auth {
                 val requestId: String?,
                 val resources: List<String>?,
             ) : Model() {
-                val address: String
-                val chainId: String
-
-                init {
-                    iss.split(ISS_DELIMITER).apply {
-                        address = get(ISS_POSITION_OF_ADDRESS)
-                        chainId = get(ISS_POSITION_OF_CHAIN_ID)
-                    }
-                }
-
-                private companion object {
-                    const val ISS_DELIMITER = ":"
-                    const val ISS_POSITION_OF_CHAIN_ID = 3
-                    const val ISS_POSITION_OF_ADDRESS = 4
-                }
+                val address: String = Issuer(iss).address
             }
         }
 

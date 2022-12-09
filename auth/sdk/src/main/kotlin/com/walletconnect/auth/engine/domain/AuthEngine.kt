@@ -20,6 +20,7 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException
+import com.walletconnect.auth.common.exceptions.InvalidParamsException
 import com.walletconnect.auth.common.exceptions.MissingAuthRequestException
 import com.walletconnect.auth.common.exceptions.PeerError
 import com.walletconnect.auth.common.json_rpc.AuthParams
@@ -148,13 +149,9 @@ internal class AuthEngine(
             is Respond.Error -> JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
             is Respond.Result -> {
                 val issuer = Issuer(respond.iss)
-
                 val payload: Cacao.Payload = authParams.payloadParams.toCacaoPayload(issuer)
-
                 val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, respond.signature.toCommon())
-
                 val responseParams = AuthParams.ResponseParams(cacao.header, cacao.payload, cacao.signature)
-
                 if (!cacaoVerifier.verify(cacao)) throw InvalidCacaoException
                 JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
             }
@@ -174,8 +171,13 @@ internal class AuthEngine(
         )
     }
 
-    internal fun formatMessage(payloadParams: PayloadParams, issuer: Issuer): String {
-        //todo: add iss chain validation + caip-10 calidation, chainId validation
+    internal fun formatMessage(payloadParams: PayloadParams, iss: String): String {
+        val issuer = Issuer(iss)
+        if (issuer.chainId != payloadParams.chainId) throw InvalidParamsException("Issuer chaiId does not match with PayloadParams")
+        if (!Validator.isChainIdCAIP2Compliant(payloadParams.chainId)) throw InvalidParamsException("PayloadParams chainId is not CAIP-2 compliant")
+        if (!Validator.isChainIdCAIP2Compliant(issuer.chainId)) throw InvalidParamsException("Issuer chainId is not CAIP-2 compliant")
+        if (!Validator.isAccountIdCAIP10Compliant(issuer.accountId)) throw InvalidParamsException("Issuer address is not CAIP-10 compliant")
+
         return payloadParams.toCAIP122Message(issuer)
     }
 
@@ -186,6 +188,7 @@ internal class AuthEngine(
 
     private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
         scope.launch {
+            logger.error("kobe; Payload: ${authParams.payloadParams}")
             _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, authParams.payloadParams))
         }
     }

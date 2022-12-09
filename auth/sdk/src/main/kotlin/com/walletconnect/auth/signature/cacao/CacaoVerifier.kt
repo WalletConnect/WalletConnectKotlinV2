@@ -10,8 +10,17 @@ import com.walletconnect.auth.signature.eip191.EIP191Verifier
 
 internal class CacaoVerifier(private val projectId: ProjectId) {
     fun verify(cacao: Cacao): Boolean = when (cacao.signature.t) {
-        SignatureType.EIP191.header -> EIP191Verifier.verify(cacao.signature.toSignature(), cacao.payload.toCAIP122Message(), cacao.payload.address)
-        SignatureType.EIP1271.header -> EIP1271Verifier.verify(cacao.signature.toSignature(), cacao.payload.toCAIP122Message(), cacao.payload.address, projectId.value)
+        SignatureType.EIP191.header -> EIP191Verifier.verify(
+            cacao.signature.toSignature(),
+            cacao.payload.toCAIP122Message(),
+            cacao.payload.issuer.address
+        )
+        SignatureType.EIP1271.header -> EIP1271Verifier.verify(
+            cacao.signature.toSignature(),
+            cacao.payload.toCAIP122Message(),
+            cacao.payload.issuer.address,
+            projectId.value
+        )
         else -> throw RuntimeException("Invalid header")
     }
 }
