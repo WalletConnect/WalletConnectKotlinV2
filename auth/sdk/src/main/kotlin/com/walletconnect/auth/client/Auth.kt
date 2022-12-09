@@ -71,7 +71,8 @@ object Auth {
                 val requestId: String?,
                 val resources: List<String>?,
             ) : Model() {
-                val address: String = Issuer(iss).address
+                val address: String
+                    get() = Issuer(iss).address
             }
         }
 
