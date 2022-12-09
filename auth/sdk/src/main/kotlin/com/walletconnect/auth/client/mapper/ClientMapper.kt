@@ -44,8 +44,8 @@ internal fun PayloadParams.toClient(): Auth.Model.PayloadParams =
 
 @JvmSynthetic
 internal fun Events.OnAuthResponse.toClient(): Auth.Event.AuthResponse = when (val response = response) {
-    is AuthResponse.Error -> Auth.Event.AuthResponse(id, Auth.Model.Response.Error(id, response.code, response.message))
-    is AuthResponse.Result -> Auth.Event.AuthResponse(id, Auth.Model.Response.Result(id, response.cacao.toClient()))
+    is AuthResponse.Error -> Auth.Event.AuthResponse(Auth.Model.Response.Error(id, response.code, response.message))
+    is AuthResponse.Result -> Auth.Event.AuthResponse(Auth.Model.Response.Result(id, response.cacao.toClient()))
 }
 
 @JvmSynthetic

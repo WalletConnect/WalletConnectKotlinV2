@@ -11,10 +11,7 @@ object Auth {
             val payloadParams: Model.PayloadParams
         ) : Event()
 
-        data class AuthResponse(
-            val id: Long,
-            val response: Model.Response,
-        ) : Event()
+        data class AuthResponse(val response: Model.Response) : Event()
 
         data class ConnectionStateChange(
             val state: Model.ConnectionState,

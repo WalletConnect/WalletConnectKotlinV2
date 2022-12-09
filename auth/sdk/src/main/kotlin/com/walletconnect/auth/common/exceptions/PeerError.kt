@@ -9,9 +9,4 @@ internal sealed class PeerError : Error {
         override val message: String = "Signature verification failed"
         override val code: Int = 11004
     }
-
-    object MissingIssuer : PeerError() {
-        override val message: String = "Missing issuer"
-        override val code: Int = 11005
-    }
 }
