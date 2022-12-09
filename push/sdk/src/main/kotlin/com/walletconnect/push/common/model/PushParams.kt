@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.push.dapp.common.model
+package com.walletconnect.push.common.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

@@ -6,16 +6,16 @@ interface DappInterface {
 
     interface DappDelegate {
 
-        fun onPushResponse(pushResponse: Push.Event.Response)
+        fun onPushResponse(pushResponse: Push.Dapp.Event.Response)
     }
 
-    fun initialize(init: Push.Params.Init, onError: (Push.Model.Error) -> Unit)
+    fun initialize(init: Push.Dapp.Params.Init, onError: (Push.Dapp.Model.Error) -> Unit)
 
-    fun request(params: Push.Params.Request, onSuccess: (Push.Model.RequestId) -> Unit, onError: (Push.Model.Error) -> Unit)
+    fun request(params: Push.Dapp.Params.Request, onSuccess: (Push.Dapp.Model.RequestId) -> Unit, onError: (Push.Dapp.Model.Error) -> Unit)
 
-    fun notify(params: Push.Params.Notify, onError: (Push.Model.Error) -> Unit)
+    fun notify(params: Push.Dapp.Params.Notify, onError: (Push.Dapp.Model.Error) -> Unit)
 
-    fun getActiveSubscriptions(): Map<String, Push.Model.Subscription>
+    fun getActiveSubscriptions(): Map<String, Push.Dapp.Model.Subscription>
 
-    fun delete(params: Push.Params.Delete, onError: (Push.Model.Error) -> Unit)
+    fun delete(params: Push.Dapp.Params.Delete, onError: (Push.Dapp.Model.Error) -> Unit)
 }
