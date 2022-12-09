@@ -1,4 +1,3 @@
 package com.walletconnect.push.dapp.client
 
-object DappClient {
-}
+object DappClient: DappInterface by DappProtocol.instance

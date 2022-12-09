@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.push.dapp.common.model
+package com.walletconnect.push.common.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -34,7 +34,7 @@ internal sealed class PushRpc: JsonRpcClientSync<PushParams> {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PUSH_MESSAGE,
         @Json(name = "params")
-        override val params: PushParams.PushRequestParams,
+        override val params: PushParams.PushMessageParams,
     ): PushRpc()
 
 }
