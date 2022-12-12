@@ -2,9 +2,9 @@
 
 package com.walletconnect.sign.engine.domain
 
-import com.walletconnect.android.impl.utils.Validator.NAMESPACE_REGEX
-import com.walletconnect.android.impl.utils.Validator.isAccountIdCAIP10Compliant
-import com.walletconnect.android.impl.utils.Validator.isChainIdCAIP2Compliant
+import com.walletconnect.android.impl.utils.CoreValidator.NAMESPACE_REGEX
+import com.walletconnect.android.impl.utils.CoreValidator.isAccountIdCAIP10Compliant
+import com.walletconnect.android.impl.utils.CoreValidator.isChainIdCAIP2Compliant
 import com.walletconnect.android.impl.utils.WEEK_IN_SECONDS
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SymmetricKey

@@ -1,6 +1,6 @@
 package com.walletconnect.android.impl.utils
 
-object Validator {
+object CoreValidator {
     @JvmSynthetic
     fun isAccountIdCAIP10Compliant(accountId: String): Boolean {
         val elements = accountId.split(":")

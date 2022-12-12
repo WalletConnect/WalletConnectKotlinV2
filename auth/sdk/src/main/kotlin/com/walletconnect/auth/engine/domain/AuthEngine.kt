@@ -6,10 +6,10 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
+import com.walletconnect.android.impl.utils.CoreValidator
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
 import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
-import com.walletconnect.android.impl.utils.Validator
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.InvalidProjectIdException
@@ -175,9 +175,9 @@ internal class AuthEngine(
     internal fun formatMessage(payloadParams: PayloadParams, iss: String): String {
         val issuer = Issuer(iss)
         if (issuer.chainId != payloadParams.chainId) throw InvalidParamsException("Issuer chaiId does not match with PayloadParams")
-        if (!Validator.isChainIdCAIP2Compliant(payloadParams.chainId)) throw InvalidParamsException("PayloadParams chainId is not CAIP-2 compliant")
-        if (!Validator.isChainIdCAIP2Compliant(issuer.chainId)) throw InvalidParamsException("Issuer chainId is not CAIP-2 compliant")
-        if (!Validator.isAccountIdCAIP10Compliant(issuer.accountId)) throw InvalidParamsException("Issuer address is not CAIP-10 compliant")
+        if (!CoreValidator.isChainIdCAIP2Compliant(payloadParams.chainId)) throw InvalidParamsException("PayloadParams chainId is not CAIP-2 compliant")
+        if (!CoreValidator.isChainIdCAIP2Compliant(issuer.chainId)) throw InvalidParamsException("Issuer chainId is not CAIP-2 compliant")
+        if (!CoreValidator.isAccountIdCAIP10Compliant(issuer.accountId)) throw InvalidParamsException("Issuer address is not CAIP-10 compliant")
 
         return payloadParams.toCAIP122Message(issuer)
     }
