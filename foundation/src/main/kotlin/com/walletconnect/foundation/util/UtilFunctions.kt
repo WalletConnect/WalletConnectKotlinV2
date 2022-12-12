@@ -2,8 +2,8 @@
 
 package com.walletconnect.util
 
+import jakarta.ws.rs.core.UriBuilder
 import java.security.SecureRandom
-import javax.ws.rs.core.UriBuilder
 
 @get:JvmSynthetic
 val String.Companion.Empty

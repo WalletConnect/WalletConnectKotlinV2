@@ -9,7 +9,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "foundation"
-    extra[KEY_PUBLISH_VERSION] = "1.1.0"
+    extra[KEY_PUBLISH_VERSION] = "1.2.0-SNAPSHOT"
     extra[KEY_SDK_NAME] = "Foundation"
 }
 
@@ -38,7 +38,7 @@ dependencies {
     moshiKsp()
     bouncyCastle()
     multibaseJava()
-    restEasyJava()
+    wsRestJava()
 
     jUnit5()
     mockk()

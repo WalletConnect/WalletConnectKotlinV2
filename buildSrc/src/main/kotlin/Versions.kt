@@ -1,11 +1,11 @@
 import org.gradle.api.JavaVersion
 
-val KEY_PUBLISH_VERSION = "PUBLISH_VERSION"
-val KEY_PUBLISH_ARTIFACT_ID = "PUBLISH_ARTIFACT_ID"
-val KEY_SDK_NAME = "SDK_NAME"
+const val KEY_PUBLISH_VERSION = "PUBLISH_VERSION"
+const val KEY_PUBLISH_ARTIFACT_ID = "PUBLISH_ARTIFACT_ID"
+const val KEY_SDK_NAME = "SDK_NAME"
 const val dokkaVersion = "1.6.21"
 
-const val CORE_VERSION = "1.5.0"
+const val CORE_VERSION = "1.6.0"
 const val BOM_VERSION = "1.0.1"
 
 val jvmVersion = JavaVersion.VERSION_11
@@ -39,4 +39,4 @@ const val jsonVersion = "20220320"
 const val timberVersion = "5.0.1"
 const val androidSecurityVersion = "1.1.0-alpha03"
 const val web3jVersion = "4.9.4"
-const val restEasyVersion = "3.15.3.Final"
+const val wsRestJavaVersion = "3.1.0"

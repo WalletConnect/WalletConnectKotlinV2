@@ -4,7 +4,6 @@ package com.walletconnect.auth.common.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.auth.signature.CacaoType
 
 @JsonClass(generateAdapter = true)
 internal data class Cacao(
@@ -56,15 +55,6 @@ internal data class Cacao(
         @Json(name = "resources")
         val resources: List<String>?,
     ) {
-        val address: String
-            get() = iss.split(ISS_DELIMITER)[ISS_POSITION_OF_ADDRESS]
-        val chainId: String
-            get() = iss.split(ISS_DELIMITER)[ISS_POSITION_OF_CHAIN_ID]
-
-        private companion object {
-            const val ISS_DELIMITER = ":"
-            const val ISS_POSITION_OF_CHAIN_ID = 3
-            const val ISS_POSITION_OF_ADDRESS = 4
-        }
+        val issuer = Issuer(iss)
     }
 }

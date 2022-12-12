@@ -11,5 +11,5 @@ internal data class Requester(
     @Json(name = "publicKey")
     val publicKey: String,
     @Json(name = "metadata")
-    val metadata: AppMetaData,
+    val metadata: AppMetaData
 )
