@@ -3,15 +3,10 @@ package com.walletconnect.responder.domain
 import com.walletconnect.sample_common.Chains
 
 
-const val ACCOUNTS_1_ID = 1
 const val ACCOUNTS_1_ADDRESS = "0x46586f7F766955CAF22A54dDA7570E6eFA94c16c"
 
 val mapOfAccounts1: Map<Chains, String> = mapOf(
     Chains.ETHEREUM_MAIN to ACCOUNTS_1_ADDRESS,
-)
-
-val mapOfAllAccounts = mapOf(
-    ACCOUNTS_1_ID to mapOfAccounts1,
 )
 
 val PRIVATE_KEY_1: ByteArray = "e05c1a7f048a164ab400e38764708a401c773fa83181b923fc8b2724f46c0c6c".hexToBytes()

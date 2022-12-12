@@ -5,8 +5,8 @@ import com.walletconnect.auth.client.Auth.Params.Request
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Cacao.Payload
 import com.walletconnect.auth.common.model.Issuer
-import com.walletconnect.auth.engine.mapper.toCacaoPayload
 import com.walletconnect.auth.engine.mapper.toCAIP122Message
+import com.walletconnect.auth.engine.mapper.toCacaoPayload
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.Clock.systemDefaultZone
@@ -30,7 +30,7 @@ internal class MapperTest {
     @Test
     fun `Payload based on Request mapping with supplied issuer`() {
         val request = Request(
-            pairing = dummyPairing,
+            topic = dummyPairing.topic,
             type = "eip191",
             chainId = "eip155:1",
             domain = "service.invalid",
@@ -65,7 +65,7 @@ internal class MapperTest {
         val before = ZonedDateTime.now(Clock.offset(systemDefaultZone(), Duration.ofSeconds(-2)))
 
         val payload = Request(
-            pairing = dummyPairing,
+            topic = dummyPairing.topic,
             type = "eip191",
             chainId = "eip155:1",
             domain = "service.invalid",

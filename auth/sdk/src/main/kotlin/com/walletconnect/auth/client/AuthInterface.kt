@@ -19,11 +19,13 @@ interface AuthInterface {
 
     fun setResponderDelegate(delegate: ResponderDelegate)
 
-    fun initialize(init: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit)
+    fun initialize(params: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit)
 
     fun request(params: Auth.Params.Request, onSuccess: () -> Unit, onError: (Auth.Model.Error) -> Unit)
 
     fun respond(params: Auth.Params.Respond, onError: (Auth.Model.Error) -> Unit)
+
+    fun formatMessage(params: Auth.Params.FormatMessage): String
 
     fun getPendingRequest(): List<Auth.Model.PendingRequest>
 }
