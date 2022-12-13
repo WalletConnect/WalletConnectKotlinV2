@@ -68,4 +68,24 @@ object WalletClient {
     fun respondAuthRequest(params: Wallet.Params.AuthRequestResponse, onError: (Wallet.Model.Error) -> Unit) {
         AuthClient.respond(params.toAuth()) { error -> onError(Wallet.Model.Error(error.throwable)) }
     }
+
+    @Throws(IllegalStateException::class)
+    fun getListOfActiveSessions(): List<Wallet.Model.Session> {
+        return SignClient.getListOfActiveSessions().map(Sign.Model.Session::toWallet)
+    }
+
+    @Throws(IllegalStateException::class)
+    fun getActiveSessionByTopic(topic: String): Wallet.Model.Session? {
+        return SignClient.getActiveSessionByTopic(topic)?.toWallet()
+    }
+
+    @Throws(IllegalStateException::class)
+    fun getPendingSessionRequests(topic: String): List<Wallet.Model.PendingSessionRequest> {
+        return SignClient.getPendingRequests(topic).mapToPendingRequests()
+    }
+
+    @Throws(IllegalStateException::class)
+    fun getPendingAuthRequests(topic: String): List<Wallet.Model.PendingAuthRequest> {
+        return AuthClient.getPendingRequest().toWallet()
+    }
 }

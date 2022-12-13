@@ -12,6 +12,15 @@ internal fun Map<String, Wallet.Model.Namespace.Session>.toSign(): Map<String, S
     }
 
 @JvmSynthetic
+internal fun Map<String, Sign.Model.Namespace.Session>.toWallet(): Map<String, Wallet.Model.Namespace.Session> =
+    mapValues { (_, namespace) ->
+        Wallet.Model.Namespace.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
+            Wallet.Model.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
+        })
+    }
+
+
+@JvmSynthetic
 internal fun Wallet.Model.JsonRpcResponse.toSign(): Sign.Model.JsonRpcResponse =
     when (this) {
         is Wallet.Model.JsonRpcResponse.JsonRpcResult -> this.toSign()
@@ -54,3 +63,42 @@ internal fun Wallet.Model.PayloadParams.toSign(): Auth.Model.PayloadParams =
         requestId = requestId,
         resources = resources,
     )
+
+@JvmSynthetic
+internal fun Sign.Model.Session.toWallet(): Wallet.Model.Session = Wallet.Model.Session(topic, expiry, namespaces.toWallet(), metaData)
+
+@JvmSynthetic
+internal fun List<Sign.Model.PendingRequest>.mapToPendingRequests(): List<Wallet.Model.PendingSessionRequest> = map { request ->
+    Wallet.Model.PendingSessionRequest(
+        request.requestId,
+        request.topic,
+        request.method,
+        request.chainId,
+        request.params
+    )
+}
+
+internal fun Auth.Model.PayloadParams.toWallet(): Wallet.Model.PayloadParams =
+    Wallet.Model.PayloadParams(
+        type = type,
+        chainId = chainId,
+        domain = domain,
+        aud = aud,
+        version = version,
+        nonce = nonce,
+        iat = iat,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+    )
+
+@JvmSynthetic
+internal fun List<Auth.Model.PendingRequest>.toWallet(): List<Wallet.Model.PendingAuthRequest> =
+    map { request ->
+        Wallet.Model.PendingAuthRequest(
+            request.id,
+            request.payloadParams.toWallet()
+        )
+    }
