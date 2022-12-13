@@ -86,16 +86,11 @@ object Sign {
         }
 
         sealed class SessionUpdateResponse : Model() {
-            data class Result(val topic: String, val namespaces: Map<String, Namespace.Session>) :
-                SessionUpdateResponse()
-
+            data class Result(val topic: String, val namespaces: Map<String, Namespace.Session>) : SessionUpdateResponse()
             data class Error(val errorMessage: String) : SessionUpdateResponse()
         }
 
-        sealed class DeletedSession : Model() {
-            data class Success(val topic: String, val reason: String) : DeletedSession()
-            data class Error(val error: Throwable) : DeletedSession()
-        }
+        data class DeletedSession(val topic: String, val reason: String) : Model()
 
         sealed class Ping : Model() {
             data class Success(val topic: String) : Ping()

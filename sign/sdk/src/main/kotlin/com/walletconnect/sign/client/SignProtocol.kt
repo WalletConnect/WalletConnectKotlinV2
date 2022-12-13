@@ -19,7 +19,7 @@ import com.walletconnect.sign.engine.model.EngineDO
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-internal class SignProtocol : SignInterface {
+ class SignProtocol : SignInterface {
     private lateinit var signEngine: SignEngine
 
     companion object {

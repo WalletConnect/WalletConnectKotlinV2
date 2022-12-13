@@ -47,6 +47,9 @@ internal class JsonRpcInteractor(
     override val wsConnectionFailedFlow: Flow<WalletConnectException> get() = relay.wsConnectionFailedFlow
 
     init {
+
+        logger.error("kobe; Init JSONRpcInteractor")
+
         manageSubscriptions()
     }
 
@@ -72,6 +75,9 @@ internal class JsonRpcInteractor(
         }
 
         val requestJson = serializer.serialize(payload) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
+
+        logger.error("kobe; Request: $requestJson")
+
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
 
             val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
@@ -102,6 +108,9 @@ internal class JsonRpcInteractor(
 
         val jsonResponseDO = response.toJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
+
+        logger.error("kobe; Response: $responseJson")
+
         val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
 
         relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
@@ -226,6 +235,8 @@ internal class JsonRpcInteractor(
                         handleError("ManSub: ${e.stackTraceToString()}")
                         String.Empty
                     }
+
+                    logger.error("kobe; Message: $message")
 
                     Pair(message, topic)
                 }.collect { (decryptedMessage, topic) ->

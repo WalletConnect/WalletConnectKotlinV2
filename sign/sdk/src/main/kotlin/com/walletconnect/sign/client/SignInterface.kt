@@ -1,6 +1,7 @@
 package com.walletconnect.sign.client
 
 interface SignInterface {
+
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal)
         fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest)

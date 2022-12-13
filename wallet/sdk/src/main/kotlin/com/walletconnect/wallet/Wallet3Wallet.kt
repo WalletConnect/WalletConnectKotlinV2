@@ -5,12 +5,77 @@ import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 
-object WalletClient {
+object Wallet3Wallet {
 
-    interface WalletDelegate : SignClient.WalletDelegate, AuthClient.ResponderDelegate
+    interface WalletDelegate {
+        fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal)
+        fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest)
+        fun onSessionDelete(deletedSession: Wallet.Model.SessionDelete)
+        fun onAuthRequest(authRequest: Wallet.Model.AuthRequest)
+
+        //Responses
+        fun onSessionSettleResponse(settleSessionResponse: Wallet.Model.SettledSessionResponse)
+        fun onSessionUpdateResponse(sessionUpdateResponse: Wallet.Model.SessionUpdateResponse)
+
+        //Utils
+        fun onConnectionStateChange(state: Wallet.Model.ConnectionState)
+        fun onError(error: Wallet.Model.Error)
+    }
 
     @Throws(IllegalStateException::class)
-    fun init(init: Wallet.Params.Init, onError: (Wallet.Model.Error) -> Unit) {
+    fun setWalletDelegate(delegate: WalletDelegate) {
+
+        val signWalletDelegate = object : SignClient.WalletDelegate {
+            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
+                delegate.onSessionProposal(sessionProposal.toWallet())
+            }
+
+            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
+                delegate.onSessionRequest(sessionRequest.toWallet())
+            }
+
+            override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
+                delegate.onSessionDelete(deletedSession.toWallet())
+            }
+
+            override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {
+                delegate.onSessionSettleResponse(settleSessionResponse.toWallet())
+            }
+
+            override fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse) {
+                delegate.onSessionUpdateResponse(sessionUpdateResponse.toWallet())
+            }
+
+            override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
+                delegate.onConnectionStateChange(Wallet.Model.ConnectionState(state.isAvailable))
+            }
+
+            override fun onError(error: Sign.Model.Error) {
+                delegate.onError(Wallet.Model.Error(error.throwable))
+            }
+        }
+
+        val authWalletDelegate = object : AuthClient.ResponderDelegate {
+            override fun onAuthRequest(authRequest: Auth.Event.AuthRequest) {
+                delegate.onAuthRequest(authRequest.toWallet())
+            }
+
+            override fun onConnectionStateChange(connectionStateChange: Auth.Event.ConnectionStateChange) {
+                //ignore
+            }
+
+            override fun onError(error: Auth.Event.Error) {
+                delegate.onError(Wallet.Model.Error(error.error.throwable))
+            }
+
+        }
+
+        SignClient.setWalletDelegate(signWalletDelegate)
+        AuthClient.setResponderDelegate(authWalletDelegate)
+    }
+
+    @Throws(IllegalStateException::class)
+    fun initialize(init: Wallet.Params.Init, onError: (Wallet.Model.Error) -> Unit) {
         SignClient.initialize(Sign.Params.Init(init.core)) { error -> onError(Wallet.Model.Error(error.throwable)) }
         AuthClient.initialize(Auth.Params.Init(init.core)) { error -> onError(Wallet.Model.Error(error.throwable)) }
     }

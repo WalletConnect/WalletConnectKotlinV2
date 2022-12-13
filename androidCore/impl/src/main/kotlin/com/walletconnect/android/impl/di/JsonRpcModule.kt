@@ -17,6 +17,7 @@ import kotlin.reflect.KClass
 fun jsonRpcModule() = module {
 
     single<JsonRpcInteractorInterface> {
+//        getAll() - get already created instance
         JsonRpcInteractor(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER)))
     }
 

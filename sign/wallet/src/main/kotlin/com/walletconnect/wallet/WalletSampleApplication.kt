@@ -8,8 +8,6 @@ import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.sample_common.BuildConfig
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample_common.tag
-import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.client.SignClient
 
 class WalletSampleApplication : Application() {
 
@@ -27,9 +25,9 @@ class WalletSampleApplication : Application() {
                 redirect = "kotlin-wallet-wc:/request",
             ))
 
-        val initParams = Sign.Params.Init(core = CoreClient)
+        val initParams = Wallet.Params.Init(core = CoreClient)
 
-        SignClient.initialize(initParams) { error ->
+        Wallet3Wallet.initialize(initParams) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
     }

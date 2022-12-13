@@ -19,6 +19,14 @@ internal fun Map<String, Sign.Model.Namespace.Session>.toWallet(): Map<String, W
         })
     }
 
+@JvmSynthetic
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toWalletProposalNamespaces(): Map<String, Wallet.Model.Namespace.Proposal> =
+    mapValues { (_, namespace) ->
+        Wallet.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
+            Wallet.Model.Namespace.Proposal.Extension(extension.chains, extension.methods, extension.events)
+        })
+    }
+
 
 @JvmSynthetic
 internal fun Wallet.Model.JsonRpcResponse.toSign(): Sign.Model.JsonRpcResponse =
@@ -102,3 +110,50 @@ internal fun List<Auth.Model.PendingRequest>.toWallet(): List<Wallet.Model.Pendi
             request.payloadParams.toWallet()
         )
     }
+
+@JvmSynthetic
+internal fun Sign.Model.SessionProposal.toWallet(): Wallet.Model.SessionProposal =
+    Wallet.Model.SessionProposal(
+        name,
+        description,
+        url,
+        icons,
+        requiredNamespaces.toWalletProposalNamespaces(),
+        proposerPublicKey,
+        relayProtocol,
+        relayData
+    )
+
+@JvmSynthetic
+internal fun Sign.Model.SessionRequest.toWallet(): Wallet.Model.SessionRequest =
+    Wallet.Model.SessionRequest(
+        topic = topic,
+        chainId = chainId,
+        peerMetaData = peerMetaData,
+        request = Wallet.Model.SessionRequest.JSONRPCRequest(
+            id = request.id,
+            method = request.method,
+            params = request.params
+        )
+    )
+
+@JvmSynthetic
+internal fun Sign.Model.DeletedSession.toWallet(): Wallet.Model.SessionDelete =
+    Wallet.Model.SessionDelete(topic, reason)
+
+@JvmSynthetic
+internal fun Sign.Model.SettledSessionResponse.toWallet(): Wallet.Model.SettledSessionResponse =
+    when (this) {
+        is Sign.Model.SettledSessionResponse.Result -> Wallet.Model.SettledSessionResponse.Result(session.toWallet())
+        is Sign.Model.SettledSessionResponse.Error -> Wallet.Model.SettledSessionResponse.Error(errorMessage)
+    }
+
+@JvmSynthetic
+internal fun Sign.Model.SessionUpdateResponse.toWallet(): Wallet.Model.SessionUpdateResponse =
+    when (this) {
+        is Sign.Model.SessionUpdateResponse.Result -> Wallet.Model.SessionUpdateResponse.Result(topic, namespaces.toWallet())
+        is Sign.Model.SessionUpdateResponse.Error -> Wallet.Model.SessionUpdateResponse.Error(errorMessage)
+    }
+
+@JvmSynthetic
+internal fun Auth.Event.AuthRequest.toWallet(): Wallet.Model.AuthRequest = Wallet.Model.AuthRequest(id, payloadParams.toWallet())

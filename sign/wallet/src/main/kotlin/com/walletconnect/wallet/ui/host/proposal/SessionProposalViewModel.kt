@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
-import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.client.SignClient
+import com.walletconnect.wallet.Wallet
+import com.walletconnect.wallet.Wallet3Wallet
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAllAccounts
 
@@ -23,8 +23,8 @@ class SessionProposalViewModel : ViewModel() {
     fun approve() {
         if (WalletDelegate.sessionProposal != null && WalletDelegate.selectedChainAddressId in mapOfAllAccounts.keys) {
             val selectedAccounts: Map<Chains, String> = mapOfAllAccounts[WalletDelegate.selectedChainAddressId] ?: throw Exception("Can't find account")
-            val sessionProposal: Sign.Model.SessionProposal = requireNotNull(WalletDelegate.sessionProposal)
-            val sessionNamespaces: Map<String, Sign.Model.Namespace.Session> = selectedAccounts.filter { (chain: Chains, _) ->
+            val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(WalletDelegate.sessionProposal)
+            val sessionNamespaces: Map<String, Wallet.Model.Namespace.Session> = selectedAccounts.filter { (chain: Chains, _) ->
                 "${chain.chainNamespace}:${chain.chainReference}" in sessionProposal.requiredNamespaces.values.flatMap { it.chains }
             }.toList().groupBy { (chain: Chains, _: String) ->
                 chain.chainNamespace
@@ -35,15 +35,15 @@ class SessionProposalViewModel : ViewModel() {
                 val methods = sessionProposal.requiredNamespaces.values.flatMap { it.methods }
                 val events = sessionProposal.requiredNamespaces.values.flatMap { it.events }
 
-                namespaceKey to Sign.Model.Namespace.Session(accounts = accounts, methods = methods, events = events, extensions = null)
+                namespaceKey to Wallet.Model.Namespace.Session(accounts = accounts, methods = methods, events = events, extensions = null)
             }.toMap()
 
-            val approveProposal = Sign.Params.Approve(
+            val approveProposal = Wallet.Params.SessionApprove(
                 proposerPublicKey = sessionProposal.proposerPublicKey,
                 namespaces = sessionNamespaces
             )
 
-            SignClient.approveSession(approveProposal) { error ->
+            Wallet3Wallet.approveSession(approveProposal) { error ->
                 Log.e(tag(this@SessionProposalViewModel), error.throwable.stackTraceToString())
             }
 
@@ -54,12 +54,12 @@ class SessionProposalViewModel : ViewModel() {
     fun reject() {
         WalletDelegate.sessionProposal?.let { sessionProposal ->
             val rejectionReason = "Reject Session"
-            val reject = Sign.Params.Reject(
+            val reject = Wallet.Params.SessionReject(
                 proposerPublicKey = sessionProposal.proposerPublicKey,
                 reason = rejectionReason
             )
 
-            SignClient.rejectSession(reject) { error ->
+            Wallet3Wallet.rejectSession(reject) { error ->
                 Log.d(tag(this@SessionProposalViewModel), "sending reject error: $error")
             }
 
@@ -67,7 +67,7 @@ class SessionProposalViewModel : ViewModel() {
         }
     }
 
-    private fun generateSessionProposalEvent(sessionProposal: Sign.Model.SessionProposal): SessionProposalUI {
+    private fun generateSessionProposalEvent(sessionProposal: Wallet.Model.SessionProposal): SessionProposalUI {
         return SessionProposalUI(
             peerIcon = sessionProposal.icons.firstOrNull().toString(),
             peerName = sessionProposal.name,
