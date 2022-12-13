@@ -45,7 +45,7 @@ dependencies {
     implementation(project(":sign:samples_common"))
 
     debugImplementation(project(":androidCore:sdk"))
-    debugImplementation(project(":sign:sdk"))
+    debugImplementation(project(":wallet:sdk"))
     debugImplementation(project(":push:sdk"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))

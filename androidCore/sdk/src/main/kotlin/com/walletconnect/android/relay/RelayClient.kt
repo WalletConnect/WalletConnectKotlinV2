@@ -49,7 +49,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     private fun collectConnectionErrors(onError: (Throwable) -> Unit) {
         eventsFlow
             .onEach { event: Relay.Model.Event ->
-                logger.log("$event")
+                logger.log("kobe; $event")
                 setIsWSSConnectionOpened(event)
             }
             .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()

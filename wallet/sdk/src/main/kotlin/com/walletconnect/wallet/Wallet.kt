@@ -2,6 +2,7 @@ package com.walletconnect.wallet
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import java.net.URI
 
 object Wallet {
 
@@ -38,6 +39,50 @@ object Wallet {
 
     sealed class Model {
         data class Error(val throwable: Throwable) : Model()
+
+        data class ConnectionState(val isAvailable: Boolean) : Model()
+
+        data class SessionProposal(
+            val name: String,
+            val description: String,
+            val url: String,
+            val icons: List<URI>,
+            val requiredNamespaces: Map<String, Namespace.Proposal>,
+            val proposerPublicKey: String,
+            val relayProtocol: String,
+            val relayData: String?,
+        ) : Model()
+
+        data class SessionRequest(
+            val topic: String,
+            val chainId: String?,
+            val peerMetaData: Core.Model.AppMetaData?,
+            val request: JSONRPCRequest,
+        ) : Model() {
+
+            data class JSONRPCRequest(
+                val id: Long,
+                val method: String,
+                val params: String,
+            ) : Model()
+        }
+
+        data class AuthRequest(
+            val id: Long,
+            val payloadParams: PayloadParams
+        ) : Model()
+
+        sealed class SettledSessionResponse : Model() {
+            data class Result(val session: Session) : SettledSessionResponse()
+            data class Error(val errorMessage: String) : SettledSessionResponse()
+        }
+
+        sealed class SessionUpdateResponse : Model() {
+            data class Result(val topic: String, val namespaces: Map<String, Namespace.Session>) : SessionUpdateResponse()
+            data class Error(val errorMessage: String) : SessionUpdateResponse()
+        }
+
+        data class SessionDelete(val topic: String, val reason: String) : Model()
 
         sealed class Namespace : Model() {
 

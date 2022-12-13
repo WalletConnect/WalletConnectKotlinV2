@@ -81,7 +81,7 @@ internal fun Sign.Model.SessionEvent.toEngineEvent(chainId: String): EngineDO.Ev
 
 @JvmSynthetic
 internal fun EngineDO.SessionDelete.toClientDeletedSession(): Sign.Model.DeletedSession =
-    Sign.Model.DeletedSession.Success(topic, reason)
+    Sign.Model.DeletedSession(topic, reason)
 
 @JvmSynthetic
 internal fun EngineDO.SessionEvent.toClientSessionEvent(): Sign.Model.SessionEvent =
