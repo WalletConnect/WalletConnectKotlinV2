@@ -216,13 +216,13 @@ internal class SignProtocol : SignInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun getListOfSettledSessions(): List<Sign.Model.Session> {
+    override fun getListOfActiveSessions(): List<Sign.Model.Session> {
         checkEngineInitialization()
         return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
     }
 
     @Throws(IllegalStateException::class)
-    override fun getSettledSessionByTopic(topic: String): Sign.Model.Session? {
+    override fun getActiveSessionByTopic(topic: String): Sign.Model.Session? {
         checkEngineInitialization()
         return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
             .find { session -> session.topic == topic }

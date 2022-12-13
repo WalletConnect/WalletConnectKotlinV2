@@ -51,8 +51,8 @@ interface SignInterface {
     fun emit(emit: Sign.Params.Emit, onError: (Sign.Model.Error) -> Unit)
     fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing? = null)
     fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit)
-    fun getListOfSettledSessions(): List<Sign.Model.Session>
-    fun getSettledSessionByTopic(topic: String): Sign.Model.Session?
+    fun getListOfActiveSessions(): List<Sign.Model.Session>
+    fun getActiveSessionByTopic(topic: String): Sign.Model.Session?
     @Deprecated(
         message = "Getting a list of Pairings will be moved to CoreClient to make pairing SDK agnostic",
         replaceWith = ReplaceWith(expression = "CoreClient.Pairing.getPairings()", imports = ["com.walletconnect.android.CoreClient"]))

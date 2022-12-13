@@ -1,5 +1,6 @@
 package com.walletconnect.wallet
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 
 object Wallet {
@@ -39,6 +40,7 @@ object Wallet {
         data class Error(val throwable: Throwable) : Model()
 
         sealed class Namespace : Model() {
+
             data class Proposal(
                 val chains: List<String>,
                 val methods: List<String>,
@@ -129,5 +131,27 @@ object Wallet {
                 }
             }
         }
+
+        data class Session(
+            val topic: String,
+            val expiry: Long,
+            val namespaces: Map<String, Namespace.Session>,
+            val metaData: Core.Model.AppMetaData?,
+        ) : Model() {
+            val redirect: String? = metaData?.redirect
+        }
+
+        data class PendingSessionRequest(
+            val requestId: Long,
+            val topic: String,
+            val method: String,
+            val chainId: String?,
+            val params: String,
+        ) : Model()
+
+        data class PendingAuthRequest(
+            val id: Long,
+            val payloadParams: PayloadParams
+        ) : Model()
     }
 }
