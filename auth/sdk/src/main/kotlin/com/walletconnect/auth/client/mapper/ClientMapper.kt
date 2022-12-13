@@ -73,6 +73,7 @@ internal fun List<PendingRequest>.toClient(): List<Auth.Model.PendingRequest> =
         )
     }
 
+@JvmSynthetic
 internal fun Auth.Model.PayloadParams.toCommon(): PayloadParams =
     PayloadParams(
         type = type,

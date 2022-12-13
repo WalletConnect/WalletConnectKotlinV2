@@ -2,7 +2,6 @@ package com.walletconnect.sign.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.internal.common.model.Pairing
 import java.net.URI
 
 object Sign {
@@ -12,10 +11,6 @@ object Sign {
             fun onSuccess(pingSuccess: Model.Ping.Success)
             fun onError(pingError: Model.Ping.Error)
         }
-    }
-
-    enum class ConnectionType {
-        AUTOMATIC, MANUAL
     }
 
     sealed class Model {
@@ -82,8 +77,6 @@ object Sign {
                 )
             }
         }
-
-        data class RelayProtocolOptions(val protocol: String, val data: String? = null) : Model()
 
         data class Pairing(val topic: String, val metaData: Core.Model.AppMetaData?) : Model()
 

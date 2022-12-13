@@ -2,11 +2,9 @@
 
 package com.walletconnect.sign.client.mapper
 
-import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.exceptions.PeerError
@@ -179,20 +177,6 @@ internal fun Map<String, Sign.Model.Namespace.Session>.toMapOfEngineNamespacesSe
             EngineDO.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
         })
     }
-
-@JvmSynthetic
-internal fun List<Sign.Model.RelayProtocolOptions>.toListEngineOfRelayProtocolOptions(): List<RelayProtocolOptions> =
-    map { relayProtocolOptions ->
-        RelayProtocolOptions(relayProtocolOptions.protocol, relayProtocolOptions.data)
-    }
-
-@JvmSynthetic
-internal fun Sign.ConnectionType.toRelayConnectionType(): ConnectionType {
-    return when (this) {
-        Sign.ConnectionType.AUTOMATIC -> ConnectionType.AUTOMATIC
-        Sign.ConnectionType.MANUAL -> ConnectionType.MANUAL
-    }
-}
 
 @JvmSynthetic
 internal fun ConnectionState.toClientConnectionState(): Sign.Model.ConnectionState =

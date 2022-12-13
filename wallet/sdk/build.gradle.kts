@@ -31,6 +31,13 @@ android {
 }
 
 dependencies {
+    debugImplementation(project(":sign:sdk"))
+    debugImplementation(project(":auth:sdk"))
+    debugImplementation(project(":androidCore:impl"))
+
+    releaseImplementation("com.walletconnect:sign:2.3.1")
+    releaseImplementation("com.walletconnect:auth:1.3.0")
+    releaseImplementation("com.walletconnect:android-core-impl:$CORE_VERSION")
 
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.appcompat:appcompat:1.5.1")
