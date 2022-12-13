@@ -4,11 +4,10 @@ import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
-import com.walletconnect.sign.client.SignInterface
 
 object WalletClient {
 
-    interface WalletDelegate : SignInterface.WalletDelegate, AuthClient.RequesterDelegate
+    interface WalletDelegate : SignClient.WalletDelegate, AuthClient.ResponderDelegate
 
     @Throws(IllegalStateException::class)
     fun init(init: Wallet.Params.Init, onError: (Wallet.Model.Error) -> Unit) {
