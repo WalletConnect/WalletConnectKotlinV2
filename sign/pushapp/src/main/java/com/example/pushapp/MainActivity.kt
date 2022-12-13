@@ -8,7 +8,6 @@ import androidx.viewbinding.ViewBinding
 import com.example.pushapp.databinding.ActivityMainBinding
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.messaging.FirebaseMessaging
-import com.google.firebase.messaging.RemoteMessage
 
 class MainActivity : AppCompatActivity() {
 
@@ -17,6 +16,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        /*A notification to the device is send via Postman*/
 
         var token: String? = null
 
@@ -34,20 +35,6 @@ class MainActivity : AppCompatActivity() {
             // Log and toast
             Log.d("kobe", "Token: $token")
         })
-
-        binding.sendPush.setOnClickListener {
-
-            val message: RemoteMessage = RemoteMessage.Builder(token!!)
-
-                .addData("score", "850")
-                .addData("time", "2:45")
-//                .setToken(token)
-                .build()
-
-             FirebaseMessaging.getInstance().send(message)
-//            println("Successfully sent message: $response")
-        }
-
     }
 }
 

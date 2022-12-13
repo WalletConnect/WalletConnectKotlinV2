@@ -15,7 +15,6 @@ class PushApplication : Application() {
 
         //TODO: register at https://walletconnect.com/register to get a project ID
         val serverUri = "wss://relay.walletconnect.com?projectId=a7f155fbc59c18b6ad4fb5650067dd41"
-//        "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
         CoreClient.initialize(
             relayServerUrl = serverUri, connectionType = ConnectionType.AUTOMATIC, application = this,
             metaData = Core.Model.AppMetaData(
