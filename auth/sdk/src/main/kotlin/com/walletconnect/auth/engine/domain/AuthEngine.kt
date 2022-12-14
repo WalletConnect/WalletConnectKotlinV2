@@ -234,13 +234,19 @@ internal class AuthEngine(
     private fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is AuthParams.RequestParams }
-            .onEach { request -> onAuthRequest(request, request.params as AuthParams.RequestParams) }
+            .onEach { request ->
+                logger.error("kobe; Auth request: $request")
+                onAuthRequest(request, request.params as AuthParams.RequestParams)
+            }
             .launchIn(scope)
 
     private fun collectJsonRpcResponses(): Job =
         jsonRpcInteractor.peerResponse
-            .filter { response -> response.params is AuthParams.RequestParams }
-            .onEach { response -> onAuthRequestResponse(response, response.params as AuthParams.RequestParams) }
+            .filter { response -> response.params is AuthParams }
+            .onEach { response ->
+                logger.error("kobe; Auth response: $response")
+                onAuthRequestResponse(response, response.params as AuthParams.RequestParams)
+            }
             .launchIn(scope)
 
     private fun resubscribeToPendingRequestsTopics() {
