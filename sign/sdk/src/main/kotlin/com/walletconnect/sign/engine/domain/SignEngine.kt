@@ -14,6 +14,8 @@ import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.exception.Reason
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.params.CoreSignParams
+import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.pairing.client.PairingInterface
@@ -788,7 +790,7 @@ internal class SignEngine(
                 is JsonRpcResponse.JsonRpcResult -> {
                     logger.log("Session proposal approve received")
                     val selfPublicKey = PublicKey(params.proposer.publicKey)
-                    val approveParams = response.result as SignParams.ApprovalParams
+                    val approveParams = response.result as CoreSignParams.ApprovalParams
                     val responderPublicKey = PublicKey(approveParams.responderPublicKey)
                     val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
                     jsonRpcInteractor.subscribe(sessionTopic) { error ->

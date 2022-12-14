@@ -12,6 +12,10 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.type.ClientParams
+import com.walletconnect.android.internal.common.model.type.Error
+import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
+import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.RelayConnectionInterface

@@ -1,6 +1,4 @@
-package com.walletconnect.android.internal.common.model
-
-import com.walletconnect.android.internal.common.SerializableJsonRpc
+package com.walletconnect.android.internal.common.model.type
 
 interface JsonRpcClientSync<T : ClientParams> : SerializableJsonRpc {
     val id: Long

@@ -5,6 +5,7 @@ import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.adapter.ExpiryAdapter
+import com.walletconnect.android.internal.common.adapter.JsonRpcResultAdapter
 import com.walletconnect.android.internal.common.adapter.TagsAdapter
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Tags
@@ -29,10 +30,11 @@ fun commonModule() = module {
     single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {
         get<Moshi>(named(FoundationDITags.MOSHI))
             .newBuilder()
-            .add { type, _, _ ->
+            .add { type, _, moshi ->
                 when (type.getRawType().name) {
                     Expiry::class.jvmName -> ExpiryAdapter
                     Tags::class.jvmName -> TagsAdapter
+                    JsonRpcResponse.JsonRpcResult::class.jvmName -> JsonRpcResultAdapter(moshi)
                     else -> null
                 }
             }

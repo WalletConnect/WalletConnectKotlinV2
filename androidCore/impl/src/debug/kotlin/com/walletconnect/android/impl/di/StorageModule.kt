@@ -21,7 +21,6 @@ fun coreStorageModule() = module {
 }
 
 fun sdkBaseStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
-
     single<SqlDriver> {
         AndroidSqliteDriver(
             schema = databaseSchema,

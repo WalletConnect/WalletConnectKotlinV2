@@ -1,6 +1,6 @@
 package com.walletconnect.sign.common.exceptions
 
-import com.walletconnect.android.internal.common.model.Error
+import com.walletconnect.android.internal.common.model.type.Error
 
 /**
  * Documentation: https://github.com/WalletConnect/walletconnect-specs/blob/main/sign/error-codes.md

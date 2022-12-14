@@ -4,7 +4,7 @@ import com.squareup.moshi.Moshi
 import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.sign.common.adapters.JsonRpcResultAdapter
+import com.walletconnect.android.internal.common.adapter.JsonRpcResultAdapter
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import org.junit.jupiter.api.Test

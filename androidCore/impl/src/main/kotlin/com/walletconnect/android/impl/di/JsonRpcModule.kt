@@ -2,9 +2,9 @@ package com.walletconnect.android.impl.di
 
 import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.impl.json_rpc.domain.JsonRpcInteractor
-import com.walletconnect.android.internal.common.SerializableJsonRpc
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
-import com.walletconnect.android.internal.common.model.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingParams
@@ -14,17 +14,14 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import kotlin.reflect.KClass
 
+
 @JvmSynthetic
 fun jsonRpcModule() = module {
 
-    single<JsonRpcInteractorInterface> {
-        if (wcKoinApp.koin.getAll<JsonRpcInteractor>().isEmpty()){
-            println("kobe; First Init")
-            JsonRpcInteractor(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER)))
-        } else {
-            println("kobe; Next Init")
-            wcKoinApp.koin.getAll<JsonRpcInteractor>().first()
-        }
+    if (wcKoinApp.koin.getOrNull<JsonRpcInteractorInterface>() == null) {
+        single<JsonRpcInteractorInterface> { JsonRpcInteractor(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    } else {
+        wcKoinApp.koin.get<JsonRpcInteractorInterface>()
     }
 
     addSerializerEntry(PairingParams.PingParams::class)
@@ -34,7 +31,7 @@ fun jsonRpcModule() = module {
     addDeserializerEntry(PairingJsonRpcMethod.WC_PAIRING_DELETE, PairingParams.DeleteParams::class)
 
     factory {
-        JsonRpcSerializer(
+            JsonRpcSerializer(
             serializerEntries = getAll<KClass<SerializableJsonRpc>>().toSet(),
             deserializerEntries = getAll<Pair<String, KClass<*>>>().toMap()
         )

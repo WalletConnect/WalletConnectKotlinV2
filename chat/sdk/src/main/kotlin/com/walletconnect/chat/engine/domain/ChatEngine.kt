@@ -14,6 +14,8 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.params.CoreChatParams
+import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.chat.common.exceptions.InvalidAccountIdException
@@ -203,7 +205,7 @@ internal class ChatEngine(
             keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
 
             val publicKey = keyManagementRepository.generateKeyPair()
-            val acceptanceParams = ChatParams.AcceptanceParams(publicKey.keyAsHex)
+            val acceptanceParams = CoreChatParams.AcceptanceParams(publicKey.keyAsHex)
             val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(DAY_IN_SECONDS))
 
             jsonRpcInteractor.respondWithParams(request.copy(topic = acceptTopic), acceptanceParams, irnParams, EnvelopeType.ZERO) { error ->
@@ -349,7 +351,7 @@ internal class ChatEngine(
 
     private fun onInviteAccepted(response: JsonRpcResponse.JsonRpcResult, wcResponse: WCResponse) {
         logger.log("Chat invite was accepted")
-        val acceptParams = response.result as ChatParams.AcceptanceParams
+        val acceptParams = response.result as CoreChatParams.AcceptanceParams
         val pubKeyZ = PublicKey(acceptParams.publicKey)
 
         try {
