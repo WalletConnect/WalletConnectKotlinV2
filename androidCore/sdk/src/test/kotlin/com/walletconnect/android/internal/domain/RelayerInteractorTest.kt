@@ -243,7 +243,7 @@ internal class RelayerInteractorTest {
 //    }
 
     @Test
-    fun `IsConnectionOpened initial value is false`() = runBlocking {
+    fun `IsConnectionOpened initial value is false`() = runBlockingTest {
         every { relay.isConnectionAvailable } returns flowOf(false).stateIn(this)
 
         assertFalse(sut.isConnectionAvailable.first())
