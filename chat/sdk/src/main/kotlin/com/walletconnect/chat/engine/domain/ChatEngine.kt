@@ -13,8 +13,6 @@ import com.walletconnect.android.impl.utils.THIRTY_SECONDS
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.GenericException
-import com.walletconnect.android.internal.common.exception.InvalidProjectIdException
-import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
@@ -63,13 +61,6 @@ internal class ChatEngine(
     }
 
     fun setup() {
-        jsonRpcInteractor.wsConnectionFailedFlow.onEach { walletConnectException ->
-            when (walletConnectException) {
-                is ProjectIdDoesNotExistException, is InvalidProjectIdException -> _events.emit(ConnectionState(false, walletConnectException))
-                else -> _events.emit(SDKError(InternalError(walletConnectException)))
-            }
-        }.launchIn(scope)
-
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _events.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }

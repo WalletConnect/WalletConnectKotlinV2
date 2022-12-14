@@ -31,7 +31,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     private val isNetworkAvailable: StateFlow<Boolean> by lazy { networkState.isAvailable }
     private val isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    fun initialize(relayServerUrl: String, connectionType: ConnectionType, application: Application) {
+    fun initialize(relayServerUrl: String, connectionType: ConnectionType, application: Application, onError: (Throwable) -> Unit) {
         require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
 
         wcKoinApp.run {
@@ -41,12 +41,21 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
         plantTimber()
 
+        logger.log("kobe; RelayClient")
+
         val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
         val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl())
         val serverUrl = relayServerUrl.addUserAgent(BuildConfig.SDK_VERSION)
 
         wcKoinApp.modules(androidApiNetworkModule(serverUrl, jwt, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION))
         relayService = wcKoinApp.koin.get(named(AndroidCommonDITags.RELAY_SERVICE))
+
+        wsConnectionFailedFlow.onEach { walletConnectException ->
+
+            logger.log("kobe; Relay error: $walletConnectException")
+
+            onError(walletConnectException)
+        }.launchIn(scope)
     }
 
     override val isConnectionAvailable: StateFlow<Boolean> by lazy {
@@ -54,11 +63,11 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
             .stateIn(scope, SharingStarted.Eagerly, false)
     }
 
-    override val wsConnectionFailedFlow: Flow<WalletConnectException>
+    private val wsConnectionFailedFlow: Flow<WalletConnectException>
         get() =
             eventsFlow
                 .onEach { event: Relay.Model.Event ->
-                    logger.log("kobe; $event")
+                    logger.log("kobe; Relay event: $event")
                     setIsWSSConnectionOpened(event)
                 }
                 .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()

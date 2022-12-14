@@ -10,9 +10,7 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Events
-import com.walletconnect.auth.di.commonModule
 import com.walletconnect.auth.di.engineModule
-import com.walletconnect.auth.di.jsonRpcModule
 import com.walletconnect.auth.di.storageModule
 import com.walletconnect.auth.engine.domain.AuthEngine
 import kotlinx.coroutines.flow.launchIn
@@ -29,9 +27,9 @@ internal class AuthProtocol : AuthInterface {
     override fun initialize(params: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit) {
         try {
             wcKoinApp.modules(
-                commonModule(),
+//                commonModule(),
                 cryptoModule(),
-                jsonRpcModule(),
+//                jsonRpcModule(),
                 storageModule(),
                 engineModule()
             )

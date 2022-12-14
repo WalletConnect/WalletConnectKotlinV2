@@ -71,7 +71,7 @@ object Wallet3Wallet {
         }
 
         SignClient.setWalletDelegate(signWalletDelegate)
-        AuthClient.setResponderDelegate(authWalletDelegate)
+//        AuthClient.setResponderDelegate(authWalletDelegate)
     }
 
     @Throws(IllegalStateException::class)

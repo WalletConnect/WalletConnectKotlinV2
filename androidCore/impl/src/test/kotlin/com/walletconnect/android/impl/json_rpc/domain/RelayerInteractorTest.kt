@@ -16,8 +16,10 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.utils.Empty
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -217,21 +219,6 @@ internal class RelayerInteractorTest {
         }
         sut.subscribe(topicVO, onFailure)
         verify { onFailure(any()) }
-    }
-
-    @Test
-    fun `InitializationErrorsFlow emits value only on OnConnectionFailed`() = runBlockingTest {
-        every { relay.wsConnectionFailedFlow } returns flowOf(
-            object : WalletConnectException("Test") {}
-        )
-
-        val job = sut.wsConnectionFailedFlow.onEach { walletConnectException ->
-            onError(walletConnectException)
-        }.launchIn(this)
-
-        verify(exactly = 1) { onError(any()) }
-
-        job.cancelAndJoin()
     }
 
     @Test

@@ -12,8 +12,6 @@ import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
 import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.InvalidProjectIdException
-import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.client.PairingInterface
@@ -71,13 +69,6 @@ internal class AuthEngine(
     }
 
     fun setup() {
-        jsonRpcInteractor.wsConnectionFailedFlow.onEach { walletConnectException ->
-            when (walletConnectException) {
-                is ProjectIdDoesNotExistException, is InvalidProjectIdException -> _engineEvent.emit(ConnectionState(false, walletConnectException))
-                else -> _engineEvent.emit(SDKError(InternalError(walletConnectException)))
-            }
-        }.launchIn(scope)
-
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
@@ -243,13 +234,19 @@ internal class AuthEngine(
     private fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is AuthParams.RequestParams }
-            .onEach { request -> onAuthRequest(request, request.params as AuthParams.RequestParams) }
+            .onEach { request ->
+                logger.error("kobe; Auth request: $request")
+                onAuthRequest(request, request.params as AuthParams.RequestParams)
+            }
             .launchIn(scope)
 
     private fun collectJsonRpcResponses(): Job =
         jsonRpcInteractor.peerResponse
-            .filter { response -> response.params is AuthParams.RequestParams }
-            .onEach { response -> onAuthRequestResponse(response, response.params as AuthParams.RequestParams) }
+            .filter { response -> response.params is AuthParams }
+            .onEach { response ->
+                logger.error("kobe; Auth response: $response")
+                onAuthRequestResponse(response, response.params as AuthParams.RequestParams)
+            }
             .launchIn(scope)
 
     private fun resubscribeToPendingRequestsTopics() {
