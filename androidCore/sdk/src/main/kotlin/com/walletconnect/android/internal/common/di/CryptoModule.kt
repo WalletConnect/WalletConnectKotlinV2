@@ -33,9 +33,10 @@ fun androidApiCryptoModule() = module {
     }
 
     fun Scope.deleteSharedPreferences() {
-        if (androidContext().getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE) != null) {
-            androidContext().deleteSharedPreferences(sharedPrefsFile)
-        }
+        androidContext()
+            .getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE)
+            ?.edit()
+            ?.commit()
     }
 
     single {
