@@ -1,10 +1,15 @@
 package com.walletconnect.push.wallet.client
 
+import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.wallet.client.mapper.toClientPushRequest
+import com.walletconnect.push.wallet.di.pushCommonModule
+import com.walletconnect.push.wallet.di.pushJsonRpcModule
+import com.walletconnect.push.wallet.di.pushStorageModule
+import com.walletconnect.push.wallet.di.walletEngineModule
 import com.walletconnect.push.wallet.engine.domain.DecryptMessageUseCase
 import com.walletconnect.push.wallet.engine.domain.WalletEngine
 import kotlinx.coroutines.flow.launchIn
@@ -16,13 +21,26 @@ class WalletProtocol : WalletInterface {
 
     companion object {
         val instance = WalletProtocol()
+        const val storageSuffix: String = "push"
     }
 
-    override fun initialize() {
-        decryptMessageUseCase = wcKoinApp.koin.get()
+    override fun initialize(onError: (Push.Wallet.Model.Error) -> Unit) {
+        try {
+            wcKoinApp.modules(
+                pushCommonModule(),
+                cryptoModule(),
+                pushJsonRpcModule(),
+                pushStorageModule(storageSuffix),
+                walletEngineModule()
+            )
 
-        pushEngine = wcKoinApp.koin.get()
-        pushEngine.setup()
+            decryptMessageUseCase = wcKoinApp.koin.get()
+
+            pushEngine = wcKoinApp.koin.get()
+            pushEngine.setup()
+        } catch (e: Exception) {
+            onError(Push.Wallet.Model.Error(e))
+        }
     }
 
     override fun setDelegate(delegate: WalletInterface.Delegate) {
@@ -41,7 +59,7 @@ class WalletProtocol : WalletInterface {
 
         try {
             // TODO: Find out if it's better to pass the publicKey instead of the ID
-            pushEngine.approve(params.id, onSuccess) { onError(Push.Wallet.Model.Error(it)) }
+            pushEngine.approve(/*params.id*/"", onSuccess) { onError(Push.Wallet.Model.Error(it)) }
         } catch (e: Exception) {
             onError(Push.Wallet.Model.Error(e))
         }
@@ -52,7 +70,7 @@ class WalletProtocol : WalletInterface {
 
         try {
             // TODO: Find out if it's better to pass the publicKey instead of the ID
-            pushEngine.reject(params.id, params.reason, onSuccess) { onError(Push.Wallet.Model.Error(it)) }
+            pushEngine.reject(/*params.id*/"", params.reason, onSuccess) { onError(Push.Wallet.Model.Error(it)) }
         } catch (e: Exception) {
             onError(Push.Wallet.Model.Error(e))
         }
@@ -70,7 +88,7 @@ class WalletProtocol : WalletInterface {
 
     override fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (Push.Wallet.Model.Message) -> Unit, onError: (Push.Wallet.Model.Error) -> Unit) {
         runCatching { decryptMessageUseCase(params.topic, params.encryptedMessage) }.fold({ decryptedMsg ->
-            onSuccess(Push.Wallet.Model.Message())  // TODO: Need to confirm if decryptedMsg will be broken up to conform to Push.Wallet.Model.Message or will we have different logic
+            onSuccess(Push.Wallet.Model.Message("", "", "", ""))  // TODO: Need to confirm if decryptedMsg will be broken up to conform to Push.Wallet.Model.Message or will we have different logic
         }, {
             onError(Push.Wallet.Model.Error(it))
         })
