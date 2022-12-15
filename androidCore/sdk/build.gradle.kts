@@ -20,13 +20,16 @@ android {
 
         buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
+
+        File("${rootDir.path}/gradle/consumer-rules").listFiles()?.forEach { proguardFile ->
+            consumerProguardFiles(proguardFile.path)
+        }
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro")
         }
     }
 
@@ -42,7 +45,7 @@ android {
 
 dependencies {
     debugApi(project(":foundation"))
-    releaseApi("com.walletconnect:foundation:1.1.0")
+    releaseApi("com.walletconnect:foundation:$FOUNDATION_VERSION")
 
     bouncyCastle()
     coroutines()

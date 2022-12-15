@@ -105,8 +105,9 @@ fun DependencyHandlerScope.multibaseJava() {
     "api"("com.github.multiformats:java-multibase:$multibaseVersion") //https://mvnrepository.com/artifact/com.github.multiformats/java-multibase/1.1.0 vulnerability detected with library
 }
 
-fun DependencyHandlerScope.restEasyJava() {
-    "implementation"("org.jboss.resteasy:resteasy-jaxrs:$restEasyVersion")
+fun DependencyHandlerScope.wsRestJava() {
+    "implementation"("jakarta.ws.rs:jakarta.ws.rs-api:$wsRestJavaVersion")
+    "testImplementation"("org.glassfish.jersey.core:jersey-common:3.1.0")
 }
 
 fun DependencyHandlerScope.jUnit5() {

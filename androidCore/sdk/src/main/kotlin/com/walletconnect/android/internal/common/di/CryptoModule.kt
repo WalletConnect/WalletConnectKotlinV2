@@ -2,6 +2,7 @@ package com.walletconnect.android.internal.common.di
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.walletconnect.android.internal.common.JwtRepositoryAndroid
@@ -13,6 +14,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
+import java.io.File
 
 fun androidApiCryptoModule() = module {
     val keystoreAlias = "wc_keystore_key"
@@ -33,8 +35,16 @@ fun androidApiCryptoModule() = module {
     }
 
     fun Scope.deleteSharedPreferences() {
-        if (androidContext().getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE) != null) {
-            androidContext().deleteSharedPreferences(sharedPrefsFile)
+        androidContext().run {
+            if (getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE) != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    deleteSharedPreferences(sharedPrefsFile)
+                } else {
+                    getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE)?.edit()?.clear()?.apply()
+                    val dir = File(applicationInfo.dataDir, "shared_prefs")
+                    File(dir, "$sharedPrefsFile.xml").delete()
+                }
+            }
         }
     }
 

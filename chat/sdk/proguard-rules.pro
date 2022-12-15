@@ -1,0 +1,1 @@
+-keep public class com.walletconnect.chat.** { *; }

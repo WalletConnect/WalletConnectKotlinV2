@@ -6,6 +6,7 @@ import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.auth.signature.SignatureType
 import com.walletconnect.auth.signature.cacao.CacaoSigner
+import com.walletconnect.responder.domain.ISSUER
 import com.walletconnect.responder.domain.PRIVATE_KEY_1
 import com.walletconnect.sample_common.tag
 
@@ -31,7 +32,9 @@ class RequestViewModel : ViewModel() {
 
     fun approve() {
         val request = RequestStore.currentRequest!!
-        AuthClient.respond(Auth.Params.Respond.Result(request.id, CacaoSigner.sign(request.message, PRIVATE_KEY_1, SignatureType.EIP191))) { error ->
+        val signature = CacaoSigner.sign(request.message, PRIVATE_KEY_1, SignatureType.EIP191)
+
+        AuthClient.respond(Auth.Params.Respond.Result(request.id, signature, ISSUER)) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
     }

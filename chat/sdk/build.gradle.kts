@@ -8,7 +8,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "chat"
-    extra[KEY_PUBLISH_VERSION] = "1.0.0-alpha04"
+    extra[KEY_PUBLISH_VERSION] = CHAT_VERSION
     extra[KEY_SDK_NAME] = "Chat"
 }
 
@@ -24,7 +24,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

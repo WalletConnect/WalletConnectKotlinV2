@@ -2,9 +2,12 @@
 
 package com.walletconnect.sign.engine.domain
 
+import com.walletconnect.android.impl.utils.CoreValidator.NAMESPACE_REGEX
+import com.walletconnect.android.impl.utils.CoreValidator.isAccountIdCAIP10Compliant
+import com.walletconnect.android.impl.utils.CoreValidator.isChainIdCAIP2Compliant
+import com.walletconnect.android.impl.utils.WEEK_IN_SECONDS
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SymmetricKey
-import com.walletconnect.android.impl.utils.WEEK_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
@@ -13,7 +16,7 @@ import com.walletconnect.sign.engine.model.ValidationError
 import java.net.URI
 import java.net.URISyntaxException
 
-internal object Validator {
+internal object SignValidator {
 
     @JvmSynthetic
     internal inline fun validateProposalNamespace(namespaces: Map<String, NamespaceVO.Proposal>, onError: (ValidationError) -> Unit) {
@@ -268,25 +271,6 @@ internal object Validator {
         namespaces.keys.all { namespaceKey -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) }
 
     @JvmSynthetic
-    internal fun isChainIdCAIP2Compliant(chainId: String): Boolean {
-        val elements: List<String> = chainId.split(":")
-        if (elements.isEmpty() || elements.size != 2) return false
-        val (namespace: String, reference: String) = elements
-        return NAMESPACE_REGEX.toRegex().matches(namespace) && REFERENCE_REGEX.toRegex().matches(reference)
-    }
-
-    @JvmSynthetic
-    internal fun isAccountIdCAIP10Compliant(accountId: String): Boolean {
-        val elements = accountId.split(":")
-        if (elements.isEmpty() || elements.size != 3) return false
-        val (namespace: String, reference: String, accountAddress: String) = elements
-
-        return NAMESPACE_REGEX.toRegex().matches(namespace) &&
-                REFERENCE_REGEX.toRegex().matches(reference) &&
-                ACCOUNT_ADDRESS_REGEX.toRegex().matches(accountAddress)
-    }
-
-    @JvmSynthetic
     internal fun getChainFromAccount(accountId: String): String {
         val elements = accountId.split(":")
         if (elements.isEmpty() || elements.size != 3) return accountId
@@ -294,8 +278,4 @@ internal object Validator {
 
         return "$namespace:$reference"
     }
-
-    private const val NAMESPACE_REGEX: String = "^[-a-z0-9]{3,8}$"
-    private const val REFERENCE_REGEX: String = "^[-a-zA-Z0-9]{1,32}$"
-    private const val ACCOUNT_ADDRESS_REGEX: String = "^[a-zA-Z0-9]{1,64}$"
 }

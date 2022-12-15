@@ -27,7 +27,7 @@ internal class JsonRpcInteractor(
     private val relay: RelayConnectionInterface,
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
-    private val logger: Logger
+    private val logger: Logger,
 ) : JsonRpcInteractorInterface {
     private val serializer: JsonRpcSerializer get() = wcKoinApp.koin.get()
 
@@ -121,7 +121,7 @@ internal class JsonRpcInteractor(
         irnParams: IrnParams,
         envelopeType: EnvelopeType,
         participants: Participants?,
-        onFailure: (Throwable) -> Unit
+        onFailure: (Throwable) -> Unit,
     ) {
         val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = clientParams)
 
