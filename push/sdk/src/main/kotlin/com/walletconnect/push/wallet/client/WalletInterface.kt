@@ -21,5 +21,5 @@ interface WalletInterface {
 
     fun delete(params: Push.Wallet.Params.Delete)
 
-    fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (Push.Wallet.Model.Message) -> Unit)
+    fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (Push.Wallet.Model.Message) -> Unit, onError: (Push.Wallet.Model.Error) -> Unit)
 }

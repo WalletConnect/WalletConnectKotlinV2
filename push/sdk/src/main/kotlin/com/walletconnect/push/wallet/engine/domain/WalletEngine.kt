@@ -120,7 +120,7 @@ internal class WalletEngine(
         try {
             pushRequests[params.publicKey] = request
 
-            scope.launch { _engineEvent.emit(params.toEngineDO()) }
+            scope.launch { _engineEvent.emit(params.toEngineDO(request.id)) }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
                 request,

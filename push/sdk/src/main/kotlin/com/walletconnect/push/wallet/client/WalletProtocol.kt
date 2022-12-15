@@ -40,7 +40,8 @@ class WalletProtocol : WalletInterface {
         checkEngineInitialization()
 
         try {
-            pushEngine.approve(params.id, onSuccess, onError)
+            // TODO: Find out if it's better to pass the publicKey instead of the ID
+            pushEngine.approve(params.id, onSuccess) { onError(Push.Wallet.Model.Error(it)) }
         } catch (e: Exception) {
             onError(Push.Wallet.Model.Error(e))
         }
@@ -50,7 +51,8 @@ class WalletProtocol : WalletInterface {
         checkEngineInitialization()
 
         try {
-            pushEngine.reject(params.id, params.reason, onSuccess, onError)
+            // TODO: Find out if it's better to pass the publicKey instead of the ID
+            pushEngine.reject(params.id, params.reason, onSuccess) { onError(Push.Wallet.Model.Error(it)) }
         } catch (e: Exception) {
             onError(Push.Wallet.Model.Error(e))
         }
@@ -63,12 +65,12 @@ class WalletProtocol : WalletInterface {
     }
 
     override fun delete(params: Push.Wallet.Params.Delete) {
-        TODO("Not yet implemented")
+        // TODO: This is still being decided on
     }
 
     override fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (Push.Wallet.Model.Message) -> Unit, onError: (Push.Wallet.Model.Error) -> Unit) {
-        runCatching { decryptMessageUseCase(params.topic, params.encryptedMessage) }.Enfold({ decryptedMsg ->
-            onSuccess(Push.Wallet.Model.Message())
+        runCatching { decryptMessageUseCase(params.topic, params.encryptedMessage) }.fold({ decryptedMsg ->
+            onSuccess(Push.Wallet.Model.Message())  // TODO: Need to confirm if decryptedMsg will be broken up to conform to Push.Wallet.Model.Message or will we have different logic
         }, {
             onError(Push.Wallet.Model.Error(it))
         })
