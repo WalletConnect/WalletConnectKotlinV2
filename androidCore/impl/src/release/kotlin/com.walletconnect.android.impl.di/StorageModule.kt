@@ -3,6 +3,7 @@ package com.walletconnect.android.impl.di
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
@@ -17,6 +18,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
+import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.KeyStore
@@ -54,11 +56,15 @@ private fun Scope.createSharedPreferences(): SharedPreferences {
 }
 
 private fun Scope.deleteSharedPreferences() {
-    androidContext()
-        .getSharedPreferences(SHARED_PREFS_FILENAME, Context.MODE_PRIVATE)
-        ?.edit()
-        ?.clear()
-        ?.commit()
+    androidContext().run {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            deleteSharedPreferences(SHARED_PREFS_FILENAME)
+        } else {
+            getSharedPreferences(SHARED_PREFS_FILENAME, Context.MODE_PRIVATE)?.edit()?.clear()?.apply()
+            val dir = File(applicationInfo.dataDir, "shared_prefs")
+            File(dir, "$SHARED_PREFS_FILENAME.xml").delete()
+        }
+    }
     keyStore.deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
 }
 
