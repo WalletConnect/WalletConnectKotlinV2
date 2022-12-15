@@ -2,6 +2,7 @@
 
 package com.walletconnect.push.wallet.engine.domain
 
+import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
@@ -11,40 +12,42 @@ import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.PeerError
-import com.walletconnect.push.common.Push
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushParams
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.common.model.toPushResponseParams
+import com.walletconnect.push.dapp.json_rpc.JsonRpcMethod
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 internal class WalletEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val crypto: KeyManagementRepository,
-    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val pairingInterface: PairingInterface,
     private val pairingHandler: PairingControllerInterface,
-    private val selfAppMetaData: AppMetaData,
-    private val logger: Logger
+    private val logger: Logger,
 ) {
     private var jsonRpcRequestsJob: Job? = null
-    private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
     private val pushRequests: MutableMap<String, WCRequest> = mutableMapOf()
 
     init {
-
+        pairingHandler.register(
+            JsonRpcMethod.WC_PUSH_REQUEST,
+            JsonRpcMethod.WC_PUSH_MESSAGE
+        )
+//        setupSequenceExpiration()
     }
 
     fun setup() {
@@ -52,19 +55,19 @@ internal class WalletEngine(
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
-//                supervisorScope {
-//                    launch(Dispatchers.IO) {
-//                        resubscribeToSession()
-//                    }
-//                }
+                supervisorScope {
+                    launch(Dispatchers.IO) {
+//                        resubscribeToSubscriptions()
+                    }
+                }
 
                 if (jsonRpcRequestsJob == null) {
                     jsonRpcRequestsJob = collectJsonRpcRequests()
                 }
 
-//                if (internalErrorsJob == null) {
-//                    internalErrorsJob = collectInternalErrors()
-//                }
+                if (internalErrorsJob == null) {
+                    internalErrorsJob = collectInternalErrors()
+                }
             }
             .launchIn(scope)
     }
@@ -108,11 +111,16 @@ internal class WalletEngine(
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is PushParams }
             .onEach { request ->
-                when(val requestParams = request.params) {
+                when (val requestParams = request.params) {
                     is PushParams.RequestParams -> onPushRequest(request, requestParams)
                     is PushParams.MessageParams -> onPushMessage(request, requestParams)
                 }
             }.launchIn(scope)
+
+    private fun collectInternalErrors(): Job =
+        merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
+            .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
+            .launchIn(scope)
 
     private fun onPushRequest(request: WCRequest, params: PushParams.RequestParams) {
         val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
@@ -134,6 +142,7 @@ internal class WalletEngine(
         val irnParams = IrnParams(Tags.PUSH_MESSAGE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         try {
+            // TODO: Should we automatically respondWithSuccess?
             scope.launch { _engineEvent.emit(params.toEngineDO()) }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
