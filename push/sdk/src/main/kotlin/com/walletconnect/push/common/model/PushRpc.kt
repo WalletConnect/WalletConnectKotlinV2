@@ -22,7 +22,7 @@ internal sealed class PushRpc: JsonRpcClientSync<PushParams> {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PUSH_REQUEST,
         @Json(name = "params")
-        override val params: PushParams.PushRequestParams,
+        override val params: PushParams.RequestParams,
     ): PushRpc()
 
     @JsonClass(generateAdapter = true)
@@ -34,7 +34,7 @@ internal sealed class PushRpc: JsonRpcClientSync<PushParams> {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PUSH_MESSAGE,
         @Json(name = "params")
-        override val params: PushParams.PushMessageParams,
+        override val params: PushParams.MessageParams,
     ): PushRpc()
 
 }

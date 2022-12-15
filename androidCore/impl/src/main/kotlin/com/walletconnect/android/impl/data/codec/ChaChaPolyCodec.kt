@@ -63,6 +63,24 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         }
     }
 
+    override fun decryptMessage(key: String, cipherText: String): String {
+        val encryptedPayloadBytes = Base64.decode(cipherText)
+        val envelopeType = ByteArray(ENVELOPE_TYPE_SIZE)
+        val nonce = ByteArray(NONCE_SIZE)
+        val encryptedMessageBytes = ByteArray(encryptedPayloadBytes.size - NONCE_SIZE - ENVELOPE_TYPE_SIZE)
+
+        //tp + iv + sb
+        val byteBuffer: ByteBuffer = ByteBuffer.wrap(encryptedPayloadBytes)
+        byteBuffer.get(envelopeType)
+        byteBuffer.get(nonce)
+        byteBuffer.get(encryptedMessageBytes)
+
+        val symmetricKey = SymmetricKey(key)
+        val decryptedTextBytes = decryptPayload(symmetricKey, nonce, encryptedMessageBytes)
+
+        return String(decryptedTextBytes, Charsets.UTF_8)
+    }
+
     private fun decryptType0(topic: Topic, encryptedPayloadBytes: ByteArray): String {
         val envelopeType = ByteArray(ENVELOPE_TYPE_SIZE)
         val nonce = ByteArray(NONCE_SIZE)

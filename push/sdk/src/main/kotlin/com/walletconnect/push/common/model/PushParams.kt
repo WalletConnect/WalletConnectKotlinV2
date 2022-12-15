@@ -10,7 +10,7 @@ import com.walletconnect.android.internal.common.model.ClientParams
 internal sealed class PushParams: ClientParams {
 
     @JsonClass(generateAdapter = true)
-    internal data class PushRequestParams(
+    internal data class RequestParams(
         @Json(name = "publicKey")
         val publicKey: String,
         @Json(name = "metadata")
@@ -20,7 +20,13 @@ internal sealed class PushParams: ClientParams {
     ): PushParams()
 
     @JsonClass(generateAdapter = true)
-    internal data class PushMessageParams(
+    internal data class RequestResponseParams(
+        @Json(name = "publicKey")
+        val publicKey: String
+    ): PushParams()
+
+    @JsonClass(generateAdapter = true)
+    internal data class MessageParams(
         @Json(name = "title")
         val title: String,
         @Json(name = "body")
