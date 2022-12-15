@@ -57,6 +57,7 @@ private fun Scope.deleteSharedPreferences() {
     androidContext()
         .getSharedPreferences(SHARED_PREFS_FILENAME, Context.MODE_PRIVATE)
         ?.edit()
+        ?.clear()
         ?.commit()
     keyStore.deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
 }

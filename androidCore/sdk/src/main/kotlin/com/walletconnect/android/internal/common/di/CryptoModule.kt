@@ -36,6 +36,7 @@ fun androidApiCryptoModule() = module {
         androidContext()
             .getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE)
             ?.edit()
+            ?.clear()
             ?.commit()
     }
 
