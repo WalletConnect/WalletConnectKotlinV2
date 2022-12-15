@@ -36,12 +36,14 @@ fun androidApiCryptoModule() = module {
 
     fun Scope.deleteSharedPreferences() {
         androidContext().run {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                deleteSharedPreferences(sharedPrefsFile)
-            } else {
-                getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE)?.edit()?.clear()?.apply()
-                val dir = File(applicationInfo.dataDir, "shared_prefs")
-                File(dir, "$sharedPrefsFile.xml").delete()
+            if (getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE) != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    deleteSharedPreferences(sharedPrefsFile)
+                } else {
+                    getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE)?.edit()?.clear()?.apply()
+                    val dir = File(applicationInfo.dataDir, "shared_prefs")
+                    File(dir, "$sharedPrefsFile.xml").delete()
+                }
             }
         }
     }

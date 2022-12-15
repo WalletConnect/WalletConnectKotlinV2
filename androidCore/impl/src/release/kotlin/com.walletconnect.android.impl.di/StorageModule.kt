@@ -32,14 +32,16 @@ private const val KEYSTORE_ALIAS = "_wc_db_key_"
 private const val SHARED_PREFS_FILENAME = "db_key_store"
 private const val KEY_SIZE = 256
 private val keyStore: KeyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-private val cipher: Cipher = "${KeyProperties.KEY_ALGORITHM_AES}/${KeyProperties.BLOCK_MODE_GCM}/${KeyProperties.ENCRYPTION_PADDING_NONE}".let { transformation ->
-    Cipher.getInstance(transformation)
-}
-private val keyGenParameterSpec: KeyGenParameterSpec = KeyGenParameterSpec.Builder(KEYSTORE_ALIAS, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
-    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-    .setKeySize(KEY_SIZE)
-    .build()
+private val cipher: Cipher =
+    "${KeyProperties.KEY_ALGORITHM_AES}/${KeyProperties.BLOCK_MODE_GCM}/${KeyProperties.ENCRYPTION_PADDING_NONE}".let { transformation ->
+        Cipher.getInstance(transformation)
+    }
+private val keyGenParameterSpec: KeyGenParameterSpec =
+    KeyGenParameterSpec.Builder(KEYSTORE_ALIAS, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+        .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+        .setKeySize(KEY_SIZE)
+        .build()
 
 private fun Scope.createSharedPreferences(): SharedPreferences {
     val masterKey = MasterKey.Builder(androidContext(), KEYSTORE_ALIAS)
@@ -57,19 +59,24 @@ private fun Scope.createSharedPreferences(): SharedPreferences {
 
 private fun Scope.deleteSharedPreferences() {
     androidContext().run {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            deleteSharedPreferences(SHARED_PREFS_FILENAME)
-        } else {
-            getSharedPreferences(SHARED_PREFS_FILENAME, Context.MODE_PRIVATE)?.edit()?.clear()?.apply()
-            val dir = File(applicationInfo.dataDir, "shared_prefs")
-            File(dir, "$SHARED_PREFS_FILENAME.xml").delete()
+        if (getSharedPreferences(SHARED_PREFS_FILENAME, Context.MODE_PRIVATE) != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                deleteSharedPreferences(SHARED_PREFS_FILENAME)
+            } else {
+                getSharedPreferences(SHARED_PREFS_FILENAME, Context.MODE_PRIVATE)?.edit()?.clear()?.apply()
+                val dir = File(applicationInfo.dataDir, "shared_prefs")
+                File(dir, "$SHARED_PREFS_FILENAME.xml").delete()
+            }
         }
     }
     keyStore.deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
 }
 
 private fun getSecretKey(): SecretKey {
-    return (keyStore.getEntry(keyGenParameterSpec.keystoreAlias, null) as? KeyStore.SecretKeyEntry)?.secretKey ?: KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE).run {
+    return (keyStore.getEntry(keyGenParameterSpec.keystoreAlias, null) as? KeyStore.SecretKeyEntry)?.secretKey ?: KeyGenerator.getInstance(
+        KeyProperties.KEY_ALGORITHM_AES,
+        ANDROID_KEYSTORE
+    ).run {
         init(keyGenParameterSpec)
         generateKey()
     }
