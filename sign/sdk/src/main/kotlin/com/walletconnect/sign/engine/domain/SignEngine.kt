@@ -460,7 +460,6 @@ internal class SignEngine(
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is SignParams }
             .onEach { request ->
-                logger.error("kobe; Sign request: $request")
                 when (val requestParams = request.params) {
                     is SignParams.SessionProposeParams -> onSessionPropose(request, requestParams)
                     is SignParams.SessionSettleParams -> onSessionSettle(request, requestParams)
@@ -482,7 +481,6 @@ internal class SignEngine(
         jsonRpcInteractor.peerResponse
             .filter { request -> request.params is SignParams } //todo: should be here?
             .onEach { response ->
-                logger.error("kobe; Sign response: $response")
                 when (val params = response.params) {
                     is SignParams.SessionProposeParams -> onSessionProposalResponse(response, params)
                     is SignParams.SessionSettleParams -> onSessionSettleResponse(response)

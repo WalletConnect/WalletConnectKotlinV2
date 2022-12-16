@@ -60,7 +60,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
         get() =
             eventsFlow
                 .onEach { event: Relay.Model.Event ->
-                    logger.log("kobe; Relay event: $event")
+                    logger.log("$event")
                     setIsWSSConnectionOpened(event)
                 }
                 .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
