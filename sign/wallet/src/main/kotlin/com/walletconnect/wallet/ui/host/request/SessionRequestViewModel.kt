@@ -7,8 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
-import com.walletconnect.wallet.Wallet
-import com.walletconnect.wallet.Wallet3Wallet
+import com.walletconnect.wallet.client.Wallet
+import com.walletconnect.wallet.client.Web3Wallet
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.ui.SampleWalletEvents
 import kotlinx.coroutines.flow.*
@@ -46,7 +46,7 @@ class SessionRequestViewModel : ViewModel() {
                 )
             )
 
-            Wallet3Wallet.respondSessionRequest(result) { error ->
+            Web3Wallet.respondSessionRequest(result) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
 
@@ -76,7 +76,7 @@ class SessionRequestViewModel : ViewModel() {
                 )
             )
 
-            Wallet3Wallet.respondSessionRequest(response) { error ->
+            Web3Wallet.respondSessionRequest(response) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
 
@@ -93,7 +93,7 @@ class SessionRequestViewModel : ViewModel() {
         sessionRequest: SessionRequestUI.Content,
         sendSessionRequestResponseDeepLink: (Uri) -> Unit,
     ) {
-        Wallet3Wallet.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
+        Web3Wallet.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
             ?.let { deepLinkUri -> sendSessionRequestResponseDeepLink(deepLinkUri) }
     }
 }

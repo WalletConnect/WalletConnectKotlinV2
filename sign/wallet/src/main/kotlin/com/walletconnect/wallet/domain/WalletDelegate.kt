@@ -3,8 +3,8 @@ package com.walletconnect.wallet.domain
 import android.util.Log
 import com.walletconnect.sample_common.tag
 
-import com.walletconnect.wallet.Wallet
-import com.walletconnect.wallet.Wallet3Wallet
+import com.walletconnect.wallet.client.Wallet
+import com.walletconnect.wallet.client.Web3Wallet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
-object WalletDelegate : Wallet3Wallet.WalletDelegate {
+object WalletDelegate : Web3Wallet.WalletDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcEventModels: MutableSharedFlow<Wallet.Model?> = MutableSharedFlow(1)
     val wcEventModels: SharedFlow<Wallet.Model?> = _wcEventModels
@@ -23,7 +23,7 @@ object WalletDelegate : Wallet3Wallet.WalletDelegate {
         private set
 
     init {
-        Wallet3Wallet.setWalletDelegate(this)
+        Web3Wallet.setWalletDelegate(this)
     }
 
     override fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal) {

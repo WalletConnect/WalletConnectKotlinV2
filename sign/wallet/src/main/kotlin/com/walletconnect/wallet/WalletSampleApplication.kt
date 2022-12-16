@@ -10,6 +10,8 @@ import com.walletconnect.push.wallet.client.PushWalletClient
 import com.walletconnect.sample_common.BuildConfig
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample_common.tag
+import com.walletconnect.wallet.client.Wallet
+import com.walletconnect.wallet.client.Web3Wallet
 
 class WalletSampleApplication : Application() {
 

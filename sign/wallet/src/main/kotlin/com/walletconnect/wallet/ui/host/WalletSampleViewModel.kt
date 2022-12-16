@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.push.common.Push
 import com.walletconnect.wallet.domain.PushWalletDelegate
+import com.walletconnect.wallet.client.Wallet
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.ui.SampleWalletEvents
 import kotlinx.coroutines.flow.SharingStarted

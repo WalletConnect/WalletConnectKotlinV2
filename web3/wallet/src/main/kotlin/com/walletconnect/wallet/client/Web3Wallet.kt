@@ -1,11 +1,11 @@
-package com.walletconnect.wallet
+package com.walletconnect.wallet.client
 
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 
-object Wallet3Wallet {
+object Web3Wallet {
 
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal)
@@ -75,9 +75,9 @@ object Wallet3Wallet {
     }
 
     @Throws(IllegalStateException::class)
-    fun initialize(init: Wallet.Params.Init, onError: (Wallet.Model.Error) -> Unit) {
-        SignClient.initialize(Sign.Params.Init(init.core)) { error -> onError(Wallet.Model.Error(error.throwable)) }
-        AuthClient.initialize(Auth.Params.Init(init.core)) { error -> onError(Wallet.Model.Error(error.throwable)) }
+    fun initialize(params: Wallet.Params.Init, onError: (Wallet.Model.Error) -> Unit) {
+        SignClient.initialize(Sign.Params.Init(params.core)) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        AuthClient.initialize(Auth.Params.Init(params.core)) { error -> onError(Wallet.Model.Error(error.throwable)) }
     }
 
     @Throws(IllegalStateException::class)
@@ -149,7 +149,7 @@ object Wallet3Wallet {
     }
 
     @Throws(IllegalStateException::class)
-    fun getPendingAuthRequests(topic: String): List<Wallet.Model.PendingAuthRequest> {
+    fun getPendingAuthRequests(): List<Wallet.Model.PendingAuthRequest> {
         return AuthClient.getPendingRequest().toWallet()
     }
 }
