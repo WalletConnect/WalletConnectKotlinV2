@@ -5,8 +5,13 @@ const val KEY_PUBLISH_ARTIFACT_ID = "PUBLISH_ARTIFACT_ID"
 const val KEY_SDK_NAME = "SDK_NAME"
 const val dokkaVersion = "1.6.21"
 
+//Latest versions
+const val BOM_VERSION = "1.1.0"
+const val FOUNDATION_VERSION = "1.2.0"
 const val CORE_VERSION = "1.6.0"
-const val BOM_VERSION = "1.0.1"
+const val SIGN_VERSION = "2.4.0"
+const val AUTH_VERSION = "1.4.0"
+const val CHAT_VERSION = "1.0.0-alpha05"
 
 val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23

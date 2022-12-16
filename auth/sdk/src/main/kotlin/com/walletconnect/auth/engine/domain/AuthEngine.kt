@@ -183,7 +183,6 @@ internal class AuthEngine(
 
     private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
         scope.launch {
-            logger.error("kobe; Payload: ${authParams.payloadParams}")
             _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, authParams.payloadParams))
         }
     }
