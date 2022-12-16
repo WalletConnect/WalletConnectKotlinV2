@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
-import com.walletconnect.wallet.Wallet
-import com.walletconnect.wallet.Wallet3Wallet
+import com.walletconnect.wallet.client.Wallet
+import com.walletconnect.wallet.client.Web3Wallet
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAllAccounts
 
@@ -43,7 +43,7 @@ class SessionProposalViewModel : ViewModel() {
                 namespaces = sessionNamespaces
             )
 
-            Wallet3Wallet.approveSession(approveProposal) { error ->
+            Web3Wallet.approveSession(approveProposal) { error ->
                 Log.e(tag(this@SessionProposalViewModel), error.throwable.stackTraceToString())
             }
 
@@ -59,7 +59,7 @@ class SessionProposalViewModel : ViewModel() {
                 reason = rejectionReason
             )
 
-            Wallet3Wallet.rejectSession(reject) { error ->
+            Web3Wallet.rejectSession(reject) { error ->
                 Log.d(tag(this@SessionProposalViewModel), "sending reject error: $error")
             }
 

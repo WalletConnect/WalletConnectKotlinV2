@@ -1,4 +1,4 @@
-package com.walletconnect.wallet
+package com.walletconnect.wallet.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient

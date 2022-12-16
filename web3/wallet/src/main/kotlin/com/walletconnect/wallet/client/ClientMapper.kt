@@ -1,4 +1,4 @@
-package com.walletconnect.wallet
+package com.walletconnect.wallet.client
 
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.sign.client.Sign
@@ -157,3 +157,7 @@ internal fun Sign.Model.SessionUpdateResponse.toWallet(): Wallet.Model.SessionUp
 
 @JvmSynthetic
 internal fun Auth.Event.AuthRequest.toWallet(): Wallet.Model.AuthRequest = Wallet.Model.AuthRequest(id, payloadParams.toWallet())
+
+@JvmSynthetic
+internal fun Auth.Model.Cacao.Signature.toWallet(): Wallet.Model.Cacao.Signature =
+    Wallet.Model.Cacao.Signature(t, s, m)

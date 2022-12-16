@@ -2,7 +2,7 @@ package com.walletconnect.wallet.ui.host
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.wallet.Wallet
+import com.walletconnect.wallet.client.Wallet
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.ui.SampleWalletEvents
 import kotlinx.coroutines.flow.SharingStarted

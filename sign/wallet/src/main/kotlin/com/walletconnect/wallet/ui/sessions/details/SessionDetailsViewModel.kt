@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.Core
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
-import com.walletconnect.wallet.Wallet
-import com.walletconnect.wallet.Wallet3Wallet
+import com.walletconnect.wallet.client.Wallet
+import com.walletconnect.wallet.client.Web3Wallet
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAccounts2
 import com.walletconnect.wallet.domain.mapOfAllAccounts
@@ -48,7 +48,7 @@ class SessionDetailsViewModel : ViewModel() {
     }
 
     fun getSessionDetails(sessionTopic: String) {
-        val state = Wallet3Wallet.getActiveSessionByTopic(sessionTopic)?.let { selectedSession ->
+        val state = Web3Wallet.getActiveSessionByTopic(sessionTopic)?.let { selectedSession ->
             selectedSessionTopic = sessionTopic
 
             val listOfChainAccountInfo =
@@ -79,7 +79,7 @@ class SessionDetailsViewModel : ViewModel() {
         selectedSessionTopic?.let {
             val disconnect = Wallet.Params.SessionDisconnect(sessionTopic = it)
 
-            Wallet3Wallet.disconnectSession(disconnect) { error ->
+            Web3Wallet.disconnectSession(disconnect) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
             selectedSessionTopic = null
@@ -120,7 +120,7 @@ class SessionDetailsViewModel : ViewModel() {
     fun extendSession() {
         selectedSessionTopic?.let {
             val extend = Wallet.Params.SessionExtend(it)
-            Wallet3Wallet.extendSession(extend) { error -> Log.d("Error", "Extend session error: $error") }
+            Web3Wallet.extendSession(extend) { error -> Log.d("Error", "Extend session error: $error") }
         }
     }
 
@@ -129,7 +129,7 @@ class SessionDetailsViewModel : ViewModel() {
         // Right now: Emits first alphabetical event
         // How it should be: User should be able to emit desired event
         selectedSessionTopic?.let { topic ->
-            Wallet3Wallet.getActiveSessionByTopic(topic)?.let { selectedSession ->
+            Web3Wallet.getActiveSessionByTopic(topic)?.let { selectedSession ->
                 allApprovedEventsWithChains(selectedSession)
                     .filter { (_, chains) -> chains.isNotEmpty() }
                     .let { eventWithChains ->
@@ -140,7 +140,7 @@ class SessionDetailsViewModel : ViewModel() {
                                     Wallet.Model.SessionEvent(event, "dummyData"),
                                     chain
                                 ).let { sessionEvent ->
-                                    Wallet3Wallet.emitSessionEvent(sessionEvent) { error ->
+                                    Web3Wallet.emitSessionEvent(sessionEvent) { error ->
                                         Log.d(
                                             "Error",
                                             "Extend session error: $error"
@@ -161,7 +161,7 @@ class SessionDetailsViewModel : ViewModel() {
         // Right now: Expand first (right now there's only eip155) namespace with another account, event and method. Works only once
         // How it should be: User can toggle every account, method, event and then call this method with state to be updated
         selectedSessionTopic?.let { topic ->
-            Wallet3Wallet.getActiveSessionByTopic(topic)?.let { selectedSession ->
+            Web3Wallet.getActiveSessionByTopic(topic)?.let { selectedSession ->
                 selectedSession.namespaces.firstNotNullOf { it }.let { (key, namespace) ->
                     val secondAccount = namespace.accounts.firstOrNull()?.let { account ->
                         val (chainNamespace, chainReference, _) = account.split(":")
@@ -186,7 +186,7 @@ class SessionDetailsViewModel : ViewModel() {
                         mapOf(key to Wallet.Model.Namespace.Session(accounts, methods, events, null))
                     val update =
                         Wallet.Params.SessionUpdate(sessionTopic = topic, namespaces = expandedNamespaces)
-                    Wallet3Wallet.updateSession(update) { error ->
+                    Web3Wallet.updateSession(update) { error ->
                         Log.e("Error", "Sending update error: $error")
                     }
                     return
