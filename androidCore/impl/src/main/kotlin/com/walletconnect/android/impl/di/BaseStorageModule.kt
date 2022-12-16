@@ -10,12 +10,14 @@ import com.walletconnect.android.impl.storage.data.dao.MetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
+import com.walletconnect.android.internal.common.wcKoinApp
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
 fun baseStorageModule() = module {
+
     fun Scope.createCoreDB(): AndroidCoreDatabase = AndroidCoreDatabase(
         get(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)),
         MetaDataAdapter = MetaData.Adapter(
@@ -24,31 +26,40 @@ fun baseStorageModule() = module {
         ),
     )
 
-    single<ColumnAdapter<List<String>, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)) {
-        object : ColumnAdapter<List<String>, String> {
+    if (wcKoinApp.koin.getOrNull<ColumnAdapter<List<String>, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)) == null) {
+        single<ColumnAdapter<List<String>, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)) {
+            object : ColumnAdapter<List<String>, String> {
+                override fun decode(databaseValue: String) =
+                    if (databaseValue.isBlank()) {
+                        listOf()
+                    } else {
+                        databaseValue.split(",")
+                    }
 
-            override fun decode(databaseValue: String) =
-                if (databaseValue.isBlank()) {
-                    listOf()
-                } else {
-                    databaseValue.split(",")
-                }
-
-            override fun encode(value: List<String>) = value.joinToString(separator = ",")
+                override fun encode(value: List<String>) = value.joinToString(separator = ",")
+            }
         }
+    } else {
+        wcKoinApp.koin.get<ColumnAdapter<List<String>, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST))
     }
 
-    single<ColumnAdapter<AppMetaDataType, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATATYPE)) { EnumColumnAdapter() }
+    if (wcKoinApp.koin.getOrNull<ColumnAdapter<AppMetaDataType, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATATYPE)) == null) {
+        single<ColumnAdapter<AppMetaDataType, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATATYPE)) { EnumColumnAdapter() }
+    } else {
+        wcKoinApp.koin.get<ColumnAdapter<AppMetaDataType, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATATYPE))
+    }
 
-    single(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)) {
-        try {
-            createCoreDB().also {
-                it.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull()
+    if (wcKoinApp.koin.getOrNull<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)) == null) {
+        single<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)) {
+            try {
+                createCoreDB().also { database -> database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull() }
+            } catch (e: Exception) {
+                deleteDBs(DBNames.ANDROID_CORE_DB_NAME)
+                createCoreDB()
             }
-        } catch (e: Exception) {
-            deleteDBs(DBNames.ANDROID_CORE_DB_NAME)
-            createCoreDB()
         }
+    } else {
+        wcKoinApp.koin.get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE))
     }
 
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).jsonRpcHistoryQueries }
@@ -57,11 +68,21 @@ fun baseStorageModule() = module {
 
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).metaDataQueries }
 
-    single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(get()) }
+    if (wcKoinApp.koin.getOrNull<JsonRpcHistory>() == null) {
+        single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(get()) }
+    } else {
+        wcKoinApp.koin.get<JsonRpcHistory>()
+    }
 
-    single<PairingStorageRepositoryInterface> { PairingStorageRepository(get()) }
+    single<PairingStorageRepositoryInterface> {
+        PairingStorageRepository(get())
+    }
 
-    single { JsonRpcHistory(get(), get()) }
+    if (wcKoinApp.koin.getOrNull<JsonRpcHistory>() == null) {
+        single { JsonRpcHistory(get(), get()) }
+    } else {
+        wcKoinApp.koin.get<JsonRpcHistory>()
+    }
 }
 
 object DBNames {

@@ -41,8 +41,6 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
         plantTimber()
 
-        logger.log("kobe; RelayClient")
-
         val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
         val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl())
         val serverUrl = relayServerUrl.addUserAgent(BuildConfig.SDK_VERSION)
@@ -50,12 +48,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
         wcKoinApp.modules(androidApiNetworkModule(serverUrl, jwt, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION))
         relayService = wcKoinApp.koin.get(named(AndroidCommonDITags.RELAY_SERVICE))
 
-        wsConnectionFailedFlow.onEach { walletConnectException ->
-
-            logger.log("kobe; Relay error: $walletConnectException")
-
-            onError(walletConnectException)
-        }.launchIn(scope)
+        wsConnectionFailedFlow.onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
 
     override val isConnectionAvailable: StateFlow<Boolean> by lazy {

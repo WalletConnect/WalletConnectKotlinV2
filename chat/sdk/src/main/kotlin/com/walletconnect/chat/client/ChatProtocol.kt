@@ -33,7 +33,7 @@ internal class ChatProtocol : ChatInterface {
         try {
             wcKoinApp.run {
                 modules(
-                    commonModule(),
+//                    commonModule(),
                     cryptoModule(),
                     keyServerModule(keyServerUrl),
                     jsonRpcModule(),

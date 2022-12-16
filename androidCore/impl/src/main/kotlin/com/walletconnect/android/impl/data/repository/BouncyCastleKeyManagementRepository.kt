@@ -21,11 +21,6 @@ import java.security.SecureRandom
 import javax.crypto.KeyGenerator
 
 internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStore) : KeyManagementRepository {
-
-    init {
-        println("kobe; init BouncyCastle")
-    }
-
     override fun setKey(key: Key, tag: String) {
         keyChain.setKey(tag, key)
     }

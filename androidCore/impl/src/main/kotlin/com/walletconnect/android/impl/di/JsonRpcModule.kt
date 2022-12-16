@@ -14,7 +14,6 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import kotlin.reflect.KClass
 
-
 @JvmSynthetic
 fun jsonRpcModule() = module {
 
@@ -31,7 +30,7 @@ fun jsonRpcModule() = module {
     addDeserializerEntry(PairingJsonRpcMethod.WC_PAIRING_DELETE, PairingParams.DeleteParams::class)
 
     factory {
-            JsonRpcSerializer(
+        JsonRpcSerializer(
             serializerEntries = getAll<KClass<SerializableJsonRpc>>().toSet(),
             deserializerEntries = getAll<Pair<String, KClass<*>>>().toMap()
         )

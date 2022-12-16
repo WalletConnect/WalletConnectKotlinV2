@@ -48,9 +48,6 @@ internal class JsonRpcInteractor(
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
 
     init {
-
-        logger.error("kobe; Init JSONRpcInteractor")
-
         manageSubscriptions()
     }
 
@@ -255,7 +252,7 @@ internal class JsonRpcInteractor(
     private suspend fun manageSubscriptions(decryptedMessage: String, topic: Topic) {
         serializer.tryDeserialize<ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
             handleRequest(clientJsonRpc, topic, decryptedMessage)
-        } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcResult>(decryptedMessage)?.let { result ->
+        } ?: serializer.moshi.adapter(JsonRpcResponse.JsonRpcResult::class.java).fromJson(decryptedMessage)?.let { result ->
             handleJsonRpcResult(result)
         } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
             handleJsonRpcError(error)
