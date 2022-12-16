@@ -1,9 +1,9 @@
 package com.walletconnect.auth.signature
 
 import com.walletconnect.android.Core
+import com.walletconnect.android.internal.common.model.params.Cacao
 import com.walletconnect.auth.client.Auth.Params.Request
 import com.walletconnect.auth.client.mapper.toCommon
-import com.walletconnect.auth.common.model.Cacao.Payload
 import com.walletconnect.auth.common.model.Issuer
 import com.walletconnect.auth.engine.mapper.toCAIP122Message
 import com.walletconnect.auth.engine.mapper.toCacaoPayload
@@ -22,10 +22,10 @@ internal class MapperTest {
     private val chainName = "Ethereum"
     private val dummyPairing = Core.Model.Pairing("", 0L, null, "", null, "", true, "")
 
-    private fun Payload.mockIatAsNbf(request: Request): Payload {
+    private fun Cacao.Payload.mockIatAsNbf(request: Request): Cacao.Payload {
         return this.copy(iat = request.nbf!!)
     }
-    private fun Request.toCacaoPayload(iss: String): Payload = this.toCommon().toCacaoPayload(Issuer(iss))
+    private fun Request.toCacaoPayload(iss: String): Cacao.Payload = this.toCommon().toCacaoPayload(Issuer(iss))
 
     @Test
     fun `Payload based on Request mapping with supplied issuer`() {
@@ -43,7 +43,7 @@ internal class MapperTest {
             resources = listOf("ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/", "https://example.com/my-web2-claim.json")
         )
 
-        val payload = Payload(
+        val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
@@ -87,7 +87,7 @@ internal class MapperTest {
 
     @Test
     fun `Payload required fields formatting`() {
-        val payload = Payload(
+        val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
@@ -115,7 +115,7 @@ internal class MapperTest {
 
     @Test
     fun `Payload resources formatting`() {
-        val payload = Payload(
+        val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
@@ -146,7 +146,7 @@ internal class MapperTest {
 
     @Test
     fun `Payload requestId formatting`() {
-        val payload = Payload(
+        val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
@@ -175,7 +175,7 @@ internal class MapperTest {
 
     @Test
     fun `Payload statement formatting`() {
-        val payload = Payload(
+        val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
@@ -205,7 +205,7 @@ internal class MapperTest {
 
     @Test
     fun `Payload expiry formatting`() {
-        val payload = Payload(
+        val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
@@ -234,7 +234,7 @@ internal class MapperTest {
 
     @Test
     fun `Payload not before formatting`() {
-        val payload = Payload(
+        val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
@@ -263,7 +263,7 @@ internal class MapperTest {
 
     @Test
     fun `Payload all fields formatting`() {
-        val payload = Payload(
+        val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
             aud = "https://service.invalid/login",
