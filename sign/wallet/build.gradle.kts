@@ -44,8 +44,7 @@ dependencies {
     implementation(project(":sign:samples_common"))
 
     debugImplementation(project(":androidCore:sdk"))
-//    debugImplementation(project(":sign:sdk"))
-    debugImplementation(project(":web3:wallet")) //todo change
+    debugImplementation(project(":sign:sdk"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
