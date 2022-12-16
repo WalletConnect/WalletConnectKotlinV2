@@ -7,8 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
-import com.walletconnect.wallet.client.Wallet
-import com.walletconnect.wallet.client.Web3Wallet
+import com.walletconnect.sign.client.Sign
+import com.walletconnect.sign.client.SignClient
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.ui.SampleWalletEvents
 import kotlinx.coroutines.flow.*
@@ -37,16 +37,16 @@ class SessionRequestViewModel : ViewModel() {
 
     fun reject(sendSessionRequestResponseDeepLink: (Uri) -> Unit) {
         (uiState.value as? SessionRequestUI.Content)?.let { sessionRequest ->
-            val result = Wallet.Params.SessionRequestResponse(
+            val result = Sign.Params.Response(
                 sessionTopic = sessionRequest.topic,
-                jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
+                jsonRpcResponse = Sign.Model.JsonRpcResponse.JsonRpcError(
                     id = sessionRequest.requestId,
                     code = 500,
                     message = "Kotlin Wallet Error"
                 )
             )
 
-            Web3Wallet.respondSessionRequest(result) { error ->
+            SignClient.respond(result) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
 
@@ -68,15 +68,15 @@ class SessionRequestViewModel : ViewModel() {
                     true) == true -> """{"Walletature":"pBvp1bMiX6GiWmfYmkFmfcZdekJc19GbZQanqaGa\/kLPWjoYjaJWYttvm17WoDMyn4oROas4JLu5oKQVRIj911==","pub_key":{"value":"psclI0DNfWq6cOlGrKD9wNXPxbUsng6Fei77XjwdkPSt","type":"tendermint\/PubKeySecp256k1"}}"""
                 else -> throw Exception("Unsupported Chain")
             }
-            val response = Wallet.Params.SessionRequestResponse(
+            val response = Sign.Params.Response(
                 sessionTopic = sessionRequest.topic,
-                jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcResult(
+                jsonRpcResponse = Sign.Model.JsonRpcResponse.JsonRpcResult(
                     sessionRequest.requestId,
                     result
                 )
             )
 
-            Web3Wallet.respondSessionRequest(response) { error ->
+            SignClient.respond(response) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
 
@@ -93,7 +93,7 @@ class SessionRequestViewModel : ViewModel() {
         sessionRequest: SessionRequestUI.Content,
         sendSessionRequestResponseDeepLink: (Uri) -> Unit,
     ) {
-        Web3Wallet.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
+        SignClient.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
             ?.let { deepLinkUri -> sendSessionRequestResponseDeepLink(deepLinkUri) }
     }
 }

@@ -124,7 +124,7 @@ class SessionDetailsViewModel : ViewModel() {
         }
     }
 
-    //fixme: Needs whole view rework. Base view on JS Sign
+    //fixme: Needs whole view rework. Base view on JS Wallet
     fun emitEvent() {
         // Right now: Emits first alphabetical event
         // How it should be: User should be able to emit desired event
