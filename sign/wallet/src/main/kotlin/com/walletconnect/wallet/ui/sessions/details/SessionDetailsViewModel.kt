@@ -11,7 +11,7 @@ import com.walletconnect.sign.client.SignClient
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAccounts2
 import com.walletconnect.wallet.domain.mapOfAllAccounts
-import com.walletconnect.wallet.ui.SampleWalletEvents
+import com.walletconnect.wallet.ui.SampleSignEvents
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -19,8 +19,8 @@ class SessionDetailsViewModel : ViewModel() {
     private val _uiState: MutableStateFlow<SessionDetailsUI?> = MutableStateFlow(null)
     val uiState: StateFlow<SessionDetailsUI?> = _uiState.asStateFlow()
 
-    private val _sessionDetails: MutableSharedFlow<SampleWalletEvents> = MutableSharedFlow()
-    val sessionDetails: SharedFlow<SampleWalletEvents> = _sessionDetails.asSharedFlow()
+    private val _sessionDetails: MutableSharedFlow<SampleSignEvents> = MutableSharedFlow()
+    val sessionDetails: SharedFlow<SampleSignEvents> = _sessionDetails.asSharedFlow()
 
     private var selectedSessionTopic: String? = null
 
@@ -35,13 +35,13 @@ class SessionDetailsViewModel : ViewModel() {
                 when (wcModel) {
                     is Sign.Model.SessionUpdateResponse.Result -> {
                         // TODO: Update UI once state synchronization
-                        SampleWalletEvents.NoAction
+                        SampleSignEvents.NoAction
                     }
                     is Sign.Model.DeletedSession -> {
                         selectedSessionTopic = null
-                        _sessionDetails.emit(SampleWalletEvents.Disconnect)
+                        _sessionDetails.emit(SampleSignEvents.Disconnect)
                     }
-                    else -> SampleWalletEvents.NoAction
+                    else -> SampleSignEvents.NoAction
                 }
             }
             .launchIn(viewModelScope)
@@ -52,7 +52,7 @@ class SessionDetailsViewModel : ViewModel() {
             selectedSessionTopic = sessionTopic
 
             val listOfChainAccountInfo =
-                filterAndMapAllSignAccountsToSelectedSessionAccounts(selectedSession)
+                filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession)
             val selectedSessionPeerData: Core.Model.AppMetaData =
                 requireNotNull(selectedSession.metaData)
             val uiState = SessionDetailsUI.Content(
@@ -86,35 +86,35 @@ class SessionDetailsViewModel : ViewModel() {
         }
 
         viewModelScope.launch {
-            _sessionDetails.emit(SampleWalletEvents.Disconnect)
+            _sessionDetails.emit(SampleSignEvents.Disconnect)
         }
     }
 
     fun ping() {
-//        selectedSessionTopic?.let {
-//            val ping = Sign.Params.Ping(it)
-//            SignClient.ping(ping, object : Sign.Listeners.SessionPing {
-//
-//                override fun onSuccess(pingSuccess: Sign.Model.Ping.Success) {
-//                    viewModelScope.launch() {
-//                        _sessionDetails.emit(
-//                            SampleSignEvents.PingSuccess(
-//                                pingSuccess.topic,
-//                                System.currentTimeMillis()
-//                            )
-//                        )
-//                    }
-//                }
-//
-//                override fun onError(pingError: Sign.Model.Ping.Error) {
-//                    viewModelScope.launch {
-//                        _sessionDetails.emit(SampleSignEvents.PingError(System.currentTimeMillis()))
-//                    }
-//                }
-//            })
-//        } ?: viewModelScope.launch {
-//            _sessionDetails.emit(SampleSignEvents.PingError(System.currentTimeMillis()))
-//        }
+        selectedSessionTopic?.let {
+            val ping = Sign.Params.Ping(it)
+            SignClient.ping(ping, object : Sign.Listeners.SessionPing {
+
+                override fun onSuccess(pingSuccess: Sign.Model.Ping.Success) {
+                    viewModelScope.launch() {
+                        _sessionDetails.emit(
+                            SampleSignEvents.PingSuccess(
+                                pingSuccess.topic,
+                                System.currentTimeMillis()
+                            )
+                        )
+                    }
+                }
+
+                override fun onError(pingError: Sign.Model.Ping.Error) {
+                    viewModelScope.launch {
+                        _sessionDetails.emit(SampleSignEvents.PingError(System.currentTimeMillis()))
+                    }
+                }
+            })
+        } ?: viewModelScope.launch {
+            _sessionDetails.emit(SampleSignEvents.PingError(System.currentTimeMillis()))
+        }
     }
 
     fun extendSession() {
@@ -156,7 +156,7 @@ class SessionDetailsViewModel : ViewModel() {
         Log.e(tag(this@SessionDetailsViewModel), "Event was not emitted")
     }
 
-    //fixme: Needs whole view rework. Base view on JS Sign
+    //fixme: Needs whole view rework. Base view on JS Wallet
     fun updateNamespaces() {
         // Right now: Expand first (right now there's only eip155) namespace with another account, event and method. Works only once
         // How it should be: User can toggle every account, method, event and then call this method with state to be updated
@@ -196,13 +196,13 @@ class SessionDetailsViewModel : ViewModel() {
         Log.e(tag(this@SessionDetailsViewModel), "Update was not called")
     }
 
-    // TODO: Once state sync is complete, replace updating UI from VM with event from SignDelegate - SessionUpdateResponse
+    // TODO: Once state sync is complete, replace updating UI from VM with event from WalletDelegate - SessionUpdateResponse
 //        viewModelScope.launch {
 //            _uiState.emit(updatedUIState)
 //        }
 
 
-    private fun filterAndMapAllSignAccountsToSelectedSessionAccounts(selectedSession: Sign.Model.Session): List<SessionDetailsUI.Content.ChainAccountInfo> =
+    private fun filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession: Sign.Model.Session): List<SessionDetailsUI.Content.ChainAccountInfo> =
         mapOfAllAccounts.values
             .flatMap { accountsMap: Map<Chains, String> ->
                 val accountsMapID =

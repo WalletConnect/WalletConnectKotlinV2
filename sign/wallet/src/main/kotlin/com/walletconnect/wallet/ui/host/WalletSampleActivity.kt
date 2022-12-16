@@ -17,7 +17,7 @@ import com.walletconnect.wallet.R
 import com.walletconnect.wallet.SESSION_REQUEST_ARGS_NUM_KEY
 import com.walletconnect.wallet.SESSION_REQUEST_KEY
 import com.walletconnect.wallet.databinding.ActivityWalletBinding
-import com.walletconnect.wallet.ui.SampleWalletEvents
+import com.walletconnect.wallet.ui.SampleSignEvents
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -37,8 +37,8 @@ class WalletSampleActivity : AppCompatActivity() {
             .flowWithLifecycle(lifecycle)
             .onEach { event ->
                 when (event) {
-                    is SampleWalletEvents.SessionProposal -> navController.navigate(R.id.action_global_to_session_proposal)
-                    is SampleWalletEvents.SessionRequest -> {
+                    is SampleSignEvents.SessionProposal -> navController.navigate(R.id.action_global_to_session_proposal)
+                    is SampleSignEvents.SessionRequest -> {
                         navController.navigate(R.id.action_global_to_session_request,
                             bundleOf(SESSION_REQUEST_KEY to event.arrayOfArgs, SESSION_REQUEST_ARGS_NUM_KEY to event.numOfArgs))
                     }

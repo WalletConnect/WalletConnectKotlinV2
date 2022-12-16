@@ -10,7 +10,7 @@ import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.wallet.domain.WalletDelegate
-import com.walletconnect.wallet.ui.SampleWalletEvents
+import com.walletconnect.wallet.ui.SampleSignEvents
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -19,8 +19,8 @@ class SessionRequestViewModel : ViewModel() {
         MutableStateFlow(SessionRequestUI.Initial)
     val uiState: StateFlow<SessionRequestUI> = _uiState.asStateFlow()
 
-    private val _event: MutableSharedFlow<SampleWalletEvents> = MutableSharedFlow()
-    val event: SharedFlow<SampleWalletEvents> = _event.asSharedFlow()
+    private val _event: MutableSharedFlow<SampleSignEvents> = MutableSharedFlow()
+    val event: SharedFlow<SampleSignEvents> = _event.asSharedFlow()
 
     fun loadRequestData(arrayOfArgs: ArrayList<String?>) {
         val topic: String = arrayOfArgs[0].toString()
@@ -51,7 +51,7 @@ class SessionRequestViewModel : ViewModel() {
             }
 
             viewModelScope.launch {
-                _event.emit(SampleWalletEvents.SessionRequestResponded)
+                _event.emit(SampleSignEvents.SessionRequestResponded)
                 WalletDelegate.clearCache()
             }
 
@@ -65,7 +65,7 @@ class SessionRequestViewModel : ViewModel() {
                 sessionRequest.chain?.contains(Chains.Info.Eth.chain,
                     true) == true -> """0xa3f20717a250c2b0b729b7e5becbff67fdaef7e0699da4de7ca5895b02a170a12d887fd3b17bfdce3481f10bea41f45ba9f709d39ce8325427b57afcfc994cee1b"""
                 sessionRequest.chain?.contains(Chains.Info.Cosmos.chain,
-                    true) == true -> """{"Walletature":"pBvp1bMiX6GiWmfYmkFmfcZdekJc19GbZQanqaGa\/kLPWjoYjaJWYttvm17WoDMyn4oROas4JLu5oKQVRIj911==","pub_key":{"value":"psclI0DNfWq6cOlGrKD9wNXPxbUsng6Fei77XjwdkPSt","type":"tendermint\/PubKeySecp256k1"}}"""
+                    true) == true -> """{"signature":"pBvp1bMiX6GiWmfYmkFmfcZdekJc19GbZQanqaGa\/kLPWjoYjaJWYttvm17WoDMyn4oROas4JLu5oKQVRIj911==","pub_key":{"value":"psclI0DNfWq6cOlGrKD9wNXPxbUsng6Fei77XjwdkPSt","type":"tendermint\/PubKeySecp256k1"}}"""
                 else -> throw Exception("Unsupported Chain")
             }
             val response = Sign.Params.Response(
@@ -81,7 +81,7 @@ class SessionRequestViewModel : ViewModel() {
             }
 
             viewModelScope.launch {
-                _event.emit(SampleWalletEvents.SessionRequestResponded)
+                _event.emit(SampleSignEvents.SessionRequestResponded)
                 WalletDelegate.clearCache()
             }
 
