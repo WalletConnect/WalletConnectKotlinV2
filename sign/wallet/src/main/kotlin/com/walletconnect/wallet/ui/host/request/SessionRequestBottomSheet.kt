@@ -17,7 +17,7 @@ import com.walletconnect.sample_common.viewBinding
 import com.walletconnect.wallet.SESSION_REQUEST_ARGS_NUM_KEY
 import com.walletconnect.wallet.SESSION_REQUEST_KEY
 import com.walletconnect.wallet.databinding.BottomsheetSessionRequestBinding
-import com.walletconnect.wallet.ui.SampleSignEvents
+import com.walletconnect.wallet.ui.SampleWalletEvents
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -68,7 +68,7 @@ class SessionRequestBottomSheet : BottomSheetDialogFragment() {
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         viewModel.event
-            .filterIsInstance<SampleSignEvents.SessionRequestResponded>()
+            .filterIsInstance<SampleWalletEvents.SessionRequestResponded>()
             .flowWithLifecycle(viewLifecycleOwner.lifecycle)
             .onEach {
                 findNavController().popBackStack()
