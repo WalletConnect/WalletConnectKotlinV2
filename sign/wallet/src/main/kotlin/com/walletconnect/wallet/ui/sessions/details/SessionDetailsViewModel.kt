@@ -11,7 +11,7 @@ import com.walletconnect.sign.client.SignClient
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAccounts2
 import com.walletconnect.wallet.domain.mapOfAllAccounts
-import com.walletconnect.wallet.ui.SampleSignEvents
+import com.walletconnect.wallet.ui.SampleWalletEvents
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -19,8 +19,8 @@ class SessionDetailsViewModel : ViewModel() {
     private val _uiState: MutableStateFlow<SessionDetailsUI?> = MutableStateFlow(null)
     val uiState: StateFlow<SessionDetailsUI?> = _uiState.asStateFlow()
 
-    private val _sessionDetails: MutableSharedFlow<SampleSignEvents> = MutableSharedFlow()
-    val sessionDetails: SharedFlow<SampleSignEvents> = _sessionDetails.asSharedFlow()
+    private val _sessionDetails: MutableSharedFlow<SampleWalletEvents> = MutableSharedFlow()
+    val sessionDetails: SharedFlow<SampleWalletEvents> = _sessionDetails.asSharedFlow()
 
     private var selectedSessionTopic: String? = null
 
@@ -35,13 +35,13 @@ class SessionDetailsViewModel : ViewModel() {
                 when (wcModel) {
                     is Sign.Model.SessionUpdateResponse.Result -> {
                         // TODO: Update UI once state synchronization
-                        SampleSignEvents.NoAction
+                        SampleWalletEvents.NoAction
                     }
                     is Sign.Model.DeletedSession -> {
                         selectedSessionTopic = null
-                        _sessionDetails.emit(SampleSignEvents.Disconnect)
+                        _sessionDetails.emit(SampleWalletEvents.Disconnect)
                     }
-                    else -> SampleSignEvents.NoAction
+                    else -> SampleWalletEvents.NoAction
                 }
             }
             .launchIn(viewModelScope)
@@ -86,7 +86,7 @@ class SessionDetailsViewModel : ViewModel() {
         }
 
         viewModelScope.launch {
-            _sessionDetails.emit(SampleSignEvents.Disconnect)
+            _sessionDetails.emit(SampleWalletEvents.Disconnect)
         }
     }
 
@@ -98,7 +98,7 @@ class SessionDetailsViewModel : ViewModel() {
                 override fun onSuccess(pingSuccess: Sign.Model.Ping.Success) {
                     viewModelScope.launch() {
                         _sessionDetails.emit(
-                            SampleSignEvents.PingSuccess(
+                            SampleWalletEvents.PingSuccess(
                                 pingSuccess.topic,
                                 System.currentTimeMillis()
                             )
@@ -108,12 +108,12 @@ class SessionDetailsViewModel : ViewModel() {
 
                 override fun onError(pingError: Sign.Model.Ping.Error) {
                     viewModelScope.launch {
-                        _sessionDetails.emit(SampleSignEvents.PingError(System.currentTimeMillis()))
+                        _sessionDetails.emit(SampleWalletEvents.PingError(System.currentTimeMillis()))
                     }
                 }
             })
         } ?: viewModelScope.launch {
-            _sessionDetails.emit(SampleSignEvents.PingError(System.currentTimeMillis()))
+            _sessionDetails.emit(SampleWalletEvents.PingError(System.currentTimeMillis()))
         }
     }
 

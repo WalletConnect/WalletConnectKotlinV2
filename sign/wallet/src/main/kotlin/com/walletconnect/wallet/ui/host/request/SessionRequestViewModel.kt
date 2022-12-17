@@ -10,7 +10,7 @@ import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.wallet.domain.WalletDelegate
-import com.walletconnect.wallet.ui.SampleSignEvents
+import com.walletconnect.wallet.ui.SampleWalletEvents
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -19,8 +19,8 @@ class SessionRequestViewModel : ViewModel() {
         MutableStateFlow(SessionRequestUI.Initial)
     val uiState: StateFlow<SessionRequestUI> = _uiState.asStateFlow()
 
-    private val _event: MutableSharedFlow<SampleSignEvents> = MutableSharedFlow()
-    val event: SharedFlow<SampleSignEvents> = _event.asSharedFlow()
+    private val _event: MutableSharedFlow<SampleWalletEvents> = MutableSharedFlow()
+    val event: SharedFlow<SampleWalletEvents> = _event.asSharedFlow()
 
     fun loadRequestData(arrayOfArgs: ArrayList<String?>) {
         val topic: String = arrayOfArgs[0].toString()
@@ -51,7 +51,7 @@ class SessionRequestViewModel : ViewModel() {
             }
 
             viewModelScope.launch {
-                _event.emit(SampleSignEvents.SessionRequestResponded)
+                _event.emit(SampleWalletEvents.SessionRequestResponded)
                 WalletDelegate.clearCache()
             }
 
@@ -81,7 +81,7 @@ class SessionRequestViewModel : ViewModel() {
             }
 
             viewModelScope.launch {
-                _event.emit(SampleSignEvents.SessionRequestResponded)
+                _event.emit(SampleWalletEvents.SessionRequestResponded)
                 WalletDelegate.clearCache()
             }
 

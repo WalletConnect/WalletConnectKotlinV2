@@ -19,7 +19,7 @@ import com.walletconnect.sample_common.viewBinding
 import com.walletconnect.wallet.R
 import com.walletconnect.wallet.SELECTED_SESSION_TOPIC_KEY
 import com.walletconnect.wallet.databinding.FragmentSessionDetailsBinding
-import com.walletconnect.wallet.ui.SampleSignEvents
+import com.walletconnect.wallet.ui.SampleWalletEvents
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -78,11 +78,11 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
             .flowWithLifecycle(viewLifecycleOwner.lifecycle)
             .onEach { event ->
                 when (event) {
-                    is SampleSignEvents.PingSuccess ->
+                    is SampleWalletEvents.PingSuccess ->
                         Toast.makeText(requireContext(), "Pinged Peer Successfully on Topic: ${event.topic}", Toast.LENGTH_SHORT).show()
-                    is SampleSignEvents.PingError -> Toast.makeText(requireContext(), "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT)
+                    is SampleWalletEvents.PingError -> Toast.makeText(requireContext(), "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT)
                         .show()
-                    is SampleSignEvents.Disconnect -> findNavController().popBackStack()
+                    is SampleWalletEvents.Disconnect -> findNavController().popBackStack()
                     else -> Unit
                 }
             }
