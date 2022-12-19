@@ -11,12 +11,12 @@ internal fun EngineDO.PushRequest.toClientPushRequest(): Push.Wallet.Model.Reque
 }
 
 @JvmSynthetic
-internal fun EngineDO.Message.toClientPushRequest(): Push.Wallet.Model.Message {
+internal fun EngineDO.PushMessage.toClientPushRequest(): Push.Wallet.Model.Message {
     return Push.Wallet.Model.Message(title, body, icon, url)
 }
 
 @JvmSynthetic
-internal fun EngineDO.Subscription.toClientPushRequest(): Push.Wallet.Model.Subscription {
+internal fun EngineDO.PushSubscription.toClientPushRequest(): Push.Wallet.Model.Subscription {
     return Push.Wallet.Model.Subscription(topic, relay.toClient(), metadata.toClient())
 }
 

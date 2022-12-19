@@ -57,7 +57,7 @@ object Push {
 
         sealed class Params {
 
-            class Init(): Params()
+            class Init(val core: CoreClient): Params()
 
             data class Approve(val id: Int): Params()
 

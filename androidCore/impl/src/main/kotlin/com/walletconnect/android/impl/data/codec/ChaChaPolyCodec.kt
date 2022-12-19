@@ -37,7 +37,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
     )
     override fun encrypt(topic: Topic, payload: String, envelopeType: EnvelopeType, participants: Participants?): String {
         val input = payload.toByteArray(Charsets.UTF_8)
-        val nonceBytes = randomBytes(NONCE_SIZE)
+        val nonceBytes = randomBytes(Codec.NONCE_SIZE)
 
         return when (envelopeType.id) {
             EnvelopeType.ZERO.id -> encryptEnvelopeType0(topic, nonceBytes, input, envelopeType)
@@ -63,28 +63,10 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         }
     }
 
-    override fun decryptMessage(key: String, cipherText: String): String {
-        val encryptedPayloadBytes = Base64.decode(cipherText)
-        val envelopeType = ByteArray(ENVELOPE_TYPE_SIZE)
-        val nonce = ByteArray(NONCE_SIZE)
-        val encryptedMessageBytes = ByteArray(encryptedPayloadBytes.size - NONCE_SIZE - ENVELOPE_TYPE_SIZE)
-
-        //tp + iv + sb
-        val byteBuffer: ByteBuffer = ByteBuffer.wrap(encryptedPayloadBytes)
-        byteBuffer.get(envelopeType)
-        byteBuffer.get(nonce)
-        byteBuffer.get(encryptedMessageBytes)
-
-        val symmetricKey = SymmetricKey(key)
-        val decryptedTextBytes = decryptPayload(symmetricKey, nonce, encryptedMessageBytes)
-
-        return String(decryptedTextBytes, Charsets.UTF_8)
-    }
-
     private fun decryptType0(topic: Topic, encryptedPayloadBytes: ByteArray): String {
-        val envelopeType = ByteArray(ENVELOPE_TYPE_SIZE)
-        val nonce = ByteArray(NONCE_SIZE)
-        val encryptedMessageBytes = ByteArray(encryptedPayloadBytes.size - NONCE_SIZE - ENVELOPE_TYPE_SIZE)
+        val envelopeType = ByteArray(Codec.ENVELOPE_TYPE_SIZE)
+        val nonce = ByteArray(Codec.NONCE_SIZE)
+        val encryptedMessageBytes = ByteArray(encryptedPayloadBytes.size - Codec.NONCE_SIZE - Codec.ENVELOPE_TYPE_SIZE)
 
         //tp + iv + sb
         val byteBuffer: ByteBuffer = ByteBuffer.wrap(encryptedPayloadBytes)
@@ -101,10 +83,10 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
     private fun decryptType1(encryptedPayloadBytes: ByteArray, receiverPublicKey: PublicKey?): String {
         if (receiverPublicKey == null) throw MissingKeyException("Missing receiver public key")
 
-        val envelopeType = ByteArray(ENVELOPE_TYPE_SIZE)
-        val nonce = ByteArray(NONCE_SIZE)
-        val publicKey = ByteArray(KEY_SIZE)
-        val encryptedMessageBytes = ByteArray(encryptedPayloadBytes.size - NONCE_SIZE - KEY_SIZE - ENVELOPE_TYPE_SIZE)
+        val envelopeType = ByteArray(Codec.ENVELOPE_TYPE_SIZE)
+        val nonce = ByteArray(Codec.NONCE_SIZE)
+        val publicKey = ByteArray(Codec.KEY_SIZE)
+        val encryptedMessageBytes = ByteArray(encryptedPayloadBytes.size - Codec.NONCE_SIZE - Codec.KEY_SIZE - Codec.ENVELOPE_TYPE_SIZE)
 
         //tp + pk + iv + sb
         val byteBuffer: ByteBuffer = ByteBuffer.wrap(encryptedPayloadBytes)
@@ -123,7 +105,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
     private fun encryptEnvelopeType0(topic: Topic, nonceBytes: ByteArray, input: ByteArray, envelopeType: EnvelopeType): String {
         val symmetricKey = keyManagementRepository.getSymmetricKey(topic.value)
         val cipherBytes = encryptPayload(symmetricKey, nonceBytes, input)
-        val payloadSize = cipherBytes.size + NONCE_SIZE + ENVELOPE_TYPE_SIZE
+        val payloadSize = cipherBytes.size + Codec.NONCE_SIZE + Codec.ENVELOPE_TYPE_SIZE
 
         //tp + iv + sb
         val encryptedPayloadBytes = ByteBuffer.allocate(payloadSize)
@@ -145,7 +127,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         val peer = participants.receiverPublicKey
         val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(self, peer)
         val cipherBytes = encryptPayload(symmetricKey, nonceBytes, input)
-        val payloadSize = cipherBytes.size + NONCE_SIZE + ENVELOPE_TYPE_SIZE + selfBytes.size
+        val payloadSize = cipherBytes.size + Codec.NONCE_SIZE + Codec.ENVELOPE_TYPE_SIZE + selfBytes.size
 
         //tp + pk + iv + sb
         val encryptedPayloadBytes = ByteBuffer.allocate(payloadSize)
@@ -167,7 +149,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         return cipherBytes
     }
 
-    private fun decryptPayload(key: SymmetricKey, nonce: ByteArray, input: ByteArray): ByteArray {
+    override fun decryptPayload(key: SymmetricKey, nonce: ByteArray, input: ByteArray): ByteArray {
         val params = ParametersWithIV(KeyParameter(key.keyAsHex.hexToBytes()), nonce)
         cha20Poly1305.init(false, params)
         val decryptedTextBytes = ByteArray(cha20Poly1305.getOutputSize(input.size))
@@ -177,9 +159,6 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
     }
 
     private companion object {
-        const val NONCE_SIZE = 12
-        const val KEY_SIZE = 32
-        const val ENVELOPE_TYPE_SIZE = 1
         val ByteArray.envelopeType: Byte get() = this[0]
     }
 }

@@ -13,14 +13,14 @@ sealed class EngineDO {
         val account: String,
     ) : EngineDO(), EngineEvent
 
-    data class Message(
+    data class PushMessage(
         val title: String,
         val body: String,
         val icon: String,
         val url: String,
     ): EngineDO(), EngineEvent
 
-    data class Subscription(
+    data class PushSubscription(
         val topic: String,
         val relay: RelayProtocolOptions,
         val metadata: AppMetaData,
