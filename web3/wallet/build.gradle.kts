@@ -1,32 +1,47 @@
 plugins {
     id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    kotlin("android")
+    id("com.google.devtools.ksp") version kspVersion
+    id("publish-module-android")
+}
+
+project.apply {
+    extra[KEY_PUBLISH_ARTIFACT_ID] = "web3wallet"
+    extra[KEY_PUBLISH_VERSION] = WEB_3_WALLET
+    extra[KEY_SDK_NAME] = "web3wallet"
 }
 
 android {
     namespace = "com.walletconnect.wallet"
-    compileSdk = 32
+    compileSdk = COMPILE_SDK
 
     defaultConfig {
-        minSdk = 23
-        targetSdk = 32
+        minSdk = MIN_SDK
+        targetSdk = TARGET_SDK
 
+        aarMetadata {
+            minCompileSdk = MIN_SDK
+            targetSdk = TARGET_SDK
+        }
+
+        buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro")
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = jvmVersion
+        targetCompatibility = jvmVersion
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = jvmVersion.toString()
+        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.time.ExperimentalTime"
     }
 }
 
@@ -38,11 +53,4 @@ dependencies {
     releaseImplementation("com.walletconnect:sign:2.3.1")
     releaseImplementation("com.walletconnect:auth:1.3.0")
     releaseImplementation("com.walletconnect:android-core-impl:$CORE_VERSION")
-
-    implementation("androidx.core:core-ktx:1.7.0")
-    implementation("androidx.appcompat:appcompat:1.5.1")
-    implementation("com.google.android.material:material:1.7.0")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.4")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0")
 }
