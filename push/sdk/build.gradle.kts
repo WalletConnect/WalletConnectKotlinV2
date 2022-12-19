@@ -8,7 +8,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "push"
-    extra[KEY_PUBLISH_VERSION] = "2.3.1"
+    extra[KEY_PUBLISH_VERSION] = "1.0.0-alpha01"
     extra[KEY_SDK_NAME] = "Push"
 }
 

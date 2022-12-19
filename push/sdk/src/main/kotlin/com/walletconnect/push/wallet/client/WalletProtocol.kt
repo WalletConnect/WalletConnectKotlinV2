@@ -17,14 +17,14 @@ import kotlinx.coroutines.flow.onEach
 
 class WalletProtocol : WalletInterface {
     private lateinit var decryptMessageUseCase: DecryptMessageUseCase
-    private lateinit var pushEngine: WalletEngine
+    private lateinit var walletEngine: WalletEngine
 
     companion object {
         val instance = WalletProtocol()
         const val storageSuffix: String = "push"
     }
 
-    override fun initialize(onError: (Push.Wallet.Model.Error) -> Unit) {
+    override fun initialize(init: Push.Wallet.Params.Init, onError: (Push.Wallet.Model.Error) -> Unit) {
         try {
             wcKoinApp.modules(
                 pushCommonModule(),
@@ -36,8 +36,8 @@ class WalletProtocol : WalletInterface {
 
             decryptMessageUseCase = wcKoinApp.koin.get()
 
-            pushEngine = wcKoinApp.koin.get()
-            pushEngine.setup()
+            walletEngine = wcKoinApp.koin.get()
+            walletEngine.setup()
         } catch (e: Exception) {
             onError(Push.Wallet.Model.Error(e))
         }
@@ -46,10 +46,10 @@ class WalletProtocol : WalletInterface {
     override fun setDelegate(delegate: WalletInterface.Delegate) {
         checkEngineInitialization()
 
-        pushEngine.engineEvent.onEach { event ->
+        walletEngine.engineEvent.onEach { event ->
             when (event) {
                 is EngineDO.PushRequest -> delegate.onPushRequest(event.toClientPushRequest())
-                is EngineDO.Message -> delegate.onPushMessage(event.toClientPushRequest())
+                is EngineDO.PushMessage -> delegate.onPushMessage(event.toClientPushRequest())
             }
         }.launchIn(scope)
     }
@@ -59,7 +59,7 @@ class WalletProtocol : WalletInterface {
 
         try {
             // TODO: Find out if it's better to pass the publicKey instead of the ID
-            pushEngine.approve(/*params.id*/"", onSuccess) { onError(Push.Wallet.Model.Error(it)) }
+            walletEngine.approve(/*params.id*/"", onSuccess) { onError(Push.Wallet.Model.Error(it)) }
         } catch (e: Exception) {
             onError(Push.Wallet.Model.Error(e))
         }
@@ -70,14 +70,14 @@ class WalletProtocol : WalletInterface {
 
         try {
             // TODO: Find out if it's better to pass the publicKey instead of the ID
-            pushEngine.reject(/*params.id*/"", params.reason, onSuccess) { onError(Push.Wallet.Model.Error(it)) }
+            walletEngine.reject(/*params.id*/"", params.reason, onSuccess) { onError(Push.Wallet.Model.Error(it)) }
         } catch (e: Exception) {
             onError(Push.Wallet.Model.Error(e))
         }
     }
 
     override fun getActiveSubscriptions(): Map<String, Push.Wallet.Model.Subscription> {
-        return pushEngine.getListOfSubscriptions().mapValues { (_, subscription) ->
+        return walletEngine.getListOfSubscriptions().mapValues { (_, subscription) ->
             subscription.toClientPushRequest()
         }
     }
@@ -89,14 +89,14 @@ class WalletProtocol : WalletInterface {
     override fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (Push.Wallet.Model.Message) -> Unit, onError: (Push.Wallet.Model.Error) -> Unit) {
         runCatching { decryptMessageUseCase(params.topic, params.encryptedMessage) }.fold({ decryptedMsg ->
             onSuccess(Push.Wallet.Model.Message("", "", "", ""))  // TODO: Need to confirm if decryptedMsg will be broken up to conform to Push.Wallet.Model.Message or will we have different logic
-        }, {
-            onError(Push.Wallet.Model.Error(it))
+        }, { error ->
+            onError(Push.Wallet.Model.Error(error))
         })
     }
 
     @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {
-        check(::pushEngine.isInitialized) {
+        check(::walletEngine.isInitialized) {
             "WalletClient needs to be initialized first using the initialize function"
         }
     }

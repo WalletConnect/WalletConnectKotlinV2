@@ -9,7 +9,7 @@ interface WalletInterface {
         fun onPushMessage(message: Push.Wallet.Model.Message)
     }
 
-    fun initialize(onError: (Push.Wallet.Model.Error) -> Unit)
+    fun initialize(init: Push.Wallet.Params.Init, onError: (Push.Wallet.Model.Error) -> Unit)
 
     fun setDelegate(delegate: Delegate)
 
