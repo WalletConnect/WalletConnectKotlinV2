@@ -1,10 +1,10 @@
 @file:JvmSynthetic
 
-package com.walletconnect.wallet.utils
+package com.walletconnect.web3.wallet.utils
 
 import com.walletconnect.auth.signature.eip191.EIP191Signer
 import com.walletconnect.auth.signature.toCacaoSignature
-import com.walletconnect.wallet.client.Wallet
+import com.walletconnect.web3.wallet.client.Wallet
 
 object CacaoSigner {
     fun sign(message: ByteArray, privateKey: ByteArray, type: SignatureType): Wallet.Model.Cacao.Signature =

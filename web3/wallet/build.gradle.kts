@@ -12,7 +12,7 @@ project.apply {
 }
 
 android {
-    namespace = "com.walletconnect.wallet"
+    namespace = "com.walletconnect.web3.wallet"
     compileSdk = COMPILE_SDK
 
     defaultConfig {
@@ -50,7 +50,7 @@ dependencies {
     debugImplementation(project(":auth:sdk"))
     debugImplementation(project(":androidCore:impl"))
 
-    releaseImplementation("com.walletconnect:sign:2.3.1")
-    releaseImplementation("com.walletconnect:auth:1.3.0")
+    releaseImplementation("com.walletconnect:sign:2.4.0")
+    releaseImplementation("com.walletconnect:auth:1.4.0")
     releaseImplementation("com.walletconnect:android-core-impl:$CORE_VERSION")
 }

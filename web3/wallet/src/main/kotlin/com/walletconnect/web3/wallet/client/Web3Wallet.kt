@@ -1,4 +1,4 @@
-package com.walletconnect.wallet.client
+package com.walletconnect.web3.wallet.client
 
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
