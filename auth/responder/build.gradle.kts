@@ -44,7 +44,8 @@ dependencies {
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
-    releaseImplementation("com.walletconnect:auth")
+//    releaseImplementation("com.walletconnect:auth")
+    releaseImplementation("com.walletconnect:web3wallet")
 
     glide_N_kapt()
     scanner()
