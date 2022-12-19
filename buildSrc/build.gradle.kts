@@ -10,6 +10,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.android.tools.build:gradle:7.3.1")
-    implementation("org.jetbrains.dokka:dokka-gradle-plugin:1.6.21")
+    implementation("com.android.tools.build:gradle:7.3.1") // remember to change version in Versions.kt in buildSrc module
+    implementation("org.jetbrains.dokka:dokka-gradle-plugin:1.7.10") // remember to change version in Versions.kt in buildSrc module
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10")
 }

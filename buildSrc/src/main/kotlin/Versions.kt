@@ -3,7 +3,6 @@ import org.gradle.api.JavaVersion
 const val KEY_PUBLISH_VERSION = "PUBLISH_VERSION"
 const val KEY_PUBLISH_ARTIFACT_ID = "PUBLISH_ARTIFACT_ID"
 const val KEY_SDK_NAME = "SDK_NAME"
-const val dokkaVersion = "1.6.21"
 
 //Latest versions
 const val BOM_VERSION = "1.2.0"
@@ -18,10 +17,12 @@ val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23
 const val TARGET_SDK: Int = 32
 const val COMPILE_SDK: Int = TARGET_SDK
+const val agpVersion = "7.3.1" // remember to change version in build.gradle.kts in buildSrc module
 const val kotlinVersion = "1.7.10"
-const val kspVersion = "1.7.10-1.0.6"
+const val kspVersion = "$kotlinVersion-1.0.6"
+const val dokkaVersion = kotlinVersion // remember to change version in build.gradle.kts in buildSrc module
 
-const val sqlDelightVersion = "1.5.2"
+const val sqlDelightVersion = "1.5.4"
 const val moshiVersion = "1.13.0"
 const val coroutinesVersion = "1.6.4"
 const val scarletVersion = "1.0.0"

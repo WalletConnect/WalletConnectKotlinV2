@@ -31,3 +31,11 @@ File(rootDir.path).listFiles { file -> file.isDirectory && file.name !in exclude
         include(":${childDir.name}")
     }
 }
+
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
