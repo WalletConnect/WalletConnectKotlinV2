@@ -18,17 +18,21 @@ class WalletSampleApplication : Application() {
 
         //TODO: register at https://walletconnect.com/register to get a project ID
         val serverUri = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
-        CoreClient.initialize(relayServerUrl = serverUri, connectionType = ConnectionType.AUTOMATIC, application = this,
-            metaData = Core.Model.AppMetaData(
-                name = "Kotlin Wallet",
-                description = "Wallet description",
-                url = "example.wallet",
-                icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media"),
-                redirect = "kotlin-wallet-wc:/request",
-            ))
+        val metadata = Core.Model.AppMetaData(
+            name = "Kotlin Wallet",
+            description = "Wallet description",
+            url = "example.wallet",
+            icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media"),
+            redirect = "kotlin-wallet-wc:/request",
+        )
+
+        CoreClient.initialize(relayServerUrl = serverUri, connectionType = ConnectionType.MANUAL, application = this, metaData = metadata)
+
+        CoreClient.Relay.connect { error ->
+            Log.e("kobe", "Connect error: $error")
+        }
 
         val initParams = Sign.Params.Init(core = CoreClient)
-
         SignClient.initialize(initParams) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }

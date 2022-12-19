@@ -25,11 +25,13 @@ object CoreClient {
         application: Application,
         relay: RelayConnectionInterface? = null
     ) {
-        if (relay != null) {
-            Relay = relay
+        Relay = if (relay != null) {
+            relay
         } else {
             RelayClient.initialize(relayServerUrl, connectionType, application)
+            RelayClient
         }
+
         wcKoinApp.modules(
             module {
                 single { PairingEngine() }

@@ -29,11 +29,32 @@ internal class PairingEngine {
     private var jsonRpcRequestsJob: Job? = null
 
     private val logger: Logger by lazy { wcKoinApp.koin.get() }
-    private val selfMetaData: AppMetaData by lazy { load() }
-    private val pairingRepository: PairingStorageRepositoryInterface by lazy { load() }
-    private val metadataRepository: MetadataStorageRepositoryInterface by lazy { load() }
-    private val crypto: KeyManagementRepository by lazy { load() }
-    private val jsonRpcInteractor: JsonRpcInteractorInterface by lazy { load() }
+    private val selfMetaData: AppMetaData by lazy {
+
+        println("kobe; metadata")
+
+        load()
+    }
+
+    //2
+    private val pairingRepository: PairingStorageRepositoryInterface by lazy {
+        println("kobe; pairingRepository")
+        load()
+    }
+    private val metadataRepository: MetadataStorageRepositoryInterface by lazy {
+        println("kobe; metadataRepository")
+        load()
+    }
+    private val crypto: KeyManagementRepository by lazy {
+        println("kobe; KeyManagementRepository")
+        load()
+    }
+
+    //1
+    private val jsonRpcInteractor: JsonRpcInteractorInterface by lazy {
+        println("kobe; JsonRpcInteractorInterface")
+        load()
+    }
 
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
     private val registeredMethods: String get() = setOfRegisteredMethods.joinToString(",") { it }

@@ -65,9 +65,13 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
                 .map { error -> error.throwable.toWalletConnectException }
 
     override fun connect(onError: (String) -> Unit) {
+        println("kobe; connect")
         when (connectionController) {
             is ConnectionController.Automatic -> onError(WRONG_CONNECTION_TYPE)
-            is ConnectionController.Manual -> (connectionController as ConnectionController.Manual).connect()
+            is ConnectionController.Manual -> {
+                println("kobe; connect manual")
+                (connectionController as ConnectionController.Manual).connect()
+            }
         }
     }
 
