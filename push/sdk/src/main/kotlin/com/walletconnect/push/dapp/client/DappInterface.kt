@@ -4,10 +4,12 @@ import com.walletconnect.push.common.Push
 
 interface DappInterface {
 
-    interface DappDelegate {
+    interface Delegate {
 
         fun onPushResponse(pushResponse: Push.Dapp.Event.Response)
     }
+
+    fun setDelegate(delegate: DappInterface.Delegate)
 
     fun initialize(init: Push.Dapp.Params.Init, onError: (Push.Dapp.Model.Error) -> Unit)
 

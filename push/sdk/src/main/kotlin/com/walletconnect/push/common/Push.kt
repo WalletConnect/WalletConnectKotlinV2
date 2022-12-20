@@ -17,12 +17,12 @@ object Push {
 
             data class Message(val title: String, val body: String, val icon: String, val url: String): Model()
 
-            data class Subscription(val topic: String, val relay: Relay, val metadata: AppMetaData): Model() {
+            data class Subscription(val topic: String, val relay: Relay, val metadata: Core.Model.AppMetaData): Model() {
 
-                data class Relay(val protocol: String, val `data`: String)
+                data class Relay(val protocol: String, val `data`: String?)
             }
 
-            data class RequestId(val id: Int): Model()
+            data class RequestId(val id: Long): Model()
 
             data class Error(val throwable: Throwable) : Model()
         }

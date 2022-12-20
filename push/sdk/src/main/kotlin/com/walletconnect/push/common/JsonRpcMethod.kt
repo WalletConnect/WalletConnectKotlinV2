@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.push.dapp.json_rpc
+package com.walletconnect.push.common
 
 internal object JsonRpcMethod {
 

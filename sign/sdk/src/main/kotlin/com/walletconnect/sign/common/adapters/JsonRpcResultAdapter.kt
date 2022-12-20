@@ -8,6 +8,7 @@ import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
 import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import org.json.JSONArray
 import org.json.JSONObject
@@ -24,6 +25,9 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<JsonRpcResponse.
     private val booleanAdapter: JsonAdapter<Long> = moshi.adapter(Boolean::class.java, emptySet(), "result")
     private val anyAdapter: JsonAdapter<Any> = moshi.adapter(Any::class.java, emptySet(), "result")
     private val approvalParamsAdapter: JsonAdapter<SignParams.ApprovalParams> = moshi.adapter(SignParams.ApprovalParams::class.java)
+    private val requestParamsAdapter: JsonAdapter<PushParams.RequestParams> = moshi.adapter(PushParams.RequestParams::class.java)
+    private val requestMessageParamsAdapter: JsonAdapter<PushParams.MessageParams> = moshi.adapter(PushParams.MessageParams::class.java)
+    private val requestResponseParamsAdapter: JsonAdapter<PushParams.RequestResponseParams> = moshi.adapter(PushParams.RequestResponseParams::class.java)
 
     @Volatile
     private var constructorRef: Constructor<JsonRpcResponse.JsonRpcResult>? = null
@@ -48,6 +52,14 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<JsonRpcResponse.
                     mask0 = mask0 and 0xfffffffd.toInt()
                 }
                 2 -> {
+//                    result = when {
+//                        runCatching { approvalParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> approvalParamsAdapter.fromJson(reader)
+////                        runCatching { requestParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> requestParamsAdapter.fromJson(reader)
+////                        runCatching { requestMessageParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> requestMessageParamsAdapter.fromJson(reader)
+////                        runCatching { requestResponseParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> requestResponseParamsAdapter.fromJson(reader)
+//                        else -> anyAdapter.fromJson(reader)
+//                    }
+
                     result = try {
                         approvalParamsAdapter.fromJson(reader)
                     } catch (e: Exception) {
@@ -104,6 +116,24 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<JsonRpcResponse.
                 val approvalParamsString = approvalParamsAdapter.toJson(value_.result as SignParams.ApprovalParams)
                 writer.valueSink().use {
                     it.writeUtf8(approvalParamsString)
+                }
+            }
+            (value_.result as? PushParams.RequestParams) != null -> {
+                val requestParams = requestParamsAdapter.toJson(value_.result as PushParams.RequestParams)
+                writer.valueSink().use {
+                    it.writeUtf8(requestParams)
+                }
+            }
+            (value_.result as? PushParams.MessageParams) != null -> {
+                val messageParams = requestMessageParamsAdapter.toJson(value_.result as PushParams.MessageParams)
+                writer.valueSink().use {
+                    it.writeUtf8(messageParams)
+                }
+            }
+            (value_.result as? PushParams.RequestResponseParams) != null -> {
+                val requestResponseParamsString = requestResponseParamsAdapter.toJson(value_.result as PushParams.RequestResponseParams)
+                writer.valueSink().use {
+                    it.writeUtf8(requestResponseParamsString)
                 }
             }
             value_.result is String && (value_.result as String).startsWith("{") -> {

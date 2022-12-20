@@ -1,7 +1,8 @@
 @file:JvmSynthetic
 
-package com.walletconnect.push.wallet.engine.domain
+package com.walletconnect.push.wallet.engine
 
+import android.util.Log
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
@@ -11,6 +12,7 @@ import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
@@ -18,11 +20,9 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.PeerError
-import com.walletconnect.push.common.model.EngineDO
-import com.walletconnect.push.common.model.PushParams
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.common.model.toPushResponseParams
-import com.walletconnect.push.dapp.json_rpc.JsonRpcMethod
+import com.walletconnect.push.common.JsonRpcMethod
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
@@ -102,11 +102,6 @@ internal class WalletEngine(
         }
     }
 
-    internal fun getListOfSubscriptions(): Map<String, EngineDO.Subscription> {
-
-        return emptyMap()
-    }
-
     private fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is PushParams }
@@ -127,8 +122,16 @@ internal class WalletEngine(
 
         try {
             pushRequests[params.publicKey] = request
-
+            val selfPublicKey = crypto.generateKeyPair()
+            val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(params.publicKey))
+            val responseParams = PushParams.RequestResponseParams(selfPublicKey.keyAsHex)
+            jsonRpcInteractor.subscribe(pushTopic)
+            jsonRpcInteractor.respondWithParams(request, responseParams, irnParams) { error ->
+                logger.error(error)
+                return@respondWithParams
+            }
             scope.launch { _engineEvent.emit(params.toEngineDO(request.id)) }
+
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
                 request,

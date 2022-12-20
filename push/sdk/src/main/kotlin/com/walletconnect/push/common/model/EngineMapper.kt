@@ -1,5 +1,6 @@
 package com.walletconnect.push.common.model
 
+import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.foundation.common.model.PublicKey
 
 @JvmSynthetic

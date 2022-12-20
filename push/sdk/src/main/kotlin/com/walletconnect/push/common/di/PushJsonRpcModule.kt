@@ -1,9 +1,9 @@
 @file:JvmSynthetic
 
-package com.walletconnect.push.wallet.di
+package com.walletconnect.push.common.di
 
 import com.walletconnect.push.common.model.PushRpc
-import com.walletconnect.push.dapp.json_rpc.JsonRpcMethod
+import com.walletconnect.push.common.JsonRpcMethod
 import com.walletconnect.utils.addDeserializerEntry
 import com.walletconnect.utils.addSerializerEntry
 import com.walletconnect.android.impl.di.jsonRpcModule as coreJsonRpcModule
@@ -12,7 +12,7 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun pushJsonRpcModule() = module {
 
-    includes(coreJsonRpcModule())
+//    includes(coreJsonRpcModule())
 
     addSerializerEntry(PushRpc.PushRequest::class)
     addSerializerEntry(PushRpc.PushMessage::class)

@@ -3,8 +3,11 @@ package com.walletconnect.dapp.ui.session
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.android.CoreClient
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
+import com.walletconnect.push.common.Push
+import com.walletconnect.push.dapp.client.DappClient
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
@@ -86,5 +89,14 @@ class SessionViewModel : ViewModel() {
         viewModelScope.launch {
             _navigationEvents.emit(SampleDappEvents.Disconnect)
         }
+    }
+
+    fun pushRequest() {
+        val pairingTopic = CoreClient.Pairing.getPairings().first().topic
+        DappClient.request(Push.Dapp.Params.Request("testAccount", pairingTopic), {
+            Log.e("Talha", "it sent ${it.id}")
+        }, {
+            Log.e("Talha", it.throwable.stackTraceToString())
+        })
     }
 }

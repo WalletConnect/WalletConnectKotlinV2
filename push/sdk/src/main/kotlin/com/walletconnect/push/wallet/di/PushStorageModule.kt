@@ -11,7 +11,7 @@ import org.koin.dsl.module
 internal fun pushStorageModule(storagePrefix: String) = module {
 
     // TODO: Add subscription storage after dapp
-    includes(coreStorageModule()/*, sdkBaseStorageModule(Database.Schema, storageSuffix)*/)
+//    includes(coreStorageModule()/*, sdkBaseStorageModule(Database.Schema, storageSuffix)*/)
 
 
 }

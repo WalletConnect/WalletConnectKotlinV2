@@ -5,7 +5,8 @@ package com.walletconnect.push.common.model
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.JsonRpcClientSync
-import com.walletconnect.push.dapp.json_rpc.JsonRpcMethod
+import com.walletconnect.android.internal.common.model.params.PushParams
+import com.walletconnect.push.common.JsonRpcMethod
 
 internal sealed class PushRpc: JsonRpcClientSync<PushParams> {
     abstract override val id: Long

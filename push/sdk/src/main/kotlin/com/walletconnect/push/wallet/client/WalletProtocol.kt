@@ -1,22 +1,22 @@
 package com.walletconnect.push.wallet.client
 
-import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push
+import com.walletconnect.push.common.domain.GetListOfSubscriptionsUseCase
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.wallet.client.mapper.toClientPushRequest
-import com.walletconnect.push.wallet.di.pushCommonModule
-import com.walletconnect.push.wallet.di.pushJsonRpcModule
-import com.walletconnect.push.wallet.di.pushStorageModule
+import com.walletconnect.push.common.di.pushJsonRpcModule
+import com.walletconnect.push.common.di.commonUseCasesModule
 import com.walletconnect.push.wallet.di.walletEngineModule
 import com.walletconnect.push.wallet.engine.domain.DecryptMessageUseCase
-import com.walletconnect.push.wallet.engine.domain.WalletEngine
+import com.walletconnect.push.wallet.engine.WalletEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 class WalletProtocol : WalletInterface {
     private lateinit var decryptMessageUseCase: DecryptMessageUseCase
+    private lateinit var getListOfSubscriptionsUseCase: GetListOfSubscriptionsUseCase
     private lateinit var walletEngine: WalletEngine
 
     companion object {
@@ -27,11 +27,12 @@ class WalletProtocol : WalletInterface {
     override fun initialize(init: Push.Wallet.Params.Init, onError: (Push.Wallet.Model.Error) -> Unit) {
         try {
             wcKoinApp.modules(
-                pushCommonModule(),
-                cryptoModule(),
+//                pushCommonModule(),
+//                cryptoModule(),
                 pushJsonRpcModule(),
-                pushStorageModule(storageSuffix),
-                walletEngineModule()
+//                pushStorageModule(storageSuffix),
+                walletEngineModule(),
+                commonUseCasesModule()
             )
 
             decryptMessageUseCase = wcKoinApp.koin.get()
@@ -77,17 +78,19 @@ class WalletProtocol : WalletInterface {
     }
 
     override fun getActiveSubscriptions(): Map<String, Push.Wallet.Model.Subscription> {
-        return walletEngine.getListOfSubscriptions().mapValues { (_, subscription) ->
+        return getListOfSubscriptionsUseCase.invoke().mapValues { (_, subscription) ->
             subscription.toClientPushRequest()
         }
     }
 
     override fun delete(params: Push.Wallet.Params.Delete) {
+        checkEngineInitialization()
+
         // TODO: This is still being decided on
     }
 
     override fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (Push.Wallet.Model.Message) -> Unit, onError: (Push.Wallet.Model.Error) -> Unit) {
-        runCatching { decryptMessageUseCase(params.topic, params.encryptedMessage) }.fold({ decryptedMsg ->
+        runCatching { decryptMessageUseCase.invoke(params.topic, params.encryptedMessage) }.fold({ decryptedMsg ->
             onSuccess(Push.Wallet.Model.Message("", "", "", ""))  // TODO: Need to confirm if decryptedMsg will be broken up to conform to Push.Wallet.Model.Message or will we have different logic
         }, { error ->
             onError(Push.Wallet.Model.Error(error))
