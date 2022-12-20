@@ -8,12 +8,11 @@ import com.walletconnect.auth.common.adapters.JsonRpcResultAdapter
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import kotlin.reflect.jvm.jvmName
-import com.walletconnect.android.internal.common.di.commonModule as androidCommonModule
 
 @JvmSynthetic
 internal fun commonModule() = module {
 
-    includes(androidCommonModule())
+//    includes(androidCommonModule())
 
     single {
         get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))

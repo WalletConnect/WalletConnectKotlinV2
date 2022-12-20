@@ -2,21 +2,19 @@
 
 package com.walletconnect.chat.engine.domain
 
-import com.walletconnect.android.impl.common.MissingKeyException
-import com.walletconnect.android.impl.common.SDKError
-import com.walletconnect.android.impl.common.model.ConnectionState
-import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
-import com.walletconnect.android.impl.utils.SELF_INVITE_PUBLIC_KEY_CONTEXT
-import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
-import com.walletconnect.android.impl.utils.THIRTY_SECONDS
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.exception.InvalidProjectIdException
 import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.type.EngineEvent
+import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.SELF_INVITE_PUBLIC_KEY_CONTEXT
+import com.walletconnect.android.internal.utils.SELF_PARTICIPANT_CONTEXT
+import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.chat.common.exceptions.InvalidAccountIdException
 import com.walletconnect.chat.common.exceptions.PeerError

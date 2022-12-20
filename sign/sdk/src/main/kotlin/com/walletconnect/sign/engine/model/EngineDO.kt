@@ -6,8 +6,8 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SymmetricKey
-import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.Sequence
+import com.walletconnect.android.internal.common.model.type.EngineEvent
+import com.walletconnect.android.internal.common.model.type.Sequence
 import com.walletconnect.foundation.common.model.Topic
 import java.net.URI
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions as CoreRelayProtocolOptions

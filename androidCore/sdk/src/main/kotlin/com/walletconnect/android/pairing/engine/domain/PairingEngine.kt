@@ -5,12 +5,18 @@ import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
 import com.walletconnect.android.internal.NO_SEQUENCE_FOR_TOPIC_MESSAGE
 import com.walletconnect.android.internal.PAIRING_NOW_ALLOWED_MESSAGE
 import com.walletconnect.android.internal.Validator
-import com.walletconnect.android.internal.common.*
-import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.*
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
+import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
+import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
@@ -36,11 +42,6 @@ internal class PairingEngine {
         load()
     }
 
-    //2
-    private val pairingRepository: PairingStorageRepositoryInterface by lazy {
-        println("kobe; pairingRepository")
-        load()
-    }
     private val metadataRepository: MetadataStorageRepositoryInterface by lazy {
         println("kobe; metadataRepository")
         load()
@@ -53,6 +54,12 @@ internal class PairingEngine {
     //1
     private val jsonRpcInteractor: JsonRpcInteractorInterface by lazy {
         println("kobe; JsonRpcInteractorInterface")
+        load()
+    }
+
+    //2
+    private val pairingRepository: PairingStorageRepositoryInterface by lazy {
+        println("kobe; pairingRepository")
         load()
     }
 
@@ -220,9 +227,15 @@ internal class PairingEngine {
             .onEach {
                 coroutineScope {
                     launch(Dispatchers.IO) {
+
+                        println("kobe; Reconnect pairings")
+
                         pairingRepository.getListOfPairings()
                             .map { pairing -> pairing.topic }
                             .onEach { pairingTopic ->
+
+                                println("kobe; subscribe: $pairingTopic")
+
                                 try {
                                     jsonRpcInteractor.subscribe(pairingTopic) { error -> scope.launch { internalErrorFlow.emit(InternalError(error)) } }
                                 } catch (e: Exception) {

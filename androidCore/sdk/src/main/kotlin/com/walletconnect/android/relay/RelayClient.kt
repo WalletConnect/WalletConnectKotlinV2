@@ -6,12 +6,9 @@ import android.app.Application
 import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
-import com.walletconnect.android.internal.common.di.androidApiCryptoModule
 import com.walletconnect.android.internal.common.di.androidApiNetworkModule
-import com.walletconnect.android.internal.common.di.commonModule
 import com.walletconnect.android.internal.common.exception.WRONG_CONNECTION_TYPE
 import com.walletconnect.android.internal.common.exception.WalletConnectException
-import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.utils.*
@@ -20,9 +17,7 @@ import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.model.Relay
 import kotlinx.coroutines.flow.*
-import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
-import org.koin.dsl.module
 import timber.log.Timber
 
 object RelayClient : BaseRelayClient(), RelayConnectionInterface {
@@ -34,10 +29,15 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     fun initialize(relayServerUrl: String, connectionType: ConnectionType, application: Application) {
         require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
 
-        wcKoinApp.run {
-            androidContext(application)
-            modules(commonModule(), androidApiCryptoModule(), module { single { ProjectId(relayServerUrl.projectId()) } })
-        }
+//        wcKoinApp.run {
+////            androidContext(application)
+//            modules(
+////                commonModule(),
+//                androidApiCryptoModule(),
+//                module { single { ProjectId(relayServerUrl.projectId()) } }
+//            )
+//        }
+
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
         plantTimber()
 

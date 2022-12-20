@@ -3,8 +3,6 @@
 package com.walletconnect.sign.client.mapper
 
 import com.walletconnect.android.relay.ConnectionType
-import com.walletconnect.android.impl.common.SDKError
-import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.pairing.model.mapper.toClient

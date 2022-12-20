@@ -25,7 +25,7 @@ jobs:
       matrix:
         conf: [
           { name: Android-Core SDK, command: ":androidCore:sdk:testDebugUnitTest" },
-          { name: Android-Core Impl, command: ":androidCore:impl:testDebugUnitTest" },
+#          { name: Android-Core Impl, command: ":androidCore:impl:testDebugUnitTest" },
           { name: Sign SDK, command: ":sign:sdk:testDebugUnitTest" },
           { name: Auth SDK, command: ":auth:sdk:testDebugUnitTest" },
           { name: Chat SDK, command: ":chat:sdk:testDebugUnitTest" },

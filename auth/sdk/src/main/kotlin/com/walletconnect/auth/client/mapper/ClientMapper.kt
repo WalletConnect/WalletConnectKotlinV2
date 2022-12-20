@@ -2,8 +2,8 @@
 
 package com.walletconnect.auth.client.mapper
 
-import com.walletconnect.android.impl.common.SDKError
-import com.walletconnect.android.impl.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.common.model.*
 import com.walletconnect.auth.signature.CacaoType

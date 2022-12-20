@@ -39,34 +39,34 @@ android {
     }
 }
 
-sqldelight {
-    database("AndroidCoreDatabase") {
-        packageName = "com.walletconnect.android.impl.core"
-        sourceFolders = listOf("core")
-        schemaOutputDirectory = file("src/main/sqldelight/databases")
-        verifyMigrations = true
-    }
-}
+//sqldelight {
+//    database("AndroidCoreDatabase") {
+//        packageName = "com.walletconnect.android.impl.core"
+//        sourceFolders = listOf("core")
+//        schemaOutputDirectory = file("src/main/sqldelight/databases")
+//        verifyMigrations = true
+//    }
+//}
 
 dependencies {
-    debugApi(project(":androidCore:sdk"))
-    releaseApi("com.walletconnect:android-core:$CORE_VERSION")
-
-    bouncyCastle()
-    coroutines()
-    moshiKsp()
-    moshi()
-    scarlet()
-    scarletAndroid()
-    sqlDelightAndroid()
-    sqlCipher()
-    security()
-    koinAndroid()
-    multibaseJava()
-    timber()
-
-    jUnit5()
-    jUnit5Android()
-    mockk()
-    coroutinesTest()
+//    debugApi(project(":androidCore:sdk"))
+//    releaseApi("com.walletconnect:android-core:$CORE_VERSION")
+//
+//    bouncyCastle()
+//    coroutines()
+//    moshiKsp()
+//    moshi()
+//    scarlet()
+//    scarletAndroid()
+//    sqlDelightAndroid()
+//    sqlCipher()
+//    security()
+//    koinAndroid()
+//    multibaseJava()
+//    timber()
+//
+//    jUnit5()
+//    jUnit5Android()
+//    mockk()
+//    coroutinesTest()
 }
