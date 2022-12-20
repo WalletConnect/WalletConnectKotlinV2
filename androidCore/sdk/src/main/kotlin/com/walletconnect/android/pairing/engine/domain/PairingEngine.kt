@@ -30,59 +30,16 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 internal class PairingEngine(
-    val logger: Logger,
-    val selfMetaData: AppMetaData,
-    val metadataRepository: MetadataStorageRepositoryInterface,
-    val crypto: KeyManagementRepository,
-    val jsonRpcInteractor: JsonRpcInteractorInterface,
-    val pairingRepository: PairingStorageRepositoryInterface
+    private val logger: Logger,
+    private val selfMetaData: AppMetaData,
+    private val metadataRepository: MetadataStorageRepositoryInterface,
+    private val crypto: KeyManagementRepository,
+    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val pairingRepository: PairingStorageRepositoryInterface
 ) {
-
     private var resubscribeToPairingsJob: Job? = null
     private var jsonRpcRequestsJob: Job? = null
 
-//    private val logger: Logger by lazy { wcKoinApp.koin.get() }
-//    private val selfMetaData: AppMetaData by lazy {
-//
-//        println("kobe; metadata")
-//
-//        load()
-//    }
-
-//    private val metadataRepository: MetadataStorageRepositoryInterface by lazy {
-//        println("kobe; metadataRepository")
-//        load()
-//    }
-//    private val crypto: KeyManagementRepository by lazy {
-//        println("kobe; KeyManagementRepository")
-//        load()
-//    }
-
-    //1
-//    private val jsonRpcInteractor: JsonRpcInteractorInterface by lazy {
-//        println("kobe; JsonRpcInteractorInterface")
-//        load()
-//    }
-
-    //    //2
-//    private val pairingRepository: PairingStorageRepositoryInterface by lazy {
-//        println("kobe; pairingRepository")
-//        load()
-//    }
-//    private inline fun <reified T> load(): T {
-//        return wcKoinApp.koin.getOrNull<T>(T::class).also { temp ->
-//            if (temp != null) {
-//                scope.launch {
-//                    if (resubscribeToPairingsJob == null) {
-//                        supervisorScope { resubscribeToPairingsJob = resubscribeToPairingFlow.launchIn(this) }
-//                    }
-//                    if (jsonRpcRequestsJob == null) {
-//                        supervisorScope { jsonRpcRequestsJob = collectJsonRpcRequestsFlow.launchIn(this) }
-//                    }
-//                }
-//            }
-//        } ?: throw IllegalStateException("Core cannot be initialized by itself")
-//}
     init {
         scope.launch {
             if (resubscribeToPairingsJob == null) {
@@ -243,9 +200,7 @@ internal class PairingEngine(
             .onEach {
                 coroutineScope {
                     launch(Dispatchers.IO) {
-
                         println("kobe; Reconnect pairings")
-
                         pairingRepository.getListOfPairings()
                             .map { pairing -> pairing.topic }
                             .onEach { pairingTopic ->
