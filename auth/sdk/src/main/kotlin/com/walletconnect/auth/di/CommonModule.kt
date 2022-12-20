@@ -11,9 +11,6 @@ import kotlin.reflect.jvm.jvmName
 
 @JvmSynthetic
 internal fun commonModule() = module {
-
-//    includes(androidCommonModule())
-
     single {
         get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))
             .add { type, _, moshi ->

@@ -10,9 +10,6 @@ import org.koin.dsl.module
 
 @JvmSynthetic
 internal fun jsonRpcModule() = module {
-
-//    includes(coreJsonRpcModule())
-
     addSerializerEntry(SignRpc.SessionPropose::class)
     addSerializerEntry(SignRpc.SessionPing::class)
     addSerializerEntry(SignRpc.SessionEvent::class)

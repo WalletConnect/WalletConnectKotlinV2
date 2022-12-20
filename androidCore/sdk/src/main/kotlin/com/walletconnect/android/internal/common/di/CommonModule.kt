@@ -16,7 +16,7 @@ import timber.log.Timber
 import kotlin.reflect.jvm.jvmName
 import com.walletconnect.foundation.di.commonModule as foundationCommonModule
 
-fun commonModule() = module {
+fun coreCommonModule() = module {
 
     includes(foundationCommonModule())
 

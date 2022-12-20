@@ -9,8 +9,6 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun jsonRpcModule() = module {
 
-//    includes(coreJsonRpcModule())
-
     addSerializerEntry(AuthRpc.AuthRequest::class)
 
     addDeserializerEntry(JsonRpcMethod.WC_AUTH_REQUEST, AuthRpc.AuthRequest::class)

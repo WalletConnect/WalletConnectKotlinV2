@@ -28,9 +28,7 @@ internal class AuthProtocol : AuthInterface {
         try {
             wcKoinApp.modules(
                 commonModule(),
-//                cryptoModule(),
                 jsonRpcModule(),
-//                storageModule(),
                 engineModule()
             )
 

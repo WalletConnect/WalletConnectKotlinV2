@@ -13,7 +13,6 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.internal.utils.THIRTY_SECONDS
@@ -30,37 +29,69 @@ import com.walletconnect.util.randomBytes
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
-internal class PairingEngine {
+internal class PairingEngine(
+    val logger: Logger,
+    val selfMetaData: AppMetaData,
+    val metadataRepository: MetadataStorageRepositoryInterface,
+    val crypto: KeyManagementRepository,
+    val jsonRpcInteractor: JsonRpcInteractorInterface,
+    val pairingRepository: PairingStorageRepositoryInterface
+) {
+
     private var resubscribeToPairingsJob: Job? = null
     private var jsonRpcRequestsJob: Job? = null
 
-    private val logger: Logger by lazy { wcKoinApp.koin.get() }
-    private val selfMetaData: AppMetaData by lazy {
+//    private val logger: Logger by lazy { wcKoinApp.koin.get() }
+//    private val selfMetaData: AppMetaData by lazy {
+//
+//        println("kobe; metadata")
+//
+//        load()
+//    }
 
-        println("kobe; metadata")
-
-        load()
-    }
-
-    private val metadataRepository: MetadataStorageRepositoryInterface by lazy {
-        println("kobe; metadataRepository")
-        load()
-    }
-    private val crypto: KeyManagementRepository by lazy {
-        println("kobe; KeyManagementRepository")
-        load()
-    }
+//    private val metadataRepository: MetadataStorageRepositoryInterface by lazy {
+//        println("kobe; metadataRepository")
+//        load()
+//    }
+//    private val crypto: KeyManagementRepository by lazy {
+//        println("kobe; KeyManagementRepository")
+//        load()
+//    }
 
     //1
-    private val jsonRpcInteractor: JsonRpcInteractorInterface by lazy {
-        println("kobe; JsonRpcInteractorInterface")
-        load()
-    }
+//    private val jsonRpcInteractor: JsonRpcInteractorInterface by lazy {
+//        println("kobe; JsonRpcInteractorInterface")
+//        load()
+//    }
 
-    //2
-    private val pairingRepository: PairingStorageRepositoryInterface by lazy {
-        println("kobe; pairingRepository")
-        load()
+    //    //2
+//    private val pairingRepository: PairingStorageRepositoryInterface by lazy {
+//        println("kobe; pairingRepository")
+//        load()
+//    }
+//    private inline fun <reified T> load(): T {
+//        return wcKoinApp.koin.getOrNull<T>(T::class).also { temp ->
+//            if (temp != null) {
+//                scope.launch {
+//                    if (resubscribeToPairingsJob == null) {
+//                        supervisorScope { resubscribeToPairingsJob = resubscribeToPairingFlow.launchIn(this) }
+//                    }
+//                    if (jsonRpcRequestsJob == null) {
+//                        supervisorScope { jsonRpcRequestsJob = collectJsonRpcRequestsFlow.launchIn(this) }
+//                    }
+//                }
+//            }
+//        } ?: throw IllegalStateException("Core cannot be initialized by itself")
+//}
+    init {
+        scope.launch {
+            if (resubscribeToPairingsJob == null) {
+                supervisorScope { resubscribeToPairingsJob = resubscribeToPairingFlow.launchIn(this) }
+            }
+            if (jsonRpcRequestsJob == null) {
+                supervisorScope { jsonRpcRequestsJob = collectJsonRpcRequestsFlow.launchIn(this) }
+            }
+        }
     }
 
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
@@ -193,21 +224,6 @@ internal class PairingEngine {
 
     fun updateMetadata(topic: String, metadata: AppMetaData, metaDataType: AppMetaDataType) {
         metadataRepository.upsertPairingPeerMetadata(Topic(topic), metadata, metaDataType)
-    }
-
-    private inline fun <reified T> load(): T {
-        return wcKoinApp.koin.getOrNull<T>(T::class).also { temp ->
-            if (temp != null) {
-                scope.launch {
-                    if (resubscribeToPairingsJob == null) {
-                        supervisorScope { resubscribeToPairingsJob = resubscribeToPairingFlow.launchIn(this) }
-                    }
-                    if (jsonRpcRequestsJob == null) {
-                        supervisorScope { jsonRpcRequestsJob = collectJsonRpcRequestsFlow.launchIn(this) }
-                    }
-                }
-            }
-        } ?: throw IllegalStateException("Core cannot be initialized by itself")
     }
 
     private val collectJsonRpcRequestsFlow: Flow<WCRequest> by lazy {

@@ -13,7 +13,7 @@ import org.koin.dsl.module
 import kotlin.reflect.KClass
 
 @JvmSynthetic
-fun jsonRpcModule() = module {
+fun coreJsonRpcModule() = module {
 
     single<JsonRpcInteractorInterface> {
         JsonRpcInteractor(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER)))

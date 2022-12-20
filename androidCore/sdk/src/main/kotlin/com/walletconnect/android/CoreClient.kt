@@ -2,26 +2,28 @@ package com.walletconnect.android
 
 import android.app.Application
 import com.walletconnect.android.di.coreStorageModule
-import com.walletconnect.android.internal.common.di.androidApiCryptoModule
-import com.walletconnect.android.internal.common.di.commonModule
-import com.walletconnect.android.internal.common.di.jsonRpcModule
+import com.walletconnect.android.internal.common.di.coreCommonModule
+import com.walletconnect.android.internal.common.di.coreCryptoModule
+import com.walletconnect.android.internal.common.di.coreJsonRpcModule
+import com.walletconnect.android.internal.common.di.corePairingModule
+import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ProjectId
+import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.client.PairingProtocol
-import com.walletconnect.android.pairing.engine.domain.PairingEngine
 import com.walletconnect.android.pairing.handler.PairingController
-import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.android.relay.RelayConnectionInterface
+import com.walletconnect.android.utils.plantTimber
 import com.walletconnect.android.utils.projectId
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 object CoreClient {
     val Pairing: PairingInterface = PairingProtocol
-    var Relay: RelayConnectionInterface = RelayClient
+    val Relay: RelayConnectionInterface = RelayClient
 
     interface CoreDelegate : PairingInterface.Delegate
 
@@ -32,42 +34,33 @@ object CoreClient {
         application: Application,
         relay: RelayConnectionInterface? = null
     ) {
-
         println("kobe; core init")
 
+        plantTimber()
         with(wcKoinApp) {
             androidContext(application)
-
-            wcKoinApp.modules(
+            modules(
+                module {
+                    single {
+                        ProjectId(relayServerUrl.projectId())
+                        with(metaData) { AppMetaData(name, description, url, icons, Redirect(redirect)) }
+                    }
+                },
                 coreStorageModule(),
-                androidApiCryptoModule(),
-                commonModule(),
-                module { single { ProjectId(relayServerUrl.projectId()) } },
-                jsonRpcModule(),
-                pairingModule(),
-                module { single { Relay } }
+                coreCryptoModule(),
+                coreCommonModule(),
+                coreJsonRpcModule(),
+                corePairingModule(Pairing),
+                module { single { relay ?: RelayClient } }
             )
         }
 
-
-        Relay = if (relay != null) {
-            relay
-        } else {
-            RelayClient.initialize(relayServerUrl, connectionType, application)
-            RelayClient
-        }
-
-        PairingProtocol.initialize(metaData)
+        RelayClient.initialize(relayServerUrl, connectionType)
+        PairingProtocol.initialize()
         PairingController.initialize()
     }
 
     fun setDelegate(delegate: CoreDelegate) {
         PairingProtocol.setDelegate(delegate)
     }
-}
-
-fun pairingModule() = module {
-    single { PairingEngine() }
-    single { CoreClient.Pairing }
-    single<PairingControllerInterface> { PairingController }
 }

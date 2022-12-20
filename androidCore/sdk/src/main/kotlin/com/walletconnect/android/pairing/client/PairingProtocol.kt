@@ -4,8 +4,6 @@ package com.walletconnect.android.pairing.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.engine.domain.PairingEngine
@@ -17,15 +15,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
-import org.koin.dsl.module
 
 internal object PairingProtocol : PairingInterface {
     private lateinit var pairingEngine: PairingEngine
     private val logger: Logger by lazy { wcKoinApp.koin.get() }
 
-    internal fun initialize(metaData: Core.Model.AppMetaData) {
+    internal fun initialize() {
         pairingEngine = wcKoinApp.koin.get()
-        wcKoinApp.modules(module { with(metaData) { single { AppMetaData(name, description, url, icons, Redirect(redirect)) } } })
     }
 
     fun setDelegate(delegate: PairingInterface.Delegate) {
@@ -117,7 +113,7 @@ internal object PairingProtocol : PairingInterface {
         try {
             withTimeout(5000) {
                 while (true) {
-                    if (CoreClient.Relay!!.isConnectionAvailable.value) {
+                    if (CoreClient.Relay.isConnectionAvailable.value) {
                         onConnection()
                         return@withTimeout
                     }

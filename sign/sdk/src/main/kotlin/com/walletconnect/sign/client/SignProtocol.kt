@@ -31,7 +31,6 @@ internal class SignProtocol : SignInterface {
         try {
             wcKoinApp.modules(
                 commonModule(),
-//                cryptoModule(),
                 jsonRpcModule(),
                 storageModule(storageSuffix),
                 engineModule()
