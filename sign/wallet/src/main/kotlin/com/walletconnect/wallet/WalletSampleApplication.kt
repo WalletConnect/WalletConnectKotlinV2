@@ -26,12 +26,7 @@ class WalletSampleApplication : Application() {
             redirect = "kotlin-wallet-wc:/request",
         )
 
-        CoreClient.initialize(relayServerUrl = serverUri, connectionType = ConnectionType.MANUAL, application = this, metaData = metadata)
-
-        CoreClient.Relay.connect { }
-        val tmp = CoreClient.Pairing.getPairings().first().topic
-        Log.e(tag(this), "kobe; Pairing $tmp")
-
+        CoreClient.initialize(relayServerUrl = serverUri, connectionType = ConnectionType.AUTOMATIC, application = this, metaData = metadata)
 
         val initParams = Sign.Params.Init(core = CoreClient)
         SignClient.initialize(initParams) { error ->

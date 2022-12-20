@@ -62,7 +62,6 @@ sqldelight {
 }
 
 dependencies {
-//    debugImplementation(project(":androidCore:impl"))
     debugImplementation(project(":androidCore:sdk"))
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 

@@ -204,9 +204,7 @@ internal class PairingEngine(
                         pairingRepository.getListOfPairings()
                             .map { pairing -> pairing.topic }
                             .onEach { pairingTopic ->
-
                                 println("kobe; subscribe: $pairingTopic")
-
                                 try {
                                     jsonRpcInteractor.subscribe(pairingTopic) { error -> scope.launch { internalErrorFlow.emit(InternalError(error)) } }
                                 } catch (e: Exception) {
