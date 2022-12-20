@@ -1,8 +1,8 @@
 package com.walletconnect.chat.di
 
+import com.walletconnect.android.di.DBNames
+import com.walletconnect.android.di.deleteDBs
 import com.walletconnect.android.di.sdkBaseStorageModule
-import com.walletconnect.android.internal.common.di.DBNames
-import com.walletconnect.android.internal.common.di.deleteDBs
 import com.walletconnect.chat.ChatDatabase
 import com.walletconnect.chat.storage.ChatStorageRepository
 import org.koin.core.scope.Scope

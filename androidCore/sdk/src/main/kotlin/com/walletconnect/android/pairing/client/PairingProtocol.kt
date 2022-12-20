@@ -121,7 +121,7 @@ internal object PairingProtocol : PairingInterface {
         try {
             withTimeout(5000) {
                 while (true) {
-                    if (CoreClient.Relay!!.isConnectionAvailable.value) {
+                    if (CoreClient.Relay.isConnectionAvailable.value) {
                         onConnection()
                         return@withTimeout
                     }
