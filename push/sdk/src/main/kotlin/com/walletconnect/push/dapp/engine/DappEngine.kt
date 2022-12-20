@@ -82,7 +82,7 @@ internal class DappEngine(
         val request = PushRpc.PushRequest(id = generateId(), params = requestParams)
         pushRequest[selfPublicKey.keyAsHex] = WCRequest(Topic(pairingTopic), request.id, request.method, requestParams)
         val irnParams = IrnParams(Tags.PUSH_REQUEST, Ttl(FIVE_MINUTES_IN_SECONDS), true)
-//        jsonRpcInteractor.subscribe(Topic(pairingTopic)) { error -> return@subscribe onFailure(error) }
+        jsonRpcInteractor.subscribe(Topic(pairingTopic)) { error -> return@subscribe onFailure(error) }
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(pairingTopic), irnParams, request,
             onSuccess = {
