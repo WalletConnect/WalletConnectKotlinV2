@@ -1,5 +1,6 @@
 package com.walletconnect.push.common
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.model.AppMetaData
 
@@ -40,24 +41,23 @@ object Push {
 
     class Wallet {
 
-        sealed class Event {
-
-            data class Request(val id: Int, val metadata: AppMetaData): Event()
-        }
-
         sealed class Model {
 
-            data class Subscription(val topic: String, val relay: Relay, val metadata: AppMetaData): Dapp.Model() {
+            data class Request(val id: Long, val metadata: Core.Model.AppMetaData): Model()
 
-                data class Relay(val protocol: String, val `data`: String)
+            data class Subscription(val topic: String, val relay: Relay, val metadata: Core.Model.AppMetaData): Model() {
+
+                data class Relay(val protocol: String, val data: String?)
             }
 
-            data class Message(val title: String, val body: String, val icon: String, val url: String): Dapp.Model()
+            data class Message(val title: String, val body: String, val icon: String, val url: String): Model()
+
+            data class Error(val throwable: Throwable) : Model()
         }
 
         sealed class Params {
 
-            class Init(): Params()
+            class Init(val core: CoreClient): Params()
 
             data class Approve(val id: Int): Params()
 
