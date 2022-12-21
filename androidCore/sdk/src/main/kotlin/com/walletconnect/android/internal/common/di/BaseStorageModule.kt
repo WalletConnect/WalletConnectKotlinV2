@@ -1,19 +1,21 @@
 package com.walletconnect.android.internal.common.di
 
-import com.squareup.sqldelight.ColumnAdapter
-import com.squareup.sqldelight.EnumColumnAdapter
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
+<<<<<<<< HEAD:androidCore/sdk/src/main/kotlin/com/walletconnect/android/internal/common/di/BaseStorageModule.kt
 import com.walletconnect.android.di.AndroidCoreDITags
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.storage.*
+========
+import com.walletconnect.android.internal.common.di.DBNames
+import com.walletconnect.android.internal.common.di.baseStorageModule
+>>>>>>>> Clean up:androidCore/sdk/src/debug/kotlin/com/walletconnect/android/di/StorageModule.kt
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
-import com.walletconnect.android.sdk.storage.data.dao.MetaData
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
-import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
+<<<<<<<< HEAD:androidCore/sdk/src/main/kotlin/com/walletconnect/android/internal/common/di/BaseStorageModule.kt
 fun baseStorageModule() = module {
 
     fun Scope.createCoreDB(): AndroidCoreDatabase = AndroidCoreDatabase(
@@ -57,6 +59,11 @@ fun baseStorageModule() = module {
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).metaDataQueries }
 
     single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(get()) }
+========
+fun coreStorageModule() = module {
+
+    includes(baseStorageModule())
+>>>>>>>> Clean up:androidCore/sdk/src/debug/kotlin/com/walletconnect/android/di/StorageModule.kt
 
     single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)) {
         AndroidSqliteDriver(
@@ -76,14 +83,4 @@ fun sdkBaseStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String
             name = DBNames.getSdkDBName(storageSuffix),
         )
     }
-}
-
-object DBNames {
-    const val ANDROID_CORE_DB_NAME = "WalletConnectAndroidCore.db"
-
-    fun getSdkDBName(storageSuffix: String) = "WalletConnectV2$storageSuffix.db"
-}
-
-fun Scope.deleteDBs(dbName: String) {
-    androidContext().deleteDatabase(dbName)
 }
