@@ -142,7 +142,7 @@ internal class WalletEngine(
         val irnParams = IrnParams(Tags.PUSH_MESSAGE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         try {
-            // TODO: Should we automatically respondWithSuccess?
+            jsonRpcInteractor.respondWithSuccess(request, irnParams)
             scope.launch { _engineEvent.emit(params.toEngineDO()) }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
