@@ -14,7 +14,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import kotlin.reflect.jvm.jvmName
 
-fun commonModule() = module {
+fun foundationCommonModule() = module {
 
     single {
         KotlinJsonAdapterFactory()

@@ -23,7 +23,7 @@ import org.koin.dsl.module
 
 object CoreClient {
     val Pairing: PairingInterface = PairingProtocol
-    var Relay: RelayConnectionInterface = RelayClient
+    val Relay: RelayConnectionInterface = RelayClient
 
     interface CoreDelegate : PairingInterface.Delegate
 
@@ -35,29 +35,21 @@ object CoreClient {
         relay: RelayConnectionInterface? = null
     ) {
         plantTimber()
-
-        wcKoinApp.run {
-            androidContext(application)
-            modules(coreCommonModule(), coreCryptoModule(), module { single { ProjectId(relayServerUrl.projectId()) } })
-        }
-
-        Relay = if (relay != null) {
-            relay
-        } else {
-            RelayClient.initialize(relayServerUrl, connectionType)
-            RelayClient
-        }
-
         with(wcKoinApp) {
+            androidContext(application)
             modules(
+                coreCommonModule(),
+                coreCryptoModule(),
+                module { single { ProjectId(relayServerUrl.projectId()) } },
                 coreStorageModule(),
-                module { single<RelayConnectionInterface> { Relay } },
+                module { single<RelayConnectionInterface> { relay ?: RelayClient } },
                 module { single { with(metaData) { AppMetaData(name, description, url, icons, Redirect(redirect)) } } },
                 coreJsonRpcModule(),
                 corePairingModule(Pairing),
             )
         }
 
+        RelayClient.initialize(relayServerUrl, connectionType)
         PairingProtocol.initialize()
         PairingController.initialize()
     }

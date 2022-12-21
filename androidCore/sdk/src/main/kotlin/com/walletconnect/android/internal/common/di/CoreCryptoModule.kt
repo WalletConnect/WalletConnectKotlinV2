@@ -20,7 +20,8 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.module
 import java.io.File
 
-fun coreCryptoModule() = module {
+@JvmSynthetic
+internal fun coreCryptoModule() = module {
     val keystoreAlias = "wc_keystore_key"
     val sharedPrefsFile = "wc_key_store"
 

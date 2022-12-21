@@ -29,6 +29,7 @@ import com.walletconnect.util.randomBytes
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
+//Split into PairingProtocolEngine and PairingControllerEngine
 internal class PairingEngine(
     private val logger: Logger,
     private val selfMetaData: AppMetaData,
