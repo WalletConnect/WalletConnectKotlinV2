@@ -13,7 +13,6 @@ sealed class ConnectionController {
         val connectionEventFlow: StateFlow<ConnectionEvent> = _connectionEvent.asStateFlow()
 
         fun connect() {
-            println("kobe; connect controller")
             _connectionEvent.value = ConnectionEvent.CONNECT
         }
 

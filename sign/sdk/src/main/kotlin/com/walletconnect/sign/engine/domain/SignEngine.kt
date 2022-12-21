@@ -509,9 +509,6 @@ internal class SignEngine(
                     AppMetaDataType.PEER
                 )
             )
-
-            logger.error("kobe; engine session propose: $payloadParams")
-
             scope.launch { _engineEvent.emit(payloadParams.toEngineDO()) }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(

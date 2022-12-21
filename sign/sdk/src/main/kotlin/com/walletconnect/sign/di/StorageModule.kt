@@ -3,9 +3,9 @@
 package com.walletconnect.sign.di
 
 import com.walletconnect.android.di.AndroidCoreDITags
-import com.walletconnect.android.di.DBNames
-import com.walletconnect.android.di.deleteDBs
 import com.walletconnect.android.di.sdkBaseStorageModule
+import com.walletconnect.android.internal.common.di.DBNames
+import com.walletconnect.android.internal.common.di.deleteDBs
 import com.walletconnect.sign.SignDatabase
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDao
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceExtensionsDao
