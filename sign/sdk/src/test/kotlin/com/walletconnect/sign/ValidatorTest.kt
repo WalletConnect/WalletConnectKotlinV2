@@ -1,10 +1,11 @@
 package com.walletconnect.sign
 
-import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
 import com.walletconnect.android.impl.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
 import com.walletconnect.android.impl.utils.WEEK_IN_SECONDS
+import com.walletconnect.android.internal.common.model.RelayProtocolOptions
+import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.ValidatorTest.Accounts.COSMOSHUB_4_1
 import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_1
@@ -30,8 +31,7 @@ import com.walletconnect.sign.ValidatorTest.Namespaces.COSMOS
 import com.walletconnect.sign.ValidatorTest.Namespaces.EIP155
 import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.android.internal.common.model.RelayProtocolOptions
-import com.walletconnect.sign.engine.domain.Validator
+import com.walletconnect.sign.engine.domain.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toAbsoluteString
 import org.junit.jupiter.api.Test
@@ -88,7 +88,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateProposalNamespace(namespaces) { errorMessage = it.message }
+        SignValidator.validateProposalNamespace(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_CHAINS_MISSING_MESSAGE, errorMessage)
     }
@@ -101,7 +101,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateProposalNamespace(namespaces) { errorMessage = it.message }
+        SignValidator.validateProposalNamespace(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_CHAINS_CAIP_2_MESSAGE, errorMessage)
     }
@@ -114,7 +114,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateProposalNamespace(namespaces) { errorMessage = it.message }
+        SignValidator.validateProposalNamespace(namespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -126,7 +126,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateProposalNamespace(namespaces) { errorMessage = it.message }
+        SignValidator.validateProposalNamespace(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE, errorMessage)
     }
@@ -146,7 +146,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateProposalNamespace(namespaces) { errorMessage = it.message }
+        SignValidator.validateProposalNamespace(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE, errorMessage)
     }
@@ -162,7 +162,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateProposalNamespace(namespaces) { errorMessage = it.message }
+        SignValidator.validateProposalNamespace(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_KEYS_CAIP_2_MESSAGE, errorMessage)
     }
@@ -181,7 +181,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(sessionNamespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(sessionNamespaces, proposalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_MISSING_MESSAGE, errorMessage)
     }
@@ -203,7 +203,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE, errorMessage)
     }
@@ -222,7 +222,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_METHODS_MISSING_MESSAGE, errorMessage)
     }
@@ -241,7 +241,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_EVENTS_MISSING_MESSAGE, errorMessage)
     }
@@ -260,7 +260,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE, errorMessage)
     }
@@ -282,7 +282,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -303,7 +303,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -324,7 +324,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE, errorMessage)
     }
@@ -346,7 +346,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -370,7 +370,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_KEYS_MISSING_MESSAGE, errorMessage)
     }
@@ -399,7 +399,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -431,7 +431,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -461,7 +461,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -486,40 +486,8 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
-    }
-
-    @Test
-    fun `validate chain id against CAIP2 standard`() {
-        Validator.isChainIdCAIP2Compliant("").apply { assertEquals(this, false) }
-        Validator.isChainIdCAIP2Compliant("bip122:000000000019d6689c085ae165831e93").apply { assertEquals(this, true) }
-        Validator.isChainIdCAIP2Compliant("cosmos:cosmoshub-2").apply { assertEquals(this, true) }
-        Validator.isChainIdCAIP2Compliant("chainstd:23-33").apply { assertEquals(this, true) }
-        Validator.isChainIdCAIP2Compliant("chainasdasdasdasdasdasdasdsastd:23-33").apply { assertEquals(this, false) }
-        Validator.isChainIdCAIP2Compliant("cosmoscosmoshub-2").apply { assertEquals(this, false) }
-        Validator.isChainIdCAIP2Compliant(":cosmoshub-2").apply { assertEquals(this, false) }
-        Validator.isChainIdCAIP2Compliant("cosmos:").apply { assertEquals(this, false) }
-        Validator.isChainIdCAIP2Compliant(":").apply { assertEquals(this, false) }
-        Validator.isChainIdCAIP2Compliant("123:123").apply { assertEquals(this, true) }
-    }
-
-    @Test
-    fun `is chain id valid test`() {
-        Validator.isAccountIdCAIP10Compliant("").apply { assertEquals(this, false) }
-        Validator.isAccountIdCAIP10Compliant("1231:dadd").apply { assertEquals(this, false) }
-        Validator.isAccountIdCAIP10Compliant("0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1").apply { assertEquals(this, false) }
-        Validator.isAccountIdCAIP10Compliant("polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy")
-            .apply { assertEquals(this, true) }
-        Validator.isAccountIdCAIP10Compliant("polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuy:xw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy")
-            .apply { assertEquals(this, false) }
-        Validator.isAccountIdCAIP10Compliant("polkadotb0a8d493285c2df73290dfb7e61f870f:b0a8d493285c2df73290dfb7e61f870f:5hmuy:xw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy")
-            .apply { assertEquals(this, false) }
-        Validator.isAccountIdCAIP10Compliant("::").apply { assertEquals(this, false) }
-        Validator.isAccountIdCAIP10Compliant("a:s:d").apply { assertEquals(this, false) }
-        Validator.isAccountIdCAIP10Compliant("a:s").apply { assertEquals(this, false) }
-        Validator.isAccountIdCAIP10Compliant("chainstd:8c3444cf8970a9e41a706fab93e337a6c4:6d9b0b4b9994e8a6afbd3dc3ed983cd51c755afb27cd1dc7825ef59c134a39f7")
-            .apply { assertEquals(this, false) }
     }
 
     @Test
@@ -533,7 +501,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateChainIdWithEventAuthorisation(ETHEREUM, ACCOUNTS_CHANGED, namespaces) { errorMessage = it.message }
+        SignValidator.validateChainIdWithEventAuthorisation(ETHEREUM, ACCOUNTS_CHANGED, namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(UNAUTHORIZED_EVENT_MESSAGE, errorMessage)
     }
@@ -549,7 +517,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateChainIdWithMethodAuthorisation(ETHEREUM, PERSONAL_SIGN, namespaces) { errorMessage = it.message }
+        SignValidator.validateChainIdWithMethodAuthorisation(ETHEREUM, PERSONAL_SIGN, namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(UNAUTHORIZED_METHOD_MESSAGE, errorMessage)
     }
@@ -565,7 +533,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateChainIdWithEventAuthorisation(OPTIMISM, CHAIN_CHANGED, namespaces) { errorMessage = it.message }
+        SignValidator.validateChainIdWithEventAuthorisation(OPTIMISM, CHAIN_CHANGED, namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(UNAUTHORIZED_EVENT_MESSAGE, errorMessage)
     }
@@ -581,7 +549,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateChainIdWithMethodAuthorisation(OPTIMISM, ETH_SIGN, namespaces) { errorMessage = it.message }
+        SignValidator.validateChainIdWithMethodAuthorisation(OPTIMISM, ETH_SIGN, namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(UNAUTHORIZED_METHOD_MESSAGE, errorMessage)
     }
@@ -597,7 +565,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateChainIdWithEventAuthorisation(ETHEREUM, CHAIN_CHANGED, namespaces) { errorMessage = it.message }
+        SignValidator.validateChainIdWithEventAuthorisation(ETHEREUM, CHAIN_CHANGED, namespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -612,7 +580,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        Validator.validateChainIdWithMethodAuthorisation(ETHEREUM, ETH_SIGN, namespaces) { errorMessage = it.message }
+        SignValidator.validateChainIdWithMethodAuthorisation(ETHEREUM, ETH_SIGN, namespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -620,7 +588,7 @@ class ValidatorTest {
     fun `is event valid test`() {
         var event = EngineDO.Event("", "data", ETHEREUM)
         var errorMessage: String? = null
-        Validator.validateEvent(event) {
+        SignValidator.validateEvent(event) {
             errorMessage = it.message
         }
         assertEquals(INVALID_EVENT_MESSAGE, errorMessage)
@@ -628,21 +596,21 @@ class ValidatorTest {
 
         event = EngineDO.Event("someName", "", ETHEREUM)
         errorMessage = null
-        Validator.validateEvent(event) {
+        SignValidator.validateEvent(event) {
             errorMessage = it.message
         }
         assertEquals(INVALID_EVENT_MESSAGE, errorMessage)
 
         event = EngineDO.Event("someName", "someData", "")
         errorMessage = null
-        Validator.validateEvent(event) {
+        SignValidator.validateEvent(event) {
             errorMessage = it.message
         }
         assertEquals(INVALID_EVENT_MESSAGE, errorMessage)
 
         event = EngineDO.Event("someName", "someData", "1")
         errorMessage = null
-        Validator.validateEvent(event) {
+        SignValidator.validateEvent(event) {
             errorMessage = it.message
         }
         assertEquals(INVALID_EVENT_MESSAGE, errorMessage)
@@ -652,35 +620,35 @@ class ValidatorTest {
     fun `is request valid test`() {
         var request = EngineDO.Request("", "someMethod", "someParams", ETHEREUM)
         var errorMessage: String? = null
-        Validator.validateSessionRequest(request) {
+        SignValidator.validateSessionRequest(request) {
             errorMessage = it.message
         }
         assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
 
         request = EngineDO.Request("someTopic", "", "someParams", ETHEREUM)
         errorMessage = null
-        Validator.validateSessionRequest(request) {
+        SignValidator.validateSessionRequest(request) {
             errorMessage = it.message
         }
         assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
 
         request = EngineDO.Request("someTopic", "someMethod", "", ETHEREUM)
         errorMessage = null
-        Validator.validateSessionRequest(request) {
+        SignValidator.validateSessionRequest(request) {
             errorMessage = it.message
         }
         assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
 
         request = EngineDO.Request("someTopic", "someMethod", "someParams", "")
         errorMessage = null
-        Validator.validateSessionRequest(request) {
+        SignValidator.validateSessionRequest(request) {
             errorMessage = it.message
         }
         assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
 
         request = EngineDO.Request("someTopic", "someMethod", "someParams", "1")
         errorMessage = null
-        Validator.validateSessionRequest(request) {
+        SignValidator.validateSessionRequest(request) {
             errorMessage = it.message
         }
         assertEquals(INVALID_REQUEST_MESSAGE, errorMessage)
@@ -691,8 +659,8 @@ class ValidatorTest {
         val validUri =
             "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
 
-        Validator.validateWCUri("").apply { assertEquals(null, this) }
-        Validator.validateWCUri(validUri).apply {
+        SignValidator.validateWCUri("").apply { assertEquals(null, this) }
+        SignValidator.validateWCUri(validUri).apply {
             assertNotNull(this)
             assertEquals("7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9", this.topic.value)
             assertEquals("irn", this.relay.protocol)
@@ -702,19 +670,19 @@ class ValidatorTest {
 
         val noTopicInvalidUri =
             "wc:@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
-        Validator.validateWCUri(noTopicInvalidUri).apply { assertNull(this) }
+        SignValidator.validateWCUri(noTopicInvalidUri).apply { assertNull(this) }
 
         val noPrefixInvalidUri =
             "7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
-        Validator.validateWCUri(noPrefixInvalidUri).apply { assertNull(this) }
+        SignValidator.validateWCUri(noPrefixInvalidUri).apply { assertNull(this) }
 
         val noSymKeyInvalidUri =
             "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey="
-        Validator.validateWCUri(noSymKeyInvalidUri).apply { assertNull(this) }
+        SignValidator.validateWCUri(noSymKeyInvalidUri).apply { assertNull(this) }
 
         val noProtocolTypeInvalidUri =
             "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
-        Validator.validateWCUri(noProtocolTypeInvalidUri).apply { assertNull(this) }
+        SignValidator.validateWCUri(noProtocolTypeInvalidUri).apply { assertNull(this) }
     }
 
     @Test
@@ -722,8 +690,8 @@ class ValidatorTest {
         val validUri =
             "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&relay-data=testData&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
 
-        Validator.validateWCUri("").apply { assertEquals(null, this) }
-        Validator.validateWCUri(validUri).apply {
+        SignValidator.validateWCUri("").apply { assertEquals(null, this) }
+        SignValidator.validateWCUri(validUri).apply {
             assertNotNull(this)
             assertEquals("7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9", this.topic.value)
             assertEquals("irn", this.relay.protocol)
@@ -756,7 +724,7 @@ class ValidatorTest {
     fun `extend session expiry less than 1 week`() {
         val currentExpiry: Long = 1646641841 //07.03
         val newExpiry: Long = 1646901496 //10.03
-        Validator.validateSessionExtend(newExpiry, currentExpiry) {
+        SignValidator.validateSessionExtend(newExpiry, currentExpiry) {
             assertTrue(false)
         }
     }
@@ -766,7 +734,7 @@ class ValidatorTest {
         val currentExpiry: Long = 1646641841 //07.03
         val newExpiry: Long = 1647765496 //20.03
 
-        Validator.validateSessionExtend(newExpiry, currentExpiry) {
+        SignValidator.validateSessionExtend(newExpiry, currentExpiry) {
             assertEquals(INVALID_EXTEND_TIME, it.message)
         }
     }
@@ -776,7 +744,7 @@ class ValidatorTest {
         val currentExpiry: Long = 1646641841 //07.03
         val newExpiry: Long = 1646555896 //06.03
 
-        Validator.validateSessionExtend(newExpiry, currentExpiry) {
+        SignValidator.validateSessionExtend(newExpiry, currentExpiry) {
             assertEquals(INVALID_EXTEND_TIME, it.message)
         }
     }

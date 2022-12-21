@@ -10,6 +10,7 @@ WalletConnect v2 protocols for Android applications.
 
 | BOM   | [Core SDK](androidCore) | [Sign SDK](sign) | [Auth SDK](auth) | [Chat SDK](chat) |
 |-------|-------------------------|------------------|------------------|------------------|
+| 1.1.0 | 1.6.0                   | 2.4.0            |                  |                  |
 | 1.0.1 | 1.5.0                   | 2.3.1            | 1.3.0            | 1.0.0-alpha04    |
 |       | 1.4.0                   | 2.2.0            | 1.2.0            | 1.0.0-alpha03    |
 |       | 1.3.0                   | 2.1.0            | 1.1.0            | 1.0.0-alpha02    |

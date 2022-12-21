@@ -7,7 +7,6 @@ import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.di.cryptoModule
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.pairing.model.mapper.toPairing
 import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Events
@@ -27,17 +26,15 @@ internal class AuthProtocol : AuthInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun initialize(init: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit) {
+    override fun initialize(params: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit) {
         try {
-            with(init) {
-                wcKoinApp.modules(
-                    commonModule(),
-                    cryptoModule(),
-                    jsonRpcModule(),
-                    storageModule(),
-                    engineModule(iss)
-                )
-            }
+            wcKoinApp.modules(
+                commonModule(),
+                cryptoModule(),
+                jsonRpcModule(),
+                storageModule(),
+                engineModule()
+            )
 
             authEngine = wcKoinApp.koin.get()
             authEngine.setup()
@@ -75,8 +72,7 @@ internal class AuthProtocol : AuthInterface {
         checkEngineInitialization()
 
         try {
-            authEngine.request(
-                params.toCommon(), params.pairing.toPairing(),
+            authEngine.request(params.toCommon(), params.topic,
                 onSuccess = onSuccess,
                 onFailure = { error -> onError(Auth.Model.Error(error)) }
             )
@@ -95,7 +91,14 @@ internal class AuthProtocol : AuthInterface {
         }
     }
 
-    @Throws(Exception::class)
+    @Throws(IllegalStateException::class)
+    override fun formatMessage(params: Auth.Params.FormatMessage): String {
+        checkEngineInitialization()
+
+        return authEngine.formatMessage(params.payloadParams.toCommon(), params.issuer)
+    }
+
+    @Throws(IllegalStateException::class)
     override fun getPendingRequest(): List<Auth.Model.PendingRequest> {
         checkEngineInitialization()
 

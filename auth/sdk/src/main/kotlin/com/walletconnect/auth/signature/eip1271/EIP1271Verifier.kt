@@ -1,6 +1,5 @@
 package com.walletconnect.auth.signature.eip1271
 
-import android.net.Uri
 import com.walletconnect.auth.signature.Signature
 import com.walletconnect.auth.signature.toCacaoSignature
 import com.walletconnect.util.bytesToHex
@@ -9,8 +8,6 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.web3j.crypto.Sign
-import kotlin.random.Random
-
 
 internal object EIP1271Verifier {
     private const val isValidSignatureHash = "0x1626ba7e"

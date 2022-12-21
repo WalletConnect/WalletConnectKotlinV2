@@ -115,7 +115,7 @@ internal object PairingProtocol : PairingInterface {
 
     private suspend fun awaitConnection(onConnection: () -> Unit, errorLambda: (Throwable) -> Unit = {}) {
         try {
-            withTimeout(2000) {
+            withTimeout(5000) {
                 while (true) {
                     if (CoreClient.Relay.isConnectionAvailable.value) {
                         onConnection()
