@@ -2,7 +2,6 @@
 
 package com.walletconnect.push.dapp.engine
 
-import android.util.Log
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent

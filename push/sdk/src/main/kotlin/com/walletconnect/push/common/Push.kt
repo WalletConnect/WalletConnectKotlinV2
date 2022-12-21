@@ -2,7 +2,6 @@ package com.walletconnect.push.common
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.internal.common.model.AppMetaData
 
 object Push {
 
