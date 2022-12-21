@@ -87,6 +87,11 @@ class SessionFragment : Fragment(R.layout.fragment_session) {
 
                 false
             }
+            R.id.menu_push_notify -> {
+                viewModel.pushNotify()
+
+                false
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }

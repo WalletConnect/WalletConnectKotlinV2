@@ -51,6 +51,14 @@ android {
     }
 }
 
+sqldelight {
+    database("PushDatabase") {
+        packageName = "com.walletconnect.push"
+        schemaOutputDirectory = file("src/debug/sqldelight/databases")
+        verifyMigrations = true
+    }
+}
+
 dependencies {
     debugImplementation(project(":androidCore:impl"))
     releaseImplementation("com.walletconnect:android-core-impl:$CORE_VERSION")

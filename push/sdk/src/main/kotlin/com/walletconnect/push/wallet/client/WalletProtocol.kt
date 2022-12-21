@@ -3,34 +3,34 @@ package com.walletconnect.push.wallet.client
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push
-import com.walletconnect.push.common.domain.GetListOfSubscriptionsUseCase
-import com.walletconnect.push.common.model.EngineDO
-import com.walletconnect.push.wallet.client.mapper.toClientPushRequest
-import com.walletconnect.push.common.di.pushJsonRpcModule
 import com.walletconnect.push.common.di.commonUseCasesModule
+import com.walletconnect.push.common.di.pushJsonRpcModule
+import com.walletconnect.push.common.model.EngineDO
+import com.walletconnect.push.wallet.client.mapper.toClient
+import com.walletconnect.push.wallet.di.pushStorageModule
 import com.walletconnect.push.wallet.di.walletEngineModule
-import com.walletconnect.push.wallet.engine.domain.DecryptMessageUseCase
 import com.walletconnect.push.wallet.engine.WalletEngine
+import com.walletconnect.push.wallet.engine.domain.DecryptMessageUseCase
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 class WalletProtocol : WalletInterface {
     private lateinit var decryptMessageUseCase: DecryptMessageUseCase
-    private lateinit var getListOfSubscriptionsUseCase: GetListOfSubscriptionsUseCase
     private lateinit var walletEngine: WalletEngine
 
     companion object {
         val instance = WalletProtocol()
-        const val storageSuffix: String = "push"
+        const val storageSuffix: String = "walletPush"
     }
 
-    override fun initialize(init: Push.Wallet.Params.Init, onError: (Push.Wallet.Model.Error) -> Unit) {
+    override fun initialize(init: Push.Wallet.Params.Init, onError: (Push.Model.Error) -> Unit) {
         try {
             wcKoinApp.modules(
+                // TODO: Commented out until we merge PR to handle multiple versions of dependnecy
 //                pushCommonModule(),
 //                cryptoModule(),
                 pushJsonRpcModule(),
-//                pushStorageModule(storageSuffix),
+                pushStorageModule(storageSuffix),
                 walletEngineModule(),
                 commonUseCasesModule()
             )
@@ -40,7 +40,7 @@ class WalletProtocol : WalletInterface {
             walletEngine = wcKoinApp.koin.get()
             walletEngine.setup()
         } catch (e: Exception) {
-            onError(Push.Wallet.Model.Error(e))
+            onError(Push.Model.Error(e))
         }
     }
 
@@ -49,51 +49,56 @@ class WalletProtocol : WalletInterface {
 
         walletEngine.engineEvent.onEach { event ->
             when (event) {
-                is EngineDO.PushRequest -> delegate.onPushRequest(event.toClientPushRequest())
-                is EngineDO.PushMessage -> delegate.onPushMessage(event.toClientPushRequest())
+                is EngineDO.PushRequest -> delegate.onPushRequest(event.toClient())
+                is EngineDO.PushMessage -> delegate.onPushMessage(event.toClient())
+                else -> Unit
             }
         }.launchIn(scope)
     }
 
-    override fun approve(params: Push.Wallet.Params.Approve, onSuccess: (Boolean) -> Unit, onError: (Push.Wallet.Model.Error) -> Unit) {
+    override fun approve(params: Push.Wallet.Params.Approve, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         try {
-            // TODO: Find out if it's better to pass the publicKey instead of the ID
-            walletEngine.approve(/*params.id*/"", onSuccess) { onError(Push.Wallet.Model.Error(it)) }
+            walletEngine.approve(params.id, onSuccess) { onError(Push.Model.Error(it)) }
         } catch (e: Exception) {
-            onError(Push.Wallet.Model.Error(e))
+            onError(Push.Model.Error(e))
         }
     }
 
-    override fun reject(params: Push.Wallet.Params.Reject, onSuccess: (Boolean) -> Unit, onError: (Push.Wallet.Model.Error) -> Unit) {
+    override fun reject(params: Push.Wallet.Params.Reject, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         try {
-            // TODO: Find out if it's better to pass the publicKey instead of the ID
-            walletEngine.reject(/*params.id*/"", params.reason, onSuccess) { onError(Push.Wallet.Model.Error(it)) }
+            walletEngine.reject(params.id, params.reason, onSuccess) { onError(Push.Model.Error(it)) }
         } catch (e: Exception) {
-            onError(Push.Wallet.Model.Error(e))
+            onError(Push.Model.Error(e))
         }
     }
 
-    override fun getActiveSubscriptions(): Map<String, Push.Wallet.Model.Subscription> {
-        return getListOfSubscriptionsUseCase.invoke().mapValues { (_, subscription) ->
-            subscription.toClientPushRequest()
-        }
-    }
-
-    override fun delete(params: Push.Wallet.Params.Delete) {
+    override fun getActiveSubscriptions(): Map<String, Push.Model.Subscription> {
         checkEngineInitialization()
 
-        // TODO: This is still being decided on
+        return walletEngine.getListOfActiveSubscriptions().mapValues { (_, subscription) ->
+            subscription.toClient()
+        }
     }
 
-    override fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (Push.Wallet.Model.Message) -> Unit, onError: (Push.Wallet.Model.Error) -> Unit) {
+    override fun delete(params: Push.Wallet.Params.Delete, onError: (Push.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        try {
+            walletEngine.delete(params.topic) { error -> onError(Push.Model.Error(error)) }
+        } catch (e: Exception) {
+            onError(Push.Model.Error(e))
+        }
+    }
+
+    override fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (Push.Model.Message) -> Unit, onError: (Push.Model.Error) -> Unit) {
         runCatching { decryptMessageUseCase.invoke(params.topic, params.encryptedMessage) }.fold({ decryptedMsg ->
-            onSuccess(Push.Wallet.Model.Message("", "", "", ""))  // TODO: Need to confirm if decryptedMsg will be broken up to conform to Push.Wallet.Model.Message or will we have different logic
+            onSuccess(Push.Model.Message("", "", "", ""))  // TODO: Need to confirm if decryptedMsg will be broken up to conform to Push.Wallet.Model.Message or will we have different logic
         }, { error ->
-            onError(Push.Wallet.Model.Error(error))
+            onError(Push.Model.Error(error))
         })
     }
 

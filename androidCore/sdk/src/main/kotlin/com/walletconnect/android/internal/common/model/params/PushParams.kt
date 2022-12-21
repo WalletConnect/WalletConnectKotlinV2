@@ -34,4 +34,12 @@ sealed class PushParams: ClientParams {
         @Json(name = "url")
         val url: String,
     ): PushParams()
+
+    @JsonClass(generateAdapter = true)
+    data class DeleteParams(
+        @Json(name = "code")
+        val code: Long,
+        @Json(name = "message")
+        val message: String
+    ): PushParams()
 }

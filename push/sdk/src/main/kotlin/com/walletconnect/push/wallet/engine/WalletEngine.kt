@@ -7,22 +7,24 @@ import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
-import com.walletconnect.android.internal.common.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.push.common.PeerError
-import com.walletconnect.push.common.model.toEngineDO
-import com.walletconnect.push.common.model.toPushResponseParams
 import com.walletconnect.push.common.JsonRpcMethod
+import com.walletconnect.push.common.PeerError
+import com.walletconnect.push.common.model.EngineDO
+import com.walletconnect.push.common.model.PushRpc
+import com.walletconnect.push.common.model.toEngineDO
+import com.walletconnect.push.common.storage.data.SubscriptionStorageRepository
+import com.walletconnect.util.generateId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
@@ -32,11 +34,12 @@ import kotlinx.coroutines.supervisorScope
 internal class WalletEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val crypto: KeyManagementRepository,
-    private val pairingInterface: PairingInterface,
     private val pairingHandler: PairingControllerInterface,
+    private val subscriptionStorageRepository: SubscriptionStorageRepository,
     private val logger: Logger,
 ) {
     private var jsonRpcRequestsJob: Job? = null
+    private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
@@ -47,7 +50,6 @@ internal class WalletEngine(
             JsonRpcMethod.WC_PUSH_REQUEST,
             JsonRpcMethod.WC_PUSH_MESSAGE
         )
-//        setupSequenceExpiration()
     }
 
     fun setup() {
@@ -57,12 +59,16 @@ internal class WalletEngine(
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) {
-//                        resubscribeToSubscriptions()
+                        resubscribeToSubscriptions()
                     }
                 }
 
                 if (jsonRpcRequestsJob == null) {
                     jsonRpcRequestsJob = collectJsonRpcRequests()
+                }
+
+                if (jsonRpcResponsesJob == null) {
+                    jsonRpcResponsesJob = collectJsonRpcResponses()
                 }
 
                 if (internalErrorsJob == null) {
@@ -72,34 +78,74 @@ internal class WalletEngine(
             .launchIn(scope)
     }
 
-    fun approve(proposerPublicKey: String, onSuccess: (Boolean) -> Unit, onError: (Throwable) -> Unit) {
-        val proposerRequest = pushRequests[proposerPublicKey]?.also { request ->
-            pushRequests.remove(request.topic.value)
-        } ?: return onError(GenericException("Unable to find proposer's request"))
+    fun approve(requestId: Long, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
+        try {
+            val peerPublicKey = subscriptionStorageRepository.getPeerPublicKeyByRequestId(requestId)
+            val proposerRequest = pushRequests[peerPublicKey]?.also { request ->
+                pushRequests.remove(request.topic.value)
+            } ?: return onError(GenericException("Unable to find proposer's request"))
+            val proposerRequestParams = proposerRequest.params as PushParams.RequestParams
 
-        val selfPublicKey = crypto.generateKeyPair()
-        val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(proposerPublicKey))
-        val approvalParams = selfPublicKey.toPushResponseParams()
-        val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
-        jsonRpcInteractor.subscribe(pushTopic) { error ->
-            return@subscribe onError(error)
-        }
-        jsonRpcInteractor.respondWithParams(proposerRequest, approvalParams, irnParams) { error ->
-            return@respondWithParams onError(error)
-        }
+            val selfPublicKey = crypto.generateKeyPair()
+            val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(peerPublicKey))
+            val approvalParams = PushParams.RequestResponseParams(selfPublicKey.keyAsHex)
+            val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
 
-        onSuccess(true)
+            subscriptionStorageRepository.updateSubscriptionToResponded(requestId, pushTopic.value, proposerRequestParams.metaData)
+
+            jsonRpcInteractor.subscribe(pushTopic) { error ->
+                return@subscribe onError(error)
+            }
+            jsonRpcInteractor.respondWithParams(proposerRequest, approvalParams, irnParams) { error ->
+                return@respondWithParams onError(error)
+            }
+
+            onSuccess()
+        } catch (e: Exception) {
+            onError(e)
+        }
     }
 
-    fun reject(proposerPublicKey: String, reason: String, onSuccess: (Boolean) -> Unit, onError: (Throwable) -> Unit) {
-        val proposerRequest = pushRequests[proposerPublicKey]?.also { request ->
-            pushRequests.remove(request.topic.value)
-        } ?: return onError(GenericException("Unable to find proposer's request"))
-        val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
+    fun reject(requestId: Long, reason: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
+        try {
+            val peerPublicKey = subscriptionStorageRepository.getPeerPublicKeyByRequestId(requestId)
+            val proposerRequest = pushRequests[peerPublicKey]?.also { request ->
+                pushRequests.remove(request.topic.value)
+            } ?: return onError(GenericException("Unable to find proposer's request"))
+            val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
 
-        jsonRpcInteractor.respondWithError(proposerRequest, PeerError.EIP1193.UserRejectedRequest(reason), irnParams) { error ->
-            return@respondWithError onError(error)
+            jsonRpcInteractor.respondWithError(proposerRequest, PeerError.EIP1193.UserRejectedRequest(reason), irnParams) { error ->
+                return@respondWithError onError(error)
+            }
+
+            onSuccess()
+        } catch (e: Exception) {
+            onError(e)
         }
+    }
+
+    fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription.Responded> {
+        return subscriptionStorageRepository.getAllSubscriptions()
+            .filterIsInstance<EngineDO.PushSubscription.Responded>()
+            .associateBy { subscription -> subscription.topic }
+    }
+
+    fun delete(topic: String, onFailure: (Throwable) -> Unit) {
+        val deleteParams = PushParams.DeleteParams(6000, "User Disconnected")
+        val request = PushRpc.PushDelete(id = generateId(), params = deleteParams)
+        val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
+
+        subscriptionStorageRepository.delete(topic)
+
+        jsonRpcInteractor.unsubscribe(Topic(topic))
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, request,
+            onSuccess = {
+                logger.log("Delete sent successfully")
+            },
+            onFailure = {
+                onFailure(it)
+            }
+        )
     }
 
     private fun collectJsonRpcRequests(): Job =
@@ -109,8 +155,16 @@ internal class WalletEngine(
                 when (val requestParams = request.params) {
                     is PushParams.RequestParams -> onPushRequest(request, requestParams)
                     is PushParams.MessageParams -> onPushMessage(request, requestParams)
+                    is PushParams.DeleteParams -> onPushDelete(request)
                 }
             }.launchIn(scope)
+
+    private fun collectJsonRpcResponses(): Job =
+        jsonRpcInteractor.peerResponse.onEach { response ->
+            when (val params = response.params) {
+                is PushParams.DeleteParams -> onPushDeleteResponse()
+            }
+        }.launchIn(scope)
 
     private fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
@@ -118,20 +172,13 @@ internal class WalletEngine(
             .launchIn(scope)
 
     private fun onPushRequest(request: WCRequest, params: PushParams.RequestParams) {
-        val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
 
         try {
             pushRequests[params.publicKey] = request
-            val selfPublicKey = crypto.generateKeyPair()
-            val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(params.publicKey))
-            val responseParams = PushParams.RequestResponseParams(selfPublicKey.keyAsHex)
-            jsonRpcInteractor.subscribe(pushTopic)
-            jsonRpcInteractor.respondWithParams(request, responseParams, irnParams) { error ->
-                logger.error(error)
-                return@respondWithParams
-            }
-            scope.launch { _engineEvent.emit(params.toEngineDO(request.id)) }
+            subscriptionStorageRepository.insertSubscriptionRequest(request.id, params.publicKey)
 
+            scope.launch { _engineEvent.emit(params.toEngineDO(request.id)) }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
                 request,
@@ -142,10 +189,10 @@ internal class WalletEngine(
     }
 
     private fun onPushMessage(request: WCRequest, params: PushParams.MessageParams) {
-        val irnParams = IrnParams(Tags.PUSH_MESSAGE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        val irnParams = IrnParams(Tags.PUSH_MESSAGE_RESPONSE, Ttl(DAY_IN_SECONDS))
 
         try {
-            // TODO: Should we automatically respondWithSuccess?
+            jsonRpcInteractor.respondWithSuccess(request, irnParams)
             scope.launch { _engineEvent.emit(params.toEngineDO()) }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
@@ -154,5 +201,31 @@ internal class WalletEngine(
                 irnParams
             )
         }
+    }
+
+    private fun onPushDelete(request: WCRequest) {
+        val irnParams = IrnParams(Tags.PUSH_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
+
+        try {
+            jsonRpcInteractor.respondWithSuccess(request, irnParams)
+            jsonRpcInteractor.unsubscribe(request.topic)
+            subscriptionStorageRepository.delete(request.topic.value)
+
+            scope.launch { _engineEvent.emit(EngineDO.PushDelete(request.topic.value)) }
+        } catch (e: Exception) {
+            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+        }
+    }
+
+    private fun onPushDeleteResponse() {
+        // TODO: Review if we need this
+    }
+
+    private fun resubscribeToSubscriptions() {
+        subscriptionStorageRepository.getAllSubscriptions()
+            .filterIsInstance<EngineDO.PushSubscription.Responded>()
+            .forEach { subscription ->
+                jsonRpcInteractor.subscribe(Topic(subscription.topic))
+            }
     }
 }

@@ -4,15 +4,14 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.common.di.commonUseCasesModule
+import com.walletconnect.push.common.di.pushJsonRpcModule
 import com.walletconnect.push.common.domain.GetListOfSubscriptionsUseCase
 import com.walletconnect.push.common.model.EngineDO
-import com.walletconnect.push.dapp.client.mapper.toClientPushRequest
-import com.walletconnect.push.dapp.client.mapper.toClientPushResponse
+import com.walletconnect.push.dapp.client.mapper.toClient
 import com.walletconnect.push.dapp.client.mapper.toEngineDO
 import com.walletconnect.push.dapp.di.dappEngineModule
 import com.walletconnect.push.dapp.engine.DappEngine
-import com.walletconnect.push.common.di.pushJsonRpcModule
-import kotlinx.coroutines.flow.filterIsInstance
+import com.walletconnect.push.wallet.di.pushStorageModule
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -22,15 +21,17 @@ internal class DappProtocol : DappInterface {
 
     companion object {
         val instance = DappProtocol()
+        const val storageSuffix = "dappPush"
     }
 
-    override fun initialize(init: Push.Dapp.Params.Init, onError: (Push.Dapp.Model.Error) -> Unit) {
+    override fun initialize(init: Push.Dapp.Params.Init, onError: (Push.Model.Error) -> Unit) {
         try {
             wcKoinApp.modules(
+                // TODO: Commented out until we merge PR to handle multiple versions of dependnecy
 //                pushCommonModule(),
 //                cryptoModule(),
                 pushJsonRpcModule(),
-//                pushStorageModule(WalletProtocol.storageSuffix),
+                pushStorageModule(storageSuffix),
                 dappEngineModule(),
                 commonUseCasesModule()
             )
@@ -40,7 +41,7 @@ internal class DappProtocol : DappInterface {
             dappEngine = wcKoinApp.koin.get()
             dappEngine.setup()
         } catch (e: Exception) {
-            onError(Push.Dapp.Model.Error(e))
+            onError(Push.Model.Error(e))
         }
     }
 
@@ -48,47 +49,54 @@ internal class DappProtocol : DappInterface {
         checkEngineInitialization()
 
         dappEngine.engineEvent
-            .filterIsInstance<EngineDO.PushRequestResponse>()
             .onEach { event ->
-                delegate.onPushResponse(event.toClientPushResponse())
+                when(event) {
+                    is EngineDO.PushRequestResponse -> delegate.onPushResponse(event.toClient())
+                    is EngineDO.PushRequestRejected -> delegate.onPushRejected(event.toClient())
+                    is EngineDO.PushDelete -> delegate.onDelete(event.toClient())
+                }
             }.launchIn(scope)
     }
 
-    override fun request(params: Push.Dapp.Params.Request, onSuccess: (Push.Dapp.Model.RequestId) -> Unit, onError: (Push.Dapp.Model.Error) -> Unit) {
+    override fun request(params: Push.Dapp.Params.Request, onSuccess: (Push.Dapp.Model.RequestId) -> Unit, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         try {
             dappEngine.request(params.pairingTopic, params.account,
                 { requestId -> onSuccess(Push.Dapp.Model.RequestId(requestId)) },
-                { exception -> onError(Push.Dapp.Model.Error(exception)) }
+                { exception -> onError(Push.Model.Error(exception)) }
             )
         } catch (e: Exception) {
-            onError(Push.Dapp.Model.Error(e))
+            onError(Push.Model.Error(e))
         }
     }
 
-    override fun notify(params: Push.Dapp.Params.Notify, onError: (Push.Dapp.Model.Error) -> Unit) {
+    override fun notify(params: Push.Dapp.Params.Notify, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         try {
-            dappEngine.notify(params.topic, params.message.toEngineDO()) { exception -> onError(Push.Dapp.Model.Error(exception)) }
+            dappEngine.notify(params.topic, params.message.toEngineDO()) { exception -> onError(Push.Model.Error(exception)) }
         } catch (e: Exception) {
-            onError(Push.Dapp.Model.Error(e))
+            onError(Push.Model.Error(e))
         }
     }
 
-    override fun getActiveSubscriptions(): Map<String, Push.Dapp.Model.Subscription> {
+    override fun getActiveSubscriptions(): Map<String, Push.Model.Subscription> {
         checkEngineInitialization()
 
-        return getListOfSubscriptionsUseCase.invoke().mapValues { (_, subscription) ->
-            subscription.toClientPushRequest()
+        return dappEngine.getListOfActiveSubscriptions().mapValues { (_, subscription) ->
+            subscription.toClient()
         }
     }
 
-    override fun delete(params: Push.Dapp.Params.Delete, onError: (Push.Dapp.Model.Error) -> Unit) {
+    override fun delete(params: Push.Dapp.Params.Delete, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        TODO("Not yet implemented")
+        try {
+            dappEngine.delete(params.topic) { error -> onError(Push.Model.Error(error)) }
+        } catch (e: Exception) {
+            onError(Push.Model.Error(e))
+        }
     }
 
     @Throws(IllegalStateException::class)

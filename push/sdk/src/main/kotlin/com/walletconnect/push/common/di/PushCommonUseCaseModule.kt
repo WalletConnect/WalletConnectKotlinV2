@@ -9,4 +9,6 @@ import org.koin.dsl.module
 internal fun commonUseCasesModule() = module {
 
     single { GetListOfSubscriptionsUseCase() }
+
+
 }

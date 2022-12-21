@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.CoreClient
 import com.walletconnect.dapp.domain.DappDelegate
+import com.walletconnect.dapp.domain.PushDappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.dapp.client.DappClient
@@ -98,5 +99,15 @@ class SessionViewModel : ViewModel() {
         }, {
             Log.e("Talha", it.throwable.stackTraceToString())
         })
+    }
+
+    fun pushNotify() {
+        val pushTopic = PushDappDelegate.activePushSubscription.topic
+        val pushMessage = Push.Model.Message("Hardcoded Title", "Hardcoded Body", "https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png", "https://walletconnect.com")
+        val notifyParams = Push.Dapp.Params.Notify(pushTopic, pushMessage)
+
+        DappClient.notify(notifyParams) { error ->
+            Log.e(tag(this), error.throwable.stackTraceToString())
+        }
     }
 }

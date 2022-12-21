@@ -38,4 +38,16 @@ internal sealed class PushRpc: JsonRpcClientSync<PushParams> {
         override val params: PushParams.MessageParams,
     ): PushRpc()
 
+    @JsonClass(generateAdapter = true)
+    internal data class PushDelete(
+        @Json(name = "id")
+        override val id: Long,
+        @Json(name = "jsonrpc")
+        override val jsonrpc: String = "2.0",
+        @Json(name = "method")
+        override val method: String = JsonRpcMethod.WC_PUSH_DELETE,
+        @Json(name = "params")
+        override val params: PushParams.DeleteParams,
+    ): PushRpc()
+
 }

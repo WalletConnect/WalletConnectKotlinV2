@@ -16,7 +16,9 @@ internal fun pushJsonRpcModule() = module {
 
     addSerializerEntry(PushRpc.PushRequest::class)
     addSerializerEntry(PushRpc.PushMessage::class)
+    addSerializerEntry(PushRpc.PushDelete::class)
 
     addDeserializerEntry(JsonRpcMethod.WC_PUSH_REQUEST, PushRpc.PushRequest::class)
     addDeserializerEntry(JsonRpcMethod.WC_PUSH_MESSAGE, PushRpc.PushMessage::class)
+    addDeserializerEntry(JsonRpcMethod.WC_PUSH_DELETE, PushRpc.PushDelete::class)
 }

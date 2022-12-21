@@ -52,19 +52,19 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<JsonRpcResponse.
                     mask0 = mask0 and 0xfffffffd.toInt()
                 }
                 2 -> {
-//                    result = when {
-//                        runCatching { approvalParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> approvalParamsAdapter.fromJson(reader)
-////                        runCatching { requestParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> requestParamsAdapter.fromJson(reader)
-////                        runCatching { requestMessageParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> requestMessageParamsAdapter.fromJson(reader)
-////                        runCatching { requestResponseParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> requestResponseParamsAdapter.fromJson(reader)
-//                        else -> anyAdapter.fromJson(reader)
-//                    }
-
-                    result = try {
-                        approvalParamsAdapter.fromJson(reader)
-                    } catch (e: Exception) {
-                        anyAdapter.fromJson(reader)
+                    result = when {
+                        runCatching { approvalParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> approvalParamsAdapter.fromJson(reader)
+                        runCatching { requestParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> requestParamsAdapter.fromJson(reader)
+                        runCatching { requestMessageParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> requestMessageParamsAdapter.fromJson(reader)
+                        runCatching { requestResponseParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> requestResponseParamsAdapter.fromJson(reader)
+                        else -> anyAdapter.fromJson(reader)
                     }
+
+//                    result = try {
+//                        approvalParamsAdapter.fromJson(reader)
+//                    } catch (e: Exception) {
+//                        anyAdapter.fromJson(reader)
+//                    }
                 }
                 -1 -> {
                     // Unknown name, skip it.
