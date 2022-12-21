@@ -1,5 +1,6 @@
 package com.walletconnect.android.utils
 
+import com.walletconnect.android.BuildConfig
 import timber.log.Timber
 
 internal fun plantTimber() {
