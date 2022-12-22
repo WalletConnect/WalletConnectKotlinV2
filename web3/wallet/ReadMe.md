@@ -1,6 +1,6 @@
-# **WalletConnect Sign - Kotlin**
+# **WalletConnect Web3Wallet - Kotlin**
 
-Kotlin implementation of web3wallet for Android applications.
+Kotlin implementation of Web3Wallet for Android applications.
 
 ![Maven Central](https://img.shields.io/maven-central/v/com.walletconnect/web3wallet)
 
@@ -11,8 +11,8 @@ Kotlin implementation of web3wallet for Android applications.
 
 ## Documentation and usage
 
-* [web3wallet installation](TBD)
-* [web3wallet usage](TBD)
+* [Web3Wallet installation](TBD)
+* [Web3Wallet usage](TBD)
 
 ## Installation
 
