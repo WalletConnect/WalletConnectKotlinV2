@@ -59,12 +59,6 @@ internal class JsonRpcResultAdapter(moshi: Moshi) : JsonAdapter<JsonRpcResponse.
                         runCatching { requestResponseParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> requestResponseParamsAdapter.fromJson(reader)
                         else -> anyAdapter.fromJson(reader)
                     }
-
-//                    result = try {
-//                        approvalParamsAdapter.fromJson(reader)
-//                    } catch (e: Exception) {
-//                        anyAdapter.fromJson(reader)
-//                    }
                 }
                 -1 -> {
                     // Unknown name, skip it.
