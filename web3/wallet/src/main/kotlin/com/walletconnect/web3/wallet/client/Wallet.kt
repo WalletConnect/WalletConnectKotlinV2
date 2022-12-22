@@ -9,6 +9,8 @@ object Wallet {
     sealed class Params {
         data class Init constructor(val core: CoreClient) : Params()
 
+        data class Pair(val uri: String) : Params()
+
         data class SessionApprove(
             val proposerPublicKey: String,
             val namespaces: Map<String, Model.Namespace.Session>,

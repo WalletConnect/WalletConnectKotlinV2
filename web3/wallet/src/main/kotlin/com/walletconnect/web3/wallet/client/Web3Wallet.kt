@@ -1,11 +1,15 @@
 package com.walletconnect.web3.wallet.client
 
+import com.walletconnect.android.Core
+import com.walletconnect.android.CoreClient
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 
 object Web3Wallet {
+
+    lateinit var coreClient: CoreClient
 
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal)
@@ -76,8 +80,14 @@ object Web3Wallet {
 
     @Throws(IllegalStateException::class)
     fun initialize(params: Wallet.Params.Init, onError: (Wallet.Model.Error) -> Unit) {
+        coreClient = params.core
         SignClient.initialize(Sign.Params.Init(params.core)) { error -> onError(Wallet.Model.Error(error.throwable)) }
         AuthClient.initialize(Auth.Params.Init(params.core)) { error -> onError(Wallet.Model.Error(error.throwable)) }
+    }
+
+    @Throws(IllegalStateException::class)
+    fun pair(params: Wallet.Params.Pair, onError: (Wallet.Model.Error) -> Unit = {}) {
+        coreClient.Pairing.pair(Core.Params.Pair(params.uri)) { error -> onError(Wallet.Model.Error(error.throwable)) }
     }
 
     @Throws(IllegalStateException::class)
