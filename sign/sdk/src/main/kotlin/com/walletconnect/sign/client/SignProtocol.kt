@@ -19,7 +19,7 @@ import com.walletconnect.sign.engine.model.EngineDO
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
- class SignProtocol : SignInterface {
+class SignProtocol : SignInterface {
     private lateinit var signEngine: SignEngine
 
     companion object {
@@ -75,7 +75,7 @@ import kotlinx.coroutines.flow.onEach
                 is EngineDO.SessionUpdateNamespaces -> delegate.onSessionUpdate(event.toClientSessionsNamespaces())
                 is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                 is EngineDO.SessionEvent -> delegate.onSessionEvent(event.toClientSessionEvent())
-                is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientSettledSession())
+                is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientActiveSession())
                 //Responses
                 is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
                 //Utils
@@ -218,13 +218,26 @@ import kotlinx.coroutines.flow.onEach
     @Throws(IllegalStateException::class)
     override fun getListOfActiveSessions(): List<Sign.Model.Session> {
         checkEngineInitialization()
-        return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
+        return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientActiveSession)
     }
 
     @Throws(IllegalStateException::class)
     override fun getActiveSessionByTopic(topic: String): Sign.Model.Session? {
         checkEngineInitialization()
-        return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientSettledSession)
+        return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientActiveSession)
+            .find { session -> session.topic == topic }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getListOfSettledSessions(): List<Sign.Model.Session> {
+        checkEngineInitialization()
+        return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientActiveSession)
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getSettledSessionByTopic(topic: String): Sign.Model.Session? {
+        checkEngineInitialization()
+        return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientActiveSession)
             .find { session -> session.topic == topic }
     }
 

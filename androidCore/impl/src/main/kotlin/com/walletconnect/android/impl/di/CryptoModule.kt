@@ -9,15 +9,8 @@ import org.koin.dsl.module
 
 fun cryptoModule() = module {
 
-    if (wcKoinApp.koin.getOrNull<KeyManagementRepository>() == null) {
-        single<KeyManagementRepository> { BouncyCastleKeyManagementRepository(get()) }
-    } else {
-        wcKoinApp.koin.get<KeyManagementRepository>()
-    }
+    wcKoinApp.koin.getOrNull<KeyManagementRepository>() ?: single<KeyManagementRepository> { BouncyCastleKeyManagementRepository(get()) }
 
-    if (wcKoinApp.koin.getOrNull<Codec>() == null) {
-        single<Codec> { ChaChaPolyCodec(get()) }
-    } else {
-        wcKoinApp.koin.get<Codec>()
-    }
+    wcKoinApp.koin.getOrNull<Codec>() ?: single<Codec> { ChaChaPolyCodec(get()) }
+
 }

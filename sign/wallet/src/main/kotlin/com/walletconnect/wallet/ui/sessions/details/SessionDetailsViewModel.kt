@@ -37,7 +37,7 @@ class SessionDetailsViewModel : ViewModel() {
                         // TODO: Update UI once state synchronization
                         SampleWalletEvents.NoAction
                     }
-                    is Sign.Model.DeletedSession -> {
+                    is Sign.Model.SessionDelete -> {
                         selectedSessionTopic = null
                         _sessionDetails.emit(SampleWalletEvents.Disconnect)
                     }

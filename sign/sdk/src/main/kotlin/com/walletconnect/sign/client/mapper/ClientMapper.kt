@@ -21,7 +21,7 @@ internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponse(): JsonRpcResponse =
 @JvmSynthetic
 internal fun EngineDO.SettledSessionResponse.toClientSettledSessionResponse(): Sign.Model.SettledSessionResponse =
     when (this) {
-        is EngineDO.SettledSessionResponse.Result -> Sign.Model.SettledSessionResponse.Result(settledSession.toClientSettledSession())
+        is EngineDO.SettledSessionResponse.Result -> Sign.Model.SettledSessionResponse.Result(settledSession.toClientActiveSession())
         is EngineDO.SettledSessionResponse.Error -> Sign.Model.SettledSessionResponse.Error(errorMessage)
     }
 
@@ -80,22 +80,22 @@ internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcError(): JsonRpcRespon
 internal fun Sign.Model.SessionEvent.toEngineEvent(chainId: String): EngineDO.Event = EngineDO.Event(name, data, chainId)
 
 @JvmSynthetic
-internal fun EngineDO.SessionDelete.toClientDeletedSession(): Sign.Model.DeletedSession =
-    Sign.Model.DeletedSession(topic, reason)
+internal fun EngineDO.SessionDelete.toClientDeletedSession(): Sign.Model.SessionDelete =
+    Sign.Model.SessionDelete(topic, reason)
 
 @JvmSynthetic
 internal fun EngineDO.SessionEvent.toClientSessionEvent(): Sign.Model.SessionEvent =
     Sign.Model.SessionEvent(name, data)
 
 @JvmSynthetic
-internal fun EngineDO.Session.toClientSettledSession(): Sign.Model.Session =
+internal fun EngineDO.Session.toClientActiveSession(): Sign.Model.Session =
     Sign.Model.Session(topic.value,
         expiry.seconds,
         namespaces.toMapOfClientNamespacesSession(),
         peerAppMetaData?.toClient())
 
 @JvmSynthetic
-internal fun EngineDO.SessionExtend.toClientSettledSession(): Sign.Model.Session =
+internal fun EngineDO.SessionExtend.toClientActiveSession(): Sign.Model.Session =
     Sign.Model.Session(
         topic.value,
         expiry.seconds,

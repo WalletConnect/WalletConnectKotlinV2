@@ -5,7 +5,7 @@ interface SignInterface {
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal)
         fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest)
-        fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
+        fun onSessionDelete(deletedSession: Sign.Model.SessionDelete)
 
         //Responses
         fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse)
@@ -22,7 +22,7 @@ interface SignInterface {
         fun onSessionUpdate(updatedSession: Sign.Model.UpdatedSession)
         fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent)
         fun onSessionExtend(session: Sign.Model.Session)
-        fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
+        fun onSessionDelete(deletedSession: Sign.Model.SessionDelete)
 
         //Responses
         fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse)
@@ -38,10 +38,13 @@ interface SignInterface {
 
     fun connect(
         connect: Sign.Params.Connect, onSuccess: () -> Unit,
-        onError: (Sign.Model.Error) -> Unit)
+        onError: (Sign.Model.Error) -> Unit
+    )
+
     @Deprecated(
         message = "Creating a pairing will be moved to CoreClient to make pairing SDK agnostic",
-        replaceWith = ReplaceWith(expression = "CoreClient.Pairing.pair()", imports = ["com.walletconnect.android.CoreClient"]))
+        replaceWith = ReplaceWith(expression = "CoreClient.Pairing.pair()", imports = ["com.walletconnect.android.CoreClient"])
+    )
     fun pair(pair: Sign.Params.Pair, onError: (Sign.Model.Error) -> Unit)
     fun approveSession(approve: Sign.Params.Approve, onError: (Sign.Model.Error) -> Unit)
     fun rejectSession(reject: Sign.Params.Reject, onError: (Sign.Model.Error) -> Unit)
@@ -54,9 +57,22 @@ interface SignInterface {
     fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit)
     fun getListOfActiveSessions(): List<Sign.Model.Session>
     fun getActiveSessionByTopic(topic: String): Sign.Model.Session?
+
+    @Deprecated(
+        message = "Getting a list of settled sessions is replaced with getListOfActiveSessions()",
+        replaceWith = ReplaceWith(expression = "SignClient.getListOfActiveSessions()")
+    )
+    fun getListOfSettledSessions(): List<Sign.Model.Session>
+    @Deprecated(
+        message = "Getting a list of settled sessions by to[ic is replaced with getSettledSessionByTopic()",
+        replaceWith = ReplaceWith(expression = "SignClient.getSettledSessionByTopic()")
+    )
+    fun getSettledSessionByTopic(topic: String): Sign.Model.Session?
+
     @Deprecated(
         message = "Getting a list of Pairings will be moved to CoreClient to make pairing SDK agnostic",
-        replaceWith = ReplaceWith(expression = "CoreClient.Pairing.getPairings()", imports = ["com.walletconnect.android.CoreClient"]))
+        replaceWith = ReplaceWith(expression = "CoreClient.Pairing.getPairings()")
+    )
     fun getListOfSettledPairings(): List<Sign.Model.Pairing>
     fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest>
 }

@@ -22,18 +22,13 @@ fun commonModule() = module {
 
     includes(foundationCommonModule())
 
-    if (wcKoinApp.koin.getOrNull<PolymorphicJsonAdapterFactory<JsonRpcResponse>>() == null) {
-
-        single<PolymorphicJsonAdapterFactory<JsonRpcResponse>> {
-            PolymorphicJsonAdapterFactory.of(JsonRpcResponse::class.java, "type")
-                .withSubtype(JsonRpcResponse.JsonRpcResult::class.java, "result")
-                .withSubtype(JsonRpcResponse.JsonRpcError::class.java, "error")
-        }
-    } else {
-        wcKoinApp.koin.get<PolymorphicJsonAdapterFactory<JsonRpcResponse>>()
+    wcKoinApp.koin.getOrNull<PolymorphicJsonAdapterFactory<JsonRpcResponse>>() ?: single<PolymorphicJsonAdapterFactory<JsonRpcResponse>> {
+        PolymorphicJsonAdapterFactory.of(JsonRpcResponse::class.java, "type")
+            .withSubtype(JsonRpcResponse.JsonRpcResult::class.java, "result")
+            .withSubtype(JsonRpcResponse.JsonRpcError::class.java, "error")
     }
 
-    single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {
+    wcKoinApp.koin.getOrNull<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) ?: single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {
         get<Moshi>(named(FoundationDITags.MOSHI))
             .newBuilder()
             .add { type, _, moshi ->

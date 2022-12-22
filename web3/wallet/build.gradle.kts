@@ -50,7 +50,7 @@ dependencies {
     debugImplementation(project(":auth:sdk"))
     debugImplementation(project(":androidCore:impl"))
 
-    releaseImplementation("com.walletconnect:sign:2.4.0")
-    releaseImplementation("com.walletconnect:auth:1.4.0")
+    releaseImplementation("com.walletconnect:sign:$SIGN_VERSION")
+    releaseImplementation("com.walletconnect:auth:$AUTH_VERSION")
     releaseImplementation("com.walletconnect:android-core-impl:$CORE_VERSION")
 }

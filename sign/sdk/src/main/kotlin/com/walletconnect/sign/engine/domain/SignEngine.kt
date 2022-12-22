@@ -479,7 +479,7 @@ internal class SignEngine(
 
     private fun collectJsonRpcResponses(): Job =
         jsonRpcInteractor.peerResponse
-            .filter { request -> request.params is SignParams } //todo: should be here?
+            .filter { request -> request.params is SignParams }
             .onEach { response ->
                 when (val params = response.params) {
                     is SignParams.SessionProposeParams -> onSessionProposalResponse(response, params)

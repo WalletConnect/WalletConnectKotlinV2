@@ -12,17 +12,14 @@ fun coreStorageModule() = module {
 
     includes(baseStorageModule())
 
-    if (wcKoinApp.koin.getOrNull<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)) == null) {
-        single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)) {
+    wcKoinApp.koin.getOrNull<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER))
+        ?: single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)) {
             AndroidSqliteDriver(
                 schema = AndroidCoreDatabase.Schema,
                 context = androidContext(),
                 name = DBNames.ANDROID_CORE_DB_NAME,
             )
         }
-    } else {
-        wcKoinApp.koin.get<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER))
-    }
 }
 
 fun sdkBaseStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {

@@ -46,7 +46,7 @@ class SelectedAccountViewModel : ViewModel() {
 
                         _event.emit(request)
                     }
-                    is Sign.Model.DeletedSession -> {
+                    is Sign.Model.SessionDelete -> {
                         _event.emit(SampleDappEvents.Disconnect)
                     }
                     else -> Unit

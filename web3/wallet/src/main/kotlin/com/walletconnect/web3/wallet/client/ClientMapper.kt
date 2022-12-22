@@ -138,7 +138,7 @@ internal fun Sign.Model.SessionRequest.toWallet(): Wallet.Model.SessionRequest =
     )
 
 @JvmSynthetic
-internal fun Sign.Model.DeletedSession.toWallet(): Wallet.Model.SessionDelete =
+internal fun Sign.Model.SessionDelete.toWallet(): Wallet.Model.SessionDelete =
     Wallet.Model.SessionDelete(topic, reason)
 
 @JvmSynthetic

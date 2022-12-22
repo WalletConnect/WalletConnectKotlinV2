@@ -13,6 +13,14 @@ object Sign {
         }
     }
 
+    @Deprecated(
+        message = "ConnectionType a pairing is be moved to CoreClient",
+        replaceWith = ReplaceWith(imports = ["com.walletconnect.android.relay"])
+    )
+    enum class ConnectionType {
+        AUTOMATIC, MANUAL
+    }
+
     sealed class Model {
 
         data class Error(val throwable: Throwable) : Model()
@@ -78,6 +86,9 @@ object Sign {
             }
         }
 
+        @Deprecated(message = "RelayProtocolOptions is deprecated")
+        data class RelayProtocolOptions(val protocol: String, val data: String? = null) : Model()
+
         data class Pairing(val topic: String, val metaData: Core.Model.AppMetaData?) : Model()
 
         sealed class SettledSessionResponse : Model() {
@@ -90,7 +101,16 @@ object Sign {
             data class Error(val errorMessage: String) : SessionUpdateResponse()
         }
 
-        data class DeletedSession(val topic: String, val reason: String) : Model()
+        data class SessionDelete(val topic: String, val reason: String) : Model()
+
+        @Deprecated(
+            message = "DeletedSession is replaced with SessionDelete(val topic: String, val reason: String)",
+            replaceWith = ReplaceWith(expression = "Sign.Model.SessionDelete(val topic: String, val reason: String)")
+        )
+        sealed class DeletedSession : Model() {
+            data class Success(val topic: String, val reason: String) : DeletedSession()
+            data class Error(val error: Throwable) : DeletedSession()
+        }
 
         sealed class Ping : Model() {
             data class Success(val topic: String) : Ping()

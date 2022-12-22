@@ -15,6 +15,7 @@ import kotlin.Int
 import kotlin.Long
 import kotlin.String
 
+//TODO: revisit and make more scalable
 internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcResponse.JsonRpcResult>() {
     private val options: JsonReader.Options = JsonReader.Options.of("id", "jsonrpc", "result")
     private val longAdapter: JsonAdapter<Long> = moshi.adapter(Long::class.java, emptySet(), "id")

@@ -17,10 +17,8 @@ import kotlin.reflect.KClass
 @JvmSynthetic
 fun jsonRpcModule() = module {
 
-    if (wcKoinApp.koin.getOrNull<JsonRpcInteractorInterface>() == null) {
-        single<JsonRpcInteractorInterface> { JsonRpcInteractor(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
-    } else {
-        wcKoinApp.koin.get<JsonRpcInteractorInterface>()
+    wcKoinApp.koin.getOrNull<JsonRpcInteractorInterface>() ?: single<JsonRpcInteractorInterface> {
+        JsonRpcInteractor(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER)))
     }
 
     addSerializerEntry(PairingParams.PingParams::class)
