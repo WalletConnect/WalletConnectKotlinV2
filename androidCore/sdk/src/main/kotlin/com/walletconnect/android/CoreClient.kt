@@ -1,6 +1,8 @@
 package com.walletconnect.android
 
 import android.app.Application
+import com.walletconnect.android.echo.EchoClient
+import com.walletconnect.android.echo.EchoInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.client.PairingProtocol
@@ -15,6 +17,7 @@ import org.koin.dsl.module
 object CoreClient {
     val Pairing: PairingInterface = PairingProtocol
     var Relay: RelayConnectionInterface = RelayClient
+    val Echo: EchoInterface = EchoClient
 
     interface CoreDelegate : PairingInterface.Delegate
 
@@ -40,6 +43,7 @@ object CoreClient {
         )
         PairingProtocol.initialize(metaData)
         PairingController.initialize()
+        EchoClient.initialize()
     }
 
     fun setDelegate(delegate: CoreDelegate) {
