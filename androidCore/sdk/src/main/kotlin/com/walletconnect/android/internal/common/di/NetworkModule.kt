@@ -8,9 +8,11 @@ import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
+import com.walletconnect.android.echo.network.EchoService
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.connection.ManualConnectionLifecycle
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
@@ -19,6 +21,8 @@ import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 
 fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: ConnectionType, sdkVersion: String) = module {
@@ -86,4 +90,11 @@ fun androidApiNetworkModule(serverUrl: String, jwt: String, connectionType: Conn
         ConnectivityState(androidApplication())
     }
 
+    single {
+        Retrofit.Builder()
+            .baseUrl("https://echo.walletconnect.com/")
+            .addConverterFactory(MoshiConverterFactory.create())
+            .client(get(named(AndroidCommonDITags.OK_HTTP)))
+            .build()
+    }
 }
