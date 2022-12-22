@@ -5,7 +5,7 @@ interface SignInterface {
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal)
         fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest)
-        fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
+        fun onSessionDelete(deletedSession: Sign.Model.SessionDelete)
 
         //Responses
         fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse)
@@ -22,7 +22,7 @@ interface SignInterface {
         fun onSessionUpdate(updatedSession: Sign.Model.UpdatedSession)
         fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent)
         fun onSessionExtend(session: Sign.Model.Session)
-        fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
+        fun onSessionDelete(deletedSession: Sign.Model.SessionDelete)
 
         //Responses
         fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse)

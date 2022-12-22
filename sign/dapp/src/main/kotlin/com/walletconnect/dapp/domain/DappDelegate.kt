@@ -50,7 +50,7 @@ object DappDelegate : SignClient.DappDelegate {
         }
     }
 
-    override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
+    override fun onSessionDelete(deletedSession: Sign.Model.SessionDelete) {
         deselectAccountDetails()
 
         scope.launch {

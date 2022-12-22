@@ -31,7 +31,7 @@ class SessionViewModel : ViewModel() {
                     is Sign.Model.UpdatedSession -> {
                         _sessionUI.value = getSessions(walletEvent.topic)
                     }
-                    is Sign.Model.DeletedSession -> {
+                    is Sign.Model.SessionDelete -> {
                         _navigationEvents.emit(SampleDappEvents.Disconnect)
                     }
                     else -> Unit

@@ -38,9 +38,10 @@ object Web3Wallet {
                 delegate.onSessionRequest(sessionRequest.toWallet())
             }
 
-            override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
+            override fun onSessionDelete(deletedSession: Sign.Model.SessionDelete) {
                 delegate.onSessionDelete(deletedSession.toWallet())
             }
+
 
             override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {
                 delegate.onSessionSettleResponse(settleSessionResponse.toWallet())

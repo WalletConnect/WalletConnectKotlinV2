@@ -80,8 +80,8 @@ internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcError(): JsonRpcRespon
 internal fun Sign.Model.SessionEvent.toEngineEvent(chainId: String): EngineDO.Event = EngineDO.Event(name, data, chainId)
 
 @JvmSynthetic
-internal fun EngineDO.SessionDelete.toClientDeletedSession(): Sign.Model.DeletedSession =
-    Sign.Model.DeletedSession(topic, reason)
+internal fun EngineDO.SessionDelete.toClientDeletedSession(): Sign.Model.SessionDelete =
+    Sign.Model.SessionDelete(topic, reason)
 
 @JvmSynthetic
 internal fun EngineDO.SessionEvent.toClientSessionEvent(): Sign.Model.SessionEvent =
