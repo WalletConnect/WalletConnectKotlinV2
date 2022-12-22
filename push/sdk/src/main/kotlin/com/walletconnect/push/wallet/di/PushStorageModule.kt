@@ -26,7 +26,7 @@ internal fun pushStorageModule(storageSuffix: String) = module {
     single {
         try {
             createPushDB().also {
-                it.subscriptionsQueries
+                it.subscriptionsQueries.getAllSubscriptions().executeAsOneOrNull()
             }
         } catch (e: Exception) {
             deleteDBs(DBNames.getSdkDBName(storageSuffix))
