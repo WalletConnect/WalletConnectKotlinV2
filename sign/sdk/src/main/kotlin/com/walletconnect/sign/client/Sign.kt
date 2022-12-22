@@ -14,7 +14,7 @@ object Sign {
     }
 
     @Deprecated(
-        message = "ConnectionType a pairing is be moved to CoreClient",
+        message = "ConnectionType for the relay is moved to CoreClient",
         replaceWith = ReplaceWith(
             expression = "ConnectionType",
             imports = ["com.walletconnect.android.relay"]
