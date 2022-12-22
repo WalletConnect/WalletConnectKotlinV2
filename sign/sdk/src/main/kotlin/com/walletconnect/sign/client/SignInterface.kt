@@ -64,7 +64,7 @@ interface SignInterface {
     )
     fun getListOfSettledSessions(): List<Sign.Model.Session>
     @Deprecated(
-        message = "Getting a list of settled sessions by to[ic is replaced with getSettledSessionByTopic()",
+        message = "Getting a list of settled sessions by topic is replaced with getSettledSessionByTopic()",
         replaceWith = ReplaceWith(expression = "SignClient.getSettledSessionByTopic()")
     )
     fun getSettledSessionByTopic(topic: String): Sign.Model.Session?
