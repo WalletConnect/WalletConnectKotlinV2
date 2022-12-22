@@ -11,6 +11,8 @@ import com.walletconnect.android.internal.common.di.corePairingModule
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.model.Redirect
+import com.walletconnect.android.echo.EchoClient
+import com.walletconnect.android.echo.EchoInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.client.PairingProtocol
