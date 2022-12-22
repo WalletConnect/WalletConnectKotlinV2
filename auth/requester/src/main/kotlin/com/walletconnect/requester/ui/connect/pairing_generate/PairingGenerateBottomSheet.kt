@@ -29,7 +29,7 @@ class PairingGenerateBottomSheet : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) = with(DialogConnectUriBinding.bind(view)) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.connectToWallet { uri ->
-            val deeplinkPairingUri = uri.replace("wc:", "wc:/")
+            val deeplinkPairingUri = uri.replace("wc:", "wc://")
             val data = QrData.Url(uri)
 
             viewLifecycleOwner.lifecycleScope.launch {
