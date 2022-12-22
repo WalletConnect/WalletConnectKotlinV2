@@ -19,7 +19,7 @@ class DappSampleApplication : Application() {
         super.onCreate()
 
         //TODO: register at https://walletconnect.com/register to get a project ID
-        val serverUri = "wss://relay.walletconnect.com?projectId=${BuildConfig.PROJECT_ID}"
+        val serverUri = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
         CoreClient.initialize(relayServerUrl = serverUri, connectionType = ConnectionType.AUTOMATIC, application = this, metaData = Core.Model.AppMetaData(
             name = "Kotlin Dapp",
             description = "Dapp description",
