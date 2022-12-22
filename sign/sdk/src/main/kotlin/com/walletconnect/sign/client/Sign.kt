@@ -15,7 +15,10 @@ object Sign {
 
     @Deprecated(
         message = "ConnectionType a pairing is be moved to CoreClient",
-        replaceWith = ReplaceWith(imports = ["com.walletconnect.android.relay"])
+        replaceWith = ReplaceWith(
+            expression = "ConnectionType",
+            imports = ["com.walletconnect.android.relay"]
+        )
     )
     enum class ConnectionType {
         AUTOMATIC, MANUAL
