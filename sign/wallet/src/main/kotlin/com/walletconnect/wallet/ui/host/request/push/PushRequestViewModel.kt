@@ -4,13 +4,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.push.common.Push
-import com.walletconnect.push.wallet.client.WalletClient
+import com.walletconnect.push.wallet.client.PushWalletClient
 import com.walletconnect.sample_common.tag
-import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.ui.SampleWalletEvents
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlin.reflect.jvm.jvmName
 
 class PushRequestViewModel : ViewModel() {
     private val _uiState: MutableStateFlow<PushRequestUI> = MutableStateFlow(PushRequestUI.Initial)
@@ -32,7 +30,7 @@ class PushRequestViewModel : ViewModel() {
         (uiState.value as? PushRequestUI.Content)?.let { pushRequest ->
             val rejectParams = Push.Wallet.Params.Reject(pushRequest.requestId, "Kotlin Wallet Error")
 
-            WalletClient.reject(
+            PushWalletClient.reject(
                 rejectParams,
                 onSuccess = { Log.i(tag(this), "Rejected Successfully") },
                 onError = { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
@@ -48,7 +46,7 @@ class PushRequestViewModel : ViewModel() {
         (uiState.value as? PushRequestUI.Content)?.let { pushRequest ->
             val approveParams = Push.Wallet.Params.Approve(pushRequest.requestId)
 
-            WalletClient.approve(
+            PushWalletClient.approve(
                 approveParams,
                 onSuccess = { Log.i(tag(this), "Approved Successfully") },
                 onError = { error ->

@@ -8,7 +8,7 @@ import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.domain.PushDappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.push.common.Push
-import com.walletconnect.push.dapp.client.DappClient
+import com.walletconnect.push.dapp.client.PushDappClient
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
@@ -94,19 +94,19 @@ class SessionViewModel : ViewModel() {
 
     fun pushRequest() {
         val pairingTopic = CoreClient.Pairing.getPairings().first().topic
-        DappClient.request(Push.Dapp.Params.Request("testAccount", pairingTopic), {
-            Log.e("Talha", "it sent ${it.id}")
+        PushDappClient.request(Push.Dapp.Params.Request("testAccount", pairingTopic), { pushRequestId ->
+            Log.e(tag(this), "Request sent with id ${pushRequestId.id}")
         }, {
-            Log.e("Talha", it.throwable.stackTraceToString())
+            Log.e(tag(this), it.throwable.stackTraceToString())
         })
     }
 
     fun pushNotify() {
-        val pushTopic = PushDappDelegate.activePushSubscription.topic
-        val pushMessage = Push.Model.Message("Hardcoded Title", "Hardcoded Body", "https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png", "https://walletconnect.com")
+        val pushTopic = PushDappDelegate.activePushSubscription?.topic ?: PushDappClient.getActiveSubscriptions().keys.first()
+        val pushMessage = Push.Model.Message("Kotlin Dapp Title", "Kotlin Dapp Body", "https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png", "https://walletconnect.com")
         val notifyParams = Push.Dapp.Params.Notify(pushTopic, pushMessage)
 
-        DappClient.notify(notifyParams) { error ->
+        PushDappClient.notify(notifyParams) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
     }

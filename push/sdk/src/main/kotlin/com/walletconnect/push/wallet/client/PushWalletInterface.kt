@@ -2,13 +2,15 @@ package com.walletconnect.push.wallet.client
 
 import com.walletconnect.push.common.Push
 
-interface WalletInterface {
+interface PushWalletInterface {
     interface Delegate {
         fun onPushRequest(pushRequest: Push.Wallet.Event.Request)
 
-        fun onPushMessage(message: Push.Wallet.Event.Message)
+        fun onPushMessage(pushMessage: Push.Wallet.Event.Message)
 
-        fun onPushDelete(deletedTopic: Push.Wallet.Event.Delete)
+        fun onPushDelete(pushDeletedTopic: Push.Wallet.Event.Delete)
+
+        fun onError(error: Push.Model.Error)
     }
 
     fun initialize(init: Push.Wallet.Params.Init, onError: (Push.Model.Error) -> Unit)

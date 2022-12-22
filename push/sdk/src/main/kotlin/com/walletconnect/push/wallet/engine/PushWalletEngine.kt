@@ -33,7 +33,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-internal class WalletEngine(
+internal class PushWalletEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val crypto: KeyManagementRepository,
     private val pairingHandler: PairingControllerInterface,

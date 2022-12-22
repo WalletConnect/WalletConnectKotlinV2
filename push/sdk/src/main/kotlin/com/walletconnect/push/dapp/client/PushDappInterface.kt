@@ -2,7 +2,7 @@ package com.walletconnect.push.dapp.client
 
 import com.walletconnect.push.common.Push
 
-interface DappInterface {
+interface PushDappInterface {
 
     interface Delegate {
 

@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
@@ -59,7 +58,6 @@ class WalletSampleActivity : AppCompatActivity() {
             .onEach { event ->
                 when(event) {
                     is SampleWalletEvents.PushRequest -> {
-                        Log.e("TalhaAct", event.toString())
                         navController.navigate(R.id.action_global_to_push_request,
                             bundleOf(PUSH_REQUEST_KEY to event.arrayOfArgs, PUSH_REQUEST_ARGS_NUM_KEY to event.numOfArgs)
                         )

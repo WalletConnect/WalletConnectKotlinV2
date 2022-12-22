@@ -6,7 +6,7 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.push.common.Push
-import com.walletconnect.push.dapp.client.DappClient
+import com.walletconnect.push.dapp.client.PushDappClient
 import com.walletconnect.sample_common.BuildConfig
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample_common.tag
@@ -19,7 +19,7 @@ class DappSampleApplication : Application() {
         super.onCreate()
 
         //TODO: register at https://walletconnect.com/register to get a project ID
-        val serverUri = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
+        val serverUri = "wss://relay.walletconnect.com?projectId=${BuildConfig.PROJECT_ID}"
         CoreClient.initialize(relayServerUrl = serverUri, connectionType = ConnectionType.AUTOMATIC, application = this, metaData = Core.Model.AppMetaData(
             name = "Kotlin Dapp",
             description = "Dapp description",
@@ -34,7 +34,7 @@ class DappSampleApplication : Application() {
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
 
-        DappClient.initialize(Push.Dapp.Params.Init(CoreClient, null)) { error ->
+        PushDappClient.initialize(Push.Dapp.Params.Init(CoreClient, null)) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
     }

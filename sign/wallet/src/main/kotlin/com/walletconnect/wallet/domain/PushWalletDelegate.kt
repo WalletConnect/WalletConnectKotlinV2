@@ -1,7 +1,7 @@
 package com.walletconnect.wallet.domain
 
 import com.walletconnect.push.common.Push
-import com.walletconnect.push.wallet.client.WalletClient
+import com.walletconnect.push.wallet.client.PushWalletClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -10,13 +10,13 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
-object PushWalletDelegate: WalletClient.Delegate {
+object PushWalletDelegate: PushWalletClient.Delegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcPushEventModels: MutableSharedFlow<Push.Wallet.Event?> = MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     val wcPushEventModels: SharedFlow<Push.Wallet.Event?> = _wcPushEventModels
 
     init {
-        WalletClient.setDelegate(this)
+        PushWalletClient.setDelegate(this)
     }
 
     override fun onPushRequest(pushRequest: Push.Wallet.Event.Request) {
@@ -28,6 +28,8 @@ object PushWalletDelegate: WalletClient.Delegate {
     }
 
     override fun onPushDelete(deletedTopic: Push.Wallet.Event.Delete) {
+    }
 
+    override fun onError(error: Push.Model.Error) {
     }
 }

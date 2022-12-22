@@ -1,7 +1,5 @@
 package com.walletconnect.wallet.ui.host
 
-import android.util.Log
-import androidx.core.app.NotificationCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.push.common.Push
@@ -37,7 +35,6 @@ class WalletSampleViewModel : ViewModel() {
     val pushEvents = PushWalletDelegate.wcPushEventModels.map { pushEvent ->
         when (pushEvent) {
             is Push.Wallet.Event.Request -> {
-                Log.e("TalhaVM", pushEvent.toString())
                 val requestId = pushEvent.id.toString()
                 val peerName = pushEvent.metadata.name
                 val peerDesc = pushEvent.metadata.description
@@ -50,7 +47,6 @@ class WalletSampleViewModel : ViewModel() {
                 SampleWalletEvents.PushMessage(pushEvent.title, pushEvent.body, pushEvent.icon, pushEvent.url)
             }
             is Push.Wallet.Event.Delete -> {
-                Log.e("TalhaVM", pushEvent.toString())
                 SampleWalletEvents.NoAction
             }
             else -> SampleWalletEvents.NoAction

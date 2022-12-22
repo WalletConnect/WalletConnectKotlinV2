@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-internal class DappEngine(
+internal class PushDappEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val crypto: KeyManagementRepository,
     private val pairingHandler: PairingControllerInterface,

@@ -2,7 +2,7 @@
 
 package com.walletconnect.push.wallet.di
 
-import com.walletconnect.push.wallet.engine.WalletEngine
+import com.walletconnect.push.wallet.engine.PushWalletEngine
 import com.walletconnect.push.wallet.engine.domain.DecryptMessageUseCase
 import org.koin.dsl.module
 
@@ -11,5 +11,5 @@ internal fun walletEngineModule() = module {
 
     single { DecryptMessageUseCase(get()) }
 
-    single { WalletEngine(get(), get(), get(), get(), get()) }
+    single { PushWalletEngine(get(), get(), get(), get(), get()) }
 }

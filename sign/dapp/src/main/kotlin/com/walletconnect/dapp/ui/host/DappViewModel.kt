@@ -12,19 +12,16 @@ import com.walletconnect.sign.client.SignClient
 import kotlinx.coroutines.flow.*
 
 class DappViewModel : ViewModel() {
-
-    val emittedEvents: Flow<SampleDappEvents> = DappDelegate.wcEventModels.map { walletEvent: Sign.Model? ->
+    val emittedEvents: SharedFlow<SampleDappEvents> = DappDelegate.wcEventModels.map { walletEvent: Sign.Model? ->
         when (walletEvent) {
             is Sign.Model.SessionEvent -> SampleDappEvents.SessionEvent(name = walletEvent.name, data = walletEvent.data)
             else -> SampleDappEvents.NoAction
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
-    init {
-        PushDappDelegate.wcPushEventModels
-            .onEach { Log.e("Talha", it.toString()) }
-            .launchIn(viewModelScope)
-    }
+    val pushEvents: SharedFlow<SampleDappEvents> = PushDappDelegate.wcPushEventModels.map { pushEvents ->
+        SampleDappEvents.NoAction
+    }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     fun disconnect() {
         DappDelegate.selectedSessionTopic?.let {
