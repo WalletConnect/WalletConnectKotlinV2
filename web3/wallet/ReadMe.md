@@ -51,11 +51,11 @@ enable new use cases for wallets. Down below you can find a migration guide for 
 CoreClient.initialize(relayServerUrl, connectionType, application, metaData) { error -> }
 
 //SignClient
-val initParams = Sign.Params.Init(core = CoreClient)
+val initParams = Sign.Params.Init(CoreClient)
 SignClient.initialize(initParams) { error -> }
 
 //Web3Wallet
-val initParams = Wallet.Params.Init(core = CoreClient)
+val initParams = Wallet.Params.Init(CoreClient)
 Web3Wallet.initialize(initParams) { error -> }
 ```
 
@@ -229,6 +229,51 @@ val walletDelegate = object : Web3Wallet.WalletDelegate {
     }
 }
 Web3Wallet.setWalletDelegate(walletDelegate)
+```
+
+## Migration from AuthClient
+
+### Initialization
+
+```kotlin
+//CoreClient
+CoreClient.initialize(relayServerUrl, connectionType, application, metaData) { error -> }
+
+//AuthClient
+val initParams = Auth.Params.Init(CoreClient)
+AuthClient.initialize(init = Auth.Params.Init(core = CoreClient)) { error -> }
+
+//Web3Wallet
+val initParams = Wallet.Params.Init(core = CoreClient)
+Web3Wallet.initialize(initParams) { error -> }
+```
+
+### Authentication
+
+```kotlin
+//AuthClient
+val signature = CacaoSigner.sign(message, privateKey, SignatureType.EIP191)
+AuthClient.respond(Auth.Params.Respond.Result(requestId, signature, issuer)) { error -> }
+
+//Web3Wallet
+val signature = CacaoSigner.sign(message, privateKey, SignatureType.EIP191)
+Web3Wallet.respond(Wallet.Params.AuthRequestResponse(requestId, signature, issuer)) { error -> }
+```
+
+### Message formatting
+
+```kotlin
+//AuthClient
+val payloadParams: Auth.Params.PayloadParams = //PayloadParams received in the onAuthRequest callback
+val issuer = //MUST be the same as send with the respond methods and follows: https://github.com/w3c-ccg/did-pkh/blob/main/did-pkh-method-draft.md
+val formatMessage = Auth.Params.FormatMessage(payloadParamspayloadParams, issuer)
+AuthClient.formatMessage(formatMessage)
+
+//Web3Wallet
+val payloadParams: Wallwt.Model.PayloadParams  = //PayloadParams received in the onAuthRequest callback
+val issuer = //MUST be the same as send with the respond methods and follows: https://github.com/w3c-ccg/did-pkh/blob/main/did-pkh-method-draft.md
+val formatMessage = Auth.Params.FormatMessage(Wallet.Params.FormatMessage(payloadParams, issuer))
+Web3Wallet.formatMessage(formatMessage)
 ```
 
 Test against:
