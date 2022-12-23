@@ -138,8 +138,11 @@ internal fun Sign.Model.SessionRequest.toWallet(): Wallet.Model.SessionRequest =
     )
 
 @JvmSynthetic
-internal fun Sign.Model.SessionDelete.toWallet(): Wallet.Model.SessionDelete =
-    Wallet.Model.SessionDelete(topic, reason)
+internal fun Sign.Model.DeletedSession.toWallet(): Wallet.Model.SessionDelete =
+    when (this) {
+        is Sign.Model.DeletedSession.Success -> Wallet.Model.SessionDelete.Success(topic, reason)
+        is Sign.Model.DeletedSession.Error -> Wallet.Model.SessionDelete.Error(error)
+    }
 
 @JvmSynthetic
 internal fun Sign.Model.SettledSessionResponse.toWallet(): Wallet.Model.SettledSessionResponse =

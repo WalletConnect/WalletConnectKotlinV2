@@ -84,7 +84,10 @@ object Wallet {
             data class Error(val errorMessage: String) : SessionUpdateResponse()
         }
 
-        data class SessionDelete(val topic: String, val reason: String) : Model()
+        sealed class SessionDelete : Model() {
+            data class Success(val topic: String, val reason: String) : SessionDelete()
+            data class Error(val error: Throwable) : SessionDelete()
+        }
 
         sealed class Namespace : Model() {
 
