@@ -66,6 +66,8 @@ object Push {
 
             data class Delete(val topic: String): Params()
 
+            data class FcmToken(val fcmAccessToken: String): Params()
+
             data class DecryptMessage(val topic: String, val encryptedMessage: String): Params()
         }
     }

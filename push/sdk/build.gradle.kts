@@ -65,6 +65,7 @@ dependencies {
 
     moshiKsp()
     androidXTest()
+    fcm()
     jUnit5()
     robolectric()
     mockk()

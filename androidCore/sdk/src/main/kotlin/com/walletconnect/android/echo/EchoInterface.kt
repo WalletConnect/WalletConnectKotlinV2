@@ -2,13 +2,11 @@ package com.walletconnect.android.echo
 
 interface EchoInterface {
 
-    fun initialize()
-
     fun register(firebaseAccessToken: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit)
 
-    fun unregister()
+    fun unregister(onSuccess: () -> Unit, onError: (Throwable) -> Unit)
 
-    fun decryptMessage(topic: String, message: String): String
+    fun decryptMessage(topic: String, message: String, onSuccess: (String) -> Unit, onError: (Throwable) -> Unit)
 
     companion object {
 

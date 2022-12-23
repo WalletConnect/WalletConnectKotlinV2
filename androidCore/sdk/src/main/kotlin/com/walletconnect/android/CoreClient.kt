@@ -39,6 +39,7 @@ object CoreClient {
                 single { Pairing }
                 single<PairingControllerInterface> { PairingController }
                 single { Relay }
+                single { Echo }
             }
         )
         PairingProtocol.initialize(metaData)
