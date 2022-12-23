@@ -101,12 +101,6 @@ object Sign {
             data class Error(val errorMessage: String) : SessionUpdateResponse()
         }
 
-        data class SessionDelete(val topic: String, val reason: String) : Model()
-
-        @Deprecated(
-            message = "DeletedSession is replaced with SessionDelete(val topic: String, val reason: String)",
-            replaceWith = ReplaceWith(expression = "Sign.Model.SessionDelete(val topic: String, val reason: String)")
-        )
         sealed class DeletedSession : Model() {
             data class Success(val topic: String, val reason: String) : DeletedSession()
             data class Error(val error: Throwable) : DeletedSession()
