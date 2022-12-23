@@ -12,6 +12,7 @@ import androidx.security.crypto.MasterKey
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.android.impl.core.AndroidCoreDatabase
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.util.randomBytes
 import net.sqlcipher.database.SupportFactory
 import org.koin.android.ext.koin.androidContext
@@ -141,14 +142,15 @@ fun coreStorageModule() = module {
 
     includes(baseStorageModule(), signingModule())
 
-    single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)) {
-        AndroidSqliteDriver(
-            schema = AndroidCoreDatabase.Schema,
-            context = androidContext(),
-            name = DBNames.ANDROID_CORE_DB_NAME,
-            factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false) //todo: create a separate DB_PASSHPHRASE
-        )
-    }
+    wcKoinApp.koin.getOrNull<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER))
+        ?: single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)) {
+            AndroidSqliteDriver(
+                schema = AndroidCoreDatabase.Schema,
+                context = androidContext(),
+                name = DBNames.ANDROID_CORE_DB_NAME,
+                factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false) //todo: create a separate DB_PASSHPHRASE
+            )
+        }
 }
 
 @SuppressLint("HardwareIds")

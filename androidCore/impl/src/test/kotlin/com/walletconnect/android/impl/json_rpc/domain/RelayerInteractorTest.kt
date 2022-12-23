@@ -6,6 +6,9 @@ import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.type.ClientParams
+import com.walletconnect.android.internal.common.model.type.Error
+import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.Topic
@@ -16,8 +19,10 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.utils.Empty
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -217,21 +222,6 @@ internal class RelayerInteractorTest {
         }
         sut.subscribe(topicVO, onFailure)
         verify { onFailure(any()) }
-    }
-
-    @Test
-    fun `InitializationErrorsFlow emits value only on OnConnectionFailed`() = runBlockingTest {
-        every { relay.wsConnectionFailedFlow } returns flowOf(
-            object : WalletConnectException("Test") {}
-        )
-
-        val job = sut.wsConnectionFailedFlow.onEach { walletConnectException ->
-            onError(walletConnectException)
-        }.launchIn(this)
-
-        verify(exactly = 1) { onError(any()) }
-
-        job.cancelAndJoin()
     }
 
     @Test

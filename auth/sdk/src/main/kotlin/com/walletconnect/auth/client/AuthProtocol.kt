@@ -5,12 +5,12 @@ package com.walletconnect.auth.client
 import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.impl.di.cryptoModule
+import com.walletconnect.android.internal.common.di.commonModule
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Events
-import com.walletconnect.auth.di.commonModule
 import com.walletconnect.auth.di.engineModule
 import com.walletconnect.auth.di.jsonRpcModule
 import com.walletconnect.auth.di.storageModule
@@ -92,10 +92,14 @@ internal class AuthProtocol : AuthInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun formatMessage(params: Auth.Params.FormatMessage): String {
+    override fun formatMessage(params: Auth.Params.FormatMessage): String? {
         checkEngineInitialization()
 
-        return authEngine.formatMessage(params.payloadParams.toCommon(), params.issuer)
+        return try {
+            authEngine.formatMessage(params.payloadParams.toCommon(), params.issuer)
+        } catch (error: Exception) {
+            null
+        }
     }
 
     @Throws(IllegalStateException::class)

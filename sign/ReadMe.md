@@ -36,6 +36,8 @@ allprojects {
 app/build.gradle.kts
 
 ```gradle
+implementation(platform("com.walletconnect:android-bom:{BOM version}"))
+implementation("com.walletconnect:android-core")
 implementation("com.walletconnect:sign:release_version")
 ```
 

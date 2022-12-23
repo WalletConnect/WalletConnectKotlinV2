@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.*
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.*
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.android.pairing.engine.model.EngineDO

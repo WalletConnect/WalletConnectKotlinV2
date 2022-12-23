@@ -26,7 +26,7 @@ class ResponderApplication : Application() {
                 icons = listOf("https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png"),
                 redirect = "kotlin-responder-wc:/request"
             )
-        )
+        ) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
 
         AuthClient.initialize(params = Auth.Params.Init(core = CoreClient)) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())

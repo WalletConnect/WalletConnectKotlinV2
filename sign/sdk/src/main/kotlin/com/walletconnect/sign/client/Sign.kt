@@ -2,7 +2,6 @@ package com.walletconnect.sign.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.internal.common.model.Pairing
 import java.net.URI
 
 object Sign {
@@ -14,6 +13,10 @@ object Sign {
         }
     }
 
+    @Deprecated(
+        message = "ConnectionType for the relay is moved to CoreClient",
+        replaceWith = ReplaceWith(expression = "ConnectionType", imports = ["com.walletconnect.android.relay"])
+    )
     enum class ConnectionType {
         AUTOMATIC, MANUAL
     }
@@ -83,6 +86,7 @@ object Sign {
             }
         }
 
+        @Deprecated(message = "RelayProtocolOptions is deprecated")
         data class RelayProtocolOptions(val protocol: String, val data: String? = null) : Model()
 
         data class Pairing(val topic: String, val metaData: Core.Model.AppMetaData?) : Model()
@@ -93,9 +97,7 @@ object Sign {
         }
 
         sealed class SessionUpdateResponse : Model() {
-            data class Result(val topic: String, val namespaces: Map<String, Namespace.Session>) :
-                SessionUpdateResponse()
-
+            data class Result(val topic: String, val namespaces: Map<String, Namespace.Session>) : SessionUpdateResponse()
             data class Error(val errorMessage: String) : SessionUpdateResponse()
         }
 

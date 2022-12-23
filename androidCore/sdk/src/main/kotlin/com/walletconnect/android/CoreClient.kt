@@ -23,12 +23,13 @@ object CoreClient {
         relayServerUrl: String,
         connectionType: ConnectionType,
         application: Application,
-        relay: RelayConnectionInterface? = null
+        relay: RelayConnectionInterface? = null,
+        onError: (Core.Model.Error) -> Unit
     ) {
         if (relay != null) {
             Relay = relay
         } else {
-            RelayClient.initialize(relayServerUrl, connectionType, application)
+            RelayClient.initialize(relayServerUrl, connectionType, application) { error -> onError(Core.Model.Error(error)) }
         }
         wcKoinApp.modules(
             module {

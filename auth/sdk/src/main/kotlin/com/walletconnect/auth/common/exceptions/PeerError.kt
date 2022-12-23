@@ -2,7 +2,7 @@
 
 package com.walletconnect.auth.common.exceptions
 
-import com.walletconnect.android.internal.common.model.Error
+import com.walletconnect.android.internal.common.model.type.Error
 
 internal sealed class PeerError : Error {
     object SignatureVerificationFailed : PeerError() {
