@@ -6,7 +6,7 @@ const val KEY_SDK_NAME = "SDK_NAME"
 const val dokkaVersion = "1.6.21"
 
 //Latest versions
-const val BOM_VERSION = "1.1.0"
+const val BOM_VERSION = "1.1.1"
 const val FOUNDATION_VERSION = "1.2.0"
 const val CORE_VERSION = "1.6.0"
 const val SIGN_VERSION = "2.4.0"
