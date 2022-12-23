@@ -59,6 +59,7 @@ object CoreClient {
         if (relay == null) {
             RelayClient.initialize(relayServerUrl, connectionType) { error -> onError(Core.Model.Error(error)) }
         }
+
         PairingProtocol.initialize()
         PairingController.initialize()
         EchoClient.initialize()
