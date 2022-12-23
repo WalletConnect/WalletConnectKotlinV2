@@ -5,8 +5,10 @@ package com.walletconnect.android.echo
 import android.content.SharedPreferences
 import com.walletconnect.android.echo.model.EchoBody
 import com.walletconnect.android.echo.network.EchoService
+import com.walletconnect.android.internal.common.crypto.Codec
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
@@ -61,8 +63,13 @@ internal object EchoClient: EchoInterface {
     }
 
     override fun decryptMessage(topic: String, message: String, onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) {
-        // TODO: finish decrypt once Trust fix is merged in
-//        val codec = wcKoinApp.koin.get<Codec>
-//        return codec.decrypt(topic. message)
+        try {
+            val codec = wcKoinApp.koin.get<Codec>()
+            val decryptedMessage = codec.decrypt(Topic(topic), message)
+
+            onSuccess(decryptedMessage)
+        } catch (e: Exception) {
+            onError(e)
+        }
     }
 }

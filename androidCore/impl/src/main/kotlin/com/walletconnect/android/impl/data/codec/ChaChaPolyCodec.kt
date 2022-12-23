@@ -8,7 +8,7 @@ import com.walletconnect.android.impl.common.UnknownEnvelopeTypeException
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.EnvelopeType
-import com.walletconnect.android.impl.crypto.Codec
+import com.walletconnect.android.internal.common.crypto.Codec
 import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
 import com.walletconnect.foundation.common.model.PublicKey

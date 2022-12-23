@@ -1,4 +1,4 @@
-package com.walletconnect.android.impl.crypto
+package com.walletconnect.android.internal.common.crypto
 
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.EnvelopeType

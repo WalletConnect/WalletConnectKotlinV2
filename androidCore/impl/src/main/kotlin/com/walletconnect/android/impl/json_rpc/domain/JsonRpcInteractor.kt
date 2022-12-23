@@ -1,7 +1,7 @@
 package com.walletconnect.android.impl.json_rpc.domain
 
 import com.walletconnect.android.impl.common.model.sync.ClientJsonRpc
-import com.walletconnect.android.impl.crypto.Codec
+import com.walletconnect.android.internal.common.crypto.Codec
 import com.walletconnect.android.impl.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.impl.json_rpc.model.toJsonRpcError
 import com.walletconnect.android.impl.json_rpc.model.toJsonRpcResponse
