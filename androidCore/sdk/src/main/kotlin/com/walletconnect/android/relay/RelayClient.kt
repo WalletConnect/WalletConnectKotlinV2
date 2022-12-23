@@ -10,7 +10,6 @@ import com.walletconnect.android.internal.common.di.androidApiCryptoModule
 import com.walletconnect.android.internal.common.di.androidApiNetworkModule
 import com.walletconnect.android.internal.common.di.commonModule
 import com.walletconnect.android.internal.common.exception.WRONG_CONNECTION_TYPE
-import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -31,7 +30,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     private val isNetworkAvailable: StateFlow<Boolean> by lazy { networkState.isAvailable }
     private val isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    fun initialize(relayServerUrl: String, connectionType: ConnectionType, application: Application) {
+    fun initialize(relayServerUrl: String, connectionType: ConnectionType, application: Application, onError: (Throwable) -> Unit) {
         require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
 
         wcKoinApp.run {
@@ -47,22 +46,25 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
 
         wcKoinApp.modules(androidApiNetworkModule(serverUrl, jwt, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION))
         relayService = wcKoinApp.koin.get(named(AndroidCommonDITags.RELAY_SERVICE))
+
+        collectConnectionErrors(onError)
+    }
+
+    private fun collectConnectionErrors(onError: (Throwable) -> Unit) {
+        eventsFlow
+            .onEach { event: Relay.Model.Event ->
+                logger.log("$event")
+                setIsWSSConnectionOpened(event)
+            }
+            .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
+            .map { error -> error.throwable.toWalletConnectException }
+            .onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
 
     override val isConnectionAvailable: StateFlow<Boolean> by lazy {
         combine(isWSSConnectionOpened, isNetworkAvailable) { wss, internet -> wss && internet }
             .stateIn(scope, SharingStarted.Eagerly, false)
     }
-
-    override val wsConnectionFailedFlow: Flow<WalletConnectException>
-        get() =
-            eventsFlow
-                .onEach { event: Relay.Model.Event ->
-                    logger.log("$event")
-                    setIsWSSConnectionOpened(event)
-                }
-                .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
-                .map { error -> error.throwable.toWalletConnectException }
 
     override fun connect(onError: (String) -> Unit) {
         when (connectionController) {

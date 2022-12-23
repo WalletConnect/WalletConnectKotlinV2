@@ -25,7 +25,7 @@ interface AuthInterface {
 
     fun respond(params: Auth.Params.Respond, onError: (Auth.Model.Error) -> Unit)
 
-    fun formatMessage(params: Auth.Params.FormatMessage): String
+    fun formatMessage(params: Auth.Params.FormatMessage): String?
 
     fun getPendingRequest(): List<Auth.Model.PendingRequest>
 }

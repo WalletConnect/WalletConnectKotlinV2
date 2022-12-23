@@ -1,7 +1,8 @@
 package com.walletconnect.auth.signature.cacao
 
 import com.walletconnect.android.internal.common.model.ProjectId
-import com.walletconnect.auth.common.model.Cacao
+import com.walletconnect.android.internal.common.model.params.Cacao
+import com.walletconnect.auth.common.model.Issuer
 import com.walletconnect.auth.engine.mapper.toCAIP122Message
 import com.walletconnect.auth.engine.mapper.toSignature
 import com.walletconnect.auth.signature.SignatureType
@@ -13,12 +14,12 @@ internal class CacaoVerifier(private val projectId: ProjectId) {
         SignatureType.EIP191.header -> EIP191Verifier.verify(
             cacao.signature.toSignature(),
             cacao.payload.toCAIP122Message(),
-            cacao.payload.issuer.address
+            Issuer(cacao.payload.iss).address
         )
         SignatureType.EIP1271.header -> EIP1271Verifier.verify(
             cacao.signature.toSignature(),
             cacao.payload.toCAIP122Message(),
-            cacao.payload.issuer.address,
+            Issuer(cacao.payload.iss).address,
             projectId.value
         )
         else -> throw RuntimeException("Invalid header")

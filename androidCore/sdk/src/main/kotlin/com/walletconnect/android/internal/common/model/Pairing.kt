@@ -1,5 +1,6 @@
 package com.walletconnect.android.internal.common.model
 
+import com.walletconnect.android.internal.common.model.type.Sequence
 import com.walletconnect.android.pairing.model.ACTIVE_PAIRING
 import com.walletconnect.android.pairing.model.INACTIVE_PAIRING
 import com.walletconnect.foundation.common.model.Topic

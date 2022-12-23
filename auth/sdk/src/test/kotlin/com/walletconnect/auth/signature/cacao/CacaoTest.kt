@@ -1,9 +1,9 @@
 package com.walletconnect.auth.signature.cacao
 
 import com.walletconnect.android.internal.common.model.ProjectId
+import com.walletconnect.android.internal.common.model.params.Cacao
 import com.walletconnect.auth.BuildConfig
 import com.walletconnect.auth.client.mapper.toCommon
-import com.walletconnect.auth.common.model.Cacao
 import com.walletconnect.auth.engine.mapper.toCAIP122Message
 import com.walletconnect.auth.signature.CacaoType
 import com.walletconnect.auth.signature.SignatureType

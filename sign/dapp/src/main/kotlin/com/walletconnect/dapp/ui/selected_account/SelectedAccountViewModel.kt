@@ -82,7 +82,7 @@ class SelectedAccountViewModel : ViewModel() {
                 }
             }
 
-            SignClient.getSettledSessionByTopic(requestParams.sessionTopic)?.redirect?.toUri()
+            SignClient.getActiveSessionByTopic(requestParams.sessionTopic)?.redirect?.toUri()
                 ?.let { deepLinkUri -> sendSessionRequestDeepLink(deepLinkUri) }
         }
     }
@@ -92,7 +92,7 @@ class SelectedAccountViewModel : ViewModel() {
         val chainDetails = Chains.values().first {
             it.chainNamespace == chainNamespace && it.chainReference == chainReference
         }
-        val listOfMethods: List<String> = SignClient.getListOfSettledSessions().filter { session ->
+        val listOfMethods: List<String> = SignClient.getListOfActiveSessions().filter { session ->
             session.topic == DappDelegate.selectedSessionTopic
         }.flatMap { session ->
             session.namespaces

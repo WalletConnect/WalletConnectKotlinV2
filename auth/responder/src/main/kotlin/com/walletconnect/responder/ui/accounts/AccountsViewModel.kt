@@ -30,7 +30,8 @@ class AccountsViewModel : ViewModel() {
                 //todo: remove `.also { RequestStore.currentRequest = it }` after implementing pending request
                 is Auth.Event.AuthRequest -> {
                     val formatMessage = Auth.Params.FormatMessage(event.payloadParams, ISSUER)
-                    ResponderEvents.OnRequest(event.id, AuthClient.formatMessage(formatMessage)).also { RequestStore.currentRequest = it }
+                    val formattedMessage = AuthClient.formatMessage(formatMessage) ?: ""
+                    ResponderEvents.OnRequest(event.id, formattedMessage).also { RequestStore.currentRequest = it }
                 }
                 else -> ResponderEvents.NoAction
             }

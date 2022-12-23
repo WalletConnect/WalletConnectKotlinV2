@@ -37,7 +37,7 @@ class SessionDetailsViewModel : ViewModel() {
                         // TODO: Update UI once state synchronization
                         SampleWalletEvents.NoAction
                     }
-                    is Sign.Model.DeletedSession.Success -> {
+                    is Sign.Model.DeletedSession -> {
                         selectedSessionTopic = null
                         _sessionDetails.emit(SampleWalletEvents.Disconnect)
                     }
@@ -48,7 +48,7 @@ class SessionDetailsViewModel : ViewModel() {
     }
 
     fun getSessionDetails(sessionTopic: String) {
-        val state = SignClient.getSettledSessionByTopic(sessionTopic)?.let { selectedSession ->
+        val state = SignClient.getActiveSessionByTopic(sessionTopic)?.let { selectedSession ->
             selectedSessionTopic = sessionTopic
 
             val listOfChainAccountInfo =
@@ -124,12 +124,12 @@ class SessionDetailsViewModel : ViewModel() {
         }
     }
 
-    //fixme: Needs whole view rework. Base view on JS Wallet
+    //fixme: Needs whole view rework. Base view on JS Sign
     fun emitEvent() {
         // Right now: Emits first alphabetical event
         // How it should be: User should be able to emit desired event
         selectedSessionTopic?.let { topic ->
-            SignClient.getSettledSessionByTopic(topic)?.let { selectedSession ->
+            SignClient.getActiveSessionByTopic(topic)?.let { selectedSession ->
                 allApprovedEventsWithChains(selectedSession)
                     .filter { (_, chains) -> chains.isNotEmpty() }
                     .let { eventWithChains ->
@@ -161,7 +161,7 @@ class SessionDetailsViewModel : ViewModel() {
         // Right now: Expand first (right now there's only eip155) namespace with another account, event and method. Works only once
         // How it should be: User can toggle every account, method, event and then call this method with state to be updated
         selectedSessionTopic?.let { topic ->
-            SignClient.getSettledSessionByTopic(topic)?.let { selectedSession ->
+            SignClient.getActiveSessionByTopic(topic)?.let { selectedSession ->
                 selectedSession.namespaces.firstNotNullOf { it }.let { (key, namespace) ->
                     val secondAccount = namespace.accounts.firstOrNull()?.let { account ->
                         val (chainNamespace, chainReference, _) = account.split(":")

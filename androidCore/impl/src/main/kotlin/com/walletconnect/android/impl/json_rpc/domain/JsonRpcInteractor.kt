@@ -11,8 +11,11 @@ import com.walletconnect.android.impl.storage.JsonRpcHistory
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.Uncategorized
-import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.type.ClientParams
+import com.walletconnect.android.internal.common.model.type.Error
+import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
+import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.RelayConnectionInterface
@@ -44,8 +47,6 @@ internal class JsonRpcInteractor(
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
 
-    override val wsConnectionFailedFlow: Flow<WalletConnectException> get() = relay.wsConnectionFailedFlow
-
     init {
         manageSubscriptions()
     }
@@ -73,7 +74,6 @@ internal class JsonRpcInteractor(
 
         val requestJson = serializer.serialize(payload) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
-
             val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
 
             relay.publish(topic.value, encryptedRequest, params.toRelay()) { result ->

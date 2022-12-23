@@ -5,9 +5,11 @@ import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.adapter.ExpiryAdapter
+import com.walletconnect.android.internal.common.adapter.JsonRpcResultAdapter
 import com.walletconnect.android.internal.common.adapter.TagsAdapter
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.di.FoundationDITags
 import com.walletconnect.foundation.util.Logger
 import org.koin.core.qualifier.named
@@ -20,19 +22,20 @@ fun commonModule() = module {
 
     includes(foundationCommonModule())
 
-    single<PolymorphicJsonAdapterFactory<JsonRpcResponse>> {
+    wcKoinApp.koin.getOrNull<PolymorphicJsonAdapterFactory<JsonRpcResponse>>() ?: single<PolymorphicJsonAdapterFactory<JsonRpcResponse>> {
         PolymorphicJsonAdapterFactory.of(JsonRpcResponse::class.java, "type")
             .withSubtype(JsonRpcResponse.JsonRpcResult::class.java, "result")
             .withSubtype(JsonRpcResponse.JsonRpcError::class.java, "error")
     }
 
-    single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {
+    wcKoinApp.koin.getOrNull<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) ?: single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {
         get<Moshi>(named(FoundationDITags.MOSHI))
             .newBuilder()
-            .add { type, _, _ ->
+            .add { type, _, moshi ->
                 when (type.getRawType().name) {
                     Expiry::class.jvmName -> ExpiryAdapter
                     Tags::class.jvmName -> TagsAdapter
+                    JsonRpcResponse.JsonRpcResult::class.jvmName -> JsonRpcResultAdapter(moshi)
                     else -> null
                 }
             }

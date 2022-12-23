@@ -24,6 +24,7 @@ class ChatSampleApplication : Application() {
         )
         val serverUri = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
         CoreClient.initialize(relayServerUrl = serverUri, connectionType = ConnectionType.AUTOMATIC, application = this, metaData = metadata)
+        { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
 
         ChatClient.initialize(Chat.Params.Init(CoreClient)) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())

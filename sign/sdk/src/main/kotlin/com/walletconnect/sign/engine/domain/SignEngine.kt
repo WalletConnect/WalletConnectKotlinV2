@@ -10,8 +10,12 @@ import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.impl.utils.*
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.*
+import com.walletconnect.android.internal.common.exception.GenericException
+import com.walletconnect.android.internal.common.exception.Reason
+import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.params.CoreSignParams
+import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.pairing.client.PairingInterface
@@ -23,7 +27,6 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.*
-import com.walletconnect.sign.common.exceptions.CannotFindSequenceForTopic
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.type.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
@@ -78,13 +81,6 @@ internal class SignEngine(
     }
 
     fun setup() {
-        jsonRpcInteractor.wsConnectionFailedFlow.onEach { walletConnectException ->
-            when (walletConnectException) {
-                is ProjectIdDoesNotExistException, is InvalidProjectIdException -> _engineEvent.emit(ConnectionState(false, walletConnectException))
-                else -> _engineEvent.emit(SDKError(InternalError(walletConnectException)))
-            }
-        }.launchIn(scope)
-
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
@@ -482,16 +478,16 @@ internal class SignEngine(
             .launchIn(scope)
 
     private fun collectJsonRpcResponses(): Job =
-        scope.launch {
-            jsonRpcInteractor.peerResponse.collect { response ->
+        jsonRpcInteractor.peerResponse
+            .filter { request -> request.params is SignParams }
+            .onEach { response ->
                 when (val params = response.params) {
                     is SignParams.SessionProposeParams -> onSessionProposalResponse(response, params)
                     is SignParams.SessionSettleParams -> onSessionSettleResponse(response)
                     is SignParams.UpdateNamespacesParams -> onSessionUpdateResponse(response)
                     is SignParams.SessionRequestParams -> onSessionRequestResponse(response, params)
                 }
-            }
-        }
+            }.launchIn(scope)
 
     // listened by WalletDelegate
     private fun onSessionPropose(request: WCRequest, payloadParams: SignParams.SessionProposeParams) {
@@ -792,7 +788,7 @@ internal class SignEngine(
                 is JsonRpcResponse.JsonRpcResult -> {
                     logger.log("Session proposal approve received")
                     val selfPublicKey = PublicKey(params.proposer.publicKey)
-                    val approveParams = response.result as SignParams.ApprovalParams
+                    val approveParams = response.result as CoreSignParams.ApprovalParams
                     val responderPublicKey = PublicKey(approveParams.responderPublicKey)
                     val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
                     jsonRpcInteractor.subscribe(sessionTopic) { error ->

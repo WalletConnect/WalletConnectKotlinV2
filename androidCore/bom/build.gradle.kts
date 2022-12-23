@@ -17,5 +17,6 @@ dependencies {
         api(project(":sign:sdk"))
         api(project(":auth:sdk"))
         api(project(":chat:sdk"))
+        api(project(":web3:wallet"))
     }
 }
