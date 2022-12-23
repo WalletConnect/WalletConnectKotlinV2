@@ -39,7 +39,7 @@ object WalletDelegate : SignClient.WalletDelegate {
         }
     }
 
-    override fun onSessionDelete(deletedSession: Sign.Model.SessionDelete) {
+    override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
         scope.launch {
             _wcEventModels.emit(deletedSession)
         }
