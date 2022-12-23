@@ -201,7 +201,6 @@ class SessionDetailsViewModel : ViewModel() {
 //            _uiState.emit(updatedUIState)
 //        }
 
-
     private fun filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession: Sign.Model.Session): List<SessionDetailsUI.Content.ChainAccountInfo> =
         mapOfAllAccounts.values
             .flatMap { accountsMap: Map<Chains, String> ->

@@ -7,7 +7,7 @@ object Push {
 
     sealed class Model {
 
-        data class Message(val title: String, val body: String, val icon: String, val url: String): Wallet.Event()
+        data class Message(val title: String, val body: String, val icon: String?, val url: String?): Wallet.Event()
 
         data class Subscription(val requestId: Long, val topic: String, val relay: Relay, val metadata: Core.Model.AppMetaData?): Model() {
 
@@ -51,7 +51,7 @@ object Push {
 
             data class Request(val id: Long, val metadata: Core.Model.AppMetaData): Event()
 
-            data class Message(val title: String, val body: String, val icon: String, val url: String): Event()
+            data class Message(val title: String, val body: String, val icon: String?, val url: String?): Event()
 
             data class Delete(val topic: String): Event()
         }

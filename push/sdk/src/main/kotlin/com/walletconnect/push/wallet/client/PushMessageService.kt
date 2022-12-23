@@ -1,9 +1,11 @@
 package com.walletconnect.push.wallet.client
 
+import android.annotation.SuppressLint
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.walletconnect.push.common.Push
 
+@SuppressLint("MissingFirebaseInstanceTokenRefresh")
 abstract class PushMessageService: FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
@@ -34,7 +36,7 @@ abstract class PushMessageService: FirebaseMessagingService() {
                     )
                 } else if (notification?.isValid() == true) {
                     val pushMessage = with (requireNotNull(notification)) {
-                        Push.Model.Message(title!!, body!!, icon!!, imageUrl!!.toString())
+                        Push.Model.Message(title!!, body!!, icon, imageUrl?.toString())
                     }
 
                     onUnencryptedMessage(pushMessage, this)
@@ -59,5 +61,5 @@ abstract class PushMessageService: FirebaseMessagingService() {
 
     abstract fun onError(throwable: Throwable, defaultMessage: RemoteMessage)
 
-    private fun RemoteMessage.Notification?.isValid(): Boolean = this != null && title != null && body != null && icon != null && imageUrl != null
+    private fun RemoteMessage.Notification?.isValid(): Boolean = this != null && title != null && body != null
 }

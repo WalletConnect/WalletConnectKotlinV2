@@ -13,7 +13,7 @@ import retrofit2.Retrofit
 
 internal object EchoClient: EchoInterface {
     private val echoService by lazy { wcKoinApp.koin.get<Retrofit>().create(EchoService::class.java) }
-    private val clientId = requireNotNull(wcKoinApp.koin.get<SharedPreferences>().getString(EchoInterface.KEY_CLIENT_ID, null))
+    private val clientId by lazy { requireNotNull(wcKoinApp.koin.get<SharedPreferences>().getString(EchoInterface.KEY_CLIENT_ID, null)) }
     private const val SUCCESS_STATUS = "SUCCESS"
 
     internal fun initialize() {}
