@@ -256,7 +256,7 @@ internal class SignEngine(
             })
     }
 
-    internal fun sessionRequest(request: EngineDO.Request, onFailure: (Throwable) -> Unit) {
+    internal fun sessionRequest(request: EngineDO.Request, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(request.topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
@@ -280,6 +280,7 @@ internal class SignEngine(
             sessionPayload,
             onSuccess = {
                 logger.log("Session request sent successfully")
+                onSuccess()
                 scope.launch {
                     try {
                         withTimeout(FIVE_MINUTES_TIMEOUT) {

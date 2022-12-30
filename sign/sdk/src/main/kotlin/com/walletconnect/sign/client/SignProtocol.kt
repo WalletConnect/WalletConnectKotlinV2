@@ -148,10 +148,10 @@ class SignProtocol : SignInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun request(request: Sign.Params.Request, onError: (Sign.Model.Error) -> Unit) {
+    override fun request(request: Sign.Params.Request, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            signEngine.sessionRequest(request.toEngineDORequest()) { error ->
+            signEngine.sessionRequest(request.toEngineDORequest(), onSuccess) { error ->
                 onError(Sign.Model.Error(error))
             }
         } catch (error: Exception) {
