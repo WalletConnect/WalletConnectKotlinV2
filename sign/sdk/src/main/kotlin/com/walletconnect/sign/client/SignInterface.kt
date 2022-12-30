@@ -49,7 +49,7 @@ interface SignInterface {
     fun rejectSession(reject: Sign.Params.Reject, onSuccess: () -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun request(request: Sign.Params.Request, onSuccess: () -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun respond(response: Sign.Params.Response, onSuccess: (String) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
-    fun update(update: Sign.Params.Update, onError: (Sign.Model.Error) -> Unit)
+    fun update(update: Sign.Params.Update, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)
     fun extend(extend: Sign.Params.Extend, onError: (Sign.Model.Error) -> Unit)
     fun emit(emit: Sign.Params.Emit, onError: (Sign.Model.Error) -> Unit)
     fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing? = null)

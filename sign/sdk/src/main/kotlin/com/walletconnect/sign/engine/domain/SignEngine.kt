@@ -217,6 +217,7 @@ internal class SignEngine(
     internal fun sessionUpdate(
         topic: String,
         namespaces: Map<String, EngineDO.Namespace.Session>,
+        onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
@@ -244,7 +245,10 @@ internal class SignEngine(
         sessionStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id,
             onSuccess = {
                 jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionUpdate,
-                    onSuccess = { logger.log("Update sent successfully") },
+                    onSuccess = {
+                        logger.log("Update sent successfully")
+                        onSuccess(topic)
+                    },
                     onFailure = { error ->
                         logger.error("Sending session update error: $error")
                         sessionStorageRepository.deleteTempNamespacesByRequestId(sessionUpdate.id)
