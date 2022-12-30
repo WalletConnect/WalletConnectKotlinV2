@@ -233,10 +233,14 @@ class SignProtocol : SignInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit) {
+    override fun disconnect(disconnect: Sign.Params.Disconnect, onSuccess: (String) -> Unit,  onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            signEngine.disconnect(disconnect.sessionTopic)
+            signEngine.disconnect(
+                topic = disconnect.sessionTopic,
+                onSuccess = { topic -> onSuccess(topic) },
+                onFailure = { error -> onError(Sign.Model.Error(error)) }
+            )
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }

@@ -439,7 +439,7 @@ internal class SignEngine(
             })
     }
 
-    internal fun disconnect(topic: String) {
+    internal fun disconnect(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -451,8 +451,14 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_DELETE, Ttl(DAY_IN_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionDelete,
-            onSuccess = { logger.error("Disconnect sent successfully") },
-            onFailure = { error -> logger.error("Sending session disconnect error: $error") }
+            onSuccess = {
+                logger.error("Disconnect sent successfully")
+                onSuccess(topic)
+            },
+            onFailure = { error ->
+                logger.error("Sending session disconnect error: $error")
+                onFailure(error)
+            }
         )
     }
 

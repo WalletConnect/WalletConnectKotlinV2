@@ -53,7 +53,7 @@ interface SignInterface {
     fun extend(extend: Sign.Params.Extend, onSuccess: (String) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun emit(emit: Sign.Params.Emit, onSuccess: (String) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing? = null)
-    fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit)
+    fun disconnect(disconnect: Sign.Params.Disconnect, onSuccess: (String) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun getListOfActiveSessions(): List<Sign.Model.Session>
     fun getActiveSessionByTopic(topic: String): Sign.Model.Session?
 
