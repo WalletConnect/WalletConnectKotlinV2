@@ -100,7 +100,7 @@ internal class PairingEngine(
         }.getOrNull()
     }
 
-    fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         val walletConnectUri: WalletConnectUri =
             Validator.validateWCUri(uri) ?: return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))
 
@@ -116,7 +116,7 @@ internal class PairingEngine(
             pairingRepository.insertPairing(activePairing)
             jsonRpcInteractor.subscribe(
                 topic = activePairing.topic,
-                onSuccess = { onSuccess() },
+                onSuccess = { onSuccess(uri) },
                 onFailure = { error ->  return@subscribe onFailure(error) }
             )
         } catch (e: Exception) {
