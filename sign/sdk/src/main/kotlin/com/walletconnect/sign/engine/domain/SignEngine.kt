@@ -408,7 +408,7 @@ internal class SignEngine(
         )
     }
 
-    internal fun extend(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    internal fun extend(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -429,7 +429,7 @@ internal class SignEngine(
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionExtend,
             onSuccess = {
                 logger.log("Session extend sent successfully")
-                onSuccess()
+                onSuccess(topic)
             },
             onFailure = { error ->
                 logger.error("Sending session extend error: $error")
