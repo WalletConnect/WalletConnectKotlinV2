@@ -103,10 +103,18 @@ class SignProtocol : SignInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun pair(pair: Sign.Params.Pair, onError: (Sign.Model.Error) -> Unit) {
+    override fun pair(
+        pair: Sign.Params.Pair,
+        onSuccess: (Sign.Params.Pair) -> Unit,
+        onError: (Sign.Model.Error) -> Unit
+    ) {
         checkEngineInitialization()
         try {
-            signEngine.pair(pair.uri)
+            signEngine.pair(
+                uri = pair.uri,
+                onSuccess = { onSuccess(pair) },
+                onError = { error -> onError(Sign.Model.Error(error.throwable)) }
+            )
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }

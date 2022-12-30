@@ -170,7 +170,7 @@ internal class JsonRpcInteractor(
         }
     }
 
-    override fun subscribe(topic: Topic, onFailure: (Throwable) -> Unit) {
+    override fun subscribe(topic: Topic, onSuccess: (Topic) -> Unit, onFailure: (Throwable) -> Unit) {
         try {
             checkConnectionWorking()
         } catch (e: NoRelayConnectionException) {
@@ -179,7 +179,10 @@ internal class JsonRpcInteractor(
 
         relay.subscribe(topic.value) { result ->
             result.fold(
-                onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result },
+                onSuccess = { acknowledgement ->
+                    subscriptions[topic.value] = acknowledgement.result
+                    onSuccess(topic)
+                },
                 onFailure = { error ->
                     logger.error("Subscribe to topic error: $topic error: $error")
                     onFailure(error)
