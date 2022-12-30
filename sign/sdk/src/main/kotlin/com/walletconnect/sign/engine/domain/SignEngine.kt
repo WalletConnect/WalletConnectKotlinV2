@@ -215,7 +215,7 @@ internal class SignEngine(
     internal fun sessionUpdate(
         topic: String,
         namespaces: Map<String, EngineDO.Namespace.Session>,
-        onSuccess: () -> Unit,
+        onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
@@ -245,7 +245,7 @@ internal class SignEngine(
                 jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionUpdate,
                     onSuccess = {
                         logger.log("Update sent successfully")
-                        onSuccess()
+                        onSuccess(topic)
                     },
                     onFailure = { error ->
                         logger.error("Sending session update error: $error")

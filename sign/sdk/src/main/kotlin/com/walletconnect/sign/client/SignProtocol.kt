@@ -176,13 +176,13 @@ class SignProtocol : SignInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun update(update: Sign.Params.Update, onSuccess: (Sign.Params.Update) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+    override fun update(update: Sign.Params.Update, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
             signEngine.sessionUpdate(
                 topic = update.sessionTopic,
                 namespaces = update.namespaces.toMapOfEngineNamespacesSession(),
-                onSuccess = { onSuccess(update) },
+                onSuccess = { topic -> onSuccess(topic) },
                 onFailure = { error -> onError(Sign.Model.Error(error)) }
             )
         } catch (error: Exception) {
