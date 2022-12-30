@@ -303,7 +303,7 @@ internal class SignEngine(
     internal fun respondSessionRequest(
         topic: String,
         jsonRpcResponse: JsonRpcResponse,
-        onSuccess: () -> Unit,
+        onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
@@ -317,7 +317,7 @@ internal class SignEngine(
             response = jsonRpcResponse,
             onSuccess = {
                 logger.log("Session payload sent successfully")
-                onSuccess()
+                onSuccess(topic)
             },
             onFailure = { error ->
                 logger.error("Sending session payload response error: $error")
