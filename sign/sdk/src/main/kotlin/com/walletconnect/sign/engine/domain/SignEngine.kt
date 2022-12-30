@@ -142,7 +142,7 @@ internal class SignEngine(
         )
     }
 
-    internal fun reject(proposerPublicKey: String, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit = {}) {
+    internal fun reject(proposerPublicKey: String, reason: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit = {}) {
         val request = sessionProposalRequest[proposerPublicKey]
             ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
@@ -152,7 +152,7 @@ internal class SignEngine(
             request,
             PeerError.EIP1193.UserRejectedRequest(reason),
             irnParams,
-            onSuccess = { onSuccess() },
+            onSuccess = { onSuccess(proposerPublicKey) },
             onFailure = { error -> onFailure(error) })
     }
 
