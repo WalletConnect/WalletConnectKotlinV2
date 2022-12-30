@@ -159,7 +159,7 @@ internal class SignEngine(
     internal fun approve(
         proposerPublicKey: String,
         namespaces: Map<String, EngineDO.Namespace.Session>,
-        onSuccess: () -> Unit = {},
+        onSuccess: (proposerPublicKey: String) -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
         fun sessionSettle(
@@ -184,7 +184,7 @@ internal class SignEngine(
                 jsonRpcInteractor.publishJsonRpcRequest(
                     topic = sessionTopic,
                     params = irnParams, sessionSettle,
-                    onSuccess = { onSuccess() },
+                    onSuccess = { onSuccess(proposerPublicKey) },
                     onFailure = { error -> onFailure(error) }
                 )
             } catch (e: SQLiteException) {
