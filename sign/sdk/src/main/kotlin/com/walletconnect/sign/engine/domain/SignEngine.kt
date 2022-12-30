@@ -375,7 +375,7 @@ internal class SignEngine(
         }
     }
 
-    internal fun emit(topic: String, event: EngineDO.Event, onFailure: (Throwable) -> Unit) {
+    internal fun emit(topic: String, event: EngineDO.Event, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -399,7 +399,10 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionEvent,
-            onSuccess = { logger.log("Event sent successfully") },
+            onSuccess = {
+                logger.log("Event sent successfully")
+                onSuccess(topic)
+            },
             onFailure = { error ->
                 logger.error("Sending event error: $error")
                 onFailure(error)

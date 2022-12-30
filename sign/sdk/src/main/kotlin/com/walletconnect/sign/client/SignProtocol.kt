@@ -204,10 +204,15 @@ class SignProtocol : SignInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun emit(emit: Sign.Params.Emit, onError: (Sign.Model.Error) -> Unit) {
+    override fun emit(emit: Sign.Params.Emit, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            signEngine.emit(emit.topic, emit.event.toEngineEvent(emit.chainId)) { error -> onError(Sign.Model.Error(error)) }
+            signEngine.emit(
+                topic = emit.topic,
+                event = emit.event.toEngineEvent(emit.chainId),
+                onSuccess = { topic -> onSuccess(topic) },
+                onFailure = { error -> onError(Sign.Model.Error(error)) }
+            )
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
