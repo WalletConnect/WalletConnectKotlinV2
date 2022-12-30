@@ -190,10 +190,14 @@ class SignProtocol : SignInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun extend(extend: Sign.Params.Extend, onError: (Sign.Model.Error) -> Unit) {
+    override fun extend(extend: Sign.Params.Extend, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            signEngine.extend(extend.topic) { error -> onError(Sign.Model.Error(error)) }
+            signEngine.extend(
+                topic = extend.topic,
+                onSuccess = { topic -> onSuccess(topic) },
+                onFailure = { error -> onError(Sign.Model.Error(error)) }
+            )
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
