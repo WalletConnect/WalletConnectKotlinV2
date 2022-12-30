@@ -136,10 +136,10 @@ class SignProtocol : SignInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun rejectSession(reject: Sign.Params.Reject, onError: (Sign.Model.Error) -> Unit) {
+    override fun rejectSession(reject: Sign.Params.Reject, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            signEngine.reject(reject.proposerPublicKey, reject.reason) { error ->
+            signEngine.reject(reject.proposerPublicKey, reject.reason, onSuccess = { onSuccess() }) { error ->
                 onError(Sign.Model.Error(error))
             }
         } catch (error: Exception) {

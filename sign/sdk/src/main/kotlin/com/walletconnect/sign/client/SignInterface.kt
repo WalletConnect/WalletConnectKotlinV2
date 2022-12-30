@@ -46,7 +46,7 @@ interface SignInterface {
     )
     fun pair(pair: Sign.Params.Pair, onSuccess: (Sign.Params.Pair) -> Unit, onError: (Sign.Model.Error) -> Unit)
     fun approveSession(approve: Sign.Params.Approve, onSuccess: (Sign.Params.Approve) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
-    fun rejectSession(reject: Sign.Params.Reject, onError: (Sign.Model.Error) -> Unit)
+    fun rejectSession(reject: Sign.Params.Reject, onSuccess: () -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun request(request: Sign.Params.Request, onError: (Sign.Model.Error) -> Unit)
     fun respond(response: Sign.Params.Response, onError: (Sign.Model.Error) -> Unit)
     fun update(update: Sign.Params.Update, onError: (Sign.Model.Error) -> Unit)
