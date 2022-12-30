@@ -301,6 +301,7 @@ internal class SignEngine(
     internal fun respondSessionRequest(
         topic: String,
         jsonRpcResponse: JsonRpcResponse,
+        onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
@@ -308,12 +309,19 @@ internal class SignEngine(
         }
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
-        jsonRpcInteractor.publishJsonRpcResponse(Topic(topic), irnParams, jsonRpcResponse,
-            { logger.log("Session payload sent successfully") },
-            { error ->
+        jsonRpcInteractor.publishJsonRpcResponse(
+            topic = Topic(topic),
+            params = irnParams,
+            response = jsonRpcResponse,
+            onSuccess = {
+                logger.log("Session payload sent successfully")
+                onSuccess(topic)
+            },
+            onFailure = { error ->
                 logger.error("Sending session payload response error: $error")
                 onFailure(error)
-            })
+            }
+        )
     }
 
     // TODO: Do we still want Session Ping
