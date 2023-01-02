@@ -10,9 +10,6 @@ import org.koin.dsl.module
 
 @JvmSynthetic
 internal fun jsonRpcModule() = module {
-
-//    includes(coreJsonRpcModule())
-
     addSerializerEntry(ChatRpc.ChatMessage::class)
     addSerializerEntry(ChatRpc.ChatInvite::class)
     addSerializerEntry(ChatRpc.ChatLeave::class)
