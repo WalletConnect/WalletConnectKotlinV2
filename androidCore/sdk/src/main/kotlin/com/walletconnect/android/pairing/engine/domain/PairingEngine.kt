@@ -38,18 +38,22 @@ internal class PairingEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val pairingRepository: PairingStorageRepositoryInterface
 ) {
-    private var resubscribeToPairingsJob: Job? = null
     private var jsonRpcRequestsJob: Job? = null
 
     init {
-        scope.launch {
-            if (resubscribeToPairingsJob == null) {
-                supervisorScope { resubscribeToPairingsJob = resubscribeToPairingFlow.launchIn(this) }
-            }
-            if (jsonRpcRequestsJob == null) {
-                supervisorScope { jsonRpcRequestsJob = collectJsonRpcRequestsFlow.launchIn(this) }
-            }
-        }
+        jsonRpcInteractor.isConnectionAvailable
+            .filter { isAvailable: Boolean -> isAvailable }
+            .onEach {
+                supervisorScope {
+                    launch(Dispatchers.IO) {
+                        resubscribeToPairingFlow()
+                    }
+                }
+
+                if (jsonRpcRequestsJob == null) {
+                    jsonRpcRequestsJob = collectJsonRpcRequestsFlow()
+                }
+            }.launchIn(scope)
     }
 
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
@@ -184,7 +188,7 @@ internal class PairingEngine(
         metadataRepository.upsertPairingPeerMetadata(Topic(topic), metadata, metaDataType)
     }
 
-    private val collectJsonRpcRequestsFlow: Flow<WCRequest> by lazy {
+    private fun collectJsonRpcRequestsFlow(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is PairingParams }
             .onEach { request ->
@@ -192,26 +196,17 @@ internal class PairingEngine(
                     is PairingParams.DeleteParams -> onPairingDelete(request, requestParams)
                     is PairingParams.PingParams -> onPing(request)
                 }
-            }
-    }
+            }.launchIn(scope)
 
-    private val resubscribeToPairingFlow: Flow<Boolean> by lazy {
-        jsonRpcInteractor.isConnectionAvailable
-            .filter { isAvailable: Boolean -> isAvailable }
-            .onEach {
-                coroutineScope {
-                    launch(Dispatchers.IO) {
-                        pairingRepository.getListOfPairings()
-                            .map { pairing -> pairing.topic }
-                            .onEach { pairingTopic ->
-                                try {
-                                    jsonRpcInteractor.subscribe(pairingTopic) { error -> scope.launch { internalErrorFlow.emit(InternalError(error)) } }
-                                } catch (e: Exception) {
-                                    scope.launch {
-                                        internalErrorFlow.emit(InternalError(e))
-                                    }
-                                }
-                            }
+    private fun resubscribeToPairingFlow() {
+        pairingRepository.getListOfPairings()
+            .map { pairing -> pairing.topic }
+            .onEach { pairingTopic ->
+                try {
+                    jsonRpcInteractor.subscribe(pairingTopic) { error -> scope.launch { internalErrorFlow.emit(InternalError(error)) } }
+                } catch (e: Exception) {
+                    scope.launch {
+                        internalErrorFlow.emit(InternalError(e))
                     }
                 }
             }

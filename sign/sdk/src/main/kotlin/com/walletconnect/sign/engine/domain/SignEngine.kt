@@ -101,8 +101,7 @@ internal class SignEngine(
                 if (internalErrorsJob == null) {
                     internalErrorsJob = collectInternalErrors()
                 }
-            }
-            .launchIn(scope)
+            }.launchIn(scope)
     }
 
     internal fun proposeSession(
