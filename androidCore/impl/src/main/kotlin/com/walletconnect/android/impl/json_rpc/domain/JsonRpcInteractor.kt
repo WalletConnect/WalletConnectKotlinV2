@@ -154,6 +154,7 @@ internal class JsonRpcInteractor(
         irnParams: IrnParams,
         envelopeType: EnvelopeType,
         participants: Participants?,
+        onSuccess: (WCRequest) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         logger.error("Responding with error: ${error.message}: ${error.code}")
@@ -161,6 +162,7 @@ internal class JsonRpcInteractor(
 
         try {
             publishJsonRpcResponse(request.topic, irnParams, jsonRpcError, envelopeType = envelopeType, participants = participants,
+                onSuccess = { onSuccess(request) },
                 onFailure = { failure ->
                     onFailure(failure)
                     handleError("Cannot send respondWithError: ${failure.stackTraceToString()}")
