@@ -1,12 +1,10 @@
-@file:JvmSynthetic
-
-package com.walletconnect.auth.common.model
+package com.walletconnect.android.internal.common.model.params
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-internal data class Cacao(
+data class Cacao(
     @Json(name = "header")
     val header: Header,
     @Json(name = "payload")
@@ -54,7 +52,5 @@ internal data class Cacao(
         val requestId: String?,
         @Json(name = "resources")
         val resources: List<String>?,
-    ) {
-        val issuer = Issuer(iss)
-    }
+    )
 }

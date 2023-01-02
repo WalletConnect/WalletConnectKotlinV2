@@ -15,7 +15,7 @@ import kotlin.reflect.KClass
 @JvmSynthetic
 fun coreJsonRpcModule() = module {
 
-    single<JsonRpcInteractorInterface> {
+    wcKoinApp.koin.getOrNull<JsonRpcInteractorInterface>() ?: single<JsonRpcInteractorInterface> {
         JsonRpcInteractor(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER)))
     }
 

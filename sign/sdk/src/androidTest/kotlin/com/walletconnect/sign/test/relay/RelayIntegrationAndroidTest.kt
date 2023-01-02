@@ -25,7 +25,7 @@ class RelayIntegrationAndroidTest {
     fun pairAndPing() {
         val walletDelegate = object : SignClient.WalletDelegate {
             override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {}
-            override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {}
+            override fun onSessionDelete(deletedSession: Sign.Model.SessionDelete) {}
             override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {}
             override fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse) {}
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {}
@@ -52,7 +52,7 @@ class RelayIntegrationAndroidTest {
             override fun onSessionUpdate(updatedSession: Sign.Model.UpdatedSession) {}
             override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {}
             override fun onSessionExtend(session: Sign.Model.Session) {}
-            override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {}
+            override fun onSessionDelete(deletedSession: Sign.Model.SessionDelete) {}
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {}
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {}
             override fun onError(error: Sign.Model.Error) {

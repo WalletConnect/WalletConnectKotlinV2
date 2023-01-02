@@ -23,10 +23,15 @@ class WalletSampleApplication : Application() {
             description = "Wallet description",
             url = "example.wallet",
             icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media"),
-            redirect = "kotlin-wallet-wc:/request",
+            redirect = "kotlin-wallet-wc:/request"
         )
 
-        CoreClient.initialize(relayServerUrl = serverUri, connectionType = ConnectionType.AUTOMATIC, application = this, metaData = metadata)
+        CoreClient.initialize(
+            relayServerUrl = serverUri,
+            connectionType = ConnectionType.AUTOMATIC,
+            application = this,
+            metaData = metadata
+        ) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
 
         val initParams = Sign.Params.Init(core = CoreClient)
         SignClient.initialize(initParams) { error ->

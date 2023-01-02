@@ -88,10 +88,14 @@ internal class AuthProtocol : AuthInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun formatMessage(params: Auth.Params.FormatMessage): String {
+    override fun formatMessage(params: Auth.Params.FormatMessage): String? {
         checkEngineInitialization()
 
-        return authEngine.formatMessage(params.payloadParams.toCommon(), params.issuer)
+        return try {
+            authEngine.formatMessage(params.payloadParams.toCommon(), params.issuer)
+        } catch (error: Exception) {
+            null
+        }
     }
 
     @Throws(IllegalStateException::class)

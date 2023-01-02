@@ -48,8 +48,6 @@ internal class JsonRpcInteractor(
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
 
-    override val wsConnectionFailedFlow: Flow<WalletConnectException> get() = relay.wsConnectionFailedFlow
-
     init {
         manageSubscriptions()
     }

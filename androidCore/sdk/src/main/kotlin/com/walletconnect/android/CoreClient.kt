@@ -32,7 +32,8 @@ object CoreClient {
         relayServerUrl: String,
         connectionType: ConnectionType,
         application: Application,
-        relay: RelayConnectionInterface? = null
+        relay: RelayConnectionInterface? = null,
+        onError: (Core.Model.Error) -> Unit
     ) {
         plantTimber()
         with(wcKoinApp) {
@@ -49,7 +50,7 @@ object CoreClient {
             )
         }
 
-        RelayClient.initialize(relayServerUrl, connectionType)
+        RelayClient.initialize(relayServerUrl, connectionType) { error -> onError(Core.Model.Error(error)) }
         PairingProtocol.initialize()
         PairingController.initialize()
     }

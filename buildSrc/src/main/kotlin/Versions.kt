@@ -6,12 +6,13 @@ const val KEY_SDK_NAME = "SDK_NAME"
 const val dokkaVersion = "1.6.21"
 
 //Latest versions
-const val BOM_VERSION = "1.2.0-SNAPSHOT"
-const val FOUNDATION_VERSION = "1.3.0-SNAPSHOT"
-const val CORE_VERSION = "1.7.0-SNAPSHOT"
-const val SIGN_VERSION = "2.5.0-SNAPSHOT"
-const val AUTH_VERSION = "1.4.0"
-const val CHAT_VERSION = "1.0.0-alpha05"
+const val BOM_VERSION = "1.2.0"
+const val FOUNDATION_VERSION = "1.2.0"
+const val CORE_VERSION = "1.7.0"
+const val SIGN_VERSION = "2.5.0"
+const val AUTH_VERSION = "1.5.0"
+const val CHAT_VERSION = "1.0.0-alpha06"
+const val WEB_3_WALLET = "1.0.0"
 
 val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23

@@ -25,7 +25,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     private val isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     @JvmSynthetic
-    internal fun initialize(relayServerUrl: String, connectionType: ConnectionType) {
+    internal fun initialize(relayServerUrl: String, connectionType: ConnectionType, onError: (Throwable) -> Unit) {
         require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
 
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
@@ -35,22 +35,25 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
 
         wcKoinApp.modules(coreAndroidNetworkModule(serverUrl, jwt, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION))
         relayService = wcKoinApp.koin.get(named(AndroidCommonDITags.RELAY_SERVICE))
+
+        collectConnectionErrors(onError)
+    }
+
+    private fun collectConnectionErrors(onError: (Throwable) -> Unit) {
+        eventsFlow
+            .onEach { event: Relay.Model.Event ->
+                logger.log("$event")
+                setIsWSSConnectionOpened(event)
+            }
+            .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
+            .map { error -> error.throwable.toWalletConnectException }
+            .onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
     }
 
     override val isConnectionAvailable: StateFlow<Boolean> by lazy {
         combine(isWSSConnectionOpened, isNetworkAvailable) { wss, internet -> wss && internet }
             .stateIn(scope, SharingStarted.Eagerly, false)
     }
-
-    override val wsConnectionFailedFlow: Flow<WalletConnectException>
-        get() =
-            eventsFlow
-                .onEach { event: Relay.Model.Event ->
-                    logger.log("$event")
-                    setIsWSSConnectionOpened(event)
-                }
-                .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
-                .map { error -> error.throwable.toWalletConnectException }
 
     override fun connect(onError: (String) -> Unit) {
         when (connectionController) {

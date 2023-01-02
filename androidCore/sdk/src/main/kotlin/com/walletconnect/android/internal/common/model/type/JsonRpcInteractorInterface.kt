@@ -4,14 +4,12 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.foundation.common.model.Topic
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 
 interface JsonRpcInteractorInterface {
     val clientSyncJsonRpc: SharedFlow<WCRequest>
     val peerResponse: SharedFlow<WCResponse>
-    val wsConnectionFailedFlow: Flow<WalletConnectException>
     val isConnectionAvailable: StateFlow<Boolean>
     val internalErrors: SharedFlow<InternalError>
 

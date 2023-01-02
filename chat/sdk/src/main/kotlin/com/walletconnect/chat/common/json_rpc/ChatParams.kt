@@ -20,12 +20,6 @@ internal sealed class ChatParams : ClientParams {
     ) : ChatParams()
 
     @JsonClass(generateAdapter = true)
-    internal data class AcceptanceParams(
-        @Json(name = "publicKey")
-        val publicKey: String,
-    ) : ChatParams()
-
-    @JsonClass(generateAdapter = true)
     internal data class MessageParams(
         @Json(name = "message")
         val message: String,

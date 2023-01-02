@@ -7,12 +7,16 @@ import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.storage.*
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.android.sdk.storage.data.dao.MetaData
+import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
+import com.walletconnect.android.internal.common.wcKoinApp
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
 fun baseStorageModule() = module {
+
     fun Scope.createCoreDB(): AndroidCoreDatabase = AndroidCoreDatabase(
         get(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)),
         MetaDataAdapter = MetaData.Adapter(
@@ -21,26 +25,28 @@ fun baseStorageModule() = module {
         ),
     )
 
-    single<ColumnAdapter<List<String>, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)) {
-        object : ColumnAdapter<List<String>, String> {
-            override fun decode(databaseValue: String) =
-                if (databaseValue.isBlank()) {
-                    listOf()
-                } else {
-                    databaseValue.split(",")
-                }
+    wcKoinApp.koin.getOrNull<ColumnAdapter<List<String>, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST))
+        ?: single<ColumnAdapter<List<String>, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)) {
+            object : ColumnAdapter<List<String>, String> {
+                override fun decode(databaseValue: String) =
+                    if (databaseValue.isBlank()) {
+                        listOf()
+                    } else {
+                        databaseValue.split(",")
+                    }
 
-            override fun encode(value: List<String>) = value.joinToString(separator = ",")
-        }
-    }
-
-    single<ColumnAdapter<AppMetaDataType, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATATYPE)) { EnumColumnAdapter() }
-
-    single(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)) {
-        try {
-            createCoreDB().also {
-                it.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull()
+                override fun encode(value: List<String>) = value.joinToString(separator = ",")
             }
+        }
+
+    wcKoinApp.koin.getOrNull<ColumnAdapter<AppMetaDataType, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATATYPE))
+        ?: single<ColumnAdapter<AppMetaDataType, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATATYPE)) { EnumColumnAdapter() }
+
+    wcKoinApp.koin.getOrNull<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)) ?: single<AndroidCoreDatabase>(
+        named(AndroidCoreDITags.ANDROID_CORE_DATABASE)
+    ) {
+        try {
+            createCoreDB().also { database -> database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull() }
         } catch (e: Exception) {
             deleteDBs(DBNames.ANDROID_CORE_DB_NAME)
             createCoreDB()
@@ -48,13 +54,16 @@ fun baseStorageModule() = module {
     }
 
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).jsonRpcHistoryQueries }
-    single { JsonRpcHistory(get(), get()) }
 
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).pairingQueries }
-    single<PairingStorageRepositoryInterface> { PairingStorageRepository(get()) }
 
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).metaDataQueries }
-    single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(get()) }
+
+    wcKoinApp.koin.getOrNull<MetadataStorageRepositoryInterface>() ?: single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(get()) }
+
+    single<PairingStorageRepositoryInterface> { PairingStorageRepository(get()) }
+
+    wcKoinApp.koin.getOrNull<JsonRpcHistory>() ?: single { JsonRpcHistory(get(), get()) }
 }
 
 object DBNames {

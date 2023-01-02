@@ -8,12 +8,14 @@ import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SessionProposer
+import com.walletconnect.android.internal.common.model.params.CoreSignParams
+import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
 import com.walletconnect.utils.DefaultId
 
-internal sealed class SignParams : ClientParams {
+internal sealed class SignParams : CoreSignParams() {
 
     @JsonClass(generateAdapter = true)
     internal data class SessionProposeParams(
@@ -23,14 +25,6 @@ internal sealed class SignParams : ClientParams {
         val proposer: SessionProposer,
         @Json(name = "requiredNamespaces")
         val namespaces: Map<String, NamespaceVO.Proposal>,
-    ) : SignParams()
-
-    @JsonClass(generateAdapter = true)
-    internal data class ApprovalParams(
-        @Json(name = "relay")
-        val relay: RelayProtocolOptions,
-        @Json(name = "responderPublicKey")
-        val responderPublicKey: String,
     ) : SignParams()
 
     @JsonClass(generateAdapter = true)
