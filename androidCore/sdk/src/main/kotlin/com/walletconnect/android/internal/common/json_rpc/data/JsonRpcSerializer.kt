@@ -2,9 +2,9 @@ package com.walletconnect.android.internal.common.json_rpc.data
 
 import com.squareup.moshi.Moshi
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.SerializableJsonRpc
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
+import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
 import com.walletconnect.android.internal.common.wcKoinApp
 import kotlin.reflect.KClass
 

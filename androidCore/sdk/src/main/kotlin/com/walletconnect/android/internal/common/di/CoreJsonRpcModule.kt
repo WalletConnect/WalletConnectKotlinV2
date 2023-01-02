@@ -1,9 +1,10 @@
 package com.walletconnect.android.internal.common.di
 
-import com.walletconnect.android.internal.common.SerializableJsonRpc
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.json_rpc.domain.JsonRpcInteractor
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.utils.addDeserializerEntry
