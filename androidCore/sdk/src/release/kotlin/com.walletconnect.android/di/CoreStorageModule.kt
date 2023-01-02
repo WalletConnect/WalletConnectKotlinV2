@@ -14,7 +14,7 @@ import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.android.internal.common.di.DBNames
 import com.walletconnect.android.internal.common.di.baseStorageModule
 import com.walletconnect.android.internal.common.di.deleteDBs
-import com.walletconnect.android.impl.core.AndroidCoreDatabase
+import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.util.randomBytes
 import net.sqlcipher.database.SupportFactory
 import org.koin.android.ext.koin.androidContext
