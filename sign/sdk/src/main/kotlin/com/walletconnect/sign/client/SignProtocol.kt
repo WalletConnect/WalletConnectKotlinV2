@@ -125,7 +125,7 @@ class SignProtocol : SignInterface {
         checkEngineInitialization()
         try {
             signEngine.approve(
-                proposerPublicKey=    approve.proposerPublicKey,
+                proposerPublicKey = approve.proposerPublicKey,
                 namespaces = approve.namespaces.toMapOfEngineNamespacesSession(),
                 onSuccess = { onSuccess(approve) },
                 onFailure = { error -> onError(Sign.Model.Error(error)) }
