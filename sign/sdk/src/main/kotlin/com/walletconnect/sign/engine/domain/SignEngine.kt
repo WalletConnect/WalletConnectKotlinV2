@@ -217,6 +217,7 @@ internal class SignEngine(
     internal fun sessionUpdate(
         topic: String,
         namespaces: Map<String, EngineDO.Namespace.Session>,
+        onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
@@ -244,7 +245,10 @@ internal class SignEngine(
         sessionStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id,
             onSuccess = {
                 jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionUpdate,
-                    onSuccess = { logger.log("Update sent successfully") },
+                    onSuccess = {
+                        logger.log("Update sent successfully")
+                        onSuccess(topic)
+                    },
                     onFailure = { error ->
                         logger.error("Sending session update error: $error")
                         sessionStorageRepository.deleteTempNamespacesByRequestId(sessionUpdate.id)
@@ -301,6 +305,7 @@ internal class SignEngine(
     internal fun respondSessionRequest(
         topic: String,
         jsonRpcResponse: JsonRpcResponse,
+        onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
@@ -308,12 +313,19 @@ internal class SignEngine(
         }
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
-        jsonRpcInteractor.publishJsonRpcResponse(Topic(topic), irnParams, jsonRpcResponse,
-            { logger.log("Session payload sent successfully") },
-            { error ->
+        jsonRpcInteractor.publishJsonRpcResponse(
+            topic = Topic(topic),
+            params = irnParams,
+            response = jsonRpcResponse,
+            onSuccess = {
+                logger.log("Session payload sent successfully")
+                onSuccess(topic)
+            },
+            onFailure = { error ->
                 logger.error("Sending session payload response error: $error")
                 onFailure(error)
-            })
+            }
+        )
     }
 
     // TODO: Do we still want Session Ping
@@ -363,7 +375,7 @@ internal class SignEngine(
         }
     }
 
-    internal fun emit(topic: String, event: EngineDO.Event, onFailure: (Throwable) -> Unit) {
+    internal fun emit(topic: String, event: EngineDO.Event, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -387,7 +399,10 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionEvent,
-            onSuccess = { logger.log("Event sent successfully") },
+            onSuccess = {
+                logger.log("Event sent successfully")
+                onSuccess(topic)
+            },
             onFailure = { error ->
                 logger.error("Sending event error: $error")
                 onFailure(error)
@@ -395,7 +410,7 @@ internal class SignEngine(
         )
     }
 
-    internal fun extend(topic: String, onFailure: (Throwable) -> Unit) {
+    internal fun extend(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -414,14 +429,17 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_EXTEND, Ttl(DAY_IN_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionExtend,
-            onSuccess = { logger.log("Session extend sent successfully") },
+            onSuccess = {
+                logger.log("Session extend sent successfully")
+                onSuccess(topic)
+            },
             onFailure = { error ->
                 logger.error("Sending session extend error: $error")
                 onFailure(error)
             })
     }
 
-    internal fun disconnect(topic: String) {
+    internal fun disconnect(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -433,8 +451,14 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_DELETE, Ttl(DAY_IN_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionDelete,
-            onSuccess = { logger.error("Disconnect sent successfully") },
-            onFailure = { error -> logger.error("Sending session disconnect error: $error") }
+            onSuccess = {
+                logger.error("Disconnect sent successfully")
+                onSuccess(topic)
+            },
+            onFailure = { error ->
+                logger.error("Sending session disconnect error: $error")
+                onFailure(error)
+            }
         )
     }
 
