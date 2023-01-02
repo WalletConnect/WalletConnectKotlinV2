@@ -15,12 +15,12 @@ const val WEB_3_WALLET = "1.0.0"
 
 val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23
-const val TARGET_SDK: Int = 32
+const val TARGET_SDK: Int = 33
 const val COMPILE_SDK: Int = TARGET_SDK
-const val agpVersion = "7.3.1" // remember to change version in build.gradle.kts in buildSrc module
+const val agpVersion = "7.3.1" // when changing, remember to change version in build.gradle.kts in buildSrc module
 const val kotlinVersion = "1.7.10"
 const val kspVersion = "$kotlinVersion-1.0.6"
-const val dokkaVersion = kotlinVersion // remember to change version in build.gradle.kts in buildSrc module
+const val dokkaVersion = kotlinVersion // when changing, remember to change version in build.gradle.kts in buildSrc module
 
 const val sqlDelightVersion = "1.5.4"
 const val moshiVersion = "1.13.0"

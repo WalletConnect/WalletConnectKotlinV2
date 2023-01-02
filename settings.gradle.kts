@@ -18,7 +18,7 @@ val excludedDirs = listOf(
     "walletconnectv2"
 )
 // TODO: Add to rootModules when new module is added to the project root directory
-val rootModules = listOf("showcase", "foundation")
+val rootModules = listOf("foundation")
 
 File(rootDir.path).listFiles { file -> file.isDirectory && file.name !in excludedDirs }?.forEach { childDir ->
     if (childDir.name !in rootModules) {
