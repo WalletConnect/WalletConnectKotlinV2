@@ -60,6 +60,7 @@ interface JsonRpcInteractorInterface {
         irnParams: IrnParams,
         envelopeType: EnvelopeType = EnvelopeType.ZERO,
         participants: Participants? = null,
+        onSuccess: (WCRequest) -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     )
 }
