@@ -4,7 +4,6 @@ import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.json_rpc.domain.JsonRpcInteractor
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.utils.addDeserializerEntry
@@ -16,9 +15,7 @@ import kotlin.reflect.KClass
 @JvmSynthetic
 fun coreJsonRpcModule() = module {
 
-    wcKoinApp.koin.getOrNull<JsonRpcInteractorInterface>() ?: single<JsonRpcInteractorInterface> {
-        JsonRpcInteractor(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER)))
-    }
+    single<JsonRpcInteractorInterface> { JsonRpcInteractor(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
 
     addSerializerEntry(PairingParams.PingParams::class)
     addSerializerEntry(PairingParams.DeleteParams::class)

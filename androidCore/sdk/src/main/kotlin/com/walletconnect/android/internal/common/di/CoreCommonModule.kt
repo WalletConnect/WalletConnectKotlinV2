@@ -9,7 +9,6 @@ import com.walletconnect.android.internal.common.adapter.JsonRpcResultAdapter
 import com.walletconnect.android.internal.common.adapter.TagsAdapter
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.di.FoundationDITags
 import com.walletconnect.foundation.di.foundationCommonModule
 import com.walletconnect.foundation.util.Logger
@@ -22,13 +21,13 @@ fun coreCommonModule() = module {
 
     includes(foundationCommonModule())
 
-    wcKoinApp.koin.getOrNull<PolymorphicJsonAdapterFactory<JsonRpcResponse>>() ?: single<PolymorphicJsonAdapterFactory<JsonRpcResponse>> {
+    single<PolymorphicJsonAdapterFactory<JsonRpcResponse>> {
         PolymorphicJsonAdapterFactory.of(JsonRpcResponse::class.java, "type")
             .withSubtype(JsonRpcResponse.JsonRpcResult::class.java, "result")
             .withSubtype(JsonRpcResponse.JsonRpcError::class.java, "error")
     }
 
-    wcKoinApp.koin.getOrNull<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) ?: single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {
+    single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {
         get<Moshi>(named(FoundationDITags.MOSHI))
             .newBuilder()
             .add { type, _, moshi ->
