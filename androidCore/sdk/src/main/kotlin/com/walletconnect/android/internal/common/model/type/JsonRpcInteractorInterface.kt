@@ -14,7 +14,7 @@ interface JsonRpcInteractorInterface {
 
     fun checkConnectionWorking()
 
-    fun subscribe(topic: Topic, onFailure: (Throwable) -> Unit = {})
+    fun subscribe(topic: Topic, onSuccess: (Topic) -> Unit = {}, onFailure: (Throwable) -> Unit = {})
 
     fun unsubscribe(topic: Topic, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {})
 
@@ -60,6 +60,7 @@ interface JsonRpcInteractorInterface {
         irnParams: IrnParams,
         envelopeType: EnvelopeType = EnvelopeType.ZERO,
         participants: Participants? = null,
+        onSuccess: (WCRequest) -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     )
 }

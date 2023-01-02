@@ -44,16 +44,16 @@ interface SignInterface {
         message = "Creating a pairing will be moved to CoreClient to make pairing SDK agnostic",
         replaceWith = ReplaceWith(expression = "CoreClient.Pairing.pair()", imports = ["com.walletconnect.android.CoreClient"])
     )
-    fun pair(pair: Sign.Params.Pair, onError: (Sign.Model.Error) -> Unit)
-    fun approveSession(approve: Sign.Params.Approve, onError: (Sign.Model.Error) -> Unit)
-    fun rejectSession(reject: Sign.Params.Reject, onError: (Sign.Model.Error) -> Unit)
-    fun request(request: Sign.Params.Request, onError: (Sign.Model.Error) -> Unit)
-    fun respond(response: Sign.Params.Response, onError: (Sign.Model.Error) -> Unit)
-    fun update(update: Sign.Params.Update, onError: (Sign.Model.Error) -> Unit)
-    fun extend(extend: Sign.Params.Extend, onError: (Sign.Model.Error) -> Unit)
-    fun emit(emit: Sign.Params.Emit, onError: (Sign.Model.Error) -> Unit)
+    fun pair(pair: Sign.Params.Pair, onSuccess: (Sign.Params.Pair) -> Unit, onError: (Sign.Model.Error) -> Unit)
+    fun approveSession(approve: Sign.Params.Approve, onSuccess: (Sign.Params.Approve) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun rejectSession(reject: Sign.Params.Reject, onSuccess: () -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun request(request: Sign.Params.Request, onSuccess: () -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun respond(response: Sign.Params.Response, onSuccess: (String) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun update(update: Sign.Params.Update, onSuccess: (String) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun extend(extend: Sign.Params.Extend, onSuccess: (String) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun emit(emit: Sign.Params.Emit, onSuccess: (String) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing? = null)
-    fun disconnect(disconnect: Sign.Params.Disconnect, onError: (Sign.Model.Error) -> Unit)
+    fun disconnect(disconnect: Sign.Params.Disconnect, onSuccess: (String) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun getListOfActiveSessions(): List<Sign.Model.Session>
     fun getActiveSessionByTopic(topic: String): Sign.Model.Session?
 
