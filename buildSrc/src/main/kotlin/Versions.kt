@@ -18,10 +18,10 @@ val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23
 const val TARGET_SDK: Int = 32
 const val COMPILE_SDK: Int = TARGET_SDK
-const val kotlinVersion = "1.7.10"
-const val kspVersion = "1.7.10-1.0.6"
+const val kotlinVersion = "1.7.21"
+const val kspVersion = "1.7.21-1.0.8"
 
-const val sqlDelightVersion = "1.5.2"
+const val sqlDelightVersion = "1.5.4"
 const val moshiVersion = "1.13.0"
 const val coroutinesVersion = "1.6.4"
 const val scarletVersion = "1.0.0"
