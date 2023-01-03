@@ -23,7 +23,7 @@ import org.koin.dsl.module
 
 object CoreClient {
     val Pairing: PairingInterface = PairingProtocol
-    val Relay: RelayConnectionInterface = RelayClient
+    var Relay: RelayConnectionInterface = RelayClient
 
     interface CoreDelegate : PairingInterface.Delegate
 
