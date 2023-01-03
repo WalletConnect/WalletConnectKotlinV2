@@ -136,15 +136,15 @@ internal class SignEngine(
             })
     }
 
-    internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
+    internal fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         pairingInterface.pair(
             pair = Core.Params.Pair(uri),
-            onSuccess = { onSuccess(uri) },
+            onSuccess = { onSuccess() },
             onError = { error -> onFailure(error.throwable) }
         )
     }
 
-    internal fun reject(proposerPublicKey: String, reason: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit = {}) {
+    internal fun reject(proposerPublicKey: String, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit = {}) {
         val request = sessionProposalRequest[proposerPublicKey]
             ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
@@ -154,14 +154,14 @@ internal class SignEngine(
             request,
             PeerError.EIP1193.UserRejectedRequest(reason),
             irnParams,
-            onSuccess = { onSuccess(proposerPublicKey) },
+            onSuccess = { onSuccess() },
             onFailure = { error -> onFailure(error) })
     }
 
     internal fun approve(
         proposerPublicKey: String,
         namespaces: Map<String, EngineDO.Namespace.Session>,
-        onSuccess: (proposerPublicKey: String) -> Unit = {},
+        onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
         fun sessionSettle(
@@ -186,7 +186,7 @@ internal class SignEngine(
                 jsonRpcInteractor.publishJsonRpcRequest(
                     topic = sessionTopic,
                     params = irnParams, sessionSettle,
-                    onSuccess = { onSuccess(proposerPublicKey) },
+                    onSuccess = { onSuccess() },
                     onFailure = { error -> onFailure(error) }
                 )
             } catch (e: SQLiteException) {
@@ -217,7 +217,7 @@ internal class SignEngine(
     internal fun sessionUpdate(
         topic: String,
         namespaces: Map<String, EngineDO.Namespace.Session>,
-        onSuccess: (String) -> Unit,
+        onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
@@ -247,7 +247,7 @@ internal class SignEngine(
                 jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionUpdate,
                     onSuccess = {
                         logger.log("Update sent successfully")
-                        onSuccess(topic)
+                        onSuccess()
                     },
                     onFailure = { error ->
                         logger.error("Sending session update error: $error")
@@ -305,7 +305,7 @@ internal class SignEngine(
     internal fun respondSessionRequest(
         topic: String,
         jsonRpcResponse: JsonRpcResponse,
-        onSuccess: (String) -> Unit,
+        onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
@@ -319,7 +319,7 @@ internal class SignEngine(
             response = jsonRpcResponse,
             onSuccess = {
                 logger.log("Session payload sent successfully")
-                onSuccess(topic)
+                onSuccess()
             },
             onFailure = { error ->
                 logger.error("Sending session payload response error: $error")
@@ -375,7 +375,7 @@ internal class SignEngine(
         }
     }
 
-    internal fun emit(topic: String, event: EngineDO.Event, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
+    internal fun emit(topic: String, event: EngineDO.Event, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -401,7 +401,7 @@ internal class SignEngine(
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionEvent,
             onSuccess = {
                 logger.log("Event sent successfully")
-                onSuccess(topic)
+                onSuccess()
             },
             onFailure = { error ->
                 logger.error("Sending event error: $error")
@@ -410,7 +410,7 @@ internal class SignEngine(
         )
     }
 
-    internal fun extend(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
+    internal fun extend(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -431,7 +431,7 @@ internal class SignEngine(
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionExtend,
             onSuccess = {
                 logger.log("Session extend sent successfully")
-                onSuccess(topic)
+                onSuccess()
             },
             onFailure = { error ->
                 logger.error("Sending session extend error: $error")
@@ -439,7 +439,7 @@ internal class SignEngine(
             })
     }
 
-    internal fun disconnect(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
+    internal fun disconnect(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -453,7 +453,7 @@ internal class SignEngine(
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionDelete,
             onSuccess = {
                 logger.error("Disconnect sent successfully")
-                onSuccess(topic)
+                onSuccess()
             },
             onFailure = { error ->
                 logger.error("Sending session disconnect error: $error")
