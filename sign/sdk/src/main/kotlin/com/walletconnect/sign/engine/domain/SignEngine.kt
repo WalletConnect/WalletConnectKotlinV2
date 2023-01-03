@@ -136,11 +136,11 @@ internal class SignEngine(
             })
     }
 
-    internal fun pair(uri: String, onSuccess: (String) -> Unit, onError: (Core.Model.Error) -> Unit) {
+    internal fun pair(uri: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         pairingInterface.pair(
             pair = Core.Params.Pair(uri),
-            onSuccess = {onSuccess(uri)},
-            onError = { onError(it) }
+            onSuccess = { onSuccess(uri) },
+            onError = { error -> onFailure(error.throwable) }
         )
     }
 

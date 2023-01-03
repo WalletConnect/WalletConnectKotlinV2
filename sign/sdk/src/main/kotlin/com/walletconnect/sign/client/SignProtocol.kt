@@ -113,7 +113,7 @@ class SignProtocol : SignInterface {
             signEngine.pair(
                 uri = pair.uri,
                 onSuccess = { onSuccess(pair) },
-                onError = { error -> onError(Sign.Model.Error(error.throwable)) }
+                onFailure = { throwable -> onError(Sign.Model.Error(throwable)) }
             )
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
