@@ -20,7 +20,7 @@ const val COMPILE_SDK: Int = TARGET_SDK
 const val agpVersion = "7.3.1" // when changing, remember to change version in build.gradle.kts in buildSrc module
 const val kotlinVersion = "1.7.21"
 const val kspVersion = "$kotlinVersion-1.0.8"
-const val dokkaVersion = kotlinVersion // when changing, remember to change version in build.gradle.kts in buildSrc module
+const val dokkaVersion = "1.7.10" // when changing, remember to change version in build.gradle.kts in buildSrc module
 
 const val sqlDelightVersion = "1.5.4"
 const val moshiVersion = "1.13.0"
