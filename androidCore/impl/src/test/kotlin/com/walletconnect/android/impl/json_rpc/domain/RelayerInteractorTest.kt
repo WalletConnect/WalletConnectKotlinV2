@@ -220,7 +220,7 @@ internal class RelayerInteractorTest {
                 Result.failure(mockk())
             )
         }
-        sut.subscribe(topicVO, onFailure)
+        sut.subscribe(topicVO, onFailure = onFailure)
         verify { onFailure(any()) }
     }
 
