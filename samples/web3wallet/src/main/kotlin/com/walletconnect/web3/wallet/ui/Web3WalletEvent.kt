@@ -16,6 +16,6 @@ interface SignEvent: Web3WalletEvent {
 
 
 interface AuthEvent: Web3WalletEvent {
-    data class OnRequest(val id: Long, val message: String) : Web3WalletEvent
+    data class OnRequest(val id: Long, val message: String) : AuthEvent
 }
 
