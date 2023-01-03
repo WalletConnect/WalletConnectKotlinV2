@@ -46,14 +46,14 @@ interface SignInterface {
     )
     fun pair(pair: Sign.Params.Pair, onSuccess: (Sign.Params.Pair) -> Unit, onError: (Sign.Model.Error) -> Unit)
     fun approveSession(approve: Sign.Params.Approve, onSuccess: (Sign.Params.Approve) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
-    fun rejectSession(reject: Sign.Params.Reject, onSuccess: () -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
-    fun request(request: Sign.Params.Request, onSuccess: () -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
-    fun respond(response: Sign.Params.Response, onSuccess: (String) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
-    fun update(update: Sign.Params.Update, onSuccess: (String) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
-    fun extend(extend: Sign.Params.Extend, onSuccess: (String) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
-    fun emit(emit: Sign.Params.Emit, onSuccess: (String) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun rejectSession(reject: Sign.Params.Reject, onSuccess: (Sign.Params.Reject) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun request(request: Sign.Params.Request, onSuccess: (Sign.Params.Request) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun respond(response: Sign.Params.Response, onSuccess: (Sign.Params.Response) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun update(update: Sign.Params.Update, onSuccess: (Sign.Params.Update) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun extend(extend: Sign.Params.Extend, onSuccess: (Sign.Params.Extend) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun emit(emit: Sign.Params.Emit, onSuccess: (Sign.Params.Emit) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing? = null)
-    fun disconnect(disconnect: Sign.Params.Disconnect, onSuccess: (String) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun disconnect(disconnect: Sign.Params.Disconnect, onSuccess: (Sign.Params.Disconnect) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun getListOfActiveSessions(): List<Sign.Model.Session>
     fun getActiveSessionByTopic(topic: String): Sign.Model.Session?
 
