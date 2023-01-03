@@ -87,7 +87,7 @@ class RelayIntegrationAndroidTest {
             activityRule.dappClient.connect(connectParams,
                 onSuccess = { proposedSequence ->
                     if (proposedSequence is Sign.Model.ProposedSequence.Pairing) {
-                        activityRule.walletClient.pair(Sign.Params.Pair(proposedSequence.uri), ::globalOnError)
+                        activityRule.walletClient.pair(Sign.Params.Pair(proposedSequence.uri), onError = ::globalOnError)
                     } else {
                         Logger.error("proposedSequence !is Sign.Model.ProposedSequence.Pairing")
                     }

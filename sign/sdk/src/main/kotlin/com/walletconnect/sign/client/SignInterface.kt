@@ -44,7 +44,7 @@ interface SignInterface {
         message = "Creating a pairing will be moved to CoreClient to make pairing SDK agnostic",
         replaceWith = ReplaceWith(expression = "CoreClient.Pairing.pair()", imports = ["com.walletconnect.android.CoreClient"])
     )
-    fun pair(pair: Sign.Params.Pair, onSuccess: (Sign.Params.Pair) -> Unit, onError: (Sign.Model.Error) -> Unit)
+    fun pair(pair: Sign.Params.Pair, onSuccess: (Sign.Params.Pair) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun approveSession(approve: Sign.Params.Approve, onSuccess: (Sign.Params.Approve) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun rejectSession(reject: Sign.Params.Reject, onSuccess: (Sign.Params.Reject) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun request(request: Sign.Params.Request, onSuccess: (Sign.Params.Request) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
