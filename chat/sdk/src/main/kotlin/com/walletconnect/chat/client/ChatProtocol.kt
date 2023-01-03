@@ -2,9 +2,8 @@
 
 package com.walletconnect.chat.client
 
-import com.walletconnect.android.impl.common.SDKError
-import com.walletconnect.android.impl.common.model.ConnectionState
-import com.walletconnect.android.impl.di.cryptoModule
+import com.walletconnect.android.internal.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.mapper.toClient
@@ -33,8 +32,6 @@ internal class ChatProtocol : ChatInterface {
         try {
             wcKoinApp.run {
                 modules(
-                    commonModule(),
-                    cryptoModule(),
                     keyServerModule(keyServerUrl),
                     jsonRpcModule(),
                     storageModule(storageSuffix),

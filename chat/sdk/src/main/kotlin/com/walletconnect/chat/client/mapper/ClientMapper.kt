@@ -2,8 +2,8 @@
 
 package com.walletconnect.chat.client.mapper
 
-import com.walletconnect.android.impl.common.model.ConnectionState
-import com.walletconnect.android.impl.common.SDKError
+import com.walletconnect.android.internal.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.Media

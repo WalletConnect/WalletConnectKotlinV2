@@ -5,7 +5,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.common.toRelay
 import com.walletconnect.foundation.common.toRelayEvent
-import com.walletconnect.foundation.di.commonModule
+import com.walletconnect.foundation.di.foundationCommonModule
 import com.walletconnect.foundation.network.data.service.RelayService
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.foundation.network.model.RelayDTO
@@ -25,7 +25,7 @@ abstract class BaseRelayClient : RelayInterface {
     protected var logger: Logger
 
     init {
-        foundationKoinApp.run { modules(commonModule()) }
+        foundationKoinApp.run { modules(foundationCommonModule()) }
         logger = foundationKoinApp.koin.get()
     }
 

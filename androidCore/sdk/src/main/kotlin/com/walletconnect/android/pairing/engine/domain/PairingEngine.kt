@@ -5,13 +5,17 @@ import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
 import com.walletconnect.android.internal.NO_SEQUENCE_FOR_TOPIC_MESSAGE
 import com.walletconnect.android.internal.PAIRING_NOW_ALLOWED_MESSAGE
 import com.walletconnect.android.internal.Validator
-import com.walletconnect.android.internal.common.*
-import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.*
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
+import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
+import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
@@ -25,16 +29,32 @@ import com.walletconnect.util.randomBytes
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
-internal class PairingEngine {
-    private var resubscribeToPairingsJob: Job? = null
+//Split into PairingProtocolEngine and PairingControllerEngine
+internal class PairingEngine(
+    private val logger: Logger,
+    private val selfMetaData: AppMetaData,
+    private val metadataRepository: MetadataStorageRepositoryInterface,
+    private val crypto: KeyManagementRepository,
+    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val pairingRepository: PairingStorageRepositoryInterface
+) {
     private var jsonRpcRequestsJob: Job? = null
 
-    private val logger: Logger by lazy { wcKoinApp.koin.get() }
-    private val selfMetaData: AppMetaData by lazy { load() }
-    private val pairingRepository: PairingStorageRepositoryInterface by lazy { load() }
-    private val metadataRepository: MetadataStorageRepositoryInterface by lazy { load() }
-    private val crypto: KeyManagementRepository by lazy { load() }
-    private val jsonRpcInteractor: JsonRpcInteractorInterface by lazy { load() }
+    init {
+        jsonRpcInteractor.isConnectionAvailable
+            .filter { isAvailable: Boolean -> isAvailable }
+            .onEach {
+                supervisorScope {
+                    launch(Dispatchers.IO) {
+                        resubscribeToPairingFlow()
+                    }
+                }
+
+                if (jsonRpcRequestsJob == null) {
+                    jsonRpcRequestsJob = collectJsonRpcRequestsFlow()
+                }
+            }.launchIn(scope)
+    }
 
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
     private val registeredMethods: String get() = setOfRegisteredMethods.joinToString(",") { it }
@@ -168,22 +188,7 @@ internal class PairingEngine {
         metadataRepository.upsertPairingPeerMetadata(Topic(topic), metadata, metaDataType)
     }
 
-    private inline fun <reified T> load(): T {
-        return wcKoinApp.koin.getOrNull<T>(T::class).also { temp ->
-            if (temp != null) {
-                scope.launch {
-                    if (resubscribeToPairingsJob == null) {
-                        supervisorScope { resubscribeToPairingsJob = resubscribeToPairingFlow.launchIn(this) }
-                    }
-                    if (jsonRpcRequestsJob == null) {
-                        supervisorScope { jsonRpcRequestsJob = collectJsonRpcRequestsFlow.launchIn(this) }
-                    }
-                }
-            }
-        } ?: throw IllegalStateException("Core cannot be initialized by itself")
-    }
-
-    private val collectJsonRpcRequestsFlow: Flow<WCRequest> by lazy {
+    private fun collectJsonRpcRequestsFlow(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is PairingParams }
             .onEach { request ->
@@ -191,26 +196,17 @@ internal class PairingEngine {
                     is PairingParams.DeleteParams -> onPairingDelete(request, requestParams)
                     is PairingParams.PingParams -> onPing(request)
                 }
-            }
-    }
+            }.launchIn(scope)
 
-    private val resubscribeToPairingFlow: Flow<Boolean> by lazy {
-        jsonRpcInteractor.isConnectionAvailable
-            .filter { isAvailable: Boolean -> isAvailable }
-            .onEach {
-                coroutineScope {
-                    launch(Dispatchers.IO) {
-                        pairingRepository.getListOfPairings()
-                            .map { pairing -> pairing.topic }
-                            .onEach { pairingTopic ->
-                                try {
-                                    jsonRpcInteractor.subscribe(pairingTopic) { error -> scope.launch { internalErrorFlow.emit(InternalError(error)) } }
-                                } catch (e: Exception) {
-                                    scope.launch {
-                                        internalErrorFlow.emit(InternalError(e))
-                                    }
-                                }
-                            }
+    private fun resubscribeToPairingFlow() {
+        pairingRepository.getListOfPairings()
+            .map { pairing -> pairing.topic }
+            .onEach { pairingTopic ->
+                try {
+                    jsonRpcInteractor.subscribe(pairingTopic) { error -> scope.launch { internalErrorFlow.emit(InternalError(error)) } }
+                } catch (e: Exception) {
+                    scope.launch {
+                        internalErrorFlow.emit(InternalError(e))
                     }
                 }
             }

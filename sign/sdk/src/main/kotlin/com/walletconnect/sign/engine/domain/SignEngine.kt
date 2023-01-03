@@ -4,20 +4,19 @@ package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
-import com.walletconnect.android.impl.common.SDKError
-import com.walletconnect.android.impl.common.model.ConnectionState
-import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.utils.*
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.exception.Reason
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
+import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.utils.*
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
@@ -102,8 +101,7 @@ internal class SignEngine(
                 if (internalErrorsJob == null) {
                     internalErrorsJob = collectInternalErrors()
                 }
-            }
-            .launchIn(scope)
+            }.launchIn(scope)
     }
 
     internal fun proposeSession(
@@ -506,7 +504,6 @@ internal class SignEngine(
                     AppMetaDataType.PEER
                 )
             )
-
             scope.launch { _engineEvent.emit(payloadParams.toEngineDO()) }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
