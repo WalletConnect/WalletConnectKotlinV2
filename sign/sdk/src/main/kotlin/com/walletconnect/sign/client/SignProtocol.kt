@@ -241,6 +241,10 @@ class SignProtocol : SignInterface {
             .find { session -> session.topic == topic }
     }
 
+    @Deprecated(
+        "Getting a list of Pairings will be moved to CoreClient to make pairing SDK agnostic",
+        replaceWith = ReplaceWith("CoreClient.Pairing.getPairings()", "com.walletconnect.android.CoreClient")
+    )
     @Throws(IllegalStateException::class)
     override fun getListOfSettledPairings(): List<Sign.Model.Pairing> {
         checkEngineInitialization()
