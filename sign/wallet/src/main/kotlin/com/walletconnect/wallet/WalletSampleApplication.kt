@@ -34,7 +34,6 @@ class WalletSampleApplication : Application() {
         ) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
 
         val initParams = Sign.Params.Init(core = CoreClient)
-
         SignClient.initialize(initParams) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }

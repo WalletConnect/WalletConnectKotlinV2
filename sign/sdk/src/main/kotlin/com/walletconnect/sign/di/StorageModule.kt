@@ -2,7 +2,10 @@
 
 package com.walletconnect.sign.di
 
-import com.walletconnect.android.impl.di.*
+import com.walletconnect.android.di.AndroidCoreDITags
+import com.walletconnect.android.di.sdkBaseStorageModule
+import com.walletconnect.android.internal.common.di.DBNames
+import com.walletconnect.android.internal.common.di.deleteDBs
 import com.walletconnect.sign.SignDatabase
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDao
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceExtensionsDao
@@ -52,13 +55,11 @@ internal fun storageModule(storageSuffix: String): Module = module {
         )
     )
 
-    includes(coreStorageModule(), sdkBaseStorageModule(SignDatabase.Schema, storageSuffix))
+    includes(sdkBaseStorageModule(SignDatabase.Schema, storageSuffix))
 
     single {
         try {
-            createSignDB().also {
-                it.sessionDaoQueries.lastInsertedRow().executeAsOneOrNull()
-            }
+            createSignDB().also { signDatabase -> signDatabase.sessionDaoQueries.lastInsertedRow().executeAsOneOrNull() }
         } catch (e: Exception) {
             deleteDBs(DBNames.getSdkDBName(storageSuffix))
             createSignDB()

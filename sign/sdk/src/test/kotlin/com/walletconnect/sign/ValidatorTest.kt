@@ -1,11 +1,11 @@
 package com.walletconnect.sign
 
-import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
-import com.walletconnect.android.impl.utils.FIVE_MINUTES_IN_SECONDS
-import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
-import com.walletconnect.android.impl.utils.WEEK_IN_SECONDS
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.WEEK_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.ValidatorTest.Accounts.COSMOSHUB_4_1
 import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_1

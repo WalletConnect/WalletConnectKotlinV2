@@ -1,6 +1,6 @@
 package com.walletconnect.auth.json_rpc.model
 
-import com.walletconnect.android.impl.json_rpc.model.JsonRpcHistoryRecord
+import com.walletconnect.android.internal.common.json_rpc.model.JsonRpcHistoryRecord
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.model.JsonRpcHistoryEntry
 import com.walletconnect.foundation.common.model.Topic

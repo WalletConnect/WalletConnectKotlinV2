@@ -2,9 +2,8 @@
 
 package com.walletconnect.sign.client
 
-import com.walletconnect.android.impl.common.SDKError
-import com.walletconnect.android.impl.common.model.ConnectionState
-import com.walletconnect.android.impl.di.cryptoModule
+import com.walletconnect.android.internal.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.model.mapper.toPairing
@@ -32,7 +31,6 @@ class SignProtocol : SignInterface {
         try {
             wcKoinApp.modules(
                 commonModule(),
-                cryptoModule(),
                 jsonRpcModule(),
                 storageModule(storageSuffix),
                 engineModule()
@@ -241,6 +239,10 @@ class SignProtocol : SignInterface {
             .find { session -> session.topic == topic }
     }
 
+    @Deprecated(
+        "Getting a list of Pairings will be moved to CoreClient to make pairing SDK agnostic",
+        replaceWith = ReplaceWith("CoreClient.Pairing.getPairings()", "com.walletconnect.android.CoreClient")
+    )
     @Throws(IllegalStateException::class)
     override fun getListOfSettledPairings(): List<Sign.Model.Pairing> {
         checkEngineInitialization()
