@@ -18,15 +18,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.google.relay.compose.RelayContainer
 import com.walletconnect.web3.wallet.sample.R
 
-
-/**
- * This composable was generated from the UI Package 'paste_button'.
- * Szymon: However there were import issues so it's removed from generated source.
- * Also modified some code
- */
 @Composable
 fun ConnectionsButton(
     modifier: Modifier = Modifier,
@@ -58,14 +51,10 @@ fun ConnectionsButton(
 @Composable
 private fun PasteButtonPreview() {
     MaterialTheme {
-        RelayContainer {
-            ConnectionsButton(
-                content = {
-                    Icon(ImageVector.vectorResource(id = R.drawable.paste_icon), contentDescription = "Scan QRCode Icon", tint = Color(0xFFFFFFFF))
-                }, modifier = Modifier
-                    .rowWeight(1.0f)
-                    .columnWeight(1.0f)
-            )
-        }
+        ConnectionsButton(
+            content = {
+                Icon(ImageVector.vectorResource(id = R.drawable.paste_icon), contentDescription = "Scan QRCode Icon", tint = Color(0xFFFFFFFF))
+            }, modifier = Modifier
+        )
     }
 }

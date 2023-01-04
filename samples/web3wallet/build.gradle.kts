@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")
     kotlin("android")
-    id("com.google.relay") version "0.3.01"
 }
 
 android {
@@ -40,7 +39,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.3.1"
+        kotlinCompilerExtensionVersion = "1.4.0-alpha02"
     }
 }
 
