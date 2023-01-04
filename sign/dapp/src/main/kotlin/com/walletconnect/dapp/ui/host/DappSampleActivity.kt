@@ -32,12 +32,18 @@ class DappSampleActivity : AppCompatActivity(R.layout.activity_dapp) {
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .onEach { event ->
                 when (event) {
-                        is SampleDappEvents.SessionEvent -> {
-                            Log.d(tag(this), "SessionEvent")
-                            Snackbar.make(findViewById(android.R.id.content), event.toString(), Snackbar.LENGTH_LONG).show()
-                        }
-                        else -> Unit
+                    is SampleDappEvents.SessionEvent -> {
+                        Log.d(tag(this), "SessionEvent")
+                        Snackbar.make(findViewById(android.R.id.content), event.toString(), Snackbar.LENGTH_LONG).show()
                     }
+                    else -> Unit
+                }
+            }.launchIn(lifecycleScope)
+
+        viewModel.pushEvents
+            .flowWithLifecycle(lifecycle)
+            .onEach { pushEvent ->
+
             }.launchIn(lifecycleScope)
     }
 

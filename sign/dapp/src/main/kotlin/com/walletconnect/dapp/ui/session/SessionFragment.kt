@@ -1,6 +1,7 @@
 package com.walletconnect.dapp.ui.session
 
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -78,6 +79,16 @@ class SessionFragment : Fragment(R.layout.fragment_session) {
             }
             android.R.id.home -> {
                 viewModel.disconnect()
+
+                false
+            }
+            R.id.menu_push_request -> {
+                viewModel.pushRequest()
+
+                false
+            }
+            R.id.menu_push_notify -> {
+                viewModel.pushNotify()
 
                 false
             }

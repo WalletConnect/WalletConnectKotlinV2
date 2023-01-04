@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.push.dapp.json_rpc
+package com.walletconnect.push.common
 
 internal object JsonRpcMethod {
 
@@ -9,4 +9,7 @@ internal object JsonRpcMethod {
 
     @get:JvmSynthetic
     const val WC_PUSH_MESSAGE: String = "wc_pushMessage"
+
+    @get:JvmSynthetic
+    const val WC_PUSH_DELETE: String = "wc_pushDelete"
 }

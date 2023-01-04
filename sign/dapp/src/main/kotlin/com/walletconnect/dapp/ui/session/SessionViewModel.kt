@@ -3,8 +3,12 @@ package com.walletconnect.dapp.ui.session
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.android.CoreClient
 import com.walletconnect.dapp.domain.DappDelegate
+import com.walletconnect.dapp.domain.PushDappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
+import com.walletconnect.push.common.Push
+import com.walletconnect.push.dapp.client.PushDappClient
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
@@ -85,6 +89,25 @@ class SessionViewModel : ViewModel() {
 
         viewModelScope.launch {
             _navigationEvents.emit(SampleDappEvents.Disconnect)
+        }
+    }
+
+    fun pushRequest() {
+        val pairingTopic = CoreClient.Pairing.getPairings().first().topic
+        PushDappClient.request(Push.Dapp.Params.Request("testAccount", pairingTopic), { pushRequestId ->
+            Log.e(tag(this), "Request sent with id ${pushRequestId.id}")
+        }, {
+            Log.e(tag(this), it.throwable.stackTraceToString())
+        })
+    }
+
+    fun pushNotify() {
+        val pushTopic = PushDappDelegate.activePushSubscription?.topic ?: PushDappClient.getActiveSubscriptions().keys.first()
+        val pushMessage = Push.Model.Message("Kotlin Dapp Title", "Kotlin Dapp Body", "https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png", "https://walletconnect.com")
+        val notifyParams = Push.Dapp.Params.Notify(pushTopic, pushMessage)
+
+        PushDappClient.notify(notifyParams) { error ->
+            Log.e(tag(this), error.throwable.stackTraceToString())
         }
     }
 }

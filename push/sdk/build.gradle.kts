@@ -30,8 +30,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro")
         }
     }
 
@@ -48,6 +48,14 @@ android {
     testOptions.unitTests {
         isIncludeAndroidResources = true
         isReturnDefaultValues = true
+    }
+}
+
+sqldelight {
+    database("PushDatabase") {
+        packageName = "com.walletconnect.push"
+        schemaOutputDirectory = file("src/debug/sqldelight/databases")
+        verifyMigrations = true
     }
 }
 
