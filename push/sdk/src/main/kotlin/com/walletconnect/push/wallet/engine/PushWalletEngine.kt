@@ -45,7 +45,7 @@ internal class PushWalletEngine(
     private var internalErrorsJob: Job? = null
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
-    private val pushRequests: MutableMap<String, WCRequest> = mutableMapOf()
+    private val pushRequests: MutableMap<Long, WCRequest> = mutableMapOf()
 
     init {
         pairingHandler.register(
@@ -82,14 +82,13 @@ internal class PushWalletEngine(
 
     fun approve(requestId: Long, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         try {
-            val peerPublicKey = subscriptionStorageRepository.getPeerPublicKeyByRequestId(requestId)
-            val proposerRequest = pushRequests[peerPublicKey]?.also { request ->
-                pushRequests.remove(request.topic.value)
+            val proposerRequest = pushRequests[requestId]?.also { _ ->
+                pushRequests.remove(requestId)
             } ?: return onError(GenericException("Unable to find proposer's request"))
             val proposerRequestParams = proposerRequest.params as PushParams.RequestParams
 
             val selfPublicKey = crypto.generateKeyPair()
-            val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(peerPublicKey))
+            val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(proposerRequestParams.publicKey))
             val approvalParams = PushParams.RequestResponseParams(selfPublicKey.keyAsHex)
             val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
 
@@ -110,9 +109,8 @@ internal class PushWalletEngine(
 
     fun reject(requestId: Long, reason: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         try {
-            val peerPublicKey = subscriptionStorageRepository.getPeerPublicKeyByRequestId(requestId)
-            val proposerRequest = pushRequests[peerPublicKey]?.also { request ->
-                pushRequests.remove(request.topic.value)
+            val proposerRequest = pushRequests[requestId]?.also { _ ->
+                pushRequests.remove(requestId)
             } ?: return onError(GenericException("Unable to find proposer's request"))
             val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
 
@@ -177,8 +175,8 @@ internal class PushWalletEngine(
         val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
 
         try {
-            pushRequests[params.publicKey] = request
-            subscriptionStorageRepository.insertSubscriptionRequest(request.id, params.publicKey)
+            pushRequests[request.id] = request
+            subscriptionStorageRepository.insertSubscriptionProposal(request.id, params.publicKey)
 
             scope.launch { _engineEvent.emit(params.toEngineDO(request.id)) }
         } catch (e: Exception) {

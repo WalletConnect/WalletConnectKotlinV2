@@ -4,7 +4,7 @@ CREATE TABLE Subscriptions (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     request_id INTEGER UNIQUE NOT NULL,
     peer_public_key TEXT NOT NULL,
-    topic TEXT,
+    topic TEXT UNIQUE,
     relay_protocol TEXT,
     relay_data TEXT,
     metadata_name TEXT,
@@ -15,7 +15,7 @@ CREATE TABLE Subscriptions (
 );
 
 insertSubscriptionResponse:
-INSERT OR ABORT INTO Subscriptions(request_id, peer_public_key, topic, relay_protocol, relay_data, metadata_name, metadata_description, metadata_url, metadata_icons, metadata_native)
+INSERT OR REPLACE INTO Subscriptions(request_id, peer_public_key, topic, relay_protocol, relay_data, metadata_name, metadata_description, metadata_url, metadata_icons, metadata_native)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 insertSubscriptionRequest:
@@ -37,7 +37,7 @@ FROM Subscriptions
 WHERE request_id = ?;
 
 updateSubscriptionToResponded:
-UPDATE OR ABORT Subscriptions
+UPDATE OR REPLACE Subscriptions
 SET topic = ?, relay_protocol = ?, relay_data = ?, metadata_name = ?, metadata_description = ?, metadata_url = ?, metadata_icons = ?, metadata_native = ?
 WHERE request_id = ?;
 

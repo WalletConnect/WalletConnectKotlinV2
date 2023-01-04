@@ -8,8 +8,11 @@ import com.walletconnect.push.common.storage.data.dao.SubscriptionsQueries
 
 class SubscriptionStorageRepository(private val subscriptionQueries: SubscriptionsQueries) {
 
-    fun insertSubscriptionRequest(requestId: Long, peerPublicKey: String) {
-        subscriptionQueries.insertSubscriptionRequest(requestId, peerPublicKey)
+    fun insertSubscriptionProposal(requestId: Long, peerPublicKey: String) {
+        subscriptionQueries.insertSubscriptionRequest(
+            requestId,
+            peerPublicKey
+        )
     }
 
     fun insertRespondedSubscription(respondedSubscription: EngineDO.PushSubscription.Responded) {
@@ -34,14 +37,9 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
     fun getAllSubscriptions(): List<EngineDO.PushSubscription> =
         subscriptionQueries.getAllSubscriptions(::toSubscription).executeAsList()
 
-    fun getSubscriptionByTopic(topic: String) = subscriptionQueries.getSubscriptionByTopic(topic, ::toSubscription).executeAsOne()
-
-    fun getPeerPublicKeyByRequestId(requestId: Long) = subscriptionQueries.getPeerPublicKeyByRequestId(requestId).executeAsOne()
-
     fun delete(topic: String) {
         subscriptionQueries.deleteByTopic(topic)
     }
-
 
     private fun toSubscription(
         id: Long,

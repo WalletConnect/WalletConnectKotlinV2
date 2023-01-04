@@ -38,7 +38,6 @@ internal class PushDappEngine(
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
-    private val pushRequest: MutableMap<String, WCRequest> = mutableMapOf()
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
 
@@ -84,7 +83,6 @@ internal class PushDappEngine(
         val selfPublicKey = crypto.generateKeyPair()
         val requestParams = PushParams.RequestParams(selfPublicKey.keyAsHex, selfAppMetaData, account)
         val request = PushRpc.PushRequest(id = generateId(), params = requestParams)
-        pushRequest[selfPublicKey.keyAsHex] = WCRequest(Topic(pairingTopic), request.id, request.method, requestParams)
         val irnParams = IrnParams(Tags.PUSH_REQUEST, Ttl(DAY_IN_SECONDS), true)
         jsonRpcInteractor.subscribe(Topic(pairingTopic)) { error -> return@subscribe onFailure(error) }
 
