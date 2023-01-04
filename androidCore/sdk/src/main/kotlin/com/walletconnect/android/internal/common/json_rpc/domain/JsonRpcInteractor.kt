@@ -155,6 +155,7 @@ internal class JsonRpcInteractor(
         irnParams: IrnParams,
         envelopeType: EnvelopeType,
         participants: Participants?,
+        onSuccess: (WCRequest) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         logger.error("Responding with error: ${error.message}: ${error.code}")
@@ -162,6 +163,7 @@ internal class JsonRpcInteractor(
 
         try {
             publishJsonRpcResponse(request.topic, irnParams, jsonRpcError, envelopeType = envelopeType, participants = participants,
+                onSuccess = { onSuccess(request) },
                 onFailure = { failure ->
                     onFailure(failure)
                     handleError("Cannot send respondWithError: ${failure.stackTraceToString()}")
@@ -171,7 +173,7 @@ internal class JsonRpcInteractor(
         }
     }
 
-    override fun subscribe(topic: Topic, onFailure: (Throwable) -> Unit) {
+    override fun subscribe(topic: Topic, onSuccess: (Topic) -> Unit, onFailure: (Throwable) -> Unit) {
         try {
             checkConnectionWorking()
         } catch (e: NoRelayConnectionException) {
@@ -180,7 +182,10 @@ internal class JsonRpcInteractor(
 
         relay.subscribe(topic.value) { result ->
             result.fold(
-                onSuccess = { acknowledgement -> subscriptions[topic.value] = acknowledgement.result },
+                onSuccess = { acknowledgement ->
+                    subscriptions[topic.value] = acknowledgement.result
+                    onSuccess(topic)
+                },
                 onFailure = { error ->
                     logger.error("Subscribe to topic error: $topic error: $error")
                     onFailure(error)
