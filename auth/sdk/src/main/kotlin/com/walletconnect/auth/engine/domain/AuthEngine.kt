@@ -3,20 +3,18 @@
 package com.walletconnect.auth.engine.domain
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.impl.common.SDKError
-import com.walletconnect.android.impl.common.model.ConnectionState
-import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.utils.CoreValidator
-import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
-import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
-import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.Cacao
 import com.walletconnect.android.internal.common.model.params.CoreAuthParams
+import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.utils.CoreValidator
+import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
@@ -241,7 +239,7 @@ internal class AuthEngine(
 
     private fun collectJsonRpcResponses(): Job =
         jsonRpcInteractor.peerResponse
-            .filter { response -> response.params is AuthParams }
+            .filter { response -> response.params is AuthParams.RequestParams }
             .onEach { response -> onAuthRequestResponse(response, response.params as AuthParams.RequestParams) }
             .launchIn(scope)
 

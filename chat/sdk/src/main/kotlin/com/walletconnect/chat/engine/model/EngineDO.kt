@@ -2,7 +2,7 @@
 
 package com.walletconnect.chat.engine.model
 
-import com.walletconnect.android.impl.common.model.type.EngineEvent
+import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.AccountIdWithPublicKey
 import com.walletconnect.chat.common.model.Media

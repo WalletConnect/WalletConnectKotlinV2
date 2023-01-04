@@ -32,7 +32,7 @@ android {
 }
 
 dependencies {
-    debugImplementation(project(":androidCore:impl"))
+    debugImplementation(project(":androidCore:sdk"))
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 
     implementation("androidx.core:core-ktx:1.8.0")
