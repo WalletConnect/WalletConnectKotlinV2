@@ -8,6 +8,7 @@ import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.sample.BuildConfig
+
 class Web3WalletApplication : Application() {
     override fun onCreate() {
         super.onCreate()
@@ -23,7 +24,12 @@ class Web3WalletApplication : Application() {
             redirect = "kotlin-web3wallet:/request"
         )
 
-        CoreClient.initialize(relayServerUrl = serverUrl, connectionType = ConnectionType.AUTOMATIC, application = this, metaData = appMetaData) { error ->
+        CoreClient.initialize(
+            relayServerUrl = serverUrl,
+            connectionType = ConnectionType.AUTOMATIC,
+            application = this,
+            metaData = appMetaData
+        ) { error ->
             Log.e("CoreClient", error.throwable.stackTraceToString())
         }
 

@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     kotlin("android")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -45,6 +46,10 @@ android {
 
 dependencies {
     implementation(project(":sign:samples_common"))
+
+    implementation(platform("com.google.firebase:firebase-bom:31.1.1"))
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
 
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
