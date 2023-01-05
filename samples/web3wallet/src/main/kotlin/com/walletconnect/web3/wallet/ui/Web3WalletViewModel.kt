@@ -4,8 +4,6 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
 import com.walletconnect.sample_common.tag
 import com.walletconnect.web3.wallet.domain.ISSUER
 import com.walletconnect.web3.wallet.domain.WCDelegate
@@ -43,7 +41,7 @@ class Web3WalletViewModel : ViewModel() {
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     fun pair(pairingUri: String) {
-        val pairingParams = Core.Params.Pair(pairingUri)
-        CoreClient.Pairing.pair(pairingParams) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
+        val pairingParams = Wallet.Params.Pair(pairingUri)
+        Web3Wallet.pair(pairingParams) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
     }
 }
