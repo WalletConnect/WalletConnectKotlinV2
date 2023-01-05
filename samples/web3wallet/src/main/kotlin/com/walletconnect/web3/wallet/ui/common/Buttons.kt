@@ -7,8 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.walletconnect.web3.wallet.sample.allowbutton.AllowButton
-import com.walletconnect.web3.wallet.sample.declinebutton.DeclineButton
+import com.walletconnect.web3.wallet.ui.common.generated.AllowButton
+import com.walletconnect.web3.wallet.ui.common.generated.DeclineButton
 
 
 @Composable
