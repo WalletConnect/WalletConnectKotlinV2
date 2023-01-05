@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "1042715414891",
-    "project_id": "web3wallet-1aad9",
-    "storage_bucket": "web3wallet-1aad9.appspot.com"
+    "project_number": "916120177195",
+    "project_id": "web3wallet-d20e7",
+    "storage_bucket": "web3wallet-d20e7.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1042715414891:android:1baf18bd067dbad7dd7c2e",
+        "mobilesdk_app_id": "1:916120177195:android:fa3bd3ed71b85159b3f86e",
         "android_client_info": {
-          "package_name": "com.walletconnect.web3.wallet"
+          "package_name": "com.walletconnect.web3.wallet.sample"
         }
       },
       "oauth_client": [
         {
-          "client_id": "1042715414891-up6850vhs9jn9lc6v4k3pi4hig6a4n4c.apps.googleusercontent.com",
+          "client_id": "916120177195-l5q40drlrkfdidtqh5gimdf60l33ngq5.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBg-mzxCMI74nMFoORkOixHIrZGpmMvxC4"
+          "current_key": "AIzaSyCh8rpED5jHXZtw3fTjmuzD3ZBYAkbrzp8"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "1042715414891-up6850vhs9jn9lc6v4k3pi4hig6a4n4c.apps.googleusercontent.com",
+              "client_id": "916120177195-l5q40drlrkfdidtqh5gimdf60l33ngq5.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
