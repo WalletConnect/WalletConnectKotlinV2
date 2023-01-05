@@ -83,7 +83,10 @@ dependencies {
     implementation("com.google.zxing:core:3.3.3")
 
     // WalletConnect
-    implementation(platform("com.walletconnect:android-bom:1.1.0"))
-    implementation("com.walletconnect:android-core")
-    implementation("com.walletconnect:web3wallet")
+    debugImplementation(project(":androidCore:sdk"))
+    debugImplementation(project(":web3:wallet"))
+
+    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
+    releaseImplementation("com.walletconnect:android-core")
+    releaseImplementation("com.walletconnect:web3wallet")
 }
