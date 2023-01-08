@@ -31,7 +31,6 @@ class WalletSampleViewModel : ViewModel() {
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
-    // TODO: Tried combining the sign and push events, but push events would never propagate. Come back to see how to combine both events
     val pushEvents = PushWalletDelegate.wcPushEventModels.map { pushEvent ->
         when (pushEvent) {
             is Push.Wallet.Event.Request -> {

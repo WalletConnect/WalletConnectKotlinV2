@@ -20,7 +20,6 @@ internal fun pushStorageModule(storageSuffix: String) = module {
         SubscriptionsAdapter = Subscriptions.Adapter(metadata_iconsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)))
     )
 
-    // TODO: Add subscription storage after dapp
     includes(sdkBaseStorageModule(PushDatabase.Schema, storageSuffix))
 
     single {
