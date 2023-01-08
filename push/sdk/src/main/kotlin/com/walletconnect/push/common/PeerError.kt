@@ -10,7 +10,7 @@ sealed class PeerError : Error {
     sealed class EIP1193 : PeerError() {
 
         data class UserRejectedRequest(override val message: String) : EIP1193() {
-            override val code: Int = 4001
+            override val code: Int = 1000
         }
     }
 }

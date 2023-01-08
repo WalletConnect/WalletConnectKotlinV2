@@ -2,29 +2,35 @@ package com.walletconnect.push.common
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.internal.common.model.AppMetaData
 
 object Push {
+
+    sealed class Model {
+
+        data class Message(val title: String, val body: String, val icon: String, val url: String): Wallet.Event()
+
+        data class Subscription(val requestId: Long, val topic: String, val relay: Relay, val metadata: Core.Model.AppMetaData?): Model() {
+
+            data class Relay(val protocol: String, val data: String?)
+        }
+
+        data class Error(val throwable: Throwable) : Model()
+    }
 
     class Dapp {
 
         sealed class Event {
 
-            data class Response(val error: String?, val subscription: Model.Subscription?): Event()
+            data class Response(val subscription: Push.Model.Subscription): Event()
+
+            data class Rejected(val reason: String): Event()
+
+            data class Delete(val topic: String): Event()
         }
 
         sealed class Model {
 
-            data class Message(val title: String, val body: String, val icon: String, val url: String): Model()
-
-            data class Subscription(val topic: String, val relay: Relay, val metadata: AppMetaData): Model() {
-
-                data class Relay(val protocol: String, val `data`: String)
-            }
-
-            data class RequestId(val id: Int): Model()
-
-            data class Error(val throwable: Throwable) : Model()
+            data class RequestId(val id: Long): Model()
         }
 
         sealed class Params {
@@ -33,7 +39,7 @@ object Push {
 
             data class Request(val account: String, val pairingTopic: String): Params()
 
-            data class Notify(val topic: String, val message: Model.Message): Params()
+            data class Notify(val topic: String, val message: Push.Model.Message): Params()
 
             data class Delete(val topic: String): Params()
         }
@@ -41,27 +47,22 @@ object Push {
 
     class Wallet {
 
-        sealed class Model {
+        sealed class Event {
 
-            data class Request(val id: Long, val metadata: Core.Model.AppMetaData): Model()
+            data class Request(val id: Long, val metadata: Core.Model.AppMetaData): Event()
 
-            data class Subscription(val topic: String, val relay: Relay, val metadata: Core.Model.AppMetaData): Model() {
+            data class Message(val title: String, val body: String, val icon: String, val url: String): Event()
 
-                data class Relay(val protocol: String, val data: String?)
-            }
-
-            data class Message(val title: String, val body: String, val icon: String, val url: String): Model()
-
-            data class Error(val throwable: Throwable) : Model()
+            data class Delete(val topic: String): Event()
         }
 
         sealed class Params {
 
             class Init(val core: CoreClient): Params()
 
-            data class Approve(val id: Int): Params()
+            data class Approve(val id: Long): Params()
 
-            data class Reject(val id: Int, val reason: String): Params()
+            data class Reject(val id: Long, val reason: String): Params()
 
             data class Delete(val topic: String): Params()
 
