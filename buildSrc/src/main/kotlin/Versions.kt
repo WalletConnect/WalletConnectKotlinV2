@@ -3,24 +3,26 @@ import org.gradle.api.JavaVersion
 const val KEY_PUBLISH_VERSION = "PUBLISH_VERSION"
 const val KEY_PUBLISH_ARTIFACT_ID = "PUBLISH_ARTIFACT_ID"
 const val KEY_SDK_NAME = "SDK_NAME"
-const val dokkaVersion = "1.6.21"
 
 //Latest versions
-const val BOM_VERSION = "1.1.0"
-const val FOUNDATION_VERSION = "1.2.0"
-const val CORE_VERSION = "1.6.0"
-const val SIGN_VERSION = "2.4.0"
-const val AUTH_VERSION = "1.4.0"
-const val CHAT_VERSION = "1.0.0-alpha05"
+const val BOM_VERSION = "1.3.0"
+const val FOUNDATION_VERSION = "1.3.0"
+const val CORE_VERSION = "1.8.0"
+const val SIGN_VERSION = "2.6.0"
+const val AUTH_VERSION = "1.6.0"
+const val CHAT_VERSION = "1.0.0-alpha07"
+const val WEB_3_WALLET = "1.1.0"
 
 val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23
-const val TARGET_SDK: Int = 32
+const val TARGET_SDK: Int = 33
 const val COMPILE_SDK: Int = TARGET_SDK
-const val kotlinVersion = "1.7.10"
-const val kspVersion = "1.7.10-1.0.6"
+const val agpVersion = "7.3.1" // when changing, remember to change version in build.gradle.kts in buildSrc module
+const val kotlinVersion = "1.7.21"
+const val kspVersion = "$kotlinVersion-1.0.8"
+const val dokkaVersion = "1.7.10" // when changing, remember to change version in build.gradle.kts in buildSrc module
 
-const val sqlDelightVersion = "1.5.2"
+const val sqlDelightVersion = "1.5.4"
 const val moshiVersion = "1.13.0"
 const val coroutinesVersion = "1.6.4"
 const val scarletVersion = "1.0.0"

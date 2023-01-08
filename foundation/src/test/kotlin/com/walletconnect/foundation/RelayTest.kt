@@ -2,7 +2,7 @@ package com.walletconnect.foundation
 
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.foundation.di.FoundationDITags
-import com.walletconnect.foundation.di.commonModule
+import com.walletconnect.foundation.di.foundationCommonModule
 import com.walletconnect.foundation.di.cryptoModule
 import com.walletconnect.foundation.di.networkModule
 import com.walletconnect.foundation.network.BaseRelayClient
@@ -150,7 +150,7 @@ class RelayTest {
 
     private fun initTwoClients(): Pair<RelayInterface, RelayInterface> {
         val koinAppA: KoinApplication = KoinApplication.init()
-            .apply { modules(commonModule(), cryptoModule()) }.also { koinApp ->
+            .apply { modules(foundationCommonModule(), cryptoModule()) }.also { koinApp ->
                 val jwt = koinApp.koin.get<JwtRepository>().generateJWT(testRelayUrl) { clientId ->
                     println("ClientA id: $clientId")
                 }
@@ -158,7 +158,7 @@ class RelayTest {
             }
 
         val koinAppB: KoinApplication = KoinApplication.init()
-            .apply { modules(commonModule(), cryptoModule()) }.also { koinApp ->
+            .apply { modules(foundationCommonModule(), cryptoModule()) }.also { koinApp ->
                 val jwt = koinApp.koin.get<JwtRepository>().generateJWT(testRelayUrl) { clientId ->
                     println("ClientB id: $clientId")
                 }

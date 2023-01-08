@@ -3,16 +3,13 @@
 package com.walletconnect.sign.engine.model.mapper
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.internal.common.model.RelayProtocolOptions
-import com.walletconnect.android.internal.common.model.WCRequest
-import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
-import com.walletconnect.android.internal.common.model.SessionProposer
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.model.EngineDO
@@ -156,8 +153,8 @@ internal fun JsonRpcResponse.JsonRpcError.toEngineDO(): EngineDO.JsonRpcResponse
     EngineDO.JsonRpcResponse.JsonRpcError(id = id, error = EngineDO.JsonRpcResponse.Error(error.code, error.message))
 
 @JvmSynthetic
-internal fun SignParams.SessionProposeParams.toSessionApproveParams(selfPublicKey: PublicKey): SignParams.ApprovalParams =
-    SignParams.ApprovalParams(
+internal fun SignParams.SessionProposeParams.toSessionApproveParams(selfPublicKey: PublicKey): CoreSignParams.ApprovalParams =
+    CoreSignParams.ApprovalParams(
         relay = RelayProtocolOptions(relays.first().protocol, relays.first().data),
         responderPublicKey = selfPublicKey.keyAsHex)
 

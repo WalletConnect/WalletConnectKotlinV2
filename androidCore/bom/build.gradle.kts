@@ -13,9 +13,9 @@ dependencies {
     constraints {
         api(project(":foundation"))
         api(project(":androidCore:sdk"))
-        api(project(":androidCore:impl"))
         api(project(":sign:sdk"))
         api(project(":auth:sdk"))
         api(project(":chat:sdk"))
+        api(project(":web3:wallet"))
     }
 }

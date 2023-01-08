@@ -2,7 +2,7 @@ package com.walletconnect.chat.common.json_rpc
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android.internal.common.model.ClientParams
+import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.chat.common.model.Media
 
 internal sealed class ChatParams : ClientParams {
@@ -17,12 +17,6 @@ internal sealed class ChatParams : ClientParams {
         val publicKey: String,
         @Json(name = "signature")
         val signature: String?,
-    ) : ChatParams()
-
-    @JsonClass(generateAdapter = true)
-    internal data class AcceptanceParams(
-        @Json(name = "publicKey")
-        val publicKey: String,
     ) : ChatParams()
 
     @JsonClass(generateAdapter = true)

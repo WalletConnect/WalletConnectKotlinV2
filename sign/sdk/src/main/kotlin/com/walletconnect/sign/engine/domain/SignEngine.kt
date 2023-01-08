@@ -4,16 +4,19 @@ package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
-import com.walletconnect.android.impl.common.SDKError
-import com.walletconnect.android.impl.common.model.ConnectionState
-import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.utils.*
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.*
+import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
+import com.walletconnect.android.internal.common.exception.GenericException
+import com.walletconnect.android.internal.common.exception.Reason
+import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.params.CoreSignParams
+import com.walletconnect.android.internal.common.model.type.EngineEvent
+import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.utils.*
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
@@ -23,7 +26,6 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.*
-import com.walletconnect.sign.common.exceptions.CannotFindSequenceForTopic
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.type.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
@@ -78,13 +80,6 @@ internal class SignEngine(
     }
 
     fun setup() {
-        jsonRpcInteractor.wsConnectionFailedFlow.onEach { walletConnectException ->
-            when (walletConnectException) {
-                is ProjectIdDoesNotExistException, is InvalidProjectIdException -> _engineEvent.emit(ConnectionState(false, walletConnectException))
-                else -> _engineEvent.emit(SDKError(InternalError(walletConnectException)))
-            }
-        }.launchIn(scope)
-
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
@@ -106,8 +101,7 @@ internal class SignEngine(
                 if (internalErrorsJob == null) {
                     internalErrorsJob = collectInternalErrors()
                 }
-            }
-            .launchIn(scope)
+            }.launchIn(scope)
     }
 
     internal fun proposeSession(
@@ -140,11 +134,15 @@ internal class SignEngine(
             })
     }
 
-    internal fun pair(uri: String) {
-        pairingInterface.pair(Core.Params.Pair(uri)) {}
+    internal fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+        pairingInterface.pair(
+            pair = Core.Params.Pair(uri),
+            onSuccess = { onSuccess() },
+            onError = { error -> onFailure(error.throwable) }
+        )
     }
 
-    internal fun reject(proposerPublicKey: String, reason: String, onFailure: (Throwable) -> Unit = {}) {
+    internal fun reject(proposerPublicKey: String, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit = {}) {
         val request = sessionProposalRequest[proposerPublicKey]
             ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
@@ -154,12 +152,14 @@ internal class SignEngine(
             request,
             PeerError.EIP1193.UserRejectedRequest(reason),
             irnParams,
+            onSuccess = { onSuccess() },
             onFailure = { error -> onFailure(error) })
     }
 
     internal fun approve(
         proposerPublicKey: String,
         namespaces: Map<String, EngineDO.Namespace.Session>,
+        onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
         fun sessionSettle(
@@ -181,7 +181,12 @@ internal class SignEngine(
                 val sessionSettle = SignRpc.SessionSettle(id = generateId(), params = params)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
-                jsonRpcInteractor.publishJsonRpcRequest(sessionTopic, irnParams, sessionSettle, onFailure = { error -> onFailure(error) })
+                jsonRpcInteractor.publishJsonRpcRequest(
+                    topic = sessionTopic,
+                    params = irnParams, sessionSettle,
+                    onSuccess = { onSuccess() },
+                    onFailure = { error -> onFailure(error) }
+                )
             } catch (e: SQLiteException) {
                 sessionStorageRepository.deleteSession(sessionTopic)
                 // todo: missing metadata deletion. Also check other try catches
@@ -210,6 +215,7 @@ internal class SignEngine(
     internal fun sessionUpdate(
         topic: String,
         namespaces: Map<String, EngineDO.Namespace.Session>,
+        onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
@@ -237,7 +243,10 @@ internal class SignEngine(
         sessionStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id,
             onSuccess = {
                 jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionUpdate,
-                    onSuccess = { logger.log("Update sent successfully") },
+                    onSuccess = {
+                        logger.log("Update sent successfully")
+                        onSuccess()
+                    },
                     onFailure = { error ->
                         logger.error("Sending session update error: $error")
                         sessionStorageRepository.deleteTempNamespacesByRequestId(sessionUpdate.id)
@@ -249,7 +258,7 @@ internal class SignEngine(
             })
     }
 
-    internal fun sessionRequest(request: EngineDO.Request, onFailure: (Throwable) -> Unit) {
+    internal fun sessionRequest(request: EngineDO.Request, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(request.topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
@@ -273,6 +282,7 @@ internal class SignEngine(
             sessionPayload,
             onSuccess = {
                 logger.log("Session request sent successfully")
+                onSuccess()
                 scope.launch {
                     try {
                         withTimeout(FIVE_MINUTES_TIMEOUT) {
@@ -293,6 +303,7 @@ internal class SignEngine(
     internal fun respondSessionRequest(
         topic: String,
         jsonRpcResponse: JsonRpcResponse,
+        onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
@@ -300,12 +311,19 @@ internal class SignEngine(
         }
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
-        jsonRpcInteractor.publishJsonRpcResponse(Topic(topic), irnParams, jsonRpcResponse,
-            { logger.log("Session payload sent successfully") },
-            { error ->
+        jsonRpcInteractor.publishJsonRpcResponse(
+            topic = Topic(topic),
+            params = irnParams,
+            response = jsonRpcResponse,
+            onSuccess = {
+                logger.log("Session payload sent successfully")
+                onSuccess()
+            },
+            onFailure = { error ->
                 logger.error("Sending session payload response error: $error")
                 onFailure(error)
-            })
+            }
+        )
     }
 
     // TODO: Do we still want Session Ping
@@ -355,7 +373,7 @@ internal class SignEngine(
         }
     }
 
-    internal fun emit(topic: String, event: EngineDO.Event, onFailure: (Throwable) -> Unit) {
+    internal fun emit(topic: String, event: EngineDO.Event, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -379,7 +397,10 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionEvent,
-            onSuccess = { logger.log("Event sent successfully") },
+            onSuccess = {
+                logger.log("Event sent successfully")
+                onSuccess()
+            },
             onFailure = { error ->
                 logger.error("Sending event error: $error")
                 onFailure(error)
@@ -387,7 +408,7 @@ internal class SignEngine(
         )
     }
 
-    internal fun extend(topic: String, onFailure: (Throwable) -> Unit) {
+    internal fun extend(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -406,14 +427,17 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_EXTEND, Ttl(DAY_IN_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionExtend,
-            onSuccess = { logger.log("Session extend sent successfully") },
+            onSuccess = {
+                logger.log("Session extend sent successfully")
+                onSuccess()
+            },
             onFailure = { error ->
                 logger.error("Sending session extend error: $error")
                 onFailure(error)
             })
     }
 
-    internal fun disconnect(topic: String) {
+    internal fun disconnect(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -425,8 +449,14 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_DELETE, Ttl(DAY_IN_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionDelete,
-            onSuccess = { logger.error("Disconnect sent successfully") },
-            onFailure = { error -> logger.error("Sending session disconnect error: $error") }
+            onSuccess = {
+                logger.error("Disconnect sent successfully")
+                onSuccess()
+            },
+            onFailure = { error ->
+                logger.error("Sending session disconnect error: $error")
+                onFailure(error)
+            }
         )
     }
 
@@ -482,16 +512,16 @@ internal class SignEngine(
             .launchIn(scope)
 
     private fun collectJsonRpcResponses(): Job =
-        scope.launch {
-            jsonRpcInteractor.peerResponse.collect { response ->
+        jsonRpcInteractor.peerResponse
+            .filter { request -> request.params is SignParams }
+            .onEach { response ->
                 when (val params = response.params) {
                     is SignParams.SessionProposeParams -> onSessionProposalResponse(response, params)
                     is SignParams.SessionSettleParams -> onSessionSettleResponse(response)
                     is SignParams.UpdateNamespacesParams -> onSessionUpdateResponse(response)
                     is SignParams.SessionRequestParams -> onSessionRequestResponse(response, params)
                 }
-            }
-        }
+            }.launchIn(scope)
 
     // listened by WalletDelegate
     private fun onSessionPropose(request: WCRequest, payloadParams: SignParams.SessionProposeParams) {
@@ -510,7 +540,6 @@ internal class SignEngine(
                     AppMetaDataType.PEER
                 )
             )
-
             scope.launch { _engineEvent.emit(payloadParams.toEngineDO()) }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
@@ -792,7 +821,7 @@ internal class SignEngine(
                 is JsonRpcResponse.JsonRpcResult -> {
                     logger.log("Session proposal approve received")
                     val selfPublicKey = PublicKey(params.proposer.publicKey)
-                    val approveParams = response.result as SignParams.ApprovalParams
+                    val approveParams = response.result as CoreSignParams.ApprovalParams
                     val responderPublicKey = PublicKey(approveParams.responderPublicKey)
                     val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
                     jsonRpcInteractor.subscribe(sessionTopic) { error ->
