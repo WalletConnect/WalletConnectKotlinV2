@@ -2,6 +2,8 @@ package com.walletconnect.android.internal.common.di
 
 import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.EnumColumnAdapter
+import com.squareup.sqldelight.android.AndroidSqliteDriver
+import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.android.di.AndroidCoreDITags
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.storage.*
@@ -47,16 +49,33 @@ fun baseStorageModule() = module {
     }
 
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).jsonRpcHistoryQueries }
+    single { JsonRpcHistory(get(), get()) }
 
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).pairingQueries }
+    single<PairingStorageRepositoryInterface> { PairingStorageRepository(get()) }
 
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).metaDataQueries }
 
     single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(get()) }
 
-    single<PairingStorageRepositoryInterface> { PairingStorageRepository(get()) }
+    single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)) {
+        AndroidSqliteDriver(
+            schema = AndroidCoreDatabase.Schema,
+            context = androidContext(),
+            name = DBNames.ANDROID_CORE_DB_NAME,
+        )
+    }
+}
 
-    single { JsonRpcHistory(get(), get()) }
+fun sdkBaseStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
+
+    single<SqlDriver> {
+        AndroidSqliteDriver(
+            schema = databaseSchema,
+            context = androidContext(),
+            name = DBNames.getSdkDBName(storageSuffix),
+        )
+    }
 }
 
 object DBNames {
