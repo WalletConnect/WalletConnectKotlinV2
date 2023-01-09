@@ -1,8 +1,8 @@
 package com.walletconnect.push.common.model
 
-import com.walletconnect.android.impl.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
+import com.walletconnect.android.internal.common.model.type.EngineEvent
 
 sealed class EngineDO: EngineEvent {
 
@@ -12,10 +12,6 @@ sealed class EngineDO: EngineEvent {
         val metaData: AppMetaData,
         val account: String,
     ) : EngineDO()
-
-    data class PushRequestResponse(
-        val id: Long,
-    ): EngineDO(), EngineEvent
 
     data class PushMessage(
         val title: String,
