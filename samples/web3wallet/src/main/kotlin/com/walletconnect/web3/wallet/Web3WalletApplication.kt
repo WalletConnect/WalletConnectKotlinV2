@@ -1,7 +1,8 @@
 package com.walletconnect.web3.wallet
 
 import android.app.Application
-import android.util.Log
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
@@ -30,11 +31,11 @@ class Web3WalletApplication : Application() {
             application = this,
             metaData = appMetaData
         ) { error ->
-            Log.e("CoreClient", error.throwable.stackTraceToString())
+            Firebase.crashlytics.recordException(error.throwable)
         }
 
         Web3Wallet.initialize(Wallet.Params.Init(core = CoreClient)) { error ->
-            Log.e("Web3Wallet", error.throwable.stackTraceToString())
+            Firebase.crashlytics.recordException(error.throwable)
         }
     }
 }

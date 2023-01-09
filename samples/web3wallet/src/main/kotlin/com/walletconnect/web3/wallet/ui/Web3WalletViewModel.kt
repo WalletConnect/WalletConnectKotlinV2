@@ -1,14 +1,14 @@
 package com.walletconnect.web3.wallet.ui
 
-import android.app.Application
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.sample_common.tag
-import com.walletconnect.web3.wallet.domain.ISSUER
-import com.walletconnect.web3.wallet.domain.WCDelegate
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
+import com.walletconnect.web3.wallet.domain.ISSUER
+import com.walletconnect.web3.wallet.domain.WCDelegate
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
@@ -31,7 +31,8 @@ class Web3WalletViewModel : ViewModel() {
                 SignEvent.SessionRequest(arrayOfArgs, arrayOfArgs.size)
             }
             is Wallet.Model.AuthRequest -> {
-                val message = Web3Wallet.formatMessage(Wallet.Params.FormatMessage(wcEvent.payloadParams, ISSUER)) ?: throw Exception("Error formatting message")
+                val message = Web3Wallet.formatMessage(Wallet.Params.FormatMessage(wcEvent.payloadParams, ISSUER))
+                    ?: throw Exception("Error formatting message")
                 AuthEvent.OnRequest(wcEvent.id, message)
             }
             is Wallet.Model.SessionDelete -> SignEvent.Disconnect
@@ -42,6 +43,6 @@ class Web3WalletViewModel : ViewModel() {
 
     fun pair(pairingUri: String) {
         val pairingParams = Wallet.Params.Pair(pairingUri)
-        Web3Wallet.pair(pairingParams) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
+        Web3Wallet.pair(pairingParams) { error -> Firebase.crashlytics.recordException(error.throwable) }
     }
 }
