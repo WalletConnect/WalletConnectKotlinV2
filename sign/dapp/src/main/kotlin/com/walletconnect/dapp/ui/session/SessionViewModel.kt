@@ -41,7 +41,7 @@ class SessionViewModel : ViewModel() {
     }
 
     private fun getSessions(topic: String? = null): List<SessionUI> {
-        return SignClient.getListOfSettledSessions().filter {
+        return SignClient.getListOfActiveSessions().filter {
             if (topic != null) {
                 it.topic == topic
             } else {

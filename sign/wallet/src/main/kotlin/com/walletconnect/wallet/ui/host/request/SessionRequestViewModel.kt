@@ -93,7 +93,7 @@ class SessionRequestViewModel : ViewModel() {
         sessionRequest: SessionRequestUI.Content,
         sendSessionRequestResponseDeepLink: (Uri) -> Unit,
     ) {
-        SignClient.getSettledSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
+        SignClient.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
             ?.let { deepLinkUri -> sendSessionRequestResponseDeepLink(deepLinkUri) }
     }
 }

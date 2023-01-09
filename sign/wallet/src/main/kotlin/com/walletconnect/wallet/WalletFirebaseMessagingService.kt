@@ -16,11 +16,10 @@ import com.walletconnect.push.wallet.client.PushMessageService
 import com.walletconnect.wallet.ui.host.WalletSampleActivity
 import kotlin.random.Random
 import kotlin.random.nextUInt
-import kotlin.reflect.jvm.jvmName
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 class WalletFirebaseMessagingService: PushMessageService() {
-    private val TAG = this::class.jvmName
+    private val TAG = this::class.simpleName
     private val intent = Intent(this, WalletSampleActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) }
     private val pendingIntent by lazy { PendingIntent.getActivity(this, 0 /* Request code */, intent, PendingIntent.FLAG_IMMUTABLE) }
     private val channelId = "Push"
@@ -60,10 +59,10 @@ class WalletFirebaseMessagingService: PushMessageService() {
     }
 
     override fun onDefaultBehavior(message: RemoteMessage) {
-        Log.d(TAG, message.toString())
+        Log.d(TAG, "onDefaultBehavior: ${message.to}")
     }
 
     override fun onError(throwable: Throwable, defaultMessage: RemoteMessage) {
-        Log.d(TAG, defaultMessage.toString())
+        Log.e(TAG, "onError Message To: ${defaultMessage.to}", throwable)
     }
 }

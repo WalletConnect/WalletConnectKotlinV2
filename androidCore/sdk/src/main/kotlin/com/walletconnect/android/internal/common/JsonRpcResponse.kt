@@ -1,6 +1,7 @@
 package com.walletconnect.android.internal.common
 
 import com.squareup.moshi.JsonClass
+import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
 
 sealed class JsonRpcResponse : SerializableJsonRpc {
     abstract val id: Long

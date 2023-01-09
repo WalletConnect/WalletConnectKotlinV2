@@ -1,7 +1,7 @@
 package com.walletconnect.push.wallet.client
 
 import com.walletconnect.android.echo.EchoInterface
-import com.walletconnect.android.impl.common.SDKError
+import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push

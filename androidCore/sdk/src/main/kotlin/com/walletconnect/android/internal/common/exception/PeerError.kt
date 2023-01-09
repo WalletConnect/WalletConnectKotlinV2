@@ -1,6 +1,6 @@
 package com.walletconnect.android.internal.common.exception
 
-import com.walletconnect.android.internal.common.model.Error
+import com.walletconnect.android.internal.common.model.type.Error
 
 sealed class Uncategorized : Error {
 

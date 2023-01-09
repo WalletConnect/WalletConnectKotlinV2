@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<full-backup-content>
-    <exclude
-        domain="sharedpref"
-        path="db_key_store.xml" />
-    <exclude
-        domain="database"
-        path="WalletConnectAndroidCore.db" />
-</full-backup-content>

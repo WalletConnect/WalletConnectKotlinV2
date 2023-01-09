@@ -3,19 +3,18 @@
 package com.walletconnect.auth.engine.domain
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.impl.common.SDKError
-import com.walletconnect.android.impl.common.model.ConnectionState
-import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.utils.CoreValidator
-import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
-import com.walletconnect.android.impl.utils.MONTH_IN_SECONDS
-import com.walletconnect.android.impl.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.InvalidProjectIdException
-import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
+import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.params.Cacao
+import com.walletconnect.android.internal.common.model.params.CoreAuthParams
+import com.walletconnect.android.internal.common.model.type.EngineEvent
+import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.utils.CoreValidator
+import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
@@ -71,13 +70,6 @@ internal class AuthEngine(
     }
 
     fun setup() {
-        jsonRpcInteractor.wsConnectionFailedFlow.onEach { walletConnectException ->
-            when (walletConnectException) {
-                is ProjectIdDoesNotExistException, is InvalidProjectIdException -> _engineEvent.emit(ConnectionState(false, walletConnectException))
-                else -> _engineEvent.emit(SDKError(InternalError(walletConnectException)))
-            }
-        }.launchIn(scope)
-
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
@@ -152,7 +144,7 @@ internal class AuthEngine(
                 val issuer = Issuer(respond.iss)
                 val payload: Cacao.Payload = authParams.payloadParams.toCacaoPayload(issuer)
                 val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, respond.signature.toCommon())
-                val responseParams = AuthParams.ResponseParams(cacao.header, cacao.payload, cacao.signature)
+                val responseParams = CoreAuthParams.ResponseParams(cacao.header, cacao.payload, cacao.signature)
                 if (!cacaoVerifier.verify(cacao)) throw InvalidCacaoException
                 JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
             }
@@ -207,7 +199,7 @@ internal class AuthEngine(
                     }
                 }
                 is JsonRpcResponse.JsonRpcResult -> {
-                    val (header, payload, signature) = (response.result as AuthParams.ResponseParams)
+                    val (header, payload, signature) = (response.result as CoreAuthParams.ResponseParams)
                     val cacao = Cacao(header, payload, signature)
                     if (cacaoVerifier.verify(cacao)) {
                         scope.launch {

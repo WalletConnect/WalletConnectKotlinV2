@@ -1,7 +1,7 @@
 package com.walletconnect.push.common.model
 
-import com.walletconnect.android.impl.common.SDKError
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
+import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.push.common.Push
 

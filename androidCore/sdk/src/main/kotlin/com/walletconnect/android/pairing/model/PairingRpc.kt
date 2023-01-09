@@ -2,7 +2,7 @@ package com.walletconnect.android.pairing.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android.internal.common.model.JsonRpcClientSync
+import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
 
 internal sealed class PairingRpc : JsonRpcClientSync<PairingParams> {
     abstract override val id: Long

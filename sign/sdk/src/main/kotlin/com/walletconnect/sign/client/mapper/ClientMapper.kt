@@ -2,11 +2,9 @@
 
 package com.walletconnect.sign.client.mapper
 
-import com.walletconnect.android.relay.ConnectionType
-import com.walletconnect.android.impl.common.SDKError
-import com.walletconnect.android.impl.common.model.ConnectionState
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.exceptions.PeerError
@@ -23,7 +21,7 @@ internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponse(): JsonRpcResponse =
 @JvmSynthetic
 internal fun EngineDO.SettledSessionResponse.toClientSettledSessionResponse(): Sign.Model.SettledSessionResponse =
     when (this) {
-        is EngineDO.SettledSessionResponse.Result -> Sign.Model.SettledSessionResponse.Result(settledSession.toClientSettledSession())
+        is EngineDO.SettledSessionResponse.Result -> Sign.Model.SettledSessionResponse.Result(settledSession.toClientActiveSession())
         is EngineDO.SettledSessionResponse.Error -> Sign.Model.SettledSessionResponse.Error(errorMessage)
     }
 
@@ -90,14 +88,14 @@ internal fun EngineDO.SessionEvent.toClientSessionEvent(): Sign.Model.SessionEve
     Sign.Model.SessionEvent(name, data)
 
 @JvmSynthetic
-internal fun EngineDO.Session.toClientSettledSession(): Sign.Model.Session =
+internal fun EngineDO.Session.toClientActiveSession(): Sign.Model.Session =
     Sign.Model.Session(topic.value,
         expiry.seconds,
         namespaces.toMapOfClientNamespacesSession(),
         peerAppMetaData?.toClient())
 
 @JvmSynthetic
-internal fun EngineDO.SessionExtend.toClientSettledSession(): Sign.Model.Session =
+internal fun EngineDO.SessionExtend.toClientActiveSession(): Sign.Model.Session =
     Sign.Model.Session(
         topic.value,
         expiry.seconds,
@@ -179,20 +177,6 @@ internal fun Map<String, Sign.Model.Namespace.Session>.toMapOfEngineNamespacesSe
             EngineDO.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
         })
     }
-
-@JvmSynthetic
-internal fun List<Sign.Model.RelayProtocolOptions>.toListEngineOfRelayProtocolOptions(): List<RelayProtocolOptions> =
-    map { relayProtocolOptions ->
-        RelayProtocolOptions(relayProtocolOptions.protocol, relayProtocolOptions.data)
-    }
-
-@JvmSynthetic
-internal fun Sign.ConnectionType.toRelayConnectionType(): ConnectionType {
-    return when (this) {
-        Sign.ConnectionType.AUTOMATIC -> ConnectionType.AUTOMATIC
-        Sign.ConnectionType.MANUAL -> ConnectionType.MANUAL
-    }
-}
 
 @JvmSynthetic
 internal fun ConnectionState.toClientConnectionState(): Sign.Model.ConnectionState =

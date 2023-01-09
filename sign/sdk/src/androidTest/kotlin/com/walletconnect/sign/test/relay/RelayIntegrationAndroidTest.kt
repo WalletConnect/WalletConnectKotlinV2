@@ -1,19 +1,19 @@
 package com.walletconnect.sign.test.relay
 
+import com.walletconnect.android.CoreClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.test.utils.WCIntegrationActivityScenarioRule
-import com.walletconnect.sign.util.Logger
+import junit.framework.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-import org.junit.jupiter.api.fail
 
 class RelayIntegrationAndroidTest {
     @get:Rule
     val activityRule = WCIntegrationActivityScenarioRule()
 
     private fun globalOnError(error: Sign.Model.Error) {
-        fail(error.throwable)
+        fail(error.throwable.stackTraceToString())
     }
 
     private fun setDelegates(walletDelegate: SignClient.WalletDelegate, dappDelegate: SignClient.DappDelegate) {
@@ -41,8 +41,7 @@ class RelayIntegrationAndroidTest {
                         null)
                 )
 
-                activityRule.walletClient.approveSession(Sign.Params.Approve(sessionProposal.proposerPublicKey, namespaces),
-                    ::globalOnError)
+                activityRule.walletClient.approveSession(Sign.Params.Approve(sessionProposal.proposerPublicKey, namespaces), onError = ::globalOnError)
             }
 
         }
@@ -66,7 +65,7 @@ class RelayIntegrationAndroidTest {
                     }
 
                     override fun onError(pingError: Sign.Model.Ping.Error) {
-                        fail(pingError.error)
+                        fail(pingError.error.stackTraceToString())
                     }
                 })
             }
@@ -75,27 +74,25 @@ class RelayIntegrationAndroidTest {
         setDelegates(walletDelegate, dappDelegate)
 
         activityRule.launch(10L) {
-            val namespaces: Map<String, Sign.Model.Namespace.Proposal> = mapOf(
-                "eip155" to Sign.Model.Namespace.Proposal(listOf("eip155:1"), listOf("someMethod"), listOf("someEvent"), null)
-            )
+            CoreClient.Pairing.create()?.let { pairing ->
+                val namespaces: Map<String, Sign.Model.Namespace.Proposal> = mapOf(
+                    "eip155" to Sign.Model.Namespace.Proposal(listOf("eip155:1"), listOf("someMethod"), listOf("someEvent"), null)
+                )
 
-            val connectParams = Sign.Params.Connect(
-                namespaces = namespaces,
-                pairingTopic = null
-            )
+                val connectParams = Sign.Params.Connect(
+                    namespaces = namespaces,
+                    pairing = pairing
+                )
 
-            activityRule.dappClient.connect(connectParams,
-                onSuccess = { proposedSequence ->
-                    if (proposedSequence is Sign.Model.ProposedSequence.Pairing) {
-                        activityRule.walletClient.pair(Sign.Params.Pair(proposedSequence.uri), ::globalOnError)
-                    } else {
-                        Logger.error("proposedSequence !is Sign.Model.ProposedSequence.Pairing")
+                activityRule.dappClient.connect(connectParams,
+                    onSuccess = {
+                        activityRule.walletClient.pair(Sign.Params.Pair(pairing.uri), onError = ::globalOnError)
+                    },
+                    onError = {
+                        globalOnError(it)
                     }
-                },
-                onError = {
-                    globalOnError(it)
-                }
-            )
+                )
+            }
         }
     }
 }

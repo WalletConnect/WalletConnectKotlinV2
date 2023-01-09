@@ -1,6 +1,6 @@
 package com.walletconnect.push.dapp.client
 
-import com.walletconnect.android.impl.common.SDKError
+import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push

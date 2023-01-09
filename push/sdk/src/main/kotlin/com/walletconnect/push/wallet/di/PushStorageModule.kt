@@ -2,10 +2,10 @@
 
 package com.walletconnect.push.wallet.di
 
-import com.walletconnect.android.impl.di.AndroidCoreDITags
-import com.walletconnect.android.impl.di.DBNames
-import com.walletconnect.android.impl.di.deleteDBs
-import com.walletconnect.android.impl.di.sdkBaseStorageModule
+import com.walletconnect.android.di.AndroidCoreDITags
+import com.walletconnect.android.di.sdkBaseStorageModule
+import com.walletconnect.android.internal.common.di.DBNames
+import com.walletconnect.android.internal.common.di.deleteDBs
 import com.walletconnect.push.PushDatabase
 import com.walletconnect.push.common.storage.data.SubscriptionStorageRepository
 import com.walletconnect.push.common.storage.data.dao.Subscriptions

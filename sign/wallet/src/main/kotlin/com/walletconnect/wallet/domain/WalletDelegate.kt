@@ -26,7 +26,7 @@ object WalletDelegate : SignClient.WalletDelegate {
     }
 
     override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
-        this.sessionProposal = sessionProposal
+        WalletDelegate.sessionProposal = sessionProposal
 
         scope.launch {
             _wcEventModels.emit(sessionProposal)
@@ -68,7 +68,7 @@ object WalletDelegate : SignClient.WalletDelegate {
     }
 
     fun setSelectedAccount(selectedChainAddressId: Int) {
-        this.selectedChainAddressId = selectedChainAddressId
+        WalletDelegate.selectedChainAddressId = selectedChainAddressId
     }
 
     fun clearCache() {

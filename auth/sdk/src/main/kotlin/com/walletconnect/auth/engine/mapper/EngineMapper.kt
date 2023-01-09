@@ -1,6 +1,10 @@
 package com.walletconnect.auth.engine.mapper
 
-import com.walletconnect.auth.common.model.*
+import com.walletconnect.android.internal.common.model.params.Cacao
+import com.walletconnect.auth.common.model.Issuer
+import com.walletconnect.auth.common.model.JsonRpcHistoryEntry
+import com.walletconnect.auth.common.model.PayloadParams
+import com.walletconnect.auth.common.model.PendingRequest
 import com.walletconnect.auth.signature.Signature
 
 @JvmSynthetic
@@ -27,15 +31,15 @@ internal fun Cacao.Signature.toSignature(): Signature = Signature.fromString(s)
 
 @JvmSynthetic
 internal fun Cacao.Payload.toCAIP122Message(chainName: String = "Ethereum"): String {
-    var message = "$domain wants you to sign in with your $chainName account:\n${issuer.address}\n"
+    var message = "$domain wants you to sign in with your $chainName account:\n${Issuer(iss).address}\n"
     if (statement != null) message += "\n$statement\n"
-    message += "\nURI: $aud\nVersion: $version\nChain ID: ${issuer.chainIdReference}\nNonce: $nonce\nIssued At: $iat"
+    message += "\nURI: $aud\nVersion: $version\nChain ID: ${Issuer(iss).chainIdReference}\nNonce: $nonce\nIssued At: $iat"
     if (exp != null) message += "\nExpiration Time: $exp"
     if (nbf != null) message += "\nNot Before: $nbf"
     if (requestId != null) message += "\nRequest ID: $requestId"
     if (!resources.isNullOrEmpty()) {
         message += "\nResources:"
-        resources.forEach { resource -> message += "\n- $resource" }
+        resources!!.forEach { resource -> message += "\n- $resource" }
     }
     return message
 }

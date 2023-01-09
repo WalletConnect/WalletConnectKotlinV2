@@ -4,8 +4,6 @@ package com.walletconnect.android.pairing.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.engine.domain.PairingEngine
@@ -17,15 +15,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
-import org.koin.dsl.module
 
 internal object PairingProtocol : PairingInterface {
     private lateinit var pairingEngine: PairingEngine
     private val logger: Logger by lazy { wcKoinApp.koin.get() }
 
-    internal fun initialize(metaData: Core.Model.AppMetaData) {
+    internal fun initialize() {
         pairingEngine = wcKoinApp.koin.get()
-        wcKoinApp.modules(module { with(metaData) { single { AppMetaData(name, description, url, icons, Redirect(redirect)) } } })
     }
 
     fun setDelegate(delegate: PairingInterface.Delegate) {
@@ -51,14 +47,22 @@ internal object PairingProtocol : PairingInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun pair(pair: Core.Params.Pair, onError: (Core.Model.Error) -> Unit) {
+    override fun pair(
+        pair: Core.Params.Pair,
+        onSuccess: (Core.Params.Pair) -> Unit,
+        onError: (Core.Model.Error) -> Unit
+    ) {
         checkEngineInitialization()
 
         scope.launch(Dispatchers.IO) {
             awaitConnection(
                 {
                     try {
-                        pairingEngine.pair(pair.uri) { error -> onError(Core.Model.Error(error)) }
+                        pairingEngine.pair(
+                            uri = pair.uri,
+                            onSuccess = { onSuccess(pair) },
+                            onFailure = { error -> onError(Core.Model.Error(error)) }
+                        )
                     } catch (e: Exception) {
                         onError(Core.Model.Error(e))
                     }
