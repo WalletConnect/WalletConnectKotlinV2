@@ -12,6 +12,8 @@ import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAccounts2
 import com.walletconnect.wallet.domain.mapOfAllAccounts
 import com.walletconnect.wallet.ui.SampleWalletEvents
+import java.text.SimpleDateFormat
+import java.util.Locale
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -23,6 +25,8 @@ class SessionDetailsViewModel : ViewModel() {
     val sessionDetails: SharedFlow<SampleWalletEvents> = _sessionDetails.asSharedFlow()
 
     private var selectedSessionTopic: String? = null
+
+    private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     companion object {
         private const val anotherEvent = "someEvent"
@@ -55,6 +59,9 @@ class SessionDetailsViewModel : ViewModel() {
                 filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession)
             val selectedSessionPeerData: Core.Model.AppMetaData =
                 requireNotNull(selectedSession.metaData)
+            val formattedExpirationDate = System.currentTimeMillis().let { currentTime ->
+                currentTime + (selectedSession.expiry * 1000 - currentTime)
+            }
             val uiState = SessionDetailsUI.Content(
                 icon = selectedSessionPeerData.icons.firstOrNull(),
                 name = selectedSessionPeerData.name,
@@ -64,7 +71,8 @@ class SessionDetailsViewModel : ViewModel() {
                 methods = selectedSession.namespaces.values.flatMap { it.methods }
                     .joinToString("\n"),
                 events = selectedSession.namespaces.values.flatMap { it.events }
-                    .joinToString("\n")
+                    .joinToString("\n"),
+                expirationDate = dateFormat.format(formattedExpirationDate)
             )
 
             uiState

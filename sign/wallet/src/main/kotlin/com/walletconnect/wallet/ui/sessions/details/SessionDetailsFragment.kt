@@ -64,6 +64,7 @@ class SessionDetailsFragment : Fragment(R.layout.fragment_session_details) {
                         binding.tvPeerDescription.text = sessionDetailsUI.description
                         binding.tvMethods.text = sessionDetailsUI.methods
                         binding.tvEvents.text = sessionDetailsUI.events
+                        binding.tvSessionExpirationDate.text = sessionDetailsUI.expirationDate
                         binding.btnDelete.setOnClickListener {
                             viewModel.deleteSession()
                         }

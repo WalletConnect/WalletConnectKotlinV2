@@ -12,6 +12,7 @@ sealed class SessionDetailsUI {
         val listOfChainAccountInfo: List<ChainAccountInfo>,
         val methods: String,
         val events: String,
+        val expirationDate: String
     ): SessionDetailsUI() {
 
         data class ChainAccountInfo(

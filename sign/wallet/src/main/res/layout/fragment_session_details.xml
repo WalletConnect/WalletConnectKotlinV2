@@ -72,6 +72,18 @@
         tools:text="Wallet Description" />
 
     <TextView
+        android:id="@+id/tvSessionExpirationDate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
+        app:layout_constraintEnd_toStartOf="@id/glEnd"
+        app:layout_constraintStart_toEndOf="@id/glStart"
+        app:layout_constraintTop_toBottomOf="@id/tvPeerDescription"
+        tools:text="Session Expiration Date" />
+
+    <TextView
         android:id="@+id/tvAccountsTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -83,7 +95,7 @@
         app:layout_constraintBottom_toTopOf="@id/rvAccounts"
         app:layout_constraintEnd_toStartOf="@id/glEnd"
         app:layout_constraintStart_toEndOf="@id/glStart"
-        app:layout_constraintTop_toBottomOf="@id/tvPeerDescription" />
+        app:layout_constraintTop_toBottomOf="@id/tvSessionExpirationDate" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvAccounts"
