@@ -1,19 +1,19 @@
 package com.walletconnect.sign.test.relay
 
-import com.walletconnect.android.CoreClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.test.utils.WCIntegrationActivityScenarioRule
-import junit.framework.Assert.fail
+import com.walletconnect.sign.util.Logger
 import org.junit.Rule
 import org.junit.Test
+import org.junit.jupiter.api.fail
 
 class RelayIntegrationAndroidTest {
     @get:Rule
     val activityRule = WCIntegrationActivityScenarioRule()
 
     private fun globalOnError(error: Sign.Model.Error) {
-        fail(error.throwable.stackTraceToString())
+        fail(error.throwable)
     }
 
     private fun setDelegates(walletDelegate: SignClient.WalletDelegate, dappDelegate: SignClient.DappDelegate) {
@@ -25,7 +25,7 @@ class RelayIntegrationAndroidTest {
     fun pairAndPing() {
         val walletDelegate = object : SignClient.WalletDelegate {
             override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {}
-            override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {}
+            override fun onSessionDelete(deletedSession: Sign.Model.SessionDelete) {}
             override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {}
             override fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse) {}
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {}
@@ -41,7 +41,8 @@ class RelayIntegrationAndroidTest {
                         null)
                 )
 
-                activityRule.walletClient.approveSession(Sign.Params.Approve(sessionProposal.proposerPublicKey, namespaces), onError = ::globalOnError)
+                activityRule.walletClient.approveSession(Sign.Params.Approve(sessionProposal.proposerPublicKey, namespaces),
+                    ::globalOnError)
             }
 
         }
@@ -51,7 +52,7 @@ class RelayIntegrationAndroidTest {
             override fun onSessionUpdate(updatedSession: Sign.Model.UpdatedSession) {}
             override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {}
             override fun onSessionExtend(session: Sign.Model.Session) {}
-            override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {}
+            override fun onSessionDelete(deletedSession: Sign.Model.SessionDelete) {}
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {}
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {}
             override fun onError(error: Sign.Model.Error) {
@@ -65,7 +66,7 @@ class RelayIntegrationAndroidTest {
                     }
 
                     override fun onError(pingError: Sign.Model.Ping.Error) {
-                        fail(pingError.error.stackTraceToString())
+                        fail(pingError.error)
                     }
                 })
             }
@@ -74,25 +75,27 @@ class RelayIntegrationAndroidTest {
         setDelegates(walletDelegate, dappDelegate)
 
         activityRule.launch(10L) {
-            CoreClient.Pairing.create()?.let { pairing ->
-                val namespaces: Map<String, Sign.Model.Namespace.Proposal> = mapOf(
-                    "eip155" to Sign.Model.Namespace.Proposal(listOf("eip155:1"), listOf("someMethod"), listOf("someEvent"), null)
-                )
+            val namespaces: Map<String, Sign.Model.Namespace.Proposal> = mapOf(
+                "eip155" to Sign.Model.Namespace.Proposal(listOf("eip155:1"), listOf("someMethod"), listOf("someEvent"), null)
+            )
 
-                val connectParams = Sign.Params.Connect(
-                    namespaces = namespaces,
-                    pairing = pairing
-                )
+            val connectParams = Sign.Params.Connect(
+                namespaces = namespaces,
+                pairingTopic = null
+            )
 
-                activityRule.dappClient.connect(connectParams,
-                    onSuccess = {
-                        activityRule.walletClient.pair(Sign.Params.Pair(pairing.uri), onError = ::globalOnError)
-                    },
-                    onError = {
-                        globalOnError(it)
+            activityRule.dappClient.connect(connectParams,
+                onSuccess = { proposedSequence ->
+                    if (proposedSequence is Sign.Model.ProposedSequence.Pairing) {
+                        activityRule.walletClient.pair(Sign.Params.Pair(proposedSequence.uri), onError = ::globalOnError)
+                    } else {
+                        Logger.error("proposedSequence !is Sign.Model.ProposedSequence.Pairing")
                     }
-                )
-            }
+                },
+                onError = {
+                    globalOnError(it)
+                }
+            )
         }
     }
 }

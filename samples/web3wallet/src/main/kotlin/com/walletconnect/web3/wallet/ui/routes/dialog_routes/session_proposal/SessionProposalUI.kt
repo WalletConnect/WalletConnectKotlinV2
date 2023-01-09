@@ -1,7 +1,7 @@
 package com.walletconnect.web3.wallet.ui.routes.dialog_routes.session_proposal
 
-import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.ui.common.peer.PeerUI
+import com.walletconnect.web3.wallet.client.Wallet
 
 data class SessionProposalUI(
     val peerUI: PeerUI,

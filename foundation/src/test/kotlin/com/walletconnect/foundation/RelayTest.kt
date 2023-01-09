@@ -2,8 +2,8 @@ package com.walletconnect.foundation
 
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.foundation.di.FoundationDITags
-import com.walletconnect.foundation.di.cryptoModule
 import com.walletconnect.foundation.di.foundationCommonModule
+import com.walletconnect.foundation.di.cryptoModule
 import com.walletconnect.foundation.di.networkModule
 import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.RelayInterface

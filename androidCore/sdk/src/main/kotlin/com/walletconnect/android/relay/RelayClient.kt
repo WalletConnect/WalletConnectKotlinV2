@@ -2,14 +2,12 @@
 
 package com.walletconnect.android.relay
 
-import android.content.SharedPreferences
-import androidx.core.content.edit
 import com.walletconnect.android.BuildConfig
-import com.walletconnect.android.echo.EchoInterface
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.di.coreAndroidNetworkModule
 import com.walletconnect.android.internal.common.exception.WRONG_CONNECTION_TYPE
+import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.utils.*
@@ -32,12 +30,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
 
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
         val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
-        val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl()) { issuer ->
-            val clientId = issuer.split(":").last()
-            wcKoinApp.koin.get<SharedPreferences>().edit {
-                putString(EchoInterface.KEY_CLIENT_ID, clientId)
-            }
-        }
+        val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl())
         val serverUrl = relayServerUrl.addUserAgent(BuildConfig.SDK_VERSION)
 
         wcKoinApp.modules(coreAndroidNetworkModule(serverUrl, jwt, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION))
@@ -49,7 +42,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     private fun collectConnectionErrors(onError: (Throwable) -> Unit) {
         eventsFlow
             .onEach { event: Relay.Model.Event ->
-                logger.log("kobe; $event")
+                logger.log("$event")
                 setIsWSSConnectionOpened(event)
             }
             .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
@@ -63,13 +56,9 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     }
 
     override fun connect(onError: (String) -> Unit) {
-        println("kobe; connect")
         when (connectionController) {
             is ConnectionController.Automatic -> onError(WRONG_CONNECTION_TYPE)
-            is ConnectionController.Manual -> {
-                println("kobe; connect manual")
-                (connectionController as ConnectionController.Manual).connect()
-            }
+            is ConnectionController.Manual -> (connectionController as ConnectionController.Manual).connect()
         }
     }
 

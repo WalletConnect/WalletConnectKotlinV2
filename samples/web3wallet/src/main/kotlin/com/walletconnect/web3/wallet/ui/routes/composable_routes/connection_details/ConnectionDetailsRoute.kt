@@ -32,15 +32,16 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
 import com.skydoves.landscapist.glide.GlideImage
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.domain.accounts
-import com.walletconnect.web3.wallet.sample.R
 import com.walletconnect.web3.wallet.ui.common.*
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.connections.ConnectionType
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.connections.ConnectionUI
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
+import com.walletconnect.web3.wallet.ui.common.themedColor
 import com.walletconnect.web3.wallet.ui.routes.showSnackbar
+import com.walletconnect.web3.wallet.client.Wallet
+import com.walletconnect.web3.wallet.client.Web3Wallet
+import com.walletconnect.web3.wallet.sample.R
 
 
 @Composable

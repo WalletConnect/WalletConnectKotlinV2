@@ -3,12 +3,12 @@ package com.walletconnect.web3.wallet.ui.routes.dialog_routes.auth_request
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.walletconnect.sample_common.tag
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.domain.ISSUER
 import com.walletconnect.web3.wallet.domain.PRIVATE_KEY_1
 import com.walletconnect.web3.wallet.domain.WCDelegate
 import com.walletconnect.web3.wallet.ui.common.peer.PeerUI
+import com.walletconnect.web3.wallet.client.Wallet
+import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.utils.CacaoSigner
 import com.walletconnect.web3.wallet.utils.SignatureType
 

@@ -10,8 +10,8 @@ import com.walletconnect.push.wallet.client.PushWalletClient
 import com.walletconnect.sample_common.BuildConfig
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample_common.tag
-import com.walletconnect.wallet.client.Wallet
-import com.walletconnect.wallet.client.Web3Wallet
+import com.walletconnect.sign.client.Sign
+import com.walletconnect.sign.client.SignClient
 
 class WalletSampleApplication : Application() {
 
@@ -35,8 +35,8 @@ class WalletSampleApplication : Application() {
             metaData = metadata
         ) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
 
-        val initParams = Wallet.Params.Init(core = CoreClient)
-        Wallet3Wallet.initialize(initParams) { error ->
+        val initParams = Sign.Params.Init(core = CoreClient)
+        SignClient.initialize(initParams) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
 

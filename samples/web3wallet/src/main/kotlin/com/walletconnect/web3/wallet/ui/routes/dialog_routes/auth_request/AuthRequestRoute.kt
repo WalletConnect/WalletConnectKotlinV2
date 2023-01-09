@@ -1,9 +1,7 @@
 package com.walletconnect.web3.wallet.ui.routes.dialog_routes.auth_request
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,6 +14,7 @@ import androidx.navigation.NavHostController
 import com.walletconnect.web3.wallet.ui.common.*
 import com.walletconnect.web3.wallet.ui.common.peer.Peer
 import com.walletconnect.web3.wallet.ui.routes.showSnackbar
+import com.walletconnect.web3.wallet.ui.common.themedColor
 
 @Composable
 fun AuthRequestRoute(navController: NavHostController, authRequestViewModel: AuthRequestViewModel = viewModel()) {

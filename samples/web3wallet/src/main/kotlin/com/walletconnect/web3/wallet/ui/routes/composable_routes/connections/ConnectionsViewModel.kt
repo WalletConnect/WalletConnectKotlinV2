@@ -6,10 +6,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.Core
-import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.domain.WCDelegate
 import com.walletconnect.web3.wallet.ui.CoreEvent
 import com.walletconnect.web3.wallet.ui.NoAction
+import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 

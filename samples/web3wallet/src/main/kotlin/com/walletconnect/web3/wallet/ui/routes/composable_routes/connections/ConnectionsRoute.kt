@@ -32,11 +32,11 @@ import androidx.constraintlayout.compose.ConstraintLayoutScope
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.skydoves.landscapist.glide.GlideImage
-import com.walletconnect.web3.wallet.sample.R
 import com.walletconnect.web3.wallet.ui.Web3WalletViewModel
+import com.walletconnect.web3.wallet.ui.routes.Route
 import com.walletconnect.web3.wallet.ui.common.findActivity
 import com.walletconnect.web3.wallet.ui.common.themedColor
-import com.walletconnect.web3.wallet.ui.routes.Route
+import com.walletconnect.web3.wallet.sample.R
 
 
 @Composable

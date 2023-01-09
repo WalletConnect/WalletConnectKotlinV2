@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.Core
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
-import com.walletconnect.wallet.client.Wallet
-import com.walletconnect.wallet.client.Web3Wallet
+import com.walletconnect.sign.client.Sign
+import com.walletconnect.sign.client.SignClient
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.domain.mapOfAccounts2
 import com.walletconnect.wallet.domain.mapOfAllAccounts
@@ -31,13 +31,13 @@ class SessionDetailsViewModel : ViewModel() {
 
     init {
         WalletDelegate.wcEventModels
-            .onEach { wcModel: Wallet.Model? ->
+            .onEach { wcModel: Sign.Model? ->
                 when (wcModel) {
-                    is Wallet.Model.SessionUpdateResponse.Result -> {
+                    is Sign.Model.SessionUpdateResponse.Result -> {
                         // TODO: Update UI once state synchronization
                         SampleWalletEvents.NoAction
                     }
-                    is Wallet.Model.SessionDelete -> {
+                    is Sign.Model.DeletedSession -> {
                         selectedSessionTopic = null
                         _sessionDetails.emit(SampleWalletEvents.Disconnect)
                     }
@@ -48,7 +48,7 @@ class SessionDetailsViewModel : ViewModel() {
     }
 
     fun getSessionDetails(sessionTopic: String) {
-        val state = Web3Wallet.getActiveSessionByTopic(sessionTopic)?.let { selectedSession ->
+        val state = SignClient.getActiveSessionByTopic(sessionTopic)?.let { selectedSession ->
             selectedSessionTopic = sessionTopic
 
             val listOfChainAccountInfo =
@@ -77,9 +77,9 @@ class SessionDetailsViewModel : ViewModel() {
 
     fun deleteSession() {
         selectedSessionTopic?.let {
-            val disconnect = Wallet.Params.SessionDisconnect(sessionTopic = it)
+            val disconnect = Sign.Params.Disconnect(sessionTopic = it)
 
-            Web3Wallet.disconnectSession(disconnect) { error ->
+            SignClient.disconnect(disconnect) { error ->
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
             selectedSessionTopic = null
@@ -91,56 +91,56 @@ class SessionDetailsViewModel : ViewModel() {
     }
 
     fun ping() {
-//        selectedSessionTopic?.let {
-//            val ping = Wallet.Params.Ping(it)
-//            WalletClient.ping(ping, object : Wallet.Listeners.SessionPing {
-//
-//                override fun onSuccess(pingSuccess: Wallet.Model.Ping.Success) {
-//                    viewModelScope.launch() {
-//                        _sessionDetails.emit(
-//                            SampleWalletEvents.PingSuccess(
-//                                pingSuccess.topic,
-//                                System.currentTimeMillis()
-//                            )
-//                        )
-//                    }
-//                }
-//
-//                override fun onError(pingError: Wallet.Model.Ping.Error) {
-//                    viewModelScope.launch {
-//                        _sessionDetails.emit(SampleWalletEvents.PingError(System.currentTimeMillis()))
-//                    }
-//                }
-//            })
-//        } ?: viewModelScope.launch {
-//            _sessionDetails.emit(SampleWalletEvents.PingError(System.currentTimeMillis()))
-//        }
+        selectedSessionTopic?.let {
+            val ping = Sign.Params.Ping(it)
+            SignClient.ping(ping, object : Sign.Listeners.SessionPing {
+
+                override fun onSuccess(pingSuccess: Sign.Model.Ping.Success) {
+                    viewModelScope.launch() {
+                        _sessionDetails.emit(
+                            SampleWalletEvents.PingSuccess(
+                                pingSuccess.topic,
+                                System.currentTimeMillis()
+                            )
+                        )
+                    }
+                }
+
+                override fun onError(pingError: Sign.Model.Ping.Error) {
+                    viewModelScope.launch {
+                        _sessionDetails.emit(SampleWalletEvents.PingError(System.currentTimeMillis()))
+                    }
+                }
+            })
+        } ?: viewModelScope.launch {
+            _sessionDetails.emit(SampleWalletEvents.PingError(System.currentTimeMillis()))
+        }
     }
 
     fun extendSession() {
         selectedSessionTopic?.let {
-            val extend = Wallet.Params.SessionExtend(it)
-            Web3Wallet.extendSession(extend) { error -> Log.d("Error", "Extend session error: $error") }
+            val extend = Sign.Params.Extend(it)
+            SignClient.extend(extend) { error -> Log.d("Error", "Extend session error: $error") }
         }
     }
 
-    //fixme: Needs whole view rework. Base view on JS Wallet
+    //fixme: Needs whole view rework. Base view on JS Sign
     fun emitEvent() {
         // Right now: Emits first alphabetical event
         // How it should be: User should be able to emit desired event
         selectedSessionTopic?.let { topic ->
-            Web3Wallet.getActiveSessionByTopic(topic)?.let { selectedSession ->
+            SignClient.getActiveSessionByTopic(topic)?.let { selectedSession ->
                 allApprovedEventsWithChains(selectedSession)
                     .filter { (_, chains) -> chains.isNotEmpty() }
                     .let { eventWithChains ->
                         eventWithChains.keys.minOrNull()?.let { event ->
                             eventWithChains[event]!!.first().let { chain ->
-                                Wallet.Params.SessionEmit(
+                                Sign.Params.Emit(
                                     topic,
-                                    Wallet.Model.SessionEvent(event, "dummyData"),
+                                    Sign.Model.SessionEvent(event, "dummyData"),
                                     chain
                                 ).let { sessionEvent ->
-                                    Web3Wallet.emitSessionEvent(sessionEvent) { error ->
+                                    SignClient.emit(sessionEvent) { error ->
                                         Log.d(
                                             "Error",
                                             "Extend session error: $error"
@@ -161,7 +161,7 @@ class SessionDetailsViewModel : ViewModel() {
         // Right now: Expand first (right now there's only eip155) namespace with another account, event and method. Works only once
         // How it should be: User can toggle every account, method, event and then call this method with state to be updated
         selectedSessionTopic?.let { topic ->
-            Web3Wallet.getActiveSessionByTopic(topic)?.let { selectedSession ->
+            SignClient.getActiveSessionByTopic(topic)?.let { selectedSession ->
                 selectedSession.namespaces.firstNotNullOf { it }.let { (key, namespace) ->
                     val secondAccount = namespace.accounts.firstOrNull()?.let { account ->
                         val (chainNamespace, chainReference, _) = account.split(":")
@@ -183,10 +183,10 @@ class SessionDetailsViewModel : ViewModel() {
                         events.add(anotherEvent)
                     }
                     val expandedNamespaces =
-                        mapOf(key to Wallet.Model.Namespace.Session(accounts, methods, events, null))
+                        mapOf(key to Sign.Model.Namespace.Session(accounts, methods, events, null))
                     val update =
-                        Wallet.Params.SessionUpdate(sessionTopic = topic, namespaces = expandedNamespaces)
-                    Web3Wallet.updateSession(update) { error ->
+                        Sign.Params.Update(sessionTopic = topic, namespaces = expandedNamespaces)
+                    SignClient.update(update) { error ->
                         Log.e("Error", "Sending update error: $error")
                     }
                     return
@@ -201,7 +201,8 @@ class SessionDetailsViewModel : ViewModel() {
 //            _uiState.emit(updatedUIState)
 //        }
 
-    private fun filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession: Wallet.Model.Session): List<SessionDetailsUI.Content.ChainAccountInfo> =
+
+    private fun filterAndMapAllWalletAccountsToSelectedSessionAccounts(selectedSession: Sign.Model.Session): List<SessionDetailsUI.Content.ChainAccountInfo> =
         mapOfAllAccounts.values
             .flatMap { accountsMap: Map<Chains, String> ->
                 val accountsMapID =
@@ -254,7 +255,7 @@ class SessionDetailsViewModel : ViewModel() {
                 )
             }
 
-    private fun allApprovedEventsWithChains(selectedSession: Wallet.Model.Session): Map<String, List<String>> =
+    private fun allApprovedEventsWithChains(selectedSession: Sign.Model.Session): Map<String, List<String>> =
         selectedSession.namespaces.values.flatMap { namespace ->
             namespace.events.map { event ->
                 event to namespace.accounts.map { getChainFromAccount(it) }

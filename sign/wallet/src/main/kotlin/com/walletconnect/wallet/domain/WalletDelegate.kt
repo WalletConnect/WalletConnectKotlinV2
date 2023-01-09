@@ -2,9 +2,8 @@ package com.walletconnect.wallet.domain
 
 import android.util.Log
 import com.walletconnect.sample_common.tag
-
-import com.walletconnect.wallet.client.Wallet
-import com.walletconnect.wallet.client.Web3Wallet
+import com.walletconnect.sign.client.Sign
+import com.walletconnect.sign.client.SignClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -12,21 +11,21 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
-object WalletDelegate : Web3Wallet.WalletDelegate {
+object WalletDelegate : SignClient.WalletDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val _wcEventModels: MutableSharedFlow<Wallet.Model?> = MutableSharedFlow(1)
-    val wcEventModels: SharedFlow<Wallet.Model?> = _wcEventModels
+    private val _wcEventModels: MutableSharedFlow<Sign.Model?> = MutableSharedFlow(1)
+    val wcEventModels: SharedFlow<Sign.Model?> = _wcEventModels
 
-    var sessionProposal: Wallet.Model.SessionProposal? = null
+    var sessionProposal: Sign.Model.SessionProposal? = null
         private set
     var selectedChainAddressId: Int = 1
         private set
 
     init {
-        Web3Wallet.setWalletDelegate(this)
+        SignClient.setWalletDelegate(this)
     }
 
-    override fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal) {
+    override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
         WalletDelegate.sessionProposal = sessionProposal
 
         scope.launch {
@@ -34,23 +33,19 @@ object WalletDelegate : Web3Wallet.WalletDelegate {
         }
     }
 
-    override fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest) {
+    override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
         scope.launch {
             _wcEventModels.emit(sessionRequest)
         }
     }
 
-    override fun onSessionDelete(deletedSession: Wallet.Model.SessionDelete) {
+    override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
         scope.launch {
             _wcEventModels.emit(deletedSession)
         }
     }
 
-    override fun onAuthRequest(authRequest: Wallet.Model.AuthRequest) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onSessionSettleResponse(settleSessionResponse: Wallet.Model.SettledSessionResponse) {
+    override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {
         sessionProposal = null
 
         scope.launch {
@@ -58,17 +53,17 @@ object WalletDelegate : Web3Wallet.WalletDelegate {
         }
     }
 
-    override fun onSessionUpdateResponse(sessionUpdateResponse: Wallet.Model.SessionUpdateResponse) {
+    override fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse) {
         scope.launch {
             _wcEventModels.emit(sessionUpdateResponse)
         }
     }
 
-    override fun onConnectionStateChange(state: Wallet.Model.ConnectionState) {
+    override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
         Log.d(tag(this), "onConnectionStateChange($state)")
     }
 
-    override fun onError(error: Wallet.Model.Error) {
+    override fun onError(error: Sign.Model.Error) {
         Log.e(tag(this), error.throwable.stackTraceToString())
     }
 

@@ -20,12 +20,13 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
-import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.ui.common.*
 import com.walletconnect.web3.wallet.ui.common.peer.Peer
 import com.walletconnect.web3.wallet.ui.routes.Route
 import com.walletconnect.web3.wallet.ui.theme.Web3WalletTheme
 import com.walletconnect.web3.wallet.ui.utils.CompletePreviews
+import com.walletconnect.web3.wallet.ui.common.themedColor
+import com.walletconnect.web3.wallet.client.Wallet
 
 @CompletePreviews
 @Composable

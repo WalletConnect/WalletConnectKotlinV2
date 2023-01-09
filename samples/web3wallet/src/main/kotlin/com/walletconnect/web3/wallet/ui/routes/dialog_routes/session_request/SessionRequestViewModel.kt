@@ -6,10 +6,10 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.domain.WCDelegate
 import com.walletconnect.web3.wallet.ui.common.peer.PeerUI
+import com.walletconnect.web3.wallet.client.Wallet
+import com.walletconnect.web3.wallet.client.Web3Wallet
 
 class SessionRequestViewModel : ViewModel() {
     var sessionRequest: SessionRequestUI = generateSessionRequestUI(WCDelegate.sessionRequest)

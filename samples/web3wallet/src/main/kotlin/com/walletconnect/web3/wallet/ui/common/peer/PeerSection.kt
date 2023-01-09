@@ -20,8 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
-import com.walletconnect.web3.wallet.sample.R
 import com.walletconnect.web3.wallet.ui.common.themedColor
+import com.walletconnect.web3.wallet.sample.R
 
 
 @Composable

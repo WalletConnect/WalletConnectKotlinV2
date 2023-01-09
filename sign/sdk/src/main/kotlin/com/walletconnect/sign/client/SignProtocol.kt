@@ -160,14 +160,13 @@ class SignProtocol : SignInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun respond(response: Sign.Params.Response, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit) {
     override fun respond(response: Sign.Params.Response, onSuccess: (Sign.Params.Response) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
             signEngine.respondSessionRequest(
                 topic = response.sessionTopic,
                 jsonRpcResponse = response.jsonRpcResponse.toJsonRpcResponse(),
-                onSuccess = { topic -> onSuccess(topic) },
+                onSuccess = { onSuccess(response) },
                 onFailure = { error -> onError(Sign.Model.Error(error)) }
             )
         } catch (error: Exception) {
@@ -176,13 +175,13 @@ class SignProtocol : SignInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun update(update: Sign.Params.Update, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+    override fun update(update: Sign.Params.Update, onSuccess: (Sign.Params.Update) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
             signEngine.sessionUpdate(
                 topic = update.sessionTopic,
                 namespaces = update.namespaces.toMapOfEngineNamespacesSession(),
-                onSuccess = { topic -> onSuccess(topic) },
+                onSuccess = { onSuccess(update) },
                 onFailure = { error -> onError(Sign.Model.Error(error)) }
             )
         } catch (error: Exception) {
