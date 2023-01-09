@@ -2,6 +2,7 @@ package com.walletconnect.sign.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import java.net.URI
 
 object Sign {
@@ -217,6 +218,6 @@ object Sign {
         data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String) :
             Params()
 
-        data class Extend(val topic: String) : Params()
+        data class Extend(val topic: String, val timeInSeconds: Long = DAY_IN_SECONDS) : Params()
     }
 }

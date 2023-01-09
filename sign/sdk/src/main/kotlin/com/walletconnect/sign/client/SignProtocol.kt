@@ -195,6 +195,7 @@ class SignProtocol : SignInterface {
         try {
             signEngine.extend(
                 topic = extend.topic,
+                extensionTimeInSeconds = extend.timeInSeconds,
                 onSuccess = { onSuccess(extend) },
                 onFailure = { error -> onError(Sign.Model.Error(error)) }
             )
