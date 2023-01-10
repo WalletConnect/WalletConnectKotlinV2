@@ -76,10 +76,10 @@ internal class AuthProtocol : AuthInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun respond(params: Auth.Params.Respond, onError: (Auth.Model.Error) -> Unit) {
+    override fun respond(params: Auth.Params.Respond, onSuccess: (Auth.Params.Respond) -> Unit, onError: (Auth.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            authEngine.respond(params.toCommon()) { error -> onError(Auth.Model.Error(error)) }
+            authEngine.respond(params.toCommon(), { onSuccess(params) }, { error -> onError(Auth.Model.Error(error)) })
         } catch (error: Exception) {
             onError(Auth.Model.Error(error))
         }
