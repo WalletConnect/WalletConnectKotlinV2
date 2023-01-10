@@ -3,6 +3,7 @@ package com.walletconnect.push.wallet.client
 import android.annotation.SuppressLint
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.walletconnect.android.CoreClient
 import com.walletconnect.push.common.Push
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
@@ -11,13 +12,12 @@ abstract class PushMessageService: FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
 
-        val fcmToken = Push.Wallet.Params.FcmToken(token)
-        PushWalletClient.registerFcmToken(fcmToken,
+        CoreClient.Echo.register(token,
             onSuccess = {
                 newToken(token)
             },
             onError = { error ->
-                registeringFailed(token, error.throwable)
+                registeringFailed(token, error)
             }
         )
     }

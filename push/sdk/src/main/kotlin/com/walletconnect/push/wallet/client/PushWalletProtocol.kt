@@ -1,6 +1,5 @@
 package com.walletconnect.push.wallet.client
 
-import com.walletconnect.android.echo.EchoInterface
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -26,9 +25,6 @@ class PushWalletProtocol : PushWalletInterface {
     override fun initialize(init: Push.Wallet.Params.Init, onError: (Push.Model.Error) -> Unit) {
         try {
             wcKoinApp.modules(
-                // TODO: Commented out until we merge PR to handle multiple versions of dependnecy
-//                pushCommonModule(),
-//                cryptoModule(),
                 pushJsonRpcModule(),
                 pushStorageModule(storageSuffix),
                 walletEngineModule(),
@@ -91,18 +87,8 @@ class PushWalletProtocol : PushWalletInterface {
         }
     }
 
-    override fun registerFcmToken(params: Push.Wallet.Params.FcmToken, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit) {
-        val echoClient = wcKoinApp.koin.get<EchoInterface>()
-
-        echoClient.register(params.fcmAccessToken, onSuccess) { error ->
-            onError(Push.Model.Error(error))
-        }
-    }
-
     override fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (String) -> Unit, onError: (Push.Model.Error) -> Unit) {
-        val echoClient = wcKoinApp.koin.get<EchoInterface>()
-
-        echoClient.decryptMessage(params.topic, params.encryptedMessage, onSuccess) { error ->
+        pushWalletEngine.decryptMessage(params.topic, params.encryptedMessage, onSuccess) { error ->
             onError(Push.Model.Error(error))
         }
     }

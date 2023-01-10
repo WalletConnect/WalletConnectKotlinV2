@@ -25,7 +25,5 @@ interface PushWalletInterface {
 
     fun delete(params: Push.Wallet.Params.Delete, onError: (Push.Model.Error) -> Unit)
 
-    fun registerFcmToken(params: Push.Wallet.Params.FcmToken, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit)
-
     fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (String) -> Unit, onError: (Push.Model.Error) -> Unit)
 }

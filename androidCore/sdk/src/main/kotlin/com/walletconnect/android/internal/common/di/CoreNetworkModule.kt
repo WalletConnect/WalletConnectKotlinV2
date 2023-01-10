@@ -88,7 +88,7 @@ fun coreAndroidNetworkModule(serverUrl: String, jwt: String, connectionType: Con
         ConnectivityState(androidApplication())
     }
 
-    single {
+    single(named(AndroidCommonDITags.ECHO_RETROFIT)) {
         Retrofit.Builder()
             .baseUrl("https://echo.walletconnect.com/")
             .addConverterFactory(MoshiConverterFactory.create())

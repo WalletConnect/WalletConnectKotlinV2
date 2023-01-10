@@ -5,20 +5,18 @@ package com.walletconnect.android.echo
 import android.content.SharedPreferences
 import com.walletconnect.android.echo.model.EchoBody
 import com.walletconnect.android.echo.network.EchoService
-import com.walletconnect.android.internal.common.crypto.codec.Codec
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.koin.core.qualifier.named
 import retrofit2.Retrofit
 
 internal object EchoClient: EchoInterface {
-    private val echoService by lazy { wcKoinApp.koin.get<Retrofit>().create(EchoService::class.java) }
+    private val echoService by lazy { wcKoinApp.koin.get<Retrofit>(named(AndroidCommonDITags.ECHO_RETROFIT)).create(EchoService::class.java) }
     private val clientId by lazy { requireNotNull(wcKoinApp.koin.get<SharedPreferences>().getString(EchoInterface.KEY_CLIENT_ID, null)) }
     private const val SUCCESS_STATUS = "SUCCESS"
-
-    internal fun initialize() {}
 
     override fun register(firebaseAccessToken: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         try {
@@ -57,17 +55,6 @@ internal object EchoClient: EchoInterface {
                     onError(IllegalArgumentException(response.errorBody()?.string()))
                 }
             }
-        } catch (e: Exception) {
-            onError(e)
-        }
-    }
-
-    override fun decryptMessage(topic: String, message: String, onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) {
-        try {
-            val codec = wcKoinApp.koin.get<Codec>()
-            val decryptedMessage = codec.decrypt(Topic(topic), message)
-
-            onSuccess(decryptedMessage)
         } catch (e: Exception) {
             onError(e)
         }

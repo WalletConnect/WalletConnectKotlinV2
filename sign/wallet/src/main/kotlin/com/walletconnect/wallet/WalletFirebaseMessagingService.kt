@@ -25,6 +25,15 @@ class WalletFirebaseMessagingService: PushMessageService() {
     private val channelId = "Push"
     private val notificationManager by lazy { getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }
 
+    init {
+        Log.e("Talha", TAG ?: "Test")
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        Log.e("Talha", TAG ?: "Test")
+    }
+
     override fun newToken(token: String) {
         Log.d(TAG, token)
     }

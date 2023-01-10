@@ -3,8 +3,8 @@ package com.walletconnect.wallet.ui.host
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.push.common.Push
+import com.walletconnect.sign.client.Sign
 import com.walletconnect.wallet.domain.PushWalletDelegate
-import com.walletconnect.wallet.client.Wallet
 import com.walletconnect.wallet.domain.WalletDelegate
 import com.walletconnect.wallet.ui.SampleWalletEvents
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,8 +14,8 @@ import kotlinx.coroutines.flow.shareIn
 class WalletSampleViewModel : ViewModel() {
     val signEvents = WalletDelegate.wcEventModels.map { wcEvent ->
         when (wcEvent) {
-            is Wallet.Model.SessionProposal -> SampleWalletEvents.SessionProposal
-            is Wallet.Model.SessionRequest -> {
+            is Sign.Model.SessionProposal -> SampleWalletEvents.SessionProposal
+            is Sign.Model.SessionRequest -> {
                 val topic = wcEvent.topic
                 val icon = wcEvent.peerMetaData?.icons?.firstOrNull()
                 val peerName = wcEvent.peerMetaData?.name

@@ -2,6 +2,7 @@
 
 package com.walletconnect.push.wallet.engine
 
+import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.exception.Uncategorized
@@ -10,6 +11,7 @@ import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
@@ -142,6 +144,17 @@ internal class PushWalletEngine(
                 onFailure(it)
             }
         )
+    }
+
+    fun decryptMessage(topic: String, message: String, onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) {
+        try {
+            val codec = wcKoinApp.koin.get<Codec>()
+            val decryptedMessage = codec.decrypt(Topic(topic), message)
+
+            onSuccess(decryptedMessage)
+        } catch (e: Exception) {
+            onError(e)
+        }
     }
 
     private fun collectJsonRpcRequests(): Job =
