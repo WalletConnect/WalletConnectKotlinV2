@@ -112,7 +112,7 @@ internal class PushWalletEngine(
             } ?: return onError(GenericException("Unable to find proposer's request"))
             val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
 
-            jsonRpcInteractor.respondWithError(proposerRequest, PeerError.EIP1193.UserRejectedRequest(reason), irnParams) { error ->
+            jsonRpcInteractor.respondWithError(proposerRequest, PeerError.Rejected.UserRejected(reason), irnParams) { error ->
                 return@respondWithError onError(error)
             }
 
