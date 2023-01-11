@@ -175,6 +175,26 @@ class ValidatorTest {
     }
 
     @Test
+    fun `Session Namespaces when Proposal Namespaces are empty`() {
+        val proposalNamespaces = emptyMap<String, NamespaceVO.Proposal>()
+
+        val sessionNamespaces = mapOf(
+            COSMOS to NamespaceVO.Session(
+                accounts = listOf(COSMOSHUB_4_1), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), extensions = null
+            ),
+            EIP155 to NamespaceVO.Session(
+                accounts = listOf(ETHEREUM_1),
+                methods = listOf(ETH_SIGN),
+                events = listOf(ACCOUNTS_CHANGED),
+                extensions = null
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateSessionNamespace(sessionNamespaces, proposalNamespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
+    }
+
+    @Test
     fun `Session Namespaces MUST NOT have accounts empty`() {
         val proposalNamespaces = mapOf(
             COSMOS to NamespaceVO.Proposal(
