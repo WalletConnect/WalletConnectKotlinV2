@@ -7,6 +7,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
 import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
 import com.walletconnect.android.internal.common.wcKoinApp
 import kotlin.reflect.KClass
+import kotlin.reflect.safeCast
 
 class JsonRpcSerializer(
     val serializerEntries: Set<KClass<*>>,
@@ -33,7 +34,7 @@ class JsonRpcSerializer(
             payload is JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             serializerEntries.any { type: KClass<*> ->
                 payloadType = type
-                payload::class == type
+                type.safeCast(payload) != null
             } -> trySerialize(payload, payloadType)
             else -> null
         }

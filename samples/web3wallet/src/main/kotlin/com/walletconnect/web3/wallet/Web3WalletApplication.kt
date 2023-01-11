@@ -1,13 +1,15 @@
 package com.walletconnect.web3.wallet
 
 import android.app.Application
-import android.util.Log
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.sample.BuildConfig
+
 class Web3WalletApplication : Application() {
     override fun onCreate() {
         super.onCreate()
@@ -23,12 +25,17 @@ class Web3WalletApplication : Application() {
             redirect = "kotlin-web3wallet:/request"
         )
 
-        CoreClient.initialize(relayServerUrl = serverUrl, connectionType = ConnectionType.AUTOMATIC, application = this, metaData = appMetaData) { error ->
-            Log.e("CoreClient", error.throwable.stackTraceToString())
+        CoreClient.initialize(
+            relayServerUrl = serverUrl,
+            connectionType = ConnectionType.AUTOMATIC,
+            application = this,
+            metaData = appMetaData
+        ) { error ->
+            Firebase.crashlytics.recordException(error.throwable)
         }
 
         Web3Wallet.initialize(Wallet.Params.Init(core = CoreClient)) { error ->
-            Log.e("Web3Wallet", error.throwable.stackTraceToString())
+            Firebase.crashlytics.recordException(error.throwable)
         }
     }
 }

@@ -127,6 +127,7 @@ internal class AuthEngine(
 
     internal fun respond(
         respond: Respond,
+        onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         val jsonRpcHistoryEntry = getPendingJsonRpcHistoryEntryByIdUseCase(respond.id)
@@ -159,8 +160,14 @@ internal class AuthEngine(
         val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
         jsonRpcInteractor.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
-            onSuccess = { logger.log("Success Responded on topic: $responseTopic") },
-            onFailure = { logger.error("Error Responded on topic: $responseTopic") }
+            onSuccess = {
+                logger.log("Success Responded on topic: $responseTopic")
+                onSuccess()
+            },
+            onFailure = { error ->
+                logger.error("Error Responded on topic: $responseTopic")
+                onFailure(error)
+            }
         )
     }
 

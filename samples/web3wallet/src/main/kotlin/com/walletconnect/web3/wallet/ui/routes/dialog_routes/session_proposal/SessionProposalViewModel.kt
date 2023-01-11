@@ -1,14 +1,14 @@
 package com.walletconnect.web3.wallet.ui.routes.dialog_routes.session_proposal
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.walletconnect.sample_common.Chains
-import com.walletconnect.sample_common.tag
+import com.walletconnect.web3.wallet.client.Wallet
+import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.domain.WCDelegate
 import com.walletconnect.web3.wallet.domain.accounts
 import com.walletconnect.web3.wallet.ui.common.peer.PeerUI
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
 
 class SessionProposalViewModel : ViewModel() {
     val sessionProposal: SessionProposalUI? = generateSessionProposalUI(WCDelegate.sessionProposal)
@@ -46,7 +46,7 @@ class SessionProposalViewModel : ViewModel() {
 
 
             Web3Wallet.approveSession(approveProposal) { error ->
-                Log.e(tag(this@SessionProposalViewModel), error.throwable.stackTraceToString())
+                Firebase.crashlytics.recordException(error.throwable)
             }
         }
     }
@@ -60,7 +60,7 @@ class SessionProposalViewModel : ViewModel() {
             )
 
             Web3Wallet.rejectSession(reject) { error ->
-                Log.d(tag(this@SessionProposalViewModel), "sending reject error: $error")
+                Firebase.crashlytics.recordException(error.throwable)
             }
         }
     }

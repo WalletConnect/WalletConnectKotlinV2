@@ -10,9 +10,8 @@ Kotlin implementation of Web3Wallet for Android applications.
 * Java 11
 
 ## Documentation and usage
-
-* [Web3Wallet installation](TBD)
-* [Web3Wallet usage](TBD)
+* [Web3Wallet installation](https://docs.walletconnect.com/2.0/kotlin/web3wallet/installation)
+* [Web3Wallet usage](https://docs.walletconnect.com/2.0/kotlin/web3wallet/wallet-usage)
 
 ## Installation
 

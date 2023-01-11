@@ -23,7 +23,7 @@ interface AuthInterface {
 
     fun request(params: Auth.Params.Request, onSuccess: () -> Unit, onError: (Auth.Model.Error) -> Unit)
 
-    fun respond(params: Auth.Params.Respond, onError: (Auth.Model.Error) -> Unit)
+    fun respond(params: Auth.Params.Respond, onSuccess: (Auth.Params.Respond) -> Unit = {}, onError: (Auth.Model.Error) -> Unit)
 
     fun formatMessage(params: Auth.Params.FormatMessage): String?
 
