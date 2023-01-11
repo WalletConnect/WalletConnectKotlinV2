@@ -29,8 +29,9 @@ private fun EngineDO.WalletConnectUri.getQuery(): String {
 }
 
 @JvmSynthetic
-internal fun SignParams.SessionProposeParams.toEngineDO(): EngineDO.SessionProposal =
+internal fun SignParams.SessionProposeParams.toEngineDO(topic: Topic): EngineDO.SessionProposal =
     EngineDO.SessionProposal(
+        pairingTopic = topic.value,
         name = this.proposer.metadata.name,
         description = this.proposer.metadata.description,
         url = this.proposer.metadata.url,
