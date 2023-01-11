@@ -79,6 +79,13 @@ class ValidatorTest {
         const val SOME_EVENT = "someEvent"
     }
 
+    @Test
+    fun `Allow empty namespaces`() {
+        val namespaces = emptyMap<String, NamespaceVO.Proposal>()
+        var errorMessage: String? = null
+        SignValidator.validateProposalNamespace(namespaces) { error -> errorMessage = error.message }
+        assertNull(errorMessage)
+    }
 
     @Test
     fun `Proposal Namespaces MUST NOT have chains empty`() {
