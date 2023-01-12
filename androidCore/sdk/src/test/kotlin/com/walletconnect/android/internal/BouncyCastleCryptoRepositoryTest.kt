@@ -26,7 +26,7 @@ internal class BouncyCastleCryptoRepositoryTest {
 
     @Test
     fun `Verify that the generated public key has valid length`() {
-        val publicKey = sut.generateKeyPair()
+        val publicKey = sut.generateAndStoreX25519KeyPair()
         assert(publicKey.keyAsHex.length == 64)
     }
 
