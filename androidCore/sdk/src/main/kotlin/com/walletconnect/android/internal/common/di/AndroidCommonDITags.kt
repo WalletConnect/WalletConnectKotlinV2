@@ -11,5 +11,6 @@ enum class AndroidCommonDITags {
     LIFECYCLE,
     LOGGER,
     CONNECTIVITY_STATE,
-    ECHO_RETROFIT
+    ECHO_RETROFIT,
+    CLIENT_ID
 }

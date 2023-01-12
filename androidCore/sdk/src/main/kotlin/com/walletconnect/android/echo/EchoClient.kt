@@ -2,7 +2,6 @@
 
 package com.walletconnect.android.echo
 
-import android.content.SharedPreferences
 import com.walletconnect.android.echo.model.EchoBody
 import com.walletconnect.android.echo.network.EchoService
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
@@ -11,11 +10,10 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.core.qualifier.named
-import retrofit2.Retrofit
 
 internal object EchoClient: EchoInterface {
-    private val echoService by lazy { wcKoinApp.koin.get<Retrofit>(named(AndroidCommonDITags.ECHO_RETROFIT)).create(EchoService::class.java) }
-    private val clientId by lazy { requireNotNull(wcKoinApp.koin.get<SharedPreferences>().getString(EchoInterface.KEY_CLIENT_ID, null)) }
+    private val echoService by lazy { wcKoinApp.koin.get<EchoService>() }
+    private val clientId by lazy { wcKoinApp.koin.get<String>(named(AndroidCommonDITags.CLIENT_ID)) }
     private const val SUCCESS_STATUS = "SUCCESS"
 
     override fun register(firebaseAccessToken: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {

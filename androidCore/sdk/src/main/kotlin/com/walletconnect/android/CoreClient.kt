@@ -4,10 +4,9 @@ import android.app.Application
 import com.walletconnect.android.di.coreStorageModule
 import com.walletconnect.android.echo.EchoClient
 import com.walletconnect.android.echo.EchoInterface
-import com.walletconnect.android.internal.common.di.coreCommonModule
+import com.walletconnect.android.internal.common.di.*
 import com.walletconnect.android.internal.common.di.coreCryptoModule
-import com.walletconnect.android.internal.common.di.coreJsonRpcModule
-import com.walletconnect.android.internal.common.di.corePairingModule
+import com.walletconnect.android.internal.common.di.echoModule
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.model.Redirect
@@ -46,6 +45,7 @@ object CoreClient {
                 coreCryptoModule(),
                 module { single { ProjectId(relayServerUrl.projectId()) } },
                 coreStorageModule(),
+                echoModule(),
                 module { single { relay ?: RelayClient } },
                 module { single { with(metaData) { AppMetaData(name, description, url, icons, Redirect(redirect)) } } },
                 module { single { Echo } },
