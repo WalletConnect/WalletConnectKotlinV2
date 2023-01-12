@@ -57,17 +57,12 @@ dependencies {
     debugApi(project(":foundation"))
     releaseApi("com.walletconnect:foundation:$FOUNDATION_VERSION")
 
-    bouncyCastle()
     coroutines()
-    moshiKsp()
-    moshi()
-    scarlet()
     scarletAndroid()
     sqlDelightAndroid()
     sqlCipher()
     security()
     koinAndroid()
-    multibaseJava()
     timber()
 
     jUnit5()

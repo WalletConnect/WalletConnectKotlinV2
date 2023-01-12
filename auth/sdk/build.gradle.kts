@@ -54,8 +54,7 @@ dependencies {
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 
     okhttp()
-    timber()
-    moshiKsp()
+
     androidXTest()
     robolectric()
     mockk()
