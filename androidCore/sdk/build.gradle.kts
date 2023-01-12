@@ -64,6 +64,7 @@ dependencies {
     security()
     koinAndroid()
     timber()
+    moshiKsp()
 
     jUnit5()
     jUnit5Android()
