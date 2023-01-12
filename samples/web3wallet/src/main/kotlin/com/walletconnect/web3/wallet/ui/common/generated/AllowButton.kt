@@ -50,7 +50,8 @@ fun AllowButtonTopLevel(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    Row(
+    Box(
+        contentAlignment = Alignment.Center,
         modifier = modifier
             .padding(
                 start = 16.0.dp,
