@@ -43,6 +43,7 @@ internal fun EngineDO.JsonRpcResponse.toClientJsonRpcResponse(): Sign.Model.Json
 @JvmSynthetic
 internal fun EngineDO.SessionProposal.toClientSessionProposal(): Sign.Model.SessionProposal =
     Sign.Model.SessionProposal(
+        pairingTopic,
         name,
         description,
         url,
@@ -89,10 +90,12 @@ internal fun EngineDO.SessionEvent.toClientSessionEvent(): Sign.Model.SessionEve
 
 @JvmSynthetic
 internal fun EngineDO.Session.toClientActiveSession(): Sign.Model.Session =
-    Sign.Model.Session(topic.value,
+    Sign.Model.Session(
+        topic.value,
         expiry.seconds,
         namespaces.toMapOfClientNamespacesSession(),
-        peerAppMetaData?.toClient())
+        peerAppMetaData?.toClient()
+    )
 
 @JvmSynthetic
 internal fun EngineDO.SessionExtend.toClientActiveSession(): Sign.Model.Session =
