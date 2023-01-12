@@ -1,6 +1,6 @@
 package com.walletconnect.auth.common.model
 
-import com.walletconnect.android.internal.common.model.params.Cacao
+import com.walletconnect.android.internal.common.cacao.Cacao
 
 internal sealed class Response {
     abstract val id: Long

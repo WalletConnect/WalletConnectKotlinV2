@@ -1,8 +1,8 @@
 @file:JvmSynthetic
 
-package com.walletconnect.auth.common.model
+package com.walletconnect.android.internal.common.cacao
 
-internal data class Issuer(val value: String) {
+data class Issuer(val value: String) {
     val chainId
         get() = "${value.split(ISS_DELIMITER)[ISS_POSITION_OF_NAMESPACE]}:${value.split(ISS_DELIMITER)[ISS_POSITION_OF_REFERENCE]}"
     val chainIdReference

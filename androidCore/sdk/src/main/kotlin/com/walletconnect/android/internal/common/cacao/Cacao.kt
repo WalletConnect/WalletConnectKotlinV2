@@ -1,26 +1,27 @@
-package com.walletconnect.android.internal.common.model.params
+package com.walletconnect.android.internal.common.cacao
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import com.walletconnect.android.internal.common.cacao.signature.Signature
 
 @JsonClass(generateAdapter = true)
 data class Cacao(
-    @Json(name = "header")
+    @Json(name = "h")
     val header: Header,
-    @Json(name = "payload")
+    @Json(name = "p")
     val payload: Payload,
-    @Json(name = "signature")
+    @Json(name = "s")
     val signature: Signature,
 ) {
     @JsonClass(generateAdapter = true)
     data class Signature(
         @Json(name = "t")
-        val t: String,
+        override val t: String,
         @Json(name = "s")
-        val s: String,
+        override val s: String,
         @Json(name = "m")
-        val m: String? = null,
-    )
+        override val m: String? = null,
+    ) : ISignature
 
     @JsonClass(generateAdapter = true)
     data class Header(
@@ -53,4 +54,22 @@ data class Cacao(
         @Json(name = "resources")
         val resources: List<String>?,
     )
+}
+
+@JvmSynthetic
+internal fun Cacao.Signature.toSignature(): Signature = Signature.fromString(s)
+
+@JvmSynthetic
+fun Cacao.Payload.toCAIP122Message(chainName: String = "Ethereum"): String {
+    var message = "$domain wants you to sign in with your $chainName account:\n${Issuer(iss).address}\n"
+    if (statement != null) message += "\n$statement\n"
+    message += "\nURI: $aud\nVersion: $version\nChain ID: ${Issuer(iss).chainIdReference}\nNonce: $nonce\nIssued At: $iat"
+    if (exp != null) message += "\nExpiration Time: $exp"
+    if (nbf != null) message += "\nNot Before: $nbf"
+    if (requestId != null) message += "\nRequest ID: $requestId"
+    if (!resources.isNullOrEmpty()) {
+        message += "\nResources:"
+        resources!!.forEach { resource -> message += "\n- $resource" }
+    }
+    return message
 }

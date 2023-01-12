@@ -1,12 +1,8 @@
-package com.walletconnect.auth.signature.cacao
+package com.walletconnect.android.internal.common.cacao
 
+import com.walletconnect.android.BuildConfig
+import com.walletconnect.android.internal.common.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.model.ProjectId
-import com.walletconnect.android.internal.common.model.params.Cacao
-import com.walletconnect.auth.BuildConfig
-import com.walletconnect.auth.client.mapper.toCommon
-import com.walletconnect.auth.engine.mapper.toCAIP122Message
-import com.walletconnect.auth.signature.CacaoType
-import com.walletconnect.auth.signature.SignatureType
 import com.walletconnect.util.hexToBytes
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -34,7 +30,7 @@ internal class CacaoTest {
     @Test
     fun signAndVerifyWithEIP191Test() {
         print(payload.toCAIP122Message(chainName))
-        val signature: Cacao.Signature = CacaoSigner.sign(payload.toCAIP122Message(chainName), privateKey, SignatureType.EIP191).toCommon()
+        val signature: Cacao.Signature = CoreCacaoSigner.sign(payload.toCAIP122Message(chainName), privateKey, SignatureType.EIP191)
         val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
         val result: Boolean = cacaoVerifier.verify(cacao)
         Assertions.assertTrue(result)
