@@ -1,6 +1,5 @@
 package com.walletconnect.core.android.sample
 
-import android.app.Activity
 import android.os.Bundle
 import android.os.PersistableBundle
 import androidx.appcompat.app.AppCompatActivity
