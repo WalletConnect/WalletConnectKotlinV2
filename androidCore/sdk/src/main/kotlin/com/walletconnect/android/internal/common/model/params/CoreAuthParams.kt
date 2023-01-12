@@ -3,6 +3,7 @@ package com.walletconnect.android.internal.common.model.params
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.type.ClientParams
+import com.walletconnect.android.internal.common.cacao.Cacao
 
 open class CoreAuthParams : ClientParams {
     @JsonClass(generateAdapter = true)

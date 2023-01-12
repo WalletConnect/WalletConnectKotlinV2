@@ -1,6 +1,16 @@
-package com.walletconnect.auth.signature
+package com.walletconnect.android.internal.common.cacao.signature
 
+import com.walletconnect.android.internal.common.cacao.guaranteeNoHexPrefix
 import com.walletconnect.util.hexToBytes
+import com.walletconnect.util.bytesToHex
+import com.walletconnect.utils.HexPrefix
+import org.web3j.crypto.Sign
+
+
+internal fun Sign.SignatureData.toSignature(): Signature = Signature(v, r, s)
+fun Signature.toCacaoSignature(): String = String.HexPrefix + r.bytesToHex() + s.bytesToHex() + v.bytesToHex()
+internal fun Signature.toSignatureData(): Sign.SignatureData = Sign.SignatureData(v, r, s)
+
 
 data class Signature(val v: ByteArray, val r: ByteArray, val s: ByteArray) {
     companion object {
@@ -27,4 +37,6 @@ data class Signature(val v: ByteArray, val r: ByteArray, val s: ByteArray) {
         return result
     }
 }
+
+
 

@@ -2,6 +2,7 @@ package com.walletconnect.web3.wallet.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.internal.common.cacao.ISignature
 import java.net.URI
 
 object Wallet {
@@ -159,7 +160,7 @@ object Wallet {
             val payload: Payload,
             val signature: Signature,
         ) : Model() {
-            data class Signature(val t: String, val s: String, val m: String? = null) : Model()
+            data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), ISignature
             data class Header(val t: String) : Model()
             data class Payload(
                 val iss: String,

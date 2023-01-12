@@ -1,6 +1,5 @@
-package com.walletconnect.auth.signature
+package com.walletconnect.android.internal.common.cacao
 
-import com.walletconnect.auth.common.model.Issuer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals

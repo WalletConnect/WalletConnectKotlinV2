@@ -65,5 +65,4 @@ dependencies {
     sqlDelightTest()
     jUnit5()
     jUnit5Android()
-    web3jCrypto()
 }
