@@ -1,10 +1,7 @@
 package com.walletconnect.web3.wallet.ui.common.generated
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -53,7 +50,8 @@ fun DeclineButtonTopLevel(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    Row(
+    Box(
+        contentAlignment = Alignment.Center,
         modifier = modifier
             .padding(
                 PaddingValues(
