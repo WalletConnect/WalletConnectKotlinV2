@@ -6,21 +6,20 @@ import com.walletconnect.android.internal.common.cacao.Issuer
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.engine.mapper.toCacaoPayload
 import org.junit.jupiter.api.Test
-import java.time.Clock
-import java.time.Duration
-import java.time.ZonedDateTime
-import java.time.chrono.ChronoZonedDateTime
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.time.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
-internal class MapperTest {
+internal class ClientMapperTest {
     private val iss = "did:pkh:eip155:1:0x15bca56b6e2728aec2532df9d436bd1600e86688"
     private val dummyPairing = Core.Model.Pairing("", 0L, null, "", null, "", true, "")
 
     private fun Cacao.Payload.mockIatAsNbf(request: Auth.Params.Request): Cacao.Payload {
         return this.copy(iat = request.nbf!!)
     }
+
     private fun Auth.Params.Request.toCacaoPayload(iss: String): Cacao.Payload = this.toCommon().toCacaoPayload(Issuer(iss))
 
     @Test
@@ -58,7 +57,7 @@ internal class MapperTest {
 
     @Test
     fun `Payload based on Request generates issued at with current time`() {
-        val before = ZonedDateTime.now(Clock.offset(Clock.systemDefaultZone(), Duration.ofSeconds(-2)))
+        val before = Instant.now(Clock.offset(Clock.systemDefaultZone(), Duration.ofSeconds(-2)))
 
         val payload = Auth.Params.Request(
             topic = dummyPairing.topic,
@@ -74,10 +73,11 @@ internal class MapperTest {
             resources = listOf("ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/", "https://example.com/my-web2-claim.json")
         ).toCacaoPayload(iss)
 
-        val iat = ChronoZonedDateTime.from(DateTimeFormatter.ofPattern(ISO_8601_PATTERN).parse(payload.iat))
-        val isAfter = ZonedDateTime.now().isAfter(iat)
+        val sd = SimpleDateFormat(ISO_8601_PATTERN).parse(payload.iat) ?: fail("Cannot parse iat")
+        val iat = Instant.ofEpochMilli(sd.time)
+        val isAfter = Instant.now().isAfter(iat)
         val isBefore = before.isBefore(iat)
-        assertTrue(isBefore)
         assertTrue(isAfter)
+        assertTrue(isBefore)
     }
 }
