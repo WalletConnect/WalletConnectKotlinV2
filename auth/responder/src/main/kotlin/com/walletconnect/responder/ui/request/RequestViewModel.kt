@@ -2,6 +2,7 @@ package com.walletconnect.responder.ui.request
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.walletconnect.android.cacao.sign
 import com.walletconnect.auth.signature.cacao.CacaoSigner
 import com.walletconnect.auth.signature.cacao.SignatureType
 import com.walletconnect.auth.client.Auth

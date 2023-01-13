@@ -2,6 +2,7 @@ package com.walletconnect.android.internal.common.cacao
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import com.walletconnect.android.internal.common.cacao.signature.SignatureInterface
 import com.walletconnect.android.internal.common.cacao.signature.Signature
 
 @JsonClass(generateAdapter = true)
@@ -21,7 +22,7 @@ data class Cacao(
         override val s: String,
         @Json(name = "m")
         override val m: String? = null,
-    ) : ISignature
+    ) : SignatureInterface
 
     @JsonClass(generateAdapter = true)
     data class Header(

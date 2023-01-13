@@ -1,8 +1,8 @@
 package com.walletconnect.android.internal.common.cacao
 
+import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.cacao.eip1271.EIP1271Verifier
 import com.walletconnect.android.internal.common.cacao.eip191.EIP191Verifier
-import com.walletconnect.android.internal.common.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.model.ProjectId
 
 class CacaoVerifier(private val projectId: ProjectId) {
