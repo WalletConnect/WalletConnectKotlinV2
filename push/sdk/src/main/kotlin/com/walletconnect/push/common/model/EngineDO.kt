@@ -16,8 +16,8 @@ sealed class EngineDO: EngineEvent {
     data class PushMessage(
         val title: String,
         val body: String,
-        val icon: String,
-        val url: String,
+        val icon: String?,
+        val url: String?,
     ) : EngineDO()
 
     sealed class PushSubscription : EngineDO() {

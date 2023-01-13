@@ -239,7 +239,7 @@ internal class AuthEngine(
 
     private fun collectJsonRpcResponses(): Job =
         jsonRpcInteractor.peerResponse
-            .filter { response -> response.params is AuthParams.RequestParams }
+            .filter { response -> response.params is AuthParams }
             .onEach { response -> onAuthRequestResponse(response, response.params as AuthParams.RequestParams) }
             .launchIn(scope)
 

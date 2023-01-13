@@ -26,9 +26,6 @@ internal class PushDappProtocol : PushDappInterface {
     override fun initialize(init: Push.Dapp.Params.Init, onError: (Push.Model.Error) -> Unit) {
         try {
             wcKoinApp.modules(
-                // TODO: Commented out until we merge PR to handle multiple versions of dependnecy
-//                pushCommonModule(),
-//                cryptoModule(),
                 pushJsonRpcModule(),
                 pushStorageModule(storageSuffix),
                 dappEngineModule(),

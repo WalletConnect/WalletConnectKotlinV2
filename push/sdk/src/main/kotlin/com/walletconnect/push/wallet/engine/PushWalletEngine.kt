@@ -2,19 +2,18 @@
 
 package com.walletconnect.push.wallet.engine
 
-import com.walletconnect.android.impl.common.SDKError
-import com.walletconnect.android.impl.common.model.ConnectionState
-import com.walletconnect.android.impl.common.model.type.EngineEvent
-import com.walletconnect.android.impl.utils.DAY_IN_SECONDS
-import com.walletconnect.android.internal.common.crypto.KeyManagementRepository
+import com.walletconnect.android.internal.common.crypto.codec.Codec
+import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.exception.Uncategorized
-import com.walletconnect.android.internal.common.model.IrnParams
-import com.walletconnect.android.internal.common.model.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.WCRequest
+import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
+import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.PushParams
+import com.walletconnect.android.internal.common.model.type.EngineEvent
+import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -22,6 +21,7 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.JsonRpcMethod
 import com.walletconnect.push.common.PeerError
+import com.walletconnect.push.common.Push
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.model.toEngineDO
@@ -38,6 +38,7 @@ internal class PushWalletEngine(
     private val crypto: KeyManagementRepository,
     private val pairingHandler: PairingControllerInterface,
     private val subscriptionStorageRepository: SubscriptionStorageRepository,
+    private val serializer: JsonRpcSerializer,
     private val logger: Logger,
 ) {
     private var jsonRpcRequestsJob: Job? = null
@@ -114,7 +115,7 @@ internal class PushWalletEngine(
             } ?: return onError(GenericException("Unable to find proposer's request"))
             val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
 
-            jsonRpcInteractor.respondWithError(proposerRequest, PeerError.EIP1193.UserRejectedRequest(reason), irnParams) { error ->
+            jsonRpcInteractor.respondWithError(proposerRequest, PeerError.Rejected.UserRejected(reason), irnParams) { error ->
                 return@respondWithError onError(error)
             }
 
@@ -146,6 +147,18 @@ internal class PushWalletEngine(
                 onFailure(it)
             }
         )
+    }
+
+    fun decryptMessage(topic: String, message: String, onSuccess: (EngineDO.PushMessage) -> Unit, onError: (Throwable) -> Unit) {
+        try {
+            val codec = wcKoinApp.koin.get<Codec>()
+            val decryptedMessageString = codec.decrypt(Topic(topic), message)
+            // How to look in JsonRpcHistory for dupes without Rpc ID
+            val decryptedMessage = serializer.tryDeserialize<PushParams.MessageParams>(decryptedMessageString)?.toEngineDO() ?: return onError(IllegalArgumentException("Unable to deserialize message"))
+            onSuccess(decryptedMessage)
+        } catch (e: Exception) {
+            onError(e)
+        }
     }
 
     private fun collectJsonRpcRequests(): Job =

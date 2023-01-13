@@ -69,6 +69,7 @@ dependencies {
     koinAndroid()
     multibaseJava()
     timber()
+    retrofit()
 
     jUnit5()
     jUnit5Android()

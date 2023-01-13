@@ -152,7 +152,10 @@ fun DependencyHandlerScope.security() {
     "api"("androidx.security:security-crypto-ktx:$androidSecurityVersion")
 }
 
-
 fun DependencyHandlerScope.web3jCrypto() {
     "api"("org.web3j:crypto:$web3jVersion")
+}
+
+fun DependencyHandlerScope.fcm() {
+    "implementation"("com.google.firebase:firebase-messaging:$fcmVersion")
 }

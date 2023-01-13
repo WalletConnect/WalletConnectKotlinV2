@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "83929691786",
+    "project_id": "echo-server-demo",
+    "storage_bucket": "echo-server-demo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:83929691786:android:ba36fc7e72e705473edf73",
+        "android_client_info": {
+          "package_name": "com.walletconnect.wallet"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "83929691786-gmaokoei5q25kq2b648uquauqguggcht.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBs8J1J8TJaQmK3Aojua0Y75MAJtod-y1I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "83929691786-gmaokoei5q25kq2b648uquauqguggcht.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "83929691786-2r8ksvrgbj5cv5rpnkjplc85blv2sf69.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.walletconnect.example"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

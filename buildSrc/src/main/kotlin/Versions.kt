@@ -21,6 +21,7 @@ const val agpVersion = "7.3.1" // when changing, remember to change version in b
 const val kotlinVersion = "1.7.21"
 const val kspVersion = "$kotlinVersion-1.0.8"
 const val dokkaVersion = "1.7.10" // when changing, remember to change version in build.gradle.kts in buildSrc module
+const val googleServiceVersion = "4.3.14"
 
 const val sqlDelightVersion = "1.5.4"
 const val moshiVersion = "1.13.0"
@@ -47,3 +48,4 @@ const val timberVersion = "5.0.1"
 const val androidSecurityVersion = "1.1.0-alpha03"
 const val web3jVersion = "4.9.4"
 const val wsRestJavaVersion = "3.1.0"
+const val fcmVersion = "23.1.1"

@@ -20,7 +20,7 @@ sealed class SampleWalletEvents {
 
     object PushRequestResponded : SampleWalletEvents()
 
-    data class PushMessage(val title: String, val body: String, val icon: String, val url: String): SampleWalletEvents()
+    data class PushMessage(val title: String, val body: String, val icon: String?, val url: String?): SampleWalletEvents()
 
     object NoAction : SampleWalletEvents()
 }
