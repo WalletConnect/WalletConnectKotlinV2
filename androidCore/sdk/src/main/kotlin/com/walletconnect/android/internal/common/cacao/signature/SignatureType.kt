@@ -1,4 +1,5 @@
-package com.walletconnect.android.internal.common.cacao.signature
+@file:Suppress("PackageDirectoryMismatch")
+package com.walletconnect.android.cacao.signature
 
 
 // Note: Szymon - Only added to have backwards compatibility. This ties SignatureTypes from android-core to sdks specific implementations. When we decide to remove deprecated sdk specific
