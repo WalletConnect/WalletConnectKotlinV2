@@ -18,38 +18,46 @@ internal class ConnectivityState(context: Context) {
     val isAvailable: StateFlow<Boolean> = _isAvailable.asStateFlow()
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
+
         override fun onAvailable(network: Network) {
-            updateIfStateChanged()
+            updateIfStateChanged(network)
         }
 
         override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
-            updateIfStateChanged()
+            updateIfStateChanged(network)
         }
 
         override fun onLost(network: Network) {
-            updateIfStateChanged()
+            updateIfStateChanged(network)
         }
     }
 
-    private fun updateIfStateChanged() {
-        val isNowConnected = isConnected()
-        val wasConnected = _isAvailable.value
+    private fun updateIfStateChanged(network: Network) {
+        val isNowConnected = isNowConnected(network)
 
-        if (!wasConnected && isNowConnected) {
+        if (isNowConnected) {
             _isAvailable.compareAndSet(expect = false, update = true)
-        } else if (wasConnected && !isNowConnected) {
+        } else {
             _isAvailable.compareAndSet(expect = true, update = false)
         }
     }
 
-    private fun isConnected(): Boolean = connectivityManager.run {
-        getNetworkCapabilities(activeNetwork)?.run {
-            hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-        }
-    } ?: false
-
+    private fun isNowConnected(network: Network): Boolean {
+        return connectivityManager.getNetworkCapabilities(network)?.run {
+            hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) &&
+                    (hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) || hasTransport(NetworkCapabilities.TRANSPORT_WIFI))
+        } ?: false
+    }
 
     init {
-        connectivityManager.registerNetworkCallback(NetworkRequest.Builder().build(), callback)
+        connectivityManager.registerNetworkCallback(
+            NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+                .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                .build(),
+            callback
+        )
     }
 }
