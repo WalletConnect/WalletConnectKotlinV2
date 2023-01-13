@@ -8,5 +8,5 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun walletEngineModule() = module {
 
-    single { PushWalletEngine(get(), get(), get(), get(), get()) }
+    single { PushWalletEngine(get(), get(), get(), get(), get(), get()) }
 }

@@ -8,6 +8,8 @@ import com.walletconnect.push.common.di.pushJsonRpcModule
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.toClient
 import com.walletconnect.push.wallet.client.mapper.toClient
+import com.walletconnect.push.wallet.client.mapper.toClientEvent
+import com.walletconnect.push.wallet.client.mapper.toClientModel
 import com.walletconnect.push.wallet.di.pushStorageModule
 import com.walletconnect.push.wallet.di.walletEngineModule
 import com.walletconnect.push.wallet.engine.PushWalletEngine
@@ -43,7 +45,7 @@ class PushWalletProtocol : PushWalletInterface {
         pushWalletEngine.engineEvent.onEach { event ->
             when (event) {
                 is EngineDO.PushRequest -> delegate.onPushRequest(event.toClient())
-                is EngineDO.PushMessage -> delegate.onPushMessage(event.toClient())
+                is EngineDO.PushMessage -> delegate.onPushMessage(event.toClientEvent())
                 is SDKError -> delegate.onError(event.toClient())
             }
         }.launchIn(scope)
@@ -87,10 +89,14 @@ class PushWalletProtocol : PushWalletInterface {
         }
     }
 
-    override fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (String) -> Unit, onError: (Push.Model.Error) -> Unit) {
-        pushWalletEngine.decryptMessage(params.topic, params.encryptedMessage, onSuccess) { error ->
-            onError(Push.Model.Error(error))
-        }
+    override fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (Push.Model.Message) -> Unit, onError: (Push.Model.Error) -> Unit) {
+        pushWalletEngine.decryptMessage(params.topic, params.encryptedMessage,
+            onSuccess = { pushMessage ->
+                onSuccess(pushMessage.toClientModel())
+            },
+            onError = { error ->
+                onError(Push.Model.Error(error))
+            })
     }
 
     @Throws(IllegalStateException::class)

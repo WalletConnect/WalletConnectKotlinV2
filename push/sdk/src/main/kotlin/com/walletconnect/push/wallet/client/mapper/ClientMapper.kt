@@ -10,6 +10,11 @@ internal fun EngineDO.PushRequest.toClient(): Push.Wallet.Event.Request {
 }
 
 @JvmSynthetic
-internal fun EngineDO.PushMessage.toClient(): Push.Wallet.Event.Message {
+internal fun EngineDO.PushMessage.toClientEvent(): Push.Wallet.Event.Message {
     return Push.Wallet.Event.Message(title, body, icon, url)
+}
+
+@JvmSynthetic
+internal fun EngineDO.PushMessage.toClientModel(): Push.Model.Message {
+    return Push.Model.Message(title, body, icon, url)
 }

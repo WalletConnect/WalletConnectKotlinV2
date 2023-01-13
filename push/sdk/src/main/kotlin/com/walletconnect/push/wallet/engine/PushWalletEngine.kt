@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.exception.Uncategorized
+import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
@@ -20,6 +21,7 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.JsonRpcMethod
 import com.walletconnect.push.common.PeerError
+import com.walletconnect.push.common.Push
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.model.toEngineDO
@@ -36,6 +38,7 @@ internal class PushWalletEngine(
     private val crypto: KeyManagementRepository,
     private val pairingHandler: PairingControllerInterface,
     private val subscriptionStorageRepository: SubscriptionStorageRepository,
+    private val serializer: JsonRpcSerializer,
     private val logger: Logger,
 ) {
     private var jsonRpcRequestsJob: Job? = null
@@ -146,11 +149,12 @@ internal class PushWalletEngine(
         )
     }
 
-    fun decryptMessage(topic: String, message: String, onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) {
+    fun decryptMessage(topic: String, message: String, onSuccess: (EngineDO.PushMessage) -> Unit, onError: (Throwable) -> Unit) {
         try {
             val codec = wcKoinApp.koin.get<Codec>()
-            val decryptedMessage = codec.decrypt(Topic(topic), message)
-
+            val decryptedMessageString = codec.decrypt(Topic(topic), message)
+            // How to look in JsonRpcHistory for dupes without Rpc ID
+            val decryptedMessage = serializer.tryDeserialize<PushParams.MessageParams>(decryptedMessageString)?.toEngineDO() ?: return onError(IllegalArgumentException("Unable to deserialize message"))
             onSuccess(decryptedMessage)
         } catch (e: Exception) {
             onError(e)

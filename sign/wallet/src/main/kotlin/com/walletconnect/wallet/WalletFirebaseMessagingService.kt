@@ -33,11 +33,7 @@ class WalletFirebaseMessagingService: PushMessageService() {
         Log.d(TAG, token)
     }
 
-    override fun onDecryptedMessage(decryptedMessage: String, originalMessage: RemoteMessage) {
-        Log.d(TAG, decryptedMessage)
-    }
-
-    override fun onUnencryptedMessage(message: Push.Model.Message, originalMessage: RemoteMessage) {
+    override fun ondMessage(message: Push.Model.Message, originalMessage: RemoteMessage) {
         Log.d(TAG, message.toString())
 
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
