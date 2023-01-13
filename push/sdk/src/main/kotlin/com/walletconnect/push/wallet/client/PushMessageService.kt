@@ -31,7 +31,7 @@ abstract class PushMessageService : FirebaseMessagingService() {
                     val encryptedMessage = Push.Wallet.Params.DecryptMessage(topic = data.getValue("topic"), encryptedMessage = data.getValue("message"))
 
                     PushWalletClient.decryptMessage(encryptedMessage,
-                        onSuccess = { pushMessage -> ondMessage(pushMessage, this) },
+                        onSuccess = { pushMessage -> onMessage(pushMessage, this) },
                         onError = { error -> onError(error.throwable, this) }
                     )
                 } else if (notification?.isValid() == true) {
@@ -39,7 +39,7 @@ abstract class PushMessageService : FirebaseMessagingService() {
                         Push.Model.Message(title!!, body!!, icon, imageUrl?.toString())
                     }
 
-                    ondMessage(pushMessage, this)
+                    onMessage(pushMessage, this)
                 } else {
                     onDefaultBehavior(this)
                 }
@@ -53,7 +53,7 @@ abstract class PushMessageService : FirebaseMessagingService() {
 
     abstract fun registeringFailed(token: String, throwable: Throwable)
 
-    abstract fun ondMessage(message: Push.Model.Message, originalMessage: RemoteMessage)
+    abstract fun onMessage(message: Push.Model.Message, originalMessage: RemoteMessage)
 
     abstract fun onDefaultBehavior(message: RemoteMessage)
 
