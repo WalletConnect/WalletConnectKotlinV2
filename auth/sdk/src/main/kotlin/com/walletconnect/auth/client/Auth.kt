@@ -1,7 +1,7 @@
 package com.walletconnect.auth.client
 
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.internal.common.cacao.signature.SignatureInterface
+import com.walletconnect.android.cacao.SignatureInterface
 import com.walletconnect.android.internal.common.cacao.Issuer
 
 object Auth {
