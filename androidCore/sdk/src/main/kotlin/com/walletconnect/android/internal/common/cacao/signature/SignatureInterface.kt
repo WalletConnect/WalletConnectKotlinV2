@@ -1,4 +1,6 @@
-package com.walletconnect.android.internal.common.cacao.signature
+@file:Suppress("PackageDirectoryMismatch")
+
+package com.walletconnect.android.cacao
 
 interface SignatureInterface {
     val t: String

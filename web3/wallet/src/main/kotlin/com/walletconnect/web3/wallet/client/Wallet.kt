@@ -2,7 +2,7 @@ package com.walletconnect.web3.wallet.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.internal.common.cacao.signature.SignatureInterface
+import com.walletconnect.android.cacao.SignatureInterface
 import java.net.URI
 
 object Wallet {
