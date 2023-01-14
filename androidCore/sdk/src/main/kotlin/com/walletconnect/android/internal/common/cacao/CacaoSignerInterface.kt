@@ -9,6 +9,8 @@ import com.walletconnect.android.internal.common.cacao.Cacao
 import com.walletconnect.android.internal.common.cacao.eip191.EIP191Signer
 import com.walletconnect.android.internal.common.cacao.signature.SignatureInterface
 import com.walletconnect.android.internal.common.cacao.signature.toCacaoSignature
+import kotlin.reflect.KFunction
+import kotlin.reflect.full.createType
 
 interface CacaoSignerInterface<CoreSignature : SignatureInterface>
 
@@ -20,10 +22,21 @@ inline fun <CoreSignature : SignatureInterface, reified SDKSignature : CoreSigna
 ): CoreSignature =
     when (type.header) {
         SignatureType.EIP191.header, SignatureType.EIP1271.header -> {
-            (Cacao.Signature(type.header, EIP191Signer.sign(message.toByteArray(), privateKey).toCacaoSignature()) as SignatureInterface).run {
-                SDKSignature::class.constructors.first().call(t, s, m)
+            Cacao.Signature(type.header, EIP191Signer.sign(message.toByteArray(), privateKey).toCacaoSignature()).run {
+                SDKSignature::class.constructors.first(KFunction<SDKSignature>::hasCorrectOrderedParametersInConstructor).call(t, s, m)
             }
         }
         else -> throw Throwable("SignatureType not recognized")
     }
 
+fun <T:SignatureInterface> KFunction<T>.hasCorrectOrderedParametersInConstructor(): Boolean =
+    parameters.takeIf { it.size == 3 }?.run {
+        val stringType = String::class.createType(nullable = false)
+        val nullableStringType = String::class.createType(nullable = true)
+
+        val tExists= this.getOrNull(0)?.run { type == stringType && name == "t" } ?: false
+        val sExists = this.getOrNull(1)?.run { type == stringType && name == "s" } ?: false
+        val mExists = this.getOrNull(2)?.run { type == nullableStringType && name == "m" } ?: false
+
+        tExists && sExists && mExists
+    } ?: false
