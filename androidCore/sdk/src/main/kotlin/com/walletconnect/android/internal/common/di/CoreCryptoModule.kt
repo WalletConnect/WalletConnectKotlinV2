@@ -21,10 +21,10 @@ import java.io.File
 import java.security.KeyStore
 import com.walletconnect.android.internal.common.storage.KeyStore as WCKeyStore
 
-private const val ANDROID_KEYSTORE = "AndroidKeyStore"
 
 @JvmSynthetic
 internal fun coreCryptoModule() = module {
+    val ANDROID_KEYSTORE = "AndroidKeyStore"
     val keystoreAlias = "wc_keystore_key"
     val sharedPrefsFile = "wc_key_store"
 
@@ -47,7 +47,7 @@ internal fun coreCryptoModule() = module {
     fun deleteMasterKey() {
         KeyStore.getInstance(ANDROID_KEYSTORE).run {
             load(null)
-            deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+            deleteEntry(keystoreAlias)
         }
     }
 
@@ -70,7 +70,6 @@ internal fun coreCryptoModule() = module {
             get<Logger>(named(AndroidCommonDITags.LOGGER)).error("Occurred when trying to reset encrypted shared prefs: $e")
         }
     }
-
 
     single {
         try {

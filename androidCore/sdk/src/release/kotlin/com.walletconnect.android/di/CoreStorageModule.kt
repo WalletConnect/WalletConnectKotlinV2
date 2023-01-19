@@ -77,7 +77,7 @@ private fun Scope.deleteSharedPreferences() {
                 }
             }
         }
-        keyStore.deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+        keyStore.deleteEntry(KEYSTORE_ALIAS)
     } catch (e: Exception) {
         get<Logger>(named(AndroidCommonDITags.LOGGER)).error("Occurred when trying to reset encrypted shared prefs: $e")
     }
@@ -94,6 +94,7 @@ private fun getSecretKey(): SecretKey {
     }
 }
 
+@Synchronized
 private fun signingModule() = module {
     single<ByteArray>(named(AndroidCoreDITags.DB_PASSPHRASE)) {
         val SP_ENCRYPTED_KEY = "encryptedDBKey"
