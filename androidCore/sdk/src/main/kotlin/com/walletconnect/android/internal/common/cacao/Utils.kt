@@ -1,4 +1,4 @@
-package com.walletconnect.auth.signature
+package com.walletconnect.android.internal.common.cacao
 
 import com.walletconnect.utils.HexPrefix
 

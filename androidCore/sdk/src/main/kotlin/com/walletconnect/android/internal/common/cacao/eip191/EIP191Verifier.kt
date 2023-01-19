@@ -1,8 +1,8 @@
-package com.walletconnect.auth.signature.eip191
+package com.walletconnect.android.internal.common.cacao.eip191
 
-import com.walletconnect.auth.signature.Signature
-import com.walletconnect.auth.signature.guaranteeNoHexPrefix
-import com.walletconnect.auth.signature.toSignatureData
+import com.walletconnect.android.internal.common.cacao.guaranteeNoHexPrefix
+import com.walletconnect.android.internal.common.cacao.signature.Signature
+import com.walletconnect.android.internal.common.cacao.signature.toSignatureData
 import org.web3j.crypto.Keys
 import org.web3j.crypto.Sign
 import java.security.SignatureException
