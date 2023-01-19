@@ -2,5 +2,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.walletconnect.sign">
 
-    <application android:fullBackupContent="@xml/backup_rules" />
+    <application android:allowBackup="true" android:fullBackupContent="@xml/backup_rules" />
 </manifest>

@@ -11,7 +11,6 @@ import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.BouncyCastleKeyManagementRepository
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.storage.KeyChain
-import com.walletconnect.android.internal.common.storage.KeyStore
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.foundation.util.Logger
 import org.koin.android.ext.koin.androidContext
@@ -19,12 +18,17 @@ import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 import java.io.File
+import java.security.KeyStore
+import com.walletconnect.android.internal.common.storage.KeyStore as WCKeyStore
+
+private const val ANDROID_KEYSTORE = "AndroidKeyStore"
 
 @JvmSynthetic
 internal fun coreCryptoModule() = module {
     val keystoreAlias = "wc_keystore_key"
     val sharedPrefsFile = "wc_key_store"
 
+    @Synchronized
     fun Scope.createSharedPreferences(): SharedPreferences {
         val masterKey = MasterKey.Builder(androidContext(), keystoreAlias)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -39,19 +43,34 @@ internal fun coreCryptoModule() = module {
         )
     }
 
-    fun Scope.deleteSharedPreferences() {
-        androidContext().run {
-            if (getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE) != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    deleteSharedPreferences(sharedPrefsFile)
-                } else {
-                    getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE)?.edit()?.clear()?.apply()
-                    val dir = File(applicationInfo.dataDir, "shared_prefs")
-                    File(dir, "$sharedPrefsFile.xml").delete()
-                }
-            }
+    @Synchronized
+    fun deleteMasterKey() {
+        KeyStore.getInstance(ANDROID_KEYSTORE).run {
+            load(null)
+            deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
         }
     }
+
+    @Synchronized
+    fun Scope.deleteSharedPreferences() {
+        try {
+            androidContext().run {
+                if (getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE) != null) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        deleteSharedPreferences(sharedPrefsFile)
+                    } else {
+                        getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE).edit().clear().apply()
+                        val dir = File(applicationInfo.dataDir, "shared_prefs")
+                        File(dir, "$sharedPrefsFile.xml").delete()
+                    }
+                }
+            }
+            deleteMasterKey()
+        } catch (e: Exception) {
+            get<Logger>(named(AndroidCommonDITags.LOGGER)).error("Occurred when trying to reset encrypted shared prefs: $e")
+        }
+    }
+
 
     single {
         try {
@@ -63,7 +82,7 @@ internal fun coreCryptoModule() = module {
         }
     }
 
-    single<KeyStore> { KeyChain(get()) }
+    single<WCKeyStore> { KeyChain(get()) }
 
     single<JwtRepository> { JwtRepositoryAndroid(get()) }
 
