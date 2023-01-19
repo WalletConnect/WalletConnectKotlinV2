@@ -1,7 +1,7 @@
-package com.walletconnect.auth.signature.eip1271
+package com.walletconnect.android.internal.common.cacao.eip1271
 
-import com.walletconnect.auth.signature.Signature
-import com.walletconnect.auth.signature.toCacaoSignature
+import com.walletconnect.android.internal.common.cacao.signature.Signature
+import com.walletconnect.android.internal.common.cacao.signature.toCacaoSignature
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.generateId
 import okhttp3.*
