@@ -21,7 +21,6 @@ import java.io.File
 import java.security.KeyStore
 import com.walletconnect.android.internal.common.storage.KeyStore as WCKeyStore
 
-
 @JvmSynthetic
 internal fun coreCryptoModule() = module {
     val ANDROID_KEYSTORE = "AndroidKeyStore"
@@ -77,6 +76,7 @@ internal fun coreCryptoModule() = module {
         } catch (e: Exception) {
             get<Logger>(named(AndroidCommonDITags.LOGGER)).error(e)
             deleteSharedPreferences()
+            androidContext().databaseList().forEach { dbName -> deleteDBs(dbName) }
             createSharedPreferences()
         }
     }
