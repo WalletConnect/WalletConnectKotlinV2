@@ -26,7 +26,7 @@ sealed class EngineDO: EngineEvent {
 
         data class Requested(override val requestId: Long, override val peerPublicKey: String) : PushSubscription()
 
-        data class Responded(override val requestId: Long, override val peerPublicKey: String, val topic: String, val relay: RelayProtocolOptions, val metadata: AppMetaData?) : PushSubscription()
+        data class Responded(override val requestId: Long, override val peerPublicKey: String, val topic: String, val account: String, val relay: RelayProtocolOptions, val metadata: AppMetaData?) : PushSubscription()
     }
 
     data class PushRequestResponse(

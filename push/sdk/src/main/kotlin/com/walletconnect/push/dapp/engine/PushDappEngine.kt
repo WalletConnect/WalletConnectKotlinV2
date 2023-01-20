@@ -179,7 +179,7 @@ internal class PushDappEngine(
                     val pushRequestResponse = response.result as PushParams.RequestResponseParams
                     val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(pushRequestResponse.publicKey))
 
-                    val respondedSubscription = EngineDO.PushSubscription.Responded(wcResponse.response.id, pushRequestResponse.publicKey, pushTopic.value, RelayProtocolOptions(), params.metaData)
+                    val respondedSubscription = EngineDO.PushSubscription.Responded(wcResponse.response.id, pushRequestResponse.publicKey, pushTopic.value, params.account, RelayProtocolOptions(), params.metaData)
 
                     subscriptionStorageRepository.insertRespondedSubscription(respondedSubscription)
                     jsonRpcInteractor.subscribe(pushTopic)

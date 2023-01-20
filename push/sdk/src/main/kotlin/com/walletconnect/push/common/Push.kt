@@ -9,7 +9,7 @@ object Push {
 
         data class Message(val title: String, val body: String, val icon: String?, val url: String?): Wallet.Event()
 
-        data class Subscription(val requestId: Long, val topic: String, val relay: Relay, val metadata: Core.Model.AppMetaData?): Model() {
+        data class Subscription(val requestId: Long, val topic: String, val account: String, val relay: Relay, val metadata: Core.Model.AppMetaData?): Model() {
 
             data class Relay(val protocol: String, val data: String?)
         }

@@ -20,6 +20,7 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
             respondedSubscription.requestId,
             respondedSubscription.peerPublicKey,
             respondedSubscription.topic,
+            respondedSubscription.account,
             respondedSubscription.relay.protocol,
             respondedSubscription.relay.data,
             respondedSubscription.metadata?.name,
@@ -46,6 +47,7 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
         request_id: Long,
         peerPublicKey: String,
         topic: String?,
+        account: String?,
         relay_protocol: String?,
         relay_data: String?,
         metadata_name: String?,
@@ -54,7 +56,7 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
         metadata_icons: List<String>?,
         metadata_native: String?,
     ): EngineDO.PushSubscription {
-        return if (topic == null) {
+        return if (topic == null || account == null) {
             EngineDO.PushSubscription.Requested(request_id, peerPublicKey)
         } else {
             val metadata = if (metadata_name != null && metadata_description != null && metadata_url != null && metadata_icons != null && metadata_native != null) {
@@ -63,7 +65,7 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
                 null
             }
 
-            EngineDO.PushSubscription.Responded(request_id, peerPublicKey, topic, RelayProtocolOptions(relay_protocol ?: "irn", relay_data), metadata)
+            EngineDO.PushSubscription.Responded(request_id, peerPublicKey, topic, account, RelayProtocolOptions(relay_protocol ?: "irn", relay_data), metadata)
         }
     }
 }

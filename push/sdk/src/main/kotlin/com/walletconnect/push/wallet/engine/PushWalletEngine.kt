@@ -21,7 +21,6 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.JsonRpcMethod
 import com.walletconnect.push.common.PeerError
-import com.walletconnect.push.common.Push
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.model.toEngineDO
@@ -154,7 +153,8 @@ internal class PushWalletEngine(
             val codec = wcKoinApp.koin.get<Codec>()
             val decryptedMessageString = codec.decrypt(Topic(topic), message)
             // How to look in JsonRpcHistory for dupes without Rpc ID
-            val decryptedMessage = serializer.tryDeserialize<PushParams.MessageParams>(decryptedMessageString)?.toEngineDO() ?: return onError(IllegalArgumentException("Unable to deserialize message"))
+            val decryptedMessage =
+                serializer.tryDeserialize<PushParams.MessageParams>(decryptedMessageString)?.toEngineDO() ?: return onError(IllegalArgumentException("Unable to deserialize message"))
             onSuccess(decryptedMessage)
         } catch (e: Exception) {
             onError(e)
