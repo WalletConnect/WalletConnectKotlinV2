@@ -6,7 +6,7 @@ const val KEY_SDK_NAME = "SDK_NAME"
 
 //Latest versions
 const val BOM_VERSION = "1.4.0"
-const val FOUNDATION_VERSION = "1.3.0"
+const val FOUNDATION_VERSION = "1.4.0"
 const val CORE_VERSION = "1.9.0"
 const val SIGN_VERSION = "2.7.0"
 const val AUTH_VERSION = "1.7.0"
