@@ -1,11 +1,11 @@
 package com.walletconnect.auth.di
 
+import com.walletconnect.android.internal.common.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.auth.engine.domain.AuthEngine
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.auth.json_rpc.domain.GetResponseByIdUseCase
-import com.walletconnect.auth.signature.cacao.CacaoVerifier
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 

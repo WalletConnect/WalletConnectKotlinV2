@@ -1,6 +1,6 @@
-package com.walletconnect.auth.signature.eip191
+package com.walletconnect.android.internal.common.cacao.eip191
 
-import com.walletconnect.auth.signature.Signature
+import com.walletconnect.android.internal.common.cacao.signature.Signature
 import com.walletconnect.util.hexToBytes
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
