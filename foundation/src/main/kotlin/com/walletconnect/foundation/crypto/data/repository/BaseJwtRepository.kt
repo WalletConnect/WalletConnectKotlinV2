@@ -6,7 +6,6 @@ import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.crypto.data.repository.model.IrnJWTHeader
 import com.walletconnect.foundation.crypto.data.repository.model.IrnJWTPayload
-import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
 import com.walletconnect.util.randomBytes
