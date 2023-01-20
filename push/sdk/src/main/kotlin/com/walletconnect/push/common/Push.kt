@@ -64,6 +64,8 @@ object Push {
 
             data class Reject(val id: Long, val reason: String): Params()
 
+            data class MessageHistory(val topic: String): Params()
+
             data class Delete(val topic: String): Params()
 
             data class DecryptMessage(val topic: String, val encryptedMessage: String): Params()

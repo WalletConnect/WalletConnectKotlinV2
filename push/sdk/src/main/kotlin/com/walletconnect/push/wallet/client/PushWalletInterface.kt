@@ -23,6 +23,8 @@ interface PushWalletInterface {
 
     fun getActiveSubscriptions(): Map<String, Push.Model.Subscription>
 
+    fun getMessageHistory(params: Push.Wallet.Params.MessageHistory): Map<String, Push.Model.Subscription>
+
     fun delete(params: Push.Wallet.Params.Delete, onError: (Push.Model.Error) -> Unit)
 
     fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (Push.Model.Message) -> Unit, onError: (Push.Model.Error) -> Unit)

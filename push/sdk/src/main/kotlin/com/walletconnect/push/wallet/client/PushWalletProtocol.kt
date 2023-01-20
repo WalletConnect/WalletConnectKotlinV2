@@ -79,6 +79,14 @@ class PushWalletProtocol : PushWalletInterface {
         }
     }
 
+    override fun getMessageHistory(params: Push.Wallet.Params.MessageHistory): Map<String, Push.Model.Subscription> {
+        checkEngineInitialization()
+
+        return pushWalletEngine.getListOfActiveSubscriptions()
+            .filterKeys { topic -> topic == params.topic }
+            .mapValues { (_, subscription) -> subscription.toClient() }
+    }
+
     override fun delete(params: Push.Wallet.Params.Delete, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
