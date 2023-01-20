@@ -11,10 +11,12 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.di.DBNames
 import com.walletconnect.android.internal.common.di.baseStorageModule
 import com.walletconnect.android.internal.common.di.deleteDBs
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.randomBytes
 import net.sqlcipher.database.SupportFactory
 import org.koin.android.ext.koin.androidContext
@@ -46,6 +48,7 @@ private val keyGenParameterSpec: KeyGenParameterSpec =
         .setKeySize(KEY_SIZE)
         .build()
 
+@Synchronized
 private fun Scope.createSharedPreferences(): SharedPreferences {
     val masterKey = MasterKey.Builder(androidContext(), KEYSTORE_ALIAS)
         .setKeyGenParameterSpec(keyGenParameterSpec)
@@ -60,21 +63,27 @@ private fun Scope.createSharedPreferences(): SharedPreferences {
     )
 }
 
+@Synchronized
 private fun Scope.deleteSharedPreferences() {
-    androidContext().run {
-        if (getSharedPreferences(SHARED_PREFS_FILENAME, Context.MODE_PRIVATE) != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                deleteSharedPreferences(SHARED_PREFS_FILENAME)
-            } else {
-                getSharedPreferences(SHARED_PREFS_FILENAME, Context.MODE_PRIVATE)?.edit()?.clear()?.apply()
-                val dir = File(applicationInfo.dataDir, "shared_prefs")
-                File(dir, "$SHARED_PREFS_FILENAME.xml").delete()
+    try {
+        androidContext().run {
+            if (getSharedPreferences(SHARED_PREFS_FILENAME, Context.MODE_PRIVATE) != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    deleteSharedPreferences(SHARED_PREFS_FILENAME)
+                } else {
+                    getSharedPreferences(SHARED_PREFS_FILENAME, Context.MODE_PRIVATE).edit().clear().apply()
+                    val dir = File(applicationInfo.dataDir, "shared_prefs")
+                    File(dir, "$SHARED_PREFS_FILENAME.xml").delete()
+                }
             }
         }
+        keyStore.deleteEntry(KEYSTORE_ALIAS)
+    } catch (e: Exception) {
+        get<Logger>(named(AndroidCommonDITags.LOGGER)).error("Occurred when trying to reset encrypted shared prefs: $e")
     }
-    keyStore.deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
 }
 
+@Synchronized
 private fun getSecretKey(): SecretKey {
     return (keyStore.getEntry(keyGenParameterSpec.keystoreAlias, null) as? KeyStore.SecretKeyEntry)?.secretKey ?: KeyGenerator.getInstance(
         KeyProperties.KEY_ALGORITHM_AES,
@@ -85,8 +94,8 @@ private fun getSecretKey(): SecretKey {
     }
 }
 
+@Synchronized
 private fun signingModule() = module {
-
     single<ByteArray>(named(AndroidCoreDITags.DB_PASSPHRASE)) {
         val SP_ENCRYPTED_KEY = "encryptedDBKey"
         val sharedPreferences: SharedPreferences = try {
