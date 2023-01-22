@@ -29,14 +29,14 @@ const val keystoreAlias = "wc_keystore_key"
 internal fun coreCryptoModule() = module {
 
     @Synchronized
-    fun Scope.createSharedPreferences(fileName: String, keyAlias: String): SharedPreferences {
-        val masterKey = MasterKey.Builder(androidContext(), keyAlias)
+    fun Scope.createSharedPreferences(): SharedPreferences {
+        val masterKey = MasterKey.Builder(androidContext(), keystoreAlias)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
 
         return EncryptedSharedPreferences.create(
             androidContext(),
-            fileName,
+            keystoreAlias,
             masterKey,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
@@ -72,12 +72,12 @@ internal fun coreCryptoModule() = module {
 
     single {
         try {
-            createSharedPreferences(sharedPrefsFile, keystoreAlias)
+            createSharedPreferences()
         } catch (e: Exception) {
             get<Logger>(named(AndroidCommonDITags.LOGGER)).error(e)
             deleteSharedPreferences()
             deleteMasterKey()
-            createSharedPreferences(sharedPrefsFile, keystoreAlias)
+            createSharedPreferences()
         }
     }
 
