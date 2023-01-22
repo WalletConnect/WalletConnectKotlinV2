@@ -21,21 +21,22 @@ import java.io.File
 import java.security.KeyStore
 import com.walletconnect.android.internal.common.storage.KeyStore as WCKeyStore
 
+const val androidKeyStore = "AndroidKeyStore"
+const val sharedPrefsFile = "wc_key_store"
+const val keystoreAlias = "wc_keystore_key"
+
 @JvmSynthetic
 internal fun coreCryptoModule() = module {
-    val ANDROID_KEYSTORE = "AndroidKeyStore"
-    val keystoreAlias = "wc_keystore_key"
-    val sharedPrefsFile = "wc_key_store"
 
     @Synchronized
-    fun Scope.createSharedPreferences(): SharedPreferences {
-        val masterKey = MasterKey.Builder(androidContext(), keystoreAlias)
+    fun Scope.createSharedPreferences(fileName: String, keyAlias: String): SharedPreferences {
+        val masterKey = MasterKey.Builder(androidContext(), keyAlias)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
 
         return EncryptedSharedPreferences.create(
             androidContext(),
-            sharedPrefsFile,
+            fileName,
             masterKey,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
@@ -44,7 +45,7 @@ internal fun coreCryptoModule() = module {
 
     @Synchronized
     fun deleteMasterKey() {
-        KeyStore.getInstance(ANDROID_KEYSTORE).run {
+        KeyStore.getInstance(androidKeyStore).run {
             load(null)
             deleteEntry(keystoreAlias)
         }
@@ -64,7 +65,6 @@ internal fun coreCryptoModule() = module {
                     }
                 }
             }
-            deleteMasterKey()
         } catch (e: Exception) {
             get<Logger>(named(AndroidCommonDITags.LOGGER)).error("Occurred when trying to reset encrypted shared prefs: $e")
         }
@@ -72,12 +72,12 @@ internal fun coreCryptoModule() = module {
 
     single {
         try {
-            createSharedPreferences()
+            createSharedPreferences(sharedPrefsFile, keystoreAlias)
         } catch (e: Exception) {
             get<Logger>(named(AndroidCommonDITags.LOGGER)).error(e)
             deleteSharedPreferences()
-            androidContext().databaseList().forEach { dbName -> deleteDBs(dbName) }
-            createSharedPreferences()
+            deleteMasterKey()
+            createSharedPreferences(sharedPrefsFile, keystoreAlias)
         }
     }
 

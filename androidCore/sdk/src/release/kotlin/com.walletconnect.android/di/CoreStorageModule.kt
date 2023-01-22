@@ -14,7 +14,6 @@ import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.di.DBNames
 import com.walletconnect.android.internal.common.di.baseStorageModule
-import com.walletconnect.android.internal.common.di.deleteDBs
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.randomBytes
@@ -102,7 +101,6 @@ private fun signingModule() = module {
             createSharedPreferences()
         } catch (e: Exception) {
             deleteSharedPreferences()
-            androidContext().databaseList().forEach { dbName -> deleteDBs(dbName) }
             createSharedPreferences()
         }
         val encryptedDBKeyFromStore: ByteArray? = sharedPreferences.getString(SP_ENCRYPTED_KEY, null)?.let { encryptedDBKey ->

@@ -56,7 +56,7 @@ dependencies {
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 
     retrofit()
-
+    moshiKsp()
     androidXTest()
     jUnit5()
     jUnit5Android()
