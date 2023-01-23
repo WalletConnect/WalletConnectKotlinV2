@@ -36,7 +36,7 @@ internal fun coreCryptoModule() = module {
 
         return EncryptedSharedPreferences.create(
             androidContext(),
-            keystoreAlias,
+            sharedPrefsFile,
             masterKey,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
