@@ -41,7 +41,7 @@ fun baseStorageModule() = module {
         try {
             createCoreDB().also { database -> database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull() }
         } catch (e: Exception) {
-            deleteDBs(DBNames.ANDROID_CORE_DB_NAME)
+            deleteDatabase(Database.ANDROID_CORE_DB_NAME)
             createCoreDB()
         }
     }
@@ -59,12 +59,23 @@ fun baseStorageModule() = module {
     single { JsonRpcHistory(get(), get()) }
 }
 
-object DBNames {
-    const val ANDROID_CORE_DB_NAME = "WalletConnectAndroidCore.db"
 
-    fun getSdkDBName(storageSuffix: String) = "WalletConnectV2$storageSuffix.db"
+object Database {
+    const val ANDROID_CORE_DB_NAME = "WalletConnectAndroidCore.db"
+    const val SIGN_SDK_DB_NAME = "WalletConnectV2.db"
+    const val CHAT_SDK_DB_NAME = "WalletConnectV2_chat.db"
+
+    val dbNames: List<String> = listOf(ANDROID_CORE_DB_NAME, SIGN_SDK_DB_NAME, CHAT_SDK_DB_NAME)
 }
 
-fun Scope.deleteDBs(dbName: String) {
+fun Scope.deleteDatabase(dbName: String) {
     androidContext().deleteDatabase(dbName)
+}
+
+fun Scope.deleteDatabases() {
+    androidContext().databaseList().forEach { dbName ->
+        if (Database.dbNames.contains(dbName)) {
+            deleteDatabase(dbName)
+        }
+    }
 }

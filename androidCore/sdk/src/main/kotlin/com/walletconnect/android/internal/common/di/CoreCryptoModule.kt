@@ -21,22 +21,22 @@ import java.io.File
 import java.security.KeyStore
 import com.walletconnect.android.internal.common.storage.KeyStore as WCKeyStore
 
-const val androidKeyStore = "AndroidKeyStore"
-const val sharedPrefsFile = "wc_key_store"
-const val keystoreAlias = "wc_keystore_key"
+private const val ANDROID_KEY_STORE = "AndroidKeyStore"
+private const val SHARED_PREFS_FILE = "wc_key_store"
+private const val KEY_STORE_ALIAS = "wc_keystore_key"
 
 @JvmSynthetic
 internal fun coreCryptoModule() = module {
 
     @Synchronized
     fun Scope.createSharedPreferences(): SharedPreferences {
-        val masterKey = MasterKey.Builder(androidContext(), keystoreAlias)
+        val masterKey = MasterKey.Builder(androidContext(), KEY_STORE_ALIAS)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
 
         return EncryptedSharedPreferences.create(
             androidContext(),
-            sharedPrefsFile,
+            SHARED_PREFS_FILE,
             masterKey,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
@@ -45,9 +45,9 @@ internal fun coreCryptoModule() = module {
 
     @Synchronized
     fun deleteMasterKey() {
-        KeyStore.getInstance(androidKeyStore).run {
+        KeyStore.getInstance(ANDROID_KEY_STORE).run {
             load(null)
-            deleteEntry(keystoreAlias)
+            deleteEntry(KEY_STORE_ALIAS)
         }
     }
 
@@ -55,13 +55,13 @@ internal fun coreCryptoModule() = module {
     fun Scope.deleteSharedPreferences() {
         try {
             androidContext().run {
-                if (getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE) != null) {
+                if (getSharedPreferences(SHARED_PREFS_FILE, Context.MODE_PRIVATE) != null) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        deleteSharedPreferences(sharedPrefsFile)
+                        deleteSharedPreferences(SHARED_PREFS_FILE)
                     } else {
-                        getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE).edit().clear().apply()
+                        getSharedPreferences(SHARED_PREFS_FILE, Context.MODE_PRIVATE).edit().clear().apply()
                         val dir = File(applicationInfo.dataDir, "shared_prefs")
-                        File(dir, "$sharedPrefsFile.xml").delete()
+                        File(dir, "$SHARED_PREFS_FILE.xml").delete()
                     }
                 }
             }
@@ -77,6 +77,7 @@ internal fun coreCryptoModule() = module {
             get<Logger>(named(AndroidCommonDITags.LOGGER)).error(e)
             deleteSharedPreferences()
             deleteMasterKey()
+            deleteDatabases()
             createSharedPreferences()
         }
     }
