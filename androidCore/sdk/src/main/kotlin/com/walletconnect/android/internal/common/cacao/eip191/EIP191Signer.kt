@@ -1,7 +1,7 @@
-package com.walletconnect.auth.signature.eip191
+package com.walletconnect.android.internal.common.cacao.eip191
 
-import com.walletconnect.auth.signature.Signature
-import com.walletconnect.auth.signature.toSignature
+import com.walletconnect.android.internal.common.cacao.signature.Signature
+import com.walletconnect.android.internal.common.cacao.signature.toSignature
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Sign
 
