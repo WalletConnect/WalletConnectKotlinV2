@@ -7,7 +7,6 @@ import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.storage.*
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.android.sdk.storage.data.dao.MetaData
-import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
@@ -41,7 +40,7 @@ fun baseStorageModule() = module {
         try {
             createCoreDB().also { database -> database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull() }
         } catch (e: Exception) {
-            deleteDatabase(Database.ANDROID_CORE_DB_NAME)
+            deleteDatabase(DBUtils.ANDROID_CORE_DB_NAME)
             createCoreDB()
         }
     }
@@ -57,25 +56,4 @@ fun baseStorageModule() = module {
     single<PairingStorageRepositoryInterface> { PairingStorageRepository(get()) }
 
     single { JsonRpcHistory(get(), get()) }
-}
-
-
-object Database {
-    const val ANDROID_CORE_DB_NAME = "WalletConnectAndroidCore.db"
-    const val SIGN_SDK_DB_NAME = "WalletConnectV2.db"
-    const val CHAT_SDK_DB_NAME = "WalletConnectV2_chat.db"
-
-    val dbNames: List<String> = listOf(ANDROID_CORE_DB_NAME, SIGN_SDK_DB_NAME, CHAT_SDK_DB_NAME)
-}
-
-fun Scope.deleteDatabase(dbName: String) {
-    androidContext().deleteDatabase(dbName)
-}
-
-fun Scope.deleteDatabases() {
-    androidContext().databaseList().forEach { dbName ->
-        if (Database.dbNames.contains(dbName)) {
-            deleteDatabase(dbName)
-        }
-    }
 }

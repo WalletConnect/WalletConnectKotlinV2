@@ -2,7 +2,7 @@ package com.walletconnect.android.di
 
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
-import com.walletconnect.android.internal.common.di.Database
+import com.walletconnect.android.internal.common.di.DBUtils
 import com.walletconnect.android.internal.common.di.baseStorageModule
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import org.koin.android.ext.koin.androidContext
@@ -17,7 +17,7 @@ fun coreStorageModule() = module {
         AndroidSqliteDriver(
             schema = AndroidCoreDatabase.Schema,
             context = androidContext(),
-            name = Database.ANDROID_CORE_DB_NAME,
+            name = DBUtils.ANDROID_CORE_DB_NAME,
         )
     }
 }
