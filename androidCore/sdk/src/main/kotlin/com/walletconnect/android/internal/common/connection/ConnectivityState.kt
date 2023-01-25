@@ -16,34 +16,31 @@ internal class ConnectivityState(context: Context) {
 
     private val _isAvailable = MutableStateFlow(false)
     val isAvailable: StateFlow<Boolean> = _isAvailable.asStateFlow()
+    private val networks: MutableSet<Network> = mutableSetOf()
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
 
         override fun onAvailable(network: Network) {
-            updateIfStateChanged(network)
-        }
-
-        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
-            updateIfStateChanged(network)
+            setAvailability(network.isCapable(), onAvailable = { networks.add(network) })
         }
 
         override fun onLost(network: Network) {
-            updateIfStateChanged(network)
+            setAvailability(networks.isNotEmpty(), onLost = { networks.remove(network) })
         }
     }
 
-    private fun updateIfStateChanged(network: Network) {
-        val isNowConnected = isNowConnected(network)
-
-        if (isNowConnected) {
+    fun setAvailability(isAvailable: Boolean, onAvailable: () -> Unit = {}, onLost: () -> Unit = {}) {
+        onLost()
+        if (isAvailable) {
+            onAvailable()
             _isAvailable.compareAndSet(expect = false, update = true)
         } else {
             _isAvailable.compareAndSet(expect = true, update = false)
         }
     }
 
-    private fun isNowConnected(network: Network): Boolean {
-        return connectivityManager.getNetworkCapabilities(network)?.run {
+    private fun Network.isCapable(): Boolean {
+        return connectivityManager.getNetworkCapabilities(this)?.run {
             hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) &&
                     (hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) || hasTransport(NetworkCapabilities.TRANSPORT_WIFI))
         } ?: false
