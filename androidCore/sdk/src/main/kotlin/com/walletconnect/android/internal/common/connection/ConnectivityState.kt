@@ -21,21 +21,22 @@ internal class ConnectivityState(context: Context) {
     private val callback = object : ConnectivityManager.NetworkCallback() {
 
         override fun onAvailable(network: Network) {
-            setAvailability(network.isCapable(), onAvailable = { networks.add(network) })
+            if (network.isCapable()) {
+                networks.add(network)
+                _isAvailable.compareAndSet(expect = false, update = true)
+            } else {
+                _isAvailable.compareAndSet(expect = true, update = false)
+            }
         }
 
         override fun onLost(network: Network) {
-            setAvailability(networks.isNotEmpty(), onLost = { networks.remove(network) })
-        }
-    }
+            networks.remove(network)
 
-    fun setAvailability(isAvailable: Boolean, onAvailable: () -> Unit = {}, onLost: () -> Unit = {}) {
-        onLost()
-        if (isAvailable) {
-            onAvailable()
-            _isAvailable.compareAndSet(expect = false, update = true)
-        } else {
-            _isAvailable.compareAndSet(expect = true, update = false)
+            if (networks.isNotEmpty()) {
+                _isAvailable.compareAndSet(expect = false, update = true)
+            } else {
+                _isAvailable.compareAndSet(expect = true, update = false)
+            }
         }
     }
 
