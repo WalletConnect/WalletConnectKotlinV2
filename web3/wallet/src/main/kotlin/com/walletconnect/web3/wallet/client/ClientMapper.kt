@@ -114,6 +114,7 @@ internal fun List<Auth.Model.PendingRequest>.toWallet(): List<Wallet.Model.Pendi
 @JvmSynthetic
 internal fun Sign.Model.SessionProposal.toWallet(): Wallet.Model.SessionProposal =
     Wallet.Model.SessionProposal(
+        pairingTopic,
         name,
         description,
         url,

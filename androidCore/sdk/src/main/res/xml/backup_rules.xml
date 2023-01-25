@@ -8,6 +8,9 @@
         path="wc_key_store.xml" />
     <exclude
         domain="sharedpref"
+        path="wc_keystore_key.xml" />
+    <exclude
+        domain="sharedpref"
         path="db_key_store.xml" />
     <exclude
         domain="database"

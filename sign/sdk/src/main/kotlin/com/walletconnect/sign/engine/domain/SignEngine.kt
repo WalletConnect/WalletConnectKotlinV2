@@ -540,7 +540,7 @@ internal class SignEngine(
                     AppMetaDataType.PEER
                 )
             )
-            scope.launch { _engineEvent.emit(payloadParams.toEngineDO()) }
+            scope.launch { _engineEvent.emit(payloadParams.toEngineDO(request.topic)) }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
                 request,

@@ -28,7 +28,7 @@ class DappSampleApplication : Application() {
                 icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media"),
                 redirect = "kotlin-dapp-wc:/request"
             )
-        ) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
+        ) { error -> Log.e(tag(this),error.throwable.stackTraceToString()) }
 
         val initParams = Sign.Params.Init(core = CoreClient)
 

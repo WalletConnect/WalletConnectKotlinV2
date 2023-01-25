@@ -79,6 +79,13 @@ class ValidatorTest {
         const val SOME_EVENT = "someEvent"
     }
 
+    @Test
+    fun `Allow empty namespaces`() {
+        val namespaces = emptyMap<String, NamespaceVO.Proposal>()
+        var errorMessage: String? = null
+        SignValidator.validateProposalNamespace(namespaces) { error -> errorMessage = error.message }
+        assertNull(errorMessage)
+    }
 
     @Test
     fun `Proposal Namespaces MUST NOT have chains empty`() {
@@ -165,6 +172,26 @@ class ValidatorTest {
         SignValidator.validateProposalNamespace(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_KEYS_CAIP_2_MESSAGE, errorMessage)
+    }
+
+    @Test
+    fun `Session Namespaces when Proposal Namespaces are empty`() {
+        val proposalNamespaces = emptyMap<String, NamespaceVO.Proposal>()
+
+        val sessionNamespaces = mapOf(
+            COSMOS to NamespaceVO.Session(
+                accounts = listOf(COSMOSHUB_4_1), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), extensions = null
+            ),
+            EIP155 to NamespaceVO.Session(
+                accounts = listOf(ETHEREUM_1),
+                methods = listOf(ETH_SIGN),
+                events = listOf(ACCOUNTS_CHANGED),
+                extensions = null
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateSessionNamespace(sessionNamespaces, proposalNamespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
     }
 
     @Test

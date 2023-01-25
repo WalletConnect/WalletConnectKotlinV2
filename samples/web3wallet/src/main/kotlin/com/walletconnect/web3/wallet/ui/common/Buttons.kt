@@ -19,7 +19,6 @@ fun Buttons(modifier: Modifier = Modifier, onDecline: () -> Unit = {}, onAllow: 
             modifier = Modifier
                 .weight(1f)
                 .height(46.dp)
-                .clip(RoundedCornerShape(20.dp))
                 .clickable { onDecline() }
         )
         Spacer(modifier = Modifier.width(20.dp))
@@ -27,7 +26,6 @@ fun Buttons(modifier: Modifier = Modifier, onDecline: () -> Unit = {}, onAllow: 
             modifier = Modifier
                 .weight(1f)
                 .height(46.dp)
-                .clip(RoundedCornerShape(20.dp))
                 .clickable { onAllow() }
         )
         Spacer(modifier = Modifier.width(20.dp))

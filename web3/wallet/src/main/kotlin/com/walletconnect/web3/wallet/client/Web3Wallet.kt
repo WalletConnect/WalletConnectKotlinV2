@@ -9,7 +9,7 @@ import com.walletconnect.sign.client.SignClient
 
 object Web3Wallet {
 
-    lateinit var coreClient: CoreClient
+    private lateinit var coreClient: CoreClient
 
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal)
@@ -86,50 +86,78 @@ object Web3Wallet {
     }
 
     @Throws(IllegalStateException::class)
-    fun pair(params: Wallet.Params.Pair, onError: (Wallet.Model.Error) -> Unit = {}) {
-        coreClient.Pairing.pair(Core.Params.Pair(params.uri)) { error -> onError(Wallet.Model.Error(error.throwable)) }
+    fun pair(params: Wallet.Params.Pair, onSuccess: (Wallet.Params.Pair) -> Unit = {}, onError: (Wallet.Model.Error) -> Unit = {}) {
+        coreClient.Pairing.pair(Core.Params.Pair(params.uri), { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
-    fun approveSession(params: Wallet.Params.SessionApprove, onError: (Wallet.Model.Error) -> Unit) {
+    fun approveSession(
+        params: Wallet.Params.SessionApprove,
+        onSuccess: (Wallet.Params.SessionApprove) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
         val signParams = Sign.Params.Approve(params.proposerPublicKey, params.namespaces.toSign(), params.relayProtocol)
-        SignClient.approveSession(signParams) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        SignClient.approveSession(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
-    fun rejectSession(params: Wallet.Params.SessionReject, onError: (Wallet.Model.Error) -> Unit) {
+    fun rejectSession(
+        params: Wallet.Params.SessionReject,
+        onSuccess: (Wallet.Params.SessionReject) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
         val signParams = Sign.Params.Reject(params.proposerPublicKey, params.reason)
-        SignClient.rejectSession(signParams) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        SignClient.rejectSession(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
-    fun updateSession(params: Wallet.Params.SessionUpdate, onError: (Wallet.Model.Error) -> Unit) {
+    fun updateSession(
+        params: Wallet.Params.SessionUpdate,
+        onSuccess: (Wallet.Params.SessionUpdate) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
         val signParams = Sign.Params.Update(params.sessionTopic, params.namespaces.toSign())
-        SignClient.update(signParams) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        SignClient.update(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
-    fun extendSession(params: Wallet.Params.SessionExtend, onError: (Wallet.Model.Error) -> Unit) {
+    fun extendSession(
+        params: Wallet.Params.SessionExtend,
+        onSuccess: (Wallet.Params.SessionExtend) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
         val signParams = Sign.Params.Extend(params.topic)
-        SignClient.extend(signParams) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        SignClient.extend(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
-    fun respondSessionRequest(params: Wallet.Params.SessionRequestResponse, onError: (Wallet.Model.Error) -> Unit) {
+    fun respondSessionRequest(
+        params: Wallet.Params.SessionRequestResponse,
+        onSuccess: (Wallet.Params.SessionRequestResponse) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
         val signParams = Sign.Params.Response(params.sessionTopic, params.jsonRpcResponse.toSign())
-        SignClient.respond(signParams) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        SignClient.respond(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
-    fun emitSessionEvent(params: Wallet.Params.SessionEmit, onError: (Wallet.Model.Error) -> Unit) {
+    fun emitSessionEvent(
+        params: Wallet.Params.SessionEmit,
+        onSuccess: (Wallet.Params.SessionEmit) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
         val signParams = Sign.Params.Emit(params.topic, params.event.toSign(), params.chainId)
-        SignClient.emit(signParams) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        SignClient.emit(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
-    fun disconnectSession(params: Wallet.Params.SessionDisconnect, onError: (Wallet.Model.Error) -> Unit) {
+    fun disconnectSession(
+        params: Wallet.Params.SessionDisconnect,
+        onSuccess: (Wallet.Params.SessionDisconnect) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
         val signParams = Sign.Params.Disconnect(params.sessionTopic)
-        SignClient.disconnect(signParams) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        SignClient.disconnect(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
@@ -139,8 +167,12 @@ object Web3Wallet {
     }
 
     @Throws(IllegalStateException::class)
-    fun respondAuthRequest(params: Wallet.Params.AuthRequestResponse, onError: (Wallet.Model.Error) -> Unit) {
-        AuthClient.respond(params.toAuth()) { error -> onError(Wallet.Model.Error(error.throwable)) }
+    fun respondAuthRequest(
+        params: Wallet.Params.AuthRequestResponse,
+        onSuccess: (Wallet.Params.AuthRequestResponse) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
+        AuthClient.respond(params.toAuth(), { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)

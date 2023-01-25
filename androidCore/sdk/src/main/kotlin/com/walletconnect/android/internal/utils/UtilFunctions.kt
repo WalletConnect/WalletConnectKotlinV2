@@ -5,7 +5,7 @@ package com.walletconnect.utils
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
 import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
-import org.koin.core.module.KoinDefinition
+import org.koin.core.definition.KoinDefinition
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.ext.getFullName
