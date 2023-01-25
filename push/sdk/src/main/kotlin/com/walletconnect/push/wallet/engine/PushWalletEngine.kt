@@ -2,6 +2,7 @@
 
 package com.walletconnect.push.wallet.engine
 
+import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.GenericException
@@ -140,7 +141,11 @@ internal class PushWalletEngine(
         jsonRpcInteractor.unsubscribe(Topic(topic))
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, request,
             onSuccess = {
-                logger.log("Delete sent successfully")
+                CoreClient.Echo.unregister({
+                    logger.log("Delete sent successfully")
+                }, {
+                    onFailure(it)
+                })
             },
             onFailure = {
                 onFailure(it)
