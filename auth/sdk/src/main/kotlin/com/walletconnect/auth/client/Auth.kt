@@ -1,7 +1,8 @@
 package com.walletconnect.auth.client
 
 import com.walletconnect.android.CoreClient
-import com.walletconnect.auth.common.model.Issuer
+import com.walletconnect.android.cacao.SignatureInterface
+import com.walletconnect.android.internal.common.cacao.Issuer
 
 object Auth {
 
@@ -53,7 +54,7 @@ object Auth {
             val payload: Payload,
             val signature: Signature,
         ) : Model() {
-            data class Signature(val t: String, val s: String, val m: String? = null) : Model()
+            data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
             data class Header(val t: String) : Model()
             data class Payload(
                 val iss: String,

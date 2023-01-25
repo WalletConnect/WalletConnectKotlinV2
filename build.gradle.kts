@@ -17,6 +17,7 @@ buildscript {
         classpath("org.jetbrains.dokka:dokka-gradle-plugin:$dokkaVersion")
         classpath("com.squareup.sqldelight:gradle-plugin:$sqlDelightVersion")
         classpath("com.google.gms:google-services:$googleServiceVersion")
+        classpath("com.google.firebase:firebase-crashlytics-gradle:2.9.2")
     }
 }
 
