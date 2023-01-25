@@ -262,7 +262,8 @@ internal class SignEngine(
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
 
-        if (CoreValidator.isExpiryNotWithinBounds(request.expiry) ) {
+        val now = Date().time
+        if (CoreValidator.isExpiryNotWithinBounds(request.expiry, now) ) {
             return onFailure(InvalidExpiryException())
         }
 
@@ -279,7 +280,7 @@ internal class SignEngine(
         val sessionPayload = SignRpc.SessionRequest(id = generateId(), params = params)
         val irnParamsTtl = request.expiry?.run {
             val defaultTtl = FIVE_MINUTES_IN_SECONDS
-            val extractedTtl = seconds - Date().time
+            val extractedTtl = seconds - now
             val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
 
             Ttl(newTtl)
@@ -293,15 +294,6 @@ internal class SignEngine(
             onSuccess = {
                 logger.log("Session request sent successfully")
                 onSuccess()
-                scope.launch {
-                    try {
-                        withTimeout(FIVE_MINUTES_TIMEOUT) {
-                            collectResponse(sessionPayload.id) { cancel() }
-                        }
-                    } catch (e: TimeoutCancellationException) {
-                        onFailure(e)
-                    }
-                }
             },
             onFailure = { error ->
                 logger.error("Sending session request error: $error")

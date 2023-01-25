@@ -102,7 +102,8 @@ internal class AuthEngine(
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        if (CoreValidator.isExpiryNotWithinBounds(expiry)) {
+        val now = Date().time
+        if (CoreValidator.isExpiryNotWithinBounds(expiry, now)) {
             return onFailure(InvalidExpiryException())
         }
 
@@ -112,7 +113,7 @@ internal class AuthEngine(
         val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
         val irnParamsTtl = expiry?.run {
             val defaultTtl = DAY_IN_SECONDS
-            val extractedTtl = seconds - Date().time
+            val extractedTtl = seconds - now
             val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
 
             Ttl(newTtl)

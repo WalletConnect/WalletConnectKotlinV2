@@ -26,11 +26,11 @@ object CoreValidator {
     }
 
     @JvmSynthetic
-    fun isExpiryNotWithinBounds(userExpiry: Expiry?): Boolean =
+    fun isExpiryNotWithinBounds(userExpiry: Expiry?, now: Long = Date().time): Boolean =
         userExpiry?.seconds?.run {
-            val remainder = this - Date().time
+            val remainder = this - now
 
-            this < 0 || !(FIVE_MINUTES_IN_SECONDS..WEEK_IN_SECONDS).contains(remainder)
+            remainder < 0 || !(FIVE_MINUTES_IN_SECONDS..WEEK_IN_SECONDS).contains(remainder)
         } ?: false
 
     const val NAMESPACE_REGEX: String = "^[-a-z0-9]{3,8}$"
