@@ -6,10 +6,8 @@ import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.*
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
-import com.walletconnect.android.internal.common.exception.GenericException
-import com.walletconnect.android.internal.common.exception.Reason
-import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
@@ -46,6 +44,7 @@ import com.walletconnect.utils.extractTimestamp
 import com.walletconnect.utils.isSequenceValid
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import java.util.*
 
 internal class SignEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -263,6 +262,10 @@ internal class SignEngine(
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
 
+        if (CoreValidator.isExpiryNotWithinBounds(request.expiry) ) {
+            return onFailure(InvalidExpiryException())
+        }
+
         SignValidator.validateSessionRequest(request) { error ->
             throw InvalidRequestException(error.message)
         }
@@ -274,7 +277,14 @@ internal class SignEngine(
 
         val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
         val sessionPayload = SignRpc.SessionRequest(id = generateId(), params = params)
-        val irnParams = IrnParams(Tags.SESSION_REQUEST, Ttl(FIVE_MINUTES_IN_SECONDS), true)
+        val irnParamsTtl = request.expiry?.run {
+            val defaultTtl = FIVE_MINUTES_IN_SECONDS
+            val extractedTtl = seconds - Date().time
+            val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
+
+            Ttl(newTtl)
+        } ?: Ttl(FIVE_MINUTES_IN_SECONDS)
+        val irnParams = IrnParams(Tags.SESSION_REQUEST, irnParamsTtl, true)
 
         jsonRpcInteractor.publishJsonRpcRequest(
             Topic(request.topic),
@@ -626,7 +636,13 @@ internal class SignEngine(
     // listened by WalletDelegate
     private fun onSessionRequest(request: WCRequest, params: SignParams.SessionRequestParams) {
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+
         try {
+            if (CoreValidator.isExpiryNotWithinBounds(params.request.expiry)) {
+                jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+                return
+            }
+
             SignValidator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return

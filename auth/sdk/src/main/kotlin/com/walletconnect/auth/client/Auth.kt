@@ -98,6 +98,7 @@ object Auth {
             val statement: String?,
             val requestId: String?,
             val resources: List<String>?,
+            val expiry: Long? = null
         ) : Params()
 
         sealed class Respond : Params() {

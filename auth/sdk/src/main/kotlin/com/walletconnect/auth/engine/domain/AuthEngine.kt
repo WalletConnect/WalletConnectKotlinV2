@@ -35,6 +35,8 @@ import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdU
 import com.walletconnect.auth.json_rpc.model.JsonRpcMethod
 import com.walletconnect.android.internal.common.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.cacao.Issuer
+import com.walletconnect.android.internal.common.exception.Invalid
+import com.walletconnect.android.internal.common.exception.InvalidExpiryException
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -45,6 +47,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import java.util.*
 
 internal class AuthEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -94,15 +97,27 @@ internal class AuthEngine(
 
     internal fun request(
         payloadParams: PayloadParams,
+        expiry: Expiry? = null,
         topic: String,
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
+        if (CoreValidator.isExpiryNotWithinBounds(expiry)) {
+            return onFailure(InvalidExpiryException())
+        }
+
         val responsePublicKey: PublicKey = crypto.generateKeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
-        val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams)
+        val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams, expiry)
         val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
-        val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
+        val irnParamsTtl = expiry?.run {
+            val defaultTtl = DAY_IN_SECONDS
+            val extractedTtl = seconds - Date().time
+            val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
+
+            Ttl(newTtl)
+        } ?: Ttl(DAY_IN_SECONDS)
+        val irnParams = IrnParams(Tags.AUTH_REQUEST, irnParamsTtl, true)
         val pairingTopic = Topic(topic)
         crypto.setKey(responsePublicKey, "${SELF_PARTICIPANT_CONTEXT}${responseTopic.value}")
 
@@ -188,6 +203,12 @@ internal class AuthEngine(
     }
 
     private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
+        if (CoreValidator.isExpiryNotWithinBounds(authParams.expiry)) {
+            val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
+            jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
+            return
+        }
+
         scope.launch {
             _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, authParams.payloadParams))
         }

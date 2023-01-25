@@ -21,6 +21,12 @@ sealed class Invalid : Error {
         override val message: String = "Unsupported Method Requested: $method"
         override val code: Int = 10001
     }
+
+    object RequestExpired: Invalid() {
+        override val message: String = "Request expired or expiry param validation failed (MIN_INTERVAL: 300, MAX_INTERVAL: 604800)"
+        override val code: Int = 8000
+
+    }
 }
 
 sealed class Reason : Error {
