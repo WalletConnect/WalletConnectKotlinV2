@@ -20,7 +20,7 @@ internal class PushDappProtocol : PushDappInterface {
 
     companion object {
         val instance = PushDappProtocol()
-        const val storageSuffix = "dappPush"
+        const val storageSuffix = "DappPush"
     }
 
     override fun initialize(init: Push.Dapp.Params.Init, onError: (Push.Model.Error) -> Unit) {

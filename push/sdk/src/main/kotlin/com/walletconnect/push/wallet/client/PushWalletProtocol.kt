@@ -21,7 +21,7 @@ class PushWalletProtocol : PushWalletInterface {
 
     companion object {
         val instance = PushWalletProtocol()
-        const val storageSuffix: String = "walletPush"
+        const val storageSuffix: String = "WalletPush"
     }
 
     override fun initialize(init: Push.Wallet.Params.Init, onError: (Push.Model.Error) -> Unit) {
