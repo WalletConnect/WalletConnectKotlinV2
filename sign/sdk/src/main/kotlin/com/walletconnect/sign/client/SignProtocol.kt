@@ -23,7 +23,6 @@ class SignProtocol : SignInterface {
 
     companion object {
         val instance = SignProtocol()
-        const val storageSuffix: String = ""
     }
 
     override fun initialize(init: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
@@ -32,7 +31,7 @@ class SignProtocol : SignInterface {
             wcKoinApp.modules(
                 commonModule(),
                 jsonRpcModule(),
-                storageModule(storageSuffix),
+                storageModule(),
                 engineModule()
             )
 
@@ -233,7 +232,7 @@ class SignProtocol : SignInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun disconnect(disconnect: Sign.Params.Disconnect, onSuccess: (Sign.Params.Disconnect) -> Unit,  onError: (Sign.Model.Error) -> Unit) {
+    override fun disconnect(disconnect: Sign.Params.Disconnect, onSuccess: (Sign.Params.Disconnect) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
             signEngine.disconnect(

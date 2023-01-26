@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.walletconnect.web3.wallet.sample"
-    compileSdk = 33
+    compileSdk = COMPILE_SDK
 
     defaultConfig {
         applicationId = "com.walletconnect.web3.wallet.sample"
