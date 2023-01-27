@@ -2,10 +2,11 @@ package com.walletconnect.android
 
 import android.app.Application
 import com.walletconnect.android.di.coreStorageModule
-import com.walletconnect.android.internal.common.di.coreCommonModule
+import com.walletconnect.android.echo.EchoClient
+import com.walletconnect.android.echo.EchoInterface
+import com.walletconnect.android.internal.common.di.*
 import com.walletconnect.android.internal.common.di.coreCryptoModule
-import com.walletconnect.android.internal.common.di.coreJsonRpcModule
-import com.walletconnect.android.internal.common.di.corePairingModule
+import com.walletconnect.android.internal.common.di.echoModule
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.model.Redirect
@@ -24,6 +25,7 @@ import org.koin.dsl.module
 object CoreClient {
     val Pairing: PairingInterface = PairingProtocol
     var Relay: RelayConnectionInterface = RelayClient
+    val Echo: EchoInterface = EchoClient
 
     interface CoreDelegate : PairingInterface.Delegate
 
@@ -43,8 +45,10 @@ object CoreClient {
                 coreCryptoModule(),
                 module { single { ProjectId(relayServerUrl.projectId()) } },
                 coreStorageModule(),
-                module { single<RelayConnectionInterface> { relay ?: RelayClient } },
+                echoModule(),
+                module { single { relay ?: RelayClient } },
                 module { single { with(metaData) { AppMetaData(name, description, url, icons, Redirect(redirect)) } } },
+                module { single { Echo } },
                 coreJsonRpcModule(),
                 corePairingModule(Pairing),
             )
@@ -53,6 +57,7 @@ object CoreClient {
         if (relay == null) {
             RelayClient.initialize(relayServerUrl, connectionType) { error -> onError(Core.Model.Error(error)) }
         }
+
         PairingProtocol.initialize()
         PairingController.initialize()
     }

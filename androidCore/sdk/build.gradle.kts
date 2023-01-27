@@ -67,6 +67,7 @@ dependencies {
     timber()
     moshiKsp()
     web3jCrypto()
+    retrofit()
 
     jUnit5()
     jUnit5Android()

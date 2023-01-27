@@ -1,5 +1,6 @@
 package com.walletconnect.android.pairing.engine.domain
 
+import android.util.Log
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
 import com.walletconnect.android.internal.NO_SEQUENCE_FOR_TOPIC_MESSAGE
