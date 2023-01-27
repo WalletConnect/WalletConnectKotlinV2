@@ -40,8 +40,8 @@ import androidx.navigation.NavController
 import com.google.accompanist.navigation.material.BottomSheetNavigatorSheetState
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.walletconnect.web3.wallet.sample.R
+import com.walletconnect.web3.wallet.ui.common.generated.CloseButton
 import com.walletconnect.web3.wallet.ui.routes.showSnackbar
-import com.walletconnect.web3.wallet.sample.closebutton.CloseButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

@@ -20,6 +20,7 @@ android {
         targetSdk = TARGET_SDK
 
         buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
+        buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         File("${rootDir.path}/gradle/consumer-rules").listFiles()?.forEach { proguardFile ->
@@ -57,18 +58,16 @@ dependencies {
     debugApi(project(":foundation"))
     releaseApi("com.walletconnect:foundation:$FOUNDATION_VERSION")
 
-    bouncyCastle()
     coroutines()
-    moshiKsp()
-    moshi()
-    scarlet()
     scarletAndroid()
     sqlDelightAndroid()
     sqlCipher()
     security()
     koinAndroid()
-    multibaseJava()
     timber()
+    moshiKsp()
+    web3jCrypto()
+    retrofit()
 
     jUnit5()
     jUnit5Android()

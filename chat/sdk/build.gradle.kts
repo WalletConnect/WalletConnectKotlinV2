@@ -56,9 +56,7 @@ dependencies {
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 
     retrofit()
-    navigationComponent()
     moshiKsp()
-
     androidXTest()
     jUnit5()
     jUnit5Android()

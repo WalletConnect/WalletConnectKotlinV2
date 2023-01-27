@@ -11,4 +11,14 @@
         android:id="@+id/menu_disconnect"
         android:title="Disconnect"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_push_request"
+        android:title="Request"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_push_notify"
+        android:title="Notify"
+        app:showAsAction="never" />
 </menu>

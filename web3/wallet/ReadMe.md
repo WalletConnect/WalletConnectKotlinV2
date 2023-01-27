@@ -10,9 +10,8 @@ Kotlin implementation of Web3Wallet for Android applications.
 * Java 11
 
 ## Documentation and usage
-
-* [Web3Wallet installation](TBD)
-* [Web3Wallet usage](TBD)
+* [Web3Wallet installation](https://docs.walletconnect.com/2.0/kotlin/web3wallet/installation)
+* [Web3Wallet usage](https://docs.walletconnect.com/2.0/kotlin/web3wallet/wallet-usage)
 
 ## Installation
 
@@ -32,7 +31,7 @@ app/build.gradle.kts
 ```gradle
 implementation(platform("com.walletconnect:android-bom:{BOM version}"))
 implementation("com.walletconnect:android-core")
-implementation("com.walletconnect:web3wallet:release_version")
+implementation("com.walletconnect:web3wallet")
 ```
 
 &nbsp;
@@ -196,11 +195,11 @@ SignClient.setWalletDelegate(walletDelegate)
 
 //Web3Wallet
 val walletDelegate = object : Web3Wallet.WalletDelegate {
-    override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
+    override fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal) {
         // Triggered when wallet receives the session proposal sent by a Dapp
     }
 
-    override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
+    override fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest) {
         // Triggered when a Dapp sends SessionRequest to sign a transaction or a message
     }
 
@@ -212,19 +211,19 @@ val walletDelegate = object : Web3Wallet.WalletDelegate {
         // Triggered when the session is deleted by the peer
     }
 
-    override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {
+    override fun onSessionSettleResponse(settleSessionResponse: Wallet.Model.SettledSessionResponse) {
         // Triggered when wallet receives the session settlement response from Dapp
     }
 
-    override fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse) {
+    override fun onSessionUpdateResponse(sessionUpdateResponse: Wallet.Model.SessionUpdateResponse) {
         // Triggered when wallet receives the session update response from Dapp
     }
 
-    override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
+    override fun onConnectionStateChange(state: Wallet.Model.ConnectionState) {
         //Triggered whenever the connection state is changed
     }
 
-    override fun onError(error: Sign.Model.Error) {
+    override fun onError(error: Wallet.Model.Error) {
         // Triggered whenever there is an issue inside the SDK
     }
 }
@@ -257,7 +256,7 @@ AuthClient.respond(Auth.Params.Respond.Result(requestId, signature, issuer)) { e
 
 //Web3Wallet
 val signature = CacaoSigner.sign(message, privateKey, SignatureType.EIP191)
-Web3Wallet.respond(Wallet.Params.AuthRequestResponse(requestId, signature, issuer)) { error -> }
+Web3Wallet.respondAuthRequest(Wallet.Params.AuthRequestResponse(requestId, signature, issuer)) { error -> }
 ```
 
 ### Message formatting

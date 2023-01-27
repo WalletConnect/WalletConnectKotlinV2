@@ -1,5 +1,6 @@
 package com.walletconnect.android.pairing.engine.domain
 
+import android.util.Log
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
 import com.walletconnect.android.internal.NO_SEQUENCE_FOR_TOPIC_MESSAGE
@@ -100,7 +101,7 @@ internal class PairingEngine(
         }.getOrNull()
     }
 
-    fun pair(uri: String, onFailure: (Throwable) -> Unit) {
+    fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         val walletConnectUri: WalletConnectUri =
             Validator.validateWCUri(uri) ?: return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))
 
@@ -114,7 +115,11 @@ internal class PairingEngine(
 
         try {
             pairingRepository.insertPairing(activePairing)
-            jsonRpcInteractor.subscribe(activePairing.topic) { error -> return@subscribe onFailure(error) }
+            jsonRpcInteractor.subscribe(
+                topic = activePairing.topic,
+                onSuccess = { onSuccess() },
+                onFailure = { error ->  return@subscribe onFailure(error) }
+            )
         } catch (e: Exception) {
             crypto.removeKeys(walletConnectUri.topic.value)
             jsonRpcInteractor.unsubscribe(activePairing.topic)

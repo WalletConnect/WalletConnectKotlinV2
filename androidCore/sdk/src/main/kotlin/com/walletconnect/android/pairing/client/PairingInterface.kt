@@ -5,7 +5,11 @@ import com.walletconnect.android.Core
 interface PairingInterface {
     fun create(onError: (Core.Model.Error) -> Unit = {}): Core.Model.Pairing?
 
-    fun pair(pair: Core.Params.Pair, onError: (Core.Model.Error) -> Unit = {})
+    fun pair(
+        pair: Core.Params.Pair,
+        onSuccess: (Core.Params.Pair) -> Unit = {},
+        onError: (Core.Model.Error) -> Unit = {}
+    )
 
     @Deprecated(
         message = "Disconnect method has been replaced",

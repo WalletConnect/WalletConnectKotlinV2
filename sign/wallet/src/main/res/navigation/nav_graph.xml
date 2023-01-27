@@ -23,6 +23,15 @@
         android:id="@+id/action_global_to_session_request"
         app:destination="@id/dialog_session_request" />
 
+    <dialog
+        android:id="@+id/dialog_push_request"
+        android:name="com.walletconnect.wallet.ui.host.request.push.PushRequestBottomSheet"
+        tools:layout="@layout/bottomsheet_push_request" />
+
+    <action
+        android:id="@+id/action_global_to_push_request"
+        app:destination="@id/dialog_push_request" />
+
     <navigation
         android:id="@+id/accounts_graph"
         app:startDestination="@id/fragment_accounts">

@@ -47,14 +47,22 @@ internal object PairingProtocol : PairingInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun pair(pair: Core.Params.Pair, onError: (Core.Model.Error) -> Unit) {
+    override fun pair(
+        pair: Core.Params.Pair,
+        onSuccess: (Core.Params.Pair) -> Unit,
+        onError: (Core.Model.Error) -> Unit
+    ) {
         checkEngineInitialization()
 
         scope.launch(Dispatchers.IO) {
             awaitConnection(
                 {
                     try {
-                        pairingEngine.pair(pair.uri) { error -> onError(Core.Model.Error(error)) }
+                        pairingEngine.pair(
+                            uri = pair.uri,
+                            onSuccess = { onSuccess(pair) },
+                            onFailure = { error -> onError(Core.Model.Error(error)) }
+                        )
                     } catch (e: Exception) {
                         onError(Core.Model.Error(e))
                     }

@@ -7,8 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.walletconnect.web3.wallet.sample.allowbutton.AllowButton
-import com.walletconnect.web3.wallet.sample.declinebutton.DeclineButton
+import com.walletconnect.web3.wallet.ui.common.generated.AllowButton
+import com.walletconnect.web3.wallet.ui.common.generated.DeclineButton
 
 
 @Composable
@@ -19,7 +19,6 @@ fun Buttons(modifier: Modifier = Modifier, onDecline: () -> Unit = {}, onAllow: 
             modifier = Modifier
                 .weight(1f)
                 .height(46.dp)
-                .clip(RoundedCornerShape(20.dp))
                 .clickable { onDecline() }
         )
         Spacer(modifier = Modifier.width(20.dp))
@@ -27,7 +26,6 @@ fun Buttons(modifier: Modifier = Modifier, onDecline: () -> Unit = {}, onAllow: 
             modifier = Modifier
                 .weight(1f)
                 .height(46.dp)
-                .clip(RoundedCornerShape(20.dp))
                 .clickable { onAllow() }
         )
         Spacer(modifier = Modifier.width(20.dp))

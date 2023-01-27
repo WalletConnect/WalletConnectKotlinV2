@@ -19,6 +19,8 @@ import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 
 fun coreAndroidNetworkModule(serverUrl: String, jwt: String, connectionType: ConnectionType, sdkVersion: String) = module {
@@ -86,4 +88,11 @@ fun coreAndroidNetworkModule(serverUrl: String, jwt: String, connectionType: Con
         ConnectivityState(androidApplication())
     }
 
+    single(named(AndroidCommonDITags.ECHO_RETROFIT)) {
+        Retrofit.Builder()
+            .baseUrl("https://echo.walletconnect.com/")
+            .addConverterFactory(MoshiConverterFactory.create())
+            .client(get(named(AndroidCommonDITags.OK_HTTP)))
+            .build()
+    }
 }

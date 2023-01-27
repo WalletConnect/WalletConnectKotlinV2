@@ -6,7 +6,8 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.*
-import com.walletconnect.android.internal.common.model.params.Cacao
+import com.walletconnect.android.internal.common.cacao.Cacao
+import com.walletconnect.android.internal.common.cacao.CacaoType
 import com.walletconnect.android.internal.common.model.params.CoreAuthParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
@@ -32,8 +33,8 @@ import com.walletconnect.auth.engine.mapper.toPendingRequest
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.auth.json_rpc.model.JsonRpcMethod
-import com.walletconnect.auth.signature.CacaoType
-import com.walletconnect.auth.signature.cacao.CacaoVerifier
+import com.walletconnect.android.internal.common.cacao.CacaoVerifier
+import com.walletconnect.android.internal.common.cacao.Issuer
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -127,6 +128,7 @@ internal class AuthEngine(
 
     internal fun respond(
         respond: Respond,
+        onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         val jsonRpcHistoryEntry = getPendingJsonRpcHistoryEntryByIdUseCase(respond.id)
@@ -159,8 +161,14 @@ internal class AuthEngine(
         val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
         jsonRpcInteractor.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
-            onSuccess = { logger.log("Success Responded on topic: $responseTopic") },
-            onFailure = { logger.error("Error Responded on topic: $responseTopic") }
+            onSuccess = {
+                logger.log("Success Responded on topic: $responseTopic")
+                onSuccess()
+            },
+            onFailure = { error ->
+                logger.error("Error Responded on topic: $responseTopic")
+                onFailure(error)
+            }
         )
     }
 
@@ -239,7 +247,7 @@ internal class AuthEngine(
 
     private fun collectJsonRpcResponses(): Job =
         jsonRpcInteractor.peerResponse
-            .filter { response -> response.params is AuthParams.RequestParams }
+            .filter { response -> response.params is AuthParams }
             .onEach { response -> onAuthRequestResponse(response, response.params as AuthParams.RequestParams) }
             .launchIn(scope)
 

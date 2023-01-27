@@ -17,12 +17,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.walletconnect.web3.wallet.ui.common.findActivity
-import com.walletconnect.web3.wallet.ui.routes.Route
 import com.walletconnect.web3.wallet.sample.R
-import com.walletconnect.web3.wallet.sample.getstarted.GetStarted
-import com.walletconnect.web3.wallet.sample.welcomedark.WelcomeDark
-import com.walletconnect.web3.wallet.sample.welcomelight.WelcomeLight
+import com.walletconnect.web3.wallet.ui.common.findActivity
+import com.walletconnect.web3.wallet.ui.common.generated.GetStarted
+import com.walletconnect.web3.wallet.ui.common.generated.Welcome
+import com.walletconnect.web3.wallet.ui.routes.Route
+import timber.log.Timber
 
 @Composable
 fun GetStartedRoute(navController: NavController) {
@@ -38,11 +38,7 @@ fun GetStartedRoute(navController: NavController) {
     ) {
         Column {
             Spacer(modifier = Modifier.height(20.dp))
-            if (isSystemInDarkTheme()) {
-                WelcomeDark()
-            } else {
-                WelcomeLight()
-            }
+            Welcome()
         }
         val context = LocalContext.current
         val activity = context.findActivity()
@@ -65,7 +61,7 @@ fun GetStartedRoute(navController: NavController) {
 
 fun saveGetStartedVisited(activity: Activity?) {
     val sharedPref = activity?.getPreferences(Context.MODE_PRIVATE) ?: run {
-        Log.e("Web3Wallet", "No default Shared Preferences")
+        Timber.tag("Web3Wallet").e("No default Shared Preferences")
         return
     }
 

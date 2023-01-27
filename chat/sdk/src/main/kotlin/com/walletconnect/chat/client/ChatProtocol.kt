@@ -24,7 +24,6 @@ internal class ChatProtocol : ChatInterface {
 
     companion object {
         val instance = ChatProtocol()
-        const val storageSuffix: String = "_chat"
     }
 
     @Throws(IllegalStateException::class)
@@ -34,7 +33,7 @@ internal class ChatProtocol : ChatInterface {
                 modules(
                     keyServerModule(keyServerUrl),
                     jsonRpcModule(),
-                    storageModule(storageSuffix),
+                    storageModule(),
                     engineModule()
                 )
             }

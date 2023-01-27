@@ -1,15 +1,15 @@
 package com.walletconnect.web3.wallet.ui.routes.dialog_routes.session_request
 
 import android.net.Uri
-import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.walletconnect.sample_common.Chains
-import com.walletconnect.sample_common.tag
-import com.walletconnect.web3.wallet.domain.WCDelegate
-import com.walletconnect.web3.wallet.ui.common.peer.PeerUI
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
+import com.walletconnect.web3.wallet.domain.WCDelegate
+import com.walletconnect.web3.wallet.ui.common.peer.PeerUI
 
 class SessionRequestViewModel : ViewModel() {
     var sessionRequest: SessionRequestUI = generateSessionRequestUI(WCDelegate.sessionRequest)
@@ -32,7 +32,7 @@ class SessionRequestViewModel : ViewModel() {
             )
 
             Web3Wallet.respondSessionRequest(result) { error ->
-                Log.e(tag(this), error.throwable.stackTraceToString())
+                Firebase.crashlytics.recordException(error.throwable)
             }
 
             sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
@@ -64,7 +64,7 @@ class SessionRequestViewModel : ViewModel() {
             )
 
             Web3Wallet.respondSessionRequest(response) { error ->
-                Log.e(tag(this), error.throwable.stackTraceToString())
+                Firebase.crashlytics.recordException(error.throwable)
             }
             sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
             clearSessionRequest()

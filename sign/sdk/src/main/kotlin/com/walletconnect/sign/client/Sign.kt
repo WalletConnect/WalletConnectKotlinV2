@@ -31,6 +31,7 @@ object Sign {
         }
 
         data class SessionProposal(
+            val pairingTopic: String,
             val name: String,
             val description: String,
             val url: String,

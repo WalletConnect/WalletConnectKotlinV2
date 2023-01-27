@@ -1,12 +1,13 @@
 plugins {
     id("com.android.application")
     kotlin("android")
-    id("com.google.relay") version "0.3.01"
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
     namespace = "com.walletconnect.web3.wallet.sample"
-    compileSdk = 33
+    compileSdk = COMPILE_SDK
 
     defaultConfig {
         applicationId = "com.walletconnect.web3.wallet.sample"
@@ -40,16 +41,20 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.3.1"
+        kotlinCompilerExtensionVersion = "1.4.0-alpha02"
     }
 }
 
 dependencies {
     implementation(project(":sign:samples_common"))
 
-    implementation("androidx.core:core-ktx:1.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.3.1")
+    implementation(platform("com.google.firebase:firebase-bom:31.1.1"))
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
+
+    implementation("androidx.core:core-ktx:1.9.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
 
     implementation("androidx.activity:activity-compose:1.6.1")
     implementation("androidx.palette:palette:1.0.0")
@@ -76,15 +81,18 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
 
     // CameraX
-    implementation("androidx.camera:camera-camera2:1.0.2")
-    implementation("androidx.camera:camera-lifecycle:1.0.2")
+    implementation("androidx.camera:camera-camera2:1.2.0")
+    implementation("androidx.camera:camera-lifecycle:1.2.0")
     implementation("androidx.camera:camera-view:1.0.0-alpha31")
 
     // Zxing
-    implementation("com.google.zxing:core:3.3.3")
+    implementation("com.google.zxing:core:3.5.0")
 
     // WalletConnect
-    implementation(platform("com.walletconnect:android-bom:1.1.0"))
-    implementation("com.walletconnect:android-core")
-    implementation("com.walletconnect:web3wallet")
+    debugImplementation(project(":androidCore:sdk"))
+    debugImplementation(project(":web3:wallet"))
+
+    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
+    releaseImplementation("com.walletconnect:android-core")
+    releaseImplementation("com.walletconnect:web3wallet")
 }
