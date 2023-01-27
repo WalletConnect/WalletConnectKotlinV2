@@ -1,5 +1,6 @@
 package com.walletconnect.android.internal.common.cacao
 
+import androidx.annotation.Keep
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.cacao.SignatureInterface
@@ -14,6 +15,7 @@ data class Cacao(
     @Json(name = "s")
     val signature: Signature,
 ) {
+    @Keep
     @JsonClass(generateAdapter = true)
     data class Signature(
         @Json(name = "t")
