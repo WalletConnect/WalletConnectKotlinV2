@@ -89,9 +89,7 @@ internal class SessionStorageRepository(
     fun insertTempNamespaces(
         topic: String,
         namespaces: Map<String, NamespaceVO.Session>,
-        requestId: Long,
-        onSuccess: () -> Unit,
-        onFailure: () -> Unit,
+        requestId: Long
     ) {
         val sessionId = sessionDaoQueries.getSessionIdByTopic(topic).executeAsOne()
         namespaces.forEach { (key, value) ->
@@ -113,9 +111,7 @@ internal class SessionStorageRepository(
     fun deleteNamespaceAndInsertNewNamespace(
         topic: String,
         namespaces: Map<String, NamespaceVO.Session>,
-        requestID: Long,
-        onSuccess: () -> Unit,
-        onFailure: () -> Unit,
+        requestID: Long
     ) {
         val sessionId = sessionDaoQueries.getSessionIdByTopic(topic).executeAsOne()
         namespaceDaoQueries.deleteNamespacesByTopic(topic)

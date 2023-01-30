@@ -4,10 +4,12 @@ package com.walletconnect.auth.engine.domain
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.cacao.Cacao
 import com.walletconnect.android.internal.common.cacao.CacaoType
+import com.walletconnect.android.internal.common.cacao.CacaoVerifier
+import com.walletconnect.android.internal.common.cacao.Issuer
+import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreAuthParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
@@ -33,8 +35,6 @@ import com.walletconnect.auth.engine.mapper.toPendingRequest
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.auth.json_rpc.model.JsonRpcMethod
-import com.walletconnect.android.internal.common.cacao.CacaoVerifier
-import com.walletconnect.android.internal.common.cacao.Issuer
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -226,7 +226,7 @@ internal class AuthEngine(
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -258,12 +258,12 @@ internal class AuthEngine(
                 try {
                     jsonRpcInteractor.subscribe(responseTopic) { error ->
                         scope.launch {
-                            _engineEvent.emit(SDKError(InternalError(error)))
+                            _engineEvent.emit(SDKError(error))
                         }
                     }
                 } catch (e: Exception) {
                     scope.launch {
-                        _engineEvent.emit(SDKError(InternalError(e)))
+                        _engineEvent.emit(SDKError(e))
                     }
                 }
             }
