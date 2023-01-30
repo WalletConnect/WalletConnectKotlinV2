@@ -1,5 +1,6 @@
 package com.walletconnect.push.dapp.client
 
+import com.walletconnect.android.internal.common.di.DBUtils
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -20,14 +21,13 @@ internal class PushDappProtocol : PushDappInterface {
 
     companion object {
         val instance = PushDappProtocol()
-        const val storageSuffix = "DappPush"
     }
 
     override fun initialize(init: Push.Dapp.Params.Init, onError: (Push.Model.Error) -> Unit) {
         try {
             wcKoinApp.modules(
                 pushJsonRpcModule(),
-                pushStorageModule(storageSuffix),
+                pushStorageModule(DBUtils.PUSH_DAPP_SDK_DB_NAME),
                 dappEngineModule(),
             )
 
