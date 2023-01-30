@@ -25,7 +25,9 @@ import com.walletconnect.chat.common.json_rpc.ChatParams
 import com.walletconnect.chat.common.json_rpc.ChatRpc
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.AccountIdWithPublicKey
-import com.walletconnect.chat.discovery.keyserver.domain.KeyServerInteractor
+import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterIdentityUseCase
+import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterInviteUseCase
+import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveInviteUseCase
 import com.walletconnect.chat.engine.model.EngineDO
 import com.walletconnect.chat.json_rpc.JsonRpcMethod
 import com.walletconnect.chat.storage.ChatStorageRepository
@@ -39,11 +41,15 @@ import io.ipfs.multibase.Base58
 import io.ipfs.multibase.Multibase
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.*
 
 internal class ChatEngine(
-    private val keyserverInteractor: KeyServerInteractor,
+    private val keyserverUrl: String,
+    private val registerIdentityUseCase: RegisterIdentityUseCase,
+    private val registerInviteUseCase: RegisterInviteUseCase,
+    private val resolveInviteUseCase: ResolveInviteUseCase,
     private val inviteKeyJwtRepository: InviteKeyJwtRepository,
     private val keyManagementRepository: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -95,7 +101,7 @@ internal class ChatEngine(
         val identityPublicKey = keyManagementRepository.getPublicKey(tag)
         val identityKeyPair = keyManagementRepository.getKeyPair(identityPublicKey)
 
-        return inviteKeyJwtRepository.generateInviteKeyJWT(inviteKey.keyAsHex, identityKeyPair, keyserverInteractor.url, accountId)
+        return inviteKeyJwtRepository.generateInviteKeyJWT(inviteKey.keyAsHex, identityKeyPair, keyserverUrl, accountId)
     }
 
     internal fun registerInvite(
@@ -123,7 +129,7 @@ internal class ChatEngine(
                 if (!private) {
                     scope.launch {
                         supervisorScope {
-                            keyserverInteractor.registerInvite(idAuth).fold(
+                            registerInviteUseCase(idAuth).fold(
                                 onSuccess = { onSuccess(publicKey) },
                                 onFailure = { error -> onFailure(error) }
                             )
@@ -158,15 +164,15 @@ internal class ChatEngine(
                 val identityKey = keyManagementRepository.generateAndStoreEd25519KeyPair()
                 val didKey = encodeDidKey(identityKey.keyAsBytes)
 
-                val domain = keyserverInteractor.domain ?: run {
-                    onFailure(UnableToExtractDomainException("Unable to extract domain from: $keyserverInteractor.url"))
-                    return
+                val domain = keyserverUrl.toDomain().getOrElse {
+                    onFailure(UnableToExtractDomainException("Unable to extract domain from: $keyserverUrl"))
+                    return@registerIdentity
                 }
 
                 val payload = Cacao.Payload(
                     iss = encodeDidPkh(accountId),
                     domain = domain,
-                    aud = keyserverInteractor.url, version = CURRENT_VERSION,
+                    aud = keyserverUrl, version = CURRENT_VERSION,
                     nonce = randomBytes(32).toString(), iat = SimpleDateFormat(ISO_8601_PATTERN, Locale.getDefault()).format(Calendar.getInstance().time),
                     nbf = null, exp = null, statement = null, requestId = null, resources = listOf(didKey)
                 )
@@ -179,7 +185,7 @@ internal class ChatEngine(
                 if (!private) {
                     scope.launch {
                         supervisorScope {
-                            keyserverInteractor.registerIdentity(cacao).fold(
+                            registerIdentityUseCase(cacao).fold(
                                 onSuccess = { onSuccess(identityKey) },
                                 onFailure = { error -> onFailure(error) }
                             )
@@ -198,7 +204,7 @@ internal class ChatEngine(
         if (accountId.isValid()) {
             scope.launch {
                 supervisorScope {
-                    keyserverInteractor.resolveInvite(accountId).fold(
+                    resolveInviteUseCase(accountId).fold(
                         onSuccess = { response -> onSuccess(response.inviteKey) },
                         onFailure = { error -> onFailure(error) }
                     )
@@ -509,6 +515,13 @@ internal class ChatEngine(
     }
 
     private fun AccountId.getIdentityTag(): String = "$SELF_IDENTITY_PUBLIC_KEY_CONTEXT${this.value}"
+
+
+    private fun String.toDomain(): Result<String> = runCatching {
+        val uri = URI(this)
+        val domain: String = uri.host
+        if (domain.startsWith("www.")) domain.substring(4) else domain
+    }
 
     companion object {
         const val THIRTY_SECONDS_TIMEOUT: Long = 30000L
