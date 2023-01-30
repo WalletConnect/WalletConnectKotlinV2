@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="keys.xml"/>
+        <exclude domain="sharedpref" path="wc_key_store.xml"/>
+        <exclude domain="sharedpref" path="wc_keystore_key.xml"/>
+        <exclude domain="sharedpref" path="db_key_store.xml"/>
+        <exclude domain="database" path="WalletConnectAndroidCore.db"/>
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="keys.xml"/>
+        <exclude domain="sharedpref" path="wc_key_store.xml"/>
+        <exclude domain="sharedpref" path="wc_keystore_key.xml"/>
+        <exclude domain="sharedpref" path="db_key_store.xml"/>
+        <exclude domain="database" path="WalletConnectAndroidCore.db"/>
+    </device-transfer>
+</data-extraction-rules>
