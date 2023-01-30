@@ -11,10 +11,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
-import com.walletconnect.android.internal.common.di.AndroidCommonDITags
-import com.walletconnect.android.internal.common.di.DBNames
-import com.walletconnect.android.internal.common.di.baseStorageModule
-import com.walletconnect.android.internal.common.di.deleteDBs
+import com.walletconnect.android.internal.common.di.*
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.randomBytes
@@ -102,7 +99,7 @@ private fun signingModule() = module {
             createSharedPreferences()
         } catch (e: Exception) {
             deleteSharedPreferences()
-            androidContext().databaseList().forEach { dbName -> deleteDBs(dbName) }
+            deleteDatabases()
             createSharedPreferences()
         }
         val encryptedDBKeyFromStore: ByteArray? = sharedPreferences.getString(SP_ENCRYPTED_KEY, null)?.let { encryptedDBKey ->
@@ -157,20 +154,20 @@ fun coreStorageModule() = module {
         AndroidSqliteDriver(
             schema = AndroidCoreDatabase.Schema,
             context = androidContext(),
-            name = DBNames.ANDROID_CORE_DB_NAME,
+            name = DBUtils.ANDROID_CORE_DB_NAME,
             factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false) //todo: create a separate DB_PASSHPHRASE
         )
     }
 }
 
 @SuppressLint("HardwareIds")
-fun sdkBaseStorageModule(databaseSchema: SqlDriver.Schema, storageSuffix: String) = module {
+fun sdkBaseStorageModule(databaseSchema: SqlDriver.Schema, databaseName: String) = module {
 
     single<SqlDriver> {
         AndroidSqliteDriver(
             schema = databaseSchema,
             context = androidContext(),
-            name = DBNames.getSdkDBName(storageSuffix),
+            name = databaseName,
             factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false)
         )
     }

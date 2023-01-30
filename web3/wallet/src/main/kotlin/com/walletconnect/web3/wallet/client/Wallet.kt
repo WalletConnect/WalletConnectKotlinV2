@@ -1,5 +1,6 @@
 package com.walletconnect.web3.wallet.client
 
+import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.SignatureInterface
@@ -160,6 +161,7 @@ object Wallet {
             val payload: Payload,
             val signature: Signature,
         ) : Model() {
+            @Keep
             data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
             data class Header(val t: String) : Model()
             data class Payload(
