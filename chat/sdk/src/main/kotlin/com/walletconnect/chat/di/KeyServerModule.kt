@@ -5,7 +5,7 @@ package com.walletconnect.chat.di
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.chat.discovery.keyserver.data.client.KeyServerClient
 import com.walletconnect.chat.discovery.keyserver.data.service.KeyServerService
-import com.walletconnect.chat.discovery.keyserver.domain.KeyserverInteractor
+import com.walletconnect.chat.discovery.keyserver.domain.KeyServerInteractor
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterIdentityUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterInviteUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveIdentityUseCase
@@ -56,5 +56,5 @@ internal fun keyServerModule(keyServerUrl: String) = module {
 
     single { ResolveInviteUseCase(get()) }
 
-    single { KeyserverInteractor(get(named(ChatDITags.KEYSERVER_URL)), get(), get(), get(), get()) }
+    single { KeyServerInteractor(get(named(ChatDITags.KEYSERVER_URL)), get(), get(), get(), get()) }
 }

@@ -25,7 +25,7 @@ import com.walletconnect.chat.common.json_rpc.ChatParams
 import com.walletconnect.chat.common.json_rpc.ChatRpc
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.AccountIdWithPublicKey
-import com.walletconnect.chat.discovery.keyserver.domain.KeyserverInteractor
+import com.walletconnect.chat.discovery.keyserver.domain.KeyServerInteractor
 import com.walletconnect.chat.engine.model.EngineDO
 import com.walletconnect.chat.json_rpc.JsonRpcMethod
 import com.walletconnect.chat.storage.ChatStorageRepository
@@ -43,7 +43,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 internal class ChatEngine(
-    private val keyserverInteractor: KeyserverInteractor,
+    private val keyserverInteractor: KeyServerInteractor,
     private val inviteKeyJwtRepository: InviteKeyJwtRepository,
     private val keyManagementRepository: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -199,7 +199,7 @@ internal class ChatEngine(
             scope.launch {
                 supervisorScope {
                     keyserverInteractor.resolveInvite(accountId).fold(
-                        onSuccess = { accountIdWithPublicKeyVO -> onSuccess(accountIdWithPublicKeyVO.inviteKey) },
+                        onSuccess = { response -> onSuccess(response.inviteKey) },
                         onFailure = { error -> onFailure(error) }
                     )
                 }

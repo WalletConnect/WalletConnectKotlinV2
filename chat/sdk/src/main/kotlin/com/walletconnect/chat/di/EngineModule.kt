@@ -11,7 +11,5 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun engineModule() = module {
     single { InviteKeyJwtRepository() }
-
-
     single { ChatEngine(get(), get(), get(), get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
 }

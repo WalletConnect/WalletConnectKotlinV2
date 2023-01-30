@@ -8,7 +8,7 @@ import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveIdentit
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveInviteUseCase
 import java.net.URI
 
-internal class KeyserverInteractor(
+internal class KeyServerInteractor(
     val url: String,
     val registerIdentity: RegisterIdentityUseCase,
     val resolveIdentity: ResolveIdentityUseCase,
