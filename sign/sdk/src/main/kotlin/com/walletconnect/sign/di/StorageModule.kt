@@ -8,11 +8,8 @@ import com.walletconnect.android.internal.common.di.DBUtils
 import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.sign.SignDatabase
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDao
-import com.walletconnect.sign.storage.data.dao.namespace.NamespaceExtensionsDao
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceDao
-import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceExtensionsDao
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDao
-import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceExtensionsDao
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
@@ -28,27 +25,12 @@ internal fun storageModule(): Module = module {
             methodsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             eventsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST))
         ),
-        NamespaceExtensionsDaoAdapter = NamespaceExtensionsDao.Adapter(
-            accountsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
-            methodsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
-            eventsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST))
-        ),
         TempNamespaceDaoAdapter = TempNamespaceDao.Adapter(
             accountsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             methodsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             eventsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST))
         ),
-        TempNamespaceExtensionsDaoAdapter = TempNamespaceExtensionsDao.Adapter(
-            accountsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
-            methodsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
-            eventsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST))
-        ),
         ProposalNamespaceDaoAdapter = ProposalNamespaceDao.Adapter(
-            chainsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
-            methodsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
-            eventsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST))
-        ),
-        ProposalNamespaceExtensionsDaoAdapter = ProposalNamespaceExtensionsDao.Adapter(
             chainsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             methodsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             eventsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST))
@@ -75,15 +57,7 @@ internal fun storageModule(): Module = module {
     }
 
     single {
-        get<SignDatabase>().namespaceExtensionDaoQueries
-    }
-
-    single {
         get<SignDatabase>().tempNamespaceDaoQueries
-    }
-
-    single {
-        get<SignDatabase>().tempNamespaceExtensionDaoQueries
     }
 
     single {
@@ -91,10 +65,6 @@ internal fun storageModule(): Module = module {
     }
 
     single {
-        get<SignDatabase>().proposalNamespaceExtensionDaoQueries
-    }
-
-    single {
-        SessionStorageRepository(get(), get(), get(), get(), get(), get(), get())
+        SessionStorageRepository(get(), get(), get(), get())
     }
 }

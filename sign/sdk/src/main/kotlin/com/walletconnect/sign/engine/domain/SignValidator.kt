@@ -25,7 +25,7 @@ internal object SignValidator {
             !areChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_MISSING_MESSAGE))
             !areChainIdsValid(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_CAIP_2_MESSAGE))
             !areChainsInMatchingNamespace(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE))
-            !areExtensionChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE))
+//            !areExtensionChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE))
         }
     }
 
@@ -46,8 +46,8 @@ internal object SignValidator {
                 onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE))
             !areAllMethodsApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejectedMethods)
             !areAllEventsApproved(sessionNamespaces, proposalNamespaces) -> onError(ValidationError.UserRejectedEvents)
-            !areExtensionAccountsNotEmpty(sessionNamespaces) ->
-                onError(ValidationError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
+//            !areExtensionAccountsNotEmpty(sessionNamespaces) ->
+//                onError(ValidationError.UserRejectedChains(NAMESPACE_EXTENSION_ACCOUNTS_MISSING_MESSAGE))
         }
     }
 
@@ -154,9 +154,9 @@ internal object SignValidator {
     private fun areChainsInMatchingNamespace(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
         namespaces.all { (key, namespace) -> namespace.chains.all { chain -> chain.contains(key, true) } }
 
-    private fun areExtensionChainsNotEmpty(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
-        namespaces.values.filter { it.extensions != null }.flatMap { namespace -> namespace.extensions!!.map { it.chains } }
-            .all { extChain -> extChain.isNotEmpty() }
+//    private fun areExtensionChainsNotEmpty(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
+//        namespaces.values.filter { it.extensions != null }.flatMap { namespace -> namespace.extensions!!.map { it.chains } }
+//            .all { extChain -> extChain.isNotEmpty() }
 
     private fun areAllProposalNamespacesApproved(
         sessionNamespaces: Map<String, NamespaceVO.Session>,
@@ -171,30 +171,12 @@ internal object SignValidator {
 
     private fun allApprovedMethodsWithChains(namespaces: Map<String, NamespaceVO.Session>): Map<String, List<String>> =
         namespaces.values.flatMap { namespace ->
-            namespace.methods.map { method ->
-                method to namespace.accounts.map { getChainFromAccount(it) }
-            }.toMutableList().apply {
-                if (namespace.extensions != null) {
-                    addAll(namespace.extensions.flatMap { extension ->
-                        extension.methods.map { method ->
-                            method to namespace.accounts.map { getChainFromAccount(it) }
-                        }
-                    })
-                }
-            }
+            namespace.methods.map { method -> method to namespace.accounts.map { getChainFromAccount(it) } }.toMutableList()
         }.toMap()
 
     private fun allRequiredMethodsWithChains(namespaces: Map<String, NamespaceVO.Proposal>): Map<String, List<String>> =
         namespaces.values.flatMap { namespace ->
-            namespace.methods.map { method ->
-                method to namespace.chains
-            }.toMutableList().apply {
-                if (namespace.extensions != null) {
-                    addAll(namespace.extensions.flatMap { extension ->
-                        extension.methods.map { method -> method to namespace.chains }
-                    })
-                }
-            }
+            namespace.methods.map { method -> method to namespace.chains }.toMutableList()
         }.toMap()
 
     private fun areAllMethodsApproved(
@@ -217,24 +199,14 @@ internal object SignValidator {
         namespaces.values.flatMap { namespace ->
             namespace.events.map { event ->
                 event to namespace.accounts.map { getChainFromAccount(it) }
-            }.plus(
-                namespace.extensions?.flatMap { extension ->
-                    extension.events.map { event ->
-                        event to namespace.accounts.map { getChainFromAccount(it) }
-                    }
-                } ?: emptyList()
-            )
+            }
         }.toMap()
 
     private fun allRequiredEventsWithChains(namespaces: Map<String, NamespaceVO.Proposal>): Map<String, List<String>> =
         namespaces.values.flatMap { namespace ->
             namespace.events.map { event ->
                 event to namespace.chains
-            }.plus(
-                namespace.extensions?.flatMap { extension ->
-                    extension.events.map { event -> event to namespace.chains }
-                } ?: emptyList()
-            )
+            }
         }.toMap()
 
     private fun areAllEventsApproved(
@@ -263,9 +235,9 @@ internal object SignValidator {
     private fun areAccountsInMatchingNamespace(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
         sessionNamespaces.all { (key, namespace) -> namespace.accounts.all { it.contains(key) } }
 
-    private fun areExtensionAccountsNotEmpty(namespaces: Map<String, NamespaceVO.Session>): Boolean =
-        namespaces.values.filter { it.extensions != null }.flatMap { namespace -> namespace.extensions!!.map { it.accounts } }
-            .all { extAccount -> extAccount.isNotEmpty() }
+//    private fun areExtensionAccountsNotEmpty(namespaces: Map<String, NamespaceVO.Session>): Boolean =
+//        namespaces.values.filter { it.extensions != null }.flatMap { namespace -> namespace.extensions!!.map { it.accounts } }
+//            .all { extAccount -> extAccount.isNotEmpty() }
 
     private fun areSessionNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO.Session>): Boolean =
         namespaces.keys.all { namespaceKey -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) }

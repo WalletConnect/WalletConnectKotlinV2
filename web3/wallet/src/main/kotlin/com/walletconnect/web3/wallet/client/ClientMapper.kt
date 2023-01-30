@@ -6,25 +6,19 @@ import com.walletconnect.sign.client.Sign
 @JvmSynthetic
 internal fun Map<String, Wallet.Model.Namespace.Session>.toSign(): Map<String, Sign.Model.Namespace.Session> =
     mapValues { (_, namespace) ->
-        Sign.Model.Namespace.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            Sign.Model.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
-        })
+        Sign.Model.Namespace.Session(namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
 internal fun Map<String, Sign.Model.Namespace.Session>.toWallet(): Map<String, Wallet.Model.Namespace.Session> =
     mapValues { (_, namespace) ->
-        Wallet.Model.Namespace.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            Wallet.Model.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
-        })
+        Wallet.Model.Namespace.Session(namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
 internal fun Map<String, Sign.Model.Namespace.Proposal>.toWalletProposalNamespaces(): Map<String, Wallet.Model.Namespace.Proposal> =
     mapValues { (_, namespace) ->
-        Wallet.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            Wallet.Model.Namespace.Proposal.Extension(extension.chains, extension.methods, extension.events)
-        })
+        Wallet.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 

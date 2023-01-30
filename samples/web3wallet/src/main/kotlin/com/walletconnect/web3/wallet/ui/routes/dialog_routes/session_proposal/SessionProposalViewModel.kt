@@ -36,7 +36,7 @@ class SessionProposalViewModel : ViewModel() {
                 val methods = sessionProposal.requiredNamespaces[namespaceKey]?.methods ?: emptyList()
                 val events = sessionProposal.requiredNamespaces[namespaceKey]?.events ?: emptyList()
 
-                namespaceKey to Wallet.Model.Namespace.Session(accounts = accounts, methods = methods, events = events, extensions = null)
+                namespaceKey to Wallet.Model.Namespace.Session(accounts = accounts, methods = methods, events = events)
             }.toMap()
 
             val approveProposal = Wallet.Params.SessionApprove(

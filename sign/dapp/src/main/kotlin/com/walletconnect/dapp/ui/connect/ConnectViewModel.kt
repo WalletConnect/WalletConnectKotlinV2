@@ -16,7 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.lang.IllegalStateException
 
 class ConnectViewModel : ViewModel() {
     private val _listOfChainUI: MutableList<ChainSelectionUI> = mutableListOf()
@@ -70,8 +69,7 @@ class ConnectViewModel : ViewModel() {
                     key to Sign.Model.Namespace.Proposal(
                         chains = selectedChains.map { it.chainId },
                         methods = selectedChains.flatMap { it.methods }.distinct(),
-                        events = selectedChains.flatMap { it.events }.distinct(),
-                        extensions = null
+                        events = selectedChains.flatMap { it.events }.distinct()
                     )
                 }.toMap()
 
