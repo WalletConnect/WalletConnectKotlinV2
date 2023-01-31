@@ -56,7 +56,12 @@ data class Cacao(
         val requestId: String?,
         @Json(name = "resources")
         val resources: List<String>?,
-    )
+    ) {
+        companion object {
+            const val CURRENT_VERSION = "1"
+            const val ISO_8601_PATTERN = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
+        }
+    }
 }
 
 @JvmSynthetic

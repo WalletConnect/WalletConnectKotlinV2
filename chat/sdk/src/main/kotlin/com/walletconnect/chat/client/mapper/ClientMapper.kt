@@ -2,6 +2,7 @@
 
 package com.walletconnect.chat.client.mapper
 
+import com.walletconnect.android.internal.common.cacao.Cacao
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.chat.client.Chat
@@ -82,3 +83,6 @@ internal fun SDKError.toClientError(): Chat.Model.Error =
 @JvmSynthetic
 internal fun ConnectionState.toClient(): Chat.Model.ConnectionState =
     Chat.Model.ConnectionState(isAvailable)
+
+@JvmSynthetic
+internal fun Chat.Model.Cacao.Signature.toCommon(): Cacao.Signature = Cacao.Signature(t, s, m)

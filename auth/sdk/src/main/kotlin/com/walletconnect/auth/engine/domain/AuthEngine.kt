@@ -98,7 +98,7 @@ internal class AuthEngine(
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        val responsePublicKey: PublicKey = crypto.generateKeyPair()
+        val responsePublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
         val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams)
         val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
@@ -153,7 +153,7 @@ internal class AuthEngine(
         }
 
         val receiverPublicKey = PublicKey(authParams.requester.publicKey)
-        val senderPublicKey: PublicKey = crypto.generateKeyPair()
+        val senderPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(senderPublicKey, receiverPublicKey)
         val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
         crypto.setKey(symmetricKey, responseTopic.value)
@@ -174,7 +174,7 @@ internal class AuthEngine(
 
     internal fun formatMessage(payloadParams: PayloadParams, iss: String): String {
         val issuer = Issuer(iss)
-        if (issuer.chainId != payloadParams.chainId) throw InvalidParamsException("Issuer chaiId does not match with PayloadParams")
+        if (issuer.chainId != payloadParams.chainId) throw InvalidParamsException("Issuer chainId does not match with PayloadParams")
         if (!CoreValidator.isChainIdCAIP2Compliant(payloadParams.chainId)) throw InvalidParamsException("PayloadParams chainId is not CAIP-2 compliant")
         if (!CoreValidator.isChainIdCAIP2Compliant(issuer.chainId)) throw InvalidParamsException("Issuer chainId is not CAIP-2 compliant")
         if (!CoreValidator.isAccountIdCAIP10Compliant(issuer.accountId)) throw InvalidParamsException("Issuer address is not CAIP-10 compliant")
