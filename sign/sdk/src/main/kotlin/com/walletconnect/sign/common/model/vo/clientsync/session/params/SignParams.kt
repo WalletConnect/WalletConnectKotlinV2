@@ -22,7 +22,7 @@ internal sealed class SignParams : CoreSignParams() {
         @Json(name = "proposer")
         val proposer: SessionProposer,
         @Json(name = "requiredNamespaces")
-        val namespaces: Map<String, NamespaceVO.Required>,
+        val requiredNamespaces: Map<String, NamespaceVO.Required>,
         @Json(name = "optionalNamespaces")
         val optionalNamespaces: Map<String, NamespaceVO.Optional>,
     ) : SignParams()

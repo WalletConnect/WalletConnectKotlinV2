@@ -113,9 +113,11 @@ internal class SignEngine(
     ) {
         val relay = RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
 
-        SignValidator.validateProposalNamespace(namespaces.toNamespacesVORequired()) { error ->
+        SignValidator.validateRequiredNamespaces(namespaces.toNamespacesVORequired()) { error ->
             throw InvalidNamespaceException(error.message)
         }
+
+//        todo validation for optional namespaces
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val sessionProposal: SignParams.SessionProposeParams =
@@ -200,7 +202,11 @@ internal class SignEngine(
         sessionProposalRequest.remove(proposerPublicKey)
         val proposal = request.params as SignParams.SessionProposeParams
 
-        SignValidator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), proposal.namespaces) { error ->
+        SignValidator.validateSessionNamespace(
+            namespaces.toMapOfNamespacesVOSession(),
+            proposal.requiredNamespaces,
+            proposal.optionalNamespaces
+        ) { error ->
             throw InvalidNamespaceException(error.message)
         }
 
@@ -234,7 +240,11 @@ internal class SignEngine(
             throw NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
-        SignValidator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), session.proposalNamespaces) { error ->
+        SignValidator.validateSessionNamespace(
+            namespaces.toMapOfNamespacesVOSession(),
+            session.requiredNamespaces,
+            session.optionalNamespaces
+        ) { error ->
             throw InvalidNamespaceException(error.message)
         }
 
@@ -269,7 +279,8 @@ internal class SignEngine(
             throw InvalidRequestException(error.message)
         }
 
-        val namespaces: Map<String, NamespaceVO.Session> = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic)).namespaces
+        val namespaces: Map<String, NamespaceVO.Session> =
+            sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic)).sessionNamespaces
         SignValidator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { error ->
             throw UnauthorizedMethodException(error.message)
         }
@@ -389,7 +400,7 @@ internal class SignEngine(
             throw InvalidEventException(error.message)
         }
 
-        val namespaces = session.namespaces
+        val namespaces = session.sessionNamespaces
         SignValidator.validateChainIdWithEventAuthorisation(event.chainId, event.name, namespaces) { error ->
             throw UnauthorizedEventException(error.message)
         }
@@ -529,7 +540,7 @@ internal class SignEngine(
     private fun onSessionPropose(request: WCRequest, payloadParams: SignParams.SessionProposeParams) {
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         try {
-            SignValidator.validateProposalNamespace(payloadParams.namespaces) { error ->
+            SignValidator.validateRequiredNamespaces(payloadParams.requiredNamespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return
             }
@@ -570,8 +581,9 @@ internal class SignEngine(
             return
         }
 
-        val proposalNamespaces = (proposal.params as SignParams.SessionProposeParams).namespaces
-        SignValidator.validateSessionNamespace(settleParams.namespaces, proposalNamespaces) { error ->
+        val requiredNamespaces = (proposal.params as SignParams.SessionProposeParams).requiredNamespaces
+        val optionalNamespaces = (proposal.params as SignParams.SessionProposeParams).optionalNamespaces
+        SignValidator.validateSessionNamespace(settleParams.namespaces, requiredNamespaces, optionalNamespaces) { error ->
             jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
             return
         }
@@ -579,7 +591,14 @@ internal class SignEngine(
         val tempProposalRequest = sessionProposalRequest.getValue(selfPublicKey.keyAsHex)
 
         try {
-            val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, selfAppMetaData, proposalNamespaces)
+            val session = SessionVO.createAcknowledgedSession(
+                sessionTopic,
+                settleParams,
+                selfPublicKey,
+                selfAppMetaData,
+                requiredNamespaces,
+                optionalNamespaces
+            )
 
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
             sessionStorageRepository.insertSession(session, request.topic, request.id)
@@ -646,7 +665,7 @@ internal class SignEngine(
                 sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
                     .run {
                         val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
-                        this.namespaces to peerAppMetaData
+                        this.sessionNamespaces to peerAppMetaData
                     }
 
             val method = params.request.method
@@ -699,7 +718,7 @@ internal class SignEngine(
             }
 
             val event = params.event
-            SignValidator.validateChainIdWithEventAuthorisation(params.chainId, event.name, session.namespaces) { error ->
+            SignValidator.validateChainIdWithEventAuthorisation(params.chainId, event.name, session.sessionNamespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return
             }
@@ -735,7 +754,7 @@ internal class SignEngine(
                 return
             }
 
-            SignValidator.validateSessionNamespace(params.namespaces, session.proposalNamespaces) { error ->
+            SignValidator.validateSessionNamespace(params.namespaces, session.requiredNamespaces, session.optionalNamespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, PeerError.Invalid.UpdateRequest(error.message), irnParams)
                 return
             }
@@ -883,7 +902,7 @@ internal class SignEngine(
                     sessionStorageRepository.markUnAckNamespaceAcknowledged(responseId)
                     scope.launch {
                         _engineEvent.emit(
-                            EngineDO.SessionUpdateNamespacesResponse.Result(session.topic, session.namespaces.toMapOfEngineNamespacesSession())
+                            EngineDO.SessionUpdateNamespacesResponse.Result(session.topic, session.sessionNamespaces.toMapOfEngineNamespacesSession())
                         )
                     }
                 }

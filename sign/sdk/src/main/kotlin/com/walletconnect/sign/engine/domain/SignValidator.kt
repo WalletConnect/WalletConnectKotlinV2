@@ -9,9 +9,7 @@ import com.walletconnect.android.internal.utils.CoreValidator.isAccountIdCAIP10C
 import com.walletconnect.android.internal.utils.CoreValidator.isChainIdCAIP2Compliant
 import com.walletconnect.android.internal.utils.WEEK_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.common.exceptions.NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE
-import com.walletconnect.sign.common.exceptions.NAMESPACE_ACCOUNTS_MISSING_MESSAGE
-import com.walletconnect.sign.common.exceptions.NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE
+import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
@@ -21,13 +19,12 @@ import java.net.URISyntaxException
 internal object SignValidator {
 
     @JvmSynthetic
-    internal inline fun validateProposalNamespace(namespaces: Map<String, NamespaceVO.Required>, onError: (ValidationError) -> Unit) {
+    internal inline fun validateRequiredNamespaces(namespaces: Map<String, NamespaceVO.Required>, onError: (ValidationError) -> Unit) {
         when {
             !areProposalNamespacesKeysProperlyFormatted(namespaces) -> onError(ValidationError.UnsupportedNamespaceKey)
-//            !areChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_MISSING_MESSAGE))
-//            !areChainIdsValid(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_CAIP_2_MESSAGE))
-//            !areChainsInMatchingNamespace(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE))
-//            !areExtensionChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE))
+            !areChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_MISSING_MESSAGE))
+            !areChainIdsValid(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_CAIP_2_MESSAGE))
+            !areChainsInMatchingNamespace(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE))
         }
     }
 
@@ -35,6 +32,7 @@ internal object SignValidator {
     internal inline fun validateSessionNamespace(
         sessionNamespaces: Map<String, NamespaceVO.Session>,
         proposalNamespaces: Map<String, NamespaceVO.Required>,
+        optionalNamespaces: Map<String, NamespaceVO.Optional>,
         onError: (ValidationError) -> Unit,
     ) {
         when {
@@ -147,14 +145,15 @@ internal object SignValidator {
     private fun areProposalNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO.Required>): Boolean =
         namespaces.keys.all { namespaceKey -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) }
 
-//    private fun areChainsNotEmpty(namespaces: Map<String, NamespaceVO.Required>): Boolean =
-//        namespaces.values.map { namespace -> namespace.chains }.all { chains -> chains.isNotEmpty() }
+    //todo: add key as caip-2 validation when list of chains is empty
+    private fun areChainsNotEmpty(namespaces: Map<String, NamespaceVO.Required>): Boolean =
+        namespaces.entries.map { (key, namespace) -> namespace.chains }.all { chains -> chains?.isNotEmpty() ?: false }
 
-//    private fun areChainIdsValid(namespaces: Map<String, NamespaceVO.Required>): Boolean =
-//        namespaces.values.flatMap { namespace -> namespace.chains }.all { chain -> isChainIdCAIP2Compliant(chain) }
+    private fun areChainIdsValid(namespaces: Map<String, NamespaceVO.Required>): Boolean =
+        namespaces.values.flatMap { namespace -> namespace.chains!! }.all { chain -> isChainIdCAIP2Compliant(chain) }
 
-//    private fun areChainsInMatchingNamespace(namespaces: Map<String, NamespaceVO.Required>): Boolean =
-//        namespaces.all { (key, namespace) -> namespace.chains.all { chain -> chain.contains(key, true) } }
+    private fun areChainsInMatchingNamespace(namespaces: Map<String, NamespaceVO.Required>): Boolean =
+        namespaces.all { (key, namespace) -> namespace.chains!!.all { chain -> chain.contains(key, true) } }
 
 //    private fun areExtensionChainsNotEmpty(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =
 //        namespaces.values.filter { it.extensions != null }.flatMap { namespace -> namespace.extensions!!.map { it.chains } }

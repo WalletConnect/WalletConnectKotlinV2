@@ -83,7 +83,7 @@ class ValidatorTest {
     fun `Allow empty namespaces`() {
         val namespaces = emptyMap<String, NamespaceVO.Required>()
         var errorMessage: String? = null
-        SignValidator.validateProposalNamespace(namespaces) { error -> errorMessage = error.message }
+        SignValidator.validateRequiredNamespaces(namespaces) { error -> errorMessage = error.message }
         assertNull(errorMessage)
     }
 
@@ -95,7 +95,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateProposalNamespace(namespaces) { errorMessage = it.message }
+        SignValidator.validateRequiredNamespaces(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_CHAINS_MISSING_MESSAGE, errorMessage)
     }
@@ -108,7 +108,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateProposalNamespace(namespaces) { errorMessage = it.message }
+        SignValidator.validateRequiredNamespaces(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_CHAINS_CAIP_2_MESSAGE, errorMessage)
     }
@@ -121,7 +121,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateProposalNamespace(namespaces) { errorMessage = it.message }
+        SignValidator.validateRequiredNamespaces(namespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -133,7 +133,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateProposalNamespace(namespaces) { errorMessage = it.message }
+        SignValidator.validateRequiredNamespaces(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE, errorMessage)
     }
@@ -153,7 +153,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateProposalNamespace(namespaces) { errorMessage = it.message }
+        SignValidator.validateRequiredNamespaces(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE, errorMessage)
     }
@@ -169,7 +169,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateProposalNamespace(namespaces) { errorMessage = it.message }
+        SignValidator.validateRequiredNamespaces(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_KEYS_CAIP_2_MESSAGE, errorMessage)
     }
@@ -190,7 +190,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(sessionNamespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(sessionNamespaces, proposalNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -208,7 +208,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(sessionNamespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(sessionNamespaces, proposalNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_MISSING_MESSAGE, errorMessage)
     }
@@ -230,7 +230,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE, errorMessage)
     }
@@ -249,7 +249,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_METHODS_MISSING_MESSAGE, errorMessage)
     }
@@ -268,7 +268,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_EVENTS_MISSING_MESSAGE, errorMessage)
     }
@@ -287,7 +287,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE, errorMessage)
     }
@@ -309,7 +309,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -330,7 +330,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -351,7 +351,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE, errorMessage)
     }
@@ -373,7 +373,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -397,7 +397,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_KEYS_MISSING_MESSAGE, errorMessage)
     }
@@ -426,7 +426,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -458,7 +458,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -488,7 +488,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -513,7 +513,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, proposalNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 

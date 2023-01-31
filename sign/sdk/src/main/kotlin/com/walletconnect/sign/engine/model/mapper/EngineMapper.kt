@@ -36,7 +36,7 @@ internal fun SignParams.SessionProposeParams.toEngineDO(topic: Topic): EngineDO.
         description = this.proposer.metadata.description,
         url = this.proposer.metadata.url,
         icons = this.proposer.metadata.icons.map { URI(it) },
-        requiredNamespaces = this.namespaces.toMapOfEngineNamespacesRequired(),
+        requiredNamespaces = this.requiredNamespaces.toMapOfEngineNamespacesRequired(),
         optionalNamespaces = this.optionalNamespaces.toMapOfEngineNamespacesOptional(),
         proposerPublicKey = this.proposer.publicKey,
         relayProtocol = relays.first().protocol,
@@ -72,13 +72,13 @@ internal fun SessionVO.toEngineDO(): EngineDO.Session =
     EngineDO.Session(
         topic,
         expiry,
-        namespaces.toMapOfEngineNamespacesSession(),
+        sessionNamespaces.toMapOfEngineNamespacesSession(),
         peerAppMetaData
     )
 
 @JvmSynthetic
 internal fun SessionVO.toEngineDOSessionExtend(expiryVO: Expiry): EngineDO.SessionExtend =
-    EngineDO.SessionExtend(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfAppMetaData)
+    EngineDO.SessionExtend(topic, expiryVO, sessionNamespaces.toMapOfEngineNamespacesSession(), selfAppMetaData)
 
 
 @JvmSynthetic
@@ -86,8 +86,8 @@ internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
     EngineDO.SessionApproved(
         topic = topic.value,
         peerAppMetaData = peerAppMetaData,
-        accounts = namespaces.flatMap { (_, namespace) -> namespace.accounts },
-        namespaces = namespaces.toMapOfEngineNamespacesSession()
+        accounts = sessionNamespaces.flatMap { (_, namespace) -> namespace.accounts },
+        namespaces = sessionNamespaces.toMapOfEngineNamespacesSession()
     )
 
 @JvmSynthetic
@@ -113,7 +113,7 @@ internal fun toSessionProposeParams(
 ) = SignParams.SessionProposeParams(
     relays = relays ?: listOf(RelayProtocolOptions()),
     proposer = SessionProposer(selfPublicKey.keyAsHex, appMetaData),
-    namespaces = namespaces.toNamespacesVORequired(),
+    requiredNamespaces = namespaces.toNamespacesVORequired(),
     optionalNamespaces = optionalNamespaces.toNamespacesVOOptional()
 )
 

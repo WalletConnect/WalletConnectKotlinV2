@@ -23,8 +23,9 @@ internal data class SessionVO(
     val selfAppMetaData: AppMetaData? = null,
     val peerPublicKey: PublicKey? = null,
     val peerAppMetaData: AppMetaData? = null,
-    val namespaces: Map<String, NamespaceVO.Session>,
-    val proposalNamespaces: Map<String, NamespaceVO.Required>,
+    val sessionNamespaces: Map<String, NamespaceVO.Session>,
+    val requiredNamespaces: Map<String, NamespaceVO.Required>,
+    val optionalNamespaces: Map<String, NamespaceVO.Optional>,
     val isAcknowledged: Boolean,
 ) : Sequence {
     val isPeerController: Boolean = peerPublicKey?.keyAsHex == controllerKey?.keyAsHex
@@ -50,8 +51,9 @@ internal data class SessionVO(
                 selfPublicKey = PublicKey(selfParticipant.publicKey),
                 selfAppMetaData = selfParticipant.metadata,
                 controllerKey = PublicKey(selfParticipant.publicKey),
-                namespaces = namespaces.toMapOfNamespacesVOSession(),
-                proposalNamespaces = proposal.namespaces,
+                sessionNamespaces = namespaces.toMapOfNamespacesVOSession(),
+                requiredNamespaces = proposal.requiredNamespaces,
+                optionalNamespaces = proposal.optionalNamespaces,
                 isAcknowledged = false
             )
         }
@@ -62,7 +64,8 @@ internal data class SessionVO(
             settleParams: SignParams.SessionSettleParams,
             selfPublicKey: PublicKey,
             selfMetadata: AppMetaData,
-            proposalNamespaces: Map<String, NamespaceVO.Required>
+            proposalNamespaces: Map<String, NamespaceVO.Required>,
+            optionalNamespaces: Map<String, NamespaceVO.Optional>
         ): SessionVO {
             return SessionVO(
                 sessionTopic,
@@ -74,8 +77,9 @@ internal data class SessionVO(
                 selfPublicKey = selfPublicKey,
                 selfAppMetaData = selfMetadata,
                 controllerKey = PublicKey(settleParams.controller.publicKey),
-                namespaces = settleParams.namespaces,
-                proposalNamespaces = proposalNamespaces,
+                sessionNamespaces = settleParams.namespaces,
+                requiredNamespaces = proposalNamespaces,
+                optionalNamespaces = optionalNamespaces,
                 isAcknowledged = true
             )
         }
