@@ -171,13 +171,11 @@ internal object SignValidator {
 
     private fun allApprovedMethodsWithChains(namespaces: Map<String, NamespaceVO.Session>): Map<String, List<String>> =
         namespaces.values.flatMap { namespace ->
-            namespace.methods.map { method -> method to namespace.accounts.map { getChainFromAccount(it) } }.toMutableList()
+            namespace.methods.map { method -> method to namespace.accounts.map { getChainFromAccount(it) } }
         }.toMap()
 
     private fun allRequiredMethodsWithChains(namespaces: Map<String, NamespaceVO.Proposal>): Map<String, List<String>> =
-        namespaces.values.flatMap { namespace ->
-            namespace.methods.map { method -> method to namespace.chains }.toMutableList()
-        }.toMap()
+        namespaces.values.flatMap { namespace -> namespace.methods.map { method -> method to namespace.chains } }.toMap()
 
     private fun areAllMethodsApproved(
         sessionNamespaces: Map<String, NamespaceVO.Session>,
