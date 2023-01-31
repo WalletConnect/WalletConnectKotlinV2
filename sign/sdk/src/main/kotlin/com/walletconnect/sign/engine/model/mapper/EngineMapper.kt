@@ -37,7 +37,7 @@ internal fun SignParams.SessionProposeParams.toEngineDO(topic: Topic): EngineDO.
         url = this.proposer.metadata.url,
         icons = this.proposer.metadata.icons.map { URI(it) },
         requiredNamespaces = this.requiredNamespaces.toMapOfEngineNamespacesRequired(),
-        optionalNamespaces = this.optionalNamespaces.toMapOfEngineNamespacesOptional(),
+        optionalNamespaces = this.optionalNamespaces?.toMapOfEngineNamespacesOptional(),
         proposerPublicKey = this.proposer.publicKey,
         relayProtocol = relays.first().protocol,
         relayData = relays.first().data
@@ -107,14 +107,14 @@ internal fun SignParams.SessionProposeParams.toSessionSettleParams(
 internal fun toSessionProposeParams(
     relays: List<RelayProtocolOptions>?,
     namespaces: Map<String, EngineDO.Namespace.Required>,
-    optionalNamespaces: Map<String, EngineDO.Namespace.Optional>,
+    optionalNamespaces: Map<String, EngineDO.Namespace.Optional>?,
     selfPublicKey: PublicKey,
     appMetaData: AppMetaData,
 ) = SignParams.SessionProposeParams(
     relays = relays ?: listOf(RelayProtocolOptions()),
     proposer = SessionProposer(selfPublicKey.keyAsHex, appMetaData),
     requiredNamespaces = namespaces.toNamespacesVORequired(),
-    optionalNamespaces = optionalNamespaces.toNamespacesVOOptional()
+    optionalNamespaces = optionalNamespaces?.toNamespacesVOOptional()
 )
 
 @JvmSynthetic

@@ -176,8 +176,8 @@ internal class SessionStorageRepository(
     }
 
     @Throws(SQLiteException::class)
-    private fun insertOptionalNamespace(namespaces: Map<String, NamespaceVO.Optional>, sessionId: Long) {
-        namespaces.forEach { (key, value) ->
+    private fun insertOptionalNamespace(namespaces: Map<String, NamespaceVO.Optional>?, sessionId: Long) {
+        namespaces?.forEach { (key, value) ->
             optionalNamespaceDaoQueries.insertOrAbortOptionalNamespace(sessionId, key, value.chains, value.methods, value.events)
         }
     }

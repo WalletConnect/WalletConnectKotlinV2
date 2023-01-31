@@ -19,7 +19,7 @@ import java.net.URISyntaxException
 internal object SignValidator {
 
     @JvmSynthetic
-    internal inline fun validateRequiredNamespaces(namespaces: Map<String, NamespaceVO.Required>, onError: (ValidationError) -> Unit) {
+    internal inline fun validateProposalNamespaces(namespaces: Map<String, NamespaceVO.ProposalNamespacesVO>, onError: (ValidationError) -> Unit) {
         when {
             !areProposalNamespacesKeysProperlyFormatted(namespaces) -> onError(ValidationError.UnsupportedNamespaceKey)
             !areChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_MISSING_MESSAGE))
@@ -32,7 +32,7 @@ internal object SignValidator {
     internal inline fun validateSessionNamespace(
         sessionNamespaces: Map<String, NamespaceVO.Session>,
         proposalNamespaces: Map<String, NamespaceVO.Required>,
-        optionalNamespaces: Map<String, NamespaceVO.Optional>,
+        optionalNamespaces: Map<String, NamespaceVO.Optional>?,
         onError: (ValidationError) -> Unit,
     ) {
         when {
@@ -142,17 +142,17 @@ internal object SignValidator {
         )
     }
 
-    private fun areProposalNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO.Required>): Boolean =
+    private fun areProposalNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO.ProposalNamespacesVO>): Boolean =
         namespaces.keys.all { namespaceKey -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) }
 
     //todo: add key as caip-2 validation when list of chains is empty
-    private fun areChainsNotEmpty(namespaces: Map<String, NamespaceVO.Required>): Boolean =
+    private fun areChainsNotEmpty(namespaces: Map<String, NamespaceVO.ProposalNamespacesVO>): Boolean =
         namespaces.entries.map { (key, namespace) -> namespace.chains }.all { chains -> chains?.isNotEmpty() ?: false }
 
-    private fun areChainIdsValid(namespaces: Map<String, NamespaceVO.Required>): Boolean =
+    private fun areChainIdsValid(namespaces: Map<String, NamespaceVO.ProposalNamespacesVO>): Boolean =
         namespaces.values.flatMap { namespace -> namespace.chains!! }.all { chain -> isChainIdCAIP2Compliant(chain) }
 
-    private fun areChainsInMatchingNamespace(namespaces: Map<String, NamespaceVO.Required>): Boolean =
+    private fun areChainsInMatchingNamespace(namespaces: Map<String, NamespaceVO.ProposalNamespacesVO>): Boolean =
         namespaces.all { (key, namespace) -> namespace.chains!!.all { chain -> chain.contains(key, true) } }
 
 //    private fun areExtensionChainsNotEmpty(namespaces: Map<String, NamespaceVO.Proposal>): Boolean =

@@ -83,7 +83,7 @@ class ValidatorTest {
     fun `Allow empty namespaces`() {
         val namespaces = emptyMap<String, NamespaceVO.Required>()
         var errorMessage: String? = null
-        SignValidator.validateRequiredNamespaces(namespaces) { error -> errorMessage = error.message }
+        SignValidator.validateProposalNamespaces(namespaces) { error -> errorMessage = error.message }
         assertNull(errorMessage)
     }
 
@@ -95,7 +95,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateRequiredNamespaces(namespaces) { errorMessage = it.message }
+        SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_CHAINS_MISSING_MESSAGE, errorMessage)
     }
@@ -108,7 +108,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateRequiredNamespaces(namespaces) { errorMessage = it.message }
+        SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_CHAINS_CAIP_2_MESSAGE, errorMessage)
     }
@@ -121,7 +121,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateRequiredNamespaces(namespaces) { errorMessage = it.message }
+        SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -133,7 +133,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateRequiredNamespaces(namespaces) { errorMessage = it.message }
+        SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE, errorMessage)
     }
@@ -153,7 +153,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateRequiredNamespaces(namespaces) { errorMessage = it.message }
+        SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_EXTENSION_CHAINS_MISSING_MESSAGE, errorMessage)
     }
@@ -169,7 +169,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateRequiredNamespaces(namespaces) { errorMessage = it.message }
+        SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_KEYS_CAIP_2_MESSAGE, errorMessage)
     }

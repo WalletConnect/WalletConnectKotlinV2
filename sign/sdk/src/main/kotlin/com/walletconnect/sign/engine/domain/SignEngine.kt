@@ -105,23 +105,27 @@ internal class SignEngine(
     }
 
     internal fun proposeSession(
-        namespaces: Map<String, EngineDO.Namespace.Required>,
-        optionalNamespaces: Map<String, EngineDO.Namespace.Optional>,
+        requiredNamespaces: Map<String, EngineDO.Namespace.Required>,
+        optionalNamespaces: Map<String, EngineDO.Namespace.Optional>?,
         pairing: Pairing,
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         val relay = RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
 
-        SignValidator.validateRequiredNamespaces(namespaces.toNamespacesVORequired()) { error ->
+        SignValidator.validateProposalNamespaces(requiredNamespaces.toNamespacesVORequired()) { error ->
             throw InvalidNamespaceException(error.message)
         }
 
-//        todo validation for optional namespaces
+        optionalNamespaces?.let { namespaces ->
+            SignValidator.validateProposalNamespaces(namespaces.toNamespacesVOOptional()) { error ->
+                throw InvalidNamespaceException(error.message)
+            }
+        }
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val sessionProposal: SignParams.SessionProposeParams =
-            toSessionProposeParams(listOf(relay), namespaces, optionalNamespaces, selfPublicKey, selfAppMetaData)
+            toSessionProposeParams(listOf(relay), requiredNamespaces, optionalNamespaces, selfPublicKey, selfAppMetaData)
         val request = SignRpc.SessionPropose(id = generateId(), params = sessionProposal)
         sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequest(pairing.topic, request.id, request.method, sessionProposal)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
@@ -540,7 +544,7 @@ internal class SignEngine(
     private fun onSessionPropose(request: WCRequest, payloadParams: SignParams.SessionProposeParams) {
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         try {
-            SignValidator.validateRequiredNamespaces(payloadParams.requiredNamespaces) { error ->
+            SignValidator.validateProposalNamespaces(payloadParams.requiredNamespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return
             }
