@@ -25,7 +25,7 @@ class SessionProposalViewModel : ViewModel() {
             val selectedAccounts: Map<Chains, String> = mapOfAllAccounts[WalletDelegate.selectedChainAddressId] ?: throw Exception("Can't find account")
             val sessionProposal: Sign.Model.SessionProposal = requireNotNull(WalletDelegate.sessionProposal)
             val sessionNamespaces: Map<String, Sign.Model.Namespace.Session> = selectedAccounts.filter { (chain: Chains, _) ->
-                "${chain.chainNamespace}:${chain.chainReference}" in sessionProposal.requiredNamespaces.values.flatMap { it.chains }
+                "${chain.chainNamespace}:${chain.chainReference}" in sessionProposal.requiredNamespaces.values.flatMap { it.chains!! }
             }.toList().groupBy { (chain: Chains, _: String) ->
                 chain.chainNamespace
             }.map { (namespaceKey: String, chainData: List<Pair<Chains, String>>) ->
@@ -73,7 +73,7 @@ class SessionProposalViewModel : ViewModel() {
             peerName = sessionProposal.name,
             proposalUri = sessionProposal.url,
             peerDescription = sessionProposal.description,
-            chains = sessionProposal.requiredNamespaces.flatMap { it.value.chains }.joinToString("\n"),
+            chains = sessionProposal.requiredNamespaces.flatMap { it.value.chains!! }.joinToString("\n"),
             methods = sessionProposal.requiredNamespaces.flatMap { it.value.methods }.joinToString("\n"),
             events = sessionProposal.requiredNamespaces.flatMap { it.value.events }.joinToString("\n")
         )

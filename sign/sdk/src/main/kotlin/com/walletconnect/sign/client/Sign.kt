@@ -37,6 +37,7 @@ object Sign {
             val url: String,
             val icons: List<URI>,
             val requiredNamespaces: Map<String, Namespace.Proposal>,
+            val optionalNamespaces: Map<String, Namespace.Optional>,
             val proposerPublicKey: String,
             val relayProtocol: String,
             val relayData: String?,
@@ -58,13 +59,21 @@ object Sign {
 
         sealed class Namespace : Model() {
 
+            //Required
             data class Proposal(
-                val chains: List<String>,
+                val chains: List<String>? = null,
+                val methods: List<String>,
+                val events: List<String>
+            ) : Namespace()
+
+            data class Optional(
+                val chains: List<String>? = null,
                 val methods: List<String>,
                 val events: List<String>
             ) : Namespace()
 
             data class Session(
+                val chains: List<String>? = null,
                 val accounts: List<String>,
                 val methods: List<String>,
                 val events: List<String>
@@ -168,6 +177,7 @@ object Sign {
 
         data class Connect(
             val namespaces: Map<String, Model.Namespace.Proposal>,
+            val optionalNamespaces: Map<String, Model.Namespace.Optional>,
             val pairing: Core.Model.Pairing
         ) : Params()
 

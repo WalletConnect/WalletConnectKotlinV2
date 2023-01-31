@@ -17,14 +17,16 @@ class SessionProposalViewModel : ViewModel() {
         if (WCDelegate.sessionProposal != null) {
 
             val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(WCDelegate.sessionProposal)
-            val chains = sessionProposalUI.namespaces.flatMap { (namespace, proposal) -> proposal.chains }
+            //todo chains
+            val chains = sessionProposalUI.namespaces.flatMap { (namespace, proposal) -> proposal.chains!! }
 
             val selectedAccounts: Map<Chains, String> = chains.map { namespaceChainId ->
                 accounts.firstOrNull { (chain, address) -> chain.chainId == namespaceChainId }
             }.filterNotNull().toMap()
 
+            //todo chains
             val sessionNamespaces: Map<String, Wallet.Model.Namespace.Session> = selectedAccounts.filter { (chain: Chains, _) ->
-                "${chain.chainNamespace}:${chain.chainReference}" in sessionProposal.requiredNamespaces.values.flatMap { it.chains }
+                "${chain.chainNamespace}:${chain.chainReference}" in sessionProposal.requiredNamespaces.values.flatMap { it.chains!! }
             }.toList().groupBy { (chain: Chains, _: String) ->
                 chain.chainNamespace
             }.map { (namespaceKey: String, chainData: List<Pair<Chains, String>>) ->

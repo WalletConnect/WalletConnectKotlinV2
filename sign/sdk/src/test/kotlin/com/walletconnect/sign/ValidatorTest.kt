@@ -81,7 +81,7 @@ class ValidatorTest {
 
     @Test
     fun `Allow empty namespaces`() {
-        val namespaces = emptyMap<String, NamespaceVO.Proposal>()
+        val namespaces = emptyMap<String, NamespaceVO.Required>()
         var errorMessage: String? = null
         SignValidator.validateProposalNamespace(namespaces) { error -> errorMessage = error.message }
         assertNull(errorMessage)
@@ -90,7 +90,7 @@ class ValidatorTest {
     @Test
     fun `Proposal Namespaces MUST NOT have chains empty`() {
         val namespaces = mapOf(
-            COSMOS to NamespaceVO.Proposal(
+            COSMOS to NamespaceVO.Required(
                 chains = emptyList(), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), extensions = null
             )
         )
@@ -103,7 +103,7 @@ class ValidatorTest {
     @Test
     fun `Proposal Namespaces chains MUST be CAIP-2 compliant`() {
         val namespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf("42"), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
         )
@@ -116,7 +116,7 @@ class ValidatorTest {
     @Test
     fun `Proposal Namespaces methods and events MAY be empty`() {
         val namespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(ETHEREUM), methods = emptyList(), events = emptyList(), extensions = null
             )
         )
@@ -128,7 +128,7 @@ class ValidatorTest {
     @Test
     fun `All chains in the namespace MUST contain the namespace prefix`() {
         val namespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(ETHEREUM, COSMOSHUB_4), methods = listOf(PERSONAL_SIGN), events = listOf(CHAIN_CHANGED), extensions = null
             )
         )
@@ -141,10 +141,10 @@ class ValidatorTest {
     @Test
     fun `Extension MUST NOT have chains empty`() {
         val namespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(ETHEREUM, MATIC), methods = listOf(PERSONAL_SIGN), events = emptyList(),
                 extensions = listOf(
-                    NamespaceVO.Proposal.Extension(
+                    NamespaceVO.Required.Extension(
                         chains = emptyList(),
                         methods = listOf(ETH_GETACCOUNTS),
                         events = emptyList()
@@ -161,10 +161,10 @@ class ValidatorTest {
     @Test
     fun `Namespace key must comply with CAIP-2 specification`() {
         val namespaces = mapOf(
-            "" to NamespaceVO.Proposal(
+            "" to NamespaceVO.Required(
                 chains = listOf(":1"), methods = listOf(PERSONAL_SIGN), events = emptyList(), extensions = null
             ),
-            "**" to NamespaceVO.Proposal(
+            "**" to NamespaceVO.Required(
                 chains = listOf("**:1"), methods = listOf(PERSONAL_SIGN), events = emptyList(), extensions = null
             )
         )
@@ -176,7 +176,7 @@ class ValidatorTest {
 
     @Test
     fun `Session Namespaces when Proposal Namespaces are empty`() {
-        val proposalNamespaces = emptyMap<String, NamespaceVO.Proposal>()
+        val proposalNamespaces = emptyMap<String, NamespaceVO.Required>()
 
         val sessionNamespaces = mapOf(
             COSMOS to NamespaceVO.Session(
@@ -197,7 +197,7 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces MUST NOT have accounts empty`() {
         val proposalNamespaces = mapOf(
-            COSMOS to NamespaceVO.Proposal(
+            COSMOS to NamespaceVO.Required(
                 chains = emptyList(), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), extensions = null
             )
         )
@@ -216,7 +216,7 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces addresses MUST be CAIP-10 compliant`() {
         val proposalNamespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
         )
@@ -238,7 +238,7 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces MUST approve all methods`() {
         val proposalNamespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = emptyList(), extensions = null
             )
         )
@@ -257,7 +257,7 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces MUST approve all events`() {
         val proposalNamespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(ETHEREUM), methods = emptyList(), events = listOf(CHAIN_CHANGED), extensions = null
             )
         )
@@ -276,7 +276,7 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces MUST contain at least one account in requested chains`() {
         val proposalNamespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(ETHEREUM, OPTIMISM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
         )
@@ -295,7 +295,7 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces MAY contain multiple accounts for one chain`() {
         val proposalNamespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
         )
@@ -316,7 +316,7 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces MAY extend methods and events of Proposal Namespaces`() {
         val proposalNamespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
         )
@@ -337,7 +337,7 @@ class ValidatorTest {
     @Test
     fun `All accounts in the namespace MUST contain the namespace prefix`() {
         val proposalNamespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
         )
@@ -359,7 +359,7 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces MAY contain accounts from chains not defined in Proposal Namespaces`() {
         val proposalNamespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
         )
@@ -380,10 +380,10 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces MUST have at least the same namespaces as the Proposal Namespaces`() {
         val proposalNamespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             ),
-            COSMOS to NamespaceVO.Proposal(
+            COSMOS to NamespaceVO.Required(
                 chains = listOf(COSMOSHUB_4), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), extensions = null
             )
         )
@@ -405,10 +405,10 @@ class ValidatorTest {
     @Test
     fun `Extensions MAY be merged into namespace`() {
         val proposalNamespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED),
                 extensions = listOf(
-                    NamespaceVO.Proposal.Extension(
+                    NamespaceVO.Required.Extension(
                         chains = listOf(MATIC),
                         methods = listOf(PERSONAL_SIGN),
                         events = emptyList()
@@ -433,10 +433,10 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces extensions MAY extend methods and events of Proposal Namespaces extensions`() {
         val proposalNamespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(MATIC, ETHEREUM), methods = emptyList(), events = listOf(CHAIN_CHANGED),
                 extensions = listOf(
-                    NamespaceVO.Proposal.Extension(
+                    NamespaceVO.Required.Extension(
                         chains = listOf(MATIC),
                         methods = listOf(ETH_SIGN),
                         events = emptyList()
@@ -465,10 +465,10 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces extensions MAY contain accounts from chains not defined in Proposal Namespaces extensions`() {
         val proposalNamespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED),
                 extensions = listOf(
-                    NamespaceVO.Proposal.Extension(
+                    NamespaceVO.Required.Extension(
                         chains = listOf(MATIC), methods = listOf(PERSONAL_SIGN), events = listOf(CHAIN_CHANGED)
                     )
                 )
@@ -495,7 +495,7 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces MAY add extensions not defined in Proposal Namespaces extensions`() {
         val proposalNamespaces = mapOf(
-            EIP155 to NamespaceVO.Proposal(
+            EIP155 to NamespaceVO.Required(
                 chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED), extensions = null
             )
         )

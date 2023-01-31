@@ -91,7 +91,8 @@ class SignProtocol : SignInterface {
         checkEngineInitialization()
         try {
             signEngine.proposeSession(
-                connect.namespaces.toMapOfEngineNamespacesProposal(),
+                connect.namespaces.toMapOfEngineNamespacesRequired(),
+                connect.optionalNamespaces.toMapOfEngineNamespacesOptional(),
                 connect.pairing.toPairing(), onSuccess
             ) { error -> onError(Sign.Model.Error(error)) }
         } catch (error: Exception) {

@@ -94,13 +94,21 @@ object Wallet {
 
         sealed class Namespace : Model() {
 
+            //Required
             data class Proposal(
-                val chains: List<String>,
+                val chains: List<String>? = null,
+                val methods: List<String>,
+                val events: List<String>
+            ) : Namespace()
+
+            data class Optional(
+                val chains: List<String>? = null,
                 val methods: List<String>,
                 val events: List<String>
             ) : Namespace()
 
             data class Session(
+                val chains: List<String>? = null,
                 val accounts: List<String>,
                 val methods: List<String>,
                 val events: List<String>

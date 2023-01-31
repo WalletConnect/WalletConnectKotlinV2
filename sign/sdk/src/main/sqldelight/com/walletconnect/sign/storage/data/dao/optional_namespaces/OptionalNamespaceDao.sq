@@ -1,6 +1,6 @@
 import kotlin.collections.List;
 
-CREATE TABLE ProposalNamespaceDao (
+CREATE TABLE OptionalNamespaceDao (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     session_id INTEGER NOT NULL,
     key TEXT NOT NULL,
@@ -10,19 +10,19 @@ CREATE TABLE ProposalNamespaceDao (
     UNIQUE(session_id, key)
 );
 
-insertOrAbortProposalNamespace:
-INSERT OR ABORT INTO ProposalNamespaceDao(session_id, key, chains, methods, events)
+insertOrAbortOptionalNamespace:
+INSERT OR ABORT INTO OptionalNamespaceDao(session_id, key, chains, methods, events)
 VALUES (?, ?, ?, ?, ?);
 
-deleteProposalNamespacesByTopic:
-DELETE FROM ProposalNamespaceDao
+deleteOptionalNamespacesByTopic:
+DELETE FROM OptionalNamespaceDao
 WHERE session_id = (
    SELECT id
    FROM SessionDao
    WHERE topic = ?
 );
 
-getProposalNamespaces:
+getOptionalNamespaces:
 SELECT key, chains, methods, events
 FROM ProposalNamespaceDao
 WHERE session_id = ?;

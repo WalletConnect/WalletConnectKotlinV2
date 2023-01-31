@@ -6,13 +6,13 @@ import com.walletconnect.sign.client.Sign
 @JvmSynthetic
 internal fun Map<String, Wallet.Model.Namespace.Session>.toSign(): Map<String, Sign.Model.Namespace.Session> =
     mapValues { (_, namespace) ->
-        Sign.Model.Namespace.Session(namespace.accounts, namespace.methods, namespace.events)
+        Sign.Model.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
 internal fun Map<String, Sign.Model.Namespace.Session>.toWallet(): Map<String, Wallet.Model.Namespace.Session> =
     mapValues { (_, namespace) ->
-        Wallet.Model.Namespace.Session(namespace.accounts, namespace.methods, namespace.events)
+        Wallet.Model.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
