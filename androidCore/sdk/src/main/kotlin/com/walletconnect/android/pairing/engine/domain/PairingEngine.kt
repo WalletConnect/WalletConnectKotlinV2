@@ -66,16 +66,16 @@ internal class PairingEngine(
     private val _engineEvent: MutableSharedFlow<EngineDO> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineDO> = _engineEvent.asSharedFlow()
 
-    val internalErrorFlow = MutableSharedFlow<InternalError>()
+    val internalErrorFlow = MutableSharedFlow<Throwable>()
 
-    val jsonRpcErrorFlow: Flow<InternalError> by lazy {
+    val jsonRpcErrorFlow: Flow<Throwable> by lazy {
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.method !in setOfRegisteredMethods }
             .onEach { request ->
                 val irnParams = IrnParams(Tags.UNSUPPORTED_METHOD, Ttl(DAY_IN_SECONDS))
                 jsonRpcInteractor.respondWithError(request, Invalid.MethodUnsupported(request.method), irnParams)
             }.map { request ->
-                InternalError(Exception(Invalid.MethodUnsupported(request.method).message))
+                Exception(Invalid.MethodUnsupported(request.method).message)
             }
     }
 
@@ -118,7 +118,7 @@ internal class PairingEngine(
             jsonRpcInteractor.subscribe(
                 topic = activePairing.topic,
                 onSuccess = { onSuccess() },
-                onFailure = { error ->  return@subscribe onFailure(error) }
+                onFailure = { error -> return@subscribe onFailure(error) }
             )
         } catch (e: Exception) {
             crypto.removeKeys(walletConnectUri.topic.value)
@@ -208,10 +208,10 @@ internal class PairingEngine(
             .map { pairing -> pairing.topic }
             .onEach { pairingTopic ->
                 try {
-                    jsonRpcInteractor.subscribe(pairingTopic) { error -> scope.launch { internalErrorFlow.emit(InternalError(error)) } }
+                    jsonRpcInteractor.subscribe(pairingTopic) { error -> scope.launch { internalErrorFlow.emit(error) } }
                 } catch (e: Exception) {
                     scope.launch {
-                        internalErrorFlow.emit(InternalError(e))
+                        internalErrorFlow.emit(e)
                     }
                 }
             }

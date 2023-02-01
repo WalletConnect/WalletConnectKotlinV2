@@ -99,7 +99,8 @@ internal fun SignParams.SessionProposeParams.toSessionSettleParams(
         relay = RelayProtocolOptions(relays.first().protocol, relays.first().data),
         controller = selfParticipant,
         namespaces = namespaces.toMapOfNamespacesVOSession(),
-        expiry = sessionExpiry)
+        expiry = sessionExpiry
+    )
 
 @JvmSynthetic
 internal fun toSessionProposeParams(
@@ -116,33 +117,25 @@ internal fun toSessionProposeParams(
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVOProposal(): Map<String, NamespaceVO.Proposal> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            NamespaceVO.Proposal.Extension(extension.chains, extension.methods, extension.events)
-        })
+        NamespaceVO.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
 internal fun Map<String, NamespaceVO.Proposal>.toMapOfEngineNamespacesProposal(): Map<String, EngineDO.Namespace.Proposal> =
     this.mapValues { (_, namespace) ->
-        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            EngineDO.Namespace.Proposal.Extension(extension.chains, extension.methods, extension.events)
-        })
+        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
 internal fun Map<String, NamespaceVO.Session>.toMapOfEngineNamespacesSession(): Map<String, EngineDO.Namespace.Session> =
     this.mapValues { (_, namespaceVO) ->
-        EngineDO.Namespace.Session(namespaceVO.accounts, namespaceVO.methods, namespaceVO.events, namespaceVO.extensions?.map { extension ->
-            EngineDO.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
-        })
+        EngineDO.Namespace.Session(namespaceVO.accounts, namespaceVO.methods, namespaceVO.events)
     }
 
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Session>.toMapOfNamespacesVOSession(): Map<String, NamespaceVO.Session> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            NamespaceVO.Session.Extension(extension.accounts, extension.methods, extension.events)
-        })
+        NamespaceVO.Session(namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
@@ -157,7 +150,8 @@ internal fun JsonRpcResponse.JsonRpcError.toEngineDO(): EngineDO.JsonRpcResponse
 internal fun SignParams.SessionProposeParams.toSessionApproveParams(selfPublicKey: PublicKey): CoreSignParams.ApprovalParams =
     CoreSignParams.ApprovalParams(
         relay = RelayProtocolOptions(relays.first().protocol, relays.first().data),
-        responderPublicKey = selfPublicKey.keyAsHex)
+        responderPublicKey = selfPublicKey.keyAsHex
+    )
 
 @JvmSynthetic
 internal fun SignParams.SessionRequestParams.toEngineDO(topic: Topic): EngineDO.Request =

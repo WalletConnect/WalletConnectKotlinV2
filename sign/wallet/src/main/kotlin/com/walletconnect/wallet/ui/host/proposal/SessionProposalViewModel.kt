@@ -35,7 +35,7 @@ class SessionProposalViewModel : ViewModel() {
                 val methods = sessionProposal.requiredNamespaces.values.flatMap { it.methods }
                 val events = sessionProposal.requiredNamespaces.values.flatMap { it.events }
 
-                namespaceKey to Sign.Model.Namespace.Session(accounts = accounts, methods = methods, events = events, extensions = null)
+                namespaceKey to Sign.Model.Namespace.Session(accounts = accounts, methods = methods, events = events)
             }.toMap()
 
             val approveProposal = Sign.Params.Approve(

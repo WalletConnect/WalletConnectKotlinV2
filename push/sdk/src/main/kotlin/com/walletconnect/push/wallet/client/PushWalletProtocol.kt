@@ -1,5 +1,6 @@
 package com.walletconnect.push.wallet.client
 
+import com.walletconnect.android.internal.common.di.DBUtils
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -10,7 +11,7 @@ import com.walletconnect.push.common.model.toClient
 import com.walletconnect.push.wallet.client.mapper.toClient
 import com.walletconnect.push.wallet.client.mapper.toClientEvent
 import com.walletconnect.push.wallet.client.mapper.toClientModel
-import com.walletconnect.push.wallet.di.pushStorageModule
+import com.walletconnect.push.common.di.pushStorageModule
 import com.walletconnect.push.wallet.di.walletEngineModule
 import com.walletconnect.push.wallet.engine.PushWalletEngine
 import kotlinx.coroutines.flow.launchIn
@@ -21,14 +22,13 @@ class PushWalletProtocol : PushWalletInterface {
 
     companion object {
         val instance = PushWalletProtocol()
-        const val storageSuffix: String = "WalletPush"
     }
 
     override fun initialize(init: Push.Wallet.Params.Init, onError: (Push.Model.Error) -> Unit) {
         try {
             wcKoinApp.modules(
                 pushJsonRpcModule(),
-                pushStorageModule(storageSuffix),
+                pushStorageModule(DBUtils.PUSH_WALLET_SDK_DB_NAME),
                 walletEngineModule(),
             )
 

@@ -61,30 +61,14 @@ object Sign {
             data class Proposal(
                 val chains: List<String>,
                 val methods: List<String>,
-                val events: List<String>,
-                val extensions: List<Extension>?,
-            ) : Namespace() {
-
-                data class Extension(
-                    val chains: List<String>,
-                    val methods: List<String>,
-                    val events: List<String>
-                )
-            }
+                val events: List<String>
+            ) : Namespace()
 
             data class Session(
                 val accounts: List<String>,
                 val methods: List<String>,
-                val events: List<String>,
-                val extensions: List<Extension>?,
-            ) : Namespace() {
-
-                data class Extension(
-                    val accounts: List<String>,
-                    val methods: List<String>,
-                    val events: List<String>
-                )
-            }
+                val events: List<String>
+            ) : Namespace()
         }
 
         @Deprecated(message = "RelayProtocolOptions is deprecated")

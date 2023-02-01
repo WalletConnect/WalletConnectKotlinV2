@@ -4,7 +4,6 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.Uncategorized
-import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.json_rpc.model.toJsonRpcError
 import com.walletconnect.android.internal.common.json_rpc.model.toJsonRpcResponse

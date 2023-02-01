@@ -240,22 +240,22 @@ internal class SignEngine(
         val sessionUpdate = SignRpc.SessionUpdate(id = generateId(), params = params)
         val irnParams = IrnParams(Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
 
-        sessionStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id,
-            onSuccess = {
-                jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionUpdate,
-                    onSuccess = {
-                        logger.log("Update sent successfully")
-                        onSuccess()
-                    },
-                    onFailure = { error ->
-                        logger.error("Sending session update error: $error")
-                        sessionStorageRepository.deleteTempNamespacesByRequestId(sessionUpdate.id)
-                        onFailure(error)
-                    }
-                )
-            }, onFailure = {
-                onFailure(GenericException("Error updating namespaces"))
-            })
+        try {
+            sessionStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id)
+            jsonRpcInteractor.publishJsonRpcRequest(
+                Topic(topic), irnParams, sessionUpdate,
+                onSuccess = {
+                    logger.log("Update sent successfully")
+                    onSuccess()
+                },
+                onFailure = { error ->
+                    logger.error("Sending session update error: $error")
+                    sessionStorageRepository.deleteTempNamespacesByRequestId(sessionUpdate.id)
+                    onFailure(error)
+                })
+        } catch (e: Exception) {
+            onFailure(GenericException("Error updating namespaces: $e"))
+        }
     }
 
     internal fun sessionRequest(request: EngineDO.Request, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
@@ -743,23 +743,16 @@ internal class SignEngine(
                 return
             }
 
-            sessionStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, params.namespaces, request.id, onSuccess = {
-                jsonRpcInteractor.respondWithSuccess(request, irnParams)
+            sessionStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, params.namespaces, request.id)
+            jsonRpcInteractor.respondWithSuccess(request, irnParams)
 
-                scope.launch {
-                    _engineEvent.emit(EngineDO.SessionUpdateNamespaces(request.topic, params.namespaces.toMapOfEngineNamespacesSession()))
-                }
-            }, onFailure = {
-                jsonRpcInteractor.respondWithError(
-                    request,
-                    PeerError.Invalid.UpdateRequest("Updating Namespace Failed. Review Namespace structure"),
-                    irnParams
-                )
-            })
+            scope.launch {
+                _engineEvent.emit(EngineDO.SessionUpdateNamespaces(request.topic, params.namespaces.toMapOfEngineNamespacesSession()))
+            }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
                 request,
-                Uncategorized.GenericError("Cannot update a session: ${e.message}, topic: ${request.topic}"),
+                PeerError.Invalid.UpdateRequest("Updating Namespace Failed. Review Namespace structure. Error: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
             return
@@ -826,7 +819,7 @@ internal class SignEngine(
                     val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
                     jsonRpcInteractor.subscribe(sessionTopic) { error ->
                         scope.launch {
-                            _engineEvent.emit(SDKError(InternalError(error)))
+                            _engineEvent.emit(SDKError(error))
                         }
                     }
                 }
@@ -836,7 +829,7 @@ internal class SignEngine(
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -865,7 +858,7 @@ internal class SignEngine(
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -884,22 +877,13 @@ internal class SignEngine(
                     logger.log("Session update namespaces response received")
                     val responseId = wcResponse.response.id
                     val namespaces = sessionStorageRepository.getTempNamespaces(responseId)
-
-                    sessionStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, namespaces, responseId,
-                        onSuccess = {
-                            sessionStorageRepository.markUnAckNamespaceAcknowledged(responseId)
-                            scope.launch {
-                                _engineEvent.emit(
-                                    EngineDO.SessionUpdateNamespacesResponse.Result(
-                                        session.topic,
-                                        session.namespaces.toMapOfEngineNamespacesSession()
-                                    )
-                                )
-                            }
-                        },
-                        onFailure = {
-                            scope.launch { _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error("Unable to update the session")) }
-                        })
+                    sessionStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, namespaces, responseId)
+                    sessionStorageRepository.markUnAckNamespaceAcknowledged(responseId)
+                    scope.launch {
+                        _engineEvent.emit(
+                            EngineDO.SessionUpdateNamespacesResponse.Result(session.topic, session.namespaces.toMapOfEngineNamespacesSession())
+                        )
+                    }
                 }
                 is JsonRpcResponse.JsonRpcError -> {
                     logger.error("Peer failed to update session namespaces: ${response.error}")
@@ -907,7 +891,7 @@ internal class SignEngine(
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { scope.launch { _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error("Unable to update the session")) } }
         }
     }
 
@@ -921,7 +905,7 @@ internal class SignEngine(
             val method = params.request.method
             scope.launch { _engineEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -943,12 +927,12 @@ internal class SignEngine(
                 .onEach { session ->
                     jsonRpcInteractor.subscribe(session.topic) { error ->
                         scope.launch {
-                            _engineEvent.emit(SDKError(InternalError(error)))
+                            _engineEvent.emit(SDKError(error))
                         }
                     }
                 }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -970,7 +954,7 @@ internal class SignEngine(
                 }
             }.launchIn(scope)
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 

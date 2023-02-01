@@ -358,14 +358,14 @@ internal class ChatEngine(
             keyManagementRepository.setKey(symmetricKey, threadTopic.value)
             jsonRpcInteractor.subscribe(threadTopic) { error ->
                 scope.launch {
-                    _events.emit(SDKError(InternalError(error)))
+                    _events.emit(SDKError(error))
                 }
                 return@subscribe
             }
             //TODO: Add adding thread to storage. For Alpha we will use only emitted event.
             scope.launch { _events.emit(EngineDO.Events.OnJoined(threadTopic.value)) }
         } catch (e: Exception) {
-            scope.launch { _events.emit(SDKError(InternalError(e))) }
+            scope.launch { _events.emit(SDKError(e)) }
             return
         }
     }
@@ -407,11 +407,11 @@ internal class ChatEngine(
             val publicKey = keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)
             val topic = keyManagementRepository.getTopicFromKey(publicKey)
             jsonRpcInteractor.subscribe(topic) { error ->
-                scope.launch { _events.emit(SDKError(InternalError(error))) }
+                scope.launch { _events.emit(SDKError(error)) }
             }
             logger.log("Listening for invite on: $topic, pubKey X:$publicKey")
         } catch (error: Exception) {
-            scope.launch { _events.emit(SDKError(InternalError(error))) }
+            scope.launch { _events.emit(SDKError(error)) }
         }
     }
 
