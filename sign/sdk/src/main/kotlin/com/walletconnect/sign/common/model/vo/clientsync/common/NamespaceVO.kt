@@ -8,7 +8,7 @@ import com.squareup.moshi.JsonClass
 
 internal sealed class NamespaceVO {
 
-    internal open class ProposalNamespacesVO(
+    internal open class ProposalNamespaces(
         open val chains: List<String>? = null,
         open val methods: List<String>,
         open val events: List<String>
@@ -22,7 +22,7 @@ internal sealed class NamespaceVO {
         override val methods: List<String>,
         @Json(name = "events")
         override val events: List<String>
-    ) : ProposalNamespacesVO(chains, methods, events)
+    ) : ProposalNamespaces(chains, methods, events)
 
     @JsonClass(generateAdapter = true)
     internal data class Optional(
@@ -32,7 +32,7 @@ internal sealed class NamespaceVO {
         override val methods: List<String>,
         @Json(name = "events")
         override val events: List<String>
-    ) : ProposalNamespacesVO(chains, methods, events)
+    ) : ProposalNamespaces(chains, methods, events)
 
     @JsonClass(generateAdapter = true)
     internal data class Session(

@@ -549,6 +549,13 @@ internal class SignEngine(
                 return
             }
 
+            payloadParams.optionalNamespaces?.let { optionalNamespaces ->
+                SignValidator.validateProposalNamespaces(optionalNamespaces) { error ->
+                    jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
+                    return
+                }
+            }
+
             sessionProposalRequest[payloadParams.proposer.publicKey] = request
             pairingHandler.updateMetadata(
                 Core.Params.UpdateMetadata(
