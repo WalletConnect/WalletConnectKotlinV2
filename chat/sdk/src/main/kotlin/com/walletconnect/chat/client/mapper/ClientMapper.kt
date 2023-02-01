@@ -8,6 +8,7 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.Media
+import com.walletconnect.chat.common.model.Thread
 import com.walletconnect.chat.engine.model.EngineDO
 
 //TODO: Figure out what to do with models separation
@@ -49,6 +50,11 @@ internal fun AccountId.toClient(): Chat.Model.AccountId {
 @JvmSynthetic
 internal fun Media.toClient(): Chat.Model.Media {
     return Chat.Model.Media(type, data)
+}
+
+@JvmSynthetic
+internal fun Thread.toClient(): Chat.Model.Thread {
+    return Chat.Model.Thread(topic, Chat.Model.AccountId(selfAccount), Chat.Model.AccountId(peerAccount))
 }
 
 @JvmSynthetic

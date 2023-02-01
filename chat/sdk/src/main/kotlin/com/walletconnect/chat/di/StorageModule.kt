@@ -5,6 +5,7 @@ import com.walletconnect.android.internal.common.di.DBUtils
 import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.chat.ChatDatabase
 import com.walletconnect.chat.storage.ChatStorageRepository
+import com.walletconnect.chat.storage.ThreadsStorageRepository
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
@@ -30,6 +31,14 @@ internal fun storageModule() = module {
     }
 
     single {
+        get<ChatDatabase>().threadsQueries
+    }
+
+    single {
         ChatStorageRepository(get())
+    }
+
+    single {
+        ThreadsStorageRepository(get())
     }
 }
