@@ -5,6 +5,7 @@ package com.walletconnect.android.echo
 import com.walletconnect.android.echo.model.EchoBody
 import com.walletconnect.android.echo.network.EchoService
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +15,7 @@ import org.koin.core.qualifier.named
 internal object EchoClient: EchoInterface {
     private val echoService by lazy { wcKoinApp.koin.get<EchoService>() }
     private val clientId by lazy { wcKoinApp.koin.get<String>(named(AndroidCommonDITags.CLIENT_ID)) }
+    private val projectId by lazy { wcKoinApp.koin.get<ProjectId>() }
     private const val SUCCESS_STATUS = "SUCCESS"
 
     override fun register(firebaseAccessToken: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
@@ -21,13 +23,13 @@ internal object EchoClient: EchoInterface {
             val body = EchoBody(clientId, firebaseAccessToken)
 
             scope.launch(Dispatchers.IO) {
-                val response = echoService.register(body)
+                val response = echoService.register(projectId.value, body)
 
                 if (response.isSuccessful && response.body() != null) {
                     if (response.body()!!.status == SUCCESS_STATUS) {
                         onSuccess()
                     } else {
-                        onError(IllegalArgumentException(response.body()!!.errors.first().message))
+                        onError(IllegalArgumentException(response.body()!!.errors?.first()?.message))
                     }
                 } else {
                     onError(IllegalArgumentException(response.errorBody()?.string()))
@@ -41,13 +43,13 @@ internal object EchoClient: EchoInterface {
     override fun unregister(onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         try {
             scope.launch(Dispatchers.IO) {
-                val response = echoService.unregister(clientId)
+                val response = echoService.unregister(projectId.value, clientId)
 
                 if (response.isSuccessful && response.body() != null) {
                     if (response.body()!!.status == SUCCESS_STATUS) {
                         onSuccess()
                     } else {
-                        onError(IllegalArgumentException(response.body()!!.errors.first().message))
+                        onError(IllegalArgumentException(response.body()!!.errors?.first()?.message))
                     }
                 } else {
                     onError(IllegalArgumentException(response.errorBody()?.string()))
