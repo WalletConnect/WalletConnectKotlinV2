@@ -45,9 +45,10 @@ class WalletSampleApplication : Application() {
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
 
+        // For testing purposes only
         FirebaseMessaging.getInstance().deleteToken().addOnSuccessListener {
-            FirebaseMessaging.getInstance().token.addOnSuccessListener {
-                Log.e("Talha", it)
+            FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+                Log.d(tag(this), token)
             }
         }
     }
