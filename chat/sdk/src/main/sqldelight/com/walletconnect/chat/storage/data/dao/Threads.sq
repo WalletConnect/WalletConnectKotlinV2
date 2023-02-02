@@ -9,10 +9,10 @@ insertOrAbortThread:
 INSERT OR ABORT INTO Threads(topic, selfAccount, peerAccount)
 VALUES (?, ?, ?);
 
-getThreadsForAccount:
+getThreadsForSelfAccount:
 SELECT topic, selfAccount, peerAccount
 FROM Threads
-WHERE selfAccount = ? OR peerAccount = ?;
+WHERE selfAccount = ?;
 
 deleteThreadByTopic:
 DELETE FROM Threads
