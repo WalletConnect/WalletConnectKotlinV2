@@ -65,6 +65,7 @@ dependencies {
     debugImplementation(project(":androidCore:sdk"))
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 
+    moshiKsp()
     androidXTest()
     jUnit5()
     robolectric()

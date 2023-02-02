@@ -5,5 +5,5 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <application android:fullBackupContent="@xml/backup_rules" />
+    <application android:fullBackupContent="@xml/backup_rules" android:dataExtractionRules="@xml/backup_config" />
 </manifest>

@@ -19,12 +19,11 @@ import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.launch
 
 internal class ChatProtocol : ChatInterface {
-    private val keyServerUrl = "https://keys.walletconnect.com"
+    private val keyServerUrl = "https://staging.keys.walletconnect.com"
     private lateinit var chatEngine: ChatEngine
 
     companion object {
         val instance = ChatProtocol()
-        const val storageSuffix: String = "_chat"
     }
 
     @Throws(IllegalStateException::class)
@@ -34,7 +33,7 @@ internal class ChatProtocol : ChatInterface {
                 modules(
                     keyServerModule(keyServerUrl),
                     jsonRpcModule(),
-                    storageModule(storageSuffix),
+                    storageModule(),
                     engineModule()
                 )
             }
@@ -62,18 +61,6 @@ internal class ChatProtocol : ChatInterface {
                 }
             }
         }
-    }
-
-    @Throws(IllegalStateException::class)
-    override fun register(register: Chat.Params.Register, listener: Chat.Listeners.Register) {
-        checkEngineInitialization()
-
-        chatEngine.registerAccount(
-            AccountId(register.account.value),
-            { publicKey -> listener.onSuccess(publicKey) },
-            { throwable -> listener.onError(Chat.Model.Error(throwable)) },
-            register.private ?: false
-        )
     }
 
     @Throws(IllegalStateException::class)
@@ -160,5 +147,31 @@ internal class ChatProtocol : ChatInterface {
         check(::chatEngine.isInitialized) {
             "ChatClient needs to be initialized first using the initialize function"
         }
+    }
+
+
+    @Throws(IllegalStateException::class)
+    override fun registerIdentity(registerIdentity: Chat.Params.RegisterIdentity, listener: Chat.Listeners.RegisterIdentity) {
+        checkEngineInitialization()
+
+        chatEngine.registerIdentity(
+            registerIdentity.account.toCommon(),
+            { message -> listener.onSign(message).toCommon() },
+            { publicKey -> listener.onSuccess(publicKey) },
+            { throwable -> listener.onError(Chat.Model.Error(throwable)) },
+            registerIdentity.private ?: false
+        )
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun registerInvite(register: Chat.Params.Register, listener: Chat.Listeners.Register) {
+        checkEngineInitialization()
+
+        chatEngine.registerInvite(
+            register.account.toCommon(),
+            { publicKey -> listener.onSuccess(publicKey) },
+            { throwable -> listener.onError(Chat.Model.Error(throwable)) },
+            register.private ?: false
+        )
     }
 }

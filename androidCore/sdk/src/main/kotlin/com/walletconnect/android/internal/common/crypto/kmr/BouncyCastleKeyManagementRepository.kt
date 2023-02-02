@@ -15,6 +15,7 @@ import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator
 import org.bouncycastle.crypto.params.HKDFParameters
 import org.bouncycastle.math.ec.rfc7748.X25519
+import org.bouncycastle.math.ec.rfc8032.Ed25519
 import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.KeyGenerator
@@ -49,7 +50,17 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         keyChain.setKeys(tag, self, peer)
     }
 
-    override fun generateKeyPair(): PublicKey {
+    override fun generateAndStoreEd25519KeyPair(): PublicKey {
+        val publicKey = ByteArray(KEY_SIZE)
+        val privateKey = ByteArray(KEY_SIZE)
+        Ed25519.generatePrivateKey(SecureRandom(ByteArray(KEY_SIZE)), privateKey)
+        Ed25519.generatePublicKey(privateKey, 0, publicKey, 0)
+
+        setKeyPair(PublicKey(publicKey.bytesToHex().lowercase()), PrivateKey(privateKey.bytesToHex().lowercase()))
+        return PublicKey(publicKey.bytesToHex().lowercase())
+    }
+
+    override fun generateAndStoreX25519KeyPair(): PublicKey {
         val publicKey = ByteArray(KEY_SIZE)
         val privateKey = ByteArray(KEY_SIZE)
         X25519.generatePrivateKey(SecureRandom(ByteArray(KEY_SIZE)), privateKey)
@@ -99,7 +110,7 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
     }
 
     @Throws(MissingKeyException::class)
-    internal fun getKeyPair(key: Key): Pair<PublicKey, PrivateKey> {
+    override fun getKeyPair(key: PublicKey): Pair<PublicKey, PrivateKey> {
         val (publicKeyHex, privateKeyHex) = keyChain.getKeys(key.keyAsHex) ?: throw MissingKeyException("No key pair for tag: ${key.keyAsHex}")
 
         return Pair(PublicKey(publicKeyHex), PrivateKey(privateKeyHex))

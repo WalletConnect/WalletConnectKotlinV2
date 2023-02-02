@@ -9,9 +9,17 @@ import retrofit2.http.*
 internal interface KeyServerService {
 
     @Headers("Content-Type: application/json")
-    @POST("register")
-    suspend fun register(@Body account: KeyServerDTO.Account)
+    @POST("invite")
+    suspend fun registerInvite(@Body body: KeyServerDTO.RegisterInviteBody)
 
-    @GET("resolve")
-    suspend fun resolve(@Query("account") account: String): KeyServerDTO.Account
+
+    @GET("invite")
+    suspend fun resolveInvite(@Query("account") account: String): KeyServerDTO.ResolveInviteResponse
+
+    @GET("identity")
+    suspend fun resolveIdentity(@Query("publicKey") publicKey: String): KeyServerDTO.ResolveIdentityResponse
+
+    @Headers("Content-Type: application/json")
+    @POST("identity")
+    suspend fun registerIdentity(@Body body: KeyServerDTO.RegisterIdentityBody)
 }

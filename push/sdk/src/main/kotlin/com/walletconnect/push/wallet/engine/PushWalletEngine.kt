@@ -90,7 +90,7 @@ internal class PushWalletEngine(
             } ?: return onError(GenericException("Unable to find proposer's request"))
             val proposerRequestParams = proposerRequest.params as PushParams.RequestParams
 
-            val selfPublicKey = crypto.generateKeyPair()
+            val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
             val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(proposerRequestParams.publicKey))
             val approvalParams = PushParams.RequestResponseParams(selfPublicKey.keyAsHex)
             val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
