@@ -5,8 +5,8 @@ import com.walletconnect.android.internal.common.model.type.Error
 /**
  * Documentation: https://github.com/WalletConnect/walletconnect-specs/blob/main/sign/error-codes.md
  */
-sealed class PeerError: Error {
-    sealed class Invalid: PeerError() {
+sealed class PeerError : Error {
+    sealed class Invalid : PeerError() {
 
         data class Method(val reason: String) : Invalid() {
             override val message: String = "Invalid session request: $reason"
@@ -33,7 +33,7 @@ sealed class PeerError: Error {
         }
     }
 
-    sealed class Unauthorized: PeerError() {
+    sealed class Unauthorized : PeerError() {
 
         data class Method(val reason: String) : Unauthorized() {
             override val message: String = "Unauthorized session request: $reason"
@@ -60,14 +60,14 @@ sealed class PeerError: Error {
         }
     }
 
-    sealed class EIP1193: PeerError() {
+    sealed class EIP1193 : PeerError() {
 
         data class UserRejectedRequest(override val message: String) : EIP1193() {
             override val code: Int = 4001
         }
     }
 
-    sealed class CAIP25: PeerError() {
+    sealed class CAIP25 : PeerError() {
 
         data class UserRejected(override val message: String) : CAIP25() {
             override val code: Int = 5000
@@ -106,7 +106,7 @@ sealed class PeerError: Error {
         }
     }
 
-    sealed class Failure: PeerError() {
+    sealed class Failure : PeerError() {
 
         data class SessionSettlementFailed(val reason: String) : Failure() {
             override val message: String = "Invalid Session Settle Request: $reason"
@@ -115,6 +115,12 @@ sealed class PeerError: Error {
 
         data class NoSessionForTopic(override val message: String) : Failure() {
             override val code: Int = 7001
+        }
+    }
+
+    sealed class Generic : PeerError() {
+        data class EmptyNamespaces(override val message: String) : Failure() {
+            override val code: Int = 8000
         }
     }
 }

@@ -105,7 +105,7 @@ internal class SignEngine(
     }
 
     internal fun proposeSession(
-        requiredNamespaces: Map<String, EngineDO.Namespace.Required>,
+        requiredNamespaces: Map<String, EngineDO.Namespace.Required>?,
         optionalNamespaces: Map<String, EngineDO.Namespace.Optional>?,
         pairing: Pairing,
         onSuccess: () -> Unit,
@@ -113,19 +113,26 @@ internal class SignEngine(
     ) {
         val relay = RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
 
-        SignValidator.validateProposalNamespaces(requiredNamespaces.toNamespacesVORequired()) { error ->
-            throw InvalidNamespaceException(error.message)
+        requiredNamespaces?.let { namespaces ->
+            SignValidator.validateOptionalNamespaces(namespaces.toNamespacesVORequired()) { error ->
+                throw InvalidNamespaceException(error.message)
+            }
         }
 
         optionalNamespaces?.let { namespaces ->
-            SignValidator.validateProposalNamespaces(namespaces.toNamespacesVOOptional()) { error ->
+            SignValidator.validateOptionalNamespaces(namespaces.toNamespacesVOOptional()) { error ->
                 throw InvalidNamespaceException(error.message)
             }
         }
 
         val selfPublicKey: PublicKey = crypto.generateKeyPair()
         val sessionProposal: SignParams.SessionProposeParams =
-            toSessionProposeParams(listOf(relay), requiredNamespaces, optionalNamespaces, selfPublicKey, selfAppMetaData)
+            toSessionProposeParams(
+                listOf(relay), requiredNamespaces ?: emptyMap(),
+                optionalNamespaces ?: emptyMap(),
+                selfPublicKey, selfAppMetaData
+            )
+
         val request = SignRpc.SessionPropose(id = generateId(), params = sessionProposal)
         sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequest(pairing.topic, request.id, request.method, sessionProposal)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
@@ -166,7 +173,7 @@ internal class SignEngine(
 
     internal fun approve(
         proposerPublicKey: String,
-        namespaces: Map<String, EngineDO.Namespace.Session>,
+        sessionNamespaces: Map<String, EngineDO.Namespace.Session>,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
@@ -179,13 +186,14 @@ internal class SignEngine(
             val selfPublicKey = crypto.getSelfPublicFromKeyAgreement(sessionTopic)
             val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, selfAppMetaData)
             val sessionExpiry = ACTIVE_SESSION
-            val unacknowledgedSession = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces)
+            val unacknowledgedSession =
+                SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, sessionNamespaces)
 
             try {
                 sessionStorageRepository.insertSession(unacknowledgedSession, pairingTopic, requestId)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, proposal.proposer.metadata, AppMetaDataType.PEER)
-                val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
+                val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, sessionNamespaces)
                 val sessionSettle = SignRpc.SessionSettle(id = generateId(), params = params)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
@@ -207,7 +215,7 @@ internal class SignEngine(
         val proposal = request.params as SignParams.SessionProposeParams
 
         SignValidator.validateSessionNamespace(
-            namespaces.toMapOfNamespacesVOSession(),
+            sessionNamespaces.toMapOfNamespacesVOSession(),
             proposal.requiredNamespaces,
             proposal.optionalNamespaces
         ) { error ->
@@ -544,16 +552,15 @@ internal class SignEngine(
     private fun onSessionPropose(request: WCRequest, payloadParams: SignParams.SessionProposeParams) {
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         try {
-            SignValidator.validateProposalNamespaces(payloadParams.requiredNamespaces) { error ->
+
+            SignValidator.validateOptionalNamespaces(payloadParams.requiredNamespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return
             }
 
-            payloadParams.optionalNamespaces?.let { optionalNamespaces ->
-                SignValidator.validateProposalNamespaces(optionalNamespaces) { error ->
-                    jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                    return
-                }
+            SignValidator.validateOptionalNamespaces(payloadParams.optionalNamespaces) { error ->
+                jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
+                return
             }
 
             sessionProposalRequest[payloadParams.proposer.publicKey] = request

@@ -91,7 +91,7 @@ class SignProtocol : SignInterface {
         checkEngineInitialization()
         try {
             signEngine.proposeSession(
-                connect.namespaces.toMapOfEngineNamespacesRequired(),
+                connect.namespaces?.toMapOfEngineNamespacesRequired(),
                 connect.optionalNamespaces?.toMapOfEngineNamespacesOptional(),
                 connect.pairing.toPairing(), onSuccess
             ) { error -> onError(Sign.Model.Error(error)) }
@@ -124,7 +124,7 @@ class SignProtocol : SignInterface {
         try {
             signEngine.approve(
                 proposerPublicKey = approve.proposerPublicKey,
-                namespaces = approve.namespaces.toMapOfEngineNamespacesSession(),
+                sessionNamespaces = approve.namespaces.toMapOfEngineNamespacesSession(),
                 onSuccess = { onSuccess(approve) },
                 onFailure = { error -> onError(Sign.Model.Error(error)) }
             )

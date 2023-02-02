@@ -176,7 +176,7 @@ object Sign {
         ) : Params()
 
         data class Connect(
-            val namespaces: Map<String, Model.Namespace.Proposal>,
+            val namespaces: Map<String, Model.Namespace.Proposal>? = null,
             val optionalNamespaces: Map<String, Model.Namespace.Optional>? = null,
             val pairing: Core.Model.Pairing
         ) : Params()

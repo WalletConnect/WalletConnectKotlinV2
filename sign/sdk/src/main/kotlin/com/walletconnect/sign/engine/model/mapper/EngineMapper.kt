@@ -106,15 +106,15 @@ internal fun SignParams.SessionProposeParams.toSessionSettleParams(
 @JvmSynthetic
 internal fun toSessionProposeParams(
     relays: List<RelayProtocolOptions>?,
-    namespaces: Map<String, EngineDO.Namespace.Required>,
-    optionalNamespaces: Map<String, EngineDO.Namespace.Optional>?,
+    requiredNamespaces: Map<String, EngineDO.Namespace.Required>,
+    optionalNamespaces: Map<String, EngineDO.Namespace.Optional>,
     selfPublicKey: PublicKey,
     appMetaData: AppMetaData,
 ) = SignParams.SessionProposeParams(
     relays = relays ?: listOf(RelayProtocolOptions()),
     proposer = SessionProposer(selfPublicKey.keyAsHex, appMetaData),
-    requiredNamespaces = namespaces.toNamespacesVORequired(),
-    optionalNamespaces = optionalNamespaces?.toNamespacesVOOptional()
+    requiredNamespaces = requiredNamespaces.toNamespacesVORequired(),
+    optionalNamespaces = optionalNamespaces.toNamespacesVOOptional()
 )
 
 @JvmSynthetic
@@ -190,4 +190,5 @@ internal fun ValidationError.toPeerError() = when (this) {
     is ValidationError.UserRejectedEvents -> PeerError.CAIP25.UserRejectedEvents(message)
     is ValidationError.UserRejectedMethods -> PeerError.CAIP25.UserRejectedMethods(message)
     is ValidationError.UserRejectedChains -> PeerError.CAIP25.UserRejectedChains(message)
+    is ValidationError.EmptyNamespaces -> PeerError.Generic.EmptyNamespaces(message)
 }
