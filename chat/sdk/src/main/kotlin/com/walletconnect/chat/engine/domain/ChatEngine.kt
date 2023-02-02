@@ -242,7 +242,7 @@ internal class ChatEngine(
             val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
 
             keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
-            threadsRepository.insertThread(acceptTopic.value, TODO("How to get the self account?"), peerAccount.value)
+            threadsRepository.insertThread(acceptTopic.value, invite.accountId.value, peerAccount.value)
             jsonRpcInteractor.subscribe(acceptTopic) { error -> return@subscribe onFailure(error) }
 
             val irnParams = IrnParams(Tags.CHAT_INVITE, Ttl(DAY_IN_SECONDS), true)
