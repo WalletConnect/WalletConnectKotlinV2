@@ -2,13 +2,19 @@
 
 package com.walletconnect.chat.discovery.keyserver.model
 
-import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
+import com.walletconnect.android.internal.common.cacao.Cacao
 
 internal sealed class KeyServerDTO {
-    data class Account(
-        @Json(name = "account")
-        val account: String,
-        @Json(name = "publicKey")
-        val publicKey: String,
-    ) : KeyServerDTO()
+    @JsonClass(generateAdapter = true)
+    data class ResolveInviteResponse(val inviteKey: String): KeyServerDTO()
+
+    @JsonClass(generateAdapter = true)
+    data class RegisterInviteBody(val idAuth: String): KeyServerDTO()
+
+    @JsonClass(generateAdapter = true)
+    data class ResolveIdentityResponse(val cacao: Cacao): KeyServerDTO()
+
+    @JsonClass(generateAdapter = true)
+    data class RegisterIdentityBody(val cacao: Cacao): KeyServerDTO()
 }

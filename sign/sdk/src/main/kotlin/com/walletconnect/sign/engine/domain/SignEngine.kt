@@ -105,34 +105,19 @@ internal class SignEngine(
     }
 
     internal fun proposeSession(
-        requiredNamespaces: Map<String, EngineDO.Namespace.Required>?,
-        optionalNamespaces: Map<String, EngineDO.Namespace.Optional>?,
+        namespaces: Map<String, EngineDO.Namespace.Proposal>,
         pairing: Pairing,
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         val relay = RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
 
-        requiredNamespaces?.let { namespaces ->
-            SignValidator.validateProposalNamespaces(namespaces.toNamespacesVORequired()) { error ->
-                throw InvalidNamespaceException(error.message)
-            }
+        SignValidator.validateProposalNamespace(namespaces.toNamespacesVOProposal()) { error ->
+            throw InvalidNamespaceException(error.message)
         }
 
-        optionalNamespaces?.let { namespaces ->
-            SignValidator.validateProposalNamespaces(namespaces.toNamespacesVOOptional()) { error ->
-                throw InvalidNamespaceException(error.message)
-            }
-        }
-
-        val selfPublicKey: PublicKey = crypto.generateKeyPair()
-        val sessionProposal: SignParams.SessionProposeParams =
-            toSessionProposeParams(
-                listOf(relay), requiredNamespaces ?: emptyMap(),
-                optionalNamespaces ?: emptyMap(),
-                selfPublicKey, selfAppMetaData
-            )
-
+        val selfPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
+        val sessionProposal: SignParams.SessionProposeParams = toSessionProposeParams(listOf(relay), namespaces, selfPublicKey, selfAppMetaData)
         val request = SignRpc.SessionPropose(id = generateId(), params = sessionProposal)
         sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequest(pairing.topic, request.id, request.method, sessionProposal)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
@@ -173,7 +158,7 @@ internal class SignEngine(
 
     internal fun approve(
         proposerPublicKey: String,
-        sessionNamespaces: Map<String, EngineDO.Namespace.Session>,
+        namespaces: Map<String, EngineDO.Namespace.Session>,
         onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     ) {
@@ -186,14 +171,13 @@ internal class SignEngine(
             val selfPublicKey = crypto.getSelfPublicFromKeyAgreement(sessionTopic)
             val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, selfAppMetaData)
             val sessionExpiry = ACTIVE_SESSION
-            val unacknowledgedSession =
-                SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, sessionNamespaces)
+            val unacknowledgedSession = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces)
 
             try {
                 sessionStorageRepository.insertSession(unacknowledgedSession, pairingTopic, requestId)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, proposal.proposer.metadata, AppMetaDataType.PEER)
-                val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, sessionNamespaces)
+                val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
                 val sessionSettle = SignRpc.SessionSettle(id = generateId(), params = params)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
@@ -214,15 +198,11 @@ internal class SignEngine(
         sessionProposalRequest.remove(proposerPublicKey)
         val proposal = request.params as SignParams.SessionProposeParams
 
-        SignValidator.validateSessionNamespace(
-            sessionNamespaces.toMapOfNamespacesVOSession(),
-            proposal.requiredNamespaces,
-            proposal.optionalNamespaces
-        ) { error ->
+        SignValidator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), proposal.namespaces) { error ->
             throw InvalidNamespaceException(error.message)
         }
 
-        val selfPublicKey: PublicKey = crypto.generateKeyPair()
+        val selfPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(proposerPublicKey))
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
@@ -252,11 +232,7 @@ internal class SignEngine(
             throw NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
-        SignValidator.validateSessionNamespace(
-            namespaces.toMapOfNamespacesVOSession(),
-            session.requiredNamespaces,
-            session.optionalNamespaces
-        ) { error ->
+        SignValidator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), session.proposalNamespaces) { error ->
             throw InvalidNamespaceException(error.message)
         }
 
@@ -291,8 +267,7 @@ internal class SignEngine(
             throw InvalidRequestException(error.message)
         }
 
-        val namespaces: Map<String, NamespaceVO.Session> =
-            sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic)).sessionNamespaces
+        val namespaces: Map<String, NamespaceVO.Session> = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic)).namespaces
         SignValidator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { error ->
             throw UnauthorizedMethodException(error.message)
         }
@@ -412,7 +387,7 @@ internal class SignEngine(
             throw InvalidEventException(error.message)
         }
 
-        val namespaces = session.sessionNamespaces
+        val namespaces = session.namespaces
         SignValidator.validateChainIdWithEventAuthorisation(event.chainId, event.name, namespaces) { error ->
             throw UnauthorizedEventException(error.message)
         }
@@ -552,13 +527,7 @@ internal class SignEngine(
     private fun onSessionPropose(request: WCRequest, payloadParams: SignParams.SessionProposeParams) {
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         try {
-
-            SignValidator.validateProposalNamespaces(payloadParams.requiredNamespaces) { error ->
-                jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                return
-            }
-
-            SignValidator.validateProposalNamespaces(payloadParams.optionalNamespaces) { error ->
+            SignValidator.validateProposalNamespace(payloadParams.namespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return
             }
@@ -599,9 +568,8 @@ internal class SignEngine(
             return
         }
 
-        val requiredNamespaces = (proposal.params as SignParams.SessionProposeParams).requiredNamespaces
-        val optionalNamespaces = (proposal.params as SignParams.SessionProposeParams).optionalNamespaces
-        SignValidator.validateSessionNamespace(settleParams.namespaces, requiredNamespaces, optionalNamespaces) { error ->
+        val proposalNamespaces = (proposal.params as SignParams.SessionProposeParams).namespaces
+        SignValidator.validateSessionNamespace(settleParams.namespaces, proposalNamespaces) { error ->
             jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
             return
         }
@@ -609,14 +577,7 @@ internal class SignEngine(
         val tempProposalRequest = sessionProposalRequest.getValue(selfPublicKey.keyAsHex)
 
         try {
-            val session = SessionVO.createAcknowledgedSession(
-                sessionTopic,
-                settleParams,
-                selfPublicKey,
-                selfAppMetaData,
-                requiredNamespaces,
-                optionalNamespaces
-            )
+            val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, selfAppMetaData, proposalNamespaces)
 
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
             sessionStorageRepository.insertSession(session, request.topic, request.id)
@@ -683,7 +644,7 @@ internal class SignEngine(
                 sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
                     .run {
                         val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
-                        this.sessionNamespaces to peerAppMetaData
+                        this.namespaces to peerAppMetaData
                     }
 
             val method = params.request.method
@@ -736,7 +697,7 @@ internal class SignEngine(
             }
 
             val event = params.event
-            SignValidator.validateChainIdWithEventAuthorisation(params.chainId, event.name, session.sessionNamespaces) { error ->
+            SignValidator.validateChainIdWithEventAuthorisation(params.chainId, event.name, session.namespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return
             }
@@ -772,7 +733,7 @@ internal class SignEngine(
                 return
             }
 
-            SignValidator.validateSessionNamespace(params.namespaces, session.requiredNamespaces, session.optionalNamespaces) { error ->
+            SignValidator.validateSessionNamespace(params.namespaces, session.proposalNamespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, PeerError.Invalid.UpdateRequest(error.message), irnParams)
                 return
             }
@@ -920,7 +881,7 @@ internal class SignEngine(
                     sessionStorageRepository.markUnAckNamespaceAcknowledged(responseId)
                     scope.launch {
                         _engineEvent.emit(
-                            EngineDO.SessionUpdateNamespacesResponse.Result(session.topic, session.sessionNamespaces.toMapOfEngineNamespacesSession())
+                            EngineDO.SessionUpdateNamespacesResponse.Result(session.topic, session.namespaces.toMapOfEngineNamespacesSession())
                         )
                     }
                 }

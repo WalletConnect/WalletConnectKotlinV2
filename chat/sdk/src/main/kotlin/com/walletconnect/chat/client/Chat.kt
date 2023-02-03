@@ -1,9 +1,10 @@
 package com.walletconnect.chat.client
 
+import androidx.annotation.Keep
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.cacao.SignatureInterface
 
 object Chat {
-
     sealed interface Listeners {
         fun onError(error: Model.Error)
 
@@ -13,6 +14,10 @@ object Chat {
 
         interface Resolve : PublicKeyOnSuccess
         interface Register : PublicKeyOnSuccess
+
+        interface RegisterIdentity: PublicKeyOnSuccess {
+            fun onSign(message: String): Model.Cacao.Signature
+        }
     }
 
 
@@ -60,9 +65,34 @@ object Chat {
 
             data class OnLeft(val topic: String) : Events()
         }
+
+        data class Cacao(
+            val header: Header,
+            val payload: Payload,
+            val signature: Signature,
+        ) : Model() {
+            @Keep
+            data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
+            data class Header(val t: String) : Model()
+            data class Payload(
+                val iss: String,
+                val domain: String,
+                val aud: String,
+                val version: String,
+                val nonce: String,
+                val iat: String,
+                val nbf: String?,
+                val exp: String?,
+                val statement: String?,
+                val requestId: String?,
+                val resources: List<String>?,
+            ) : Model()
+        }
     }
 
     sealed class Params {
+
+
         data class Init(val core: CoreClient) : Params()
 
         data class Register(val account: Model.AccountId, val private: Boolean? = false) : Params()
@@ -88,5 +118,8 @@ object Chat {
         data class GetThreads(val account: Model.AccountId) : Params()
 
         data class GetMessages(val topic: String) : Params()
+
+        // Added with new keyserver
+        data class RegisterIdentity(val account: Model.AccountId, val private: Boolean? = false) : Params()
     }
 }

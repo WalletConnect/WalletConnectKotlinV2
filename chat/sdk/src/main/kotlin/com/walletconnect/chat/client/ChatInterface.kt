@@ -15,7 +15,6 @@ interface ChatInterface {
     fun setChatDelegate(delegate: ChatDelegate)
 
     fun initialize(init: Chat.Params.Init, onError: (Chat.Model.Error) -> Unit)
-    fun register(register: Chat.Params.Register, listener: Chat.Listeners.Register)
     fun resolve(resolve: Chat.Params.Resolve, listener: Chat.Listeners.Resolve)
     fun invite(invite: Chat.Params.Invite, onError: (Chat.Model.Error) -> Unit)
     fun accept(accept: Chat.Params.Accept, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit)
@@ -27,4 +26,8 @@ interface ChatInterface {
     fun getInvites(getInvites: Chat.Params.GetInvites): Map<String, Chat.Model.Invite>
     fun getThreads(getThreads: Chat.Params.GetThreads): Map<String, Chat.Model.Thread>
     fun getMessages(getMessages: Chat.Params.GetMessages): List<Chat.Model.Message>
+
+    // TODO: Conform to Chat API https://github.com/WalletConnect/WalletConnectKotlinV2/issues/599
+    fun registerIdentity(registerIdentity: Chat.Params.RegisterIdentity, listener: Chat.Listeners.RegisterIdentity)
+    fun registerInvite(register: Chat.Params.Register, listener: Chat.Listeners.Register)
 }
