@@ -25,7 +25,7 @@ internal data class SessionVO(
     val peerAppMetaData: AppMetaData? = null,
     val sessionNamespaces: Map<String, NamespaceVO.Session>,
     val requiredNamespaces: Map<String, NamespaceVO.Required>,
-    val optionalNamespaces: Map<String, NamespaceVO.Optional>?,
+    val optionalNamespaces: Map<String, NamespaceVO.Optional>,
     val isAcknowledged: Boolean,
 ) : Sequence {
     val isPeerController: Boolean = peerPublicKey?.keyAsHex == controllerKey?.keyAsHex
@@ -65,7 +65,7 @@ internal data class SessionVO(
             selfPublicKey: PublicKey,
             selfMetadata: AppMetaData,
             proposalNamespaces: Map<String, NamespaceVO.Required>,
-            optionalNamespaces: Map<String, NamespaceVO.Optional>?
+            optionalNamespaces: Map<String, NamespaceVO.Optional>
         ): SessionVO {
             return SessionVO(
                 sessionTopic,

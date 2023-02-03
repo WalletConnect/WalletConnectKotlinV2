@@ -114,13 +114,13 @@ internal class SignEngine(
         val relay = RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
 
         requiredNamespaces?.let { namespaces ->
-            SignValidator.validateOptionalNamespaces(namespaces.toNamespacesVORequired()) { error ->
+            SignValidator.validateProposalNamespaces(namespaces.toNamespacesVORequired()) { error ->
                 throw InvalidNamespaceException(error.message)
             }
         }
 
         optionalNamespaces?.let { namespaces ->
-            SignValidator.validateOptionalNamespaces(namespaces.toNamespacesVOOptional()) { error ->
+            SignValidator.validateProposalNamespaces(namespaces.toNamespacesVOOptional()) { error ->
                 throw InvalidNamespaceException(error.message)
             }
         }
@@ -553,12 +553,12 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         try {
 
-            SignValidator.validateOptionalNamespaces(payloadParams.requiredNamespaces) { error ->
+            SignValidator.validateProposalNamespaces(payloadParams.requiredNamespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return
             }
 
-            SignValidator.validateOptionalNamespaces(payloadParams.optionalNamespaces) { error ->
+            SignValidator.validateProposalNamespaces(payloadParams.optionalNamespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return
             }
