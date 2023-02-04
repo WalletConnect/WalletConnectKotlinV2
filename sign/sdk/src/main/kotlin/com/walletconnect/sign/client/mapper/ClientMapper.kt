@@ -50,6 +50,7 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): Sign.Model.Sess
         icons,
         requiredNamespaces.toMapOfClientNamespacesProposal(),
         optionalNamespaces.toMapOfClientNamespacesOptional(),
+        properties,
         proposerPublicKey,
         relayProtocol,
         relayData

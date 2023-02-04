@@ -62,6 +62,13 @@ internal object SignValidator {
     }
 
     @JvmSynthetic
+    internal inline fun validateProperties(properties: Map<String, String>, onError: (ValidationError) -> Unit) {
+        if (properties.isEmpty()) {
+            onError(ValidationError.InvalidSessionProperties)
+        }
+    }
+
+    @JvmSynthetic
     internal inline fun validateChainIdWithMethodAuthorisation(
         chainId: String,
         method: String,

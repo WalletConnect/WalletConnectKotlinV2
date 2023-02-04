@@ -38,6 +38,7 @@ object Sign {
             val icons: List<URI>,
             val requiredNamespaces: Map<String, Namespace.Proposal>,
             val optionalNamespaces: Map<String, Namespace.Optional>,
+            val properties: Map<String, String>?,
             val proposerPublicKey: String,
             val relayProtocol: String,
             val relayData: String?,
@@ -178,6 +179,7 @@ object Sign {
         data class Connect(
             val namespaces: Map<String, Model.Namespace.Proposal>? = null,
             val optionalNamespaces: Map<String, Model.Namespace.Optional>? = null,
+            val properties: Map<String, String>? = null,
             val pairing: Core.Model.Pairing
         ) : Params()
 

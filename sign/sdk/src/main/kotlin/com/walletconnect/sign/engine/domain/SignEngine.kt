@@ -107,6 +107,7 @@ internal class SignEngine(
     internal fun proposeSession(
         requiredNamespaces: Map<String, EngineDO.Namespace.Required>?,
         optionalNamespaces: Map<String, EngineDO.Namespace.Optional>?,
+        properties: Map<String, String>?,
         pairing: Pairing,
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
@@ -125,9 +126,19 @@ internal class SignEngine(
             }
         }
 
+        properties?.let {
+            SignValidator.validateProperties(properties) { error ->
+                throw InvalidPropertiesException(error.message)
+            }
+        }
+
         val selfPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val sessionProposal: SignParams.SessionProposeParams =
-            toSessionProposeParams(listOf(relay), requiredNamespaces ?: emptyMap(), optionalNamespaces ?: emptyMap(), selfPublicKey, selfAppMetaData)
+            toSessionProposeParams(
+                listOf(relay), requiredNamespaces ?: emptyMap(),
+                optionalNamespaces ?: emptyMap(), properties,
+                selfPublicKey, selfAppMetaData
+            )
         val request = SignRpc.SessionPropose(id = generateId(), params = sessionProposal)
         sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequest(pairing.topic, request.id, request.method, sessionProposal)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
@@ -555,6 +566,13 @@ internal class SignEngine(
             SignValidator.validateProposalNamespaces(payloadParams.optionalNamespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return
+            }
+
+            payloadParams.properties?.let {
+                SignValidator.validateProperties(payloadParams.properties) { error ->
+                    jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
+                    return
+                }
             }
 
             sessionProposalRequest[payloadParams.proposer.publicKey] = request

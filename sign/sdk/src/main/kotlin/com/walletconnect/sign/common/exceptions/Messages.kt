@@ -9,7 +9,6 @@ internal const val UNAUTHORIZED_EMIT_MESSAGE: String =
     "The emit() was called by the unauthorized peer. Must be called by controller client."
 internal const val SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE: String = "Session is not acknowledged, topic: "
 
-internal const val NAMESPACES_MUST_NOT_BE_EMPTY: String = "Namespaces must not be empty"
 internal const val NAMESPACE_CHAINS_MISSING_MESSAGE: String = "Chains must not be empty"
 internal const val NAMESPACE_CHAINS_CAIP_2_MESSAGE: String = "Chains must be CAIP-2 compliant"
 internal const val NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE: String = "Chains must be defined in matching namespace"
@@ -32,3 +31,5 @@ internal const val INVALID_EVENT_MESSAGE: String = "Event name and data fields c
 internal const val INVALID_REQUEST_MESSAGE: String = "Request topic, method and params fields cannot be empty. ChainId must be CAIP-2 compliant"
 internal const val INVALID_EXTEND_TIME: String = "Extend time is out of range"
 internal const val NO_SESSION_PROPOSAL: String = "No session proposal for proposer publicKey: "
+
+internal const val INVALID_SESSION_PROPERTIES: String = "Invalid Session Properties requested"

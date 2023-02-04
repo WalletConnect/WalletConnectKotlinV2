@@ -38,6 +38,7 @@ internal fun SignParams.SessionProposeParams.toEngineDO(topic: Topic): EngineDO.
         icons = this.proposer.metadata.icons.map { URI(it) },
         requiredNamespaces = this.requiredNamespaces.toMapOfEngineNamespacesRequired(),
         optionalNamespaces = this.optionalNamespaces.toMapOfEngineNamespacesOptional(),
+        properties = properties,
         proposerPublicKey = this.proposer.publicKey,
         relayProtocol = relays.first().protocol,
         relayData = relays.first().data
@@ -108,13 +109,15 @@ internal fun toSessionProposeParams(
     relays: List<RelayProtocolOptions>?,
     requiredNamespaces: Map<String, EngineDO.Namespace.Required>,
     optionalNamespaces: Map<String, EngineDO.Namespace.Optional>,
+    properties: Map<String, String>?,
     selfPublicKey: PublicKey,
     appMetaData: AppMetaData,
 ) = SignParams.SessionProposeParams(
     relays = relays ?: listOf(RelayProtocolOptions()),
     proposer = SessionProposer(selfPublicKey.keyAsHex, appMetaData),
     requiredNamespaces = requiredNamespaces.toNamespacesVORequired(),
-    optionalNamespaces = optionalNamespaces.toNamespacesVOOptional()
+    optionalNamespaces = optionalNamespaces.toNamespacesVOOptional(),
+    properties = properties
 )
 
 @JvmSynthetic
@@ -190,5 +193,5 @@ internal fun ValidationError.toPeerError() = when (this) {
     is ValidationError.UserRejectedEvents -> PeerError.CAIP25.UserRejectedEvents(message)
     is ValidationError.UserRejectedMethods -> PeerError.CAIP25.UserRejectedMethods(message)
     is ValidationError.UserRejectedChains -> PeerError.CAIP25.UserRejectedChains(message)
-    is ValidationError.EmptyNamespaces -> PeerError.Generic.EmptyNamespaces(message)
+    is ValidationError.InvalidSessionProperties -> PeerError.CAIP25.InvalidSessionPropertiesObject(message)
 }

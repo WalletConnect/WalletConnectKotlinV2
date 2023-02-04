@@ -29,6 +29,7 @@ internal sealed class EngineDO {
         val icons: List<URI>,
         val requiredNamespaces: Map<String, Namespace.Required>,
         val optionalNamespaces: Map<String, Namespace.Optional>,
+        val properties: Map<String, String>?,
         val proposerPublicKey: String,
         val relayProtocol: String,
         val relayData: String?,
