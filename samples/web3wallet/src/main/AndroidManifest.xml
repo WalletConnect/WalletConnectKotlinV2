@@ -16,6 +16,7 @@
         android:roundIcon="@drawable/wc_icon_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Web3Wallet"
+        tools:replace="android:dataExtractionRules"
         tools:targetApi="31">
         <activity
             android:name="com.walletconnect.web3.wallet.ui.Web3WalletActivity"
