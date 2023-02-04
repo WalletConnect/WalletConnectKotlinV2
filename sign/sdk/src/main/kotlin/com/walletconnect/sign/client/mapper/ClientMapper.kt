@@ -49,7 +49,7 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): Sign.Model.Sess
         url,
         icons,
         requiredNamespaces.toMapOfClientNamespacesProposal(),
-        optionalNamespaces?.toMapOfClientNamespacesOptional(),
+        optionalNamespaces.toMapOfClientNamespacesOptional(),
         proposerPublicKey,
         relayProtocol,
         relayData

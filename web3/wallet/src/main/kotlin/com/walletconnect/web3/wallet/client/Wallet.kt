@@ -53,6 +53,7 @@ object Wallet {
             val url: String,
             val icons: List<URI>,
             val requiredNamespaces: Map<String, Namespace.Proposal>,
+            val optionalNamespaces: Map<String, Namespace.Optional>,
             val proposerPublicKey: String,
             val relayProtocol: String,
             val relayData: String?,
