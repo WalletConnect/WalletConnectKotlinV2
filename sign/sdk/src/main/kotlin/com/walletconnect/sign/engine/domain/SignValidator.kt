@@ -21,7 +21,7 @@ internal object SignValidator {
     @JvmSynthetic
     internal inline fun validateProposalNamespaces(namespaces: Map<String, NamespaceVO.ProposalNamespaces>, onError: (ValidationError) -> Unit) {
         when {
-            !areProposalNamespacesKeysProperlyFormatted(namespaces) -> onError(ValidationError.UnsupportedNamespaceKey)
+            !areNamespacesKeysProperlyFormatted(namespaces) -> onError(ValidationError.UnsupportedNamespaceKey)
             !areChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_MISSING_MESSAGE))
             !areChainIdsValid(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_CAIP_2_MESSAGE))
             !areChainsInMatchingNamespace(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE))
@@ -159,19 +159,6 @@ internal object SignValidator {
         )
     }
 
-    private fun areProposalNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO.ProposalNamespaces>): Boolean =
-        namespaces.keys.all { namespaceKey -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) }
-
-    //todo: add key as caip-2 validation when list of chains is empty
-    private fun areChainsNotEmpty(namespaces: Map<String, NamespaceVO.ProposalNamespaces>): Boolean =
-        namespaces.entries.map { (key, namespace) -> namespace.chains }.all { chains -> chains?.isNotEmpty() ?: false }
-
-    private fun areChainIdsValid(namespaces: Map<String, NamespaceVO.ProposalNamespaces>): Boolean =
-        namespaces.values.flatMap { namespace -> namespace.chains!! }.all { chain -> isChainIdCAIP2Compliant(chain) }
-
-    private fun areChainsInMatchingNamespace(namespaces: Map<String, NamespaceVO.ProposalNamespaces>): Boolean =
-        namespaces.all { (key, namespace) -> namespace.chains!!.all { chain -> chain.contains(key, true) } }
-
     private fun areAllNamespacesApproved(sessionNamespacesKeys: Set<String>, proposalNamespacesKeys: Set<String>): Boolean =
         sessionNamespacesKeys.containsAll(proposalNamespacesKeys)
 
@@ -186,6 +173,27 @@ internal object SignValidator {
     //todo: chain indexing validation
     private fun allProposalMethodsWithChains(namespaces: Map<String, NamespaceVO.ProposalNamespaces>): Map<String, List<String>> =
         namespaces.values.flatMap { namespace -> namespace.methods.map { method -> method to namespace.chains!! } }.toMap()
+
+    private fun areNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO.ProposalNamespaces>): Boolean =
+        namespaces.all { (namespaceKey, namespace) ->
+            if (namespace.chains != null) {
+                NAMESPACE_REGEX.toRegex().matches(namespaceKey)
+            } else {
+                isChainIdCAIP2Compliant(namespaceKey)
+            }
+        }
+
+    private fun areChainsNotEmpty(namespaces: Map<String, NamespaceVO.ProposalNamespaces>): Boolean =
+        getNamespaces(namespaces).all { (_, namespace) -> namespace.chains!!.isNotEmpty() }
+
+    private fun areChainIdsValid(namespaces: Map<String, NamespaceVO.ProposalNamespaces>): Boolean =
+        getNamespaces(namespaces).flatMap { (_, namespace) -> namespace.chains!! }.all { chain -> isChainIdCAIP2Compliant(chain) }
+
+    private fun areChainsInMatchingNamespace(namespaces: Map<String, NamespaceVO.ProposalNamespaces>): Boolean =
+        getNamespaces(namespaces).all { (namespaceKey, namespace) -> namespace.chains!!.all { chain -> chain.contains(namespaceKey, true) } }
+
+    private fun getNamespaces(namespaces: Map<String, NamespaceVO.ProposalNamespaces>) =
+        namespaces.filter { (namespaceKey, namespace) -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) && namespace.chains != null }
 
     private fun areAllMethodsApproved(
         allApprovedMethodsWithChains: Map<String, List<String>>,
