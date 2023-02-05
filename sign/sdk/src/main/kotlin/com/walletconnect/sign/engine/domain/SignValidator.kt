@@ -232,13 +232,4 @@ internal object SignValidator {
 
     private fun getValidNamespaces(namespaces: Map<String, NamespaceVO>) =
         namespaces.filter { (namespaceKey, namespace) -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) && namespace.chains != null }
-
-    @JvmSynthetic
-    internal fun getChainFromAccount(accountId: String): String {
-        val elements = accountId.split(":")
-        if (elements.isEmpty() || elements.size != 3) return accountId
-        val (namespace: String, reference: String, _: String) = elements
-
-        return "$namespace:$reference"
-    }
 }
