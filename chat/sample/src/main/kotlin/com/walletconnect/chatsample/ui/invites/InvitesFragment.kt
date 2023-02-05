@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.onEach
 class InvitesFragment : Fragment(R.layout.fragment_invites) {
     private val binding by viewBinding(FragmentInvitesBinding::bind)
     private val viewModel: ChatSharedViewModel by activityViewModels()
-    private val invitesAdapter by lazy { InvitesAdapter(onAccept = { viewModel::acceptInvitation }, onReject = { viewModel::rejectInvitation }) }
+    private val invitesAdapter by lazy { InvitesAdapter(onAccept = viewModel::acceptInvitation, onReject = viewModel::rejectInvitation) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
