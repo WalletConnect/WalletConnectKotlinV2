@@ -67,7 +67,8 @@ internal class SessionStorageRepository(
                 controller_key = controllerKey?.keyAsHex,
                 peer_participant = peerPublicKey?.keyAsHex,
                 relay_data = relayData,
-                is_acknowledged = isAcknowledged
+                is_acknowledged = isAcknowledged,
+                properties = properties
             )
         }
 
@@ -202,6 +203,7 @@ internal class SessionStorageRepository(
         self_participant: String,
         peer_participant: String?,
         is_acknowledged: Boolean,
+        properties: Map<String, String>?
     ): SessionVO {
         val sessionNamespaces: Map<String, NamespaceVO.Session> = getSessionNamespaces(id)
         val requiredNamespaces: Map<String, NamespaceVO.Required> = getRequiredNamespaces(id)
@@ -220,7 +222,8 @@ internal class SessionStorageRepository(
             sessionNamespaces = sessionNamespaces,
             requiredNamespaces = requiredNamespaces,
             optionalNamespaces = optionalNamespaces,
-            isAcknowledged = is_acknowledged
+            isAcknowledged = is_acknowledged,
+            properties = properties
         )
     }
 

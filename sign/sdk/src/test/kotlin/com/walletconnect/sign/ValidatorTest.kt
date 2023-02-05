@@ -81,6 +81,19 @@ class ValidatorTest {
     }
 
     @Test
+    fun `Convert map to string and decode from string to map test`() {
+        val map1 = mapOf("1" to "a", "2" to "b")
+        val stringMap = map1.entries.joinToString()
+
+        val map2 = stringMap.split(",").associate { entry ->
+            val entries = entry.split("=")
+            entries.first().trim() to entries.last().trim()
+        }
+
+        assertEquals(map1, map2)
+    }
+
+    @Test
     fun `Proposal namespaces MAY be empty`() {
         val namespaces = emptyMap<String, NamespaceVO.Required>()
         var errorMessage: String? = null
@@ -498,7 +511,7 @@ class ValidatorTest {
                 events = listOf(ACCOUNTS_CHANGED)
             ),
             COSMOS to NamespaceVO.Session(
-                methods = listOf(COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT),   accounts = listOf(COSMOSHUB_4_1)
+                methods = listOf(COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), accounts = listOf(COSMOSHUB_4_1)
             )
         )
         var errorMessage: String? = null
@@ -514,7 +527,7 @@ class ValidatorTest {
                 methods = listOf(COSMOS_SIGNDIRECT, COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), chains = listOf(COSMOSHUB_4)
             ),
             EIP155 to NamespaceVO.Optional(
-                chains  = listOf(ETHEREUM),
+                chains = listOf(ETHEREUM),
                 methods = listOf(ETH_SIGN),
                 events = listOf(ACCOUNTS_CHANGED)
             ),
@@ -522,7 +535,7 @@ class ValidatorTest {
 
         val namespaces = mapOf(
             COSMOS to NamespaceVO.Session(
-                methods = listOf(COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT),   accounts = listOf(COSMOSHUB_4_1)
+                methods = listOf(COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), accounts = listOf(COSMOSHUB_4_1)
             )
         )
         var errorMessage: String? = null
@@ -535,7 +548,7 @@ class ValidatorTest {
         val requiredNamespaces = emptyMap<String, NamespaceVO.Required>()
         val optionalNamespaces = mapOf(
             EIP155 to NamespaceVO.Optional(
-                chains  = listOf(ETHEREUM),
+                chains = listOf(ETHEREUM),
                 methods = listOf(ETH_SIGN),
                 events = listOf(ACCOUNTS_CHANGED)
             ),
@@ -543,10 +556,10 @@ class ValidatorTest {
 
         val namespaces = mapOf(
             COSMOS to NamespaceVO.Session(
-                methods = listOf(COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT),   accounts = listOf(COSMOSHUB_4_1)
+                methods = listOf(COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), accounts = listOf(COSMOSHUB_4_1)
             ),
             EIP155 to NamespaceVO.Session(
-                accounts  = listOf(ETHEREUM_1),
+                accounts = listOf(ETHEREUM_1),
                 methods = listOf(ETH_SIGN),
                 events = listOf(ACCOUNTS_CHANGED)
             ),
@@ -565,7 +578,7 @@ class ValidatorTest {
                 methods = listOf(COSMOS_SIGNDIRECT, COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), chains = listOf(COSMOSHUB_4)
             ),
             EIP155 to NamespaceVO.Optional(
-                chains  = listOf(ETHEREUM),
+                chains = listOf(ETHEREUM),
                 methods = listOf(ETH_SIGN),
                 events = listOf(ACCOUNTS_CHANGED)
             ),

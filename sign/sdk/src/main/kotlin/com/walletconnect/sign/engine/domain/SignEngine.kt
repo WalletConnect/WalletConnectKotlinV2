@@ -611,8 +611,10 @@ internal class SignEngine(
             return
         }
 
-        val requiredNamespaces = (proposal.params as SignParams.SessionProposeParams).requiredNamespaces
-        val optionalNamespaces = (proposal.params as SignParams.SessionProposeParams).optionalNamespaces
+        val (requiredNamespaces, optionalNamespaces, properties) = (proposal.params as SignParams.SessionProposeParams).run {
+            Triple(requiredNamespaces, optionalNamespaces, properties)
+        }
+
         SignValidator.validateSessionNamespace(settleParams.namespaces, requiredNamespaces, optionalNamespaces) { error ->
             jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
             return
@@ -627,7 +629,8 @@ internal class SignEngine(
                 selfPublicKey,
                 selfAppMetaData,
                 requiredNamespaces,
-                optionalNamespaces
+                optionalNamespaces,
+                properties
             )
 
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)

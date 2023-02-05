@@ -10,6 +10,7 @@ import com.walletconnect.sign.SignDatabase
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDao
 import com.walletconnect.sign.storage.data.dao.optionalnamespaces.OptionalNamespaceDao
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceDao
+import com.walletconnect.sign.storage.data.dao.session.SessionDao
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDao
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import org.koin.core.module.Module
@@ -42,7 +43,10 @@ internal fun storageModule(): Module = module {
             chainsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             methodsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             eventsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
-        )
+        ),
+        SessionDaoAdapter = SessionDao.Adapter(
+            propertiesAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_MAP)),
+        ),
     )
 
     includes(sdkBaseStorageModule(SignDatabase.Schema, DBUtils.SIGN_SDK_DB_NAME))
