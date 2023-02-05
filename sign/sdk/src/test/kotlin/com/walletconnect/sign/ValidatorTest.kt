@@ -193,12 +193,12 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces MAY have accounts empty`() {
         val requiredNamespaces =
-            mapOf(COSMOS to NamespaceVO.Required(chains = emptyList(), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT)))
+            mapOf(COSMOS to NamespaceVO.Required(chains = listOf(COSMOSHUB_4), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT)))
         val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
 
         val sessionNamespaces = mapOf(
             COSMOS to NamespaceVO.Session(
-                accounts = emptyList(), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT)
+                accounts = emptyList(), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), chains = listOf(COSMOSHUB_4)
             )
         )
         var errorMessage: String? = null
@@ -219,7 +219,8 @@ class ValidatorTest {
             EIP155 to NamespaceVO.Session(
                 accounts = listOf("eip155:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb"),
                 methods = listOf(ETH_SIGN),
-                events = listOf(ACCOUNTS_CHANGED)
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM)
             )
         )
         var errorMessage: String? = null
@@ -232,7 +233,13 @@ class ValidatorTest {
     fun `Session Namespaces MUST approve all methods`() {
         val requiredNamespaces = mapOf(EIP155 to NamespaceVO.Required(chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = emptyList()))
         val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-        val namespaces = mapOf(EIP155 to NamespaceVO.Session(accounts = listOf(ETHEREUM_1), methods = emptyList(), events = emptyList()))
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                accounts = listOf(ETHEREUM_1), methods = emptyList(), events = emptyList(), chains = listOf(
+                    ETHEREUM
+                )
+            )
+        )
         var errorMessage: String? = null
         SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
@@ -247,33 +254,38 @@ class ValidatorTest {
             )
         )
         val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-        val namespaces = mapOf(EIP155 to NamespaceVO.Session(accounts = listOf(ETHEREUM_1), methods = emptyList(), events = emptyList()))
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                accounts = listOf(ETHEREUM_1), methods = emptyList(), events = emptyList(), chains = listOf(
+                    ETHEREUM
+                )
+            )
+        )
         var errorMessage: String? = null
         SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_EVENTS_MISSING_MESSAGE, errorMessage)
     }
 
-    //todo: fix me when chain indexing
-//    @Test
-//    fun `Session Namespaces MUST contain at least one account in requested chains`() {
-//        val requiredNamespaces = mapOf(
-//            EIP155 to NamespaceVO.Required(
-//                chains = listOf(ETHEREUM, OPTIMISM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
-//            )
-//        )
-//        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-//
-//        val namespaces = mapOf(
-//            EIP155 to NamespaceVO.Session(
-//                accounts = listOf(ETHEREUM_1), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
-//            )
-//        )
-//        var errorMessage: String? = null
-//        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
-//        assertNotNull(errorMessage)
-//        assertEquals(NAMESPACE_ACCOUNTS_MISSING_FOR_CHAINS_MESSAGE, errorMessage)
-//    }
+    @Test
+    fun `Session Namespaces MUST contain at least one account in requested chains`() {
+        val requiredNamespaces = mapOf(
+            EIP155 to NamespaceVO.Required(
+                chains = listOf(ETHEREUM, OPTIMISM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
+            )
+        )
+        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
+
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                accounts = listOf(ETHEREUM_1), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        assertNotNull(errorMessage)
+        assertEquals(NAMESPACE_KEYS_INVALID_FORMAT, errorMessage)
+    }
 
     @Test
     fun `Session Namespaces MAY contain multiple accounts for one chain`() {
@@ -288,7 +300,8 @@ class ValidatorTest {
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, ETHEREUM_2, ETHEREUM_3, ETHEREUM_4, ETHEREUM_5),
                 methods = listOf(ETH_SIGN),
-                events = listOf(ACCOUNTS_CHANGED)
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM)
             )
         )
         var errorMessage: String? = null
@@ -309,7 +322,29 @@ class ValidatorTest {
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1),
                 methods = listOf(ETH_SIGN, PERSONAL_SIGN),
-                events = listOf(ACCOUNTS_CHANGED, SOME_EVENT)
+                events = listOf(ACCOUNTS_CHANGED, SOME_EVENT),
+                chains = listOf(ETHEREUM)
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
+    }
+
+    @Test
+    fun `Session Namespaces key MUST BE CAIP-2 compatible when chains are not included`() {
+        val requiredNamespaces = mapOf(
+            "$EIP155:1" to NamespaceVO.Required(
+                methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
+            )
+        )
+        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
+
+        val namespaces = mapOf(
+            "$EIP155:1" to NamespaceVO.Session(
+                accounts = emptyList(),
+                methods = listOf(ETH_SIGN, PERSONAL_SIGN),
+                events = listOf(ACCOUNTS_CHANGED, SOME_EVENT),
             )
         )
         var errorMessage: String? = null
@@ -330,7 +365,8 @@ class ValidatorTest {
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, COSMOSHUB_4_1),
                 methods = listOf(ETH_SIGN),
-                events = listOf(ACCOUNTS_CHANGED)
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM)
             )
         )
         var errorMessage: String? = null
@@ -339,7 +375,6 @@ class ValidatorTest {
         assertEquals(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE, errorMessage)
     }
 
-    //todo: change - should include chains in session namespaces
     @Test
     fun `Session Namespaces MAY contain accounts from chains not defined in Proposal Namespaces`() {
         val requiredNamespaces = mapOf(
@@ -353,7 +388,8 @@ class ValidatorTest {
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, KOVAN_1),
                 methods = listOf(ETH_SIGN),
-                events = listOf(ACCOUNTS_CHANGED)
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM)
             )
         )
         var errorMessage: String? = null
@@ -377,13 +413,37 @@ class ValidatorTest {
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
                 methods = listOf(ETH_SIGN),
-                events = listOf(ACCOUNTS_CHANGED)
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM)
             )
         )
         var errorMessage: String? = null
         SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_KEYS_MISSING_MESSAGE, errorMessage)
+    }
+
+    @Test
+    fun `Session Namespaces MAY have empty account list`() {
+        val requiredNamespaces = mapOf(
+            EIP155 to NamespaceVO.Required(
+                chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
+            )
+        )
+        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
+
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                accounts = listOf(),
+                methods = listOf(ETH_SIGN),
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM, MATIC)
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
+
     }
 
     @Test
@@ -399,7 +459,8 @@ class ValidatorTest {
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
                 methods = listOf(ETH_SIGN, PERSONAL_SIGN),
-                events = listOf(ACCOUNTS_CHANGED)
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM, MATIC)
             )
         )
         var errorMessage: String? = null
@@ -421,6 +482,7 @@ class ValidatorTest {
                 accounts = listOf(ETHEREUM_1, MATIC_1),
                 methods = listOf(ETH_SIGN),
                 events = listOf(CHAIN_CHANGED, ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM, MATIC)
             )
         )
 
@@ -442,10 +504,11 @@ class ValidatorTest {
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
                 methods = listOf(ETH_SIGN),
-                events = listOf(ACCOUNTS_CHANGED)
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM, MATIC)
             ),
             COSMOS to NamespaceVO.Session(
-                methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), accounts = emptyList()
+                methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), accounts = emptyList(), chains = listOf(COSMOSHUB_4)
             )
         )
         var errorMessage: String? = null
@@ -467,10 +530,11 @@ class ValidatorTest {
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
                 methods = listOf(ETH_SIGN),
-                events = listOf(ACCOUNTS_CHANGED)
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM, MATIC)
             ),
             COSMOS to NamespaceVO.Session(
-                methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), accounts = emptyList()
+                methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), accounts = emptyList(), chains = listOf(COSMOSHUB_4)
             )
         )
         var errorMessage: String? = null
@@ -496,7 +560,8 @@ class ValidatorTest {
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
                 methods = listOf(ETH_SIGN),
-                events = listOf(ACCOUNTS_CHANGED)
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(MATIC, ETHEREUM)
             ),
 
             )
@@ -522,10 +587,11 @@ class ValidatorTest {
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
                 methods = listOf(ETH_SIGN),
-                events = listOf(ACCOUNTS_CHANGED)
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM, MATIC)
             ),
             COSMOS to NamespaceVO.Session(
-                methods = listOf(COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), accounts = listOf(COSMOSHUB_4_1)
+                methods = listOf(COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), accounts = listOf(COSMOSHUB_4_1), chains = listOf(COSMOSHUB_4)
             )
         )
         var errorMessage: String? = null
@@ -549,7 +615,7 @@ class ValidatorTest {
 
         val namespaces = mapOf(
             COSMOS to NamespaceVO.Session(
-                methods = listOf(COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), accounts = listOf(COSMOSHUB_4_1)
+                methods = listOf(COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), accounts = listOf(COSMOSHUB_4_1), chains = listOf(COSMOSHUB_4)
             )
         )
         var errorMessage: String? = null
@@ -570,12 +636,13 @@ class ValidatorTest {
 
         val namespaces = mapOf(
             COSMOS to NamespaceVO.Session(
-                methods = listOf(COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), accounts = listOf(COSMOSHUB_4_1)
+                methods = listOf(COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), accounts = listOf(COSMOSHUB_4_1), chains = listOf(COSMOSHUB_4)
             ),
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1),
                 methods = listOf(ETH_SIGN),
-                events = listOf(ACCOUNTS_CHANGED)
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM)
             ),
         )
         var errorMessage: String? = null
@@ -670,7 +737,8 @@ class ValidatorTest {
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1),
                 methods = listOf(ETH_SIGN),
-                events = listOf(CHAIN_CHANGED)
+                events = listOf(CHAIN_CHANGED),
+                chains = listOf(ETHEREUM)
             )
         )
         var errorMessage: String? = null
@@ -684,7 +752,8 @@ class ValidatorTest {
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1),
                 methods = listOf(ETH_SIGN),
-                events = listOf(CHAIN_CHANGED)
+                events = listOf(CHAIN_CHANGED),
+                chains = listOf(ETHEREUM)
             )
         )
         var errorMessage: String? = null
