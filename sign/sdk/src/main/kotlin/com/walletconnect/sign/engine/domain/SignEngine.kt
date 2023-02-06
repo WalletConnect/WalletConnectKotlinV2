@@ -219,7 +219,6 @@ internal class SignEngine(
         val request = sessionProposalRequest[proposerPublicKey] ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
         val proposal = request.params as SignParams.SessionProposeParams
-
         SignValidator.validateSessionNamespace(
             sessionNamespaces.toMapOfNamespacesVOSession(),
             proposal.requiredNamespaces,
