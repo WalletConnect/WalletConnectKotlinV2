@@ -27,8 +27,8 @@ internal sealed class EngineDO {
         val description: String,
         val url: String,
         val icons: List<URI>,
-        val requiredNamespaces: Map<String, Namespace.Required>,
-        val optionalNamespaces: Map<String, Namespace.Optional>,
+        val requiredNamespaces: Map<String, Namespace.Proposal>,
+        val optionalNamespaces: Map<String, Namespace.Proposal>,
         val properties: Map<String, String>?,
         val proposerPublicKey: String,
         val relayProtocol: String,
@@ -37,13 +37,8 @@ internal sealed class EngineDO {
 
     internal sealed class Namespace : EngineDO() {
 
-        data class Required(
-            val chains: List<String>? = null,
-            val methods: List<String>,
-            val events: List<String>
-        ) : Namespace()
-
-        data class Optional(
+        //Required and Optional
+        data class Proposal(
             val chains: List<String>? = null,
             val methods: List<String>,
             val events: List<String>

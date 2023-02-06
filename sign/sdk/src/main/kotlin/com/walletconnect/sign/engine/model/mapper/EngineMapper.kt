@@ -107,8 +107,8 @@ internal fun SignParams.SessionProposeParams.toSessionSettleParams(
 @JvmSynthetic
 internal fun toSessionProposeParams(
     relays: List<RelayProtocolOptions>?,
-    requiredNamespaces: Map<String, EngineDO.Namespace.Required>,
-    optionalNamespaces: Map<String, EngineDO.Namespace.Optional>,
+    requiredNamespaces: Map<String, EngineDO.Namespace.Proposal>,
+    optionalNamespaces: Map<String, EngineDO.Namespace.Proposal>,
     properties: Map<String, String>?,
     selfPublicKey: PublicKey,
     appMetaData: AppMetaData,
@@ -121,27 +121,27 @@ internal fun toSessionProposeParams(
 )
 
 @JvmSynthetic
-internal fun Map<String, EngineDO.Namespace.Required>.toNamespacesVORequired(): Map<String, NamespaceVO.Required> =
+internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVORequired(): Map<String, NamespaceVO.Required> =
     this.mapValues { (_, namespace) ->
         NamespaceVO.Required(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
-internal fun Map<String, EngineDO.Namespace.Optional>.toNamespacesVOOptional(): Map<String, NamespaceVO.Optional> =
+internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVOOptional(): Map<String, NamespaceVO.Optional> =
     this.mapValues { (_, namespace) ->
         NamespaceVO.Optional(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
-internal fun Map<String, NamespaceVO.Required>.toMapOfEngineNamespacesRequired(): Map<String, EngineDO.Namespace.Required> =
+internal fun Map<String, NamespaceVO.Required>.toMapOfEngineNamespacesRequired(): Map<String, EngineDO.Namespace.Proposal> =
     this.mapValues { (_, namespace) ->
-        EngineDO.Namespace.Required(namespace.chains, namespace.methods, namespace.events)
+        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
-internal fun Map<String, NamespaceVO.Optional>.toMapOfEngineNamespacesOptional(): Map<String, EngineDO.Namespace.Optional> =
+internal fun Map<String, NamespaceVO.Optional>.toMapOfEngineNamespacesOptional(): Map<String, EngineDO.Namespace.Proposal> =
     this.mapValues { (_, namespace) ->
-        EngineDO.Namespace.Optional(namespace.chains, namespace.methods, namespace.events)
+        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic

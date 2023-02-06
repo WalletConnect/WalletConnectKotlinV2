@@ -35,8 +35,6 @@ class WalletSampleApplication : Application() {
             metaData = metadata
         ) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
 
-        CoreClient.Relay.disconnect {  }
-
         val initParams = Sign.Params.Init(core = CoreClient)
         SignClient.initialize(initParams) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())

@@ -53,7 +53,7 @@ object Wallet {
             val url: String,
             val icons: List<URI>,
             val requiredNamespaces: Map<String, Namespace.Proposal>,
-            val optionalNamespaces: Map<String, Namespace.Optional>,
+            val optionalNamespaces: Map<String, Namespace.Proposal>,
             val properties: Map<String, String>?,
             val proposerPublicKey: String,
             val relayProtocol: String,
@@ -96,14 +96,8 @@ object Wallet {
 
         sealed class Namespace : Model() {
 
-            //Required
+            //Required or Optional
             data class Proposal(
-                val chains: List<String>? = null,
-                val methods: List<String>,
-                val events: List<String>
-            ) : Namespace()
-
-            data class Optional(
                 val chains: List<String>? = null,
                 val methods: List<String>,
                 val events: List<String>

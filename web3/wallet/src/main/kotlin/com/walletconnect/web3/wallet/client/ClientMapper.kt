@@ -22,9 +22,9 @@ internal fun Map<String, Sign.Model.Namespace.Proposal>.toWalletProposalNamespac
     }
 
 @JvmSynthetic
-internal fun Map<String, Sign.Model.Namespace.Optional>.toWalletOptionalNamespaces(): Map<String, Wallet.Model.Namespace.Optional> =
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toWalletOptionalNamespaces(): Map<String, Wallet.Model.Namespace.Proposal> =
     mapValues { (_, namespace) ->
-        Wallet.Model.Namespace.Optional(namespace.chains, namespace.methods, namespace.events)
+        Wallet.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
