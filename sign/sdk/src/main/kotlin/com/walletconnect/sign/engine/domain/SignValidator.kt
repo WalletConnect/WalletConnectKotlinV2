@@ -161,15 +161,6 @@ internal object SignValidator {
         )
     }
 
-    private fun areNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO>): Boolean =
-        namespaces.all { (namespaceKey, namespace) ->
-            if (namespace.chains != null) {
-                NAMESPACE_REGEX.toRegex().matches(namespaceKey)
-            } else {
-                isChainIdCAIP2Compliant(namespaceKey)
-            }
-        }
-
     private fun allMethodsWithChains(namespaces: Map<String, NamespaceVO>): Map<String, List<String>> =
         namespaces.entries.flatMap { (namespaceKey, namespace) ->
             if (NAMESPACE_REGEX.toRegex().matches(namespaceKey) && namespace.chains != null) {
@@ -214,11 +205,30 @@ internal object SignValidator {
         return true
     }
 
+    private fun areNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO>): Boolean =
+        namespaces.all { (namespaceKey, namespace) ->
+            if (namespace.chains != null) {
+                NAMESPACE_REGEX.toRegex().matches(namespaceKey)
+            } else {
+                isChainIdCAIP2Compliant(namespaceKey)
+            }
+        }
+
     private fun areAccountIdsValid(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
         sessionNamespaces.all { (_, namespace) -> namespace.accounts.all { accountId -> isAccountIdCAIP10Compliant(accountId) } }
 
     private fun areAccountsInMatchingNamespace(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
-        sessionNamespaces.all { (key, namespace) -> namespace.accounts.all { accountId -> accountId.contains(key) } }
+        sessionNamespaces.all { (namespaceKey, namespace) ->
+            if (NAMESPACE_REGEX.toRegex().matches(namespaceKey) && namespace.chains != null) {
+                namespace.accounts.all { accountId ->
+                    accountId.contains(namespaceKey) && namespace.chains.contains(getChainFromAccount(accountId))
+                }
+            } else {
+                namespace.accounts.all { accountId ->
+                    accountId.contains(namespaceKey)
+                }
+            }
+        }
 
     private fun areChainsNotEmpty(namespaces: Map<String, NamespaceVO>): Boolean =
         getValidNamespaces(namespaces).all { (_, namespace) -> namespace.chains!!.isNotEmpty() }
@@ -232,4 +242,13 @@ internal object SignValidator {
 
     private fun getValidNamespaces(namespaces: Map<String, NamespaceVO>) =
         namespaces.filter { (namespaceKey, namespace) -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) && namespace.chains != null }
+
+    @JvmSynthetic
+    internal fun getChainFromAccount(accountId: String): String {
+        val elements = accountId.split(":")
+        if (elements.isEmpty() || elements.size != 3) return accountId
+        val (namespace: String, reference: String, _: String) = elements
+
+        return "$namespace:$reference"
+    }
 }
