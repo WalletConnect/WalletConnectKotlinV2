@@ -9,6 +9,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDaoQueries
+import com.walletconnect.sign.storage.data.dao.optionalnamespaces.OptionalNamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.session.SessionDaoQueries
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDaoQueries
@@ -18,7 +19,8 @@ import com.walletconnect.utils.isSequenceValid
 internal class SessionStorageRepository(
     private val sessionDaoQueries: SessionDaoQueries,
     private val namespaceDaoQueries: NamespaceDaoQueries,
-    private val proposalNamespaceDaoQueries: ProposalNamespaceDaoQueries,
+    private val requiredNamespaceDaoQueries: ProposalNamespaceDaoQueries,
+    private val optionalNamespaceDaoQueries: OptionalNamespaceDaoQueries,
     private val tempNamespaceDaoQueries: TempNamespaceDaoQueries
 ) {
     @JvmSynthetic
@@ -70,8 +72,9 @@ internal class SessionStorageRepository(
         }
 
         val lastInsertedSessionId = sessionDaoQueries.lastInsertedRow().executeAsOne()
-        insertNamespace(session.namespaces, lastInsertedSessionId, requestId)
-        insertProposalNamespace(session.proposalNamespaces, lastInsertedSessionId)
+        insertNamespace(session.sessionNamespaces, lastInsertedSessionId, requestId)
+        insertRequiredNamespace(session.requiredNamespaces, lastInsertedSessionId)
+        insertOptionalNamespace(session.optionalNamespaces, lastInsertedSessionId)
     }
 
     @JvmSynthetic
@@ -93,7 +96,16 @@ internal class SessionStorageRepository(
     ) {
         val sessionId = sessionDaoQueries.getSessionIdByTopic(topic).executeAsOne()
         namespaces.forEach { (key, value) ->
-            tempNamespaceDaoQueries.insertOrAbortNamespace(sessionId, topic, key, value.accounts, value.methods, value.events, requestId)
+            tempNamespaceDaoQueries.insertOrAbortNamespace(
+                sessionId,
+                topic,
+                key,
+                value.chains,
+                value.accounts,
+                value.methods,
+                value.events,
+                requestId
+            )
         }
     }
 
@@ -116,7 +128,7 @@ internal class SessionStorageRepository(
         val sessionId = sessionDaoQueries.getSessionIdByTopic(topic).executeAsOne()
         namespaceDaoQueries.deleteNamespacesByTopic(topic)
         namespaces.forEach { (key, value) ->
-            namespaceDaoQueries.insertOrAbortNamespace(sessionId, key, value.accounts, value.methods, value.events, requestID)
+            namespaceDaoQueries.insertOrAbortNamespace(sessionId, key, value.chains, value.accounts, value.methods, value.events, requestID)
         }
     }
 
@@ -143,7 +155,8 @@ internal class SessionStorageRepository(
     @JvmSynthetic
     fun deleteSession(topic: Topic) {
         namespaceDaoQueries.deleteNamespacesByTopic(topic.value)
-        proposalNamespaceDaoQueries.deleteProposalNamespacesByTopic(topic.value)
+        requiredNamespaceDaoQueries.deleteProposalNamespacesByTopic(topic.value)
+        optionalNamespaceDaoQueries.deleteOptionalNamespacesByTopic(topic.value)
         tempNamespaceDaoQueries.deleteTempNamespacesByTopic(topic.value)
         sessionDaoQueries.deleteSession(topic.value)
     }
@@ -151,14 +164,21 @@ internal class SessionStorageRepository(
     @Throws(SQLiteException::class)
     private fun insertNamespace(namespaces: Map<String, NamespaceVO.Session>, sessionId: Long, requestId: Long) {
         namespaces.forEach { (key, value) ->
-            namespaceDaoQueries.insertOrAbortNamespace(sessionId, key, value.accounts, value.methods, value.events, requestId)
+            namespaceDaoQueries.insertOrAbortNamespace(sessionId, key, value.chains, value.accounts, value.methods, value.events, requestId)
         }
     }
 
     @Throws(SQLiteException::class)
-    private fun insertProposalNamespace(namespaces: Map<String, NamespaceVO.Proposal>, sessionId: Long) {
+    private fun insertRequiredNamespace(namespaces: Map<String, NamespaceVO.Required>, sessionId: Long) {
         namespaces.forEach { (key, value) ->
-            proposalNamespaceDaoQueries.insertOrAbortProposalNamespace(sessionId, key, value.chains, value.methods, value.events)
+            requiredNamespaceDaoQueries.insertOrAbortProposalNamespace(sessionId, key, value.chains, value.methods, value.events)
+        }
+    }
+
+    @Throws(SQLiteException::class)
+    private fun insertOptionalNamespace(namespaces: Map<String, NamespaceVO.Optional>?, sessionId: Long) {
+        namespaces?.forEach { (key, value) ->
+            optionalNamespaceDaoQueries.insertOrAbortOptionalNamespace(sessionId, key, value.chains, value.methods, value.events)
         }
     }
 
@@ -184,7 +204,8 @@ internal class SessionStorageRepository(
         is_acknowledged: Boolean,
     ): SessionVO {
         val sessionNamespaces: Map<String, NamespaceVO.Session> = getSessionNamespaces(id)
-        val proposalNamespaces: Map<String, NamespaceVO.Proposal> = getProposalNamespaces(id)
+        val requiredNamespaces: Map<String, NamespaceVO.Required> = getRequiredNamespaces(id)
+        val optionalNamespaces: Map<String, NamespaceVO.Optional> = getOptionalNamespaces(id)
 
         return SessionVO(
             topic = Topic(topic),
@@ -196,31 +217,39 @@ internal class SessionStorageRepository(
             controllerKey = PublicKey(controller_key ?: String.Empty),
             relayProtocol = relay_protocol,
             relayData = relay_data,
-            namespaces = sessionNamespaces,
-            proposalNamespaces = proposalNamespaces,
+            sessionNamespaces = sessionNamespaces,
+            requiredNamespaces = requiredNamespaces,
+            optionalNamespaces = optionalNamespaces,
             isAcknowledged = is_acknowledged
         )
     }
 
-    private fun getProposalNamespaces(id: Long): Map<String, NamespaceVO.Proposal> {
-        return proposalNamespaceDaoQueries.getProposalNamespaces(id) { key, chains, methods, events ->
-            key to NamespaceVO.Proposal(chains, methods, events)
+    private fun getRequiredNamespaces(id: Long): Map<String, NamespaceVO.Required> {
+        return requiredNamespaceDaoQueries.getProposalNamespaces(id) { key, chains, methods, events ->
+            key to NamespaceVO.Required(chains, methods, events)
+        }.executeAsList().toMap()
+    }
+
+    private fun getOptionalNamespaces(id: Long): Map<String, NamespaceVO.Optional> {
+        return optionalNamespaceDaoQueries.getOptionalNamespaces(id) { key, chains, methods, events ->
+            key to NamespaceVO.Optional(chains, methods, events)
         }.executeAsList().toMap()
     }
 
     private fun getSessionNamespaces(id: Long): Map<String, NamespaceVO.Session> {
-        return namespaceDaoQueries.getNamespaces(id) { key, accounts, methods, events ->
-            key to NamespaceVO.Session(accounts, methods, events)
+        return namespaceDaoQueries.getNamespaces(id) { key, chains, accounts, methods, events ->
+            key to NamespaceVO.Session(chains, accounts, methods, events)
         }.executeAsList().toMap()
     }
 
     private fun mapTempNamespaceToNamespaceVO(
         sessionId: Long,
         key: String,
+        chains: List<String>?,
         accounts: List<String>,
         methods: List<String>,
         events: List<String>
     ): Pair<String, NamespaceVO.Session> {
-        return key to NamespaceVO.Session(accounts, methods, events)
+        return key to NamespaceVO.Session(chains, accounts, methods, events)
     }
 }

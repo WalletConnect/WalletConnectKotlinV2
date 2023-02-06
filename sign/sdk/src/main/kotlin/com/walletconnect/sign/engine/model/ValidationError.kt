@@ -5,6 +5,7 @@ import com.walletconnect.sign.common.exceptions.*
 internal sealed class ValidationError(val message: String) {
 
     //Namespaces validation
+    object EmptyNamespaces : ValidationError(NAMESPACES_MUST_NOT_BE_EMPTY)
     object UnsupportedNamespaceKey : ValidationError(NAMESPACE_KEYS_CAIP_2_MESSAGE)
     class UnsupportedChains(_message: String) : ValidationError(_message)
 

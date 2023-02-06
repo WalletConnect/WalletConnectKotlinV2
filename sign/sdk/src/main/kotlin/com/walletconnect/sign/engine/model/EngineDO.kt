@@ -28,6 +28,7 @@ internal sealed class EngineDO {
         val url: String,
         val icons: List<URI>,
         val requiredNamespaces: Map<String, Namespace.Proposal>,
+        val optionalNamespaces: Map<String, Namespace.Proposal>,
         val proposerPublicKey: String,
         val relayProtocol: String,
         val relayData: String?,
@@ -35,13 +36,15 @@ internal sealed class EngineDO {
 
     internal sealed class Namespace : EngineDO() {
 
+        //Required and Optional
         data class Proposal(
-            val chains: List<String>,
+            val chains: List<String>? = null,
             val methods: List<String>,
             val events: List<String>
         ) : Namespace()
 
         data class Session(
+            val chains: List<String>? = null,
             val accounts: List<String>,
             val methods: List<String>,
             val events: List<String>

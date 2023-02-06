@@ -49,6 +49,7 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): Sign.Model.Sess
         url,
         icons,
         requiredNamespaces.toMapOfClientNamespacesProposal(),
+        optionalNamespaces.toMapOfClientNamespacesOptional(),
         proposerPublicKey,
         relayProtocol,
         relayData
@@ -117,7 +118,7 @@ internal fun EngineDO.SessionApproved.toClientSessionApproved(): Sign.Model.Appr
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSession(): Map<String, Sign.Model.Namespace.Session> =
     this.mapValues { (_, namespace) ->
-        Sign.Model.Namespace.Session(namespace.accounts, namespace.methods, namespace.events)
+        Sign.Model.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
@@ -155,10 +156,18 @@ internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): S
     Sign.Model.SessionRequestResponse(topic, chainId, method, result.toClientJsonRpcResponse())
 
 @JvmSynthetic
-internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesProposal(): Map<String, EngineDO.Namespace.Proposal> =
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesRequired(): Map<String, EngineDO.Namespace.Proposal> =
     mapValues { (_, namespace) ->
         EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
+
+
+@JvmSynthetic
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesOptional(): Map<String, EngineDO.Namespace.Proposal> =
+    mapValues { (_, namespace) ->
+        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
+    }
+
 
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Proposal>.toMapOfClientNamespacesProposal(): Map<String, Sign.Model.Namespace.Proposal> =
@@ -167,9 +176,15 @@ internal fun Map<String, EngineDO.Namespace.Proposal>.toMapOfClientNamespacesPro
     }
 
 @JvmSynthetic
+internal fun Map<String, EngineDO.Namespace.Proposal>.toMapOfClientNamespacesOptional(): Map<String, Sign.Model.Namespace.Proposal> =
+    mapValues { (_, namespace) ->
+        Sign.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
+    }
+
+@JvmSynthetic
 internal fun Map<String, Sign.Model.Namespace.Session>.toMapOfEngineNamespacesSession(): Map<String, EngineDO.Namespace.Session> =
     mapValues { (_, namespace) ->
-        EngineDO.Namespace.Session(namespace.accounts, namespace.methods, namespace.events)
+        EngineDO.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic

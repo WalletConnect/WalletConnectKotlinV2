@@ -36,7 +36,8 @@ internal fun SignParams.SessionProposeParams.toEngineDO(topic: Topic): EngineDO.
         description = this.proposer.metadata.description,
         url = this.proposer.metadata.url,
         icons = this.proposer.metadata.icons.map { URI(it) },
-        requiredNamespaces = this.namespaces.toMapOfEngineNamespacesProposal(),
+        requiredNamespaces = this.requiredNamespaces.toMapOfEngineNamespacesRequired(),
+        optionalNamespaces = this.optionalNamespaces.toMapOfEngineNamespacesOptional(),
         proposerPublicKey = this.proposer.publicKey,
         relayProtocol = relays.first().protocol,
         relayData = relays.first().data
@@ -71,13 +72,13 @@ internal fun SessionVO.toEngineDO(): EngineDO.Session =
     EngineDO.Session(
         topic,
         expiry,
-        namespaces.toMapOfEngineNamespacesSession(),
+        sessionNamespaces.toMapOfEngineNamespacesSession(),
         peerAppMetaData
     )
 
 @JvmSynthetic
 internal fun SessionVO.toEngineDOSessionExtend(expiryVO: Expiry): EngineDO.SessionExtend =
-    EngineDO.SessionExtend(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfAppMetaData)
+    EngineDO.SessionExtend(topic, expiryVO, sessionNamespaces.toMapOfEngineNamespacesSession(), selfAppMetaData)
 
 
 @JvmSynthetic
@@ -85,8 +86,8 @@ internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
     EngineDO.SessionApproved(
         topic = topic.value,
         peerAppMetaData = peerAppMetaData,
-        accounts = namespaces.flatMap { (_, namespace) -> namespace.accounts },
-        namespaces = namespaces.toMapOfEngineNamespacesSession()
+        accounts = sessionNamespaces.flatMap { (_, namespace) -> namespace.accounts },
+        namespaces = sessionNamespaces.toMapOfEngineNamespacesSession()
     )
 
 @JvmSynthetic
@@ -105,23 +106,37 @@ internal fun SignParams.SessionProposeParams.toSessionSettleParams(
 @JvmSynthetic
 internal fun toSessionProposeParams(
     relays: List<RelayProtocolOptions>?,
-    namespaces: Map<String, EngineDO.Namespace.Proposal>,
+    requiredNamespaces: Map<String, EngineDO.Namespace.Proposal>,
+    optionalNamespaces: Map<String, EngineDO.Namespace.Proposal>,
     selfPublicKey: PublicKey,
     appMetaData: AppMetaData,
 ) = SignParams.SessionProposeParams(
     relays = relays ?: listOf(RelayProtocolOptions()),
     proposer = SessionProposer(selfPublicKey.keyAsHex, appMetaData),
-    namespaces = namespaces.toNamespacesVOProposal()
+    requiredNamespaces = requiredNamespaces.toNamespacesVORequired(),
+    optionalNamespaces = optionalNamespaces.toNamespacesVOOptional()
 )
 
 @JvmSynthetic
-internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVOProposal(): Map<String, NamespaceVO.Proposal> =
+internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVORequired(): Map<String, NamespaceVO.Required> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Proposal(namespace.chains, namespace.methods, namespace.events)
+        NamespaceVO.Required(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
-internal fun Map<String, NamespaceVO.Proposal>.toMapOfEngineNamespacesProposal(): Map<String, EngineDO.Namespace.Proposal> =
+internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVOOptional(): Map<String, NamespaceVO.Optional> =
+    this.mapValues { (_, namespace) ->
+        NamespaceVO.Optional(namespace.chains, namespace.methods, namespace.events)
+    }
+
+@JvmSynthetic
+internal fun Map<String, NamespaceVO.Required>.toMapOfEngineNamespacesRequired(): Map<String, EngineDO.Namespace.Proposal> =
+    this.mapValues { (_, namespace) ->
+        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
+    }
+
+@JvmSynthetic
+internal fun Map<String, NamespaceVO.Optional>.toMapOfEngineNamespacesOptional(): Map<String, EngineDO.Namespace.Proposal> =
     this.mapValues { (_, namespace) ->
         EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
@@ -129,13 +144,13 @@ internal fun Map<String, NamespaceVO.Proposal>.toMapOfEngineNamespacesProposal()
 @JvmSynthetic
 internal fun Map<String, NamespaceVO.Session>.toMapOfEngineNamespacesSession(): Map<String, EngineDO.Namespace.Session> =
     this.mapValues { (_, namespaceVO) ->
-        EngineDO.Namespace.Session(namespaceVO.accounts, namespaceVO.methods, namespaceVO.events)
+        EngineDO.Namespace.Session(namespaceVO.chains, namespaceVO.accounts, namespaceVO.methods, namespaceVO.events)
     }
 
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Session>.toMapOfNamespacesVOSession(): Map<String, NamespaceVO.Session> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Session(namespace.accounts, namespace.methods, namespace.events)
+        NamespaceVO.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
@@ -175,4 +190,5 @@ internal fun ValidationError.toPeerError() = when (this) {
     is ValidationError.UserRejectedEvents -> PeerError.CAIP25.UserRejectedEvents(message)
     is ValidationError.UserRejectedMethods -> PeerError.CAIP25.UserRejectedMethods(message)
     is ValidationError.UserRejectedChains -> PeerError.CAIP25.UserRejectedChains(message)
+    is ValidationError.EmptyNamespaces -> PeerError.Generic.EmptyNamespaces(message)
 }
