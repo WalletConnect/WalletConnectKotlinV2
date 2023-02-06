@@ -4,7 +4,7 @@ import com.walletconnect.web3.wallet.client.Wallet
 
 //todo change way of fetching chains
 fun getAllMethodsByChainId(namespace: Wallet.Model.Namespace.Proposal, chainId: String): List<String> {
-    return namespace.methods.takeIf { namespace.chains!!.contains(chainId) } ?: emptyList()
+    return namespace.methods.takeIf { namespace.chains?.contains(chainId) == true } ?: emptyList()
 }
 
 //todo change way of fetching chains
