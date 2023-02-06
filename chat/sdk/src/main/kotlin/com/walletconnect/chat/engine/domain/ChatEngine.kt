@@ -366,7 +366,7 @@ internal class ChatEngine(
     }
 
     internal fun getThreadsByAccount(accountId: String): Map<String, Thread> {
-        return threadsRepository.getThreadsForAccount(accountId).associateBy { thread -> thread.topic }
+        return threadsRepository.getThreadsForSelfAccount(accountId).associateBy { thread -> thread.topic }
     }
 
     private fun pingSuccess(
