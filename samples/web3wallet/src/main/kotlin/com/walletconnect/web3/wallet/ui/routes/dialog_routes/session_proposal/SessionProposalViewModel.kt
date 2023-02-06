@@ -15,18 +15,27 @@ class SessionProposalViewModel : ViewModel() {
 
     fun approve() {
         if (WCDelegate.sessionProposal != null) {
-
             val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(WCDelegate.sessionProposal)
-            //todo chains
-            val chains = sessionProposalUI.namespaces.flatMap { (namespace, proposal) -> proposal.chains!! }
+            val chains = sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
+                if (proposal.chains != null) {
+                    proposal.chains!!
+                } else {
+                    listOf(namespaceKey)
+                }
+            }
 
-            val selectedAccounts: Map<Chains, String> = chains.map { namespaceChainId ->
-                accounts.firstOrNull { (chain, address) -> chain.chainId == namespaceChainId }
-            }.filterNotNull().toMap()
+            val selectedAccounts: Map<Chains, String> =
+                chains.mapNotNull { namespaceChainId -> accounts.firstOrNull { (chain, address) -> chain.chainId == namespaceChainId } }.toMap()
 
-            //todo chains
             val sessionNamespaces: Map<String, Wallet.Model.Namespace.Session> = selectedAccounts.filter { (chain: Chains, _) ->
-                "${chain.chainNamespace}:${chain.chainReference}" in sessionProposal.requiredNamespaces.values.flatMap { it.chains!! }
+                "${chain.chainNamespace}:${chain.chainReference}" in sessionProposal.requiredNamespaces.flatMap { (namespaceKey, namespace) ->
+                    if (namespace.chains != null) {
+                        namespace.chains!!
+                    } else {
+                        listOf(namespaceKey)
+                    }
+                }
+
             }.toList().groupBy { (chain: Chains, _: String) ->
                 chain.chainNamespace
             }.map { (namespaceKey: String, chainData: List<Pair<Chains, String>>) ->
