@@ -26,7 +26,7 @@ class SessionProposalViewModel : ViewModel() {
                 mapOfAllAccounts[WalletDelegate.selectedChainAddressId] ?: throw Exception("Can't find account")
             val sessionProposal: Sign.Model.SessionProposal = requireNotNull(WalletDelegate.sessionProposal)
 
-            //todo: refactor me I'm to complicated
+            //todo: refactor me I'm too complicated
             val sessionNamespaces: Map<String, Sign.Model.Namespace.Session> =
                 selectedAccounts.filter { (chain: Chains, _) ->
                     chain.chainId in sessionProposal.requiredNamespaces.flatMap { (namespaceKey, namespace) ->
@@ -41,7 +41,6 @@ class SessionProposalViewModel : ViewModel() {
                     val chains: List<String> =
                         sessionProposal.requiredNamespaces.values.filter { namespace -> namespace.chains != null }.flatMap { namespace -> namespace.chains!! }
                     if(chains.isEmpty()) chain.chainId else chain.chainNamespace
-
                 }
                     .map { (key: String, chainData: List<Pair<Chains, String>>) ->
                         val accounts = chainData.map { (chain: Chains, accountAddress: String) ->

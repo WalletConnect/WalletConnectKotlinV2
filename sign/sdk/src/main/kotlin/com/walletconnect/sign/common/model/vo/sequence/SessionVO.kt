@@ -66,7 +66,7 @@ internal data class SessionVO(
             settleParams: SignParams.SessionSettleParams,
             selfPublicKey: PublicKey,
             selfMetadata: AppMetaData,
-            proposalNamespaces: Map<String, NamespaceVO.Required>,
+            requiredNamespaces: Map<String, NamespaceVO.Required>,
             optionalNamespaces: Map<String, NamespaceVO.Optional>,
             properties: Map<String, String>?
         ): SessionVO {
@@ -81,7 +81,7 @@ internal data class SessionVO(
                 selfAppMetaData = selfMetadata,
                 controllerKey = PublicKey(settleParams.controller.publicKey),
                 sessionNamespaces = settleParams.namespaces,
-                requiredNamespaces = proposalNamespaces,
+                requiredNamespaces = requiredNamespaces,
                 optionalNamespaces = optionalNamespaces,
                 properties = properties,
                 isAcknowledged = true
