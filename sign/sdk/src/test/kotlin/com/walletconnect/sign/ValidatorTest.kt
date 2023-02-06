@@ -288,7 +288,8 @@ class ValidatorTest {
         val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
-                accounts = listOf(ETHEREUM_1), methods = emptyList(), events = emptyList(), chains = listOf(ETHEREUM))
+                accounts = listOf(ETHEREUM_1), methods = emptyList(), events = emptyList(), chains = listOf(ETHEREUM)
+            )
         )
         var errorMessage: String? = null
         SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
@@ -335,6 +336,29 @@ class ValidatorTest {
         var errorMessage: String? = null
         SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
+    }
+
+    @Test
+    fun `Session Namespaces MUAST contain accounts conforming chains`() {
+        val requiredNamespaces = mapOf(
+            EIP155 to NamespaceVO.Required(
+                chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
+            )
+        )
+        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
+
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                accounts = listOf(ETHEREUM_1, ETHEREUM_2, ETHEREUM_3, ETHEREUM_4, KOVAN_1),
+                methods = listOf(ETH_SIGN),
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM)
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        assertNotNull(errorMessage)
+        assertEquals(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE, errorMessage)
     }
 
     @Test
