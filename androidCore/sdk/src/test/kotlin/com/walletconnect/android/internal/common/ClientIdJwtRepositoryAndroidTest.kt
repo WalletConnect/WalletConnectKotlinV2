@@ -3,17 +3,19 @@ package com.walletconnect.android.internal.common
 import com.walletconnect.android.internal.KeyChainMock
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.util.jwt.jwtIat
 import io.mockk.every
+import io.mockk.mockkStatic
 import io.mockk.spyk
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-internal class JwtRepositoryAndroidTest {
+internal class ClientIdJwtRepositoryAndroidTest {
 
     private val keyChain = KeyChainMock()
-    private val sut = spyk(JwtRepositoryAndroid(keyChain))
+    private val sut = spyk(ClientIdJwtRepositoryAndroid(keyChain))
     private val tag = "key_did_keypair"
     private val serverUrl = "wss://relay.walletconnect.com"
 
@@ -28,10 +30,8 @@ internal class JwtRepositoryAndroidTest {
         keyChain.setKeys(tag, privateKey, publicKey)
 
         every { sut.generateSubject() } returns "c479fe5dc464e771e78b193d239a65b58d278cad1c34bfb0b5716e5bb514928e"
-        every { sut.encodeByteArray(any()) } answers {
-            java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(firstArg())
-        }
-        every { sut.getCurrentTimestamp() } returns 1656910097000L
+        mockkStatic(::jwtIat)
+        every { jwtIat() } returns 1656910097L
     }
 
     @AfterEach

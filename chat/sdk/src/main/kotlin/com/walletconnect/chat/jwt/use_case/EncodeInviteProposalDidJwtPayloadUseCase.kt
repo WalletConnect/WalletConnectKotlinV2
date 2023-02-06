@@ -2,11 +2,11 @@
 
 package com.walletconnect.chat.jwt.use_case
 
-import com.walletconnect.chat.jwt.ChatDidJwtClaims
-import com.walletconnect.chat.authentication.jwt.encodeDidPkh
-import com.walletconnect.chat.authentication.jwt.encodeX25519DidKey
 import com.walletconnect.chat.common.model.AccountId
+import com.walletconnect.chat.jwt.ChatDidJwtClaims
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.util.jwt.encodeDidPkh
+import com.walletconnect.foundation.util.jwt.encodeX25519DidKey
 
 internal class EncodeInviteProposalDidJwtPayloadUseCase(
     private val inviterPublicKey: PublicKey,
@@ -20,7 +20,7 @@ internal class EncodeInviteProposalDidJwtPayloadUseCase(
         expiration = expiration,
         keyserverUrl = keyserverUrl,
         subject = openingMessage,
-        audience = encodeDidPkh(inviteeAccountId),
+        audience = encodeDidPkh(inviteeAccountId.value),
         inviterPublicKey = encodeX25519DidKey(inviterPublicKey.keyAsBytes)
     )
 }

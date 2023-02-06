@@ -44,6 +44,7 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.foundation.util.jwt.*
 import com.walletconnect.util.generateId
 import com.walletconnect.util.randomBytes
 import kotlinx.coroutines.*
@@ -189,7 +190,7 @@ internal class ChatEngine(
                 }
 
                 val payload = Cacao.Payload(
-                    iss = encodeDidPkh(accountId),
+                    iss = encodeDidPkh(accountId.value),
                     domain = domain,
                     aud = keyserverUrl, version = CURRENT_VERSION,
                     nonce = randomBytes(32).toString(), iat = SimpleDateFormat(ISO_8601_PATTERN, Locale.getDefault()).format(Calendar.getInstance().time),
@@ -225,10 +226,10 @@ internal class ChatEngine(
     private suspend fun resolveIdentity(identityDidKey: String): Result<AccountId> {
         val identityKey = identityDidKey.split(DID_DELIMITER).last()
         val cacao = identities[identityKey]
-        if (cacao != null) return runCatching { decodeDidPkh(cacao.payload.iss) }
+        if (cacao != null) return runCatching { AccountId(decodeDidPkh(cacao.payload.iss)) }
         return resolveIdentityUseCase(identityKey).mapCatching { response ->
             identities[identityKey] = response.cacao
-            decodeDidPkh(response.cacao.payload.iss)
+            AccountId(decodeDidPkh(response.cacao.payload.iss))
         }
     }
 
@@ -315,8 +316,8 @@ internal class ChatEngine(
             val claims = inviteRequestMap[inviteId]?.second ?: throw GenericException("No claims for inviteId")
             val inviterPublicKey = decodeX25519DidKey(claims.inviterPublicKey)
             inviteRequestMap.remove(inviteId)
-            val inviteeAccountId = decodeDidPkh(claims.audience)
-            val inviterAccountId = decodeDidPkh(claims.issuer)
+            val inviteeAccountId = AccountId(decodeDidPkh(claims.audience))
+            val inviterAccountId = AccountId(decodeDidPkh(claims.issuer))
 
             val inviteePublicKey = keyManagementRepository.getPublicKey(inviteeAccountId.getInviteTag())
             val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(inviteePublicKey, inviterPublicKey)
@@ -355,7 +356,7 @@ internal class ChatEngine(
             val claims = inviteRequestMap[inviteId]?.second ?: throw GenericException("No claims for inviteId")
             val inviterPublicKey = PublicKey(claims.inviterPublicKey)
             inviteRequestMap.remove(inviteId)
-            val inviteeAccountId = decodeDidPkh(claims.audience)
+            val inviteeAccountId = AccountId(decodeDidPkh(claims.audience))
 
             val inviteePublicKey = keyManagementRepository.getPublicKey(inviteeAccountId.getInviteTag())
             val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(inviteePublicKey, inviterPublicKey)

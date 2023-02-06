@@ -2,10 +2,10 @@
 
 package com.walletconnect.chat.jwt.use_case
 
-import com.walletconnect.chat.jwt.ChatDidJwtClaims
-import com.walletconnect.chat.authentication.jwt.encodeDidPkh
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.Media
+import com.walletconnect.chat.jwt.ChatDidJwtClaims
+import com.walletconnect.foundation.util.jwt.encodeDidPkh
 
 internal class EncodeChatMessageDidJwtPayloadUseCase(
     private val message: String,
@@ -19,7 +19,7 @@ internal class EncodeChatMessageDidJwtPayloadUseCase(
         expiration = expiration,
         keyserverUrl = keyserverUrl,
         subject = message,
-        audience = encodeDidPkh(recipientAccountId),
+        audience = encodeDidPkh(recipientAccountId.value),
         media = media
     )
 }

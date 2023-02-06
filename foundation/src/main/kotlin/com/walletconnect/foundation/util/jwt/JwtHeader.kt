@@ -1,13 +1,13 @@
 @file:JvmSynthetic
 
-package com.walletconnect.chat.authentication.jwt
+package com.walletconnect.foundation.util.jwt
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 
 @JsonClass(generateAdapter = true)
-internal class JwtHeader(
+class JwtHeader(
     @Json(name = "alg")
     val algorithm: String,
     @Json(name = "typ")
