@@ -73,7 +73,6 @@ class ConnectViewModel : ViewModel() {
                     )
                 }.toMap()
 
-        //todo add proper optional namespaces
         val connectParams = Sign.Params.Connect(namespaces, mapOf(), pairing)
 
         SignClient.connect(connectParams,

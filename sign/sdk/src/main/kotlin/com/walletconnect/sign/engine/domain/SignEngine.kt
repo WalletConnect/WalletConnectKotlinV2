@@ -105,8 +105,8 @@ internal class SignEngine(
     }
 
     internal fun proposeSession(
-        requiredNamespaces: Map<String, EngineDO.Namespace.Required>?,
-        optionalNamespaces: Map<String, EngineDO.Namespace.Optional>?,
+        requiredNamespaces: Map<String, EngineDO.Namespace.Proposal>?,
+        optionalNamespaces: Map<String, EngineDO.Namespace.Proposal>?,
         pairing: Pairing,
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
