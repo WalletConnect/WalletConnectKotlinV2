@@ -36,11 +36,7 @@ class WalletSampleActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(binding.root)
-
-        baseContext.applicationContext
-
 
         viewModel.signEvents
             .flowWithLifecycle(lifecycle)
