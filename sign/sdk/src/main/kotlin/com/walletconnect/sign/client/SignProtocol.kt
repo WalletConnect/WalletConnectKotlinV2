@@ -92,7 +92,7 @@ class SignProtocol : SignInterface {
         try {
             signEngine.proposeSession(
                 connect.namespaces?.toMapOfEngineNamespacesRequired(),
-                connect.optionalNamespaces?.toMapOfEngineNamespacesOptional(),
+                connect.optionalNamespaces?.toMapOfEngineNamespacesRequired(),
                 connect.properties,
                 connect.pairing.toPairing(), onSuccess
             ) { error -> onError(Sign.Model.Error(error)) }

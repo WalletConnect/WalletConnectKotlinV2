@@ -27,7 +27,7 @@ internal object SignValidator {
             !areChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_MISSING_MESSAGE))
             !areChainIdsValid(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_CAIP_2_MESSAGE))
             !areChainsInMatchingNamespace(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE))
-            !areURLsValid(namespaces) -> onError("Error") //validate rpc endpoints and docs
+//            !areURLsValid(namespaces) -> onError("Error") //validate rpc endpoints and docs
         }
     }
 
