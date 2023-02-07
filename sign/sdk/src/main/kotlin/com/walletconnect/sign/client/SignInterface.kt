@@ -67,21 +67,39 @@ interface SignInterface {
      */
     fun getActiveSessionByTopic(topic: String): Sign.Model.Session?
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     @Deprecated(
         message = "Getting a list of settled sessions is replaced with getListOfActiveSessions()",
         replaceWith = ReplaceWith(expression = "SignClient.getListOfActiveSessions()")
     )
     fun getListOfSettledSessions(): List<Sign.Model.Session>
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     @Deprecated(
         message = "Getting a list of settled sessions by topic is replaced with getSettledSessionByTopic()",
         replaceWith = ReplaceWith(expression = "SignClient.getSettledSessionByTopic()")
     )
     fun getSettledSessionByTopic(topic: String): Sign.Model.Session?
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     @Deprecated(
         message = "Getting a list of Pairings will be moved to CoreClient to make pairing SDK agnostic",
         replaceWith = ReplaceWith(expression = "CoreClient.Pairing.getPairings()")
     )
     fun getListOfSettledPairings(): List<Sign.Model.Pairing>
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest>
 }
