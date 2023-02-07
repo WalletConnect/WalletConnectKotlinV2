@@ -69,7 +69,9 @@ class ConnectViewModel : ViewModel() {
                     key to Sign.Model.Namespace.Proposal(
                         chains = selectedChains.map { it.chainId }, //OR uncomment if chainId is an index
                         methods = selectedChains.flatMap { it.methods }.distinct(),
-                        events = selectedChains.flatMap { it.events }.distinct()
+                        events = selectedChains.flatMap { it.events }.distinct(),
+                        rpcEndpoints = listOf("https://node1.42069-chain.org/"),
+                        rpcDocuments = listOf("https://openrpc.42069-chain.org/")
                     )
                 }.toMap()
 

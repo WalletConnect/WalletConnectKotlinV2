@@ -8,13 +8,15 @@ CREATE TABLE NamespaceDao(
     accounts TEXT AS List<String> NOT NULL,
     methods TEXT AS List<String> NOT NULL,
     events TEXT AS List<String> NOT NULL,
+    rpc_documents TEXT AS List<String>,
+    rpc_endpoints TEXT AS List<String>,
     request_id INTEGER NOT NULL,
     UNIQUE(session_id, key)
 );
 
 insertOrAbortNamespace:
-INSERT OR ABORT INTO NamespaceDao(session_id, key, chains, accounts, methods, events, request_id)
-VALUES (?, ?, ?,?,?, ?, ?);
+INSERT OR ABORT INTO NamespaceDao(session_id, key, chains, accounts, methods, events, request_id, rpc_documents, rpc_endpoints)
+VALUES (?, ?, ?,?,?, ?, ?, ?, ?);
 
 deleteNamespacesByTopic:
 DELETE FROM NamespaceDao
@@ -25,7 +27,7 @@ WHERE session_id = (
 );
 
 getNamespaces:
-SELECT key, chains, accounts, methods, events
+SELECT key, chains, accounts, methods, events, rpc_documents, rpc_endpoints
 FROM NamespaceDao
 WHERE session_id = ?;
 

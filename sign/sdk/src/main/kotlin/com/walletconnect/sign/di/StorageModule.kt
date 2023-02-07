@@ -26,23 +26,31 @@ internal fun storageModule(): Module = module {
             accountsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             methodsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             eventsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
-            chainsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST))
+            chainsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
+            rpc_documentsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
+            rpc_endpointsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
         ),
         TempNamespaceDaoAdapter = TempNamespaceDao.Adapter(
             accountsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             methodsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             eventsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
-            chainsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST))
+            chainsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
+            rpc_documentsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
+            rpc_endpointsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
         ),
         ProposalNamespaceDaoAdapter = ProposalNamespaceDao.Adapter(
             chainsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             methodsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             eventsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
+            rpc_documentsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
+            rpc_endpointsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
         ),
         OptionalNamespaceDaoAdapter = OptionalNamespaceDao.Adapter(
             chainsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             methodsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             eventsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
+            rpc_documentsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
+            rpc_endpointsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
         ),
         SessionDaoAdapter = SessionDao.Adapter(
             propertiesAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_MAP)),

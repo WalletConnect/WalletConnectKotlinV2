@@ -39,8 +39,9 @@ class SessionProposalViewModel : ViewModel() {
 
                 }.toList().groupBy { (chain: Chains, _: String) ->
                     val chains: List<String> =
-                        sessionProposal.requiredNamespaces.values.filter { namespace -> namespace.chains != null }.flatMap { namespace -> namespace.chains!! }
-                    if(chains.isEmpty()) chain.chainId else chain.chainNamespace
+                        sessionProposal.requiredNamespaces.values.filter { namespace -> namespace.chains != null }
+                            .flatMap { namespace -> namespace.chains!! }
+                    if (chains.isEmpty()) chain.chainId else chain.chainNamespace
                 }
                     .map { (key: String, chainData: List<Pair<Chains, String>>) ->
                         val accounts = chainData.map { (chain: Chains, accountAddress: String) ->
@@ -49,6 +50,8 @@ class SessionProposalViewModel : ViewModel() {
 
                         val methods = sessionProposal.requiredNamespaces.values.flatMap { it.methods }
                         val events = sessionProposal.requiredNamespaces.values.flatMap { it.events }
+                        val documents = sessionProposal.requiredNamespaces.values.filter { it.rpcDocuments != null }.flatMap { it.rpcDocuments!! }
+                        val endpoints = sessionProposal.requiredNamespaces.values.filter { it.rpcEndpoints != null }.flatMap { it.rpcEndpoints!! }
                         val chains: List<String> =
                             sessionProposal.requiredNamespaces.values.filter { namespace -> namespace.chains != null }
                                 .flatMap { namespace -> namespace.chains!! }
@@ -57,7 +60,10 @@ class SessionProposalViewModel : ViewModel() {
                             accounts = accounts,
                             methods = methods,
                             events = events,
-                            chains = chains.ifEmpty { null })
+                            chains = chains.ifEmpty { null },
+                            rpcDocuments = documents,
+                            rpcEndpoints = endpoints
+                        )
                     }
                     .toMap()
 

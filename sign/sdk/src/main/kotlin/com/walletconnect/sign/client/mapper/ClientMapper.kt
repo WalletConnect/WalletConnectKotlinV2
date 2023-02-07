@@ -164,7 +164,7 @@ internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): S
     Sign.Model.SessionRequestResponse(topic, chainId, method, result.toClientJsonRpcResponse())
 
 @JvmSynthetic
-internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesRequired(): Map<String, EngineDO.Namespace.Proposal> =
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesProposal(): Map<String, EngineDO.Namespace.Proposal> =
     mapValues { (_, namespace) ->
         EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.rpcDocuments, namespace.rpcEndpoints)
     }

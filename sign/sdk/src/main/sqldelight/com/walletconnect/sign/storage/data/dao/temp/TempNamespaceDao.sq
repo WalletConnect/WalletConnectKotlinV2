@@ -9,15 +9,17 @@ CREATE TABLE TempNamespaceDao(
     accounts TEXT AS List<String> NOT NULL,
     methods TEXT AS List<String> NOT NULL,
     events TEXT AS List<String> NOT NULL,
+    rpc_documents TEXT AS List<String>,
+    rpc_endpoints TEXT AS List<String>,
     isAcknowledged INTEGER DEFAULT 0
 );
 
 insertOrAbortNamespace:
-INSERT OR ABORT INTO TempNamespaceDao(session_id, topic, key, chains, accounts, methods, events, request_id)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR ABORT INTO TempNamespaceDao(session_id, topic, key, chains, accounts, methods, events, request_id, rpc_documents, rpc_endpoints)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getTempNamespacesByRequestId:
-SELECT session_id, key, chains, accounts, methods, events
+SELECT session_id, key, chains, accounts, methods, events, rpc_documents, rpc_endpoints
 FROM TempNamespaceDao
 WHERE request_id = ?;
 

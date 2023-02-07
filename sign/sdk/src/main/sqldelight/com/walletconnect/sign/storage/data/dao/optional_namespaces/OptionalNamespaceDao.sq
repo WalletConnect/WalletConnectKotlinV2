@@ -7,12 +7,14 @@ CREATE TABLE OptionalNamespaceDao (
     chains TEXT AS List<String>,
     methods TEXT AS List<String> NOT NULL,
     events TEXT AS List<String> NOT NULL,
+    rpc_documents TEXT AS List<String>,
+    rpc_endpoints TEXT AS List<String>,
     UNIQUE(session_id, key)
 );
 
 insertOrAbortOptionalNamespace:
-INSERT OR ABORT INTO OptionalNamespaceDao(session_id, key, chains, methods, events)
-VALUES (?, ?, ?, ?, ?);
+INSERT OR ABORT INTO OptionalNamespaceDao(session_id, key, chains, methods, events, rpc_documents, rpc_endpoints)
+VALUES (?, ?, ?, ?, ?, ?, ?);
 
 deleteOptionalNamespacesByTopic:
 DELETE FROM OptionalNamespaceDao
@@ -23,6 +25,6 @@ WHERE session_id = (
 );
 
 getOptionalNamespaces:
-SELECT key, chains, methods, events
+SELECT key, chains, methods, events, rpc_documents, rpc_endpoints
 FROM ProposalNamespaceDao
 WHERE session_id = ?;

@@ -160,7 +160,7 @@ internal fun Map<String, NamespaceVO.Session>.toMapOfEngineNamespacesSession(): 
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Session>.toMapOfNamespacesVOSession(): Map<String, NamespaceVO.Session> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
+        NamespaceVO.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events, namespace.rpcDocuments, namespace.rpcEndpoints)
     }
 
 @JvmSynthetic

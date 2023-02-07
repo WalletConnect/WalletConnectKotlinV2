@@ -105,7 +105,9 @@ internal class SessionStorageRepository(
                 value.accounts,
                 value.methods,
                 value.events,
-                requestId
+                requestId,
+                value.rpcDocuments,
+                value.rpcEndpoints
             )
         }
     }
@@ -129,7 +131,17 @@ internal class SessionStorageRepository(
         val sessionId = sessionDaoQueries.getSessionIdByTopic(topic).executeAsOne()
         namespaceDaoQueries.deleteNamespacesByTopic(topic)
         namespaces.forEach { (key, value) ->
-            namespaceDaoQueries.insertOrAbortNamespace(sessionId, key, value.chains, value.accounts, value.methods, value.events, requestID)
+            namespaceDaoQueries.insertOrAbortNamespace(
+                sessionId,
+                key,
+                value.chains,
+                value.accounts,
+                value.methods,
+                value.events,
+                requestID,
+                value.rpcDocuments,
+                value.rpcEndpoints
+            )
         }
     }
 
@@ -165,21 +177,47 @@ internal class SessionStorageRepository(
     @Throws(SQLiteException::class)
     private fun insertNamespace(namespaces: Map<String, NamespaceVO.Session>, sessionId: Long, requestId: Long) {
         namespaces.forEach { (key, value) ->
-            namespaceDaoQueries.insertOrAbortNamespace(sessionId, key, value.chains, value.accounts, value.methods, value.events, requestId)
+            namespaceDaoQueries.insertOrAbortNamespace(
+                sessionId,
+                key,
+                value.chains,
+                value.accounts,
+                value.methods,
+                value.events,
+                requestId,
+                value.rpcDocuments,
+                value.rpcEndpoints
+            )
         }
     }
 
     @Throws(SQLiteException::class)
     private fun insertRequiredNamespace(namespaces: Map<String, NamespaceVO.Required>, sessionId: Long) {
         namespaces.forEach { (key, value) ->
-            requiredNamespaceDaoQueries.insertOrAbortProposalNamespace(sessionId, key, value.chains, value.methods, value.events)
+            requiredNamespaceDaoQueries.insertOrAbortProposalNamespace(
+                sessionId,
+                key,
+                value.chains,
+                value.methods,
+                value.events,
+                value.rpcDocuments,
+                value.rpcEndpoints
+            )
         }
     }
 
     @Throws(SQLiteException::class)
     private fun insertOptionalNamespace(namespaces: Map<String, NamespaceVO.Optional>?, sessionId: Long) {
         namespaces?.forEach { (key, value) ->
-            optionalNamespaceDaoQueries.insertOrAbortOptionalNamespace(sessionId, key, value.chains, value.methods, value.events)
+            optionalNamespaceDaoQueries.insertOrAbortOptionalNamespace(
+                sessionId,
+                key,
+                value.chains,
+                value.methods,
+                value.events,
+                value.rpcDocuments,
+                value.rpcEndpoints
+            )
         }
     }
 
@@ -228,20 +266,20 @@ internal class SessionStorageRepository(
     }
 
     private fun getRequiredNamespaces(id: Long): Map<String, NamespaceVO.Required> {
-        return requiredNamespaceDaoQueries.getProposalNamespaces(id) { key, chains, methods, events ->
-            key to NamespaceVO.Required(chains, methods, events)
+        return requiredNamespaceDaoQueries.getProposalNamespaces(id) { key, chains, methods, events, rpcDocuments, rpcEndpoints ->
+            key to NamespaceVO.Required(chains, methods, events, rpcDocuments, rpcEndpoints)
         }.executeAsList().toMap()
     }
 
     private fun getOptionalNamespaces(id: Long): Map<String, NamespaceVO.Optional> {
-        return optionalNamespaceDaoQueries.getOptionalNamespaces(id) { key, chains, methods, events ->
-            key to NamespaceVO.Optional(chains, methods, events)
+        return optionalNamespaceDaoQueries.getOptionalNamespaces(id) { key, chains, methods, events, rpcDocuments, rpcEndpoints ->
+            key to NamespaceVO.Optional(chains, methods, events, rpcDocuments, rpcEndpoints)
         }.executeAsList().toMap()
     }
 
     private fun getSessionNamespaces(id: Long): Map<String, NamespaceVO.Session> {
-        return namespaceDaoQueries.getNamespaces(id) { key, chains, accounts, methods, events ->
-            key to NamespaceVO.Session(chains, accounts, methods, events)
+        return namespaceDaoQueries.getNamespaces(id) { key, chains, accounts, methods, events, rpcDocuments, rpcEndpoints ->
+            key to NamespaceVO.Session(chains, accounts, methods, events, rpcDocuments, rpcEndpoints)
         }.executeAsList().toMap()
     }
 
@@ -251,8 +289,10 @@ internal class SessionStorageRepository(
         chains: List<String>?,
         accounts: List<String>,
         methods: List<String>,
-        events: List<String>
+        events: List<String>,
+        rpc_documents: List<String>?,
+        rpc_endpoints: List<String>?
     ): Pair<String, NamespaceVO.Session> {
-        return key to NamespaceVO.Session(chains, accounts, methods, events)
+        return key to NamespaceVO.Session(chains, accounts, methods, events, rpc_documents, rpc_endpoints)
     }
 }
