@@ -183,8 +183,10 @@ class SessionDetailsViewModel : ViewModel() {
                         events.add(anotherEvent)
                     }
 
+                    val chains = namespace.chains?.toMutableList()
+
                     val expandedNamespaces =
-                        mapOf(key to Sign.Model.Namespace.Session(listOf(),  accounts, methods, events))
+                        mapOf(key to Sign.Model.Namespace.Session(chains,  accounts, methods, events))
                     val update =
                         Sign.Params.Update(sessionTopic = topic, namespaces = expandedNamespaces)
                     SignClient.update(update) { error ->
