@@ -103,7 +103,7 @@ class SignProtocol : SignInterface {
     override fun pair(
         pair: Sign.Params.Pair,
         onSuccess: (Sign.Params.Pair) -> Unit,
-        onError: (Sign.Model.Error) -> Unit
+        onError: (Sign.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
         try {
@@ -150,7 +150,9 @@ class SignProtocol : SignInterface {
         try {
             signEngine.sessionRequest(
                 request = request.toEngineDORequest(),
-                onSuccess = { onSuccess(request) },
+                onSuccess = { requestId ->
+                    onSuccess(request.apply { this.requestId = requestId })
+                },
                 onFailure = { error -> onError(Sign.Model.Error(error)) }
             )
         } catch (error: Exception) {

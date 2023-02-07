@@ -206,7 +206,9 @@ object Sign {
             val method: String,
             val params: String,
             val chainId: String
-        ) : Params()
+        ) : Params() {
+            var requestId: Long? = null
+        }
 
         data class Update(
             val sessionTopic: String,
