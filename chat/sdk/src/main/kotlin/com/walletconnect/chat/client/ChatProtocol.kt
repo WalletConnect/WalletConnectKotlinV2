@@ -133,7 +133,10 @@ internal class ChatProtocol : ChatInterface {
     @Throws(IllegalStateException::class)
     override fun getThreads(getThreads: Chat.Params.GetThreads): Map<String, Chat.Model.Thread> {
         checkEngineInitialization()
-        TODO("Not yet implemented")
+
+        return chatEngine.getThreadsByAccount(getThreads.account.value).mapValues { (_, thread) ->
+            thread.toClient()
+        }
     }
 
     @Throws(IllegalStateException::class)

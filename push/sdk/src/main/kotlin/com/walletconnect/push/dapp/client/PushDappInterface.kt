@@ -23,6 +23,10 @@ interface PushDappInterface {
 
     fun notify(params: Push.Dapp.Params.Notify, onError: (Push.Model.Error) -> Unit)
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     fun getActiveSubscriptions(): Map<String, Push.Model.Subscription>
 
     fun delete(params: Push.Dapp.Params.Delete, onError: (Push.Model.Error) -> Unit)
