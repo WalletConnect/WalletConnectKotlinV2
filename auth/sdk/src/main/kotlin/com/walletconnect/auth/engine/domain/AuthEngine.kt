@@ -4,10 +4,14 @@ package com.walletconnect.auth.engine.domain
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.cacao.Cacao
 import com.walletconnect.android.internal.common.cacao.CacaoType
+import com.walletconnect.android.internal.common.cacao.CacaoVerifier
+import com.walletconnect.android.internal.common.cacao.Issuer
+import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.Invalid
+import com.walletconnect.android.internal.common.exception.InvalidExpiryException
+import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreAuthParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
@@ -33,20 +37,13 @@ import com.walletconnect.auth.engine.mapper.toPendingRequest
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.auth.json_rpc.model.JsonRpcMethod
-import com.walletconnect.android.internal.common.cacao.CacaoVerifier
-import com.walletconnect.android.internal.common.cacao.Issuer
-import com.walletconnect.android.internal.common.exception.Invalid
-import com.walletconnect.android.internal.common.exception.InvalidExpiryException
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.generateId
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import java.util.*
 
 internal class AuthEngine(
@@ -134,6 +131,18 @@ internal class AuthEngine(
 
                 pairingTopicToResponseTopicMap[pairingTopic] = responseTopic
                 onSuccess()
+
+                scope.launch {
+                    try {
+                        withTimeout(irnParamsTtl.seconds) {
+                            jsonRpcInteractor.peerResponse
+                                .filter { response -> response.response.id == authRequest.id }
+                                .collect { cancel() }
+                        }
+                    } catch (e: TimeoutCancellationException) {
+                        _engineEvent.emit(SDKError(InternalError(e)))
+                    }
+                }
             },
             onFailure = { error ->
                 logger.error("Failed to send a auth request: $error")
@@ -156,6 +165,13 @@ internal class AuthEngine(
         }
 
         val authParams: AuthParams.RequestParams = jsonRpcHistoryEntry.params
+
+        authParams.expiry?.let { expiry ->
+            if (CoreValidator.isExpiryNotWithinBounds(expiry)) {
+                return onFailure(InvalidExpiryException())
+            }
+        }
+
         val response: JsonRpcResponse = when (respond) {
             is Respond.Error -> JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
             is Respond.Result -> {

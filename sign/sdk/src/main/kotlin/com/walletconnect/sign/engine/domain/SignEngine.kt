@@ -294,6 +294,16 @@ internal class SignEngine(
             onSuccess = {
                 logger.log("Session request sent successfully")
                 onSuccess()
+
+                scope.launch {
+                    try {
+                        withTimeout(irnParamsTtl.seconds) {
+                            collectResponse(sessionPayload.id) { cancel() }
+                        }
+                    } catch (e: TimeoutCancellationException) {
+                        _engineEvent.emit(SDKError(InternalError(e)))
+                    }
+                }
             },
             onFailure = { error ->
                 logger.error("Sending session request error: $error")
@@ -308,9 +318,18 @@ internal class SignEngine(
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
-            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+        val topicWrapper = Topic(topic)
+
+        if (!sessionStorageRepository.isSessionValid(topicWrapper)) {
+            return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
         }
+
+        sessionStorageRepository.getSessionExpiryByTopic(topicWrapper)?.let { expiry ->
+            if (CoreValidator.isExpiryNotWithinBounds(expiry)) {
+                return onFailure(InvalidExpiryException())
+            }
+        } ?: return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
+
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcResponse(
