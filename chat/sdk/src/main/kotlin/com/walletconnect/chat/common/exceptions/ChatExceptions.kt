@@ -4,3 +4,4 @@ import com.walletconnect.android.internal.common.exception.WalletConnectExceptio
 
 class InvalidAccountIdException(override val message: String?) : WalletConnectException(message)
 class UnableToExtractDomainException(override val message: String?) : WalletConnectException(message)
+class InviteKeyNotFound(override val message: String?) : WalletConnectException(message)

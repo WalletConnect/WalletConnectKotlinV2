@@ -25,6 +25,16 @@ internal sealed class KeyServerHttpResponse<T : KeyServerResponse> {
     ) : KeyServerHttpResponse<KeyServerResponse>()
 
     @JsonClass(generateAdapter = true)
+    internal data class UnregisterInvite(
+        @Json(name = "status")
+        override val status: String,
+        @Json(name = "error")
+        override val error: Error?,
+        @Json(name = "value")
+        override val value: KeyServerResponse?,
+    ) : KeyServerHttpResponse<KeyServerResponse>()
+
+    @JsonClass(generateAdapter = true)
     internal data class ResolveInvite(
         @Json(name = "status")
         override val status: String,
@@ -36,6 +46,16 @@ internal sealed class KeyServerHttpResponse<T : KeyServerResponse> {
 
     @JsonClass(generateAdapter = true)
     internal data class RegisterIdentity(
+        @Json(name = "status")
+        override val status: String,
+        @Json(name = "error")
+        override val error: Error?,
+        @Json(name = "value")
+        override val value: KeyServerResponse?,
+    ) : KeyServerHttpResponse<KeyServerResponse>()
+
+    @JsonClass(generateAdapter = true)
+    internal data class UnregisterIdentity(
         @Json(name = "status")
         override val status: String,
         @Json(name = "error")
