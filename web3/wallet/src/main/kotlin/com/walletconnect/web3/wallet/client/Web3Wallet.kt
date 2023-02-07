@@ -160,6 +160,10 @@ object Web3Wallet {
         SignClient.disconnect(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     @Throws(IllegalStateException::class)
     fun formatMessage(params: Wallet.Params.FormatMessage): String? {
         val authParams = Auth.Params.FormatMessage(params.payloadParams.toSign(), params.issuer)
@@ -175,21 +179,37 @@ object Web3Wallet {
         AuthClient.respond(params.toAuth(), { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     @Throws(IllegalStateException::class)
     fun getListOfActiveSessions(): List<Wallet.Model.Session> {
         return SignClient.getListOfActiveSessions().map(Sign.Model.Session::toWallet)
     }
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     @Throws(IllegalStateException::class)
     fun getActiveSessionByTopic(topic: String): Wallet.Model.Session? {
         return SignClient.getActiveSessionByTopic(topic)?.toWallet()
     }
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     @Throws(IllegalStateException::class)
     fun getPendingSessionRequests(topic: String): List<Wallet.Model.PendingSessionRequest> {
         return SignClient.getPendingRequests(topic).mapToPendingRequests()
     }
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     @Throws(IllegalStateException::class)
     fun getPendingAuthRequests(): List<Wallet.Model.PendingAuthRequest> {
         return AuthClient.getPendingRequest().toWallet()

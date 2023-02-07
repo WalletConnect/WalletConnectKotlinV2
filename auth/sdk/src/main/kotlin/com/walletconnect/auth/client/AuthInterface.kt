@@ -25,7 +25,15 @@ interface AuthInterface {
 
     fun respond(params: Auth.Params.Respond, onSuccess: (Auth.Params.Respond) -> Unit = {}, onError: (Auth.Model.Error) -> Unit)
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     fun formatMessage(params: Auth.Params.FormatMessage): String?
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     fun getPendingRequest(): List<Auth.Model.PendingRequest>
 }
