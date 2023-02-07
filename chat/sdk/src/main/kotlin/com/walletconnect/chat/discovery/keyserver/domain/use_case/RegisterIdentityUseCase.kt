@@ -10,6 +10,6 @@ internal class RegisterIdentityUseCase(
     private val service: KeyServerService,
 ) {
     suspend operator fun invoke(cacao: Cacao): Result<Unit> = runCatching {
-        service.registerIdentity(KeyServerBody.RegisterIdentity(cacao))
+        service.registerIdentity(KeyServerBody.RegisterIdentity(cacao)).unwrapUnit()
     }
 }

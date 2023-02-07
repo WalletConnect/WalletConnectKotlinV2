@@ -9,6 +9,6 @@ internal class RegisterInviteUseCase(
     private val service: KeyServerService,
 ) {
     suspend operator fun invoke(idAuth: String): Result<Unit> = runCatching {
-        service.registerInvite(KeyServerBody.RegisterInvite(idAuth))
+        service.registerInvite(KeyServerBody.RegisterInvite(idAuth)).unwrapUnit()
     }
 }

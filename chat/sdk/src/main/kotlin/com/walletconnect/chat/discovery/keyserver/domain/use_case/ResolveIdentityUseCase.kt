@@ -9,6 +9,6 @@ internal class ResolveIdentityUseCase(
     private val service: KeyServerService,
 ) {
     suspend operator fun invoke(identityKey: String): Result<KeyServerResponse.ResolveIdentity> = runCatching {
-        service.resolveIdentity(identityKey).body()!!.value
+        service.resolveIdentity(identityKey).unwrapValue()
     }
 }

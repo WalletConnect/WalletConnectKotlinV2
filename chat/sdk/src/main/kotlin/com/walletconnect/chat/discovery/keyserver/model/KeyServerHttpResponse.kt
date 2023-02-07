@@ -10,6 +10,20 @@ internal sealed class KeyServerHttpResponse<T : KeyServerResponse> {
     abstract val error: Error?
     abstract val value: T?
 
+    companion object {
+        const val SUCCESS_STATUS = "SUCCESS"
+    }
+
+    @JsonClass(generateAdapter = true)
+    internal data class RegisterInvite(
+        @Json(name = "status")
+        override val status: String,
+        @Json(name = "error")
+        override val error: Error?,
+        @Json(name = "value")
+        override val value: KeyServerResponse?,
+    ) : KeyServerHttpResponse<KeyServerResponse>()
+
     @JsonClass(generateAdapter = true)
     internal data class ResolveInvite(
         @Json(name = "status")
@@ -19,6 +33,16 @@ internal sealed class KeyServerHttpResponse<T : KeyServerResponse> {
         @Json(name = "value")
         override val value: KeyServerResponse.ResolveInvite,
     ) : KeyServerHttpResponse<KeyServerResponse.ResolveInvite>()
+
+    @JsonClass(generateAdapter = true)
+    internal data class RegisterIdentity(
+        @Json(name = "status")
+        override val status: String,
+        @Json(name = "error")
+        override val error: Error?,
+        @Json(name = "value")
+        override val value: KeyServerResponse?,
+    ) : KeyServerHttpResponse<KeyServerResponse>()
 
     @JsonClass(generateAdapter = true)
     internal data class ResolveIdentity(

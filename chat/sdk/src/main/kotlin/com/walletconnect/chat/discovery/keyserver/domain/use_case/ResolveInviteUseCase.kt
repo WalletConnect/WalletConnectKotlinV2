@@ -10,6 +10,6 @@ internal class ResolveInviteUseCase(
     private val service: KeyServerService
 ) {
     suspend operator fun invoke(accountId: AccountId): Result<KeyServerResponse.ResolveInvite> = runCatching {
-        service.resolveInvite(accountId.value).body()!!.value
+        service.resolveInvite(accountId.value).unwrapValue()
     }
 }
