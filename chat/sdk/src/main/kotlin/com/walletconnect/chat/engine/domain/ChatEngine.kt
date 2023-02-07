@@ -25,12 +25,14 @@ import com.walletconnect.chat.common.json_rpc.ChatParams
 import com.walletconnect.chat.common.json_rpc.ChatRpc
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.AccountIdWithPublicKey
+import com.walletconnect.chat.common.model.Thread
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterIdentityUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterInviteUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveInviteUseCase
 import com.walletconnect.chat.engine.model.EngineDO
 import com.walletconnect.chat.json_rpc.JsonRpcMethod
 import com.walletconnect.chat.storage.ChatStorageRepository
+import com.walletconnect.chat.storage.ThreadsStorageRepository
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -55,6 +57,7 @@ internal class ChatEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val chatStorage: ChatStorageRepository,
     private val pairingHandler: PairingControllerInterface,
+    private val threadsRepository: ThreadsStorageRepository,
     private val logger: Logger,
 ) {
     private var jsonRpcRequestsJob: Job? = null
@@ -239,6 +242,7 @@ internal class ChatEngine(
             val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
 
             keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
+            threadsRepository.insertThread(acceptTopic.value, invite.accountId.value, peerAccount.value)
             jsonRpcInteractor.subscribe(acceptTopic) { error -> return@subscribe onFailure(error) }
 
             val irnParams = IrnParams(Tags.CHAT_INVITE, Ttl(DAY_IN_SECONDS), true)
@@ -361,6 +365,10 @@ internal class ChatEngine(
             })
     }
 
+    internal fun getThreadsByAccount(accountId: String): Map<String, Thread> {
+        return threadsRepository.getThreadsForSelfAccount(accountId).associateBy { thread -> thread.topic }
+    }
+
     private fun pingSuccess(
         pingPayload: ChatRpc.ChatPing,
         onSuccess: (String) -> Unit,
@@ -408,10 +416,11 @@ internal class ChatEngine(
     }
 
     private fun onLeft(request: WCRequest) {
+        threadsRepository.deleteThreadByTopic(request.topic.value)
+
         scope.launch {
             _events.emit(EngineDO.Events.OnLeft(request.topic.value))
         }
-        //TODO: Add removing threads from storage. For Alpha we will use only emitted event.
     }
 
     private fun onPong(request: WCRequest) {
@@ -444,7 +453,8 @@ internal class ChatEngine(
                 }
                 return@subscribe
             }
-            //TODO: Add adding thread to storage. For Alpha we will use only emitted event.
+
+            threadsRepository.insertThread(threadTopic.value, TODO("How to get the self account"), TODO("How to get the peer account"))
             scope.launch { _events.emit(EngineDO.Events.OnJoined(threadTopic.value)) }
         } catch (e: Exception) {
             scope.launch { _events.emit(SDKError(e)) }

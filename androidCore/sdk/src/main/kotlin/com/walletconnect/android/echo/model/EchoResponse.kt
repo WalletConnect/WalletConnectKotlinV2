@@ -6,9 +6,9 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class EchoResponse(
     @Json(name = "errors")
-    val errors: List<Error>,
+    val errors: List<Error>?,
     @Json(name = "fields")
-    val fields: List<Field>,
+    val fields: List<Field>?,
     @Json(name = "status")
     val status: String
 ) {

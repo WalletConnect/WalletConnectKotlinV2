@@ -1,0 +1,19 @@
+CREATE TABLE Threads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    topic TEXT UNIQUE NOT NULL,
+    selfAccount TEXT NOT NULL,
+    peerAccount TEXT NOT NULL
+);
+
+insertOrAbortThread:
+INSERT OR ABORT INTO Threads(topic, selfAccount, peerAccount)
+VALUES (?, ?, ?);
+
+getThreadsForSelfAccount:
+SELECT topic, selfAccount, peerAccount
+FROM Threads
+WHERE selfAccount = ?;
+
+deleteThreadByTopic:
+DELETE FROM Threads
+WHERE topic = ?;
