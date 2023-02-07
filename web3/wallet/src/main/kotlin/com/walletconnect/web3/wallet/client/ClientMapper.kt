@@ -6,25 +6,33 @@ import com.walletconnect.sign.client.Sign
 @JvmSynthetic
 internal fun Map<String, Wallet.Model.Namespace.Session>.toSign(): Map<String, Sign.Model.Namespace.Session> =
     mapValues { (_, namespace) ->
-        Sign.Model.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
+        Sign.Model.Namespace.Session(
+            namespace.chains,
+            namespace.accounts,
+            namespace.methods,
+            namespace.events,
+            namespace.rpcDocuments,
+            namespace.rpcEndpoints
+        )
     }
 
 @JvmSynthetic
 internal fun Map<String, Sign.Model.Namespace.Session>.toWallet(): Map<String, Wallet.Model.Namespace.Session> =
     mapValues { (_, namespace) ->
-        Wallet.Model.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
+        Wallet.Model.Namespace.Session(
+            namespace.chains,
+            namespace.accounts,
+            namespace.methods,
+            namespace.events,
+            namespace.rpcDocuments,
+            namespace.rpcEndpoints
+        )
     }
 
 @JvmSynthetic
 internal fun Map<String, Sign.Model.Namespace.Proposal>.toWalletProposalNamespaces(): Map<String, Wallet.Model.Namespace.Proposal> =
     mapValues { (_, namespace) ->
-        Wallet.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
-    }
-
-@JvmSynthetic
-internal fun Map<String, Sign.Model.Namespace.Proposal>.toWalletOptionalNamespaces(): Map<String, Wallet.Model.Namespace.Proposal> =
-    mapValues { (_, namespace) ->
-        Wallet.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
+        Wallet.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.rpcDocuments, namespace.rpcEndpoints)
     }
 
 @JvmSynthetic
@@ -119,7 +127,7 @@ internal fun Sign.Model.SessionProposal.toWallet(): Wallet.Model.SessionProposal
         url,
         icons,
         requiredNamespaces.toWalletProposalNamespaces(),
-        optionalNamespaces.toWalletOptionalNamespaces(),
+        optionalNamespaces.toWalletProposalNamespaces(),
         properties,
         proposerPublicKey,
         relayProtocol,

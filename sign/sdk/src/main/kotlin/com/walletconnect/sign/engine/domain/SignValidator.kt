@@ -2,6 +2,7 @@
 
 package com.walletconnect.sign.engine.domain
 
+import android.webkit.URLUtil
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.utils.CoreValidator.NAMESPACE_REGEX
@@ -15,6 +16,7 @@ import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
 import java.net.URI
 import java.net.URISyntaxException
+import java.net.URL
 
 internal object SignValidator {
 
@@ -25,8 +27,15 @@ internal object SignValidator {
             !areChainsNotEmpty(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_MISSING_MESSAGE))
             !areChainIdsValid(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_CAIP_2_MESSAGE))
             !areChainsInMatchingNamespace(namespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE))
+            !areURLsValid(namespaces) -> onError("Error") //validate rpc endpoints and docs
         }
     }
+
+    private fun areURLsValid(namespaces: Map<String, NamespaceVO>): Boolean =
+        namespaces.all { (_, namespace) ->
+            namespace.rpcDocuments != null && namespace.rpcDocuments!!.all { url -> URL_REGEX.toRegex().matches(url) } &&
+                    namespace.rpcEndpoints != null && namespace.rpcEndpoints!!.all { url -> URL_REGEX.toRegex().matches(url) }
+        }
 
     @JvmSynthetic
     internal inline fun validateSessionNamespace(
@@ -251,4 +260,7 @@ internal object SignValidator {
 
         return "$namespace:$reference"
     }
+
+    private const val URL_REGEX: String =
+        "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$"
 }

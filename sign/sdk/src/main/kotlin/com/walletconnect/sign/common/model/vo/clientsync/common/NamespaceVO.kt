@@ -10,6 +10,8 @@ internal sealed class NamespaceVO {
     abstract val chains: List<String>?
     abstract val methods: List<String>
     abstract val events: List<String>
+    abstract val rpcDocuments: List<String>?
+    abstract val rpcEndpoints: List<String>?
 
     @JsonClass(generateAdapter = true)
     internal data class Required(
@@ -18,7 +20,11 @@ internal sealed class NamespaceVO {
         @Json(name = "methods")
         override val methods: List<String>,
         @Json(name = "events")
-        override val events: List<String>
+        override val events: List<String>,
+        @Json(name = "rpcDocuments")
+        override val rpcDocuments: List<String>? = null,
+        @Json(name = "rpcEndpoints")
+        override val rpcEndpoints: List<String>? = null
     ) : NamespaceVO()
 
     @JsonClass(generateAdapter = true)
@@ -28,7 +34,11 @@ internal sealed class NamespaceVO {
         @Json(name = "methods")
         override val methods: List<String>,
         @Json(name = "events")
-        override val events: List<String>
+        override val events: List<String>,
+        @Json(name = "rpcDocuments")
+        override val rpcDocuments: List<String>? = null,
+        @Json(name = "rpcEndpoints")
+        override val rpcEndpoints: List<String>? = null
     ) : NamespaceVO()
 
     @JsonClass(generateAdapter = true)
@@ -40,6 +50,10 @@ internal sealed class NamespaceVO {
         @Json(name = "methods")
         override val methods: List<String>,
         @Json(name = "events")
-        override val events: List<String>
+        override val events: List<String>,
+        @Json(name = "rpcDocuments")
+        override val rpcDocuments: List<String>? = null,
+        @Json(name = "rpcEndpoints")
+        override val rpcEndpoints: List<String>? = null
     ) : NamespaceVO()
 }

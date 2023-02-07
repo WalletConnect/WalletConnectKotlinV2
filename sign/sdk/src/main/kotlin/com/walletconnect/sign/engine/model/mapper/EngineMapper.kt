@@ -123,31 +123,38 @@ internal fun toSessionProposeParams(
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVORequired(): Map<String, NamespaceVO.Required> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Required(namespace.chains, namespace.methods, namespace.events)
+        NamespaceVO.Required(namespace.chains, namespace.methods, namespace.events, namespace.rpcDocuments, namespace.rpcEndpoints)
     }
 
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVOOptional(): Map<String, NamespaceVO.Optional> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Optional(namespace.chains, namespace.methods, namespace.events)
+        NamespaceVO.Optional(namespace.chains, namespace.methods, namespace.events, namespace.rpcDocuments, namespace.rpcEndpoints)
     }
 
 @JvmSynthetic
 internal fun Map<String, NamespaceVO.Required>.toMapOfEngineNamespacesRequired(): Map<String, EngineDO.Namespace.Proposal> =
     this.mapValues { (_, namespace) ->
-        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
+        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.rpcDocuments, namespace.rpcEndpoints)
     }
 
 @JvmSynthetic
 internal fun Map<String, NamespaceVO.Optional>.toMapOfEngineNamespacesOptional(): Map<String, EngineDO.Namespace.Proposal> =
     this.mapValues { (_, namespace) ->
-        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
+        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.rpcDocuments, namespace.rpcEndpoints)
     }
 
 @JvmSynthetic
 internal fun Map<String, NamespaceVO.Session>.toMapOfEngineNamespacesSession(): Map<String, EngineDO.Namespace.Session> =
     this.mapValues { (_, namespaceVO) ->
-        EngineDO.Namespace.Session(namespaceVO.chains, namespaceVO.accounts, namespaceVO.methods, namespaceVO.events)
+        EngineDO.Namespace.Session(
+            namespaceVO.chains,
+            namespaceVO.accounts,
+            namespaceVO.methods,
+            namespaceVO.events,
+            namespaceVO.rpcDocuments,
+            namespaceVO.rpcEndpoints
+        )
     }
 
 @JvmSynthetic

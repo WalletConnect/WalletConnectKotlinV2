@@ -100,14 +100,18 @@ object Wallet {
             data class Proposal(
                 val chains: List<String>? = null,
                 val methods: List<String>,
-                val events: List<String>
+                val events: List<String>,
+                val rpcDocuments: List<String>? = null,
+                val rpcEndpoints: List<String>? = null
             ) : Namespace()
 
             data class Session(
                 val chains: List<String>? = null,
                 val accounts: List<String>,
                 val methods: List<String>,
-                val events: List<String>
+                val events: List<String>,
+                val rpcDocuments: List<String>? = null,
+                val rpcEndpoints: List<String>? = null
             ) : Namespace()
         }
 
