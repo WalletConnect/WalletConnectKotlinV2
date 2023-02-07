@@ -36,8 +36,6 @@ internal object SignValidator {
         onError: (ValidationError) -> Unit,
     ) {
         if (requiredNamespaces.isNotEmpty() || optionalNamespaces.isNotEmpty()) {
-            val extraKeys = sessionNamespaces.keys.subtract(requiredNamespaces.keys)
-            val filteredSessionNamespaces = sessionNamespaces.filter { (key, _) -> extraKeys.contains(key) }
             when {
                 !areNamespacesKeysProperlyFormatted(sessionNamespaces) -> onError(ValidationError.UnsupportedNamespaceKey)
                 !areChainsNotEmpty(sessionNamespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_MISSING_MESSAGE))
@@ -50,11 +48,6 @@ internal object SignValidator {
                 !areAllMethodsApproved(allMethodsWithChains(sessionNamespaces), allMethodsWithChains(requiredNamespaces)) ->
                     onError(ValidationError.UserRejectedMethods)
                 !areAllEventsApproved(allEventsWithChains(sessionNamespaces), allEventsWithChains(requiredNamespaces)) ->
-                    onError(ValidationError.UserRejectedEvents)
-                !areAllNamespacesApproved(optionalNamespaces.keys, filteredSessionNamespaces.keys) -> onError(ValidationError.UserRejected)
-                !areAllMethodsApproved(allMethodsWithChains(optionalNamespaces), allMethodsWithChains(filteredSessionNamespaces)) ->
-                    onError(ValidationError.UserRejectedMethods)
-                !areAllEventsApproved(allEventsWithChains(optionalNamespaces), allEventsWithChains(filteredSessionNamespaces)) ->
                     onError(ValidationError.UserRejectedEvents)
             }
         }

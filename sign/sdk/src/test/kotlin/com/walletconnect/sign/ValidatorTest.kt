@@ -471,6 +471,39 @@ class ValidatorTest {
     }
 
     @Test
+    fun `Once required namespaces are satisfied anything can be added on top even if not included in optional namespaces`() {
+        val requiredNamespaces = mapOf(
+            EIP155 to NamespaceVO.Required(
+                chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
+            )
+        )
+        val optionalNamespaces = mapOf(
+            COSMOS to NamespaceVO.Optional(
+                chains = listOf(COSMOSHUB_4), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT)
+            ),
+        )
+
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                accounts = listOf(ETHEREUM_1),
+                methods = listOf(ETH_SIGN),
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM)
+            ),
+            "cosmos" to NamespaceVO.Session(
+                methods = listOf("cosmos_method"),
+                events = listOf("cosmos_event"),
+                chains = listOf("cosmos:cosmosHUB"),
+                accounts = emptyList()
+            )
+
+        )
+        var errorMessage: String? = null
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
+    }
+
+    @Test
     fun `Session Namespaces MUST contain accounts on chains defined in chains in Proposal namespaces`() {
         val requiredNamespaces = mapOf(
             EIP155 to NamespaceVO.Required(
@@ -612,7 +645,7 @@ class ValidatorTest {
     }
 
     @Test
-    fun `Any additional namespace in the Session namespaces on top of the required namespaces MUST be included in optional namespaces`() {
+    fun `Any additional namespace in the Session namespaces on top of the required namespaces MAY NOT be included in optional namespaces`() {
         val requiredNamespaces = mapOf(
             EIP155 to NamespaceVO.Required(
                 chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED),
@@ -633,12 +666,11 @@ class ValidatorTest {
         )
         var errorMessage: String? = null
         SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
-        assertNotNull(errorMessage)
-        assertEquals(NAMESPACE_KEYS_MISSING_MESSAGE, errorMessage)
+        assertNull(errorMessage)
     }
 
     @Test
-    fun `Session Namespaces MUST not add namespaces not defined in optional namespaces`() {
+    fun `Session Namespaces MAY add namespaces not defined in optional namespaces`() {
         val requiredNamespaces = mapOf(
             EIP155 to NamespaceVO.Required(
                 chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
@@ -659,8 +691,7 @@ class ValidatorTest {
         )
         var errorMessage: String? = null
         SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
-        assertNotNull(errorMessage)
-        assertEquals(NAMESPACE_KEYS_MISSING_MESSAGE, errorMessage)
+        assertNull(errorMessage)
     }
 
     @Test
@@ -744,7 +775,7 @@ class ValidatorTest {
     }
 
     @Test
-    fun `Session Namespaces MUST NOT include more namespaces than optional when required are empty`() {
+    fun `Session Namespaces MAY include more namespaces than optional when required are empty`() {
         val requiredNamespaces = emptyMap<String, NamespaceVO.Required>()
         val optionalNamespaces = mapOf(
             EIP155 to NamespaceVO.Optional(
@@ -767,8 +798,7 @@ class ValidatorTest {
         )
         var errorMessage: String? = null
         SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
-        assertNotNull(errorMessage)
-        assertEquals(NAMESPACE_KEYS_MISSING_MESSAGE, errorMessage)
+        assertNull(errorMessage)
     }
 
     @Test
