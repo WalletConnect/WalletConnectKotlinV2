@@ -5,7 +5,7 @@ package com.walletconnect.chat.discovery.keyserver.model
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-internal sealed class KeyServerHttpResponse<T : KeyServerResponse> {
+internal sealed class KeyServerHttpResponse<T> {
     abstract val status: String
     abstract val error: Error?
     abstract val value: T?
@@ -21,8 +21,8 @@ internal sealed class KeyServerHttpResponse<T : KeyServerResponse> {
         @Json(name = "error")
         override val error: Error?,
         @Json(name = "value")
-        override val value: KeyServerResponse?,
-    ) : KeyServerHttpResponse<KeyServerResponse>()
+        override val value: String?,
+    ) : KeyServerHttpResponse<String>()
 
     @JsonClass(generateAdapter = true)
     internal data class UnregisterInvite(
@@ -31,8 +31,8 @@ internal sealed class KeyServerHttpResponse<T : KeyServerResponse> {
         @Json(name = "error")
         override val error: Error?,
         @Json(name = "value")
-        override val value: KeyServerResponse?,
-    ) : KeyServerHttpResponse<KeyServerResponse>()
+        override val value: String?,
+    ) : KeyServerHttpResponse<String>()
 
     @JsonClass(generateAdapter = true)
     internal data class ResolveInvite(
@@ -51,8 +51,8 @@ internal sealed class KeyServerHttpResponse<T : KeyServerResponse> {
         @Json(name = "error")
         override val error: Error?,
         @Json(name = "value")
-        override val value: KeyServerResponse?,
-    ) : KeyServerHttpResponse<KeyServerResponse>()
+        override val value: String?,
+    ) : KeyServerHttpResponse<String>()
 
     @JsonClass(generateAdapter = true)
     internal data class UnregisterIdentity(
@@ -61,8 +61,8 @@ internal sealed class KeyServerHttpResponse<T : KeyServerResponse> {
         @Json(name = "error")
         override val error: Error?,
         @Json(name = "value")
-        override val value: KeyServerResponse?,
-    ) : KeyServerHttpResponse<KeyServerResponse>()
+        override val value: String?,
+    ) : KeyServerHttpResponse<String>()
 
     @JsonClass(generateAdapter = true)
     internal data class ResolveIdentity(

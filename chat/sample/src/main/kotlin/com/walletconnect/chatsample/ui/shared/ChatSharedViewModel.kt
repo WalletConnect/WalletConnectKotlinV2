@@ -25,7 +25,8 @@ import java.security.Security
 
 class ChatSharedViewModel(application: Application) : AndroidViewModel(application) {
     private val sharedPreferences: SharedPreferences = application.getSharedPreferences("Chat_Shared_Prefs", Context.MODE_PRIVATE)
-    var currentInvite: Chat.Model.Invite? = null
+    var sentInvite: Chat.Model.Invite? = null
+    var receivedInvite: Chat.Model.ReceivedInvite? = null
     var whoWasInvitedContact: String? = null
     val userNameToTopicMap: MutableMap<String, String> = mutableMapOf()
 
@@ -125,9 +126,9 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
                 )
 
                 runBlocking(Dispatchers.Main) {
-                    currentInvite = inviteModel
+                    sentInvite = inviteModel
                     whoWasInvitedContact = contact
-                    Log.e(TAG, "invite: $currentInvite")
+                    Log.e(TAG, "invite: $sentInvite")
                     listOfMessages.add(MessageUI(contact, inviteModel.message.value, System.currentTimeMillis(), contact))
                     _listOfMessagesStateFlow.value = listOfMessages.toList()
                     afterInviteSent()
@@ -168,9 +169,9 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
     private fun onInvite(event: ChatSharedEvents.OnInvite) {
         Log.d(TAG, "Invited: ${event.invite.message}")
         val contact = event.invite.inviterAccount.value
-        currentInvite = event.invite
+        receivedInvite = event.invite
 
-        listOfInvites.add(ChatUI(R.drawable.ic_chat_icon_3, contact, event.invite.message.value, event.id))
+        listOfInvites.add(ChatUI(R.drawable.ic_chat_icon_3, contact, event.invite.message.value, event.invite.id))
         _listOfInvitesStateFlow.update { listOfInvites.toList() }
 
         listOfMessages.add(MessageUI(contact, event.invite.message.value, System.currentTimeMillis(), contact))
@@ -185,25 +186,38 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
     private fun onMessage(event: ChatSharedEvents.OnMessage) {
         Log.d(TAG, "Message: ${event.message.message}")
 
-        userNameToTopicMap.entries.find { it.value == event.topic }?.let { (_, topic) ->
-            listOfThreads.find { topic == event.topic }?.let {
+        userNameToTopicMap.entries.find { it.value == event.message.topic }?.let { (_, topic) ->
+            listOfThreads.find { topic == event.message.topic }?.let {
                 val author = event.message.authorAccount.value
                 listOfMessages.add(MessageUI(author, event.message.message.value, event.message.timestamp, author))
                 _listOfMessagesStateFlow.value = listOfMessages.toList()
-            } ?: Log.e(TAG, "Unable to find topic: ${event.topic}")
+            } ?: Log.e(TAG, "Unable to find topic: ${event.message.topic}")
         }
     }
 
-    private fun updateThread(threadTopic: String) {
-        if (currentInvite != null) {
-            val currentAccountId = currentInvite?.inviterAccount?.value
+    private fun updateThread(threadTopic: String) { //todo: simplify
+        if (sentInvite != null) {
+            val currentAccountId = sentInvite?.inviterAccount?.value
             currentAccountId?.let { accountId ->
                 if (currentAccountId != _account) {
-                    listOfThreads.add(ChatUI(R.drawable.ic_chat_icon_3, accountId, currentInvite!!.message.value, null))
+                    listOfThreads.add(ChatUI(R.drawable.ic_chat_icon_3, accountId, sentInvite!!.message.value, null))
                     _listOfThreadsStateFlow.value = listOfThreads.toList()
                     userNameToTopicMap.put(accountId, threadTopic)
                 } else {
-                    listOfThreads.add(ChatUI(R.drawable.ic_chat_icon_3, whoWasInvitedContact!!, currentInvite!!.message.value, null))
+                    listOfThreads.add(ChatUI(R.drawable.ic_chat_icon_3, whoWasInvitedContact!!, sentInvite!!.message.value, null))
+                    _listOfThreadsStateFlow.value = listOfThreads.toList()
+                    userNameToTopicMap.put(whoWasInvitedContact!!, threadTopic)
+                }
+            }
+        } else if (receivedInvite != null) {
+            val currentAccountId = receivedInvite?.inviterAccount?.value
+            currentAccountId?.let { accountId ->
+                if (currentAccountId != _account) {
+                    listOfThreads.add(ChatUI(R.drawable.ic_chat_icon_3, accountId, receivedInvite!!.message.value, null))
+                    _listOfThreadsStateFlow.value = listOfThreads.toList()
+                    userNameToTopicMap.put(accountId, threadTopic)
+                } else {
+                    listOfThreads.add(ChatUI(R.drawable.ic_chat_icon_3, whoWasInvitedContact!!, receivedInvite!!.message.value, null))
                     _listOfThreadsStateFlow.value = listOfThreads.toList()
                     userNameToTopicMap.put(whoWasInvitedContact!!, threadTopic)
                 }

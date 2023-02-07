@@ -129,7 +129,7 @@ internal class ChatProtocol : ChatInterface {
     @Throws(IllegalStateException::class)
     override fun setContact(setContact: Chat.Params.SetContact, onError: (Chat.Model.Error) -> Unit) {
         checkEngineInitialization()
-        chatEngine.addContact(setContact.account.toCommon(), PublicKey(setContact.publicKey)) { error ->
+        chatEngine.setContact(setContact.account.toCommon(), PublicKey(setContact.publicKey)) { error ->
             onError(Chat.Model.Error(error))
         }
     }

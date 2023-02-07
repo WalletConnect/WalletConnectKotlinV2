@@ -14,6 +14,11 @@ SELECT topic, selfAccount, peerAccount
 FROM Threads
 WHERE selfAccount = ?;
 
+getThreadByTopic:
+SELECT topic, selfAccount, peerAccount
+FROM Threads
+WHERE topic = ?;
+
 deleteThreadByTopic:
 DELETE FROM Threads
 WHERE topic = ?;
