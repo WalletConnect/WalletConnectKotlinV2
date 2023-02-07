@@ -109,6 +109,13 @@ sealed class PeerError : Error {
             override val code: Int = 5200
         }
 
+        data class MalformedRpcDocumentUrl(override val message: String) : CAIP25() {
+            override val code: Int = 5201 //todo: change when specs are ready
+        }
+
+        data class MalformedRpcEndpointUrl(override val message: String) : CAIP25() {
+            override val code: Int = 5202 //todo: change when specs are ready
+        }
     }
 
     sealed class Failure : PeerError() {

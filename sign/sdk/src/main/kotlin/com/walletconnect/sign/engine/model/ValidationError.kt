@@ -22,7 +22,7 @@ internal sealed class ValidationError(val message: String) {
     object InvalidSessionRequest : ValidationError(INVALID_REQUEST_MESSAGE)
     object InvalidEvent : ValidationError(INVALID_EVENT_MESSAGE)
     object InvalidExtendRequest : ValidationError(INVALID_EXTEND_TIME)
-
-    //Properties errors
     object InvalidSessionProperties : ValidationError(INVALID_SESSION_PROPERTIES)
+    object InvalidRpcDocument : ValidationError(MALFORMED_RPC_DOCUMENT_URL)
+    object InvalidRpcEndpoint : ValidationError(MALFORMED_RPC_ENDPOINT_URL)
 }

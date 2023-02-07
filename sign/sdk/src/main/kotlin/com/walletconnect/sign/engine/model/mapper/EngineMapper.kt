@@ -201,4 +201,6 @@ internal fun ValidationError.toPeerError() = when (this) {
     is ValidationError.UserRejectedMethods -> PeerError.CAIP25.UserRejectedMethods(message)
     is ValidationError.UserRejectedChains -> PeerError.CAIP25.UserRejectedChains(message)
     is ValidationError.InvalidSessionProperties -> PeerError.CAIP25.InvalidSessionPropertiesObject(message)
+    is ValidationError.InvalidRpcEndpoint -> PeerError.CAIP25.MalformedRpcEndpointUrl(message)
+    is ValidationError.InvalidRpcDocument -> PeerError.CAIP25.MalformedRpcDocumentUrl(message)
 }

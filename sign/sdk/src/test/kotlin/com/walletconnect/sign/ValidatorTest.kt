@@ -191,6 +191,104 @@ class ValidatorTest {
     }
 
     @Test
+    fun `Namespace rpc endpoint urls MUST be a valid url`() {
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Required(
+                chains = listOf(ETHEREUM),
+                methods = listOf(PERSONAL_SIGN),
+                events = listOf(CHAIN_CHANGED),
+                rpcDocuments = listOf("https://openrpc.42069-chain.org/"),
+                rpcEndpoints = listOf("bla")
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
+        assertNotNull(errorMessage)
+        assertEquals(MALFORMED_RPC_ENDPOINT_URL, errorMessage)
+    }
+
+    @Test
+    fun `Namespace rpc document urls MUST be a valid url`() {
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Required(
+                chains = listOf(ETHEREUM),
+                methods = listOf(PERSONAL_SIGN),
+                events = listOf(CHAIN_CHANGED),
+                rpcDocuments = listOf("bla"),
+                rpcEndpoints = listOf("https://openrpc.42069-chain.org/")
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
+        assertNotNull(errorMessage)
+        assertEquals(MALFORMED_RPC_DOCUMENT_URL, errorMessage)
+    }
+
+    @Test
+    fun `Namespace rpc document urls MAY be empty`() {
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Required(
+                chains = listOf(ETHEREUM),
+                methods = listOf(PERSONAL_SIGN),
+                events = listOf(CHAIN_CHANGED),
+                rpcDocuments = emptyList(),
+                rpcEndpoints = listOf("https://openrpc.42069-chain.org/")
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
+    }
+
+    @Test
+    fun `Namespace rpc document urls MAY be null`() {
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Required(
+                chains = listOf(ETHEREUM),
+                methods = listOf(PERSONAL_SIGN),
+                events = listOf(CHAIN_CHANGED),
+                rpcDocuments = null,
+                rpcEndpoints = listOf("https://openrpc.42069-chain.org/")
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
+    }
+
+    @Test
+    fun `Namespace rpc endpoint urls MAY be empty`() {
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Required(
+                chains = listOf(ETHEREUM),
+                methods = listOf(PERSONAL_SIGN),
+                events = listOf(CHAIN_CHANGED),
+                rpcDocuments = emptyList(),
+                rpcEndpoints = emptyList()
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
+    }
+
+    @Test
+    fun `Namespace rpc endpoint urls MAY be null`() {
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Required(
+                chains = listOf(ETHEREUM),
+                methods = listOf(PERSONAL_SIGN),
+                events = listOf(CHAIN_CHANGED),
+                rpcDocuments = null,
+                rpcEndpoints = null
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
+    }
+
+    @Test
     fun `Session Namespaces MAY include anything when when Proposal and Required Namespaces are empty`() {
         val requiredNamespaces = emptyMap<String, NamespaceVO.Required>()
         val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
@@ -786,6 +884,115 @@ class ValidatorTest {
         )
 
         val namespaces = emptyMap<String, NamespaceVO.Session>()
+        var errorMessage: String? = null
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
+    }
+
+    @Test
+    fun `Session Namespaces rpc endpoint MUST be valid`() {
+        val requiredNamespaces = emptyMap<String, NamespaceVO.Required>()
+        val optionalNamespaces = mapOf(
+            COSMOS to NamespaceVO.Optional(
+                methods = listOf(COSMOS_SIGNDIRECT, COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), chains = listOf(COSMOSHUB_4)
+            ),
+            EIP155 to NamespaceVO.Optional(
+                chains = listOf(ETHEREUM),
+                methods = listOf(ETH_SIGN),
+                events = listOf(ACCOUNTS_CHANGED)
+            ),
+        )
+
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                chains = listOf(ETHEREUM),
+                methods = listOf(ETH_SIGN),
+                events = listOf(ACCOUNTS_CHANGED),
+                rpcEndpoints = listOf("bla"),
+                accounts = emptyList()
+            ),
+        )
+        var errorMessage: String? = null
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        assertNotNull(errorMessage)
+        assertEquals(MALFORMED_RPC_ENDPOINT_URL, errorMessage)
+    }
+
+    @Test
+    fun `Session Namespaces rpc document MUST be valid`() {
+        val requiredNamespaces = emptyMap<String, NamespaceVO.Required>()
+        val optionalNamespaces = mapOf(
+            COSMOS to NamespaceVO.Optional(
+                methods = listOf(COSMOS_SIGNDIRECT, COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), chains = listOf(COSMOSHUB_4)
+            ),
+            EIP155 to NamespaceVO.Optional(
+                chains = listOf(ETHEREUM),
+                methods = listOf(ETH_SIGN),
+                events = listOf(ACCOUNTS_CHANGED)
+            ),
+        )
+
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                chains = listOf(ETHEREUM),
+                methods = listOf(ETH_SIGN),
+                events = listOf(ACCOUNTS_CHANGED),
+                rpcDocuments = listOf("bla"),
+                accounts = emptyList()
+            ),
+        )
+        var errorMessage: String? = null
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        assertNotNull(errorMessage)
+        assertEquals(MALFORMED_RPC_DOCUMENT_URL, errorMessage)
+    }
+
+    @Test
+    fun `Session Namespaces rpc document MAY not include rpc documents`() {
+        val requiredNamespaces = mapOf(
+            EIP155 to NamespaceVO.Required(
+                chains = listOf(ETHEREUM),
+                methods = listOf(ETH_SIGN),
+                events = listOf(ACCOUNTS_CHANGED),
+                rpcDocuments = listOf("https://node1.42069-chain.org/")
+            ),
+        )
+        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
+
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                chains = listOf(ETHEREUM),
+                methods = listOf(ETH_SIGN),
+                events = listOf(ACCOUNTS_CHANGED),
+                accounts = emptyList()
+            ),
+        )
+        var errorMessage: String? = null
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
+    }
+
+    @Test
+    fun `Session Namespaces rpc document MAY include more rpc documents`() {
+        val requiredNamespaces = mapOf(
+            EIP155 to NamespaceVO.Required(
+                chains = listOf(ETHEREUM),
+                methods = listOf(ETH_SIGN),
+                events = listOf(ACCOUNTS_CHANGED),
+                rpcDocuments = listOf("https://node1.42069-chain.org/")
+            ),
+        )
+        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
+
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                chains = listOf(ETHEREUM),
+                methods = listOf(ETH_SIGN),
+                events = listOf(ACCOUNTS_CHANGED),
+                accounts = emptyList(),
+                rpcDocuments = listOf("https://node1.42069-chain.org/", "https://node1.42069-chain.org/")
+            ),
+        )
         var errorMessage: String? = null
         SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
