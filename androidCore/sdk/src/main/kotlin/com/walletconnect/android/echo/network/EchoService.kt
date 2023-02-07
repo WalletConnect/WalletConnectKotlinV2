@@ -10,9 +10,9 @@ import retrofit2.http.Path
 
 interface EchoService {
 
-    @POST("893ad3af-9515-42d6-aaa2-06b53494b9a5/clients")
-    suspend fun register(@Body echoClientsBody: EchoBody): Response<EchoResponse>
+    @POST("{projectId}/clients")
+    suspend fun register(@Path("projectId") projectId: String, @Body echoClientsBody: EchoBody): Response<EchoResponse>
 
-    @DELETE("893ad3af-9515-42d6-aaa2-06b53494b9a5/clients/{clientId}")
-    suspend fun unregister(@Path("clientId") clientID: String): Response<EchoResponse>
+    @DELETE("{projectId}/clients/{clientId}")
+    suspend fun unregister(@Path("projectId") projectId: String, @Path("clientId") clientID: String): Response<EchoResponse>
 }
