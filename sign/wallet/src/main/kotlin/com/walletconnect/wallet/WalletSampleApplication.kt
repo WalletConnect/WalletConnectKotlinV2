@@ -2,6 +2,7 @@ package com.walletconnect.wallet
 
 import android.app.Application
 import android.util.Log
+import com.google.firebase.messaging.FirebaseMessaging
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
@@ -42,6 +43,13 @@ class WalletSampleApplication : Application() {
 
         PushWalletClient.initialize(Push.Wallet.Params.Init(CoreClient)) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
+        }
+
+        // For testing purposes only
+        FirebaseMessaging.getInstance().deleteToken().addOnSuccessListener {
+            FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+                Log.d(tag(this), token)
+            }
         }
     }
 }

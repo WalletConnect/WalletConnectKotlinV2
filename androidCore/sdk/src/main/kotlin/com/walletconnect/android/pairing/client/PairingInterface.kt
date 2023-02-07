@@ -3,6 +3,10 @@ package com.walletconnect.android.pairing.client
 import com.walletconnect.android.Core
 
 interface PairingInterface {
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     fun create(onError: (Core.Model.Error) -> Unit = {}): Core.Model.Pairing?
 
     fun pair(
@@ -21,6 +25,10 @@ interface PairingInterface {
 
     fun ping(ping: Core.Params.Ping, pairingPing: Core.Listeners.PairingPing? = null)
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     fun getPairings(): List<Core.Model.Pairing>
 
     interface Delegate {

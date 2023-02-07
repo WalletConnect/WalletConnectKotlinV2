@@ -9,7 +9,7 @@ import java.security.SecureRandom
 val String.Companion.Empty
     get() = ""
 
-fun generateId(): Long = (System.currentTimeMillis() + (100..999).random())
+fun generateId(): Long = ("${System.currentTimeMillis()}${(100..999).random()}").toLong()
 
 fun randomBytes(size: Int): ByteArray = ByteArray(size).apply {
     SecureRandom().nextBytes(this)
