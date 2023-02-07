@@ -64,17 +64,16 @@ class ConnectViewModel : ViewModel() {
         val namespaces: Map<String, Sign.Model.Namespace.Proposal> =
             listOfChainUI
                 .filter { it.isSelected }
-                .groupBy { it.chainNamespace }
+                .groupBy { it.chainNamespace }// OR chaiId
                 .map { (key: String, selectedChains: List<ChainSelectionUI>) ->
                     key to Sign.Model.Namespace.Proposal(
-                        chains = selectedChains.map { it.chainId },
+                        chains = selectedChains.map { it.chainId }, //OR uncomment if chainId is an index
                         methods = selectedChains.flatMap { it.methods }.distinct(),
                         events = selectedChains.flatMap { it.events }.distinct()
                     )
                 }.toMap()
 
-        val connectParams = Sign.Params.Connect(namespaces, mapOf(), pairing)
-
+        val connectParams = Sign.Params.Connect(namespaces = namespaces, pairing = pairing)
         SignClient.connect(connectParams,
             onSuccess = {
                 viewModelScope.launch(Dispatchers.Main) {

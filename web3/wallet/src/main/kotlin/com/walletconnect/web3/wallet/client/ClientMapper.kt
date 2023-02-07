@@ -120,6 +120,7 @@ internal fun Sign.Model.SessionProposal.toWallet(): Wallet.Model.SessionProposal
         icons,
         requiredNamespaces.toWalletProposalNamespaces(),
         optionalNamespaces.toWalletOptionalNamespaces(),
+        properties,
         proposerPublicKey,
         relayProtocol,
         relayData

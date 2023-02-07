@@ -104,6 +104,11 @@ sealed class PeerError : Error {
         data class UnsupportedNamespaceKey(override val message: String) : CAIP25() {
             override val code: Int = 5104
         }
+
+        data class InvalidSessionPropertiesObject(override val message: String) : CAIP25() {
+            override val code: Int = 5200
+        }
+
     }
 
     sealed class Failure : PeerError() {
@@ -115,12 +120,6 @@ sealed class PeerError : Error {
 
         data class NoSessionForTopic(override val message: String) : Failure() {
             override val code: Int = 7001
-        }
-    }
-
-    sealed class Generic : PeerError() {
-        data class EmptyNamespaces(override val message: String) : Failure() {
-            override val code: Int = 8000
         }
     }
 }

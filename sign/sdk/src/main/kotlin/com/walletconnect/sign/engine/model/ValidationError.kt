@@ -5,8 +5,7 @@ import com.walletconnect.sign.common.exceptions.*
 internal sealed class ValidationError(val message: String) {
 
     //Namespaces validation
-    object EmptyNamespaces : ValidationError(NAMESPACES_MUST_NOT_BE_EMPTY)
-    object UnsupportedNamespaceKey : ValidationError(NAMESPACE_KEYS_CAIP_2_MESSAGE)
+    object UnsupportedNamespaceKey : ValidationError(NAMESPACE_KEYS_INVALID_FORMAT)
     class UnsupportedChains(_message: String) : ValidationError(_message)
 
     //Rejected errors
@@ -23,4 +22,7 @@ internal sealed class ValidationError(val message: String) {
     object InvalidSessionRequest : ValidationError(INVALID_REQUEST_MESSAGE)
     object InvalidEvent : ValidationError(INVALID_EVENT_MESSAGE)
     object InvalidExtendRequest : ValidationError(INVALID_EXTEND_TIME)
+
+    //Properties errors
+    object InvalidSessionProperties : ValidationError(INVALID_SESSION_PROPERTIES)
 }

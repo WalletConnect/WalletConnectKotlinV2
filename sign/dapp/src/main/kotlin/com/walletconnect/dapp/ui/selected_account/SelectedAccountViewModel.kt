@@ -96,8 +96,14 @@ class SelectedAccountViewModel : ViewModel() {
             session.topic == DappDelegate.selectedSessionTopic
         }.flatMap { session ->
             session.namespaces
-                .filter { (key, _) -> key == chainNamespace }
-                .values.flatMap { namespace -> namespace.methods }
+                .filter { (namespaceKey, namespace) ->
+                    if (namespace.chains != null) {
+                        namespaceKey == chainNamespace
+                    } else {
+                        namespaceKey == chainDetails.chainId
+                    }
+                }
+                .flatMap { (_, namespace) -> namespace.methods }
         }
 
         viewModelScope.launch {

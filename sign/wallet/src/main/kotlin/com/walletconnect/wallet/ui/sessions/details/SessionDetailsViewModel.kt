@@ -182,7 +182,7 @@ class SessionDetailsViewModel : ViewModel() {
                     if (!events.contains(anotherEvent)) {
                         events.add(anotherEvent)
                     }
-                    //todo add chains
+
                     val expandedNamespaces =
                         mapOf(key to Sign.Model.Namespace.Session(listOf(),  accounts, methods, events))
                     val update =

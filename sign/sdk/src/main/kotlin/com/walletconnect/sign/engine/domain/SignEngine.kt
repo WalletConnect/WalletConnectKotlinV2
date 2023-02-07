@@ -107,6 +107,7 @@ internal class SignEngine(
     internal fun proposeSession(
         requiredNamespaces: Map<String, EngineDO.Namespace.Proposal>?,
         optionalNamespaces: Map<String, EngineDO.Namespace.Proposal>?,
+        properties: Map<String, String>?,
         pairing: Pairing,
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
@@ -125,9 +126,19 @@ internal class SignEngine(
             }
         }
 
+        properties?.let {
+            SignValidator.validateProperties(properties) { error ->
+                throw InvalidPropertiesException(error.message)
+            }
+        }
+
         val selfPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val sessionProposal: SignParams.SessionProposeParams =
-            toSessionProposeParams(listOf(relay), requiredNamespaces ?: emptyMap(), optionalNamespaces ?: emptyMap(), selfPublicKey, selfAppMetaData)
+            toSessionProposeParams(
+                listOf(relay), requiredNamespaces ?: emptyMap(),
+                optionalNamespaces ?: emptyMap(), properties,
+                selfPublicKey, selfAppMetaData
+            )
         val request = SignRpc.SessionPropose(id = generateId(), params = sessionProposal)
         sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequest(pairing.topic, request.id, request.method, sessionProposal)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
@@ -208,7 +219,6 @@ internal class SignEngine(
         val request = sessionProposalRequest[proposerPublicKey] ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
         val proposal = request.params as SignParams.SessionProposeParams
-
         SignValidator.validateSessionNamespace(
             sessionNamespaces.toMapOfNamespacesVOSession(),
             proposal.requiredNamespaces,
@@ -557,6 +567,13 @@ internal class SignEngine(
                 return
             }
 
+            payloadParams.properties?.let {
+                SignValidator.validateProperties(payloadParams.properties) { error ->
+                    jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
+                    return
+                }
+            }
+
             sessionProposalRequest[payloadParams.proposer.publicKey] = request
             pairingHandler.updateMetadata(
                 Core.Params.UpdateMetadata(
@@ -593,8 +610,10 @@ internal class SignEngine(
             return
         }
 
-        val requiredNamespaces = (proposal.params as SignParams.SessionProposeParams).requiredNamespaces
-        val optionalNamespaces = (proposal.params as SignParams.SessionProposeParams).optionalNamespaces
+        val (requiredNamespaces, optionalNamespaces, properties) = (proposal.params as SignParams.SessionProposeParams).run {
+            Triple(requiredNamespaces, optionalNamespaces, properties)
+        }
+
         SignValidator.validateSessionNamespace(settleParams.namespaces, requiredNamespaces, optionalNamespaces) { error ->
             jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
             return
@@ -609,7 +628,8 @@ internal class SignEngine(
                 selfPublicKey,
                 selfAppMetaData,
                 requiredNamespaces,
-                optionalNamespaces
+                optionalNamespaces,
+                properties
             )
 
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)

@@ -70,12 +70,22 @@ fun Divider() {
 @Composable
 fun Permissions(sessionProposalUI: SessionProposalUI) {
     val pagerState = rememberPagerState()
+    val chains = sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
+        if (proposal.chains != null) {
+            proposal.chains!!
+        } else {
+            listOf(namespaceKey)
+        }
+    }
 
-    //todo chains
-    val chains = sessionProposalUI.namespaces.flatMap { (namespace, proposal) -> proposal.chains!! }
-    //todo chains
     val chainsToProposals: Map<String, Wallet.Model.Namespace.Proposal> =
-        sessionProposalUI.namespaces.flatMap { (namespace, proposal) -> proposal.chains!!.map { chain -> chain to proposal } }.toMap()
+        sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
+            if (proposal.chains != null) {
+                proposal.chains!!.map { chain -> chain to proposal }
+            } else {
+                listOf(namespaceKey).map { chain -> chain to proposal }
+            }
+        }.toMap()
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
