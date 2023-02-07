@@ -10,7 +10,6 @@ DROP TABLE IF EXISTS ProposalNamespaceExtensionsDao;
 DROP TABLE IF EXISTS SessionDao;
 DROP TABLE IF EXISTS TempNamespaceDao;
 DROP TABLE IF EXISTS TempNamespaceExtensionsDao;
-DROP TABLE IF EXISTS OptionalNamespaceDao;
 
 -- CREATE V7 SCHEMA
 CREATE TABLE NamespaceDao(
@@ -26,7 +25,6 @@ CREATE TABLE NamespaceDao(
     request_id INTEGER NOT NULL,
     UNIQUE(session_id, key)
 );
-
 CREATE TABLE ProposalNamespaceDao (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     session_id INTEGER NOT NULL,
@@ -38,7 +36,6 @@ CREATE TABLE ProposalNamespaceDao (
     rpc_endpoints TEXT AS List<String>,
     UNIQUE(session_id, key)
 );
-
 CREATE TABLE SessionDao(
    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
    topic TEXT UNIQUE NOT NULL,
@@ -52,7 +49,6 @@ CREATE TABLE SessionDao(
    is_acknowledged INTEGER AS Boolean NOT NULL,
    properties TEXT AS Map<String, String>
 );
-
 CREATE TABLE TempNamespaceDao(
     request_id INTEGER PRIMARY KEY NOT NULL,
     session_id INTEGER NOT NULL,
@@ -66,7 +62,6 @@ CREATE TABLE TempNamespaceDao(
     rpc_endpoints TEXT AS List<String>,
     isAcknowledged INTEGER DEFAULT 0
 );
-
 CREATE TABLE OptionalNamespaceDao (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     session_id INTEGER NOT NULL,
