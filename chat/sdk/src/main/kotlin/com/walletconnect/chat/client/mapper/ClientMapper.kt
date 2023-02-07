@@ -2,11 +2,13 @@
 
 package com.walletconnect.chat.client.mapper
 
+import com.walletconnect.android.internal.common.cacao.Cacao
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.Media
+import com.walletconnect.chat.common.model.Thread
 import com.walletconnect.chat.engine.model.EngineDO
 
 //TODO: Figure out what to do with models separation
@@ -51,6 +53,11 @@ internal fun Media.toClient(): Chat.Model.Media {
 }
 
 @JvmSynthetic
+internal fun Thread.toClient(): Chat.Model.Thread {
+    return Chat.Model.Thread(topic, Chat.Model.AccountId(selfAccount), Chat.Model.AccountId(peerAccount))
+}
+
+@JvmSynthetic
 internal fun EngineDO.Events.OnJoined.toClient(): Chat.Model.Events.OnJoined {
     return Chat.Model.Events.OnJoined(topic)
 }
@@ -82,3 +89,6 @@ internal fun SDKError.toClientError(): Chat.Model.Error =
 @JvmSynthetic
 internal fun ConnectionState.toClient(): Chat.Model.ConnectionState =
     Chat.Model.ConnectionState(isAvailable)
+
+@JvmSynthetic
+internal fun Chat.Model.Cacao.Signature.toCommon(): Cacao.Signature = Cacao.Signature(t, s, m)

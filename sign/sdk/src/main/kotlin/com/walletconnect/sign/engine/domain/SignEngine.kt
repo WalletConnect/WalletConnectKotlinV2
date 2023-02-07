@@ -115,7 +115,7 @@ internal class SignEngine(
             throw InvalidNamespaceException(error.message)
         }
 
-        val selfPublicKey: PublicKey = crypto.generateKeyPair()
+        val selfPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val sessionProposal: SignParams.SessionProposeParams = toSessionProposeParams(listOf(relay), namespaces, selfPublicKey, selfAppMetaData)
         val request = SignRpc.SessionPropose(id = generateId(), params = sessionProposal)
         sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequest(pairing.topic, request.id, request.method, sessionProposal)
@@ -201,7 +201,7 @@ internal class SignEngine(
             throw InvalidNamespaceException(error.message)
         }
 
-        val selfPublicKey: PublicKey = crypto.generateKeyPair()
+        val selfPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(proposerPublicKey))
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))

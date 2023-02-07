@@ -10,6 +10,7 @@ import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.PushParams
+import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
@@ -32,6 +33,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlin.reflect.full.safeCast
 
 internal class PushWalletEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -88,7 +90,7 @@ internal class PushWalletEngine(
             } ?: return onError(GenericException("Unable to find proposer's request"))
             val proposerRequestParams = proposerRequest.params as PushParams.RequestParams
 
-            val selfPublicKey = crypto.generateKeyPair()
+            val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
             val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(proposerRequestParams.publicKey))
             val approvalParams = PushParams.RequestResponseParams(selfPublicKey.keyAsHex)
             val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
@@ -158,9 +160,11 @@ internal class PushWalletEngine(
             val codec = wcKoinApp.koin.get<Codec>()
             val decryptedMessageString = codec.decrypt(Topic(topic), message)
             // How to look in JsonRpcHistory for dupes without Rpc ID
-            val decryptedMessage =
-                serializer.tryDeserialize<PushParams.MessageParams>(decryptedMessageString)?.toEngineDO() ?: return onError(IllegalArgumentException("Unable to deserialize message"))
-            onSuccess(decryptedMessage)
+            val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: return onError(IllegalArgumentException("Unable to deserialize message"))
+            val pushMessage = serializer.deserialize(clientJsonRpc.method, decryptedMessageString)
+            val pushMessageEngineDO = PushParams.MessageParams::class.safeCast(pushMessage)?.toEngineDO() ?: return onError(IllegalArgumentException("Unable to deserialize message"))
+
+            onSuccess(pushMessageEngineDO)
         } catch (e: Exception) {
             onError(e)
         }

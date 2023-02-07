@@ -6,15 +6,22 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.android.cacao.sign
+import com.walletconnect.android.cacao.signature.SignatureType
+import com.walletconnect.chat.cacao.CacaoSigner
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatClient
 import com.walletconnect.chatsample.R
 import com.walletconnect.chatsample.domain.ChatDelegate
 import com.walletconnect.chatsample.utils.tag
+import com.walletconnect.foundation.common.model.PrivateKey
+import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
-import java.security.SecureRandom
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.web3j.crypto.Keys
+import java.security.Security
 
 class ChatSharedViewModel(application: Application) : AndroidViewModel(application) {
     private val sharedPreferences: SharedPreferences = application.getSharedPreferences("Chat_Shared_Prefs", Context.MODE_PRIVATE)
@@ -34,6 +41,10 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
     private val _listOfMessagesStateFlow: MutableStateFlow<List<MessageUI>> = MutableStateFlow(listOfMessages.toList())
     val listOfMessagesStateFlow: StateFlow<List<MessageUI>> = _listOfMessagesStateFlow
 
+    private lateinit var _account: String
+    private lateinit var _publicKey: String
+    private lateinit var _privateKey: String
+
     fun getLastMessage(peerName: String) = listOfMessages.last { it.peerName == peerName }
 
     val emittedEvents: Flow<ChatSharedEvents> = ChatDelegate.wcEventModels.map { walletEvent: Chat.Model.Events ->
@@ -48,25 +59,59 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     fun register() {
-        val accountId = sharedPreferences.getString(ACCOUNT_TAG, null)
-        if (accountId == null) {
-            SELF_ACCOUNT = generateEthereumAccount()
-            sharedPreferences.edit().putString(ACCOUNT_TAG, SELF_ACCOUNT).apply()
-            val register = Chat.Params.Register(Chat.Model.AccountId(SELF_ACCOUNT))
+        val account = sharedPreferences.getString(ACCOUNT_TAG, null)
+        val publicKey = sharedPreferences.getString(PUBLIC_KEY_TAG, null)
+        val privateKey = sharedPreferences.getString(PRIVATE_KEY_TAG, null)
 
-            ChatClient.register(register, object : Chat.Listeners.Register {
-                override fun onError(error: Chat.Model.Error) {
-                    Log.e(TAG, "Register error: ${error.throwable.stackTraceToString()}")
-                }
-
-                override fun onSuccess(publicKey: String) {
-                    Log.d(TAG, "Registered successfully, $SELF_ACCOUNT")
-                }
-            })
+        if (account == null || publicKey == null || privateKey == null) {
+            registerIdentity()
         } else {
-            SELF_ACCOUNT = accountId
-            Log.d(TAG, "Registered successfully, $SELF_ACCOUNT")
+            _account = account
+            _publicKey = publicKey
+            _privateKey = privateKey
+            // Note: This is only demo. Normally you want more security with private key
         }
+    }
+
+    private fun registerInvite() {
+        val register = Chat.Params.Register(Chat.Model.AccountId(_account))
+        ChatClient.registerInvite(register, object : Chat.Listeners.Register {
+            override fun onError(error: Chat.Model.Error) {
+                Log.e(TAG, "Register error: ${error.throwable.stackTraceToString()}")
+            }
+
+            override fun onSuccess(publicKey: String) {
+                Log.d(TAG, "Registered invite successfully, account: $_account, inviteKey: $publicKey")
+            }
+        })
+    }
+
+    private fun registerIdentity() {
+        val keypair = generateKeys()
+        _publicKey = keypair.first
+        _privateKey = keypair.second
+        _account = generateEthereumAccount(keypair.third)
+
+        sharedPreferences.edit().putString(ACCOUNT_TAG, _account).apply()
+        sharedPreferences.edit().putString(PUBLIC_KEY_TAG, _publicKey).apply()
+        sharedPreferences.edit().putString(PRIVATE_KEY_TAG, _privateKey).apply()
+        // Note: This is only demo. Normally you want more security with private key.
+
+        val register = Chat.Params.RegisterIdentity(Chat.Model.AccountId(_account))
+        ChatClient.registerIdentity(register, object : Chat.Listeners.RegisterIdentity {
+            override fun onSign(message: String): Chat.Model.Cacao.Signature {
+                return CacaoSigner.sign(message, _privateKey.hexToBytes(), SignatureType.EIP191)
+            }
+
+            override fun onError(error: Chat.Model.Error) {
+                Log.e(TAG, "Register error: ${error.throwable.stackTraceToString()}")
+            }
+
+            override fun onSuccess(publicKey: String) {
+                Log.d(TAG, "Registered identity successfully, account: $_account, identityKey: $publicKey")
+                registerInvite()
+            }
+        })
     }
 
     fun invite(contact: String, openingMessage: String, afterInviteSent: () -> Unit) {
@@ -76,7 +121,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
             }
 
             override fun onSuccess(publicKey: String) {
-                val inviteModel = Chat.Model.Invite(Chat.Model.AccountId(SELF_ACCOUNT), openingMessage, publicKey)
+                val inviteModel = Chat.Model.Invite(Chat.Model.AccountId(_account), openingMessage, publicKey)
                 val invite = Chat.Params.Invite(Chat.Model.AccountId(contact), inviteModel)
                 ChatClient.invite(invite) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
 
@@ -113,10 +158,10 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
         Log.e(TAG, "sendMessage: $peerName")
 
         val (userName, topic) = userNameToTopicMap.entries.single { entry -> entry.key == peerName }
-        listOfMessages.add(MessageUI(userName, message, System.currentTimeMillis(), SELF_ACCOUNT))
+        listOfMessages.add(MessageUI(userName, message, System.currentTimeMillis(), _account))
         _listOfMessagesStateFlow.value = listOfMessages.toList()
 
-        ChatClient.message(Chat.Params.Message(topic, Chat.Model.AccountId(SELF_ACCOUNT), message)) { error ->
+        ChatClient.message(Chat.Params.Message(topic, Chat.Model.AccountId(_account), message)) { error ->
             Log.e(TAG, error.throwable.stackTraceToString())
         }
     }
@@ -154,7 +199,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
         if (currentInvite != null) {
             val currentAccountId = currentInvite?.account?.value
             currentAccountId?.let { accountId ->
-                if (currentAccountId != SELF_ACCOUNT) {
+                if (currentAccountId != _account) {
                     listOfThreads.add(ChatUI(R.drawable.ic_chat_icon_3, accountId, currentInvite!!.message, null))
                     _listOfThreadsStateFlow.value = listOfThreads.toList()
                     userNameToTopicMap.put(accountId, threadTopic)
@@ -168,13 +213,10 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun updateInvites(id: Long?) {
-        listOfInvites.removeIf { invite -> invite.id == id }
+        listOfInvites.filter { invite -> invite.id == id }.forEach { listOfInvites.remove(it) }
         _listOfInvitesStateFlow.value = listOfInvites.toList()
     }
 
-    private fun randomBytes(size: Int): ByteArray = ByteArray(size).apply {
-        SecureRandom().nextBytes(this)
-    }
 
     private fun ByteArray.bytesToHex(): String {
         val hexString = StringBuilder(2 * this.size)
@@ -189,11 +231,35 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
         return hexString.toString()
     }
 
-    private fun generateEthereumAccount() = "eip155:1:0x${randomBytes(24).bytesToHex()}"
+    private fun String.hexToBytes(): ByteArray {
+        val len = this.length
+        val data = ByteArray(len / 2)
+        var i = 0
+
+        while (i < len) {
+            data[i / 2] = ((Character.digit(this[i], 16) shl 4)
+                    + Character.digit(this[i + 1], 16)).toByte()
+            i += 2
+        }
+
+        return data
+    }
+
+    private fun generateEthereumAccount(address: String) = "eip155:1:0x$address"
+
+    private fun generateKeys(): Triple<String, String, String> {
+        Security.removeProvider("BC")
+        Security.addProvider(BouncyCastleProvider())
+        val keypair = Keys.createEcKeyPair()
+        val publicKey = PublicKey(keypair.publicKey.toByteArray().bytesToHex())
+        val privateKey = PrivateKey(keypair.privateKey.toByteArray().bytesToHex())
+        return Triple(publicKey.keyAsHex, privateKey.keyAsHex, Keys.getAddress(keypair))
+    }
 
     companion object {
         private const val TAG = "ChatSharedViewModel"
         const val ACCOUNT_TAG = "self_account_tag"
-        var SELF_ACCOUNT = ""
+        const val PRIVATE_KEY_TAG = "self_private_key"
+        const val PUBLIC_KEY_TAG = "self_public_key"
     }
 }

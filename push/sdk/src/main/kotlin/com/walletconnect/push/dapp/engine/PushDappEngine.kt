@@ -79,7 +79,7 @@ internal class PushDappEngine(
         onSuccess: (Long) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        val selfPublicKey = crypto.generateKeyPair()
+        val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
         val requestParams = PushParams.RequestParams(selfPublicKey.keyAsHex, selfAppMetaData, account)
         val request = PushRpc.PushRequest(id = generateId(), params = requestParams)
         val irnParams = IrnParams(Tags.PUSH_REQUEST, Ttl(DAY_IN_SECONDS), true)

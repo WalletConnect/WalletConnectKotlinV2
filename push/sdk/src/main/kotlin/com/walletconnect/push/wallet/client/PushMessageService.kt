@@ -28,7 +28,7 @@ abstract class PushMessageService : FirebaseMessagingService() {
         with(message) {
             try {
                 if (data.containsKey("topic") && data.containsKey("blob")) {
-                    val encryptedMessage = Push.Wallet.Params.DecryptMessage(topic = data.getValue("topic"), encryptedMessage = data.getValue("message"))
+                    val encryptedMessage = Push.Wallet.Params.DecryptMessage(topic = data.getValue("topic"), encryptedMessage = data.getValue("blob"))
 
                     PushWalletClient.decryptMessage(encryptedMessage,
                         onSuccess = { pushMessage -> onMessage(pushMessage, this) },

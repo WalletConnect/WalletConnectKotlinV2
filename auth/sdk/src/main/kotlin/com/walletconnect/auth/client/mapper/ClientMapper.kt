@@ -55,9 +55,9 @@ internal fun Auth.Params.Request.toCommon(): PayloadParams = PayloadParams(
     chainId = chainId,
     domain = domain,
     aud = aud,
-    version = MESSAGE_TEMPLATE_VERSION,
+    version = Cacao.Payload.CURRENT_VERSION,
     nonce = nonce,
-    iat = SimpleDateFormat(ISO_8601_PATTERN).format(Calendar.getInstance().time),
+    iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time),
     nbf = nbf,
     exp = exp,
     statement = statement,
@@ -106,6 +106,3 @@ internal fun Cacao.Payload.toClient(): Auth.Model.Cacao.Payload =
 
 @JvmSynthetic
 internal fun Cacao.Signature.toClient(): Auth.Model.Cacao.Signature = Auth.Model.Cacao.Signature(t, s, m)
-
-const val ISO_8601_PATTERN = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
-private const val MESSAGE_TEMPLATE_VERSION = "1"

@@ -1,7 +1,11 @@
 package com.walletconnect.foundation.common.model
 
+import com.walletconnect.util.hexToBytes
+
 interface Key {
     val keyAsHex: String
+    val keyAsBytes: ByteArray
+        get() = keyAsHex.hexToBytes()
 }
 
 @JvmInline
