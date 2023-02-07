@@ -124,7 +124,7 @@ internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {
             }
         }.build()
         val adapter = moshi.adapter(JsonRpcResponse.JsonRpcResult::class.java)
-        val chatParams = CoreChatParams.AcceptanceParams(publicKey = "pubKey")
+        val chatParams = CoreChatParams.AcceptanceParams(responseAuth = "did.jwt.auth")
         val jsonResult = JsonRpcResponse.JsonRpcResult(
             id = 1L,
             jsonrpc = "2.0",
@@ -145,7 +145,7 @@ internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {
                 null
             }
         }.build()
-        val chatParams = CoreChatParams.AcceptanceParams(publicKey = "pubKey")
+        val chatParams = CoreChatParams.AcceptanceParams(responseAuth = "did.jwt.auth")
         val authParamsJsonResult = JsonRpcResponse.JsonRpcResult(id = 11L, result = chatParams)
         val resultString = moshi.adapter(JsonRpcResponse.JsonRpcResult::class.java).toJson(authParamsJsonResult)
         val result = moshi.adapter(JsonRpcResponse.JsonRpcResult::class.java).fromJson(resultString)

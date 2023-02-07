@@ -69,6 +69,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
             _account = account
             _publicKey = publicKey
             _privateKey = privateKey
+            registerInvite()
             // Note: This is only demo. Normally you want more security with private key
         }
     }

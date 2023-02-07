@@ -17,7 +17,11 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.*
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
-import com.walletconnect.chat.authentication.jwt.InviteKeyJwtRepository
+import com.walletconnect.chat.jwt.DidJwtRepository
+import com.walletconnect.chat.jwt.use_case.EncodeChatMessageDidJwtPayloadUseCase
+import com.walletconnect.chat.jwt.use_case.EncodeInviteApprovalDidJwtPayloadUseCase
+import com.walletconnect.chat.jwt.use_case.EncodeInviteKeyDidJwtPayloadUseCase
+import com.walletconnect.chat.jwt.use_case.EncodeInviteProposalDidJwtPayloadUseCase
 import com.walletconnect.chat.common.exceptions.InvalidAccountIdException
 import com.walletconnect.chat.common.exceptions.PeerError
 import com.walletconnect.chat.common.exceptions.UnableToExtractDomainException
@@ -28,19 +32,21 @@ import com.walletconnect.chat.common.model.AccountIdWithPublicKey
 import com.walletconnect.chat.common.model.Thread
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterIdentityUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterInviteUseCase
+import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveIdentityUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveInviteUseCase
 import com.walletconnect.chat.engine.model.EngineDO
 import com.walletconnect.chat.json_rpc.JsonRpcMethod
+import com.walletconnect.chat.jwt.ChatDidJwtClaims
 import com.walletconnect.chat.storage.ChatStorageRepository
 import com.walletconnect.chat.storage.ThreadsStorageRepository
+import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.foundation.util.jwt.*
 import com.walletconnect.util.generateId
 import com.walletconnect.util.randomBytes
-import io.ipfs.multibase.Base58
-import io.ipfs.multibase.Multibase
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.net.URI
@@ -50,9 +56,10 @@ import java.util.*
 internal class ChatEngine(
     private val keyserverUrl: String,
     private val registerIdentityUseCase: RegisterIdentityUseCase,
+    private val resolveIdentityUseCase: ResolveIdentityUseCase,
     private val registerInviteUseCase: RegisterInviteUseCase,
     private val resolveInviteUseCase: ResolveInviteUseCase,
-    private val inviteKeyJwtRepository: InviteKeyJwtRepository,
+    private val didJwtRepository: DidJwtRepository,
     private val keyManagementRepository: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val chatStorage: ChatStorageRepository,
@@ -65,8 +72,13 @@ internal class ChatEngine(
     private var internalErrorsJob: Job? = null
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
-    private val inviteRequestMap: MutableMap<Long, WCRequest> = mutableMapOf()
 
+    // todo: This should be persisted
+    private val inviteRequestMap: MutableMap<Long, Pair<WCRequest, ChatDidJwtClaims.InviteProposal>> = mutableMapOf()
+    private val inviteTopics: MutableSet<Topic> = mutableSetOf()
+
+
+    // Should this even be here?
     init {
         pairingHandler.register(
             JsonRpcMethod.WC_CHAT_INVITE,
@@ -99,12 +111,10 @@ internal class ChatEngine(
             .launchIn(scope)
     }
 
-    private fun generateIdAuth(inviteKey: PublicKey, accountId: AccountId): String {
+    private fun getIdentityKeyPair(accountId: AccountId): Pair<PublicKey, PrivateKey> {
         val tag = accountId.getIdentityTag()
         val identityPublicKey = keyManagementRepository.getPublicKey(tag)
-        val identityKeyPair = keyManagementRepository.getKeyPair(identityPublicKey)
-
-        return inviteKeyJwtRepository.generateInviteKeyJWT(inviteKey.keyAsHex, identityKeyPair, keyserverUrl, accountId)
+        return keyManagementRepository.getKeyPair(identityPublicKey)
     }
 
     internal fun registerInvite(
@@ -114,32 +124,39 @@ internal class ChatEngine(
         private: Boolean,
     ) {
         fun onSuccess(publicKey: PublicKey) {
-            val topic = keyManagementRepository.getTopicFromKey(publicKey)
-            keyManagementRepository.setKey(publicKey, SELF_INVITE_PUBLIC_KEY_CONTEXT)
-            keyManagementRepository.setKey(publicKey, "$SELF_PARTICIPANT_CONTEXT${topic.value}")
+            val inviteTopic = keyManagementRepository.getTopicFromKey(publicKey)
+            keyManagementRepository.setKey(publicKey, accountId.getInviteTag())
+            keyManagementRepository.setKey(publicKey, "$SELF_PARTICIPANT_CONTEXT${inviteTopic.value}")
+            inviteTopics.add(inviteTopic)
             onSuccess(publicKey.keyAsHex)
         }
 
         if (accountId.isValid()) {
             try {
-                val storedPublicKey = keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)
+                val storedPublicKey = keyManagementRepository.getPublicKey(accountId.getInviteTag())
+                inviteTopics.add(keyManagementRepository.getTopicFromKey(storedPublicKey)) // todo refactor inviteTopics
                 onSuccess(storedPublicKey.keyAsHex)
             } catch (e: MissingKeyException) {
-                val publicKey = keyManagementRepository.generateAndStoreX25519KeyPair()
+                val invitePublicKey = keyManagementRepository.generateAndStoreX25519KeyPair()
 
-                val idAuth = generateIdAuth(publicKey, accountId)
+                val didJwt: String = didJwtRepository
+                    .encodeDidJwt(getIdentityKeyPair(accountId), keyserverUrl, EncodeInviteKeyDidJwtPayloadUseCase(invitePublicKey.keyAsHex, accountId))
+                    .getOrElse() { error ->
+                        onFailure(error)
+                        return@registerInvite
+                    }
 
                 if (!private) {
                     scope.launch {
                         supervisorScope {
-                            registerInviteUseCase(idAuth).fold(
-                                onSuccess = { onSuccess(publicKey) },
+                            registerInviteUseCase(didJwt).fold(
+                                onSuccess = { onSuccess(invitePublicKey) },
                                 onFailure = { error -> onFailure(error) }
                             )
                         }
                     }
                 } else {
-                    onSuccess(publicKey)
+                    onSuccess(invitePublicKey)
                 }
             }
         } else {
@@ -165,7 +182,7 @@ internal class ChatEngine(
                 onSuccess(storedPublicKey.keyAsHex)
             } catch (e: MissingKeyException) {
                 val identityKey = keyManagementRepository.generateAndStoreEd25519KeyPair()
-                val didKey = encodeDidKey(identityKey.keyAsBytes)
+                val didKey = encodeEd25519DidKey(identityKey.keyAsBytes)
 
                 val domain = keyserverUrl.toDomain().getOrElse {
                     onFailure(UnableToExtractDomainException("Unable to extract domain from: $keyserverUrl"))
@@ -173,7 +190,7 @@ internal class ChatEngine(
                 }
 
                 val payload = Cacao.Payload(
-                    iss = encodeDidPkh(accountId),
+                    iss = encodeDidPkh(accountId.value),
                     domain = domain,
                     aud = keyserverUrl, version = CURRENT_VERSION,
                     nonce = randomBytes(32).toString(), iat = SimpleDateFormat(ISO_8601_PATTERN, Locale.getDefault()).format(Calendar.getInstance().time),
@@ -200,6 +217,19 @@ internal class ChatEngine(
             }
         } else {
             onFailure(InvalidAccountIdException("AccountId is not CAIP-10 complaint"))
+        }
+    }
+
+    // TODO: Decide if caching is good here? Maybe add expiration here
+    private val identities: MutableMap<String, Cacao> = mutableMapOf()
+
+    private suspend fun resolveIdentity(identityDidKey: String): Result<AccountId> {
+        val identityKey = identityDidKey.split(DID_DELIMITER).last()
+        val cacao = identities[identityKey]
+        if (cacao != null) return runCatching { AccountId(decodeDidPkh(cacao.payload.iss)) }
+        return resolveIdentityUseCase(identityKey).mapCatching { response ->
+            identities[identityKey] = response.cacao
+            AccountId(decodeDidPkh(response.cacao.payload.iss))
         }
     }
 
@@ -236,7 +266,13 @@ internal class ChatEngine(
             keyManagementRepository.setKeyAgreement(inviteTopic, senderPublicKey, peerPublicKey)
 
             val participants = Participants(senderPublicKey = senderPublicKey, receiverPublicKey = peerPublicKey)
-            val inviteParams = ChatParams.InviteParams(invite.message, invite.accountId.value, senderPublicKey.keyAsHex, invite.signature)
+            val didJwt: String = didJwtRepository
+                .encodeDidJwt(getIdentityKeyPair(invite.accountId), keyserverUrl, EncodeInviteProposalDidJwtPayloadUseCase(senderPublicKey, peerAccount, invite.message))
+                .getOrElse() { error ->
+                    onFailure(error)
+                    return@invite
+                }
+            val inviteParams = ChatParams.InviteParams(inviteAuth = didJwt)
 
             val payload = ChatRpc.ChatInvite(id = generateId(), params = inviteParams)
             val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
@@ -260,14 +296,14 @@ internal class ChatEngine(
         }
     }
 
-    internal fun addContact(accountIdWithPublicKeyVO: AccountIdWithPublicKey, onFailure: (Throwable) -> Unit) = try {
-        if (chatStorage.doesContactNotExists(accountIdWithPublicKeyVO.accountId)) {
-            chatStorage.createContact(EngineDO.Contact(accountIdWithPublicKeyVO, accountIdWithPublicKeyVO.accountId.value))
+    internal fun addContact(accountIdWithPublicKey: AccountIdWithPublicKey, onFailure: (Throwable) -> Unit) = try {
+        if (chatStorage.doesContactNotExists(accountIdWithPublicKey.accountId)) {
+            chatStorage.createContact(EngineDO.Contact(accountIdWithPublicKey, accountIdWithPublicKey.accountId.value))
         } else {
             chatStorage.updateContact(
-                accountIdWithPublicKeyVO.accountId,
-                accountIdWithPublicKeyVO.publicKey,
-                accountIdWithPublicKeyVO.accountId.value
+                accountIdWithPublicKey.accountId,
+                accountIdWithPublicKey.publicKey,
+                accountIdWithPublicKey.accountId.value
             )
         }
     } catch (error: Exception) {
@@ -276,18 +312,28 @@ internal class ChatEngine(
 
     internal fun accept(inviteId: Long, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) =
         try {
-            val request = inviteRequestMap[inviteId] ?: throw GenericException("No request for inviteId")
-            val senderPublicKey = PublicKey((request.params as ChatParams.InviteParams).publicKey)
+            val request = inviteRequestMap[inviteId]?.first ?: throw GenericException("No request for inviteId")
+            val claims = inviteRequestMap[inviteId]?.second ?: throw GenericException("No claims for inviteId")
+            val inviterPublicKey = decodeX25519DidKey(claims.inviterPublicKey)
             inviteRequestMap.remove(inviteId)
+            val inviteeAccountId = AccountId(decodeDidPkh(claims.audience))
+            val inviterAccountId = AccountId(decodeDidPkh(claims.issuer))
 
-            //TODO: Missing accountId in accept
-            val invitePublicKey = keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)
-            val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(invitePublicKey, senderPublicKey)
+            val inviteePublicKey = keyManagementRepository.getPublicKey(inviteeAccountId.getInviteTag())
+            val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(inviteePublicKey, inviterPublicKey)
             val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
             keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
 
             val publicKey = keyManagementRepository.generateAndStoreX25519KeyPair()
-            val acceptanceParams = CoreChatParams.AcceptanceParams(publicKey.keyAsHex)
+
+            val didJwt: String = didJwtRepository
+                .encodeDidJwt(getIdentityKeyPair(inviteeAccountId), keyserverUrl, EncodeInviteApprovalDidJwtPayloadUseCase(publicKey, inviterAccountId))
+                .getOrElse() { error ->
+                    onFailure(error)
+                    return@accept
+                }
+
+            val acceptanceParams = CoreChatParams.AcceptanceParams(responseAuth = didJwt)
             val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(DAY_IN_SECONDS))
 
             jsonRpcInteractor.respondWithParams(request.copy(topic = acceptTopic), acceptanceParams, irnParams, EnvelopeType.ZERO) { error ->
@@ -295,7 +341,7 @@ internal class ChatEngine(
                 return@respondWithParams
             }
 
-            val threadSymmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(publicKey, senderPublicKey)
+            val threadSymmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(publicKey, inviterPublicKey)
             val threadTopic = keyManagementRepository.getTopicFromKey(threadSymmetricKey)
             keyManagementRepository.setKey(threadSymmetricKey, threadTopic.value)
             jsonRpcInteractor.subscribe(threadTopic) { error -> return@subscribe onFailure(error) }
@@ -306,13 +352,14 @@ internal class ChatEngine(
 
     internal fun reject(inviteId: Long, onFailure: (Throwable) -> Unit) {
         try {
-            val request = inviteRequestMap[inviteId] ?: throw GenericException("No request for inviteId")
-            val senderPublicKey = PublicKey((request.params as ChatParams.InviteParams).publicKey)
+            val request = inviteRequestMap[inviteId]?.first ?: throw GenericException("No request for inviteId")
+            val claims = inviteRequestMap[inviteId]?.second ?: throw GenericException("No claims for inviteId")
+            val inviterPublicKey = PublicKey(claims.inviterPublicKey)
             inviteRequestMap.remove(inviteId)
+            val inviteeAccountId = AccountId(decodeDidPkh(claims.audience))
 
-            //TODO: Missing accountId in reject
-            val invitePublicKey = keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)
-            val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(invitePublicKey, senderPublicKey)
+            val inviteePublicKey = keyManagementRepository.getPublicKey(inviteeAccountId.getInviteTag())
+            val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(inviteePublicKey, inviterPublicKey)
             val rejectTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
             keyManagementRepository.setKey(symmetricKey, rejectTopic.value)
 
@@ -328,8 +375,18 @@ internal class ChatEngine(
     }
 
     internal fun message(topic: String, sendMessage: EngineDO.SendMessage, onFailure: (Throwable) -> Unit) {
-        //todo resolve AUTHOR_ACCOUNT from thread storage by topic
-        val messageParams = ChatParams.MessageParams(sendMessage.message, sendMessage.author.value, System.currentTimeMillis(), sendMessage.media)
+        val didJwt: String = didJwtRepository
+            .encodeDidJwt(
+                getIdentityKeyPair(sendMessage.author),
+                keyserverUrl,
+                EncodeChatMessageDidJwtPayloadUseCase(sendMessage.message, recipientAccountId = sendMessage.author, sendMessage.media)
+            ) // todo change recipient from author to valid one.
+            .getOrElse() { error ->
+                onFailure(error)
+                return@message
+            }
+
+        val messageParams = ChatParams.MessageParams(messageAuth = didJwt)
         val payload = ChatRpc.ChatMessage(id = generateId(), params = messageParams)
         val irnParams = IrnParams(Tags.CHAT_MESSAGE, Ttl(DAY_IN_SECONDS), true)
 
@@ -399,17 +456,44 @@ internal class ChatEngine(
     }
 
     private fun onInviteRequest(wcRequest: WCRequest, params: ChatParams.InviteParams) {
-        inviteRequestMap[wcRequest.id] = wcRequest
+        val claims = didJwtRepository.extractVerifiedDidJwtClaims<ChatDidJwtClaims.InviteProposal>(params.inviteAuth)
+            .getOrElse() { error ->
+                logger.error(error)
+                return@onInviteRequest
+            }
+
+        inviteRequestMap[wcRequest.id] = wcRequest to claims
+
         scope.launch {
-            val invite = EngineDO.Invite(AccountId(params.account), params.message, params.publicKey, params.signature)
+            val accountId = resolveIdentity(claims.issuer)
+                .getOrElse() { error ->
+                    logger.error(error)
+                    return@launch
+                }
+            logger.log("Invite received. Resolved identity: $accountId")
+
+            val invite = EngineDO.Invite(accountId, claims.subject, claims.inviterPublicKey)
             _events.emit(EngineDO.Events.OnInvite(wcRequest.id, invite))
         }
         //TODO: Add adding invites to storage. For Alpha we will use only emitted event.
     }
 
     private fun onMessage(wcRequest: WCRequest, params: ChatParams.MessageParams) {
+        logger.log("Message received")
+        val claims = didJwtRepository.extractVerifiedDidJwtClaims<ChatDidJwtClaims.ChatMessage>(params.messageAuth)
+            .getOrElse() { error ->
+                logger.error(error)
+                return@onMessage
+            }
+
         scope.launch {
-            val message = EngineDO.Message(params.message, AccountId(params.authorAccount), params.timestamp, params.media)
+            val accountId = resolveIdentity(claims.issuer)
+                .getOrElse() { error ->
+                    logger.error(error)
+                    return@launch
+                }
+
+            val message = EngineDO.Message(claims.subject, accountId, wcRequest.id, claims.media)
             _events.emit(EngineDO.Events.OnMessage(wcRequest.topic.value, message))
         }
         //TODO: Add adding messages to storage. For Alpha we will use only emitted event.
@@ -440,11 +524,16 @@ internal class ChatEngine(
     private fun onInviteAccepted(response: JsonRpcResponse.JsonRpcResult, wcResponse: WCResponse) {
         logger.log("Chat invite was accepted")
         val acceptParams = response.result as CoreChatParams.AcceptanceParams
-        val pubKeyZ = PublicKey(acceptParams.publicKey)
+        val claims = didJwtRepository.extractVerifiedDidJwtClaims<ChatDidJwtClaims.InviteApproval>(acceptParams.responseAuth)
+            .getOrElse() { error ->
+                logger.error(error)
+                return@onInviteAccepted
+            }
+        val peerPubKey = decodeX25519DidKey(claims.subject)
 
         try {
             val selfPubKey: PublicKey = keyManagementRepository.getSelfPublicFromKeyAgreement(wcResponse.topic)
-            val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(selfPubKey, pubKeyZ)
+            val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(selfPubKey, peerPubKey)
             val threadTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
             keyManagementRepository.setKey(symmetricKey, threadTopic.value)
             jsonRpcInteractor.subscribe(threadTopic) { error ->
@@ -495,13 +584,14 @@ internal class ChatEngine(
         }
 
     private fun trySubscribeToInviteTopic() {
+        logger.log("trySubscribeToInviteTopic()")
         try {
-            val publicKey = keyManagementRepository.getPublicKey(SELF_INVITE_PUBLIC_KEY_CONTEXT)
-            val topic = keyManagementRepository.getTopicFromKey(publicKey)
-            jsonRpcInteractor.subscribe(topic) { error ->
-                scope.launch { _events.emit(SDKError(InternalError(error))) }
+            inviteTopics.forEach { topic ->
+                jsonRpcInteractor.subscribe(topic) { error ->
+                    scope.launch { _events.emit(SDKError(InternalError(error))) }
+                }
+                logger.log("Listening for invite on: $topic")
             }
-            logger.log("Listening for invite on: $topic, pubKey X:$publicKey")
         } catch (error: Exception) {
             scope.launch { _events.emit(SDKError(InternalError(error))) }
         }
@@ -512,19 +602,8 @@ internal class ChatEngine(
             .onEach { exception -> _events.emit(SDKError(exception)) }
             .launchIn(scope)
 
-    //TODO: Stolen from BaseJwtRepository - should be refactored
-    private fun encodeDidKey(publicKey: ByteArray): String {
-        val header: ByteArray = Base58.decode(MULTICODEC_ED25519_HEADER)
-        val multicodec = Multibase.encode(Multibase.Base.Base58BTC, header + publicKey)
-
-        return listOf(DID_PREFIX, DID_METHOD_KEY, multicodec).joinToString(DID_DELIMITER)
-    }
-
-    private fun encodeDidPkh(accountId: AccountId): String {
-        return listOf(DID_PREFIX, DID_METHOD_PKH, accountId.value).joinToString(DID_DELIMITER)
-    }
-
     private fun AccountId.getIdentityTag(): String = "$SELF_IDENTITY_PUBLIC_KEY_CONTEXT${this.value}"
+    private fun AccountId.getInviteTag(): String = "$SELF_INVITE_PUBLIC_KEY_CONTEXT${this.value}"
 
 
     private fun String.toDomain(): Result<String> = runCatching {
@@ -533,14 +612,7 @@ internal class ChatEngine(
         if (domain.startsWith("www.")) domain.substring(4) else domain
     }
 
-    companion object {
+    private companion object {
         const val THIRTY_SECONDS_TIMEOUT: Long = 30000L
-
-        //TODO: Stolen from BaseJwtRepository - should be refactored
-        private const val MULTICODEC_ED25519_HEADER = "K36"
-        private const val DID_DELIMITER = ":"
-        private const val DID_PREFIX = "did"
-        private const val DID_METHOD_KEY = "key"
-        private const val DID_METHOD_PKH = "pkh"
     }
 }
