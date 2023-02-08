@@ -3,7 +3,6 @@
 package com.walletconnect.chat.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
-import com.walletconnect.chat.discovery.keyserver.data.client.KeyServerClient
 import com.walletconnect.chat.discovery.keyserver.data.service.KeyServerService
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterIdentityUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterInviteUseCase
@@ -43,8 +42,6 @@ internal fun keyServerModule(keyServerUrl: String) = module {
     single {
         get<Retrofit>().create(KeyServerService::class.java)
     }
-
-    single { KeyServerClient(get()) }
 
     single { RegisterIdentityUseCase(get()) }
 
