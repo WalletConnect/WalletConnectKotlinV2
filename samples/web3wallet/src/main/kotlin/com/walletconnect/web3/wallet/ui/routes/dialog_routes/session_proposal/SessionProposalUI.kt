@@ -17,16 +17,12 @@ private val extensiveSessionProposalUI = SessionProposalUI(
     ),
     namespaces = mapOf(
         "eip155" to Wallet.Model.Namespace.Proposal(
-            chains = listOf("eip155:1"),
+            chains = listOf("eip155:1, eip155:137"),
             methods = listOf("accountsChanged", "personalSign"),
             events = listOf("someEvent1", "someEvent2"),
         ),
         "cosmos" to Wallet.Model.Namespace.Proposal(
             chains = listOf("cosmos:cosmoshub-4", "cosmos:cosmoshub-1"),
-            methods = listOf("accountsChanged", "personalSign"),
-            events = listOf("someEvent1", "someEvent2"),
-        ),
-        "eip155:137" to Wallet.Model.Namespace.Proposal(
             methods = listOf("accountsChanged", "personalSign"),
             events = listOf("someEvent1", "someEvent2"),
         )

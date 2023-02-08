@@ -63,8 +63,8 @@ class ConnectViewModel : ViewModel() {
         }
         val namespaces: Map<String, Sign.Model.Namespace.Proposal> =
             listOfChainUI
-                .filter { it.isSelected }
-                .groupBy { it.chainNamespace }// OR chaiId
+                .filter { it.isSelected && it.chainId != "eip155:137" && it.chainId != "eip155:42" }
+                .groupBy { it.chainNamespace }
                 .map { (key: String, selectedChains: List<ChainSelectionUI>) ->
                     key to Sign.Model.Namespace.Proposal(
                         chains = selectedChains.map { it.chainId }, //OR uncomment if chainId is an index
@@ -73,7 +73,37 @@ class ConnectViewModel : ViewModel() {
                     )
                 }.toMap()
 
-        val connectParams = Sign.Params.Connect(namespaces = namespaces, pairing = pairing)
+
+            val tmp = listOfChainUI
+                .filter { it.isSelected && it.chainId == "eip155:42" }
+                .groupBy { it.chainId }
+                .map { (key: String, selectedChains: List<ChainSelectionUI>) ->
+                    key to Sign.Model.Namespace.Proposal(
+                        methods = selectedChains.flatMap { it.methods }.distinct(),
+                        events = selectedChains.flatMap { it.events }.distinct()
+                    )
+                }.toMap()
+
+        val optionalNamespaces: Map<String, Sign.Model.Namespace.Proposal> =
+            listOfChainUI
+                .filter { it.isSelected && it.chainId == "eip155:137" }
+                .groupBy { it.chainId }
+                .map { (key: String, selectedChains: List<ChainSelectionUI>) ->
+                    key to Sign.Model.Namespace.Proposal(
+                        methods = selectedChains.flatMap { it.methods }.distinct(),
+                        events = selectedChains.flatMap { it.events }.distinct()
+                    )
+                }.toMap()
+
+        val properties: Map<String, String> = mapOf("sessionExpiry" to "123456789")
+
+        val connectParams =
+            Sign.Params.Connect(namespaces = namespaces.toMutableMap().plus(tmp), optionalNamespaces = optionalNamespaces, properties = properties, pairing = pairing)
+
+        println("Kobe; Dapp: SessionNamespaces: ${connectParams.namespaces}")
+        println("Kobe; Dapp: OptionalNamespaces: ${connectParams.optionalNamespaces}")
+        println("Kobe; Dapp: Properties: ${connectParams.properties}")
+
         SignClient.connect(connectParams,
             onSuccess = {
                 viewModelScope.launch(Dispatchers.Main) {

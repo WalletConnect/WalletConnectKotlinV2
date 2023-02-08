@@ -574,6 +574,8 @@ internal class SignEngine(
                 }
             }
 
+            println("kobe; Received SessionProposal: ${payloadParams.toEngineDO(request.topic)}")
+
             sessionProposalRequest[payloadParams.proposer.publicKey] = request
             pairingHandler.updateMetadata(
                 Core.Params.UpdateMetadata(

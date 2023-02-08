@@ -16,7 +16,7 @@ class SessionProposalViewModel : ViewModel() {
     fun approve() {
         if (WCDelegate.sessionProposal != null) {
             val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(WCDelegate.sessionProposal)
-            val chains = sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
+            val chainIds = sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
                 if (proposal.chains != null) {
                     proposal.chains!!
                 } else {
@@ -25,36 +25,75 @@ class SessionProposalViewModel : ViewModel() {
             }
 
             val selectedAccounts: Map<Chains, String> =
-                chains.mapNotNull { namespaceChainId -> accounts.firstOrNull { (chain, address) -> chain.chainId == namespaceChainId } }.toMap()
+                chainIds.mapNotNull { namespaceChainId -> accounts.firstOrNull { (chain, address) -> chain.chainId == namespaceChainId } }.toMap()
 
-            val sessionNamespaces: Map<String, Wallet.Model.Namespace.Session> = selectedAccounts.filter { (chain: Chains, _) ->
-                "${chain.chainNamespace}:${chain.chainReference}" in sessionProposal.requiredNamespaces.flatMap { (namespaceKey, namespace) ->
-                    if (namespace.chains != null) {
-                        namespace.chains!!
-                    } else {
-                        listOf(namespaceKey)
-                    }
-                }
+            val sessionNamespacesIndexedByNamespace: Map<String, Wallet.Model.Namespace.Session> =
+                selectedAccounts.filter { (chain: Chains, _) ->
+                    sessionProposal.requiredNamespaces
+                        .filter { (_, namespace) -> namespace.chains != null }
+                        .flatMap { (_, namespace) -> namespace.chains!! }
+                        .contains(chain.chainId)
+                }.toList()
+                    .groupBy { (chain: Chains, _: String) -> chain.chainNamespace }
+                    .map { (key: String, chainData: List<Pair<Chains, String>>) ->
 
-            }.toList().groupBy { (chain: Chains, _: String) ->
-                chain.chainNamespace
-            }.map { (namespaceKey: String, chainData: List<Pair<Chains, String>>) ->
-                val accounts = chainData.filter { (chain: Chains, _) ->
-                    chain.chainNamespace == namespaceKey
-                }.map { (chain: Chains, accountAddress: String) ->
-                    "${chain.chainNamespace}:${chain.chainReference}:${accountAddress}"
-                }
-                val methods = sessionProposal.requiredNamespaces[namespaceKey]?.methods ?: emptyList()
-                val events = sessionProposal.requiredNamespaces[namespaceKey]?.events ?: emptyList()
+                        val accounts = chainData.map { (chain: Chains, accountAddress: String) ->
+                            "${chain.chainNamespace}:${chain.chainReference}:${accountAddress}"
+                        }
 
-                namespaceKey to Wallet.Model.Namespace.Session(accounts = accounts, methods = methods, events = events)
-            }.toMap()
+                        val methods = sessionProposal.requiredNamespaces.values
+                            .filter { namespace -> namespace.chains != null }
+                            .flatMap { it.methods }
 
+                        val events = sessionProposal.requiredNamespaces.values
+                            .filter { namespace -> namespace.chains != null }
+                            .flatMap { it.events }
+
+                        val chains: List<String> =
+                            sessionProposal.requiredNamespaces.values
+                                .filter { namespace -> namespace.chains != null }
+                                .flatMap { namespace -> namespace.chains!! }
+
+                        key to Wallet.Model.Namespace.Session(
+                            accounts = accounts,
+                            methods = methods,
+                            events = events,
+                            chains = chains.ifEmpty { null })
+                    }.toMap()
+
+            val sessionNamespacesIndexedByChain: Map<String, Wallet.Model.Namespace.Session> =
+                selectedAccounts.filter { (chain: Chains, _) ->
+                    sessionProposal.requiredNamespaces
+                        .filter { (namespaceKey, namespace) -> namespace.chains == null && namespaceKey == chain.chainId }
+                        .isNotEmpty()
+                }.toList()
+                    .groupBy { (chain: Chains, _: String) -> chain.chainId }
+                    .map { (key: String, chainData: List<Pair<Chains, String>>) ->
+                        val accounts = chainData.map { (chain: Chains, accountAddress: String) ->
+                            "${chain.chainNamespace}:${chain.chainReference}:${accountAddress}"
+                        }
+
+                        val methods = sessionProposal.requiredNamespaces.values
+                            .filter { namespace -> namespace.chains == null }
+                            .flatMap { it.methods }
+
+                        val events = sessionProposal.requiredNamespaces.values
+                            .filter { namespace -> namespace.chains == null }
+                            .flatMap { it.events }
+
+                        key to Wallet.Model.Namespace.Session(
+                            accounts = accounts,
+                            methods = methods,
+                            events = events
+                        )
+                    }.toMap()
+
+
+            val sessionNamespaces = sessionNamespacesIndexedByNamespace.plus(sessionNamespacesIndexedByChain)
             val approveProposal = Wallet.Params.SessionApprove(
                 proposerPublicKey = sessionProposal.proposerPublicKey,
                 namespaces = sessionNamespaces
             )
-
 
             Web3Wallet.approveSession(approveProposal) { error ->
                 Firebase.crashlytics.recordException(error.throwable)
