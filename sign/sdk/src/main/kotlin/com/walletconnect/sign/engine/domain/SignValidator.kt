@@ -154,23 +154,40 @@ internal object SignValidator {
         )
     }
 
-    private fun allMethodsWithChains(namespaces: Map<String, NamespaceVO>): Map<String, List<String>> =
-        namespaces.entries.flatMap { (namespaceKey, namespace) ->
-            if (NAMESPACE_REGEX.toRegex().matches(namespaceKey) && namespace.chains != null) {
-                namespace.methods.map { method -> method to namespace.chains!! }
-            } else {
-                namespace.methods.map { method -> method to listOf(namespaceKey) }
-            }
-        }.toMap()
+    private fun allMethodsWithChains(namespaces: Map<String, NamespaceVO>): Map<String, List<String>> {
+        val methodsByChains = namespaces
+            .filter { (namespaceKey, namespace) -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) && namespace.chains != null }
+            .flatMap { (_, namespace) -> namespace.methods.map { method -> method to namespace.chains!! } }
+            .toMap()
 
-    private fun allEventsWithChains(namespaces: Map<String, NamespaceVO>): Map<String, List<String>> =
-        namespaces.entries.flatMap { (namespaceKey, namespace) ->
-            if (NAMESPACE_REGEX.toRegex().matches(namespaceKey) && namespace.chains != null) {
-                namespace.events.map { event -> event to namespace.chains!! }
-            } else {
-                namespace.events.map { event -> event to listOf(namespaceKey) }
-            }
-        }.toMap()
+        val methodsByNamespaceKey = namespaces
+            .filter { (namespaceKey, namespace) -> isChainIdCAIP2Compliant(namespaceKey) && namespace.chains == null }
+            .flatMap { (namespaceKey, namespace) -> namespace.methods.map { method -> method to listOf(namespaceKey) } }
+            .toMap()
+
+        return (methodsByChains.asSequence() + methodsByNamespaceKey.asSequence())
+            .distinct()
+            .groupBy({ it.key }, { it.value })
+            .mapValues { (_, values) -> values.flatten() }
+    }
+
+
+    private fun allEventsWithChains(namespaces: Map<String, NamespaceVO>): Map<String, List<String>> {
+        val eventsByChains = namespaces
+            .filter { (namespaceKey, namespace) -> NAMESPACE_REGEX.toRegex().matches(namespaceKey) && namespace.chains != null }
+            .flatMap { (_, namespace) -> namespace.events.map { event -> event to namespace.chains!! } }
+            .toMap()
+
+        val eventsByNamespaceKey = namespaces
+            .filter { (namespaceKey, namespace) -> isChainIdCAIP2Compliant(namespaceKey) && namespace.chains == null }
+            .flatMap { (namespaceKey, namespace) -> namespace.events.map { event -> event to listOf(namespaceKey) } }
+            .toMap()
+
+        return (eventsByChains.asSequence() + eventsByNamespaceKey.asSequence())
+            .distinct()
+            .groupBy({ it.key }, { it.value })
+            .mapValues { (_, values) -> values.flatten() }
+    }
 
     private fun areAllEventsApproved(
         allApprovedEventsWithChains: Map<String, List<String>>,

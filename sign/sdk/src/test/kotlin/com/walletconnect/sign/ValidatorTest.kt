@@ -882,6 +882,26 @@ class ValidatorTest {
     }
 
     @Test
+    fun `Authorizing approved method where namespace index is chainId`() {
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                chains = listOf(ETHEREUM),
+                accounts = listOf(ETHEREUM_1),
+                methods = listOf(ETH_SIGN, "test"),
+                events = listOf(CHAIN_CHANGED)
+            ),
+            KOVAN to NamespaceVO.Session(
+                accounts = listOf(KOVAN_1),
+                methods = listOf(ETH_SIGN),
+                events = listOf(CHAIN_CHANGED)
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateChainIdWithMethodAuthorisation(ETHEREUM, "test", namespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
+    }
+
+    @Test
     fun `Authorizing approved event`() {
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
@@ -893,6 +913,26 @@ class ValidatorTest {
         )
         var errorMessage: String? = null
         SignValidator.validateChainIdWithEventAuthorisation(ETHEREUM, CHAIN_CHANGED, namespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
+    }
+
+    @Test
+    fun `Authorizing approved events where namespace index is chainId`() {
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                chains = listOf(ETHEREUM),
+                accounts = listOf(ETHEREUM_1),
+                methods = listOf(ETH_SIGN),
+                events = listOf(CHAIN_CHANGED)
+            ),
+            KOVAN to NamespaceVO.Session(
+                accounts = listOf(KOVAN_1),
+                methods = listOf(ETH_SIGN),
+                events = listOf("test")
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateChainIdWithEventAuthorisation(KOVAN, "test", namespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
