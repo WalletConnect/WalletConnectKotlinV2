@@ -64,14 +64,14 @@ internal class ChatEngine(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    // todo: This should be persisted
+    // todo: This should be persisted. As a part of multi-account storage task
     private val inviteRequestMap: MutableMap<Long, Pair<WCRequest, ChatDidJwtClaims.InviteProposal>> = mutableMapOf()
     private val inviteTopicsToInvitePublicKeys: MutableMap<Topic, Pair<AccountId, PublicKey>> = mutableMapOf() // todo refactor inviteTopics
 
-    // TODO: Decide if caching is good here? Maybe add expiration here
+    // TODO: Persist. As a part of multi-account storage task
     private val identities: MutableMap<String, Cacao> = mutableMapOf()
 
-    // Should this even be here?
+    // Remove after pairing refactor
     init {
         pairingHandler.register(
             JsonRpcMethod.WC_CHAT_INVITE,
