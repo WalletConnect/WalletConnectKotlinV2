@@ -17,7 +17,6 @@ import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.launch
 
 internal class ChatProtocol : ChatInterface {
-    private val keyServerUrl = "https://staging.keys.walletconnect.com"
     private lateinit var chatEngine: ChatEngine
 
     companion object {
@@ -29,7 +28,7 @@ internal class ChatProtocol : ChatInterface {
         try {
             wcKoinApp.run {
                 modules(
-                    keyServerModule(keyServerUrl),
+                    keyServerModule(init.keyServerUrl),
                     jsonRpcModule(),
                     storageModule(),
                     engineModule()
