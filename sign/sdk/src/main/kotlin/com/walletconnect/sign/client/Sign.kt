@@ -56,6 +56,14 @@ object Sign {
             ) : Model()
         }
 
+        data class SentRequest(
+            val requestId: Long,
+            val sessionTopic: String,
+            val method: String,
+            val params: String,
+            val chainId: String
+        ) : Params()
+
         sealed class Namespace : Model() {
 
             data class Proposal(
@@ -206,9 +214,7 @@ object Sign {
             val method: String,
             val params: String,
             val chainId: String
-        ) : Params() {
-            var requestId: Long? = null
-        }
+        ) : Params()
 
         data class Update(
             val sessionTopic: String,

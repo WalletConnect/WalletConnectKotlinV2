@@ -144,15 +144,31 @@ class SignProtocol : SignInterface {
         }
     }
 
+    @Deprecated(
+        "The onSuccess callback has been replaced with a new callback that returns Sign.Model.SentRequest",
+        replaceWith = ReplaceWith("this.request(request, onSuccessWithSentRequest, onError)", "com.walletconnect.sign.client")
+    )
     @Throws(IllegalStateException::class)
-    override fun request(request: Sign.Params.Request, onSuccess: (Sign.Params.Request) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+    override fun request(request: Sign.Params.Request, onSuccess: (Sign.Params.Request) -> Unit, onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
             signEngine.sessionRequest(
                 request = request.toEngineDORequest(),
-                onSuccess = { requestId ->
-                    onSuccess(request.apply { this.requestId = requestId })
-                },
+                onSuccess = { onSuccess(request) },
+                onFailure = { error -> onError(Sign.Model.Error(error)) }
+            )
+        } catch (error: Exception) {
+            onError(Sign.Model.Error(error))
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun request(request: Sign.Params.Request, onSuccess: (Sign.Model.SentRequest) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+        checkEngineInitialization()
+        try {
+            signEngine.sessionRequest(
+                request = request.toEngineDORequest(),
+                onSuccess = { requestId -> onSuccess(request.toSentRequest(requestId)) },
                 onFailure = { error -> onError(Sign.Model.Error(error)) }
             )
         } catch (error: Exception) {
