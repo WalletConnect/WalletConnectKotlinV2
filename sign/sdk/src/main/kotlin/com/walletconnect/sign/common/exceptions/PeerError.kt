@@ -109,6 +109,9 @@ sealed class PeerError : Error {
             override val code: Int = 5200
         }
 
+        data class EmptySessionNamespaces(override val message: String) : CAIP25() {
+            override val code: Int = 5201
+        }
     }
 
     sealed class Failure : PeerError() {

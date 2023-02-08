@@ -219,11 +219,7 @@ internal class SignEngine(
         val request = sessionProposalRequest[proposerPublicKey] ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
         sessionProposalRequest.remove(proposerPublicKey)
         val proposal = request.params as SignParams.SessionProposeParams
-        SignValidator.validateSessionNamespace(
-            sessionNamespaces.toMapOfNamespacesVOSession(),
-            proposal.requiredNamespaces,
-            proposal.optionalNamespaces
-        ) { error ->
+        SignValidator.validateSessionNamespace(sessionNamespaces.toMapOfNamespacesVOSession(), proposal.requiredNamespaces) { error ->
             throw InvalidNamespaceException(error.message)
         }
 
@@ -257,11 +253,7 @@ internal class SignEngine(
             throw NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
 
-        SignValidator.validateSessionNamespace(
-            namespaces.toMapOfNamespacesVOSession(),
-            session.requiredNamespaces,
-            session.optionalNamespaces
-        ) { error ->
+        SignValidator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), session.requiredNamespaces) { error ->
             throw InvalidNamespaceException(error.message)
         }
 
@@ -562,7 +554,7 @@ internal class SignEngine(
                 return
             }
 
-            SignValidator.validateProposalNamespaces(payloadParams.optionalNamespaces) { error ->
+            SignValidator.validateProposalNamespaces(payloadParams.optionalNamespaces ?: emptyMap()) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return
             }
@@ -616,7 +608,7 @@ internal class SignEngine(
             Triple(requiredNamespaces, optionalNamespaces, properties)
         }
 
-        SignValidator.validateSessionNamespace(settleParams.namespaces, requiredNamespaces, optionalNamespaces) { error ->
+        SignValidator.validateSessionNamespace(settleParams.namespaces, requiredNamespaces) { error ->
             jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
             return
         }
@@ -788,7 +780,7 @@ internal class SignEngine(
                 return
             }
 
-            SignValidator.validateSessionNamespace(params.namespaces, session.requiredNamespaces, session.optionalNamespaces) { error ->
+            SignValidator.validateSessionNamespace(params.namespaces, session.requiredNamespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, PeerError.Invalid.UpdateRequest(error.message), irnParams)
                 return
             }

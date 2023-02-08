@@ -37,7 +37,7 @@ internal fun SignParams.SessionProposeParams.toEngineDO(topic: Topic): EngineDO.
         url = this.proposer.metadata.url,
         icons = this.proposer.metadata.icons.map { URI(it) },
         requiredNamespaces = this.requiredNamespaces.toMapOfEngineNamespacesRequired(),
-        optionalNamespaces = this.optionalNamespaces.toMapOfEngineNamespacesOptional(),
+        optionalNamespaces = this.optionalNamespaces?.toMapOfEngineNamespacesOptional() ?: emptyMap(),
         properties = properties,
         proposerPublicKey = this.proposer.publicKey,
         relayProtocol = relays.first().protocol,
@@ -194,4 +194,5 @@ internal fun ValidationError.toPeerError() = when (this) {
     is ValidationError.UserRejectedMethods -> PeerError.CAIP25.UserRejectedMethods(message)
     is ValidationError.UserRejectedChains -> PeerError.CAIP25.UserRejectedChains(message)
     is ValidationError.InvalidSessionProperties -> PeerError.CAIP25.InvalidSessionPropertiesObject(message)
+    is ValidationError.EmptyNamespaces -> PeerError.CAIP25.EmptySessionNamespaces(message)
 }

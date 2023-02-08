@@ -25,7 +25,7 @@ internal data class SessionVO(
     val peerAppMetaData: AppMetaData? = null,
     val sessionNamespaces: Map<String, NamespaceVO.Session>,
     val requiredNamespaces: Map<String, NamespaceVO.Required>,
-    val optionalNamespaces: Map<String, NamespaceVO.Optional>,
+    val optionalNamespaces: Map<String, NamespaceVO.Optional>?,
     val properties: Map<String, String>? = null,
     val isAcknowledged: Boolean,
 ) : Sequence {
@@ -67,7 +67,7 @@ internal data class SessionVO(
             selfPublicKey: PublicKey,
             selfMetadata: AppMetaData,
             requiredNamespaces: Map<String, NamespaceVO.Required>,
-            optionalNamespaces: Map<String, NamespaceVO.Optional>,
+            optionalNamespaces: Map<String, NamespaceVO.Optional>?,
             properties: Map<String, String>?
         ): SessionVO {
             return SessionVO(
