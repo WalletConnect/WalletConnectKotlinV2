@@ -15,6 +15,7 @@ import com.walletconnect.chat.di.*
 import com.walletconnect.chat.engine.domain.ChatEngine
 import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 internal class ChatProtocol : ChatInterface {
     private lateinit var chatEngine: ChatEngine
@@ -116,13 +117,17 @@ internal class ChatProtocol : ChatInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun getReceivedInvites(getReceivedInvites: Chat.Params.GetReceivedInvites): Map<Long, Chat.Model.ReceivedInvite> = wrapWithEngineInitializationCheck() {
-        TODO("Not yet implemented")
+    override fun getReceivedInvites(getReceivedInvites: Chat.Params.GetReceivedInvites): Map<Long, Chat.Model.Invite.Received> = wrapWithEngineInitializationCheck() {
+        runBlocking(scope.coroutineContext) {
+            chatEngine.getReceivedInvites(getReceivedInvites.account.value).mapValues { (_, invite) -> invite.toClient() }
+        }
     }
 
     @Throws(IllegalStateException::class)
-    override fun getSentInvites(getSentInvites: Chat.Params.GetSentInvites): Map<Long, Chat.Model.SentInvite> = wrapWithEngineInitializationCheck() {
-        TODO("Not yet implemented")
+    override fun getSentInvites(getSentInvites: Chat.Params.GetSentInvites): Map<Long, Chat.Model.Invite.Sent> = wrapWithEngineInitializationCheck() {
+        runBlocking(scope.coroutineContext) {
+            chatEngine.getSentInvites(getSentInvites.account.value).mapValues { (_, invite) -> invite.toClient() }
+        }
     }
 
     @Throws(IllegalStateException::class)
@@ -142,7 +147,7 @@ internal class ChatProtocol : ChatInterface {
             { message -> listener.onSign(message).toCommon() },
             { didKey -> listener.onSuccess(didKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) },
-            register.private 
+            register.private
         )
     }
 

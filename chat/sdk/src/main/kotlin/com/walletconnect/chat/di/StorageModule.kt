@@ -1,17 +1,29 @@
 package com.walletconnect.chat.di
 
+import com.squareup.sqldelight.ColumnAdapter
+import com.squareup.sqldelight.EnumColumnAdapter
 import com.walletconnect.android.di.sdkBaseStorageModule
 import com.walletconnect.android.internal.common.di.DBUtils
 import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.chat.ChatDatabase
+import com.walletconnect.chat.common.model.InviteStatus
+import com.walletconnect.chat.common.model.InviteType
 import com.walletconnect.chat.storage.ChatStorageRepository
+import com.walletconnect.chat.storage.InvitesStorageRepository
 import com.walletconnect.chat.storage.ThreadsStorageRepository
+import com.walletconnect.chat.storage.data.dao.Invites
+import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
 @JvmSynthetic
 internal fun storageModule() = module {
-    fun Scope.createChatDB(): ChatDatabase = ChatDatabase(get())
+    fun Scope.createChatDB(): ChatDatabase = ChatDatabase(
+        get(), InvitesAdapter = Invites.Adapter(
+            statusAdapter = get(named(ChatDITags.COLUMN_ADAPTER_INVITE_STATUS)),
+            typeAdapter = get(named(ChatDITags.COLUMN_ADAPTER_INVITE_TYPE)),
+        )
+    )
 
     includes(sdkBaseStorageModule(ChatDatabase.Schema, DBUtils.CHAT_SDK_DB_NAME))
 
@@ -26,19 +38,14 @@ internal fun storageModule() = module {
         }
     }
 
-    single {
-        get<ChatDatabase>().contactsQueries
-    }
+    single<ColumnAdapter<InviteStatus, String>>(named(ChatDITags.COLUMN_ADAPTER_INVITE_STATUS)) { EnumColumnAdapter() }
+    single<ColumnAdapter<InviteType, String>>(named(ChatDITags.COLUMN_ADAPTER_INVITE_TYPE)) { EnumColumnAdapter() }
 
-    single {
-        get<ChatDatabase>().threadsQueries
-    }
+    single { get<ChatDatabase>().contactsQueries }
+    single { get<ChatDatabase>().threadsQueries }
+    single { get<ChatDatabase>().invitesQueries }
 
-    single {
-        ChatStorageRepository(get())
-    }
-
-    single {
-        ThreadsStorageRepository(get())
-    }
+    single { ChatStorageRepository(get()) }
+    single { ThreadsStorageRepository(get()) }
+    single { InvitesStorageRepository(get()) }
 }

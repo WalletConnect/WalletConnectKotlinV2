@@ -1,0 +1,39 @@
+import com.walletconnect.chat.common.model.InviteStatus;
+import com.walletconnect.chat.common.model.InviteType;
+
+CREATE TABLE Invites (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    inviteId INTEGER UNIQUE NOT NULL,
+    message TEXT NOT NULL,
+    inviterAccount TEXT NOT NULL,
+    inviteeAccount TEXT NOT NULL,
+    status TEXT AS InviteStatus NOT NULL, -- PENDING, REJECTED OR APPROVED
+    type TEXT AS InviteType NOT NULL, -- SENT OR RECEIVED
+    inviterPublicKey TEXT,
+    inviteePublicKey TEXT
+);
+
+insertOrAbortInvite:
+INSERT OR ABORT INTO Invites(inviteId, message, inviterAccount, inviteeAccount, status, type, inviterPublicKey, inviteePublicKey)
+VALUES (?, ?, ?, ?, ?,?, ?, ?);
+
+updateInviteStatus:
+UPDATE Invites
+SET status = ?
+WHERE inviteId = ?;
+
+deleteInviteByInviteId:
+DELETE FROM Invites
+WHERE inviteId = ?;
+
+-- SentInvites
+getSentInvitesForInviterAccount:
+SELECT inviteId, message, inviterAccount, inviteeAccount, status, inviterPublicKey, inviteePublicKey
+FROM Invites
+WHERE inviterAccount = ? AND type = 'SENT';
+
+-- ReceivedInvites
+getReceivedInvitesForInviteeAccount:
+SELECT inviteId, message, inviterAccount, inviteeAccount, status, inviterPublicKey, inviteePublicKey
+FROM Invites
+WHERE inviteeAccount = ? AND type = 'RECEIVED';

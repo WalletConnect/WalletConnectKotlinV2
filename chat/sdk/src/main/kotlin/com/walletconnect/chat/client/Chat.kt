@@ -3,6 +3,7 @@ package com.walletconnect.chat.client
 import androidx.annotation.Keep
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.SignatureInterface
+import com.walletconnect.chat.common.model.Invite
 
 object Chat {
     sealed interface Listeners {
@@ -42,29 +43,35 @@ object Chat {
 
         data class ConnectionState(val isAvailable: Boolean) : Model()
 
-        data class SentInvite(
-            val id: Long,
-            val inviterAccount: Type.AccountId,
-            val inviteeAccount: Type.AccountId,
-            val message: Type.InviteMessage,
-            val status: Type.InviteStatus,
-        ) : Model()
+        sealed interface Invite {
+            val id: Long
+            val inviterAccount: Type.AccountId
+            val inviteeAccount: Type.AccountId
+            val message: Type.InviteMessage
+            val inviterPublicKey: String
+            val inviteePublicKey: String
+            val status: Type.InviteStatus
 
-        data class ReceivedInvite(
-            val id: Long,
-            val inviterAccount: Type.AccountId,
-            val inviteeAccount: Type.AccountId,
-            val message: Type.InviteMessage,
-            val inviterPublicKey: String,
-            val inviteePublicKey: String,
-        )
+            data class Received(
+                override val id: Long,
+                override val inviterAccount: Type.AccountId,
+                override val inviteeAccount: Type.AccountId,
+                override val message: Type.InviteMessage,
+                override val inviterPublicKey: String,
+                override val inviteePublicKey: String,
+                override val status: Type.InviteStatus,
+            ) : Invite
 
-        data class Invite(
-            val inviterAccount: Type.AccountId,
-            val inviteeAccount: Type.AccountId,
-            val message: Type.InviteMessage,
-            val inviteePublicKey: String,
-        ) : Model()
+            data class Sent(
+                override val id: Long,
+                override val inviterAccount: Type.AccountId,
+                override val inviteeAccount: Type.AccountId,
+                override val message: Type.InviteMessage,
+                override val inviterPublicKey: String,
+                override val inviteePublicKey: String,
+                override val status: Type.InviteStatus,
+            ) : Invite
+        }
 
         data class Media(
             val type: String,
@@ -86,7 +93,7 @@ object Chat {
         ) : Model()
 
         sealed class Events : Model() {
-            data class OnInvite(val invite: ReceivedInvite) : Events()
+            data class OnInvite(val invite: Invite.Received) : Events()
             data class OnJoined(val topic: String) : Events()
             data class OnReject(val topic: String) : Events()
             data class OnMessage(val message: Message) : Events()
@@ -120,7 +127,7 @@ object Chat {
     sealed class Params {
         data class Init(val core: CoreClient, val keyServerUrl: String = DEFUALT_KEYSERVER_URL) : Params()
         data class Resolve(val account: Type.AccountId) : Params()
-        data class Invite(val invite: Model.Invite) : Params()
+        data class Invite(val inviterAccount: Type.AccountId, val inviteeAccount: Type.AccountId, val message: Type.InviteMessage, val inviteePublicKey: String) : Params()
         data class Accept(val inviteId: Long) : Params()
         data class Reject(val inviteId: Long) : Params()
         data class Message(val topic: String, val message: Type.ChatMessage, val media: Model.Media? = null) : Params()
