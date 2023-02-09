@@ -11,6 +11,7 @@ internal const val SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE: String = "Session is not
 
 internal const val EMPTY_NAMESPACES_MESSAGE: String = "Session namespaces MUST not be empty"
 internal const val NAMESPACE_CHAINS_MISSING_MESSAGE: String = "Chains must not be empty"
+internal const val NAMESPACE_CHAINS_UNDEFINED_MISSING_MESSAGE: String = "Chains must not be null"
 internal const val NAMESPACE_CHAINS_CAIP_2_MESSAGE: String = "Chains must be CAIP-2 compliant"
 internal const val NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE: String = "Chains must be defined in matching namespace"
 internal const val NAMESPACE_KEYS_INVALID_FORMAT: String = "Invalid namespace id format"

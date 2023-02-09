@@ -93,8 +93,6 @@ class SessionProposalViewModel : ViewModel() {
                 namespaces = sessionNamespaces
             )
 
-            println("kobe; Approving: ${approveProposal.namespaces}")
-
             SignClient.approveSession(approveProposal) { error ->
                 Log.e(tag(this@SessionProposalViewModel), error.throwable.stackTraceToString())
             }

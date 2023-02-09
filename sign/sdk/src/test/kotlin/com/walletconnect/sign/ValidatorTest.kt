@@ -114,13 +114,12 @@ class ValidatorTest {
     }
 
     @Test
-    fun `Proposal Namespaces MUST have chains undefined when index is caip-2 compatible`() {
+    fun `Proposal Namespaces MAY have chains empty when index is caip-2 compatible`() {
         val namespaces =
             mapOf(COSMOSHUB_4 to NamespaceVO.Required(chains = emptyList(), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT)))
         var errorMessage: String? = null
         SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
-        assertNotNull(errorMessage)
-        assertEquals(NAMESPACE_KEYS_INVALID_FORMAT, errorMessage)
+        assertNull(errorMessage)
     }
 
     @Test
@@ -164,7 +163,7 @@ class ValidatorTest {
     }
 
     @Test
-    fun `Namespace key MUST be caip-2 compatible when chains are null`() {
+    fun `Namespace key MUST have chains defined`() {
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Required(
                 chains = null,
@@ -175,7 +174,7 @@ class ValidatorTest {
         var errorMessage: String? = null
         SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
-        assertEquals(NAMESPACE_KEYS_INVALID_FORMAT, errorMessage)
+        assertEquals(NAMESPACE_CHAINS_UNDEFINED_MISSING_MESSAGE, errorMessage)
     }
 
     @Test

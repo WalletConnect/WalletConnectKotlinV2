@@ -74,15 +74,15 @@ class ConnectViewModel : ViewModel() {
                 }.toMap()
 
 
-            val tmp = listOfChainUI
-                .filter { it.isSelected && it.chainId == "eip155:42" }
-                .groupBy { it.chainId }
-                .map { (key: String, selectedChains: List<ChainSelectionUI>) ->
-                    key to Sign.Model.Namespace.Proposal(
-                        methods = selectedChains.flatMap { it.methods }.distinct(),
-                        events = selectedChains.flatMap { it.events }.distinct()
-                    )
-                }.toMap()
+        val tmp = listOfChainUI
+            .filter { it.isSelected && it.chainId == "eip155:42" }
+            .groupBy { it.chainId }
+            .map { (key: String, selectedChains: List<ChainSelectionUI>) ->
+                key to Sign.Model.Namespace.Proposal(
+                    methods = selectedChains.flatMap { it.methods }.distinct(),
+                    events = selectedChains.flatMap { it.events }.distinct()
+                )
+            }.toMap()
 
         val optionalNamespaces: Map<String, Sign.Model.Namespace.Proposal> =
             listOfChainUI
@@ -98,11 +98,12 @@ class ConnectViewModel : ViewModel() {
         val properties: Map<String, String> = mapOf("sessionExpiry" to "123456789")
 
         val connectParams =
-            Sign.Params.Connect(namespaces = namespaces.toMutableMap().plus(tmp), optionalNamespaces = optionalNamespaces, properties = properties, pairing = pairing)
-
-        println("Kobe; Dapp: SessionNamespaces: ${connectParams.namespaces}")
-        println("Kobe; Dapp: OptionalNamespaces: ${connectParams.optionalNamespaces}")
-        println("Kobe; Dapp: Properties: ${connectParams.properties}")
+            Sign.Params.Connect(
+                namespaces = namespaces.toMutableMap().plus(tmp),
+                optionalNamespaces = optionalNamespaces,
+                properties = properties,
+                pairing = pairing
+            )
 
         SignClient.connect(connectParams,
             onSuccess = {

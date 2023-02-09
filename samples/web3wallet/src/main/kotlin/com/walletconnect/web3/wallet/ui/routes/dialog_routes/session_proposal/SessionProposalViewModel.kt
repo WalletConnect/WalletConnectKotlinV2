@@ -16,16 +16,10 @@ class SessionProposalViewModel : ViewModel() {
     fun approve() {
         if (WCDelegate.sessionProposal != null) {
             val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(WCDelegate.sessionProposal)
-            val chainIds = sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
-                if (proposal.chains != null) {
-                    proposal.chains!!
-                } else {
-                    listOf(namespaceKey)
-                }
-            }
-
-            val selectedAccounts: Map<Chains, String> =
-                chainIds.mapNotNull { namespaceChainId -> accounts.firstOrNull { (chain, address) -> chain.chainId == namespaceChainId } }.toMap()
+            val chains = sessionProposalUI.namespaces.flatMap { (namespace, proposal) -> proposal.chains!! }
+            val selectedAccounts: Map<Chains, String> = chains.map { namespaceChainId ->
+                accounts.firstOrNull { (chain, address) -> chain.chainId == namespaceChainId }
+            }.filterNotNull().toMap()
 
             val sessionNamespacesIndexedByNamespace: Map<String, Wallet.Model.Namespace.Session> =
                 selectedAccounts.filter { (chain: Chains, _) ->
@@ -87,7 +81,6 @@ class SessionProposalViewModel : ViewModel() {
                             events = events
                         )
                     }.toMap()
-
 
             val sessionNamespaces = sessionNamespacesIndexedByNamespace.plus(sessionNamespacesIndexedByChain)
             val approveProposal = Wallet.Params.SessionApprove(
