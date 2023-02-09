@@ -26,7 +26,7 @@ import com.walletconnect.chat.json_rpc.JsonRpcMethod
 import com.walletconnect.chat.jwt.ChatDidJwtClaims
 import com.walletconnect.chat.jwt.DidJwtRepository
 import com.walletconnect.chat.jwt.use_case.*
-import com.walletconnect.chat.storage.ChatStorageRepository
+import com.walletconnect.chat.storage.ContactStorageRepository
 import com.walletconnect.chat.storage.InvitesStorageRepository
 import com.walletconnect.chat.storage.ThreadsStorageRepository
 import com.walletconnect.foundation.common.model.PrivateKey
@@ -54,7 +54,7 @@ internal class ChatEngine(
     private val didJwtRepository: DidJwtRepository,
     private val keyManagementRepository: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val chatStorage: ChatStorageRepository,
+    private val contactRepository: ContactStorageRepository,
     private val pairingHandler: PairingControllerInterface,
     private val threadsRepository: ThreadsStorageRepository,
     private val invitesRepository: InvitesStorageRepository,
@@ -323,6 +323,7 @@ internal class ChatEngine(
         }
 
         val decodedInviteePublicKey = decodeX25519DidKey(invite.inviteePublicKey)
+
         setContact(invite.inviteeAccount, decodedInviteePublicKey) { error ->
             logger.error("Error while adding new account: $error")
             onFailure(error)
@@ -380,11 +381,7 @@ internal class ChatEngine(
     }
 
     internal fun setContact(accountId: AccountId, publicInviteKey: PublicKey, onFailure: (Throwable) -> Unit) = try {
-        if (chatStorage.doesContactNotExists(accountId)) {
-            chatStorage.createContact(Contact(accountId, publicInviteKey, accountId.value.take(10)))
-        } else {
-            chatStorage.updateContact(accountId, publicInviteKey, accountId.value.take(10))
-        }
+        contactRepository.upsertContact(Contact(accountId, publicInviteKey, accountId.value))
     } catch (error: Exception) {
         onFailure(error)
     }

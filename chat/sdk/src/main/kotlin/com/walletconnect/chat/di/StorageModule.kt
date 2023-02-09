@@ -8,7 +8,7 @@ import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.chat.ChatDatabase
 import com.walletconnect.chat.common.model.InviteStatus
 import com.walletconnect.chat.common.model.InviteType
-import com.walletconnect.chat.storage.ChatStorageRepository
+import com.walletconnect.chat.storage.ContactStorageRepository
 import com.walletconnect.chat.storage.InvitesStorageRepository
 import com.walletconnect.chat.storage.ThreadsStorageRepository
 import com.walletconnect.chat.storage.data.dao.Invites
@@ -45,7 +45,7 @@ internal fun storageModule() = module {
     single { get<ChatDatabase>().threadsQueries }
     single { get<ChatDatabase>().invitesQueries }
 
-    single { ChatStorageRepository(get()) }
+    single { ContactStorageRepository(get()) }
     single { ThreadsStorageRepository(get()) }
     single { InvitesStorageRepository(get()) }
 }

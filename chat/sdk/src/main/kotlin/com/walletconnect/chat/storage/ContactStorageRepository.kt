@@ -7,26 +7,34 @@ import com.walletconnect.chat.common.model.Contact
 import com.walletconnect.chat.storage.data.dao.ContactsQueries
 import com.walletconnect.foundation.common.model.PublicKey
 
-internal class ChatStorageRepository(private val contactsQueries: ContactsQueries) {
+internal class ContactStorageRepository(private val contactsQueries: ContactsQueries) {
 
     @JvmSynthetic
     internal fun doesContactNotExists(accountIdVO: AccountId): Boolean =
         contactsQueries.doesContactNotExists(accountIdVO.value).executeAsOne()
 
     @JvmSynthetic
-    internal fun createContact(contact: Contact) =
-        contactsQueries.insertOrAbortContact(
-            contact.accountId.value,
-            contact.publicKey.keyAsHex,
-            contact.displayName
-        )
+    internal fun upsertContact(contact: Contact) = with(contact) {
+        if (doesContactNotExists(accountId)) {
+            createContact(contact)
+        } else {
+            updateContact(contact)
+        }
+    }
+
+    @JvmSynthetic
+    internal fun createContact(contact: Contact) = contactsQueries.insertOrAbortContact(
+        contact.accountId.value,
+        contact.publicKey.keyAsHex,
+        contact.displayName
+    )
 
     @JvmSynthetic
     internal fun getContact(accountId: AccountId): Contact =
-        contactsQueries.getContact(accountId.value,  mapper = ::mapContactDaoToContact).executeAsOne()
+        contactsQueries.getContact(accountId.value, mapper = ::mapContactDaoToContact).executeAsOne()
 
     @JvmSynthetic
-    internal fun updateContact(accountId: AccountId, publicKey: PublicKey, displayName: String) {
+    internal fun updateContact(contact: Contact) = with(contact) {
         contactsQueries.updateContactPublicKey(publicKey.keyAsHex, accountId.value)
         contactsQueries.updateContactDisplayName(displayName, accountId.value)
     }
