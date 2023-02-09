@@ -142,7 +142,7 @@ internal class ChatProtocol : ChatInterface {
             { message -> listener.onSign(message).toCommon() },
             { didKey -> listener.onSuccess(didKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) },
-            register.private ?: false
+            register.private 
         )
     }
 
@@ -165,18 +165,12 @@ internal class ChatProtocol : ChatInterface {
         return block()
     }
 
-    private fun wrapWithTryCatch(onError: (Chat.Model.Error) -> Unit, block: () -> Unit) = try {
-        block()
-    } catch (error: Exception) {
-        onError(Chat.Model.Error(error))
-    }
+    private fun wrapWithRunCatching(onError: (Chat.Model.Error) -> Unit, block: () -> Unit) = runCatching(block).onFailure { error -> onError(Chat.Model.Error(error)) }
 
     @Throws(IllegalStateException::class)
     private fun protocolFunction(onError: (Chat.Model.Error) -> Unit, block: () -> Unit) {
         wrapWithEngineInitializationCheck() {
-            wrapWithTryCatch(onError) {
-                block()
-            }
+            wrapWithRunCatching(onError) { block() }
         }
     }
 }
