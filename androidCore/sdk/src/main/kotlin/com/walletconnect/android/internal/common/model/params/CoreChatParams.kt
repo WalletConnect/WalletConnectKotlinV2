@@ -8,7 +8,7 @@ open class CoreChatParams : ClientParams {
 
     @JsonClass(generateAdapter = true)
     data class AcceptanceParams(
-        @Json(name = "publicKey")
-        val publicKey: String,
+        @Json(name = "responseAuth")
+        val responseAuth: String,
     ) : CoreChatParams()
 }

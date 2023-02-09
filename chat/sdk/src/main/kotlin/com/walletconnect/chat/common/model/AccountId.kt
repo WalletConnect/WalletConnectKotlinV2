@@ -2,9 +2,10 @@
 
 package com.walletconnect.chat.common.model
 
-import com.walletconnect.chat.engine.domain.Validator
+import com.walletconnect.android.internal.utils.CoreValidator
+
 
 @JvmInline
 internal value class AccountId(val value: String) {
-    fun isValid(): Boolean = Validator.isAccountIdCAIP10Compliant(value)
+    fun isValid(): Boolean = CoreValidator.isAccountIdCAIP10Compliant(value)
 }

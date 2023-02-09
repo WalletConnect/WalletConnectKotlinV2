@@ -1,4 +1,6 @@
-package com.walletconnect.chat.authentication.jwt
+@file:JvmSynthetic
+
+package com.walletconnect.foundation.util.jwt
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -11,6 +13,9 @@ class JwtHeader(
     @Json(name = "typ")
     val type: String,
 ) {
+    @Json(ignore = true)
+    val encoded = encodeJSON(this) // encode on init to not encode every time jwt is generated
+
     companion object {
         val EdDSA = JwtHeader("EdDSA", "JWT")
     }
