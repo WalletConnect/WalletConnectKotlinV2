@@ -91,6 +91,7 @@ internal fun EngineDO.SessionEvent.toClientSessionEvent(): Sign.Model.SessionEve
 @JvmSynthetic
 internal fun EngineDO.Session.toClientActiveSession(): Sign.Model.Session =
     Sign.Model.Session(
+        pairingTopic,
         topic.value,
         expiry.seconds,
         namespaces.toMapOfClientNamespacesSession(),
@@ -100,6 +101,7 @@ internal fun EngineDO.Session.toClientActiveSession(): Sign.Model.Session =
 @JvmSynthetic
 internal fun EngineDO.SessionExtend.toClientActiveSession(): Sign.Model.Session =
     Sign.Model.Session(
+        pairingTopic,
         topic.value,
         expiry.seconds,
         namespaces.toMapOfClientNamespacesSession(),
