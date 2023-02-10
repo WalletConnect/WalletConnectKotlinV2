@@ -2,6 +2,7 @@
 
 package com.walletconnect.android.internal.common.crypto.kmr
 
+import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.model.MissingKeyException
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.storage.KeyStore
@@ -16,7 +17,6 @@ import org.bouncycastle.crypto.generators.HKDFBytesGenerator
 import org.bouncycastle.crypto.params.HKDFParameters
 import org.bouncycastle.math.ec.rfc7748.X25519
 import org.bouncycastle.math.ec.rfc8032.Ed25519
-import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.KeyGenerator
 
@@ -123,13 +123,6 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         return keyGenerator.generateKey().encoded
     }
 
-    private fun sha256(key: String): String {
-        val messageDigest: MessageDigest = MessageDigest.getInstance(SHA_256)
-        val hashedBytes: ByteArray = messageDigest.digest(key.hexToBytes())
-
-        return hashedBytes.bytesToHex()
-    }
-
     private fun deriveHKDFKey(sharedSecret: String): ByteArray {
         val hkdf = HKDFBytesGenerator(SHA256Digest())
         val inputKeyMaterial = sharedSecret.hexToBytes()
@@ -146,7 +139,6 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
     private companion object {
         const val KEY_SIZE: Int = 32
         const val SYM_KEY_SIZE: Int = 256
-        const val SHA_256: String = "SHA-256"
         const val AES: String = "AES"
 
         const val KEY_AGREEMENT_CONTEXT = "key_agreement/"

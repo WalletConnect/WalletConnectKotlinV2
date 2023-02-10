@@ -126,6 +126,10 @@ internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSess
 internal fun Sign.Params.Request.toEngineDORequest(): EngineDO.Request = EngineDO.Request(sessionTopic, method, params, chainId)
 
 @JvmSynthetic
+internal fun Sign.Params.Request.toSentRequest(requestId: Long): Sign.Model.SentRequest =
+    Sign.Model.SentRequest(requestId, sessionTopic, method, params, chainId)
+
+@JvmSynthetic
 internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toClientJsonRpcResult(): Sign.Model.JsonRpcResponse.JsonRpcResult =
     Sign.Model.JsonRpcResponse.JsonRpcResult(id, result)
 

@@ -43,7 +43,7 @@ class ThreadsFragment : Fragment(R.layout.fragment_threads) {
                     when (event) {
                         is ChatSharedEvents.OnMessage -> {
                             Snackbar.make(
-                                binding.root, "New message from: ${viewModel.userNameToTopicMap.entries.single { it.value == event.topic }.key}",
+                                binding.root, "New message from: ${viewModel.userNameToTopicMap.entries.single { it.value == event.message.topic }.key}",
                                 Snackbar.LENGTH_LONG
                             ).show()
                         }

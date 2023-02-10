@@ -4,7 +4,6 @@ package com.walletconnect.chat.storage
 
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.Contact
-import com.walletconnect.chat.engine.model.EngineDO
 import com.walletconnect.chat.storage.data.dao.ContactsQueries
 import com.walletconnect.foundation.common.model.PublicKey
 
@@ -15,10 +14,10 @@ internal class ChatStorageRepository(private val contactsQueries: ContactsQuerie
         contactsQueries.doesContactNotExists(accountIdVO.value).executeAsOne()
 
     @JvmSynthetic
-    internal fun createContact(contact: EngineDO.Contact) =
+    internal fun createContact(contact: Contact) =
         contactsQueries.insertOrAbortContact(
-            contact.accountIdWithPublicKey.accountId.value,
-            contact.accountIdWithPublicKey.publicKey.keyAsHex,
+            contact.accountId.value,
+            contact.publicKey.keyAsHex,
             contact.displayName
         )
 

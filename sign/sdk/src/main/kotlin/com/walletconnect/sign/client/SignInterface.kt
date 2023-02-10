@@ -47,7 +47,12 @@ interface SignInterface {
     fun pair(pair: Sign.Params.Pair, onSuccess: (Sign.Params.Pair) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun approveSession(approve: Sign.Params.Approve, onSuccess: (Sign.Params.Approve) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun rejectSession(reject: Sign.Params.Reject, onSuccess: (Sign.Params.Reject) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
-    fun request(request: Sign.Params.Request, onSuccess: (Sign.Params.Request) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    @Deprecated(
+        message = "The onSuccess callback has been replaced with a new callback that returns Sign.Model.SentRequest",
+        replaceWith = ReplaceWith(expression = "this.request(request, onSuccessWithSentRequest, onError)", imports = ["com.walletconnect.sign.client"])
+    )
+    fun request(request: Sign.Params.Request, onSuccess: (Sign.Params.Request) -> Unit = {}, onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit = { it: Sign.Model.SentRequest -> Unit}, onError: (Sign.Model.Error) -> Unit)
+    fun request(request: Sign.Params.Request, onSuccess: (Sign.Model.SentRequest) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun respond(response: Sign.Params.Response, onSuccess: (Sign.Params.Response) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun update(update: Sign.Params.Update, onSuccess: (Sign.Params.Update) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun extend(extend: Sign.Params.Extend, onSuccess: (Sign.Params.Extend) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
