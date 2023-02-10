@@ -193,10 +193,10 @@ internal class SignEngine(
             val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, selfAppMetaData)
             val sessionExpiry = ACTIVE_SESSION
             val unacknowledgedSession =
-                SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, sessionNamespaces)
+                SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, sessionNamespaces, pairingTopic.value)
 
             try {
-                sessionStorageRepository.insertSession(unacknowledgedSession, pairingTopic, requestId)
+                sessionStorageRepository.insertSession(unacknowledgedSession, requestId)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, proposal.proposer.metadata, AppMetaDataType.PEER)
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, sessionNamespaces)
@@ -621,11 +621,12 @@ internal class SignEngine(
                 selfAppMetaData,
                 requiredNamespaces,
                 optionalNamespaces,
-                properties
+                properties,
+                request.topic.value
             )
 
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
-            sessionStorageRepository.insertSession(session, request.topic, request.id)
+            sessionStorageRepository.insertSession(session, request.id)
             pairingHandler.updateMetadata(Core.Params.UpdateMetadata(proposal.topic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
             metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
 
