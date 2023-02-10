@@ -5,7 +5,6 @@ package com.walletconnect.android.internal.utils
 import java.util.concurrent.TimeUnit
 
 val CURRENT_TIME_IN_SECONDS: Long = System.currentTimeMillis() / 1000
-val CURRENT_TIME_IN_MILLISECONDS: Long = System.currentTimeMillis()
 val THIRTY_SECONDS: Long = TimeUnit.SECONDS.convert(30, TimeUnit.SECONDS)
 val FIVE_MINUTES_IN_SECONDS: Long = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES)
 val DAY_IN_SECONDS: Long = TimeUnit.SECONDS.convert(1, TimeUnit.DAYS)
