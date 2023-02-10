@@ -2,7 +2,9 @@
 
 package com.walletconnect.sign.client.mapper
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.pairing.model.mapper.toClient
@@ -158,6 +160,10 @@ internal fun List<PendingRequest>.mapToPendingRequests(): List<Sign.Model.Pendin
         request.params
     )
 }
+
+@JvmSynthetic
+internal fun List<EngineDO.SessionRequest>.mapToPendingSessionRequests(): List<Sign.Model.SessionRequest> =
+    map { request -> request.toClientSessionRequest() }
 
 @JvmSynthetic
 internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): Sign.Model.SessionRequestResponse =
