@@ -5,7 +5,7 @@ import com.walletconnect.chat.discovery.keyserver.model.KeyServerHttpResponse.Co
 import com.walletconnect.chat.discovery.keyserver.model.KeyServerResponse
 import retrofit2.Response
 
-internal fun <K : KeyServerResponse, T : KeyServerHttpResponse<K>> Response<T>.unwrapUnit() {
+internal fun <K, T : KeyServerHttpResponse<K>> Response<T>.unwrapUnit() {
     if (isSuccessful && body() != null) {
         if (body()!!.status == SUCCESS_STATUS) {
             return

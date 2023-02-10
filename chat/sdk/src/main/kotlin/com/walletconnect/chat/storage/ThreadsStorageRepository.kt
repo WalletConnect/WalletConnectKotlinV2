@@ -17,6 +17,10 @@ internal class ThreadsStorageRepository(private val threads: ThreadsQueries) {
         threads.deleteThreadByTopic(topic)
     }
 
+    fun getThreadByTopic(topic: String): Thread {
+        return threads.getThreadByTopic(topic, ::dbToThread).executeAsOne()
+    }
+
     private fun dbToThread(
         topic: String,
         selfPublicKey: String,

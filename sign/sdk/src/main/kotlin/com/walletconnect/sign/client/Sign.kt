@@ -58,6 +58,14 @@ object Sign {
             ) : Model()
         }
 
+        data class SentRequest(
+            val requestId: Long,
+            val sessionTopic: String,
+            val method: String,
+            val params: String,
+            val chainId: String
+        ) : Params()
+
         sealed class Namespace : Model() {
 
             //Required or Optional

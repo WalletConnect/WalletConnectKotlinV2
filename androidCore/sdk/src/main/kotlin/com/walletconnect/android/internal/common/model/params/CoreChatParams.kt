@@ -11,4 +11,10 @@ open class CoreChatParams : ClientParams {
         @Json(name = "responseAuth")
         val responseAuth: String,
     ) : CoreChatParams()
+
+    @JsonClass(generateAdapter = true)
+    data class ReceiptParams(
+        @Json(name = "receiptAuth")
+        val receiptAuth: String,
+    ) : CoreChatParams()
 }
