@@ -5,7 +5,7 @@ import com.walletconnect.chat.client.Chat
 sealed class ChatSharedEvents {
     object NoAction : ChatSharedEvents()
 
-    data class OnInvite(val invite: Chat.Model.ReceivedInvite) : ChatSharedEvents()
+    data class OnInvite(val invite: Chat.Model.Invite.Received) : ChatSharedEvents()
     data class OnJoined(val topic: String) : ChatSharedEvents()
     data class OnReject(val topic: String) : ChatSharedEvents()
     data class OnMessage(val message: Chat.Model.Message) : ChatSharedEvents()
