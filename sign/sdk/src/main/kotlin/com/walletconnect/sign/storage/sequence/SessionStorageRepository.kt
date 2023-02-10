@@ -56,11 +56,11 @@ internal class SessionStorageRepository(
     @Synchronized
     @JvmSynthetic
     @Throws(SQLiteException::class)
-    fun insertSession(session: SessionVO, pairingTopic: Topic, requestId: Long) {
+    fun insertSession(session: SessionVO, requestId: Long) {
         with(session) {
             sessionDaoQueries.insertOrAbortSession(
                 topic = topic.value,
-                pairingTopic = pairingTopic.value,
+                pairingTopic = pairingTopic,
                 expiry = expiry.seconds,
                 self_participant = selfPublicKey.keyAsHex,
                 relay_protocol = relayProtocol,
@@ -203,6 +203,7 @@ internal class SessionStorageRepository(
         self_participant: String,
         peer_participant: String?,
         is_acknowledged: Boolean,
+        pairingTopic: String,
         properties: Map<String, String>?
     ): SessionVO {
         val sessionNamespaces: Map<String, NamespaceVO.Session> = getSessionNamespaces(id)
@@ -223,7 +224,8 @@ internal class SessionStorageRepository(
             requiredNamespaces = requiredNamespaces,
             optionalNamespaces = optionalNamespaces,
             isAcknowledged = is_acknowledged,
-            properties = properties
+            properties = properties,
+            pairingTopic = pairingTopic
         )
     }
 

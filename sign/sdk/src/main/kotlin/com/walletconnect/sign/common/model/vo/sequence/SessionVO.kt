@@ -28,6 +28,7 @@ internal data class SessionVO(
     val optionalNamespaces: Map<String, NamespaceVO.Optional>,
     val properties: Map<String, String>? = null,
     val isAcknowledged: Boolean,
+    val pairingTopic: String
 ) : Sequence {
     val isPeerController: Boolean = peerPublicKey?.keyAsHex == controllerKey?.keyAsHex
     val isSelfController: Boolean = selfPublicKey.keyAsHex == controllerKey?.keyAsHex
@@ -40,7 +41,8 @@ internal data class SessionVO(
             proposal: SignParams.SessionProposeParams,
             selfParticipant: SessionParticipantVO,
             sessionExpiry: Long,
-            namespaces: Map<String, EngineDO.Namespace.Session>
+            namespaces: Map<String, EngineDO.Namespace.Session>,
+            pairingTopic: String
         ): SessionVO {
             return SessionVO(
                 sessionTopic,
@@ -56,7 +58,8 @@ internal data class SessionVO(
                 requiredNamespaces = proposal.requiredNamespaces,
                 optionalNamespaces = proposal.optionalNamespaces,
                 properties = proposal.properties,
-                isAcknowledged = false
+                isAcknowledged = false,
+                pairingTopic = pairingTopic
             )
         }
 
@@ -68,7 +71,8 @@ internal data class SessionVO(
             selfMetadata: AppMetaData,
             requiredNamespaces: Map<String, NamespaceVO.Required>,
             optionalNamespaces: Map<String, NamespaceVO.Optional>,
-            properties: Map<String, String>?
+            properties: Map<String, String>?,
+            pairingTopic: String
         ): SessionVO {
             return SessionVO(
                 sessionTopic,
@@ -84,7 +88,8 @@ internal data class SessionVO(
                 requiredNamespaces = requiredNamespaces,
                 optionalNamespaces = optionalNamespaces,
                 properties = properties,
-                isAcknowledged = true
+                isAcknowledged = true,
+                pairingTopic = pairingTopic
             )
         }
     }
