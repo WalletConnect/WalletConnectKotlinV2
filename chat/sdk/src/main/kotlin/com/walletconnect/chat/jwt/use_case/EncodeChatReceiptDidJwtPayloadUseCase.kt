@@ -2,12 +2,13 @@
 
 package com.walletconnect.chat.jwt.use_case
 
+import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.jwt.ChatDidJwtClaims
 import com.walletconnect.foundation.util.jwt.encodeDidPkh
 
 internal class EncodeChatReceiptDidJwtPayloadUseCase(
-    private val messageHash: String,
+    private val message: String,
     private val senderAccountId: AccountId,
 ) : EncodeDidJwtPayloadUseCase {
 
@@ -16,7 +17,7 @@ internal class EncodeChatReceiptDidJwtPayloadUseCase(
         issuedAt = issuedAt,
         expiration = expiration,
         keyserverUrl = keyserverUrl,
-        subject = messageHash,
+        subject = sha256(message),
         audience = encodeDidPkh(senderAccountId.value),
     )
 }

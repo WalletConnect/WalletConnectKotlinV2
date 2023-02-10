@@ -2,9 +2,10 @@
 
 package com.walletconnect.chat.common.model
 
-internal data class Invite(
+internal data class SentInvite(
+    val id: Long,
     val inviterAccount: AccountId,
     val inviteeAccount: AccountId,
     val message: InviteMessage,
-    val inviteePublicKey: String,
+    val status: InviteStatus,
 )

@@ -9,17 +9,14 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.mapper.toClient
 import com.walletconnect.chat.client.mapper.toClientError
 import com.walletconnect.chat.client.mapper.toCommon
-import com.walletconnect.chat.client.mapper.toEngineDO
 import com.walletconnect.chat.common.model.AccountId
-import com.walletconnect.chat.common.model.AccountIdWithPublicKey
+import com.walletconnect.chat.common.model.Events
 import com.walletconnect.chat.di.*
 import com.walletconnect.chat.engine.domain.ChatEngine
-import com.walletconnect.chat.engine.model.EngineDO
 import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.launch
 
 internal class ChatProtocol : ChatInterface {
-    private val keyServerUrl = "https://staging.keys.walletconnect.com"
     private lateinit var chatEngine: ChatEngine
 
     companion object {
@@ -31,7 +28,7 @@ internal class ChatProtocol : ChatInterface {
         try {
             wcKoinApp.run {
                 modules(
-                    keyServerModule(keyServerUrl),
+                    keyServerModule(init.keyServerUrl),
                     jsonRpcModule(),
                     storageModule(),
                     engineModule()
@@ -45,17 +42,16 @@ internal class ChatProtocol : ChatInterface {
         }
     }
 
-    override fun setChatDelegate(delegate: ChatInterface.ChatDelegate) {
-        checkEngineInitialization()
-
+    @Throws(IllegalStateException::class)
+    override fun setChatDelegate(delegate: ChatInterface.ChatDelegate): Unit = wrapWithEngineInitializationCheck() {
         scope.launch {
             chatEngine.events.collect { event ->
                 when (event) {
-                    is EngineDO.Events.OnInvite -> delegate.onInvite(event.toClient())
-                    is EngineDO.Events.OnJoined -> delegate.onJoined(event.toClient())
-                    is EngineDO.Events.OnReject -> delegate.onReject(event.toClient())
-                    is EngineDO.Events.OnMessage -> delegate.onMessage(event.toClient())
-                    is EngineDO.Events.OnLeft -> delegate.onLeft(event.toClient())
+                    is Events.OnInvite -> delegate.onInvite(event.toClient())
+                    is Events.OnJoined -> delegate.onJoined(event.toClient())
+                    is Events.OnReject -> delegate.onReject(event.toClient())
+                    is Events.OnMessage -> delegate.onMessage(event.toClient())
+                    is Events.OnLeft -> delegate.onLeft(event.toClient())
                     is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
                     is SDKError -> delegate.onError(event.toClientError())
                 }
@@ -64,9 +60,7 @@ internal class ChatProtocol : ChatInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun resolve(resolve: Chat.Params.Resolve, listener: Chat.Listeners.Resolve) {
-        checkEngineInitialization()
-
+    override fun resolve(resolve: Chat.Params.Resolve, listener: Chat.Listeners.Resolve) = protocolFunction(listener::onError) {
         chatEngine.resolveAccount(
             AccountId(resolve.account.value),
             { publicKey -> listener.onSuccess(publicKey) },
@@ -75,106 +69,108 @@ internal class ChatProtocol : ChatInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun invite(invite: Chat.Params.Invite, onError: (Chat.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
-        chatEngine.invite(invite.account.toCommon(), invite.toEngineDO()) { error -> onError(Chat.Model.Error(error)) }
+    override fun goPrivate(goPrivate: Chat.Params.GoPrivate, onSuccess: () -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
+        chatEngine.goPrivate(goPrivate.account.toCommon(), { onSuccess() }, { error -> onError(Chat.Model.Error(error)) })
     }
 
     @Throws(IllegalStateException::class)
-    override fun accept(accept: Chat.Params.Accept, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit) {
-        checkEngineInitialization()
+    override fun goPublic(goPublic: Chat.Params.GoPublic, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
+        chatEngine.goPublic(goPublic.account.toCommon(), { inviteKey -> onSuccess(inviteKey) }, { error -> onError(Chat.Model.Error(error)) })
+    }
 
+    @Throws(IllegalStateException::class)
+    override fun invite(invite: Chat.Params.Invite, onSuccess: (Long) -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
+        chatEngine.invite(invite.toCommon(), { inviteId -> onSuccess(inviteId) }, { error -> onError(Chat.Model.Error(error)) })
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun accept(accept: Chat.Params.Accept, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
         chatEngine.accept(accept.inviteId, { threadTopic -> onSuccess(threadTopic) }, { error -> onError(Chat.Model.Error(error)) })
     }
 
     @Throws(IllegalStateException::class)
-    override fun reject(reject: Chat.Params.Reject, onError: (Chat.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
+    override fun reject(reject: Chat.Params.Reject, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
         chatEngine.reject(reject.inviteId) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
-    override fun message(message: Chat.Params.Message, onError: (Chat.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
-        chatEngine.message(message.topic, message.toEngineDO()) { error -> onError(Chat.Model.Error(error)) }
+    override fun message(message: Chat.Params.Message, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
+        chatEngine.message(message.topic, message.toCommon()) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
-    override fun ping(ping: Chat.Params.Ping, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
+    override fun ping(ping: Chat.Params.Ping, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
         chatEngine.ping(ping.topic, onSuccess = { topic -> onSuccess(topic) }, { error -> onError(Chat.Model.Error(error)) })
     }
 
     @Throws(IllegalStateException::class)
-    override fun leave(leave: Chat.Params.Leave, onError: (Chat.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
+    override fun leave(leave: Chat.Params.Leave, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
         chatEngine.leave(leave.topic) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
-    override fun addContact(addContact: Chat.Params.AddContact, onError: (Chat.Model.Error) -> Unit) {
-        checkEngineInitialization()
-        chatEngine.addContact(AccountIdWithPublicKey(addContact.account.toCommon(), PublicKey(addContact.publicKey))) { error ->
+    override fun setContact(setContact: Chat.Params.SetContact, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
+        chatEngine.setContact(setContact.account.toCommon(), PublicKey(setContact.publicKey)) { error ->
             onError(Chat.Model.Error(error))
         }
     }
 
     @Throws(IllegalStateException::class)
-    override fun getInvites(getInvites: Chat.Params.GetInvites): Map<String, Chat.Model.Invite> {
-        checkEngineInitialization()
+    override fun getReceivedInvites(getReceivedInvites: Chat.Params.GetReceivedInvites): Map<Long, Chat.Model.ReceivedInvite> = wrapWithEngineInitializationCheck() {
         TODO("Not yet implemented")
     }
 
     @Throws(IllegalStateException::class)
-    override fun getThreads(getThreads: Chat.Params.GetThreads): Map<String, Chat.Model.Thread> {
-        checkEngineInitialization()
-
-        return chatEngine.getThreadsByAccount(getThreads.account.value).mapValues { (_, thread) ->
-            thread.toClient()
-        }
-    }
-
-    @Throws(IllegalStateException::class)
-    override fun getMessages(getMessages: Chat.Params.GetMessages): List<Chat.Model.Message> {
-        checkEngineInitialization()
+    override fun getSentInvites(getSentInvites: Chat.Params.GetSentInvites): Map<Long, Chat.Model.SentInvite> = wrapWithEngineInitializationCheck() {
         TODO("Not yet implemented")
     }
 
     @Throws(IllegalStateException::class)
-    private fun checkEngineInitialization() {
+    override fun getThreads(getThreads: Chat.Params.GetThreads): Map<String, Chat.Model.Thread> = wrapWithEngineInitializationCheck() {
+        chatEngine.getThreadsByAccount(getThreads.account.value).mapValues { (_, thread) -> thread.toClient() }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getMessages(getMessages: Chat.Params.GetMessages): List<Chat.Model.Message> = wrapWithEngineInitializationCheck() {
+        TODO("Not yet implemented")
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun register(register: Chat.Params.Register, listener: Chat.Listeners.Register) = protocolFunction(listener::onError) {
+        chatEngine.registerIdentity(
+            register.account.toCommon(),
+            { message -> listener.onSign(message).toCommon() },
+            { didKey -> listener.onSuccess(didKey) },
+            { throwable -> listener.onError(Chat.Model.Error(throwable)) },
+            register.private 
+        )
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun unregister(unregister: Chat.Params.Unregister, listener: Chat.Listeners.Unregister) = protocolFunction(listener::onError) {
+        chatEngine.unregisterIdentity(
+            unregister.account.toCommon(),
+            { message -> listener.onSign(message).toCommon() },
+            { didKey -> listener.onSuccess(didKey) },
+            { throwable -> listener.onError(Chat.Model.Error(throwable)) },
+        )
+    }
+
+
+    @Throws(IllegalStateException::class)
+    private fun <R> wrapWithEngineInitializationCheck(block: () -> R): R {
         check(::chatEngine.isInitialized) {
             "ChatClient needs to be initialized first using the initialize function"
         }
+        return block()
     }
 
+    private fun wrapWithRunCatching(onError: (Chat.Model.Error) -> Unit, block: () -> Unit) = runCatching(block).onFailure { error -> onError(Chat.Model.Error(error)) }
 
     @Throws(IllegalStateException::class)
-    override fun registerIdentity(registerIdentity: Chat.Params.RegisterIdentity, listener: Chat.Listeners.RegisterIdentity) {
-        checkEngineInitialization()
-
-        chatEngine.registerIdentity(
-            registerIdentity.account.toCommon(),
-            { message -> listener.onSign(message).toCommon() },
-            { publicKey -> listener.onSuccess(publicKey) },
-            { throwable -> listener.onError(Chat.Model.Error(throwable)) },
-            registerIdentity.private ?: false
-        )
-    }
-
-    @Throws(IllegalStateException::class)
-    override fun registerInvite(register: Chat.Params.Register, listener: Chat.Listeners.Register) {
-        checkEngineInitialization()
-
-        chatEngine.registerInvite(
-            register.account.toCommon(),
-            { publicKey -> listener.onSuccess(publicKey) },
-            { throwable -> listener.onError(Chat.Model.Error(throwable)) },
-            register.private ?: false
-        )
+    private fun protocolFunction(onError: (Chat.Model.Error) -> Unit, block: () -> Unit) {
+        wrapWithEngineInitializationCheck() {
+            wrapWithRunCatching(onError) { block() }
+        }
     }
 }
