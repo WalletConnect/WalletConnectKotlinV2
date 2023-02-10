@@ -28,6 +28,7 @@ import com.walletconnect.chat.jwt.DidJwtRepository
 import com.walletconnect.chat.jwt.use_case.*
 import com.walletconnect.chat.storage.ContactStorageRepository
 import com.walletconnect.chat.storage.InvitesStorageRepository
+import com.walletconnect.chat.storage.MessageStorageRepository
 import com.walletconnect.chat.storage.ThreadsStorageRepository
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
@@ -58,6 +59,7 @@ internal class ChatEngine(
     private val pairingHandler: PairingControllerInterface,
     private val threadsRepository: ThreadsStorageRepository,
     private val invitesRepository: InvitesStorageRepository,
+    private val messageRepository: MessageStorageRepository,
     private val logger: Logger,
 ) {
     private var jsonRpcRequestsJob: Job? = null
@@ -468,18 +470,25 @@ internal class ChatEngine(
 
         val thread = threadsRepository.getThreadByTopic(topic)
         val (authorAccountId, recipientAccountId) = AccountId(thread.selfAccount) to AccountId(thread.peerAccount)
+        val messageTimestampInMs = System.currentTimeMillis()
+
         val didJwt: String = didJwtRepository
-            .encodeDidJwt(getIdentityKeyPair(authorAccountId), keyserverUrl, EncodeChatMessageDidJwtPayloadUseCase(message.message.value, recipientAccountId, message.media))
+            .encodeDidJwt(getIdentityKeyPair(authorAccountId), keyserverUrl, EncodeChatMessageDidJwtPayloadUseCase(message.message.value, recipientAccountId, message.media, messageTimestampInMs))
             .getOrElse() { error -> return@message onFailure(error) }
 
         val messageParams = ChatParams.MessageParams(messageAuth = didJwt)
-        val payload = ChatRpc.ChatMessage(id = generateId(), params = messageParams)
+        val messageId = generateId()
+        val payload = ChatRpc.ChatMessage(id = messageId, params = messageParams)
         val irnParams = IrnParams(Tags.CHAT_MESSAGE, Ttl(MONTH_IN_SECONDS), true)
 
+        scope.launch { messageRepository.insertMessage(Message(messageId, Topic(topic), message.message, authorAccountId, messageTimestampInMs, message.media)) }
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, payload,
-            onSuccess = { logger.log("Chat message sent successfully") },
+            onSuccess = {
+                logger.log("Chat message sent successfully")
+            },
             onFailure = { throwable ->
                 logger.log("Chat message error: $throwable")
+                scope.launch { messageRepository.deleteMessageByMessageId(messageId) }
                 onFailure(throwable)
             })
     }
@@ -489,7 +498,13 @@ internal class ChatEngine(
         val irnParams = IrnParams(Tags.CHAT_LEAVE, Ttl(MONTH_IN_SECONDS), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, payload, EnvelopeType.ZERO,
-            onSuccess = { logger.log("Chat leave sent successfully") },
+            onSuccess = {
+                logger.log("Chat leave sent successfully")
+                // Not sure if we want to remove thread and messages if someone leaves convo.
+                // Maybe just forgetting thread symkey is better solution?
+                threadsRepository.deleteThreadByTopic(topic)
+                scope.launch { messageRepository.deleteMessagesByTopic(topic) }
+            },
             onFailure = { throwable ->
                 logger.log("Chat leave error: $throwable")
                 onFailure(throwable)
@@ -510,6 +525,10 @@ internal class ChatEngine(
 
     internal fun getThreadsByAccount(accountId: String): Map<String, Thread> {
         return threadsRepository.getThreadsForSelfAccount(accountId).associateBy { thread -> thread.topic }
+    }
+
+    internal suspend fun getMessagesByTopic(topic: String): List<Message> {
+        return messageRepository.getMessageByTopic(topic)
     }
 
     internal suspend fun getSentInvites(inviterAccountId: String): Map<Long, Invite.Sent> {
@@ -587,8 +606,14 @@ internal class ChatEngine(
                     return@launch
                 }
             val recipientAccountId = AccountId(decodeDidPkh(claims.audience))
-            val message = Message(wcRequest.topic, ChatMessage(claims.subject), authorAccountId, wcRequest.id, claims.media)
+
+            // Currently timestamps are based on claims issuedAt. Which MUST be changed to achieve proper order of messages.
+            // Should be changed with specs: https://github.com/WalletConnect/walletconnect-docs/pull/473.
+            // Change: Instead of claims.issuedAt use wcRequest.receivedAt
+
+            val message = Message(wcRequest.id, wcRequest.topic, ChatMessage(claims.subject), authorAccountId, claims.issuedAt, claims.media)
             _events.emit(Events.OnMessage(message))
+            messageRepository.insertMessage(message)
 
             val didJwt: String = didJwtRepository
                 .encodeDidJwt(getIdentityKeyPair(recipientAccountId), keyserverUrl, EncodeChatReceiptDidJwtPayloadUseCase(claims.subject, authorAccountId))
@@ -602,11 +627,13 @@ internal class ChatEngine(
 
             jsonRpcInteractor.respondWithParams(wcRequest, receiptParams, irnParams, EnvelopeType.ZERO) { error -> logger.error(error) }
         }
-        //TODO: Add adding messages to storage. For Alpha we will use only emitted event.
     }
 
     private fun onLeft(request: WCRequest) {
+        // Not sure if we want to remove thread and messages if someone leaves convo.
+        // Maybe just forgetting thread symkey is better solution?
         threadsRepository.deleteThreadByTopic(request.topic.value)
+        scope.launch { messageRepository.deleteMessagesByTopic(request.topic.value) }
 
         scope.launch {
             _events.emit(Events.OnLeft(request.topic.value))

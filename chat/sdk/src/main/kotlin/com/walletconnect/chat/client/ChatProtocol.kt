@@ -137,7 +137,9 @@ internal class ChatProtocol : ChatInterface {
 
     @Throws(IllegalStateException::class)
     override fun getMessages(getMessages: Chat.Params.GetMessages): List<Chat.Model.Message> = wrapWithEngineInitializationCheck() {
-        TODO("Not yet implemented")
+        runBlocking(scope.coroutineContext) {
+            chatEngine.getMessagesByTopic(getMessages.topic).map { message -> message.toClient() }
+        }
     }
 
     @Throws(IllegalStateException::class)
