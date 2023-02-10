@@ -21,20 +21,20 @@ object Chat {
         interface Unregister : PublicKeyOnSuccess, SignMessage
     }
 
-    sealed class Type {
-        enum class InviteStatus { PENDING, REJECTED, APPROVED }
+    sealed interface Type {
+        enum class InviteStatus : Type { PENDING, REJECTED, APPROVED }
 
         @JvmInline
-        value class AccountId(val value: String)
+        value class AccountId(val value: String) : Type
 
         @JvmInline
-        value class InviteMessage(val value: String)
+        value class InviteMessage(val value: String) : Type
 
         @JvmInline
-        value class MediaData(val value: String)
+        value class MediaData(val value: String) : Type
 
         @JvmInline
-        value class ChatMessage(val value: String)
+        value class ChatMessage(val value: String) : Type
     }
 
     sealed class Model {
