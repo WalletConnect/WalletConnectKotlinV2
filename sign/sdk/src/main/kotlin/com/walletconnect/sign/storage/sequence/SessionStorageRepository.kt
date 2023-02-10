@@ -3,9 +3,9 @@
 package com.walletconnect.sign.storage.sequence
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDaoQueries
@@ -34,6 +34,7 @@ internal class SessionStorageRepository(
     fun getListOfSessionVOsWithoutMetadata(): List<SessionVO> =
         sessionDaoQueries.getListOfSessionDaos(mapper = this@SessionStorageRepository::mapSessionDaoToSessionVO).executeAsList()
 
+    // TODO: Maybe move this out and into SignValidator?
     @JvmSynthetic
     fun isSessionValid(topic: Topic): Boolean {
         val hasTopic = sessionDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
@@ -46,6 +47,13 @@ internal class SessionStorageRepository(
             } ?: false
         } else {
             false
+        }
+    }
+
+    @JvmSynthetic
+    fun getSessionExpiryByTopic(topic: Topic): Expiry? {
+        return sessionDaoQueries.getExpiry(topic.value).executeAsOneOrNull()?.let { expiryLong ->
+            Expiry(expiryLong)
         }
     }
 

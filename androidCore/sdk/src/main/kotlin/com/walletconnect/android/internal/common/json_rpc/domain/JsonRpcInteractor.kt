@@ -133,6 +133,7 @@ internal class JsonRpcInteractor(
             })
     }
 
+    // TODO: Can we replace this function with different parameters? Instead of request, just pass request id and request topic.
     override fun respondWithSuccess(
         request: WCRequest,
         irnParams: IrnParams,
@@ -149,6 +150,7 @@ internal class JsonRpcInteractor(
         }
     }
 
+    // TODO: Can we replace this function with different parameters? Instead of request, just pass request id and request topic. And we never use WCRequest in the onSuccess callback so we can remove that as well
     override fun respondWithError(
         request: WCRequest,
         error: Error,

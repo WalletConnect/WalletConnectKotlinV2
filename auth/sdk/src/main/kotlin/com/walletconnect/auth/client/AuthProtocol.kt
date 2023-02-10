@@ -3,6 +3,7 @@
 package com.walletconnect.auth.client
 
 import com.walletconnect.android.internal.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -66,7 +67,8 @@ internal class AuthProtocol : AuthInterface {
         checkEngineInitialization()
 
         try {
-            authEngine.request(params.toCommon(), params.topic,
+            val expiry = params.expiry?.run { Expiry(this) }
+            authEngine.request(params.toCommon(), expiry, params.topic,
                 onSuccess = onSuccess,
                 onFailure = { error -> onError(Auth.Model.Error(error)) }
             )

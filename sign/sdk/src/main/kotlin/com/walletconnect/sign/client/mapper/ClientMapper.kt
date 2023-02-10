@@ -4,6 +4,7 @@ package com.walletconnect.sign.client.mapper
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.sign.client.Sign
@@ -126,7 +127,7 @@ internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSess
 
 @JvmSynthetic
 internal fun Sign.Params.Request.toEngineDORequest(): EngineDO.Request =
-    EngineDO.Request(sessionTopic, method, params, chainId)
+    EngineDO.Request(sessionTopic, method, params, chainId, expiry?.let { Expiry(it) })
 
 @JvmSynthetic
 internal fun Sign.Params.Request.toSentRequest(requestId: Long): Sign.Model.SentRequest =
