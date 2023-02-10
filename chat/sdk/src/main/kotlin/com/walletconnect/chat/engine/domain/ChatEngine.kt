@@ -596,14 +596,11 @@ internal class ChatEngine(
             runCatching { accountsRepository.getAccountByInviteTopic(wcRequest.topic) }.fold(onSuccess = { inviteeAccount ->
                 val inviteePublicKey = inviteeAccount.publicInviteKey ?: throw Throwable("Missing publicInviteKey")
                 val inviterPublicKey = decodeX25519DidKey(claims.inviterPublicKey)
-                val invite = Invite.Received(
-                    wcRequest.id, inviterAccountId, inviteeAccount.accountId, InviteMessage(claims.subject), inviterPublicKey.keyAsHex, inviteePublicKey.keyAsHex, InviteStatus.PENDING
-                )
+                val invite = Invite.Received(wcRequest.id, inviterAccountId, inviteeAccount.accountId, InviteMessage(claims.subject), inviterPublicKey, inviteePublicKey, InviteStatus.PENDING
 
-                _events.emit(Events.OnInvite(invite))
+    )            _events.emit(Events.OnInvite(invite))
                 invitesRepository.insertInvite(invite)
             }, onFailure = { error -> logger.error(error) })
-
 
         }
     }
