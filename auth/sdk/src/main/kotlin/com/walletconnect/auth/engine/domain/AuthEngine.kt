@@ -37,6 +37,7 @@ import com.walletconnect.auth.engine.mapper.toPendingRequest
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.auth.json_rpc.model.JsonRpcMethod
+import com.walletconnect.auth.json_rpc.model.JsonRpcMethod.WC_AUTH_REQUEST
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -169,13 +170,6 @@ internal class AuthEngine(
         }
 
         val authParams: AuthParams.RequestParams = jsonRpcHistoryEntry.params
-
-        authParams.expiry?.let { expiry ->
-            if (CoreValidator.isExpiryNotWithinBounds(expiry)) {
-                return onFailure(InvalidExpiryException())
-            }
-        }
-
         val response: JsonRpcResponse = when (respond) {
             is Respond.Error -> JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
             is Respond.Result -> {
@@ -192,6 +186,21 @@ internal class AuthEngine(
         val senderPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(senderPublicKey, receiverPublicKey)
         val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
+
+        authParams.expiry?.let { expiry ->
+            if (CoreValidator.isExpiryNotWithinBounds(expiry)) {
+                scope.launch {
+                    supervisorScope {
+                        val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
+                        val wcRequest = WCRequest(responseTopic, respond.id, WC_AUTH_REQUEST, authParams)
+                        jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
+                    }
+                }
+
+                return onFailure(InvalidExpiryException())
+            }
+        }
+
         crypto.setKey(symmetricKey, responseTopic.value)
 
         val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)

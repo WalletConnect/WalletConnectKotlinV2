@@ -10,8 +10,10 @@ import com.walletconnect.android.internal.common.exception.*
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
+import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.*
@@ -330,6 +332,14 @@ internal class SignEngine(
 
         sessionStorageRepository.getSessionExpiryByTopic(topicWrapper)?.let { expiry ->
             if (CoreValidator.isExpiryNotWithinBounds(expiry)) {
+                scope.launch {
+                    supervisorScope {
+                        val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+                        val request = WCRequest(Topic(topic), jsonRpcResponse.id, JsonRpcMethod.WC_SESSION_REQUEST, object: ClientParams {})
+                        jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+                    }
+                }
+
                 return onFailure(InvalidExpiryException())
             }
         } ?: return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
