@@ -45,6 +45,7 @@ import com.walletconnect.util.generateId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 internal class AuthEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -99,8 +100,8 @@ internal class AuthEngine(
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        val now = Date().time
-        if (CoreValidator.isExpiryNotWithinBounds(expiry, now)) {
+        val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.MILLISECONDS)
+        if (CoreValidator.isExpiryNotWithinBounds(expiry, nowInSeconds)) {
             return onFailure(InvalidExpiryException())
         }
 
@@ -110,13 +111,16 @@ internal class AuthEngine(
         val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
         val irnParamsTtl = expiry?.run {
             val defaultTtl = DAY_IN_SECONDS
-            val extractedTtl = seconds - now
+            val extractedTtl = seconds - nowInSeconds
             val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
 
             Ttl(newTtl)
         } ?: Ttl(DAY_IN_SECONDS)
         val irnParams = IrnParams(Tags.AUTH_REQUEST, irnParamsTtl, true)
         val pairingTopic = Topic(topic)
+        val requestTtlInSeconds = expiry?.run {
+            seconds - nowInSeconds
+        } ?: DAY_IN_SECONDS
         crypto.setKey(responsePublicKey, "${SELF_PARTICIPANT_CONTEXT}${responseTopic.value}")
 
         jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
@@ -134,7 +138,7 @@ internal class AuthEngine(
 
                 scope.launch {
                     try {
-                        withTimeout(irnParamsTtl.seconds) {
+                        withTimeout(requestTtlInSeconds) {
                             jsonRpcInteractor.peerResponse
                                 .filter { response -> response.response.id == authRequest.id }
                                 .collect { cancel() }

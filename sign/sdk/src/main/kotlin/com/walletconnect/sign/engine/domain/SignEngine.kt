@@ -45,6 +45,7 @@ import com.walletconnect.utils.isSequenceValid
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 internal class SignEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -262,8 +263,8 @@ internal class SignEngine(
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
 
-        val now = Date().time
-        if (CoreValidator.isExpiryNotWithinBounds(request.expiry, now) ) {
+        val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.MILLISECONDS)
+        if (CoreValidator.isExpiryNotWithinBounds(request.expiry, nowInSeconds) ) {
             return onFailure(InvalidExpiryException())
         }
 
@@ -280,12 +281,15 @@ internal class SignEngine(
         val sessionPayload = SignRpc.SessionRequest(id = generateId(), params = params)
         val irnParamsTtl = request.expiry?.run {
             val defaultTtl = FIVE_MINUTES_IN_SECONDS
-            val extractedTtl = seconds - now
+            val extractedTtl = seconds - nowInSeconds
             val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
 
             Ttl(newTtl)
         } ?: Ttl(FIVE_MINUTES_IN_SECONDS)
         val irnParams = IrnParams(Tags.SESSION_REQUEST, irnParamsTtl, true)
+        val requestTtlInSeconds = request.expiry?.run {
+            seconds - nowInSeconds
+        } ?: FIVE_MINUTES_IN_SECONDS
 
         jsonRpcInteractor.publishJsonRpcRequest(
             Topic(request.topic),
@@ -297,7 +301,7 @@ internal class SignEngine(
 
                 scope.launch {
                     try {
-                        withTimeout(irnParamsTtl.seconds) {
+                        withTimeout(requestTtlInSeconds) {
                             collectResponse(sessionPayload.id) { cancel() }
                         }
                     } catch (e: TimeoutCancellationException) {

@@ -3,6 +3,7 @@ package com.walletconnect.android.internal.utils
 import com.walletconnect.android.internal.common.model.Expiry
 import java.time.Instant
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 object CoreValidator {
 
@@ -26,7 +27,7 @@ object CoreValidator {
     }
 
     @JvmSynthetic
-    fun isExpiryNotWithinBounds(userExpiry: Expiry?, now: Long = Date().time): Boolean =
+    fun isExpiryNotWithinBounds(userExpiry: Expiry?, now: Long = TimeUnit.SECONDS.convert(Date().time, TimeUnit.MILLISECONDS)): Boolean =
         userExpiry?.seconds?.run {
             val remainder = this - now
 
