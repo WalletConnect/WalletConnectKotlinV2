@@ -4,5 +4,5 @@ package com.walletconnect.chat.common.model
 
 internal data class Media(
     val type: String,
-    val data: String,
+    val data: MediaData,
 )

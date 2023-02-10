@@ -92,6 +92,7 @@ internal fun EngineDO.SessionEvent.toClientSessionEvent(): Sign.Model.SessionEve
 @JvmSynthetic
 internal fun EngineDO.Session.toClientActiveSession(): Sign.Model.Session =
     Sign.Model.Session(
+        pairingTopic,
         topic.value,
         expiry.seconds,
         namespaces.toMapOfClientNamespacesSession(),
@@ -101,6 +102,7 @@ internal fun EngineDO.Session.toClientActiveSession(): Sign.Model.Session =
 @JvmSynthetic
 internal fun EngineDO.SessionExtend.toClientActiveSession(): Sign.Model.Session =
     Sign.Model.Session(
+        pairingTopic,
         topic.value,
         expiry.seconds,
         namespaces.toMapOfClientNamespacesSession(),
@@ -126,6 +128,10 @@ internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSess
 @JvmSynthetic
 internal fun Sign.Params.Request.toEngineDORequest(): EngineDO.Request =
     EngineDO.Request(sessionTopic, method, params, chainId, expiry?.let { Expiry(it) })
+
+@JvmSynthetic
+internal fun Sign.Params.Request.toSentRequest(requestId: Long): Sign.Model.SentRequest =
+    Sign.Model.SentRequest(requestId, sessionTopic, method, params, chainId)
 
 @JvmSynthetic
 internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toClientJsonRpcResult(): Sign.Model.JsonRpcResponse.JsonRpcResult =

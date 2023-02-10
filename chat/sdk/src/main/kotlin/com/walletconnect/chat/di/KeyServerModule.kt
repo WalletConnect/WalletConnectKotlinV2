@@ -3,12 +3,13 @@
 package com.walletconnect.chat.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
-import com.walletconnect.chat.discovery.keyserver.data.client.KeyServerClient
 import com.walletconnect.chat.discovery.keyserver.data.service.KeyServerService
+import com.walletconnect.chat.discovery.keyserver.domain.use_case.*
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterIdentityUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.RegisterInviteUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveIdentityUseCase
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.ResolveInviteUseCase
+import com.walletconnect.chat.discovery.keyserver.domain.use_case.UnregisterIdentityUseCase
 import okhttp3.OkHttpClient
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -44,13 +45,15 @@ internal fun keyServerModule(keyServerUrl: String) = module {
         get<Retrofit>().create(KeyServerService::class.java)
     }
 
-    single { KeyServerClient(get()) }
-
     single { RegisterIdentityUseCase(get()) }
+
+    single { UnregisterIdentityUseCase(get()) }
 
     single { ResolveIdentityUseCase(get()) }
 
     single { RegisterInviteUseCase(get()) }
+
+    single { UnregisterInviteUseCase(get()) }
 
     single { ResolveInviteUseCase(get()) }
 }

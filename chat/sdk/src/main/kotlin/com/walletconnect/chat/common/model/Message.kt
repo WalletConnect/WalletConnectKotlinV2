@@ -2,9 +2,12 @@
 
 package com.walletconnect.chat.common.model
 
+import com.walletconnect.foundation.common.model.Topic
+
 internal data class Message(
-    val message: String,
-    val authorAccount: String,
+    val topic: Topic,
+    val message: ChatMessage,
+    val authorAccount: AccountId,
     val timestamp: Long,
-    val media: Media
+    val media: Media?,
 )

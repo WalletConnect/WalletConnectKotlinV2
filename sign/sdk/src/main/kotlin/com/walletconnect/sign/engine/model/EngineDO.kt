@@ -118,6 +118,7 @@ internal sealed class EngineDO {
     internal data class SessionExtend(
         override val topic: Topic,
         override val expiry: Expiry,
+        val pairingTopic: String,
         val namespaces: Map<String, Namespace.Session>,
         val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, EngineEvent
@@ -125,6 +126,7 @@ internal sealed class EngineDO {
     internal data class Session(
         override val topic: Topic,
         override val expiry: Expiry,
+        val pairingTopic: String,
         val namespaces: Map<String, Namespace.Session>,
         val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, EngineEvent

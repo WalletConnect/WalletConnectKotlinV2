@@ -173,10 +173,11 @@ internal class SignEngine(
             val selfPublicKey = crypto.getSelfPublicFromKeyAgreement(sessionTopic)
             val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, selfAppMetaData)
             val sessionExpiry = ACTIVE_SESSION
-            val unacknowledgedSession = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces)
+            val unacknowledgedSession =
+                SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces, pairingTopic.value)
 
             try {
-                sessionStorageRepository.insertSession(unacknowledgedSession, pairingTopic, requestId)
+                sessionStorageRepository.insertSession(unacknowledgedSession, requestId)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, proposal.proposer.metadata, AppMetaDataType.PEER)
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
@@ -260,7 +261,7 @@ internal class SignEngine(
             })
     }
 
-    internal fun sessionRequest(request: EngineDO.Request, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    internal fun sessionRequest(request: EngineDO.Request, onSuccess: (Long) -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(request.topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
@@ -299,8 +300,7 @@ internal class SignEngine(
             sessionPayload,
             onSuccess = {
                 logger.log("Session request sent successfully")
-                onSuccess()
-
+                onSuccess(sessionPayload.id)
                 scope.launch {
                     try {
                         withTimeout(requestTtlInSeconds) {
@@ -612,10 +612,17 @@ internal class SignEngine(
         val tempProposalRequest = sessionProposalRequest.getValue(selfPublicKey.keyAsHex)
 
         try {
-            val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, selfAppMetaData, proposalNamespaces)
+            val session = SessionVO.createAcknowledgedSession(
+                sessionTopic,
+                settleParams,
+                selfPublicKey,
+                selfAppMetaData,
+                proposalNamespaces,
+                request.topic.value
+            )
 
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
-            sessionStorageRepository.insertSession(session, request.topic, request.id)
+            sessionStorageRepository.insertSession(session, request.id)
             pairingHandler.updateMetadata(Core.Params.UpdateMetadata(proposal.topic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
             metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
 
