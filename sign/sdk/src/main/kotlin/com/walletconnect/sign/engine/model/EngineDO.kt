@@ -161,5 +161,6 @@ internal sealed class EngineDO {
         val method: String,
         val params: String,
         val chainId: String,
+        val expiry: Expiry? = null
     ) : EngineDO()
 }
