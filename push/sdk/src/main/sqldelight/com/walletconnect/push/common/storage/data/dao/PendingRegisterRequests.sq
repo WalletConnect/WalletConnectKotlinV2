@@ -1,0 +1,18 @@
+CREATE TABLE PendingRegisterRequests(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    account TEXT UNIQUE NOT NULL,
+    sym_key TEXT NOT NULL,
+    relay_url TEXT NOT NULL
+);
+
+insertPendingRequest:
+INSERT OR ABORT INTO PendingRegisterRequests(account, sym_key, relay_url)
+VALUES (?, ?, ?);
+
+deletePendingRequest:
+DELETE FROM PendingRegisterRequests
+WHERE account = ?;
+
+getAllPendingRequests:
+SELECT account, sym_key, relay_url
+FROM PendingRegisterRequests;

@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
@@ -19,12 +20,15 @@ import com.walletconnect.push.common.JsonRpcMethod
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.storage.data.SubscriptionStorageRepository
+import com.walletconnect.push.dapp.data.CastRepository
+import com.walletconnect.push.dapp.di.PushDITags
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import org.koin.core.qualifier.named
 
 internal class PushDappEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -32,6 +36,7 @@ internal class PushDappEngine(
     private val pairingHandler: PairingControllerInterface,
     private val subscriptionStorageRepository: SubscriptionStorageRepository,
     private val selfAppMetaData: AppMetaData,
+    private val castRepository: CastRepository,
     private val logger: Logger,
 ) {
     private var jsonRpcRequestsJob: Job? = null
@@ -57,6 +62,8 @@ internal class PushDappEngine(
                         resubscribeToSubscriptions()
                     }
                 }
+
+                castRepository.retryRegistration()
 
                 if (jsonRpcRequestsJob == null) {
                     jsonRpcRequestsJob = collectJsonRpcRequests()
@@ -178,13 +185,20 @@ internal class PushDappEngine(
                     val selfPublicKey = PublicKey(params.publicKey)
                     val pushRequestResponse = response.result as PushParams.RequestResponseParams
                     val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(pushRequestResponse.publicKey))
-
                     val respondedSubscription = EngineDO.PushSubscription.Responded(wcResponse.response.id, pushRequestResponse.publicKey, pushTopic.value, params.account, RelayProtocolOptions(), params.metaData)
 
-                    subscriptionStorageRepository.insertRespondedSubscription(respondedSubscription)
-                    jsonRpcInteractor.subscribe(pushTopic)
+                    scope.launch {
+                        subscriptionStorageRepository.insertRespondedSubscription(respondedSubscription)
+                        jsonRpcInteractor.subscribe(pushTopic)
 
-                    scope.launch { _engineEvent.emit(EngineDO.PushRequestResponse(respondedSubscription)) }
+                        val symKey = crypto.generateAndStoreSymmetricKey(pushTopic)
+                        val relayUrl = wcKoinApp.koin.get<String>(named(PushDITags.CAST_SERVER_URL))
+                        castRepository.register(params.account, symKey.keyAsHex, relayUrl) { error ->
+                            _engineEvent.emit(SDKError(InternalError(error)))
+                        }
+
+                        _engineEvent.emit(EngineDO.PushRequestResponse(respondedSubscription))
+                    }
                 }
                 is JsonRpcResponse.JsonRpcError -> {
                     scope.launch { _engineEvent.emit(EngineDO.PushRequestRejected(wcResponse.response.id, response.error.message)) }

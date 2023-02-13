@@ -1,7 +1,7 @@
-package com.walletconnect.push.dapp.network
+package com.walletconnect.push.dapp.data.network
 
-import com.walletconnect.push.dapp.network.model.CastBodyDTO
-import com.walletconnect.push.dapp.network.model.CastResponseDTO
+import com.walletconnect.push.dapp.data.network.model.CastBodyDTO
+import com.walletconnect.push.dapp.data.network.model.CastResponseDTO
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST

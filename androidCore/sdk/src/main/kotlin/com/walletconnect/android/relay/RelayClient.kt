@@ -2,12 +2,12 @@
 
 package com.walletconnect.android.relay
 
+import android.content.SharedPreferences
 import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.di.coreAndroidNetworkModule
 import com.walletconnect.android.internal.common.exception.WRONG_CONNECTION_TYPE
-import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.utils.*
@@ -30,7 +30,9 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
 
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
         val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
-        val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl())
+        val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl()) {
+            wcKoinApp.koin.get<SharedPreferences>()
+        }
         val serverUrl = relayServerUrl.addUserAgent(BuildConfig.SDK_VERSION)
 
         wcKoinApp.modules(coreAndroidNetworkModule(serverUrl, jwt, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION))

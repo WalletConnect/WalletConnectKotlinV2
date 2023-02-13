@@ -1,4 +1,4 @@
-package com.walletconnect.push.dapp.network.model
+package com.walletconnect.push.dapp.data.network.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
