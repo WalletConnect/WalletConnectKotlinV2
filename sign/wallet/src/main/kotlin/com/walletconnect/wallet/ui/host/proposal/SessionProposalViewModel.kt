@@ -34,8 +34,8 @@ class SessionProposalViewModel : ViewModel() {
                         .contains(chain.chainId)
                 }.toList()
                     .groupBy { (chain: Chains, _: String) -> chain.chainNamespace }
-                    .map { (key: String, chainData: List<Pair<Chains, String>>) ->
-
+                    .asIterable()
+                    .associate { (key: String, chainData: List<Pair<Chains, String>>) ->
                         val accounts = chainData.map { (chain: Chains, accountAddress: String) ->
                             "${chain.chainNamespace}:${chain.chainReference}:${accountAddress}"
                         }
@@ -58,7 +58,7 @@ class SessionProposalViewModel : ViewModel() {
                             methods = methods,
                             events = events,
                             chains = chains.ifEmpty { null })
-                    }.toMap()
+                    }
 
             val sessionNamespacesIndexedByChain: Map<String, Sign.Model.Namespace.Session> =
                 selectedAccounts.filter { (chain: Chains, _) ->
@@ -67,7 +67,8 @@ class SessionProposalViewModel : ViewModel() {
                         .isNotEmpty()
                 }.toList()
                     .groupBy { (chain: Chains, _: String) -> chain.chainId }
-                    .map { (key: String, chainData: List<Pair<Chains, String>>) ->
+                    .asIterable()
+                    .associate { (key: String, chainData: List<Pair<Chains, String>>) ->
                         val accounts = chainData.map { (chain: Chains, accountAddress: String) ->
                             "${chain.chainNamespace}:${chain.chainReference}:${accountAddress}"
                         }
@@ -85,7 +86,7 @@ class SessionProposalViewModel : ViewModel() {
                             methods = methods,
                             events = events
                         )
-                    }.toMap()
+                    }
 
             val sessionNamespaces = sessionNamespacesIndexedByNamespace.plus(sessionNamespacesIndexedByChain)
             val approveProposal = Sign.Params.Approve(
