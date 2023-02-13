@@ -30,6 +30,7 @@ internal class SessionStorageRepository(
     fun getListOfSessionVOsWithoutMetadata(): List<SessionVO> =
         sessionDaoQueries.getListOfSessionDaos(mapper = this@SessionStorageRepository::mapSessionDaoToSessionVO).executeAsList()
 
+    // TODO: Maybe move this out and into SignValidator?
     @JvmSynthetic
     fun isSessionValid(topic: Topic): Boolean {
         val hasTopic = sessionDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
@@ -42,6 +43,13 @@ internal class SessionStorageRepository(
             } ?: false
         } else {
             false
+        }
+    }
+
+    @JvmSynthetic
+    fun getSessionExpiryByTopic(topic: Topic): Expiry? {
+        return sessionDaoQueries.getExpiry(topic.value).executeAsOneOrNull()?.let { expiryLong ->
+            Expiry(expiryLong)
         }
     }
 

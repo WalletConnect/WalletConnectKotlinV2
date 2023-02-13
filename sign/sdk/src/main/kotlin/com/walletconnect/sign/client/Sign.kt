@@ -204,7 +204,8 @@ object Sign {
             val sessionTopic: String,
             val method: String,
             val params: String,
-            val chainId: String
+            val chainId: String,
+            val expiry: Long? = null
         ) : Params()
 
         data class Update(
