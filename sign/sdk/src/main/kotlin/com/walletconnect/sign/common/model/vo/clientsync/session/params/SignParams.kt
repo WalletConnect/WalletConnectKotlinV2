@@ -24,8 +24,8 @@ internal sealed class SignParams : CoreSignParams() {
         @Json(name = "requiredNamespaces")
         val requiredNamespaces: Map<String, NamespaceVO.Required>,
         @Json(name = "optionalNamespaces")
-        val optionalNamespaces: Map<String, NamespaceVO.Optional>,
-        @Json(name = "properties")
+        val optionalNamespaces: Map<String, NamespaceVO.Optional>?,
+        @Json(name = "sessionProperties")
         val properties: Map<String, String>?,
     ) : SignParams()
 

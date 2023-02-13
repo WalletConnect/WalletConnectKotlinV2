@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.dapp.ui.connect.chain_select.ChainSelectionUI
@@ -16,6 +17,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.util.Date
+import java.util.concurrent.TimeUnit
 
 class ConnectViewModel : ViewModel() {
     private val _listOfChainUI: MutableList<ChainSelectionUI> = mutableListOf()
@@ -63,8 +66,8 @@ class ConnectViewModel : ViewModel() {
         }
         val namespaces: Map<String, Sign.Model.Namespace.Proposal> =
             listOfChainUI
-                .filter { it.isSelected }
-                .groupBy { it.chainNamespace }// OR chaiId
+                .filter { it.isSelected && it.chainId != Chains.POLYGON_MATIC.chainId && it.chainId != Chains.ETHEREUM_KOVAN.chainId }
+                .groupBy { it.chainNamespace }
                 .map { (key: String, selectedChains: List<ChainSelectionUI>) ->
                     key to Sign.Model.Namespace.Proposal(
                         chains = selectedChains.map { it.chainId }, //OR uncomment if chainId is an index
@@ -73,7 +76,40 @@ class ConnectViewModel : ViewModel() {
                     )
                 }.toMap()
 
-        val connectParams = Sign.Params.Connect(namespaces = namespaces, pairing = pairing)
+
+        val tmp = listOfChainUI
+            .filter { it.isSelected && it.chainId == Chains.ETHEREUM_KOVAN.chainId }
+            .groupBy { it.chainId }
+            .map { (key: String, selectedChains: List<ChainSelectionUI>) ->
+                key to Sign.Model.Namespace.Proposal(
+                    methods = selectedChains.flatMap { it.methods }.distinct(),
+                    events = selectedChains.flatMap { it.events }.distinct()
+                )
+            }.toMap()
+
+        val optionalNamespaces: Map<String, Sign.Model.Namespace.Proposal> =
+            listOfChainUI
+                .filter { it.isSelected && it.chainId == Chains.POLYGON_MATIC.chainId }
+                .groupBy { it.chainId }
+                .map { (key: String, selectedChains: List<ChainSelectionUI>) ->
+                    key to Sign.Model.Namespace.Proposal(
+                        methods = selectedChains.flatMap { it.methods }.distinct(),
+                        events = selectedChains.flatMap { it.events }.distinct()
+                    )
+                }.toMap()
+
+        //note: this property is not used in the SDK, only for demonstration purposes
+        val expiry = (System.currentTimeMillis() / 1000) + TimeUnit.SECONDS.convert(7, TimeUnit.DAYS)
+        val properties: Map<String, String> = mapOf("sessionExpiry" to "$expiry")
+
+        val connectParams =
+            Sign.Params.Connect(
+                namespaces = namespaces.toMutableMap().plus(tmp),
+                optionalNamespaces = optionalNamespaces,
+                properties = properties,
+                pairing = pairing
+            )
+
         SignClient.connect(connectParams,
             onSuccess = {
                 viewModelScope.launch(Dispatchers.Main) {

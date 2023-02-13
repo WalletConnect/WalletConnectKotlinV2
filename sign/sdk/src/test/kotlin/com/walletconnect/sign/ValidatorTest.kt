@@ -114,13 +114,12 @@ class ValidatorTest {
     }
 
     @Test
-    fun `Proposal Namespaces MUST have chains undefined when index is caip-2 compatible`() {
+    fun `Proposal Namespaces MAY have chains empty when index is caip-2 compatible`() {
         val namespaces =
             mapOf(COSMOSHUB_4 to NamespaceVO.Required(chains = emptyList(), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT)))
         var errorMessage: String? = null
         SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
-        assertNotNull(errorMessage)
-        assertEquals(NAMESPACE_KEYS_INVALID_FORMAT, errorMessage)
+        assertNull(errorMessage)
     }
 
     @Test
@@ -164,7 +163,7 @@ class ValidatorTest {
     }
 
     @Test
-    fun `Namespace key MUST be caip-2 compatible when chains are null`() {
+    fun `Namespace key MUST have chains defined`() {
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Required(
                 chains = null,
@@ -175,7 +174,7 @@ class ValidatorTest {
         var errorMessage: String? = null
         SignValidator.validateProposalNamespaces(namespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
-        assertEquals(NAMESPACE_KEYS_INVALID_FORMAT, errorMessage)
+        assertEquals(NAMESPACE_CHAINS_UNDEFINED_MISSING_MESSAGE, errorMessage)
     }
 
     @Test
@@ -193,36 +192,44 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces MAY include anything when when Proposal and Required Namespaces are empty`() {
         val requiredNamespaces = emptyMap<String, NamespaceVO.Required>()
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
 
         val sessionNamespaces = mapOf(
             COSMOS to NamespaceVO.Session(
-                accounts = listOf(COSMOSHUB_4_1), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT)
+                accounts = listOf(COSMOSHUB_4_1), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), chains = listOf(COSMOSHUB_4)
             ),
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1),
                 methods = listOf(ETH_SIGN),
-                events = listOf(ACCOUNTS_CHANGED)
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM)
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(sessionNamespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(sessionNamespaces, requiredNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
+    }
+
+    @Test
+    fun `Session Namespaces MUST not be empty`() {
+        val requiredNamespaces = emptyMap<String, NamespaceVO.Required>()
+        val sessionNamespaces = emptyMap<String, NamespaceVO.Session>()
+        var errorMessage: String? = null
+        SignValidator.validateSessionNamespace(sessionNamespaces, requiredNamespaces) { errorMessage = it.message }
+        assertNotNull(errorMessage)
+        assertEquals(errorMessage, EMPTY_NAMESPACES_MESSAGE)
     }
 
     @Test
     fun `Session Namespaces MAY have accounts empty`() {
         val requiredNamespaces =
             mapOf(COSMOS to NamespaceVO.Required(chains = listOf(COSMOSHUB_4), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT)))
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-
         val sessionNamespaces = mapOf(
             COSMOS to NamespaceVO.Session(
                 accounts = emptyList(), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), chains = listOf(COSMOSHUB_4)
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(sessionNamespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(sessionNamespaces, requiredNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -230,15 +237,13 @@ class ValidatorTest {
     fun `Session Namespaces MAY have accounts empty when index is caip-2 compatible`() {
         val requiredNamespaces =
             mapOf(COSMOSHUB_4 to NamespaceVO.Required(methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT)))
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-
         val sessionNamespaces = mapOf(
             COSMOSHUB_4 to NamespaceVO.Session(
                 accounts = emptyList(), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT)
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(sessionNamespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(sessionNamespaces, requiredNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -249,7 +254,6 @@ class ValidatorTest {
                 chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
 
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
@@ -260,7 +264,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE, errorMessage)
     }
@@ -268,12 +272,11 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces MUST approve all methods`() {
         val requiredNamespaces = mapOf(EIP155 to NamespaceVO.Required(chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = emptyList()))
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(accounts = listOf(ETHEREUM_1), methods = emptyList(), events = emptyList(), chains = listOf(ETHEREUM))
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_METHODS_MISSING_MESSAGE, errorMessage)
     }
@@ -285,14 +288,13 @@ class ValidatorTest {
                 chains = listOf(ETHEREUM), methods = emptyList(), events = listOf(CHAIN_CHANGED)
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1), methods = emptyList(), events = emptyList(), chains = listOf(ETHEREUM)
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_EVENTS_MISSING_MESSAGE, errorMessage)
     }
@@ -304,7 +306,6 @@ class ValidatorTest {
                 chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
 
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
@@ -312,7 +313,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -323,8 +324,6 @@ class ValidatorTest {
                 chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, ETHEREUM_2, ETHEREUM_3, ETHEREUM_4, ETHEREUM_5),
@@ -334,7 +333,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -345,8 +344,6 @@ class ValidatorTest {
                 chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, ETHEREUM_2, ETHEREUM_3, ETHEREUM_4, KOVAN_1),
@@ -356,7 +353,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE, errorMessage)
     }
@@ -368,7 +365,6 @@ class ValidatorTest {
                 methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
 
         val namespaces = mapOf(
             ETHEREUM to NamespaceVO.Session(
@@ -378,7 +374,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -389,8 +385,6 @@ class ValidatorTest {
                 methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-
         val namespaces = mapOf(
             ETHEREUM to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, ETHEREUM_2, ETHEREUM_3, ETHEREUM_4, COSMOSHUB_4_1),
@@ -399,7 +393,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE, errorMessage)
     }
@@ -411,8 +405,6 @@ class ValidatorTest {
                 chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1),
@@ -422,7 +414,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -433,8 +425,6 @@ class ValidatorTest {
                 methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-
         val namespaces = mapOf(
             ETHEREUM to NamespaceVO.Session(
                 accounts = emptyList(),
@@ -443,7 +433,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -454,8 +444,6 @@ class ValidatorTest {
                 chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, COSMOSHUB_4_1),
@@ -465,9 +453,37 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE, errorMessage)
+    }
+
+    @Test
+    fun `Once required namespaces are satisfied anything can be added on top even if not included in optional namespaces`() {
+        val requiredNamespaces = mapOf(
+            EIP155 to NamespaceVO.Required(
+                chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
+            )
+        )
+
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                accounts = listOf(ETHEREUM_1),
+                methods = listOf(ETH_SIGN),
+                events = listOf(ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM)
+            ),
+            "cosmos" to NamespaceVO.Session(
+                methods = listOf("cosmos_method"),
+                events = listOf("cosmos_event"),
+                chains = listOf("cosmos:cosmosHUB"),
+                accounts = emptyList()
+            )
+
+        )
+        var errorMessage: String? = null
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
     }
 
     @Test
@@ -477,8 +493,6 @@ class ValidatorTest {
                 chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, KOVAN_1),
@@ -488,7 +502,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE, errorMessage)
     }
@@ -500,8 +514,6 @@ class ValidatorTest {
                 methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-
         val namespaces = mapOf(
             ETHEREUM to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, KOVAN_1),
@@ -510,7 +522,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE, errorMessage)
     }
@@ -525,8 +537,6 @@ class ValidatorTest {
                 chains = listOf(COSMOSHUB_4), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT)
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
@@ -536,7 +546,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_KEYS_MISSING_MESSAGE, errorMessage)
     }
@@ -548,8 +558,6 @@ class ValidatorTest {
                 chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(),
@@ -559,7 +567,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -570,12 +578,6 @@ class ValidatorTest {
                 chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED),
             )
         )
-        val optionalNamespaces = mapOf(
-            COSMOS to NamespaceVO.Optional(
-                chains = listOf(COSMOSHUB_4), methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT)
-            )
-        )
-
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
@@ -585,7 +587,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -596,7 +598,6 @@ class ValidatorTest {
                 chains = listOf(MATIC, ETHEREUM), methods = emptyList(), events = listOf(CHAIN_CHANGED),
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
@@ -607,18 +608,41 @@ class ValidatorTest {
         )
 
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
     @Test
-    fun `Any additional namespace in the Session namespaces on top of the required namespaces MUST be included in optional namespaces`() {
+    fun `Session Namespaces includes apporved chain indexing`() {
+        val requiredNamespaces = mapOf(
+            EIP155 to NamespaceVO.Required(chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(CHAIN_CHANGED))
+        )
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                accounts = listOf(ETHEREUM_1),
+                methods = listOf(ETH_SIGN),
+                events = listOf(CHAIN_CHANGED, ACCOUNTS_CHANGED),
+                chains = listOf(ETHEREUM, KOVAN)
+            ),
+            MATIC to NamespaceVO.Session(
+                accounts = emptyList(),
+                methods = listOf(ETH_SIGN),
+                events = listOf(CHAIN_CHANGED, ACCOUNTS_CHANGED)
+            )
+        )
+
+        var errorMessage: String? = null
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
+    }
+
+    @Test
+    fun `Any additional namespace in the Session namespaces on top of the required namespaces MAY NOT be included in optional namespaces`() {
         val requiredNamespaces = mapOf(
             EIP155 to NamespaceVO.Required(
                 chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED),
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
 
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
@@ -632,20 +656,17 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
-        assertNotNull(errorMessage)
-        assertEquals(NAMESPACE_KEYS_MISSING_MESSAGE, errorMessage)
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
     }
 
     @Test
-    fun `Session Namespaces MUST not add namespaces not defined in optional namespaces`() {
+    fun `Session Namespaces MAY add namespaces not defined in optional namespaces`() {
         val requiredNamespaces = mapOf(
             EIP155 to NamespaceVO.Required(
                 chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
             )
         )
-        val optionalNamespaces = emptyMap<String, NamespaceVO.Optional>()
-
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
@@ -658,9 +679,8 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
-        assertNotNull(errorMessage)
-        assertEquals(NAMESPACE_KEYS_MISSING_MESSAGE, errorMessage)
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
     }
 
     @Test
@@ -670,12 +690,6 @@ class ValidatorTest {
                 chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
             )
         )
-        val optionalNamespaces = mapOf(
-            COSMOS to NamespaceVO.Optional(
-                methods = listOf(COSMOS_SIGNDIRECT), events = listOf(COSMOS_EVENT), chains = listOf(COSMOSHUB_4)
-            )
-        )
-
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
@@ -686,7 +700,7 @@ class ValidatorTest {
 
             )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -697,12 +711,6 @@ class ValidatorTest {
                 chains = listOf(MATIC, ETHEREUM), methods = listOf(ETH_SIGN), events = listOf(ACCOUNTS_CHANGED)
             )
         )
-        val optionalNamespaces = mapOf(
-            COSMOS to NamespaceVO.Optional(
-                methods = listOf(COSMOS_SIGNDIRECT, COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), chains = listOf(COSMOSHUB_4)
-            )
-        )
-
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
                 accounts = listOf(ETHEREUM_1, MATIC_1),
@@ -715,7 +723,7 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -739,12 +747,12 @@ class ValidatorTest {
             )
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
     @Test
-    fun `Session Namespaces MUST NOT include more namespaces than optional when required are empty`() {
+    fun `Session Namespaces MAY include more namespaces than optional when required are empty`() {
         val requiredNamespaces = emptyMap<String, NamespaceVO.Required>()
         val optionalNamespaces = mapOf(
             EIP155 to NamespaceVO.Optional(
@@ -766,28 +774,23 @@ class ValidatorTest {
             ),
         )
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
-        assertNotNull(errorMessage)
-        assertEquals(NAMESPACE_KEYS_MISSING_MESSAGE, errorMessage)
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
     }
 
     @Test
     fun `Session Namespaces MAY omit optional namespaces when required are empty`() {
         val requiredNamespaces = emptyMap<String, NamespaceVO.Required>()
-        val optionalNamespaces = mapOf(
-            COSMOS to NamespaceVO.Optional(
-                methods = listOf(COSMOS_SIGNDIRECT, COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), chains = listOf(COSMOSHUB_4)
-            ),
-            EIP155 to NamespaceVO.Optional(
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
                 chains = listOf(ETHEREUM),
                 methods = listOf(ETH_SIGN),
-                events = listOf(ACCOUNTS_CHANGED)
-            ),
+                events = listOf(ACCOUNTS_CHANGED),
+                accounts = emptyList()
+            )
         )
-
-        val namespaces = emptyMap<String, NamespaceVO.Session>()
         var errorMessage: String? = null
-        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces, optionalNamespaces) { errorMessage = it.message }
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 
@@ -852,6 +855,26 @@ class ValidatorTest {
     }
 
     @Test
+    fun `Authorizing approved method where namespace index is chainId`() {
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                chains = listOf(ETHEREUM),
+                accounts = listOf(ETHEREUM_1),
+                methods = listOf(ETH_SIGN, "test"),
+                events = listOf(CHAIN_CHANGED)
+            ),
+            KOVAN to NamespaceVO.Session(
+                accounts = listOf(KOVAN_1),
+                methods = listOf(ETH_SIGN),
+                events = listOf(CHAIN_CHANGED)
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateChainIdWithMethodAuthorisation(ETHEREUM, "test", namespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
+    }
+
+    @Test
     fun `Authorizing approved event`() {
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(
@@ -863,6 +886,26 @@ class ValidatorTest {
         )
         var errorMessage: String? = null
         SignValidator.validateChainIdWithEventAuthorisation(ETHEREUM, CHAIN_CHANGED, namespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
+    }
+
+    @Test
+    fun `Authorizing approved events where namespace index is chainId`() {
+        val namespaces = mapOf(
+            EIP155 to NamespaceVO.Session(
+                chains = listOf(ETHEREUM),
+                accounts = listOf(ETHEREUM_1),
+                methods = listOf(ETH_SIGN),
+                events = listOf(CHAIN_CHANGED)
+            ),
+            KOVAN to NamespaceVO.Session(
+                accounts = listOf(KOVAN_1),
+                methods = listOf(ETH_SIGN),
+                events = listOf("test")
+            )
+        )
+        var errorMessage: String? = null
+        SignValidator.validateChainIdWithEventAuthorisation(KOVAN, "test", namespaces) { errorMessage = it.message }
         assertNull(errorMessage)
     }
 

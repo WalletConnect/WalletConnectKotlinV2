@@ -26,31 +26,31 @@ class SessionProposalViewModel : ViewModel() {
                 mapOfAllAccounts[WalletDelegate.selectedChainAddressId] ?: throw Exception("Can't find account")
             val sessionProposal: Sign.Model.SessionProposal = requireNotNull(WalletDelegate.sessionProposal)
 
-            //todo: refactor me I'm too complicated
-            val sessionNamespaces: Map<String, Sign.Model.Namespace.Session> =
+            val sessionNamespacesIndexedByNamespace: Map<String, Sign.Model.Namespace.Session> =
                 selectedAccounts.filter { (chain: Chains, _) ->
-                    chain.chainId in sessionProposal.requiredNamespaces.flatMap { (namespaceKey, namespace) ->
-                        if (namespace.chains != null) {
-                            namespace.chains!!
-                        } else {
-                            listOf(namespaceKey)
-                        }
-                    }
-
-                }.toList().groupBy { (chain: Chains, _: String) ->
-                    val chains: List<String> =
-                        sessionProposal.requiredNamespaces.values.filter { namespace -> namespace.chains != null }.flatMap { namespace -> namespace.chains!! }
-                    if(chains.isEmpty()) chain.chainId else chain.chainNamespace
-                }
-                    .map { (key: String, chainData: List<Pair<Chains, String>>) ->
+                    sessionProposal.requiredNamespaces
+                        .filter { (_, namespace) -> namespace.chains != null }
+                        .flatMap { (_, namespace) -> namespace.chains!! }
+                        .contains(chain.chainId)
+                }.toList()
+                    .groupBy { (chain: Chains, _: String) -> chain.chainNamespace }
+                    .asIterable()
+                    .associate { (key: String, chainData: List<Pair<Chains, String>>) ->
                         val accounts = chainData.map { (chain: Chains, accountAddress: String) ->
                             "${chain.chainNamespace}:${chain.chainReference}:${accountAddress}"
                         }
 
-                        val methods = sessionProposal.requiredNamespaces.values.flatMap { it.methods }
-                        val events = sessionProposal.requiredNamespaces.values.flatMap { it.events }
+                        val methods = sessionProposal.requiredNamespaces.values
+                            .filter { namespace -> namespace.chains != null }
+                            .flatMap { it.methods }
+
+                        val events = sessionProposal.requiredNamespaces.values
+                            .filter { namespace -> namespace.chains != null }
+                            .flatMap { it.events }
+
                         val chains: List<String> =
-                            sessionProposal.requiredNamespaces.values.filter { namespace -> namespace.chains != null }
+                            sessionProposal.requiredNamespaces.values
+                                .filter { namespace -> namespace.chains != null }
                                 .flatMap { namespace -> namespace.chains!! }
 
                         key to Sign.Model.Namespace.Session(
@@ -59,8 +59,36 @@ class SessionProposalViewModel : ViewModel() {
                             events = events,
                             chains = chains.ifEmpty { null })
                     }
-                    .toMap()
 
+            val sessionNamespacesIndexedByChain: Map<String, Sign.Model.Namespace.Session> =
+                selectedAccounts.filter { (chain: Chains, _) ->
+                    sessionProposal.requiredNamespaces
+                        .filter { (namespaceKey, namespace) -> namespace.chains == null && namespaceKey == chain.chainId }
+                        .isNotEmpty()
+                }.toList()
+                    .groupBy { (chain: Chains, _: String) -> chain.chainId }
+                    .asIterable()
+                    .associate { (key: String, chainData: List<Pair<Chains, String>>) ->
+                        val accounts = chainData.map { (chain: Chains, accountAddress: String) ->
+                            "${chain.chainNamespace}:${chain.chainReference}:${accountAddress}"
+                        }
+
+                        val methods = sessionProposal.requiredNamespaces.values
+                            .filter { namespace -> namespace.chains == null }
+                            .flatMap { it.methods }
+
+                        val events = sessionProposal.requiredNamespaces.values
+                            .filter { namespace -> namespace.chains == null }
+                            .flatMap { it.events }
+
+                        key to Sign.Model.Namespace.Session(
+                            accounts = accounts,
+                            methods = methods,
+                            events = events
+                        )
+                    }
+
+            val sessionNamespaces = sessionNamespacesIndexedByNamespace.plus(sessionNamespacesIndexedByChain)
             val approveProposal = Sign.Params.Approve(
                 proposerPublicKey = sessionProposal.proposerPublicKey,
                 namespaces = sessionNamespaces
@@ -103,8 +131,8 @@ class SessionProposalViewModel : ViewModel() {
                     listOf(namespaceKey)
                 }
             }.joinToString("\n"),
-            methods = sessionProposal.requiredNamespaces.flatMap { it.value.methods }.joinToString("\n"),
-            events = sessionProposal.requiredNamespaces.flatMap { it.value.events }.joinToString("\n")
+            methods = sessionProposal.requiredNamespaces.flatMap { it.value.methods }.distinct().joinToString("\n"),
+            events = sessionProposal.requiredNamespaces.flatMap { it.value.events.distinct() }.distinct().joinToString("\n")
         )
     }
 }
