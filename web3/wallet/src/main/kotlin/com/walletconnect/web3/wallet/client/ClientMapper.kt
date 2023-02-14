@@ -85,6 +85,16 @@ internal fun List<Sign.Model.PendingRequest>.mapToPendingRequests(): List<Wallet
     )
 }
 
+@JvmSynthetic
+internal fun List<Sign.Model.SessionRequest>.mapToPendingSessionRequests(): List<Wallet.Model.SessionRequest> = map { request ->
+    Wallet.Model.SessionRequest(
+        request.topic,
+        request.chainId,
+        request.peerMetaData,
+       Wallet.Model.SessionRequest.JSONRPCRequest(request.request.id, request.request.method, request.request.params)
+    )
+}
+
 internal fun Auth.Model.PayloadParams.toWallet(): Wallet.Model.PayloadParams =
     Wallet.Model.PayloadParams(
         type = type,
