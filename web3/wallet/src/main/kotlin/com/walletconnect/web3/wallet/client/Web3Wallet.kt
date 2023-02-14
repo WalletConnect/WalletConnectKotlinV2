@@ -201,10 +201,26 @@ object Web3Wallet {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+
+    @Deprecated(
+        "The return type of getPendingRequests methods has been replaced with SessionRequest list",
+        replaceWith = ReplaceWith("getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest>")
+    )
     @Throws(IllegalStateException::class)
     fun getPendingSessionRequests(topic: String): List<Wallet.Model.PendingSessionRequest> {
         return SignClient.getPendingRequests(topic).mapToPendingRequests()
     }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+
+    @Throws(IllegalStateException::class)
+    fun getPendingListOfSessionRequests(topic: String): List<Wallet.Model.SessionRequest> {
+        return SignClient.getPendingSessionRequests(topic).mapToPendingSessionRequests()
+    }
+
 
     /**
      * Caution: This function is blocking and runs on the current thread.
