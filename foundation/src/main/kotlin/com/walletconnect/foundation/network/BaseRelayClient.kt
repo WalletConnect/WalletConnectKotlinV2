@@ -100,6 +100,31 @@ abstract class BaseRelayClient : RelayInterface {
     }
 
     @ExperimentalCoroutinesApi
+    override fun batchSubscribe(topics: List<String>, onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit) {
+        val batchSubscribeRequest = RelayDTO.BatchSubscribe.Request(id = generateId(), params = RelayDTO.BatchSubscribe.Request.Params(topics))
+
+        observeBatchSubscribeResult(onResult)
+        relayService.batchSubscribeRequest(batchSubscribeRequest)
+    }
+
+    @ExperimentalCoroutinesApi
+    private fun observeBatchSubscribeResult(onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit) {
+        scope.launch {
+            merge(relayService.observeBatchSubscribeAcknowledgement(), relayService.observeBatchSubscribeError())
+                .catch { exception -> logger.error(exception) }
+                .collect { subscribeResult ->
+                    supervisorScope {
+                        when (subscribeResult) {
+                            is RelayDTO.BatchSubscribe.Result.Acknowledgement -> onResult(Result.success(subscribeResult.toRelay()))
+                            is RelayDTO.BatchSubscribe.Result.JsonRpcError -> onResult(Result.failure(Throwable(subscribeResult.error.errorMessage)))
+                        }
+                        cancel()
+                    }
+                }
+        }
+    }
+
+    @ExperimentalCoroutinesApi
     override fun unsubscribe(
         topic: String,
         subscriptionId: String,
