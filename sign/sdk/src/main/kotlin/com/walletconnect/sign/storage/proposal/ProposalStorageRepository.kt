@@ -20,6 +20,7 @@ class ProposalStorageRepository(
     private val optionalNamespaceDaoQueries: OptionalNamespaceDaoQueries
 ) {
 
+    @JvmSynthetic
     @Throws(SQLiteException::class)
     internal fun insertProposal(proposal: ProposalVO) = with(proposal) {
         proposalDaoQueries.insertOrAbortSession(
@@ -39,18 +40,20 @@ class ProposalStorageRepository(
         insertOptionalNamespace(optionalNamespaces, requestId)
     }
 
+    @JvmSynthetic
     @Throws(SQLiteException::class)
     internal fun getProposalByKey(proposerPubKey: String): ProposalVO {
         return proposalDaoQueries.getProposalByKey(proposerPubKey, mapper = this::mapProposalDaoToProposalVO).executeAsOne()
     }
 
+    @JvmSynthetic
     @Throws(SQLiteException::class)
     internal fun getProposals(): List<ProposalVO> {
         return proposalDaoQueries.getListOfProposalDaos(this::mapProposalDaoToProposalVO).executeAsList()
     }
 
     @JvmSynthetic
-    fun deleteProposal(key: String) {
+   internal fun deleteProposal(key: String) {
         requiredNamespaceDaoQueries.deleteProposalNamespacesByTopic(key)
         optionalNamespaceDaoQueries.deleteOptionalNamespacesByTopic(key)
         proposalDaoQueries.deleteProposal(key)

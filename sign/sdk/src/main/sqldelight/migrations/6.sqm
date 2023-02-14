@@ -64,3 +64,16 @@ CREATE TABLE OptionalNamespaceDao (
     events TEXT AS List<String> NOT NULL,
     UNIQUE(session_id, key)
 );
+CREATE TABLE ProposalDao (
+   request_id INTEGER PRIMARY KEY NOT NULL,
+   pairingTopic TEXT NOT NULL,
+   name TEXT NOT NULL,
+   description TEXT NOT NULL,
+   url TEXT NOT NULL,
+   icons TEXT AS List<String> NOT NULL,
+   relay_protocol TEXT NOT NULL,
+   relay_data TEXT,
+   proposer_key TEXT NOT NULL,
+   properties TEXT AS Map<String, String>,
+   UNIQUE(request_id)
+);

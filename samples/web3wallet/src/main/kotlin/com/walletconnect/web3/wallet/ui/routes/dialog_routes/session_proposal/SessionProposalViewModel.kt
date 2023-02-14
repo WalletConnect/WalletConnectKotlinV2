@@ -11,11 +11,11 @@ import com.walletconnect.web3.wallet.domain.accounts
 import com.walletconnect.web3.wallet.ui.common.peer.PeerUI
 
 class SessionProposalViewModel : ViewModel() {
-    val sessionProposal: SessionProposalUI? = generateSessionProposalUI(WCDelegate.sessionProposal)
+    val sessionProposal: SessionProposalUI? = generateSessionProposalUI(Web3Wallet.getSessionProposals().last())
 
     fun approve() {
-        if (WCDelegate.sessionProposal != null) {
-            val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(WCDelegate.sessionProposal)
+        if (Web3Wallet.getSessionProposals().isNotEmpty()) {
+            val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().last())
             val chains = sessionProposalUI.namespaces.flatMap { (namespace, proposal) -> proposal.chains!! }
             val selectedAccounts: Map<Chains, String> = chains.map { namespaceChainId ->
                 accounts.firstOrNull { (chain, address) -> chain.chainId == namespaceChainId }
@@ -96,7 +96,7 @@ class SessionProposalViewModel : ViewModel() {
     }
 
     fun reject() {
-        WCDelegate.sessionProposal?.let { sessionProposal ->
+        Web3Wallet.getSessionProposals().last().let { sessionProposal ->
             val rejectionReason = "Reject Session"
             val reject = Wallet.Params.SessionReject(
                 proposerPublicKey = sessionProposal.proposerPublicKey,

@@ -68,7 +68,6 @@ internal class SignEngine(
     private var internalErrorsJob: Job? = null
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
-//    private val sessionProposalRequest: MutableMap<String, WCRequest> = mutableMapOf()
 
     init {
         pairingHandler.register(
@@ -145,7 +144,6 @@ internal class SignEngine(
                 selfPublicKey, selfAppMetaData
             )
         val request = SignRpc.SessionPropose(id = generateId(), params = sessionProposal)
-//        sessionProposalRequest[selfPublicKey.keyAsHex] = WCRequest(pairing.topic, request.id, request.method, sessionProposal)
         proposalStorageRepository.insertProposal(sessionProposal.toVO(pairing.topic, request.id))
         val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
         jsonRpcInteractor.subscribe(pairing.topic) { error -> return@subscribe onFailure(error) }
@@ -170,10 +168,6 @@ internal class SignEngine(
     }
 
     internal fun reject(proposerPublicKey: String, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit = {}) {
-//        val request = sessionProposalRequest[proposerPublicKey]
-//            ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
-//        sessionProposalRequest.remove(proposerPublicKey)
-
         val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
         proposalStorageRepository.deleteProposal(proposerPublicKey)
 
@@ -224,12 +218,9 @@ internal class SignEngine(
             }
         }
 
-//        val request = sessionProposalRequest[proposerPublicKey] ?: throw CannotFindSessionProposalException("$NO_SESSION_PROPOSAL$proposerPublicKey")
-//        sessionProposalRequest.remove(proposerPublicKey)
         val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
         proposalStorageRepository.deleteProposal(proposerPublicKey)
         val request = proposal.toSessionProposeRequest()
-//        val proposal = request.params as SignParams.SessionProposeParams
 
         SignValidator.validateSessionNamespace(sessionNamespaces.toMapOfNamespacesVOSession(), proposal.requiredNamespaces) { error ->
             throw InvalidNamespaceException(error.message)
@@ -612,9 +603,7 @@ internal class SignEngine(
                 }
             }
 
-//            sessionProposalRequest[payloadParams.proposer.publicKey] = request
             proposalStorageRepository.insertProposal(payloadParams.toVO(request.topic, request.id))
-
             pairingHandler.updateMetadata(
                 Core.Params.UpdateMetadata(
                     request.topic.value,
@@ -643,21 +632,13 @@ internal class SignEngine(
             return
         }
         val peerMetadata = settleParams.controller.metadata
-//        val proposal = sessionProposalRequest[selfPublicKey.keyAsHex] ?: return
         val proposal = proposalStorageRepository.getProposalByKey(selfPublicKey.keyAsHex)
-
-//        if (proposal.params !is SignParams.SessionProposeParams) {
-//            jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(NAMESPACE_MISSING_PROPOSAL_MESSAGE), irnParams)
-//            return
-//        }
 
         val (requiredNamespaces, optionalNamespaces, properties) = proposal.run { Triple(requiredNamespaces, optionalNamespaces, properties) }
         SignValidator.validateSessionNamespace(settleParams.namespaces, requiredNamespaces) { error ->
             jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
             return
         }
-
-//        val tempProposalRequest = sessionProposalRequest.getValue(selfPublicKey.keyAsHex)
 
         try {
             val session = SessionVO.createAcknowledgedSession(
@@ -671,9 +652,7 @@ internal class SignEngine(
                 request.topic.value
             )
 
-//            sessionProposalRequest.remove(selfPublicKey.keyAsHex)
             proposalStorageRepository.deleteProposal(selfPublicKey.keyAsHex)
-
             sessionStorageRepository.insertSession(session, request.id)
             pairingHandler.updateMetadata(Core.Params.UpdateMetadata(proposal.pairingTopic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
             metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
@@ -681,7 +660,6 @@ internal class SignEngine(
             jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
             scope.launch { _engineEvent.emit(session.toSessionApproved()) }
         } catch (e: SQLiteException) {
-//            sessionProposalRequest[selfPublicKey.keyAsHex] = tempProposalRequest
             proposalStorageRepository.insertProposal(proposal)
             sessionStorageRepository.deleteSession(sessionTopic)
             jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
@@ -926,6 +904,7 @@ internal class SignEngine(
                 }
                 is JsonRpcResponse.JsonRpcError -> {
                     logger.log("Session proposal reject received: ${response.error}")
+                    proposalStorageRepository.deleteProposal(params.proposer.publicKey)
                     scope.launch { _engineEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
                 }
             }

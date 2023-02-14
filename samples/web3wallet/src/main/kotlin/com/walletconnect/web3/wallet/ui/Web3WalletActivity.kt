@@ -18,6 +18,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
+import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.ui.routes.Route
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.web3.wallet.ui.theme.Web3WalletTheme
@@ -79,6 +80,12 @@ class Web3WalletActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        Web3Wallet.getSessionProposals()
     }
 
     override fun onNewIntent(intent: Intent?) {

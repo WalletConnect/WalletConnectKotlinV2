@@ -12,8 +12,8 @@ import com.walletconnect.wallet.domain.mapOfAllAccounts
 class SessionProposalViewModel : ViewModel() {
 
     fun fetchSessionProposal(sessionExists: (SessionProposalUI) -> Unit, sessionDNE: () -> Unit) {
-        if (WalletDelegate.sessionProposal != null) {
-            val sessionProposalUI = generateSessionProposalEvent(WalletDelegate.sessionProposal!!)
+        if (SignClient.getSessionProposals().isNotEmpty()) {
+            val sessionProposalUI = generateSessionProposalEvent(SignClient.getSessionProposals().last())
             sessionExists(sessionProposalUI)
         } else {
             sessionDNE()
@@ -21,10 +21,10 @@ class SessionProposalViewModel : ViewModel() {
     }
 
     fun approve() {
-        if (WalletDelegate.sessionProposal != null && WalletDelegate.selectedChainAddressId in mapOfAllAccounts.keys) {
+        if (SignClient.getSessionProposals().isNotEmpty() && WalletDelegate.selectedChainAddressId in mapOfAllAccounts.keys) {
             val selectedAccounts: Map<Chains, String> =
                 mapOfAllAccounts[WalletDelegate.selectedChainAddressId] ?: throw Exception("Can't find account")
-            val sessionProposal: Sign.Model.SessionProposal = requireNotNull(WalletDelegate.sessionProposal)
+            val sessionProposal: Sign.Model.SessionProposal = SignClient.getSessionProposals().last()
 
             val sessionNamespacesIndexedByNamespace: Map<String, Sign.Model.Namespace.Session> =
                 selectedAccounts.filter { (chain: Chains, _) ->
@@ -103,17 +103,16 @@ class SessionProposalViewModel : ViewModel() {
     }
 
     fun reject() {
-        WalletDelegate.sessionProposal?.let { sessionProposal ->
-            val rejectionReason = "Reject Session"
-            val reject = Sign.Params.Reject(
-                proposerPublicKey = sessionProposal.proposerPublicKey,
-                reason = rejectionReason
-            )
+        val sessionProposal = SignClient.getSessionProposals().last()
 
-            SignClient.rejectSession(reject) { error ->
-                Log.d(tag(this@SessionProposalViewModel), "sending reject error: $error")
-            }
+        val rejectionReason = "Reject Session"
+        val reject = Sign.Params.Reject(
+            proposerPublicKey = sessionProposal.proposerPublicKey,
+            reason = rejectionReason
+        )
 
+        SignClient.rejectSession(reject) { error ->
+            Log.d(tag(this@SessionProposalViewModel), "sending reject error: $error")
             WalletDelegate.clearCache()
         }
     }
