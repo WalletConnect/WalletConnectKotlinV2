@@ -82,12 +82,6 @@ class Web3WalletActivity : ComponentActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        Web3Wallet.getSessionProposals()
-    }
-
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         navController.handleDeepLink(intent)
