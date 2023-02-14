@@ -12,6 +12,7 @@ const val SIGN_VERSION = "2.7.1"
 const val AUTH_VERSION = "1.7.1"
 const val CHAT_VERSION = "1.0.0-alpha09"
 const val WEB_3_WALLET = "1.2.1"
+const val WEB_3_INBOX = "1.0.0-alpha01"
 
 val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23
