@@ -64,9 +64,8 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
         val publicKey = sharedPreferences.getString(PUBLIC_KEY_TAG, null)
         val privateKey = sharedPreferences.getString(PRIVATE_KEY_TAG, null)
 
-        if (account == null || publicKey == null || privateKey == null) {
-            registerIdentity()
-        } else {
+        registerIdentity()
+        if (account != null && publicKey != null && privateKey != null) {
             _account = account
             _publicKey = publicKey
             _privateKey = privateKey
