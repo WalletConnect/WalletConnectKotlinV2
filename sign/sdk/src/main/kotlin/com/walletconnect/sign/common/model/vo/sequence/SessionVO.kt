@@ -10,6 +10,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
+import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toMapOfNamespacesVOSession
 
@@ -38,7 +39,7 @@ internal data class SessionVO(
         @JvmSynthetic
         internal fun createUnacknowledgedSession(
             sessionTopic: Topic,
-            proposal: SignParams.SessionProposeParams,
+            proposal: ProposalVO,
             selfParticipant: SessionParticipantVO,
             sessionExpiry: Long,
             namespaces: Map<String, EngineDO.Namespace.Session>,
@@ -47,10 +48,10 @@ internal data class SessionVO(
             return SessionVO(
                 sessionTopic,
                 Expiry(sessionExpiry),
-                relayProtocol = proposal.relays.first().protocol,
-                relayData = proposal.relays.first().data,
-                peerPublicKey = PublicKey(proposal.proposer.publicKey),
-                peerAppMetaData = proposal.proposer.metadata,
+                relayProtocol = proposal.relayProtocol,
+                relayData = proposal.relayData,
+                peerPublicKey = PublicKey(proposal.proposerPublicKey),
+                peerAppMetaData = proposal.appMetaData,
                 selfPublicKey = PublicKey(selfParticipant.publicKey),
                 selfAppMetaData = selfParticipant.metadata,
                 controllerKey = PublicKey(selfParticipant.publicKey),

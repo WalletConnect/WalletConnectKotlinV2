@@ -50,7 +50,7 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): Sign.Model.Sess
         url,
         icons,
         requiredNamespaces.toMapOfClientNamespacesProposal(),
-        optionalNamespaces.toMapOfClientNamespacesOptional(),
+        optionalNamespaces.toMapOfClientNamespacesProposal(),
         properties,
         proposerPublicKey,
         relayProtocol,
@@ -170,6 +170,21 @@ internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesR
         EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
+@JvmSynthetic
+internal fun EngineDO.SessionProposal.toEngineDO(): Sign.Model.SessionProposal =
+    Sign.Model.SessionProposal(
+        pairingTopic = pairingTopic,
+        name = name,
+        description = description,
+        url = url,
+        icons = icons,
+        relayData = relayData,
+        relayProtocol = relayProtocol,
+        requiredNamespaces = requiredNamespaces.toMapOfClientNamespacesProposal(),
+        optionalNamespaces = optionalNamespaces.toMapOfClientNamespacesProposal(),
+        proposerPublicKey = proposerPublicKey,
+        properties = properties
+    )
 
 @JvmSynthetic
 internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesOptional(): Map<String, EngineDO.Namespace.Proposal> =
@@ -177,15 +192,8 @@ internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesO
         EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
-
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Proposal>.toMapOfClientNamespacesProposal(): Map<String, Sign.Model.Namespace.Proposal> =
-    mapValues { (_, namespace) ->
-        Sign.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
-    }
-
-@JvmSynthetic
-internal fun Map<String, EngineDO.Namespace.Proposal>.toMapOfClientNamespacesOptional(): Map<String, Sign.Model.Namespace.Proposal> =
     mapValues { (_, namespace) ->
         Sign.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }

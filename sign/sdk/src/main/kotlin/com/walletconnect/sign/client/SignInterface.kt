@@ -1,5 +1,7 @@
 package com.walletconnect.sign.client
 
+import java.lang.IllegalStateException
+
 interface SignInterface {
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal)
@@ -107,4 +109,10 @@ interface SignInterface {
      * It is advised that this function be called from background operation
      */
     fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest>
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getSessionProposals(): List<Sign.Model.SessionProposal>
 }

@@ -1,0 +1,33 @@
+import kotlin.collections.Map;
+import kotlin.collections.List;
+
+CREATE TABLE ProposalDao (
+   request_id INTEGER PRIMARY KEY NOT NULL,
+   pairingTopic TEXT NOT NULL,
+   name TEXT NOT NULL,
+   description TEXT NOT NULL,
+   url TEXT NOT NULL,
+   icons TEXT AS List<String> NOT NULL,
+   relay_protocol TEXT NOT NULL,
+   relay_data TEXT,
+   proposer_key TEXT NOT NULL,
+   properties TEXT AS Map<String, String>,
+   UNIQUE(request_id)
+);
+
+insertOrAbortSession:
+INSERT OR ABORT INTO ProposalDao(request_id, pairingTopic, name, description, url, icons, relay_protocol, relay_data, proposer_key, properties)
+VALUES (?,  ?, ?,?, ?, ?, ?, ? ,?, ?);
+
+getProposalByKey:
+SELECT pd.request_id, pd.pairingTopic, pd.name, pd.description, pd.url, pd.icons, pd.relay_protocol, pd.relay_data, pd.proposer_key, pd.properties
+FROM ProposalDao pd
+WHERE proposer_key = ?;
+
+getListOfProposalDaos:
+SELECT pd.request_id, pd.pairingTopic, pd.name, pd.description, pd.url, pd.icons, pd.relay_protocol, pd.relay_data, pd.proposer_key, pd.properties
+FROM ProposalDao pd;
+
+deleteProposal:
+DELETE FROM ProposalDao
+WHERE proposer_key = ?;

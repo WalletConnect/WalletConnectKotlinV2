@@ -307,6 +307,12 @@ class SignProtocol : SignInterface {
         return signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests()
     }
 
+    @Throws(IllegalStateException::class)
+    override fun getSessionProposals(): List<Sign.Model.SessionProposal> {
+        checkEngineInitialization()
+        return signEngine.getSessionProposals().map(EngineDO.SessionProposal::toClientSessionProposal)
+    }
+
     // TODO: Uncomment once reinit scope logic is added
 //    fun shutdown() {
 //        scope.cancel()
