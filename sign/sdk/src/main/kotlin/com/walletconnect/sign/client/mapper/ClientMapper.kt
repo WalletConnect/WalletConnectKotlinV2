@@ -161,6 +161,10 @@ internal fun List<PendingRequest>.mapToPendingRequests(): List<Sign.Model.Pendin
 }
 
 @JvmSynthetic
+internal fun List<EngineDO.SessionRequest>.mapToPendingSessionRequests(): List<Sign.Model.SessionRequest> =
+    map { request -> request.toClientSessionRequest() }
+
+@JvmSynthetic
 internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): Sign.Model.SessionRequestResponse =
     Sign.Model.SessionRequestResponse(topic, chainId, method, result.toClientJsonRpcResponse())
 

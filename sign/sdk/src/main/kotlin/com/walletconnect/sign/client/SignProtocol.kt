@@ -151,7 +151,12 @@ class SignProtocol : SignInterface {
         replaceWith = ReplaceWith("this.request(request, onSuccessWithSentRequest, onError)", "com.walletconnect.sign.client")
     )
     @Throws(IllegalStateException::class)
-    override fun request(request: Sign.Params.Request, onSuccess: (Sign.Params.Request) -> Unit, onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+    override fun request(
+        request: Sign.Params.Request,
+        onSuccess: (Sign.Params.Request) -> Unit,
+        onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit,
+        onError: (Sign.Model.Error) -> Unit
+    ) {
         checkEngineInitialization()
         try {
             signEngine.sessionRequest(
@@ -301,10 +306,20 @@ class SignProtocol : SignInterface {
         return signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing)
     }
 
+    @Deprecated(
+        "The return type of getPendingRequests methods has been replaced with SessionRequest list",
+        replaceWith = ReplaceWith("getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest>")
+    )
     @Throws(IllegalStateException::class)
     override fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest> {
         checkEngineInitialization()
         return signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests()
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest> {
+        checkEngineInitialization()
+        return signEngine.getPendingSessionRequests(Topic(topic)).mapToPendingSessionRequests()
     }
 
     @Throws(IllegalStateException::class)

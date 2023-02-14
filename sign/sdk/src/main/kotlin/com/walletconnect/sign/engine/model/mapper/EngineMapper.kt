@@ -7,7 +7,9 @@ import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.exceptions.PeerError
+import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
@@ -227,6 +229,10 @@ internal fun SignParams.SessionRequestParams.toEngineDO(topic: Topic): EngineDO.
 @JvmSynthetic
 internal fun SignParams.EventParams.toEngineDOEvent(): EngineDO.Event =
     EngineDO.Event(event.name, event.data.toString(), chainId)
+
+@JvmSynthetic
+internal fun PendingRequest.toSessionRequest(peerAppMetaData: AppMetaData?): EngineDO.SessionRequest =
+    EngineDO.SessionRequest(topic.value, chainId, peerAppMetaData, EngineDO.SessionRequest.JSONRPCRequest(id, method, params))
 
 
 @JvmSynthetic
