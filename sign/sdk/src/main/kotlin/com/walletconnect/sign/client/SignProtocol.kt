@@ -25,7 +25,7 @@ class SignProtocol : SignInterface {
         val instance = SignProtocol()
     }
 
-    override fun initialize(init: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
+    override fun initialize(init: Sign.Params.Init, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit) {
         // TODO: re-init scope
         try {
             wcKoinApp.modules(
@@ -37,6 +37,7 @@ class SignProtocol : SignInterface {
 
             signEngine = wcKoinApp.koin.get()
             signEngine.setup()
+            onSuccess()
         } catch (e: Exception) {
             onError(Sign.Model.Error(e))
         }

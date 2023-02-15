@@ -79,10 +79,10 @@ object Web3Wallet {
     }
 
     @Throws(IllegalStateException::class)
-    fun initialize(params: Wallet.Params.Init, onError: (Wallet.Model.Error) -> Unit) {
+    fun initialize(params: Wallet.Params.Init, onSuccess: () -> Unit = {}, onError: (Wallet.Model.Error) -> Unit) {
         coreClient = params.core
         SignClient.initialize(Sign.Params.Init(params.core)) { error -> onError(Wallet.Model.Error(error.throwable)) }
-        AuthClient.initialize(Auth.Params.Init(params.core)) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        AuthClient.initialize(Auth.Params.Init(params.core), onSuccess = onSuccess) { error -> onError(Wallet.Model.Error(error.throwable)) }
     }
 
     @Throws(IllegalStateException::class)

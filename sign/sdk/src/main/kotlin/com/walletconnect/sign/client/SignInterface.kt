@@ -31,7 +31,7 @@ interface SignInterface {
         fun onError(error: Sign.Model.Error)
     }
 
-    fun initialize(init: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit)
+    fun initialize(init: Sign.Params.Init, onSuccess: () -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun setWalletDelegate(delegate: WalletDelegate)
     fun setDappDelegate(delegate: DappDelegate)
 

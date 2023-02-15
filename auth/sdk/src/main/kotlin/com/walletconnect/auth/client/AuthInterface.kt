@@ -19,7 +19,7 @@ interface AuthInterface {
 
     fun setResponderDelegate(delegate: ResponderDelegate)
 
-    fun initialize(params: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit)
+    fun initialize(params: Auth.Params.Init, onSuccess: () -> Unit = {}, onError: (Auth.Model.Error) -> Unit)
 
     fun request(params: Auth.Params.Request, onSuccess: () -> Unit, onError: (Auth.Model.Error) -> Unit)
 
