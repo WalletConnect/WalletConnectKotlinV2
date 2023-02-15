@@ -8,10 +8,7 @@ import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.chat.ChatDatabase
 import com.walletconnect.chat.common.model.InviteStatus
 import com.walletconnect.chat.common.model.InviteType
-import com.walletconnect.chat.storage.ContactStorageRepository
-import com.walletconnect.chat.storage.InvitesStorageRepository
-import com.walletconnect.chat.storage.MessageStorageRepository
-import com.walletconnect.chat.storage.ThreadsStorageRepository
+import com.walletconnect.chat.storage.*
 import com.walletconnect.chat.storage.data.dao.Invites
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
@@ -46,9 +43,13 @@ internal fun storageModule() = module {
     single { get<ChatDatabase>().threadsQueries }
     single { get<ChatDatabase>().invitesQueries }
     single { get<ChatDatabase>().messagesQueries }
+    single { get<ChatDatabase>().accountsQueries }
+    single { get<ChatDatabase>().identitiesQueries }
 
     single { ContactStorageRepository(get()) }
     single { ThreadsStorageRepository(get()) }
     single { InvitesStorageRepository(get()) }
     single { MessageStorageRepository(get()) }
+    single { AccountsStorageRepository(get()) }
+    single { IdentitiesStorageRepository(get()) }
 }

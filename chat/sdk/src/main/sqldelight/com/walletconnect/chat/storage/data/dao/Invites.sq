@@ -9,13 +9,14 @@ CREATE TABLE Invites (
     inviteeAccount TEXT NOT NULL,
     status TEXT AS InviteStatus NOT NULL, -- PENDING, REJECTED OR APPROVED
     type TEXT AS InviteType NOT NULL, -- SENT OR RECEIVED
-    inviterPublicKey TEXT,
-    inviteePublicKey TEXT
+    inviterPublicKey TEXT NOT NULL,
+    inviteePublicKey TEXT NOT NULL,
+    acceptTopic TEXT NOT NULL
 );
 
 insertOrAbortInvite:
-INSERT OR ABORT INTO Invites(inviteId, message, inviterAccount, inviteeAccount, status, type, inviterPublicKey, inviteePublicKey)
-VALUES (?, ?, ?, ?, ?,?, ?, ?);
+INSERT OR ABORT INTO Invites(inviteId, message, inviterAccount, inviteeAccount, status, type, inviterPublicKey, inviteePublicKey, acceptTopic)
+VALUES (?, ?, ?, ?, ?,?, ?, ?,?);
 
 updateInviteStatus:
 UPDATE Invites
@@ -26,14 +27,24 @@ deleteInviteByInviteId:
 DELETE FROM Invites
 WHERE inviteId = ?;
 
+getInviteByInviteId:
+SELECT inviteId, message, inviterAccount, inviteeAccount, status, inviterPublicKey, inviteePublicKey, acceptTopic
+FROM Invites
+WHERE inviteId = ?;
+
+getAllPendingSentInvites:
+SELECT inviteId, message, inviterAccount, inviteeAccount, status, inviterPublicKey, inviteePublicKey, acceptTopic
+FROM Invites
+WHERE status = 'PENDING' AND type = 'SENT';
+
 -- SentInvites
 getSentInvitesForInviterAccount:
-SELECT inviteId, message, inviterAccount, inviteeAccount, status, inviterPublicKey, inviteePublicKey
+SELECT inviteId, message, inviterAccount, inviteeAccount, status, inviterPublicKey, inviteePublicKey, acceptTopic
 FROM Invites
 WHERE inviterAccount = ? AND type = 'SENT';
 
 -- ReceivedInvites
 getReceivedInvitesForInviteeAccount:
-SELECT inviteId, message, inviterAccount, inviteeAccount, status, inviterPublicKey, inviteePublicKey
+SELECT inviteId, message, inviterAccount, inviteeAccount, status, inviterPublicKey, inviteePublicKey, acceptTopic
 FROM Invites
 WHERE inviteeAccount = ? AND type = 'RECEIVED';
