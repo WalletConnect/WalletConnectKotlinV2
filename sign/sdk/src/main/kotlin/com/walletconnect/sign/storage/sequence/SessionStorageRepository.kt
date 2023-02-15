@@ -3,9 +3,9 @@
 package com.walletconnect.sign.storage.sequence
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDaoQueries
@@ -34,6 +34,7 @@ internal class SessionStorageRepository(
     fun getListOfSessionVOsWithoutMetadata(): List<SessionVO> =
         sessionDaoQueries.getListOfSessionDaos(mapper = this@SessionStorageRepository::mapSessionDaoToSessionVO).executeAsList()
 
+    // TODO: Maybe move this out and into SignValidator?
     @JvmSynthetic
     fun isSessionValid(topic: Topic): Boolean {
         val hasTopic = sessionDaoQueries.hasTopic(topic.value).executeAsOneOrNull() != null
@@ -50,6 +51,13 @@ internal class SessionStorageRepository(
     }
 
     @JvmSynthetic
+    fun getSessionExpiryByTopic(topic: Topic): Expiry? {
+        return sessionDaoQueries.getExpiry(topic.value).executeAsOneOrNull()?.let { expiryLong ->
+            Expiry(expiryLong)
+        }
+    }
+
+    @JvmSynthetic
     fun getSessionWithoutMetadataByTopic(topic: Topic): SessionVO =
         sessionDaoQueries.getSessionByTopic(topic.value, mapper = this@SessionStorageRepository::mapSessionDaoToSessionVO).executeAsOne()
 
@@ -60,11 +68,11 @@ internal class SessionStorageRepository(
     @Synchronized
     @JvmSynthetic
     @Throws(SQLiteException::class)
-    fun insertSession(session: SessionVO, pairingTopic: Topic, requestId: Long) {
+    fun insertSession(session: SessionVO, requestId: Long) {
         with(session) {
             sessionDaoQueries.insertOrAbortSession(
                 topic = topic.value,
-                pairingTopic = pairingTopic.value,
+                pairingTopic = pairingTopic,
                 expiry = expiry.seconds,
                 self_participant = selfPublicKey.keyAsHex,
                 relay_protocol = relayProtocol,
@@ -263,6 +271,7 @@ internal class SessionStorageRepository(
         self_participant: String,
         peer_participant: String?,
         is_acknowledged: Boolean,
+        pairingTopic: String
     ): SessionVO {
         val sessionNamespaces: Map<String, NamespaceVO.Session> = getSessionNamespaces(id)
         val proposalNamespaces: Map<String, NamespaceVO.Proposal> = getProposalNamespaces(id)
@@ -279,7 +288,8 @@ internal class SessionStorageRepository(
             relayData = relay_data,
             namespaces = sessionNamespaces,
             proposalNamespaces = proposalNamespaces,
-            isAcknowledged = is_acknowledged
+            isAcknowledged = is_acknowledged,
+            pairingTopic = pairingTopic
         )
     }
 
@@ -317,8 +327,10 @@ internal class SessionStorageRepository(
         methods: List<String>,
         events: List<String>,
     ): Pair<String, NamespaceVO.Session> {
-        val extensions = tempExtensionsDaoQueries.getNamespaceExtensionByNamespaceKeyAndSessionId(key, sessionId,
-            mapper = ::mapTempNamespaceExtensionToNamespaceExtensionVO).executeAsList().takeIf { extensions -> extensions.isNotEmpty() }
+        val extensions = tempExtensionsDaoQueries.getNamespaceExtensionByNamespaceKeyAndSessionId(
+            key, sessionId,
+            mapper = ::mapTempNamespaceExtensionToNamespaceExtensionVO
+        ).executeAsList().takeIf { extensions -> extensions.isNotEmpty() }
 
         return key to NamespaceVO.Session(accounts, methods, events, extensions)
     }

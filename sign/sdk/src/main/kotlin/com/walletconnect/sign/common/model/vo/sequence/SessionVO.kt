@@ -26,6 +26,7 @@ internal data class SessionVO(
     val namespaces: Map<String, NamespaceVO.Session>,
     val proposalNamespaces: Map<String, NamespaceVO.Proposal>,
     val isAcknowledged: Boolean,
+    val pairingTopic: String
 ) : Sequence {
     val isPeerController: Boolean = peerPublicKey?.keyAsHex == controllerKey?.keyAsHex
     val isSelfController: Boolean = selfPublicKey.keyAsHex == controllerKey?.keyAsHex
@@ -38,7 +39,8 @@ internal data class SessionVO(
             proposal: SignParams.SessionProposeParams,
             selfParticipant: SessionParticipantVO,
             sessionExpiry: Long,
-            namespaces: Map<String, EngineDO.Namespace.Session>
+            namespaces: Map<String, EngineDO.Namespace.Session>,
+            pairingTopic: String
         ): SessionVO {
             return SessionVO(
                 sessionTopic,
@@ -52,7 +54,8 @@ internal data class SessionVO(
                 controllerKey = PublicKey(selfParticipant.publicKey),
                 namespaces = namespaces.toMapOfNamespacesVOSession(),
                 proposalNamespaces = proposal.namespaces,
-                isAcknowledged = false
+                isAcknowledged = false,
+                pairingTopic = pairingTopic
             )
         }
 
@@ -62,7 +65,8 @@ internal data class SessionVO(
             settleParams: SignParams.SessionSettleParams,
             selfPublicKey: PublicKey,
             selfMetadata: AppMetaData,
-            proposalNamespaces: Map<String, NamespaceVO.Proposal>
+            proposalNamespaces: Map<String, NamespaceVO.Proposal>,
+            pairingTopic: String
         ): SessionVO {
             return SessionVO(
                 sessionTopic,
@@ -76,7 +80,8 @@ internal data class SessionVO(
                 controllerKey = PublicKey(settleParams.controller.publicKey),
                 namespaces = settleParams.namespaces,
                 proposalNamespaces = proposalNamespaces,
-                isAcknowledged = true
+                isAcknowledged = true,
+                pairingTopic = pairingTopic
             )
         }
     }

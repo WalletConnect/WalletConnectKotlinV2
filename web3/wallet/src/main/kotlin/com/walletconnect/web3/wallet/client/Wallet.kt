@@ -187,6 +187,7 @@ object Wallet {
         }
 
         data class Session(
+            val pairingTopic: String,
             val topic: String,
             val expiry: Long,
             val namespaces: Map<String, Namespace.Session>,

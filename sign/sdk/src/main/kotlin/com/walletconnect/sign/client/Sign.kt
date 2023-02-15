@@ -135,6 +135,7 @@ object Sign {
         ) : Model()
 
         data class Session(
+            val pairingTopic: String,
             val topic: String,
             val expiry: Long,
             val namespaces: Map<String, Namespace.Session>,
@@ -213,7 +214,8 @@ object Sign {
             val sessionTopic: String,
             val method: String,
             val params: String,
-            val chainId: String
+            val chainId: String,
+            val expiry: Long? = null
         ) : Params()
 
         data class Update(

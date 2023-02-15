@@ -7,7 +7,9 @@ import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.exceptions.PeerError
+import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
@@ -71,13 +73,14 @@ internal fun SessionVO.toEngineDO(): EngineDO.Session =
     EngineDO.Session(
         topic,
         expiry,
+        pairingTopic,
         namespaces.toMapOfEngineNamespacesSession(),
         peerAppMetaData
     )
 
 @JvmSynthetic
 internal fun SessionVO.toEngineDOSessionExtend(expiryVO: Expiry): EngineDO.SessionExtend =
-    EngineDO.SessionExtend(topic, expiryVO, namespaces.toMapOfEngineNamespacesSession(), selfAppMetaData)
+    EngineDO.SessionExtend(topic, expiryVO, pairingTopic, namespaces.toMapOfEngineNamespacesSession(), selfAppMetaData)
 
 
 @JvmSynthetic
@@ -99,7 +102,8 @@ internal fun SignParams.SessionProposeParams.toSessionSettleParams(
         relay = RelayProtocolOptions(relays.first().protocol, relays.first().data),
         controller = selfParticipant,
         namespaces = namespaces.toMapOfNamespacesVOSession(),
-        expiry = sessionExpiry)
+        expiry = sessionExpiry
+    )
 
 @JvmSynthetic
 internal fun toSessionProposeParams(
@@ -157,7 +161,8 @@ internal fun JsonRpcResponse.JsonRpcError.toEngineDO(): EngineDO.JsonRpcResponse
 internal fun SignParams.SessionProposeParams.toSessionApproveParams(selfPublicKey: PublicKey): CoreSignParams.ApprovalParams =
     CoreSignParams.ApprovalParams(
         relay = RelayProtocolOptions(relays.first().protocol, relays.first().data),
-        responderPublicKey = selfPublicKey.keyAsHex)
+        responderPublicKey = selfPublicKey.keyAsHex
+    )
 
 @JvmSynthetic
 internal fun SignParams.SessionRequestParams.toEngineDO(topic: Topic): EngineDO.Request =
@@ -166,6 +171,10 @@ internal fun SignParams.SessionRequestParams.toEngineDO(topic: Topic): EngineDO.
 @JvmSynthetic
 internal fun SignParams.EventParams.toEngineDOEvent(): EngineDO.Event =
     EngineDO.Event(event.name, event.data.toString(), chainId)
+
+@JvmSynthetic
+internal fun PendingRequest.toSessionRequest(peerAppMetaData: AppMetaData?): EngineDO.SessionRequest =
+    EngineDO.SessionRequest(topic.value, chainId, peerAppMetaData, EngineDO.SessionRequest.JSONRPCRequest(id, method, params))
 
 
 @JvmSynthetic

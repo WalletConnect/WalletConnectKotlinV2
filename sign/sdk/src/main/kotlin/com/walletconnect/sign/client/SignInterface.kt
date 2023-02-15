@@ -106,5 +106,15 @@ interface SignInterface {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated(
+        "The return type of getPendingRequests methods has been replaced with SessionRequest list",
+        replaceWith = ReplaceWith("getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest>")
+    )
     fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest>
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest>
 }

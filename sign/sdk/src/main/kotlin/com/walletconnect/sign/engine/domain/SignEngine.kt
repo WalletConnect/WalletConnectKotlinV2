@@ -6,14 +6,14 @@ import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.*
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
-import com.walletconnect.android.internal.common.exception.GenericException
-import com.walletconnect.android.internal.common.exception.Reason
-import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
+import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.*
@@ -46,6 +46,8 @@ import com.walletconnect.utils.extractTimestamp
 import com.walletconnect.utils.isSequenceValid
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 internal class SignEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -171,10 +173,11 @@ internal class SignEngine(
             val selfPublicKey = crypto.getSelfPublicFromKeyAgreement(sessionTopic)
             val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, selfAppMetaData)
             val sessionExpiry = ACTIVE_SESSION
-            val unacknowledgedSession = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces)
+            val unacknowledgedSession =
+                SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, namespaces, pairingTopic.value)
 
             try {
-                sessionStorageRepository.insertSession(unacknowledgedSession, pairingTopic, requestId)
+                sessionStorageRepository.insertSession(unacknowledgedSession, requestId)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, proposal.proposer.metadata, AppMetaDataType.PEER)
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, namespaces)
@@ -263,6 +266,11 @@ internal class SignEngine(
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
 
+        val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.MILLISECONDS)
+        if (CoreValidator.isExpiryNotWithinBounds(request.expiry, nowInSeconds) ) {
+            return onFailure(InvalidExpiryException())
+        }
+
         SignValidator.validateSessionRequest(request) { error ->
             throw InvalidRequestException(error.message)
         }
@@ -274,7 +282,17 @@ internal class SignEngine(
 
         val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
         val sessionPayload = SignRpc.SessionRequest(id = generateId(), params = params)
-        val irnParams = IrnParams(Tags.SESSION_REQUEST, Ttl(FIVE_MINUTES_IN_SECONDS), true)
+        val irnParamsTtl = request.expiry?.run {
+            val defaultTtl = FIVE_MINUTES_IN_SECONDS
+            val extractedTtl = seconds - nowInSeconds
+            val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
+
+            Ttl(newTtl)
+        } ?: Ttl(FIVE_MINUTES_IN_SECONDS)
+        val irnParams = IrnParams(Tags.SESSION_REQUEST, irnParamsTtl, true)
+        val requestTtlInSeconds = request.expiry?.run {
+            seconds - nowInSeconds
+        } ?: FIVE_MINUTES_IN_SECONDS
 
         jsonRpcInteractor.publishJsonRpcRequest(
             Topic(request.topic),
@@ -285,11 +303,11 @@ internal class SignEngine(
                 onSuccess(sessionPayload.id)
                 scope.launch {
                     try {
-                        withTimeout(FIVE_MINUTES_TIMEOUT) {
+                        withTimeout(requestTtlInSeconds) {
                             collectResponse(sessionPayload.id) { cancel() }
                         }
                     } catch (e: TimeoutCancellationException) {
-                        onFailure(e)
+                        _engineEvent.emit(SDKError(InternalError(e)))
                     }
                 }
             },
@@ -306,9 +324,26 @@ internal class SignEngine(
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
-            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+        val topicWrapper = Topic(topic)
+
+        if (!sessionStorageRepository.isSessionValid(topicWrapper)) {
+            return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
         }
+
+        sessionStorageRepository.getSessionExpiryByTopic(topicWrapper)?.let { expiry ->
+            if (CoreValidator.isExpiryNotWithinBounds(expiry)) {
+                scope.launch {
+                    supervisorScope {
+                        val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+                        val request = WCRequest(Topic(topic), jsonRpcResponse.id, JsonRpcMethod.WC_SESSION_REQUEST, object: ClientParams {})
+                        jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+                    }
+                }
+
+                return onFailure(InvalidExpiryException())
+            }
+        } ?: return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
+
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcResponse(
@@ -479,6 +514,12 @@ internal class SignEngine(
 
     internal fun getPendingRequests(topic: Topic): List<PendingRequest> = getPendingRequestsUseCase(topic)
 
+    internal fun getPendingSessionRequests(topic: Topic): List<EngineDO.SessionRequest> = getPendingRequestsUseCase(topic)
+        .map { pendingRequest ->
+            val peerMetaData = metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)
+            pendingRequest.toSessionRequest(peerMetaData)
+        }
+
     private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit = {}) {
         jsonRpcInteractor.peerResponse
             .filter { response -> response.response.id == id }
@@ -577,10 +618,17 @@ internal class SignEngine(
         val tempProposalRequest = sessionProposalRequest.getValue(selfPublicKey.keyAsHex)
 
         try {
-            val session = SessionVO.createAcknowledgedSession(sessionTopic, settleParams, selfPublicKey, selfAppMetaData, proposalNamespaces)
+            val session = SessionVO.createAcknowledgedSession(
+                sessionTopic,
+                settleParams,
+                selfPublicKey,
+                selfAppMetaData,
+                proposalNamespaces,
+                request.topic.value
+            )
 
             sessionProposalRequest.remove(selfPublicKey.keyAsHex)
-            sessionStorageRepository.insertSession(session, request.topic, request.id)
+            sessionStorageRepository.insertSession(session, request.id)
             pairingHandler.updateMetadata(Core.Params.UpdateMetadata(proposal.topic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
             metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
 
@@ -626,7 +674,13 @@ internal class SignEngine(
     // listened by WalletDelegate
     private fun onSessionRequest(request: WCRequest, params: SignParams.SessionRequestParams) {
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+
         try {
+            if (CoreValidator.isExpiryNotWithinBounds(params.request.expiry)) {
+                jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+                return
+            }
+
             SignValidator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return
