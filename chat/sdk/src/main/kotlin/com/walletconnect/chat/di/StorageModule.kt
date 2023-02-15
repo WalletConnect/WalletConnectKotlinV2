@@ -10,6 +10,7 @@ import com.walletconnect.chat.common.model.InviteStatus
 import com.walletconnect.chat.common.model.InviteType
 import com.walletconnect.chat.storage.ContactStorageRepository
 import com.walletconnect.chat.storage.InvitesStorageRepository
+import com.walletconnect.chat.storage.MessageStorageRepository
 import com.walletconnect.chat.storage.ThreadsStorageRepository
 import com.walletconnect.chat.storage.data.dao.Invites
 import org.koin.core.qualifier.named
@@ -44,8 +45,10 @@ internal fun storageModule() = module {
     single { get<ChatDatabase>().contactsQueries }
     single { get<ChatDatabase>().threadsQueries }
     single { get<ChatDatabase>().invitesQueries }
+    single { get<ChatDatabase>().messagesQueries }
 
     single { ContactStorageRepository(get()) }
     single { ThreadsStorageRepository(get()) }
     single { InvitesStorageRepository(get()) }
+    single { MessageStorageRepository(get()) }
 }
