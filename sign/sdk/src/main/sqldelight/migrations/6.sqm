@@ -1,6 +1,8 @@
 import kotlin.collections.List;
 import kotlin.collections.Map;
 
+-- migrates 6db to 7db
+
 -- DROP TABLES
 DROP TABLE IF EXISTS NamespaceDao;
 DROP TABLE IF EXISTS ProposalNamespaceDao;

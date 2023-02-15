@@ -1,6 +1,8 @@
 import com.walletconnect.android.internal.common.model.AppMetaDataType;
 import kotlin.collections.List;
 
+-- migrates 2db to 3db
+
 -- DROP TABLES
 DROP TABLE IF EXISTS JsonRpcHistoryDao;
 DROP TABLE IF EXISTS MetaDataDao;
