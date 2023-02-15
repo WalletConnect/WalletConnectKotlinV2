@@ -3,7 +3,7 @@ package com.walletconnect.android.internal.common
 import com.walletconnect.android.internal.KeyChainMock
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
-import com.walletconnect.foundation.util.jwt.jwtIat
+import com.walletconnect.foundation.util.jwt.jwtIatAndExp
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.spyk
@@ -30,8 +30,8 @@ internal class ClientIdJwtRepositoryAndroidTest {
         keyChain.setKeys(tag, privateKey, publicKey)
 
         every { sut.generateSubject() } returns "c479fe5dc464e771e78b193d239a65b58d278cad1c34bfb0b5716e5bb514928e"
-        mockkStatic(::jwtIat)
-        every { jwtIat() } returns 1656910097L
+        mockkStatic(::jwtIatAndExp)
+        every { jwtIatAndExp(any(), any(), any(), any()) } returns (1656910097L to (1656910097L + 86400L))
     }
 
     @AfterEach

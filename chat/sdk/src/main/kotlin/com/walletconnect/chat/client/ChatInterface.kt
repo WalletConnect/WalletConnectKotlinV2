@@ -27,8 +27,8 @@ interface ChatInterface {
     fun ping(ping: Chat.Params.Ping, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit)
     fun leave(leave: Chat.Params.Leave, onError: (Chat.Model.Error) -> Unit)
     fun setContact(setContact: Chat.Params.SetContact, onError: (Chat.Model.Error) -> Unit)
-    fun getReceivedInvites(getReceivedInvites: Chat.Params.GetReceivedInvites): Map<Long, Chat.Model.ReceivedInvite>
-    fun getSentInvites(getSentInvites: Chat.Params.GetSentInvites): Map<Long, Chat.Model.SentInvite>
+    fun getReceivedInvites(getReceivedInvites: Chat.Params.GetReceivedInvites): Map<Long, Chat.Model.Invite.Received>
+    fun getSentInvites(getSentInvites: Chat.Params.GetSentInvites): Map<Long, Chat.Model.Invite.Sent>
     fun getThreads(getThreads: Chat.Params.GetThreads): Map<String, Chat.Model.Thread>
     fun getMessages(getMessages: Chat.Params.GetMessages): List<Chat.Model.Message>
 }

@@ -1,0 +1,27 @@
+CREATE TABLE Messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    messageId INTEGER UNIQUE NOT NULL,
+    topic TEXT NOT NULL,
+    message TEXT NOT NULL,
+    authorAccount TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+    mediaType TEXT,
+    mediaData TEXT
+);
+
+insertOrAbortMessage:
+INSERT OR ABORT INTO Messages(topic, messageId, message, authorAccount,timestamp, mediaType, mediaData)
+VALUES (?, ?, ?, ?, ? ,? ,?);
+
+getMessagesByTopic:
+SELECT messageId, topic, message, authorAccount, timestamp, mediaType, mediaData
+FROM Messages
+WHERE topic = ?;
+
+deleteMessagesByTopic:
+DELETE FROM Messages
+WHERE topic = ?;
+
+deleteMessageByMessageId:
+DELETE FROM Messages
+WHERE messageId = ?;

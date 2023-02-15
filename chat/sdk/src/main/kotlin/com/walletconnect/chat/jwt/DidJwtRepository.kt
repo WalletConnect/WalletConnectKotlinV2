@@ -2,18 +2,18 @@
 
 package com.walletconnect.chat.jwt
 
-import com.walletconnect.foundation.util.jwt.*
 import com.walletconnect.chat.jwt.use_case.EncodeDidJwtPayloadUseCase
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.util.jwt.*
+import java.util.concurrent.TimeUnit
 
 internal class DidJwtRepository {
     fun encodeDidJwt(identityKeyPair: Pair<PublicKey, PrivateKey>, keyserverUrl: String, encodeDidJwtPayloadUseCase: EncodeDidJwtPayloadUseCase): Result<String> = runCatching {
         val (publicKey, privateKey) = identityKeyPair
 
         val issuer = encodeEd25519DidKey(publicKey.keyAsBytes)
-        val issuedAt = jwtIat()
-        val expiration = jwtExp(issuedAt)
+        val (issuedAt, expiration) = jwtIatAndExp(timeunit = TimeUnit.MILLISECONDS, expirySourceDuration = 30, expiryTimeUnit = TimeUnit.DAYS)
         val claims = encodeDidJwtPayloadUseCase(issuer = issuer, keyserverUrl = keyserverUrl, issuedAt = issuedAt, expiration = expiration)
         val data = encodeData(JwtHeader.EdDSA.encoded, claims).toByteArray()
         val signature = signJwt(privateKey, data).getOrThrow()

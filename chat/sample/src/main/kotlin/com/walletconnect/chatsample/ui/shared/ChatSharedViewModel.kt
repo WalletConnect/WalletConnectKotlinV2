@@ -25,8 +25,8 @@ import java.security.Security
 
 class ChatSharedViewModel(application: Application) : AndroidViewModel(application) {
     private val sharedPreferences: SharedPreferences = application.getSharedPreferences("Chat_Shared_Prefs", Context.MODE_PRIVATE)
-    var sentInvite: Chat.Model.Invite? = null
-    var receivedInvite: Chat.Model.ReceivedInvite? = null
+    var sentInvite: Chat.Params.Invite? = null
+    var receivedInvite: Chat.Model.Invite.Received? = null
     var whoWasInvitedContact: String? = null
     val userNameToTopicMap: MutableMap<String, String> = mutableMapOf()
 
@@ -117,8 +117,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
             }
 
             override fun onSuccess(publicKey: String) {
-                val inviteModel = Chat.Model.Invite(inviterAccount = Chat.Type.AccountId(_account), inviteeAccount = Chat.Type.AccountId(contact), Chat.Type.InviteMessage(openingMessage), publicKey)
-                val invite = Chat.Params.Invite(inviteModel)
+                val invite = Chat.Params.Invite(inviterAccount = Chat.Type.AccountId(_account), inviteeAccount = Chat.Type.AccountId(contact), Chat.Type.InviteMessage(openingMessage), publicKey)
                 ChatClient.invite(
                     invite,
                     { Log.d(TAG, "Invited, inviter: $_account, invitee: $contact") },
@@ -126,10 +125,10 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
                 )
 
                 runBlocking(Dispatchers.Main) {
-                    sentInvite = inviteModel
+                    sentInvite = invite
                     whoWasInvitedContact = contact
                     Log.e(TAG, "invite: $sentInvite")
-                    listOfMessages.add(MessageUI(contact, inviteModel.message.value, System.currentTimeMillis(), contact))
+                    listOfMessages.add(MessageUI(contact, invite.message.value, System.currentTimeMillis(), contact))
                     _listOfMessagesStateFlow.value = listOfMessages.toList()
                     afterInviteSent()
                 }

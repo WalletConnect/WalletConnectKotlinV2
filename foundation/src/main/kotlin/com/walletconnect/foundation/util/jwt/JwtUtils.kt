@@ -72,10 +72,10 @@ fun decodeX25519DidKey(didKey: String): PublicKey {
     return PublicKey(decodedKey.removePrefix("ec01"))
 }
 
-fun jwtIat(): Long = TimeUnit.SECONDS.convert(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
-
-fun jwtExp(issuedAt: Long): Long {
-    return issuedAt + TimeUnit.SECONDS.convert(1, TimeUnit.DAYS)
+fun jwtIatAndExp(timeunit: TimeUnit, expirySourceDuration: Long, expiryTimeUnit: TimeUnit, timestampInMs: Long = System.currentTimeMillis()): Pair<Long, Long> {
+    val iat = timeunit.convert(timestampInMs, TimeUnit.MILLISECONDS)
+    val exp = iat + timeunit.convert(expirySourceDuration, expiryTimeUnit)
+    return iat to exp
 }
 
 fun encodeDidPkh(caip10Account: String): String {
