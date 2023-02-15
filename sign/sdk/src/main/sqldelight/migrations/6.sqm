@@ -74,6 +74,5 @@ CREATE TABLE ProposalDao (
    relay_protocol TEXT NOT NULL,
    relay_data TEXT,
    proposer_key TEXT NOT NULL,
-   properties TEXT AS Map<String, String>,
-   UNIQUE(request_id)
+   properties TEXT AS Map<String, String>
 );
