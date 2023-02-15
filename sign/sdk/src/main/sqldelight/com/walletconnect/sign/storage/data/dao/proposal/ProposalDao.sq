@@ -11,13 +11,12 @@ CREATE TABLE ProposalDao (
    relay_protocol TEXT NOT NULL,
    relay_data TEXT,
    proposer_key TEXT NOT NULL,
-   properties TEXT AS Map<String, String>,
-   UNIQUE(request_id)
+   properties TEXT AS Map<String, String>
 );
 
 insertOrAbortSession:
 INSERT OR ABORT INTO ProposalDao(request_id, pairingTopic, name, description, url, icons, relay_protocol, relay_data, proposer_key, properties)
-VALUES (?,  ?, ?,?, ?, ?, ?, ? ,?, ?);
+VALUES (?,?,?,?,?,?,?,?,?,?);
 
 getProposalByKey:
 SELECT pd.request_id, pd.pairingTopic, pd.name, pd.description, pd.url, pd.icons, pd.relay_protocol, pd.relay_data, pd.proposer_key, pd.properties
