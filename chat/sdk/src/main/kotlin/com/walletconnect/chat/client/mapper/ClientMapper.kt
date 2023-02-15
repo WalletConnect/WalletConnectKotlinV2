@@ -10,7 +10,7 @@ import com.walletconnect.chat.common.model.*
 import com.walletconnect.foundation.common.model.Topic
 
 @JvmSynthetic
-internal fun Chat.Params.Invite.toCommon(): Invite = Invite(invite.inviterAccount.toCommon(), invite.inviteeAccount.toCommon(), invite.message.toCommon(), invite.inviteePublicKey)
+internal fun Chat.Params.Invite.toCommon(): SendInvite = SendInvite(inviterAccount.toCommon(), inviteeAccount.toCommon(), message.toCommon(), inviteePublicKey)
 
 @JvmSynthetic
 internal fun Chat.Params.Message.toCommon(): SendMessage = SendMessage(Topic(topic), message.toCommon(), media?.toCommon())
@@ -23,10 +23,22 @@ internal fun Events.OnInvite.toClient(): Chat.Model.Events.OnInvite = Chat.Model
 
 
 @JvmSynthetic
-internal fun Thread.toClient(): Chat.Model.Thread = Chat.Model.Thread(topic, Chat.Type.AccountId(selfAccount), Chat.Type.AccountId(peerAccount))
+internal fun Thread.toClient(): Chat.Model.Thread = Chat.Model.Thread(topic.value, selfAccount.toClient(), peerAccount.toClient())
 
 @JvmSynthetic
-internal fun ReceivedInvite.toClient(): Chat.Model.ReceivedInvite = Chat.Model.ReceivedInvite(id, inviterAccount.toClient(), inviteeAccount.toClient(), message.toClient(), inviterPublicKey, inviteePublicKey)
+internal fun InviteStatus.toClient(): Chat.Type.InviteStatus = when (this) {
+    InviteStatus.PENDING -> Chat.Type.InviteStatus.PENDING
+    InviteStatus.REJECTED -> Chat.Type.InviteStatus.REJECTED
+    InviteStatus.APPROVED -> Chat.Type.InviteStatus.APPROVED
+}
+
+@JvmSynthetic
+internal fun Invite.Received.toClient(): Chat.Model.Invite.Received =
+    Chat.Model.Invite.Received(id, inviterAccount.toClient(), inviteeAccount.toClient(), message.toClient(), inviterPublicKey.keyAsHex, inviteePublicKey.keyAsHex, status.toClient())
+
+@JvmSynthetic
+internal fun Invite.Sent.toClient(): Chat.Model.Invite.Sent =
+    Chat.Model.Invite.Sent(id, inviterAccount.toClient(), inviteeAccount.toClient(), message.toClient(), inviterPublicKey.keyAsHex, inviteePublicKey.keyAsHex, status.toClient())
 
 @JvmSynthetic
 internal fun AccountId.toClient(): Chat.Type.AccountId = Chat.Type.AccountId(value)

@@ -13,6 +13,7 @@ import org.bouncycastle.crypto.params.Ed25519KeyGenerationParameters
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
 import java.security.SecureRandom
+import java.util.concurrent.TimeUnit
 
 abstract class BaseClientIdJwtRepository : JwtRepository {
     abstract fun setKeyPair(key: String, privateKey: PrivateKey, publicKey: PublicKey)
@@ -27,8 +28,8 @@ abstract class BaseClientIdJwtRepository : JwtRepository {
 
         val issuer = encodeEd25519DidKey(publicKey.hexToBytes())
         getIssuer(issuer)
-        val issuedAt = jwtIat()
-        val expiration = jwtExp(issuedAt)
+        // ClientId Did Jwt have issuedAt as seconds
+        val (issuedAt, expiration) = jwtIatAndExp(timeunit = TimeUnit.SECONDS, expirySourceDuration = 1, expiryTimeUnit = TimeUnit.DAYS)
         val payload = IrnJwtClaims(issuer, subject, serverUrl, issuedAt, expiration)
         val data = encodeData(JwtHeader.EdDSA.encoded, payload).toByteArray()
         val signature = signJwt(PrivateKey(privateKey), data).getOrThrow()
