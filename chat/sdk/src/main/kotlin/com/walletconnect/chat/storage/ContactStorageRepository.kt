@@ -10,11 +10,11 @@ import com.walletconnect.foundation.common.model.PublicKey
 internal class ContactStorageRepository(private val contactsQueries: ContactsQueries) {
 
     @JvmSynthetic
-    internal fun doesContactNotExists(accountIdVO: AccountId): Boolean =
+    internal suspend fun doesContactNotExists(accountIdVO: AccountId): Boolean =
         contactsQueries.doesContactNotExists(accountIdVO.value).executeAsOne()
 
     @JvmSynthetic
-    internal fun upsertContact(contact: Contact) = with(contact) {
+    internal suspend fun upsertContact(contact: Contact) = with(contact) {
         if (doesContactNotExists(accountId)) {
             createContact(contact)
         } else {
@@ -23,18 +23,18 @@ internal class ContactStorageRepository(private val contactsQueries: ContactsQue
     }
 
     @JvmSynthetic
-    internal fun createContact(contact: Contact) = contactsQueries.insertOrAbortContact(
+    internal suspend fun createContact(contact: Contact) = contactsQueries.insertOrAbortContact(
         contact.accountId.value,
         contact.publicKey.keyAsHex,
         contact.displayName
     )
 
     @JvmSynthetic
-    internal fun getContact(accountId: AccountId): Contact =
+    internal suspend fun getContact(accountId: AccountId): Contact =
         contactsQueries.getContact(accountId.value, mapper = ::mapContactDaoToContact).executeAsOne()
 
     @JvmSynthetic
-    internal fun updateContact(contact: Contact) = with(contact) {
+    internal suspend fun updateContact(contact: Contact) = with(contact) {
         contactsQueries.updateContactPublicKey(publicKey.keyAsHex, accountId.value)
         contactsQueries.updateContactDisplayName(displayName, accountId.value)
     }
