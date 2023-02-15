@@ -1,6 +1,5 @@
 import kotlin.collections.List;
 
-
 -- DROP TABLES
 DROP TABLE IF EXISTS JsonRpcHistoryDao;
 DROP TABLE IF EXISTS MetaDataDao;
