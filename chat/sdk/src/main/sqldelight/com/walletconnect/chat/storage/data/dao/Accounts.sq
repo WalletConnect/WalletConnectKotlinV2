@@ -1,0 +1,40 @@
+CREATE TABLE Accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    accountId TEXT UNIQUE NOT NULL,
+    publicIdentityKey TEXT NOT NULL,
+    publicInviteKey TEXT,
+    inviteTopic TEXT UNIQUE
+);
+
+insertOrAbortAccount:
+INSERT OR ABORT INTO Accounts(accountId, publicIdentityKey, publicInviteKey, inviteTopic)
+VALUES (?, ?, ?, ?);
+
+getAccountByAccountId:
+SELECT accountId, publicIdentityKey, publicInviteKey, inviteTopic
+FROM Accounts
+WHERE accountId = ?;
+
+getAccountByInviteTopic:
+SELECT accountId, publicIdentityKey, publicInviteKey, inviteTopic
+FROM Accounts
+WHERE inviteTopic = ?;
+
+deleteAccountByAccountId:
+DELETE FROM Accounts
+WHERE accountId = ?;
+
+updateAccountPublicInviteKey:
+UPDATE Accounts
+SET publicInviteKey = ?, inviteTopic = ?
+WHERE accountId = ?;
+
+getAllInviteTopics:
+SELECT inviteTopic
+FROM Accounts
+WHERE inviteTopic IS NOT NULL;
+
+removeAccountPublicInviteKey:
+UPDATE Accounts
+SET publicInviteKey = NULL, inviteTopic = NULL
+WHERE accountId = ?;
