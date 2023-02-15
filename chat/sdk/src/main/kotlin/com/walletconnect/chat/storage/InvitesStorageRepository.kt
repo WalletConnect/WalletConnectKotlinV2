@@ -3,6 +3,7 @@ package com.walletconnect.chat.storage
 import com.walletconnect.chat.common.model.*
 import com.walletconnect.chat.storage.data.dao.InvitesQueries
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.Topic
 
 internal class InvitesStorageRepository(private val invites: InvitesQueries) {
     suspend fun insertInvite(invite: Invite) {
@@ -11,12 +12,16 @@ internal class InvitesStorageRepository(private val invites: InvitesQueries) {
             is Invite.Sent -> InviteType.SENT
         }
 
-        invites.insertOrAbortInvite(
-            inviteId = invite.id, message = invite.message.value, inviterAccount = invite.inviterAccount.value,
-            inviteeAccount = invite.inviteeAccount.value, status = InviteStatus.PENDING, type = type,
-            inviterPublicKey = invite.inviterPublicKey.keyAsHex, inviteePublicKey = invite.inviteePublicKey.keyAsHex
-        )
+        with(invite) {
+            invites.insertOrAbortInvite(
+                inviteId = id, message = message.value, inviterAccount = inviterAccount.value,
+                inviteeAccount = inviteeAccount.value, status = InviteStatus.PENDING, type = type, acceptTopic = acceptTopic.value,
+                inviterPublicKey = inviterPublicKey.keyAsHex, inviteePublicKey = inviteePublicKey.keyAsHex
+            )
+        }
     }
+
+    suspend fun getAllPendingSentInvites() = invites.getAllPendingSentInvites(::dbToSentInvite).executeAsList()
 
     suspend fun deleteInviteByInviteId(inviteId: Long) = invites.deleteInviteByInviteId(inviteId)
 
@@ -30,19 +35,19 @@ internal class InvitesStorageRepository(private val invites: InvitesQueries) {
 
     private fun dbToSentInvite(
         inviteId: Long, message: String, inviterAccount: String, inviteeAccount: String,
-        status: InviteStatus, inviterPublicKey: String, inviteePublicKey: String,
+        status: InviteStatus, inviterPublicKey: String, inviteePublicKey: String, acceptTopic: String
     ): Invite.Sent = Invite.Sent(
         id = inviteId, inviterAccount = AccountId(inviterAccount), inviteeAccount = AccountId(inviteeAccount),
         message = InviteMessage(message), inviterPublicKey = PublicKey(inviterPublicKey),
-        inviteePublicKey = PublicKey(inviteePublicKey), status = status
+        inviteePublicKey = PublicKey(inviteePublicKey), status = status, acceptTopic = Topic(acceptTopic)
     )
 
     private fun dbToReceivedInvite(
         inviteId: Long, message: String, inviterAccount: String, inviteeAccount: String,
-        status: InviteStatus, inviterPublicKey: String, inviteePublicKey: String,
+        status: InviteStatus, inviterPublicKey: String, inviteePublicKey: String, acceptTopic: String
     ): Invite.Received = Invite.Received(
         id = inviteId, inviterAccount = AccountId(inviterAccount), inviteeAccount = AccountId(inviteeAccount),
         message = InviteMessage(message), inviterPublicKey = PublicKey(inviterPublicKey),
-        inviteePublicKey = PublicKey(inviteePublicKey), status = status
+        inviteePublicKey = PublicKey(inviteePublicKey), status = status, acceptTopic = Topic(acceptTopic)
     )
 }

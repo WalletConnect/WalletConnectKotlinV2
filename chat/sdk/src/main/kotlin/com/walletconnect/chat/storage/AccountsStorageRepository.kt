@@ -8,7 +8,20 @@ import com.walletconnect.foundation.common.model.Topic
 
 internal class AccountsStorageRepository(private val accounts: AccountsQueries) {
 
-    suspend fun insertAccount(account: Account) = with(account) {
+    private suspend fun doesAccountNotExists(accountId: AccountId) = accounts.doesAccountNotExists(accountId.value).executeAsOne()
+
+    suspend fun upsertAccount(account: Account) =
+        if (doesAccountNotExists(account.accountId)) {
+            createAccount(account)
+        } else {
+            updateAccount(account)
+        }
+
+    private suspend fun updateAccount(account: Account) = with(account) {
+        accounts.updateAccount(publicIdentityKey.keyAsHex, publicInviteKey?.keyAsHex, inviteTopic?.value, accountId.value)
+    }
+
+    private suspend fun createAccount(account: Account) = with(account) {
         accounts.insertOrAbortAccount(accountId = accountId.value, publicIdentityKey = publicIdentityKey.keyAsHex, publicInviteKey = publicInviteKey?.keyAsHex, inviteTopic = inviteTopic?.value)
     }
 

@@ -23,7 +23,7 @@ internal fun Events.OnInvite.toClient(): Chat.Model.Events.OnInvite = Chat.Model
 
 
 @JvmSynthetic
-internal fun Thread.toClient(): Chat.Model.Thread = Chat.Model.Thread(topic, Chat.Type.AccountId(selfAccount), Chat.Type.AccountId(peerAccount))
+internal fun Thread.toClient(): Chat.Model.Thread = Chat.Model.Thread(topic.value, selfAccount.toClient(), peerAccount.toClient())
 
 @JvmSynthetic
 internal fun InviteStatus.toClient(): Chat.Type.InviteStatus = when (this) {

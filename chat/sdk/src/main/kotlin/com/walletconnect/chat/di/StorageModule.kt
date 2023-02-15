@@ -44,10 +44,12 @@ internal fun storageModule() = module {
     single { get<ChatDatabase>().invitesQueries }
     single { get<ChatDatabase>().messagesQueries }
     single { get<ChatDatabase>().accountsQueries }
+    single { get<ChatDatabase>().identitiesQueries }
 
     single { ContactStorageRepository(get()) }
     single { ThreadsStorageRepository(get()) }
     single { InvitesStorageRepository(get()) }
     single { MessageStorageRepository(get()) }
     single { AccountsStorageRepository(get()) }
+    single { IdentitiesStorageRepository(get()) }
 }

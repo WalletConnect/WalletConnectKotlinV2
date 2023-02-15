@@ -29,6 +29,11 @@ UPDATE Accounts
 SET publicInviteKey = ?, inviteTopic = ?
 WHERE accountId = ?;
 
+updateAccount:
+UPDATE Accounts
+SET publicIdentityKey = ?, publicInviteKey = ?, inviteTopic = ?
+WHERE accountId = ?;
+
 getAllInviteTopics:
 SELECT inviteTopic
 FROM Accounts
@@ -38,3 +43,11 @@ removeAccountPublicInviteKey:
 UPDATE Accounts
 SET publicInviteKey = NULL, inviteTopic = NULL
 WHERE accountId = ?;
+
+doesAccountNotExists:
+SELECT NOT EXISTS (
+    SELECT 1
+    FROM Accounts
+    WHERE accountId = ?
+    LIMIT 1
+);
