@@ -12,7 +12,7 @@ import com.walletconnect.push.dapp.client.mapper.toClient
 import com.walletconnect.push.dapp.client.mapper.toEngineDO
 import com.walletconnect.push.dapp.di.dappEngineModule
 import com.walletconnect.push.dapp.engine.PushDappEngine
-import com.walletconnect.push.wallet.di.pushStorageModule
+import com.walletconnect.push.common.di.pushStorageModule
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 

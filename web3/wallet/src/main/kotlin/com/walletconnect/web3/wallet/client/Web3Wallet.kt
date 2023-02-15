@@ -8,7 +8,6 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 
 object Web3Wallet {
-
     private lateinit var coreClient: CoreClient
 
     interface WalletDelegate {
@@ -221,6 +220,15 @@ object Web3Wallet {
         return SignClient.getPendingSessionRequests(topic).mapToPendingSessionRequests()
     }
 
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    @Throws(IllegalStateException::class)
+    fun getSessionProposals(): List<Wallet.Model.SessionProposal> {
+        return SignClient.getSessionProposals().map(Sign.Model.SessionProposal::toWallet)
+    }
 
     /**
      * Caution: This function is blocking and runs on the current thread.

@@ -235,7 +235,7 @@ internal class PushWalletEngine(
 
             scope.launch { _engineEvent.emit(EngineDO.PushDelete(request.topic.value)) }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 

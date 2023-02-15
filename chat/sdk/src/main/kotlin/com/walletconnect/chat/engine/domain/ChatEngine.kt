@@ -159,7 +159,6 @@ internal class ChatEngine(
         if (accountId.isValid()) {
             val identityKey = keyManagementRepository.generateAndStoreEd25519KeyPair()
             val didKey = encodeEd25519DidKey(identityKey.keyAsBytes)
-
             val domain = keyserverUrl.toDomain().getOrElse {
                 onFailure(UnableToExtractDomainException("Unable to extract domain from: $keyserverUrl"))
                 return@unregisterIdentity
@@ -732,14 +731,17 @@ internal class ChatEngine(
             threadsRepository.insertThread(threadTopic.value, selfAccount = inviterAccountId, peerAccount = inviteeAccountId)
 
             jsonRpcInteractor.subscribe(threadTopic) { error ->
-                scope.launch { _events.emit(SDKError(InternalError(error))) }
+                scope.launch {
+                    _events.emit(SDKError(error))
+                }
                 return@subscribe
             }
 
             _events.emit(Events.OnJoined(threadTopic.value))
             invitesRepository.updateStatusByInviteId(wcResponse.response.id, InviteStatus.APPROVED)
         } catch (e: Exception) {
-            _events.emit(SDKError(InternalError(e)))
+            scope.launch { _events.emit(SDKError(e)) }
+            return
         }
     }
 
@@ -779,15 +781,15 @@ internal class ChatEngine(
 
 
     private suspend fun trySubscribeToInviteTopics() = accountsRepository.getAllInviteTopics()
-        .trySubscribeToTopics("invite") { error -> scope.launch { _events.emit(SDKError(InternalError(error))) } }
+        .trySubscribeToTopics("invite") { error -> scope.launch { _events.emit(SDKError(error)) } }
 
     private suspend fun trySubscribeToThreadTopics() = threadsRepository.getAllThreads()
         .map { it.topic }
-        .trySubscribeToTopics("thread messages") { error -> scope.launch { _events.emit(SDKError(InternalError(error))) } }
+        .trySubscribeToTopics("thread messages") { error -> scope.launch { _events.emit(SDKError(error)) } }
 
     private suspend fun trySubscribeToPendingAcceptTopics() = invitesRepository.getAllPendingSentInvites()
         .map { it.acceptTopic }
-        .trySubscribeToTopics(topicDescription = "invite response") { error -> scope.launch { _events.emit(SDKError(InternalError(error))) } }
+        .trySubscribeToTopics(topicDescription = "invite response") { error -> scope.launch { _events.emit(SDKError(error)) } }
 
     private fun List<Topic>.trySubscribeToTopics(topicDescription: String, onError: (Throwable) -> Unit) = runCatching {
         this.forEach { topic ->

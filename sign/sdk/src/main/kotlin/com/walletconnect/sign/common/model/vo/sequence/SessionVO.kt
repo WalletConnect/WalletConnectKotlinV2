@@ -10,6 +10,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
+import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toMapOfNamespacesVOSession
 
@@ -23,8 +24,10 @@ internal data class SessionVO(
     val selfAppMetaData: AppMetaData? = null,
     val peerPublicKey: PublicKey? = null,
     val peerAppMetaData: AppMetaData? = null,
-    val namespaces: Map<String, NamespaceVO.Session>,
-    val proposalNamespaces: Map<String, NamespaceVO.Proposal>,
+    val sessionNamespaces: Map<String, NamespaceVO.Session>,
+    val requiredNamespaces: Map<String, NamespaceVO.Required>,
+    val optionalNamespaces: Map<String, NamespaceVO.Optional>?,
+    val properties: Map<String, String>? = null,
     val isAcknowledged: Boolean,
     val pairingTopic: String
 ) : Sequence {
@@ -36,7 +39,7 @@ internal data class SessionVO(
         @JvmSynthetic
         internal fun createUnacknowledgedSession(
             sessionTopic: Topic,
-            proposal: SignParams.SessionProposeParams,
+            proposal: ProposalVO,
             selfParticipant: SessionParticipantVO,
             sessionExpiry: Long,
             namespaces: Map<String, EngineDO.Namespace.Session>,
@@ -45,15 +48,17 @@ internal data class SessionVO(
             return SessionVO(
                 sessionTopic,
                 Expiry(sessionExpiry),
-                relayProtocol = proposal.relays.first().protocol,
-                relayData = proposal.relays.first().data,
-                peerPublicKey = PublicKey(proposal.proposer.publicKey),
-                peerAppMetaData = proposal.proposer.metadata,
+                relayProtocol = proposal.relayProtocol,
+                relayData = proposal.relayData,
+                peerPublicKey = PublicKey(proposal.proposerPublicKey),
+                peerAppMetaData = proposal.appMetaData,
                 selfPublicKey = PublicKey(selfParticipant.publicKey),
                 selfAppMetaData = selfParticipant.metadata,
                 controllerKey = PublicKey(selfParticipant.publicKey),
-                namespaces = namespaces.toMapOfNamespacesVOSession(),
-                proposalNamespaces = proposal.namespaces,
+                sessionNamespaces = namespaces.toMapOfNamespacesVOSession(),
+                requiredNamespaces = proposal.requiredNamespaces,
+                optionalNamespaces = proposal.optionalNamespaces,
+                properties = proposal.properties,
                 isAcknowledged = false,
                 pairingTopic = pairingTopic
             )
@@ -65,7 +70,9 @@ internal data class SessionVO(
             settleParams: SignParams.SessionSettleParams,
             selfPublicKey: PublicKey,
             selfMetadata: AppMetaData,
-            proposalNamespaces: Map<String, NamespaceVO.Proposal>,
+            requiredNamespaces: Map<String, NamespaceVO.Required>,
+            optionalNamespaces: Map<String, NamespaceVO.Optional>?,
+            properties: Map<String, String>?,
             pairingTopic: String
         ): SessionVO {
             return SessionVO(
@@ -78,8 +85,10 @@ internal data class SessionVO(
                 selfPublicKey = selfPublicKey,
                 selfAppMetaData = selfMetadata,
                 controllerKey = PublicKey(settleParams.controller.publicKey),
-                namespaces = settleParams.namespaces,
-                proposalNamespaces = proposalNamespaces,
+                sessionNamespaces = settleParams.namespaces,
+                requiredNamespaces = requiredNamespaces,
+                optionalNamespaces = optionalNamespaces,
+                properties = properties,
                 isAcknowledged = true,
                 pairingTopic = pairingTopic
             )
