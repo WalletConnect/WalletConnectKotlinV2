@@ -159,7 +159,6 @@ internal class ChatEngine(
         if (accountId.isValid()) {
             val identityKey = keyManagementRepository.generateAndStoreEd25519KeyPair()
             val didKey = encodeEd25519DidKey(identityKey.keyAsBytes)
-
             val domain = keyserverUrl.toDomain().getOrElse {
                 onFailure(UnableToExtractDomainException("Unable to extract domain from: $keyserverUrl"))
                 return@unregisterIdentity
@@ -782,7 +781,7 @@ internal class ChatEngine(
 
 
     private suspend fun trySubscribeToInviteTopics() = accountsRepository.getAllInviteTopics()
-        .trySubscribeToTopics("invite") { error -> scope.launch { _events.emit(SDKError(error))) } }
+        .trySubscribeToTopics("invite") { error -> scope.launch { _events.emit(SDKError(error)) } }
 
     private suspend fun trySubscribeToThreadTopics() = threadsRepository.getAllThreads()
         .map { it.topic }

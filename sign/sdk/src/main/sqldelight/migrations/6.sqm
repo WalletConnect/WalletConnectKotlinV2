@@ -9,6 +9,8 @@ DROP TABLE IF EXISTS TempNamespaceDao;
 DROP TABLE IF EXISTS ProposalNamespaceExtensionsDao;
 DROP TABLE IF EXISTS TempNamespaceExtensionsDao;
 DROP TABLE IF EXISTS NamespaceExtensionsDao;
+DROP TABLE IF EXISTS OptionalNamespaceDao;
+DROP TABLE IF EXISTS ProposalDao;
 
 -- CREATE V7 SCHEMA
 CREATE TABLE NamespaceDao(
