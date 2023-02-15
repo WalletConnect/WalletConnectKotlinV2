@@ -381,7 +381,7 @@ internal class ChatEngine(
     }
 
     internal fun setContact(accountId: AccountId, publicInviteKey: PublicKey, onFailure: (Throwable) -> Unit) = try {
-        contactRepository.upsertContact(Contact(accountId, publicInviteKey, accountId.value))
+        scope.launch { contactRepository.upsertContact(Contact(accountId, publicInviteKey, accountId.value)) }
     } catch (error: Exception) {
         onFailure(error)
     }
