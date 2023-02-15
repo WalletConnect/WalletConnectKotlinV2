@@ -26,7 +26,9 @@ import com.walletconnect.chat.json_rpc.JsonRpcMethod
 import com.walletconnect.chat.jwt.ChatDidJwtClaims
 import com.walletconnect.chat.jwt.DidJwtRepository
 import com.walletconnect.chat.jwt.use_case.*
-import com.walletconnect.chat.storage.ChatStorageRepository
+import com.walletconnect.chat.storage.ContactStorageRepository
+import com.walletconnect.chat.storage.InvitesStorageRepository
+import com.walletconnect.chat.storage.MessageStorageRepository
 import com.walletconnect.chat.storage.ThreadsStorageRepository
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
@@ -53,9 +55,11 @@ internal class ChatEngine(
     private val didJwtRepository: DidJwtRepository,
     private val keyManagementRepository: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val chatStorage: ChatStorageRepository,
+    private val contactRepository: ContactStorageRepository,
     private val pairingHandler: PairingControllerInterface,
     private val threadsRepository: ThreadsStorageRepository,
+    private val invitesRepository: InvitesStorageRepository,
+    private val messageRepository: MessageStorageRepository,
     private val logger: Logger,
 ) {
     private var jsonRpcRequestsJob: Job? = null
@@ -315,12 +319,13 @@ internal class ChatEngine(
         }
     }
 
-    internal fun invite(invite: Invite, onSuccess: (Long) -> Unit, onFailure: (Throwable) -> Unit) {
+    internal fun invite(invite: SendInvite, onSuccess: (Long) -> Unit, onFailure: (Throwable) -> Unit) {
         if (!ChatValidator.isInviteMessageValid(invite.message.value)) {
             return onFailure(InviteMessageTooLongException())
         }
 
         val decodedInviteePublicKey = decodeX25519DidKey(invite.inviteePublicKey)
+
         setContact(invite.inviteeAccount, decodedInviteePublicKey) { error ->
             logger.error("Error while adding new account: $error")
             onFailure(error)
@@ -355,6 +360,14 @@ internal class ChatEngine(
             jsonRpcInteractor.publishJsonRpcRequest(inviteTopic, irnParams, payload, EnvelopeType.ONE, participants,
                 {
                     logger.log("Chat invite sent successfully")
+                    scope.launch {
+                        invitesRepository.insertInvite(
+                            Invite.Sent(
+                                inviteId, invite.inviterAccount, invite.inviteeAccount, invite.message,
+                                inviterPublicKey.keyAsHex, decodedInviteePublicKey.keyAsHex, InviteStatus.PENDING
+                            )
+                        )
+                    }
                     onSuccess(inviteId)
                 },
                 { throwable ->
@@ -370,11 +383,7 @@ internal class ChatEngine(
     }
 
     internal fun setContact(accountId: AccountId, publicInviteKey: PublicKey, onFailure: (Throwable) -> Unit) = try {
-        if (chatStorage.doesContactNotExists(accountId)) {
-            chatStorage.createContact(Contact(accountId, publicInviteKey, accountId.value.take(10)))
-        } else {
-            chatStorage.updateContact(accountId, publicInviteKey, accountId.value.take(10))
-        }
+        scope.launch { contactRepository.upsertContact(Contact(accountId, publicInviteKey, accountId.value)) }
     } catch (error: Exception) {
         onFailure(error)
     }
@@ -413,7 +422,9 @@ internal class ChatEngine(
                 val threadSymmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(publicKey, inviterPublicKey)
                 val threadTopic = keyManagementRepository.getTopicFromKey(threadSymmetricKey)
                 keyManagementRepository.setKey(threadSymmetricKey, threadTopic.value)
+
                 threadsRepository.insertThread(threadTopic.value, selfAccount = inviteeAccountId.value, peerAccount = inviterAccountId.value)
+                invitesRepository.updateStatusByInviteId(inviteId, InviteStatus.APPROVED)
 
                 jsonRpcInteractor.subscribe(threadTopic) { error -> return@subscribe onFailure(error) }
                 onSuccess(threadTopic.value)
@@ -443,6 +454,8 @@ internal class ChatEngine(
                 PeerError.UserRejectedInvitation("Invitation rejected by a user"),
                 irnParams
             ) { throwable -> onFailure(throwable) }
+
+            scope.launch { invitesRepository.updateStatusByInviteId(inviteId, InviteStatus.REJECTED) }
         } catch (e: MissingKeyException) {
             return onFailure(e)
         }
@@ -457,18 +470,25 @@ internal class ChatEngine(
 
         val thread = threadsRepository.getThreadByTopic(topic)
         val (authorAccountId, recipientAccountId) = AccountId(thread.selfAccount) to AccountId(thread.peerAccount)
+        val messageTimestampInMs = System.currentTimeMillis()
+
         val didJwt: String = didJwtRepository
-            .encodeDidJwt(getIdentityKeyPair(authorAccountId), keyserverUrl, EncodeChatMessageDidJwtPayloadUseCase(message.message.value, recipientAccountId, message.media))
+            .encodeDidJwt(getIdentityKeyPair(authorAccountId), keyserverUrl, EncodeChatMessageDidJwtPayloadUseCase(message.message.value, recipientAccountId, message.media, messageTimestampInMs))
             .getOrElse() { error -> return@message onFailure(error) }
 
         val messageParams = ChatParams.MessageParams(messageAuth = didJwt)
-        val payload = ChatRpc.ChatMessage(id = generateId(), params = messageParams)
+        val messageId = generateId()
+        val payload = ChatRpc.ChatMessage(id = messageId, params = messageParams)
         val irnParams = IrnParams(Tags.CHAT_MESSAGE, Ttl(MONTH_IN_SECONDS), true)
 
+        scope.launch { messageRepository.insertMessage(Message(messageId, Topic(topic), message.message, authorAccountId, messageTimestampInMs, message.media)) }
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, payload,
-            onSuccess = { logger.log("Chat message sent successfully") },
+            onSuccess = {
+                logger.log("Chat message sent successfully")
+            },
             onFailure = { throwable ->
                 logger.log("Chat message error: $throwable")
+                scope.launch { messageRepository.deleteMessageByMessageId(messageId) }
                 onFailure(throwable)
             })
     }
@@ -478,7 +498,13 @@ internal class ChatEngine(
         val irnParams = IrnParams(Tags.CHAT_LEAVE, Ttl(MONTH_IN_SECONDS), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, payload, EnvelopeType.ZERO,
-            onSuccess = { logger.log("Chat leave sent successfully") },
+            onSuccess = {
+                logger.log("Chat leave sent successfully")
+                // Not sure if we want to remove thread and messages if someone leaves convo.
+                // Maybe just forgetting thread symkey is better solution?
+                threadsRepository.deleteThreadByTopic(topic)
+                scope.launch { messageRepository.deleteMessagesByTopic(topic) }
+            },
             onFailure = { throwable ->
                 logger.log("Chat leave error: $throwable")
                 onFailure(throwable)
@@ -499,6 +525,18 @@ internal class ChatEngine(
 
     internal fun getThreadsByAccount(accountId: String): Map<String, Thread> {
         return threadsRepository.getThreadsForSelfAccount(accountId).associateBy { thread -> thread.topic }
+    }
+
+    internal suspend fun getMessagesByTopic(topic: String): List<Message> {
+        return messageRepository.getMessageByTopic(topic)
+    }
+
+    internal suspend fun getSentInvites(inviterAccountId: String): Map<Long, Invite.Sent> {
+        return invitesRepository.getSentInvitesForInviterAccount(inviterAccountId).associateBy { invite -> invite.id }
+    }
+
+    internal suspend fun getReceivedInvites(inviteeAccountId: String): Map<Long, Invite.Received> {
+        return invitesRepository.getReceivedInvitesForInviteeAccount(inviteeAccountId).associateBy { invite -> invite.id }
     }
 
     private fun pingSuccess(
@@ -547,10 +585,10 @@ internal class ChatEngine(
             logger.log("Invite received. Resolved identity: $inviterAccountId")
 
             val (inviteeAccountId, inviteePublicKey) = inviteTopicsToInvitePublicKeys[wcRequest.topic]!!
-            val invite = ReceivedInvite(wcRequest.id, inviterAccountId, inviteeAccountId, InviteMessage(claims.subject), claims.inviterPublicKey, inviteePublicKey.keyAsHex)
+            val invite = Invite.Received(wcRequest.id, inviterAccountId, inviteeAccountId, InviteMessage(claims.subject), claims.inviterPublicKey, inviteePublicKey.keyAsHex, InviteStatus.PENDING)
             _events.emit(Events.OnInvite(invite))
+            invitesRepository.insertInvite(invite)
         }
-        //TODO: Add adding invites to storage. For Alpha we will use only emitted event.
     }
 
     private fun onMessage(wcRequest: WCRequest, params: ChatParams.MessageParams) {
@@ -568,8 +606,14 @@ internal class ChatEngine(
                     return@launch
                 }
             val recipientAccountId = AccountId(decodeDidPkh(claims.audience))
-            val message = Message(wcRequest.topic, ChatMessage(claims.subject), authorAccountId, wcRequest.id, claims.media)
+
+            // Currently timestamps are based on claims issuedAt. Which MUST be changed to achieve proper order of messages.
+            // Should be changed with specs: https://github.com/WalletConnect/walletconnect-docs/pull/473.
+            // Change: Instead of claims.issuedAt use wcRequest.receivedAt
+
+            val message = Message(wcRequest.id, wcRequest.topic, ChatMessage(claims.subject), authorAccountId, claims.issuedAt, claims.media)
             _events.emit(Events.OnMessage(message))
+            messageRepository.insertMessage(message)
 
             val didJwt: String = didJwtRepository
                 .encodeDidJwt(getIdentityKeyPair(recipientAccountId), keyserverUrl, EncodeChatReceiptDidJwtPayloadUseCase(claims.subject, authorAccountId))
@@ -583,11 +627,13 @@ internal class ChatEngine(
 
             jsonRpcInteractor.respondWithParams(wcRequest, receiptParams, irnParams, EnvelopeType.ZERO) { error -> logger.error(error) }
         }
-        //TODO: Add adding messages to storage. For Alpha we will use only emitted event.
     }
 
     private fun onLeft(request: WCRequest) {
+        // Not sure if we want to remove thread and messages if someone leaves convo.
+        // Maybe just forgetting thread symkey is better solution?
         threadsRepository.deleteThreadByTopic(request.topic.value)
+        scope.launch { messageRepository.deleteMessagesByTopic(request.topic.value) }
 
         scope.launch {
             _events.emit(Events.OnLeft(request.topic.value))
@@ -601,10 +647,7 @@ internal class ChatEngine(
 
     private suspend fun onInviteResponse(wcResponse: WCResponse) {
         when (val response = wcResponse.response) {
-            is JsonRpcResponse.JsonRpcError -> {
-                logger.log("Chat invite was rejected")
-                scope.launch { _events.emit(Events.OnReject(wcResponse.topic.value)) }
-            }
+            is JsonRpcResponse.JsonRpcError -> onInviteRejected(wcResponse)
             is JsonRpcResponse.JsonRpcResult -> onInviteAccepted(response, wcResponse)
         }
     }
@@ -628,15 +671,24 @@ internal class ChatEngine(
         }
     }
 
+    private fun onInviteRejected(wcResponse: WCResponse) {
+        logger.log("Chat invite was rejected")
+        scope.launch {
+            _events.emit(Events.OnReject(wcResponse.topic.value))
+            invitesRepository.updateStatusByInviteId(wcResponse.response.id, InviteStatus.REJECTED)
+        }
+    }
+
     private suspend fun onInviteAccepted(response: JsonRpcResponse.JsonRpcResult, wcResponse: WCResponse) {
         logger.log("Chat invite was accepted")
         val acceptParams = response.result as CoreChatParams.AcceptanceParams
         val claims = didJwtRepository.extractVerifiedDidJwtClaims<ChatDidJwtClaims.InviteApproval>(acceptParams.responseAuth)
             .getOrElse() { error ->
                 logger.error(error)
+//                Discuss what state is invite in if not verified
+//                invitesRepository.updateStatusByInviteId(wcResponse.response.id, InviteStatus.?????????)
                 return@onInviteAccepted
             }
-        logger.log(claims.toString())
         val peerPubKey = decodeX25519DidKey(claims.subject)
 
         try {
@@ -656,7 +708,8 @@ internal class ChatEngine(
                 return@subscribe
             }
 
-            scope.launch { _events.emit(Events.OnJoined(threadTopic.value)) }
+            _events.emit(Events.OnJoined(threadTopic.value))
+            invitesRepository.updateStatusByInviteId(wcResponse.response.id, InviteStatus.APPROVED)
         } catch (e: Exception) {
             scope.launch { _events.emit(SDKError(e)) }
             return
