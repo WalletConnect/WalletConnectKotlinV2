@@ -22,12 +22,6 @@ internal fun Map<String, Sign.Model.Namespace.Proposal>.toWalletProposalNamespac
     }
 
 @JvmSynthetic
-internal fun Map<String, Sign.Model.Namespace.Proposal>.toWalletOptionalNamespaces(): Map<String, Wallet.Model.Namespace.Proposal> =
-    mapValues { (_, namespace) ->
-        Wallet.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
-    }
-
-@JvmSynthetic
 internal fun Wallet.Model.JsonRpcResponse.toSign(): Sign.Model.JsonRpcResponse =
     when (this) {
         is Wallet.Model.JsonRpcResponse.JsonRpcResult -> this.toSign()
@@ -129,7 +123,7 @@ internal fun Sign.Model.SessionProposal.toWallet(): Wallet.Model.SessionProposal
         url,
         icons,
         requiredNamespaces.toWalletProposalNamespaces(),
-        optionalNamespaces.toWalletOptionalNamespaces(),
+        optionalNamespaces.toWalletProposalNamespaces(),
         properties,
         proposerPublicKey,
         relayProtocol,

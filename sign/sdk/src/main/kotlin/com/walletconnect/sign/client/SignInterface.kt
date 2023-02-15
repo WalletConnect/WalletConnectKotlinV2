@@ -117,4 +117,10 @@ interface SignInterface {
      * It is advised that this function be called from background operation
      */
     fun getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest>
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getSessionProposals(): List<Sign.Model.SessionProposal>
 }

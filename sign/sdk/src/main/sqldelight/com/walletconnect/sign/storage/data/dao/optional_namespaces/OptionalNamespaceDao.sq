@@ -22,6 +22,14 @@ WHERE session_id = (
    WHERE topic = ?
 );
 
+deleteProposalNamespacesProposerKey:
+DELETE FROM OptionalNamespaceDao
+WHERE session_id = (
+   SELECT request_id
+   FROM ProposalDao
+   WHERE proposer_key = ?
+);
+
 getOptionalNamespaces:
 SELECT key, chains, methods, events
 FROM ProposalNamespaceDao

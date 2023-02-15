@@ -13,9 +13,11 @@ import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
+import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
+import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import java.net.URI
 
 @JvmSynthetic
@@ -44,6 +46,36 @@ internal fun SignParams.SessionProposeParams.toEngineDO(topic: Topic): EngineDO.
         proposerPublicKey = this.proposer.publicKey,
         relayProtocol = relays.first().protocol,
         relayData = relays.first().data
+    )
+
+@JvmSynthetic
+internal fun SignParams.SessionProposeParams.toVO(topic: Topic, requestId: Long): ProposalVO =
+    ProposalVO(
+        requestId = requestId,
+        pairingTopic = topic,
+        name = proposer.metadata.name,
+        description = proposer.metadata.description,
+        url = proposer.metadata.url,
+        icons = proposer.metadata.icons,
+        requiredNamespaces = requiredNamespaces,
+        optionalNamespaces = optionalNamespaces ?: emptyMap(),
+        properties = properties,
+        proposerPublicKey = proposer.publicKey,
+        relayProtocol = relays.first().protocol,
+        relayData = relays.first().data
+    )
+
+@JvmSynthetic
+internal fun ProposalVO.toSessionProposeRequest(): WCRequest =
+    WCRequest(
+        topic = pairingTopic,
+        id = requestId,
+        method = JsonRpcMethod.WC_SESSION_PROPOSE,
+        params = SignParams.SessionProposeParams(
+            relays = listOf(RelayProtocolOptions(protocol = relayProtocol, data = relayData)),
+            proposer = SessionProposer(proposerPublicKey, AppMetaData(name, description, url, icons)),
+            requiredNamespaces, optionalNamespaces, properties
+        )
     )
 
 @JvmSynthetic
@@ -95,13 +127,13 @@ internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
     )
 
 @JvmSynthetic
-internal fun SignParams.SessionProposeParams.toSessionSettleParams(
+internal fun ProposalVO.toSessionSettleParams(
     selfParticipant: SessionParticipantVO,
     sessionExpiry: Long,
     namespaces: Map<String, EngineDO.Namespace.Session>,
 ): SignParams.SessionSettleParams =
     SignParams.SessionSettleParams(
-        relay = RelayProtocolOptions(relays.first().protocol, relays.first().data),
+        relay = RelayProtocolOptions(relayProtocol, relayData),
         controller = selfParticipant,
         namespaces = namespaces.toMapOfNamespacesVOSession(),
         expiry = sessionExpiry
@@ -122,6 +154,22 @@ internal fun toSessionProposeParams(
     optionalNamespaces = optionalNamespaces.toNamespacesVOOptional(),
     properties = properties
 )
+
+@JvmSynthetic
+internal fun ProposalVO.toEngineDO(): EngineDO.SessionProposal =
+    EngineDO.SessionProposal(
+        pairingTopic = pairingTopic.value,
+        name = name,
+        description = description,
+        url = url,
+        icons = icons.map { URI(it) },
+        relayData = relayData,
+        relayProtocol = relayProtocol,
+        requiredNamespaces = requiredNamespaces.toMapOfEngineNamespacesRequired(),
+        optionalNamespaces = optionalNamespaces.toMapOfEngineNamespacesOptional(),
+        proposerPublicKey = proposerPublicKey,
+        properties = properties
+    )
 
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVORequired(): Map<String, NamespaceVO.Required> =
@@ -168,9 +216,9 @@ internal fun JsonRpcResponse.JsonRpcError.toEngineDO(): EngineDO.JsonRpcResponse
     EngineDO.JsonRpcResponse.JsonRpcError(id = id, error = EngineDO.JsonRpcResponse.Error(error.code, error.message))
 
 @JvmSynthetic
-internal fun SignParams.SessionProposeParams.toSessionApproveParams(selfPublicKey: PublicKey): CoreSignParams.ApprovalParams =
+internal fun ProposalVO.toSessionApproveParams(selfPublicKey: PublicKey): CoreSignParams.ApprovalParams =
     CoreSignParams.ApprovalParams(
-        relay = RelayProtocolOptions(relays.first().protocol, relays.first().data),
+        relay = RelayProtocolOptions(relayProtocol, relayData),
         responderPublicKey = selfPublicKey.keyAsHex
     )
 

@@ -9,9 +9,11 @@ import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.sign.SignDatabase
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDao
 import com.walletconnect.sign.storage.data.dao.optionalnamespaces.OptionalNamespaceDao
+import com.walletconnect.sign.storage.data.dao.proposal.ProposalDao
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceDao
 import com.walletconnect.sign.storage.data.dao.session.SessionDao
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDao
+import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
@@ -37,16 +39,20 @@ internal fun storageModule(): Module = module {
         ProposalNamespaceDaoAdapter = ProposalNamespaceDao.Adapter(
             chainsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             methodsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
-            eventsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
+            eventsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST))
         ),
         OptionalNamespaceDaoAdapter = OptionalNamespaceDao.Adapter(
             chainsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             methodsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
-            eventsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
+            eventsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST))
         ),
         SessionDaoAdapter = SessionDao.Adapter(
-            propertiesAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_MAP)),
+            propertiesAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_MAP))
         ),
+        ProposalDaoAdapter = ProposalDao.Adapter(
+            propertiesAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_MAP)),
+            iconsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST))
+        )
     )
 
     includes(sdkBaseStorageModule(SignDatabase.Schema, DBUtils.SIGN_SDK_DB_NAME))
@@ -81,6 +87,14 @@ internal fun storageModule(): Module = module {
     }
 
     single {
+        get<SignDatabase>().proposalDaoQueries
+    }
+
+    single {
         SessionStorageRepository(get(), get(), get(), get(), get())
+    }
+
+    single {
+        ProposalStorageRepository(get(), get(), get())
     }
 }
