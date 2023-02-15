@@ -2,13 +2,15 @@
 
 package com.walletconnect.chat.common.model
 
+import com.walletconnect.foundation.common.model.PublicKey
+
 internal sealed interface Invite {
     val id: Long
     val inviterAccount: AccountId
     val inviteeAccount: AccountId
     val message: InviteMessage
-    val inviterPublicKey: String
-    val inviteePublicKey: String
+    val inviterPublicKey: PublicKey
+    val inviteePublicKey: PublicKey
     val status: InviteStatus
 
     data class Received(
@@ -16,8 +18,8 @@ internal sealed interface Invite {
         override val inviterAccount: AccountId,
         override val inviteeAccount: AccountId,
         override val message: InviteMessage,
-        override val inviterPublicKey: String,
-        override val inviteePublicKey: String,
+        override val inviterPublicKey: PublicKey,
+        override val inviteePublicKey: PublicKey,
         override val status: InviteStatus,
     ) : Invite
 
@@ -26,8 +28,8 @@ internal sealed interface Invite {
         override val inviterAccount: AccountId,
         override val inviteeAccount: AccountId,
         override val message: InviteMessage,
-        override val inviterPublicKey: String,
-        override val inviteePublicKey: String,
+        override val inviterPublicKey: PublicKey,
+        override val inviteePublicKey: PublicKey,
         override val status: InviteStatus,
     ) : Invite
 }

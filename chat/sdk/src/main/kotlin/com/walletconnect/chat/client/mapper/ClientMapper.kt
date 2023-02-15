@@ -34,11 +34,11 @@ internal fun InviteStatus.toClient(): Chat.Type.InviteStatus = when (this) {
 
 @JvmSynthetic
 internal fun Invite.Received.toClient(): Chat.Model.Invite.Received =
-    Chat.Model.Invite.Received(id, inviterAccount.toClient(), inviteeAccount.toClient(), message.toClient(), inviterPublicKey, inviteePublicKey, status.toClient())
+    Chat.Model.Invite.Received(id, inviterAccount.toClient(), inviteeAccount.toClient(), message.toClient(), inviterPublicKey.keyAsHex, inviteePublicKey.keyAsHex, status.toClient())
 
 @JvmSynthetic
 internal fun Invite.Sent.toClient(): Chat.Model.Invite.Sent =
-    Chat.Model.Invite.Sent(id, inviterAccount.toClient(), inviteeAccount.toClient(), message.toClient(), inviterPublicKey, inviteePublicKey, status.toClient())
+    Chat.Model.Invite.Sent(id, inviterAccount.toClient(), inviteeAccount.toClient(), message.toClient(), inviterPublicKey.keyAsHex, inviteePublicKey.keyAsHex, status.toClient())
 
 @JvmSynthetic
 internal fun AccountId.toClient(): Chat.Type.AccountId = Chat.Type.AccountId(value)

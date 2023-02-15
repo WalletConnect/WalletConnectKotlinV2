@@ -9,7 +9,6 @@ import com.walletconnect.android.internal.common.cacao.Cacao.Payload.Companion.I
 import com.walletconnect.android.internal.common.cacao.CacaoType
 import com.walletconnect.android.internal.common.cacao.toCAIP122Message
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreChatParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
@@ -22,6 +21,7 @@ import com.walletconnect.chat.common.json_rpc.ChatParams
 import com.walletconnect.chat.common.json_rpc.ChatRpc
 import com.walletconnect.chat.common.model.*
 import com.walletconnect.chat.discovery.keyserver.domain.use_case.*
+import com.walletconnect.chat.json_rpc.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.chat.json_rpc.JsonRpcMethod
 import com.walletconnect.chat.jwt.ChatDidJwtClaims
 import com.walletconnect.chat.jwt.DidJwtRepository
@@ -43,6 +43,7 @@ import java.util.*
 
 internal class ChatEngine(
     private val keyserverUrl: String,
+    private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
     private val registerIdentityUseCase: RegisterIdentityUseCase,
     private val unregisterIdentityUseCase: UnregisterIdentityUseCase,
     private val resolveIdentityUseCase: ResolveIdentityUseCase,
@@ -65,9 +66,6 @@ internal class ChatEngine(
     private var internalErrorsJob: Job? = null
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
-
-    // todo: This should be persisted. As a part of multi-account storage task
-    private val inviteRequestMap: MutableMap<Long, Pair<WCRequest, ChatDidJwtClaims.InviteProposal>> = mutableMapOf()
 
     // TODO: Persist. As a part of multi-account storage task
     private val identities: MutableMap<String, Cacao> = mutableMapOf()
@@ -373,7 +371,7 @@ internal class ChatEngine(
                         invitesRepository.insertInvite(
                             Invite.Sent(
                                 inviteId, invite.inviterAccount, invite.inviteeAccount, invite.message,
-                                inviterPublicKey.keyAsHex, decodedInviteePublicKey.keyAsHex, InviteStatus.PENDING
+                                inviterPublicKey, decodedInviteePublicKey, InviteStatus.PENDING
                             )
                         )
                     }
@@ -398,16 +396,19 @@ internal class ChatEngine(
     }
 
     internal fun accept(inviteId: Long, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
-        // Needs to be in scope to
         scope.launch {
             try {
-                val request = inviteRequestMap[inviteId]?.first ?: throw GenericException("No request for inviteId")
-                val claims = inviteRequestMap[inviteId]?.second ?: throw GenericException("No claims for inviteId")
-                val inviterPublicKey = decodeX25519DidKey(claims.inviterPublicKey)
-                inviteRequestMap.remove(inviteId)
-                val inviteeAccountId = AccountId(decodeDidPkh(claims.audience))
-                logger.log(claims.toString())
-                val inviterAccountId = resolveIdentity(claims.issuer).getOrThrow()
+                val jsonRpcHistoryEntry = getPendingJsonRpcHistoryEntryByIdUseCase(inviteId)
+
+                if (jsonRpcHistoryEntry == null) {
+                    logger.error(MissingInviteRequestException.message)
+                    return@launch onFailure(MissingInviteRequestException)
+                }
+
+                val invite = invitesRepository.getReceivedInviteByInviteId(inviteId)
+                val inviterPublicKey = invite.inviterPublicKey
+                val inviteeAccountId = invite.inviteeAccount
+                val inviterAccountId = invite.inviterAccount
 
                 val inviteePublicKey = keyManagementRepository.getPublicKey(inviteeAccountId.getInviteTag())
                 val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(inviteePublicKey, inviterPublicKey)
@@ -424,9 +425,9 @@ internal class ChatEngine(
                     }
 
                 val acceptanceParams = CoreChatParams.AcceptanceParams(responseAuth = didJwt)
+                val responseParams = JsonRpcResponse.JsonRpcResult(jsonRpcHistoryEntry.id, result = acceptanceParams)
                 val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(MONTH_IN_SECONDS))
-
-                jsonRpcInteractor.respondWithParams(request.copy(topic = acceptTopic), acceptanceParams, irnParams, EnvelopeType.ZERO) { error -> return@respondWithParams onFailure(error) }
+                jsonRpcInteractor.publishJsonRpcResponse(jsonRpcHistoryEntry.topic, irnParams, responseParams, {}, { error -> return@publishJsonRpcResponse onFailure(error) })
 
                 val threadSymmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(publicKey, inviterPublicKey)
                 val threadTopic = keyManagementRepository.getTopicFromKey(threadSymmetricKey)
@@ -445,28 +446,32 @@ internal class ChatEngine(
     }
 
     internal fun reject(inviteId: Long, onFailure: (Throwable) -> Unit) {
-        try {
-            val request = inviteRequestMap[inviteId]?.first ?: throw GenericException("No request for inviteId")
-            val claims = inviteRequestMap[inviteId]?.second ?: throw GenericException("No claims for inviteId")
-            val inviterPublicKey = PublicKey(claims.inviterPublicKey)
-            inviteRequestMap.remove(inviteId)
-            val inviteeAccountId = AccountId(decodeDidPkh(claims.audience))
+        scope.launch {
+            try {
+                val jsonRpcHistoryEntry = getPendingJsonRpcHistoryEntryByIdUseCase(inviteId)
 
-            val inviteePublicKey = keyManagementRepository.getPublicKey(inviteeAccountId.getInviteTag())
-            val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(inviteePublicKey, inviterPublicKey)
-            val rejectTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
-            keyManagementRepository.setKey(symmetricKey, rejectTopic.value)
+                if (jsonRpcHistoryEntry == null) {
+                    logger.error(MissingInviteRequestException.message)
+                    return@launch onFailure(MissingInviteRequestException)
+                }
 
-            val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(MONTH_IN_SECONDS))
-            jsonRpcInteractor.respondWithError(
-                request.copy(topic = rejectTopic),
-                PeerError.UserRejectedInvitation("Invitation rejected by a user"),
-                irnParams
-            ) { throwable -> onFailure(throwable) }
+                val invite = invitesRepository.getReceivedInviteByInviteId(inviteId)
+                val inviterPublicKey = invite.inviterPublicKey
+                val inviteeAccountId = invite.inviteeAccount
 
-            scope.launch { invitesRepository.updateStatusByInviteId(inviteId, InviteStatus.REJECTED) }
-        } catch (e: MissingKeyException) {
-            return onFailure(e)
+                val inviteePublicKey = keyManagementRepository.getPublicKey(inviteeAccountId.getInviteTag())
+                val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(inviteePublicKey, inviterPublicKey)
+                val rejectTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
+                keyManagementRepository.setKey(symmetricKey, rejectTopic.value)
+
+                val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(MONTH_IN_SECONDS))
+                val peerError = PeerError.UserRejectedInvitation("Invitation rejected by a user")
+                val responseParams = JsonRpcResponse.JsonRpcError(jsonRpcHistoryEntry.id, error = JsonRpcResponse.Error(peerError.code, peerError.message))
+                jsonRpcInteractor.publishJsonRpcResponse(jsonRpcHistoryEntry.topic, irnParams, responseParams, {}, { error -> return@publishJsonRpcResponse onFailure(error) })
+                scope.launch { invitesRepository.updateStatusByInviteId(inviteId, InviteStatus.REJECTED) }
+            } catch (e: MissingKeyException) {
+                return@launch onFailure(e)
+            }
         }
     }
 
@@ -583,7 +588,6 @@ internal class ChatEngine(
                 logger.error(error)
                 return@onInviteRequest
             }
-        inviteRequestMap[wcRequest.id] = wcRequest to claims
 
         scope.launch {
             val inviterAccountId = resolveIdentity(claims.issuer)
@@ -596,14 +600,11 @@ internal class ChatEngine(
             runCatching { accountsRepository.getAccountByInviteTopic(wcRequest.topic) }.fold(onSuccess = { inviteeAccount ->
                 val inviteePublicKey = inviteeAccount.publicInviteKey ?: throw Throwable("Missing publicInviteKey")
                 val inviterPublicKey = decodeX25519DidKey(claims.inviterPublicKey)
-                val invite = Invite.Received(
-                    wcRequest.id, inviterAccountId, inviteeAccount.accountId, InviteMessage(claims.subject), inviterPublicKey.keyAsHex, inviteePublicKey.keyAsHex, InviteStatus.PENDING
-                )
+                val invite = Invite.Received(wcRequest.id, inviterAccountId, inviteeAccount.accountId, InviteMessage(claims.subject), inviterPublicKey, inviteePublicKey, InviteStatus.PENDING)
 
                 _events.emit(Events.OnInvite(invite))
                 invitesRepository.insertInvite(invite)
             }, onFailure = { error -> logger.error(error) })
-
 
         }
     }

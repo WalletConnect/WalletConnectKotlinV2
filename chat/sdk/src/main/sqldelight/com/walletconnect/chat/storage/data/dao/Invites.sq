@@ -9,8 +9,8 @@ CREATE TABLE Invites (
     inviteeAccount TEXT NOT NULL,
     status TEXT AS InviteStatus NOT NULL, -- PENDING, REJECTED OR APPROVED
     type TEXT AS InviteType NOT NULL, -- SENT OR RECEIVED
-    inviterPublicKey TEXT,
-    inviteePublicKey TEXT
+    inviterPublicKey TEXT NOT NULL,
+    inviteePublicKey TEXT NOT NULL
 );
 
 insertOrAbortInvite:
@@ -24,6 +24,11 @@ WHERE inviteId = ?;
 
 deleteInviteByInviteId:
 DELETE FROM Invites
+WHERE inviteId = ?;
+
+getInviteByInviteId:
+SELECT inviteId, message, inviterAccount, inviteeAccount, status, inviterPublicKey, inviteePublicKey
+FROM Invites
 WHERE inviteId = ?;
 
 -- SentInvites
