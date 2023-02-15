@@ -651,14 +651,14 @@ internal class ChatEngine(
 
             jsonRpcInteractor.subscribe(threadTopic) { error ->
                 scope.launch {
-                    _events.emit(SDKError(InternalError(error)))
+                    _events.emit(SDKError(error))
                 }
                 return@subscribe
             }
 
             scope.launch { _events.emit(Events.OnJoined(threadTopic.value)) }
         } catch (e: Exception) {
-            scope.launch { _events.emit(SDKError(InternalError(e))) }
+            scope.launch { _events.emit(SDKError(e)) }
             return
         }
     }
@@ -699,21 +699,17 @@ internal class ChatEngine(
 
     private fun trySubscribeToInviteTopic() {
         logger.log("trySubscribeToInviteTopic()")
+        val inviteTopics = inviteTopicsToInvitePublicKeys.keys.map { topic -> topic.value }
         try {
-            inviteTopicsToInvitePublicKeys.forEach { (topic, _) ->
-                jsonRpcInteractor.subscribe(topic) { error ->
-                    scope.launch { _events.emit(SDKError(InternalError(error))) }
-                }
-                logger.log("Listening for invite on: $topic")
-            }
-        } catch (error: Exception) {
-            scope.launch { _events.emit(SDKError(InternalError(error))) }
+            jsonRpcInteractor.batchSubscribe(inviteTopics) { error -> scope.launch { _events.emit(SDKError(error)) } }
+        } catch (e: Exception) {
+            scope.launch { _events.emit(SDKError(e)) }
         }
     }
 
     private fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
-            .onEach { exception -> _events.emit(SDKError(exception)) }
+            .onEach { exception -> _events.emit(exception) }
             .launchIn(scope)
 
     private fun AccountId.getIdentityTag(): String = "$SELF_IDENTITY_PUBLIC_KEY_CONTEXT${this.value}"

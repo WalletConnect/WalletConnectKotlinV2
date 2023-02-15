@@ -13,7 +13,6 @@ import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.*
@@ -267,7 +266,7 @@ internal class SignEngine(
         }
 
         val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.MILLISECONDS)
-        if (CoreValidator.isExpiryNotWithinBounds(request.expiry, nowInSeconds) ) {
+        if (CoreValidator.isExpiryNotWithinBounds(request.expiry, nowInSeconds)) {
             return onFailure(InvalidExpiryException())
         }
 
@@ -307,7 +306,7 @@ internal class SignEngine(
                             collectResponse(sessionPayload.id) { cancel() }
                         }
                     } catch (e: TimeoutCancellationException) {
-                        _engineEvent.emit(SDKError(InternalError(e)))
+                        _engineEvent.emit(SDKError(e))
                     }
                 }
             },
@@ -335,7 +334,7 @@ internal class SignEngine(
                 scope.launch {
                     supervisorScope {
                         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-                        val request = WCRequest(Topic(topic), jsonRpcResponse.id, JsonRpcMethod.WC_SESSION_REQUEST, object: ClientParams {})
+                        val request = WCRequest(Topic(topic), jsonRpcResponse.id, JsonRpcMethod.WC_SESSION_REQUEST, object : ClientParams {})
                         jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
                     }
                 }
@@ -549,7 +548,7 @@ internal class SignEngine(
 
     private fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
-            .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
+            .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
 
     private fun collectJsonRpcResponses(): Job =
@@ -880,7 +879,7 @@ internal class SignEngine(
                     val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
                     jsonRpcInteractor.subscribe(sessionTopic) { error ->
                         scope.launch {
-                            _engineEvent.emit(SDKError(InternalError(error)))
+                            _engineEvent.emit(SDKError(error))
                         }
                     }
                 }
@@ -890,7 +889,7 @@ internal class SignEngine(
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -919,7 +918,7 @@ internal class SignEngine(
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -961,7 +960,7 @@ internal class SignEngine(
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -975,7 +974,7 @@ internal class SignEngine(
             val method = params.request.method
             scope.launch { _engineEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -987,22 +986,15 @@ internal class SignEngine(
             listOfExpiredSession
                 .map { session -> session.topic }
                 .onEach { sessionTopic ->
-                    jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
-                        crypto.removeKeys(sessionTopic.value)
-                        sessionStorageRepository.deleteSession(sessionTopic)
-                    })
+                    crypto.removeKeys(sessionTopic.value)
+                    sessionStorageRepository.deleteSession(sessionTopic)
                 }
 
-            listOfValidSessions
-                .onEach { session ->
-                    jsonRpcInteractor.subscribe(session.topic) { error ->
-                        scope.launch {
-                            _engineEvent.emit(SDKError(InternalError(error)))
-                        }
-                    }
-                }
+            val validSessionTopics = listOfValidSessions.map { it.topic.value }
+            jsonRpcInteractor.batchSubscribe(validSessionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
+
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -1024,7 +1016,7 @@ internal class SignEngine(
                 }
             }.launchIn(scope)
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 

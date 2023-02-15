@@ -161,7 +161,7 @@ internal class PushDappEngine(
 
     private fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
-            .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
+            .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
 
     private fun onPushDelete(request: WCRequest) {
@@ -191,7 +191,7 @@ internal class PushDappEngine(
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -204,10 +204,9 @@ internal class PushDappEngine(
     }
 
     private fun resubscribeToSubscriptions() {
-        subscriptionStorageRepository.getAllSubscriptions()
+        val subscriptionTopics = subscriptionStorageRepository.getAllSubscriptions()
             .filterIsInstance<EngineDO.PushSubscription.Responded>()
-            .forEach { subscription ->
-                jsonRpcInteractor.subscribe(Topic(subscription.topic))
-            }
+            .map { subscription -> subscription.topic }
+        jsonRpcInteractor.batchSubscribe(subscriptionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
     }
 }

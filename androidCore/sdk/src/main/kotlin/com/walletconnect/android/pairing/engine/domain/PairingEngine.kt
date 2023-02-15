@@ -65,16 +65,16 @@ internal class PairingEngine(
     private val _engineEvent: MutableSharedFlow<EngineDO> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineDO> = _engineEvent.asSharedFlow()
 
-    val internalErrorFlow = MutableSharedFlow<InternalError>()
+    val internalErrorFlow = MutableSharedFlow<SDKError>()
 
-    val jsonRpcErrorFlow: Flow<InternalError> by lazy {
+    val jsonRpcErrorFlow: Flow<SDKError> by lazy {
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.method !in setOfRegisteredMethods }
             .onEach { request ->
                 val irnParams = IrnParams(Tags.UNSUPPORTED_METHOD, Ttl(DAY_IN_SECONDS))
                 jsonRpcInteractor.respondWithError(request, Invalid.MethodUnsupported(request.method), irnParams)
             }.map { request ->
-                InternalError(Exception(Invalid.MethodUnsupported(request.method).message))
+                SDKError(Exception(Invalid.MethodUnsupported(request.method).message))
             }
     }
 
@@ -117,7 +117,7 @@ internal class PairingEngine(
             jsonRpcInteractor.subscribe(
                 topic = activePairing.topic,
                 onSuccess = { onSuccess() },
-                onFailure = { error ->  return@subscribe onFailure(error) }
+                onFailure = { error -> return@subscribe onFailure(error) }
             )
         } catch (e: Exception) {
             crypto.removeKeys(walletConnectUri.topic.value)
@@ -203,17 +203,12 @@ internal class PairingEngine(
             }.launchIn(scope)
 
     private fun resubscribeToPairingFlow() {
-        pairingRepository.getListOfPairings()
-            .map { pairing -> pairing.topic }
-            .onEach { pairingTopic ->
-                try {
-                    jsonRpcInteractor.subscribe(pairingTopic) { error -> scope.launch { internalErrorFlow.emit(InternalError(error)) } }
-                } catch (e: Exception) {
-                    scope.launch {
-                        internalErrorFlow.emit(InternalError(e))
-                    }
-                }
-            }
+        try {
+            val pairingTopics = pairingRepository.getListOfPairings().map { pairing -> pairing.topic.value }
+            jsonRpcInteractor.batchSubscribe(pairingTopics) { error -> scope.launch { internalErrorFlow.emit(SDKError(error)) } }
+        } catch (e: Exception) {
+            scope.launch { internalErrorFlow.emit(SDKError(e)) }
+        }
     }
 
     private suspend fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {

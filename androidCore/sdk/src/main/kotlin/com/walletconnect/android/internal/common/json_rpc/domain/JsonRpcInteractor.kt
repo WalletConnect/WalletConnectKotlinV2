@@ -41,8 +41,8 @@ internal class JsonRpcInteractor(
     private val _peerResponse: MutableSharedFlow<WCResponse> = MutableSharedFlow()
     override val peerResponse: SharedFlow<WCResponse> = _peerResponse.asSharedFlow()
 
-    private val _internalErrors = MutableSharedFlow<InternalError>()
-    override val internalErrors: SharedFlow<InternalError> = _internalErrors.asSharedFlow()
+    private val _internalErrors = MutableSharedFlow<SDKError>()
+    override val internalErrors: SharedFlow<SDKError> = _internalErrors.asSharedFlow()
 
     override val isConnectionAvailable: StateFlow<Boolean> get() = relay.isConnectionAvailable
 
@@ -196,6 +196,27 @@ internal class JsonRpcInteractor(
         }
     }
 
+    override fun batchSubscribe(topics: List<String>, onSuccess: (List<String>) -> Unit, onFailure: (Throwable) -> Unit) {
+        try {
+            checkConnectionWorking()
+        } catch (e: NoRelayConnectionException) {
+            return onFailure(e)
+        }
+
+        relay.batchSubscribe(topics) { result ->
+            result.fold(
+                onSuccess = { acknowledgement ->
+                    subscriptions.plus(topics.zip(acknowledgement.result).toMap())
+                    onSuccess(topics)
+                },
+                onFailure = { error ->
+                    logger.error("Batch subscribe to topics error: $topics error: $error")
+                    onFailure(error)
+                }
+            )
+        }
+    }
+
     override fun unsubscribe(topic: Topic, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         try {
             checkConnectionWorking()
@@ -292,7 +313,7 @@ internal class JsonRpcInteractor(
     private fun handleError(errorMessage: String) {
         logger.error("JsonRpcInteractor error: $errorMessage")
         scope.launch {
-            _internalErrors.emit(InternalError(errorMessage))
+            _internalErrors.emit(SDKError(Throwable(errorMessage)))
         }
     }
 }

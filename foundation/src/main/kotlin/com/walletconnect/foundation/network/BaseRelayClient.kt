@@ -103,6 +103,8 @@ abstract class BaseRelayClient : RelayInterface {
     override fun batchSubscribe(topics: List<String>, onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit) {
         val batchSubscribeRequest = RelayDTO.BatchSubscribe.Request(id = generateId(), params = RelayDTO.BatchSubscribe.Request.Params(topics))
 
+        println("kobe; Batch subscribe: $batchSubscribeRequest")
+
         observeBatchSubscribeResult(onResult)
         relayService.batchSubscribeRequest(batchSubscribeRequest)
     }
@@ -130,13 +132,15 @@ abstract class BaseRelayClient : RelayInterface {
         subscriptionId: String,
         onResult: (Result<Relay.Model.Call.Unsubscribe.Acknowledgement>) -> Unit,
     ) {
-        val unsubscribeRequest = RelayDTO.Unsubscribe.Request(
+        val batchUnsubscribeRequest = RelayDTO.Unsubscribe.Request(
             id = generateId(),
             params = RelayDTO.Unsubscribe.Request.Params(Topic(topic), SubscriptionId(subscriptionId))
         )
 
+        println("kobe; Batch subscribe: $batchUnsubscribeRequest")
+
         observeUnsubscribeResult(onResult)
-        relayService.unsubscribeRequest(unsubscribeRequest)
+        relayService.unsubscribeRequest(batchUnsubscribeRequest)
     }
 
     @ExperimentalCoroutinesApi

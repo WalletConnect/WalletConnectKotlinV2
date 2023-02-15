@@ -74,7 +74,6 @@ object Relay {
                     val method: String = IRN_BATCH_SUBSCRIBE,
                     val params: Params,
                 ) : Subscribe() {
-
                     data class Params(val topics: List<String>)
                 }
 

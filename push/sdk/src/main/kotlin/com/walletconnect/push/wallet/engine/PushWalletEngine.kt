@@ -190,7 +190,7 @@ internal class PushWalletEngine(
 
     private fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
-            .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
+            .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
 
     private fun onPushRequest(request: WCRequest, params: PushParams.RequestParams) {
@@ -235,7 +235,7 @@ internal class PushWalletEngine(
 
             scope.launch { _engineEvent.emit(EngineDO.PushDelete(request.topic.value)) }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -244,10 +244,9 @@ internal class PushWalletEngine(
     }
 
     private fun resubscribeToSubscriptions() {
-        subscriptionStorageRepository.getAllSubscriptions()
+        val subscriptionTopics = subscriptionStorageRepository.getAllSubscriptions()
             .filterIsInstance<EngineDO.PushSubscription.Responded>()
-            .forEach { subscription ->
-                jsonRpcInteractor.subscribe(Topic(subscription.topic))
-            }
+            .map { subscription -> subscription.topic }
+        jsonRpcInteractor.batchSubscribe(subscriptionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
     }
 }
