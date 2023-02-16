@@ -522,6 +522,7 @@ internal class ChatEngine(
                 scope.launch {
                     threadsRepository.deleteThreadByTopic(topic)
                     messageRepository.deleteMessagesByTopic(topic)
+                    jsonRpcInteractor.unsubscribe(Topic(topic)) { error -> onFailure(error) }
                 }
             },
             onFailure = { throwable ->
