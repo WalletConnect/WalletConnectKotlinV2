@@ -1,43 +1,37 @@
 package com.walletconnect.push.dapp.data
 
-import android.util.Log
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.push.common.storage.data.dao.PendingRegisterRequestsQueries
 import com.walletconnect.push.dapp.data.network.CastService
 import com.walletconnect.push.dapp.data.network.model.CastBodyDTO
 import com.walletconnect.push.dapp.data.network.model.CastResponseDTO
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 
-class CastRepository(private val projectId: ProjectId, private val castService: CastService, private val pendingRegisterRequests: PendingRegisterRequestsQueries) {
+internal class CastRepository(private val projectId: ProjectId, private val castService: CastService, private val pendingRegisterRequests: PendingRegisterRequestsQueries) {
 
     suspend fun retryRegistration() {
         supervisorScope {
             launch(Dispatchers.IO) {
-                pendingRegisterRequests.getAllPendingRequests { account, symKey, relayUrl ->
-                    Triple(account, symKey, relayUrl)
-                }.executeAsList().forEach { (account, symKey, relayUrl) ->
-                    launch(Dispatchers.IO) {
-                        register(account, symKey, relayUrl) {}
+                pendingRegisterRequests.getAllPendingRequests().executeAsList().forEach { (account, symKey, relayUrl, topic) ->
+                    coroutineScope {
+                        register(account, symKey, relayUrl, topic) {}
                     }
                 }
             }
         }
     }
 
-    suspend fun register(account: String, symKey: String, relayUrl: String, onError: suspend (Throwable) -> Unit) {
+    suspend fun register(account: String, symKey: String, relayUrl: String, topic: String, onError: suspend (Throwable) -> Unit) {
         val requestBody = CastBodyDTO.Register(account, symKey, relayUrl)
 
         supervisorScope {
             withContext(Dispatchers.IO) {
                 try {
                     val response = castService.register(projectId.value, requestBody)
-                    pendingRegisterRequests.insertPendingRequest(account, symKey, relayUrl)
+                    pendingRegisterRequests.insertPendingRequest(account, symKey, relayUrl, topic)
 
-                    if (/*response.isSuccessful && response.body() != null*/false.also { Log.e("Talha", "$it") }) {
-                        pendingRegisterRequests.deletePendingRequest(account)
+                    if (response.isSuccessful && response.body() != null) {
+                        pendingRegisterRequests.deletePendingRequestByAcount(account)
                     } else {
                         onError(IllegalStateException(response.errorBody()?.string()))
                     }
@@ -51,8 +45,8 @@ class CastRepository(private val projectId: ProjectId, private val castService: 
     suspend fun notify(
         title: String,
         body: String,
-        icon: String,
-        url: String,
+        icon: String?,
+        url: String?,
         accounts: List<String>,
         onSuccess: (CastNotifyResponse) -> Unit,
         onError: (Throwable) -> Unit,
@@ -76,11 +70,22 @@ class CastRepository(private val projectId: ProjectId, private val castService: 
         }
     }
 
+    suspend fun deletePendingRequest(topic: String) {
+        supervisorScope {
+            launch(Dispatchers.IO) {
+                pendingRegisterRequests.deletePendingRequestByTopic(topic)
+            }
+        }
+    }
+
     private fun CastResponseDTO.Notify.toNotifyResponse(): CastNotifyResponse {
         return CastNotifyResponse(
             sent,
-            failed,
+            failed.map { it.toFailedResponse() },
             notFound
         )
     }
+
+    private fun CastResponseDTO.Notify.Failed.toFailedResponse(): CastNotifyResponse.Failed =
+        CastNotifyResponse.Failed(account, reason)
 }

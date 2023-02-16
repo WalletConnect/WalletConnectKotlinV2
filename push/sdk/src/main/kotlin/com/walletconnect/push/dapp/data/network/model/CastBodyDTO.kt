@@ -29,9 +29,9 @@ sealed class CastBodyDTO {
             @Json(name = "body")
             val body: String,
             @Json(name = "icon")
-            val icon: String,
+            val icon: String?,
             @Json(name = "url")
-            val url: String
+            val url: String?
         )
     }
 }

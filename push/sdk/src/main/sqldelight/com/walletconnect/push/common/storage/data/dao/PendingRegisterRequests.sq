@@ -2,17 +2,22 @@ CREATE TABLE PendingRegisterRequests(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     account TEXT UNIQUE NOT NULL,
     sym_key TEXT NOT NULL,
-    relay_url TEXT NOT NULL
+    relay_url TEXT NOT NULL,
+    topic TEXT NOT NULL
 );
 
 insertPendingRequest:
-INSERT OR ABORT INTO PendingRegisterRequests(account, sym_key, relay_url)
-VALUES (?, ?, ?);
+INSERT OR ABORT INTO PendingRegisterRequests(account, sym_key, relay_url, topic)
+VALUES (?, ?, ?, ?);
 
-deletePendingRequest:
+deletePendingRequestByAcount:
 DELETE FROM PendingRegisterRequests
 WHERE account = ?;
 
+deletePendingRequestByTopic:
+DELETE FROM PendingRegisterRequests
+WHERE topic = ?;
+
 getAllPendingRequests:
-SELECT account, sym_key, relay_url
+SELECT account, sym_key, relay_url, topic
 FROM PendingRegisterRequests;

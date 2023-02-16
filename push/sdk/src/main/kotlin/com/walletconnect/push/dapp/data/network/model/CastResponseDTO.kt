@@ -10,8 +10,17 @@ sealed class CastResponseDTO {
         @Json(name = "sent")
         val sent: List<String>,
         @Json(name = "failed")
-        val failed: List<List<String>>,
+        val failed: List<Failed>,
         @Json(name = "notFound")
         val notFound: List<String>
-    )
+    ) {
+
+        @JsonClass(generateAdapter = true)
+        data class Failed(
+            @Json(name = "account")
+            val account: String,
+            @Json(name = "reason")
+            val reason: String
+        )
+    }
 }
