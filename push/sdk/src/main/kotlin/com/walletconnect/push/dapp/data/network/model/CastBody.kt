@@ -3,7 +3,7 @@ package com.walletconnect.push.dapp.data.network.model
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-sealed class CastBodyDTO {
+sealed class CastBody {
 
     @JsonClass(generateAdapter = true)
     data class Register(
@@ -13,7 +13,7 @@ sealed class CastBodyDTO {
         val symKey: String,
         @Json(name = "relayUrl")
         val relayUrl: String
-    ): CastBodyDTO()
+    ): CastBody()
 
     @JsonClass(generateAdapter = true)
     data class Notify(

@@ -3,8 +3,8 @@ package com.walletconnect.push.dapp.data
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.push.common.storage.data.dao.PendingRegisterRequestsQueries
 import com.walletconnect.push.dapp.data.network.CastService
-import com.walletconnect.push.dapp.data.network.model.CastBodyDTO
-import com.walletconnect.push.dapp.data.network.model.CastResponseDTO
+import com.walletconnect.push.dapp.data.network.model.CastBody
+import com.walletconnect.push.dapp.data.network.model.CastResponse
 import kotlinx.coroutines.*
 
 internal class CastRepository(private val projectId: ProjectId, private val castService: CastService, private val pendingRegisterRequests: PendingRegisterRequestsQueries) {
@@ -22,7 +22,7 @@ internal class CastRepository(private val projectId: ProjectId, private val cast
     }
 
     suspend fun register(account: String, symKey: String, relayUrl: String, topic: String, onError: suspend (Throwable) -> Unit) {
-        val requestBody = CastBodyDTO.Register(account, symKey, relayUrl)
+        val requestBody = CastBody.Register(account, symKey, relayUrl)
 
         supervisorScope {
             withContext(Dispatchers.IO) {
@@ -51,7 +51,7 @@ internal class CastRepository(private val projectId: ProjectId, private val cast
         onSuccess: (CastNotifyResponse) -> Unit,
         onError: (Throwable) -> Unit,
     ) {
-        val requestBody = CastBodyDTO.Notify(CastBodyDTO.Notify.Notification(title, body, icon, url), accounts)
+        val requestBody = CastBody.Notify(CastBody.Notify.Notification(title, body, icon, url), accounts)
 
         supervisorScope {
             withContext(Dispatchers.IO) {
@@ -78,7 +78,7 @@ internal class CastRepository(private val projectId: ProjectId, private val cast
         }
     }
 
-    private fun CastResponseDTO.Notify.toNotifyResponse(): CastNotifyResponse {
+    private fun CastResponse.Notify.toNotifyResponse(): CastNotifyResponse {
         return CastNotifyResponse(
             sent,
             failed.map { it.toFailedResponse() },
@@ -86,6 +86,6 @@ internal class CastRepository(private val projectId: ProjectId, private val cast
         )
     }
 
-    private fun CastResponseDTO.Notify.Failed.toFailedResponse(): CastNotifyResponse.Failed =
+    private fun CastResponse.Notify.Failed.toFailedResponse(): CastNotifyResponse.Failed =
         CastNotifyResponse.Failed(account, reason)
 }
