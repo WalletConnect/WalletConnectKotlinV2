@@ -32,8 +32,7 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
 
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
         val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
-        val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl()) {issuer ->
-            val clientId = issuer.split(":").last()
+        val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl()) { clientId ->
             wcKoinApp.koin.get<SharedPreferences>().edit {
                 putString(EchoInterface.KEY_CLIENT_ID, clientId)
             }
