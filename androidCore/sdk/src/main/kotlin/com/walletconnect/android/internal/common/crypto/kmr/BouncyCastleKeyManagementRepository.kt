@@ -88,13 +88,13 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
 
     override fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): Topic {
         val symmetricKey = generateSymmetricKeyFromKeyAgreement(self, peer)
-        val topic = Topic(sha256(symmetricKey.keyAsHex))
+        val topic = Topic(sha256(symmetricKey.keyAsBytes))
         keyChain.setKey(topic.value.lowercase(), symmetricKey)
         setKeyAgreement(topic, self, peer)
         return topic
     }
 
-    override fun getTopicFromKey(key: Key): Topic = Topic(sha256(key.keyAsHex))
+    override fun getTopicFromKey(key: Key): Topic = Topic(sha256(key.keyAsBytes))
 
     @Throws(MissingKeyException::class)
     override fun removeKeys(tag: String) {
