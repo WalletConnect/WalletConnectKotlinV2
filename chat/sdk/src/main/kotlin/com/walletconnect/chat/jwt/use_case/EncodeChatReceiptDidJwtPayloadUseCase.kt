@@ -17,7 +17,7 @@ internal class EncodeChatReceiptDidJwtPayloadUseCase(
         issuedAt = issuedAt,
         expiration = expiration,
         keyserverUrl = keyserverUrl,
-        subject = sha256(message),
+        subject = sha256(message.toByteArray()),
         audience = encodeDidPkh(senderAccountId.value),
     )
 }

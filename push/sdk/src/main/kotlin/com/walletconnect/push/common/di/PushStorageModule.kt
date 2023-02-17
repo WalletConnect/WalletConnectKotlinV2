@@ -1,10 +1,9 @@
 @file:JvmSynthetic
 
-package com.walletconnect.push.wallet.di
+package com.walletconnect.push.common.di
 
 import com.walletconnect.android.di.AndroidCoreDITags
 import com.walletconnect.android.di.sdkBaseStorageModule
-import com.walletconnect.android.internal.common.di.DBUtils
 import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.push.PushDatabase
 import com.walletconnect.push.common.storage.data.SubscriptionStorageRepository

@@ -182,8 +182,11 @@ class SessionDetailsViewModel : ViewModel() {
                     if (!events.contains(anotherEvent)) {
                         events.add(anotherEvent)
                     }
+
+                    val chains = namespace.chains?.toMutableList()
+
                     val expandedNamespaces =
-                        mapOf(key to Sign.Model.Namespace.Session(accounts, methods, events, null))
+                        mapOf(key to Sign.Model.Namespace.Session(chains,  accounts, methods, events))
                     val update =
                         Sign.Params.Update(sessionTopic = topic, namespaces = expandedNamespaces)
                     SignClient.update(update) { error ->
@@ -259,13 +262,7 @@ class SessionDetailsViewModel : ViewModel() {
         selectedSession.namespaces.values.flatMap { namespace ->
             namespace.events.map { event ->
                 event to namespace.accounts.map { getChainFromAccount(it) }
-            }.plus(
-                namespace.extensions?.flatMap { extension ->
-                    extension.events.map { event ->
-                        event to namespace.accounts.map { getChainFromAccount(it) }
-                    }
-                } ?: emptyList()
-            )
+            }
         }.toMap()
 
     private fun getChainFromAccount(accountId: String): String {
