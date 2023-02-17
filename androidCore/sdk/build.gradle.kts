@@ -26,6 +26,8 @@ android {
         File("${rootDir.path}/gradle/consumer-rules").listFiles()?.forEach { proguardFile ->
             consumerProguardFiles(proguardFile.path)
         }
+
+        ndk.abiFilters += listOf("armeabi-v7a", "x86", "x86_64", "arm64_v8a")
     }
 
     buildTypes {
