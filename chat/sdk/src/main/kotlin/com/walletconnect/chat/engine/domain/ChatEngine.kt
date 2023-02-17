@@ -521,6 +521,7 @@ internal class ChatEngine(
                 scope.launch {
                     threadsRepository.deleteThreadByTopic(topic)
                     messageRepository.deleteMessagesByTopic(topic)
+                    jsonRpcInteractor.unsubscribe(Topic(topic)) { error -> onFailure(error) }
                 }
             },
             onFailure = { throwable ->
@@ -541,20 +542,27 @@ internal class ChatEngine(
             })
     }
 
-    internal suspend fun getThreadsByAccount(accountId: String): Map<String, Thread> {
-        return threadsRepository.getThreadsForSelfAccount(accountId).associateBy { thread -> thread.topic.value }
+    private fun <T> runBlockingInNewScope(block: suspend CoroutineScope.() -> T): T {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        return runBlocking(scope.coroutineContext) {
+            block()
+        }
     }
 
-    internal suspend fun getMessagesByTopic(topic: String): List<Message> {
-        return messageRepository.getMessageByTopic(topic)
+    internal fun getThreadsByAccount(accountId: String): Map<String, Thread> = runBlockingInNewScope() {
+        threadsRepository.getThreadsForSelfAccount(accountId).associateBy { thread -> thread.topic.value }
     }
 
-    internal suspend fun getSentInvites(inviterAccountId: String): Map<Long, Invite.Sent> {
-        return invitesRepository.getSentInvitesForInviterAccount(inviterAccountId).associateBy { invite -> invite.id }
+    internal fun getMessagesByTopic(topic: String): List<Message> = runBlockingInNewScope() {
+        messageRepository.getMessageByTopic(topic)
     }
 
-    internal suspend fun getReceivedInvites(inviteeAccountId: String): Map<Long, Invite.Received> {
-        return invitesRepository.getReceivedInvitesForInviteeAccount(inviteeAccountId).associateBy { invite -> invite.id }
+    internal fun getSentInvites(inviterAccountId: String): Map<Long, Invite.Sent> = runBlockingInNewScope() {
+        invitesRepository.getSentInvitesForInviterAccount(inviterAccountId).associateBy { invite -> invite.id }
+    }
+
+    internal fun getReceivedInvites(inviteeAccountId: String): Map<Long, Invite.Received> = runBlockingInNewScope() {
+        invitesRepository.getReceivedInvitesForInviteeAccount(inviteeAccountId).associateBy { invite -> invite.id }
     }
 
     private fun pingSuccess(
