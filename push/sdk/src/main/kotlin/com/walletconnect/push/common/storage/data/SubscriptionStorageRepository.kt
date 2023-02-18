@@ -10,10 +10,11 @@ import kotlinx.coroutines.withContext
 
 class SubscriptionStorageRepository(private val subscriptionQueries: SubscriptionsQueries) {
 
-    fun insertSubscriptionProposal(requestId: Long, peerPublicKey: String) {
+    fun insertSubscriptionProposal(requestId: Long, peerPublicKey: String, account: String) {
         subscriptionQueries.insertSubscriptionRequest(
             requestId,
-            peerPublicKey
+            peerPublicKey,
+            account
         )
     }
 
