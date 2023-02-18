@@ -646,30 +646,37 @@ internal class SignEngine(
             return
         }
 
-        try {
-            val session = SessionVO.createAcknowledgedSession(
-                sessionTopic,
-                settleParams,
-                selfPublicKey,
-                selfAppMetaData,
-                requiredNamespaces,
-                optionalNamespaces,
-                properties,
-                request.topic.value
-            )
+        scope.launch(Dispatchers.IO) {
+            supervisorScope {
+                try {
+                    val proposalSession = withContext(Dispatchers.IO) {
+                        proposalStorageRepository.getProposalByKey(selfPublicKey.keyAsHex)
+                    }
+                    val session = SessionVO.createAcknowledgedSession(
+                        sessionTopic,
+                        settleParams,
+                        selfPublicKey,
+                        selfAppMetaData,
+                        requiredNamespaces,
+                        optionalNamespaces,
+                        properties,
+                        proposalSession.pairingTopic.value
+                    )
 
-            proposalStorageRepository.deleteProposal(selfPublicKey.keyAsHex)
-            sessionStorageRepository.insertSession(session, request.id)
-            pairingHandler.updateMetadata(Core.Params.UpdateMetadata(proposal.pairingTopic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
-            metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
+                    proposalStorageRepository.deleteProposal(selfPublicKey.keyAsHex)
+                    sessionStorageRepository.insertSession(session, request.id)
+                    pairingHandler.updateMetadata(Core.Params.UpdateMetadata(proposal.pairingTopic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
+                    metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
 
-            jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
-            scope.launch { _engineEvent.emit(session.toSessionApproved()) }
-        } catch (e: SQLiteException) {
-            proposalStorageRepository.insertProposal(proposal)
-            sessionStorageRepository.deleteSession(sessionTopic)
-            jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
-            return
+                    jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
+                    _engineEvent.emit(session.toSessionApproved())
+                } catch (e: Exception) {
+                    proposalStorageRepository.insertProposal(proposal)
+                    sessionStorageRepository.deleteSession(sessionTopic)
+                    jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
+                    return@supervisorScope
+                }
+            }
         }
     }
 

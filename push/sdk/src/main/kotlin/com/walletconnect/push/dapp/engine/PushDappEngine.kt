@@ -112,7 +112,13 @@ internal class PushDappEngine(
 
         scope.launch {
             supervisorScope {
-                subscriptionStorageRepository.getAccountByTopic(pushTopic)?.let { account ->
+                subscriptionStorageRepository.getAccountByTopic(pushTopic)?.let { caip10Account ->
+                    val account = if (caip10Account.contains(Regex(".:.:."))) {
+                        caip10Account.split(":").last()
+                    } else {
+                        caip10Account
+                    }
+
                     castRepository.notify(
                         message.title,
                         message.body,
@@ -211,10 +217,15 @@ internal class PushDappEngine(
                         subscriptionStorageRepository.insertRespondedSubscription(respondedSubscription)
                         jsonRpcInteractor.subscribe(pushTopic)
 
-                        val symKey = crypto.generateAndStoreSymmetricKey(pushTopic)
+                        val symKey = crypto.getSymmetricKey(pushTopic.value)
                         val relayUrl = wcKoinApp.koin.get<String>(named(PushDITags.CAST_SERVER_URL))
-                        castRepository.register(params.account, symKey.keyAsHex, relayUrl, wcResponse.topic.value) { error ->
-                            _engineEvent.emit(SDKError(InternalError(error)))
+                        val account = if (params.account.contains(Regex(".:.:."))) {
+                            params.account.split(":").last()
+                        } else {
+                            params.account
+                        }
+                        castRepository.register(account, symKey.keyAsHex, relayUrl, wcResponse.topic.value) { error ->
+                            _engineEvent.emit(SDKError(error))
                         }
 
                         _engineEvent.emit(EngineDO.PushRequestResponse(respondedSubscription))
@@ -225,7 +236,7 @@ internal class PushDappEngine(
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 

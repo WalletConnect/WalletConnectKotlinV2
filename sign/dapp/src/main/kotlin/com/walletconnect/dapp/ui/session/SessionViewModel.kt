@@ -85,6 +85,11 @@ class SessionViewModel : ViewModel() {
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
             DappDelegate.deselectAccountDetails()
+
+            val pushTopic = PushDappClient.getActiveSubscriptions().entries.first().value.topic
+            PushDappClient.delete(Push.Dapp.Params.Delete(pushTopic)) { error ->
+                Log.e(tag(this), error.throwable.stackTraceToString())
+            }
         }
 
         viewModelScope.launch {
@@ -93,8 +98,14 @@ class SessionViewModel : ViewModel() {
     }
 
     fun pushRequest() {
-        val pairingTopic = CoreClient.Pairing.getPairings().first().topic
-        PushDappClient.request(Push.Dapp.Params.Request("testAccount", pairingTopic), { pushRequestId ->
+        val pairingTopic = CoreClient.Pairing.getPairings().map { it.topic }.first { pairingTopic ->
+            SignClient.getListOfActiveSessions().any { session -> session.pairingTopic == pairingTopic }
+        }
+        val ethAccount = SignClient.getListOfActiveSessions().first { session ->
+            session.pairingTopic == pairingTopic
+        }.namespaces.entries.first().value.accounts.first()
+
+        PushDappClient.request(Push.Dapp.Params.Request(ethAccount, pairingTopic), { pushRequestId ->
             Log.e(tag(this), "Request sent with id ${pushRequestId.id}")
         }, {
             Log.e(tag(this), it.throwable.stackTraceToString())
