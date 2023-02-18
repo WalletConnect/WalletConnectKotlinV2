@@ -16,11 +16,7 @@ import retrofit2.converter.scalars.ScalarsConverterFactory
 internal fun castModule(castServerUrl: String? = null) = module {
 
     single(named(PushDITags.CAST_SERVER_URL)) {
-        when {
-            castServerUrl?.endsWith("/") == false -> "$castServerUrl/"
-            castServerUrl?.endsWith("/") == true -> castServerUrl
-            else -> "https://cast.walletconnect.com/"
-        }
+        castServerUrl ?: "https://cast.walletconnect.com/"
     }
 
     single(named(PushDITags.CAST_RETROFIT)) {

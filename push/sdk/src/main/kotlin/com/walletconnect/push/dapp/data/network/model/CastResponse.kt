@@ -11,7 +11,7 @@ sealed class CastResponse {
         val sent: List<String>,
         @Json(name = "failed")
         val failed: List<Failed>,
-        @Json(name = "notFound")
+        @Json(name = "not_found")
         val notFound: List<String>
     ) {
 
