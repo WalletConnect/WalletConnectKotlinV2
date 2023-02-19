@@ -1,5 +1,6 @@
 import kotlin.collections.List;
 
+-- migrates 5db to 6db
 
 -- DROP TABLES
 DROP TABLE IF EXISTS JsonRpcHistoryDao;

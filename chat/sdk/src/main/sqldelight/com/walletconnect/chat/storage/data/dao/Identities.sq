@@ -1,0 +1,14 @@
+CREATE TABLE Identities (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    identity TEXT NOT NULL,
+    accountId TEXT NOT NULL
+);
+
+insertOrAbortIdentity:
+INSERT OR ABORT INTO Identities(identity, accountId)
+VALUES (?, ?);
+
+getAccountIdByIdentity:
+SELECT accountId
+FROM Identities
+WHERE identity = ?;

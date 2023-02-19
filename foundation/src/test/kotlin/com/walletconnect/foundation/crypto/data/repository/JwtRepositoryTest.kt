@@ -2,14 +2,16 @@ package com.walletconnect.foundation.crypto.data.repository
 
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.util.jwt.jwtIatAndExp
 import io.mockk.every
+import io.mockk.mockkStatic
 import io.mockk.spyk
 import org.junit.jupiter.api.Test
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 
 internal class JwtRepositoryTest {
-    private val sut = spyk(object: BaseJwtRepository() {
+    private val sut = spyk(object : BaseClientIdJwtRepository() {
 
         override fun setKeyPair(key: String, privateKey: PrivateKey, publicKey: PublicKey) {}
 
@@ -26,7 +28,8 @@ internal class JwtRepositoryTest {
     @BeforeTest
     fun setUp() {
         every { sut.generateSubject() } returns "c479fe5dc464e771e78b193d239a65b58d278cad1c34bfb0b5716e5bb514928e"
-        every { sut.getCurrentTimestamp() } returns 1656910097000L
+        mockkStatic(::jwtIatAndExp)
+        every { jwtIatAndExp(any(), any(), any(), any()) } returns (1656910097L to (1656910097L + 86400L))
     }
 
     @Test

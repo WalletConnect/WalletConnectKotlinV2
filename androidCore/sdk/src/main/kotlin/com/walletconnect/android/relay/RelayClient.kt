@@ -2,12 +2,15 @@
 
 package com.walletconnect.android.relay
 
+import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.walletconnect.android.BuildConfig
+import com.walletconnect.android.Core
+import com.walletconnect.android.echo.EchoInterface
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.di.coreAndroidNetworkModule
 import com.walletconnect.android.internal.common.exception.WRONG_CONNECTION_TYPE
-import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.utils.*
@@ -30,7 +33,11 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
 
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
         val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
-        val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl())
+        val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl()) { clientId ->
+            wcKoinApp.koin.get<SharedPreferences>().edit {
+                putString(EchoInterface.KEY_CLIENT_ID, clientId)
+            }
+        }
         val serverUrl = relayServerUrl.addUserAgent(BuildConfig.SDK_VERSION)
 
         wcKoinApp.modules(coreAndroidNetworkModule(serverUrl, jwt, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION))
@@ -55,16 +62,30 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
             .stateIn(scope, SharingStarted.Eagerly, false)
     }
 
-    override fun connect(onError: (String) -> Unit) {
+    override fun connect(onErrorModel: (Core.Model.Error) -> Unit, onError: (String) -> Unit) {
         when (connectionController) {
             is ConnectionController.Automatic -> onError(WRONG_CONNECTION_TYPE)
             is ConnectionController.Manual -> (connectionController as ConnectionController.Manual).connect()
         }
     }
 
-    override fun disconnect(onError: (String) -> Unit) {
+    override fun connect(onError: (Core.Model.Error) -> Unit) {
+        when (connectionController) {
+            is ConnectionController.Automatic -> onError(Core.Model.Error(IllegalStateException(WRONG_CONNECTION_TYPE)))
+            is ConnectionController.Manual -> (connectionController as ConnectionController.Manual).connect()
+        }
+    }
+
+    override fun disconnect(onErrorModel: (Core.Model.Error) -> Unit, onError: (String) -> Unit) {
         when (connectionController) {
             is ConnectionController.Automatic -> onError(WRONG_CONNECTION_TYPE)
+            is ConnectionController.Manual -> (connectionController as ConnectionController.Manual).disconnect()
+        }
+    }
+
+    override fun disconnect(onError: (Core.Model.Error) -> Unit) {
+        when (connectionController) {
+            is ConnectionController.Automatic -> onError(Core.Model.Error(IllegalStateException(WRONG_CONNECTION_TYPE)))
             is ConnectionController.Manual -> (connectionController as ConnectionController.Manual).disconnect()
         }
     }

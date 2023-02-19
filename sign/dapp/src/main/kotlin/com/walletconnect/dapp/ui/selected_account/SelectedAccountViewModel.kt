@@ -92,20 +92,32 @@ class SelectedAccountViewModel : ViewModel() {
         val chainDetails = Chains.values().first {
             it.chainNamespace == chainNamespace && it.chainReference == chainReference
         }
-        val listOfMethods: List<String> = SignClient.getListOfActiveSessions().filter { session ->
-            session.topic == DappDelegate.selectedSessionTopic
-        }.flatMap { session ->
-            session.namespaces
-                .filter { (key, _) -> key == chainNamespace }
-                .values.flatMap { namespace -> namespace.methods }
-        }
+
+        val listOfMethodsByChainId: List<String> =
+            SignClient.getListOfActiveSessions()
+                .filter { session -> session.topic == DappDelegate.selectedSessionTopic }
+                .flatMap { session ->
+                    session.namespaces
+                        .filter { (namespaceKey, _) -> namespaceKey == chainDetails.chainId }
+                        .flatMap { (_, namespace) -> namespace.methods }
+                }
+
+        val listOfMethodsByNamespace: List<String> =
+            SignClient.getListOfActiveSessions()
+                .filter { session -> session.topic == DappDelegate.selectedSessionTopic }
+                .flatMap { session ->
+                    session.namespaces
+                        .filter { (namespaceKey, _) -> namespaceKey == chainDetails.chainNamespace }
+                        .flatMap { (_, namespace) -> namespace.methods }
+                }
+
 
         viewModelScope.launch {
             _uiState.value = SelectedAccountUI.Content(
                 icon = chainDetails.icon,
                 chainName = chainDetails.chainName,
                 account = account,
-                listOfMethods = listOfMethods,
+                listOfMethods = listOfMethodsByChainId.ifEmpty { listOfMethodsByNamespace },
                 selectedAccount = selectedAccountInfo
             )
         }

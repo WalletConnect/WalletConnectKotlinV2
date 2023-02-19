@@ -6,12 +6,13 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.common.di.pushJsonRpcModule
+import com.walletconnect.push.common.di.pushStorageModule
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.toClient
 import com.walletconnect.push.wallet.client.mapper.toClient
 import com.walletconnect.push.wallet.client.mapper.toClientEvent
 import com.walletconnect.push.wallet.client.mapper.toClientModel
-import com.walletconnect.push.wallet.di.pushStorageModule
+import com.walletconnect.push.common.di.pushStorageModule
 import com.walletconnect.push.wallet.di.walletEngineModule
 import com.walletconnect.push.wallet.engine.PushWalletEngine
 import kotlinx.coroutines.flow.launchIn

@@ -1,13 +1,12 @@
 package com.walletconnect.web3.wallet.ui.routes.dialog_routes.session_proposal
 
-import com.walletconnect.web3.wallet.ui.common.peer.PeerUI
 import com.walletconnect.web3.wallet.client.Wallet
+import com.walletconnect.web3.wallet.ui.common.peer.PeerUI
 
 data class SessionProposalUI(
     val peerUI: PeerUI,
     val namespaces: Map<String, Wallet.Model.Namespace.Proposal>,
 )
-
 
 private val extensiveSessionProposalUI = SessionProposalUI(
     peerUI = PeerUI(
@@ -19,23 +18,13 @@ private val extensiveSessionProposalUI = SessionProposalUI(
     namespaces = mapOf(
         "eip155" to Wallet.Model.Namespace.Proposal(
             chains = listOf("eip155:1", "eip155:137"),
-            methods = listOf(
-                "accountsChanged", "personalSign",
-            ),
+            methods = listOf("accountsChanged", "personalSign",),
             events = listOf("someEvent1", "someEvent2"),
-            extensions = listOf(
-                Wallet.Model.Namespace.Proposal.Extension(
-                    chains = listOf("eip155:1"),
-                    methods = listOf("eth_signTypedData"),
-                    events = listOf("someEvent3"),
-                )
-            )
         ),
         "cosmos" to Wallet.Model.Namespace.Proposal(
             chains = listOf("cosmos:cosmoshub-4", "cosmos:cosmoshub-1"),
             methods = listOf("accountsChanged", "personalSign"),
             events = listOf("someEvent1", "someEvent2"),
-            extensions = null
         )
     )
 )
@@ -52,7 +41,6 @@ private val minimalSessionProposalUI = SessionProposalUI(
             chains = listOf("eip155:1"),
             methods = listOf("accountsChanged", "personalSign"),
             events = listOf("someEvent1", "someEvent2"),
-            extensions = null
         ),
     )
 )

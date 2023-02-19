@@ -55,7 +55,7 @@ class ChatSampleActivity : AppCompatActivity() {
     private fun showOnInviteSnackbar(event: ChatSharedEvents.OnInvite) =
         Snackbar.make(
             binding.root,
-            "\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31 You got an invite from: ${event.invite.account.value}",
+            "\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31 You got an invite from: ${event.invite.inviterAccount.value}",
             Snackbar.LENGTH_LONG
         ).show()
 

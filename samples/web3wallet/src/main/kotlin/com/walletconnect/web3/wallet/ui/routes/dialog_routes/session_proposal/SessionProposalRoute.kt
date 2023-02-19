@@ -20,13 +20,12 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
+import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.ui.common.*
 import com.walletconnect.web3.wallet.ui.common.peer.Peer
 import com.walletconnect.web3.wallet.ui.routes.Route
 import com.walletconnect.web3.wallet.ui.theme.Web3WalletTheme
 import com.walletconnect.web3.wallet.ui.utils.CompletePreviews
-import com.walletconnect.web3.wallet.ui.common.themedColor
-import com.walletconnect.web3.wallet.client.Wallet
 
 @CompletePreviews
 @Composable
@@ -49,10 +48,10 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
         Spacer(modifier = Modifier.height(16.dp))
         Buttons(onDecline = {
             sessionProposalViewModel.reject()
-            navController.popBackStack(route =  Route.Connections.path, inclusive = false)
+            navController.popBackStack(route = Route.Connections.path, inclusive = false)
         }, onAllow = {
             sessionProposalViewModel.approve()
-            navController.popBackStack(route =  Route.Connections.path, inclusive = false)
+            navController.popBackStack(route = Route.Connections.path, inclusive = false)
         })
         Spacer(modifier = Modifier.height(16.dp))
     }
@@ -71,8 +70,22 @@ fun Divider() {
 @Composable
 fun Permissions(sessionProposalUI: SessionProposalUI) {
     val pagerState = rememberPagerState()
-    val chains = sessionProposalUI.namespaces.flatMap { (namespace, proposal) -> proposal.chains }
-    val chainsToProposals: Map<String, Wallet.Model.Namespace.Proposal> = sessionProposalUI.namespaces.flatMap { (namespace, proposal) -> proposal.chains.map { chain -> chain to proposal } }.toMap()
+    val chains = sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
+        if (proposal.chains != null) {
+            proposal.chains!!
+        } else {
+            listOf(namespaceKey)
+        }
+    }
+
+    val chainsToProposals: Map<String, Wallet.Model.Namespace.Proposal> =
+        sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
+            if (proposal.chains != null) {
+                proposal.chains!!.map { chain -> chain to proposal }
+            } else {
+                listOf(namespaceKey).map { chain -> chain to proposal }
+            }
+        }.toMap()
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(

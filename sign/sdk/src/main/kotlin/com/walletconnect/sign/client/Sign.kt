@@ -37,6 +37,8 @@ object Sign {
             val url: String,
             val icons: List<URI>,
             val requiredNamespaces: Map<String, Namespace.Proposal>,
+            val optionalNamespaces: Map<String, Namespace.Proposal>,
+            val properties: Map<String, String>?,
             val proposerPublicKey: String,
             val relayProtocol: String,
             val relayData: String?,
@@ -56,35 +58,29 @@ object Sign {
             ) : Model()
         }
 
+        data class SentRequest(
+            val requestId: Long,
+            val sessionTopic: String,
+            val method: String,
+            val params: String,
+            val chainId: String
+        ) : Params()
+
         sealed class Namespace : Model() {
 
+            //Required or Optional
             data class Proposal(
-                val chains: List<String>,
+                val chains: List<String>? = null,
                 val methods: List<String>,
-                val events: List<String>,
-                val extensions: List<Extension>?,
-            ) : Namespace() {
-
-                data class Extension(
-                    val chains: List<String>,
-                    val methods: List<String>,
-                    val events: List<String>
-                )
-            }
+                val events: List<String>
+            ) : Namespace()
 
             data class Session(
+                val chains: List<String>? = null,
                 val accounts: List<String>,
                 val methods: List<String>,
-                val events: List<String>,
-                val extensions: List<Extension>?,
-            ) : Namespace() {
-
-                data class Extension(
-                    val accounts: List<String>,
-                    val methods: List<String>,
-                    val events: List<String>
-                )
-            }
+                val events: List<String>
+            ) : Namespace()
         }
 
         @Deprecated(message = "RelayProtocolOptions is deprecated")
@@ -127,6 +123,7 @@ object Sign {
         ) : Model()
 
         data class Session(
+            val pairingTopic: String,
             val topic: String,
             val expiry: Long,
             val namespaces: Map<String, Namespace.Session>,
@@ -183,7 +180,9 @@ object Sign {
         ) : Params()
 
         data class Connect(
-            val namespaces: Map<String, Model.Namespace.Proposal>,
+            val namespaces: Map<String, Model.Namespace.Proposal>? = null,
+            val optionalNamespaces: Map<String, Model.Namespace.Proposal>? = null,
+            val properties: Map<String, String>? = null,
             val pairing: Core.Model.Pairing
         ) : Params()
 
@@ -205,7 +204,8 @@ object Sign {
             val sessionTopic: String,
             val method: String,
             val params: String,
-            val chainId: String
+            val chainId: String,
+            val expiry: Long? = null
         ) : Params()
 
         data class Update(

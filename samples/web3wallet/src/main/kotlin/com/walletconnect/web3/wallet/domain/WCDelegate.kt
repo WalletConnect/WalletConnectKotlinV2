@@ -20,12 +20,7 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
 
     private val _walletEvents: MutableSharedFlow<Wallet.Model> = MutableSharedFlow()
     val walletEvents: SharedFlow<Wallet.Model> = _walletEvents.asSharedFlow()
-
-    var sessionProposal: Wallet.Model.SessionProposal? = null
-        private set
-
     var authRequest: Wallet.Model.AuthRequest? = null
-
     var sessionRequest: Wallet.Model.SessionRequest? = null
 
     init {
@@ -61,7 +56,6 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal) {
-        this.sessionProposal = sessionProposal
         scope.launch {
             _walletEvents.emit(sessionProposal)
         }
@@ -75,8 +69,6 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onSessionSettleResponse(settleSessionResponse: Wallet.Model.SettledSessionResponse) {
-        this.sessionProposal = null
-
         scope.launch {
             _walletEvents.emit(settleSessionResponse)
         }

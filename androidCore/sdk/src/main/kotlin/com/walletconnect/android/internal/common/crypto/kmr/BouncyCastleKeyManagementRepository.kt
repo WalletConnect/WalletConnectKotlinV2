@@ -2,6 +2,7 @@
 
 package com.walletconnect.android.internal.common.crypto.kmr
 
+import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.model.MissingKeyException
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.storage.KeyStore
@@ -15,7 +16,7 @@ import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator
 import org.bouncycastle.crypto.params.HKDFParameters
 import org.bouncycastle.math.ec.rfc7748.X25519
-import java.security.MessageDigest
+import org.bouncycastle.math.ec.rfc8032.Ed25519
 import java.security.SecureRandom
 import javax.crypto.KeyGenerator
 
@@ -49,7 +50,17 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         keyChain.setKeys(tag, self, peer)
     }
 
-    override fun generateKeyPair(): PublicKey {
+    override fun generateAndStoreEd25519KeyPair(): PublicKey {
+        val publicKey = ByteArray(KEY_SIZE)
+        val privateKey = ByteArray(KEY_SIZE)
+        Ed25519.generatePrivateKey(SecureRandom(ByteArray(KEY_SIZE)), privateKey)
+        Ed25519.generatePublicKey(privateKey, 0, publicKey, 0)
+
+        setKeyPair(PublicKey(publicKey.bytesToHex().lowercase()), PrivateKey(privateKey.bytesToHex().lowercase()))
+        return PublicKey(publicKey.bytesToHex().lowercase())
+    }
+
+    override fun generateAndStoreX25519KeyPair(): PublicKey {
         val publicKey = ByteArray(KEY_SIZE)
         val privateKey = ByteArray(KEY_SIZE)
         X25519.generatePrivateKey(SecureRandom(ByteArray(KEY_SIZE)), privateKey)
@@ -77,13 +88,13 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
 
     override fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): Topic {
         val symmetricKey = generateSymmetricKeyFromKeyAgreement(self, peer)
-        val topic = Topic(sha256(symmetricKey.keyAsHex))
+        val topic = Topic(sha256(symmetricKey.keyAsBytes))
         keyChain.setKey(topic.value.lowercase(), symmetricKey)
         setKeyAgreement(topic, self, peer)
         return topic
     }
 
-    override fun getTopicFromKey(key: Key): Topic = Topic(sha256(key.keyAsHex))
+    override fun getTopicFromKey(key: Key): Topic = Topic(sha256(key.keyAsBytes))
 
     @Throws(MissingKeyException::class)
     override fun removeKeys(tag: String) {
@@ -99,7 +110,7 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
     }
 
     @Throws(MissingKeyException::class)
-    internal fun getKeyPair(key: Key): Pair<PublicKey, PrivateKey> {
+    override fun getKeyPair(key: PublicKey): Pair<PublicKey, PrivateKey> {
         val (publicKeyHex, privateKeyHex) = keyChain.getKeys(key.keyAsHex) ?: throw MissingKeyException("No key pair for tag: ${key.keyAsHex}")
 
         return Pair(PublicKey(publicKeyHex), PrivateKey(privateKeyHex))
@@ -110,13 +121,6 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         keyGenerator.init(SYM_KEY_SIZE)
 
         return keyGenerator.generateKey().encoded
-    }
-
-    private fun sha256(key: String): String {
-        val messageDigest: MessageDigest = MessageDigest.getInstance(SHA_256)
-        val hashedBytes: ByteArray = messageDigest.digest(key.hexToBytes())
-
-        return hashedBytes.bytesToHex()
     }
 
     private fun deriveHKDFKey(sharedSecret: String): ByteArray {
@@ -135,7 +139,6 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
     private companion object {
         const val KEY_SIZE: Int = 32
         const val SYM_KEY_SIZE: Int = 256
-        const val SHA_256: String = "SHA-256"
         const val AES: String = "AES"
 
         const val KEY_AGREEMENT_CONTEXT = "key_agreement/"

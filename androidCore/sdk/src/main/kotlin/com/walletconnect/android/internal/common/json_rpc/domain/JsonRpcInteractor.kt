@@ -4,7 +4,6 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.Uncategorized
-import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.json_rpc.model.toJsonRpcError
 import com.walletconnect.android.internal.common.json_rpc.model.toJsonRpcResponse
@@ -133,6 +132,7 @@ internal class JsonRpcInteractor(
             })
     }
 
+    // TODO: Can we replace this function with different parameters? Instead of request, just pass request id and request topic.
     override fun respondWithSuccess(
         request: WCRequest,
         irnParams: IrnParams,
@@ -149,6 +149,7 @@ internal class JsonRpcInteractor(
         }
     }
 
+    // TODO: Can we replace this function with different parameters? Instead of request, just pass request id and request topic. And we never use WCRequest in the onSuccess callback so we can remove that as well
     override fun respondWithError(
         request: WCRequest,
         error: Error,

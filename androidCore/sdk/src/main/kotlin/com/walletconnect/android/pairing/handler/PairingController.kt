@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.merge
 internal object PairingController : PairingControllerInterface {
     private lateinit var pairingEngine: PairingEngine
     override val topicExpiredFlow: SharedFlow<Topic> by lazy { pairingEngine.topicExpiredFlow }
-    override val findWrongMethodsFlow: Flow<InternalError> by lazy { merge(pairingEngine.internalErrorFlow, pairingEngine.jsonRpcErrorFlow) }
+    override val findWrongMethodsFlow: Flow<Throwable> by lazy { merge(pairingEngine.internalErrorFlow, pairingEngine.jsonRpcErrorFlow) }
 
     internal fun initialize() {
         pairingEngine = wcKoinApp.koin.get()

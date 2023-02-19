@@ -6,27 +6,20 @@ import com.walletconnect.sign.client.Sign
 @JvmSynthetic
 internal fun Map<String, Wallet.Model.Namespace.Session>.toSign(): Map<String, Sign.Model.Namespace.Session> =
     mapValues { (_, namespace) ->
-        Sign.Model.Namespace.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            Sign.Model.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
-        })
+        Sign.Model.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
 internal fun Map<String, Sign.Model.Namespace.Session>.toWallet(): Map<String, Wallet.Model.Namespace.Session> =
     mapValues { (_, namespace) ->
-        Wallet.Model.Namespace.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            Wallet.Model.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
-        })
+        Wallet.Model.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
 internal fun Map<String, Sign.Model.Namespace.Proposal>.toWalletProposalNamespaces(): Map<String, Wallet.Model.Namespace.Proposal> =
     mapValues { (_, namespace) ->
-        Wallet.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            Wallet.Model.Namespace.Proposal.Extension(extension.chains, extension.methods, extension.events)
-        })
+        Wallet.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
-
 
 @JvmSynthetic
 internal fun Wallet.Model.JsonRpcResponse.toSign(): Sign.Model.JsonRpcResponse =
@@ -73,7 +66,7 @@ internal fun Wallet.Model.PayloadParams.toSign(): Auth.Model.PayloadParams =
     )
 
 @JvmSynthetic
-internal fun Sign.Model.Session.toWallet(): Wallet.Model.Session = Wallet.Model.Session(topic, expiry, namespaces.toWallet(), metaData)
+internal fun Sign.Model.Session.toWallet(): Wallet.Model.Session = Wallet.Model.Session(pairingTopic, topic, expiry,  namespaces.toWallet(), metaData)
 
 @JvmSynthetic
 internal fun List<Sign.Model.PendingRequest>.mapToPendingRequests(): List<Wallet.Model.PendingSessionRequest> = map { request ->
@@ -83,6 +76,16 @@ internal fun List<Sign.Model.PendingRequest>.mapToPendingRequests(): List<Wallet
         request.method,
         request.chainId,
         request.params
+    )
+}
+
+@JvmSynthetic
+internal fun List<Sign.Model.SessionRequest>.mapToPendingSessionRequests(): List<Wallet.Model.SessionRequest> = map { request ->
+    Wallet.Model.SessionRequest(
+        request.topic,
+        request.chainId,
+        request.peerMetaData,
+       Wallet.Model.SessionRequest.JSONRPCRequest(request.request.id, request.request.method, request.request.params)
     )
 }
 
@@ -120,6 +123,8 @@ internal fun Sign.Model.SessionProposal.toWallet(): Wallet.Model.SessionProposal
         url,
         icons,
         requiredNamespaces.toWalletProposalNamespaces(),
+        optionalNamespaces.toWalletProposalNamespaces(),
+        properties,
         proposerPublicKey,
         relayProtocol,
         relayData
