@@ -23,14 +23,30 @@ fun baseStorageModule() = module {
 
     single<ColumnAdapter<List<String>, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)) {
         object : ColumnAdapter<List<String>, String> {
-            override fun decode(databaseValue: String) =
+            override fun decode(databaseValue: String): List<String> =
                 if (databaseValue.isBlank()) {
                     listOf()
                 } else {
                     databaseValue.split(",")
                 }
 
-            override fun encode(value: List<String>) = value.joinToString(separator = ",")
+            override fun encode(value: List<String>): String = value.joinToString(separator = ",")
+        }
+    }
+
+    single<ColumnAdapter<Map<String, String>, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_MAP)) {
+        object : ColumnAdapter<Map<String, String>, String> {
+            override fun decode(databaseValue: String): Map<String, String> =
+                if (databaseValue.isBlank()) {
+                    mapOf()
+                } else {
+                    databaseValue.split(",").associate { entry ->
+                        val entries = entry.split("=")
+                        entries.first().trim() to entries.last().trim()
+                    }
+                }
+
+            override fun encode(value: Map<String, String>): String = value.entries.joinToString()
         }
     }
 

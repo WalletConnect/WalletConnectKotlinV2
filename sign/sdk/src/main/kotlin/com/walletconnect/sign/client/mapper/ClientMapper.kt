@@ -50,6 +50,8 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): Sign.Model.Sess
         url,
         icons,
         requiredNamespaces.toMapOfClientNamespacesProposal(),
+        optionalNamespaces.toMapOfClientNamespacesProposal(),
+        properties,
         proposerPublicKey,
         relayProtocol,
         relayData
@@ -120,9 +122,7 @@ internal fun EngineDO.SessionApproved.toClientSessionApproved(): Sign.Model.Appr
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSession(): Map<String, Sign.Model.Namespace.Session> =
     this.mapValues { (_, namespace) ->
-        Sign.Model.Namespace.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            Sign.Model.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
-        })
+        Sign.Model.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
@@ -169,27 +169,43 @@ internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): S
     Sign.Model.SessionRequestResponse(topic, chainId, method, result.toClientJsonRpcResponse())
 
 @JvmSynthetic
-internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesProposal(): Map<String, EngineDO.Namespace.Proposal> =
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesRequired(): Map<String, EngineDO.Namespace.Proposal> =
     mapValues { (_, namespace) ->
-        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            EngineDO.Namespace.Proposal.Extension(extension.chains, extension.methods, extension.events)
-        })
+        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
+    }
+
+@JvmSynthetic
+internal fun EngineDO.SessionProposal.toEngineDO(): Sign.Model.SessionProposal =
+    Sign.Model.SessionProposal(
+        pairingTopic = pairingTopic,
+        name = name,
+        description = description,
+        url = url,
+        icons = icons,
+        relayData = relayData,
+        relayProtocol = relayProtocol,
+        requiredNamespaces = requiredNamespaces.toMapOfClientNamespacesProposal(),
+        optionalNamespaces = optionalNamespaces.toMapOfClientNamespacesProposal(),
+        proposerPublicKey = proposerPublicKey,
+        properties = properties
+    )
+
+@JvmSynthetic
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesOptional(): Map<String, EngineDO.Namespace.Proposal> =
+    mapValues { (_, namespace) ->
+        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Proposal>.toMapOfClientNamespacesProposal(): Map<String, Sign.Model.Namespace.Proposal> =
     mapValues { (_, namespace) ->
-        Sign.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            Sign.Model.Namespace.Proposal.Extension(extension.chains, extension.methods, extension.events)
-        })
+        Sign.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
 internal fun Map<String, Sign.Model.Namespace.Session>.toMapOfEngineNamespacesSession(): Map<String, EngineDO.Namespace.Session> =
     mapValues { (_, namespace) ->
-        EngineDO.Namespace.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            EngineDO.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
-        })
+        EngineDO.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic

@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.SharedFlow
 
 interface PairingControllerInterface {
     val topicExpiredFlow: SharedFlow<Topic>
-    val findWrongMethodsFlow: Flow<InternalError>
+    val findWrongMethodsFlow: Flow<Throwable>
 
     fun activate(activate: Core.Params.Activate, onError: (Core.Model.Error) -> Unit = {})
 

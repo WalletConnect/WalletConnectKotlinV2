@@ -20,8 +20,8 @@ INSERT OR REPLACE INTO Subscriptions(request_id, peer_public_key, topic, account
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 insertSubscriptionRequest:
-INSERT OR ABORT INTO Subscriptions(request_id, peer_public_key)
-VALUES (?, ?);
+INSERT OR ABORT INTO Subscriptions(request_id, peer_public_key, account)
+VALUES (?, ?, ?);
 
 getAllSubscriptions:
 SELECT *

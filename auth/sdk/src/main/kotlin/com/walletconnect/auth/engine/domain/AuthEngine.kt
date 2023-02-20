@@ -277,7 +277,7 @@ internal class AuthEngine(
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -309,12 +309,12 @@ internal class AuthEngine(
                 try {
                     jsonRpcInteractor.subscribe(responseTopic) { error ->
                         scope.launch {
-                            _engineEvent.emit(SDKError(InternalError(error)))
+                            _engineEvent.emit(SDKError(error))
                         }
                     }
                 } catch (e: Exception) {
                     scope.launch {
-                        _engineEvent.emit(SDKError(InternalError(e)))
+                        _engineEvent.emit(SDKError(e))
                     }
                 }
             }

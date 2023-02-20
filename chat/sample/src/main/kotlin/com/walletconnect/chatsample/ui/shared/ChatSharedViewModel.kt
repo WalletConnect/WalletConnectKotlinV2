@@ -64,12 +64,14 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
         val publicKey = sharedPreferences.getString(PUBLIC_KEY_TAG, null)
         val privateKey = sharedPreferences.getString(PRIVATE_KEY_TAG, null)
 
-        registerIdentity()
         if (account != null && publicKey != null && privateKey != null) {
             _account = account
             _publicKey = publicKey
             _privateKey = privateKey
             // Note: This is only demo. Normally you want more security with private key
+            Log.d(TAG, "Registered identity successfully, account: $account, identityKey: $publicKey")
+        } else {
+            registerIdentity()
         }
     }
 
