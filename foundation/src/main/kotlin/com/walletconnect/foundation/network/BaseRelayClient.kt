@@ -13,20 +13,38 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.scope
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.koin.core.KoinApplication
 
+@OptIn(ExperimentalCoroutinesApi::class)
 abstract class BaseRelayClient : RelayInterface {
     private var foundationKoinApp: KoinApplication = KoinApplication.init()
     lateinit var relayService: RelayService
     protected var logger: Logger
+    private val resultState: MutableSharedFlow<RelayDTO> = MutableSharedFlow()
 
     init {
         foundationKoinApp.run { modules(foundationCommonModule()) }
         logger = foundationKoinApp.koin.get()
+    }
+
+    fun observeResults() {
+        scope.launch {
+            merge(
+                relayService.observePublishAcknowledgement(),
+                relayService.observePublishError(),
+                relayService.observeBatchSubscribeAcknowledgement(),
+                relayService.observeBatchSubscribeError(),
+                relayService.observeSubscribeAcknowledgement(),
+                relayService.observeSubscribeError(),
+                relayService.observeUnsubscribeAcknowledgement(),
+                relayService.observeUnsubscribeError()
+            )
+                .catch { exception -> logger.error(exception) }
+                .collect { result -> resultState.emit(result) }
+        }
     }
 
     override val eventsFlow: SharedFlow<Relay.Model.Event> by lazy {
@@ -51,79 +69,63 @@ abstract class BaseRelayClient : RelayInterface {
     ) {
         val (tag, ttl, prompt) = params
         val publishParams = RelayDTO.Publish.Request.Params(Topic(topic), message, Ttl(ttl), tag, prompt)
-        val request = RelayDTO.Publish.Request(generateId(), params = publishParams)
+        val publishRequest = RelayDTO.Publish.Request(generateId(), params = publishParams)
 
-        observePublishResult(onResult)
-        relayService.publishRequest(request)
+        observePublishResult(publishRequest.id, onResult)
+        relayService.publishRequest(publishRequest)
     }
 
-    @ExperimentalCoroutinesApi
-    private fun observePublishResult(onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit) {
-        scope.launch {
-            merge(relayService.observePublishAcknowledgement(), relayService.observePublishError())
-                .catch { exception -> logger.error(exception) }
-                .collect { publishResult ->
-                    supervisorScope {
-                        when (publishResult) {
-                            is RelayDTO.Publish.Result.Acknowledgement -> onResult(Result.success(publishResult.toRelay()))
-                            is RelayDTO.Publish.Result.JsonRpcError -> onResult(Result.failure(Throwable(publishResult.error.errorMessage)))
-                        }
-                        cancel()
-                    }
+    private fun observePublishResult(id: Long, onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit) {
+        resultState
+            .filterIsInstance<RelayDTO.Publish.Result>()
+            .filter { relayResult -> relayResult.id == id }
+            .onEach { publishResult ->
+                when (publishResult) {
+                    is RelayDTO.Publish.Result.Acknowledgement -> onResult(Result.success(publishResult.toRelay()))
+                    is RelayDTO.Publish.Result.JsonRpcError -> onResult(Result.failure(Throwable(publishResult.error.errorMessage)))
                 }
-        }
+            }.launchIn(scope)
     }
 
     @ExperimentalCoroutinesApi
     override fun subscribe(topic: String, onResult: (Result<Relay.Model.Call.Subscribe.Acknowledgement>) -> Unit) {
         val subscribeRequest = RelayDTO.Subscribe.Request(id = generateId(), params = RelayDTO.Subscribe.Request.Params(Topic(topic)))
 
-        observeSubscribeResult(onResult)
+        observeSubscribeResult(subscribeRequest.id, onResult)
         relayService.subscribeRequest(subscribeRequest)
     }
 
-    @ExperimentalCoroutinesApi
-    private fun observeSubscribeResult(onResult: (Result<Relay.Model.Call.Subscribe.Acknowledgement>) -> Unit) {
-        scope.launch {
-            merge(relayService.observeSubscribeAcknowledgement(), relayService.observeSubscribeError())
-                .catch { exception -> logger.error(exception) }
-                .collect { subscribeResult ->
-                    supervisorScope {
-                        when (subscribeResult) {
-                            is RelayDTO.Subscribe.Result.Acknowledgement -> onResult(Result.success(subscribeResult.toRelay()))
-                            is RelayDTO.Subscribe.Result.JsonRpcError -> onResult(Result.failure(Throwable(subscribeResult.error.errorMessage)))
-                        }
-                        cancel()
-                    }
+    private fun observeSubscribeResult(id: Long, onResult: (Result<Relay.Model.Call.Subscribe.Acknowledgement>) -> Unit) {
+        resultState
+            .filterIsInstance<RelayDTO.Subscribe.Result>()
+            .filter { relayResult -> relayResult.id == id }
+            .onEach { subscribeResult ->
+                when (subscribeResult) {
+                    is RelayDTO.Subscribe.Result.Acknowledgement -> onResult(Result.success(subscribeResult.toRelay()))
+                    is RelayDTO.Subscribe.Result.JsonRpcError -> onResult(Result.failure(Throwable(subscribeResult.error.errorMessage)))
                 }
-        }
+            }.launchIn(scope)
     }
 
     @ExperimentalCoroutinesApi
     override fun batchSubscribe(topics: List<String>, onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit) {
         val batchSubscribeRequest = RelayDTO.BatchSubscribe.Request(id = generateId(), params = RelayDTO.BatchSubscribe.Request.Params(topics))
 
-        println("kobe; Batch subscribe: $batchSubscribeRequest")
 
-        observeBatchSubscribeResult(onResult)
+        observeBatchSubscribeResult(batchSubscribeRequest.id, onResult)
         relayService.batchSubscribeRequest(batchSubscribeRequest)
     }
 
-    @ExperimentalCoroutinesApi
-    private fun observeBatchSubscribeResult(onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit) {
-        scope.launch {
-            merge(relayService.observeBatchSubscribeAcknowledgement(), relayService.observeBatchSubscribeError())
-                .catch { exception -> logger.error(exception) }
-                .collect { subscribeResult ->
-                    supervisorScope {
-                        when (subscribeResult) {
-                            is RelayDTO.BatchSubscribe.Result.Acknowledgement -> onResult(Result.success(subscribeResult.toRelay()))
-                            is RelayDTO.BatchSubscribe.Result.JsonRpcError -> onResult(Result.failure(Throwable(subscribeResult.error.errorMessage)))
-                        }
-                        cancel()
-                    }
+    private fun observeBatchSubscribeResult(id: Long, onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit) {
+        resultState
+            .filterIsInstance<RelayDTO.BatchSubscribe.Result>()
+            .filter { relayResult -> relayResult.id == id }
+            .onEach { batchSubscribeResult ->
+                when (batchSubscribeResult) {
+                    is RelayDTO.BatchSubscribe.Result.Acknowledgement -> onResult(Result.success(batchSubscribeResult.toRelay()))
+                    is RelayDTO.BatchSubscribe.Result.JsonRpcError -> onResult(Result.failure(Throwable(batchSubscribeResult.error.errorMessage)))
                 }
-        }
+            }.launchIn(scope)
     }
 
     @ExperimentalCoroutinesApi
@@ -132,32 +134,22 @@ abstract class BaseRelayClient : RelayInterface {
         subscriptionId: String,
         onResult: (Result<Relay.Model.Call.Unsubscribe.Acknowledgement>) -> Unit,
     ) {
-        val batchUnsubscribeRequest = RelayDTO.Unsubscribe.Request(
-            id = generateId(),
-            params = RelayDTO.Unsubscribe.Request.Params(Topic(topic), SubscriptionId(subscriptionId))
-        )
+        val unsubscribeRequest = RelayDTO.Unsubscribe.Request(id = generateId(), params = RelayDTO.Unsubscribe.Request.Params(Topic(topic), SubscriptionId(subscriptionId)))
 
-        println("kobe; Batch subscribe: $batchUnsubscribeRequest")
-
-        observeUnsubscribeResult(onResult)
-        relayService.unsubscribeRequest(batchUnsubscribeRequest)
+        observeUnsubscribeResult(unsubscribeRequest.id, onResult)
+        relayService.unsubscribeRequest(unsubscribeRequest)
     }
 
-    @ExperimentalCoroutinesApi
-    private fun observeUnsubscribeResult(onResult: (Result<Relay.Model.Call.Unsubscribe.Acknowledgement>) -> Unit) {
-        scope.launch {
-            merge(relayService.observeUnsubscribeAcknowledgement(), relayService.observeUnsubscribeError())
-                .catch { exception -> logger.error(exception) }
-                .collect { subscribeResult ->
-                    supervisorScope {
-                        when (subscribeResult) {
-                            is RelayDTO.Unsubscribe.Result.Acknowledgement -> onResult(Result.success(subscribeResult.toRelay()))
-                            is RelayDTO.Unsubscribe.Result.JsonRpcError -> onResult(Result.failure(Throwable(subscribeResult.error.errorMessage)))
-                        }
-                        cancel()
-                    }
+    private fun observeUnsubscribeResult(id: Long, onResult: (Result<Relay.Model.Call.Unsubscribe.Acknowledgement>) -> Unit) {
+        resultState
+            .filterIsInstance<RelayDTO.Unsubscribe.Result>()
+            .filter { relayResult -> relayResult.id == id }
+            .onEach { unsubscribeResult ->
+                when (unsubscribeResult) {
+                    is RelayDTO.Unsubscribe.Result.Acknowledgement -> onResult(Result.success(unsubscribeResult.toRelay()))
+                    is RelayDTO.Unsubscribe.Result.JsonRpcError -> onResult(Result.failure(Throwable(unsubscribeResult.error.errorMessage)))
                 }
-        }
+            }.launchIn(scope)
     }
 
     private fun publishSubscriptionAcknowledgement(id: Long) {

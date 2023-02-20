@@ -203,17 +203,20 @@ internal class JsonRpcInteractor(
             return onFailure(e)
         }
 
-        relay.batchSubscribe(topics) { result ->
-            result.fold(
-                onSuccess = { acknowledgement ->
-                    subscriptions.plus(topics.zip(acknowledgement.result).toMap())
-                    onSuccess(topics)
-                },
-                onFailure = { error ->
-                    logger.error("Batch subscribe to topics error: $topics error: $error")
-                    onFailure(error)
-                }
-            )
+        if (topics.isNotEmpty()) {
+            relay.batchSubscribe(topics) { result ->
+                result.fold(
+                    onSuccess = { acknowledgement ->
+                        subscriptions.plus(topics.zip(acknowledgement.result).toMap())
+                        logger.error("Batch subscribe to topics: $topics")
+                        onSuccess(topics)
+                    },
+                    onFailure = { error ->
+                        logger.error("Batch subscribe to topics error: $topics error: $error")
+                        onFailure(error)
+                    }
+                )
+            }
         }
     }
 

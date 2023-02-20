@@ -132,7 +132,7 @@ sealed class RelayDTO {
             @JsonClass(generateAdapter = true)
             data class Params(
                 @Json(name = "topics")
-                val topic: List<String>,
+                val topics: List<String>,
             )
         }
 
