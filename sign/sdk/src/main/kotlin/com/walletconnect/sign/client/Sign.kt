@@ -37,6 +37,8 @@ object Sign {
             val url: String,
             val icons: List<URI>,
             val requiredNamespaces: Map<String, Namespace.Proposal>,
+            val optionalNamespaces: Map<String, Namespace.Proposal>,
+            val properties: Map<String, String>?,
             val proposerPublicKey: String,
             val relayProtocol: String,
             val relayData: String?,
@@ -66,33 +68,19 @@ object Sign {
 
         sealed class Namespace : Model() {
 
+            //Required or Optional
             data class Proposal(
-                val chains: List<String>,
+                val chains: List<String>? = null,
                 val methods: List<String>,
-                val events: List<String>,
-                val extensions: List<Extension>?,
-            ) : Namespace() {
-
-                data class Extension(
-                    val chains: List<String>,
-                    val methods: List<String>,
-                    val events: List<String>
-                )
-            }
+                val events: List<String>
+            ) : Namespace()
 
             data class Session(
+                val chains: List<String>? = null,
                 val accounts: List<String>,
                 val methods: List<String>,
-                val events: List<String>,
-                val extensions: List<Extension>?,
-            ) : Namespace() {
-
-                data class Extension(
-                    val accounts: List<String>,
-                    val methods: List<String>,
-                    val events: List<String>
-                )
-            }
+                val events: List<String>
+            ) : Namespace()
         }
 
         @Deprecated(message = "RelayProtocolOptions is deprecated")
@@ -192,7 +180,9 @@ object Sign {
         ) : Params()
 
         data class Connect(
-            val namespaces: Map<String, Model.Namespace.Proposal>,
+            val namespaces: Map<String, Model.Namespace.Proposal>? = null,
+            val optionalNamespaces: Map<String, Model.Namespace.Proposal>? = null,
+            val properties: Map<String, String>? = null,
             val pairing: Core.Model.Pairing
         ) : Params()
 

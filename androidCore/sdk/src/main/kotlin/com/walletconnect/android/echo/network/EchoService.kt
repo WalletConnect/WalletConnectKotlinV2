@@ -1,7 +1,7 @@
 package com.walletconnect.android.echo.network
 
-import com.walletconnect.android.echo.model.EchoBody
-import com.walletconnect.android.echo.model.EchoResponse
+import com.walletconnect.android.echo.network.model.EchoBody
+import com.walletconnect.android.echo.network.model.EchoResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE

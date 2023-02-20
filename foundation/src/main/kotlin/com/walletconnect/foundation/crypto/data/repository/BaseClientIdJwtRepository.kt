@@ -22,12 +22,13 @@ abstract class BaseClientIdJwtRepository : JwtRepository {
         return generateAndStoreClientIdKeyPair()
     }
 
-    override fun generateJWT(serverUrl: String, getIssuer: (String) -> Unit): String {
+    override fun generateJWT(serverUrl: String, getIssuerClientId: (String) -> Unit): String {
         val subject = generateSubject()
         val (publicKey, privateKey) = getKeyPair()
 
         val issuer = encodeEd25519DidKey(publicKey.hexToBytes())
-        getIssuer(issuer)
+        val clientId = issuer.split(":").last()
+        getIssuerClientId(clientId)
         // ClientId Did Jwt have issuedAt as seconds
         val (issuedAt, expiration) = jwtIatAndExp(timeunit = TimeUnit.SECONDS, expirySourceDuration = 1, expiryTimeUnit = TimeUnit.DAYS)
         val payload = IrnJwtClaims(issuer, subject, serverUrl, issuedAt, expiration)
