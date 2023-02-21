@@ -49,15 +49,15 @@ fun coreAndroidNetworkModule(serverUrl: String, jwt: String, connectionType: Con
         OkHttpClient.Builder()
             .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.INTERCEPTOR)))
             .authenticator(authenticator = { _, response ->
-                response.request.let { request ->
+                response.request.run {
                     val relayUri = get<Uri>(named(AndroidCommonDITags.RELAY_URL))
-                    if (relayUri.host == request.url.host) {
+                    if (relayUri.host == this.url.host) {
                         val newJwt = get<JwtRepository>().generateJWT(relayUri.toString().strippedUrl())
-                        val urlNewJWT = request.url.newBuilder()
+                        val urlNewJWT = this.url.newBuilder()
                             .setQueryParameter("auth", newJwt)
                             .build()
 
-                        request.newBuilder()
+                        this.newBuilder()
                             .url(urlNewJWT)
                             .build()
                     } else {
