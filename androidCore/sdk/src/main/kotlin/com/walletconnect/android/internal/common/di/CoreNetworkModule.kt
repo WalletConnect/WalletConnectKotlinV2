@@ -2,7 +2,6 @@ package com.walletconnect.android.internal.common.di
 
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import com.squareup.moshi.Moshi
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
@@ -27,6 +26,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 
+@Suppress("LocalVariableName")
 fun coreAndroidNetworkModule(serverUrl: String, jwt: String, connectionType: ConnectionType, sdkVersion: String) = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
     val TIMEOUT_TIME = 5000L
@@ -105,7 +105,7 @@ fun coreAndroidNetworkModule(serverUrl: String, jwt: String, connectionType: Con
             .build()
     }
 
-    single<RelayService>(named(AndroidCommonDITags.RELAY_SERVICE)) {
+    single(named(AndroidCommonDITags.RELAY_SERVICE)) {
         get<Scarlet>(named(AndroidCommonDITags.SCARLET)).create(RelayService::class.java)
     }
 
