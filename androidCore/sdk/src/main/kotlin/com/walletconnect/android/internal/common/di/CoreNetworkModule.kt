@@ -11,9 +11,8 @@ import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.connection.ManualConnectionLifecycle
+import com.walletconnect.android.internal.common.jwt.GenerateJwtStoreClientId
 import com.walletconnect.android.relay.ConnectionType
-import com.walletconnect.android.utils.strippedUrl
-import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
@@ -27,12 +26,18 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 
 @Suppress("LocalVariableName")
-fun coreAndroidNetworkModule(serverUrl: String, jwt: String, connectionType: ConnectionType, sdkVersion: String) = module {
+@JvmSynthetic
+fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, sdkVersion: String) = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
     val TIMEOUT_TIME = 5000L
 
-    single(named(AndroidCommonDITags.RELAY_URL)) {
-        Uri.parse("$serverUrl&auth=$jwt")
+    factory(named(AndroidCommonDITags.RELAY_URL)) {
+        val jwt = get<GenerateJwtStoreClientId>().invoke(serverUrl)
+        Uri.parse("$serverUrl&auth=$jwt")!!.toString()
+    }
+
+    single {
+        GenerateJwtStoreClientId(get(), get())
     }
 
     single(named(AndroidCommonDITags.INTERCEPTOR)) {
@@ -50,16 +55,9 @@ fun coreAndroidNetworkModule(serverUrl: String, jwt: String, connectionType: Con
             .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.INTERCEPTOR)))
             .authenticator(authenticator = { _, response ->
                 response.request.run {
-                    val relayUri = get<Uri>(named(AndroidCommonDITags.RELAY_URL))
-                    if (relayUri.host == this.url.host) {
-                        val newJwt = get<JwtRepository>().generateJWT(relayUri.toString().strippedUrl())
-                        val urlNewJWT = this.url.newBuilder()
-                            .setQueryParameter("auth", newJwt)
-                            .build()
-
-                        this.newBuilder()
-                            .url(urlNewJWT)
-                            .build()
+                    if (Uri.parse(serverUrl).host == this.url.host) {
+                        val relayUrl = get<String>(named(AndroidCommonDITags.RELAY_URL))
+                        this.newBuilder().url(relayUrl).build()
                     } else {
                         null
                     }
@@ -98,7 +96,7 @@ fun coreAndroidNetworkModule(serverUrl: String, jwt: String, connectionType: Con
     single(named(AndroidCommonDITags.SCARLET)) {
         Scarlet.Builder()
             .backoffStrategy(get<LinearBackoffStrategy>())
-            .webSocketFactory(get<OkHttpClient>(named(AndroidCommonDITags.OK_HTTP)).newWebSocketFactory(get<Uri>(named(AndroidCommonDITags.RELAY_URL)).toString()))
+            .webSocketFactory(get<OkHttpClient>(named(AndroidCommonDITags.OK_HTTP)).newWebSocketFactory(get<String>(named(AndroidCommonDITags.RELAY_URL))))
             .lifecycle(get(named(AndroidCommonDITags.LIFECYCLE)))
             .addMessageAdapterFactory(get<MoshiMessageAdapter.Factory>(named(AndroidCommonDITags.MSG_ADAPTER)))
             .addStreamAdapterFactory(get<FlowStreamAdapter.Factory>())
