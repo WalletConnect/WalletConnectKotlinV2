@@ -711,7 +711,7 @@ internal class ChatEngine(
     private fun onInviteRejected(wcResponse: WCResponse) {
         logger.log("Chat invite was rejected")
         scope.launch {
-            _events.emit(Events.OnReject(wcResponse.topic.value))
+            _events.emit(Events.OnInviteRejected(wcResponse.topic.value))
             invitesRepository.updateStatusByInviteId(wcResponse.response.id, InviteStatus.REJECTED)
         }
     }
@@ -745,7 +745,7 @@ internal class ChatEngine(
                 return@subscribe
             }
 
-            _events.emit(Events.OnJoined(threadTopic.value))
+            _events.emit(Events.OnInviteAccepted(threadTopic.value))
             invitesRepository.updateStatusByInviteId(wcResponse.response.id, InviteStatus.APPROVED)
         } catch (e: Exception) {
             scope.launch { _events.emit(SDKError(e)) }

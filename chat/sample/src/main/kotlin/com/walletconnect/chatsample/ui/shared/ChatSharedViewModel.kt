@@ -52,9 +52,9 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
         Log.d(TAG, walletEvent.toString())
         when (walletEvent) {
             is Chat.Model.Events.OnInvite -> walletEvent.toChatSharedEvents().also { onInvite(it) }
-            is Chat.Model.Events.OnJoined -> walletEvent.toChatSharedEvents().also { onJoined(it) }
+            is Chat.Model.Events.OnInviteAccepted -> walletEvent.toChatSharedEvents().also { onInviteAccepted(it) }
             is Chat.Model.Events.OnMessage -> walletEvent.toChatSharedEvents().also { onMessage(it) }
-            is Chat.Model.Events.OnReject -> walletEvent.toChatSharedEvents()
+            is Chat.Model.Events.OnInviteRejected -> walletEvent.toChatSharedEvents()
             else -> ChatSharedEvents.NoAction
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
@@ -178,7 +178,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
         _listOfMessagesStateFlow.value = listOfMessages.toList()
     }
 
-    private fun onJoined(event: ChatSharedEvents.OnJoined) {
+    private fun onInviteAccepted(event: ChatSharedEvents.OnInviteAccepted) {
         Log.d(TAG, "Joined: ${event.topic}")
         updateThread(event.topic)
     }
