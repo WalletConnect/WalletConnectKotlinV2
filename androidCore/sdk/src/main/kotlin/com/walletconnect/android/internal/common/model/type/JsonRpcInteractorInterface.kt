@@ -11,11 +11,13 @@ interface JsonRpcInteractorInterface {
     val clientSyncJsonRpc: SharedFlow<WCRequest>
     val peerResponse: SharedFlow<WCResponse>
     val isConnectionAvailable: StateFlow<Boolean>
-    val internalErrors: SharedFlow<InternalError>
+    val internalErrors: SharedFlow<SDKError>
 
     fun checkConnectionWorking()
 
     fun subscribe(topic: Topic, onSuccess: (Topic) -> Unit = {}, onFailure: (Throwable) -> Unit = {})
+
+    fun batchSubscribe(topics: List<String>, onSuccess: (List<String>) -> Unit = {}, onFailure: (Throwable) -> Unit = {})
 
     fun unsubscribe(topic: Topic, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {})
 

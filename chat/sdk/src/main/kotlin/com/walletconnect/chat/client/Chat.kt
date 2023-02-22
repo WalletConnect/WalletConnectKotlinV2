@@ -3,7 +3,6 @@ package com.walletconnect.chat.client
 import androidx.annotation.Keep
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.SignatureInterface
-import com.walletconnect.chat.common.model.Invite
 
 object Chat {
     sealed interface Listeners {
@@ -94,8 +93,8 @@ object Chat {
 
         sealed class Events : Model() {
             data class OnInvite(val invite: Invite.Received) : Events()
-            data class OnJoined(val topic: String) : Events()
-            data class OnReject(val topic: String) : Events()
+            data class OnInviteAccepted(val topic: String) : Events()
+            data class OnInviteRejected(val topic: String) : Events()
             data class OnMessage(val message: Message) : Events()
             data class OnLeft(val topic: String) : Events()
         }
