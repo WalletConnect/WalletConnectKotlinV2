@@ -115,6 +115,51 @@ sealed class RelayDTO {
         }
     }
 
+    sealed class BatchSubscribe : RelayDTO() {
+
+        @JsonClass(generateAdapter = true)
+        data class Request(
+            @Json(name = "id")
+            override val id: Long,
+            @Json(name = "jsonrpc")
+            override val jsonrpc: String = "2.0",
+            @Json(name = "method")
+            val method: String = IRN_BATCH_SUBSCRIBE,
+            @Json(name = "params")
+            val params: Params,
+        ) : BatchSubscribe() {
+
+            @JsonClass(generateAdapter = true)
+            data class Params(
+                @Json(name = "topics")
+                val topics: List<String>,
+            )
+        }
+
+        sealed class Result : BatchSubscribe() {
+
+            @JsonClass(generateAdapter = true)
+            data class Acknowledgement(
+                @Json(name = "id")
+                override val id: Long,
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "result")
+                val result: List<String>,
+            ) : Result()
+
+            @JsonClass(generateAdapter = true)
+            data class JsonRpcError(
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "error")
+                val error: Error,
+                @Json(name = "id")
+                override val id: Long,
+            ) : Result()
+        }
+    }
+
     sealed class Subscription : RelayDTO() {
 
         @JsonClass(generateAdapter = true)

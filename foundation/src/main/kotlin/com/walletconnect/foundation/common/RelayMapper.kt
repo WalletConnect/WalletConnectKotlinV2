@@ -53,5 +53,9 @@ fun RelayDTO.Subscribe.Result.Acknowledgement.toRelay() =
     Relay.Model.Call.Subscribe.Acknowledgement(id, jsonrpc, result.id)
 
 @JvmSynthetic
+fun RelayDTO.BatchSubscribe.Result.Acknowledgement.toRelay() =
+    Relay.Model.Call.BatchSubscribe.Acknowledgement(id, jsonrpc, result)
+
+@JvmSynthetic
 fun RelayDTO.Unsubscribe.Result.Acknowledgement.toRelay() =
     Relay.Model.Call.Unsubscribe.Acknowledgement(id, jsonrpc, result)

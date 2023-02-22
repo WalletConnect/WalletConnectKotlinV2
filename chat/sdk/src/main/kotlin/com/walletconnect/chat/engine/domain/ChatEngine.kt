@@ -800,15 +800,12 @@ internal class ChatEngine(
         .trySubscribeToTopics(topicDescription = "invite response") { error -> scope.launch { _events.emit(SDKError(error)) } }
 
     private fun List<Topic>.trySubscribeToTopics(topicDescription: String, onError: (Throwable) -> Unit) = runCatching {
-        this.forEach { topic ->
-            jsonRpcInteractor.subscribe(topic) { error -> onError(error) }
-            logger.log("Listening for $topicDescription on: ${topic}")
-        }
+        jsonRpcInteractor.batchSubscribe(this.map { it.value }, onFailure = { error -> onError(error) }, onSuccess = { topics -> logger.log("Listening for $topicDescription on: $topics") })
     }.onFailure { error -> onError(error) }
 
     private fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
-            .onEach { exception -> _events.emit(SDKError(exception)) }
+            .onEach { exception -> _events.emit(exception) }
             .launchIn(scope)
 
     private fun AccountId.getIdentityTag(): String = "$SELF_IDENTITY_PUBLIC_KEY_CONTEXT${this.value}"

@@ -171,6 +171,9 @@ class RelayTest {
         clientA.relayService = koinAppA.koin.get(named(FoundationDITags.RELAY_SERVICE))
         clientB.relayService = koinAppB.koin.get(named(FoundationDITags.RELAY_SERVICE))
 
+        clientA.observeResults()
+        clientB.observeResults()
+
         startLoggingClientEventsFlow(clientA, "ClientA")
         startLoggingClientEventsFlow(clientB, "ClientB")
 

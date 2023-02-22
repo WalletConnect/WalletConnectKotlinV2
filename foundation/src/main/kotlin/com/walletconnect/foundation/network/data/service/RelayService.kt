@@ -29,6 +29,15 @@ interface RelayService {
     @Receive
     fun observeSubscribeError(): Flow<RelayDTO.Subscribe.Result.JsonRpcError>
 
+    @Send
+    fun batchSubscribeRequest(subscribeRequest: RelayDTO.BatchSubscribe.Request)
+
+    @Receive
+    fun observeBatchSubscribeAcknowledgement(): Flow<RelayDTO.BatchSubscribe.Result.Acknowledgement>
+
+    @Receive
+    fun observeBatchSubscribeError(): Flow<RelayDTO.BatchSubscribe.Result.JsonRpcError>
+
     @Receive
     fun observeSubscriptionRequest(): Flow<RelayDTO.Subscription.Request>
 

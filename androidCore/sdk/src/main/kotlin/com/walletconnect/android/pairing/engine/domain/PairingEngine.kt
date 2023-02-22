@@ -1,6 +1,5 @@
 package com.walletconnect.android.pairing.engine.domain
 
-import android.util.Log
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
 import com.walletconnect.android.internal.NO_SEQUENCE_FOR_TOPIC_MESSAGE
@@ -66,16 +65,16 @@ internal class PairingEngine(
     private val _engineEvent: MutableSharedFlow<EngineDO> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineDO> = _engineEvent.asSharedFlow()
 
-    val internalErrorFlow = MutableSharedFlow<Throwable>()
+    val internalErrorFlow = MutableSharedFlow<SDKError>()
 
-    val jsonRpcErrorFlow: Flow<Throwable> by lazy {
+    val jsonRpcErrorFlow: Flow<SDKError> by lazy {
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.method !in setOfRegisteredMethods }
             .onEach { request ->
                 val irnParams = IrnParams(Tags.UNSUPPORTED_METHOD, Ttl(DAY_IN_SECONDS))
                 jsonRpcInteractor.respondWithError(request, Invalid.MethodUnsupported(request.method), irnParams)
             }.map { request ->
-                Exception(Invalid.MethodUnsupported(request.method).message)
+                SDKError(Exception(Invalid.MethodUnsupported(request.method).message))
             }
     }
 
@@ -204,17 +203,12 @@ internal class PairingEngine(
             }.launchIn(scope)
 
     private fun resubscribeToPairingFlow() {
-        pairingRepository.getListOfPairings()
-            .map { pairing -> pairing.topic }
-            .onEach { pairingTopic ->
-                try {
-                    jsonRpcInteractor.subscribe(pairingTopic) { error -> scope.launch { internalErrorFlow.emit(error) } }
-                } catch (e: Exception) {
-                    scope.launch {
-                        internalErrorFlow.emit(e)
-                    }
-                }
-            }
+        try {
+            val pairingTopics = pairingRepository.getListOfPairings().map { pairing -> pairing.topic.value }
+            jsonRpcInteractor.batchSubscribe(pairingTopics) { error -> scope.launch { internalErrorFlow.emit(SDKError(error)) } }
+        } catch (e: Exception) {
+            scope.launch { internalErrorFlow.emit(SDKError(e)) }
+        }
     }
 
     private suspend fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {

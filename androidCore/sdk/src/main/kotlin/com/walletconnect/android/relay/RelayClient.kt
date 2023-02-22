@@ -30,7 +30,6 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     @JvmSynthetic
     internal fun initialize(relayServerUrl: String, connectionType: ConnectionType, onError: (Throwable) -> Unit) {
         require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
-
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
         val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
         val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl()) { clientId ->
@@ -39,11 +38,11 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
             }
         }
         val serverUrl = relayServerUrl.addUserAgent(BuildConfig.SDK_VERSION)
-
         wcKoinApp.modules(coreAndroidNetworkModule(serverUrl, jwt, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION))
         relayService = wcKoinApp.koin.get(named(AndroidCommonDITags.RELAY_SERVICE))
 
         collectConnectionErrors(onError)
+        observeResults()
     }
 
     private fun collectConnectionErrors(onError: (Throwable) -> Unit) {
