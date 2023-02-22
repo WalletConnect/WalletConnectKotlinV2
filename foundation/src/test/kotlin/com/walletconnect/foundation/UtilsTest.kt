@@ -11,6 +11,6 @@ class UtilsTest {
         val id = generateId()
         println(id)
         assertTrue { id > 0 }
-        assertTrue { id.toString().length == 19 }
+        assertTrue { id.toString().length == 16 }
     }
 }
