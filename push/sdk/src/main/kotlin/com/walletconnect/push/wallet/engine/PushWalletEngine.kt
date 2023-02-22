@@ -198,7 +198,7 @@ internal class PushWalletEngine(
 
         try {
             pushRequests[request.id] = request
-            subscriptionStorageRepository.insertSubscriptionProposal(request.id, params.publicKey)
+            subscriptionStorageRepository.insertSubscriptionProposal(request.id, params.publicKey, params.account)
 
             scope.launch { _engineEvent.emit(params.toEngineDO(request.id)) }
         } catch (e: Exception) {
