@@ -7,6 +7,7 @@ class PairWithExistingPairingIsNotAllowed(override val message: String?) : Walle
 class CannotFindSequenceForTopic(override val message: String?) : WalletConnectException(message)
 
 class InvalidProjectIdException(override val message: String?) : WalletConnectException(message)
+class UnableToConnectToWebsocketException(override val message: String?) : WalletConnectException(message)
 class ProjectIdDoesNotExistException(override val message: String?) : WalletConnectException(message)
 class NoRelayConnectionException(override val message: String?) : WalletConnectException(message)
 class CannotFindKeyPairException(override val message: String?) : WalletConnectException(message)
