@@ -86,7 +86,7 @@ object Web3Wallet {
         SignClient.initialize(Sign.Params.Init(params.core), onSuccess = { clientInitCounter++ }) { error -> onError(Wallet.Model.Error(error.throwable)) }
         AuthClient.initialize(Auth.Params.Init(params.core), onSuccess = { clientInitCounter++ }) { error -> onError(Wallet.Model.Error(error.throwable)) }
         scope.launch {
-            withTimeout(10000) {
+            withTimeout(TIMEOUT) {
                 while (true) {
                     if (clientInitCounter == 2) {
                         onSuccess()
@@ -252,4 +252,6 @@ object Web3Wallet {
     fun getPendingAuthRequests(): List<Wallet.Model.PendingAuthRequest> {
         return AuthClient.getPendingRequest().toWallet()
     }
+
+    private const val TIMEOUT: Long = 10000
 }
