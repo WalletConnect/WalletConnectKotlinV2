@@ -23,16 +23,16 @@ object ChatDelegate : ChatClient.ChatDelegate {
         }
     }
 
-    override fun onJoined(onJoined: Chat.Model.Events.OnJoined) {
+    override fun onInviteAccepted(onInviteAccepted: Chat.Model.Events.OnInviteAccepted) {
         scope.launch {
-            _wcEventModels.emit(onJoined)
+            _wcEventModels.emit(onInviteAccepted)
             clearCache()
         }
     }
 
-    override fun onReject(onReject: Chat.Model.Events.OnReject) {
+    override fun onInviteRejected(onInviteRejected: Chat.Model.Events.OnInviteRejected) {
         scope.launch {
-            _wcEventModels.emit(onReject)
+            _wcEventModels.emit(onInviteRejected)
             clearCache()
         }
     }

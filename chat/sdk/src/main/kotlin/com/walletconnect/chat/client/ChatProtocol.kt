@@ -48,8 +48,8 @@ internal class ChatProtocol : ChatInterface {
             chatEngine.events.collect { event ->
                 when (event) {
                     is Events.OnInvite -> delegate.onInvite(event.toClient())
-                    is Events.OnJoined -> delegate.onJoined(event.toClient())
-                    is Events.OnReject -> delegate.onReject(event.toClient())
+                    is Events.OnInviteAccepted -> delegate.onInviteAccepted(event.toClient())
+                    is Events.OnInviteRejected -> delegate.onInviteRejected(event.toClient())
                     is Events.OnMessage -> delegate.onMessage(event.toClient())
                     is Events.OnLeft -> delegate.onLeft(event.toClient())
                     is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
