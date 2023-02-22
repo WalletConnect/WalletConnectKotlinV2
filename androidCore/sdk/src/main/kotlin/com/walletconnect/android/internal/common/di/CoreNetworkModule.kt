@@ -11,7 +11,7 @@ import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.connection.ManualConnectionLifecycle
-import com.walletconnect.android.internal.common.jwt.GenerateJwtStoreClientId
+import com.walletconnect.android.internal.common.jwt.GenerateJwtStoreClientIdUseCase
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
@@ -32,12 +32,12 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
     val TIMEOUT_TIME = 5000L
 
     factory(named(AndroidCommonDITags.RELAY_URL)) {
-        val jwt = get<GenerateJwtStoreClientId>().invoke(serverUrl)
+        val jwt = get<GenerateJwtStoreClientIdUseCase>().invoke(serverUrl)
         Uri.parse("$serverUrl&auth=$jwt")!!.toString()
     }
 
     single {
-        GenerateJwtStoreClientId(get(), get())
+        GenerateJwtStoreClientIdUseCase(get(), get())
     }
 
     single(named(AndroidCommonDITags.INTERCEPTOR)) {

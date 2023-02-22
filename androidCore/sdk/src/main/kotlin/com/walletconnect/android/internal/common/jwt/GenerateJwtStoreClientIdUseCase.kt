@@ -8,7 +8,7 @@ import com.walletconnect.android.echo.EchoInterface
 import com.walletconnect.android.utils.strippedUrl
 import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 
-internal class GenerateJwtStoreClientId(private val jwtRepository: JwtRepository, private val sharedPreferences: SharedPreferences) {
+internal class GenerateJwtStoreClientIdUseCase(private val jwtRepository: JwtRepository, private val sharedPreferences: SharedPreferences) {
 
     operator fun invoke(relayUrl: String): String =
         jwtRepository.generateJWT(relayUrl.strippedUrl()) { clientId ->
