@@ -85,17 +85,7 @@ object Web3Wallet {
         var clientInitCounter = 0
         SignClient.initialize(Sign.Params.Init(params.core), onSuccess = { clientInitCounter++ }) { error -> onError(Wallet.Model.Error(error.throwable)) }
         AuthClient.initialize(Auth.Params.Init(params.core), onSuccess = { clientInitCounter++ }) { error -> onError(Wallet.Model.Error(error.throwable)) }
-        scope.launch {
-            withTimeout(TIMEOUT) {
-                while (true) {
-                    if (clientInitCounter == 2) {
-                        onSuccess()
-                        cancel()
-                        break
-                    }
-                }
-            }
-        }
+        validateInitializationCount(clientInitCounter, onSuccess, onError)
     }
 
     @Throws(IllegalStateException::class)
@@ -251,6 +241,23 @@ object Web3Wallet {
     @Throws(IllegalStateException::class)
     fun getPendingAuthRequests(): List<Wallet.Model.PendingAuthRequest> {
         return AuthClient.getPendingRequest().toWallet()
+    }
+
+    private fun validateInitializationCount(clientInitCounter: Int, onSuccess: () -> Unit, onError: (Wallet.Model.Error) -> Unit) {
+        scope.launch {
+            try {
+                withTimeout(TIMEOUT) {
+                    while (true) {
+                        if (clientInitCounter == 2) {
+                            onSuccess()
+                            break
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                onError(Wallet.Model.Error(e))
+            }
+        }
     }
 
     private const val TIMEOUT: Long = 10000
