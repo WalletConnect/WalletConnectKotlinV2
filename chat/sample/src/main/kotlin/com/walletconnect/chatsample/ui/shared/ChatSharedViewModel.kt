@@ -52,9 +52,9 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
         Log.d(TAG, walletEvent.toString())
         when (walletEvent) {
             is Chat.Model.Events.OnInvite -> walletEvent.toChatSharedEvents().also { onInvite(it) }
-            is Chat.Model.Events.OnJoined -> walletEvent.toChatSharedEvents().also { onJoined(it) }
+            is Chat.Model.Events.OnInviteAccepted -> walletEvent.toChatSharedEvents().also { onInviteAccepted(it) }
             is Chat.Model.Events.OnMessage -> walletEvent.toChatSharedEvents().also { onMessage(it) }
-            is Chat.Model.Events.OnReject -> walletEvent.toChatSharedEvents()
+            is Chat.Model.Events.OnInviteRejected -> walletEvent.toChatSharedEvents()
             else -> ChatSharedEvents.NoAction
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
@@ -64,12 +64,14 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
         val publicKey = sharedPreferences.getString(PUBLIC_KEY_TAG, null)
         val privateKey = sharedPreferences.getString(PRIVATE_KEY_TAG, null)
 
-        registerIdentity()
         if (account != null && publicKey != null && privateKey != null) {
             _account = account
             _publicKey = publicKey
             _privateKey = privateKey
             // Note: This is only demo. Normally you want more security with private key
+            Log.d(TAG, "Registered identity successfully, account: $account, identityKey: $publicKey")
+        } else {
+            registerIdentity()
         }
     }
 
@@ -176,7 +178,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
         _listOfMessagesStateFlow.value = listOfMessages.toList()
     }
 
-    private fun onJoined(event: ChatSharedEvents.OnJoined) {
+    private fun onInviteAccepted(event: ChatSharedEvents.OnInviteAccepted) {
         Log.d(TAG, "Joined: ${event.topic}")
         updateThread(event.topic)
     }

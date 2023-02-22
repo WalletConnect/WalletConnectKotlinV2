@@ -15,7 +15,6 @@ import com.walletconnect.chat.di.*
 import com.walletconnect.chat.engine.domain.ChatEngine
 import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 internal class ChatProtocol : ChatInterface {
     private lateinit var chatEngine: ChatEngine
@@ -49,8 +48,8 @@ internal class ChatProtocol : ChatInterface {
             chatEngine.events.collect { event ->
                 when (event) {
                     is Events.OnInvite -> delegate.onInvite(event.toClient())
-                    is Events.OnJoined -> delegate.onJoined(event.toClient())
-                    is Events.OnReject -> delegate.onReject(event.toClient())
+                    is Events.OnInviteAccepted -> delegate.onInviteAccepted(event.toClient())
+                    is Events.OnInviteRejected -> delegate.onInviteRejected(event.toClient())
                     is Events.OnMessage -> delegate.onMessage(event.toClient())
                     is Events.OnLeft -> delegate.onLeft(event.toClient())
                     is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
@@ -118,30 +117,22 @@ internal class ChatProtocol : ChatInterface {
 
     @Throws(IllegalStateException::class)
     override fun getReceivedInvites(getReceivedInvites: Chat.Params.GetReceivedInvites): Map<Long, Chat.Model.Invite.Received> = wrapWithEngineInitializationCheck() {
-        runBlocking(scope.coroutineContext) {
-            chatEngine.getReceivedInvites(getReceivedInvites.account.value).mapValues { (_, invite) -> invite.toClient() }
-        }
+        chatEngine.getReceivedInvites(getReceivedInvites.account.value).mapValues { (_, invite) -> invite.toClient() }
     }
 
     @Throws(IllegalStateException::class)
     override fun getSentInvites(getSentInvites: Chat.Params.GetSentInvites): Map<Long, Chat.Model.Invite.Sent> = wrapWithEngineInitializationCheck() {
-        runBlocking(scope.coroutineContext) {
-            chatEngine.getSentInvites(getSentInvites.account.value).mapValues { (_, invite) -> invite.toClient() }
-        }
+        chatEngine.getSentInvites(getSentInvites.account.value).mapValues { (_, invite) -> invite.toClient() }
     }
 
     @Throws(IllegalStateException::class)
     override fun getThreads(getThreads: Chat.Params.GetThreads): Map<String, Chat.Model.Thread> = wrapWithEngineInitializationCheck() {
-        runBlocking(scope.coroutineContext) {
-            chatEngine.getThreadsByAccount(getThreads.account.value).mapValues { (_, thread) -> thread.toClient() }
-        }
+        chatEngine.getThreadsByAccount(getThreads.account.value).mapValues { (_, thread) -> thread.toClient() }
     }
 
     @Throws(IllegalStateException::class)
     override fun getMessages(getMessages: Chat.Params.GetMessages): List<Chat.Model.Message> = wrapWithEngineInitializationCheck() {
-        runBlocking(scope.coroutineContext) {
-            chatEngine.getMessagesByTopic(getMessages.topic).map { message -> message.toClient() }
-        }
+        chatEngine.getMessagesByTopic(getMessages.topic).map { message -> message.toClient() }
     }
 
     @Throws(IllegalStateException::class)

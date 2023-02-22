@@ -5,10 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.dapp.ui.connect.chain_select.ChainSelectionUI
+import com.walletconnect.push.common.Push
+import com.walletconnect.push.dapp.client.PushDappClient
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
@@ -17,7 +18,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.Date
 import java.util.concurrent.TimeUnit
 
 class ConnectViewModel : ViewModel() {
@@ -39,7 +39,19 @@ class ConnectViewModel : ViewModel() {
     init {
         DappDelegate.wcEventModels.map { walletEvent: Sign.Model? ->
             when (walletEvent) {
-                is Sign.Model.ApprovedSession -> SampleDappEvents.SessionApproved
+                is Sign.Model.ApprovedSession -> {
+                    viewModelScope.launch(Dispatchers.IO) {
+                        val pairingTopic = CoreClient.Pairing.getPairings().first().topic
+                        val account = walletEvent.accounts.first()
+                        PushDappClient.request(Push.Dapp.Params.Request(account, pairingTopic), { pushRequestId ->
+                            Log.e(tag(this), "Request sent with id ${pushRequestId.id}")
+                        }, {
+                            Log.e(tag(this), it.throwable.stackTraceToString())
+                        })
+                    }
+
+                    SampleDappEvents.SessionApproved
+                }
                 is Sign.Model.RejectedSession -> SampleDappEvents.SessionRejected
                 else -> SampleDappEvents.NoAction
             }

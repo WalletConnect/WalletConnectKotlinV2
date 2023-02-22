@@ -5,13 +5,16 @@ import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.storage.data.dao.SubscriptionsQueries
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class SubscriptionStorageRepository(private val subscriptionQueries: SubscriptionsQueries) {
 
-    fun insertSubscriptionProposal(requestId: Long, peerPublicKey: String) {
+    fun insertSubscriptionProposal(requestId: Long, peerPublicKey: String, account: String) {
         subscriptionQueries.insertSubscriptionRequest(
             requestId,
-            peerPublicKey
+            peerPublicKey,
+            account
         )
     }
 
@@ -40,6 +43,12 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
 
     fun delete(topic: String) {
         subscriptionQueries.deleteByTopic(topic)
+    }
+
+    suspend fun getAccountByTopic(topic: String): String? {
+        return withContext(Dispatchers.IO) {
+            subscriptionQueries.getSubscriptionByTopic(topic).executeAsOne().account
+        }
     }
 
     private fun toSubscription(
