@@ -2,12 +2,12 @@ package com.walletconnect.web3.wallet.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 
 object Web3Wallet {
     private lateinit var coreClient: CoreClient
@@ -85,9 +85,15 @@ object Web3Wallet {
         var clientInitCounter = 0
         SignClient.initialize(Sign.Params.Init(params.core), onSuccess = { clientInitCounter++ }) { error -> onError(Wallet.Model.Error(error.throwable)) }
         AuthClient.initialize(Auth.Params.Init(params.core), onSuccess = { clientInitCounter++ }) { error -> onError(Wallet.Model.Error(error.throwable)) }
-        runBlocking {
-            if (clientInitCounter == 2) {
-                onSuccess()
+        scope.launch {
+            withTimeout(10000) {
+                while (true) {
+                    if (clientInitCounter == 2) {
+                        onSuccess()
+                        cancel()
+                        break
+                    }
+                }
             }
         }
     }
