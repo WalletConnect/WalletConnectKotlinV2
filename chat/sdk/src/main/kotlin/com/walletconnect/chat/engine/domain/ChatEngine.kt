@@ -332,6 +332,10 @@ internal class ChatEngine(
             return onFailure(InviteMessageTooLongException())
         }
 
+        if (invitesRepository.checkIfAccountsHaveExistingInvite(invite.inviterAccount.value, invite.inviteeAccount.value)) {
+            return onFailure(AccountsAlreadyHaveInviteException)
+        }
+
         val decodedInviteePublicKey = decodeX25519DidKey(invite.inviteePublicKey)
 
         setContact(invite.inviteeAccount, decodedInviteePublicKey) { error ->
@@ -610,7 +614,13 @@ internal class ChatEngine(
                 }
             logger.log("Invite received. Resolved identity: $inviterAccountId")
 
+
             runCatching { accountsRepository.getAccountByInviteTopic(wcRequest.topic) }.fold(onSuccess = { inviteeAccount ->
+                if (invitesRepository.checkIfAccountsHaveExistingInvite(inviterAccountId.value, inviteeAccount.accountId.value)) {
+                    logger.error(AccountsAlreadyHaveInviteException)
+                    return@launch
+                }
+
                 val inviteePublicKey = inviteeAccount.publicInviteKey ?: throw Throwable("Missing publicInviteKey")
                 val inviterPublicKey = decodeX25519DidKey(claims.inviterPublicKey)
                 val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(inviteePublicKey, inviterPublicKey)

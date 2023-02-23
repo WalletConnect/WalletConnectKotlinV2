@@ -21,6 +21,8 @@ internal class InvitesStorageRepository(private val invites: InvitesQueries) {
         }
     }
 
+    fun checkIfAccountsHaveExistingInvite(inviterAccount: String, inviteeAccount: String): Boolean = invites.checkIfAccountsHaveExistingInvite(inviterAccount, inviteeAccount).executeAsOne()
+
     suspend fun getAllPendingSentInvites() = invites.getAllPendingSentInvites(::dbToSentInvite).executeAsList()
 
     suspend fun deleteInviteByInviteId(inviteId: Long) = invites.deleteInviteByInviteId(inviteId)
@@ -35,7 +37,7 @@ internal class InvitesStorageRepository(private val invites: InvitesQueries) {
 
     private fun dbToSentInvite(
         inviteId: Long, message: String, inviterAccount: String, inviteeAccount: String,
-        status: InviteStatus, inviterPublicKey: String, inviteePublicKey: String, acceptTopic: String
+        status: InviteStatus, inviterPublicKey: String, inviteePublicKey: String, acceptTopic: String,
     ): Invite.Sent = Invite.Sent(
         id = inviteId, inviterAccount = AccountId(inviterAccount), inviteeAccount = AccountId(inviteeAccount),
         message = InviteMessage(message), inviterPublicKey = PublicKey(inviterPublicKey),
@@ -44,7 +46,7 @@ internal class InvitesStorageRepository(private val invites: InvitesQueries) {
 
     private fun dbToReceivedInvite(
         inviteId: Long, message: String, inviterAccount: String, inviteeAccount: String,
-        status: InviteStatus, inviterPublicKey: String, inviteePublicKey: String, acceptTopic: String
+        status: InviteStatus, inviterPublicKey: String, inviteePublicKey: String, acceptTopic: String,
     ): Invite.Received = Invite.Received(
         id = inviteId, inviterAccount = AccountId(inviterAccount), inviteeAccount = AccountId(inviteeAccount),
         message = InviteMessage(message), inviterPublicKey = PublicKey(inviterPublicKey),
