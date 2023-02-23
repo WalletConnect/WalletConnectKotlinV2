@@ -145,7 +145,7 @@ internal class AuthEngine(
                                 .collect { cancel() }
                         }
                     } catch (e: TimeoutCancellationException) {
-                        _engineEvent.emit(SDKError(InternalError(e)))
+                        _engineEvent.emit(SDKError(e))
                     }
                 }
             },
@@ -303,25 +303,16 @@ internal class AuthEngine(
             .launchIn(scope)
 
     private fun resubscribeToPendingRequestsTopics() {
-        pairingTopicToResponseTopicMap
-            .map { it.value }
-            .onEach { responseTopic: Topic ->
-                try {
-                    jsonRpcInteractor.subscribe(responseTopic) { error ->
-                        scope.launch {
-                            _engineEvent.emit(SDKError(error))
-                        }
-                    }
-                } catch (e: Exception) {
-                    scope.launch {
-                        _engineEvent.emit(SDKError(e))
-                    }
-                }
-            }
+        val responseTopics = pairingTopicToResponseTopicMap.map { (_, responseTopic) -> responseTopic.value }
+        try {
+            jsonRpcInteractor.batchSubscribe(responseTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
+        } catch (e: Exception) {
+            scope.launch { _engineEvent.emit(SDKError(e)) }
+        }
     }
 
     private fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
-            .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
+            .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
 }

@@ -12,5 +12,6 @@ enum class AndroidCommonDITags {
     LOGGER,
     CONNECTIVITY_STATE,
     ECHO_RETROFIT,
-    CLIENT_ID
+    CLIENT_ID,
+    RELAY_URL
 }

@@ -4,8 +4,8 @@ interface ChatInterface {
 
     interface ChatDelegate {
         fun onInvite(onInvite: Chat.Model.Events.OnInvite)
-        fun onJoined(onJoined: Chat.Model.Events.OnJoined)
-        fun onReject(onReject: Chat.Model.Events.OnReject)
+        fun onInviteAccepted(onInviteAccepted: Chat.Model.Events.OnInviteAccepted)
+        fun onInviteRejected(onInviteRejected: Chat.Model.Events.OnInviteRejected)
         fun onMessage(onMessage: Chat.Model.Events.OnMessage)
         fun onLeft(onLeft: Chat.Model.Events.OnLeft)
         fun onConnectionStateChange(state: Chat.Model.ConnectionState)

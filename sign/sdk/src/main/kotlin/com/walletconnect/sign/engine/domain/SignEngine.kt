@@ -13,7 +13,6 @@ import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.*
@@ -573,7 +572,7 @@ internal class SignEngine(
 
     private fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
-            .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
+            .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
 
     private fun collectJsonRpcResponses(): Job =
@@ -984,7 +983,7 @@ internal class SignEngine(
                 }
             }
         } catch (e: Exception) {
-            scope.launch { scope.launch { _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error("Unable to update the session")) } }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -1010,20 +1009,12 @@ internal class SignEngine(
             listOfExpiredSession
                 .map { session -> session.topic }
                 .onEach { sessionTopic ->
-                    jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
-                        crypto.removeKeys(sessionTopic.value)
-                        sessionStorageRepository.deleteSession(sessionTopic)
-                    })
+                    crypto.removeKeys(sessionTopic.value)
+                    sessionStorageRepository.deleteSession(sessionTopic)
                 }
 
-            listOfValidSessions
-                .onEach { session ->
-                    jsonRpcInteractor.subscribe(session.topic) { error ->
-                        scope.launch {
-                            _engineEvent.emit(SDKError(error))
-                        }
-                    }
-                }
+            val validSessionTopics = listOfValidSessions.map { it.topic.value }
+            jsonRpcInteractor.batchSubscribe(validSessionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
         } catch (e: Exception) {
             scope.launch { _engineEvent.emit(SDKError(e)) }
         }

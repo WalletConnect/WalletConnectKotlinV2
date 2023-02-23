@@ -2,10 +2,12 @@ package com.walletconnect.web3.wallet.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import kotlinx.coroutines.*
 
 object Web3Wallet {
     private lateinit var coreClient: CoreClient
@@ -78,10 +80,12 @@ object Web3Wallet {
     }
 
     @Throws(IllegalStateException::class)
-    fun initialize(params: Wallet.Params.Init, onError: (Wallet.Model.Error) -> Unit) {
+    fun initialize(params: Wallet.Params.Init, onSuccess: () -> Unit = {}, onError: (Wallet.Model.Error) -> Unit) {
         coreClient = params.core
-        SignClient.initialize(Sign.Params.Init(params.core)) { error -> onError(Wallet.Model.Error(error.throwable)) }
-        AuthClient.initialize(Auth.Params.Init(params.core)) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        var clientInitCounter = 0
+        SignClient.initialize(Sign.Params.Init(params.core), onSuccess = { clientInitCounter++ }) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        AuthClient.initialize(Auth.Params.Init(params.core), onSuccess = { clientInitCounter++ }) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        validateInitializationCount(clientInitCounter, onSuccess, onError)
     }
 
     @Throws(IllegalStateException::class)
@@ -238,4 +242,23 @@ object Web3Wallet {
     fun getPendingAuthRequests(): List<Wallet.Model.PendingAuthRequest> {
         return AuthClient.getPendingRequest().toWallet()
     }
+
+    private fun validateInitializationCount(clientInitCounter: Int, onSuccess: () -> Unit, onError: (Wallet.Model.Error) -> Unit) {
+        scope.launch {
+            try {
+                withTimeout(TIMEOUT) {
+                    while (true) {
+                        if (clientInitCounter == 2) {
+                            onSuccess()
+                            break
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                onError(Wallet.Model.Error(e))
+            }
+        }
+    }
+
+    private const val TIMEOUT: Long = 10000
 }

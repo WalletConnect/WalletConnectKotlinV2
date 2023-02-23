@@ -66,6 +66,30 @@ object Relay {
                 ) : Subscribe()
             }
 
+            sealed class BatchSubscribe : Call() {
+
+                data class Request(
+                    override val id: Long,
+                    override val jsonrpc: String = "2.0",
+                    val method: String = IRN_BATCH_SUBSCRIBE,
+                    val params: Params,
+                ) : Subscribe() {
+                    data class Params(val topics: List<String>)
+                }
+
+                data class Acknowledgement(
+                    override val id: Long,
+                    override val jsonrpc: String = "2.0",
+                    val result: List<String>,
+                ) : Subscribe()
+
+                data class JsonRpcError(
+                    override val jsonrpc: String = "2.0",
+                    val error: Error,
+                    override val id: Long,
+                ) : Subscribe()
+            }
+
             sealed class Subscription : Call() {
 
                 data class Request(
