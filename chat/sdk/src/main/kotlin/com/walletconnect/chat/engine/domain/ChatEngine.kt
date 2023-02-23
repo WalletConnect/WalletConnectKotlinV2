@@ -153,7 +153,7 @@ internal class ChatEngine(
 
     internal fun unregisterIdentity(
         accountId: AccountId,
-        onSign: (String) -> Cacao.Signature,
+        onSign: (String) -> Cacao.Signature?,
         onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
@@ -174,7 +174,7 @@ internal class ChatEngine(
             )
 
             val message = payload.toCAIP122Message()
-            val signature = onSign(message)
+            val signature = onSign(message) ?: return
 
             val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
 
@@ -203,7 +203,7 @@ internal class ChatEngine(
 
     internal fun registerIdentity(
         accountId: AccountId,
-        onSign: (String) -> Cacao.Signature,
+        onSign: (String) -> Cacao.Signature?,
         onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit,
         private: Boolean,
@@ -235,7 +235,7 @@ internal class ChatEngine(
                 )
 
                 val message = payload.toCAIP122Message()
-                val signature = onSign(message)
+                val signature = onSign(message) ?: return
 
                 val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
 
