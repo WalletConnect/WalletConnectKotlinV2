@@ -8,9 +8,11 @@ import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.push.PushDatabase
 import com.walletconnect.push.common.storage.data.SubscriptionStorageRepository
 import com.walletconnect.push.common.storage.data.dao.Subscriptions
+import kotlinx.coroutines.*
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
+import java.util.concurrent.TimeUnit
 
 @JvmSynthetic
 internal fun pushStorageModule(dbName: String) = module {
@@ -24,7 +26,11 @@ internal fun pushStorageModule(dbName: String) = module {
     single {
         try {
             createPushDB().also {
-                it.subscriptionsQueries.getAllSubscriptions().executeAsOneOrNull()
+                CoroutineScope(Dispatchers.Default + Job()).launch {
+                    withTimeout(TimeUnit.SECONDS.toMillis(5)) {
+                        it.subscriptionsQueries.getAllSubscriptions().executeAsOneOrNull()
+                    }
+                }
             }
         } catch (e: Exception) {
             deleteDatabase(dbName)

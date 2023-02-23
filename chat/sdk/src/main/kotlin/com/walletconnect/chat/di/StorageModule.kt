@@ -10,9 +10,11 @@ import com.walletconnect.chat.common.model.InviteStatus
 import com.walletconnect.chat.common.model.InviteType
 import com.walletconnect.chat.storage.*
 import com.walletconnect.chat.storage.data.dao.Invites
+import kotlinx.coroutines.*
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
+import java.util.concurrent.TimeUnit
 
 @JvmSynthetic
 internal fun storageModule() = module {
@@ -28,7 +30,11 @@ internal fun storageModule() = module {
     single {
         try {
             createChatDB().also {
-                it.contactsQueries.doesContactNotExists("").executeAsOneOrNull()
+                CoroutineScope(Dispatchers.Default + Job()).launch {
+                    withTimeout(TimeUnit.SECONDS.toMillis(5)) {
+                        it.contactsQueries.doesContactNotExists("").executeAsOneOrNull()
+                    }
+                }
             }
         } catch (e: Exception) {
             deleteDatabase(DBUtils.CHAT_SDK_DB_NAME)

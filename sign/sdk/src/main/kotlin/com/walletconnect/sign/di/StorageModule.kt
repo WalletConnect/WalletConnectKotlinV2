@@ -15,10 +15,12 @@ import com.walletconnect.sign.storage.data.dao.session.SessionDao
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDao
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
+import kotlinx.coroutines.*
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
+import java.util.concurrent.TimeUnit
 
 @JvmSynthetic
 internal fun storageModule(): Module = module {
@@ -59,7 +61,14 @@ internal fun storageModule(): Module = module {
 
     single {
         try {
-            createSignDB().also { signDatabase -> signDatabase.sessionDaoQueries.lastInsertedRow().executeAsOneOrNull() }
+            createSignDB().also { signDatabase ->
+                CoroutineScope(Dispatchers.Default + Job()).launch {
+                    withTimeout(TimeUnit.SECONDS.toMillis(5)) {
+                        signDatabase.sessionDaoQueries.lastInsertedRow().executeAsOneOrNull()
+                        signDatabase.proposalDaoQueries.getListOfProposalDaos().executeAsOneOrNull()
+                    }
+                }
+            }
         } catch (e: Exception) {
             deleteDatabase(DBUtils.SIGN_SDK_DB_NAME)
             createSignDB()

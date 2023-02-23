@@ -7,9 +7,11 @@ import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.storage.*
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.android.sdk.storage.data.dao.MetaData
+import kotlinx.coroutines.*
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
+import java.util.concurrent.TimeUnit
 
 fun baseStorageModule() = module {
 
@@ -54,7 +56,13 @@ fun baseStorageModule() = module {
 
     single<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)) {
         try {
-            createCoreDB().also { database -> database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull() }
+            createCoreDB().also { database ->
+                CoroutineScope(Dispatchers.Default + Job()).launch {
+                    withTimeout(TimeUnit.SECONDS.toMillis(5)) {
+                        database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull()
+                    }
+                }
+            }
         } catch (e: Exception) {
             deleteDatabase(DBUtils.ANDROID_CORE_DB_NAME)
             createCoreDB()
