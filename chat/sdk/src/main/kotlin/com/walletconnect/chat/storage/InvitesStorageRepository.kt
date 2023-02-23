@@ -27,6 +27,8 @@ internal class InvitesStorageRepository(private val invites: InvitesQueries) {
 
     suspend fun getReceivedInviteByInviteId(inviteId: Long) = invites.getInviteByInviteId(inviteId, ::dbToReceivedInvite).executeAsOne()
 
+    suspend fun getSentInviteByInviteId(inviteId: Long) = invites.getInviteByInviteId(inviteId, ::dbToSentInvite).executeAsOne()
+
     suspend fun updateStatusByInviteId(inviteId: Long, status: InviteStatus) = invites.updateInviteStatus(status, inviteId)
 
     suspend fun getSentInvitesForInviterAccount(inviterAccount: String): List<Invite.Sent> = invites.getSentInvitesForInviterAccount(inviterAccount, ::dbToSentInvite).executeAsList()
