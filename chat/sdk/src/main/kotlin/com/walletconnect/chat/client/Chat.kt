@@ -143,5 +143,5 @@ object Chat {
         data class GoPublic(val account: Type.AccountId) : Params()
     }
 
-    const val DEFUALT_KEYSERVER_URL = "https://staging.keys.walletconnect.com"
+    const val DEFUALT_KEYSERVER_URL = "https://keys.walletconnect.com"
 }
