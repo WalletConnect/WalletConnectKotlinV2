@@ -119,6 +119,7 @@ internal class ChatEngine(
             keyManagementRepository.setKey(publicKey, accountId.getInviteTag())
             keyManagementRepository.setKey(publicKey, "$SELF_PARTICIPANT_CONTEXT${inviteTopic.value}")
             scope.launch { accountsRepository.setAccountPublicInviteKey(accountId, publicKey, inviteTopic) }
+            jsonRpcInteractor.subscribe(inviteTopic)
             onSuccess(publicKey.keyAsHex)
         }
 
