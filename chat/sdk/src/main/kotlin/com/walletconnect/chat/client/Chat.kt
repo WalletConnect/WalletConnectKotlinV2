@@ -13,7 +13,7 @@ object Chat {
         }
 
         interface SignMessage : Listeners {
-            fun onSign(message: String): Model.Cacao.Signature
+            fun onSign(message: String): Model.Cacao.Signature?
         }
 
         interface Resolve : PublicKeyOnSuccess

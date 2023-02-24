@@ -77,7 +77,7 @@ internal fun SDKError.toClientError(): Chat.Model.Error = Chat.Model.Error(this.
 internal fun ConnectionState.toClient(): Chat.Model.ConnectionState = Chat.Model.ConnectionState(isAvailable)
 
 @JvmSynthetic
-internal fun Chat.Model.Cacao.Signature.toCommon(): Cacao.Signature = Cacao.Signature(t, s, m)
+internal fun Chat.Model.Cacao.Signature?.toCommon(): Cacao.Signature? = this?.let { cacao -> Cacao.Signature(cacao.t, cacao.s, cacao.m) }
 
 @JvmSynthetic
 internal fun Chat.Type.AccountId.toCommon(): AccountId = AccountId(value)
