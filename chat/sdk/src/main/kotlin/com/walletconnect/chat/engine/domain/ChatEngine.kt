@@ -468,8 +468,8 @@ internal class ChatEngine(
                 val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(MONTH_IN_SECONDS))
                 val peerError = PeerError.UserRejectedInvitation("Invitation rejected by a user")
                 val responseParams = JsonRpcResponse.JsonRpcError(jsonRpcHistoryEntry.id, error = JsonRpcResponse.Error(peerError.code, peerError.message))
-                jsonRpcInteractor.publishJsonRpcResponse(jsonRpcHistoryEntry.topic, irnParams, responseParams, {}, { error -> return@publishJsonRpcResponse onFailure(error) })
-                scope.launch { invitesRepository.updateStatusByInviteId(inviteId, InviteStatus.REJECTED) }
+                jsonRpcInteractor.publishJsonRpcResponse(rejectTopic, irnParams, responseParams, {}, { error -> return@publishJsonRpcResponse onFailure(error) })
+                invitesRepository.updateStatusByInviteId(inviteId, InviteStatus.REJECTED)
             } catch (e: MissingKeyException) {
                 return@launch onFailure(e)
             }
