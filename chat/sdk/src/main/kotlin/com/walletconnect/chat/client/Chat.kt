@@ -93,8 +93,8 @@ object Chat {
 
         sealed class Events : Model() {
             data class OnInvite(val invite: Invite.Received) : Events()
-            data class OnInviteAccepted(val topic: String) : Events()
-            data class OnInviteRejected(val topic: String) : Events()
+            data class OnInviteAccepted(val topic: String, val invite: Invite.Sent) : Events()
+            data class OnInviteRejected(val invite: Invite.Sent) : Events()
             data class OnMessage(val message: Message) : Events()
             data class OnLeft(val topic: String) : Events()
         }
