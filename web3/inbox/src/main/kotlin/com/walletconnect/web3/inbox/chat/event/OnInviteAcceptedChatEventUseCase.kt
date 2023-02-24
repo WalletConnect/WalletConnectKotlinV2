@@ -11,8 +11,7 @@ internal class OnInviteAcceptedChatEventUseCase(
 ) : ChatEventUseCase<Chat.Model.Events.OnInviteAccepted>(proxyInteractor) {
 
     override fun invoke(model: Chat.Model.Events.OnInviteAccepted) =
-        // todo: remove method override after
-        call(Web3InboxRPC.Call.Chat.InviteAccepted(id = generateId(), method = "chat_joined", params = model.toParams()))
+        call(Web3InboxRPC.Call.Chat.InviteAccepted(id = generateId(), params = model.toParams()))
 
     private fun Chat.Model.Events.OnInviteAccepted.toParams() =
         Web3InboxParams.Call.Chat.InviteAcceptedParams(topic)

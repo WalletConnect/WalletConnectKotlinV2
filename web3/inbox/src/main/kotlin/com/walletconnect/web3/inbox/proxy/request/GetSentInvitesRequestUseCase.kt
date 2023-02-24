@@ -21,10 +21,6 @@ internal class GetSentInvitesRequestUseCase(
     private fun Chat.Model.Invite.Sent.toResult(): Web3InboxParams.Response.GetSentInvitesResult =
         Web3InboxParams.Response.GetSentInvitesResult(id, inviterAccount.value, inviteeAccount.value, message.value, inviterPublicKey, inviteePublicKey, status.toResult())
 
-    //todo: remove once [PR](https://github.com/WalletConnect/walletconnect-docs/pull/500). workaround for js
-    private fun Chat.Type.InviteStatus.toResult(): String = when (this) {
-        Chat.Type.InviteStatus.APPROVED -> "ACCEPTED"
-        else -> this.name
-    }.lowercase()
+    private fun Chat.Type.InviteStatus.toResult(): String = name.lowercase()
 }
 
