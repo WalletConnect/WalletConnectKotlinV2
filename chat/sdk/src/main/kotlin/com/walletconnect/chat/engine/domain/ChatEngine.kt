@@ -7,6 +7,7 @@ import com.walletconnect.android.internal.common.cacao.Cacao
 import com.walletconnect.android.internal.common.cacao.Cacao.Payload.Companion.CURRENT_VERSION
 import com.walletconnect.android.internal.common.cacao.Cacao.Payload.Companion.ISO_8601_PATTERN
 import com.walletconnect.android.internal.common.cacao.CacaoType
+import com.walletconnect.android.internal.common.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.cacao.toCAIP122Message
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.*
@@ -43,6 +44,7 @@ import java.util.*
 
 internal class ChatEngine(
     private val keyserverUrl: String,
+    private val projectId: ProjectId,
     private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
     private val registerIdentityUseCase: RegisterIdentityUseCase,
     private val unregisterIdentityUseCase: UnregisterIdentityUseCase,
@@ -269,8 +271,12 @@ internal class ChatEngine(
         val identityKey = identityDidKey.split(DID_DELIMITER).last()
         return runCatching { identitiesRepository.getAccountId(identityKey) }.onFailure {
             return resolveIdentityUseCase(identityKey).mapCatching { response ->
-                AccountId(decodeDidPkh(response.cacao.payload.iss)).also { accountId ->
-                    identitiesRepository.insertIdentity(identityKey, accountId)
+                if (CacaoVerifier(projectId).verify(response.cacao)) {
+                    AccountId(decodeDidPkh(response.cacao.payload.iss)).also { accountId ->
+                        identitiesRepository.insertIdentity(identityKey, accountId)
+                    }
+                } else {
+                    throw Throwable("Invalid cacao")
                 }
             }
         }
