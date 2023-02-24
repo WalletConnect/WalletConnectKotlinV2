@@ -23,6 +23,4 @@ internal class GetReceivedInvitesRequestUseCase(
         Web3InboxParams.Response.GetReceivedInvitesResult(id, inviterAccount.value, inviteeAccount.value, message.value, inviterPublicKey, inviteePublicKey, status.toResult())
 
     private fun Chat.Type.InviteStatus.toResult(): String = name.lowercase()
-
 }
-

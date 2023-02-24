@@ -3,27 +3,21 @@ package com.walletconnect.web3.inbox
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.sign
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.relay.ConnectionType
-import com.walletconnect.foundation.common.model.PrivateKey
-import com.walletconnect.foundation.common.model.PublicKey
-import com.walletconnect.util.bytesToHex
+import com.walletconnect.sample_common.generateEthereumAccount
+import com.walletconnect.sample_common.generateKeys
 import com.walletconnect.util.hexToBytes
 import com.walletconnect.web3.inbox.cacao.CacaoSigner
 import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.client.Web3Inbox
-import com.walletconnect.web3.inbox.domain.*
-import com.walletconnect.web3.inbox.domain.generateEthereumAccount
-import com.walletconnect.web3.inbox.domain.generateKeys
 import com.walletconnect.web3.inbox.sample.BuildConfig
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.web3j.crypto.Keys
 import timber.log.Timber
 import timber.log.Timber.DebugTree
-import java.security.Security
 
 
 class Web3InboxApplication : Application() {
@@ -82,11 +76,17 @@ class Web3InboxApplication : Application() {
             _privateKey = keypair.second
             _account = generateEthereumAccount(keypair.third)
 
-            sharedPreferences.edit { 
-                   putString(ACCOUNT_TAG, _account)
-                   putString(PUBLIC_KEY_TAG, _publicKey)
-                   putString(PRIVATE_KEY_TAG, _privateKey)
-             }
+            sharedPreferences.edit {
+                putString(ACCOUNT_TAG, _account)
+                putString(PUBLIC_KEY_TAG, _publicKey)
+                putString(PRIVATE_KEY_TAG, _privateKey)
+            }
         }
+    }
+
+    private companion object {
+        const val ACCOUNT_TAG = "self_account_tag"
+        const val PRIVATE_KEY_TAG = "self_private_key"
+        const val PUBLIC_KEY_TAG = "self_public_key"
     }
 }
