@@ -82,9 +82,11 @@ class Web3InboxApplication : Application() {
             _privateKey = keypair.second
             _account = generateEthereumAccount(keypair.third)
 
-            sharedPreferences.edit().putString(ACCOUNT_TAG, _account).apply()
-            sharedPreferences.edit().putString(PUBLIC_KEY_TAG, _publicKey).apply()
-            sharedPreferences.edit().putString(PRIVATE_KEY_TAG, _privateKey).apply()
+            sharedPreferences.edit { 
+                   putString(ACCOUNT_TAG, _account)
+                   putString(PUBLIC_KEY_TAG, _publicKey)
+                   putString(PRIVATE_KEY_TAG, _privateKey)
+             }
         }
     }
 }
