@@ -7,7 +7,7 @@ sealed class ChatSharedEvents {
 
     data class OnInvite(val invite: Chat.Model.Invite.Received) : ChatSharedEvents()
     data class OnInviteAccepted(val topic: String, val invite: Chat.Model.Invite.Sent) : ChatSharedEvents()
-    data class OnInviteRejected( val invite: Chat.Model.Invite.Sent) : ChatSharedEvents()
+    data class OnInviteRejected(val invite: Chat.Model.Invite.Sent) : ChatSharedEvents()
     data class OnMessage(val message: Chat.Model.Message) : ChatSharedEvents()
     data class OnLeft(val topic: String) : ChatSharedEvents()
 }
