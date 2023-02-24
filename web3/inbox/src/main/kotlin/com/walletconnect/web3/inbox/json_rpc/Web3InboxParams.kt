@@ -61,7 +61,7 @@ internal sealed interface Web3InboxParams : ClientParams {
             val topic: String,
             val authorAccount: String,
             val message: String,
-            val timestamp: Long
+            val timestamp: Long,
         ) : Request
     }
 
@@ -150,13 +150,35 @@ internal sealed interface Web3InboxParams : ClientParams {
             @JsonClass(generateAdapter = true)
             data class InviteAcceptedParams(
                 val topic: String,
-            ) : Chat
-
+                val invite: InviteParams,
+                ) : Chat {
+                @JsonClass(generateAdapter = true)
+                data class InviteParams(
+                    val id: Long,
+                    val inviterAccount: String,
+                    val inviteeAccount: String,
+                    val message: String,
+                    val inviterPublicKey: String,
+                    val inviteePublicKey: String,
+                    val status: String,
+                )
+            }
 
             @JsonClass(generateAdapter = true)
             data class InviteRejectedParams(
-                val topic: String,
-            ) : Chat
+                val invite: InviteParams,
+            ) : Chat {
+                @JsonClass(generateAdapter = true)
+                data class InviteParams(
+                    val id: Long,
+                    val inviterAccount: String,
+                    val inviteeAccount: String,
+                    val message: String,
+                    val inviterPublicKey: String,
+                    val inviteePublicKey: String,
+                    val status: String,
+                )
+            }
 
             @JsonClass(generateAdapter = true)
             data class LeaveParams(

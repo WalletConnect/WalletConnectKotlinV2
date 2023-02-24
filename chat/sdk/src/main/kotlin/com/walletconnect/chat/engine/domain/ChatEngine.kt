@@ -638,8 +638,8 @@ internal class ChatEngine(
                     inviterPublicKey, inviteePublicKey, InviteStatus.PENDING, acceptTopic
                 )
 
-                _events.emit(Events.OnInvite(invite))
                 invitesRepository.insertInvite(invite)
+                _events.emit(Events.OnInvite(invite))
             }, onFailure = { error -> logger.error(error) })
 
         }
@@ -666,8 +666,8 @@ internal class ChatEngine(
             // Change: Instead of claims.issuedAt use wcRequest.receivedAt
 
             val message = Message(wcRequest.id, wcRequest.topic, ChatMessage(claims.subject), authorAccountId, claims.issuedAt, claims.media)
-            _events.emit(Events.OnMessage(message))
             messageRepository.insertMessage(message)
+            _events.emit(Events.OnMessage(message))
 
             val didJwt: String = didJwtRepository
                 .encodeDidJwt(getIdentityKeyPair(recipientAccountId), keyserverUrl, EncodeChatReceiptDidJwtPayloadUseCase(claims.subject, authorAccountId))

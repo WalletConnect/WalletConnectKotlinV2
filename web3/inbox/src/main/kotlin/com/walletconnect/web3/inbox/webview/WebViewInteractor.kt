@@ -50,7 +50,7 @@ internal class WebViewInteractor(
     }
 
     internal companion object {
-        const val WEB3INBOX_URL = "https://web3inbox-dev-hidden.vercel.app?chatProvider=android"
+        const val WEB3INBOX_URL = "https://web3inbox-dev-hidden-git-fix-styling-and-3e38a9-walletconnect1.vercel.app?chatProvider=android"
         const val WEB3INBOX_JS_SIDE_PROXY_NAME = "android"
     }
 }
