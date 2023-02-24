@@ -122,7 +122,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
                 ChatClient.invite(
                     invite,
                     { Log.d(TAG, "Invited, inviter: $_account, invitee: $contact") },
-                    { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
+                    { error -> Log.e(tag(this@ChatSharedViewModel), error.throwable.stackTraceToString()) }
                 )
 
                 runBlocking(Dispatchers.Main) {
