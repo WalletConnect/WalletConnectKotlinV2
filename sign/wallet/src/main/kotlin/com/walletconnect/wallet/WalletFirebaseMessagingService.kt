@@ -26,15 +26,15 @@ class WalletFirebaseMessagingService: PushMessageService() {
     private val notificationManager by lazy { getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }
 
     override fun newToken(token: String) {
-        Log.d(TAG, token)
+        Log.d(TAG, "Registering New Token Success:\t$token")
     }
 
     override fun registeringFailed(token: String, throwable: Throwable) {
-        Log.d(TAG, token)
+        Log.d(TAG, "Registering New Token Failed:\t$token")
     }
 
     override fun onMessage(message: Push.Model.Message, originalMessage: RemoteMessage) {
-        Log.d(TAG, message.toString())
+        Log.d(TAG, "Message:\t$message")
 
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val notificationBuilder = NotificationCompat.Builder(this, channelId)

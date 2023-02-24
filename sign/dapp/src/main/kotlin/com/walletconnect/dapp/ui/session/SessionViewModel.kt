@@ -86,9 +86,10 @@ class SessionViewModel : ViewModel() {
             }
             DappDelegate.deselectAccountDetails()
 
-            val pushTopic = PushDappClient.getActiveSubscriptions().entries.first().value.topic
-            PushDappClient.delete(Push.Dapp.Params.Delete(pushTopic)) { error ->
-                Log.e(tag(this), error.throwable.stackTraceToString())
+            PushDappClient.getActiveSubscriptions().entries.firstOrNull()?.value?.topic?.let { pushTopic ->
+                PushDappClient.delete(Push.Dapp.Params.Delete(pushTopic)) { error ->
+                    Log.e(tag(this), error.throwable.stackTraceToString())
+                }
             }
         }
 
