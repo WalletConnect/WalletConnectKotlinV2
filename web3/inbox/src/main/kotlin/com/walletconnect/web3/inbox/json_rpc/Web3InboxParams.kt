@@ -129,7 +129,7 @@ internal sealed interface Web3InboxParams : ClientParams {
                 val topic: String,
                 val message: String,
                 val authorAccount: String,
-                val timestamp: Long, // We might need additional deliveryTimestamp for ordering
+                val timestamp: Long,
                 val media: MediaParams?,
             ) : Chat {
 
