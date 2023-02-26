@@ -140,18 +140,6 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
     sealed interface Call : Web3InboxRPC {
         override val params: Web3InboxParams.Call
 
-        @JsonClass(generateAdapter = true)
-        data class SetAccount(
-            @Json(name = "id")
-            override val id: Long,
-            @Json(name = "jsonrpc")
-            override val jsonrpc: String = "2.0",
-            @Json(name = "method")
-            override val method: String = Web3InboxMethods.Call.SET_ACCOUNT,
-            @Json(name = "params")
-            override val params: Web3InboxParams.Call.SetAccountParams,
-        ) : Call
-
         sealed interface Chat : Call {
             override val params: Web3InboxParams.Call.Chat
 

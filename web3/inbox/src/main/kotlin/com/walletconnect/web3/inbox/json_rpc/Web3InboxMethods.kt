@@ -33,9 +33,6 @@ internal object Web3InboxMethods {
     }
 
     object Call {
-        @get:JvmSynthetic
-        const val SET_ACCOUNT: String = "setAccount"
-
         object Chat {
             @get:JvmSynthetic
             const val INVITE: String = "chat_invite"

@@ -2,7 +2,6 @@ package com.walletconnect.web3.inbox.json_rpc
 
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.type.ClientParams
-import com.walletconnect.chat.client.Chat
 
 internal sealed interface Web3InboxParams : ClientParams {
 
@@ -65,7 +64,6 @@ internal sealed interface Web3InboxParams : ClientParams {
         ) : Request
     }
 
-    //todo: maybe remove
     sealed interface Response : Web3InboxParams {
         @JsonClass(generateAdapter = true)
         data class GetReceivedInvitesResult(
@@ -114,11 +112,6 @@ internal sealed interface Web3InboxParams : ClientParams {
     }
 
     sealed interface Call : Web3InboxParams {
-        @JsonClass(generateAdapter = true)
-        data class SetAccountParams(
-            val account: String,
-        ) : Call
-
         sealed interface Chat : Call {
             @JsonClass(generateAdapter = true)
             data class InviteParams(

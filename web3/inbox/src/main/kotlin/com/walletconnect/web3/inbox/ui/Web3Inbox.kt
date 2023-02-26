@@ -6,22 +6,29 @@ import android.webkit.WebView
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
-import com.walletconnect.web3.inbox.webview.WebViewInteractor
+import com.walletconnect.web3.inbox.common.model.AccountId
+import com.walletconnect.web3.inbox.webview.WebViewPresenter
 
 @Composable
 internal fun Web3InboxView(
     modifier: Modifier = Modifier,
-    webViewInteractor: WebViewInteractor,
+    webViewPresenter: WebViewPresenter,
     state: WebViewState,
+    accountId: AccountId,
 ) {
-    AndroidView(modifier = modifier, factory = { context -> createWebView(context, webViewInteractor, state) })
+    AndroidView(modifier = modifier, factory = { context -> createWebView(context, webViewPresenter, state, accountId) })
 }
 
-internal fun createWebView(context: Context, webViewInteractor: WebViewInteractor, state: WebViewState) = WebView(context).apply {
+internal fun createWebView(
+    context: Context,
+    webViewPresenter: WebViewPresenter,
+    state: WebViewState,
+    accountId: AccountId,
+) = WebView(context).apply {
     layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-    webViewInteractor.setWebView(this)
+    webViewPresenter.setWebView(this)
     if (state == WebViewState.Loading) {
-        webViewInteractor.loadUrl()
+        webViewPresenter.loadUrl(accountId)
     }
 }
 

@@ -7,15 +7,10 @@ import androidx.compose.ui.Modifier
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatClient
-import com.walletconnect.foundation.util.Logger
-import com.walletconnect.util.generateId
 import com.walletconnect.web3.inbox.chat.ChatEventHandler
 import com.walletconnect.web3.inbox.common.model.AccountId
 import com.walletconnect.web3.inbox.di.jsonRpcModule
 import com.walletconnect.web3.inbox.di.proxyModule
-import com.walletconnect.web3.inbox.json_rpc.Web3InboxParams
-import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
-import com.walletconnect.web3.inbox.proxy.ProxyInteractor
 import com.walletconnect.web3.inbox.ui.Web3InboxView
 import com.walletconnect.web3.inbox.ui.WebViewState
 import com.walletconnect.web3.inbox.ui.createWebView
@@ -23,7 +18,7 @@ import com.walletconnect.web3.inbox.ui.createWebView
 object Web3Inbox {
     private var isClientInitialized = false
     private var webViewState: WebViewState = WebViewState.Loading
-    private var account: AccountId? = null
+    private lateinit var account: LateInitAccountId // todo: discuss wrapping to only have lateinitness(?)
     private lateinit var chatEventHandler: ChatEventHandler // todo: probably needs a host.
 
     @Throws(IllegalStateException::class)
@@ -31,7 +26,7 @@ object Web3Inbox {
         ChatClient.initialize(Chat.Params.Init(init.core, init.keyServerUrl)) { error -> onError(Inbox.Model.Error(error.throwable)) }
 
         runCatching {
-            account = AccountId(init.account.value)
+            account = LateInitAccountId(AccountId(init.account.value))
             wcKoinApp.run { modules(jsonRpcModule(), proxyModule(ChatClient, init.onSign, ::onPageFinished)) }
             ChatClient.setChatDelegate(wcKoinApp.koin.get<ChatEventHandler>())
             isClientInitialized = true
@@ -40,14 +35,12 @@ object Web3Inbox {
 
     @Composable
     @Throws(IllegalStateException::class)
-    fun View(modifier: Modifier = Modifier) = wrapComposableWithInitializationCheck { Web3InboxView(modifier, wcKoinApp.koin.get(), webViewState) } //todo koin ugly
+    fun View(modifier: Modifier = Modifier) = wrapComposableWithInitializationCheck { Web3InboxView(modifier, wcKoinApp.koin.get(), webViewState, account.value) } //todo koin ugly
 
-    fun getView(context: Context): WebView = wrapWithInitializationCheck { createWebView(context, wcKoinApp.koin.get(), webViewState) }
+    fun getView(context: Context): WebView = wrapWithInitializationCheck { createWebView(context, wcKoinApp.koin.get(), webViewState, account.value) }
 
     private fun onPageFinished() = wrapWithInitializationCheck {
         if (webViewState is WebViewState.Loading) {
-            wcKoinApp.koin.get<Logger>().log("onPageFinished")
-            wcKoinApp.koin.get<ProxyInteractor>().call(Web3InboxRPC.Call.SetAccount(id = generateId(), params = Web3InboxParams.Call.SetAccountParams(account!!.address())))
             chatEventHandler = wcKoinApp.koin.get() // todo: probably needs a host. Starts listening for events
             webViewState = WebViewState.Initialized
         }
@@ -65,4 +58,8 @@ object Web3Inbox {
         check(isClientInitialized) { "Web3Inbox needs to be initialized first using the initialize function" }
         return block()
     }
+
+    private data class LateInitAccountId(
+        val value: AccountId,
+    )
 }

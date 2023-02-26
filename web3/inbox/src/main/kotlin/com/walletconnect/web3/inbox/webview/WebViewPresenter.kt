@@ -6,15 +6,11 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.util.generateId
 import com.walletconnect.web3.inbox.common.model.AccountId
-import com.walletconnect.web3.inbox.json_rpc.Web3InboxParams
-import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
-import com.walletconnect.web3.inbox.proxy.ProxyInteractor
 import com.walletconnect.web3.inbox.proxy.ProxyRequestHandler
 import java.lang.ref.WeakReference
 
-internal class WebViewInteractor(
+internal class WebViewPresenter(
     private val proxyRequestHandler: ProxyRequestHandler,
     private val webViewWeakReference: WebViewWeakReference,
     private val logger: Logger,
@@ -44,13 +40,17 @@ internal class WebViewInteractor(
         })
     }
 
-    fun loadUrl() {
-        logger.log("loadUrl")
-        webViewWeakReference.webView.loadUrl(WEB3INBOX_URL)
+    fun loadUrl(accountId: AccountId) {
+        webViewWeakReference.webView.loadUrl(web3InboxUrl(accountId))
     }
 
+
+    // todo: Add nice url builder.
+    private fun web3InboxUrl(accountId: AccountId) = "$WEB3INBOX_URL$WEB3INBOX_PROVIDER_TYPE&account=${accountId.address()}"
+
     internal companion object {
-        const val WEB3INBOX_URL = "https://web3inbox-dev-hidden-git-fix-styling-and-3e38a9-walletconnect1.vercel.app?chatProvider=android"
+        const val WEB3INBOX_URL = "https://web3inbox-dev-hidden-git-fix-styling-and-3e38a9-walletconnect1.vercel.app"
+        const val WEB3INBOX_PROVIDER_TYPE = "?chatProvider=android"
         const val WEB3INBOX_JS_SIDE_PROXY_NAME = "android"
     }
 }

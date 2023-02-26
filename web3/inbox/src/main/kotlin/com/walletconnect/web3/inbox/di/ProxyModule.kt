@@ -9,7 +9,7 @@ import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.proxy.ProxyInteractor
 import com.walletconnect.web3.inbox.proxy.ProxyRequestHandler
 import com.walletconnect.web3.inbox.proxy.request.*
-import com.walletconnect.web3.inbox.webview.WebViewInteractor
+import com.walletconnect.web3.inbox.webview.WebViewPresenter
 import com.walletconnect.web3.inbox.webview.WebViewWeakReference
 import org.koin.dsl.module
 
@@ -32,7 +32,7 @@ internal fun proxyModule(
     single { MessageRequestUseCase(chatClient, get()) }
     single { InviteRequestUseCase(chatClient, get()) }
     single { ProxyRequestHandler(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-    single { WebViewInteractor(get(), get(), get(), onPageFinished) }
+    single { WebViewPresenter(get(), get(), get(), onPageFinished) }
 
     single { OnInviteChatEventUseCase(get()) }
     single { OnMessageChatEventUseCase(get()) }
