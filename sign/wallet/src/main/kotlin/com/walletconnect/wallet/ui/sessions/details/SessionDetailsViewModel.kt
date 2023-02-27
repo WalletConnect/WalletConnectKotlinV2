@@ -86,9 +86,10 @@ class SessionDetailsViewModel : ViewModel() {
             }
             selectedSessionTopic = null
 
-            val pushTopic = PushWalletClient.getActiveSubscriptions().entries.first().value.topic
-            PushWalletClient.deleteSubscription(Push.Wallet.Params.DeleteSubscription(pushTopic)) { error ->
-                Log.e(tag(this), error.throwable.stackTraceToString())
+            PushWalletClient.getActiveSubscriptions().entries.firstOrNull()?.value?.topic?.let { pushTopic ->
+                PushWalletClient.deleteSubscription(Push.Wallet.Params.DeleteSubscription(pushTopic)) { error ->
+                    Log.e(tag(this), error.throwable.stackTraceToString())
+                }
             }
         }
 

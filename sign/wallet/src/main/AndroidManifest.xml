@@ -3,7 +3,9 @@
     package="com.walletconnect.wallet">
 
     <uses-feature android:name="android.hardware.camera" />
+
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".WalletSampleApplication"
@@ -12,9 +14,10 @@
         android:label="@string/app_name"
         android:roundIcon="@drawable/ic_walletconnect_circle_blue"
         android:supportsRtl="true"
-        android:theme="@style/Theme.WalletConnect" >
+        android:theme="@style/Theme.WalletConnect">
 
-        <activity android:name=".ui.host.WalletSampleActivity"
+        <activity
+            android:name=".ui.host.WalletSampleActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:screenOrientation="portrait">
