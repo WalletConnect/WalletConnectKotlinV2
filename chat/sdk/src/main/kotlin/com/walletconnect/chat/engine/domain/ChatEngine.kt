@@ -456,7 +456,7 @@ internal class ChatEngine(
         }
     }
 
-    internal fun reject(inviteId: Long, onFailure: (Throwable) -> Unit) {
+    internal fun reject(inviteId: Long, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         scope.launch {
             try {
                 val jsonRpcHistoryEntry = getPendingJsonRpcHistoryEntryByIdUseCase(inviteId)
@@ -480,13 +480,14 @@ internal class ChatEngine(
                 val responseParams = JsonRpcResponse.JsonRpcError(jsonRpcHistoryEntry.id, error = JsonRpcResponse.Error(peerError.code, peerError.message))
                 jsonRpcInteractor.publishJsonRpcResponse(rejectTopic, irnParams, responseParams, {}, { error -> return@publishJsonRpcResponse onFailure(error) })
                 invitesRepository.updateStatusByInviteId(inviteId, InviteStatus.REJECTED)
+                onSuccess()
             } catch (e: MissingKeyException) {
                 return@launch onFailure(e)
             }
         }
     }
 
-    internal fun message(topic: String, message: SendMessage, onFailure: (Throwable) -> Unit) {
+    internal fun message(topic: String, message: SendMessage, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         scope.launch {
             if (!ChatValidator.isChatMessageValid(message.message.value)) {
                 return@launch onFailure(ChatMessageTooLongException())
@@ -511,6 +512,7 @@ internal class ChatEngine(
             jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, payload,
                 onSuccess = {
                     logger.log("Chat message sent successfully")
+                    onSuccess()
                 },
                 onFailure = { throwable ->
                     logger.log("Chat message error: $throwable")
@@ -636,8 +638,8 @@ internal class ChatEngine(
                     inviterPublicKey, inviteePublicKey, InviteStatus.PENDING, acceptTopic
                 )
 
-                _events.emit(Events.OnInvite(invite))
                 invitesRepository.insertInvite(invite)
+                _events.emit(Events.OnInvite(invite))
             }, onFailure = { error -> logger.error(error) })
 
         }
@@ -664,8 +666,8 @@ internal class ChatEngine(
             // Change: Instead of claims.issuedAt use wcRequest.receivedAt
 
             val message = Message(wcRequest.id, wcRequest.topic, ChatMessage(claims.subject), authorAccountId, claims.issuedAt, claims.media)
-            _events.emit(Events.OnMessage(message))
             messageRepository.insertMessage(message)
+            _events.emit(Events.OnMessage(message))
 
             val didJwt: String = didJwtRepository
                 .encodeDidJwt(getIdentityKeyPair(recipientAccountId), keyserverUrl, EncodeChatReceiptDidJwtPayloadUseCase(claims.subject, authorAccountId))

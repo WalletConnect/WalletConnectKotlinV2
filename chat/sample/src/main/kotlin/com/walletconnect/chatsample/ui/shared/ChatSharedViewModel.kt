@@ -147,8 +147,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
     fun rejectInvitation(id: Long?) {
         id?.let {
             val reject = Chat.Params.Reject(it)
-            ChatClient.reject(reject) { error -> Log.e(TAG, "Unable to find reject invitation: $error") }
-            updateInvites(id)
+            ChatClient.reject(reject, onSuccess = { updateInvites(id) }, onError = { error -> Log.e(TAG, "Unable to find reject invitation: $error") })
         } ?: Log.e(TAG, "Unable to find id on reject invitation: $id")
     }
 
@@ -159,7 +158,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
         listOfMessages.add(MessageUI(userName, message, System.currentTimeMillis(), _account))
         _listOfMessagesStateFlow.value = listOfMessages.toList()
 
-        ChatClient.message(Chat.Params.Message(topic, Chat.Type.ChatMessage(message))) { error ->
+        ChatClient.message(Chat.Params.Message(topic, Chat.Type.ChatMessage(message)), onSuccess = {}) { error ->
             Log.e(TAG, error.throwable.stackTraceToString())
         }
     }

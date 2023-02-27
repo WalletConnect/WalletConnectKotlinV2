@@ -42,9 +42,24 @@ android {
         jvmTarget = jvmVersion.toString()
         freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.time.ExperimentalTime"
     }
+    buildFeatures {
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.4.0-alpha02"
+    }
 }
 
 dependencies {
+    // Compose
+    implementation(platform("androidx.compose:compose-bom:2022.11.00"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material:material")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // WalletConnect
     debugImplementation(project(":chat:sdk"))
     debugImplementation(project(":push:sdk"))
     debugImplementation(project(":androidCore:sdk"))
