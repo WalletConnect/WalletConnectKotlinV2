@@ -10,9 +10,8 @@ class Web3InboxXMLActivity : AppCompatActivity(R.layout.activity_web3inbox) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        //TODO: Skipped frames!  The application may be doing too much work on its main thread.
         findViewById<ConstraintLayout>(R.id.root).apply {
-            addView(Web3Inbox.getView(applicationContext))
+            addView(Web3Inbox.View(applicationContext))
         }
     }
 }

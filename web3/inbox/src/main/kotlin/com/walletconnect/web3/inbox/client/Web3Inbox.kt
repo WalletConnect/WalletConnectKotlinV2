@@ -37,7 +37,7 @@ object Web3Inbox {
     @Throws(IllegalStateException::class)
     fun View(modifier: Modifier = Modifier) = wrapComposableWithInitializationCheck { Web3InboxView(modifier, wcKoinApp.koin.get(), webViewState, account.value) } //todo koin ugly
 
-    fun getView(context: Context): WebView = wrapWithInitializationCheck { createWebView(context, wcKoinApp.koin.get(), webViewState, account.value) }
+    fun View(context: Context): WebView = wrapWithInitializationCheck { createWebView(context, wcKoinApp.koin.get(), webViewState, account.value) }
 
     private fun onPageFinished() = wrapWithInitializationCheck {
         if (webViewState is WebViewState.Loading) {

@@ -16,7 +16,6 @@ class Web3InboxComposeActivity : AppCompatActivity() {
         setContent {
             Web3InboxTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background) {
-                    //TODO: Skipped frames!  The application may be doing too much work on its main thread.
                     Web3Inbox.View()
                 }
             }

@@ -9,6 +9,7 @@ import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.sign
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.relay.ConnectionType
+import com.walletconnect.sample_common.BuildConfig.PROJECT_ID
 import com.walletconnect.sample_common.generateEthereumAccount
 import com.walletconnect.sample_common.generateKeys
 import com.walletconnect.util.hexToBytes
@@ -31,7 +32,7 @@ class Web3InboxApplication : Application() {
         getAccount()
         Timber.d("Account: $_account")
 
-        val projectId = BuildConfig.PROJECT_ID
+        val projectId = PROJECT_ID
         val relayUrl = "relay.walletconnect.com"
         val serverUrl = "wss://$relayUrl?projectId=${projectId}"
         val appMetaData = Core.Model.AppMetaData(
@@ -42,12 +43,7 @@ class Web3InboxApplication : Application() {
             redirect = null
         )
 
-        CoreClient.initialize(
-            relayServerUrl = serverUrl,
-            connectionType = ConnectionType.AUTOMATIC,
-            application = this,
-            metaData = appMetaData
-        ) { error ->
+        CoreClient.initialize(relayServerUrl = serverUrl, connectionType = ConnectionType.AUTOMATIC, application = this, metaData = appMetaData) { error ->
             Timber.tag("CoreClient").e(error.throwable)
         }
 

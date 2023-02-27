@@ -49,7 +49,7 @@ internal class WebViewPresenter(
     private fun web3InboxUrl(accountId: AccountId) = "$WEB3INBOX_URL$WEB3INBOX_PROVIDER_TYPE&account=${accountId.address()}"
 
     internal companion object {
-        const val WEB3INBOX_URL = "https://web3inbox-dev-hidden-git-fix-styling-and-3e38a9-walletconnect1.vercel.app"
+        const val WEB3INBOX_URL = "https://web3inbox-dev-hidden.vercel.app"
         const val WEB3INBOX_PROVIDER_TYPE = "?chatProvider=android"
         const val WEB3INBOX_JS_SIDE_PROXY_NAME = "android"
     }
