@@ -12,7 +12,7 @@ import com.walletconnect.push.common.model.toClient
 import com.walletconnect.push.wallet.client.mapper.toClient
 import com.walletconnect.push.wallet.client.mapper.toClientEvent
 import com.walletconnect.push.wallet.client.mapper.toClientModel
-import com.walletconnect.push.common.di.pushStorageModule
+import com.walletconnect.push.wallet.di.messageModule
 import com.walletconnect.push.wallet.di.walletEngineModule
 import com.walletconnect.push.wallet.engine.PushWalletEngine
 import kotlinx.coroutines.flow.launchIn
@@ -31,6 +31,7 @@ class PushWalletProtocol : PushWalletInterface {
                 pushJsonRpcModule(),
                 pushStorageModule(DBUtils.PUSH_WALLET_SDK_DB_NAME),
                 walletEngineModule(),
+                messageModule()
             )
 
             pushWalletEngine = wcKoinApp.koin.get()
@@ -80,19 +81,28 @@ class PushWalletProtocol : PushWalletInterface {
         }
     }
 
-    override fun getMessageHistory(params: Push.Wallet.Params.MessageHistory): Map<String, Push.Model.Subscription> {
+    override fun getMessageHistory(params: Push.Wallet.Params.MessageHistory): Map<Long, Push.Model.MessageRecord> {
         checkEngineInitialization()
 
-        return pushWalletEngine.getListOfActiveSubscriptions()
-            .filterKeys { topic -> topic == params.topic }
-            .mapValues { (_, subscription) -> subscription.toClient() }
+        return pushWalletEngine.getListOfMessages(params.topic)
+            .mapValues { (_, messageRecord) -> messageRecord.toClientModel() }
     }
 
-    override fun delete(params: Push.Wallet.Params.Delete, onError: (Push.Model.Error) -> Unit) {
+    override fun deleteSubscription(params: Push.Wallet.Params.DeleteSubscription, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         try {
-            pushWalletEngine.delete(params.topic) { error -> onError(Push.Model.Error(error)) }
+            pushWalletEngine.deleteSubscription(params.topic) { error -> onError(Push.Model.Error(error)) }
+        } catch (e: Exception) {
+            onError(Push.Model.Error(e))
+        }
+    }
+
+    override fun deletePushMessage(params: Push.Wallet.Params.DeleteMessage, onError: (Push.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        try {
+            pushWalletEngine.deleteMessage(params.id) { error -> onError(Push.Model.Error(error))}
         } catch (e: Exception) {
             onError(Push.Model.Error(e))
         }
