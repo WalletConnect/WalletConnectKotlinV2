@@ -1,4 +1,4 @@
-package com.walletconnect.web3.inbox.sample.ui.theme
+package com.walletconnect.web3.inbox.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

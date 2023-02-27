@@ -1,4 +1,4 @@
-package com.walletconnect.web3.inbox.sample
+package com.walletconnect.web3.inbox
 
 import android.app.Application
 import android.content.Context

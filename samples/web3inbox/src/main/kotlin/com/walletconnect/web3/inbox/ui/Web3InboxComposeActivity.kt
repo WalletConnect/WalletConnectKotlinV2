@@ -1,4 +1,4 @@
-package com.walletconnect.web3.inbox.sample.ui
+package com.walletconnect.web3.inbox.ui
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -8,7 +8,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
 import com.walletconnect.web3.inbox.client.Web3Inbox
-import com.walletconnect.web3.inbox.sample.ui.theme.Web3InboxTheme
+import com.walletconnect.web3.inbox.ui.theme.Web3InboxTheme
 
 class Web3InboxComposeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
