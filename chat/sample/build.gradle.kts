@@ -34,6 +34,9 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    packagingOptions {
+        exclude("META-INF/LICENSE-notice.md")
+    }
 }
 
 dependencies {

@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:name="com.walletconnect.web3.inbox.Web3InboxApplication"
+        android:name=".Web3InboxApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -11,13 +11,13 @@
         android:theme="@style/Theme.WalletConnect">
         <!-- Setting android:configChanges="orientation|screenSize" is VERY IMPORTANT. Include in guides.-->
         <activity
-            android:name="com.walletconnect.web3.inbox.ui.Web3InboxComposeActivity"
+            android:name=".ui.Web3InboxComposeActivity"
             android:configChanges="orientation|screenSize"
             android:exported="true">
 
         </activity>
         <activity
-            android:name="com.walletconnect.web3.inbox.ui.Web3InboxXMLActivity"
+            android:name=".ui.Web3InboxXMLActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize"
             >

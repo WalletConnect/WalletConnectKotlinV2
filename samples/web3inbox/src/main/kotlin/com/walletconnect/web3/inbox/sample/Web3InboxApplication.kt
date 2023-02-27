@@ -1,4 +1,4 @@
-package com.walletconnect.web3.inbox
+package com.walletconnect.web3.inbox.sample
 
 import android.app.Application
 import android.content.Context
@@ -15,7 +15,6 @@ import com.walletconnect.util.hexToBytes
 import com.walletconnect.web3.inbox.cacao.CacaoSigner
 import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.client.Web3Inbox
-import com.walletconnect.web3.inbox.sample.BuildConfig
 import timber.log.Timber
 import timber.log.Timber.DebugTree
 

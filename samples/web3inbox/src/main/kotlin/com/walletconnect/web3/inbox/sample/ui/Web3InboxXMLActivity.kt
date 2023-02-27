@@ -1,4 +1,4 @@
-package com.walletconnect.web3.inbox.ui
+package com.walletconnect.web3.inbox.sample.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

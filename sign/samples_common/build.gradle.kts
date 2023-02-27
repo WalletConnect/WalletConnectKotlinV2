@@ -48,7 +48,8 @@ dependencies {
 
     lifecycle()
     navigationComponent()
-    api(project(":androidCore:sdk"))
+    bouncyCastle()
+    web3jCrypto()
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
