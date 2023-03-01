@@ -13,7 +13,6 @@ import io.ipfs.multibase.Multibase
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
 import org.bouncycastle.crypto.signers.Ed25519Signer
-import org.bouncycastle.util.encoders.Base64
 import java.util.concurrent.TimeUnit
 
 
@@ -38,13 +37,12 @@ fun <T> encodeJSON(jsonObj: T): String {
 
 @Suppress("NewApi")
 fun encodeBase64(bytes: ByteArray): String {
-    return String(Base64.encode(bytes))
+    return String(io.ipfs.multibase.binary.Base64.encodeBase64URLSafe(bytes))
 }
-
 
 @Suppress("NewApi")
 fun decodeBase64(value: ByteArray): String {
-    return String(String(Base64.decode(value), Charsets.ISO_8859_1).toByteArray())
+    return String(String(io.ipfs.multibase.binary.Base64.decodeBase64(value), Charsets.ISO_8859_1).toByteArray())
 }
 
 fun encodeEd25519DidKey(publicKey: ByteArray): String {
