@@ -18,3 +18,18 @@ internal fun EngineDO.PushMessage.toClientEvent(): Push.Wallet.Event.Message {
 internal fun EngineDO.PushMessage.toClientModel(): Push.Model.Message {
     return Push.Model.Message(title, body, icon, url)
 }
+
+@JvmSynthetic
+internal fun EngineDO.PushRecord.toClientModel(): Push.Model.MessageRecord {
+    return Push.Model.MessageRecord(
+        id = this.id.toString(),
+        topic = this.topic,
+        publishedAt = this.publishedAt,
+        message = Push.Model.Message(
+            title = this.message.title,
+            body = this.message.body,
+            icon = this.message.icon,
+            url = this.message.url
+        )
+    )
+}

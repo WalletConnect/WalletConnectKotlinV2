@@ -41,7 +41,7 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
     fun getAllSubscriptions(): List<EngineDO.PushSubscription> =
         subscriptionQueries.getAllSubscriptions(::toSubscription).executeAsList()
 
-    fun delete(topic: String) {
+    fun deleteSubscription(topic: String) {
         subscriptionQueries.deleteByTopic(topic)
     }
 

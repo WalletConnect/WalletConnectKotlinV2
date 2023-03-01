@@ -25,7 +25,7 @@ internal object EchoClient : EchoInterface {
         scope.launch(Dispatchers.IO) {
             supervisorScope {
                 try {
-                    val response = echoService.register(projectId.value, body)
+                    val response = echoService.register(projectId.value, clientId, body)
 
                     if (response.isSuccessful && response.body() != null) {
                         if (response.body()!!.status == SUCCESS_STATUS) {

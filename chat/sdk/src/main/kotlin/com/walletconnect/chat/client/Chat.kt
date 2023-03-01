@@ -13,7 +13,7 @@ object Chat {
         }
 
         interface SignMessage : Listeners {
-            fun onSign(message: String): Model.Cacao.Signature
+            fun onSign(message: String): Model.Cacao.Signature?
         }
 
         interface Resolve : PublicKeyOnSuccess
@@ -93,8 +93,8 @@ object Chat {
 
         sealed class Events : Model() {
             data class OnInvite(val invite: Invite.Received) : Events()
-            data class OnInviteAccepted(val topic: String) : Events()
-            data class OnInviteRejected(val topic: String) : Events()
+            data class OnInviteAccepted(val topic: String, val invite: Invite.Sent) : Events()
+            data class OnInviteRejected(val invite: Invite.Sent) : Events()
             data class OnMessage(val message: Message) : Events()
             data class OnLeft(val topic: String) : Events()
         }
@@ -143,5 +143,5 @@ object Chat {
         data class GoPublic(val account: Type.AccountId) : Params()
     }
 
-    const val DEFUALT_KEYSERVER_URL = "https://staging.keys.walletconnect.com"
+    const val DEFUALT_KEYSERVER_URL = "https://keys.walletconnect.com"
 }

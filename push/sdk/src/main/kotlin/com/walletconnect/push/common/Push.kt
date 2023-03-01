@@ -9,6 +9,8 @@ object Push {
 
         data class Message(val title: String, val body: String, val icon: String?, val url: String?): Wallet.Event()
 
+        data class MessageRecord(val id: String, val topic: String, val publishedAt: Long, val message: Model.Message): Wallet.Event()
+
         data class Subscription(val requestId: Long, val topic: String, val account: String, val relay: Relay, val metadata: Core.Model.AppMetaData?): Model() {
 
             data class Relay(val protocol: String, val data: String?)
@@ -66,7 +68,9 @@ object Push {
 
             data class MessageHistory(val topic: String): Params()
 
-            data class Delete(val topic: String): Params()
+            data class DeleteSubscription(val topic: String): Params()
+
+            data class DeleteMessage(val id: Long): Params()
 
             data class DecryptMessage(val topic: String, val encryptedMessage: String): Params()
         }

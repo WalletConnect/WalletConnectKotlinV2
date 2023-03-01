@@ -69,10 +69,8 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
             _publicKey = publicKey
             _privateKey = privateKey
             // Note: This is only demo. Normally you want more security with private key
-            Log.d(TAG, "Registered identity successfully, account: $account, identityKey: $publicKey")
-        } else {
-            registerIdentity()
         }
+        registerIdentity()
     }
 
     private fun goPublic() {
@@ -97,7 +95,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
 
         val register = Chat.Params.Register(Chat.Type.AccountId(_account))
         ChatClient.register(register, object : Chat.Listeners.Register {
-            override fun onSign(message: String): Chat.Model.Cacao.Signature {
+            override fun onSign(message: String): Chat.Model.Cacao.Signature? {
                 return CacaoSigner.sign(message, _privateKey.hexToBytes(), SignatureType.EIP191)
             }
 
@@ -122,7 +120,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
                 ChatClient.invite(
                     invite,
                     { Log.d(TAG, "Invited, inviter: $_account, invitee: $contact") },
-                    { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
+                    { error -> Log.e(tag(this@ChatSharedViewModel), error.throwable.stackTraceToString()) }
                 )
 
                 runBlocking(Dispatchers.Main) {
@@ -149,8 +147,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
     fun rejectInvitation(id: Long?) {
         id?.let {
             val reject = Chat.Params.Reject(it)
-            ChatClient.reject(reject) { error -> Log.e(TAG, "Unable to find reject invitation: $error") }
-            updateInvites(id)
+            ChatClient.reject(reject, onSuccess = { updateInvites(id) }, onError = { error -> Log.e(TAG, "Unable to find reject invitation: $error") })
         } ?: Log.e(TAG, "Unable to find id on reject invitation: $id")
     }
 
@@ -161,7 +158,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
         listOfMessages.add(MessageUI(userName, message, System.currentTimeMillis(), _account))
         _listOfMessagesStateFlow.value = listOfMessages.toList()
 
-        ChatClient.message(Chat.Params.Message(topic, Chat.Type.ChatMessage(message))) { error ->
+        ChatClient.message(Chat.Params.Message(topic, Chat.Type.ChatMessage(message)), onSuccess = {}) { error ->
             Log.e(TAG, error.throwable.stackTraceToString())
         }
     }

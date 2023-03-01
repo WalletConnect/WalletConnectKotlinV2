@@ -207,7 +207,6 @@ internal class JsonRpcInteractor(
                 result.fold(
                     onSuccess = { acknowledgement ->
                         subscriptions.plus(topics.zip(acknowledgement.result).toMap())
-                        logger.error("Batch subscribe to topics: $topics")
                         onSuccess(topics)
                     },
                     onFailure = { error ->

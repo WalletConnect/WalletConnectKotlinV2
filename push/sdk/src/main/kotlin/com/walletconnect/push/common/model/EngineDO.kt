@@ -13,6 +13,13 @@ sealed class EngineDO: EngineEvent {
         val account: String,
     ) : EngineDO()
 
+    data class PushRecord(
+        val id: Long,
+        val topic: String,
+        val publishedAt: Long,
+        val message: PushMessage
+    ): EngineDO()
+
     data class PushMessage(
         val title: String,
         val body: String,
