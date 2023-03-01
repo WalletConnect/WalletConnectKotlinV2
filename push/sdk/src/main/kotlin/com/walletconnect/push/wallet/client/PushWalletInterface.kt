@@ -31,9 +31,11 @@ interface PushWalletInterface {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
-    fun getMessageHistory(params: Push.Wallet.Params.MessageHistory): Map<String, Push.Model.Subscription>
+    fun getMessageHistory(params: Push.Wallet.Params.MessageHistory): Map<Long, Push.Model.MessageRecord>
 
-    fun delete(params: Push.Wallet.Params.Delete, onError: (Push.Model.Error) -> Unit)
+    fun deleteSubscription(params: Push.Wallet.Params.DeleteSubscription, onError: (Push.Model.Error) -> Unit)
+
+    fun deletePushMessage(params: Push.Wallet.Params.DeleteMessage, onError: (Push.Model.Error) -> Unit)
 
     fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (Push.Model.Message) -> Unit, onError: (Push.Model.Error) -> Unit)
 }

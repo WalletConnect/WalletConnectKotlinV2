@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.Core
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.wallet.client.PushWalletClient
-import com.walletconnect.push.wallet.client.PushWalletProtocol
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
@@ -88,7 +87,7 @@ class SessionDetailsViewModel : ViewModel() {
             selectedSessionTopic = null
 
             PushWalletClient.getActiveSubscriptions().entries.firstOrNull()?.value?.topic?.let { pushTopic ->
-                PushWalletClient.delete(Push.Wallet.Params.Delete(pushTopic)) { error ->
+                PushWalletClient.deleteSubscription(Push.Wallet.Params.DeleteSubscription(pushTopic)) { error ->
                     Log.e(tag(this), error.throwable.stackTraceToString())
                 }
             }
