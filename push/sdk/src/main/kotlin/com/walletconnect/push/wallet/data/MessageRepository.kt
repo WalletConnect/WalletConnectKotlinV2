@@ -1,8 +1,10 @@
+@file:JvmSynthetic
+
 package com.walletconnect.push.wallet.data
 
 import com.walletconnect.push.common.storage.data.dao.MessageQueries
 
-class MessageRepository(private val messageQueries: MessageQueries) {
+internal class MessageRepository(private val messageQueries: MessageQueries) {
 
     fun insertMessage(
         requestId: Long,
