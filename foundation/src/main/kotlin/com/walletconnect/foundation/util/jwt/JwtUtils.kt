@@ -37,13 +37,12 @@ fun <T> encodeJSON(jsonObj: T): String {
 
 @Suppress("NewApi")
 fun encodeBase64(bytes: ByteArray): String {
-    return String(java.util.Base64.getUrlEncoder().withoutPadding().encode(bytes))
+    return String(io.ipfs.multibase.binary.Base64.encodeBase64URLSafe(bytes))
 }
-
 
 @Suppress("NewApi")
 fun decodeBase64(value: ByteArray): String {
-    return String(String(java.util.Base64.getUrlDecoder().decode(value), Charsets.ISO_8859_1).toByteArray())
+    return String(String(io.ipfs.multibase.binary.Base64.decodeBase64(value), Charsets.ISO_8859_1).toByteArray())
 }
 
 fun encodeEd25519DidKey(publicKey: ByteArray): String {
