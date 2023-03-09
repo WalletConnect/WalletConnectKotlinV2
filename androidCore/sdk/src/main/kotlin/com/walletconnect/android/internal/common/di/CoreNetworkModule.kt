@@ -2,7 +2,6 @@ package com.walletconnect.android.internal.common.di
 
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import com.squareup.moshi.Moshi
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
@@ -13,19 +12,16 @@ import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.connection.ManualConnectionLifecycle
 import com.walletconnect.android.internal.common.jwt.GenerateJwtStoreClientIdUseCase
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.qualifier.named
-import org.koin.core.scope.Scope
 import org.koin.dsl.module
-import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 
 @Suppress("LocalVariableName")
@@ -60,6 +56,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
                 response.request.run {
                     if (Uri.parse(serverUrl).host == this.url.host) {
                         val relayUrl = get<Uri>(named(AndroidCommonDITags.RELAY_URL)).toString()
+                        relayUrl.toHttpUrlOrNull()
                         this.newBuilder().url(relayUrl).build()
                     } else {
                         null

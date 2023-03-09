@@ -10,27 +10,35 @@ import kotlinx.coroutines.withContext
 
 class SubscriptionStorageRepository(private val subscriptionQueries: SubscriptionsQueries) {
 
-    fun insertSubscriptionProposal(requestId: Long, peerPublicKey: String, account: String) {
+    fun insertSubscriptionProposal(requestId: Long, pairingTopic: String, peerPublicKey: String, account: String, name: String, description: String, url: String, icons: List<String>, native: String?) {
         subscriptionQueries.insertSubscriptionRequest(
             requestId,
+            pairingTopic,
             peerPublicKey,
-            account
+            account,
+            name,
+            description,
+            url,
+            icons,
+            native
         )
     }
 
-    fun insertRespondedSubscription(respondedSubscription: EngineDO.PushSubscription.Responded) {
+    fun insertRespondedSubscription(pairingTopic: String, respondedSubscription: EngineDO.PushSubscription.Responded) {
         subscriptionQueries.insertSubscriptionResponse(
             respondedSubscription.requestId,
+            pairingTopic,
             respondedSubscription.peerPublicKey,
             respondedSubscription.topic,
             respondedSubscription.account,
             respondedSubscription.relay.protocol,
             respondedSubscription.relay.data,
-            respondedSubscription.metadata?.name,
-            respondedSubscription.metadata?.description,
-            respondedSubscription.metadata?.url,
-            respondedSubscription.metadata?.icons,
-            respondedSubscription.metadata?.redirect?.native)
+            respondedSubscription.metadata.name,
+            respondedSubscription.metadata.description,
+            respondedSubscription.metadata.url,
+            respondedSubscription.metadata.icons,
+            respondedSubscription.metadata.redirect?.native
+        )
     }
 
     fun updateSubscriptionToResponded(requestId: Long, topic: String, metadata: AppMetaData) {
@@ -51,30 +59,31 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
         }
     }
 
+    fun getSubscriptionsByRequestId(requestId: Long): EngineDO.PushSubscription.Requested? {
+        return (subscriptionQueries.getSubscriptionByRequestId(requestId, ::toSubscription).executeAsOne() as? EngineDO.PushSubscription.Requested)
+    }
+
     private fun toSubscription(
         id: Long,
         request_id: Long,
+        pairingTopic: String,
         peerPublicKey: String,
         topic: String?,
         account: String?,
         relay_protocol: String?,
         relay_data: String?,
-        metadata_name: String?,
-        metadata_description: String?,
-        metadata_url: String?,
-        metadata_icons: List<String>?,
+        metadata_name: String,
+        metadata_description: String,
+        metadata_url: String,
+        metadata_icons: List<String>,
         metadata_native: String?,
     ): EngineDO.PushSubscription {
-        return if (topic == null || account == null) {
-            EngineDO.PushSubscription.Requested(request_id, peerPublicKey)
-        } else {
-            val metadata = if (metadata_name != null && metadata_description != null && metadata_url != null && metadata_icons != null && metadata_native != null) {
-                AppMetaData(metadata_name, metadata_description, metadata_url, metadata_icons, Redirect(metadata_native))
-            } else {
-                null
-            }
+        val metadata = AppMetaData(metadata_name, metadata_description, metadata_url, metadata_icons, Redirect(metadata_native))
 
-            EngineDO.PushSubscription.Responded(request_id, peerPublicKey, topic, account, RelayProtocolOptions(relay_protocol ?: "irn", relay_data), metadata)
+        return if (topic == null || account == null) {
+            EngineDO.PushSubscription.Requested(request_id, pairingTopic, peerPublicKey, metadata)
+        } else {
+            EngineDO.PushSubscription.Responded(request_id, pairingTopic, peerPublicKey, topic, account, RelayProtocolOptions(relay_protocol ?: "irn", relay_data), metadata)
         }
     }
 }

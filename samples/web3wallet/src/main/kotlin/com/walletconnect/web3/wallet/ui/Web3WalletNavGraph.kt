@@ -28,6 +28,7 @@ import com.walletconnect.web3.wallet.ui.routes.composable_routes.connections.Con
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.get_started.GetStartedRoute
 import com.walletconnect.web3.wallet.ui.routes.dialog_routes.auth_request.AuthRequestRoute
 import com.walletconnect.web3.wallet.ui.routes.dialog_routes.paste_uri.PasteUriRoute
+import com.walletconnect.web3.wallet.ui.routes.dialog_routes.push_request.PushRequestRoute
 import com.walletconnect.web3.wallet.ui.routes.dialog_routes.session_proposal.SessionProposalRoute
 import com.walletconnect.web3.wallet.ui.routes.dialog_routes.session_request.SessionRequestRoute
 import com.walletconnect.web3.wallet.ui.routes.dialog_routes.snackbar_message.SnackbarMessageRoute
@@ -80,6 +81,22 @@ fun Web3WalletNavGraph(
                     }
                     dialog(Route.SessionRequest.path, deepLinks = listOf(NavDeepLink("kotlin-web3wallet:/request")), dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
                         SessionRequestRoute(navController)
+                    }
+                    dialog("${Route.PushRequest.path}?${Route.PushRequest.KEY_REQUEST_ID}={requestId}&${Route.PushRequest.KEY_PEER_NAME}={peerName}&${Route.PushRequest.KEY_PEER_DESC}={peerDesc}&${Route.PushRequest.KEY_ICON_URL}={iconUrl}&${Route.PushRequest.KEY_REDIRECT}={redirect}", arguments = listOf(
+                        navArgument("requestId") { type = NavType.LongType },
+                        navArgument("peerName") { type = NavType.StringType },
+                        navArgument("peerDesc") { type = NavType.StringType },
+                        navArgument("iconUrl") { type = NavType.StringType },
+                        navArgument("redirect") { type = NavType.StringType }
+                    ), dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) { backStackEntry ->
+                        PushRequestRoute(
+                            navController,
+                            backStackEntry.arguments?.getLong("requestId")!!,
+                            backStackEntry.arguments?.getString("peerName")!!,
+                            backStackEntry.arguments?.getString("peerDesc")!!,
+                            backStackEntry.arguments?.getString("iconUrl"),
+                            backStackEntry.arguments?.getString("redirect"),
+                        )
                     }
                     dialog(Route.PasteUri.path, dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
                         PasteUriRoute(onSubmit = {

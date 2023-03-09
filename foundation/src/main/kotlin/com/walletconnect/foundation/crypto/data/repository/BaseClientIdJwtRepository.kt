@@ -30,7 +30,7 @@ abstract class BaseClientIdJwtRepository : JwtRepository {
         val clientId = issuer.split(":").last()
         getIssuerClientId(clientId)
         // ClientId Did Jwt have issuedAt as seconds
-        val (issuedAt, expiration) = jwtIatAndExp(timeunit = TimeUnit.SECONDS, expirySourceDuration = 1, expiryTimeUnit = TimeUnit.DAYS)
+        val (issuedAt, expiration) = jwtIatAndExp(timeunit = TimeUnit.SECONDS, expirySourceDuration = 1, expiryTimeUnit = TimeUnit.MINUTES)
         val payload = IrnJwtClaims(issuer, subject, serverUrl, issuedAt, expiration)
         val data = encodeData(JwtHeader.EdDSA.encoded, payload).toByteArray()
         val signature = signJwt(PrivateKey(privateKey), data).getOrThrow()

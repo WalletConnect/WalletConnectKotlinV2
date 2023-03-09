@@ -1,11 +1,16 @@
 package com.walletconnect.web3.wallet
 
 import android.app.Application
+import android.util.Log
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
+import com.walletconnect.push.common.Push
+import com.walletconnect.push.wallet.client.PushWalletClient
+import com.walletconnect.sample_common.tag
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.sample.BuildConfig
@@ -36,6 +41,17 @@ class Web3WalletApplication : Application() {
 
         Web3Wallet.initialize(Wallet.Params.Init(core = CoreClient)) { error ->
             Firebase.crashlytics.recordException(error.throwable)
+        }
+
+        PushWalletClient.initialize(Push.Wallet.Params.Init(CoreClient)) { error ->
+            Log.e(tag(this), error.throwable.stackTraceToString())
+        }
+
+        // For testing purposes only
+        FirebaseMessaging.getInstance().deleteToken().addOnSuccessListener {
+            FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+                Log.d(tag(this), token)
+            }
         }
     }
 }
