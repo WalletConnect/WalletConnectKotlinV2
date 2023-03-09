@@ -39,7 +39,7 @@ class WalletFirebaseMessagingService: PushMessageService() {
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setContentTitle(message.title)
-            .setSmallIcon(R.drawable.wc_icon_round)
+            .setSmallIcon(android.R.drawable.ic_popup_reminder)
             .setContentText(message.body)
             .setAutoCancel(true)
             .setSound(defaultSoundUri)
