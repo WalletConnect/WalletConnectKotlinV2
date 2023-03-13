@@ -1,11 +1,9 @@
-@file:JvmSynthetic
-
-package com.walletconnect.chat.discovery.keyserver.model
+package com.walletconnect.android.keyserver.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-internal sealed class KeyServerHttpResponse<T> {
+sealed class KeyServerHttpResponse<T> {
     abstract val status: String
     abstract val error: Error?
     abstract val value: T?
@@ -15,7 +13,7 @@ internal sealed class KeyServerHttpResponse<T> {
     }
 
     @JsonClass(generateAdapter = true)
-    internal data class RegisterInvite(
+    data class RegisterInvite(
         @Json(name = "status")
         override val status: String,
         @Json(name = "error")
@@ -25,7 +23,7 @@ internal sealed class KeyServerHttpResponse<T> {
     ) : KeyServerHttpResponse<String>()
 
     @JsonClass(generateAdapter = true)
-    internal data class UnregisterInvite(
+    data class UnregisterInvite(
         @Json(name = "status")
         override val status: String,
         @Json(name = "error")
@@ -35,7 +33,7 @@ internal sealed class KeyServerHttpResponse<T> {
     ) : KeyServerHttpResponse<String>()
 
     @JsonClass(generateAdapter = true)
-    internal data class ResolveInvite(
+    data class ResolveInvite(
         @Json(name = "status")
         override val status: String,
         @Json(name = "error")
@@ -45,7 +43,7 @@ internal sealed class KeyServerHttpResponse<T> {
     ) : KeyServerHttpResponse<KeyServerResponse.ResolveInvite>()
 
     @JsonClass(generateAdapter = true)
-    internal data class RegisterIdentity(
+    data class RegisterIdentity(
         @Json(name = "status")
         override val status: String,
         @Json(name = "error")
@@ -55,7 +53,7 @@ internal sealed class KeyServerHttpResponse<T> {
     ) : KeyServerHttpResponse<String>()
 
     @JsonClass(generateAdapter = true)
-    internal data class UnregisterIdentity(
+    data class UnregisterIdentity(
         @Json(name = "status")
         override val status: String,
         @Json(name = "error")
@@ -65,7 +63,7 @@ internal sealed class KeyServerHttpResponse<T> {
     ) : KeyServerHttpResponse<String>()
 
     @JsonClass(generateAdapter = true)
-    internal data class ResolveIdentity(
+    data class ResolveIdentity(
         @Json(name = "status")
         override val status: String,
         @Json(name = "error")
@@ -75,7 +73,7 @@ internal sealed class KeyServerHttpResponse<T> {
     ) : KeyServerHttpResponse<KeyServerResponse.ResolveIdentity>()
 
     @JsonClass(generateAdapter = true)
-    internal data class Error(
+    data class Error(
         @Json(name = "message")
         val message: String,
         @Json(name = "name")

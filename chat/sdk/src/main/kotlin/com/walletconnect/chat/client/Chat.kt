@@ -124,7 +124,7 @@ object Chat {
     }
 
     sealed class Params {
-        data class Init(val core: CoreClient, val keyServerUrl: String = DEFUALT_KEYSERVER_URL) : Params()
+        data class Init(val core: CoreClient) : Params()
         data class Resolve(val account: Type.AccountId) : Params()
         data class Invite(val inviterAccount: Type.AccountId, val inviteeAccount: Type.AccountId, val message: Type.InviteMessage, val inviteePublicKey: String) : Params()
         data class Accept(val inviteId: Long) : Params()
@@ -142,6 +142,4 @@ object Chat {
         data class GoPrivate(val account: Type.AccountId) : Params()
         data class GoPublic(val account: Type.AccountId) : Params()
     }
-
-    const val DEFUALT_KEYSERVER_URL = "https://keys.walletconnect.com"
 }

@@ -1,11 +1,9 @@
-@file:JvmSynthetic
-
-package com.walletconnect.chat.discovery.keyserver.model
+package com.walletconnect.android.keyserver.model
 
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.cacao.Cacao
 
-internal sealed class KeyServerResponse {
+sealed class KeyServerResponse {
 
     @JsonClass(generateAdapter = true)
     data class ResolveInvite(val inviteKey: String) : KeyServerResponse()

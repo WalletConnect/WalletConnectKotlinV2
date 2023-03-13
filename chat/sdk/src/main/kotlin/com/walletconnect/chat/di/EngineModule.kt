@@ -16,7 +16,7 @@ internal fun engineModule() = module {
 
     single {
         ChatEngine(
-            get(named(ChatDITags.KEYSERVER_URL)), get(), get(), get(), get(), get(), get(), get(), get(), get(),
+            get(named(AndroidCommonDITags.KEYSERVER_URL)), get(), get(), get(), get(), get(), get(), get(), get(), get(),
             get(), get(), get(), get(), get(), get(), get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))
         )
     }

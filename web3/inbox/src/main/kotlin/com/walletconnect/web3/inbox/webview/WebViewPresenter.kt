@@ -5,8 +5,8 @@ import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.web3.inbox.common.model.AccountId
 import com.walletconnect.web3.inbox.proxy.ProxyRequestHandler
 import java.lang.ref.WeakReference
 

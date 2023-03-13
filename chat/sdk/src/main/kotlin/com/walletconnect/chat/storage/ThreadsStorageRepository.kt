@@ -1,6 +1,6 @@
 package com.walletconnect.chat.storage
 
-import com.walletconnect.chat.common.model.AccountId
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.chat.common.model.Thread
 import com.walletconnect.chat.storage.data.dao.ThreadsQueries
 import com.walletconnect.foundation.common.model.Topic

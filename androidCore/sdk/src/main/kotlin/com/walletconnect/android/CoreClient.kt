@@ -21,6 +21,7 @@ import com.walletconnect.android.utils.plantTimber
 import com.walletconnect.android.utils.projectId
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
+import timber.log.Timber
 
 object CoreClient {
     val Pairing: PairingInterface = PairingProtocol
@@ -35,6 +36,7 @@ object CoreClient {
         connectionType: ConnectionType,
         application: Application,
         relay: RelayConnectionInterface? = null,
+        keyServerUrl: String? = null,
         onError: (Core.Model.Error) -> Unit
     ) {
         plantTimber()
@@ -51,8 +53,10 @@ object CoreClient {
                 module { single { Echo } },
                 coreJsonRpcModule(),
                 corePairingModule(Pairing),
+                keyServerModule(keyServerUrl),
             )
         }
+        Timber.tag("CoreClient").d("CoreClient initialize")
 
         if (relay == null) {
             RelayClient.initialize(relayServerUrl, connectionType) { error -> onError(Core.Model.Error(error)) }
