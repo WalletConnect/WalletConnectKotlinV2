@@ -150,7 +150,7 @@ internal class PushDappEngine(
         val request = PushRpc.PushDelete(id = generateId(), params = deleteParams)
         val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
 
-        subscriptionStorageRepository.delete(topic)
+        subscriptionStorageRepository.deleteSubscription(topic)
 
         scope.launch {
             castRepository.deletePendingRequest(topic)
@@ -198,7 +198,7 @@ internal class PushDappEngine(
 
     private fun onPushDelete(request: WCRequest) {
         jsonRpcInteractor.unsubscribe(request.topic)
-        subscriptionStorageRepository.delete(request.topic.value)
+        subscriptionStorageRepository.deleteSubscription(request.topic.value)
 
         scope.launch { _engineEvent.emit(EngineDO.PushDelete(request.topic.value)) }
     }

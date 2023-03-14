@@ -4,12 +4,16 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.lifecycle.flowWithLifecycle
@@ -32,6 +36,13 @@ class WalletSampleActivity : AppCompatActivity() {
     private val viewModel: WalletSampleViewModel by viewModels()
     private val navController by lazy {
         (supportFragmentManager.findFragmentById(R.id.fcvHost) as NavHostFragment).navController
+    }
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // FCM SDK (and your app) can post notifications.
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,6 +79,16 @@ class WalletSampleActivity : AppCompatActivity() {
                             .setContentText(event.body)
                             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
+                        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                            // TODO: Consider calling
+                            //    ActivityCompat#requestPermissions
+                            // here to request the missing permissions, and then overriding
+                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                            //                                          int[] grantResults)
+                            // to handle the case where the user grants the permission. See the documentation
+                            // for ActivityCompat#requestPermissions for more details.
+                            return@onEach
+                        }
                         NotificationManagerCompat.from(this).notify(Random.nextUInt().toInt(), notificationBuilder.build())
                     }
                     else -> Unit
@@ -81,6 +102,7 @@ class WalletSampleActivity : AppCompatActivity() {
             binding.bnvTabs.isVisible = destination.id != R.id.fragment_scanner
         }
 
+        askNotificationPermission()
         createNotificationChannel()
     }
 
@@ -104,6 +126,18 @@ class WalletSampleActivity : AppCompatActivity() {
             // Register the channel with the system
             val notificationManager: NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun askNotificationPermission() {
+        // This is only necessary for API level >= 33 (TIRAMISU)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                // FCM SDK (and your app) can post notifications.
+            } else {
+                // Directly ask for the permission
+                requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
         }
     }
 }

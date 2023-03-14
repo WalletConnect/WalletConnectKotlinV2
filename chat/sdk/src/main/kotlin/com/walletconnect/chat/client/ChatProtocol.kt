@@ -89,13 +89,13 @@ internal class ChatProtocol : ChatInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun reject(reject: Chat.Params.Reject, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
-        chatEngine.reject(reject.inviteId) { error -> onError(Chat.Model.Error(error)) }
+    override fun reject(reject: Chat.Params.Reject, onSuccess: () -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
+        chatEngine.reject(reject.inviteId, onSuccess) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
-    override fun message(message: Chat.Params.Message, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
-        chatEngine.message(message.topic, message.toCommon()) { error -> onError(Chat.Model.Error(error)) }
+    override fun message(message: Chat.Params.Message, onSuccess: () -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
+        chatEngine.message(message.topic, message.toCommon(), onSuccess) { error -> onError(Chat.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)

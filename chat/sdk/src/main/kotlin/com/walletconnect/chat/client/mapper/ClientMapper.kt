@@ -56,7 +56,7 @@ internal fun MediaData.toClient(): Chat.Type.MediaData = Chat.Type.MediaData(val
 internal fun Media.toClient(): Chat.Model.Media = Chat.Model.Media(type, data.toClient())
 
 @JvmSynthetic
-internal fun Events.OnInviteAccepted.toClient(): Chat.Model.Events.OnInviteAccepted = Chat.Model.Events.OnInviteAccepted(topic)
+internal fun Events.OnInviteAccepted.toClient(): Chat.Model.Events.OnInviteAccepted = Chat.Model.Events.OnInviteAccepted(topic, invite.toClient())
 
 @JvmSynthetic
 internal fun Events.OnMessage.toClient(): Chat.Model.Events.OnMessage = Chat.Model.Events.OnMessage(message.toClient())
@@ -65,7 +65,7 @@ internal fun Events.OnMessage.toClient(): Chat.Model.Events.OnMessage = Chat.Mod
 internal fun Events.OnLeft.toClient(): Chat.Model.Events.OnLeft = Chat.Model.Events.OnLeft(topic)
 
 @JvmSynthetic
-internal fun Events.OnInviteRejected.toClient(): Chat.Model.Events.OnInviteRejected = Chat.Model.Events.OnInviteRejected(topic)
+internal fun Events.OnInviteRejected.toClient(): Chat.Model.Events.OnInviteRejected = Chat.Model.Events.OnInviteRejected(invite.toClient())
 
 @JvmSynthetic
 internal fun Message.toClient(): Chat.Model.Message = Chat.Model.Message(topic.value, message.toClient(), authorAccount.toClient(), timestamp, media?.toClient())
@@ -77,7 +77,7 @@ internal fun SDKError.toClientError(): Chat.Model.Error = Chat.Model.Error(this.
 internal fun ConnectionState.toClient(): Chat.Model.ConnectionState = Chat.Model.ConnectionState(isAvailable)
 
 @JvmSynthetic
-internal fun Chat.Model.Cacao.Signature.toCommon(): Cacao.Signature = Cacao.Signature(t, s, m)
+internal fun Chat.Model.Cacao.Signature?.toCommon(): Cacao.Signature? = this?.let { cacao -> Cacao.Signature(cacao.t, cacao.s, cacao.m) }
 
 @JvmSynthetic
 internal fun Chat.Type.AccountId.toCommon(): AccountId = AccountId(value)

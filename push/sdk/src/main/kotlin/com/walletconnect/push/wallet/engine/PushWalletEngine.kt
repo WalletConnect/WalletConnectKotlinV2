@@ -27,6 +27,7 @@ import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.common.storage.data.SubscriptionStorageRepository
+import com.walletconnect.push.wallet.data.MessageRepository
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -40,6 +41,7 @@ internal class PushWalletEngine(
     private val crypto: KeyManagementRepository,
     private val pairingHandler: PairingControllerInterface,
     private val subscriptionStorageRepository: SubscriptionStorageRepository,
+    private val messageRepository: MessageRepository,
     private val serializer: JsonRpcSerializer,
     private val logger: Logger,
 ) {
@@ -127,18 +129,12 @@ internal class PushWalletEngine(
         }
     }
 
-    fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription.Responded> {
-        return subscriptionStorageRepository.getAllSubscriptions()
-            .filterIsInstance<EngineDO.PushSubscription.Responded>()
-            .associateBy { subscription -> subscription.topic }
-    }
-
-    fun delete(topic: String, onFailure: (Throwable) -> Unit) {
+    fun deleteSubscription(topic: String, onFailure: (Throwable) -> Unit) {
         val deleteParams = PushParams.DeleteParams(6000, "User Disconnected")
         val request = PushRpc.PushDelete(id = generateId(), params = deleteParams)
         val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
 
-        subscriptionStorageRepository.delete(topic)
+        subscriptionStorageRepository.deleteSubscription(topic)
 
         jsonRpcInteractor.unsubscribe(Topic(topic))
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, request,
@@ -155,6 +151,14 @@ internal class PushWalletEngine(
         )
     }
 
+    fun deleteMessage(requestId: Long, onFailure: (Throwable) -> Unit) {
+        try {
+            messageRepository.deleteMessage(requestId)
+        } catch (e: Exception) {
+            onFailure(e)
+        }
+    }
+
     fun decryptMessage(topic: String, message: String, onSuccess: (EngineDO.PushMessage) -> Unit, onError: (Throwable) -> Unit) {
         try {
             val codec = wcKoinApp.koin.get<Codec>()
@@ -169,6 +173,29 @@ internal class PushWalletEngine(
             onError(e)
         }
     }
+
+    fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription.Responded> {
+        return subscriptionStorageRepository.getAllSubscriptions()
+            .filterIsInstance<EngineDO.PushSubscription.Responded>()
+            .associateBy { subscription -> subscription.topic }
+    }
+
+    fun getListOfMessages(topic: String): Map<Long, EngineDO.PushRecord> =
+        messageRepository.getMessagesByTopic(topic).map { messageRecord ->
+            EngineDO.PushRecord(
+                id = messageRecord.id,
+                topic = messageRecord.topic,
+                publishedAt = messageRecord.publishedAt,
+                message = EngineDO.PushMessage(
+                    title = messageRecord.message.title,
+                    body = messageRecord.message.body,
+                    icon = messageRecord.message.icon,
+                    url = messageRecord.message.url,
+                )
+            )
+        }.associateBy { pushRecord ->
+            pushRecord.id
+        }
 
     private fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
@@ -215,6 +242,8 @@ internal class PushWalletEngine(
 
         try {
             jsonRpcInteractor.respondWithSuccess(request, irnParams)
+            messageRepository.insertMessage(request.id, request.topic.value, System.currentTimeMillis(), params.title, params.body, params.icon, params.url)
+
             scope.launch { _engineEvent.emit(params.toEngineDO()) }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
@@ -231,7 +260,7 @@ internal class PushWalletEngine(
         try {
             jsonRpcInteractor.respondWithSuccess(request, irnParams)
             jsonRpcInteractor.unsubscribe(request.topic)
-            subscriptionStorageRepository.delete(request.topic.value)
+            subscriptionStorageRepository.deleteSubscription(request.topic.value)
 
             scope.launch { _engineEvent.emit(EngineDO.PushDelete(request.topic.value)) }
         } catch (e: Exception) {
