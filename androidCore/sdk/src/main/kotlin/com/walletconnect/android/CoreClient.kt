@@ -56,7 +56,6 @@ object CoreClient {
                 keyServerModule(keyServerUrl),
             )
         }
-        Timber.tag("CoreClient").d("CoreClient initialize")
 
         if (relay == null) {
             RelayClient.initialize(relayServerUrl, connectionType) { error -> onError(Core.Model.Error(error)) }

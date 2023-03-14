@@ -26,7 +26,6 @@ internal class ChatProtocol : ChatInterface {
 
     @Throws(IllegalStateException::class)
     override fun initialize(init: Chat.Params.Init, onError: (Chat.Model.Error) -> Unit) {
-        Timber.tag("ChatProtocol").d("ChatProtocol initialize")
         try {
             wcKoinApp.run {
                 modules(

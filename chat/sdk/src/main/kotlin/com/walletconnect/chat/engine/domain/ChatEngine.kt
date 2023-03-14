@@ -272,7 +272,7 @@ internal class ChatEngine(
         }
     }
 
-    //todo extract to core
+    //todo extract to core in #707
     private suspend fun resolveIdentity(identityDidKey: String): Result<AccountId> {
         val identityKey = identityDidKey.split(DID_DELIMITER).last()
         return runCatching { identitiesRepository.getAccountId(identityKey) }.onFailure {

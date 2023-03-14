@@ -25,7 +25,6 @@ object Web3Inbox {
     @Throws(IllegalStateException::class)
     fun initialize(init: Inbox.Params.Init, onError: (Inbox.Model.Error) -> Unit) {
         ChatClient.initialize(Chat.Params.Init(init.core)) { error -> onError(Inbox.Model.Error(error.throwable)) }
-        Timber.tag("Web3Inbox").d("initialize")
 
         runCatching {
             account = LateInitAccountId(AccountId(init.account.value))
