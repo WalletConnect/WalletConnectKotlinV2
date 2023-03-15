@@ -129,7 +129,27 @@ internal class JsonRpcInteractor(
             onFailure = { error ->
                 logger.error("Cannot send the response, error: $error")
                 onFailure(error)
-            })
+            }
+        )
+    }
+
+    override fun respondWithParams(
+        requestId: Long,
+        topic: Topic,
+        clientParams: ClientParams,
+        irnParams: IrnParams,
+        envelopeType: EnvelopeType,
+        participants: Participants?,
+        onFailure: (Throwable) -> Unit,
+    ) {
+        val result = JsonRpcResponse.JsonRpcResult(id = requestId, result = clientParams)
+
+        publishJsonRpcResponse(topic, irnParams, result, envelopeType = envelopeType, participants = participants,
+            onFailure = { error ->
+                logger.error("Cannot send the response, error: $error")
+                onFailure(error)
+            }
+        )
     }
 
     // TODO: Can we replace this function with different parameters? Instead of request, just pass request id and request topic.
@@ -165,6 +185,31 @@ internal class JsonRpcInteractor(
         try {
             publishJsonRpcResponse(request.topic, irnParams, jsonRpcError, envelopeType = envelopeType, participants = participants,
                 onSuccess = { onSuccess(request) },
+                onFailure = { failure ->
+                    onFailure(failure)
+                    handleError("Cannot send respondWithError: ${failure.stackTraceToString()}")
+                })
+        } catch (e: Exception) {
+            handleError("publishFailure; ${e.stackTraceToString()}")
+        }
+    }
+
+    override fun respondWithError(
+        requestId: Long,
+        topic: Topic,
+        error: Error,
+        irnParams: IrnParams,
+        envelopeType: EnvelopeType,
+        participants: Participants?,
+        onSuccess: () -> Unit,
+        onFailure: (Throwable) -> Unit,
+    ) {
+        logger.error("Responding with error: ${error.message}: ${error.code}")
+        val jsonRpcError = JsonRpcResponse.JsonRpcError(id = requestId, error = JsonRpcResponse.Error(error.code, error.message))
+
+        try {
+            publishJsonRpcResponse(topic, irnParams, jsonRpcError, envelopeType = envelopeType, participants = participants,
+                onSuccess = { onSuccess() },
                 onFailure = { failure ->
                     onFailure(failure)
                     handleError("Cannot send respondWithError: ${failure.stackTraceToString()}")

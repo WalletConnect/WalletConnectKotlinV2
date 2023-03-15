@@ -10,6 +10,13 @@ sealed class Route(val path: String) {
     object AuthRequest : Route("auth_request")
     object PasteUri : Route("paste_uri")
     object ScanUri : Route("scan_uri")
+    object PushRequest : Route("push_request") {
+        const val KEY_REQUEST_ID: String = "request_id"
+        const val KEY_PEER_NAME: String = "peer_name"
+        const val KEY_PEER_DESC: String = "peer_desc"
+        const val KEY_ICON_URL: String = "icon_url"
+        const val KEY_REDIRECT: String = "redirect"
+    }
     object ConnectionDetails : Route("connection_details")
     object SnackbarMessage : Route("snackbar_message")
 }

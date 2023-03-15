@@ -1,4 +1,4 @@
-package com.walletconnect.wallet
+package com.walletconnect.web3.wallet
 
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
@@ -13,14 +13,14 @@ import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.RemoteMessage
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.wallet.client.PushMessageService
-import com.walletconnect.wallet.ui.host.WalletSampleActivity
+import com.walletconnect.web3.wallet.ui.Web3WalletActivity
 import kotlin.random.Random
 import kotlin.random.nextUInt
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 class WalletFirebaseMessagingService: PushMessageService() {
     private val TAG = this::class.simpleName
-    private val intent by lazy { Intent(this, WalletSampleActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) } }
+    private val intent by lazy { Intent(this, Web3WalletActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) } }
     private val pendingIntent by lazy { PendingIntent.getActivity(this, 0 /* Request code */, intent, PendingIntent.FLAG_IMMUTABLE) }
     private val channelId = "Push"
     private val notificationManager by lazy { getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }
@@ -39,7 +39,7 @@ class WalletFirebaseMessagingService: PushMessageService() {
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setContentTitle(message.title)
-            .setSmallIcon(R.drawable.ic_walletconnect_circle_blue)
+            .setSmallIcon(android.R.drawable.ic_popup_reminder)
             .setContentText(message.body)
             .setAutoCancel(true)
             .setSound(defaultSoundUri)
