@@ -2,9 +2,9 @@
 
 package com.walletconnect.chat.client
 
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
-import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.mapper.toClient
@@ -15,7 +15,6 @@ import com.walletconnect.chat.di.*
 import com.walletconnect.chat.engine.domain.ChatEngine
 import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 internal class ChatProtocol : ChatInterface {
     private lateinit var chatEngine: ChatEngine

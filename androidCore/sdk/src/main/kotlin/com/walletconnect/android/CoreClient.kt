@@ -5,8 +5,6 @@ import com.walletconnect.android.di.coreStorageModule
 import com.walletconnect.android.echo.EchoClient
 import com.walletconnect.android.echo.EchoInterface
 import com.walletconnect.android.internal.common.di.*
-import com.walletconnect.android.internal.common.di.coreCryptoModule
-import com.walletconnect.android.internal.common.di.echoModule
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.model.Redirect
@@ -21,7 +19,6 @@ import com.walletconnect.android.utils.plantTimber
 import com.walletconnect.android.utils.projectId
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
-import timber.log.Timber
 
 object CoreClient {
     val Pairing: PairingInterface = PairingProtocol
@@ -37,7 +34,7 @@ object CoreClient {
         application: Application,
         relay: RelayConnectionInterface? = null,
         keyServerUrl: String? = null,
-        onError: (Core.Model.Error) -> Unit
+        onError: (Core.Model.Error) -> Unit,
     ) {
         plantTimber()
         with(wcKoinApp) {
