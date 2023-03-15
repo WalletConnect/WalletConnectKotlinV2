@@ -24,10 +24,8 @@ class CoreValidatorTest {
         CoreValidator.isAccountIdCAIP10Compliant("").apply { assertEquals(this, false) }
         CoreValidator.isAccountIdCAIP10Compliant("1231:dadd").apply { assertEquals(this, false) }
         CoreValidator.isAccountIdCAIP10Compliant("0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1").apply { assertEquals(this, false) }
-        CoreValidator.isAccountIdCAIP10Compliant("polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy")
-            .apply { assertEquals(this, true) }
-        CoreValidator.isAccountIdCAIP10Compliant("polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuy:xw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy")
-            .apply { assertEquals(this, false) }
+        CoreValidator.isAccountIdCAIP10Compliant("polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuyxw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy").apply { assertEquals(this, true) }
+        CoreValidator.isAccountIdCAIP10Compliant("polkadot:b0a8d493285c2df73290dfb7e61f870f:5hmuy:xw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy").apply { assertEquals(this, false) }
         CoreValidator.isAccountIdCAIP10Compliant("polkadotb0a8d493285c2df73290dfb7e61f870f:b0a8d493285c2df73290dfb7e61f870f:5hmuy:xw9xdgbpptgypokw4thfyoe3ryenebr381z9iaegmfy")
             .apply { assertEquals(this, false) }
         CoreValidator.isAccountIdCAIP10Compliant("::").apply { assertEquals(this, false) }
