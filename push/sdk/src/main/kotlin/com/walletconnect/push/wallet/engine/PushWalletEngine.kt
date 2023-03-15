@@ -2,7 +2,6 @@
 
 package com.walletconnect.push.wallet.engine
 
-import android.util.Log
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
@@ -45,7 +44,6 @@ internal class PushWalletEngine(
     private var internalErrorsJob: Job? = null
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
-    private val pushRequests: MutableMap<Long, WCRequest> = mutableMapOf()
 
     init {
         pairingHandler.register(
@@ -82,7 +80,7 @@ internal class PushWalletEngine(
 
     fun approve(requestId: Long, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         try {
-            val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId.also { Log.e("Talha", it.toString()) }) ?: return onError(Exception("Subscription with RequestId $requestId can't be found"))
+            val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId) ?: return onError(Exception("Subscription with RequestId $requestId can't be found"))
             val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
             val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(respondedSubscription.peerPublicKey))
             val approvalParams = PushParams.RequestResponseParams(selfPublicKey.keyAsHex)
@@ -122,10 +120,6 @@ internal class PushWalletEngine(
         return subscriptionStorageRepository.getAllSubscriptions()
             .filterIsInstance<EngineDO.PushSubscription.Responded>()
             .associateBy { subscription -> subscription.topic }
-    }
-
-    fun getMessageHistory() {
-
     }
 
     fun delete(topic: String, onFailure: (Throwable) -> Unit) {

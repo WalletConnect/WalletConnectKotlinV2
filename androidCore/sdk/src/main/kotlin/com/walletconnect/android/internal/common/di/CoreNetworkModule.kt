@@ -16,7 +16,6 @@ import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
@@ -56,7 +55,6 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
                 response.request.run {
                     if (Uri.parse(serverUrl).host == this.url.host) {
                         val relayUrl = get<Uri>(named(AndroidCommonDITags.RELAY_URL)).toString()
-                        relayUrl.toHttpUrlOrNull()
                         this.newBuilder().url(relayUrl).build()
                     } else {
                         null

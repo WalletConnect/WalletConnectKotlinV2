@@ -40,11 +40,11 @@ fun PushRequestRoute(
         Request()
         Spacer(modifier = Modifier.height(16.dp))
         Buttons(onDecline = {
-            pushRequestViewModel.reject(requestId) { /*navController.popBackStack()*/ }
+            pushRequestViewModel.reject(requestId) {}
             navController.popBackStack()
             navController.showSnackbar("Push Request declined")
         }, onAllow = {
-            pushRequestViewModel.approve(requestId) { /*navController.popBackStack()*/ }
+            pushRequestViewModel.approve(requestId) {}
             navController.popBackStack()
             navController.showSnackbar("Push Request approved")
         })
