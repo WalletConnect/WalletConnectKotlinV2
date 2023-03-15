@@ -2,7 +2,7 @@
 
 package com.walletconnect.chat.jwt.use_case
 
-import com.walletconnect.chat.common.model.AccountId
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.chat.jwt.ChatDidJwtClaims
 import com.walletconnect.foundation.util.jwt.encodeDidPkh
 

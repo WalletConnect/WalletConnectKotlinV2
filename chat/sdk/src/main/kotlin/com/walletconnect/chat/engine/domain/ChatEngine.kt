@@ -16,12 +16,17 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.*
+import com.walletconnect.android.keyserver.domain.use_case.RegisterIdentityUseCase
+import com.walletconnect.android.keyserver.domain.use_case.RegisterInviteUseCase
+import com.walletconnect.android.keyserver.domain.use_case.ResolveIdentityUseCase
+import com.walletconnect.android.keyserver.domain.use_case.ResolveInviteUseCase
+import com.walletconnect.android.keyserver.domain.use_case.UnregisterIdentityUseCase
+import com.walletconnect.android.keyserver.domain.use_case.UnregisterInviteUseCase
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.chat.common.exceptions.*
 import com.walletconnect.chat.common.json_rpc.ChatParams
 import com.walletconnect.chat.common.json_rpc.ChatRpc
 import com.walletconnect.chat.common.model.*
-import com.walletconnect.chat.discovery.keyserver.domain.use_case.*
 import com.walletconnect.chat.json_rpc.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.chat.json_rpc.JsonRpcMethod
 import com.walletconnect.chat.jwt.ChatDidJwtClaims
@@ -267,6 +272,7 @@ internal class ChatEngine(
         }
     }
 
+    //todo extract to core in #707
     private suspend fun resolveIdentity(identityDidKey: String): Result<AccountId> {
         val identityKey = identityDidKey.split(DID_DELIMITER).last()
         return runCatching { identitiesRepository.getAccountId(identityKey) }.onFailure {

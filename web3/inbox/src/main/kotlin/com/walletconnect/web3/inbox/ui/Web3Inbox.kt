@@ -6,7 +6,7 @@ import android.webkit.WebView
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
-import com.walletconnect.web3.inbox.common.model.AccountId
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.web3.inbox.webview.WebViewPresenter
 
 @Composable

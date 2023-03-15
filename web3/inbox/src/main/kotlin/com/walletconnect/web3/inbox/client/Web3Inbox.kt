@@ -4,26 +4,27 @@ import android.content.Context
 import android.webkit.WebView
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatClient
 import com.walletconnect.web3.inbox.chat.ChatEventHandler
-import com.walletconnect.web3.inbox.common.model.AccountId
 import com.walletconnect.web3.inbox.di.jsonRpcModule
 import com.walletconnect.web3.inbox.di.proxyModule
 import com.walletconnect.web3.inbox.ui.Web3InboxView
 import com.walletconnect.web3.inbox.ui.WebViewState
 import com.walletconnect.web3.inbox.ui.createWebView
+import timber.log.Timber
 
 object Web3Inbox {
     private var isClientInitialized = false
     private var webViewState: WebViewState = WebViewState.Loading
-    private lateinit var account: LateInitAccountId // todo: discuss wrapping to only have lateinitness(?)
-    private lateinit var chatEventHandler: ChatEventHandler // todo: probably needs a host.
+    private lateinit var account: LateInitAccountId
+    private lateinit var chatEventHandler: ChatEventHandler
 
     @Throws(IllegalStateException::class)
     fun initialize(init: Inbox.Params.Init, onError: (Inbox.Model.Error) -> Unit) {
-        ChatClient.initialize(Chat.Params.Init(init.core, init.keyServerUrl)) { error -> onError(Inbox.Model.Error(error.throwable)) }
+        ChatClient.initialize(Chat.Params.Init(init.core)) { error -> onError(Inbox.Model.Error(error.throwable)) }
 
         runCatching {
             account = LateInitAccountId(AccountId(init.account.value))
@@ -41,7 +42,7 @@ object Web3Inbox {
 
     private fun onPageFinished() = wrapWithInitializationCheck {
         if (webViewState is WebViewState.Loading) {
-            chatEventHandler = wcKoinApp.koin.get() // todo: probably needs a host. Starts listening for events
+            chatEventHandler = wcKoinApp.koin.get()
             webViewState = WebViewState.Initialized
         }
     }

@@ -1,14 +1,14 @@
 @file:JvmSynthetic
 
-package com.walletconnect.chat.discovery.keyserver.data.service
+package com.walletconnect.android.keyserver.data.service
 
 
-import com.walletconnect.chat.discovery.keyserver.model.KeyServerBody
-import com.walletconnect.chat.discovery.keyserver.model.KeyServerHttpResponse
+import com.walletconnect.android.keyserver.model.KeyServerBody
+import com.walletconnect.android.keyserver.model.KeyServerHttpResponse
 import retrofit2.Response
 import retrofit2.http.*
 
-internal interface KeyServerService {
+interface KeyServerService {
     @Headers("Content-Type: application/json")
     @POST("invite")
     suspend fun registerInvite(@Body body: KeyServerBody.RegisterInvite) : Response<KeyServerHttpResponse.RegisterInvite>

@@ -1,6 +1,6 @@
 package com.walletconnect.chat.storage
 
-import com.walletconnect.chat.common.model.AccountId
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.chat.storage.data.dao.IdentitiesQueries
 
 internal class IdentitiesStorageRepository(private val identities: IdentitiesQueries) {

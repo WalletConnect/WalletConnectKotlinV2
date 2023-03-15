@@ -1,11 +1,9 @@
-@file:JvmSynthetic
-
-package com.walletconnect.chat.discovery.keyserver.model
+package com.walletconnect.android.keyserver.model
 
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.cacao.Cacao
 
-internal sealed class KeyServerBody {
+sealed class KeyServerBody {
 
     @JsonClass(generateAdapter = true)
     data class UnregisterIdentity(val cacao: Cacao) : KeyServerBody()
