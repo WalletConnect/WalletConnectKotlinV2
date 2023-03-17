@@ -3,6 +3,7 @@
 package com.walletconnect.android.internal.common.di
 
 import com.walletconnect.android.keyserver.data.service.KeyServerService
+import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.android.keyserver.domain.use_case.*
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -18,7 +19,6 @@ internal fun keyServerModule(optionalKeyServerUrl: String? = null) = module {
     single(named(AndroidCommonDITags.KEYSERVER_RETROFIT)) {
         Retrofit.Builder()
             .baseUrl(keyServerUrl)
-            // todo discuss: Is okhttp client from core with authenticator valid for keyserver as well?
             .client(get(named(AndroidCommonDITags.OK_HTTP)))
             .addConverterFactory(MoshiConverterFactory.create(get(named(AndroidCommonDITags.MOSHI))))
             .build()
@@ -32,6 +32,8 @@ internal fun keyServerModule(optionalKeyServerUrl: String? = null) = module {
     single { RegisterInviteUseCase(get()) }
     single { UnregisterInviteUseCase(get()) }
     single { ResolveInviteUseCase(get()) }
+
+    single { IdentitiesInteractor(get(), get(), get(), get(), get(), get()) }
 }
 
 private const val DEFAULT_KEYSERVER_URL = "https://keys.walletconnect.com"

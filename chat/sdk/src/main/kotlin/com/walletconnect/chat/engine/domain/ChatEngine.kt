@@ -4,24 +4,18 @@ package com.walletconnect.chat.engine.domain
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.cacao.Cacao
-import com.walletconnect.android.internal.common.cacao.Cacao.Payload.Companion.CURRENT_VERSION
-import com.walletconnect.android.internal.common.cacao.Cacao.Payload.Companion.ISO_8601_PATTERN
-import com.walletconnect.android.internal.common.cacao.CacaoType
-import com.walletconnect.android.internal.common.cacao.CacaoVerifier
-import com.walletconnect.android.internal.common.cacao.toCAIP122Message
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreChatParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.*
-import com.walletconnect.android.keyserver.domain.use_case.RegisterIdentityUseCase
-import com.walletconnect.android.keyserver.domain.use_case.RegisterInviteUseCase
-import com.walletconnect.android.keyserver.domain.use_case.ResolveIdentityUseCase
-import com.walletconnect.android.keyserver.domain.use_case.ResolveInviteUseCase
-import com.walletconnect.android.keyserver.domain.use_case.UnregisterIdentityUseCase
-import com.walletconnect.android.keyserver.domain.use_case.UnregisterInviteUseCase
+import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.SELF_INVITE_PUBLIC_KEY_CONTEXT
+import com.walletconnect.android.internal.utils.SELF_PARTICIPANT_CONTEXT
+import com.walletconnect.android.internal.utils.THIRTY_SECONDS
+import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
+import com.walletconnect.android.keyserver.domain.use_case.*
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.chat.common.exceptions.*
 import com.walletconnect.chat.common.json_rpc.ChatParams
@@ -33,27 +27,19 @@ import com.walletconnect.chat.jwt.ChatDidJwtClaims
 import com.walletconnect.chat.jwt.DidJwtRepository
 import com.walletconnect.chat.jwt.use_case.*
 import com.walletconnect.chat.storage.*
-import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.*
 import com.walletconnect.util.generateId
-import com.walletconnect.util.randomBytes
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import java.net.URI
-import java.text.SimpleDateFormat
-import java.util.*
 
 internal class ChatEngine(
     private val keyserverUrl: String,
-    private val projectId: ProjectId,
     private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
-    private val registerIdentityUseCase: RegisterIdentityUseCase,
-    private val unregisterIdentityUseCase: UnregisterIdentityUseCase,
-    private val resolveIdentityUseCase: ResolveIdentityUseCase,
+    private val identitiesInteractor: IdentitiesInteractor,
     private val registerInviteUseCase: RegisterInviteUseCase,
     private val unregisterInviteUseCase: UnregisterInviteUseCase,
     private val resolveInviteUseCase: ResolveInviteUseCase,
@@ -66,7 +52,6 @@ internal class ChatEngine(
     private val invitesRepository: InvitesStorageRepository,
     private val messageRepository: MessageStorageRepository,
     private val accountsRepository: AccountsStorageRepository,
-    private val identitiesRepository: IdentitiesStorageRepository,
     private val logger: Logger,
 ) {
     private var jsonRpcRequestsJob: Job? = null
@@ -110,12 +95,6 @@ internal class ChatEngine(
             .launchIn(scope)
     }
 
-    private fun getIdentityKeyPair(accountId: AccountId): Pair<PublicKey, PrivateKey> {
-        val tag = accountId.getIdentityTag()
-        val identityPublicKey = keyManagementRepository.getPublicKey(tag)
-        return keyManagementRepository.getKeyPair(identityPublicKey)
-    }
-
     internal fun goPublic(
         accountId: AccountId,
         onSuccess: (String) -> Unit,
@@ -138,7 +117,7 @@ internal class ChatEngine(
                 val invitePublicKey = keyManagementRepository.generateAndStoreX25519KeyPair()
 
                 val didJwt: String = didJwtRepository
-                    .encodeDidJwt(getIdentityKeyPair(accountId), keyserverUrl, EncodeInviteKeyDidJwtPayloadUseCase(encodeX25519DidKey(invitePublicKey.keyAsBytes), accountId))
+                    .encodeDidJwt(identitiesInteractor.getIdentityKeyPair(accountId), keyserverUrl, EncodeInviteKeyDidJwtPayloadUseCase(encodeX25519DidKey(invitePublicKey.keyAsBytes), accountId))
                     .getOrElse() { error ->
                         onFailure(error)
                         return@goPublic
@@ -164,47 +143,23 @@ internal class ChatEngine(
         onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        if (accountId.isValid()) {
-            val identityKey = keyManagementRepository.generateAndStoreEd25519KeyPair()
-            val didKey = encodeEd25519DidKey(identityKey.keyAsBytes)
-            val domain = keyserverUrl.toDomain().getOrElse {
-                onFailure(UnableToExtractDomainException("Unable to extract domain from: $keyserverUrl"))
-                return@unregisterIdentity
+        scope.launch {
+            supervisorScope {
+                identitiesInteractor.unregisterIdentity(accountId, keyserverUrl, onSign).fold(
+                    onFailure = { error -> onFailure(error) },
+                    onSuccess = { identityPublicKey ->
+                        val account = accountsRepository.getAccountByAccountId(accountId)
+                        if (account.publicInviteKey != null && account.inviteTopic != null) {
+                            keyManagementRepository.removeKeys(accountId.getInviteTag())
+                            keyManagementRepository.removeKeys("$SELF_PARTICIPANT_CONTEXT${account.inviteTopic}")
+                            jsonRpcInteractor.unsubscribe(account.inviteTopic)
+                        }
+                        accountsRepository.deleteAccountByAccountId(accountId)
+                        val didKey = encodeEd25519DidKey(identityPublicKey.keyAsBytes)
+                        onSuccess(didKey)
+                    }
+                )
             }
-
-            val payload = Cacao.Payload(
-                iss = encodeDidPkh(accountId.value),
-                domain = domain,
-                aud = keyserverUrl, version = CURRENT_VERSION,
-                nonce = randomBytes(32).toString(), iat = SimpleDateFormat(ISO_8601_PATTERN, Locale.getDefault()).format(Calendar.getInstance().time),
-                nbf = null, exp = null, statement = null, requestId = null, resources = listOf(didKey)
-            )
-
-            val message = payload.toCAIP122Message()
-            val signature = onSign(message) ?: return
-
-            val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
-
-            scope.launch {
-                supervisorScope {
-                    unregisterIdentityUseCase(cacao).fold(
-                        onSuccess = {
-                            logger.log("Unregister identity: $didKey")
-                            val account = accountsRepository.getAccountByAccountId(accountId)
-                            if (account.publicInviteKey != null && account.inviteTopic != null) {
-                                keyManagementRepository.removeKeys(accountId.getInviteTag())
-                                keyManagementRepository.removeKeys("$SELF_PARTICIPANT_CONTEXT${account.inviteTopic}")
-                                jsonRpcInteractor.unsubscribe(account.inviteTopic)
-                            }
-                            accountsRepository.deleteAccountByAccountId(accountId)
-                            onSuccess(didKey)
-                        },
-                        onFailure = { error -> onFailure(error) }
-                    )
-                }
-            }
-        } else {
-            onFailure(InvalidAccountIdException("AccountId is not CAIP-10 complaint"))
         }
     }
 
@@ -215,75 +170,24 @@ internal class ChatEngine(
         onFailure: (Throwable) -> Unit,
         private: Boolean,
     ) {
-        fun onSuccess(publicKey: PublicKey) {
-            keyManagementRepository.setKey(publicKey, accountId.getIdentityTag())
-            onSuccess(publicKey.keyAsHex)
-        }
-
-        if (accountId.isValid()) {
-            try {
-                val storedPublicKey = keyManagementRepository.getPublicKey(accountId.getIdentityTag())
-                onSuccess(storedPublicKey.keyAsHex)
-            } catch (e: MissingKeyException) {
-                val identityKey = keyManagementRepository.generateAndStoreEd25519KeyPair()
-                val didKey = encodeEd25519DidKey(identityKey.keyAsBytes)
-
-                val domain = keyserverUrl.toDomain().getOrElse {
-                    onFailure(UnableToExtractDomainException("Unable to extract domain from: $keyserverUrl"))
-                    return@registerIdentity
-                }
-
-                val payload = Cacao.Payload(
-                    iss = encodeDidPkh(accountId.value),
-                    domain = domain,
-                    aud = keyserverUrl, version = CURRENT_VERSION,
-                    nonce = randomBytes(32).toString(), iat = SimpleDateFormat(ISO_8601_PATTERN, Locale.getDefault()).format(Calendar.getInstance().time),
-                    nbf = null, exp = null, statement = null, requestId = null, resources = listOf(didKey)
+        scope.launch {
+            supervisorScope {
+                identitiesInteractor.registerIdentity(accountId, keyserverUrl, onSign).fold(
+                    onFailure = { error -> onFailure(error) },
+                    onSuccess = { identityPublicKey ->
+                        accountsRepository.upsertAccount(Account(accountId, identityPublicKey, null, null))
+                        val didKey = encodeEd25519DidKey(identityPublicKey.keyAsBytes)
+                        if (!private) {
+                            goPublic(
+                                accountId,
+                                onSuccess = { onSuccess(didKey) },
+                                onFailure = { error -> onFailure(error) }
+                            )
+                        } else {
+                            onSuccess(didKey)
+                        }
+                    }
                 )
-
-                val message = payload.toCAIP122Message()
-                val signature = onSign(message) ?: return
-
-                val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
-
-                scope.launch {
-                    supervisorScope {
-                        registerIdentityUseCase(cacao).fold(
-                            onSuccess = {
-                                accountsRepository.upsertAccount(Account(accountId, identityKey, null, null))
-                                if (!private) {
-                                    keyManagementRepository.setKey(identityKey, accountId.getIdentityTag()) //todo duplicate
-                                    goPublic(accountId, onSuccess = { inviteKey ->
-                                        logger.log("Registered invite key: $inviteKey")
-                                        onSuccess(identityKey)
-                                    }, onFailure = { error -> onFailure(error) })
-                                } else {
-                                    onSuccess(identityKey)
-                                }
-                            },
-                            onFailure = { error -> onFailure(error) }
-                        )
-                    }
-                }
-
-            }
-        } else {
-            onFailure(InvalidAccountIdException("AccountId is not CAIP-10 complaint"))
-        }
-    }
-
-    //todo extract to core in #707
-    private suspend fun resolveIdentity(identityDidKey: String): Result<AccountId> {
-        val identityKey = identityDidKey.split(DID_DELIMITER).last()
-        return runCatching { identitiesRepository.getAccountId(identityKey) }.onFailure {
-            return resolveIdentityUseCase(identityKey).mapCatching { response ->
-                if (CacaoVerifier(projectId).verify(response.cacao)) {
-                    AccountId(decodeDidPkh(response.cacao.payload.iss)).also { accountId ->
-                        identitiesRepository.insertIdentity(identityKey, accountId)
-                    }
-                } else {
-                    throw Throwable("Invalid cacao")
-                }
             }
         }
     }
@@ -309,7 +213,7 @@ internal class ChatEngine(
                 val invitePublicKey = keyManagementRepository.getPublicKey(accountId.getInviteTag())
 
                 val didJwt: String = didJwtRepository
-                    .encodeDidJwt(getIdentityKeyPair(accountId), keyserverUrl, EncodeInviteKeyDidJwtPayloadUseCase(invitePublicKey.keyAsHex, accountId))
+                    .encodeDidJwt(identitiesInteractor.getIdentityKeyPair(accountId), keyserverUrl, EncodeInviteKeyDidJwtPayloadUseCase(invitePublicKey.keyAsHex, accountId))
                     .getOrElse() { error ->
                         onFailure(error)
                         return@goPrivate
@@ -369,7 +273,11 @@ internal class ChatEngine(
 
             val participants = Participants(senderPublicKey = inviterPublicKey, receiverPublicKey = decodedInviteePublicKey)
             val didJwt: String = didJwtRepository
-                .encodeDidJwt(getIdentityKeyPair(invite.inviterAccount), keyserverUrl, EncodeInviteProposalDidJwtPayloadUseCase(inviterPublicKey, invite.inviteeAccount, invite.message.value))
+                .encodeDidJwt(
+                    identitiesInteractor.getIdentityKeyPair(invite.inviterAccount),
+                    keyserverUrl,
+                    EncodeInviteProposalDidJwtPayloadUseCase(inviterPublicKey, invite.inviteeAccount, invite.message.value)
+                )
                 .getOrElse() { error -> return@invite onFailure(error) }
 
             val inviteParams = ChatParams.InviteParams(inviteAuth = didJwt)
@@ -435,7 +343,7 @@ internal class ChatEngine(
                 val publicKey = keyManagementRepository.generateAndStoreX25519KeyPair()
 
                 val didJwt: String = didJwtRepository
-                    .encodeDidJwt(getIdentityKeyPair(inviteeAccountId), keyserverUrl, EncodeInviteApprovalDidJwtPayloadUseCase(publicKey, inviterAccountId))
+                    .encodeDidJwt(identitiesInteractor.getIdentityKeyPair(inviteeAccountId), keyserverUrl, EncodeInviteApprovalDidJwtPayloadUseCase(publicKey, inviterAccountId))
                     .getOrElse() { error ->
                         onFailure(error)
                         return@launch
@@ -506,7 +414,11 @@ internal class ChatEngine(
             val messageTimestampInMs = System.currentTimeMillis()
 
             val didJwt: String = didJwtRepository
-                .encodeDidJwt(getIdentityKeyPair(authorAccountId), keyserverUrl, EncodeChatMessageDidJwtPayloadUseCase(message.message.value, recipientAccountId, message.media, messageTimestampInMs))
+                .encodeDidJwt(
+                    identitiesInteractor.getIdentityKeyPair(authorAccountId),
+                    keyserverUrl,
+                    EncodeChatMessageDidJwtPayloadUseCase(message.message.value, recipientAccountId, message.media, messageTimestampInMs)
+                )
                 .getOrElse() { error -> return@launch onFailure(error) }
 
             val messageParams = ChatParams.MessageParams(messageAuth = didJwt)
@@ -583,6 +495,8 @@ internal class ChatEngine(
     internal fun getReceivedInvites(inviteeAccountId: String): Map<Long, Invite.Received> = runBlockingInNewScope() {
         invitesRepository.getReceivedInvitesForInviteeAccount(inviteeAccountId).associateBy { invite -> invite.id }
     }
+
+    private suspend fun resolveIdentity(identityDidKey: String): Result<AccountId> = identitiesInteractor.resolveIdentity(identityDidKey.split(DID_DELIMITER).last())
 
     private fun pingSuccess(
         pingPayload: ChatRpc.ChatPing,
@@ -676,7 +590,7 @@ internal class ChatEngine(
             _events.emit(Events.OnMessage(message))
 
             val didJwt: String = didJwtRepository
-                .encodeDidJwt(getIdentityKeyPair(recipientAccountId), keyserverUrl, EncodeChatReceiptDidJwtPayloadUseCase(claims.subject, authorAccountId))
+                .encodeDidJwt(identitiesInteractor.getIdentityKeyPair(recipientAccountId), keyserverUrl, EncodeChatReceiptDidJwtPayloadUseCase(claims.subject, authorAccountId))
                 .getOrElse() { error ->
                     logger.error(error)
                     return@launch
@@ -835,15 +749,8 @@ internal class ChatEngine(
             .onEach { exception -> _events.emit(exception) }
             .launchIn(scope)
 
-    private fun AccountId.getIdentityTag(): String = "$SELF_IDENTITY_PUBLIC_KEY_CONTEXT${this.value}"
     private fun AccountId.getInviteTag(): String = "$SELF_INVITE_PUBLIC_KEY_CONTEXT${this.value}"
 
-
-    private fun String.toDomain(): Result<String> = runCatching {
-        val uri = URI(this)
-        val domain: String = uri.host
-        if (domain.startsWith("www.")) domain.substring(4) else domain
-    }
 
     private companion object {
         const val THIRTY_SECONDS_TIMEOUT: Long = 30000L
