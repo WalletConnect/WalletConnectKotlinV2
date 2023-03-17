@@ -164,12 +164,29 @@ internal object SignValidator {
             .flatMap { (namespaceKey, namespace) -> namespace.methods.map { method -> method to listOf(namespaceKey) } }
             .toMap()
 
-        return (methodsByChains.asSequence() + methodsByNamespaceKey.asSequence())
+        val methodsByChainFromAccount = namespaces
+            .filter { (namespaceKey, namespace) -> namespace is NamespaceVO.Session && NAMESPACE_REGEX.toRegex().matches(namespaceKey) && namespace.chains == null }
+            .flatMap { (_, namespace) -> (namespace as NamespaceVO.Session).methods.map { method -> method to namespace.accounts.map { getChainFromAccount(it) } } }
+            .toMap()
+
+        return (methodsByChains.asSequence() + methodsByNamespaceKey.asSequence() + methodsByChainFromAccount.asSequence())
             .distinct()
             .groupBy({ it.key }, { it.value })
             .mapValues { (_, values) -> values.flatten() }
     }
 
+    private fun areAllMethodsApproved(
+        allApprovedMethodsWithChains: Map<String, List<String>>,
+        allRequiredMethodsWithChains: Map<String, List<String>>,
+    ): Boolean {
+        allRequiredMethodsWithChains.forEach { (method, chainsRequested) ->
+            val chainsApproved = allApprovedMethodsWithChains[method] ?: return false
+            if (!chainsApproved.containsAll(chainsRequested)) {
+                return false
+            }
+        }
+        return true
+    }
 
     private fun allEventsWithChains(namespaces: Map<String, NamespaceVO>): Map<String, List<String>> {
         val eventsByChains = namespaces
@@ -182,7 +199,12 @@ internal object SignValidator {
             .flatMap { (namespaceKey, namespace) -> namespace.events.map { event -> event to listOf(namespaceKey) } }
             .toMap()
 
-        return (eventsByChains.asSequence() + eventsByNamespaceKey.asSequence())
+        val eventsByChainFromAccount = namespaces
+            .filter { (namespaceKey, namespace) -> namespace is NamespaceVO.Session && NAMESPACE_REGEX.toRegex().matches(namespaceKey) && namespace.chains == null }
+            .flatMap { (_, namespace) -> (namespace as NamespaceVO.Session).events.map { event -> event to namespace.accounts.map { getChainFromAccount(it) } } }
+            .toMap()
+
+        return (eventsByChains.asSequence() + eventsByNamespaceKey.asSequence() + eventsByChainFromAccount.asSequence())
             .distinct()
             .groupBy({ it.key }, { it.value })
             .mapValues { (_, values) -> values.flatten() }
@@ -194,19 +216,6 @@ internal object SignValidator {
     ): Boolean {
         allRequiredEventsWithChains.forEach { (method, chainsRequested) ->
             val chainsApproved = allApprovedEventsWithChains[method] ?: return false
-            if (!chainsApproved.containsAll(chainsRequested)) {
-                return false
-            }
-        }
-        return true
-    }
-
-    private fun areAllMethodsApproved(
-        allApprovedMethodsWithChains: Map<String, List<String>>,
-        allRequiredMethodsWithChains: Map<String, List<String>>,
-    ): Boolean {
-        allRequiredMethodsWithChains.forEach { (method, chainsRequested) ->
-            val chainsApproved = allApprovedMethodsWithChains[method] ?: return false
             if (!chainsApproved.containsAll(chainsRequested)) {
                 return false
             }
