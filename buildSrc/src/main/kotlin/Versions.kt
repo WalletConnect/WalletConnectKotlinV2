@@ -11,6 +11,7 @@ const val CORE_VERSION = "1.11.1"
 const val SIGN_VERSION = "2.9.1"
 const val AUTH_VERSION = "1.9.1"
 const val CHAT_VERSION = "1.0.0-beta03"
+const val SYNC_VERSION = "1.0.0-alpha01"
 const val WEB_3_WALLET = "1.4.1"
 const val WEB_3_INBOX = "1.0.0-alpha03"
 
