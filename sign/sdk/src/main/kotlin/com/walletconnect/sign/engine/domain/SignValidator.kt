@@ -164,6 +164,7 @@ internal object SignValidator {
             .flatMap { (namespaceKey, namespace) -> namespace.methods.map { method -> method to listOf(namespaceKey) } }
             .toMap()
 
+        //TODO: CAIP-25 backward compatibility
         val methodsByChainFromAccount = namespaces
             .filter { (namespaceKey, namespace) -> namespace is NamespaceVO.Session && NAMESPACE_REGEX.toRegex().matches(namespaceKey) && namespace.chains == null }
             .flatMap { (_, namespace) -> (namespace as NamespaceVO.Session).methods.map { method -> method to namespace.accounts.map { getChainFromAccount(it) } } }
@@ -199,6 +200,7 @@ internal object SignValidator {
             .flatMap { (namespaceKey, namespace) -> namespace.events.map { event -> event to listOf(namespaceKey) } }
             .toMap()
 
+        //TODO: CAIP-25 backward compatibility
         val eventsByChainFromAccount = namespaces
             .filter { (namespaceKey, namespace) -> namespace is NamespaceVO.Session && NAMESPACE_REGEX.toRegex().matches(namespaceKey) && namespace.chains == null }
             .flatMap { (_, namespace) -> (namespace as NamespaceVO.Session).events.map { event -> event to namespace.accounts.map { getChainFromAccount(it) } } }
