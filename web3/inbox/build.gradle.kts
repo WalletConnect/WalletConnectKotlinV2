@@ -59,6 +59,9 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
+    // Accompanist
+    implementation("com.google.accompanist:accompanist-webview:0.29.2-rc")
+
     // WalletConnect
     debugImplementation(project(":chat:sdk"))
 //    debugImplementation(project(":push:sdk"))

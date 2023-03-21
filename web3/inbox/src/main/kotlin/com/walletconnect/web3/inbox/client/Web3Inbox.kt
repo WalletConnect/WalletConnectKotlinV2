@@ -1,7 +1,5 @@
 package com.walletconnect.web3.inbox.client
 
-import android.content.Context
-import android.webkit.WebView
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.walletconnect.android.internal.common.model.AccountId
@@ -12,13 +10,9 @@ import com.walletconnect.web3.inbox.chat.ChatEventHandler
 import com.walletconnect.web3.inbox.di.jsonRpcModule
 import com.walletconnect.web3.inbox.di.proxyModule
 import com.walletconnect.web3.inbox.ui.Web3InboxView
-import com.walletconnect.web3.inbox.ui.WebViewState
-import com.walletconnect.web3.inbox.ui.createWebView
-import timber.log.Timber
 
 object Web3Inbox {
     private var isClientInitialized = false
-    private var webViewState: WebViewState = WebViewState.Loading
     private lateinit var account: LateInitAccountId
     private lateinit var chatEventHandler: ChatEventHandler
 
@@ -36,15 +30,10 @@ object Web3Inbox {
 
     @Composable
     @Throws(IllegalStateException::class)
-    fun View(modifier: Modifier = Modifier) = wrapComposableWithInitializationCheck { Web3InboxView(modifier, wcKoinApp.koin.get(), webViewState, account.value) } //todo koin ugly
-
-    fun View(context: Context): WebView = wrapWithInitializationCheck { createWebView(context, wcKoinApp.koin.get(), webViewState, account.value) }
+    fun View(modifier: Modifier = Modifier) = wrapComposableWithInitializationCheck { Web3InboxView(modifier, wcKoinApp.koin.get(), account.value) }
 
     private fun onPageFinished() = wrapWithInitializationCheck {
-        if (webViewState is WebViewState.Loading) {
-            chatEventHandler = wcKoinApp.koin.get()
-            webViewState = WebViewState.Initialized
-        }
+        chatEventHandler = wcKoinApp.koin.get()
     }
 
     @Composable
