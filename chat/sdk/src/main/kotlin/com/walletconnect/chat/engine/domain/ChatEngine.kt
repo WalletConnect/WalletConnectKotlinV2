@@ -5,6 +5,8 @@ package com.walletconnect.chat.engine.domain
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.cacao.Cacao
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.jwt.DidJwtRepository
+import com.walletconnect.android.internal.common.jwt.EncodeDidJwtPayloadUseCase
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreChatParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
@@ -15,7 +17,9 @@ import com.walletconnect.android.internal.utils.SELF_INVITE_PUBLIC_KEY_CONTEXT
 import com.walletconnect.android.internal.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
-import com.walletconnect.android.keyserver.domain.use_case.*
+import com.walletconnect.android.keyserver.domain.use_case.RegisterInviteUseCase
+import com.walletconnect.android.keyserver.domain.use_case.ResolveInviteUseCase
+import com.walletconnect.android.keyserver.domain.use_case.UnregisterInviteUseCase
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.chat.common.exceptions.*
 import com.walletconnect.chat.common.json_rpc.ChatParams
@@ -24,7 +28,6 @@ import com.walletconnect.chat.common.model.*
 import com.walletconnect.chat.json_rpc.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.chat.json_rpc.JsonRpcMethod
 import com.walletconnect.chat.jwt.ChatDidJwtClaims
-import com.walletconnect.chat.jwt.DidJwtRepository
 import com.walletconnect.chat.jwt.use_case.*
 import com.walletconnect.chat.storage.*
 import com.walletconnect.foundation.common.model.PublicKey
@@ -116,8 +119,14 @@ internal class ChatEngine(
             } catch (e: MissingKeyException) {
                 val invitePublicKey = keyManagementRepository.generateAndStoreX25519KeyPair()
 
+                val (identityPublicKey, identityPrivateKey) = identitiesInteractor.getIdentityKeyPair(accountId)
+
                 val didJwt: String = didJwtRepository
-                    .encodeDidJwt(identitiesInteractor.getIdentityKeyPair(accountId), keyserverUrl, EncodeInviteKeyDidJwtPayloadUseCase(encodeX25519DidKey(invitePublicKey.keyAsBytes), accountId))
+                    .encodeDidJwt(
+                        identityPrivateKey,
+                        EncodeInviteKeyDidJwtPayloadUseCase(encodeX25519DidKey(invitePublicKey.keyAsBytes), accountId),
+                        EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
+                    )
                     .getOrElse() { error ->
                         onFailure(error)
                         return@goPublic
@@ -211,9 +220,14 @@ internal class ChatEngine(
         if (accountId.isValid()) {
             try {
                 val invitePublicKey = keyManagementRepository.getPublicKey(accountId.getInviteTag())
+                val (identityPublicKey, identityPrivateKey) = identitiesInteractor.getIdentityKeyPair(accountId)
 
                 val didJwt: String = didJwtRepository
-                    .encodeDidJwt(identitiesInteractor.getIdentityKeyPair(accountId), keyserverUrl, EncodeInviteKeyDidJwtPayloadUseCase(invitePublicKey.keyAsHex, accountId))
+                    .encodeDidJwt(
+                        identityPrivateKey,
+                        EncodeInviteKeyDidJwtPayloadUseCase(encodeX25519DidKey(invitePublicKey.keyAsBytes), accountId),
+                        EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
+                    )
                     .getOrElse() { error ->
                         onFailure(error)
                         return@goPrivate
@@ -272,13 +286,16 @@ internal class ChatEngine(
             keyManagementRepository.setKeyAgreement(inviteTopic, inviterPublicKey, decodedInviteePublicKey)
 
             val participants = Participants(senderPublicKey = inviterPublicKey, receiverPublicKey = decodedInviteePublicKey)
+            val (identityPublicKey, identityPrivateKey) = identitiesInteractor.getIdentityKeyPair(invite.inviterAccount)
+
             val didJwt: String = didJwtRepository
                 .encodeDidJwt(
-                    identitiesInteractor.getIdentityKeyPair(invite.inviterAccount),
-                    keyserverUrl,
-                    EncodeInviteProposalDidJwtPayloadUseCase(inviterPublicKey, invite.inviteeAccount, invite.message.value)
+                    identityPrivateKey,
+                    EncodeInviteProposalDidJwtPayloadUseCase(inviterPublicKey, invite.inviteeAccount, invite.message.value),
+                    EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
                 )
                 .getOrElse() { error -> return@invite onFailure(error) }
+
 
             val inviteParams = ChatParams.InviteParams(inviteAuth = didJwt)
             val inviteId = generateId()
@@ -341,10 +358,14 @@ internal class ChatEngine(
                 keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
 
                 val publicKey = keyManagementRepository.generateAndStoreX25519KeyPair()
+                val (identityPublicKey, identityPrivateKey) = identitiesInteractor.getIdentityKeyPair(inviteeAccountId)
 
                 val didJwt: String = didJwtRepository
-                    .encodeDidJwt(identitiesInteractor.getIdentityKeyPair(inviteeAccountId), keyserverUrl, EncodeInviteApprovalDidJwtPayloadUseCase(publicKey, inviterAccountId))
-                    .getOrElse() { error ->
+                    .encodeDidJwt(
+                        identityPrivateKey,
+                        EncodeInviteApprovalDidJwtPayloadUseCase(publicKey, inviterAccountId),
+                        EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
+                    ).getOrElse() { error ->
                         onFailure(error)
                         return@launch
                     }
@@ -412,12 +433,13 @@ internal class ChatEngine(
             val thread = threadsRepository.getThreadByTopic(topic)
             val (authorAccountId, recipientAccountId) = thread.selfAccount to thread.peerAccount
             val messageTimestampInMs = System.currentTimeMillis()
+            val (identityPublicKey, identityPrivateKey) = identitiesInteractor.getIdentityKeyPair(authorAccountId)
 
             val didJwt: String = didJwtRepository
                 .encodeDidJwt(
-                    identitiesInteractor.getIdentityKeyPair(authorAccountId),
-                    keyserverUrl,
-                    EncodeChatMessageDidJwtPayloadUseCase(message.message.value, recipientAccountId, message.media, messageTimestampInMs)
+                    identityPrivateKey,
+                    EncodeChatMessageDidJwtPayloadUseCase(message.message.value, recipientAccountId, message.media, messageTimestampInMs),
+                    EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
                 )
                 .getOrElse() { error -> return@launch onFailure(error) }
 
@@ -568,17 +590,12 @@ internal class ChatEngine(
     private fun onMessage(wcRequest: WCRequest, params: ChatParams.MessageParams) {
         logger.log("Message received")
         val claims = didJwtRepository.extractVerifiedDidJwtClaims<ChatDidJwtClaims.ChatMessage>(params.messageAuth)
-            .getOrElse() { error ->
-                logger.error(error)
-                return@onMessage
-            }
+            .getOrElse() { error -> return@onMessage logger.error(error) }
 
         scope.launch {
             val authorAccountId = resolveIdentity(claims.issuer)
-                .getOrElse() { error ->
-                    logger.error(error)
-                    return@launch
-                }
+                .getOrElse() { error -> return@launch logger.error(error) }
+
             val recipientAccountId = AccountId(decodeDidPkh(claims.audience))
 
             // Currently timestamps are based on claims issuedAt. Which MUST be changed to achieve proper order of messages.
@@ -588,13 +605,15 @@ internal class ChatEngine(
             val message = Message(wcRequest.id, wcRequest.topic, ChatMessage(claims.subject), authorAccountId, claims.issuedAt, claims.media)
             messageRepository.insertMessage(message)
             _events.emit(Events.OnMessage(message))
+            val (identityPublicKey, identityPrivateKey) = identitiesInteractor.getIdentityKeyPair(recipientAccountId)
 
             val didJwt: String = didJwtRepository
-                .encodeDidJwt(identitiesInteractor.getIdentityKeyPair(recipientAccountId), keyserverUrl, EncodeChatReceiptDidJwtPayloadUseCase(claims.subject, authorAccountId))
-                .getOrElse() { error ->
-                    logger.error(error)
-                    return@launch
-                }
+                .encodeDidJwt(
+                    identityPrivateKey,
+                    EncodeChatReceiptDidJwtPayloadUseCase(claims.subject, authorAccountId),
+                    EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
+                )
+                .getOrElse() { error -> return@launch logger.error(error) }
 
             val receiptParams = CoreChatParams.ReceiptParams(receiptAuth = didJwt)
             val irnParams = IrnParams(Tags.CHAT_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))

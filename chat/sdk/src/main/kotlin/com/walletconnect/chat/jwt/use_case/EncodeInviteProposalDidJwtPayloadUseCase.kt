@@ -2,6 +2,7 @@
 
 package com.walletconnect.chat.jwt.use_case
 
+import com.walletconnect.android.internal.common.jwt.EncodeDidJwtPayloadUseCase
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.chat.jwt.ChatDidJwtClaims
 import com.walletconnect.foundation.common.model.PublicKey
@@ -12,15 +13,16 @@ internal class EncodeInviteProposalDidJwtPayloadUseCase(
     private val inviterPublicKey: PublicKey,
     private val inviteeAccountId: AccountId,
     private val openingMessage: String,
-) : EncodeDidJwtPayloadUseCase {
-
-    override operator fun invoke(issuer: String, keyserverUrl: String, issuedAt: Long, expiration: Long): ChatDidJwtClaims = ChatDidJwtClaims.InviteProposal(
-        issuer = issuer,
-        issuedAt = issuedAt,
-        expiration = expiration,
-        keyserverUrl = keyserverUrl,
-        subject = openingMessage,
-        audience = encodeDidPkh(inviteeAccountId.value),
-        inviterPublicKey = encodeX25519DidKey(inviterPublicKey.keyAsBytes)
-    )
+) : EncodeDidJwtPayloadUseCase<ChatDidJwtClaims.InviteProposal> {
+    override fun invoke(params: EncodeDidJwtPayloadUseCase.Params): ChatDidJwtClaims.InviteProposal = with(params) {
+        ChatDidJwtClaims.InviteProposal(
+            issuer = issuer,
+            issuedAt = issuedAt,
+            expiration = expiration,
+            keyserverUrl = keyserverUrl,
+            subject = openingMessage,
+            audience = encodeDidPkh(inviteeAccountId.value),
+            inviterPublicKey = encodeX25519DidKey(inviterPublicKey.keyAsBytes)
+        )
+    }
 }

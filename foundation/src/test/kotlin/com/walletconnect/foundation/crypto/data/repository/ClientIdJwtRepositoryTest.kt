@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 
-internal class JwtRepositoryTest {
+internal class ClientIdJwtRepositoryTest {
     private val sut = spyk(object : BaseClientIdJwtRepository() {
 
         override fun setKeyPair(key: String, privateKey: PrivateKey, publicKey: PublicKey) {}
