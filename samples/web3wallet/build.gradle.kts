@@ -94,9 +94,11 @@ dependencies {
     // WalletConnect
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":web3:wallet"))
+    debugImplementation(project(":web3:inbox"))
     debugImplementation(project(":push:sdk"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
     releaseImplementation("com.walletconnect:web3wallet")
+    releaseImplementation("com.walletconnect:web3inbox")
 }

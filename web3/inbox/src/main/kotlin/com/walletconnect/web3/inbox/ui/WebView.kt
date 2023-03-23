@@ -19,6 +19,7 @@ package com.walletconnect.web3.inbox.ui
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.util.Log
 import android.view.ViewGroup.LayoutParams
 import android.webkit.*
 import android.widget.FrameLayout
@@ -81,13 +82,13 @@ fun WebView(
 
     val currentOnDispose by rememberUpdatedState(onDispose)
 
-    state.webView?.let {
-        DisposableEffect(it) {
+    state.webView?.let { webView ->
+        DisposableEffect(webView) {
             onDispose {
                 state.bundle = Bundle().apply {
-                    it.saveState(this)
+                    webView.saveState(this)
                 }
-                currentOnDispose(it)
+                currentOnDispose(webView)
             }
         }
     }
@@ -147,7 +148,7 @@ fun WebView(
                         }
                         else -> {
                             restoreState(state.bundle!!)
-                            loadUrl(state.webView!!.url + state.querySuffix)
+                            loadUrl(state.webView!!.url!!.cleanUrl(state.queryParams))
                             state.bundle = null
                         }
                     }
@@ -167,6 +168,13 @@ fun WebView(
             }
         )
     }
+}
+
+fun String.cleanUrl(queryParams: Map<String, String>): String {
+    var splitUrl = this.removeSuffix(queryParams).split("?")
+    var path = splitUrl.first()
+    var oldQuery = splitUrl.last()
+    return path + queryParams + (oldQuery.takeIf { it.isNotEmpty() }?.let { "&$it" } ?: "")
 }
 
 /**
@@ -302,7 +310,7 @@ sealed class LoadingState {
  * using the rememberWebViewState(uri) function.
  */
 @Stable
-class WebViewState(webContent: WebContent, val querySuffix: String) {
+class WebViewState(webContent: WebContent, val queryParams: Map<String, String>) {
     var lastLoadedUrl by mutableStateOf<String?>(null)
         internal set
 
@@ -508,7 +516,7 @@ data class WebViewError(
 fun rememberWebViewState(
     url: String,
     additionalHttpHeaders: Map<String, String> = emptyMap(),
-    querySuffix: String,
+    queryParams: Map<String, String>,
 ): WebViewState =
 // Rather than using .apply {} here we will recreate the state, this prevents
 // a recomposition loop when the webview updates the url itself.
@@ -518,7 +526,7 @@ fun rememberWebViewState(
                 url = url,
                 additionalHttpHeaders = additionalHttpHeaders
             ),
-            querySuffix
+            queryParams
         )
     }.apply {
         this.content = WebContent.Url(

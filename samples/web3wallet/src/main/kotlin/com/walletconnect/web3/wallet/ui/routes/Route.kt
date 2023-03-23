@@ -19,6 +19,7 @@ sealed class Route(val path: String) {
     }
     object ConnectionDetails : Route("connection_details")
     object SnackbarMessage : Route("snackbar_message")
+    object Web3Inbox : Route("web3inbox")
 }
 
 fun NavController.showSnackbar(message: String) {

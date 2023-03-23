@@ -20,12 +20,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
 import com.google.accompanist.navigation.material.*
+import com.walletconnect.web3.inbox.client.Web3Inbox
 import com.walletconnect.web3.wallet.ui.routes.Route
 import com.walletconnect.web3.wallet.ui.routes.bottomsheet_routes.scan_uri.ScanUriRoute
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.connection_details.ConnectionDetailsRoute
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.connections.ConnectionsRoute
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.get_started.GetStartedRoute
+import com.walletconnect.web3.wallet.ui.routes.composable_routes.web3inbox.Web3InboxRoute
 import com.walletconnect.web3.wallet.ui.routes.dialog_routes.auth_request.AuthRequestRoute
 import com.walletconnect.web3.wallet.ui.routes.dialog_routes.paste_uri.PasteUriRoute
 import com.walletconnect.web3.wallet.ui.routes.dialog_routes.push_request.PushRequestRoute
@@ -54,6 +56,8 @@ fun Web3WalletNavGraph(
         Scaffold(
             content = { innerPadding ->
                 val sheetState = remember { bottomSheetNavigator.navigatorSheetState }
+                val web3InboxState = Web3Inbox.rememberWeb3InboxState()
+
                 NavHost(
                     modifier = Modifier.padding(innerPadding),
                     navController = navController,
@@ -69,6 +73,9 @@ fun Web3WalletNavGraph(
                         navArgument("connectionId") { type = NavType.Companion.IntType }
                     )) {
                         ConnectionDetailsRoute(navController, it.arguments?.getInt("connectionId"), connectionsViewModel)
+                    }
+                    composable(Route.Web3Inbox.path) {
+                        Web3InboxRoute(web3InboxState)
                     }
                     bottomSheet(Route.ScanUri.path) {
                         ScanUriRoute(navController, sheetState, onScanSuccess = { web3walletViewModel.pair(it) })
