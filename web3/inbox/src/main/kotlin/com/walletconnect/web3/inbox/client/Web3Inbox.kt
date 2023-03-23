@@ -9,7 +9,10 @@ import com.walletconnect.chat.client.ChatClient
 import com.walletconnect.web3.inbox.chat.ChatEventHandler
 import com.walletconnect.web3.inbox.di.jsonRpcModule
 import com.walletconnect.web3.inbox.di.proxyModule
+import com.walletconnect.web3.inbox.ui.Web3InboxState
 import com.walletconnect.web3.inbox.ui.Web3InboxView
+import com.walletconnect.web3.inbox.ui.rememberWebViewState
+import com.walletconnect.web3.inbox.webview.WebViewPresenter
 
 object Web3Inbox {
     private var isClientInitialized = false
@@ -29,8 +32,16 @@ object Web3Inbox {
     }
 
     @Composable
+    fun rememberWeb3InboxState(): Web3InboxState = wrapComposableWithInitializationCheck {
+        val webViewPresenter = wcKoinApp.koin.get<WebViewPresenter>()
+        Web3InboxState(rememberWebViewState(webViewPresenter.web3InboxUrl(account.value), querySuffix = webViewPresenter.web3InboxUrlQueryParams(account.value)))
+    }
+
+    @Composable
     @Throws(IllegalStateException::class)
-    fun View(modifier: Modifier = Modifier) = wrapComposableWithInitializationCheck { Web3InboxView(modifier, wcKoinApp.koin.get(), account.value) }
+    fun View(modifier: Modifier = Modifier, state: Web3InboxState) = wrapComposableWithInitializationCheck {
+        Web3InboxView(modifier, wcKoinApp.koin.get(), state)
+    }
 
     private fun onPageFinished() = wrapWithInitializationCheck {
         chatEventHandler = wcKoinApp.koin.get()
