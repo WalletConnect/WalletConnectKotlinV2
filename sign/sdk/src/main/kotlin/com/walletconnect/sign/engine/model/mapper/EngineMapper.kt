@@ -7,6 +7,7 @@ import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
@@ -39,7 +40,7 @@ internal fun SignParams.SessionProposeParams.toEngineDO(topic: Topic): EngineDO.
         name = this.proposer.metadata.name,
         description = this.proposer.metadata.description,
         url = this.proposer.metadata.url,
-        icons = this.proposer.metadata.icons.map { URI(it) },
+        icons = this.proposer.metadata.icons.map { convertToURI(it) },
         requiredNamespaces = this.requiredNamespaces.toMapOfEngineNamespacesRequired(),
         optionalNamespaces = this.optionalNamespaces?.toMapOfEngineNamespacesOptional() ?: emptyMap(),
         properties = properties,
@@ -162,7 +163,7 @@ internal fun ProposalVO.toEngineDO(): EngineDO.SessionProposal =
         name = name,
         description = description,
         url = url,
-        icons = icons.map { URI(it) },
+        icons = icons.map { convertToURI(it) },
         relayData = relayData,
         relayProtocol = relayProtocol,
         requiredNamespaces = requiredNamespaces.toMapOfEngineNamespacesRequired(),
@@ -170,6 +171,12 @@ internal fun ProposalVO.toEngineDO(): EngineDO.SessionProposal =
         proposerPublicKey = proposerPublicKey,
         properties = properties
     )
+
+private fun convertToURI(it: String) = try {
+    URI(it)
+} catch (e: Exception) {
+    URI("")
+}
 
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVORequired(): Map<String, NamespaceVO.Required> =
