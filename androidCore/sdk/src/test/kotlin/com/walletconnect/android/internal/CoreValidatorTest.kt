@@ -2,7 +2,6 @@ package com.walletconnect.android.internal
 
 import com.walletconnect.android.internal.utils.CoreValidator
 import org.junit.jupiter.api.Test
-import java.net.URI
 import kotlin.test.assertEquals
 
 class CoreValidatorTest {
