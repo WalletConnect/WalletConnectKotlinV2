@@ -78,8 +78,6 @@ class Web3WalletActivity : ComponentActivity() {
             val sharedPref = getPreferences(MODE_PRIVATE)
             val getStartedVisited = sharedPref.getBoolean("get_started_visited", false)
             Web3WalletTheme {
-                // Note (Szymon): Due to lack of capacity I didn't implement remembering if user already seen GetStarted route.
-
                 Web3WalletNavGraph(
                     bottomSheetNavigator = bottomSheetNavigator, navController = navController,
                     getStartedVisited = getStartedVisited, web3walletViewModel = web3walletViewModel, connectionsViewModel = connectionsViewModel
