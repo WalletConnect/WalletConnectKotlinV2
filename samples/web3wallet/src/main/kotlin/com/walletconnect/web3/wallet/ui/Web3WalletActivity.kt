@@ -20,6 +20,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -27,6 +28,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
+import com.google.accompanist.systemuicontroller.SystemUiController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.walletconnect.web3.wallet.sample.R
 import com.walletconnect.web3.wallet.ui.routes.Route
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
@@ -54,7 +57,6 @@ class Web3WalletActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val web3walletViewModel: Web3WalletViewModel = Web3WalletViewModel()
         val connectionsViewModel: ConnectionsViewModel = ConnectionsViewModel()
-
         handleWeb3WalletEvents(web3walletViewModel, connectionsViewModel)
         handlePushEvents(web3walletViewModel)
         handleCoreEvents(connectionsViewModel)
@@ -77,6 +79,7 @@ class Web3WalletActivity : ComponentActivity() {
             val getStartedVisited = sharedPref.getBoolean("get_started_visited", false)
             Web3WalletTheme {
                 // Note (Szymon): Due to lack of capacity I didn't implement remembering if user already seen GetStarted route.
+
                 Web3WalletNavGraph(
                     bottomSheetNavigator = bottomSheetNavigator, navController = navController,
                     getStartedVisited = getStartedVisited, web3walletViewModel = web3walletViewModel, connectionsViewModel = connectionsViewModel
