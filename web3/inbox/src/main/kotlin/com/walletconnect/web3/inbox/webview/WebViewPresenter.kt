@@ -42,9 +42,11 @@ internal class WebViewPresenter(
 
     internal fun web3InboxUrl(accountId: AccountId) = "$WEB3INBOX_URL${web3InboxUrlQueryParams(accountId)}"
 
-    internal fun web3InboxUrlQueryParams(accountId: AccountId) : Map<String, String> = mapOf(
-        WEB3INBOX_PROVIDER_TYPE_KEY to WEB3INBOX_PROVIDER_TYPE_VALUE,
-        WEB3INBOX_ACCOUNT_KEY to accountId.address()
+    internal fun web3InboxUrlQueryParams(accountId: AccountId): WebViewQueryParams = WebViewQueryParams(
+        mapOf(
+            WEB3INBOX_PROVIDER_TYPE_KEY to WEB3INBOX_PROVIDER_TYPE_VALUE,
+            WEB3INBOX_ACCOUNT_KEY to accountId.address()
+        )
     )
 
     internal companion object {
