@@ -16,6 +16,3 @@ internal fun Web3InboxView(
 }
 
 data class Web3InboxState(val webViewState: WebViewState)
-
-
-

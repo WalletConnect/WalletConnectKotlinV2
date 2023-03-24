@@ -28,8 +28,10 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.net.toUri
 import com.walletconnect.web3.inbox.ui.LoadingState.Finished
 import com.walletconnect.web3.inbox.ui.LoadingState.Loading
+import com.walletconnect.web3.inbox.webview.WebViewQueryParams
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -81,13 +83,13 @@ fun WebView(
 
     val currentOnDispose by rememberUpdatedState(onDispose)
 
-    state.webView?.let {
-        DisposableEffect(it) {
+    state.webView?.let { webView ->
+        DisposableEffect(webView) {
             onDispose {
                 state.bundle = Bundle().apply {
-                    it.saveState(this)
+                    webView.saveState(this)
                 }
-                currentOnDispose(it)
+                currentOnDispose(webView)
             }
         }
     }
@@ -147,7 +149,7 @@ fun WebView(
                         }
                         else -> {
                             restoreState(state.bundle!!)
-                            loadUrl(state.webView!!.url + state.querySuffix)
+                            loadUrl(state.webView!!.url!!.cleanUrl(state.queryParams))
                             state.bundle = null
                         }
                     }
@@ -168,6 +170,11 @@ fun WebView(
         )
     }
 }
+
+internal fun String.cleanUrl(queryParams: WebViewQueryParams): String =
+    this.toUri().buildUpon().clearQuery().apply {
+        queryParams.value.forEach { (key, value) -> appendQueryParameter(key, value) }
+    }.build().toString()
 
 /**
  * AccompanistWebViewClient
@@ -302,7 +309,7 @@ sealed class LoadingState {
  * using the rememberWebViewState(uri) function.
  */
 @Stable
-class WebViewState(webContent: WebContent, val querySuffix: String) {
+class WebViewState(webContent: WebContent, val queryParams: WebViewQueryParams) {
     var lastLoadedUrl by mutableStateOf<String?>(null)
         internal set
 
@@ -508,7 +515,7 @@ data class WebViewError(
 fun rememberWebViewState(
     url: String,
     additionalHttpHeaders: Map<String, String> = emptyMap(),
-    querySuffix: String,
+    queryParams: WebViewQueryParams,
 ): WebViewState =
 // Rather than using .apply {} here we will recreate the state, this prevents
 // a recomposition loop when the webview updates the url itself.
@@ -518,7 +525,7 @@ fun rememberWebViewState(
                 url = url,
                 additionalHttpHeaders = additionalHttpHeaders
             ),
-            querySuffix
+            queryParams
         )
     }.apply {
         this.content = WebContent.Url(

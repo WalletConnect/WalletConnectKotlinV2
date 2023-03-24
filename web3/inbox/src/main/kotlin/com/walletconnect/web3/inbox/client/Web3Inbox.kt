@@ -34,7 +34,7 @@ object Web3Inbox {
     @Composable
     fun rememberWeb3InboxState(): Web3InboxState = wrapComposableWithInitializationCheck {
         val webViewPresenter = wcKoinApp.koin.get<WebViewPresenter>()
-        Web3InboxState(rememberWebViewState(webViewPresenter.web3InboxUrl(account.value), querySuffix = webViewPresenter.web3InboxUrlQueryParams(account.value)))
+        Web3InboxState(rememberWebViewState(webViewPresenter.web3InboxUrl(account.value), queryParams = webViewPresenter.web3InboxUrlQueryParams(account.value)))
     }
 
     @Composable

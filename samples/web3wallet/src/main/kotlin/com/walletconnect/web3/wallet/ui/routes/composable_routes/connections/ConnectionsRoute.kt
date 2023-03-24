@@ -32,11 +32,11 @@ import androidx.constraintlayout.compose.ConstraintLayoutScope
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.skydoves.landscapist.glide.GlideImage
+import com.walletconnect.web3.wallet.sample.R
 import com.walletconnect.web3.wallet.ui.Web3WalletViewModel
-import com.walletconnect.web3.wallet.ui.routes.Route
 import com.walletconnect.web3.wallet.ui.common.findActivity
 import com.walletconnect.web3.wallet.ui.common.themedColor
-import com.walletconnect.web3.wallet.sample.R
+import com.walletconnect.web3.wallet.ui.routes.Route
 
 
 @Composable
@@ -82,6 +82,14 @@ fun ConstraintLayoutScope.Buttons(navController: NavController, buttonsRef: Cons
         end.linkTo(parent.end)
     }) {
         Row {
+            Spacer(modifier = Modifier.width(20.dp))
+            ConnectionsButton(modifier = Modifier
+                .clip(CircleShape)
+                .clickable {
+                    navController.navigate(Route.Web3Inbox.path)
+                }) {
+                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.paper_plane_logo), contentDescription = "Scan QRCode Icon", tint = iconTint)
+            }
             Spacer(modifier = Modifier.weight(1.0f))
             ConnectionsButton(modifier = Modifier
                 .clip(CircleShape)
