@@ -55,23 +55,52 @@ class Web3WalletActivity : ComponentActivity() {
         val web3walletViewModel: Web3WalletViewModel = Web3WalletViewModel()
         val connectionsViewModel: ConnectionsViewModel = ConnectionsViewModel()
 
-        web3walletViewModel.walletEvents
+        handleWeb3WalletEvents(web3walletViewModel, connectionsViewModel)
+        handlePushEvents(web3walletViewModel)
+        handleCoreEvents(connectionsViewModel)
+        askNotificationPermission()
+        createNotificationChannel()
+        setContent(web3walletViewModel, connectionsViewModel)
+    }
+
+    private fun setContent(
+        web3walletViewModel: Web3WalletViewModel,
+        connectionsViewModel: ConnectionsViewModel
+    ) {
+        setContent {
+            val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden, skipHalfExpanded = true)
+            val bottomSheetNavigator = BottomSheetNavigator(sheetState)
+            val navController = rememberNavController(bottomSheetNavigator)
+            this.navController = navController
+
+            val sharedPref = getPreferences(MODE_PRIVATE)
+            val getStartedVisited = sharedPref.getBoolean("get_started_visited", false)
+            Web3WalletTheme {
+                // Note (Szymon): Due to lack of capacity I didn't implement remembering if user already seen GetStarted route.
+                Web3WalletNavGraph(
+                    bottomSheetNavigator = bottomSheetNavigator, navController = navController,
+                    getStartedVisited = getStartedVisited, web3walletViewModel = web3walletViewModel, connectionsViewModel = connectionsViewModel
+                )
+            }
+        }
+    }
+
+    private fun handleCoreEvents(connectionsViewModel: ConnectionsViewModel) {
+        connectionsViewModel.coreEvents
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .onEach { event ->
                 when (event) {
-                    is SignEvent.SessionProposal -> navController.navigate(Route.SessionProposal.path)
-                    is SignEvent.SessionRequest -> navController.navigate(Route.SessionRequest.path)
-                    is SignEvent.Disconnect -> {
+                    is CoreEvent.Disconnect -> {
                         connectionsViewModel.refreshConnections()
                         navController.navigate(Route.Connections.path)
                     }
-                    is AuthEvent.OnRequest -> navController.navigate(Route.AuthRequest.path)
-
                     else -> Unit
                 }
             }
             .launchIn(lifecycleScope)
+    }
 
+    private fun handlePushEvents(web3walletViewModel: Web3WalletViewModel) {
         web3walletViewModel.pushEvents
             .flowWithLifecycle(lifecycle)
             .onEach { event ->
@@ -121,39 +150,28 @@ class Web3WalletActivity : ComponentActivity() {
             }
             .flowOn(Dispatchers.IO)
             .launchIn(lifecycleScope)
+    }
 
-        connectionsViewModel.coreEvents
+    private fun handleWeb3WalletEvents(
+        web3walletViewModel: Web3WalletViewModel,
+        connectionsViewModel: ConnectionsViewModel
+    ) {
+        web3walletViewModel.walletEvents
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .onEach { event ->
                 when (event) {
-                    is CoreEvent.Disconnect -> {
+                    is SignEvent.SessionProposal -> navController.navigate(Route.SessionProposal.path)
+                    is SignEvent.SessionRequest -> navController.navigate(Route.SessionRequest.path)
+                    is SignEvent.Disconnect -> {
                         connectionsViewModel.refreshConnections()
                         navController.navigate(Route.Connections.path)
                     }
+                    is AuthEvent.OnRequest -> navController.navigate(Route.AuthRequest.path)
+
                     else -> Unit
                 }
             }
             .launchIn(lifecycleScope)
-
-        askNotificationPermission()
-        createNotificationChannel()
-
-        setContent {
-            val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden, skipHalfExpanded = true)
-            val bottomSheetNavigator = BottomSheetNavigator(sheetState)
-            val navController = rememberNavController(bottomSheetNavigator)
-            this.navController = navController
-
-            val sharedPref = getPreferences(Context.MODE_PRIVATE)
-            val getStartedVisited = sharedPref.getBoolean("get_started_visited", false)
-            Web3WalletTheme {
-                // Note (Szymon): Due to lack of capacity I didn't implement remembering if user already seen GetStarted route.
-                Web3WalletNavGraph(
-                    bottomSheetNavigator = bottomSheetNavigator, navController = navController,
-                    getStartedVisited = getStartedVisited, web3walletViewModel = web3walletViewModel, connectionsViewModel = connectionsViewModel
-                )
-            }
-        }
     }
 
     override fun onNewIntent(intent: Intent?) {

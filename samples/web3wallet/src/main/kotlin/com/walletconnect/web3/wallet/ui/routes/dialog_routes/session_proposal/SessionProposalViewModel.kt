@@ -8,37 +8,37 @@ import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.domain.accounts
 import com.walletconnect.web3.wallet.ui.common.peer.PeerUI
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 class SessionProposalViewModel : ViewModel() {
     val sessionProposal: SessionProposalUI? = generateSessionProposalUI(Web3Wallet.getSessionProposals().last())
 
-    fun approve() {
-        if (Web3Wallet.getSessionProposals().isNotEmpty()) {
-            val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().last())
-            val chains = sessionProposalUI.namespaces.flatMap { (_, proposal) -> proposal.chains!! }
-            val selectedAccounts: Map<Chains, String> = chains.mapNotNull { namespaceChainId -> accounts.firstOrNull { (chain, address) -> chain.chainId == namespaceChainId } }.toMap()
+    suspend fun approve() {
+        return suspendCoroutine { continuation ->
+            if (Web3Wallet.getSessionProposals().isNotEmpty()) {
+                val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().last())
+                val chains = sessionProposalUI.namespaces.flatMap { (_, proposal) -> proposal.chains!! }
+                val selectedAccounts: Map<Chains, String> = chains.mapNotNull { namespaceChainId -> accounts.firstOrNull { (chain, address) -> chain.chainId == namespaceChainId } }.toMap()
+                val required: Map<String, Wallet.Model.Namespace.Session> =
+                    getSessionNamespacesIndexedByNamespace(selectedAccounts, sessionProposal.requiredNamespaces, chains)
+                        .plus(sessionNamespacesIndexedByChain(selectedAccounts, sessionProposal.requiredNamespaces))
 
-            println("Chains: $chains")
+                val optional: Map<String, Wallet.Model.Namespace.Session> =
+                    getSessionNamespacesIndexedByNamespace(selectedAccounts, sessionProposal.optionalNamespaces, chains)
+                        .plus(sessionNamespacesIndexedByChain(selectedAccounts, sessionProposal.optionalNamespaces))
+                val sessionNamespaces: Map<String, Wallet.Model.Namespace.Session> = mergeRequiredAndOptional(required, optional)
+                val approveProposal = Wallet.Params.SessionApprove(proposerPublicKey = sessionProposal.proposerPublicKey, namespaces = sessionNamespaces)
 
-            val required: Map<String, Wallet.Model.Namespace.Session> =
-                getSessionNamespacesIndexedByNamespace(selectedAccounts, sessionProposal.requiredNamespaces, chains)
-                    .plus(sessionNamespacesIndexedByChain(selectedAccounts, sessionProposal.requiredNamespaces))
-
-            val optional: Map<String, Wallet.Model.Namespace.Session> =
-                getSessionNamespacesIndexedByNamespace(selectedAccounts, sessionProposal.optionalNamespaces, chains)
-                    .plus(sessionNamespacesIndexedByChain(selectedAccounts, sessionProposal.optionalNamespaces))
-
-            println("kobe: required: $required")
-            println("kobe: optional: $optional")
-
-            val sessionNamespaces: Map<String, Wallet.Model.Namespace.Session> = mergeRequiredAndOptional(required, optional)
-
-            println("kobe: sessionNamespaces: $sessionNamespaces")
-
-            val approveProposal = Wallet.Params.SessionApprove(proposerPublicKey = sessionProposal.proposerPublicKey, namespaces = sessionNamespaces)
-            Web3Wallet.approveSession(approveProposal) { error ->
-                println("kobe: Error: $error")
-                Firebase.crashlytics.recordException(error.throwable)
+                Web3Wallet.approveSession(approveProposal,
+                    onError = { error ->
+                        continuation.resumeWithException(error.throwable)
+                        Firebase.crashlytics.recordException(error.throwable)
+                    },
+                    onSuccess = {
+                        continuation.resume(Unit)
+                    })
             }
         }
     }
