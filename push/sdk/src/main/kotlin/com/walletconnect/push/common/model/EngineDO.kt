@@ -29,11 +29,12 @@ sealed class EngineDO: EngineEvent {
 
     sealed class PushSubscription : EngineDO() {
         abstract val requestId: Long
+        abstract val pairingTopic: String
         abstract val peerPublicKey: String
 
-        data class Requested(override val requestId: Long, override val peerPublicKey: String) : PushSubscription()
+        data class Requested(override val requestId: Long, override val pairingTopic: String, override val peerPublicKey: String, val metadata: AppMetaData) : PushSubscription()
 
-        data class Responded(override val requestId: Long, override val peerPublicKey: String, val topic: String, val account: String, val relay: RelayProtocolOptions, val metadata: AppMetaData?) : PushSubscription()
+        data class Responded(override val requestId: Long, override val pairingTopic: String, override val peerPublicKey: String, val topic: String, val account: String, val relay: RelayProtocolOptions, val metadata: AppMetaData) : PushSubscription()
     }
 
     data class PushRequestResponse(

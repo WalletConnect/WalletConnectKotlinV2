@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/web3walletActivity">
+
+    <activity
+        android:id="@+id/web3walletActivity"
+        android:fitsSystemWindows="true"
+        android:name="com.walletconnect.sample.wallet.ui.Web3WalletActivity"
+        android:label="Web3WalletActivity">
+    </activity>
+
+    <deepLink
+        app:action="android.intent.action.VIEW"
+        app:uri="wc:/{topic}@2" />
+
+    <deepLink
+        app:action="android.intent.action.VIEW"
+        app:uri="kotlin-web3wallet:/request" />
+</navigation>

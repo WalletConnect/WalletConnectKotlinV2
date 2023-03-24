@@ -2,6 +2,7 @@
 
 package com.walletconnect.chat.client
 
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
@@ -9,7 +10,6 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.mapper.toClient
 import com.walletconnect.chat.client.mapper.toClientError
 import com.walletconnect.chat.client.mapper.toCommon
-import com.walletconnect.chat.common.model.AccountId
 import com.walletconnect.chat.common.model.Events
 import com.walletconnect.chat.di.*
 import com.walletconnect.chat.engine.domain.ChatEngine
@@ -28,7 +28,6 @@ internal class ChatProtocol : ChatInterface {
         try {
             wcKoinApp.run {
                 modules(
-                    keyServerModule(init.keyServerUrl),
                     jsonRpcModule(),
                     storageModule(),
                     engineModule()

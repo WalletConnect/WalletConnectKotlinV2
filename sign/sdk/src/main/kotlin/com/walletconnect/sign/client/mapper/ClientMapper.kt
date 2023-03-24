@@ -71,14 +71,10 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     )
 
 @JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): JsonRpcResponse.JsonRpcResult =
-    JsonRpcResponse.JsonRpcResult(id, result = result)
+internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): JsonRpcResponse.JsonRpcResult = JsonRpcResponse.JsonRpcResult(id, result = result)
 
 @JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcError(): JsonRpcResponse.JsonRpcError =
-    PeerError.CAIP25.UserRejected(message).let { error ->
-        JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(error.code, error.message))
-    }
+internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcError(): JsonRpcResponse.JsonRpcError = JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(code, message))
 
 @JvmSynthetic
 internal fun Sign.Model.SessionEvent.toEngineEvent(chainId: String): EngineDO.Event = EngineDO.Event(name, data, chainId)

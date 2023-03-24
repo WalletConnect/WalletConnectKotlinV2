@@ -11,8 +11,7 @@ object Inbox {
         data class Init(
             val core: CoreClient,
             val account: Type.AccountId,
-            val onSign: (message: String) -> Model.Cacao.Signature,
-            val keyServerUrl: String = Chat.DEFUALT_KEYSERVER_URL,
+            val onSign: (message: String) -> Model.Cacao.Signature
         ) : Params()
     }
 

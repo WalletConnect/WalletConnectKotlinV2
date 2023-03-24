@@ -15,8 +15,10 @@ class Web3InboxComposeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             Web3InboxTheme {
+                val state = Web3Inbox.rememberWeb3InboxState()
+
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background) {
-                    Web3Inbox.View()
+                    Web3Inbox.View(state = state)
                 }
             }
         }

@@ -6,6 +6,7 @@
 
     <activity
         android:id="@+id/web3walletActivity"
+        android:fitsSystemWindows="true"
         android:name="com.walletconnect.web3.wallet.ui.Web3WalletActivity"
         android:label="Web3WalletActivity">
     </activity>

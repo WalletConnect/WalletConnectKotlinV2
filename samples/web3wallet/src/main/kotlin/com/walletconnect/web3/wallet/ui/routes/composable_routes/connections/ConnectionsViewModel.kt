@@ -14,7 +14,6 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 
 class ConnectionsViewModel : ViewModel() {
-
     private var _refreshFlow: MutableSharedFlow<Unit> = MutableSharedFlow(replay = 0, extraBufferCapacity = 1, BufferOverflow.DROP_OLDEST)
     private var refreshFlow: SharedFlow<Unit> = _refreshFlow.asSharedFlow()
     private val signConnectionsFlow = merge(WCDelegate.walletEvents, refreshFlow).map {

@@ -15,7 +15,7 @@ import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
 import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
 
-abstract class BaseClientIdJwtRepository : JwtRepository {
+abstract class BaseClientIdJwtRepository : ClientIdJwtRepository {
     abstract fun setKeyPair(key: String, privateKey: PrivateKey, publicKey: PublicKey)
 
     open fun getKeyPair(): Pair<String, String> {

@@ -5,9 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
+import com.walletconnect.push.common.Push
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.domain.ISSUER
+import com.walletconnect.web3.wallet.domain.PushWalletDelegate
 import com.walletconnect.web3.wallet.domain.WCDelegate
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -37,6 +39,27 @@ class Web3WalletViewModel : ViewModel() {
             }
             is Wallet.Model.SessionDelete -> SignEvent.Disconnect
             is Wallet.Model.SessionProposal -> SignEvent.SessionProposal
+            else -> NoAction
+        }
+    }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+
+    val pushEvents = PushWalletDelegate.wcPushEventModels.map { pushEvent ->
+        when (pushEvent) {
+            is Push.Wallet.Event.Request -> {
+                val requestId = pushEvent.id.toString()
+                val peerName = pushEvent.metadata.name
+                val peerDesc = pushEvent.metadata.description
+                val icon = pushEvent.metadata.icons.firstOrNull()
+                val redirect = pushEvent.metadata.redirect
+
+                PushRequest(requestId, peerName, peerDesc, icon, redirect)
+            }
+            is Push.Wallet.Event.Message -> {
+                PushMessage(pushEvent.title, pushEvent.body, pushEvent.icon, pushEvent.url)
+            }
+            is Push.Wallet.Event.Delete -> {
+                NoAction
+            }
             else -> NoAction
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
