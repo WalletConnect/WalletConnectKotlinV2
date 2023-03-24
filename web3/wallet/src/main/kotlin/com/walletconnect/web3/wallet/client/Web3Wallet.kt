@@ -32,11 +32,6 @@ object Web3Wallet {
 
         val signWalletDelegate = object : SignClient.WalletDelegate {
             override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
-
-                println("kobe; w3w proposal: $sessionProposal")
-
-                println("kobe; w3w proposal parsing: ${sessionProposal.toWallet()}")
-
                 delegate.onSessionProposal(sessionProposal.toWallet())
             }
 
