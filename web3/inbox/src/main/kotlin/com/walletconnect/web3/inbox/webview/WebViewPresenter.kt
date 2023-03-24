@@ -40,13 +40,10 @@ internal class WebViewPresenter(
         })
     }
 
-    fun loadUrl(accountId: AccountId) {
-        webViewWeakReference.webView.loadUrl(web3InboxUrl(accountId))
-    }
 
+    internal fun web3InboxUrl(accountId: AccountId) = "$WEB3INBOX_URL${web3InboxUrlQueryParams(accountId)}"
 
-    // todo: Add nice url builder.
-    private fun web3InboxUrl(accountId: AccountId) = "$WEB3INBOX_URL$WEB3INBOX_PROVIDER_TYPE&account=${accountId.address()}"
+    internal fun web3InboxUrlQueryParams(accountId: AccountId) = "$WEB3INBOX_PROVIDER_TYPE&account=${accountId.address()}"
 
     internal companion object {
         const val WEB3INBOX_URL = "https://web3inbox-dev-hidden.vercel.app"
