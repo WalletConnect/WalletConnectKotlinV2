@@ -17,6 +17,8 @@ import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.android.utils.plantTimber
 import com.walletconnect.android.utils.projectId
+import com.walletconnect.android.verify.VerifyClient
+import com.walletconnect.android.verify.VerifyInterface
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -24,6 +26,7 @@ object CoreClient {
     val Pairing: PairingInterface = PairingProtocol
     var Relay: RelayConnectionInterface = RelayClient
     val Echo: EchoInterface = EchoClient
+    val Verify: VerifyInterface = VerifyClient
 
     interface CoreDelegate : PairingInterface.Delegate
 
@@ -58,6 +61,7 @@ object CoreClient {
             RelayClient.initialize(relayServerUrl, connectionType) { error -> onError(Core.Model.Error(error)) }
         }
 
+        Verify.initialize(metaData.verifyUrl)
         PairingProtocol.initialize()
         PairingController.initialize()
     }
