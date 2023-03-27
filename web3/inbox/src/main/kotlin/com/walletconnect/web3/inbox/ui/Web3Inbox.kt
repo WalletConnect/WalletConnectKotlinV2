@@ -1,38 +1,18 @@
 package com.walletconnect.web3.inbox.ui
 
-import android.content.Context
-import android.view.ViewGroup
-import android.webkit.WebView
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.viewinterop.AndroidView
-import com.walletconnect.web3.inbox.common.model.AccountId
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.web3.inbox.webview.WebViewPresenter
 
 @Composable
 internal fun Web3InboxView(
     modifier: Modifier = Modifier,
     webViewPresenter: WebViewPresenter,
-    state: WebViewState,
-    accountId: AccountId,
+    state: Web3InboxState
 ) {
-    AndroidView(modifier = modifier, factory = { context -> createWebView(context, webViewPresenter, state, accountId) })
+    WebView(state = state.webViewState, modifier = modifier.fillMaxSize(), captureBackPresses = false, onCreated = { webView -> webViewPresenter.setWebView(webView) })
 }
 
-internal fun createWebView(
-    context: Context,
-    webViewPresenter: WebViewPresenter,
-    state: WebViewState,
-    accountId: AccountId,
-) = WebView(context).apply {
-    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-    webViewPresenter.setWebView(this)
-    if (state == WebViewState.Loading) {
-        webViewPresenter.loadUrl(accountId)
-    }
-}
-
-internal sealed interface WebViewState {
-    object Loading : WebViewState
-    object Initialized : WebViewState
-}
+data class Web3InboxState(val webViewState: WebViewState)

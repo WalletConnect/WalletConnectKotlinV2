@@ -20,14 +20,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
 import com.google.accompanist.navigation.material.*
+import com.walletconnect.web3.inbox.client.Web3Inbox
 import com.walletconnect.web3.wallet.ui.routes.Route
 import com.walletconnect.web3.wallet.ui.routes.bottomsheet_routes.scan_uri.ScanUriRoute
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.connection_details.ConnectionDetailsRoute
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.connections.ConnectionsRoute
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.get_started.GetStartedRoute
+import com.walletconnect.web3.wallet.ui.routes.composable_routes.web3inbox.Web3InboxRoute
 import com.walletconnect.web3.wallet.ui.routes.dialog_routes.auth_request.AuthRequestRoute
 import com.walletconnect.web3.wallet.ui.routes.dialog_routes.paste_uri.PasteUriRoute
+import com.walletconnect.web3.wallet.ui.routes.dialog_routes.push_request.PushRequestRoute
 import com.walletconnect.web3.wallet.ui.routes.dialog_routes.session_proposal.SessionProposalRoute
 import com.walletconnect.web3.wallet.ui.routes.dialog_routes.session_request.SessionRequestRoute
 import com.walletconnect.web3.wallet.ui.routes.dialog_routes.snackbar_message.SnackbarMessageRoute
@@ -53,6 +56,8 @@ fun Web3WalletNavGraph(
         Scaffold(
             content = { innerPadding ->
                 val sheetState = remember { bottomSheetNavigator.navigatorSheetState }
+                val web3InboxState = Web3Inbox.rememberWeb3InboxState()
+
                 NavHost(
                     modifier = Modifier.padding(innerPadding),
                     navController = navController,
@@ -69,6 +74,9 @@ fun Web3WalletNavGraph(
                     )) {
                         ConnectionDetailsRoute(navController, it.arguments?.getInt("connectionId"), connectionsViewModel)
                     }
+                    composable(Route.Web3Inbox.path) {
+                        Web3InboxRoute(web3InboxState)
+                    }
                     bottomSheet(Route.ScanUri.path) {
                         ScanUriRoute(navController, sheetState, onScanSuccess = { web3walletViewModel.pair(it) })
                     }
@@ -80,6 +88,22 @@ fun Web3WalletNavGraph(
                     }
                     dialog(Route.SessionRequest.path, deepLinks = listOf(NavDeepLink("kotlin-web3wallet:/request")), dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
                         SessionRequestRoute(navController)
+                    }
+                    dialog("${Route.PushRequest.path}?${Route.PushRequest.KEY_REQUEST_ID}={requestId}&${Route.PushRequest.KEY_PEER_NAME}={peerName}&${Route.PushRequest.KEY_PEER_DESC}={peerDesc}&${Route.PushRequest.KEY_ICON_URL}={iconUrl}&${Route.PushRequest.KEY_REDIRECT}={redirect}", arguments = listOf(
+                        navArgument("requestId") { type = NavType.LongType },
+                        navArgument("peerName") { type = NavType.StringType },
+                        navArgument("peerDesc") { type = NavType.StringType },
+                        navArgument("iconUrl") { type = NavType.StringType },
+                        navArgument("redirect") { type = NavType.StringType }
+                    ), dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) { backStackEntry ->
+                        PushRequestRoute(
+                            navController,
+                            backStackEntry.arguments?.getLong("requestId")!!,
+                            backStackEntry.arguments?.getString("peerName")!!,
+                            backStackEntry.arguments?.getString("peerDesc")!!,
+                            backStackEntry.arguments?.getString("iconUrl"),
+                            backStackEntry.arguments?.getString("redirect"),
+                        )
                     }
                     dialog(Route.PasteUri.path, dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
                         PasteUriRoute(onSubmit = {

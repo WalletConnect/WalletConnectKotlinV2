@@ -211,10 +211,10 @@ internal class PushDappEngine(
                     val pushRequestResponse = response.result as PushParams.RequestResponseParams
                     val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(pushRequestResponse.publicKey))
                     val respondedSubscription =
-                        EngineDO.PushSubscription.Responded(wcResponse.response.id, pushRequestResponse.publicKey, pushTopic.value, params.account, RelayProtocolOptions(), params.metaData)
+                        EngineDO.PushSubscription.Responded(wcResponse.response.id, wcResponse.topic.value, pushRequestResponse.publicKey, pushTopic.value, params.account, RelayProtocolOptions(), params.metaData)
 
                     withContext(Dispatchers.IO) {
-                        subscriptionStorageRepository.insertRespondedSubscription(respondedSubscription)
+                        subscriptionStorageRepository.insertRespondedSubscription(wcResponse.topic.value, respondedSubscription)
                         jsonRpcInteractor.subscribe(pushTopic)
 
                         val symKey = crypto.getSymmetricKey(pushTopic.value)

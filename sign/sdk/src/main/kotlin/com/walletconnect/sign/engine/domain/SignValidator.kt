@@ -42,13 +42,10 @@ internal object SignValidator {
             !areChainIdsValid(sessionNamespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_CAIP_2_MESSAGE))
             !areChainsInMatchingNamespace(sessionNamespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE))
             !areAccountIdsValid(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
-            !areAccountsInMatchingNamespace(sessionNamespaces) ->
-                onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
+            !areAccountsInMatchingNamespace(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
             !areAllNamespacesApproved(sessionNamespaces.keys, requiredNamespaces.keys) -> onError(ValidationError.UserRejected)
-            !areAllMethodsApproved(allMethodsWithChains(sessionNamespaces), allMethodsWithChains(requiredNamespaces)) ->
-                onError(ValidationError.UserRejectedMethods)
-            !areAllEventsApproved(allEventsWithChains(sessionNamespaces), allEventsWithChains(requiredNamespaces)) ->
-                onError(ValidationError.UserRejectedEvents)
+            !areAllMethodsApproved(allMethodsWithChains(sessionNamespaces), allMethodsWithChains(requiredNamespaces)) -> onError(ValidationError.UserRejectedMethods)
+            !areAllEventsApproved(allEventsWithChains(sessionNamespaces), allEventsWithChains(requiredNamespaces)) -> onError(ValidationError.UserRejectedEvents)
         }
     }
 
@@ -164,12 +161,30 @@ internal object SignValidator {
             .flatMap { (namespaceKey, namespace) -> namespace.methods.map { method -> method to listOf(namespaceKey) } }
             .toMap()
 
-        return (methodsByChains.asSequence() + methodsByNamespaceKey.asSequence())
+        //TODO: CAIP-25 backward compatibility
+        val methodsByChainFromAccount = namespaces
+            .filter { (namespaceKey, namespace) -> namespace is NamespaceVO.Session && NAMESPACE_REGEX.toRegex().matches(namespaceKey) && namespace.chains == null }
+            .flatMap { (_, namespace) -> (namespace as NamespaceVO.Session).methods.map { method -> method to namespace.accounts.map { getChainFromAccount(it) } } }
+            .toMap()
+
+        return (methodsByChains.asSequence() + methodsByNamespaceKey.asSequence() + methodsByChainFromAccount.asSequence())
             .distinct()
             .groupBy({ it.key }, { it.value })
             .mapValues { (_, values) -> values.flatten() }
     }
 
+    private fun areAllMethodsApproved(
+        allApprovedMethodsWithChains: Map<String, List<String>>,
+        allRequiredMethodsWithChains: Map<String, List<String>>,
+    ): Boolean {
+        allRequiredMethodsWithChains.forEach { (method, chainsRequested) ->
+            val chainsApproved = allApprovedMethodsWithChains[method] ?: return false
+            if (!chainsApproved.containsAll(chainsRequested)) {
+                return false
+            }
+        }
+        return true
+    }
 
     private fun allEventsWithChains(namespaces: Map<String, NamespaceVO>): Map<String, List<String>> {
         val eventsByChains = namespaces
@@ -182,7 +197,13 @@ internal object SignValidator {
             .flatMap { (namespaceKey, namespace) -> namespace.events.map { event -> event to listOf(namespaceKey) } }
             .toMap()
 
-        return (eventsByChains.asSequence() + eventsByNamespaceKey.asSequence())
+        //TODO: CAIP-25 backward compatibility
+        val eventsByChainFromAccount = namespaces
+            .filter { (namespaceKey, namespace) -> namespace is NamespaceVO.Session && NAMESPACE_REGEX.toRegex().matches(namespaceKey) && namespace.chains == null }
+            .flatMap { (_, namespace) -> (namespace as NamespaceVO.Session).events.map { event -> event to namespace.accounts.map { getChainFromAccount(it) } } }
+            .toMap()
+
+        return (eventsByChains.asSequence() + eventsByNamespaceKey.asSequence() + eventsByChainFromAccount.asSequence())
             .distinct()
             .groupBy({ it.key }, { it.value })
             .mapValues { (_, values) -> values.flatten() }
@@ -194,19 +215,6 @@ internal object SignValidator {
     ): Boolean {
         allRequiredEventsWithChains.forEach { (method, chainsRequested) ->
             val chainsApproved = allApprovedEventsWithChains[method] ?: return false
-            if (!chainsApproved.containsAll(chainsRequested)) {
-                return false
-            }
-        }
-        return true
-    }
-
-    private fun areAllMethodsApproved(
-        allApprovedMethodsWithChains: Map<String, List<String>>,
-        allRequiredMethodsWithChains: Map<String, List<String>>,
-    ): Boolean {
-        allRequiredMethodsWithChains.forEach { (method, chainsRequested) ->
-            val chainsApproved = allApprovedMethodsWithChains[method] ?: return false
             if (!chainsApproved.containsAll(chainsRequested)) {
                 return false
             }

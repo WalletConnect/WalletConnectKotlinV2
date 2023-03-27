@@ -75,9 +75,13 @@ fun baseStorageModule() = module {
 
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).metaDataQueries }
 
+    single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).identitiesQueries }
+
     single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(get()) }
 
     single<PairingStorageRepositoryInterface> { PairingStorageRepository(get()) }
 
     single { JsonRpcHistory(get(), get()) }
+
+    single { IdentitiesStorageRepository(get()) }
 }

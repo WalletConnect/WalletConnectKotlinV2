@@ -8,8 +8,6 @@ import com.walletconnect.chat.common.model.Media
 import com.walletconnect.foundation.util.jwt.JwtClaims
 
 internal sealed interface ChatDidJwtClaims : JwtClaims {
-    val issuer: String
-
     @JsonClass(generateAdapter = true)
     data class InviteKey(
         @Json(name = "iss") override val issuer: String,

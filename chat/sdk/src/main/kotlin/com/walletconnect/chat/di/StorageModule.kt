@@ -5,6 +5,7 @@ import com.squareup.sqldelight.EnumColumnAdapter
 import com.walletconnect.android.di.sdkBaseStorageModule
 import com.walletconnect.android.internal.common.di.DBUtils
 import com.walletconnect.android.internal.common.di.deleteDatabase
+import com.walletconnect.android.internal.common.storage.IdentitiesStorageRepository
 import com.walletconnect.chat.ChatDatabase
 import com.walletconnect.chat.common.model.InviteStatus
 import com.walletconnect.chat.common.model.InviteType
@@ -50,12 +51,10 @@ internal fun storageModule() = module {
     single { get<ChatDatabase>().invitesQueries }
     single { get<ChatDatabase>().messagesQueries }
     single { get<ChatDatabase>().accountsQueries }
-    single { get<ChatDatabase>().identitiesQueries }
 
     single { ContactStorageRepository(get()) }
     single { ThreadsStorageRepository(get()) }
     single { InvitesStorageRepository(get()) }
     single { MessageStorageRepository(get()) }
     single { AccountsStorageRepository(get()) }
-    single { IdentitiesStorageRepository(get()) }
 }

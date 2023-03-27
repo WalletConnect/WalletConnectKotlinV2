@@ -5,7 +5,6 @@ package com.walletconnect.push.wallet.engine
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.*
@@ -29,11 +28,8 @@ import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.common.storage.data.SubscriptionStorageRepository
 import com.walletconnect.push.wallet.data.MessageRepository
 import com.walletconnect.util.generateId
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import kotlin.reflect.full.safeCast
 
 internal class PushWalletEngine(
@@ -50,7 +46,6 @@ internal class PushWalletEngine(
     private var internalErrorsJob: Job? = null
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
-    private val pushRequests: MutableMap<Long, WCRequest> = mutableMapOf()
 
     init {
         pairingHandler.register(
@@ -87,22 +82,18 @@ internal class PushWalletEngine(
 
     fun approve(requestId: Long, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         try {
-            val proposerRequest = pushRequests[requestId]?.also { _ ->
-                pushRequests.remove(requestId)
-            } ?: return onError(GenericException("Unable to find proposer's request"))
-            val proposerRequestParams = proposerRequest.params as PushParams.RequestParams
-
+            val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId) ?: return onError(Exception("Subscription with RequestId $requestId can't be found"))
             val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
-            val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(proposerRequestParams.publicKey))
+            val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(respondedSubscription.peerPublicKey))
             val approvalParams = PushParams.RequestResponseParams(selfPublicKey.keyAsHex)
             val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
 
-            subscriptionStorageRepository.updateSubscriptionToResponded(requestId, pushTopic.value, proposerRequestParams.metaData)
+            subscriptionStorageRepository.updateSubscriptionToResponded(requestId, pushTopic.value, respondedSubscription.metadata)
 
             jsonRpcInteractor.subscribe(pushTopic) { error ->
                 return@subscribe onError(error)
             }
-            jsonRpcInteractor.respondWithParams(proposerRequest, approvalParams, irnParams) { error ->
+            jsonRpcInteractor.respondWithParams(respondedSubscription.requestId, Topic(respondedSubscription.pairingTopic), approvalParams, irnParams) { error ->
                 return@respondWithParams onError(error)
             }
 
@@ -114,12 +105,10 @@ internal class PushWalletEngine(
 
     fun reject(requestId: Long, reason: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         try {
-            val proposerRequest = pushRequests[requestId]?.also { _ ->
-                pushRequests.remove(requestId)
-            } ?: return onError(GenericException("Unable to find proposer's request"))
+            val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId) ?: return onError(Exception("Subscription with RequestId $requestId can't be found"))
             val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
 
-            jsonRpcInteractor.respondWithError(proposerRequest, PeerError.Rejected.UserRejected(reason), irnParams) { error ->
+            jsonRpcInteractor.respondWithError(respondedSubscription.requestId, Topic(respondedSubscription.pairingTopic), PeerError.Rejected.UserRejected(reason), irnParams) { error ->
                 return@respondWithError onError(error)
             }
 
@@ -224,10 +213,25 @@ internal class PushWalletEngine(
         val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
 
         try {
-            pushRequests[request.id] = request
-            subscriptionStorageRepository.insertSubscriptionProposal(request.id, params.publicKey, params.account)
+            scope.launch {
+                supervisorScope {
+                    withContext(Dispatchers.IO) {
+                        subscriptionStorageRepository.insertSubscriptionProposal(
+                            request.id,
+                            request.topic.value,
+                            params.publicKey,
+                            params.account,
+                            params.metaData.name,
+                            params.metaData.description,
+                            params.metaData.url,
+                            params.metaData.icons,
+                            params.metaData.redirect?.native
+                        )
+                    }
+                }
 
-            scope.launch { _engineEvent.emit(params.toEngineDO(request.id)) }
+                _engineEvent.emit(params.toEngineDO(request.id))
+            }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
                 request,

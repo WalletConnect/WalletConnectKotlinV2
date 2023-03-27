@@ -1,7 +1,6 @@
 package com.walletconnect.android.internal.utils
 
 import com.walletconnect.android.internal.common.model.Expiry
-import java.time.Instant
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -36,5 +35,5 @@ object CoreValidator {
 
     const val NAMESPACE_REGEX: String = "^[-a-z0-9]{3,8}$"
     private const val REFERENCE_REGEX: String = "^[-a-zA-Z0-9]{1,32}$"
-    private const val ACCOUNT_ADDRESS_REGEX: String = "^[a-zA-Z0-9]{1,64}$"
+    private const val ACCOUNT_ADDRESS_REGEX: String = "^[-.%a-zA-Z0-9]{1,128}$"
 }

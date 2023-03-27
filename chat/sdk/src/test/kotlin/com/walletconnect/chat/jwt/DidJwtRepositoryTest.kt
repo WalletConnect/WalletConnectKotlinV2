@@ -1,6 +1,7 @@
 package com.walletconnect.chat.jwt
 
 import android.util.Log
+import com.walletconnect.android.internal.common.jwt.DidJwtRepository
 import io.mockk.every
 import io.mockk.mockkStatic
 import org.junit.jupiter.api.Test

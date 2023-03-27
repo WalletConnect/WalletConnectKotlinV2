@@ -1,5 +1,6 @@
 package com.walletconnect.chat.storage
 
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.chat.common.model.*
 import com.walletconnect.chat.storage.data.dao.InvitesQueries
 import com.walletconnect.foundation.common.model.PublicKey

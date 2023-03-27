@@ -59,6 +59,9 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.6.1")
     implementation("androidx.palette:palette:1.0.0")
 
+    implementation(platform("com.google.firebase:firebase-bom:31.0.0"))
+    implementation("com.google.firebase:firebase-messaging")
+
     // Glide
     implementation("com.github.skydoves:landscapist-glide:2.1.0")
 
@@ -91,8 +94,11 @@ dependencies {
     // WalletConnect
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":web3:wallet"))
+    debugImplementation(project(":web3:inbox"))
+    debugImplementation(project(":push:sdk"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
     releaseImplementation("com.walletconnect:web3wallet")
+    releaseImplementation("com.walletconnect:web3inbox")
 }

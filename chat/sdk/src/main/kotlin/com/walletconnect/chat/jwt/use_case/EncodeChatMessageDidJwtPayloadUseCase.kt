@@ -2,7 +2,8 @@
 
 package com.walletconnect.chat.jwt.use_case
 
-import com.walletconnect.chat.common.model.AccountId
+import com.walletconnect.android.internal.common.jwt.EncodeDidJwtPayloadUseCase
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.chat.common.model.Media
 import com.walletconnect.chat.jwt.ChatDidJwtClaims
 import com.walletconnect.foundation.util.jwt.encodeDidPkh
@@ -14,10 +15,8 @@ internal class EncodeChatMessageDidJwtPayloadUseCase(
     private val recipientAccountId: AccountId,
     private val media: Media?,
     private val timestampInMs: Long,
-) : EncodeDidJwtPayloadUseCase {
-
-    override operator fun invoke(issuer: String, keyserverUrl: String, issuedAt: Long, expiration: Long): ChatDidJwtClaims  {
-        // Override issuedAt and expiration based on timestampInMs to match message timestamp
+) : EncodeDidJwtPayloadUseCase<ChatDidJwtClaims.ChatMessage> {
+    override fun invoke(params: EncodeDidJwtPayloadUseCase.Params): ChatDidJwtClaims.ChatMessage = with(params) {
         val (messageIssuedAt, messageExpiration) = jwtIatAndExp(timestampInMs = timestampInMs, timeunit = TimeUnit.MILLISECONDS, expirySourceDuration = 30, expiryTimeUnit = TimeUnit.DAYS)
 
         return ChatDidJwtClaims.ChatMessage(

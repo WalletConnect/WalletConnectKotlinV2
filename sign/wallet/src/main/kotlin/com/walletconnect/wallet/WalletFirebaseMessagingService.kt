@@ -20,7 +20,7 @@ import kotlin.random.nextUInt
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 class WalletFirebaseMessagingService: PushMessageService() {
     private val TAG = this::class.simpleName
-    private val intent = Intent(this, WalletSampleActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) }
+    private val intent by lazy { Intent(this, WalletSampleActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) } }
     private val pendingIntent by lazy { PendingIntent.getActivity(this, 0 /* Request code */, intent, PendingIntent.FLAG_IMMUTABLE) }
     private val channelId = "Push"
     private val notificationManager by lazy { getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }

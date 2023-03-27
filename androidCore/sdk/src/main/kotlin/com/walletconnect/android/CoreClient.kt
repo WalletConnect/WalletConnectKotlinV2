@@ -5,8 +5,6 @@ import com.walletconnect.android.di.coreStorageModule
 import com.walletconnect.android.echo.EchoClient
 import com.walletconnect.android.echo.EchoInterface
 import com.walletconnect.android.internal.common.di.*
-import com.walletconnect.android.internal.common.di.coreCryptoModule
-import com.walletconnect.android.internal.common.di.echoModule
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.model.Redirect
@@ -35,7 +33,8 @@ object CoreClient {
         connectionType: ConnectionType,
         application: Application,
         relay: RelayConnectionInterface? = null,
-        onError: (Core.Model.Error) -> Unit
+        keyServerUrl: String? = null,
+        onError: (Core.Model.Error) -> Unit,
     ) {
         plantTimber()
         with(wcKoinApp) {
@@ -51,6 +50,7 @@ object CoreClient {
                 module { single { Echo } },
                 coreJsonRpcModule(),
                 corePairingModule(Pairing),
+                keyServerModule(keyServerUrl),
             )
         }
 
