@@ -8,7 +8,11 @@ import java.security.Security
 fun generateEthereumAccount(address: String) = "eip155:1:0x$address"
 
 fun generateKeys(): Triple<String, String, String> {
-    Security.removeProvider("BC")
+    Security.getProviders().forEach { provider ->
+        if (provider.name == "BC") {
+            Security.removeProvider(provider.name)
+        }
+    }
     Security.addProvider(BouncyCastleProvider())
     val keypair = Keys.createEcKeyPair()
     val publicKey = keypair.publicKey.toByteArray().bytesToHex()
