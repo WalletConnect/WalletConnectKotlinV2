@@ -7,6 +7,7 @@ import com.walletconnect.android.internal.common.di.coreCryptoModule
 import com.walletconnect.android.internal.common.di.coreJsonRpcModule
 import com.walletconnect.android.internal.common.di.corePairingModule
 import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.NetworkClientTimeout
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -33,6 +34,7 @@ object CoreClient {
         connectionType: ConnectionType,
         application: Application,
         relay: RelayConnectionInterface? = null,
+        networkClientTimeout: NetworkClientTimeout? = null,
         onError: (Core.Model.Error) -> Unit
     ) {
         plantTimber()
@@ -51,7 +53,7 @@ object CoreClient {
         }
 
         if (relay == null) {
-            RelayClient.initialize(relayServerUrl, connectionType) { error -> onError(Core.Model.Error(error)) }
+            RelayClient.initialize(relayServerUrl, connectionType, networkClientTimeout) { error -> onError(Core.Model.Error(error)) }
         }
         PairingProtocol.initialize()
         PairingController.initialize()
