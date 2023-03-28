@@ -54,8 +54,8 @@ class ProposalStorageRepository(
 
     @JvmSynthetic
    internal fun deleteProposal(key: String) {
-        requiredNamespaceDaoQueries.deleteProposalNamespacesByTopic(key)
-        optionalNamespaceDaoQueries.deleteOptionalNamespacesByTopic(key)
+        requiredNamespaceDaoQueries.deleteProposalNamespacesProposerKey(key)
+        optionalNamespaceDaoQueries.deleteProposalNamespacesProposerKey(key)
         proposalDaoQueries.deleteProposal(key)
     }
 
