@@ -110,6 +110,15 @@ enum class Chains(
         methods = Info.Cosmos.defaultMethods,
         events = Info.Cosmos.defaultEvents,
         order = 7
+    ),
+    BNB(
+        chainName = "BNB Smart Chain",
+        chainNamespace = Info.Eth.chain,
+        chainReference = "56",
+        icon = R.drawable.bnb,
+        methods = Info.Cosmos.defaultMethods,
+        events = Info.Cosmos.defaultEvents,
+        order = 8
     );
 
     sealed class Info {

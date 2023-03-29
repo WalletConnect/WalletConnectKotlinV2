@@ -8,7 +8,7 @@ data class SessionProposalUI(
     val namespaces: Map<String, Wallet.Model.Namespace.Proposal>,
 )
 
-private val extensiveSessionProposalUI = SessionProposalUI(
+val sessionProposalUI = SessionProposalUI(
     peerUI = PeerUI(
         peerIcon = "https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png",
         peerName = "Kotlin.Responder",
@@ -17,8 +17,8 @@ private val extensiveSessionProposalUI = SessionProposalUI(
     ),
     namespaces = mapOf(
         "eip155" to Wallet.Model.Namespace.Proposal(
-            chains = listOf("eip155:1", "eip155:137"),
-            methods = listOf("accountsChanged", "personalSign",),
+            chains = listOf("eip155:1", "eip155:137", "eip155:56"),
+            methods = listOf("accountsChanged", "personalSign"),
             events = listOf("someEvent1", "someEvent2"),
         ),
         "cosmos" to Wallet.Model.Namespace.Proposal(
@@ -28,22 +28,3 @@ private val extensiveSessionProposalUI = SessionProposalUI(
         )
     )
 )
-
-private val minimalSessionProposalUI = SessionProposalUI(
-    peerUI = PeerUI(
-        peerIcon = "https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png",
-        peerName = "Kotlin.Responder",
-        peerUri = "kotlin.responder.app",
-        peerDescription = ""
-    ),
-    namespaces = mapOf(
-        "eip155" to Wallet.Model.Namespace.Proposal(
-            chains = listOf("eip155:1"),
-            methods = listOf("accountsChanged", "personalSign"),
-            events = listOf("someEvent1", "someEvent2"),
-        ),
-    )
-)
-
-val sessionProposalUI = extensiveSessionProposalUI
-

@@ -23,8 +23,8 @@ android {
         buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        File("${rootDir.path}/gradle/consumer-rules").listFiles()?.forEach { proguardFile ->
-            consumerProguardFiles(proguardFile.path)
+        File("${rootDir.path}/gradle/consumer-rules").listFiles()?.let { proguardFiles ->
+            consumerProguardFiles(*proguardFiles)
         }
 
         ndk.abiFilters += listOf("armeabi-v7a", "x86", "x86_64", "arm64_v8a")

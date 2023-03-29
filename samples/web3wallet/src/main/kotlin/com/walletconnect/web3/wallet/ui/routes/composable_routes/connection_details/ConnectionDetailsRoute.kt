@@ -2,7 +2,6 @@
 
 package com.walletconnect.web3.wallet.ui.routes.composable_routes.connection_details
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -34,17 +33,15 @@ import com.google.accompanist.pager.rememberPagerState
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.skydoves.landscapist.glide.GlideImage
+import com.walletconnect.web3.wallet.client.Wallet
+import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.domain.accounts
+import com.walletconnect.web3.wallet.sample.R
 import com.walletconnect.web3.wallet.ui.common.*
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.connections.ConnectionType
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.connections.ConnectionUI
 import com.walletconnect.web3.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
-import com.walletconnect.web3.wallet.ui.common.themedColor
 import com.walletconnect.web3.wallet.ui.routes.showSnackbar
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
-import com.walletconnect.web3.wallet.sample.R
-
 
 @Composable
 fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, connectionsViewModel: ConnectionsViewModel) {

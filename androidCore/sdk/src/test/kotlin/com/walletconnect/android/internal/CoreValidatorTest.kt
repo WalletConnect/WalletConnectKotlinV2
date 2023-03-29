@@ -33,5 +33,6 @@ class CoreValidatorTest {
         CoreValidator.isAccountIdCAIP10Compliant("a:s").apply { assertEquals(this, false) }
         CoreValidator.isAccountIdCAIP10Compliant("chainstd:8c3444cf8970a9e41a706fab93e337a6c4:6d9b0b4b9994e8a6afbd3dc3ed983cd51c755afb27cd1dc7825ef59c134a39f7")
             .apply { assertEquals(this, false) }
+        CoreValidator.isAccountIdCAIP10Compliant("bca:54:0%3A38d4c6ef92bd7ff4426eb232af3ff87bea525eff112f93eb28069e54bca89e4b").apply { assertEquals(this, true) }
     }
 }
