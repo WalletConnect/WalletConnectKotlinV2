@@ -6,7 +6,7 @@ import com.walletconnect.foundation.util.jwt.JwtClaims
 
 @JsonClass(generateAdapter = true)
 data class IrnJwtClaims(
-    @Json(name = "iss") val issuer: String,
+    @Json(name = "iss") override val issuer: String,
     @Json(name = "sub") val subject: String,
     @Json(name = "aud") val audience: String,
     @Json(name = "iat") val issuedAt: Long,

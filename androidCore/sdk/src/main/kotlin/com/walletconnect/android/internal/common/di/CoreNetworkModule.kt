@@ -12,6 +12,7 @@ import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.connection.ManualConnectionLifecycle
 import com.walletconnect.android.internal.common.jwt.GenerateJwtStoreClientIdUseCase
+import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
@@ -25,9 +26,10 @@ import java.util.concurrent.TimeUnit
 
 @Suppress("LocalVariableName")
 @JvmSynthetic
-fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, sdkVersion: String) = module {
+fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, sdkVersion: String, timeout: NetworkClientTimeout? = null) = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
-    val TIMEOUT_TIME = 5000L
+
+    val networkClientTimeout = timeout ?: NetworkClientTimeout.getDefaultTimeout()
 
     factory<Uri>(named(AndroidCommonDITags.RELAY_URL)) {
         val jwt = get<GenerateJwtStoreClientIdUseCase>().invoke(serverUrl)
@@ -61,10 +63,10 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
                     }
                 }
             })
-            .writeTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
-            .readTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
-            .callTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
-            .connectTimeout(TIMEOUT_TIME, TimeUnit.MILLISECONDS)
+            .writeTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
+            .readTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
+            .callTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
+            .connectTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
             .build()
     }
 

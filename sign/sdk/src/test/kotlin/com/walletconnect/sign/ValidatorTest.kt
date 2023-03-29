@@ -272,13 +272,25 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces MUST approve all methods`() {
         val requiredNamespaces = mapOf(EIP155 to NamespaceVO.Required(chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = emptyList()))
+
         val namespaces = mapOf(
             EIP155 to NamespaceVO.Session(accounts = listOf(ETHEREUM_1), methods = emptyList(), events = emptyList(), chains = listOf(ETHEREUM))
         )
+
         var errorMessage: String? = null
         SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
         assertNotNull(errorMessage)
         assertEquals(NAMESPACE_METHODS_MISSING_MESSAGE, errorMessage)
+    }
+
+    @Test
+    fun `chains MAY be null`() {
+        val requiredNamespaces = mapOf(EIP155 to NamespaceVO.Required(chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = emptyList()))
+        val namespaces = mapOf(EIP155 to NamespaceVO.Session(accounts = listOf(ETHEREUM_1), methods = listOf(ETH_SIGN), events = emptyList()))
+
+        var errorMessage: String? = null
+        SignValidator.validateSessionNamespace(namespaces, requiredNamespaces) { errorMessage = it.message }
+        assertNull(errorMessage)
     }
 
     @Test

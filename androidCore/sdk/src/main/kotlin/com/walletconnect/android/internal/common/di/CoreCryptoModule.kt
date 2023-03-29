@@ -5,13 +5,14 @@ import android.content.SharedPreferences
 import android.os.Build
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.walletconnect.android.internal.common.jwt.ClientIdJwtRepositoryAndroid
 import com.walletconnect.android.internal.common.crypto.codec.ChaChaPolyCodec
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.BouncyCastleKeyManagementRepository
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.jwt.ClientIdJwtRepositoryAndroid
+import com.walletconnect.android.internal.common.jwt.DidJwtRepository
 import com.walletconnect.android.internal.common.storage.KeyChain
-import com.walletconnect.foundation.crypto.data.repository.JwtRepository
+import com.walletconnect.foundation.crypto.data.repository.ClientIdJwtRepository
 import com.walletconnect.foundation.util.Logger
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
@@ -84,7 +85,9 @@ internal fun coreCryptoModule() = module {
 
     single<WCKeyStore> { KeyChain(get()) }
 
-    single<JwtRepository> { ClientIdJwtRepositoryAndroid(get()) }
+    single<ClientIdJwtRepository> { ClientIdJwtRepositoryAndroid(get()) }
+
+    single { DidJwtRepository() }
 
     single<KeyManagementRepository> { BouncyCastleKeyManagementRepository(get()) }
 

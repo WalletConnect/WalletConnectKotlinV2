@@ -1,6 +1,6 @@
 package com.walletconnect.foundation.crypto.data.repository
 
-interface JwtRepository {
+interface ClientIdJwtRepository {
 
     fun generateJWT(serverUrl: String, getIssuerClientId: (String) -> Unit = {}): String
 }
