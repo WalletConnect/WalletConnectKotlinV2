@@ -10,7 +10,7 @@ import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.connection.ManualConnectionLifecycle
-import com.walletconnect.android.internal.common.model.NetworkClientTimeout
+import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter

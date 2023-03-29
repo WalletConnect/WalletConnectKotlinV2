@@ -7,7 +7,6 @@ import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.di.coreAndroidNetworkModule
 import com.walletconnect.android.internal.common.exception.WRONG_CONNECTION_TYPE
-import com.walletconnect.android.internal.common.model.NetworkClientTimeout
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.utils.*

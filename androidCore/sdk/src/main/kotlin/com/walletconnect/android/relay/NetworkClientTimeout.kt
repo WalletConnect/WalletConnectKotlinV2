@@ -1,4 +1,4 @@
-package com.walletconnect.android.internal.common.model
+package com.walletconnect.android.relay
 
 import java.util.concurrent.TimeUnit
 

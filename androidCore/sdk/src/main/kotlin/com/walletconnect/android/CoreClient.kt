@@ -7,7 +7,7 @@ import com.walletconnect.android.internal.common.di.coreCryptoModule
 import com.walletconnect.android.internal.common.di.coreJsonRpcModule
 import com.walletconnect.android.internal.common.di.corePairingModule
 import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.internal.common.model.NetworkClientTimeout
+import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.wcKoinApp
