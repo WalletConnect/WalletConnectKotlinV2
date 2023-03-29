@@ -17,6 +17,7 @@ import com.walletconnect.push.wallet.di.walletEngineModule
 import com.walletconnect.push.wallet.engine.PushWalletEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 class PushWalletProtocol : PushWalletInterface {
     private lateinit var pushWalletEngine: PushWalletEngine
@@ -57,7 +58,9 @@ class PushWalletProtocol : PushWalletInterface {
         checkEngineInitialization()
 
         try {
-            pushWalletEngine.approve(params.id, onSuccess) { onError(Push.Model.Error(it)) }
+            scope.launch {
+                pushWalletEngine.approve(params.id, params.onSign, onSuccess) { onError(Push.Model.Error(it)) }
+            }
         } catch (e: Exception) {
             onError(Push.Model.Error(e))
         }

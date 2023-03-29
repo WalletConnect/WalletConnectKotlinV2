@@ -4,10 +4,15 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
+import com.walletconnect.android.cacao.sign
+import com.walletconnect.android.cacao.signature.SignatureType
+import com.walletconnect.android.internal.common.cacao.Cacao
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.wallet.client.PushWalletClient
 import com.walletconnect.sample_common.tag
+import com.walletconnect.util.hexToBytes
 import com.walletconnect.web3.wallet.ui.common.peer.PeerUI
+import com.walletconnect.web3.wallet.utils.CacaoSigner
 import java.net.URLDecoder
 
 class PushRequestViewModel : ViewModel() {
@@ -30,7 +35,10 @@ class PushRequestViewModel : ViewModel() {
     }
 
     fun approve(requestId: Long, navigateBack: () -> Unit) {
-        val approveParams = Push.Wallet.Params.Approve(requestId)
+        val approveParams = Push.Wallet.Params.Approve(requestId) { message ->
+            CacaoSigner.sign(message, _privateKey.hexToBytes(), SignatureType.EIP191)
+            Cacao.Signature("", "")
+        }
 
         PushWalletClient.approve(
             approveParams,

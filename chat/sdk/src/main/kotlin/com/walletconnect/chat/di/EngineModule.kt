@@ -5,7 +5,6 @@ package com.walletconnect.chat.di
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.chat.engine.domain.ChatEngine
 import com.walletconnect.chat.json_rpc.GetPendingJsonRpcHistoryEntryByIdUseCase
-import com.walletconnect.android.internal.common.jwt.DidJwtRepository
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -15,8 +14,21 @@ internal fun engineModule() = module {
 
     single {
         ChatEngine(
-            get(named(AndroidCommonDITags.KEYSERVER_URL)), get(), get(), get(), get(), get(),
-            get(), get(), get(), get(), get(), get(), get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))
+            keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)),
+            getPendingJsonRpcHistoryEntryByIdUseCase = get(),
+            identitiesInteractor = get(),
+            registerInviteUseCase = get(),
+            unregisterInviteUseCase = get(),
+            resolveInviteUseCase = get(),
+            keyManagementRepository = get(),
+            jsonRpcInteractor = get(),
+            contactRepository = get(),
+            pairingHandler = get(),
+            threadsRepository = get(),
+            invitesRepository = get(),
+            messageRepository = get(),
+            accountsRepository = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
 }

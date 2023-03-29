@@ -4,6 +4,8 @@ package com.walletconnect.push.dapp.engine
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.crypto.sha256
+import com.walletconnect.android.internal.common.jwt.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
@@ -16,10 +18,12 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.foundation.util.jwt.decodeX25519DidKey
 import com.walletconnect.push.common.JsonRpcMethod
+import com.walletconnect.push.common.data.jwt.PushSubscriptionJwtClaim
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
-import com.walletconnect.push.common.storage.data.SubscriptionStorageRepository
+import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
 import com.walletconnect.push.dapp.data.CastRepository
 import com.walletconnect.push.dapp.di.PushDITags
 import com.walletconnect.util.generateId
@@ -87,7 +91,9 @@ internal class PushDappEngine(
         val requestParams = PushParams.RequestParams(selfPublicKey.keyAsHex, selfAppMetaData, account)
         val request = PushRpc.PushRequest(id = generateId(), params = requestParams)
         val irnParams = IrnParams(Tags.PUSH_REQUEST, Ttl(DAY_IN_SECONDS), true)
-        jsonRpcInteractor.subscribe(Topic(pairingTopic)) { error -> return@subscribe onFailure(error) }
+        val responseTopic = sha256(selfPublicKey.keyAsBytes)
+
+        jsonRpcInteractor.subscribe(Topic(responseTopic)) { error -> return@subscribe onFailure(error) }
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(pairingTopic), irnParams, request,
             onSuccess = {
@@ -167,10 +173,10 @@ internal class PushDappEngine(
         )
     }
 
-    fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription.Responded> {
+    fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription> {
         return subscriptionStorageRepository.getAllSubscriptions()
-            .filterIsInstance<EngineDO.PushSubscription.Responded>()
-            .associateBy { subscription -> subscription.topic }
+            .filter { subscription -> !subscription.topic.isNullOrBlank() }
+            .associateBy { subscription -> subscription.topic!! }
     }
 
     private fun collectJsonRpcRequests(): Job =
@@ -209,12 +215,39 @@ internal class PushDappEngine(
                 is JsonRpcResponse.JsonRpcResult -> {
                     val selfPublicKey = PublicKey(params.publicKey)
                     val pushRequestResponse = response.result as PushParams.RequestResponseParams
-                    val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(pushRequestResponse.publicKey))
-                    val respondedSubscription =
-                        EngineDO.PushSubscription.Responded(wcResponse.response.id, wcResponse.topic.value, pushRequestResponse.publicKey, pushTopic.value, params.account, RelayProtocolOptions(), params.metaData)
+                    val pushSubscriptionJwtClaim = extractVerifiedDidJwtClaims<PushSubscriptionJwtClaim>(pushRequestResponse.subscriptionAuth).getOrElse { error ->
+                        return _engineEvent.emit(SDKError(error))
+                    }
+                    val walletPublicKey = decodeX25519DidKey(pushSubscriptionJwtClaim.issuer)
+                    val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, walletPublicKey)
+                    val respondedSubscription = EngineDO.PushSubscription(
+                        wcResponse.response.id,
+                        wcResponse.topic.value,
+                        walletPublicKey.keyAsHex,
+                        pushTopic.value,
+                        AccountId(params.account),
+                        RelayProtocolOptions(),
+                        params.metaData
+                    )
 
                     withContext(Dispatchers.IO) {
-                        subscriptionStorageRepository.insertRespondedSubscription(wcResponse.topic.value, respondedSubscription)
+                        with(respondedSubscription) {
+                            subscriptionStorageRepository.insertSubscription(
+                                requestId,
+                                pairingTopic,
+                                peerPublicKeyAsHex,
+                                topic,
+                                account.value,
+                                relay.protocol,
+                                relay.data,
+                                metadata.name,
+                                metadata.description,
+                                metadata.url,
+                                metadata.icons,
+                                metadata.redirect?.native
+                            )
+                        }
+
                         jsonRpcInteractor.subscribe(pushTopic)
 
                         val symKey = crypto.getSymmetricKey(pushTopic.value)
@@ -249,9 +282,7 @@ internal class PushDappEngine(
     }
 
     private fun resubscribeToSubscriptions() {
-        val subscriptionTopics = subscriptionStorageRepository.getAllSubscriptions()
-            .filterIsInstance<EngineDO.PushSubscription.Responded>()
-            .map { subscription -> subscription.topic }
+        val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()
         jsonRpcInteractor.batchSubscribe(subscriptionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
     }
 }

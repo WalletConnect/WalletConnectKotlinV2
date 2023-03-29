@@ -3,10 +3,14 @@
 package com.walletconnect.push.wallet.engine
 
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.internal.common.cacao.Cacao
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
+import com.walletconnect.android.internal.common.jwt.EncodeDidJwtPayloadUseCase
+import com.walletconnect.android.internal.common.jwt.encodeDidJwt
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
@@ -15,6 +19,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -22,22 +27,27 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.JsonRpcMethod
 import com.walletconnect.push.common.PeerError
+import com.walletconnect.push.common.data.jwt.EncodePushAuthDidJwtPayloadUseCase
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.model.toEngineDO
-import com.walletconnect.push.common.storage.data.SubscriptionStorageRepository
+import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
 import com.walletconnect.push.wallet.data.MessageRepository
 import com.walletconnect.util.generateId
+import com.walletconnect.utils.getInviteTag
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.reflect.full.safeCast
 
 internal class PushWalletEngine(
+    private val keyserverUrl: String,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val crypto: KeyManagementRepository,
     private val pairingHandler: PairingControllerInterface,
     private val subscriptionStorageRepository: SubscriptionStorageRepository,
     private val messageRepository: MessageRepository,
+    private val keyManagementRepository: KeyManagementRepository,
+    private val identitiesInteractor: IdentitiesInteractor,
     private val serializer: JsonRpcSerializer,
     private val logger: Logger,
 ) {
@@ -80,32 +90,50 @@ internal class PushWalletEngine(
             .launchIn(scope)
     }
 
-    fun approve(requestId: Long, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
-        try {
-            val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId) ?: return onError(Exception("Subscription with RequestId $requestId can't be found"))
-            val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
-            val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(respondedSubscription.peerPublicKey))
-            val approvalParams = PushParams.RequestResponseParams(selfPublicKey.keyAsHex)
-            val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
+    suspend fun approve(requestId: Long, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onError: (Throwable) -> Unit) = supervisorScope {
+        val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId)
+        val peerPublicKey = PublicKey(respondedSubscription.peerPublicKeyAsHex)
+        val responseTopic = sha256(peerPublicKey.keyAsBytes)
 
-            subscriptionStorageRepository.updateSubscriptionToResponded(requestId, pushTopic.value, respondedSubscription.metadata)
-
-            jsonRpcInteractor.subscribe(pushTopic) { error ->
-                return@subscribe onError(error)
+        withContext(Dispatchers.IO) {
+            identitiesInteractor.registerIdentity(respondedSubscription.account, keyserverUrl, onSign).getOrElse {
+                onError(it)
+                this@supervisorScope.cancel()
             }
-            jsonRpcInteractor.respondWithParams(respondedSubscription.requestId, Topic(respondedSubscription.pairingTopic), approvalParams, irnParams) { error ->
-                return@respondWithParams onError(error)
-            }
-
-            onSuccess()
-        } catch (e: Exception) {
-            onError(e)
         }
+
+        val (identityPublicKey, identityPrivateKey) = identitiesInteractor.getIdentityKeyPair(respondedSubscription.account)
+
+        val didJwt = encodeDidJwt(
+            identityPrivateKey,
+            EncodePushAuthDidJwtPayloadUseCase(respondedSubscription.metadata.url, respondedSubscription.account),
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
+        ).getOrElse() { error ->
+            return@supervisorScope onError(error).also {
+                this@supervisorScope.cancel()
+            }
+        }
+        val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
+        val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(respondedSubscription.peerPublicKeyAsHex))
+        val approvalParams = PushParams.RequestResponseParams(didJwt.value)
+        val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
+
+        subscriptionStorageRepository.updateSubscriptionToResponded(requestId, pushTopic.value, respondedSubscription.metadata)
+
+        jsonRpcInteractor.subscribe(pushTopic) { error ->
+            return@subscribe onError(error)
+        }
+        jsonRpcInteractor.respondWithParams(respondedSubscription.requestId, Topic(responseTopic), approvalParams, irnParams, envelopeType = EnvelopeType.ONE) { error ->
+            return@respondWithParams onError(error)
+        }
+
+        onSuccess()
     }
 
     fun reject(requestId: Long, reason: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         try {
-            val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId) ?: return onError(Exception("Subscription with RequestId $requestId can't be found"))
+            val respondedSubscription =
+                subscriptionStorageRepository.getSubscriptionsByRequestId(requestId)
             val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
 
             jsonRpcInteractor.respondWithError(respondedSubscription.requestId, Topic(respondedSubscription.pairingTopic), PeerError.Rejected.UserRejected(reason), irnParams) { error ->
@@ -163,10 +191,10 @@ internal class PushWalletEngine(
         }
     }
 
-    fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription.Responded> {
+    fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription> {
         return subscriptionStorageRepository.getAllSubscriptions()
-            .filterIsInstance<EngineDO.PushSubscription.Responded>()
-            .associateBy { subscription -> subscription.topic }
+            .filter { subscription -> subscription.topic.isNullOrBlank().not() }
+            .associateBy { subscription -> subscription.topic!! }
     }
 
     fun getListOfMessages(topic: String): Map<Long, EngineDO.PushRecord> =
@@ -216,11 +244,14 @@ internal class PushWalletEngine(
             scope.launch {
                 supervisorScope {
                     withContext(Dispatchers.IO) {
-                        subscriptionStorageRepository.insertSubscriptionProposal(
+                        subscriptionStorageRepository.insertSubscription(
                             request.id,
                             request.topic.value,
                             params.publicKey,
+                            null,
                             params.account,
+                            null,
+                            null,
                             params.metaData.name,
                             params.metaData.description,
                             params.metaData.url,
@@ -277,9 +308,7 @@ internal class PushWalletEngine(
     }
 
     private fun resubscribeToSubscriptions() {
-        val subscriptionTopics = subscriptionStorageRepository.getAllSubscriptions()
-            .filterIsInstance<EngineDO.PushSubscription.Responded>()
-            .map { subscription -> subscription.topic }
+        val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()
         jsonRpcInteractor.batchSubscribe(subscriptionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
     }
 }

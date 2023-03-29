@@ -2,6 +2,7 @@ package com.walletconnect.push.common
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.internal.common.cacao.Cacao
 
 object Push {
 
@@ -11,7 +12,7 @@ object Push {
 
         data class MessageRecord(val id: String, val topic: String, val publishedAt: Long, val message: Model.Message): Wallet.Event()
 
-        data class Subscription(val requestId: Long, val topic: String, val account: String, val relay: Relay, val metadata: Core.Model.AppMetaData?): Model() {
+        data class Subscription(val requestId: Long, val topic: String, val account: String, val relay: Relay, val metadata: Core.Model.AppMetaData): Model() {
 
             data class Relay(val protocol: String, val data: String?)
         }
@@ -62,7 +63,7 @@ object Push {
 
             class Init(val core: CoreClient): Params()
 
-            data class Approve(val id: Long): Params()
+            data class Approve(val id: Long, val onSign: (String) -> Cacao.Signature): Params()
 
             data class Reject(val id: Long, val reason: String): Params()
 

@@ -68,13 +68,16 @@ class IdentitiesInteractor(
     }
 
     private fun getIdentityPublicKey(accountId: AccountId): PublicKey = keyManagementRepository.getPublicKey(accountId.getIdentityTag())
+
     private fun storeIdentityPublicKey(publicKey: PublicKey, accountId: AccountId) = keyManagementRepository.setKey(publicKey, accountId.getIdentityTag())
+
     private fun removeIdentityKeyPair(publicKey: PublicKey, accountId: AccountId) {
         keyManagementRepository.removeKeys(accountId.getIdentityTag())
         keyManagementRepository.removeKeys(publicKey.keyAsHex)
     }
 
     private fun generateAndStoreIdentityKeyPair(): PublicKey = keyManagementRepository.generateAndStoreEd25519KeyPair()
+
     private suspend fun registerIdentityKeyInKeyserver(accountId: AccountId, keyserverUrl: String, identityKey: PublicKey, onSign: (String) -> Cacao.Signature?): Result<Unit> =
         registerIdentityUseCase(generateCacao(accountId, keyserverUrl, identityKey, onSign).getOrThrow())
 
@@ -98,10 +101,17 @@ class IdentitiesInteractor(
 
     private fun generatePayload(accountId: AccountId, keyserverUrl: String, identityKey: PublicKey): Result<Cacao.Payload> = Result.success(
         Cacao.Payload(
-            iss = encodeDidPkh(accountId.value), domain = keyserverUrl.toDomain().getOrThrow(),
-            aud = keyserverUrl, version = Cacao.Payload.CURRENT_VERSION, nonce = randomBytes(NONCE_SIZE).toString(),
+            iss = encodeDidPkh(accountId.value),
+            domain = keyserverUrl.toDomain().getOrThrow(),
+            aud = keyserverUrl,
+            version = Cacao.Payload.CURRENT_VERSION,
+            nonce = randomBytes(NONCE_SIZE).toString(),
             iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN, Locale.getDefault()).format(Calendar.getInstance().time),
-            nbf = null, exp = null, statement = null, requestId = null, resources = listOf(encodeEd25519DidKey(identityKey.keyAsBytes))
+            nbf = null,
+            exp = null,
+            statement = null,
+            requestId = null,
+            resources = listOf(encodeEd25519DidKey(identityKey.keyAsBytes))
         )
     ).recover { throw UnableToExtractDomainException(keyserverUrl) } // mapping to internal error
 

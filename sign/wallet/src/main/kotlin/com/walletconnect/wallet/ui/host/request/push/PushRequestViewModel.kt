@@ -3,6 +3,7 @@ package com.walletconnect.wallet.ui.host.request.push
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.android.internal.common.cacao.Cacao
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.wallet.client.PushWalletClient
 import com.walletconnect.sample_common.tag
@@ -44,7 +45,9 @@ class PushRequestViewModel : ViewModel() {
 
     fun approve() {
         (uiState.value as? PushRequestUI.Content)?.let { pushRequest ->
-            val approveParams = Push.Wallet.Params.Approve(pushRequest.requestId)
+            val approveParams = Push.Wallet.Params.Approve(pushRequest.requestId) {
+                Cacao.Signature("", "")
+            }
 
             PushWalletClient.approve(
                 approveParams,

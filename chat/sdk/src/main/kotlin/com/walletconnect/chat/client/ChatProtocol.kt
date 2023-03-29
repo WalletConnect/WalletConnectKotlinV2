@@ -138,7 +138,7 @@ internal class ChatProtocol : ChatInterface {
     override fun register(register: Chat.Params.Register, listener: Chat.Listeners.Register) = protocolFunction(listener::onError) {
         chatEngine.registerIdentity(
             register.account.toCommon(),
-            { message -> listener.onSign(message).toCommon() },
+            onSign = { message -> listener.onSign(message).toCommon() },
             { didKey -> listener.onSuccess(didKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) },
             register.private

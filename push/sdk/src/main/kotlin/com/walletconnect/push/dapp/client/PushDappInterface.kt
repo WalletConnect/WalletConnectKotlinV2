@@ -29,5 +29,5 @@ interface PushDappInterface {
      */
     fun getActiveSubscriptions(): Map<String, Push.Model.Subscription>
 
-    fun delete(params: Push.Dapp.Params.Delete, onError: (Push.Model.Error) -> Unit)
+    fun deleteSubscription(params: Push.Dapp.Params.Delete, onError: (Push.Model.Error) -> Unit)
 }

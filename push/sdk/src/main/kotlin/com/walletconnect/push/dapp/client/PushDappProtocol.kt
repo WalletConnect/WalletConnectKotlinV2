@@ -16,6 +16,8 @@ import com.walletconnect.push.dapp.di.dappEngineModule
 import com.walletconnect.push.dapp.engine.PushDappEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 internal class PushDappProtocol : PushDappInterface {
     private lateinit var pushDappEngine: PushDappEngine
@@ -85,7 +87,7 @@ internal class PushDappProtocol : PushDappInterface {
         }
     }
 
-    override fun delete(params: Push.Dapp.Params.Delete, onError: (Push.Model.Error) -> Unit) {
+    override fun deleteSubscription(params: Push.Dapp.Params.Delete, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         try {
