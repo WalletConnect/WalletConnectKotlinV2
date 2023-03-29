@@ -16,40 +16,46 @@ internal class ConnectivityState(context: Context) {
 
     private val _isAvailable = MutableStateFlow(false)
     val isAvailable: StateFlow<Boolean> = _isAvailable.asStateFlow()
+    private val networks: MutableSet<Network> = mutableSetOf()
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
-        override fun onAvailable(network: Network) {
-            updateIfStateChanged()
-        }
 
-        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
-            updateIfStateChanged()
+        override fun onAvailable(network: Network) {
+            if (network.isCapable()) {
+                networks.add(network)
+                _isAvailable.compareAndSet(expect = false, update = true)
+            } else {
+                _isAvailable.compareAndSet(expect = true, update = false)
+            }
         }
 
         override fun onLost(network: Network) {
-            updateIfStateChanged()
+            networks.remove(network)
+
+            if (networks.isNotEmpty()) {
+                _isAvailable.compareAndSet(expect = false, update = true)
+            } else {
+                _isAvailable.compareAndSet(expect = true, update = false)
+            }
         }
     }
 
-    private fun updateIfStateChanged() {
-        val isNowConnected = isConnected()
-        val wasConnected = _isAvailable.value
-
-        if (!wasConnected && isNowConnected) {
-            _isAvailable.compareAndSet(expect = false, update = true)
-        } else if (wasConnected && !isNowConnected) {
-            _isAvailable.compareAndSet(expect = true, update = false)
-        }
+    private fun Network.isCapable(): Boolean {
+        return connectivityManager.getNetworkCapabilities(this)?.run {
+            hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) &&
+                    (hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) || hasTransport(NetworkCapabilities.TRANSPORT_WIFI))
+        } ?: false
     }
-
-    private fun isConnected(): Boolean = connectivityManager.run {
-        getNetworkCapabilities(activeNetwork)?.run {
-            hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-        }
-    } ?: false
-
 
     init {
-        connectivityManager.registerNetworkCallback(NetworkRequest.Builder().build(), callback)
+        connectivityManager.registerNetworkCallback(
+            NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+                .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                .build(),
+            callback
+        )
     }
 }

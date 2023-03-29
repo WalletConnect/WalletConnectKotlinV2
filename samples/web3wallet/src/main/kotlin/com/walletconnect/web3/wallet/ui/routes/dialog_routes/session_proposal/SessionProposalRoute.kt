@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,13 +21,14 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
+import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.ui.common.*
 import com.walletconnect.web3.wallet.ui.common.peer.Peer
 import com.walletconnect.web3.wallet.ui.routes.Route
+import com.walletconnect.web3.wallet.ui.routes.showSnackbar
 import com.walletconnect.web3.wallet.ui.theme.Web3WalletTheme
 import com.walletconnect.web3.wallet.ui.utils.CompletePreviews
-import com.walletconnect.web3.wallet.ui.common.themedColor
-import com.walletconnect.web3.wallet.client.Wallet
+import kotlinx.coroutines.launch
 
 @CompletePreviews
 @Composable
@@ -39,6 +41,7 @@ fun SessionProposalRoutePreview() {
 @Composable
 fun SessionProposalRoute(navController: NavHostController, sessionProposalViewModel: SessionProposalViewModel = viewModel()) {
     val sessionProposalUI = sessionProposalViewModel.sessionProposal ?: throw Exception("Missing session proposal")
+    val composableScope = rememberCoroutineScope()
     SemiTransparentDialog {
         Spacer(modifier = Modifier.height(24.dp))
         Peer(peerUI = sessionProposalUI.peerUI, "would like to connect")
@@ -49,10 +52,17 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
         Spacer(modifier = Modifier.height(16.dp))
         Buttons(onDecline = {
             sessionProposalViewModel.reject()
-            navController.popBackStack(route =  Route.Connections.path, inclusive = false)
+            navController.popBackStack(route = Route.Connections.path, inclusive = false)
         }, onAllow = {
-            sessionProposalViewModel.approve()
-            navController.popBackStack(route =  Route.Connections.path, inclusive = false)
+            composableScope.launch {
+                try {
+                    sessionProposalViewModel.approve()
+                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                } catch (e: Exception) {
+                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                    navController.showSnackbar(e.message ?: "Session approval error: Please check if all Namespaces are supported")
+                }
+            }
         })
         Spacer(modifier = Modifier.height(16.dp))
     }
@@ -71,8 +81,22 @@ fun Divider() {
 @Composable
 fun Permissions(sessionProposalUI: SessionProposalUI) {
     val pagerState = rememberPagerState()
-    val chains = sessionProposalUI.namespaces.flatMap { (namespace, proposal) -> proposal.chains }
-    val chainsToProposals: Map<String, Wallet.Model.Namespace.Proposal> = sessionProposalUI.namespaces.flatMap { (namespace, proposal) -> proposal.chains.map { chain -> chain to proposal } }.toMap()
+    val chains = sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
+        if (proposal.chains != null) {
+            proposal.chains!!
+        } else {
+            listOf(namespaceKey)
+        }
+    }
+
+    val chainsToProposals: Map<String, Wallet.Model.Namespace.Proposal> =
+        sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
+            if (proposal.chains != null) {
+                proposal.chains!!.map { chain -> chain to proposal }
+            } else {
+                listOf(namespaceKey).map { chain -> chain to proposal }
+            }
+        }.toMap()
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(

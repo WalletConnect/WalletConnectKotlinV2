@@ -16,8 +16,6 @@ object WalletDelegate : SignClient.WalletDelegate {
     private val _wcEventModels: MutableSharedFlow<Sign.Model?> = MutableSharedFlow(1)
     val wcEventModels: SharedFlow<Sign.Model?> = _wcEventModels
 
-    var sessionProposal: Sign.Model.SessionProposal? = null
-        private set
     var selectedChainAddressId: Int = 1
         private set
 
@@ -26,8 +24,6 @@ object WalletDelegate : SignClient.WalletDelegate {
     }
 
     override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
-        WalletDelegate.sessionProposal = sessionProposal
-
         scope.launch {
             _wcEventModels.emit(sessionProposal)
         }
@@ -46,8 +42,6 @@ object WalletDelegate : SignClient.WalletDelegate {
     }
 
     override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {
-        sessionProposal = null
-
         scope.launch {
             _wcEventModels.emit(settleSessionResponse)
         }

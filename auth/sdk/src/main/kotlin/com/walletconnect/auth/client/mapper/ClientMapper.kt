@@ -2,14 +2,14 @@
 
 package com.walletconnect.auth.client.mapper
 
+import com.walletconnect.android.internal.common.cacao.Cacao
+import com.walletconnect.android.internal.common.cacao.CacaoType
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
-import com.walletconnect.android.internal.common.model.params.Cacao
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.common.model.*
-import com.walletconnect.auth.signature.CacaoType
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.*
 
 @JvmSynthetic
 internal fun Auth.Params.Respond.toCommon(): Respond = when (this) {
@@ -55,9 +55,9 @@ internal fun Auth.Params.Request.toCommon(): PayloadParams = PayloadParams(
     chainId = chainId,
     domain = domain,
     aud = aud,
-    version = MESSAGE_TEMPLATE_VERSION,
+    version = Cacao.Payload.CURRENT_VERSION,
     nonce = nonce,
-    iat = DateTimeFormatter.ofPattern(ISO_8601_PATTERN).format(ZonedDateTime.now()),
+    iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time),
     nbf = nbf,
     exp = exp,
     statement = statement,
@@ -106,6 +106,3 @@ internal fun Cacao.Payload.toClient(): Auth.Model.Cacao.Payload =
 
 @JvmSynthetic
 internal fun Cacao.Signature.toClient(): Auth.Model.Cacao.Signature = Auth.Model.Cacao.Signature(t, s, m)
-
-private const val ISO_8601_PATTERN = "uuuu-MM-dd'T'HH:mm:ssXXX"
-private const val MESSAGE_TEMPLATE_VERSION = "1"

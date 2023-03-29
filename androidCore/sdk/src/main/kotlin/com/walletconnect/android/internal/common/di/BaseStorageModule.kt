@@ -7,7 +7,6 @@ import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.storage.*
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.android.sdk.storage.data.dao.MetaData
-import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
@@ -24,14 +23,30 @@ fun baseStorageModule() = module {
 
     single<ColumnAdapter<List<String>, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)) {
         object : ColumnAdapter<List<String>, String> {
-            override fun decode(databaseValue: String) =
+            override fun decode(databaseValue: String): List<String> =
                 if (databaseValue.isBlank()) {
                     listOf()
                 } else {
                     databaseValue.split(",")
                 }
 
-            override fun encode(value: List<String>) = value.joinToString(separator = ",")
+            override fun encode(value: List<String>): String = value.joinToString(separator = ",")
+        }
+    }
+
+    single<ColumnAdapter<Map<String, String>, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_MAP)) {
+        object : ColumnAdapter<Map<String, String>, String> {
+            override fun decode(databaseValue: String): Map<String, String> =
+                if (databaseValue.isBlank()) {
+                    mapOf()
+                } else {
+                    databaseValue.split(",").associate { entry ->
+                        val entries = entry.split("=")
+                        entries.first().trim() to entries.last().trim()
+                    }
+                }
+
+            override fun encode(value: Map<String, String>): String = value.entries.joinToString()
         }
     }
 
@@ -41,7 +56,7 @@ fun baseStorageModule() = module {
         try {
             createCoreDB().also { database -> database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull() }
         } catch (e: Exception) {
-            deleteDBs(DBNames.ANDROID_CORE_DB_NAME)
+            deleteDatabase(DBUtils.ANDROID_CORE_DB_NAME)
             createCoreDB()
         }
     }
@@ -52,19 +67,13 @@ fun baseStorageModule() = module {
 
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).metaDataQueries }
 
+    single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).identitiesQueries }
+
     single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(get()) }
 
     single<PairingStorageRepositoryInterface> { PairingStorageRepository(get()) }
 
     single { JsonRpcHistory(get(), get()) }
-}
 
-object DBNames {
-    const val ANDROID_CORE_DB_NAME = "WalletConnectAndroidCore.db"
-
-    fun getSdkDBName(storageSuffix: String) = "WalletConnectV2$storageSuffix.db"
-}
-
-fun Scope.deleteDBs(dbName: String) {
-    androidContext().deleteDatabase(dbName)
+    single { IdentitiesStorageRepository(get()) }
 }

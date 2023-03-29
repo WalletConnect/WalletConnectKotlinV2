@@ -2,6 +2,7 @@ import com.android.build.gradle.BaseExtension
 
 plugins {
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+    id("release-scripts")
 }
 
 buildscript {
@@ -16,6 +17,8 @@ buildscript {
         classpath("org.jetbrains.dokka:dokka-core:$dokkaVersion")      // TODO: Leave version until AGP 7.3 https://github.com/Kotlin/dokka/issues/2472#issuecomment-1143604232
         classpath("org.jetbrains.dokka:dokka-gradle-plugin:$dokkaVersion")
         classpath("com.squareup.sqldelight:gradle-plugin:$sqlDelightVersion")
+        classpath("com.google.gms:google-services:$googleServiceVersion")
+        classpath("com.google.firebase:firebase-crashlytics-gradle:2.9.2")
     }
 }
 

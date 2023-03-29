@@ -3,6 +3,7 @@
 package com.walletconnect.android.relay
 
 import com.walletconnect.android.BuildConfig
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.di.coreAndroidNetworkModule
@@ -10,7 +11,6 @@ import com.walletconnect.android.internal.common.exception.WRONG_CONNECTION_TYPE
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.utils.*
-import com.walletconnect.foundation.crypto.data.repository.JwtRepository
 import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.model.Relay
@@ -26,16 +26,13 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     @JvmSynthetic
     internal fun initialize(relayServerUrl: String, connectionType: ConnectionType, networkClientTimeout: NetworkClientTimeout? = null, onError: (Throwable) -> Unit) {
         require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
-
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
-        val jwtRepository = wcKoinApp.koin.get<JwtRepository>()
-        val jwt = jwtRepository.generateJWT(relayServerUrl.strippedUrl())
         val serverUrl = relayServerUrl.addUserAgent(BuildConfig.SDK_VERSION)
-
-        wcKoinApp.modules(coreAndroidNetworkModule(serverUrl, jwt, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION, networkClientTimeout))
+        wcKoinApp.modules(coreAndroidNetworkModule(serverUrl, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION, networkClientTimeout))
         relayService = wcKoinApp.koin.get(named(AndroidCommonDITags.RELAY_SERVICE))
 
         collectConnectionErrors(onError)
+        observeResults()
     }
 
     private fun collectConnectionErrors(onError: (Throwable) -> Unit) {
@@ -54,16 +51,30 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
             .stateIn(scope, SharingStarted.Eagerly, false)
     }
 
-    override fun connect(onError: (String) -> Unit) {
+    override fun connect(onErrorModel: (Core.Model.Error) -> Unit, onError: (String) -> Unit) {
         when (connectionController) {
             is ConnectionController.Automatic -> onError(WRONG_CONNECTION_TYPE)
             is ConnectionController.Manual -> (connectionController as ConnectionController.Manual).connect()
         }
     }
 
-    override fun disconnect(onError: (String) -> Unit) {
+    override fun connect(onError: (Core.Model.Error) -> Unit) {
+        when (connectionController) {
+            is ConnectionController.Automatic -> onError(Core.Model.Error(IllegalStateException(WRONG_CONNECTION_TYPE)))
+            is ConnectionController.Manual -> (connectionController as ConnectionController.Manual).connect()
+        }
+    }
+
+    override fun disconnect(onErrorModel: (Core.Model.Error) -> Unit, onError: (String) -> Unit) {
         when (connectionController) {
             is ConnectionController.Automatic -> onError(WRONG_CONNECTION_TYPE)
+            is ConnectionController.Manual -> (connectionController as ConnectionController.Manual).disconnect()
+        }
+    }
+
+    override fun disconnect(onError: (Core.Model.Error) -> Unit) {
+        when (connectionController) {
+            is ConnectionController.Automatic -> onError(Core.Model.Error(IllegalStateException(WRONG_CONNECTION_TYPE)))
             is ConnectionController.Manual -> (connectionController as ConnectionController.Manual).disconnect()
         }
     }

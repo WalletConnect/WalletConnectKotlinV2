@@ -1,7 +1,9 @@
 package com.walletconnect.web3.wallet.client
 
+import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.cacao.SignatureInterface
 import java.net.URI
 
 object Wallet {
@@ -45,11 +47,14 @@ object Wallet {
         data class ConnectionState(val isAvailable: Boolean) : Model()
 
         data class SessionProposal(
+            val pairingTopic: String,
             val name: String,
             val description: String,
             val url: String,
             val icons: List<URI>,
             val requiredNamespaces: Map<String, Namespace.Proposal>,
+            val optionalNamespaces: Map<String, Namespace.Proposal>,
+            val properties: Map<String, String>?,
             val proposerPublicKey: String,
             val relayProtocol: String,
             val relayData: String?,
@@ -91,33 +96,19 @@ object Wallet {
 
         sealed class Namespace : Model() {
 
+            //Required or Optional
             data class Proposal(
-                val chains: List<String>,
+                val chains: List<String>? = null,
                 val methods: List<String>,
-                val events: List<String>,
-                val extensions: List<Extension>?,
-            ) : Namespace() {
-
-                data class Extension(
-                    val chains: List<String>,
-                    val methods: List<String>,
-                    val events: List<String>
-                )
-            }
+                val events: List<String>
+            ) : Namespace()
 
             data class Session(
+                val chains: List<String>? = null,
                 val accounts: List<String>,
                 val methods: List<String>,
-                val events: List<String>,
-                val extensions: List<Extension>?,
-            ) : Namespace() {
-
-                data class Extension(
-                    val accounts: List<String>,
-                    val methods: List<String>,
-                    val events: List<String>
-                )
-            }
+                val events: List<String>
+            ) : Namespace()
         }
 
         sealed class JsonRpcResponse : Model() {
@@ -158,7 +149,8 @@ object Wallet {
             val payload: Payload,
             val signature: Signature,
         ) : Model() {
-            data class Signature(val t: String, val s: String, val m: String? = null) : Model()
+            @Keep
+            data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
             data class Header(val t: String) : Model()
             data class Payload(
                 val iss: String,
@@ -183,6 +175,7 @@ object Wallet {
         }
 
         data class Session(
+            val pairingTopic: String,
             val topic: String,
             val expiry: Long,
             val namespaces: Map<String, Namespace.Session>,

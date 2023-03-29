@@ -4,9 +4,14 @@ package com.walletconnect.auth.engine.domain
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.cacao.Cacao
+import com.walletconnect.android.internal.common.cacao.CacaoType
+import com.walletconnect.android.internal.common.cacao.CacaoVerifier
+import com.walletconnect.android.internal.common.cacao.Issuer
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.Invalid
+import com.walletconnect.android.internal.common.exception.InvalidExpiryException
 import com.walletconnect.android.internal.common.model.*
-import com.walletconnect.android.internal.common.model.params.Cacao
 import com.walletconnect.android.internal.common.model.params.CoreAuthParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
@@ -32,18 +37,16 @@ import com.walletconnect.auth.engine.mapper.toPendingRequest
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCase
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.auth.json_rpc.model.JsonRpcMethod
-import com.walletconnect.auth.signature.CacaoType
-import com.walletconnect.auth.signature.cacao.CacaoVerifier
+import com.walletconnect.auth.json_rpc.model.JsonRpcMethod.WC_AUTH_REQUEST
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.generateId
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 internal class AuthEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -93,16 +96,32 @@ internal class AuthEngine(
 
     internal fun request(
         payloadParams: PayloadParams,
+        expiry: Expiry? = null,
         topic: String,
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        val responsePublicKey: PublicKey = crypto.generateKeyPair()
+        val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.MILLISECONDS)
+        if (CoreValidator.isExpiryNotWithinBounds(expiry, nowInSeconds)) {
+            return onFailure(InvalidExpiryException())
+        }
+
+        val responsePublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
-        val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams)
+        val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams, expiry)
         val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
-        val irnParams = IrnParams(Tags.AUTH_REQUEST, Ttl(DAY_IN_SECONDS), true)
+        val irnParamsTtl = expiry?.run {
+            val defaultTtl = DAY_IN_SECONDS
+            val extractedTtl = seconds - nowInSeconds
+            val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
+
+            Ttl(newTtl)
+        } ?: Ttl(DAY_IN_SECONDS)
+        val irnParams = IrnParams(Tags.AUTH_REQUEST, irnParamsTtl, true)
         val pairingTopic = Topic(topic)
+        val requestTtlInSeconds = expiry?.run {
+            seconds - nowInSeconds
+        } ?: DAY_IN_SECONDS
         crypto.setKey(responsePublicKey, "${SELF_PARTICIPANT_CONTEXT}${responseTopic.value}")
 
         jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
@@ -117,6 +136,18 @@ internal class AuthEngine(
 
                 pairingTopicToResponseTopicMap[pairingTopic] = responseTopic
                 onSuccess()
+
+                scope.launch {
+                    try {
+                        withTimeout(requestTtlInSeconds) {
+                            jsonRpcInteractor.peerResponse
+                                .filter { response -> response.response.id == authRequest.id }
+                                .collect { cancel() }
+                        }
+                    } catch (e: TimeoutCancellationException) {
+                        _engineEvent.emit(SDKError(e))
+                    }
+                }
             },
             onFailure = { error ->
                 logger.error("Failed to send a auth request: $error")
@@ -127,6 +158,7 @@ internal class AuthEngine(
 
     internal fun respond(
         respond: Respond,
+        onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         val jsonRpcHistoryEntry = getPendingJsonRpcHistoryEntryByIdUseCase(respond.id)
@@ -151,22 +183,43 @@ internal class AuthEngine(
         }
 
         val receiverPublicKey = PublicKey(authParams.requester.publicKey)
-        val senderPublicKey: PublicKey = crypto.generateKeyPair()
+        val senderPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(senderPublicKey, receiverPublicKey)
         val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
+
+        authParams.expiry?.let { expiry ->
+            if (CoreValidator.isExpiryNotWithinBounds(expiry)) {
+                scope.launch {
+                    supervisorScope {
+                        val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
+                        val wcRequest = WCRequest(responseTopic, respond.id, WC_AUTH_REQUEST, authParams)
+                        jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
+                    }
+                }
+
+                return onFailure(InvalidExpiryException())
+            }
+        }
+
         crypto.setKey(symmetricKey, responseTopic.value)
 
         val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
         jsonRpcInteractor.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
-            onSuccess = { logger.log("Success Responded on topic: $responseTopic") },
-            onFailure = { logger.error("Error Responded on topic: $responseTopic") }
+            onSuccess = {
+                logger.log("Success Responded on topic: $responseTopic")
+                onSuccess()
+            },
+            onFailure = { error ->
+                logger.error("Error Responded on topic: $responseTopic")
+                onFailure(error)
+            }
         )
     }
 
     internal fun formatMessage(payloadParams: PayloadParams, iss: String): String {
         val issuer = Issuer(iss)
-        if (issuer.chainId != payloadParams.chainId) throw InvalidParamsException("Issuer chaiId does not match with PayloadParams")
+        if (issuer.chainId != payloadParams.chainId) throw InvalidParamsException("Issuer chainId does not match with PayloadParams")
         if (!CoreValidator.isChainIdCAIP2Compliant(payloadParams.chainId)) throw InvalidParamsException("PayloadParams chainId is not CAIP-2 compliant")
         if (!CoreValidator.isChainIdCAIP2Compliant(issuer.chainId)) throw InvalidParamsException("Issuer chainId is not CAIP-2 compliant")
         if (!CoreValidator.isAccountIdCAIP10Compliant(issuer.accountId)) throw InvalidParamsException("Issuer address is not CAIP-10 compliant")
@@ -180,6 +233,12 @@ internal class AuthEngine(
     }
 
     private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
+        if (CoreValidator.isExpiryNotWithinBounds(authParams.expiry)) {
+            val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
+            jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
+            return
+        }
+
         scope.launch {
             _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, authParams.payloadParams))
         }
@@ -218,7 +277,7 @@ internal class AuthEngine(
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(InternalError(e))) }
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -239,30 +298,21 @@ internal class AuthEngine(
 
     private fun collectJsonRpcResponses(): Job =
         jsonRpcInteractor.peerResponse
-            .filter { response -> response.params is AuthParams.RequestParams }
+            .filter { response -> response.params is AuthParams }
             .onEach { response -> onAuthRequestResponse(response, response.params as AuthParams.RequestParams) }
             .launchIn(scope)
 
     private fun resubscribeToPendingRequestsTopics() {
-        pairingTopicToResponseTopicMap
-            .map { it.value }
-            .onEach { responseTopic: Topic ->
-                try {
-                    jsonRpcInteractor.subscribe(responseTopic) { error ->
-                        scope.launch {
-                            _engineEvent.emit(SDKError(InternalError(error)))
-                        }
-                    }
-                } catch (e: Exception) {
-                    scope.launch {
-                        _engineEvent.emit(SDKError(InternalError(e)))
-                    }
-                }
-            }
+        val responseTopics = pairingTopicToResponseTopicMap.map { (_, responseTopic) -> responseTopic.value }
+        try {
+            jsonRpcInteractor.batchSubscribe(responseTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
+        } catch (e: Exception) {
+            scope.launch { _engineEvent.emit(SDKError(e)) }
+        }
     }
 
     private fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
-            .onEach { exception -> _engineEvent.emit(SDKError(exception)) }
+            .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
 }

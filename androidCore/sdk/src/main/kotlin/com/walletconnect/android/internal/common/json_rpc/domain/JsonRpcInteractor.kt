@@ -4,7 +4,6 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.Uncategorized
-import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.json_rpc.model.toJsonRpcError
 import com.walletconnect.android.internal.common.json_rpc.model.toJsonRpcResponse
@@ -41,8 +40,8 @@ internal class JsonRpcInteractor(
     private val _peerResponse: MutableSharedFlow<WCResponse> = MutableSharedFlow()
     override val peerResponse: SharedFlow<WCResponse> = _peerResponse.asSharedFlow()
 
-    private val _internalErrors = MutableSharedFlow<InternalError>()
-    override val internalErrors: SharedFlow<InternalError> = _internalErrors.asSharedFlow()
+    private val _internalErrors = MutableSharedFlow<SDKError>()
+    override val internalErrors: SharedFlow<SDKError> = _internalErrors.asSharedFlow()
 
     override val isConnectionAvailable: StateFlow<Boolean> get() = relay.isConnectionAvailable
 
@@ -104,7 +103,6 @@ internal class JsonRpcInteractor(
         val jsonResponseDO = response.toJsonRpcResponse()
         val responseJson = serializer.serialize(jsonResponseDO) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
         val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
-
         relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
             result.fold(
                 onSuccess = {
@@ -130,9 +128,30 @@ internal class JsonRpcInteractor(
             onFailure = { error ->
                 logger.error("Cannot send the response, error: $error")
                 onFailure(error)
-            })
+            }
+        )
     }
 
+    override fun respondWithParams(
+        requestId: Long,
+        topic: Topic,
+        clientParams: ClientParams,
+        irnParams: IrnParams,
+        envelopeType: EnvelopeType,
+        participants: Participants?,
+        onFailure: (Throwable) -> Unit,
+    ) {
+        val result = JsonRpcResponse.JsonRpcResult(id = requestId, result = clientParams)
+
+        publishJsonRpcResponse(topic, irnParams, result, envelopeType = envelopeType, participants = participants,
+            onFailure = { error ->
+                logger.error("Cannot send the response, error: $error")
+                onFailure(error)
+            }
+        )
+    }
+
+    // TODO: Can we replace this function with different parameters? Instead of request, just pass request id and request topic.
     override fun respondWithSuccess(
         request: WCRequest,
         irnParams: IrnParams,
@@ -149,6 +168,7 @@ internal class JsonRpcInteractor(
         }
     }
 
+    // TODO: Can we replace this function with different parameters? Instead of request, just pass request id and request topic. And we never use WCRequest in the onSuccess callback so we can remove that as well
     override fun respondWithError(
         request: WCRequest,
         error: Error,
@@ -164,6 +184,31 @@ internal class JsonRpcInteractor(
         try {
             publishJsonRpcResponse(request.topic, irnParams, jsonRpcError, envelopeType = envelopeType, participants = participants,
                 onSuccess = { onSuccess(request) },
+                onFailure = { failure ->
+                    onFailure(failure)
+                    handleError("Cannot send respondWithError: ${failure.stackTraceToString()}")
+                })
+        } catch (e: Exception) {
+            handleError("publishFailure; ${e.stackTraceToString()}")
+        }
+    }
+
+    override fun respondWithError(
+        requestId: Long,
+        topic: Topic,
+        error: Error,
+        irnParams: IrnParams,
+        envelopeType: EnvelopeType,
+        participants: Participants?,
+        onSuccess: () -> Unit,
+        onFailure: (Throwable) -> Unit,
+    ) {
+        logger.error("Responding with error: ${error.message}: ${error.code}")
+        val jsonRpcError = JsonRpcResponse.JsonRpcError(id = requestId, error = JsonRpcResponse.Error(error.code, error.message))
+
+        try {
+            publishJsonRpcResponse(topic, irnParams, jsonRpcError, envelopeType = envelopeType, participants = participants,
+                onSuccess = { onSuccess() },
                 onFailure = { failure ->
                     onFailure(failure)
                     handleError("Cannot send respondWithError: ${failure.stackTraceToString()}")
@@ -191,6 +236,29 @@ internal class JsonRpcInteractor(
                     onFailure(error)
                 }
             )
+        }
+    }
+
+    override fun batchSubscribe(topics: List<String>, onSuccess: (List<String>) -> Unit, onFailure: (Throwable) -> Unit) {
+        try {
+            checkConnectionWorking()
+        } catch (e: NoRelayConnectionException) {
+            return onFailure(e)
+        }
+
+        if (topics.isNotEmpty()) {
+            relay.batchSubscribe(topics) { result ->
+                result.fold(
+                    onSuccess = { acknowledgement ->
+                        subscriptions.plus(topics.zip(acknowledgement.result).toMap())
+                        onSuccess(topics)
+                    },
+                    onFailure = { error ->
+                        logger.error("Batch subscribe to topics error: $topics error: $error")
+                        onFailure(error)
+                    }
+                )
+            }
         }
     }
 
@@ -232,7 +300,6 @@ internal class JsonRpcInteractor(
                         handleError("ManSub: ${e.stackTraceToString()}")
                         String.Empty
                     }
-
                     Pair(message, topic)
                 }.collect { (decryptedMessage, topic) ->
                     if (decryptedMessage.isNotEmpty()) {
@@ -290,7 +357,7 @@ internal class JsonRpcInteractor(
     private fun handleError(errorMessage: String) {
         logger.error("JsonRpcInteractor error: $errorMessage")
         scope.launch {
-            _internalErrors.emit(InternalError(errorMessage))
+            _internalErrors.emit(SDKError(Throwable(errorMessage)))
         }
     }
 }

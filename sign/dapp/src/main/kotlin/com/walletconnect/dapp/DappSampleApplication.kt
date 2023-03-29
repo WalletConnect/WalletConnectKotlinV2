@@ -5,6 +5,8 @@ import android.util.Log
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
+import com.walletconnect.push.common.Push
+import com.walletconnect.push.dapp.client.PushDappClient
 import com.walletconnect.sample_common.BuildConfig
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample_common.tag
@@ -26,11 +28,15 @@ class DappSampleApplication : Application() {
                 icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media"),
                 redirect = "kotlin-dapp-wc:/request"
             )
-        ) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
+        ) { error -> Log.e(tag(this),error.throwable.stackTraceToString()) }
 
         val initParams = Sign.Params.Init(core = CoreClient)
 
         SignClient.initialize(initParams) { error ->
+            Log.e(tag(this), error.throwable.stackTraceToString())
+        }
+
+        PushDappClient.initialize(Push.Dapp.Params.Init(CoreClient, null)) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
     }

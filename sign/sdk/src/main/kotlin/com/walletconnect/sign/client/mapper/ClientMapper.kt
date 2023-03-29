@@ -2,9 +2,10 @@
 
 package com.walletconnect.sign.client.mapper
 
-import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.exceptions.PeerError
@@ -43,11 +44,14 @@ internal fun EngineDO.JsonRpcResponse.toClientJsonRpcResponse(): Sign.Model.Json
 @JvmSynthetic
 internal fun EngineDO.SessionProposal.toClientSessionProposal(): Sign.Model.SessionProposal =
     Sign.Model.SessionProposal(
+        pairingTopic,
         name,
         description,
         url,
         icons,
         requiredNamespaces.toMapOfClientNamespacesProposal(),
+        optionalNamespaces.toMapOfClientNamespacesProposal(),
+        properties,
         proposerPublicKey,
         relayProtocol,
         relayData
@@ -67,14 +71,10 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     )
 
 @JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): JsonRpcResponse.JsonRpcResult =
-    JsonRpcResponse.JsonRpcResult(id, result = result)
+internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): JsonRpcResponse.JsonRpcResult = JsonRpcResponse.JsonRpcResult(id, result = result)
 
 @JvmSynthetic
-internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcError(): JsonRpcResponse.JsonRpcError =
-    PeerError.CAIP25.UserRejected(message).let { error ->
-        JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(error.code, error.message))
-    }
+internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcError(): JsonRpcResponse.JsonRpcError = JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(code, message))
 
 @JvmSynthetic
 internal fun Sign.Model.SessionEvent.toEngineEvent(chainId: String): EngineDO.Event = EngineDO.Event(name, data, chainId)
@@ -89,14 +89,18 @@ internal fun EngineDO.SessionEvent.toClientSessionEvent(): Sign.Model.SessionEve
 
 @JvmSynthetic
 internal fun EngineDO.Session.toClientActiveSession(): Sign.Model.Session =
-    Sign.Model.Session(topic.value,
+    Sign.Model.Session(
+        pairingTopic,
+        topic.value,
         expiry.seconds,
         namespaces.toMapOfClientNamespacesSession(),
-        peerAppMetaData?.toClient())
+        peerAppMetaData?.toClient()
+    )
 
 @JvmSynthetic
 internal fun EngineDO.SessionExtend.toClientActiveSession(): Sign.Model.Session =
     Sign.Model.Session(
+        pairingTopic,
         topic.value,
         expiry.seconds,
         namespaces.toMapOfClientNamespacesSession(),
@@ -114,14 +118,16 @@ internal fun EngineDO.SessionApproved.toClientSessionApproved(): Sign.Model.Appr
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Session>.toMapOfClientNamespacesSession(): Map<String, Sign.Model.Namespace.Session> =
     this.mapValues { (_, namespace) ->
-        Sign.Model.Namespace.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            Sign.Model.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
-        })
+        Sign.Model.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
 internal fun Sign.Params.Request.toEngineDORequest(): EngineDO.Request =
-    EngineDO.Request(sessionTopic, method, params, chainId)
+    EngineDO.Request(sessionTopic, method, params, chainId, expiry?.let { Expiry(it) })
+
+@JvmSynthetic
+internal fun Sign.Params.Request.toSentRequest(requestId: Long): Sign.Model.SentRequest =
+    Sign.Model.SentRequest(requestId, sessionTopic, method, params, chainId)
 
 @JvmSynthetic
 internal fun EngineDO.JsonRpcResponse.JsonRpcResult.toClientJsonRpcResult(): Sign.Model.JsonRpcResponse.JsonRpcResult =
@@ -151,31 +157,51 @@ internal fun List<PendingRequest>.mapToPendingRequests(): List<Sign.Model.Pendin
 }
 
 @JvmSynthetic
+internal fun List<EngineDO.SessionRequest>.mapToPendingSessionRequests(): List<Sign.Model.SessionRequest> =
+    map { request -> request.toClientSessionRequest() }
+
+@JvmSynthetic
 internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): Sign.Model.SessionRequestResponse =
     Sign.Model.SessionRequestResponse(topic, chainId, method, result.toClientJsonRpcResponse())
 
 @JvmSynthetic
-internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesProposal(): Map<String, EngineDO.Namespace.Proposal> =
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesRequired(): Map<String, EngineDO.Namespace.Proposal> =
     mapValues { (_, namespace) ->
-        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            EngineDO.Namespace.Proposal.Extension(extension.chains, extension.methods, extension.events)
-        })
+        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
+    }
+
+@JvmSynthetic
+internal fun EngineDO.SessionProposal.toEngineDO(): Sign.Model.SessionProposal =
+    Sign.Model.SessionProposal(
+        pairingTopic = pairingTopic,
+        name = name,
+        description = description,
+        url = url,
+        icons = icons,
+        relayData = relayData,
+        relayProtocol = relayProtocol,
+        requiredNamespaces = requiredNamespaces.toMapOfClientNamespacesProposal(),
+        optionalNamespaces = optionalNamespaces.toMapOfClientNamespacesProposal(),
+        proposerPublicKey = proposerPublicKey,
+        properties = properties
+    )
+
+@JvmSynthetic
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesOptional(): Map<String, EngineDO.Namespace.Proposal> =
+    mapValues { (_, namespace) ->
+        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Proposal>.toMapOfClientNamespacesProposal(): Map<String, Sign.Model.Namespace.Proposal> =
     mapValues { (_, namespace) ->
-        Sign.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            Sign.Model.Namespace.Proposal.Extension(extension.chains, extension.methods, extension.events)
-        })
+        Sign.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
 internal fun Map<String, Sign.Model.Namespace.Session>.toMapOfEngineNamespacesSession(): Map<String, EngineDO.Namespace.Session> =
     mapValues { (_, namespace) ->
-        EngineDO.Namespace.Session(namespace.accounts, namespace.methods, namespace.events, namespace.extensions?.map { extension ->
-            EngineDO.Namespace.Session.Extension(extension.accounts, extension.methods, extension.events)
-        })
+        EngineDO.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic

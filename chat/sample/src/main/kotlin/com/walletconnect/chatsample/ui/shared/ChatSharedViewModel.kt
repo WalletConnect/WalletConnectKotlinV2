@@ -6,19 +6,27 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.android.cacao.sign
+import com.walletconnect.android.cacao.signature.SignatureType
+import com.walletconnect.chat.cacao.CacaoSigner
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatClient
 import com.walletconnect.chatsample.R
 import com.walletconnect.chatsample.domain.ChatDelegate
 import com.walletconnect.chatsample.utils.tag
+import com.walletconnect.foundation.common.model.PrivateKey
+import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
-import java.security.SecureRandom
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.web3j.crypto.Keys
+import java.security.Security
 
 class ChatSharedViewModel(application: Application) : AndroidViewModel(application) {
     private val sharedPreferences: SharedPreferences = application.getSharedPreferences("Chat_Shared_Prefs", Context.MODE_PRIVATE)
-    var currentInvite: Chat.Model.Invite? = null
+    var sentInvite: Chat.Params.Invite? = null
+    var receivedInvite: Chat.Model.Invite.Received? = null
     var whoWasInvitedContact: String? = null
     val userNameToTopicMap: MutableMap<String, String> = mutableMapOf()
 
@@ -34,57 +42,92 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
     private val _listOfMessagesStateFlow: MutableStateFlow<List<MessageUI>> = MutableStateFlow(listOfMessages.toList())
     val listOfMessagesStateFlow: StateFlow<List<MessageUI>> = _listOfMessagesStateFlow
 
+    private lateinit var _account: String
+    private lateinit var _publicKey: String
+    private lateinit var _privateKey: String
+
     fun getLastMessage(peerName: String) = listOfMessages.last { it.peerName == peerName }
 
     val emittedEvents: Flow<ChatSharedEvents> = ChatDelegate.wcEventModels.map { walletEvent: Chat.Model.Events ->
         Log.d(TAG, walletEvent.toString())
         when (walletEvent) {
             is Chat.Model.Events.OnInvite -> walletEvent.toChatSharedEvents().also { onInvite(it) }
-            is Chat.Model.Events.OnJoined -> walletEvent.toChatSharedEvents().also { onJoined(it) }
+            is Chat.Model.Events.OnInviteAccepted -> walletEvent.toChatSharedEvents().also { onInviteAccepted(it) }
             is Chat.Model.Events.OnMessage -> walletEvent.toChatSharedEvents().also { onMessage(it) }
-            is Chat.Model.Events.OnReject -> walletEvent.toChatSharedEvents()
+            is Chat.Model.Events.OnInviteRejected -> walletEvent.toChatSharedEvents()
             else -> ChatSharedEvents.NoAction
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     fun register() {
-        val accountId = sharedPreferences.getString(ACCOUNT_TAG, null)
-        if (accountId == null) {
-            SELF_ACCOUNT = generateEthereumAccount()
-            sharedPreferences.edit().putString(ACCOUNT_TAG, SELF_ACCOUNT).apply()
-            val register = Chat.Params.Register(Chat.Model.AccountId(SELF_ACCOUNT))
+        val account = sharedPreferences.getString(ACCOUNT_TAG, null)
+        val publicKey = sharedPreferences.getString(PUBLIC_KEY_TAG, null)
+        val privateKey = sharedPreferences.getString(PRIVATE_KEY_TAG, null)
 
-            ChatClient.register(register, object : Chat.Listeners.Register {
-                override fun onError(error: Chat.Model.Error) {
-                    Log.e(TAG, "Register error: ${error.throwable.stackTraceToString()}")
-                }
-
-                override fun onSuccess(publicKey: String) {
-                    Log.d(TAG, "Registered successfully, $SELF_ACCOUNT")
-                }
-            })
-        } else {
-            SELF_ACCOUNT = accountId
-            Log.d(TAG, "Registered successfully, $SELF_ACCOUNT")
+        if (account != null && publicKey != null && privateKey != null) {
+            _account = account
+            _publicKey = publicKey
+            _privateKey = privateKey
+            // Note: This is only demo. Normally you want more security with private key
         }
+        registerIdentity()
+    }
+
+    private fun goPublic() {
+        val goPublic = Chat.Params.GoPublic(Chat.Type.AccountId(_account))
+        ChatClient.goPublic(
+            goPublic,
+            { publicKey -> Log.d(TAG, "Registered invite successfully, account: $_account, inviteKey: $publicKey") },
+            { error -> Log.e(TAG, "Register error: ${error.throwable.stackTraceToString()}") }
+        )
+    }
+
+    private fun registerIdentity() {
+        val keypair = generateKeys()
+        _publicKey = keypair.first
+        _privateKey = keypair.second
+        _account = generateEthereumAccount(keypair.third)
+
+        sharedPreferences.edit().putString(ACCOUNT_TAG, _account).apply()
+        sharedPreferences.edit().putString(PUBLIC_KEY_TAG, _publicKey).apply()
+        sharedPreferences.edit().putString(PRIVATE_KEY_TAG, _privateKey).apply()
+        // Note: This is only demo. Normally you want more security with private key.
+
+        val register = Chat.Params.Register(Chat.Type.AccountId(_account))
+        ChatClient.register(register, object : Chat.Listeners.Register {
+            override fun onSign(message: String): Chat.Model.Cacao.Signature? {
+                return CacaoSigner.sign(message, _privateKey.hexToBytes(), SignatureType.EIP191)
+            }
+
+            override fun onError(error: Chat.Model.Error) {
+                Log.e(TAG, "Register error: ${error.throwable.stackTraceToString()}")
+            }
+
+            override fun onSuccess(publicKey: String) {
+                Log.d(TAG, "Registered identity successfully, account: $_account, identityKey: $publicKey")
+            }
+        })
     }
 
     fun invite(contact: String, openingMessage: String, afterInviteSent: () -> Unit) {
-        ChatClient.resolve(Chat.Params.Resolve(Chat.Model.AccountId(contact)), object : Chat.Listeners.Resolve {
+        ChatClient.resolve(Chat.Params.Resolve(Chat.Type.AccountId(contact)), object : Chat.Listeners.Resolve {
             override fun onError(error: Chat.Model.Error) {
                 Log.e(TAG, error.throwable.stackTraceToString())
             }
 
             override fun onSuccess(publicKey: String) {
-                val inviteModel = Chat.Model.Invite(Chat.Model.AccountId(SELF_ACCOUNT), openingMessage, publicKey)
-                val invite = Chat.Params.Invite(Chat.Model.AccountId(contact), inviteModel)
-                ChatClient.invite(invite) { error -> Log.e(tag(this), error.throwable.stackTraceToString()) }
+                val invite = Chat.Params.Invite(inviterAccount = Chat.Type.AccountId(_account), inviteeAccount = Chat.Type.AccountId(contact), Chat.Type.InviteMessage(openingMessage), publicKey)
+                ChatClient.invite(
+                    invite,
+                    { Log.d(TAG, "Invited, inviter: $_account, invitee: $contact") },
+                    { error -> Log.e(tag(this@ChatSharedViewModel), error.throwable.stackTraceToString()) }
+                )
 
                 runBlocking(Dispatchers.Main) {
-                    currentInvite = inviteModel
+                    sentInvite = invite
                     whoWasInvitedContact = contact
-                    Log.e(TAG, "invite: $currentInvite")
-                    listOfMessages.add(MessageUI(contact, inviteModel.message, System.currentTimeMillis(), contact))
+                    Log.e(TAG, "invite: $sentInvite")
+                    listOfMessages.add(MessageUI(contact, invite.message.value, System.currentTimeMillis(), contact))
                     _listOfMessagesStateFlow.value = listOfMessages.toList()
                     afterInviteSent()
                 }
@@ -104,8 +147,7 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
     fun rejectInvitation(id: Long?) {
         id?.let {
             val reject = Chat.Params.Reject(it)
-            ChatClient.reject(reject) { error -> Log.e(TAG, "Unable to find reject invitation: $error") }
-            updateInvites(id)
+            ChatClient.reject(reject, onSuccess = { updateInvites(id) }, onError = { error -> Log.e(TAG, "Unable to find reject invitation: $error") })
         } ?: Log.e(TAG, "Unable to find id on reject invitation: $id")
     }
 
@@ -113,27 +155,27 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
         Log.e(TAG, "sendMessage: $peerName")
 
         val (userName, topic) = userNameToTopicMap.entries.single { entry -> entry.key == peerName }
-        listOfMessages.add(MessageUI(userName, message, System.currentTimeMillis(), SELF_ACCOUNT))
+        listOfMessages.add(MessageUI(userName, message, System.currentTimeMillis(), _account))
         _listOfMessagesStateFlow.value = listOfMessages.toList()
 
-        ChatClient.message(Chat.Params.Message(topic, Chat.Model.AccountId(SELF_ACCOUNT), message)) { error ->
+        ChatClient.message(Chat.Params.Message(topic, Chat.Type.ChatMessage(message)), onSuccess = {}) { error ->
             Log.e(TAG, error.throwable.stackTraceToString())
         }
     }
 
     private fun onInvite(event: ChatSharedEvents.OnInvite) {
         Log.d(TAG, "Invited: ${event.invite.message}")
-        val contact = event.invite.account.value
-        currentInvite = event.invite
+        val contact = event.invite.inviterAccount.value
+        receivedInvite = event.invite
 
-        listOfInvites.add(ChatUI(R.drawable.ic_chat_icon_3, contact, event.invite.message, event.id))
+        listOfInvites.add(ChatUI(R.drawable.ic_chat_icon_3, contact, event.invite.message.value, event.invite.id))
         _listOfInvitesStateFlow.update { listOfInvites.toList() }
 
-        listOfMessages.add(MessageUI(contact, event.invite.message, System.currentTimeMillis(), contact))
+        listOfMessages.add(MessageUI(contact, event.invite.message.value, System.currentTimeMillis(), contact))
         _listOfMessagesStateFlow.value = listOfMessages.toList()
     }
 
-    private fun onJoined(event: ChatSharedEvents.OnJoined) {
+    private fun onInviteAccepted(event: ChatSharedEvents.OnInviteAccepted) {
         Log.d(TAG, "Joined: ${event.topic}")
         updateThread(event.topic)
     }
@@ -141,25 +183,38 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
     private fun onMessage(event: ChatSharedEvents.OnMessage) {
         Log.d(TAG, "Message: ${event.message.message}")
 
-        userNameToTopicMap.entries.find { it.value == event.topic }?.let { (_, topic) ->
-            listOfThreads.find { topic == event.topic }?.let {
+        userNameToTopicMap.entries.find { it.value == event.message.topic }?.let { (_, topic) ->
+            listOfThreads.find { topic == event.message.topic }?.let {
                 val author = event.message.authorAccount.value
-                listOfMessages.add(MessageUI(author, event.message.message, event.message.timestamp, author))
+                listOfMessages.add(MessageUI(author, event.message.message.value, event.message.timestamp, author))
                 _listOfMessagesStateFlow.value = listOfMessages.toList()
-            } ?: Log.e(TAG, "Unable to find topic: ${event.topic}")
+            } ?: Log.e(TAG, "Unable to find topic: ${event.message.topic}")
         }
     }
 
-    private fun updateThread(threadTopic: String) {
-        if (currentInvite != null) {
-            val currentAccountId = currentInvite?.account?.value
+    private fun updateThread(threadTopic: String) { //todo: simplify
+        if (sentInvite != null) {
+            val currentAccountId = sentInvite?.inviterAccount?.value
             currentAccountId?.let { accountId ->
-                if (currentAccountId != SELF_ACCOUNT) {
-                    listOfThreads.add(ChatUI(R.drawable.ic_chat_icon_3, accountId, currentInvite!!.message, null))
+                if (currentAccountId != _account) {
+                    listOfThreads.add(ChatUI(R.drawable.ic_chat_icon_3, accountId, sentInvite!!.message.value, null))
                     _listOfThreadsStateFlow.value = listOfThreads.toList()
                     userNameToTopicMap.put(accountId, threadTopic)
                 } else {
-                    listOfThreads.add(ChatUI(R.drawable.ic_chat_icon_3, whoWasInvitedContact!!, currentInvite!!.message, null))
+                    listOfThreads.add(ChatUI(R.drawable.ic_chat_icon_3, whoWasInvitedContact!!, sentInvite!!.message.value, null))
+                    _listOfThreadsStateFlow.value = listOfThreads.toList()
+                    userNameToTopicMap.put(whoWasInvitedContact!!, threadTopic)
+                }
+            }
+        } else if (receivedInvite != null) {
+            val currentAccountId = receivedInvite?.inviterAccount?.value
+            currentAccountId?.let { accountId ->
+                if (currentAccountId != _account) {
+                    listOfThreads.add(ChatUI(R.drawable.ic_chat_icon_3, accountId, receivedInvite!!.message.value, null))
+                    _listOfThreadsStateFlow.value = listOfThreads.toList()
+                    userNameToTopicMap.put(accountId, threadTopic)
+                } else {
+                    listOfThreads.add(ChatUI(R.drawable.ic_chat_icon_3, whoWasInvitedContact!!, receivedInvite!!.message.value, null))
                     _listOfThreadsStateFlow.value = listOfThreads.toList()
                     userNameToTopicMap.put(whoWasInvitedContact!!, threadTopic)
                 }
@@ -168,13 +223,10 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun updateInvites(id: Long?) {
-        listOfInvites.removeIf { invite -> invite.id == id }
+        listOfInvites.filter { invite -> invite.id == id }.forEach { listOfInvites.remove(it) }
         _listOfInvitesStateFlow.value = listOfInvites.toList()
     }
 
-    private fun randomBytes(size: Int): ByteArray = ByteArray(size).apply {
-        SecureRandom().nextBytes(this)
-    }
 
     private fun ByteArray.bytesToHex(): String {
         val hexString = StringBuilder(2 * this.size)
@@ -189,11 +241,35 @@ class ChatSharedViewModel(application: Application) : AndroidViewModel(applicati
         return hexString.toString()
     }
 
-    private fun generateEthereumAccount() = "eip155:1:0x${randomBytes(24).bytesToHex()}"
+    private fun String.hexToBytes(): ByteArray {
+        val len = this.length
+        val data = ByteArray(len / 2)
+        var i = 0
+
+        while (i < len) {
+            data[i / 2] = ((Character.digit(this[i], 16) shl 4)
+                    + Character.digit(this[i + 1], 16)).toByte()
+            i += 2
+        }
+
+        return data
+    }
+
+    private fun generateEthereumAccount(address: String) = "eip155:1:0x$address"
+
+    private fun generateKeys(): Triple<String, String, String> {
+        Security.removeProvider("BC")
+        Security.addProvider(BouncyCastleProvider())
+        val keypair = Keys.createEcKeyPair()
+        val publicKey = PublicKey(keypair.publicKey.toByteArray().bytesToHex())
+        val privateKey = PrivateKey(keypair.privateKey.toByteArray().bytesToHex())
+        return Triple(publicKey.keyAsHex, privateKey.keyAsHex, Keys.getAddress(keypair))
+    }
 
     companion object {
         private const val TAG = "ChatSharedViewModel"
         const val ACCOUNT_TAG = "self_account_tag"
-        var SELF_ACCOUNT = ""
+        const val PRIVATE_KEY_TAG = "self_private_key"
+        const val PUBLIC_KEY_TAG = "self_public_key"
     }
 }

@@ -4,7 +4,7 @@ CREATE TABLE ProposalNamespaceDao (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     session_id INTEGER NOT NULL,
     key TEXT NOT NULL,
-    chains TEXT AS List<String> NOT NULL,
+    chains TEXT AS List<String>,
     methods TEXT AS List<String> NOT NULL,
     events TEXT AS List<String> NOT NULL,
     UNIQUE(session_id, key)
@@ -20,6 +20,14 @@ WHERE session_id = (
    SELECT id
    FROM SessionDao
    WHERE topic = ?
+);
+
+deleteProposalNamespacesProposerKey:
+DELETE FROM ProposalNamespaceDao
+WHERE session_id = (
+   SELECT request_id
+   FROM ProposalDao
+   WHERE proposer_key = ?
 );
 
 getProposalNamespaces:

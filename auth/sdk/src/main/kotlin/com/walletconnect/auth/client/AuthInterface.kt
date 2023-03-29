@@ -19,13 +19,21 @@ interface AuthInterface {
 
     fun setResponderDelegate(delegate: ResponderDelegate)
 
-    fun initialize(params: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit)
+    fun initialize(params: Auth.Params.Init, onSuccess: () -> Unit = {}, onError: (Auth.Model.Error) -> Unit)
 
     fun request(params: Auth.Params.Request, onSuccess: () -> Unit, onError: (Auth.Model.Error) -> Unit)
 
-    fun respond(params: Auth.Params.Respond, onError: (Auth.Model.Error) -> Unit)
+    fun respond(params: Auth.Params.Respond, onSuccess: (Auth.Params.Respond) -> Unit = {}, onError: (Auth.Model.Error) -> Unit)
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     fun formatMessage(params: Auth.Params.FormatMessage): String?
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     fun getPendingRequest(): List<Auth.Model.PendingRequest>
 }

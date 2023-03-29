@@ -3,6 +3,7 @@
 package com.walletconnect.auth.client
 
 import com.walletconnect.android.internal.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -23,7 +24,7 @@ internal class AuthProtocol : AuthInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun initialize(params: Auth.Params.Init, onError: (Auth.Model.Error) -> Unit) {
+    override fun initialize(params: Auth.Params.Init, onSuccess: () -> Unit, onError: (Auth.Model.Error) -> Unit) {
         try {
             wcKoinApp.modules(
                 jsonRpcModule(),
@@ -32,6 +33,7 @@ internal class AuthProtocol : AuthInterface {
 
             authEngine = wcKoinApp.koin.get()
             authEngine.setup()
+            onSuccess()
         } catch (e: Exception) {
             onError(Auth.Model.Error(e))
         }
@@ -66,7 +68,8 @@ internal class AuthProtocol : AuthInterface {
         checkEngineInitialization()
 
         try {
-            authEngine.request(params.toCommon(), params.topic,
+            val expiry = params.expiry?.run { Expiry(this) }
+            authEngine.request(params.toCommon(), expiry, params.topic,
                 onSuccess = onSuccess,
                 onFailure = { error -> onError(Auth.Model.Error(error)) }
             )
@@ -76,10 +79,10 @@ internal class AuthProtocol : AuthInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun respond(params: Auth.Params.Respond, onError: (Auth.Model.Error) -> Unit) {
+    override fun respond(params: Auth.Params.Respond, onSuccess: (Auth.Params.Respond) -> Unit, onError: (Auth.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            authEngine.respond(params.toCommon()) { error -> onError(Auth.Model.Error(error)) }
+            authEngine.respond(params.toCommon(), { onSuccess(params) }, { error -> onError(Auth.Model.Error(error)) })
         } catch (error: Exception) {
             onError(Auth.Model.Error(error))
         }

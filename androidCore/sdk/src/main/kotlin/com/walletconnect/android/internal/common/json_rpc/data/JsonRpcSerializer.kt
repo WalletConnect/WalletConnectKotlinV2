@@ -7,6 +7,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
 import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
 import com.walletconnect.android.internal.common.wcKoinApp
 import kotlin.reflect.KClass
+import kotlin.reflect.safeCast
 
 class JsonRpcSerializer(
     val serializerEntries: Set<KClass<*>>,
@@ -33,14 +34,14 @@ class JsonRpcSerializer(
             payload is JsonRpcResponse.JsonRpcError -> trySerialize(payload)
             serializerEntries.any { type: KClass<*> ->
                 payloadType = type
-                payload::class == type
+                type.safeCast(payload) != null
             } -> trySerialize(payload, payloadType)
             else -> null
         }
     }
 
     inline fun <reified T> tryDeserialize(json: String): T? = runCatching { moshi.adapter(T::class.java).fromJson(json) }.getOrNull()
-    private fun tryDeserialize(json: String, type: KClass<*>): Any? = runCatching { moshi.adapter(type.java).fromJson(json) }.getOrNull()
+    fun tryDeserialize(json: String, type: KClass<*>): Any? = runCatching { moshi.adapter(type.java).fromJson(json) }.getOrNull()
     private inline fun <reified T> trySerialize(type: T): String = moshi.adapter(T::class.java).toJson(type)
     private fun trySerialize(payload: Any, type: KClass<*>): String = moshi.adapter<Any>(type.java).toJson(payload)
 }

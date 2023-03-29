@@ -15,7 +15,8 @@ val accounts: List<Pair<Chains, String>> = listOf(
     Chains.POLYGON_MATIC to ACCOUNTS_1_EIP155_ADDRESS,
     Chains.ETHEREUM_KOVAN to ACCOUNTS_1_EIP155_ADDRESS,
     Chains.POLYGON_MUMBAI to ACCOUNTS_1_EIP155_ADDRESS,
-    Chains.COSMOS to "cosmos1w605a5ejjlhp04eahjqxhjhmg8mj6nqhp8v6xc"
+    Chains.COSMOS to "cosmos1w605a5ejjlhp04eahjqxhjhmg8mj6nqhp8v6xc",
+    Chains.BNB to ACCOUNTS_1_EIP155_ADDRESS
 )
 
 val PRIVATE_KEY_1: ByteArray = "e05c1a7f048a164ab400e38764708a401c773fa83181b923fc8b2724f46c0c6c".hexToBytes()

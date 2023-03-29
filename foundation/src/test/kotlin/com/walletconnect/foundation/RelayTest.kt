@@ -1,6 +1,6 @@
 package com.walletconnect.foundation
 
-import com.walletconnect.foundation.crypto.data.repository.JwtRepository
+import com.walletconnect.foundation.crypto.data.repository.ClientIdJwtRepository
 import com.walletconnect.foundation.di.FoundationDITags
 import com.walletconnect.foundation.di.foundationCommonModule
 import com.walletconnect.foundation.di.cryptoModule
@@ -151,7 +151,7 @@ class RelayTest {
     private fun initTwoClients(): Pair<RelayInterface, RelayInterface> {
         val koinAppA: KoinApplication = KoinApplication.init()
             .apply { modules(foundationCommonModule(), cryptoModule()) }.also { koinApp ->
-                val jwt = koinApp.koin.get<JwtRepository>().generateJWT(testRelayUrl) { clientId ->
+                val jwt = koinApp.koin.get<ClientIdJwtRepository>().generateJWT(testRelayUrl) { clientId ->
                     println("ClientA id: $clientId")
                 }
                 koinApp.modules(networkModule(serverUrl.addUserAgent(sdkVersion), sdkVersion, jwt))
@@ -159,7 +159,7 @@ class RelayTest {
 
         val koinAppB: KoinApplication = KoinApplication.init()
             .apply { modules(foundationCommonModule(), cryptoModule()) }.also { koinApp ->
-                val jwt = koinApp.koin.get<JwtRepository>().generateJWT(testRelayUrl) { clientId ->
+                val jwt = koinApp.koin.get<ClientIdJwtRepository>().generateJWT(testRelayUrl) { clientId ->
                     println("ClientB id: $clientId")
                 }
                 koinApp.modules(networkModule(serverUrl.addUserAgent(sdkVersion), sdkVersion, jwt))
@@ -170,6 +170,9 @@ class RelayTest {
 
         clientA.relayService = koinAppA.koin.get(named(FoundationDITags.RELAY_SERVICE))
         clientB.relayService = koinAppB.koin.get(named(FoundationDITags.RELAY_SERVICE))
+
+        clientA.observeResults()
+        clientB.observeResults()
 
         startLoggingClientEventsFlow(clientA, "ClientA")
         startLoggingClientEventsFlow(clientB, "ClientB")

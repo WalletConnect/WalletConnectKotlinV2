@@ -1,0 +1,58 @@
+import kotlin.collections.List;
+
+CREATE TABLE Subscriptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    request_id INTEGER UNIQUE NOT NULL,
+    pairing_topic TEXT NOT NULL,
+    peer_public_key TEXT NOT NULL,
+    topic TEXT UNIQUE,
+    account TEXT,
+    relay_protocol TEXT,
+    relay_data TEXT,
+    metadata_name TEXT NOT NULL,
+    metadata_description TEXT NOT NULL,
+    metadata_url TEXT NOT NULL,
+    metadata_icons TEXT AS List<String> NOT NULL,
+    metadata_native TEXT
+);
+
+insertSubscriptionResponse:
+INSERT OR REPLACE INTO Subscriptions(request_id, pairing_topic, peer_public_key, topic, account, relay_protocol, relay_data, metadata_name, metadata_description, metadata_url, metadata_icons, metadata_native)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+insertSubscriptionRequest:
+INSERT OR ABORT INTO Subscriptions(request_id, pairing_topic, peer_public_key, account, metadata_name, metadata_description, metadata_url, metadata_icons, metadata_native)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+getAllSubscriptions:
+SELECT *
+FROM Subscriptions;
+
+getSubscriptionByTopic:
+SELECT *
+FROM Subscriptions
+WHERE topic = ?;
+
+getSubscriptionByRequestId:
+SELECT *
+FROM Subscriptions
+WHERE request_id = ?;
+
+getPeerPublicKeyByRequestId:
+SELECT peer_public_key
+FROM Subscriptions
+WHERE request_id = ?;
+
+updateSubscriptionToResponded:
+UPDATE OR REPLACE Subscriptions
+SET topic = ?, relay_protocol = ?, relay_data = ?, metadata_name = ?, metadata_description = ?, metadata_url = ?, metadata_icons = ?, metadata_native = ?
+WHERE request_id = ?;
+
+deleteByTopic:
+DELETE FROM Subscriptions
+WHERE topic = ?;
+
+lastInsertedRow:
+SELECT id
+FROM Subscriptions
+WHERE id = (SELECT MAX(id) FROM Subscriptions);

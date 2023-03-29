@@ -2,14 +2,15 @@ package com.walletconnect.web3.wallet.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import kotlinx.coroutines.*
 
 object Web3Wallet {
-
-    lateinit var coreClient: CoreClient
+    private lateinit var coreClient: CoreClient
 
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal)
@@ -79,59 +80,93 @@ object Web3Wallet {
     }
 
     @Throws(IllegalStateException::class)
-    fun initialize(params: Wallet.Params.Init, onError: (Wallet.Model.Error) -> Unit) {
+    fun initialize(params: Wallet.Params.Init, onSuccess: () -> Unit = {}, onError: (Wallet.Model.Error) -> Unit) {
         coreClient = params.core
-        SignClient.initialize(Sign.Params.Init(params.core)) { error -> onError(Wallet.Model.Error(error.throwable)) }
-        AuthClient.initialize(Auth.Params.Init(params.core)) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        var clientInitCounter = 0
+        SignClient.initialize(Sign.Params.Init(params.core), onSuccess = { clientInitCounter++ }) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        AuthClient.initialize(Auth.Params.Init(params.core), onSuccess = { clientInitCounter++ }) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        validateInitializationCount(clientInitCounter, onSuccess, onError)
     }
 
     @Throws(IllegalStateException::class)
-    fun pair(params: Wallet.Params.Pair, onError: (Wallet.Model.Error) -> Unit = {}) {
-        coreClient.Pairing.pair(Core.Params.Pair(params.uri)) { error -> onError(Wallet.Model.Error(error.throwable)) }
+    fun pair(params: Wallet.Params.Pair, onSuccess: (Wallet.Params.Pair) -> Unit = {}, onError: (Wallet.Model.Error) -> Unit = {}) {
+        coreClient.Pairing.pair(Core.Params.Pair(params.uri), { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
-    fun approveSession(params: Wallet.Params.SessionApprove, onError: (Wallet.Model.Error) -> Unit) {
+    fun approveSession(
+        params: Wallet.Params.SessionApprove,
+        onSuccess: (Wallet.Params.SessionApprove) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
         val signParams = Sign.Params.Approve(params.proposerPublicKey, params.namespaces.toSign(), params.relayProtocol)
-        SignClient.approveSession(signParams) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        SignClient.approveSession(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
-    fun rejectSession(params: Wallet.Params.SessionReject, onError: (Wallet.Model.Error) -> Unit) {
+    fun rejectSession(
+        params: Wallet.Params.SessionReject,
+        onSuccess: (Wallet.Params.SessionReject) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
         val signParams = Sign.Params.Reject(params.proposerPublicKey, params.reason)
-        SignClient.rejectSession(signParams) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        SignClient.rejectSession(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
-    fun updateSession(params: Wallet.Params.SessionUpdate, onError: (Wallet.Model.Error) -> Unit) {
+    fun updateSession(
+        params: Wallet.Params.SessionUpdate,
+        onSuccess: (Wallet.Params.SessionUpdate) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
         val signParams = Sign.Params.Update(params.sessionTopic, params.namespaces.toSign())
-        SignClient.update(signParams) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        SignClient.update(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
-    fun extendSession(params: Wallet.Params.SessionExtend, onError: (Wallet.Model.Error) -> Unit) {
+    fun extendSession(
+        params: Wallet.Params.SessionExtend,
+        onSuccess: (Wallet.Params.SessionExtend) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
         val signParams = Sign.Params.Extend(params.topic)
-        SignClient.extend(signParams) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        SignClient.extend(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
-    fun respondSessionRequest(params: Wallet.Params.SessionRequestResponse, onError: (Wallet.Model.Error) -> Unit) {
+    fun respondSessionRequest(
+        params: Wallet.Params.SessionRequestResponse,
+        onSuccess: (Wallet.Params.SessionRequestResponse) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
         val signParams = Sign.Params.Response(params.sessionTopic, params.jsonRpcResponse.toSign())
-        SignClient.respond(signParams) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        SignClient.respond(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
-    fun emitSessionEvent(params: Wallet.Params.SessionEmit, onError: (Wallet.Model.Error) -> Unit) {
+    fun emitSessionEvent(
+        params: Wallet.Params.SessionEmit,
+        onSuccess: (Wallet.Params.SessionEmit) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
         val signParams = Sign.Params.Emit(params.topic, params.event.toSign(), params.chainId)
-        SignClient.emit(signParams) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        SignClient.emit(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
-    fun disconnectSession(params: Wallet.Params.SessionDisconnect, onError: (Wallet.Model.Error) -> Unit) {
+    fun disconnectSession(
+        params: Wallet.Params.SessionDisconnect,
+        onSuccess: (Wallet.Params.SessionDisconnect) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
         val signParams = Sign.Params.Disconnect(params.sessionTopic)
-        SignClient.disconnect(signParams) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        SignClient.disconnect(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     @Throws(IllegalStateException::class)
     fun formatMessage(params: Wallet.Params.FormatMessage): String? {
         val authParams = Auth.Params.FormatMessage(params.payloadParams.toSign(), params.issuer)
@@ -139,27 +174,91 @@ object Web3Wallet {
     }
 
     @Throws(IllegalStateException::class)
-    fun respondAuthRequest(params: Wallet.Params.AuthRequestResponse, onError: (Wallet.Model.Error) -> Unit) {
-        AuthClient.respond(params.toAuth()) { error -> onError(Wallet.Model.Error(error.throwable)) }
+    fun respondAuthRequest(
+        params: Wallet.Params.AuthRequestResponse,
+        onSuccess: (Wallet.Params.AuthRequestResponse) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    ) {
+        AuthClient.respond(params.toAuth(), { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     @Throws(IllegalStateException::class)
     fun getListOfActiveSessions(): List<Wallet.Model.Session> {
         return SignClient.getListOfActiveSessions().map(Sign.Model.Session::toWallet)
     }
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     @Throws(IllegalStateException::class)
     fun getActiveSessionByTopic(topic: String): Wallet.Model.Session? {
         return SignClient.getActiveSessionByTopic(topic)?.toWallet()
     }
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+
+    @Deprecated(
+        "The return type of getPendingRequests methods has been replaced with SessionRequest list",
+        replaceWith = ReplaceWith("getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest>")
+    )
     @Throws(IllegalStateException::class)
     fun getPendingSessionRequests(topic: String): List<Wallet.Model.PendingSessionRequest> {
         return SignClient.getPendingRequests(topic).mapToPendingRequests()
     }
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+
+    @Throws(IllegalStateException::class)
+    fun getPendingListOfSessionRequests(topic: String): List<Wallet.Model.SessionRequest> {
+        return SignClient.getPendingSessionRequests(topic).mapToPendingSessionRequests()
+    }
+
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    @Throws(IllegalStateException::class)
+    fun getSessionProposals(): List<Wallet.Model.SessionProposal> {
+        return SignClient.getSessionProposals().map(Sign.Model.SessionProposal::toWallet)
+    }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     @Throws(IllegalStateException::class)
     fun getPendingAuthRequests(): List<Wallet.Model.PendingAuthRequest> {
         return AuthClient.getPendingRequest().toWallet()
     }
+
+    private fun validateInitializationCount(clientInitCounter: Int, onSuccess: () -> Unit, onError: (Wallet.Model.Error) -> Unit) {
+        scope.launch {
+            try {
+                withTimeout(TIMEOUT) {
+                    while (true) {
+                        if (clientInitCounter == 2) {
+                            onSuccess()
+                            break
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                onError(Wallet.Model.Error(e))
+            }
+        }
+    }
+
+    private const val TIMEOUT: Long = 10000
 }

@@ -23,21 +23,21 @@ class SignProtocol : SignInterface {
 
     companion object {
         val instance = SignProtocol()
-        const val storageSuffix: String = ""
     }
 
-    override fun initialize(init: Sign.Params.Init, onError: (Sign.Model.Error) -> Unit) {
+    override fun initialize(init: Sign.Params.Init, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit) {
         // TODO: re-init scope
         try {
             wcKoinApp.modules(
                 commonModule(),
                 jsonRpcModule(),
-                storageModule(storageSuffix),
+                storageModule(),
                 engineModule()
             )
 
             signEngine = wcKoinApp.koin.get()
             signEngine.setup()
+            onSuccess()
         } catch (e: Exception) {
             onError(Sign.Model.Error(e))
         }
@@ -92,7 +92,9 @@ class SignProtocol : SignInterface {
         checkEngineInitialization()
         try {
             signEngine.proposeSession(
-                connect.namespaces.toMapOfEngineNamespacesProposal(),
+                connect.namespaces?.toMapOfEngineNamespacesRequired(),
+                connect.optionalNamespaces?.toMapOfEngineNamespacesOptional(),
+                connect.properties,
                 connect.pairing.toPairing(), onSuccess
             ) { error -> onError(Sign.Model.Error(error)) }
         } catch (error: Exception) {
@@ -104,7 +106,7 @@ class SignProtocol : SignInterface {
     override fun pair(
         pair: Sign.Params.Pair,
         onSuccess: (Sign.Params.Pair) -> Unit,
-        onError: (Sign.Model.Error) -> Unit
+        onError: (Sign.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
         try {
@@ -124,7 +126,7 @@ class SignProtocol : SignInterface {
         try {
             signEngine.approve(
                 proposerPublicKey = approve.proposerPublicKey,
-                namespaces = approve.namespaces.toMapOfEngineNamespacesSession(),
+                sessionNamespaces = approve.namespaces.toMapOfEngineNamespacesSession(),
                 onSuccess = { onSuccess(approve) },
                 onFailure = { error -> onError(Sign.Model.Error(error)) }
             )
@@ -145,13 +147,36 @@ class SignProtocol : SignInterface {
         }
     }
 
+    @Deprecated(
+        "The onSuccess callback has been replaced with a new callback that returns Sign.Model.SentRequest",
+        replaceWith = ReplaceWith("this.request(request, onSuccessWithSentRequest, onError)", "com.walletconnect.sign.client")
+    )
     @Throws(IllegalStateException::class)
-    override fun request(request: Sign.Params.Request, onSuccess: (Sign.Params.Request) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+    override fun request(
+        request: Sign.Params.Request,
+        onSuccess: (Sign.Params.Request) -> Unit,
+        onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit,
+        onError: (Sign.Model.Error) -> Unit
+    ) {
         checkEngineInitialization()
         try {
             signEngine.sessionRequest(
                 request = request.toEngineDORequest(),
                 onSuccess = { onSuccess(request) },
+                onFailure = { error -> onError(Sign.Model.Error(error)) }
+            )
+        } catch (error: Exception) {
+            onError(Sign.Model.Error(error))
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun request(request: Sign.Params.Request, onSuccess: (Sign.Model.SentRequest) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+        checkEngineInitialization()
+        try {
+            signEngine.sessionRequest(
+                request = request.toEngineDORequest(),
+                onSuccess = { requestId -> onSuccess(request.toSentRequest(requestId)) },
                 onFailure = { error -> onError(Sign.Model.Error(error)) }
             )
         } catch (error: Exception) {
@@ -233,7 +258,7 @@ class SignProtocol : SignInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun disconnect(disconnect: Sign.Params.Disconnect, onSuccess: (Sign.Params.Disconnect) -> Unit,  onError: (Sign.Model.Error) -> Unit) {
+    override fun disconnect(disconnect: Sign.Params.Disconnect, onSuccess: (Sign.Params.Disconnect) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
             signEngine.disconnect(
@@ -282,10 +307,26 @@ class SignProtocol : SignInterface {
         return signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing)
     }
 
+    @Deprecated(
+        "The return type of getPendingRequests methods has been replaced with SessionRequest list",
+        replaceWith = ReplaceWith("getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest>")
+    )
     @Throws(IllegalStateException::class)
     override fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest> {
         checkEngineInitialization()
         return signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests()
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest> {
+        checkEngineInitialization()
+        return signEngine.getPendingSessionRequests(Topic(topic)).mapToPendingSessionRequests()
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getSessionProposals(): List<Sign.Model.SessionProposal> {
+        checkEngineInitialization()
+        return signEngine.getSessionProposals().map(EngineDO.SessionProposal::toClientSessionProposal)
     }
 
     // TODO: Uncomment once reinit scope logic is added

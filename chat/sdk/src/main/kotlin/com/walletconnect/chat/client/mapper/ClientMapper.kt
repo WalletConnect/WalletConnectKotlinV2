@@ -2,83 +2,92 @@
 
 package com.walletconnect.chat.client.mapper
 
+import com.walletconnect.android.internal.common.cacao.Cacao
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.chat.client.Chat
-import com.walletconnect.chat.common.model.AccountId
-import com.walletconnect.chat.common.model.Media
-import com.walletconnect.chat.engine.model.EngineDO
+import com.walletconnect.chat.common.model.*
+import com.walletconnect.foundation.common.model.Topic
 
-//TODO: Figure out what to do with models separation
 @JvmSynthetic
-internal fun Chat.Params.Invite.toEngineDO(): EngineDO.Invite {
-    return EngineDO.Invite(invite.account.toCommon(), invite.message, invite.publicKey, invite.signature)
+internal fun Chat.Params.Invite.toCommon(): SendInvite = SendInvite(inviterAccount.toCommon(), inviteeAccount.toCommon(), message.toCommon(), inviteePublicKey)
+
+@JvmSynthetic
+internal fun Chat.Params.Message.toCommon(): SendMessage = SendMessage(Topic(topic), message.toCommon(), media?.toCommon())
+
+@JvmSynthetic
+internal fun Chat.Model.Media.toCommon(): Media = Media(type, data.toCommon())
+
+@JvmSynthetic
+internal fun Events.OnInvite.toClient(): Chat.Model.Events.OnInvite = Chat.Model.Events.OnInvite(invite.toClient())
+
+
+@JvmSynthetic
+internal fun Thread.toClient(): Chat.Model.Thread = Chat.Model.Thread(topic.value, selfAccount.toClient(), peerAccount.toClient())
+
+@JvmSynthetic
+internal fun InviteStatus.toClient(): Chat.Type.InviteStatus = when (this) {
+    InviteStatus.PENDING -> Chat.Type.InviteStatus.PENDING
+    InviteStatus.REJECTED -> Chat.Type.InviteStatus.REJECTED
+    InviteStatus.APPROVED -> Chat.Type.InviteStatus.APPROVED
 }
 
 @JvmSynthetic
-internal fun Chat.Params.Message.toEngineDO(): EngineDO.SendMessage {
-    return EngineDO.SendMessage(author.toCommon(), message, media?.toCommon())
-}
+internal fun Invite.Received.toClient(): Chat.Model.Invite.Received =
+    Chat.Model.Invite.Received(id, inviterAccount.toClient(), inviteeAccount.toClient(), message.toClient(), inviterPublicKey.keyAsHex, inviteePublicKey.keyAsHex, status.toClient())
 
 @JvmSynthetic
-private fun Chat.Model.Media.toCommon(): Media {
-    return Media(type, data)
-}
+internal fun Invite.Sent.toClient(): Chat.Model.Invite.Sent =
+    Chat.Model.Invite.Sent(id, inviterAccount.toClient(), inviteeAccount.toClient(), message.toClient(), inviterPublicKey.keyAsHex, inviteePublicKey.keyAsHex, status.toClient())
 
 @JvmSynthetic
-internal fun Chat.Model.AccountId.toCommon(): AccountId {
-    return AccountId(value)
-}
+internal fun AccountId.toClient(): Chat.Type.AccountId = Chat.Type.AccountId(value)
 
 @JvmSynthetic
-internal fun EngineDO.Events.OnInvite.toClient(): Chat.Model.Events.OnInvite {
-    return Chat.Model.Events.OnInvite(id, invite.toClient())
-}
+internal fun ChatMessage.toClient(): Chat.Type.ChatMessage = Chat.Type.ChatMessage(value)
 
 @JvmSynthetic
-internal fun EngineDO.Invite.toClient(): Chat.Model.Invite {
-    return Chat.Model.Invite(accountId.toClient(), message, publicKey, signature)
-}
+internal fun InviteMessage.toClient(): Chat.Type.InviteMessage = Chat.Type.InviteMessage(value)
 
 @JvmSynthetic
-internal fun AccountId.toClient(): Chat.Model.AccountId {
-    return Chat.Model.AccountId(value)
-}
+internal fun MediaData.toClient(): Chat.Type.MediaData = Chat.Type.MediaData(value)
 
 @JvmSynthetic
-internal fun Media.toClient(): Chat.Model.Media {
-    return Chat.Model.Media(type, data)
-}
+internal fun Media.toClient(): Chat.Model.Media = Chat.Model.Media(type, data.toClient())
 
 @JvmSynthetic
-internal fun EngineDO.Events.OnJoined.toClient(): Chat.Model.Events.OnJoined {
-    return Chat.Model.Events.OnJoined(topic)
-}
+internal fun Events.OnInviteAccepted.toClient(): Chat.Model.Events.OnInviteAccepted = Chat.Model.Events.OnInviteAccepted(topic, invite.toClient())
 
 @JvmSynthetic
-internal fun EngineDO.Events.OnMessage.toClient(): Chat.Model.Events.OnMessage {
-    return Chat.Model.Events.OnMessage(topic, message.toClient())
-}
+internal fun Events.OnMessage.toClient(): Chat.Model.Events.OnMessage = Chat.Model.Events.OnMessage(message.toClient())
 
 @JvmSynthetic
-internal fun EngineDO.Events.OnLeft.toClient(): Chat.Model.Events.OnLeft {
-    return Chat.Model.Events.OnLeft(topic)
-}
+internal fun Events.OnLeft.toClient(): Chat.Model.Events.OnLeft = Chat.Model.Events.OnLeft(topic)
 
 @JvmSynthetic
-internal fun EngineDO.Events.OnReject.toClient(): Chat.Model.Events.OnReject {
-    return Chat.Model.Events.OnReject(topic)
-}
+internal fun Events.OnInviteRejected.toClient(): Chat.Model.Events.OnInviteRejected = Chat.Model.Events.OnInviteRejected(invite.toClient())
 
 @JvmSynthetic
-internal fun EngineDO.Message.toClient(): Chat.Model.Message {
-    return Chat.Model.Message(message, authorAccountId.toClient(), timestamp, media?.toClient())
-}
+internal fun Message.toClient(): Chat.Model.Message = Chat.Model.Message(topic.value, message.toClient(), authorAccount.toClient(), timestamp, media?.toClient())
 
 @JvmSynthetic
-internal fun SDKError.toClientError(): Chat.Model.Error =
-    Chat.Model.Error(this.exception)
+internal fun SDKError.toClientError(): Chat.Model.Error = Chat.Model.Error(this.exception)
 
 @JvmSynthetic
-internal fun ConnectionState.toClient(): Chat.Model.ConnectionState =
-    Chat.Model.ConnectionState(isAvailable)
+internal fun ConnectionState.toClient(): Chat.Model.ConnectionState = Chat.Model.ConnectionState(isAvailable)
+
+@JvmSynthetic
+internal fun Chat.Model.Cacao.Signature?.toCommon(): Cacao.Signature? = this?.let { cacao -> Cacao.Signature(cacao.t, cacao.s, cacao.m) }
+
+@JvmSynthetic
+internal fun Chat.Type.AccountId.toCommon(): AccountId = AccountId(value)
+
+@JvmSynthetic
+internal fun Chat.Type.ChatMessage.toCommon(): ChatMessage = ChatMessage(value)
+
+@JvmSynthetic
+internal fun Chat.Type.InviteMessage.toCommon(): InviteMessage = InviteMessage(value)
+
+@JvmSynthetic
+internal fun Chat.Type.MediaData.toCommon(): MediaData = MediaData(value)

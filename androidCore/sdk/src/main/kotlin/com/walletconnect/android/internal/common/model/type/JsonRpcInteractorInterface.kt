@@ -1,7 +1,6 @@
 package com.walletconnect.android.internal.common.model.type
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.flow.SharedFlow
@@ -11,11 +10,13 @@ interface JsonRpcInteractorInterface {
     val clientSyncJsonRpc: SharedFlow<WCRequest>
     val peerResponse: SharedFlow<WCResponse>
     val isConnectionAvailable: StateFlow<Boolean>
-    val internalErrors: SharedFlow<InternalError>
+    val internalErrors: SharedFlow<SDKError>
 
     fun checkConnectionWorking()
 
     fun subscribe(topic: Topic, onSuccess: (Topic) -> Unit = {}, onFailure: (Throwable) -> Unit = {})
+
+    fun batchSubscribe(topics: List<String>, onSuccess: (List<String>) -> Unit = {}, onFailure: (Throwable) -> Unit = {})
 
     fun unsubscribe(topic: Topic, onSuccess: () -> Unit = {}, onFailure: (Throwable) -> Unit = {})
 
@@ -48,6 +49,16 @@ interface JsonRpcInteractorInterface {
         onFailure: (Throwable) -> Unit
     )
 
+    fun respondWithParams(
+        requestId: Long,
+        topic: Topic,
+        clientParams: ClientParams,
+        irnParams: IrnParams,
+        envelopeType: EnvelopeType = EnvelopeType.ZERO,
+        participants: Participants? = null,
+        onFailure: (Throwable) -> Unit
+    )
+
     fun respondWithSuccess(
         request: WCRequest,
         irnParams: IrnParams,
@@ -62,6 +73,17 @@ interface JsonRpcInteractorInterface {
         envelopeType: EnvelopeType = EnvelopeType.ZERO,
         participants: Participants? = null,
         onSuccess: (WCRequest) -> Unit = {},
+        onFailure: (Throwable) -> Unit = {},
+    )
+
+    fun respondWithError(
+        requestId: Long,
+        topic: Topic,
+        error: Error,
+        irnParams: IrnParams,
+        envelopeType: EnvelopeType = EnvelopeType.ZERO,
+        participants: Participants? = null,
+        onSuccess: () -> Unit = {},
         onFailure: (Throwable) -> Unit = {},
     )
 }

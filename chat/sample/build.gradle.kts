@@ -34,6 +34,9 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    packagingOptions {
+        exclude("META-INF/LICENSE-notice.md")
+    }
 }
 
 dependencies {
@@ -45,6 +48,7 @@ dependencies {
     releaseImplementation("com.walletconnect:chat")
 
     lifecycle()
+    navigationComponent()
     implementation("com.google.android.material:material:1.6.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
