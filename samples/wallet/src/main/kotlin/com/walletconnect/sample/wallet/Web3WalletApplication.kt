@@ -40,9 +40,9 @@ class Web3WalletApplication : Application() {
         val relayUrl = "relay.walletconnect.com"
         val serverUrl = "wss://$relayUrl?projectId=${projectId}"
         val appMetaData = Core.Model.AppMetaData(
-            name = "Kotlin.Web3Wallet",
-            description = "Kotlin Web3Wallet Implementation",
-            url = "kotlin.web3wallet.walletconnect.com",
+            name = "Kotlin Wallet",
+            description = "Kotlin Wallet Implementation",
+            url = "kotlin.wallet.walletconnect.com",
             icons = listOf("https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png"),
             redirect = "kotlin-web3wallet:/request"
         )
