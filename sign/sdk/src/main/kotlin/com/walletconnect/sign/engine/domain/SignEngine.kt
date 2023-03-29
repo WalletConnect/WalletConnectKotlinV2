@@ -41,7 +41,7 @@ import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCase
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
-import com.walletconnect.util.generateId
+import com.walletconnect.util.generateClientToClientId
 import com.walletconnect.utils.Empty
 import com.walletconnect.utils.extractTimestamp
 import com.walletconnect.utils.isSequenceValid
@@ -142,7 +142,7 @@ internal class SignEngine(
                 optionalNamespaces ?: emptyMap(), properties,
                 selfPublicKey, selfAppMetaData
             )
-        val request = SignRpc.SessionPropose(id = generateId(), params = sessionProposal)
+        val request = SignRpc.SessionPropose(id = generateClientToClientId(), params = sessionProposal)
         proposalStorageRepository.insertProposal(sessionProposal.toVO(pairing.topic, request.id))
         val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
         jsonRpcInteractor.subscribe(pairing.topic) { error -> return@subscribe onFailure(error) }
@@ -201,7 +201,7 @@ internal class SignEngine(
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, proposal.appMetaData, AppMetaDataType.PEER)
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, sessionNamespaces)
-                val sessionSettle = SignRpc.SessionSettle(id = generateId(), params = params)
+                val sessionSettle = SignRpc.SessionSettle(id = generateClientToClientId(), params = params)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
                 jsonRpcInteractor.publishJsonRpcRequest(
@@ -260,7 +260,7 @@ internal class SignEngine(
         }
 
         val params = SignParams.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
-        val sessionUpdate = SignRpc.SessionUpdate(id = generateId(), params = params)
+        val sessionUpdate = SignRpc.SessionUpdate(id = generateClientToClientId(), params = params)
         val irnParams = IrnParams(Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
 
         try {
@@ -302,7 +302,7 @@ internal class SignEngine(
         }
 
         val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
-        val sessionPayload = SignRpc.SessionRequest(id = generateId(), params = params)
+        val sessionPayload = SignRpc.SessionRequest(id = generateClientToClientId(), params = params)
         val irnParamsTtl = request.expiry?.run {
             val defaultTtl = FIVE_MINUTES_IN_SECONDS
             val extractedTtl = seconds - nowInSeconds
@@ -385,7 +385,7 @@ internal class SignEngine(
     // TODO: Do we still want Session Ping
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         if (sessionStorageRepository.isSessionValid(Topic(topic))) {
-            val pingPayload = SignRpc.SessionPing(id = generateId(), params = SignParams.PingParams())
+            val pingPayload = SignRpc.SessionPing(id = generateClientToClientId(), params = SignParams.PingParams())
             val irnParams = IrnParams(Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
 
             jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
@@ -449,7 +449,7 @@ internal class SignEngine(
         }
 
         val eventParams = SignParams.EventParams(SessionEventVO(event.name, event.data), event.chainId)
-        val sessionEvent = SignRpc.SessionEvent(id = generateId(), params = eventParams)
+        val sessionEvent = SignRpc.SessionEvent(id = generateClientToClientId(), params = eventParams)
         val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionEvent,
@@ -479,7 +479,7 @@ internal class SignEngine(
 
         val newExpiration = session.expiry.seconds + WEEK_IN_SECONDS
         sessionStorageRepository.extendSession(Topic(topic), newExpiration)
-        val sessionExtend = SignRpc.SessionExtend(id = generateId(), params = SignParams.ExtendParams(newExpiration))
+        val sessionExtend = SignRpc.SessionExtend(id = generateClientToClientId(), params = SignParams.ExtendParams(newExpiration))
         val irnParams = IrnParams(Tags.SESSION_EXTEND, Ttl(DAY_IN_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionExtend,
@@ -499,7 +499,7 @@ internal class SignEngine(
         }
 
         val deleteParams = SignParams.DeleteParams(Reason.UserDisconnected.code, Reason.UserDisconnected.message)
-        val sessionDelete = SignRpc.SessionDelete(id = generateId(), params = deleteParams)
+        val sessionDelete = SignRpc.SessionDelete(id = generateClientToClientId(), params = deleteParams)
         sessionStorageRepository.deleteSession(Topic(topic))
         jsonRpcInteractor.unsubscribe(Topic(topic))
         val irnParams = IrnParams(Tags.SESSION_DELETE, Ttl(DAY_IN_SECONDS))

@@ -27,7 +27,7 @@ import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.common.storage.data.SubscriptionStorageRepository
 import com.walletconnect.push.wallet.data.MessageRepository
-import com.walletconnect.util.generateId
+import com.walletconnect.util.generateClientToClientId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.reflect.full.safeCast
@@ -120,7 +120,7 @@ internal class PushWalletEngine(
 
     fun deleteSubscription(topic: String, onFailure: (Throwable) -> Unit) {
         val deleteParams = PushParams.DeleteParams(6000, "User Disconnected")
-        val request = PushRpc.PushDelete(id = generateId(), params = deleteParams)
+        val request = PushRpc.PushDelete(id = generateClientToClientId(), params = deleteParams)
         val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
 
         subscriptionStorageRepository.deleteSubscription(topic)
