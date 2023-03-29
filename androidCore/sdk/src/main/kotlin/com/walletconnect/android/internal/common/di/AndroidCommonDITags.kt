@@ -16,4 +16,5 @@ enum class AndroidCommonDITags {
     RELAY_URL,
     KEYSERVER_URL,
     KEYSERVER_RETROFIT,
+    VERIFY_RETROFIT,
 }

@@ -4,10 +4,13 @@ package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
+import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.exception.*
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
+import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.model.type.ClientParams
@@ -42,6 +45,7 @@ import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import com.walletconnect.util.generateId
+import com.walletconnect.util.hexToBytes
 import com.walletconnect.utils.Empty
 import com.walletconnect.utils.extractTimestamp
 import com.walletconnect.utils.isSequenceValid
@@ -60,7 +64,8 @@ internal class SignEngine(
     private val pairingInterface: PairingInterface,
     private val pairingHandler: PairingControllerInterface,
     private val selfAppMetaData: AppMetaData,
-    private val logger: Logger
+    private val logger: Logger,
+    private val serializer: JsonRpcSerializer
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
@@ -607,6 +612,24 @@ internal class SignEngine(
                     return
                 }
             }
+
+            //todo: use usecase for that
+
+            val json = serializer.serialize(SignRpc.SessionPropose(id = request.id, params = payloadParams)) ?: throw Exception("kobe; Cannot parse")
+
+            val newJson = "\"\"\"$json\"\"\""
+
+            println("kobe; $newJson")
+
+            val attestationId = sha256("""$json""".toByteArray())
+
+            CoreClient.Verify.resolve(attestationId,
+                onSuccess = {
+                    println("kobe; Success: $it")
+                },
+                onError = {
+                    println("kobe; Error: $it")
+                })
 
             proposalStorageRepository.insertProposal(payloadParams.toVO(request.topic, request.id))
             pairingHandler.updateMetadata(
