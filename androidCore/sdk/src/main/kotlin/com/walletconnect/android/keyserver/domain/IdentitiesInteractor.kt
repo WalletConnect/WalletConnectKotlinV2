@@ -40,6 +40,8 @@ class IdentitiesInteractor(
         Result.success(storedPublicKey)
     } catch (e: MissingKeyException) {
         val identityPublicKey = generateAndStoreIdentityKeyPair()
+        // This is optimistically mapping and storing the public key. What should happen if the registration fails?
+        // Can the registerIdentityKeyInKeyserver function be replaced with just the use case?
         registerIdentityKeyInKeyserver(accountId, keyserverUrl, identityPublicKey, onSign)
             .map { identityPublicKey }
             .also { storeIdentityPublicKey(identityPublicKey, accountId) }

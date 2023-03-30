@@ -1,7 +1,9 @@
 package com.walletconnect.push.common
 
+import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.cacao.SignatureInterface
 import com.walletconnect.android.internal.common.cacao.Cacao
 
 object Push {
@@ -15,6 +17,11 @@ object Push {
         data class Subscription(val requestId: Long, val topic: String, val account: String, val relay: Relay, val metadata: Core.Model.AppMetaData): Model() {
 
             data class Relay(val protocol: String, val data: String?)
+        }
+
+        object Cacao : Model() {
+            @Keep
+            data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
         }
 
         data class Error(val throwable: Throwable) : Model()
@@ -63,7 +70,7 @@ object Push {
 
             class Init(val core: CoreClient): Params()
 
-            data class Approve(val id: Long, val onSign: (String) -> Cacao.Signature): Params()
+            data class Approve(val id: Long, val onSign: (String) -> Model.Cacao.Signature): Params()
 
             data class Reject(val id: Long, val reason: String): Params()
 

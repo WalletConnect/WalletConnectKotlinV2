@@ -257,7 +257,7 @@ internal class PushDappEngine(
                         } else {
                             params.account
                         }
-                        castRepository.register(account, symKey.keyAsHex, relayUrl, wcResponse.topic.value) { error ->
+                        castRepository.register(account, symKey.keyAsHex, pushRequestResponse.subscriptionAuth, relayUrl, wcResponse.topic.value) { error ->
                             _engineEvent.emit(SDKError(error))
                         }
 

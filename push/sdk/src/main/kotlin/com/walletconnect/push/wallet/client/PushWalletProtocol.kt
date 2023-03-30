@@ -1,5 +1,6 @@
 package com.walletconnect.push.wallet.client
 
+import android.util.Log
 import com.walletconnect.android.internal.common.di.DBUtils
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
@@ -12,11 +13,13 @@ import com.walletconnect.push.common.model.toClient
 import com.walletconnect.push.wallet.client.mapper.toClient
 import com.walletconnect.push.wallet.client.mapper.toClientEvent
 import com.walletconnect.push.wallet.client.mapper.toClientModel
+import com.walletconnect.push.wallet.client.mapper.toCommon
 import com.walletconnect.push.wallet.di.messageModule
 import com.walletconnect.push.wallet.di.walletEngineModule
 import com.walletconnect.push.wallet.engine.PushWalletEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class PushWalletProtocol : PushWalletInterface {
@@ -59,7 +62,15 @@ class PushWalletProtocol : PushWalletInterface {
 
         try {
             scope.launch {
-                pushWalletEngine.approve(params.id, params.onSign, onSuccess) { onError(Push.Model.Error(it)) }
+                pushWalletEngine.approve(
+                    params.id,
+                    params.onSign.toCommon(),
+                    onSuccess
+                ) {
+                    Log.e("Talha", "Error: $it")
+                    Log.e("Talha", "Scope isActive? ${scope.isActive}")
+                    onError(Push.Model.Error(it))
+                }
             }
         } catch (e: Exception) {
             onError(Push.Model.Error(e))

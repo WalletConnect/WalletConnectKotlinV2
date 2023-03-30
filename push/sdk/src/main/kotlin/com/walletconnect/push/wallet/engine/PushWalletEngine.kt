@@ -34,7 +34,6 @@ import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
 import com.walletconnect.push.wallet.data.MessageRepository
 import com.walletconnect.util.generateId
-import com.walletconnect.utils.getInviteTag
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.reflect.full.safeCast
@@ -46,7 +45,6 @@ internal class PushWalletEngine(
     private val pairingHandler: PairingControllerInterface,
     private val subscriptionStorageRepository: SubscriptionStorageRepository,
     private val messageRepository: MessageRepository,
-    private val keyManagementRepository: KeyManagementRepository,
     private val identitiesInteractor: IdentitiesInteractor,
     private val serializer: JsonRpcSerializer,
     private val logger: Logger,
@@ -123,7 +121,7 @@ internal class PushWalletEngine(
         jsonRpcInteractor.subscribe(pushTopic) { error ->
             return@subscribe onError(error)
         }
-        jsonRpcInteractor.respondWithParams(respondedSubscription.requestId, Topic(responseTopic), approvalParams, irnParams, envelopeType = EnvelopeType.ONE) { error ->
+        jsonRpcInteractor.respondWithParams(respondedSubscription.requestId, Topic(responseTopic), approvalParams, irnParams, envelopeType = EnvelopeType.ONE, participants = Participants(selfPublicKey, peerPublicKey)) { error ->
             return@respondWithParams onError(error)
         }
 
@@ -261,7 +259,7 @@ internal class PushWalletEngine(
                     }
                 }
 
-                _engineEvent.emit(params.toEngineDO(request.id))
+                _engineEvent.emit(params.toEngineDO(request.id, request.topic.value, RelayProtocolOptions()))
             }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(

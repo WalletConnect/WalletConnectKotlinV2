@@ -7,7 +7,7 @@ import com.walletconnect.push.common.Push
 
 @JvmSynthetic
 internal fun EngineDO.PushSubscription.toClient(): Push.Model.Subscription {
-    return Push.Model.Subscription(requestId, topic, account.value, relay.toClient(), metadata?.toClient())
+    return Push.Model.Subscription(requestId, topic!!, account.value, relay.toClient(), metadata.toClient())
 }
 
 @JvmSynthetic

@@ -20,7 +20,7 @@ class SessionProposalViewModel : ViewModel() {
             if (Web3Wallet.getSessionProposals().isNotEmpty()) {
                 val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().last())
                 val chains = sessionProposalUI.namespaces.flatMap { (_, proposal) -> proposal.chains!! }
-                val selectedAccounts: Map<Chains, String> = chains.mapNotNull { namespaceChainId -> accounts.firstOrNull { (chain, address) -> chain.chainId == namespaceChainId } }.toMap()
+                val selectedAccounts: Map<Chains, String> = chains.mapNotNull { namespaceChainId -> accounts.firstOrNull { (chain, _) -> chain.chainId == namespaceChainId } }.toMap()
                 val required: Map<String, Wallet.Model.Namespace.Session> =
                     getSessionNamespacesIndexedByNamespace(selectedAccounts, sessionProposal.requiredNamespaces, chains)
                         .plus(sessionNamespacesIndexedByChain(selectedAccounts, sessionProposal.requiredNamespaces))
