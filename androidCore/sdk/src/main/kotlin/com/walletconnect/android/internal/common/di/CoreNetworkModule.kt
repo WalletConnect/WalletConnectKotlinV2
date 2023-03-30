@@ -22,6 +22,7 @@ import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 @Suppress("LocalVariableName")
@@ -42,8 +43,19 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
 
     single(named(AndroidCommonDITags.INTERCEPTOR)) {
         Interceptor { chain ->
+            val binaryRepresentationWOLeadingZeros = getAll<BitSet>().let { listOfBitsets ->
+                val combinedBitset = listOfBitsets.reduce { acc, bitSet ->
+                    acc.or(bitSet)
+                    acc
+                }
+
+                combinedBitset.toByteArray().joinToString {
+                    "%8s".format(Integer.toBinaryString(it.toInt() and 0xFF)).replace(' ', '0')
+                }.replaceFirst("^0+(?!$)".toRegex(), "")
+            }
+
             val updatedRequest = chain.request().newBuilder()
-                .addHeader("User-Agent", """wc-2/kotlin-$sdkVersion/android-${Build.VERSION.RELEASE}""")
+                .addHeader("User-Agent", """wc-2/kotlin-${sdkVersion}x$binaryRepresentationWOLeadingZeros/android-${Build.VERSION.RELEASE}""")
                 .build()
 
             chain.proceed(updatedRequest)

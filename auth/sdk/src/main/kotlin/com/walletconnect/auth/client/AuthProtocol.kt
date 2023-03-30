@@ -10,6 +10,7 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Events
+import com.walletconnect.auth.di.commonModule
 import com.walletconnect.auth.di.engineModule
 import com.walletconnect.auth.di.jsonRpcModule
 import com.walletconnect.auth.engine.domain.AuthEngine
@@ -28,7 +29,8 @@ internal class AuthProtocol : AuthInterface {
         try {
             wcKoinApp.modules(
                 jsonRpcModule(),
-                engineModule()
+                engineModule(),
+                commonModule()
             )
 
             authEngine = wcKoinApp.koin.get()
