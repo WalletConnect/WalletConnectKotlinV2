@@ -22,7 +22,6 @@ import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.storage.data.SubscriptionStorageRepository
 import com.walletconnect.push.dapp.data.CastRepository
 import com.walletconnect.push.dapp.di.PushDITags
-import com.walletconnect.util.generateClientToClientId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.koin.core.qualifier.named
@@ -85,7 +84,7 @@ internal class PushDappEngine(
     ) {
         val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
         val requestParams = PushParams.RequestParams(selfPublicKey.keyAsHex, selfAppMetaData, account)
-        val request = PushRpc.PushRequest(id = generateClientToClientId(), params = requestParams)
+        val request = PushRpc.PushRequest(params = requestParams)
         val irnParams = IrnParams(Tags.PUSH_REQUEST, Ttl(DAY_IN_SECONDS), true)
         jsonRpcInteractor.subscribe(Topic(pairingTopic)) { error -> return@subscribe onFailure(error) }
 
@@ -107,7 +106,7 @@ internal class PushDappEngine(
         onFailure: (Throwable) -> Unit,
     ) {
         val messageParams = PushParams.MessageParams(message.title, message.body, message.icon, message.url)
-        val request = PushRpc.PushMessage(id = generateClientToClientId(), params = messageParams)
+        val request = PushRpc.PushMessage(params = messageParams)
         val irnParams = IrnParams(Tags.PUSH_MESSAGE, Ttl(DAY_IN_SECONDS))
 
         scope.launch {
@@ -147,7 +146,7 @@ internal class PushDappEngine(
 
     fun delete(topic: String, onFailure: (Throwable) -> Unit) {
         val deleteParams = PushParams.DeleteParams(6000, "User Disconnected")
-        val request = PushRpc.PushDelete(id = generateClientToClientId(), params = deleteParams)
+        val request = PushRpc.PushDelete(params = deleteParams)
         val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
 
         subscriptionStorageRepository.deleteSubscription(topic)
@@ -211,7 +210,15 @@ internal class PushDappEngine(
                     val pushRequestResponse = response.result as PushParams.RequestResponseParams
                     val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(pushRequestResponse.publicKey))
                     val respondedSubscription =
-                        EngineDO.PushSubscription.Responded(wcResponse.response.id, wcResponse.topic.value, pushRequestResponse.publicKey, pushTopic.value, params.account, RelayProtocolOptions(), params.metaData)
+                        EngineDO.PushSubscription.Responded(
+                            wcResponse.response.id,
+                            wcResponse.topic.value,
+                            pushRequestResponse.publicKey,
+                            pushTopic.value,
+                            params.account,
+                            RelayProtocolOptions(),
+                            params.metaData
+                        )
 
                     withContext(Dispatchers.IO) {
                         subscriptionStorageRepository.insertRespondedSubscription(wcResponse.topic.value, respondedSubscription)

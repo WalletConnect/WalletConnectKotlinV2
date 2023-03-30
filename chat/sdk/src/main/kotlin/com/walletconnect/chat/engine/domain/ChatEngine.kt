@@ -35,7 +35,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.*
-import com.walletconnect.util.generateClientToClientId
+import com.walletconnect.util.generateId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
@@ -298,7 +298,7 @@ internal class ChatEngine(
 
 
             val inviteParams = ChatParams.InviteParams(inviteAuth = didJwt)
-            val inviteId = generateClientToClientId()
+            val inviteId = generateId()
             val payload = ChatRpc.ChatInvite(id = inviteId, params = inviteParams)
             val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
 
@@ -444,7 +444,7 @@ internal class ChatEngine(
                 .getOrElse() { error -> return@launch onFailure(error) }
 
             val messageParams = ChatParams.MessageParams(messageAuth = didJwt)
-            val messageId = generateClientToClientId()
+            val messageId = generateId()
             val payload = ChatRpc.ChatMessage(id = messageId, params = messageParams)
             val irnParams = IrnParams(Tags.CHAT_MESSAGE, Ttl(MONTH_IN_SECONDS), true)
 
@@ -463,7 +463,7 @@ internal class ChatEngine(
     }
 
     internal fun leave(topic: String, onFailure: (Throwable) -> Unit) {
-        val payload = ChatRpc.ChatLeave(id = generateClientToClientId(), params = ChatParams.LeaveParams())
+        val payload = ChatRpc.ChatLeave(params = ChatParams.LeaveParams())
         val irnParams = IrnParams(Tags.CHAT_LEAVE, Ttl(MONTH_IN_SECONDS), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, payload, EnvelopeType.ZERO,
@@ -484,7 +484,7 @@ internal class ChatEngine(
     }
 
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
-        val pingPayload = ChatRpc.ChatPing(id = generateClientToClientId(), params = ChatParams.PingParams())
+        val pingPayload = ChatRpc.ChatPing(params = ChatParams.PingParams())
         val irnParams = IrnParams(Tags.CHAT_PING, Ttl(THIRTY_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,

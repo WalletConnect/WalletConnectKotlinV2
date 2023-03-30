@@ -11,7 +11,6 @@ import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.foundation.network.model.RelayDTO
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.scope
-import com.walletconnect.util.generateClientToServerId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -69,7 +68,7 @@ abstract class BaseRelayClient : RelayInterface {
     ) {
         val (tag, ttl, prompt) = params
         val publishParams = RelayDTO.Publish.Request.Params(Topic(topic), message, Ttl(ttl), tag, prompt)
-        val publishRequest = RelayDTO.Publish.Request(generateClientToServerId(), params = publishParams)
+        val publishRequest = RelayDTO.Publish.Request(params = publishParams)
 
         observePublishResult(publishRequest.id, onResult)
         relayService.publishRequest(publishRequest)
@@ -89,7 +88,7 @@ abstract class BaseRelayClient : RelayInterface {
 
     @ExperimentalCoroutinesApi
     override fun subscribe(topic: String, onResult: (Result<Relay.Model.Call.Subscribe.Acknowledgement>) -> Unit) {
-        val subscribeRequest = RelayDTO.Subscribe.Request(id = generateClientToServerId(), params = RelayDTO.Subscribe.Request.Params(Topic(topic)))
+        val subscribeRequest = RelayDTO.Subscribe.Request(params = RelayDTO.Subscribe.Request.Params(Topic(topic)))
 
         observeSubscribeResult(subscribeRequest.id, onResult)
         relayService.subscribeRequest(subscribeRequest)
@@ -109,7 +108,7 @@ abstract class BaseRelayClient : RelayInterface {
 
     @ExperimentalCoroutinesApi
     override fun batchSubscribe(topics: List<String>, onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit) {
-        val batchSubscribeRequest = RelayDTO.BatchSubscribe.Request(id = generateClientToServerId(), params = RelayDTO.BatchSubscribe.Request.Params(topics))
+        val batchSubscribeRequest = RelayDTO.BatchSubscribe.Request(params = RelayDTO.BatchSubscribe.Request.Params(topics))
 
 
         observeBatchSubscribeResult(batchSubscribeRequest.id, onResult)
@@ -134,7 +133,7 @@ abstract class BaseRelayClient : RelayInterface {
         subscriptionId: String,
         onResult: (Result<Relay.Model.Call.Unsubscribe.Acknowledgement>) -> Unit,
     ) {
-        val unsubscribeRequest = RelayDTO.Unsubscribe.Request(id = generateClientToServerId(), params = RelayDTO.Unsubscribe.Request.Params(Topic(topic), SubscriptionId(subscriptionId)))
+        val unsubscribeRequest = RelayDTO.Unsubscribe.Request(params = RelayDTO.Unsubscribe.Request.Params(Topic(topic), SubscriptionId(subscriptionId)))
 
         observeUnsubscribeResult(unsubscribeRequest.id, onResult)
         relayService.unsubscribeRequest(unsubscribeRequest)

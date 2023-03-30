@@ -3,6 +3,7 @@ package com.walletconnect.web3.inbox.json_rpc
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
+import com.walletconnect.util.generateId
 
 internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
 
@@ -146,7 +147,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
             @JsonClass(generateAdapter = true)
             data class Invite(
                 @Json(name = "id")
-                override val id: Long,
+                override val id: Long = generateId(),
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
@@ -158,7 +159,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
             @JsonClass(generateAdapter = true)
             data class Message(
                 @Json(name = "id")
-                override val id: Long,
+                override val id: Long = generateId(),
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
@@ -170,7 +171,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
             @JsonClass(generateAdapter = true)
             data class InviteAccepted(
                 @Json(name = "id")
-                override val id: Long,
+                override val id: Long = generateId(),
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
@@ -182,7 +183,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
             @JsonClass(generateAdapter = true)
             data class InviteRejected(
                 @Json(name = "id")
-                override val id: Long,
+                override val id: Long = generateId(),
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
@@ -194,7 +195,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
             @JsonClass(generateAdapter = true)
             data class Leave(
                 @Json(name = "id")
-                override val id: Long,
+                override val id: Long = generateId(),
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")

@@ -3,7 +3,7 @@ package com.walletconnect.android.internal.common.cacao.eip1271
 import com.walletconnect.android.internal.common.cacao.signature.Signature
 import com.walletconnect.android.internal.common.cacao.signature.toCacaoSignature
 import com.walletconnect.util.bytesToHex
-import com.walletconnect.util.generateClientToClientId
+import com.walletconnect.util.generateId
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -37,7 +37,7 @@ internal object EIP1271Verifier {
             val messageHash: String = Sign.getEthereumMessageHash(originalMessage.toByteArray()).bytesToHex()
             val data: String = isValidSignatureHash + messageHash + dynamicTypeOffset + dynamicTypeLength + signature.toCacaoSignature().removePrefix(hexPrefix)
 
-            val id = generateClientToClientId()
+            val id = generateId()
             val request: Request = Request.Builder().url(projectId.prefixWithRpcUrl()).post(createBody(address, data, id)).build()
             val response: Response = OkHttpClient().newCall(request).execute()
 

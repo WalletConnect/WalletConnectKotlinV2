@@ -10,7 +10,7 @@ import kotlin.math.pow
 val String.Companion.Empty
     get() = ""
 
-fun generateClientToClientId(): Long = ("${System.currentTimeMillis()}${(100..999).random()}").toLong()
+fun generateId(): Long = ("${System.currentTimeMillis()}${(100..999).random()}").toLong()
 
 fun generateClientToServerId(): Long {
     val now = System.currentTimeMillis() * 10.0.pow(6.0)

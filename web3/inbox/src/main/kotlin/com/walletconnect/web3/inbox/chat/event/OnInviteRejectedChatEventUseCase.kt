@@ -1,7 +1,6 @@
 package com.walletconnect.web3.inbox.chat.event
 
 import com.walletconnect.chat.client.Chat
-import com.walletconnect.util.generateClientToClientId
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxParams
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 import com.walletconnect.web3.inbox.proxy.ProxyInteractor
@@ -11,7 +10,7 @@ internal class OnInviteRejectedChatEventUseCase(
 ) : ChatEventUseCase<Chat.Model.Events.OnInviteRejected>(proxyInteractor) {
 
     override fun invoke(model: Chat.Model.Events.OnInviteRejected) =
-        call(Web3InboxRPC.Call.Chat.InviteRejected(id = generateClientToClientId(), params = model.toParams()))
+        call(Web3InboxRPC.Call.Chat.InviteRejected(params = model.toParams()))
 
     private fun Chat.Model.Events.OnInviteRejected.toParams() =
         Web3InboxParams.Call.Chat.InviteRejectedParams(invite.toParams())
