@@ -19,6 +19,7 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.util.jwt.decodeDidPkh
 import com.walletconnect.foundation.util.jwt.encodeDidPkh
 import com.walletconnect.foundation.util.jwt.encodeEd25519DidKey
+import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.randomBytes
 import java.net.URI
 import java.text.SimpleDateFormat
@@ -107,7 +108,7 @@ class IdentitiesInteractor(
             domain = keyserverUrl.toDomain().getOrThrow(),
             aud = keyserverUrl,
             version = Cacao.Payload.CURRENT_VERSION,
-            nonce = randomBytes(NONCE_SIZE).toString(),
+            nonce = randomBytes(NONCE_SIZE).bytesToHex(),
             iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN, Locale.getDefault()).format(Calendar.getInstance().time),
             nbf = null,
             exp = null,
