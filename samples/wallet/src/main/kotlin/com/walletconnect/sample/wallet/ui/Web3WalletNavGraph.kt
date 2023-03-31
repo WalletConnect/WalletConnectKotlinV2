@@ -66,7 +66,7 @@ fun Web3WalletNavGraph(
                     composable(Route.GetStarted.path) {
                         GetStartedRoute(navController)
                     }
-                    composable(Route.Connections.path, deepLinks = listOf(NavDeepLink("wc:/{topic}@2"))) {
+                    composable(Route.Connections.path, deepLinks = listOf(NavDeepLink("wc://{topic}@2"))) {
                         ConnectionsRoute(navController, connectionsViewModel, web3walletViewModel)
                     }
                     composable("${Route.ConnectionDetails.path}/{connectionId}", arguments = listOf(
