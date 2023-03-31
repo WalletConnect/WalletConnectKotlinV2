@@ -14,6 +14,7 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.SELF_INVITE_PUBLIC_KEY_CONTEXT
 import com.walletconnect.android.internal.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
@@ -36,7 +37,6 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.*
 import com.walletconnect.util.generateId
-import com.walletconnect.utils.getInviteTag
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
@@ -759,6 +759,8 @@ internal class ChatEngine(
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
             .onEach { exception -> _events.emit(exception) }
             .launchIn(scope)
+
+    private fun AccountId.getInviteTag(): String = "$SELF_INVITE_PUBLIC_KEY_CONTEXT${this.value}"
 
     private companion object {
         const val THIRTY_SECONDS_TIMEOUT: Long = 30000L

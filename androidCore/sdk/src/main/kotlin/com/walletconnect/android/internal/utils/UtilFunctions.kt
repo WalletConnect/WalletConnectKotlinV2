@@ -2,11 +2,9 @@
 
 package com.walletconnect.utils
 
-import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
 import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
-import com.walletconnect.android.internal.utils.SELF_INVITE_PUBLIC_KEY_CONTEXT
 import org.koin.core.definition.KoinDefinition
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
@@ -30,9 +28,6 @@ fun Expiry.isSequenceValid(): Boolean = seconds > CURRENT_TIME_IN_SECONDS
 @get:JvmSynthetic
 val String.Companion.HexPrefix
     get() = "0x"
-
-@JvmSynthetic
-fun AccountId.getInviteTag(): String = "$SELF_INVITE_PUBLIC_KEY_CONTEXT${this.value}"
 
 fun <T : SerializableJsonRpc> Module.addSerializerEntry(value: KClass<T>): KoinDefinition<*> =
     single(qualifier = named("key_${value.getFullName()}")) { value }
