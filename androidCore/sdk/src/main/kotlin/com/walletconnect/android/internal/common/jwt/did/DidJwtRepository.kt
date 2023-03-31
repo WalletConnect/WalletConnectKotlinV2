@@ -1,7 +1,7 @@
 @file:JvmSynthetic
 @file:JvmName("DidJwtRepository")
 
-package com.walletconnect.android.internal.common.jwt
+package com.walletconnect.android.internal.common.jwt.did
 
 import com.walletconnect.android.internal.common.model.DidJwt
 import com.walletconnect.foundation.common.model.PrivateKey

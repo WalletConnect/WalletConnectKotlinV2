@@ -11,18 +11,23 @@ import retrofit2.http.*
 interface KeyServerService {
     @Headers("Content-Type: application/json")
     @POST("invite")
-    suspend fun registerInvite(@Body body: KeyServerBody.RegisterInvite) : Response<KeyServerHttpResponse.RegisterInvite>
+    suspend fun registerInvite(@Body body: KeyServerBody.RegisterInvite): Response<KeyServerHttpResponse.RegisterInvite>
+
     @Headers("Content-Type: application/json")
     @DELETE("invite")
-    suspend fun unregisterInvite(@Body body: KeyServerBody.UnregisterInvite) : Response<KeyServerHttpResponse.UnregisterInvite>
+    suspend fun unregisterInvite(@Body body: KeyServerBody.UnregisterInvite): Response<KeyServerHttpResponse.UnregisterInvite>
+
     @GET("invite")
     suspend fun resolveInvite(@Query("account") account: String): Response<KeyServerHttpResponse.ResolveInvite>
+
     @GET("identity")
     suspend fun resolveIdentity(@Query("publicKey") publicKey: String): Response<KeyServerHttpResponse.ResolveIdentity>
+
     @Headers("Content-Type: application/json")
     @POST("identity")
-    suspend fun registerIdentity(@Body body: KeyServerBody.RegisterIdentity) : Response<KeyServerHttpResponse.RegisterIdentity>
+    suspend fun registerIdentity(@Body body: KeyServerBody.RegisterIdentity): Response<KeyServerHttpResponse.RegisterIdentity>
+
     @Headers("Content-Type: application/json")
-    @DELETE("identity")
-    suspend fun unregisterIdentity(@Body body: KeyServerBody.UnregisterIdentity) : Response<KeyServerHttpResponse.UnregisterIdentity>
+    @HTTP(method = "DELETE", path = "identity", hasBody = true)
+    suspend fun unregisterIdentity(@Body body: KeyServerBody.UnregisterIdentity): Response<KeyServerHttpResponse.UnregisterIdentity>
 }

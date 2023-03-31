@@ -9,8 +9,8 @@ import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementReposit
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.android.internal.common.jwt.EncodeDidJwtPayloadUseCase
-import com.walletconnect.android.internal.common.jwt.encodeDidJwt
+import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
+import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
@@ -28,10 +28,10 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.JsonRpcMethod
 import com.walletconnect.push.common.PeerError
 import com.walletconnect.push.common.data.jwt.EncodePushAuthDidJwtPayloadUseCase
+import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.model.toEngineDO
-import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
 import com.walletconnect.push.wallet.data.MessageRepository
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.*
