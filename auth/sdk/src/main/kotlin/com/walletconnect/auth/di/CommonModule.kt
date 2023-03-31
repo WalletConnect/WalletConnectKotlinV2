@@ -2,7 +2,7 @@
 
 package com.walletconnect.auth.di
 
-import com.walletconnect.utils.addSdkBitset
+import com.walletconnect.utils.addSdkBitsetForUA
 import org.koin.dsl.module
 import java.util.*
 
@@ -15,5 +15,5 @@ private val bitset: BitSet
 @JvmSynthetic
 internal fun commonModule() = module {
 
-    addSdkBitset("AuthSDK", bitset)
+    addSdkBitsetForUA(bitset)
 }

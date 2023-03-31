@@ -8,7 +8,7 @@ import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
-import com.walletconnect.utils.addSdkBitset
+import com.walletconnect.utils.addSdkBitsetForUA
 import kotlinx.coroutines.*
 import org.koin.dsl.module
 import java.util.*
@@ -87,7 +87,7 @@ object Web3Wallet {
     fun initialize(params: Wallet.Params.Init, onSuccess: () -> Unit = {}, onError: (Wallet.Model.Error) -> Unit) {
         coreClient = params.core
         wcKoinApp.modules(
-            module { addSdkBitset("Web3Wallet", bitset) }
+            module { addSdkBitsetForUA(bitset) }
         )
         var clientInitCounter = 0
         SignClient.initialize(Sign.Params.Init(params.core), onSuccess = { clientInitCounter++ }) { error -> onError(Wallet.Model.Error(error.throwable)) }

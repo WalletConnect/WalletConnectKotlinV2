@@ -33,8 +33,8 @@ val String.Companion.HexPrefix
 fun <T : SerializableJsonRpc> Module.addSerializerEntry(value: KClass<T>): KoinDefinition<KClass<T>> =
     single(qualifier = named("key_${value.getFullName()}")) { value }
 
-fun Module.addSdkBitset(key: String, bitsetWithOrder: BitSet): KoinDefinition<BitSet> =
-    single(qualifier = named("${key}_${bitsetWithOrder.length()}")) { bitsetWithOrder }
+fun Module.addSdkBitsetForUA(bitSet: BitSet): KoinDefinition<BitSet> =
+    single(qualifier = named(bitSet.toBinaryString())) { bitSet }
 
 fun Module.addDeserializerEntry(key: String, value: KClass<*>): KoinDefinition<Pair<String, KClass<*>>> =
     single(qualifier = named("${key}_${value.getFullName()}")) { key to value }

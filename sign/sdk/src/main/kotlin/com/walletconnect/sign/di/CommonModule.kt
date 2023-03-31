@@ -7,7 +7,7 @@ import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.sign.common.adapters.SessionRequestVOJsonAdapter
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
-import com.walletconnect.utils.addSdkBitset
+import com.walletconnect.utils.addSdkBitsetForUA
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.util.*
@@ -22,7 +22,7 @@ private val bitset: BitSet
 @JvmSynthetic
 internal fun commonModule() = module {
 
-    addSdkBitset("SignSDK", bitset)
+    addSdkBitsetForUA(bitset)
 
     single {
         get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))
