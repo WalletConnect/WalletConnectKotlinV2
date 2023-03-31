@@ -40,7 +40,7 @@ fun Module.addDeserializerEntry(key: String, value: KClass<*>): KoinDefinition<P
     single(qualifier = named("${key}_${value.getFullName()}")) { key to value }
 
 /**
- * When converting a BitSet to a byte array, the BitSet is converted to a byte array with a dynamic size that is divisible by 8 in little-endian order.
+ * When converting a BitSet to a byte array, the BitSet is converted to a byte array with a dynamic size that is divisible by 8 in little-endian (right to left) order.
  * This means there will be leading zeros in front of the binary string representation of the BitSet
  */
 @JvmSynthetic
