@@ -17,6 +17,8 @@ import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
+import com.walletconnect.utils.removeLeadingZeros
+import com.walletconnect.utils.toBinaryString
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
@@ -43,19 +45,17 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
 
     single(named(AndroidCommonDITags.INTERCEPTOR)) {
         Interceptor { chain ->
-            val binaryRepresentationWOLeadingZeros = getAll<BitSet>().let { listOfBitsets ->
+            val sdkBitwiseFlags = getAll<BitSet>().let { listOfBitsets ->
                 val combinedBitset = listOfBitsets.reduce { acc, bitSet ->
                     acc.or(bitSet)
                     acc
                 }
 
-                combinedBitset.toByteArray().joinToString {
-                    "%8s".format(Integer.toBinaryString(it.toInt() and 0xFF)).replace(' ', '0')
-                }.replaceFirst("^0+(?!$)".toRegex(), "")
+                combinedBitset.toBinaryString().removeLeadingZeros()
             }
 
             val updatedRequest = chain.request().newBuilder()
-                .addHeader("User-Agent", """wc-2/kotlin-${sdkVersion}x$binaryRepresentationWOLeadingZeros/android-${Build.VERSION.RELEASE}""")
+                .addHeader("User-Agent", """wc-2/kotlin-${sdkVersion}x$sdkBitwiseFlags/android-${Build.VERSION.RELEASE}""")
                 .build()
 
             chain.proceed(updatedRequest)

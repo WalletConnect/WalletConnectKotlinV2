@@ -38,3 +38,16 @@ fun Module.addSdkBitsetForUA(bitSet: BitSet): KoinDefinition<BitSet> =
 
 fun Module.addDeserializerEntry(key: String, value: KClass<*>): KoinDefinition<Pair<String, KClass<*>>> =
     single(qualifier = named("${key}_${value.getFullName()}")) { key to value }
+
+/**
+ * When converting a BitSet to a byte array, the BitSet is converted to a byte array with a size of 8 in little-endian order.<br>
+ * This means there will be leading zeros in front of the binary string representation of the BitSet
+ */
+@JvmSynthetic
+internal fun BitSet.toBinaryString(): String =
+    this.toByteArray().joinToString { byte ->
+        "%8s".format(Integer.toBinaryString(byte.toInt() and 0xFF)).replace(' ', '0')
+    }
+
+@JvmSynthetic
+internal fun String.removeLeadingZeros(): String = this.replaceFirst("^0+(?!$)".toRegex(), "")
