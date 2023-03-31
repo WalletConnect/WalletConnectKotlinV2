@@ -11,9 +11,9 @@ class UserAgentFormattingTest {
     @Test
     fun `test printing BitSet as binary string with 3 bits true`() {
         val bitset = BitSet().apply {
-            set(0, true)
-            set(1, true)
-            set(2, true)
+            set(0)
+            set(1)
+            set(2)
         }
 
         val binaryString = bitset.toBinaryString()
@@ -22,12 +22,8 @@ class UserAgentFormattingTest {
     }
 
     @Test
-    fun `test printing BitSet as binary string with 3 bits false`() {
-        val bitset = BitSet().apply {
-            set(0, false)
-            set(1, false)
-            set(2, false)
-        }
+    fun `test printing BitSet as binary string with all bits false`() {
+        val bitset = BitSet()
 
         val binaryString = bitset.toBinaryString()
 
@@ -37,9 +33,8 @@ class UserAgentFormattingTest {
     @Test
     fun `test printing BitSet as binary string with some bits false and some bits true`() {
         val bitset = BitSet().apply {
-            set(0, true)
-            set(1, true)
-            set(2, false)
+            set(0)
+            set(1)
         }
 
         val binaryString = bitset.toBinaryString()
@@ -50,11 +45,7 @@ class UserAgentFormattingTest {
     @Test
     fun `test printing BitSet as binary string with leading zeros removed`() {
         val bitset = BitSet().apply {
-            set(0, false)
-            set(1, false)
-            set(2, true)
-            set(3, false)
-            set(4, false)
+            set(2)
         }
 
         val binaryString = bitset.toBinaryString().removeLeadingZeros()
