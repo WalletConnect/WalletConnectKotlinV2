@@ -10,7 +10,7 @@ import java.security.Security
 
 object EthAccountDelegate {
     lateinit var application: Application
-    private val sharedPreferences: SharedPreferences by lazy { application.getSharedPreferences("Web3Inbox_Shared_Prefs", Context.MODE_PRIVATE) }
+    private val sharedPreferences: SharedPreferences by lazy { application.getSharedPreferences("Wallet_Sample_Shared_Prefs", Context.MODE_PRIVATE) }
     private val newlyGeneratedKeys: Triple<String, String, String> by lazy { generateKeys() }
     private const val ACCOUNT_TAG = "self_account_tag"
     private const val PRIVATE_KEY_TAG = "self_private_key"
