@@ -1,5 +1,6 @@
 package com.walletconnect.android.internal
 
+import com.walletconnect.utils.combineListOfBitSetsWithOrOperator
 import com.walletconnect.utils.removeLeadingZeros
 import com.walletconnect.utils.toBinaryString
 import org.junit.jupiter.api.Test
@@ -88,10 +89,7 @@ class UserAgentFormattingTest {
             set(4)
         }
         val emptyRootBitset = BitSet()
-        val combinedBitset = listOf(emptyRootBitset, bitset1, bitset2, bitset3).reduce { acc, bitSet ->
-            acc.or(bitSet)
-            acc
-        }
+        val combinedBitset = combineListOfBitSetsWithOrOperator(listOf(emptyRootBitset, bitset1, bitset2, bitset3))
 
         assertEquals("00000011", bitset1.toBinaryString())
         assertEquals("10000100", bitset2.toBinaryString())

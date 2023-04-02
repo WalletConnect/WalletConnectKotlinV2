@@ -51,3 +51,11 @@ internal fun BitSet.toBinaryString(): String =
 
 @JvmSynthetic
 internal fun String.removeLeadingZeros(): String = this.replaceFirst("^0+(?!$)".toRegex(), "")
+
+@JvmSynthetic
+internal fun combineListOfBitSetsWithOrOperator(bitSets: List<BitSet>): BitSet {
+    return bitSets.reduce { acc, bitSet ->
+        acc.or(bitSet)
+        acc
+    }
+}

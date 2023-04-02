@@ -17,6 +17,7 @@ import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
+import com.walletconnect.utils.combineListOfBitSetsWithOrOperator
 import com.walletconnect.utils.removeLeadingZeros
 import com.walletconnect.utils.toBinaryString
 import okhttp3.Interceptor
@@ -45,15 +46,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
 
     single(named(AndroidCommonDITags.INTERCEPTOR)) {
         Interceptor { chain ->
-            val sdkBitwiseFlags = getAll<BitSet>().let { listOfBitsets ->
-                val combinedBitset = listOfBitsets.reduce { acc, bitSet ->
-                    acc.or(bitSet)
-                    acc
-                }
-
-                combinedBitset.toBinaryString().removeLeadingZeros()
-            }
-
+            val sdkBitwiseFlags = combineListOfBitSetsWithOrOperator(getAll<BitSet>()).toBinaryString().removeLeadingZeros()
             val updatedRequest = chain.request().newBuilder()
                 .addHeader("User-Agent", """wc-2/kotlin-${sdkVersion}x$sdkBitwiseFlags/android-${Build.VERSION.RELEASE}""")
                 .build()
