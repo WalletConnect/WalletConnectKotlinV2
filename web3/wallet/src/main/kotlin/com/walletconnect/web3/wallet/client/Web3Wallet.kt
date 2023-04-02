@@ -276,6 +276,6 @@ object Web3Wallet {
     private const val BIT_ORDER = 4 // https://github.com/WalletConnect/walletconnect-docs/blob/main/docs/specs/clients/core/relay/relay-user-agent.md#schema
     private val bitset: BitSet
         get() = BitSet(BIT_ORDER).apply {
-            set(BIT_ORDER, true)
+            set(BIT_ORDER)
         }
 }

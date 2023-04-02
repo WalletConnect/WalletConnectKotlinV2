@@ -9,7 +9,7 @@ import java.util.*
 private const val BIT_ORDER = 3 // https://github.com/WalletConnect/walletconnect-docs/blob/main/docs/specs/clients/core/relay/relay-user-agent.md#schema
 private val bitset: BitSet
     get() = BitSet(BIT_ORDER).apply {
-        set(BIT_ORDER, true)
+        set(BIT_ORDER)
     }
 
 @JvmSynthetic
