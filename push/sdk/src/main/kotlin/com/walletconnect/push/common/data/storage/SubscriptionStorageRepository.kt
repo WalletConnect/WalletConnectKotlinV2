@@ -11,7 +11,20 @@ import kotlinx.coroutines.withContext
 
 class SubscriptionStorageRepository(private val subscriptionQueries: SubscriptionsQueries) {
 
-    fun insertSubscription(requestId: Long, pairingTopic: String, peerPublicKeyAsHex: String, subscriptionTopic: String? = null, account: String, relayProtocol: String?, relayData: String?, name: String, description: String, url: String, icons: List<String>, native: String?) {
+    suspend fun insertSubscription(
+        requestId: Long,
+        pairingTopic: String,
+        peerPublicKeyAsHex: String,
+        subscriptionTopic: String? = null,
+        account: String,
+        relayProtocol: String?,
+        relayData: String?,
+        name: String,
+        description: String,
+        url: String,
+        icons: List<String>,
+        native: String?
+    ) = withContext(Dispatchers.IO) {
         subscriptionQueries.insertSubscription(
             request_id = requestId,
             pairing_topic = pairingTopic,
@@ -28,26 +41,25 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
         )
     }
 
-    fun updateSubscriptionToResponded(requestId: Long, topic: String, metadata: AppMetaData) {
+    suspend fun updateSubscriptionToResponded(requestId: Long, topic: String, metadata: AppMetaData) = withContext(Dispatchers.IO) {
         val (relay, data) = RelayProtocolOptions().run { protocol to data }
         subscriptionQueries.updateSubscriptionToResponded(topic, relay, data, metadata.name, metadata.description, metadata.url, metadata.icons, metadata.redirect?.native, requestId)
     }
 
-    fun getAllSubscriptions(): List<EngineDO.PushSubscription> =
+    suspend fun getAllSubscriptions(): List<EngineDO.PushSubscription> = withContext(Dispatchers.IO) {
         subscriptionQueries.getAllSubscriptions(::toSubscription).executeAsList()
+    }
 
-    fun deleteSubscription(topic: String) {
+    suspend fun deleteSubscription(topic: String) = withContext(Dispatchers.IO) {
         subscriptionQueries.deleteByTopic(topic)
     }
 
-    suspend fun getAccountByTopic(topic: String): String {
-        return withContext(Dispatchers.IO) {
-            subscriptionQueries.getSubscriptionByTopic(topic).executeAsOne().account
-        }
+    suspend fun getAccountByTopic(topic: String): String = withContext(Dispatchers.IO) {
+        subscriptionQueries.getSubscriptionByTopic(topic).executeAsOne().account
     }
 
-    fun getSubscriptionsByRequestId(requestId: Long): EngineDO.PushSubscription {
-        return subscriptionQueries.getSubscriptionByRequestId(requestId, ::toSubscription).executeAsOne()
+    suspend fun getSubscriptionsByRequestId(requestId: Long): EngineDO.PushSubscription = withContext(Dispatchers.IO) {
+        subscriptionQueries.getSubscriptionByRequestId(requestId, ::toSubscription).executeAsOne()
     }
 
     private fun toSubscription(

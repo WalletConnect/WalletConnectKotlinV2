@@ -106,7 +106,7 @@ internal class PushWalletEngine(
             identityPrivateKey,
             EncodePushAuthDidJwtPayloadUseCase(respondedSubscription.metadata.url, respondedSubscription.account),
             EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
-        ).getOrElse() { error ->
+        ).getOrElse { error ->
             return@supervisorScope onError(error).also {
                 this@supervisorScope.cancel()
             }
@@ -121,17 +121,23 @@ internal class PushWalletEngine(
         jsonRpcInteractor.subscribe(pushTopic) { error ->
             return@subscribe onError(error)
         }
-        jsonRpcInteractor.respondWithParams(respondedSubscription.requestId, Topic(responseTopic), approvalParams, irnParams, envelopeType = EnvelopeType.ONE, participants = Participants(selfPublicKey, peerPublicKey)) { error ->
+        jsonRpcInteractor.respondWithParams(
+            respondedSubscription.requestId,
+            Topic(responseTopic),
+            approvalParams,
+            irnParams,
+            envelopeType = EnvelopeType.ONE,
+            participants = Participants(selfPublicKey, peerPublicKey)
+        ) { error ->
             return@respondWithParams onError(error)
         }
 
         onSuccess()
     }
 
-    fun reject(requestId: Long, reason: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
+    suspend fun reject(requestId: Long, reason: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) = supervisorScope {
         try {
-            val respondedSubscription =
-                subscriptionStorageRepository.getSubscriptionsByRequestId(requestId)
+            val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId)
             val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
 
             jsonRpcInteractor.respondWithError(respondedSubscription.requestId, Topic(respondedSubscription.pairingTopic), PeerError.Rejected.UserRejected(reason), irnParams) { error ->
@@ -144,7 +150,7 @@ internal class PushWalletEngine(
         }
     }
 
-    fun deleteSubscription(topic: String, onFailure: (Throwable) -> Unit) {
+    suspend fun deleteSubscription(topic: String, onFailure: (Throwable) -> Unit) = supervisorScope {
         val deleteParams = PushParams.DeleteParams(6000, "User Disconnected")
         val request = PushRpc.PushDelete(id = generateId(), params = deleteParams)
         val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
@@ -189,11 +195,10 @@ internal class PushWalletEngine(
         }
     }
 
-    fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription> {
-        return subscriptionStorageRepository.getAllSubscriptions()
+    suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription> =
+        subscriptionStorageRepository.getAllSubscriptions()
             .filter { subscription -> subscription.topic.isNullOrBlank().not() }
             .associateBy { subscription -> subscription.topic!! }
-    }
 
     fun getListOfMessages(topic: String): Map<Long, EngineDO.PushRecord> =
         messageRepository.getMessagesByTopic(topic).map { messageRecord ->
@@ -225,7 +230,7 @@ internal class PushWalletEngine(
 
     private fun collectJsonRpcResponses(): Job =
         jsonRpcInteractor.peerResponse.onEach { response ->
-            when (val params = response.params) {
+            when (response.params) {
                 is PushParams.DeleteParams -> onPushDeleteResponse()
             }
         }.launchIn(scope)
@@ -287,7 +292,7 @@ internal class PushWalletEngine(
         }
     }
 
-    private fun onPushDelete(request: WCRequest) {
+    private suspend fun onPushDelete(request: WCRequest) = supervisorScope {
         val irnParams = IrnParams(Tags.PUSH_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
 
         try {
@@ -305,7 +310,7 @@ internal class PushWalletEngine(
         // TODO: Review if we need this
     }
 
-    private fun resubscribeToSubscriptions() {
+    private suspend fun resubscribeToSubscriptions() {
         val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()
         jsonRpcInteractor.batchSubscribe(subscriptionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
     }

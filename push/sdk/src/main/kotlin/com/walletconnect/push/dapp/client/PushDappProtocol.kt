@@ -17,6 +17,7 @@ import com.walletconnect.push.dapp.engine.PushDappEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 
 internal class PushDappProtocol : PushDappInterface {
@@ -82,8 +83,10 @@ internal class PushDappProtocol : PushDappInterface {
     override fun getActiveSubscriptions(): Map<String, Push.Model.Subscription> {
         checkEngineInitialization()
 
-        return pushDappEngine.getListOfActiveSubscriptions().mapValues { (_, subscription) ->
-            subscription.toClient()
+        return runBlocking {
+            pushDappEngine.getListOfActiveSubscriptions().mapValues { (_, subscription) ->
+                subscription.toClient()
+            }
         }
     }
 

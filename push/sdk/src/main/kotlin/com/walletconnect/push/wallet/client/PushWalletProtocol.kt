@@ -1,6 +1,5 @@
 package com.walletconnect.push.wallet.client
 
-import android.util.Log
 import com.walletconnect.android.internal.common.di.DBUtils
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
@@ -19,8 +18,8 @@ import com.walletconnect.push.wallet.di.walletEngineModule
 import com.walletconnect.push.wallet.engine.PushWalletEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class PushWalletProtocol : PushWalletInterface {
     private lateinit var pushWalletEngine: PushWalletEngine
@@ -67,8 +66,6 @@ class PushWalletProtocol : PushWalletInterface {
                     params.onSign.toCommon(),
                     onSuccess
                 ) {
-                    Log.e("Talha", "Error: $it")
-                    Log.e("Talha", "Scope isActive? ${scope.isActive}")
                     onError(Push.Model.Error(it))
                 }
             }
@@ -81,7 +78,9 @@ class PushWalletProtocol : PushWalletInterface {
         checkEngineInitialization()
 
         try {
-            pushWalletEngine.reject(params.id, params.reason, onSuccess) { onError(Push.Model.Error(it)) }
+            scope.launch {
+                pushWalletEngine.reject(params.id, params.reason, onSuccess) { onError(Push.Model.Error(it)) }
+            }
         } catch (e: Exception) {
             onError(Push.Model.Error(e))
         }
@@ -90,8 +89,10 @@ class PushWalletProtocol : PushWalletInterface {
     override fun getActiveSubscriptions(): Map<String, Push.Model.Subscription> {
         checkEngineInitialization()
 
-        return pushWalletEngine.getListOfActiveSubscriptions().mapValues { (_, subscription) ->
-            subscription.toClient()
+        return runBlocking {
+            pushWalletEngine.getListOfActiveSubscriptions().mapValues { (_, subscription) ->
+                subscription.toClient()
+            }
         }
     }
 
@@ -106,7 +107,9 @@ class PushWalletProtocol : PushWalletInterface {
         checkEngineInitialization()
 
         try {
-            pushWalletEngine.deleteSubscription(params.topic) { error -> onError(Push.Model.Error(error)) }
+            scope.launch {
+                pushWalletEngine.deleteSubscription(params.topic) { error -> onError(Push.Model.Error(error)) }
+            }
         } catch (e: Exception) {
             onError(Push.Model.Error(e))
         }

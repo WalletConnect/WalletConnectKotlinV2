@@ -156,10 +156,13 @@ internal class PushDappEngine(
         val request = PushRpc.PushDelete(id = generateId(), params = deleteParams)
         val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
 
-        subscriptionStorageRepository.deleteSubscription(topic)
-
         scope.launch {
-            castRepository.deletePendingRequest(topic)
+            supervisorScope {
+                subscriptionStorageRepository.deleteSubscription(topic)
+            }
+            supervisorScope {
+                castRepository.deletePendingRequest(topic)
+            }
         }
 
         jsonRpcInteractor.unsubscribe(Topic(topic))
@@ -173,11 +176,10 @@ internal class PushDappEngine(
         )
     }
 
-    fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription> {
-        return subscriptionStorageRepository.getAllSubscriptions()
+    suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription> =
+        subscriptionStorageRepository.getAllSubscriptions()
             .filter { subscription -> !subscription.topic.isNullOrBlank() }
             .associateBy { subscription -> subscription.topic!! }
-    }
 
     private fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
@@ -202,21 +204,22 @@ internal class PushDappEngine(
             .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
 
-    private fun onPushDelete(request: WCRequest) {
+    private suspend fun onPushDelete(request: WCRequest) = supervisorScope {
         jsonRpcInteractor.unsubscribe(request.topic)
         subscriptionStorageRepository.deleteSubscription(request.topic.value)
 
         scope.launch { _engineEvent.emit(EngineDO.PushDelete(request.topic.value)) }
     }
 
-    private suspend fun onPushRequestResponse(wcResponse: WCResponse, params: PushParams.RequestParams) {
+    private suspend fun onPushRequestResponse(wcResponse: WCResponse, params: PushParams.RequestParams) = supervisorScope {
         try {
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
                     val selfPublicKey = PublicKey(params.publicKey)
                     val pushRequestResponse = response.result as PushParams.RequestResponseParams
                     val pushSubscriptionJwtClaim = extractVerifiedDidJwtClaims<PushSubscriptionJwtClaim>(pushRequestResponse.subscriptionAuth).getOrElse { error ->
-                        return _engineEvent.emit(SDKError(error))
+                        _engineEvent.emit(SDKError(error))
+                        return@supervisorScope
                     }
                     val walletPublicKey = decodeX25519DidKey(pushSubscriptionJwtClaim.issuer)
                     val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, walletPublicKey)
@@ -281,7 +284,7 @@ internal class PushDappEngine(
         // TODO: Review if we need this
     }
 
-    private fun resubscribeToSubscriptions() {
+    private suspend fun resubscribeToSubscriptions() {
         val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()
         jsonRpcInteractor.batchSubscribe(subscriptionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
     }
