@@ -38,8 +38,8 @@ private fun generateKeys(): Triple<String, String, String> {
     }
     Security.addProvider(BouncyCastleProvider())
     val keypair = Keys.createEcKeyPair()
-    val publicKey = keypair.publicKey.toByteArray().bytesToHex()//.run { padStart(130, '0') }
-    val privateKey = keypair.privateKey.toByteArray().bytesToHex()//.run { padStart(66, '0') }
+    val publicKey = keypair.publicKey.toByteArray().bytesToHex()
+    val privateKey = keypair.privateKey.toByteArray().bytesToHex()
 
     return Triple(publicKey, privateKey, Keys.getAddress(keypair))
 }
