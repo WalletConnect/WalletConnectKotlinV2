@@ -37,7 +37,6 @@ class PushRequestViewModel : ViewModel() {
     fun approve(requestId: Long, navigateBack: () -> Unit) {
         val approveParams = Push.Wallet.Params.Approve(requestId) { message ->
             CacaoSigner.sign(message, _privateKey.hexToBytes(), SignatureType.EIP191)
-            Cacao.Signature("", "")
         }
 
         PushWalletClient.approve(
