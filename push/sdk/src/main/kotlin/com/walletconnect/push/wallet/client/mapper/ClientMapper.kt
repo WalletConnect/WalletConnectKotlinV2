@@ -1,5 +1,6 @@
 package com.walletconnect.push.wallet.client.mapper
 
+import com.walletconnect.android.internal.common.cacao.Cacao
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.common.model.EngineDO
@@ -32,4 +33,11 @@ internal fun EngineDO.PushRecord.toClientModel(): Push.Model.MessageRecord {
             url = this.message.url
         )
     )
+}
+
+
+@JvmSynthetic
+internal fun ((String) -> Push.Model.Cacao.Signature).toCommon(): (String) -> Cacao.Signature? = {
+    val publicCacaoSignature: Push.Model.Cacao.Signature = this(it)
+    Cacao.Signature(publicCacaoSignature.t, publicCacaoSignature.s, publicCacaoSignature.m)
 }
