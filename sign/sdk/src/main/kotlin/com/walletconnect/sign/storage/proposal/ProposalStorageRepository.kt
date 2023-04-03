@@ -3,16 +3,16 @@
 package com.walletconnect.sign.storage.proposal
 
 import android.database.sqlite.SQLiteException
-import com.walletconnect.android.internal.common.model.Expiry
-import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
-import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.storage.data.dao.optionalnamespaces.OptionalNamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.proposal.ProposalDaoQueries
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceDaoQueries
-import com.walletconnect.utils.Empty
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ProposalStorageRepository(
     private val proposalDaoQueries: ProposalDaoQueries,
@@ -53,10 +53,14 @@ class ProposalStorageRepository(
     }
 
     @JvmSynthetic
-   internal fun deleteProposal(key: String) {
-        requiredNamespaceDaoQueries.deleteProposalNamespacesByTopic(key)
-        optionalNamespaceDaoQueries.deleteOptionalNamespacesByTopic(key)
-        proposalDaoQueries.deleteProposal(key)
+    internal fun deleteProposal(key: String) {
+        scope.launch {
+            withContext(Dispatchers.IO) {
+                requiredNamespaceDaoQueries.deleteProposalNamespacesProposerKey(key)
+                optionalNamespaceDaoQueries.deleteProposalNamespacesProposerKey(key)
+                proposalDaoQueries.deleteProposal(key)
+            }
+        }
     }
 
     private fun mapProposalDaoToProposalVO(

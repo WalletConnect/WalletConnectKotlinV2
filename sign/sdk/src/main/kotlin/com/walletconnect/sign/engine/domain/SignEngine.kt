@@ -623,6 +623,7 @@ internal class SignEngine(
                 Uncategorized.GenericError("Cannot handle a session proposal: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -637,8 +638,7 @@ internal class SignEngine(
             return
         }
         val peerMetadata = settleParams.controller.metadata
-        val proposal = proposalStorageRepository.getProposalByKey(selfPublicKey.keyAsHex)
-
+        val proposal = proposalStorageRepository.getProposalByKey(selfPublicKey.keyAsHex).also { proposalStorageRepository.deleteProposal(selfPublicKey.keyAsHex) }
         val (requiredNamespaces, optionalNamespaces, properties) = proposal.run { Triple(requiredNamespaces, optionalNamespaces, properties) }
         SignValidator.validateSessionNamespace(settleParams.namespaces, requiredNamespaces) { error ->
             jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
@@ -648,9 +648,6 @@ internal class SignEngine(
         scope.launch(Dispatchers.IO) {
             supervisorScope {
                 try {
-                    val proposalSession = withContext(Dispatchers.IO) {
-                        proposalStorageRepository.getProposalByKey(selfPublicKey.keyAsHex)
-                    }
                     val session = SessionVO.createAcknowledgedSession(
                         sessionTopic,
                         settleParams,
@@ -659,20 +656,19 @@ internal class SignEngine(
                         requiredNamespaces,
                         optionalNamespaces,
                         properties,
-                        proposalSession.pairingTopic.value
+                        proposal.pairingTopic.value
                     )
 
-                    proposalStorageRepository.deleteProposal(selfPublicKey.keyAsHex)
                     sessionStorageRepository.insertSession(session, request.id)
                     pairingHandler.updateMetadata(Core.Params.UpdateMetadata(proposal.pairingTopic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
                     metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
-
                     jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
                     _engineEvent.emit(session.toSessionApproved())
                 } catch (e: Exception) {
                     proposalStorageRepository.insertProposal(proposal)
                     sessionStorageRepository.deleteSession(sessionTopic)
                     jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
+                    scope.launch { _engineEvent.emit(SDKError(e)) }
                     return@supervisorScope
                 }
             }
@@ -704,6 +700,7 @@ internal class SignEngine(
                 Uncategorized.GenericError("Cannot delete a session: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
+            scope.launch { _engineEvent.emit(SDKError(e)) }
             return
         }
     }
@@ -751,6 +748,7 @@ internal class SignEngine(
                 Uncategorized.GenericError("Cannot handle a session request: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
+            scope.launch { _engineEvent.emit(SDKError(e)) }
             return
         }
     }
@@ -801,6 +799,7 @@ internal class SignEngine(
                 Uncategorized.GenericError("Cannot emit an event: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
+            scope.launch { _engineEvent.emit(SDKError(e)) }
             return
         }
     }
@@ -846,6 +845,7 @@ internal class SignEngine(
                 PeerError.Invalid.UpdateRequest("Updating Namespace Failed. Review Namespace structure. Error: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
+            scope.launch { _engineEvent.emit(SDKError(e)) }
             return
         }
     }
@@ -884,6 +884,7 @@ internal class SignEngine(
                 Uncategorized.GenericError("Cannot update a session: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
+            scope.launch { _engineEvent.emit(SDKError(e)) }
             return
         }
     }
