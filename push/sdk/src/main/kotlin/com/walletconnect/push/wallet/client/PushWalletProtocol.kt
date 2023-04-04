@@ -5,6 +5,7 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push
+import com.walletconnect.push.common.di.commonModule
 import com.walletconnect.push.common.di.pushJsonRpcModule
 import com.walletconnect.push.common.di.pushStorageModule
 import com.walletconnect.push.common.model.EngineDO
@@ -34,7 +35,8 @@ class PushWalletProtocol : PushWalletInterface {
                 pushJsonRpcModule(),
                 pushStorageModule(DBUtils.PUSH_WALLET_SDK_DB_NAME),
                 walletEngineModule(),
-                messageModule()
+                messageModule(),
+                commonModule()
             )
 
             pushWalletEngine = wcKoinApp.koin.get()
