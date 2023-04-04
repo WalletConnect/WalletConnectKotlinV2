@@ -7,7 +7,6 @@ import com.walletconnect.web3.inbox.client.toChat
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxParams
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 import com.walletconnect.web3.inbox.proxy.ProxyInteractor
-import timber.log.Timber
 
 internal class RegisterRequestUseCase(
     private val chatClient: ChatInterface,
