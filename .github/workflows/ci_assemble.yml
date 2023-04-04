@@ -22,8 +22,8 @@ jobs:
     strategy:
       matrix:
         conf: [
-          { name: Debug, command: ":assembleDebug" },
-          { name: Release, command: ":assembleRelease" },
+          { name: Debug, command: "assembleDebug" },
+          { name: Release, command: "assembleRelease" },
         ]
     name: ${{ matrix.conf.name }}
     runs-on: ubuntu-latest
