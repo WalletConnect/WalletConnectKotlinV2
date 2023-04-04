@@ -43,6 +43,7 @@ subprojects {
                         add("META-INF/DEPENDENCIES")
                         add("META-INF/LICENSE.md")
                         add("META-INF/NOTICE.md")
+                        add("META-INF/versions/9/previous-compilation-data.bin")
                     }
                 }
             }
