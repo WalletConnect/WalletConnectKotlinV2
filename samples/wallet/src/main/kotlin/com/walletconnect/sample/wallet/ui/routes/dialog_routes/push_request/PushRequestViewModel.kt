@@ -4,8 +4,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
+import com.walletconnect.android.cacao.sign
+import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.push.common.Push
+import com.walletconnect.push.common.cacao.CacaoSigner
 import com.walletconnect.push.wallet.client.PushWalletClient
+import com.walletconnect.sample.wallet.domain.EthAccountDelegate
+import com.walletconnect.sample.wallet.domain.hexToBytes
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.sample_common.tag
 import java.net.URLDecoder
@@ -30,7 +35,10 @@ class PushRequestViewModel : ViewModel() {
     }
 
     fun approve(requestId: Long, navigateBack: () -> Unit) {
-        val approveParams = Push.Wallet.Params.Approve(requestId)
+
+        val approveParams = Push.Wallet.Params.Approve(requestId) { message ->
+            CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191)
+        }
 
         PushWalletClient.approve(
             approveParams,

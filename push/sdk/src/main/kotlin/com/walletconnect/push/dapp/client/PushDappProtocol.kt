@@ -16,6 +16,7 @@ import com.walletconnect.push.dapp.di.dappEngineModule
 import com.walletconnect.push.dapp.engine.PushDappEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.runBlocking
 
 internal class PushDappProtocol : PushDappInterface {
     private lateinit var pushDappEngine: PushDappEngine
@@ -80,12 +81,14 @@ internal class PushDappProtocol : PushDappInterface {
     override fun getActiveSubscriptions(): Map<String, Push.Model.Subscription> {
         checkEngineInitialization()
 
-        return pushDappEngine.getListOfActiveSubscriptions().mapValues { (_, subscription) ->
-            subscription.toClient()
+        return runBlocking {
+            pushDappEngine.getListOfActiveSubscriptions().mapValues { (_, subscription) ->
+                subscription.toClient()
+            }
         }
     }
 
-    override fun delete(params: Push.Dapp.Params.Delete, onError: (Push.Model.Error) -> Unit) {
+    override fun deleteSubscription(params: Push.Dapp.Params.Delete, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         try {

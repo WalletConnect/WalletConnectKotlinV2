@@ -9,7 +9,7 @@ import com.walletconnect.push.common.model.toClient
 
 @JvmSynthetic
 internal fun EngineDO.PushRequestResponse.toClient(): Push.Dapp.Event.Response {
-    return Push.Dapp.Event.Response(Push.Model.Subscription(subscription.requestId, subscription.topic, subscription.account, subscription.relay.toClient(), subscription.metadata?.toClient()))
+    return Push.Dapp.Event.Response(Push.Model.Subscription(subscription.requestId, subscription.topic!!, subscription.account.value, subscription.relay.toClient(), subscription.metadata.toClient()))
 }
 
 @JvmSynthetic

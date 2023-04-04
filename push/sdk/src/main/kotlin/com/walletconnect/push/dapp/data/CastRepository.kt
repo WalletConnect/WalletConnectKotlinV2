@@ -12,23 +12,23 @@ internal class CastRepository(private val projectId: ProjectId, private val cast
     suspend fun retryRegistration() {
         supervisorScope {
             launch(Dispatchers.IO) {
-                pendingRegisterRequests.getAllPendingRequests().executeAsList().forEach { (account, symKey, relayUrl, topic) ->
+                pendingRegisterRequests.getAllPendingRequests().executeAsList().forEach { (account: String, symKey: String, subscriptionAuth: String, relayUrl: String, topic: String) ->
                     coroutineScope {
-                        register(account, symKey, relayUrl, topic) {}
+                        register(account, symKey, subscriptionAuth, relayUrl, topic) {}
                     }
                 }
             }
         }
     }
 
-    suspend fun register(account: String, symKey: String, relayUrl: String, topic: String, onError: suspend (Throwable) -> Unit) {
-        val requestBody = CastBody.Register(account, symKey, relayUrl)
+    suspend fun register(account: String, symKey: String, subscriptionAuth: String, relayUrl: String, topic: String, onError: suspend (Throwable) -> Unit) {
+        val requestBody = CastBody.Register(account, symKey, subscriptionAuth, relayUrl)
 
         supervisorScope {
             withContext(Dispatchers.IO) {
                 try {
                     val response = castService.register(projectId.value, requestBody)
-                    pendingRegisterRequests.insertPendingRequest(account, symKey, relayUrl, topic)
+                    pendingRegisterRequests.insertPendingRequest(account, symKey, subscriptionAuth, relayUrl, topic)
 
                     if (response.isSuccessful && response.body() != null) {
                         pendingRegisterRequests.deletePendingRequestByAcount(account)
