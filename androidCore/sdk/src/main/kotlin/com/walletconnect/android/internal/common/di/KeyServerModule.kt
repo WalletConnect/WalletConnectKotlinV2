@@ -36,4 +36,4 @@ internal fun keyServerModule(optionalKeyServerUrl: String? = null) = module {
     single { IdentitiesInteractor(get(), get(), get(), get(), get(), get()) }
 }
 
-private const val DEFAULT_KEYSERVER_URL = "https://staging.keys.walletconnect.com"
+private const val DEFAULT_KEYSERVER_URL = "https://keys.walletconnect.com"
