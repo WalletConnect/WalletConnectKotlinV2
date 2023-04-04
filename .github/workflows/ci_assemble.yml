@@ -1,4 +1,4 @@
-name: Build SDKs
+name: Assemble Project
 
 on:
   push:
@@ -19,6 +19,13 @@ concurrency:
 
 jobs:
   build_sdk:
+    strategy:
+      matrix:
+        conf: [
+          { name: Debug, command: ":assembleDebug" },
+          { name: Release, command: ":assembleRelease" },
+        ]
+    name: ${{ matrix.conf.name }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -33,10 +40,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Build SDKs
+      - name: Assemble Project
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-        run: ./gradlew build
+        run: ./gradlew ${{ matrix.conf.command }}
 
       - name: Stop Gradle
         run: ./gradlew --stop
