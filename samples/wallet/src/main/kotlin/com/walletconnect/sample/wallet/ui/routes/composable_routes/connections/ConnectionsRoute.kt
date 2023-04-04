@@ -89,6 +89,16 @@ fun ConstraintLayoutScope.Buttons(navController: NavController, buttonsRef: Cons
                 }) {
                 Icon(imageVector = ImageVector.vectorResource(id = R.drawable.paper_plane_logo), contentDescription = "Scan QRCode Icon", tint = iconTint)
             }
+            Spacer(modifier = Modifier.width(20.dp))
+            ConnectionsButton(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable {
+
+                    }
+            ) {
+                    Icon(imageVector = ImageVector.vectorResource(id = R.drawable.ic_notification), contentDescription = "Notifications Icon", tint = iconTint)
+            }
             Spacer(modifier = Modifier.weight(1.0f))
             ConnectionsButton(modifier = Modifier
                 .clip(CircleShape)
@@ -141,8 +151,20 @@ fun ConnectionsLazyColumn(
         modifier = modifier
             .padding(vertical = 6.dp, horizontal = 10.dp)
             .clip(shape = shape)
-            .background(color = themedColor(darkColor = Color(0xFFE4E4E7).copy(alpha = .06f), lightColor = Color(0xFF505059).copy(.03f)))
-            .border(1.dp, color = themedColor(darkColor = Color(0xFFE4E4E7).copy(alpha = .06f), lightColor = Color(0xFF505059).copy(.03f)), shape = shape)
+            .background(
+                color = themedColor(
+                    darkColor = Color(0xFFE4E4E7).copy(alpha = .06f),
+                    lightColor = Color(0xFF505059).copy(.03f)
+                )
+            )
+            .border(
+                1.dp,
+                color = themedColor(
+                    darkColor = Color(0xFFE4E4E7).copy(alpha = .06f),
+                    lightColor = Color(0xFF505059).copy(.03f)
+                ),
+                shape = shape
+            )
             .padding(vertical = 1.dp, horizontal = 2.dp),
     ) {
         connections.forEach { connectionUI ->
@@ -166,7 +188,11 @@ fun Connection(
         val iconModifier = Modifier
             .size(60.dp)
             .clip(CircleShape)
-            .border(width = 1.dp, shape = CircleShape, color = themedColor(darkColor = Color(0xFF191919), lightColor = Color(0xFFE0E0E0)))
+            .border(
+                width = 1.dp,
+                shape = CircleShape,
+                color = themedColor(darkColor = Color(0xFF191919), lightColor = Color(0xFFE0E0E0))
+            )
         if (connectionUI.icon?.isNotBlank() == true) {
             GlideImage(modifier = iconModifier, imageModel = { connectionUI.icon })
         } else {
