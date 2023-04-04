@@ -1,0 +1,18 @@
+name: Auto Request Review
+
+on:
+  push:
+    branches: [feat/repo/auto_review]
+  pull_request_target:
+    branches: [develop]
+    types: [opened, ready_for_review, reopened]
+
+
+jobs:
+  auto-request-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: necojackarc/auto-request-review@v0.10.0
+        with:
+          token: ${{ secrets.AUTO_REQUEST_REVIEW_PAT }}
+          config: .github/reviewers.yml
