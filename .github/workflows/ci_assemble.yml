@@ -22,8 +22,8 @@ jobs:
     strategy:
       matrix:
         conf: [
-          { name: Debug, command: "assembleDebug" },
-          { name: Release, command: "assembleRelease" },
+          { name: Debug, command: "assembleDebug  -x :sign:wallet:assembleDebug -x :samples:wallet:assembleDebug -x :sign:dapp:assembleDebug" },
+          { name: Release, command: "assembleRelease  -x :sign:wallet:assembleRelease -x :samples:wallet:assembleRelease -x :sign:dapp:assembleRelease" },
         ]
     name: ${{ matrix.conf.name }}
     runs-on: ubuntu-latest
