@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.cacao.Cacao
 sealed class KeyServerBody {
 
     @JsonClass(generateAdapter = true)
-    data class UnregisterIdentity(val cacao: Cacao) : KeyServerBody()
+    data class UnregisterIdentity(val idAuth: String) : KeyServerBody()
 
     @JsonClass(generateAdapter = true)
     data class RegisterIdentity(val cacao: Cacao) : KeyServerBody()

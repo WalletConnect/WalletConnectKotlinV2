@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.internal.common.jwt
+package com.walletconnect.android.internal.common.jwt.did
 
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.util.jwt.JwtClaims

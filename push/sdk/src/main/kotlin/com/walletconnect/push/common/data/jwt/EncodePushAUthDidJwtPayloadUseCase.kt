@@ -2,7 +2,7 @@
 
 package com.walletconnect.push.common.data.jwt
 
-import com.walletconnect.android.internal.common.jwt.EncodeDidJwtPayloadUseCase
+import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.foundation.util.jwt.encodeDidPkh
 
