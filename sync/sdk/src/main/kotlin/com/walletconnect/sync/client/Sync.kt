@@ -35,7 +35,6 @@ object Sync {
 
         @Keep
         data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
-    
     }
 
     sealed class Params {
