@@ -37,6 +37,7 @@ import com.walletconnect.sample.wallet.ui.common.findActivity
 import com.walletconnect.sample.wallet.ui.common.themedColor
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.R
+import com.walletconnect.sample.wallet.ui.common.WCTopAppBar
 
 @Composable
 fun ConnectionsRoute(navController: NavController, connectionsViewModel: ConnectionsViewModel, web3WalletViewModel: Web3WalletViewModel) {
@@ -62,13 +63,8 @@ fun ConstraintLayoutScope.Title(titleRef: ConstrainedLayoutReference) {
     Column(modifier = Modifier.constrainAs(titleRef) {
         top.linkTo(parent.top, margin = 0.dp)
         start.linkTo(parent.start)
-        end.linkTo(parent.end)
     }) {
-        Row {
-            Spacer(modifier = Modifier.width(32.dp))
-            Text(text = "Connections", style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 34.sp, color = themedColor(darkColor = 0xFFE5E7E7, lightColor = 0xFF141414)))
-            Spacer(modifier = Modifier.weight(1.0f))
-        }
+        WCTopAppBar(text = "Connections")
     }
 }
 
@@ -94,10 +90,10 @@ fun ConstraintLayoutScope.Buttons(navController: NavController, buttonsRef: Cons
                 modifier = Modifier
                     .clip(CircleShape)
                     .clickable {
-
+                        navController.navigate(Route.NotificationsRoute.path)
                     }
             ) {
-                    Icon(imageVector = ImageVector.vectorResource(id = R.drawable.ic_notification), contentDescription = "Notifications Icon", tint = iconTint)
+                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.ic_notification), contentDescription = "Notifications Icon", tint = iconTint)
             }
             Spacer(modifier = Modifier.weight(1.0f))
             ConnectionsButton(modifier = Modifier

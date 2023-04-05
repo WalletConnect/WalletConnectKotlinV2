@@ -26,6 +26,7 @@ import com.walletconnect.sample.wallet.ui.routes.composable_routes.connection_de
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.get_started.GetStartedRoute
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.notifications.NotificationsScreenRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.web3inbox.Web3InboxRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.auth_request.AuthRequestRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.paste_uri.PasteUriRoute
@@ -117,6 +118,9 @@ fun Web3WalletNavGraph(
                         navArgument("message") { type = NavType.Companion.StringType }
                     )) {
                         SnackbarMessageRoute(navController, it.arguments?.getString("message"))
+                    }
+                    composable(Route.NotificationsRoute.path) {
+                        NotificationsScreenRoute(navController)
                     }
                 }
             }
