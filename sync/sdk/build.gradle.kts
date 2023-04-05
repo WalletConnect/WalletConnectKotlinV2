@@ -54,5 +54,5 @@ dependencies {
     scarletTest()
     jUnit5()
     jUnit5Android()
-    web3jCrypto()
+    kethereumBip32()
 }
