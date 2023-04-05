@@ -5,6 +5,7 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push
+import com.walletconnect.push.common.di.commonModule
 import com.walletconnect.push.common.di.pushJsonRpcModule
 import com.walletconnect.push.common.di.pushStorageModule
 import com.walletconnect.push.common.model.EngineDO
@@ -32,6 +33,7 @@ internal class PushDappProtocol : PushDappInterface {
                 pushStorageModule(DBUtils.PUSH_DAPP_SDK_DB_NAME),
                 dappEngineModule(),
                 castModule(init.castUrl),
+                commonModule()
             )
 
             pushDappEngine = wcKoinApp.koin.get()

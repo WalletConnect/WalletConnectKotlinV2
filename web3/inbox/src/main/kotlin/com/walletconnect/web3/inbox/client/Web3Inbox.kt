@@ -7,6 +7,7 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatClient
 import com.walletconnect.web3.inbox.chat.ChatEventHandler
+import com.walletconnect.web3.inbox.di.commonModule
 import com.walletconnect.web3.inbox.di.jsonRpcModule
 import com.walletconnect.web3.inbox.di.proxyModule
 import com.walletconnect.web3.inbox.ui.Web3InboxState
@@ -25,7 +26,11 @@ object Web3Inbox {
 
         runCatching {
             account = LateInitAccountId(AccountId(init.account.value))
-            wcKoinApp.run { modules(jsonRpcModule(), proxyModule(ChatClient, init.onSign, ::onPageFinished)) }
+            wcKoinApp.modules(
+                jsonRpcModule(),
+                proxyModule(ChatClient, init.onSign, ::onPageFinished),
+                commonModule()
+            )
             ChatClient.setChatDelegate(wcKoinApp.koin.get<ChatEventHandler>())
             isClientInitialized = true
         }.onFailure { e -> onError(Inbox.Model.Error(e)) }

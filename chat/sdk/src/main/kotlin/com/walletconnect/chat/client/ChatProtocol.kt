@@ -30,7 +30,8 @@ internal class ChatProtocol : ChatInterface {
                 modules(
                     jsonRpcModule(),
                     storageModule(),
-                    engineModule()
+                    engineModule(),
+                    commonModule()
                 )
             }
 

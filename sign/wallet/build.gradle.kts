@@ -1,6 +1,6 @@
 plugins {
     id("com.android.application")
-    id("com.google.gms.google-services")
+//    id("com.google.gms.google-services")  // This sample is planned to be removed
     kotlin("android")
     kotlin("kapt")
 }
