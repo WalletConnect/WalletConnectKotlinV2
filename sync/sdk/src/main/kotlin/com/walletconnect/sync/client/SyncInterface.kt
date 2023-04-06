@@ -1,6 +1,5 @@
 package com.walletconnect.sync.client
 
-import com.walletconnect.android.internal.common.model.AccountId
 
 interface SyncInterface {
     interface SyncDelegate {
@@ -19,7 +18,7 @@ interface SyncInterface {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
-    fun getMessage(params: Sync.Params.GetMessage): String?
+    fun getMessage(params: Sync.Params.GetMessage): String
 
     fun register(params: Sync.Params.Register, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit)
 
