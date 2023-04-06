@@ -44,7 +44,7 @@ class CacaoTestJvmTest {
 
         String chainName = "Ethereum";
         String message = CacaoKt.toCAIP122Message(payload, chainName);
-        Cacao.Signature signature = (Cacao.Signature) CacaoSignerInterfaceKt.sign(Cacao.Signature.class, message, privateKey, SignatureType.EIP191);
+        Cacao.Signature signature = (Cacao.Signature) CacaoSignerInterfaceKt.signCacao(Cacao.Signature.class, message, privateKey, SignatureType.EIP191);
         Cacao cacao = new Cacao(CacaoType.EIP4361.toHeader(), payload, signature);
 
         boolean result = cacaoVerifier.verify(cacao);

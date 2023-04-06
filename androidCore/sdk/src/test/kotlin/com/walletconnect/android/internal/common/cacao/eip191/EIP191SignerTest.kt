@@ -94,7 +94,6 @@ internal class EIP191SignerTest {
 
         val moshi: Moshi = Moshi.Builder().build()
         val jsonAdapter: JsonAdapter<Cacao> = moshi.adapter(Cacao::class.java)
-""
         val cacao = jsonAdapter.fromJson(cacaoAsJson)
         println(cacao)
         val message = cacao!!.payload.toCAIP122Message()

@@ -1,3 +1,4 @@
+@file:JvmSynthetic
 @file:Suppress("PackageDirectoryMismatch")
 
 package com.walletconnect.android.cacao
@@ -28,7 +29,7 @@ inline fun <CoreSignature : SignatureInterface, reified SDKSignature : CoreSigna
         else -> throw Throwable("SignatureType not recognized")
     }
 
-fun <T : SignatureInterface> sign(clazz: Class<T>, message: String, privateKey: ByteArray, type: ISignatureType): SignatureInterface =
+fun <T : SignatureInterface> signCacao(clazz: Class<T>, message: String, privateKey: ByteArray, type: ISignatureType): SignatureInterface =
     when (type.header) {
         SignatureType.EIP191.header, SignatureType.EIP1271.header ->
             Cacao.Signature(type.header, EIP191Signer.sign(message.toByteArray(), privateKey).toCacaoSignature()).run {
