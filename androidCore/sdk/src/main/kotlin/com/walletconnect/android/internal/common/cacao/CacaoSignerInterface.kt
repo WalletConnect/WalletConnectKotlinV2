@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.cacao.eip191.EIP191Signer
 import com.walletconnect.android.internal.common.cacao.signature.toCacaoSignature
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.createType
+import kotlin.reflect.jvm.kotlinFunction
 
 interface CacaoSignerInterface<CoreSignature : SignatureInterface>
 
@@ -27,10 +28,12 @@ inline fun <CoreSignature : SignatureInterface, reified SDKSignature : CoreSigna
         else -> throw Throwable("SignatureType not recognized")
     }
 
-fun sign(message: String, privateKey: ByteArray, type: ISignatureType): SignatureInterface =
+fun <T : SignatureInterface> sign(clazz: Class<T>, message: String, privateKey: ByteArray, type: ISignatureType): SignatureInterface =
     when (type.header) {
         SignatureType.EIP191.header, SignatureType.EIP1271.header ->
-            Cacao.Signature(type.header, EIP191Signer.sign(message.toByteArray(), privateKey).toCacaoSignature())
+            Cacao.Signature(type.header, EIP191Signer.sign(message.toByteArray(), privateKey).toCacaoSignature()).run {
+                clazz.constructors.first().kotlinFunction?.call(t, s, m) as SignatureInterface
+            }
         else -> throw Throwable("SignatureType not recognized")
     }
 

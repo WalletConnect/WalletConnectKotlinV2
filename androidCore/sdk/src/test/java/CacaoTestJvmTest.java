@@ -1,4 +1,8 @@
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.walletconnect.android.cacao.CacaoSignerInterfaceKt;
+import com.walletconnect.android.cacao.SignatureInterface;
 import com.walletconnect.android.cacao.signature.SignatureType;
 import com.walletconnect.android.internal.common.cacao.Cacao;
 import com.walletconnect.android.internal.common.cacao.CacaoKt;
@@ -40,7 +44,7 @@ class CacaoTestJvmTest {
 
         String chainName = "Ethereum";
         String message = CacaoKt.toCAIP122Message(payload, chainName);
-        Cacao.Signature signature = (Cacao.Signature) CacaoSignerInterfaceKt.sign(message, privateKey, SignatureType.EIP191);
+        Cacao.Signature signature = (Cacao.Signature) CacaoSignerInterfaceKt.sign(Cacao.Signature.class, message, privateKey, SignatureType.EIP191);
         Cacao cacao = new Cacao(CacaoType.EIP4361.toHeader(), payload, signature);
 
         boolean result = cacaoVerifier.verify(cacao);
