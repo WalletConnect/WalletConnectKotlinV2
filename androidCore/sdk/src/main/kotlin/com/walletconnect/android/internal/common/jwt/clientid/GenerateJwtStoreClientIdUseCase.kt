@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.internal.common.jwt
+package com.walletconnect.android.internal.common.jwt.clientid
 
 import android.content.SharedPreferences
 import androidx.core.content.edit

@@ -150,7 +150,6 @@ internal class ChatProtocol : ChatInterface {
     override fun unregister(unregister: Chat.Params.Unregister, listener: Chat.Listeners.Unregister) = protocolFunction(listener::onError) {
         chatEngine.unregisterIdentity(
             unregister.account.toCommon(),
-            { message -> listener.onSign(message).toCommon() },
             { didKey -> listener.onSuccess(didKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) },
         )

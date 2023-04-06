@@ -18,7 +18,7 @@ object Chat {
 
         interface Resolve : PublicKeyOnSuccess
         interface Register : PublicKeyOnSuccess, SignMessage
-        interface Unregister : PublicKeyOnSuccess, SignMessage
+        interface Unregister : PublicKeyOnSuccess
     }
 
     sealed interface Type {

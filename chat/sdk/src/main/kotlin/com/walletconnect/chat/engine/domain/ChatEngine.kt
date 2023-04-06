@@ -5,9 +5,9 @@ package com.walletconnect.chat.engine.domain
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.cacao.Cacao
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.jwt.EncodeDidJwtPayloadUseCase
-import com.walletconnect.android.internal.common.jwt.encodeDidJwt
-import com.walletconnect.android.internal.common.jwt.extractVerifiedDidJwtClaims
+import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
+import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
+import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreChatParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
@@ -39,6 +39,7 @@ import com.walletconnect.foundation.util.jwt.*
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import timber.log.Timber
 
 internal class ChatEngine(
     private val keyserverUrl: String,
@@ -104,12 +105,16 @@ internal class ChatEngine(
         onFailure: (Throwable) -> Unit,
     ) {
         fun onSuccess(publicKey: PublicKey) {
-            val inviteTopic = keyManagementRepository.getTopicFromKey(publicKey)
-            keyManagementRepository.setKey(publicKey, accountId.getInviteTag())
-            keyManagementRepository.setKey(publicKey, "$SELF_PARTICIPANT_CONTEXT${inviteTopic.value}")
-            scope.launch { accountsRepository.setAccountPublicInviteKey(accountId, publicKey, inviteTopic) }
-            jsonRpcInteractor.subscribe(inviteTopic)
-            onSuccess(publicKey.keyAsHex)
+            scope.launch {
+                supervisorScope {
+                    val inviteTopic = keyManagementRepository.getTopicFromKey(publicKey)
+                    keyManagementRepository.setKey(publicKey, accountId.getInviteTag())
+                    keyManagementRepository.setKey(publicKey, "$SELF_PARTICIPANT_CONTEXT${inviteTopic.value}")
+                    accountsRepository.setAccountPublicInviteKey(accountId, publicKey, inviteTopic)
+                    jsonRpcInteractor.subscribe(inviteTopic)
+                    onSuccess(publicKey.keyAsHex)
+                }
+            }
         }
 
         if (accountId.isValid()) {
@@ -146,19 +151,18 @@ internal class ChatEngine(
 
     internal fun unregisterIdentity(
         accountId: AccountId,
-        onSign: (String) -> Cacao.Signature?,
         onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         scope.launch {
             supervisorScope {
-                identitiesInteractor.unregisterIdentity(accountId, keyserverUrl, onSign).fold(
+                identitiesInteractor.unregisterIdentity(accountId, keyserverUrl).fold(
                     onFailure = { error -> onFailure(error) },
                     onSuccess = { identityPublicKey ->
                         val account = accountsRepository.getAccountByAccountId(accountId)
                         if (account.publicInviteKey != null && account.inviteTopic != null) {
                             keyManagementRepository.removeKeys(accountId.getInviteTag())
-                            keyManagementRepository.removeKeys("$SELF_PARTICIPANT_CONTEXT${account.inviteTopic}")
+                            keyManagementRepository.removeKeys("$SELF_PARTICIPANT_CONTEXT${account.inviteTopic.value}")
                             jsonRpcInteractor.unsubscribe(account.inviteTopic)
                         }
                         accountsRepository.deleteAccountByAccountId(accountId)
@@ -289,8 +293,7 @@ internal class ChatEngine(
                 identityPrivateKey,
                 EncodeInviteProposalDidJwtPayloadUseCase(inviterPublicKey, invite.inviteeAccount, invite.message.value),
                 EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
-            )
-                .getOrElse() { error -> return@invite onFailure(error) }
+            ).getOrElse() { error -> return@invite onFailure(error) }
 
 
             val inviteParams = ChatParams.InviteParams(inviteAuth = didJwt.value)
