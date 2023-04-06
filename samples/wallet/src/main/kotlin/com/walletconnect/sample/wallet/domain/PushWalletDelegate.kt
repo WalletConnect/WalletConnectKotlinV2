@@ -23,11 +23,12 @@ object PushWalletDelegate: PushWalletClient.Delegate {
         scope.launch { _wcPushEventModels.emit(pushRequest) }
     }
 
-    override fun onPushMessage(message: Push.Wallet.Event.Message) {
+    override fun onPushMessage(message: Push.Wallet.Event.MessageRecord) {
         scope.launch { _wcPushEventModels.emit(message) }
     }
 
     override fun onPushDelete(deletedTopic: Push.Wallet.Event.Delete) {
+        scope.launch { _wcPushEventModels.emit(deletedTopic) }
     }
 
     override fun onError(error: Push.Model.Error) {

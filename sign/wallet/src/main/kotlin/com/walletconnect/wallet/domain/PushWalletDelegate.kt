@@ -23,7 +23,7 @@ object PushWalletDelegate: PushWalletClient.Delegate {
         scope.launch { _wcPushEventModels.emit(pushRequest) }
     }
 
-    override fun onPushMessage(message: Push.Wallet.Event.Message) {
+    override fun onPushMessage(message: Push.Wallet.Event.MessageRecord) {
         scope.launch { _wcPushEventModels.emit(message) }
     }
 

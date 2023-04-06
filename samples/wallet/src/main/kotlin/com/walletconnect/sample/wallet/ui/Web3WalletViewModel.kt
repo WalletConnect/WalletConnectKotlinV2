@@ -54,8 +54,8 @@ class Web3WalletViewModel : ViewModel() {
 
                 PushRequest(requestId, peerName, peerDesc, icon, redirect)
             }
-            is Push.Wallet.Event.Message -> {
-                PushMessage(pushEvent.title, pushEvent.body, pushEvent.icon, pushEvent.url)
+            is Push.Wallet.Event.MessageRecord -> {
+                PushMessage(pushEvent.message.title, pushEvent.message.body, pushEvent.message.icon, pushEvent.message.url)
             }
             is Push.Wallet.Event.Delete -> {
                 NoAction

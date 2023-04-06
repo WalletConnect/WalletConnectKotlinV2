@@ -6,7 +6,7 @@ interface PushWalletInterface {
     interface Delegate {
         fun onPushRequest(pushRequest: Push.Wallet.Event.Request)
 
-        fun onPushMessage(pushMessage: Push.Wallet.Event.Message)
+        fun onPushMessage(pushMessage: Push.Wallet.Event.MessageRecord)
 
         fun onPushDelete(pushDeletedTopic: Push.Wallet.Event.Delete)
 
@@ -35,7 +35,7 @@ interface PushWalletInterface {
 
     fun deleteSubscription(params: Push.Wallet.Params.DeleteSubscription, onError: (Push.Model.Error) -> Unit)
 
-    fun deletePushMessage(params: Push.Wallet.Params.DeleteMessage, onError: (Push.Model.Error) -> Unit)
+    fun deletePushMessage(params: Push.Wallet.Params.DeleteMessage, onSuccess:() -> Unit, onError: (Push.Model.Error) -> Unit)
 
     fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (Push.Model.Message) -> Unit, onError: (Push.Model.Error) -> Unit)
 }

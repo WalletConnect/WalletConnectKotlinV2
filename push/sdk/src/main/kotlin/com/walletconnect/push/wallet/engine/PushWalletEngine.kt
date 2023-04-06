@@ -172,9 +172,10 @@ internal class PushWalletEngine(
         )
     }
 
-    fun deleteMessage(requestId: Long, onFailure: (Throwable) -> Unit) {
+    fun deleteMessage(requestId: Long, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         try {
             messageRepository.deleteMessage(requestId)
+            onSuccess()
         } catch (e: Exception) {
             onFailure(e)
         }
@@ -280,9 +281,15 @@ internal class PushWalletEngine(
 
         try {
             jsonRpcInteractor.respondWithSuccess(request, irnParams)
-            messageRepository.insertMessage(request.id, request.topic.value, System.currentTimeMillis(), params.title, params.body, params.icon, params.url)
-
-            scope.launch { _engineEvent.emit(params.toEngineDO()) }
+            val currentTime = System.currentTimeMillis()
+            messageRepository.insertMessage(request.id, request.topic.value, currentTime, params.title, params.body, params.icon, params.url)
+            val messageRecord = EngineDO.PushRecord(
+                id = request.id,
+                topic = request.topic.value,
+                publishedAt = currentTime,
+                message = params.toEngineDO()
+            )
+            scope.launch { _engineEvent.emit(messageRecord) }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
                 request,
