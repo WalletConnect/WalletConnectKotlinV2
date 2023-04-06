@@ -17,7 +17,7 @@ class SyncProtocol : SyncInterface {
         TODO("Not yet implemented")
     }
 
-    override fun getMessage(params: Sync.Params.GetMessage): Result<String> {
+    override fun getMessage(params: Sync.Params.GetMessage): String? {
         TODO("Not yet implemented")
     }
 
@@ -37,7 +37,7 @@ class SyncProtocol : SyncInterface {
         TODO("Not yet implemented")
     }
 
-    override fun getStores(params: Sync.Params.GetStores): Result<Sync.Type.StoreMap> {
+    override fun getStores(params: Sync.Params.GetStores): Sync.Type.StoreMap? {
         TODO("Not yet implemented")
     }
 }
