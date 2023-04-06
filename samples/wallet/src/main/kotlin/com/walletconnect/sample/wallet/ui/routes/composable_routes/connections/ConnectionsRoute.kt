@@ -83,7 +83,7 @@ fun ConstraintLayoutScope.Buttons(navController: NavController, buttonsRef: Cons
                 .clickable {
                     navController.navigate(Route.Web3Inbox.path)
                 }) {
-                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.paper_plane_logo), contentDescription = "Scan QRCode Icon", tint = iconTint)
+                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.paper_plane_logo), contentDescription = "Paper Plane Icon", tint = iconTint)
             }
             Spacer(modifier = Modifier.width(20.dp))
             ConnectionsButton(
@@ -101,7 +101,7 @@ fun ConstraintLayoutScope.Buttons(navController: NavController, buttonsRef: Cons
                 .clickable {
                     navController.navigate(Route.PasteUri.path)
                 }) {
-                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.paste_icon), contentDescription = "Scan QRCode Icon", tint = iconTint)
+                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.paste_icon), contentDescription = "Paste Uri Icon", tint = iconTint)
             }
             Spacer(modifier = Modifier.width(20.dp))
             ConnectionsButton(modifier = Modifier
