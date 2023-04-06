@@ -6,7 +6,11 @@ import com.walletconnect.android.internal.common.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.cacao.toCAIP122Message
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.*
+import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
+import com.walletconnect.android.internal.common.jwt.did.EncodeIdentityKeyDidJwtPayloadUseCase
+import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
 import com.walletconnect.android.internal.common.model.AccountId
+import com.walletconnect.android.internal.common.model.DidJwt
 import com.walletconnect.android.internal.common.model.MissingKeyException
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.storage.IdentitiesStorageRepository
@@ -41,20 +45,18 @@ class IdentitiesInteractor(
         Result.success(storedPublicKey)
     } catch (e: MissingKeyException) {
         val identityPublicKey = generateAndStoreIdentityKeyPair()
-        // This is optimistically mapping and storing the public key. What should happen if the registration fails?
-        // Can the registerIdentityKeyInKeyserver function be replaced with just the use case?
         registerIdentityKeyInKeyserver(accountId, keyserverUrl, identityPublicKey, onSign)
             .map { identityPublicKey }
-            .also { storeIdentityPublicKey(identityPublicKey, accountId) }
+            .onSuccess { storeIdentityPublicKey(identityPublicKey, accountId) }
     }
 
-    // TODO: This is not working on staging keyserver. Fix with https://github.com/WalletConnect/WalletConnectKotlinV2/issues/715
-    suspend fun unregisterIdentity(accountId: AccountId, keyserverUrl: String, onSign: (String) -> Cacao.Signature?): Result<PublicKey> = try {
+    suspend fun unregisterIdentity(accountId: AccountId, keyserverUrl: String): Result<PublicKey> = try {
         if (!accountId.isValid()) throw InvalidAccountIdException(accountId)
-        val storedPublicKey = getIdentityPublicKey(accountId)
-        unregisterIdentityKeyInKeyserver(accountId, keyserverUrl, storedPublicKey, onSign)
+        val storedKeyPair = getIdentityKeyPair(accountId)
+        val (storedPublicKey, _) = storedKeyPair
+        unregisterIdentityKeyInKeyserver(accountId, keyserverUrl, storedKeyPair)
             .map { storedPublicKey }
-            .also { removeIdentityKeyPair(storedPublicKey, accountId) }
+            .onSuccess { removeIdentityKeyPair(storedPublicKey, accountId) }
     } catch (e: MissingKeyException) {
         throw AccountHasNoIdentityStored(accountId)
     }
@@ -84,14 +86,19 @@ class IdentitiesInteractor(
     private suspend fun registerIdentityKeyInKeyserver(accountId: AccountId, keyserverUrl: String, identityKey: PublicKey, onSign: (String) -> Cacao.Signature?): Result<Unit> =
         registerIdentityUseCase(generateCacao(accountId, keyserverUrl, identityKey, onSign).getOrThrow())
 
-    private suspend fun unregisterIdentityKeyInKeyserver(accountId: AccountId, keyserverUrl: String, identityKey: PublicKey, onSign: (String) -> Cacao.Signature?): Result<Unit> =
-        unregisterIdentityUseCase(generateCacao(accountId, keyserverUrl, identityKey, onSign).getOrThrow())
+    private suspend fun unregisterIdentityKeyInKeyserver(accountId: AccountId, keyserverUrl: String, identityKeyPair: Pair<PublicKey, PrivateKey>): Result<Unit> =
+        unregisterIdentityUseCase(generateUnregisterIdAuth(accountId, keyserverUrl, identityKeyPair).getOrThrow().value)
 
     private fun generateCacao(accountId: AccountId, keyserverUrl: String, identityKey: PublicKey, onSign: (String) -> Cacao.Signature?): Result<Cacao> {
         val payload = generatePayload(accountId, keyserverUrl, identityKey).getOrThrow()
         val message = payload.toCAIP122Message()
         val signature = onSign(message) ?: throw UserRejectedSigning()
         return Result.success(Cacao(CacaoType.EIP4361.toHeader(), payload, signature))
+    }
+
+    private fun generateUnregisterIdAuth(accountId: AccountId, keyserverUrl: String, identityKeyPair: Pair<PublicKey, PrivateKey>): Result<DidJwt> {
+        val (identityPublicKey, identityPrivateKey) = identityKeyPair
+        return encodeDidJwt(identityPrivateKey, EncodeIdentityKeyDidJwtPayloadUseCase(accountId), EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl))
     }
 
     private fun String.toDomain(): Result<String> = runCatching {
