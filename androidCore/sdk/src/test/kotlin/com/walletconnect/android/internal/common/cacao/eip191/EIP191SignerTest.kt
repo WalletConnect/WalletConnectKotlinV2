@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Hash
 import org.web3j.crypto.Keys
-import org.web3j.crypto.Sign
 import org.web3j.crypto.Sign.getEthereumMessageHash
 
 internal class EIP191SignerTest {

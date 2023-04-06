@@ -1,4 +1,3 @@
-@file:JvmSynthetic
 @file:Suppress("PackageDirectoryMismatch")
 
 package com.walletconnect.android.cacao
@@ -28,12 +27,19 @@ inline fun <CoreSignature : SignatureInterface, reified SDKSignature : CoreSigna
         else -> throw Throwable("SignatureType not recognized")
     }
 
-fun <T:SignatureInterface> KFunction<T>.hasCorrectOrderedParametersInConstructor(): Boolean =
+fun sign(message: String, privateKey: ByteArray, type: ISignatureType): SignatureInterface =
+    when (type.header) {
+        SignatureType.EIP191.header, SignatureType.EIP1271.header ->
+            Cacao.Signature(type.header, EIP191Signer.sign(message.toByteArray(), privateKey).toCacaoSignature())
+        else -> throw Throwable("SignatureType not recognized")
+    }
+
+fun <T : SignatureInterface> KFunction<T>.hasCorrectOrderedParametersInConstructor(): Boolean =
     parameters.takeIf { it.size == 3 }?.run {
         val stringType = String::class.createType(nullable = false)
         val nullableStringType = String::class.createType(nullable = true)
 
-        val tExists= this.getOrNull(0)?.run { type == stringType && name == "t" } ?: false
+        val tExists = this.getOrNull(0)?.run { type == stringType && name == "t" } ?: false
         val sExists = this.getOrNull(1)?.run { type == stringType && name == "s" } ?: false
         val mExists = this.getOrNull(2)?.run { type == nullableStringType && name == "m" } ?: false
 
