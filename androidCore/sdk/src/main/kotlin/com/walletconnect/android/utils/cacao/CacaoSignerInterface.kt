@@ -1,5 +1,5 @@
 @file:JvmName("CacaoSignerUtil")
-@file:Suppress("PackageDirectoryMismatch", "UNCHECKED_CAST")
+@file:Suppress("PackageDirectoryMismatch", "UNCHECKED_CAST") // Added to dismiss confusion. Cast to `T` always succeeds as Cacao.Signature implements ISignature.
 
 package com.walletconnect.android.utils.cacao
 
@@ -14,7 +14,7 @@ import kotlin.reflect.full.createType
 
 interface CacaoSignerInterface<CoreSignature : SignatureInterface>
 
-@Suppress("UNCHECKED_CAST", "unused") // Added to dismiss confusion. Cast to `T` always succeeds as Cacao.Signature implements ISignature.
+@Suppress("unused")
 inline fun <CoreSignature : SignatureInterface, reified SDKSignature : CoreSignature> CacaoSignerInterface<CoreSignature>.sign(
     message: String,
     privateKey: ByteArray,
@@ -37,6 +37,10 @@ fun <T : SignatureInterface> sign(clazz: Class<T>, message: String, privateKey: 
         else -> throw Throwable("SignatureType not recognized")
     }
 
+// This function is used to check if the constructor of the SignatureInterface impl has
+// * exactly 3 parameters
+// * the parameters in the correct order
+// * the parameters are of the exact names that match the interface
 fun <T : SignatureInterface> KFunction<T>.hasCorrectOrderedParametersInConstructor(): Boolean =
     parameters.takeIf { it.size == 3 }?.run {
         val stringType = String::class.createType(nullable = false).javaClass
