@@ -6,9 +6,9 @@ interface PushWalletInterface {
     interface Delegate {
         fun onPushRequest(pushRequest: Push.Wallet.Event.Request)
 
-        fun onPushMessage(pushMessage: Push.Wallet.Event.MessageRecord)
+        fun onPushMessage(pushMessage: Push.Wallet.Event.Message)
 
-        fun onPushDelete(pushDeletedTopic: Push.Wallet.Event.Delete)
+        fun onPushDelete(pushDelete: Push.Wallet.Event.Delete)
 
         fun onError(error: Push.Model.Error)
     }

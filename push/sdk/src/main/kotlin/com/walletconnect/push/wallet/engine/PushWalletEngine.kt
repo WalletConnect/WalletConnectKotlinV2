@@ -18,6 +18,7 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
@@ -281,7 +282,8 @@ internal class PushWalletEngine(
 
         try {
             jsonRpcInteractor.respondWithSuccess(request, irnParams)
-            val currentTime = System.currentTimeMillis()
+            // TODO: refactor to use the RPC published at value 
+            val currentTime = CURRENT_TIME_IN_SECONDS
             messageRepository.insertMessage(request.id, request.topic.value, currentTime, params.title, params.body, params.icon, params.url)
             val messageRecord = EngineDO.PushRecord(
                 id = request.id,

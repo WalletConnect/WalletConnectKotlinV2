@@ -90,7 +90,7 @@ fun ConstraintLayoutScope.Buttons(navController: NavController, buttonsRef: Cons
                 modifier = Modifier
                     .clip(CircleShape)
                     .clickable {
-                        navController.navigate(Route.NotificationsRoute.path)
+                        navController.navigate(Route.Notifications.path)
                     }
             ) {
                 Icon(imageVector = ImageVector.vectorResource(id = R.drawable.ic_notification), contentDescription = "Notifications Icon", tint = iconTint)

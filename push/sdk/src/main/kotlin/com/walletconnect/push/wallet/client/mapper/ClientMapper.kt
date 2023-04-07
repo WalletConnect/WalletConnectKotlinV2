@@ -11,8 +11,8 @@ internal fun EngineDO.PushRequest.toClient(): Push.Wallet.Event.Request {
 }
 
 @JvmSynthetic
-internal fun EngineDO.PushRecord.toClient(): Push.Wallet.Event.MessageRecord {
-    return Push.Wallet.Event.MessageRecord(
+internal fun EngineDO.PushRecord.toClient(): Push.Wallet.Event.Message {
+    return Push.Wallet.Event.Message(
         id = this.id.toString(),
         topic = this.topic,
         publishedAt = this.publishedAt,

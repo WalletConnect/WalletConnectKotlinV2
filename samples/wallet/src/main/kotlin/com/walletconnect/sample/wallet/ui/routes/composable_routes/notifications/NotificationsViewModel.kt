@@ -15,7 +15,7 @@ class NotificationsViewModel : ViewModel() {
 
     val pushEvents = PushWalletDelegate.wcPushEventModels.map { pushEvent ->
         when (pushEvent) {
-            is Push.Wallet.Event.MessageRecord -> notifications.addNewNotification(pushEvent)
+            is Push.Wallet.Event.Message -> notifications.addNewNotification(pushEvent)
             is Push.Wallet.Event.Delete -> getMessageHistory()
             else -> Unit
         }
@@ -30,14 +30,12 @@ class NotificationsViewModel : ViewModel() {
     }.stateIn(viewModelScope, SharingStarted.Lazily, NotificationsState.Empty)
 
     fun getMessageHistory() {
-        val messages: MutableList<Push.Model.MessageRecord> = mutableListOf()
-        PushWalletClient.getActiveSubscriptions().forEach { subscriptions ->
-            PushWalletClient.getMessageHistory(Push.Wallet.Params.MessageHistory(subscriptions.key))
-                .let {
-                    messages.addAll(it.values)
-                }
-        }
-        notifications.value = messages.map { it.toPushNotification() }
+        val messages = with(PushWalletClient) {
+            getActiveSubscriptions().flatMap { (topic, _) ->
+                getMessageHistory(Push.Wallet.Params.MessageHistory(topic)).values
+            }
+        }.map { messageRecord -> messageRecord.toPushNotification() }
+        notifications.value = messages
     }
 
     fun deleteNotification(push: PushNotification) {
@@ -51,7 +49,7 @@ class NotificationsViewModel : ViewModel() {
             })
     }
 
-    private fun MutableStateFlow<List<PushNotification>>.addNewNotification(push: Push.Wallet.Event.MessageRecord) {
+    private fun MutableStateFlow<List<PushNotification>>.addNewNotification(push: Push.Wallet.Event.Message) {
         value = listOf(push.toPushNotification()) + value
     }
 

@@ -22,20 +22,19 @@ import com.walletconnect.sample.wallet.R
 fun WCTopAppBar(
     text: String,
     modifier: Modifier = Modifier,
-    canGoBack: Boolean = false,
     titleStyle: TextStyle = TextStyle(
         fontWeight = FontWeight.Bold,
         fontSize = 34.sp,
         color = themedColor(darkColor = 0xFFE5E7E7, lightColor = 0xFF141414)
     ),
-    onBackIconClick: () -> Unit = {}
+    onBackIconClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Spacer(modifier = Modifier.width(32.dp))
-        if (canGoBack) {
+        onBackIconClick?.let {
             Icon(
                 tint = Color(0xFF3496ff),
                 imageVector = ImageVector.vectorResource(id = R.drawable.chevron_left),

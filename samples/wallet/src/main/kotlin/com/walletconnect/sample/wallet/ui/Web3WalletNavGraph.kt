@@ -78,6 +78,9 @@ fun Web3WalletNavGraph(
                     composable(Route.Web3Inbox.path) {
                         Web3InboxRoute(web3InboxState)
                     }
+                    composable(Route.Notifications.path) {
+                        NotificationsScreenRoute(navController)
+                    }
                     bottomSheet(Route.ScanUri.path) {
                         ScanUriRoute(navController, sheetState, onScanSuccess = { web3walletViewModel.pair(it) })
                     }
@@ -118,9 +121,6 @@ fun Web3WalletNavGraph(
                         navArgument("message") { type = NavType.Companion.StringType }
                     )) {
                         SnackbarMessageRoute(navController, it.arguments?.getString("message"))
-                    }
-                    composable(Route.NotificationsRoute.path) {
-                        NotificationsScreenRoute(navController)
                     }
                 }
             }

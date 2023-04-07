@@ -1,5 +1,7 @@
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.notifications
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,10 +24,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.skydoves.landscapist.glide.GlideImage
@@ -56,7 +63,7 @@ private fun NotificationScreen(
     onBackClick: () -> Unit
 ) {
     Column {
-        WCTopAppBar(text = "Notifications", canGoBack = true, onBackIconClick = onBackClick)
+        WCTopAppBar(text = "Notifications", onBackIconClick = onBackClick)
         LazyColumn(modifier = Modifier.padding(vertical = 12.dp, horizontal = 24.dp)) {
             notificationsContent(state, onNotificationItemDelete)
         }
@@ -69,7 +76,7 @@ private fun LazyListScope.notificationsContent(
 ) {
     when (state) {
         NotificationsState.Empty -> item { EmptyState() }
-        is NotificationsState.Success -> items(state.notifications, key = {it.id}) { item ->
+        is NotificationsState.Success -> items(state.notifications, key = { it.id }) { item ->
             NotificationItem(item, onNotificationItemDelete)
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -134,10 +141,19 @@ private fun LazyItemScope.NotificationItem(
 
 @Composable
 private fun NotificationDetails(item: PushNotification, modifier: Modifier) {
+    val context = LocalContext.current
     Column(modifier) {
-        Text(text = item.title)
-        Text(text = item.body)
-        item.url?.let { Text(text = it) }
+        Text(text = item.title, style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold))
+        Text(text = item.body, style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold))
+        Text(text = item.date)
+        item.url?.let {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it))
+            Text(
+                text = it,
+                style = TextStyle(color = Color(0xFF0000EE)),
+                modifier = Modifier.clickable { context.startActivity(intent) },
+            )
+        }
     }
 }
 
@@ -168,22 +184,24 @@ private fun TrashButton(
 private fun NotificationsScreenPreview(
     @PreviewParameter(NotificationsScreenStateProvider::class) state: NotificationsState
 ) {
-        NotificationScreen(
-            state = state,
-            onNotificationItemDelete = {},
-            onBackClick = {}
-        )
+    NotificationScreen(
+        state = state,
+        onNotificationItemDelete = {},
+        onBackClick = {}
+    )
 }
 
 private class NotificationsScreenStateProvider : PreviewParameterProvider<NotificationsState> {
     override val values: Sequence<NotificationsState>
         get() = sequenceOf(
             NotificationsState.Empty,
-            NotificationsState.Success(listOf(
+            NotificationsState.Success(
+                listOf(
                     PushNotification("1", "topic1", "10-10-2023", "Title 1", "Body 1", null, null),
                     PushNotification("2", "topic2", "03-02-2023", "Title 2", "Body 2", null, null),
                     PushNotification("3", "topic3", "31-01-2023", "Title 3", "Body 3", null, null),
                     PushNotification("4", "topic4", "02-07-2022", "Title 4", "Body 4", null, null),
-            ))
+                )
+            )
         )
 }

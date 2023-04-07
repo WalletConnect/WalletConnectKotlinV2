@@ -1,7 +1,7 @@
 package com.walletconnect.sample.wallet.domain.model
 
 import com.walletconnect.push.common.Push
-import com.walletconnect.sample.wallet.utils.convertTimestampToDate
+import com.walletconnect.sample_common.convertSecondsToDate
 
 data class PushNotification(
     val id: String,
@@ -13,10 +13,10 @@ data class PushNotification(
     val icon: String?
 )
 
-fun Push.Wallet.Event.MessageRecord.toPushNotification() = PushNotification(
+fun Push.Wallet.Event.Message.toPushNotification() = PushNotification(
     id = id,
     topic = topic,
-    date = publishedAt.convertTimestampToDate(),
+    date = publishedAt.convertSecondsToDate(),
     title = message.title,
     body = message.body,
     url = message.url,
@@ -26,7 +26,7 @@ fun Push.Wallet.Event.MessageRecord.toPushNotification() = PushNotification(
 fun Push.Model.MessageRecord.toPushNotification() = PushNotification(
     id = id,
     topic = topic,
-    date = publishedAt.convertTimestampToDate(),
+    date = publishedAt.convertSecondsToDate(),
     title = message.title,
     body = message.body,
     url = message.url,
