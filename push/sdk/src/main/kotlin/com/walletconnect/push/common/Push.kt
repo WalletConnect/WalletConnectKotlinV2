@@ -4,15 +4,14 @@ import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.SignatureInterface
-import com.walletconnect.android.internal.common.cacao.Cacao
 
 object Push {
 
     sealed class Model {
 
-        data class Message(val title: String, val body: String, val icon: String?, val url: String?): Wallet.Event()
+        data class Message(val title: String, val body: String, val icon: String?, val url: String?): Model()
 
-        data class MessageRecord(val id: String, val topic: String, val publishedAt: Long, val message: Model.Message): Wallet.Event()
+        data class MessageRecord(val id: String, val topic: String, val publishedAt: Long, val message: Model.Message): Model()
 
         data class Subscription(val requestId: Long, val topic: String, val account: String, val relay: Relay, val metadata: Core.Model.AppMetaData): Model() {
 
@@ -61,7 +60,7 @@ object Push {
 
             data class Request(val id: Long, val metadata: Core.Model.AppMetaData): Event()
 
-            data class Message(val title: String, val body: String, val icon: String?, val url: String?): Event()
+            data class Message(val id: String, val topic: String, val publishedAt: Long, val message: Model.Message): Event()
 
             data class Delete(val topic: String): Event()
         }
