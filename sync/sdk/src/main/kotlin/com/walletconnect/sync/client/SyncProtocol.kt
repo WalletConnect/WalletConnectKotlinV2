@@ -12,6 +12,7 @@ import com.walletconnect.sync.common.exception.InvalidAccountIdException
 import com.walletconnect.sync.common.model.Events
 import com.walletconnect.sync.di.commonModule
 import com.walletconnect.sync.di.engineModule
+import com.walletconnect.sync.di.storageModule
 import com.walletconnect.sync.engine.domain.SyncEngine
 import kotlinx.coroutines.launch
 
@@ -28,6 +29,7 @@ internal class SyncProtocol : SyncInterface {
                 modules(
                     commonModule(),
                     engineModule(),
+                    storageModule(),
                 )
             }
 
@@ -60,7 +62,7 @@ internal class SyncProtocol : SyncInterface {
     @Throws(IllegalStateException::class)
     override fun register(params: Sync.Params.Register, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
         validateAccountId(params.accountId)
-        syncEngine.register(params.accountId, params.signature.toCommon())
+        syncEngine.register(params.accountId, params.signature.toCommon(), onSuccess) { error -> onError(Sync.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)

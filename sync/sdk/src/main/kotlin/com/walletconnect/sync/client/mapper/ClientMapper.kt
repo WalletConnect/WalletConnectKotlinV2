@@ -2,7 +2,6 @@
 
 package com.walletconnect.sync.client.mapper
 
-import com.walletconnect.android.internal.common.cacao.signature.Signature
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.signing.signature.Signature
