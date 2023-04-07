@@ -225,6 +225,9 @@ internal object SignValidator {
     private fun areNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO>): Boolean =
         namespaces.all { (namespaceKey, _) -> isNamespaceRegexCompliant(namespaceKey) || isChainIdCAIP2Compliant(namespaceKey) }
 
+    fun isNamespaceKeyRegexCompliant(namespaces: Map<String, NamespaceVO>): Boolean =
+        namespaces.all { (namespaceKey, _) -> isNamespaceRegexCompliant(namespaceKey) }
+
     private fun areAccountIdsValid(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
         sessionNamespaces.all { (_, namespace) -> namespace.accounts.all { accountId -> isAccountIdCAIP10Compliant(accountId) } }
 
@@ -270,8 +273,8 @@ internal object SignValidator {
     internal fun getNamespaceKeyFromChainId(chainId: String): String {
         val elements = chainId.split(":")
         if (elements.isEmpty() || elements.size != 2) return chainId
-        val (namespace: String, reference: String) = elements
+        val (namespace: String, _: String) = elements
 
-        return "$namespace:$reference"
+        return namespace
     }
 }
