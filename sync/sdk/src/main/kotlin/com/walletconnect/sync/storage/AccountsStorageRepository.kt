@@ -12,7 +12,7 @@ internal class AccountsStorageRepository(private val accounts: AccountsQueries) 
         accounts.insertOrAbortAccount(accountId = accountId.value, entropy = entropy.value)
     }
 
-    suspend fun getAccountByAccountId(accountId: AccountId): Account =
+    suspend fun getAccount(accountId: AccountId): Account =
         accounts.getAccountByAccountId(accountId.value, ::dbToAccount).executeAsOne()
 
     private suspend fun doesAccountNotExists(accountId: AccountId) = accounts.doesAccountNotExists(accountId.value).executeAsOne()

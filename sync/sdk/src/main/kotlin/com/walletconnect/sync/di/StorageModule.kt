@@ -5,6 +5,7 @@ import com.walletconnect.android.internal.common.di.DBUtils
 import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.sync.SyncDatabase
 import com.walletconnect.sync.storage.AccountsStorageRepository
+import com.walletconnect.sync.storage.StoresStorageRepository
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
@@ -28,6 +29,9 @@ internal fun storageModule() = module {
     }
 
     single { get<SyncDatabase>().accountsQueries }
+    single { get<SyncDatabase>().storesQueries }
+    single { get<SyncDatabase>().storeValuesQueries }
 
     single { AccountsStorageRepository(get()) }
+    single { StoresStorageRepository(get(), get()) }
 }

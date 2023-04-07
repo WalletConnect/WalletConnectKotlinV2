@@ -28,8 +28,8 @@ internal class SyncProtocol : SyncInterface {
             wcKoinApp.run {
                 modules(
                     commonModule(),
-                    engineModule(),
                     storageModule(),
+                    engineModule(),
                 )
             }
 
@@ -68,19 +68,19 @@ internal class SyncProtocol : SyncInterface {
     @Throws(IllegalStateException::class)
     override fun create(params: Sync.Params.Create, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
         validateAccountId(params.accountId)
-        syncEngine.create(params.accountId, params.store.toCommon())
+        syncEngine.create(params.accountId, params.store.toCommon(), onSuccess) { error -> onError(Sync.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
-    override fun set(params: Sync.Params.Set, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
+    override fun set(params: Sync.Params.Set, onSuccess: (Boolean) -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
         validateAccountId(params.accountId)
-        syncEngine.set(params.accountId, params.store.toCommon(), params.key, params.value)
+        syncEngine.set(params.accountId, params.store.toCommon(), params.key, params.value, onSuccess) { error -> onError(Sync.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
-    override fun delete(params: Sync.Params.Delete, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
+    override fun delete(params: Sync.Params.Delete, onSuccess: (Boolean) -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
         validateAccountId(params.accountId)
-        syncEngine.delete(params.accountId, params.store.toCommon(), params.key)
+        syncEngine.delete(params.accountId, params.store.toCommon(), params.key, onSuccess) { error -> onError(Sync.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
