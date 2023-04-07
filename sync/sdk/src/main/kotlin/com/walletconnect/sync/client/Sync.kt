@@ -42,13 +42,13 @@ object Sync {
 
         data class GetMessage(val accountId: AccountId) : Params()
 
-        data class Register(val accountId: AccountId, val signature: Sync.Model.Signature) : Params()
+        data class Register(val accountId: AccountId, val signature: Model.Signature) : Params()
 
-        data class Create(val accountId: AccountId, val store: Sync.Type.Store) : Params()
+        data class Create(val accountId: AccountId, val store: Type.Store) : Params()
 
-        data class Set(val accountId: AccountId, val store: Sync.Type.Store, val key: String, val value: String) : Params()
+        data class Set(val accountId: AccountId, val store: Type.Store, val key: String, val value: String) : Params()
 
-        data class Delete(val accountId: AccountId, val store: Sync.Type.Store, val key: String) : Params()
+        data class Delete(val accountId: AccountId, val store: Type.Store, val key: String) : Params()
 
         data class GetStores(val accountId: AccountId) : Params()
     }

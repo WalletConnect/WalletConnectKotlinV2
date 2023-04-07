@@ -13,7 +13,7 @@ interface SyncInterface {
 
     fun setSyncDelegate(delegate: SyncDelegate)
 
-    fun initialize(params: Sync.Params.Init)
+    fun initialize(params: Sync.Params.Init, onError: (Sync.Model.Error) -> Unit)
 
     /**
      * Caution: This function is blocking and runs on the current thread.
