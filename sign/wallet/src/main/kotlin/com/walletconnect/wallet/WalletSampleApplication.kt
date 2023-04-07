@@ -12,6 +12,7 @@ import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import com.walletconnect.sign.client.utils.buildSessionNamespaces
 
 class WalletSampleApplication : Application() {
 

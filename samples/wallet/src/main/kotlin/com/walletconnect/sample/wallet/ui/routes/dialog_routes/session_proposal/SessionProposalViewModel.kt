@@ -18,17 +18,13 @@ class SessionProposalViewModel : ViewModel() {
     suspend fun approve() {
         return suspendCoroutine { continuation ->
             if (Web3Wallet.getSessionProposals().isNotEmpty()) {
-                val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().last())
-                val chains = sessionProposalUI.namespaces.flatMap { (_, proposal) -> proposal.chains!! }
-                val selectedAccounts: Map<Chains, String> = chains.mapNotNull { namespaceChainId -> accounts.firstOrNull { (chain, _) -> chain.chainId == namespaceChainId } }.toMap()
-                val required: Map<String, Wallet.Model.Namespace.Session> =
-                    getSessionNamespacesIndexedByNamespace(selectedAccounts, sessionProposal.requiredNamespaces, chains)
-                        .plus(sessionNamespacesIndexedByChain(selectedAccounts, sessionProposal.requiredNamespaces))
 
-                val optional: Map<String, Wallet.Model.Namespace.Session> =
-                    getSessionNamespacesIndexedByNamespace(selectedAccounts, sessionProposal.optionalNamespaces, chains)
-                        .plus(sessionNamespacesIndexedByChain(selectedAccounts, sessionProposal.optionalNamespaces))
-                val sessionNamespaces: Map<String, Wallet.Model.Namespace.Session> = mergeRequiredAndOptional(required, optional)
+                val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().last())
+                val chains = walletMetaData.namespaces.flatMap { (_, proposal) -> proposal.chains!! }
+                val selectedAccounts: Map<Chains, String> = chains.mapNotNull { namespaceChainId -> accounts.firstOrNull { (chain, _) -> chain.chainId == namespaceChainId } }.toMap()
+
+                //todo: add accounts to supported namespaces
+                val sessionNamespaces = Web3Wallet.buildSessionNamespaces(sessionProposal, walletMetaData.namespaces)
                 val approveProposal = Wallet.Params.SessionApprove(proposerPublicKey = sessionProposal.proposerPublicKey, namespaces = sessionNamespaces)
 
                 Web3Wallet.approveSession(approveProposal,
@@ -70,89 +66,4 @@ class SessionProposalViewModel : ViewModel() {
             )
         } else null
     }
-
-    private fun mergeRequiredAndOptional(required: Map<String, Wallet.Model.Namespace.Session>, optional: Map<String, Wallet.Model.Namespace.Session>) =
-        (required.asSequence() + optional.asSequence())
-            .groupBy({ it.key }, { it.value })
-            .mapValues { entry ->
-                entry.value.reduce { acc, session ->
-                    Wallet.Model.Namespace.Session(
-                        acc.chains?.plus(session.chains ?: emptyList()),
-                        acc.accounts.plus(session.accounts),
-                        acc.methods.plus(session.methods).distinct(),
-                        session.events.plus(session.events).distinct()
-                    )
-                }
-            }
-
-    private fun sessionNamespacesIndexedByChain(selectedAccounts: Map<Chains, String>, namespaces: Map<String, Wallet.Model.Namespace.Proposal>) =
-        selectedAccounts.filter { (chain: Chains, _) ->
-            namespaces
-                .filter { (namespaceKey, namespace) -> namespace.chains == null && namespaceKey == chain.chainId }
-                .isNotEmpty()
-        }.toList()
-            .groupBy { (chain: Chains, _: String) -> chain.chainId }
-            .asIterable()
-            .associate { (key: String, chainData: List<Pair<Chains, String>>) ->
-                val accounts = chainData.map { (chain: Chains, accountAddress: String) ->
-                    "${chain.chainNamespace}:${chain.chainReference}:${accountAddress}"
-                }
-
-                val methods = namespaces.values
-                    .filter { namespace -> namespace.chains == null }
-                    .flatMap { it.methods }
-
-                val events = namespaces.values
-                    .filter { namespace -> namespace.chains == null }
-                    .flatMap { it.events }
-
-                key to Wallet.Model.Namespace.Session(
-                    accounts = accounts,
-                    methods = methods,
-                    events = events
-                )
-            }
-
-    private fun getSessionNamespacesIndexedByNamespace(selectedAccounts: Map<Chains, String>, namespaces: Map<String, Wallet.Model.Namespace.Proposal>, supportedChains: List<String>) =
-        selectedAccounts.filter { (chain: Chains, _) ->
-            namespaces
-                .filter { (_, namespace) -> namespace.chains != null }
-                .flatMap { (_, namespace) -> namespace.chains!! }
-                .contains(chain.chainId)
-        }.toList()
-            .groupBy { (chain: Chains, _: String) -> chain.chainNamespace }
-            .asIterable()
-            .associate { (key: String, chainData: List<Pair<Chains, String>>) ->
-
-                val accounts = chainData.map { (chain: Chains, accountAddress: String) ->
-                    "${chain.chainNamespace}:${chain.chainReference}:${accountAddress}"
-                }
-
-                val methods = namespaces.values
-                    .filter { namespace -> namespace.chains != null }
-                    .flatMap { it.methods }
-
-                val events = namespaces.values
-                    .filter { namespace -> namespace.chains != null }
-                    .flatMap { it.events }
-
-                val chains: List<String> =
-                    namespaces.values
-                        .filter { namespace -> namespace.chains != null }
-                        .flatMap { namespace ->
-                            mutableListOf<String>().apply {
-                                namespace.chains!!.forEach { chain ->
-                                    if (supportedChains.contains(chain)) {
-                                        add(chain)
-                                    }
-                                }
-                            }
-                        }
-
-                key to Wallet.Model.Namespace.Session(
-                    accounts = accounts,
-                    methods = methods,
-                    events = events,
-                    chains = chains.ifEmpty { null })
-            }
 }

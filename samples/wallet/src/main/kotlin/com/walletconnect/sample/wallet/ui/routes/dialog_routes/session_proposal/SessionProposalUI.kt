@@ -8,7 +8,12 @@ data class SessionProposalUI(
     val namespaces: Map<String, Wallet.Model.Namespace.Proposal>,
 )
 
-val sessionProposalUI = SessionProposalUI(
+data class WalletMetaData(
+    val peerUI: PeerUI,
+    val namespaces: Map<String, Wallet.Model.Namespace.Session>,
+)
+
+val walletMetaData = WalletMetaData(
     peerUI = PeerUI(
         peerIcon = "https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png",
         peerName = "Kotlin.Responder",
@@ -16,15 +21,17 @@ val sessionProposalUI = SessionProposalUI(
         peerDescription = ""
     ),
     namespaces = mapOf(
-        "eip155" to Wallet.Model.Namespace.Proposal(
+        "eip155" to Wallet.Model.Namespace.Session(
             chains = listOf("eip155:1", "eip155:137", "eip155:56"),
             methods = listOf("accountsChanged", "personalSign"),
             events = listOf("someEvent1", "someEvent2"),
+            accounts = listOf()
         ),
-        "cosmos" to Wallet.Model.Namespace.Proposal(
+        "cosmos" to Wallet.Model.Namespace.Session(
             chains = listOf("cosmos:cosmoshub-4", "cosmos:cosmoshub-1"),
             methods = listOf("accountsChanged", "personalSign"),
             events = listOf("someEvent1", "someEvent2"),
+            accounts = listOf()
         )
     )
 )

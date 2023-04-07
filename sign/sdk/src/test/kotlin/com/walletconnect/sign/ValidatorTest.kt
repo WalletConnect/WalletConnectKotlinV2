@@ -32,7 +32,7 @@ import com.walletconnect.sign.ValidatorTest.Namespaces.COSMOS
 import com.walletconnect.sign.ValidatorTest.Namespaces.EIP155
 import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.engine.domain.SignValidator
+import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toAbsoluteString
 import org.junit.jupiter.api.Test

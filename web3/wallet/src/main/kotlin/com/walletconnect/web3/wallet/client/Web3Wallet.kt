@@ -116,6 +116,11 @@ object Web3Wallet {
     }
 
     @Throws(IllegalStateException::class)
+    fun buildSessionNamespaces(proposal: Wallet.Model.SessionProposal, supportedNamespaces: Map<String, Wallet.Model.Namespace.Session>): Map<String, Wallet.Model.Namespace.Session> {
+        return com.walletconnect.sign.client.utils.buildSessionNamespaces(proposal.toSign(), supportedNamespaces.toSign()).toWallet()
+    }
+
+    @Throws(IllegalStateException::class)
     fun rejectSession(
         params: Wallet.Params.SessionReject,
         onSuccess: (Wallet.Params.SessionReject) -> Unit = {},

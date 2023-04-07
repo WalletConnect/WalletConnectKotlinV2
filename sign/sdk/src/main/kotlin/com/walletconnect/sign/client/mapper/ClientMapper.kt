@@ -10,7 +10,9 @@ import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
+import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.engine.model.EngineDO
+import java.util.jar.Attributes.Name
 
 @JvmSynthetic
 internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponse(): JsonRpcResponse =
@@ -171,22 +173,6 @@ internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesR
     }
 
 @JvmSynthetic
-internal fun EngineDO.SessionProposal.toEngineDO(): Sign.Model.SessionProposal =
-    Sign.Model.SessionProposal(
-        pairingTopic = pairingTopic,
-        name = name,
-        description = description,
-        url = url,
-        icons = icons,
-        relayData = relayData,
-        relayProtocol = relayProtocol,
-        requiredNamespaces = requiredNamespaces.toMapOfClientNamespacesProposal(),
-        optionalNamespaces = optionalNamespaces.toMapOfClientNamespacesProposal(),
-        proposerPublicKey = proposerPublicKey,
-        properties = properties
-    )
-
-@JvmSynthetic
 internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfEngineNamespacesOptional(): Map<String, EngineDO.Namespace.Proposal> =
     mapValues { (_, namespace) ->
         EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
@@ -202,6 +188,18 @@ internal fun Map<String, EngineDO.Namespace.Proposal>.toMapOfClientNamespacesPro
 internal fun Map<String, Sign.Model.Namespace.Session>.toMapOfEngineNamespacesSession(): Map<String, EngineDO.Namespace.Session> =
     mapValues { (_, namespace) ->
         EngineDO.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
+    }
+
+@JvmSynthetic
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toOptionalVO(): Map<String, NamespaceVO.Optional> =
+    mapValues { (_, namespace) ->
+        NamespaceVO.Optional(namespace.chains, namespace.methods, namespace.events)
+    }
+
+@JvmSynthetic
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toRequiredVO(): Map<String, NamespaceVO.Required> =
+    mapValues { (_, namespace) ->
+        NamespaceVO.Required(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic

@@ -24,6 +24,7 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.type.Sequences
