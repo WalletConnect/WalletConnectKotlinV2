@@ -4,3 +4,10 @@ import com.walletconnect.android.internal.common.exception.WalletConnectExceptio
 import com.walletconnect.android.internal.common.model.AccountId
 
 internal class InvalidAccountIdException(accountId: AccountId) : WalletConnectException("AccountId: $accountId is not CAIP-10 complaint") // todo: https://github.com/WalletConnect/WalletConnectKotlinV2/issues/768
+
+
+//todo: Move to com.walletconnect.android.internal.common.model.AccountId as a part of https://github.com/WalletConnect/WalletConnectKotlinV2/issues/768
+@JvmSynthetic
+internal inline fun validateAccountId(accountId: AccountId, onFailure: (Exception) -> Unit) {
+    if (!accountId.isValid()) return onFailure(InvalidAccountIdException(accountId))
+}

@@ -5,6 +5,7 @@ import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.sync.common.exception.validateAccountId
 import com.walletconnect.sync.common.model.Store
 import com.walletconnect.sync.storage.AccountsStorageRepository
 import com.walletconnect.sync.storage.StoresStorageRepository
@@ -21,6 +22,7 @@ internal class CreateUseCase(private val accountsRepository: AccountsStorageRepo
     override fun create(accountId: AccountId, store: Store, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         scope.launch {
             supervisorScope {
+                validateAccountId(accountId) { error -> return@supervisorScope onFailure(error) }
                 val keyPath = store.getDerivationPath()
                 val entropy = runCatching { accountsRepository.getAccount(accountId).entropy }.getOrElse { error -> return@supervisorScope onFailure(error) }
                 val mnemonic = MnemonicWords(entropyToMnemonic(entropy.toBytes(), WORDLIST_ENGLISH))

@@ -1,6 +1,7 @@
 package com.walletconnect.sync.engine.use_case
 
 import com.walletconnect.android.internal.common.model.AccountId
+import com.walletconnect.sync.common.exception.validateAccountId
 import com.walletconnect.sync.common.model.StoreMap
 import com.walletconnect.sync.storage.StoresStorageRepository
 import kotlinx.coroutines.CoroutineScope
@@ -11,6 +12,8 @@ import kotlinx.coroutines.runBlocking
 internal class GetStoresUseCase(private val storesRepository: StoresStorageRepository) : GetStoresUseCaseInterface {
 
     override fun getStores(accountId: AccountId): StoreMap? {
+        validateAccountId(accountId) { error -> throw error }
+
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         return runBlocking(scope.coroutineContext) {
             runCatching { storesRepository.getStoreMap(accountId) }.getOrNull()

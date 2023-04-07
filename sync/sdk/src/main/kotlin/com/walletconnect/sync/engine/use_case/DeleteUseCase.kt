@@ -2,6 +2,7 @@ package com.walletconnect.sync.engine.use_case
 
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.sync.common.exception.validateAccountId
 import com.walletconnect.sync.common.model.Store
 import com.walletconnect.sync.storage.StoresStorageRepository
 import kotlinx.coroutines.launch
@@ -12,6 +13,8 @@ internal class DeleteUseCase(private val storesRepository: StoresStorageReposito
     override fun delete(accountId: AccountId, store: Store, key: String, onSuccess: (Boolean) -> Unit, onFailure: (Throwable) -> Unit) {
         scope.launch {
             supervisorScope {
+                validateAccountId(accountId) { error -> return@supervisorScope onFailure(error) }
+
                 // Return false in onSuccess when the value was not in storage
                 runCatching { storesRepository.getStoreValue(accountId, store, key) }.getOrElse { return@supervisorScope onSuccess(false) }
 

@@ -2,6 +2,7 @@ package com.walletconnect.sync.engine.use_case
 
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.sync.common.exception.validateAccountId
 import com.walletconnect.sync.common.model.Store
 import com.walletconnect.sync.storage.StoresStorageRepository
 import kotlinx.coroutines.launch
@@ -12,6 +13,8 @@ internal class SetUseCase(private val storesRepository: StoresStorageRepository)
     override fun set(accountId: AccountId, store: Store, key: String, value: String, onSuccess: (Boolean) -> Unit, onFailure: (Throwable) -> Unit) {
         scope.launch {
             supervisorScope {
+                validateAccountId(accountId) { error -> return@supervisorScope onFailure(error) }
+
                 // Return false in onSuccess when the value was already set
                 runCatching { storesRepository.getStoreValue(accountId, store, key) }
                     .onSuccess { (_, currentValue) -> if (value == currentValue) return@supervisorScope onSuccess(false) }
