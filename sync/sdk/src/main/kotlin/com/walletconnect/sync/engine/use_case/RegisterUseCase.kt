@@ -1,7 +1,7 @@
 package com.walletconnect.sync.engine.use_case
 
+import com.walletconnect.android.internal.common.cacao.signature.Signature
 import com.walletconnect.android.internal.common.model.AccountId
-import com.walletconnect.android.internal.common.signing.signature.Signature
 import com.walletconnect.sync.common.model.Account
 import com.walletconnect.sync.common.model.toEntropy
 import com.walletconnect.sync.storage.AccountsStorageRepository
