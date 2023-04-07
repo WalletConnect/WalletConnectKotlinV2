@@ -13,7 +13,7 @@ object CoreValidator {
         if (elements.isEmpty() || elements.size != 3) return false
         val (namespace: String, reference: String, accountAddress: String) = elements
 
-        return isNamespaceValid(namespace) &&
+        return isNamespaceRegexCompliant(namespace) &&
                 REFERENCE_REGEX.toRegex().matches(reference) &&
                 ACCOUNT_ADDRESS_REGEX.toRegex().matches(accountAddress)
     }
@@ -24,12 +24,12 @@ object CoreValidator {
         val elements: List<String> = chainId.split(":")
         if (elements.isEmpty() || elements.size != 2) return false
         val (namespace: String, reference: String) = elements
-        return isNamespaceValid(namespace) && REFERENCE_REGEX.toRegex().matches(reference)
+        return isNamespaceRegexCompliant(namespace) && REFERENCE_REGEX.toRegex().matches(reference)
     }
 
     /* For namespace key validation reference check CAIP-2: https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-2.md#syntax */
     @JvmSynthetic
-    fun isNamespaceValid(key: String): Boolean {
+    fun isNamespaceRegexCompliant(key: String): Boolean {
         return NAMESPACE_REGEX.toRegex().matches(key)
     }
 

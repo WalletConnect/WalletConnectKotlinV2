@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.utils.CoreValidator.isAccountIdCAIP10Compliant
 import com.walletconnect.android.internal.utils.CoreValidator.isChainIdCAIP2Compliant
-import com.walletconnect.android.internal.utils.CoreValidator.isNamespaceValid
+import com.walletconnect.android.internal.utils.CoreValidator.isNamespaceRegexCompliant
 import com.walletconnect.android.internal.utils.WEEK_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.*
@@ -32,7 +32,7 @@ internal object SignValidator {
     @JvmSynthetic
     internal inline fun validateSessionNamespace(
         sessionNamespaces: Map<String, NamespaceVO.Session>,
-        requiredNamespaces: Map<String, NamespaceVO.Required>,
+        requiredNamespaces: Map<String, NamespaceVO.Proposal>,
         onError: (ValidationError) -> Unit,
     ) {
         when {
@@ -152,7 +152,7 @@ internal object SignValidator {
 
     private fun allMethodsWithChains(namespaces: Map<String, NamespaceVO>): Map<String, List<String>> {
         val methodsByChains = namespaces
-            .filter { (namespaceKey, namespace) -> isNamespaceValid(namespaceKey) && namespace.chains != null }
+            .filter { (namespaceKey, namespace) -> isNamespaceRegexCompliant(namespaceKey) && namespace.chains != null }
             .flatMap { (_, namespace) -> namespace.methods.map { method -> method to namespace.chains!! } }
             .toMap()
 
@@ -163,7 +163,7 @@ internal object SignValidator {
 
         //TODO: CAIP-25 backward compatibility
         val methodsByChainFromAccount = namespaces
-            .filter { (namespaceKey, namespace) -> namespace is NamespaceVO.Session && isNamespaceValid(namespaceKey) && namespace.chains == null }
+            .filter { (namespaceKey, namespace) -> namespace is NamespaceVO.Session && isNamespaceRegexCompliant(namespaceKey) && namespace.chains == null }
             .flatMap { (_, namespace) -> (namespace as NamespaceVO.Session).methods.map { method -> method to namespace.accounts.map { getChainFromAccount(it) } } }
             .toMap()
 
@@ -188,7 +188,7 @@ internal object SignValidator {
 
     private fun allEventsWithChains(namespaces: Map<String, NamespaceVO>): Map<String, List<String>> {
         val eventsByChains = namespaces
-            .filter { (namespaceKey, namespace) -> isNamespaceValid(namespaceKey) && namespace.chains != null }
+            .filter { (namespaceKey, namespace) -> isNamespaceRegexCompliant(namespaceKey) && namespace.chains != null }
             .flatMap { (_, namespace) -> namespace.events.map { event -> event to namespace.chains!! } }
             .toMap()
 
@@ -199,7 +199,7 @@ internal object SignValidator {
 
         //TODO: CAIP-25 backward compatibility
         val eventsByChainFromAccount = namespaces
-            .filter { (namespaceKey, namespace) -> namespace is NamespaceVO.Session && isNamespaceValid(namespaceKey) && namespace.chains == null }
+            .filter { (namespaceKey, namespace) -> namespace is NamespaceVO.Session && isNamespaceRegexCompliant(namespaceKey) && namespace.chains == null }
             .flatMap { (_, namespace) -> (namespace as NamespaceVO.Session).events.map { event -> event to namespace.accounts.map { getChainFromAccount(it) } } }
             .toMap()
 
@@ -223,14 +223,14 @@ internal object SignValidator {
     }
 
     private fun areNamespacesKeysProperlyFormatted(namespaces: Map<String, NamespaceVO>): Boolean =
-        namespaces.all { (namespaceKey, _) -> isNamespaceValid(namespaceKey) || isChainIdCAIP2Compliant(namespaceKey) }
+        namespaces.all { (namespaceKey, _) -> isNamespaceRegexCompliant(namespaceKey) || isChainIdCAIP2Compliant(namespaceKey) }
 
     private fun areAccountIdsValid(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
         sessionNamespaces.all { (_, namespace) -> namespace.accounts.all { accountId -> isAccountIdCAIP10Compliant(accountId) } }
 
     private fun areAccountsInMatchingNamespace(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
         sessionNamespaces.all { (namespaceKey, namespace) ->
-            if (isNamespaceValid(namespaceKey) && namespace.chains != null) {
+            if (isNamespaceRegexCompliant(namespaceKey) && namespace.chains != null) {
                 namespace.accounts.all { accountId -> accountId.contains(namespaceKey) && namespace.chains.contains(getChainFromAccount(accountId)) }
             } else {
                 namespace.accounts.all { accountId -> accountId.contains(namespaceKey) }
@@ -239,12 +239,12 @@ internal object SignValidator {
 
     private fun areChainsDefined(namespaces: Map<String, NamespaceVO>): Boolean =
         namespaces.filter { (namespaceKey, namespace) ->
-            isNamespaceValid(namespaceKey) && namespace.chains == null
+            isNamespaceRegexCompliant(namespaceKey) && namespace.chains == null
         }.isEmpty()
 
     private fun areChainsNotEmpty(namespaces: Map<String, NamespaceVO>): Boolean =
         namespaces.filter { (namespaceKey, namespace) ->
-            isNamespaceValid(namespaceKey) && namespace.chains != null && namespace.chains!!.isEmpty()
+            isNamespaceRegexCompliant(namespaceKey) && namespace.chains != null && namespace.chains!!.isEmpty()
         }.isEmpty()
 
     private fun areChainIdsValid(namespaces: Map<String, NamespaceVO>): Boolean =
@@ -262,6 +262,15 @@ internal object SignValidator {
         val elements = accountId.split(":")
         if (elements.isEmpty() || elements.size != 3) return accountId
         val (namespace: String, reference: String, _: String) = elements
+
+        return "$namespace:$reference"
+    }
+
+    @JvmSynthetic
+    internal fun getNamespaceKeyFromChainId(chainId: String): String {
+        val elements = chainId.split(":")
+        if (elements.isEmpty() || elements.size != 2) return chainId
+        val (namespace: String, reference: String) = elements
 
         return "$namespace:$reference"
     }

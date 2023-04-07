@@ -8,11 +8,9 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.engine.model.EngineDO
-import java.util.jar.Attributes.Name
 
 @JvmSynthetic
 internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponse(): JsonRpcResponse =
@@ -191,15 +189,9 @@ internal fun Map<String, Sign.Model.Namespace.Session>.toMapOfEngineNamespacesSe
     }
 
 @JvmSynthetic
-internal fun Map<String, Sign.Model.Namespace.Proposal>.toOptionalVO(): Map<String, NamespaceVO.Optional> =
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toVO(): Map<String, NamespaceVO.Proposal> =
     mapValues { (_, namespace) ->
-        NamespaceVO.Optional(namespace.chains, namespace.methods, namespace.events)
-    }
-
-@JvmSynthetic
-internal fun Map<String, Sign.Model.Namespace.Proposal>.toRequiredVO(): Map<String, NamespaceVO.Required> =
-    mapValues { (_, namespace) ->
-        NamespaceVO.Required(namespace.chains, namespace.methods, namespace.events)
+        NamespaceVO.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic

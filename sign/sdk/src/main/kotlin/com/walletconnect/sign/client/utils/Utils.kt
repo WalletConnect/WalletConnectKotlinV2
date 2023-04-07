@@ -1,9 +1,8 @@
 package com.walletconnect.sign.client.utils
 
+import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.client.mapper.toOptionalVO
-import com.walletconnect.sign.client.mapper.toRequiredVO
-import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.sign.client.mapper.toVO
 import com.walletconnect.sign.common.validator.SignValidator
 
 //normalize all namespaces
@@ -12,8 +11,8 @@ import com.walletconnect.sign.common.validator.SignValidator
 //build sessionnamespaces
 
 fun buildSessionNamespaces(proposal: Sign.Model.SessionProposal, supportedNamespaces: Map<String, Sign.Model.Namespace.Session>): Map<String, Sign.Model.Namespace.Session> {
-    val optionalNamespaces = proposal.optionalNamespaces.toOptionalVO()
-    val requiredNamespaces = proposal.requiredNamespaces.toRequiredVO()
+    val optionalNamespaces = proposal.optionalNamespaces.toVO()
+    val requiredNamespaces = proposal.requiredNamespaces.toVO()
     SignValidator.validateProposalNamespaces(optionalNamespaces) { error -> println("kobe; optional nm error: $error") /*todo: callback or throw*/ }
     SignValidator.validateProposalNamespaces(requiredNamespaces) { error -> println("kobe; required nm error: $error") /*todo: callback or throw*/ }
 
@@ -21,14 +20,23 @@ fun buildSessionNamespaces(proposal: Sign.Model.SessionProposal, supportedNamesp
     return mapOf("" to Sign.Model.Namespace.Session(listOf(), listOf(), listOf(), listOf()))
 }
 
-internal fun normalizeNamespaces(namespaces: Map<String, NamespaceVO>): Map<String, NamespaceVO> {
-    return mutableMapOf<String, NamespaceVO>().apply {
-        namespaces.forEach { (key, namespace) ->
-            if (SignValidator.)
+//internal fun normalizeNamespaces(namespaces: Map<String, NamespaceVO>): Map<String, NamespaceVO> {
+//    return mutableMapOf<String, NamespaceVO>().apply {
+//        namespaces.forEach { (key, namespace) ->
+//            val chains = if (CoreValidator.isChainIdCAIP2Compliant(key)) listOf(key) else namespace.chains
+//            val methods = namespace.methods
+//            val events = namespace.events
+//            val normalizedKey = normalizeKey(key)
+//
+//
+//            this[normalizedKey] to NamespaceVO.Optional
+//
+//
+//        }
+//    }.toMap()
+//}
 
-        }
-    }.toMap()
-}
+private fun normalizeKey(key: String) = if (CoreValidator.isChainIdCAIP2Compliant(key)) SignValidator.getNamespaceKeyFromChainId(key) else key
 
 
 //private fun mergeRequiredAndOptional(required: Map<String, Wallet.Model.Namespace.Session>, optional: Map<String, Wallet.Model.Namespace.Session>) =
