@@ -1,8 +1,9 @@
-@file:JvmSynthetic
-@file:Suppress("PackageDirectoryMismatch")
+@file:JvmName("CacaoSignerUtil")
+@file:Suppress("PackageDirectoryMismatch", "UNCHECKED_CAST")
 
-package com.walletconnect.android.cacao
+package com.walletconnect.android.utils.cacao
 
+import com.walletconnect.android.cacao.SignatureInterface
 import com.walletconnect.android.cacao.signature.ISignatureType
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.cacao.Cacao
@@ -10,7 +11,6 @@ import com.walletconnect.android.internal.common.cacao.eip191.EIP191Signer
 import com.walletconnect.android.internal.common.cacao.signature.toCacaoSignature
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.createType
-import kotlin.reflect.jvm.kotlinFunction
 
 interface CacaoSignerInterface<CoreSignature : SignatureInterface>
 
@@ -21,31 +21,32 @@ inline fun <CoreSignature : SignatureInterface, reified SDKSignature : CoreSigna
     type: ISignatureType,
 ): CoreSignature =
     when (type.header) {
-        SignatureType.EIP191.header, SignatureType.EIP1271.header -> {
+        SignatureType.EIP191.header, SignatureType.EIP1271.header ->
             Cacao.Signature(type.header, EIP191Signer.sign(message.toByteArray(), privateKey).toCacaoSignature()).run {
                 SDKSignature::class.constructors.first(KFunction<SDKSignature>::hasCorrectOrderedParametersInConstructor).call(t, s, m)
             }
-        }
         else -> throw Throwable("SignatureType not recognized")
     }
 
-fun <T : SignatureInterface> signCacao(clazz: Class<T>, message: String, privateKey: ByteArray, type: ISignatureType): SignatureInterface =
+fun <T : SignatureInterface> sign(clazz: Class<T>, message: String, privateKey: ByteArray, type: ISignatureType): T =
     when (type.header) {
         SignatureType.EIP191.header, SignatureType.EIP1271.header ->
             Cacao.Signature(type.header, EIP191Signer.sign(message.toByteArray(), privateKey).toCacaoSignature()).run {
-                clazz.constructors.first().kotlinFunction?.call(t, s, m) as SignatureInterface
+                clazz.kotlin.constructors.first(KFunction<T>::hasCorrectOrderedParametersInConstructor).call(t, s, m)
             }
         else -> throw Throwable("SignatureType not recognized")
     }
 
 fun <T : SignatureInterface> KFunction<T>.hasCorrectOrderedParametersInConstructor(): Boolean =
     parameters.takeIf { it.size == 3 }?.run {
-        val stringType = String::class.createType(nullable = false)
-        val nullableStringType = String::class.createType(nullable = true)
+        val stringType = String::class.createType(nullable = false).javaClass
+        val nullableStringType = String::class.createType(nullable = true).javaClass
 
-        val tExists = this.getOrNull(0)?.run { type == stringType && name == "t" } ?: false
-        val sExists = this.getOrNull(1)?.run { type == stringType && name == "s" } ?: false
-        val mExists = this.getOrNull(2)?.run { type == nullableStringType && name == "m" } ?: false
+        // Check each parameter in the constructor to see if it matches the expected type and name.
+        // The name of the parameter will either be the exact name when T is a data class, or arg{N} when T is a java class.
+        val tParameterExists = this.getOrNull(0)?.run { type.javaClass == stringType && name in listOf("t", "arg0") } ?: false
+        val sParameterExists = this.getOrNull(1)?.run { type.javaClass == stringType && name in listOf("s", "arg1") } ?: false
+        val mParameterExists = this.getOrNull(2)?.run { type.javaClass == nullableStringType && name in listOf("m", "arg2") } ?: false
 
-        tExists && sExists && mExists
+        tParameterExists && sParameterExists && mParameterExists
     } ?: false
