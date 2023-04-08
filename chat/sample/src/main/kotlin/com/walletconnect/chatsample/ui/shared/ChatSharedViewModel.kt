@@ -6,8 +6,8 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.android.cacao.sign
 import com.walletconnect.android.cacao.signature.SignatureType
+import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.chat.cacao.CacaoSigner
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatClient
