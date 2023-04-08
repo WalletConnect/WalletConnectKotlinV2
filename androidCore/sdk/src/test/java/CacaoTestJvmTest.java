@@ -1,10 +1,10 @@
-import com.walletconnect.android.cacao.CacaoSignerInterfaceKt;
 import com.walletconnect.android.cacao.signature.SignatureType;
 import com.walletconnect.android.internal.common.cacao.Cacao;
 import com.walletconnect.android.internal.common.cacao.CacaoKt;
 import com.walletconnect.android.internal.common.cacao.CacaoType;
 import com.walletconnect.android.internal.common.cacao.CacaoVerifier;
 import com.walletconnect.android.internal.common.model.ProjectId;
+import com.walletconnect.android.utils.cacao.CacaoSignerUtil;
 import com.walletconnect.util.UtilFunctionsKt;
 
 import org.junit.jupiter.api.Assertions;
@@ -40,7 +40,7 @@ class CacaoTestJvmTest {
 
         String chainName = "Ethereum";
         String message = CacaoKt.toCAIP122Message(payload, chainName);
-        SignatureTest signature = (SignatureTest) CacaoSignerInterfaceKt.signCacao(SignatureTest.class, message, privateKey, SignatureType.EIP191);
+        SignatureTest signature = CacaoSignerUtil.sign(SignatureTest.class, message, privateKey, SignatureType.EIP191);
         Cacao.Signature cacaoSig = new Cacao.Signature(signature.getT(), signature.getS(), signature.getM());
         Cacao cacao = new Cacao(CacaoType.EIP4361.toHeader(), payload, cacaoSig);
 
