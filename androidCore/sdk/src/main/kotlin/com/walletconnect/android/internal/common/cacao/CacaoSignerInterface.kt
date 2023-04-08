@@ -1,9 +1,8 @@
 @file:JvmName("CacaoSignerUtil")
 @file:Suppress("PackageDirectoryMismatch", "UNCHECKED_CAST") // Added to dismiss confusion. Cast to `T` always succeeds as Cacao.Signature implements ISignature.
 
-package com.walletconnect.android.utils.cacao
+package com.walletconnect.android.cacao
 
-import com.walletconnect.android.cacao.SignatureInterface
 import com.walletconnect.android.cacao.signature.ISignatureType
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.cacao.Cacao

@@ -1,10 +1,10 @@
+import com.walletconnect.android.cacao.CacaoSignerUtil;
 import com.walletconnect.android.cacao.signature.SignatureType;
 import com.walletconnect.android.internal.common.cacao.Cacao;
 import com.walletconnect.android.internal.common.cacao.CacaoKt;
 import com.walletconnect.android.internal.common.cacao.CacaoType;
 import com.walletconnect.android.internal.common.cacao.CacaoVerifier;
 import com.walletconnect.android.internal.common.model.ProjectId;
-import com.walletconnect.android.utils.cacao.CacaoSignerUtil;
 import com.walletconnect.util.UtilFunctionsKt;
 
 import org.junit.jupiter.api.Assertions;
