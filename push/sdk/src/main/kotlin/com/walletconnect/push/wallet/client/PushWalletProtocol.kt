@@ -11,7 +11,6 @@ import com.walletconnect.push.common.di.pushStorageModule
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.toClient
 import com.walletconnect.push.wallet.client.mapper.toClient
-import com.walletconnect.push.wallet.client.mapper.toClientEvent
 import com.walletconnect.push.wallet.client.mapper.toClientModel
 import com.walletconnect.push.wallet.client.mapper.toCommon
 import com.walletconnect.push.wallet.di.messageModule
@@ -52,7 +51,7 @@ class PushWalletProtocol : PushWalletInterface {
         pushWalletEngine.engineEvent.onEach { event ->
             when (event) {
                 is EngineDO.PushRequest -> delegate.onPushRequest(event.toClient())
-                is EngineDO.PushMessage -> delegate.onPushMessage(event.toClientEvent())
+                is EngineDO.PushRecord -> delegate.onPushMessage(event.toClient())
                 is SDKError -> delegate.onError(event.toClient())
             }
         }.launchIn(scope)
@@ -117,11 +116,11 @@ class PushWalletProtocol : PushWalletInterface {
         }
     }
 
-    override fun deletePushMessage(params: Push.Wallet.Params.DeleteMessage, onError: (Push.Model.Error) -> Unit) {
+    override fun deletePushMessage(params: Push.Wallet.Params.DeleteMessage, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         try {
-            pushWalletEngine.deleteMessage(params.id) { error -> onError(Push.Model.Error(error))}
+            pushWalletEngine.deleteMessage(params.id, onSuccess) { error -> onError(Push.Model.Error(error))}
         } catch (e: Exception) {
             onError(Push.Model.Error(e))
         }

@@ -7,12 +7,12 @@ import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.chat.jwt.ChatDidJwtClaims
 import com.walletconnect.foundation.util.jwt.encodeDidPkh
 
-internal class EncodeInviteKeyDidJwtPayloadUseCase(
+internal class EncodeUnregisterInviteKeyDidJwtPayloadUseCase(
     private val invitePublicKey: String,
     private val accountId: AccountId,
-) : EncodeDidJwtPayloadUseCase<ChatDidJwtClaims.InviteKey> {
-    override fun invoke(params: EncodeDidJwtPayloadUseCase.Params): ChatDidJwtClaims.InviteKey = with(params) {
-        ChatDidJwtClaims.InviteKey(
+) : EncodeDidJwtPayloadUseCase<ChatDidJwtClaims.UnregisterInviteKey> {
+    override fun invoke(params: EncodeDidJwtPayloadUseCase.Params): ChatDidJwtClaims.UnregisterInviteKey = with(params) {
+        ChatDidJwtClaims.UnregisterInviteKey(
             issuer = issuer,
             issuedAt = issuedAt,
             expiration = expiration,

@@ -39,7 +39,6 @@ import com.walletconnect.foundation.util.jwt.*
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import timber.log.Timber
 
 internal class ChatEngine(
     private val keyserverUrl: String,
@@ -128,7 +127,7 @@ internal class ChatEngine(
 
                 val didJwt = encodeDidJwt(
                     identityPrivateKey,
-                    EncodeInviteKeyDidJwtPayloadUseCase(encodeX25519DidKey(invitePublicKey.keyAsBytes), accountId),
+                    EncodeRegisterInviteKeyDidJwtPayloadUseCase(encodeX25519DidKey(invitePublicKey.keyAsBytes), accountId),
                     EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
                 ).getOrElse() { error ->
                     onFailure(error)
@@ -226,7 +225,7 @@ internal class ChatEngine(
 
                 val didJwt = encodeDidJwt(
                     identityPrivateKey,
-                    EncodeInviteKeyDidJwtPayloadUseCase(encodeX25519DidKey(invitePublicKey.keyAsBytes), accountId),
+                    EncodeUnregisterInviteKeyDidJwtPayloadUseCase(encodeX25519DidKey(invitePublicKey.keyAsBytes), accountId),
                     EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
                 )
                     .getOrElse() { error ->
@@ -552,6 +551,7 @@ internal class ChatEngine(
                 logger.error(error)
                 return@onInviteRequest
             }
+        if (claims.action != ChatDidJwtClaims.InviteProposal.ACT) return logger.error(InvalidActClaims(ChatDidJwtClaims.InviteProposal.ACT))
 
         scope.launch {
             val inviterAccountId = resolveIdentity(claims.issuer)
@@ -588,6 +588,7 @@ internal class ChatEngine(
         logger.log("Message received")
         val claims = extractVerifiedDidJwtClaims<ChatDidJwtClaims.ChatMessage>(params.messageAuth)
             .getOrElse() { error -> return@onMessage logger.error(error) }
+        if (claims.action != ChatDidJwtClaims.ChatMessage.ACT) return logger.error(InvalidActClaims(ChatDidJwtClaims.ChatMessage.ACT))
 
         scope.launch {
             val authorAccountId = resolveIdentity(claims.issuer)
@@ -680,6 +681,8 @@ internal class ChatEngine(
 //          invitesRepository.updateStatusByInviteId(wcResponse.response.id, InviteStatus.?????????)
             return@onInviteAccepted
         }
+        if (claims.action != ChatDidJwtClaims.InviteApproval.ACT) return logger.error(InvalidActClaims(ChatDidJwtClaims.InviteApproval.ACT))
+
         val peerPubKey = decodeX25519DidKey(claims.subject)
 
         try {
