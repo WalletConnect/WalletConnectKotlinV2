@@ -24,11 +24,11 @@ object RelayClient : BaseRelayClient(), RelayConnectionInterface {
     private val isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     @JvmSynthetic
-    internal fun initialize(relayServerUrl: String, connectionType: ConnectionType, onError: (Throwable) -> Unit) {
+    internal fun initialize(relayServerUrl: String, connectionType: ConnectionType, networkClientTimeout: NetworkClientTimeout? = null, onError: (Throwable) -> Unit) {
         require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
         val serverUrl = relayServerUrl.addUserAgent(BuildConfig.SDK_VERSION)
-        wcKoinApp.modules(coreAndroidNetworkModule(serverUrl, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION))
+        wcKoinApp.modules(coreAndroidNetworkModule(serverUrl, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION, networkClientTimeout))
         relayService = wcKoinApp.koin.get(named(AndroidCommonDITags.RELAY_SERVICE))
 
         collectConnectionErrors(onError)

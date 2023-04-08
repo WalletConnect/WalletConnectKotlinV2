@@ -1,19 +1,26 @@
 package com.walletconnect.push.common
 
+import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.cacao.SignatureInterface
 
 object Push {
 
     sealed class Model {
 
-        data class Message(val title: String, val body: String, val icon: String?, val url: String?): Wallet.Event()
+        data class Message(val title: String, val body: String, val icon: String?, val url: String?): Model()
 
-        data class MessageRecord(val id: String, val topic: String, val publishedAt: Long, val message: Model.Message): Wallet.Event()
+        data class MessageRecord(val id: String, val topic: String, val publishedAt: Long, val message: Model.Message): Model()
 
-        data class Subscription(val requestId: Long, val topic: String, val account: String, val relay: Relay, val metadata: Core.Model.AppMetaData?): Model() {
+        data class Subscription(val requestId: Long, val topic: String, val account: String, val relay: Relay, val metadata: Core.Model.AppMetaData): Model() {
 
             data class Relay(val protocol: String, val data: String?)
+        }
+
+        object Cacao : Model() {
+            @Keep
+            data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
         }
 
         data class Error(val throwable: Throwable) : Model()
@@ -53,7 +60,7 @@ object Push {
 
             data class Request(val id: Long, val metadata: Core.Model.AppMetaData): Event()
 
-            data class Message(val title: String, val body: String, val icon: String?, val url: String?): Event()
+            data class Message(val id: String, val topic: String, val publishedAt: Long, val message: Model.Message): Event()
 
             data class Delete(val topic: String): Event()
         }
@@ -62,7 +69,7 @@ object Push {
 
             class Init(val core: CoreClient): Params()
 
-            data class Approve(val id: Long): Params()
+            data class Approve(val id: Long, val onSign: (String) -> Model.Cacao.Signature): Params()
 
             data class Reject(val id: Long, val reason: String): Params()
 

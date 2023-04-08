@@ -26,6 +26,7 @@ import com.walletconnect.sample.wallet.ui.routes.composable_routes.connection_de
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.get_started.GetStartedRoute
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.notifications.NotificationsScreenRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.web3inbox.Web3InboxRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.auth_request.AuthRequestRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.paste_uri.PasteUriRoute
@@ -66,7 +67,7 @@ fun Web3WalletNavGraph(
                     composable(Route.GetStarted.path) {
                         GetStartedRoute(navController)
                     }
-                    composable(Route.Connections.path, deepLinks = listOf(NavDeepLink("wc:/{topic}@2"))) {
+                    composable(Route.Connections.path, deepLinks = listOf(NavDeepLink("wc://{topic}@2"))) {
                         ConnectionsRoute(navController, connectionsViewModel, web3walletViewModel)
                     }
                     composable("${Route.ConnectionDetails.path}/{connectionId}", arguments = listOf(
@@ -76,6 +77,9 @@ fun Web3WalletNavGraph(
                     }
                     composable(Route.Web3Inbox.path) {
                         Web3InboxRoute(web3InboxState)
+                    }
+                    composable(Route.Notifications.path) {
+                        NotificationsScreenRoute(navController)
                     }
                     bottomSheet(Route.ScanUri.path) {
                         ScanUriRoute(navController, sheetState, onScanSuccess = { web3walletViewModel.pair(it) })
