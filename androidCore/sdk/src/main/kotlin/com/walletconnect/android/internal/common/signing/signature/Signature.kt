@@ -1,6 +1,6 @@
-package com.walletconnect.android.internal.common.cacao.signature
+package com.walletconnect.android.internal.common.signing.signature
 
-import com.walletconnect.android.internal.common.cacao.guaranteeNoHexPrefix
+import com.walletconnect.android.internal.common.signing.cacao.guaranteeNoHexPrefix
 import com.walletconnect.util.hexToBytes
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.utils.HexPrefix

@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.internal.common.cacao
+package com.walletconnect.android.internal.common.signing.cacao
 
 data class Issuer(val value: String) {
     val chainId
