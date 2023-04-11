@@ -271,13 +271,6 @@ class SignProtocol : SignInterface {
             onError(Sign.Model.Error(error))
         }
     }
-
-//    @Throws(IllegalStateException::class)
-//    override fun buildSessionNamespaces(proposerPublicKey: String, supportedNamespaces: Map<String, Sign.Model.Namespace.Session>): Map<String, Sign.Model.Namespace.Session> {
-//        checkEngineInitialization()
-//        return com.walletconnect.sign.utils.buildSessionNamespaces(proposerPublicKey, supportedNamespaces.toMapOfEngineNamespacesSession().toMapOfNamespacesVOSession()).toMapOfClientNamespacesSession()
-//    }
-
     @Throws(IllegalStateException::class)
     override fun getListOfActiveSessions(): List<Sign.Model.Session> {
         checkEngineInitialization()
