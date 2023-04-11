@@ -2,7 +2,7 @@
 
 package com.walletconnect.chat.client.mapper
 
-import com.walletconnect.android.internal.common.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError

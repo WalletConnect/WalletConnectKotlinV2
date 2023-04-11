@@ -2,8 +2,8 @@
 
 package com.walletconnect.auth.signature.cacao
 
-import com.walletconnect.android.cacao.CacaoSignerInterface
 import com.walletconnect.android.cacao.signature.ISignatureType
+import com.walletconnect.android.utils.cacao.CacaoSignerInterface
 import com.walletconnect.auth.client.Auth
 
 /// Note: Szymon - Only added to have backwards compatibility. Newer SDKs should only add CacaoSigner object below.

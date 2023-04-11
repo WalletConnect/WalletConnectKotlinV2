@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
-import com.walletconnect.android.cacao.sign
 import com.walletconnect.android.cacao.signature.SignatureType
+import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.common.cacao.CacaoSigner
 import com.walletconnect.push.wallet.client.PushWalletClient

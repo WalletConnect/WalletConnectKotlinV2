@@ -1,10 +1,10 @@
-package com.walletconnect.android.internal.common.cacao
+package com.walletconnect.android.internal.common.signing.cacao
 
 import androidx.annotation.Keep
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.cacao.SignatureInterface
-import com.walletconnect.android.internal.common.cacao.signature.Signature
+import com.walletconnect.android.internal.common.signing.signature.Signature
 
 @JsonClass(generateAdapter = true)
 data class Cacao(
@@ -67,7 +67,6 @@ data class Cacao(
 @JvmSynthetic
 internal fun Cacao.Signature.toSignature(): Signature = Signature.fromString(s)
 
-@JvmSynthetic
 fun Cacao.Payload.toCAIP122Message(chainName: String = "Ethereum"): String {
     var message = "$domain wants you to sign in with your $chainName account:\n${Issuer(iss).address}\n"
     if (statement != null) message += "\n$statement\n"
