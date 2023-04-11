@@ -165,7 +165,7 @@ fun DependencyHandlerScope.fcm() {
 }
 
 fun DependencyHandlerScope.compose() {
-    "api"(platform("androidx.compose:compose-bom:2022.11.00"))
+    "api"(platform("androidx.compose:compose-bom:$composeBomVersion"))
     "api"("androidx.compose.ui:ui")
     "api"("androidx.compose.ui:ui-tooling-preview")
     "api"("androidx.compose.material:material")

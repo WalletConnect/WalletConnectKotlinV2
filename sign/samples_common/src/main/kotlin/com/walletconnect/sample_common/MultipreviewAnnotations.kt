@@ -1,5 +1,3 @@
-package com.walletconnect.sample_common
-
 /*
  * Copyright 2022 The Android Open Source Project
  *
@@ -15,6 +13,8 @@ package com.walletconnect.sample_common
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package com.walletconnect.sample_common
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.Preview
