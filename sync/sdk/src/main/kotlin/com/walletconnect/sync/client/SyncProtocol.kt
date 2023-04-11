@@ -1,17 +1,21 @@
 package com.walletconnect.sync.client
 
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.sync.client.mapper.toClient
 import com.walletconnect.sync.client.mapper.toClientError
+import com.walletconnect.sync.client.mapper.toCommon
+import com.walletconnect.sync.common.exception.InvalidAccountIdException
 import com.walletconnect.sync.common.model.Events
+import com.walletconnect.sync.di.commonModule
 import com.walletconnect.sync.di.engineModule
 import com.walletconnect.sync.engine.domain.SyncEngine
 import kotlinx.coroutines.launch
 
-class SyncProtocol : SyncInterface {
+internal class SyncProtocol : SyncInterface {
     private lateinit var syncEngine: SyncEngine
 
     companion object {
@@ -22,6 +26,7 @@ class SyncProtocol : SyncInterface {
         try {
             wcKoinApp.run {
                 modules(
+                    commonModule(),
                     engineModule(),
                 )
             }
@@ -33,6 +38,7 @@ class SyncProtocol : SyncInterface {
         }
     }
 
+    @Throws(IllegalStateException::class)
     override fun setSyncDelegate(delegate: SyncInterface.SyncDelegate): Unit = wrapWithEngineInitializationCheck() {
         scope.launch {
             syncEngine.events.collect { event ->
@@ -45,28 +51,40 @@ class SyncProtocol : SyncInterface {
         }
     }
 
-    override fun getMessage(params: Sync.Params.GetMessage): String? = wrapWithEngineInitializationCheck() {
-        TODO("Not yet implemented")
+    @Throws(IllegalStateException::class)
+    override fun getMessage(params: Sync.Params.GetMessage): String = wrapWithEngineInitializationCheck() {
+        validateAccountId(params.accountId)
+        syncEngine.getMessage(params.accountId)
     }
 
+    @Throws(IllegalStateException::class)
     override fun register(params: Sync.Params.Register, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
-        TODO("Not yet implemented")
+        validateAccountId(params.accountId)
+        syncEngine.register(params.accountId, params.signature.toCommon())
     }
 
+    @Throws(IllegalStateException::class)
     override fun create(params: Sync.Params.Create, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
-        TODO("Not yet implemented")
+        validateAccountId(params.accountId)
+        syncEngine.create(params.accountId, params.store.toCommon())
     }
 
+    @Throws(IllegalStateException::class)
     override fun set(params: Sync.Params.Set, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
-        TODO("Not yet implemented")
+        validateAccountId(params.accountId)
+        syncEngine.set(params.accountId, params.store.toCommon(), params.key, params.value)
     }
 
+    @Throws(IllegalStateException::class)
     override fun delete(params: Sync.Params.Delete, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
-        TODO("Not yet implemented")
+        validateAccountId(params.accountId)
+        syncEngine.delete(params.accountId, params.store.toCommon(), params.key)
     }
 
+    @Throws(IllegalStateException::class)
     override fun getStores(params: Sync.Params.GetStores): Sync.Type.StoreMap? = wrapWithEngineInitializationCheck() {
-        TODO("Not yet implemented")
+        validateAccountId(params.accountId)
+        syncEngine.getStores(params.accountId)?.toClient()
     }
 
     @Throws(IllegalStateException::class)
@@ -85,4 +103,6 @@ class SyncProtocol : SyncInterface {
             wrapWithRunCatching(onError) { block() }
         }
     }
+
+    private fun validateAccountId(accountId: AccountId) = if (!accountId.isValid()) throw InvalidAccountIdException(accountId) else Unit
 }
