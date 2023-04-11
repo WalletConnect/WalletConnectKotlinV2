@@ -58,7 +58,7 @@ internal class SyncProtocol : SyncInterface {
 
     @Throws(IllegalStateException::class)
     override fun register(params: Sync.Params.Register, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
-        syncEngine.register(params.accountId, params.signature.toCommon(), onSuccess) { error -> onError(Sync.Model.Error(error)) }
+        syncEngine.register(params.accountId, params.signature.s, params.signatureType, onSuccess) { error -> onError(Sync.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
