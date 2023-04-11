@@ -3,6 +3,10 @@ package com.walletconnect.android.internal.common.cacao
 import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.model.ProjectId
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
+import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
 import com.walletconnect.android.utils.cacao.CacaoSignerInterface
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.util.hexToBytes

@@ -3,7 +3,7 @@ package com.walletconnect.auth.client
 import androidx.annotation.Keep
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.SignatureInterface
-import com.walletconnect.android.internal.common.cacao.Issuer
+import com.walletconnect.android.internal.common.signing.cacao.Issuer
 
 object Auth {
 

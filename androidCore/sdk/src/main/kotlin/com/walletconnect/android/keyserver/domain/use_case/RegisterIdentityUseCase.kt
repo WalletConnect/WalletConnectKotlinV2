@@ -1,6 +1,6 @@
 package com.walletconnect.android.keyserver.domain.use_case
 
-import com.walletconnect.android.internal.common.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.keyserver.data.service.KeyServerService
 import com.walletconnect.android.keyserver.model.KeyServerBody
 

@@ -1,9 +1,9 @@
 package com.walletconnect.auth.client.mapper
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.internal.common.cacao.Cacao
-import com.walletconnect.android.internal.common.cacao.Cacao.Payload.Companion.ISO_8601_PATTERN
-import com.walletconnect.android.internal.common.cacao.Issuer
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.ISO_8601_PATTERN
+import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.engine.mapper.toCacaoPayload
 import org.junit.jupiter.api.Test
