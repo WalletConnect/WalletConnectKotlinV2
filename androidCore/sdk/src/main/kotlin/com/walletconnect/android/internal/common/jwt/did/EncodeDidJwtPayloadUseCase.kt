@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.internal.common.jwt
+package com.walletconnect.android.internal.common.jwt.did
 
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.util.jwt.JwtClaims
@@ -9,6 +9,7 @@ import com.walletconnect.foundation.util.jwt.jwtIatAndExp
 import java.util.concurrent.TimeUnit
 
 interface EncodeDidJwtPayloadUseCase<R: JwtClaims> {
+
     operator fun invoke(params: Params): R
 
     data class Params(val identityPublicKey: PublicKey, val keyserverUrl: String) {

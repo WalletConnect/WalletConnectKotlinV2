@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.internal.common.jwt
+package com.walletconnect.android.internal.common.jwt.clientid
 
 import com.walletconnect.android.internal.common.exception.CannotFindKeyPairException
 import com.walletconnect.android.internal.common.storage.KeyStore

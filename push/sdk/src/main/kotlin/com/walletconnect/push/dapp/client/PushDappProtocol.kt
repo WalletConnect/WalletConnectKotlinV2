@@ -5,6 +5,7 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push
+import com.walletconnect.push.common.di.commonModule
 import com.walletconnect.push.common.di.pushJsonRpcModule
 import com.walletconnect.push.common.di.pushStorageModule
 import com.walletconnect.push.common.model.EngineDO
@@ -16,6 +17,7 @@ import com.walletconnect.push.dapp.di.dappEngineModule
 import com.walletconnect.push.dapp.engine.PushDappEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.runBlocking
 
 internal class PushDappProtocol : PushDappInterface {
     private lateinit var pushDappEngine: PushDappEngine
@@ -31,6 +33,7 @@ internal class PushDappProtocol : PushDappInterface {
                 pushStorageModule(DBUtils.PUSH_DAPP_SDK_DB_NAME),
                 dappEngineModule(),
                 castModule(init.castUrl),
+                commonModule()
             )
 
             pushDappEngine = wcKoinApp.koin.get()
@@ -80,12 +83,14 @@ internal class PushDappProtocol : PushDappInterface {
     override fun getActiveSubscriptions(): Map<String, Push.Model.Subscription> {
         checkEngineInitialization()
 
-        return pushDappEngine.getListOfActiveSubscriptions().mapValues { (_, subscription) ->
-            subscription.toClient()
+        return runBlocking {
+            pushDappEngine.getListOfActiveSubscriptions().mapValues { (_, subscription) ->
+                subscription.toClient()
+            }
         }
     }
 
-    override fun delete(params: Push.Dapp.Params.Delete, onError: (Push.Model.Error) -> Unit) {
+    override fun deleteSubscription(params: Push.Dapp.Params.Delete, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         try {

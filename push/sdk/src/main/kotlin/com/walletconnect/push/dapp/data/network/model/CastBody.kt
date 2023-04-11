@@ -11,6 +11,8 @@ sealed class CastBody {
         val account: String,
         @Json(name = "symKey")
         val symKey: String,
+        @Json(name = "subscriptionAuth")
+        val subscriptionAuth: String,
         @Json(name = "relayUrl")
         val relayUrl: String
     ): CastBody()

@@ -156,6 +156,10 @@ fun DependencyHandlerScope.web3jCrypto() {
     "api"("org.web3j:crypto:$web3jVersion")
 }
 
+fun DependencyHandlerScope.kethereumBip32() {
+    "api"("com.github.komputing:kethereum:$kethereumVersion")
+}
+
 fun DependencyHandlerScope.fcm() {
     "implementation"("com.google.firebase:firebase-messaging:$fcmVersion")
 }

@@ -271,7 +271,7 @@ AuthClient.formatMessage(formatMessage)
 //Web3Wallet
 val payloadParams: Wallet.Model.PayloadParams  = //PayloadParams received in the onAuthRequest callback
 val issuer = //MUST be the same as send with the respond methods and follows: https://github.com/w3c-ccg/did-pkh/blob/main/did-pkh-method-draft.md
-val formatMessage = Auth.Params.FormatMessage(Wallet.Params.FormatMessage(payloadParams, issuer))
+val formatMessage = Wallet.Params.FormatMessage(Wallet.Params.FormatMessage(payloadParams, issuer))
 Web3Wallet.formatMessage(formatMessage)
 ```
 

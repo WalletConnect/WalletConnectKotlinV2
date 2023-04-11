@@ -36,12 +36,13 @@ android {
     }
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
+        freeCompilerArgs = listOf("-Xcontext-receivers")
     }
     buildFeatures {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.0-alpha02"
+        kotlinCompilerExtensionVersion = composeCompilerVersion
     }
 }
 
