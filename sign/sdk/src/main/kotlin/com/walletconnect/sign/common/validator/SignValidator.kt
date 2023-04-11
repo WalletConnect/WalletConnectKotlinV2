@@ -50,6 +50,16 @@ internal object SignValidator {
     }
 
     @JvmSynthetic
+    internal inline fun validateSupportedNamespace(
+        sessionNamespaces: Map<String, NamespaceVO.Session>,
+        requiredNamespaces: Map<String, NamespaceVO.Proposal>,
+        onError: (ValidationError) -> Unit,
+    ) {
+        validateSessionNamespace(sessionNamespaces, requiredNamespaces) { error -> onError(error) }
+        if (!areAllChainsApproved(sessionNamespaces, requiredNamespaces)) onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
+    }
+
+    @JvmSynthetic
     internal inline fun validateProperties(properties: Map<String, String>, onError: (ValidationError) -> Unit) {
         if (properties.isEmpty()) {
             onError(ValidationError.InvalidSessionProperties)
@@ -150,6 +160,23 @@ internal object SignValidator {
         )
     }
 
+    private fun allAccountsWithChains(namespaces: Map<String, NamespaceVO.Session>): Map<String, List<String>> {
+        val accountsByChains = namespaces
+            .filter { (namespaceKey, namespace) -> isNamespaceRegexCompliant(namespaceKey) && namespace.chains != null }
+            .flatMap { (_, namespace) -> namespace.accounts.map { account -> account to namespace.chains!! } }
+            .toMap()
+
+        val accountsByNamespaceKey = namespaces
+            .filter { (namespaceKey, namespace) -> isChainIdCAIP2Compliant(namespaceKey) && namespace.chains == null }
+            .flatMap { (namespaceKey, namespace) -> namespace.accounts.map { account -> account to listOf(namespaceKey) } }
+            .toMap()
+
+        return (accountsByChains.asSequence() + accountsByNamespaceKey.asSequence())
+            .distinct()
+            .groupBy({ it.key }, { it.value })
+            .mapValues { (_, values) -> values.flatten() }
+    }
+
     private fun allMethodsWithChains(namespaces: Map<String, NamespaceVO>): Map<String, List<String>> {
         val methodsByChains = namespaces
             .filter { (namespaceKey, namespace) -> isNamespaceRegexCompliant(namespaceKey) && namespace.chains != null }
@@ -219,6 +246,15 @@ internal object SignValidator {
                 return false
             }
         }
+        return true
+    }
+
+    internal fun areAllChainsApproved(sessionNamespaces: Map<String, NamespaceVO.Session>, requiredNamespaces: Map<String, NamespaceVO.Proposal>): Boolean {
+        requiredNamespaces
+            .filter { (key, namespace) -> !isChainIdCAIP2Compliant(key) && namespace.chains != null }
+            .forEach { (key, namespace) ->
+                if (!sessionNamespaces[key]?.accounts!!.map { getChainFromAccount(it) }.containsAll(namespace.chains!!)) return false
+            }
         return true
     }
 

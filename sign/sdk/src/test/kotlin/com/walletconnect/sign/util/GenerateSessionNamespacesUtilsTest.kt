@@ -637,6 +637,38 @@ class GenerateSessionNamespacesUtilsTest {
     }
 
     @Test
+    fun `should throw error - config 6 - partial accounts for required chains`() {
+        val required = mapOf(
+            "eip155:1" to Sign.Model.Namespace.Proposal(methods = listOf("eth_sendTransaction", "personal_sign"), events = listOf("chainChanged")),
+            "eip155:2" to Sign.Model.Namespace.Proposal(methods = listOf("eth_sendTransaction", "personal_sign"), events = listOf("chainChanged"))
+        )
+        val optional = mapOf(
+            "eip155" to Sign.Model.Namespace.Proposal(
+                chains = listOf("eip155:1", "eip155:2"),
+                methods = listOf(
+                    "personal_sign",
+                    "eth_sendTransaction",
+                    "eth_signTransaction",
+                    "eth_signTypedData",
+                ),
+                events = listOf("chainChanged", "accountChanged")
+            ),
+        )
+        val eipAccounts = listOf("eip155:2:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
+        val supported = mapOf(
+            "eip155" to Sign.Model.Namespace.Session(
+                chains = listOf("eip155:1", "eip155:2"),
+                methods = listOf("personal_sign", "eth_sendTransaction"),
+                events = listOf("chainChanged"),
+                accounts = eipAccounts
+            )
+        )
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val exception = assertThrows<Exception> { generateApprovedNamespaces(proposal, supported) }
+        assertEquals("Accounts must be defined in matching namespace", "${exception.message}")
+    }
+
+    @Test
     fun `should throw error - config 7 - caip-10 is not supported`() {
         val required = mapOf(
             "eip155:1" to Sign.Model.Namespace.Proposal(methods = listOf("eth_sendTransaction", "personal_sign"), events = listOf("chainChanged")),

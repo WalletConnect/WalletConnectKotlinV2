@@ -18,7 +18,7 @@ fun generateApprovedNamespaces(
 
     SignValidator.validateProposalNamespaces(normalizedRequiredNamespaces) { error -> throw Exception(error.message) }
     SignValidator.validateProposalNamespaces(normalizedOptionalNamespaces) { error -> throw Exception(error.message) }
-    SignValidator.validateSessionNamespace(supportedNamespacesVO, normalizedRequiredNamespaces) { error -> throw Exception(error.message) }
+    SignValidator.validateSupportedNamespace(supportedNamespacesVO, normalizedRequiredNamespaces) { error -> throw Exception(error.message) }
 
     val approvedNamespaces = mutableMapOf<String, NamespaceVO.Session>()
     normalizedRequiredNamespaces.forEach { (key, requiredNamespace) ->
