@@ -189,9 +189,21 @@ internal fun Map<String, Sign.Model.Namespace.Session>.toMapOfEngineNamespacesSe
     }
 
 @JvmSynthetic
-internal fun Map<String, Sign.Model.Namespace.Proposal>.toVO(): Map<String, NamespaceVO.Proposal> =
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toProposalNamespacesVO(): Map<String, NamespaceVO.Proposal> =
     mapValues { (_, namespace) ->
         NamespaceVO.Proposal(namespace.chains, namespace.methods, namespace.events)
+    }
+
+@JvmSynthetic
+internal fun Map<String, Sign.Model.Namespace.Session>.toSessionNamespacesVO(): Map<String, NamespaceVO.Session> =
+    mapValues { (_, namespace) ->
+        NamespaceVO.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
+    }
+
+@JvmSynthetic
+internal fun Map<String, NamespaceVO.Session>.toClient(): Map<String, Sign.Model.Namespace.Session> =
+    mapValues { (_, namespace) ->
+        Sign.Model.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic

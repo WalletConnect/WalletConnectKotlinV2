@@ -42,7 +42,7 @@ internal object SignValidator {
             !areChainIdsValid(sessionNamespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_CAIP_2_MESSAGE))
             !areChainsInMatchingNamespace(sessionNamespaces) -> onError(ValidationError.UnsupportedChains(NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE))
             !areAccountIdsValid(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE))
-            !areAccountsInMatchingNamespace(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
+            !areAccountsInMatchingNamespaceAndChains(sessionNamespaces) -> onError(ValidationError.UserRejectedChains(NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE))
             !areAllNamespacesApproved(sessionNamespaces.keys, requiredNamespaces.keys) -> onError(ValidationError.UserRejected)
             !areAllMethodsApproved(allMethodsWithChains(sessionNamespaces), allMethodsWithChains(requiredNamespaces)) -> onError(ValidationError.UserRejectedMethods)
             !areAllEventsApproved(allEventsWithChains(sessionNamespaces), allEventsWithChains(requiredNamespaces)) -> onError(ValidationError.UserRejectedEvents)
@@ -231,7 +231,7 @@ internal object SignValidator {
     private fun areAccountIdsValid(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
         sessionNamespaces.all { (_, namespace) -> namespace.accounts.all { accountId -> isAccountIdCAIP10Compliant(accountId) } }
 
-    private fun areAccountsInMatchingNamespace(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
+    private fun areAccountsInMatchingNamespaceAndChains(sessionNamespaces: Map<String, NamespaceVO.Session>): Boolean =
         sessionNamespaces.all { (namespaceKey, namespace) ->
             if (isNamespaceRegexCompliant(namespaceKey) && namespace.chains != null) {
                 namespace.accounts.all { accountId -> accountId.contains(namespaceKey) && namespace.chains.contains(getChainFromAccount(accountId)) }
