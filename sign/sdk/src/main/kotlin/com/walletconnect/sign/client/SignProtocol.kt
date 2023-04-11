@@ -15,7 +15,6 @@ import com.walletconnect.sign.di.jsonRpcModule
 import com.walletconnect.sign.di.storageModule
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
-import com.walletconnect.sign.engine.model.mapper.toMapOfNamespacesVOSession
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
