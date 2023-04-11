@@ -2,6 +2,7 @@ plugins {
     id("com.android.library")
     kotlin("android")
     kotlin("kapt")
+    id("com.squareup.sqldelight")
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
 }
@@ -37,6 +38,14 @@ android {
 
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
+    }
+}
+
+sqldelight {
+    database("SyncDatabase") {
+        packageName = "com.walletconnect.sync"
+        schemaOutputDirectory = file("src/debug/sqldelight/databases")
+        verifyMigrations = true
     }
 }
 
