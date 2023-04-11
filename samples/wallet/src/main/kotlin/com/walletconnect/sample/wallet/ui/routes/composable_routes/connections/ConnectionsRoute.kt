@@ -37,6 +37,7 @@ import com.walletconnect.sample.wallet.ui.common.findActivity
 import com.walletconnect.sample.wallet.ui.common.themedColor
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.R
+import com.walletconnect.sample.wallet.ui.common.WCTopAppBar
 
 @Composable
 fun ConnectionsRoute(navController: NavController, connectionsViewModel: ConnectionsViewModel, web3WalletViewModel: Web3WalletViewModel) {
@@ -62,13 +63,8 @@ fun ConstraintLayoutScope.Title(titleRef: ConstrainedLayoutReference) {
     Column(modifier = Modifier.constrainAs(titleRef) {
         top.linkTo(parent.top, margin = 0.dp)
         start.linkTo(parent.start)
-        end.linkTo(parent.end)
     }) {
-        Row {
-            Spacer(modifier = Modifier.width(32.dp))
-            Text(text = "Connections", style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 34.sp, color = themedColor(darkColor = 0xFFE5E7E7, lightColor = 0xFF141414)))
-            Spacer(modifier = Modifier.weight(1.0f))
-        }
+        WCTopAppBar(text = "Connections")
     }
 }
 
@@ -87,7 +83,17 @@ fun ConstraintLayoutScope.Buttons(navController: NavController, buttonsRef: Cons
                 .clickable {
                     navController.navigate(Route.Web3Inbox.path)
                 }) {
-                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.paper_plane_logo), contentDescription = "Scan QRCode Icon", tint = iconTint)
+                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.paper_plane_logo), contentDescription = "Paper Plane Icon", tint = iconTint)
+            }
+            Spacer(modifier = Modifier.width(20.dp))
+            ConnectionsButton(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable {
+                        navController.navigate(Route.Notifications.path)
+                    }
+            ) {
+                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.ic_notification), contentDescription = "Notifications Icon", tint = iconTint)
             }
             Spacer(modifier = Modifier.weight(1.0f))
             ConnectionsButton(modifier = Modifier
@@ -95,7 +101,7 @@ fun ConstraintLayoutScope.Buttons(navController: NavController, buttonsRef: Cons
                 .clickable {
                     navController.navigate(Route.PasteUri.path)
                 }) {
-                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.paste_icon), contentDescription = "Scan QRCode Icon", tint = iconTint)
+                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.paste_icon), contentDescription = "Paste Uri Icon", tint = iconTint)
             }
             Spacer(modifier = Modifier.width(20.dp))
             ConnectionsButton(modifier = Modifier
@@ -141,8 +147,20 @@ fun ConnectionsLazyColumn(
         modifier = modifier
             .padding(vertical = 6.dp, horizontal = 10.dp)
             .clip(shape = shape)
-            .background(color = themedColor(darkColor = Color(0xFFE4E4E7).copy(alpha = .06f), lightColor = Color(0xFF505059).copy(.03f)))
-            .border(1.dp, color = themedColor(darkColor = Color(0xFFE4E4E7).copy(alpha = .06f), lightColor = Color(0xFF505059).copy(.03f)), shape = shape)
+            .background(
+                color = themedColor(
+                    darkColor = Color(0xFFE4E4E7).copy(alpha = .06f),
+                    lightColor = Color(0xFF505059).copy(.03f)
+                )
+            )
+            .border(
+                1.dp,
+                color = themedColor(
+                    darkColor = Color(0xFFE4E4E7).copy(alpha = .06f),
+                    lightColor = Color(0xFF505059).copy(.03f)
+                ),
+                shape = shape
+            )
             .padding(vertical = 1.dp, horizontal = 2.dp),
     ) {
         connections.forEach { connectionUI ->
@@ -166,7 +184,11 @@ fun Connection(
         val iconModifier = Modifier
             .size(60.dp)
             .clip(CircleShape)
-            .border(width = 1.dp, shape = CircleShape, color = themedColor(darkColor = Color(0xFF191919), lightColor = Color(0xFFE0E0E0)))
+            .border(
+                width = 1.dp,
+                shape = CircleShape,
+                color = themedColor(darkColor = Color(0xFF191919), lightColor = Color(0xFFE0E0E0))
+            )
         if (connectionUI.icon?.isNotBlank() == true) {
             GlideImage(modifier = iconModifier, imageModel = { connectionUI.icon })
         } else {

@@ -1,10 +1,10 @@
 package com.walletconnect.android.internal.common.cacao
 
 import com.walletconnect.android.BuildConfig
-import com.walletconnect.android.cacao.CacaoSignerInterface
-import com.walletconnect.android.cacao.sign
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.model.ProjectId
+import com.walletconnect.android.utils.cacao.CacaoSignerInterface
+import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.util.hexToBytes
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

@@ -2,7 +2,7 @@ package com.walletconnect.sample.wallet.ui.routes.dialog_routes.auth_request
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.walletconnect.android.cacao.sign
+import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.sample.wallet.domain.ISSUER
 import com.walletconnect.sample.wallet.domain.PRIVATE_KEY_1
 import com.walletconnect.sample.wallet.domain.WCDelegate

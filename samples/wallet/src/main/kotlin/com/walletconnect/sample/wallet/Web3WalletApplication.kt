@@ -8,9 +8,9 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.cacao.sign
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.relay.ConnectionType
+import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.wallet.client.PushWalletClient
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate

@@ -67,7 +67,6 @@ data class Cacao(
 @JvmSynthetic
 internal fun Cacao.Signature.toSignature(): Signature = Signature.fromString(s)
 
-@JvmSynthetic
 fun Cacao.Payload.toCAIP122Message(chainName: String = "Ethereum"): String {
     var message = "$domain wants you to sign in with your $chainName account:\n${Issuer(iss).address}\n"
     if (statement != null) message += "\n$statement\n"
