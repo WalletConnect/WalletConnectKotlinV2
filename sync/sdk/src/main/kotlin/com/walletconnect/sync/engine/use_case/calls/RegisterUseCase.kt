@@ -1,4 +1,4 @@
-package com.walletconnect.sync.engine.use_case
+package com.walletconnect.sync.engine.use_case.calls
 
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.model.AccountId
