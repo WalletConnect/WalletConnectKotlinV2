@@ -163,3 +163,12 @@ fun DependencyHandlerScope.kethereumBip32() {
 fun DependencyHandlerScope.fcm() {
     "implementation"("com.google.firebase:firebase-messaging:$fcmVersion")
 }
+
+fun DependencyHandlerScope.compose() {
+    "api"(platform("androidx.compose:compose-bom:2022.11.00"))
+    "api"("androidx.compose.ui:ui")
+    "api"("androidx.compose.ui:ui-tooling-preview")
+    "api"("androidx.compose.material:material")
+    "debugApi"("androidx.compose.ui:ui-tooling")
+    "debugApi"("androidx.compose.ui:ui-test-manifest")
+}
