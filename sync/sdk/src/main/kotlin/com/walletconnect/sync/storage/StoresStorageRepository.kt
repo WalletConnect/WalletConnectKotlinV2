@@ -13,7 +13,7 @@ internal class StoresStorageRepository(private val stores: StoresQueries, privat
 
     suspend fun createStore(accountId: AccountId, store: Store, symmetricKey: SymmetricKey, topic: Topic) {
         // Only insert when store does not yet exists in db. SymKey&Topic will be the same so no need for multiple inserts/updates
-        if (doesStoreNotExists(accountId, store)) stores.insertOrAbortStore(accountId = accountId.value, name = store.value, symKey = symmetricKey.keyAsHex, topic = topic.value)
+        stores.insertOrAbortStore(accountId = accountId.value, name = store.value, symKey = symmetricKey.keyAsHex, topic = topic.value)
     }
 
     suspend fun getStoreMap(accountId: AccountId): StoreMap = stores.getStoresByAccountId(accountId.value).executeAsList().map { it.name to getStoreValuesByStoreId(it.id) } as StoreMap
