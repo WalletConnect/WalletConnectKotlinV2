@@ -41,4 +41,3 @@ pluginManagement {
         mavenCentral()
     }
 }
-include(":samples:dapp")
