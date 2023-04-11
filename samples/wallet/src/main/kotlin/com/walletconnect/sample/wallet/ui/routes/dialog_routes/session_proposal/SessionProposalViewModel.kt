@@ -3,9 +3,7 @@ package com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal
 import androidx.lifecycle.ViewModel
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
-import com.walletconnect.sample.wallet.domain.accounts
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
-import com.walletconnect.sample_common.Chains
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlin.coroutines.resume
@@ -18,13 +16,8 @@ class SessionProposalViewModel : ViewModel() {
     suspend fun approve() {
         return suspendCoroutine { continuation ->
             if (Web3Wallet.getSessionProposals().isNotEmpty()) {
-
                 val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().last())
-                val chains = walletMetaData.namespaces.flatMap { (_, proposal) -> proposal.chains!! }
-                val selectedAccounts: Map<Chains, String> = chains.mapNotNull { namespaceChainId -> accounts.firstOrNull { (chain, _) -> chain.chainId == namespaceChainId } }.toMap()
-
-                //todo: add accounts to supported namespaces
-                val sessionNamespaces = Web3Wallet.buildSessionNamespaces(sessionProposal, walletMetaData.namespaces)
+                val sessionNamespaces = Web3Wallet.generateApprovedNamespaces(sessionProposal, walletMetaData.namespaces)
                 val approveProposal = Wallet.Params.SessionApprove(proposerPublicKey = sessionProposal.proposerPublicKey, namespaces = sessionNamespaces)
 
                 Web3Wallet.approveSession(approveProposal,

@@ -25,7 +25,7 @@ fun generateApprovedNamespaces(
         val chains = supportedNamespacesVO[key]?.chains?.filter { chain -> requiredNamespace.chains!!.contains(chain) } ?: emptyList()
         val methods = supportedNamespaces[key]?.methods?.filter { method -> requiredNamespace.methods.contains(method) } ?: emptyList()
         val events = supportedNamespaces[key]?.events?.filter { event -> requiredNamespace.events.contains(event) } ?: emptyList()
-        val accounts = chains.flatMap { chain -> supportedNamespaces[key]?.accounts?.filter { account -> account.contains(chain) } ?: emptyList() }
+        val accounts = chains.flatMap { chain -> supportedNamespaces[key]?.accounts?.filter { account -> SignValidator.getChainFromAccount(account) == chain } ?: emptyList() }
 
         approvedNamespaces[key] = NamespaceVO.Session(chains = chains, methods = methods, events = events, accounts = accounts)
     }
@@ -35,7 +35,7 @@ fun generateApprovedNamespaces(
         val chains = supportedNamespacesVO[key]?.chains?.filter { chain -> optionalNamespace.chains!!.contains(chain) } ?: emptyList()
         val methods = supportedNamespaces[key]?.methods?.filter { method -> optionalNamespace.methods.contains(method) } ?: emptyList()
         val events = supportedNamespaces[key]?.events?.filter { event -> optionalNamespace.events.contains(event) } ?: emptyList()
-        val accounts = chains.flatMap { chain -> supportedNamespaces[key]?.accounts?.filter { account -> account.contains(chain) } ?: emptyList() }
+        val accounts = chains.flatMap { chain -> supportedNamespaces[key]?.accounts?.filter { account -> SignValidator.getChainFromAccount(account) == chain } ?: emptyList() }
 
         approvedNamespaces[key] = NamespaceVO.Session(
             chains = approvedNamespaces[key]?.chains?.plus(chains)?.distinct(),

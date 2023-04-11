@@ -80,10 +80,10 @@ class GenerateSessionNamespacesUtilsTest {
         val optional = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:1"), methods = listOf("eth_sendTransaction"), events = listOf("")))
         val supported = mapOf(
             "eip155" to Sign.Model.Namespace.Session(
-                chains = listOf("eip155:1", "eip155:2", "eip155:3"),
+                chains = listOf("eip155:1", "eip155:137", "eip155:3"),
                 methods = listOf("personal_sign", "eth_sendTransaction", "eth_signTransaction"),
                 events = listOf("chainChanged"),
-                accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
+                accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:137:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:3:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
             )
         )
         val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")

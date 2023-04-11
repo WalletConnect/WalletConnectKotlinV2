@@ -116,7 +116,7 @@ object Web3Wallet {
     }
 
     @Throws(Exception::class)
-    fun buildSessionNamespaces(proposal: Wallet.Model.SessionProposal, supportedNamespaces: Map<String, Wallet.Model.Namespace.Session>): Map<String, Wallet.Model.Namespace.Session> {
+    fun generateApprovedNamespaces(proposal: Wallet.Model.SessionProposal, supportedNamespaces: Map<String, Wallet.Model.Namespace.Session>): Map<String, Wallet.Model.Namespace.Session> {
         return com.walletconnect.sign.client.utils.generateApprovedNamespaces(proposal.toSign(), supportedNamespaces.toSign()).toWallet()
     }
 
