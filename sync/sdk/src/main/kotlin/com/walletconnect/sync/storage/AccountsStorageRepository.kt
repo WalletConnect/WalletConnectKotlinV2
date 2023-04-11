@@ -9,7 +9,7 @@ internal class AccountsStorageRepository(private val accounts: AccountsQueries) 
 
     suspend fun createAccount(account: Account) = with(account) {
         // Only insert when account does not yet exists in db. Entropy will be the same so no need for multiple inserts/updates
-        if (doesAccountNotExists(accountId)) accounts.insertOrAbortAccount(accountId = accountId.value, entropy = entropy.value)
+        accounts.insertOrAbortAccount(accountId = accountId.value, entropy = entropy.value)
     }
 
     suspend fun getAccountByAccountId(accountId: AccountId): Account =
