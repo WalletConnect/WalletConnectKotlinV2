@@ -12,13 +12,12 @@ android {
     compileSdk = COMPILE_SDK
     // hash of all sdk versions from Versions.kt
 
-println(Objects.hash())
     defaultConfig {
         applicationId = "com.walletconnect.sample.wallet"
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
-        versionCode = 3
-        versionName = "1.2.0"
+        versionCode = 4
+        versionName = "1.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
