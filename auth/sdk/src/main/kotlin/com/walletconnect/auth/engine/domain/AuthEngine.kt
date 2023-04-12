@@ -240,7 +240,7 @@ internal class AuthEngine(
         }
 
         scope.launch {
-            _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, authParams.payloadParams))
+            _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, wcRequest.topic.value, authParams.payloadParams))
         }
     }
 
