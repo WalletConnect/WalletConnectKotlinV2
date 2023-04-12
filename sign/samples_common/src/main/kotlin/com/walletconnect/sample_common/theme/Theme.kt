@@ -1,8 +1,9 @@
-package com.walletconnect.sample.wallet.ui.theme
+package com.walletconnect.sample_common.theme
 
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
@@ -10,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 
 private val LightColors = lightColors(
@@ -40,18 +40,19 @@ private val DarkColors = darkColors(
 )
 
 @Composable
-fun Web3WalletTheme(
+fun WCSampleAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
-    val colors = if (darkTheme) DarkColors else LightColors
+    val colors = if(darkTheme) DarkColors else LightColors
 
     val view = LocalView.current
 
     if (!view.isInEditMode) {
         SideEffect {
-            (view.context as Activity).window.statusBarColor = colors.background.toArgb()
-            ViewCompat.getWindowInsetsController(view)?.isAppearanceLightStatusBars = darkTheme
+            val currentWindow = (view.context as? Activity)?.window ?: throw Exception("Not in an activity - unable to get Window reference")
+            currentWindow.statusBarColor = colors.background.toArgb()
+            WindowCompat.getInsetsController(currentWindow, view).isAppearanceLightStatusBars = darkTheme
         }
     }
 
@@ -68,6 +69,22 @@ fun Web3WalletTheme(
         }
     }
 
+    WCTheme(colors = colors, content = content)
+}
+
+@Composable
+fun PreviewTheme(content: @Composable () -> Unit) {
+    WCTheme(
+        colors = if(isSystemInDarkTheme()) DarkColors else LightColors,
+        content = content
+    )
+}
+
+@Composable
+internal fun WCTheme(
+    colors: Colors,
+    content: @Composable () -> Unit
+) {
     MaterialTheme(
         colors = colors,
         typography = Typography,

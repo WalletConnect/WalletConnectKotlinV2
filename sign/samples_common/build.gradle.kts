@@ -33,7 +33,11 @@ android {
     }
 
     buildFeatures {
+        compose = true
         viewBinding = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = composeCompilerVersion
     }
 }
 
@@ -50,6 +54,7 @@ dependencies {
     navigationComponent()
     bouncyCastle()
     web3jCrypto()
+    compose()
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
