@@ -76,6 +76,7 @@ object Wallet {
 
         data class AuthRequest(
             val id: Long,
+            val pairingTopic: String,
             val payloadParams: PayloadParams
         ) : Model()
 
@@ -194,6 +195,7 @@ object Wallet {
 
         data class PendingAuthRequest(
             val id: Long,
+            val pairingTopic: String,
             val payloadParams: PayloadParams
         ) : Model()
     }
