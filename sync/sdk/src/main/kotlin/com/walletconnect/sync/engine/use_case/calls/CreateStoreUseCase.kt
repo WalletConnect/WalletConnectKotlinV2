@@ -7,6 +7,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sync.common.exception.validateAccountId
 import com.walletconnect.sync.common.model.Store
+import com.walletconnect.sync.engine.use_case.come_up_with_good_name.SubscribeToStoreUpdatesUseCase
 import com.walletconnect.sync.storage.AccountsStorageRepository
 import com.walletconnect.sync.storage.StoresStorageRepository
 import com.walletconnect.util.bytesToHex
@@ -17,7 +18,11 @@ import org.kethereum.bip39.model.MnemonicWords
 import org.kethereum.bip39.toKey
 import org.kethereum.bip39.wordlists.WORDLIST_ENGLISH
 
-internal class CreateStoreUseCase(private val accountsRepository: AccountsStorageRepository, private val storesRepository: StoresStorageRepository) : CreateUseCaseInterface {
+internal class CreateStoreUseCase(
+    private val accountsRepository: AccountsStorageRepository,
+    private val storesRepository: StoresStorageRepository,
+    private val subscribeToStoreUpdatesUseCase: SubscribeToStoreUpdatesUseCase,
+) : CreateUseCaseInterface {
 
     override fun create(accountId: AccountId, store: Store, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         scope.launch {
@@ -31,7 +36,7 @@ internal class CreateStoreUseCase(private val accountsRepository: AccountsStorag
                 val storeTopic = Topic(sha256(storeSymmetricKey.keyAsBytes))
 
                 runCatching { storesRepository.createStore(accountId, store, storeSymmetricKey, storeTopic) }.fold(
-                    onSuccess = { onSuccess() },
+                    onSuccess = { subscribeToStoreUpdatesUseCase(storeTopic, onSuccess = { onSuccess() }, onError = { error -> onFailure(error) }) },
                     onFailure = { error -> onFailure(error) }
                 )
             }
