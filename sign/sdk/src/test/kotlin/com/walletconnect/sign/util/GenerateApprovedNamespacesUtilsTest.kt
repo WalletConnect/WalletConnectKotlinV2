@@ -7,10 +7,8 @@ import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
-import kotlin.test.assertFails
-import kotlin.test.assertFailsWith
 
-class GenerateSessionNamespacesUtilsTest {
+class GenerateApprovedNamespacesUtilsTest {
 
     @Test
     fun testNamespacesNormalizationFromChainIndexing() {
