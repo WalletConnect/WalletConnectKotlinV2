@@ -1,0 +1,39 @@
+CREATE TABLE StoreValues (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    storeId INTEGER NOT NULL,
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+    UNIQUE(storeId, key)
+);
+
+insertOrAbortStoreValue:
+INSERT OR ABORT INTO StoreValues(storeId, key, value)
+VALUES (?, ?, ?);
+
+getStoreValuesByStoreId:
+SELECT key, value
+FROM StoreValues
+WHERE storeId = ?;
+
+getStoreValueByStoreIdAndKey:
+SELECT key, value
+FROM StoreValues
+WHERE storeId = ? AND key = ?;
+
+
+updateStoreValue:
+UPDATE OR ABORT StoreValues
+SET value = ?
+WHERE storeId = ? AND key = ?;
+
+deleteStoreValue:
+DELETE FROM StoreValues
+WHERE storeId = ? AND key = ?;
+
+doesStoreValueNotExists:
+SELECT NOT EXISTS (
+    SELECT 1
+    FROM StoreValues
+    WHERE storeId = ? AND key = ?
+    LIMIT 1
+);
