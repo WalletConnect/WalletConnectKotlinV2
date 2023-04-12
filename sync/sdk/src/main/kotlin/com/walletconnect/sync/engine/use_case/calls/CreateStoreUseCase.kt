@@ -17,7 +17,7 @@ import org.kethereum.bip39.model.MnemonicWords
 import org.kethereum.bip39.toKey
 import org.kethereum.bip39.wordlists.WORDLIST_ENGLISH
 
-internal class CreateUseCase(private val accountsRepository: AccountsStorageRepository, private val storesRepository: StoresStorageRepository) : CreateUseCaseInterface {
+internal class CreateStoreUseCase(private val accountsRepository: AccountsStorageRepository, private val storesRepository: StoresStorageRepository) : CreateUseCaseInterface {
 
     override fun create(accountId: AccountId, store: Store, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         scope.launch {
