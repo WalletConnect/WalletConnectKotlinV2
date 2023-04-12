@@ -7,7 +7,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sync.common.exception.validateAccountId
 import com.walletconnect.sync.common.model.Store
-import com.walletconnect.sync.engine.use_case.come_up_with_good_name.SubscribeToStoreUpdatesUseCase
+import com.walletconnect.sync.engine.use_case.subscriptions.SubscribeToStoreUpdatesUseCase
 import com.walletconnect.sync.storage.AccountsStorageRepository
 import com.walletconnect.sync.storage.StoresStorageRepository
 import com.walletconnect.util.bytesToHex

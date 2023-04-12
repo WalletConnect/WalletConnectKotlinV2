@@ -6,8 +6,8 @@ package com.walletconnect.sync.di
 import com.walletconnect.android.internal.common.signing.message.MessageSignatureVerifier
 import com.walletconnect.sync.engine.domain.SyncEngine
 import com.walletconnect.sync.engine.use_case.calls.*
-import com.walletconnect.sync.engine.use_case.come_up_with_good_name.SubscribeToAllStoresUpdatesUseCase
-import com.walletconnect.sync.engine.use_case.come_up_with_good_name.SubscribeToStoreUpdatesUseCase
+import com.walletconnect.sync.engine.use_case.subscriptions.SubscribeToAllStoresUpdatesUseCase
+import com.walletconnect.sync.engine.use_case.subscriptions.SubscribeToStoreUpdatesUseCase
 import com.walletconnect.sync.engine.use_case.requests.OnDeleteRequestUseCase
 import com.walletconnect.sync.engine.use_case.requests.OnSetRequestUseCase
 import com.walletconnect.sync.engine.use_case.responses.OnDeleteResponseUseCase

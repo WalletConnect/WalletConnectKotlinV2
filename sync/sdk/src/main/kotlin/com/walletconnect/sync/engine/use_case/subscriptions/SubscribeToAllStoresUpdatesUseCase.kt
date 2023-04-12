@@ -1,4 +1,4 @@
-package com.walletconnect.sync.engine.use_case.come_up_with_good_name
+package com.walletconnect.sync.engine.use_case.subscriptions
 
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.foundation.common.model.Topic

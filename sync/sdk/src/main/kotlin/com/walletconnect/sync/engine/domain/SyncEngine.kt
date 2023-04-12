@@ -9,7 +9,7 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.sync.common.json_rpc.JsonRpcMethod
 import com.walletconnect.sync.common.json_rpc.SyncParams
 import com.walletconnect.sync.engine.use_case.calls.*
-import com.walletconnect.sync.engine.use_case.come_up_with_good_name.SubscribeToAllStoresUpdatesUseCase
+import com.walletconnect.sync.engine.use_case.subscriptions.SubscribeToAllStoresUpdatesUseCase
 import com.walletconnect.sync.engine.use_case.requests.OnDeleteRequestUseCase
 import com.walletconnect.sync.engine.use_case.requests.OnSetRequestUseCase
 import com.walletconnect.sync.engine.use_case.responses.OnDeleteResponseUseCase
