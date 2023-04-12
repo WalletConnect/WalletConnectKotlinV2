@@ -11,6 +11,7 @@ internal data class ProposalVO(
     val description: String,
     val url: String,
     val icons: List<String>,
+    val redirect: String,
     val requiredNamespaces: Map<String, NamespaceVO.Required>,
     val optionalNamespaces: Map<String, NamespaceVO.Optional>,
     val properties: Map<String, String>?,
