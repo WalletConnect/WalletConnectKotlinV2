@@ -1,5 +1,3 @@
-import java.util.Objects
-
 plugins {
     id("com.android.application")
     kotlin("android")
