@@ -5,9 +5,8 @@ import com.walletconnect.sync.common.json_rpc.SyncParams
 import com.walletconnect.sync.storage.AccountsStorageRepository
 import com.walletconnect.sync.storage.StoresStorageRepository
 
-internal class OnSetRequestUseCase(private val storesRepository: StoresStorageRepository, private val accountsRepository: AccountsStorageRepository) :
-    RequestUseCase<SyncParams.SetParams> {
-    override suspend operator fun invoke(params: SyncParams.SetParams, request: WCRequest) {
+internal class OnSetRequestUseCase(private val storesRepository: StoresStorageRepository, private val accountsRepository: AccountsStorageRepository) {
+    suspend operator fun invoke(params: SyncParams.SetParams, request: WCRequest) {
         TODO()
 
         // get account by request.topic

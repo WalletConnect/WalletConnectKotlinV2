@@ -5,9 +5,8 @@ import com.walletconnect.sync.common.json_rpc.SyncParams
 import com.walletconnect.sync.storage.AccountsStorageRepository
 import com.walletconnect.sync.storage.StoresStorageRepository
 
-internal class OnDeleteRequestUseCase(private val storesRepository: StoresStorageRepository, private val accountsRepository: AccountsStorageRepository) :
-    RequestUseCase<SyncParams.DeleteParams> {
-    override suspend operator fun invoke(params: SyncParams.DeleteParams, request: WCRequest) {
+internal class OnDeleteRequestUseCase(private val storesRepository: StoresStorageRepository, private val accountsRepository: AccountsStorageRepository) {
+    suspend operator fun invoke(params: SyncParams.DeleteParams, request: WCRequest) {
         TODO()
 
         // get account by request.topic
