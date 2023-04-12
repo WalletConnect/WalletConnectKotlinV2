@@ -138,15 +138,6 @@ internal fun Sign.Model.SessionProposal.toWallet(): Wallet.Model.SessionProposal
     )
 
 @JvmSynthetic
-internal fun List<Auth.Model.PendingRequest>.toWallet(): List<Wallet.Model.PendingAuthRequest> =
-    map { request ->
-        Wallet.Model.PendingAuthRequest(
-            request.id,
-            request.payloadParams.toWallet()
-        )
-    }
-
-@JvmSynthetic
 internal fun Sign.Model.SessionRequest.toWallet(): Wallet.Model.SessionRequest =
     Wallet.Model.SessionRequest(
         topic = topic,
