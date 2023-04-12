@@ -7,17 +7,14 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
+import com.walletconnect.util.generateId
 
 internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
-    abstract override val id: Long
-    abstract override val method: String
-    abstract override val jsonrpc: String
-    abstract override val params: SignParams
 
     @JsonClass(generateAdapter = true)
     internal data class SessionPropose(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
@@ -29,7 +26,7 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
     @JsonClass(generateAdapter = true)
     internal data class SessionSettle(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
@@ -41,7 +38,7 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
     @JsonClass(generateAdapter = true)
     internal data class SessionRequest(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
@@ -53,7 +50,7 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
     @JsonClass(generateAdapter = true)
     internal data class SessionDelete(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
@@ -65,7 +62,7 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
     @JsonClass(generateAdapter = true)
     internal data class SessionPing(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
@@ -77,7 +74,7 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
     @JsonClass(generateAdapter = true)
     internal data class SessionEvent(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
@@ -89,7 +86,7 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
     @JsonClass(generateAdapter = true)
     internal data class SessionUpdate(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
@@ -101,7 +98,7 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
     @JsonClass(generateAdapter = true)
     internal data class SessionExtend(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")

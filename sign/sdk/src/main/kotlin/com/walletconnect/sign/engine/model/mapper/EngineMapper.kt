@@ -181,25 +181,25 @@ private fun convertToURI(it: String) = try {
 }
 
 @JvmSynthetic
-internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVORequired(): Map<String, NamespaceVO.Required> =
+internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVORequired(): Map<String, NamespaceVO.Proposal> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Required(namespace.chains, namespace.methods, namespace.events)
+        NamespaceVO.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
-internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVOOptional(): Map<String, NamespaceVO.Optional> =
+internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVOOptional(): Map<String, NamespaceVO.Proposal> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Optional(namespace.chains, namespace.methods, namespace.events)
+        NamespaceVO.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
-internal fun Map<String, NamespaceVO.Required>.toMapOfEngineNamespacesRequired(): Map<String, EngineDO.Namespace.Proposal> =
+internal fun Map<String, NamespaceVO.Proposal>.toMapOfEngineNamespacesRequired(): Map<String, EngineDO.Namespace.Proposal> =
     this.mapValues { (_, namespace) ->
         EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
-internal fun Map<String, NamespaceVO.Optional>.toMapOfEngineNamespacesOptional(): Map<String, EngineDO.Namespace.Proposal> =
+internal fun Map<String, NamespaceVO.Proposal>.toMapOfEngineNamespacesOptional(): Map<String, EngineDO.Namespace.Proposal> =
     this.mapValues { (_, namespace) ->
         EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }

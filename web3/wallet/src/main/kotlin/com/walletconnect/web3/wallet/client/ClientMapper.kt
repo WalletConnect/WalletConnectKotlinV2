@@ -22,6 +22,12 @@ internal fun Map<String, Sign.Model.Namespace.Proposal>.toWalletProposalNamespac
     }
 
 @JvmSynthetic
+internal fun Map<String, Wallet.Model.Namespace.Proposal>.toSignProposalNamespaces(): Map<String, Sign.Model.Namespace.Proposal> =
+    mapValues { (_, namespace) ->
+        Sign.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
+    }
+
+@JvmSynthetic
 internal fun Wallet.Model.JsonRpcResponse.toSign(): Sign.Model.JsonRpcResponse =
     when (this) {
         is Wallet.Model.JsonRpcResponse.JsonRpcResult -> this.toSign()
@@ -110,6 +116,7 @@ internal fun List<Auth.Model.PendingRequest>.toWallet(): List<Wallet.Model.Pendi
     map { request ->
         Wallet.Model.PendingAuthRequest(
             request.id,
+            request.pairingTopic,
             request.payloadParams.toWallet()
         )
     }
@@ -166,8 +173,20 @@ internal fun Sign.Model.SessionUpdateResponse.toWallet(): Wallet.Model.SessionUp
     }
 
 @JvmSynthetic
-internal fun Auth.Event.AuthRequest.toWallet(): Wallet.Model.AuthRequest = Wallet.Model.AuthRequest(id, payloadParams.toWallet())
+internal fun Auth.Event.AuthRequest.toWallet(): Wallet.Model.AuthRequest = Wallet.Model.AuthRequest(id, pairingTopic, payloadParams.toWallet())
 
 @JvmSynthetic
-internal fun Auth.Model.Cacao.Signature.toWallet(): Wallet.Model.Cacao.Signature =
-    Wallet.Model.Cacao.Signature(t, s, m)
+internal fun Wallet.Model.SessionProposal.toSign(): Sign.Model.SessionProposal =
+    Sign.Model.SessionProposal(
+        pairingTopic,
+        name,
+        description,
+        url,
+        icons,
+        requiredNamespaces.toSignProposalNamespaces(),
+        optionalNamespaces.toSignProposalNamespaces(),
+        properties,
+        proposerPublicKey,
+        relayProtocol,
+        relayData
+    )

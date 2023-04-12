@@ -8,6 +8,7 @@ import com.walletconnect.foundation.common.adapters.TtlAdapter
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.util.generateClientToServerId
 
 sealed class RelayDTO {
     abstract val id: Long
@@ -18,7 +19,7 @@ sealed class RelayDTO {
         @JsonClass(generateAdapter = true)
         data class Request(
             @Json(name = "id")
-            override val id: Long,
+            override val id: Long = generateClientToServerId(),
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
@@ -73,7 +74,7 @@ sealed class RelayDTO {
         @JsonClass(generateAdapter = true)
         data class Request(
             @Json(name = "id")
-            override val id: Long,
+            override val id: Long = generateClientToServerId(),
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
@@ -120,7 +121,7 @@ sealed class RelayDTO {
         @JsonClass(generateAdapter = true)
         data class Request(
             @Json(name = "id")
-            override val id: Long,
+            override val id: Long = generateClientToServerId(),
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
@@ -165,7 +166,7 @@ sealed class RelayDTO {
         @JsonClass(generateAdapter = true)
         data class Request(
             @Json(name = "id")
-            override val id: Long,
+            override val id: Long = generateClientToServerId(),
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
@@ -223,7 +224,7 @@ sealed class RelayDTO {
         @JsonClass(generateAdapter = true)
         data class Request(
             @Json(name = "id")
-            override val id: Long,
+            override val id: Long = generateClientToServerId(),
             @Json(name = "jsonrpc")
             override val jsonrpc: String = "2.0",
             @Json(name = "method")
