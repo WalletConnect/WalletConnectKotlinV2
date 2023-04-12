@@ -21,6 +21,11 @@ SELECT id
 FROM Stores
 WHERE accountId = ? AND name = ?;
 
+getStoreTopicByAccountIdAndName:
+SELECT topic
+FROM Stores
+WHERE accountId = ? AND name = ?;
+
 getStoreByTopic:
 SELECT id, accountId, name, symKey, topic
 FROM Stores

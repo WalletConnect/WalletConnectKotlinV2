@@ -10,8 +10,8 @@ import com.walletconnect.sync.common.json_rpc.JsonRpcMethod
 import com.walletconnect.sync.common.json_rpc.SyncParams
 import com.walletconnect.sync.engine.use_case.calls.*
 import com.walletconnect.sync.engine.use_case.subscriptions.SubscribeToAllStoresUpdatesUseCase
-import com.walletconnect.sync.engine.use_case.requests.OnDeleteRequestUseCase
-import com.walletconnect.sync.engine.use_case.requests.OnSetRequestUseCase
+import com.walletconnect.sync.engine.use_case.requests.incoming.OnDeleteRequestUseCase
+import com.walletconnect.sync.engine.use_case.requests.incoming.OnSetRequestUseCase
 import com.walletconnect.sync.engine.use_case.responses.OnDeleteResponseUseCase
 import com.walletconnect.sync.engine.use_case.responses.OnSetResponseUseCase
 import kotlinx.coroutines.Dispatchers
