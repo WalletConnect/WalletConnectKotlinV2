@@ -1,0 +1,22 @@
+CREATE TABLE Accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    accountId TEXT UNIQUE NOT NULL,
+    entropy TEXT NOT NULL
+);
+
+insertOrAbortAccount:
+INSERT OR ABORT INTO Accounts(accountId, entropy)
+VALUES (?, ?);
+
+getAccountByAccountId:
+SELECT accountId, entropy
+FROM Accounts
+WHERE accountId = ?;
+
+doesAccountNotExists:
+SELECT NOT EXISTS (
+    SELECT 1
+    FROM Accounts
+    WHERE accountId = ?
+    LIMIT 1
+);

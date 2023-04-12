@@ -1,6 +1,8 @@
 package com.walletconnect.android.internal.common.cacao
 
 import com.walletconnect.android.Core
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

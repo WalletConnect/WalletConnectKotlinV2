@@ -92,6 +92,10 @@ dependencies {
     // Zxing
     implementation("com.google.zxing:core:3.5.0")
 
+    // Unit Tests
+    jUnit5()
+    mockk()
+
     // WalletConnect
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":web3:wallet"))

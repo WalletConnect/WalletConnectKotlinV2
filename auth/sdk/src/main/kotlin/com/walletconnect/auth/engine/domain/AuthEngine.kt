@@ -4,10 +4,10 @@ package com.walletconnect.auth.engine.domain
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.cacao.Cacao
-import com.walletconnect.android.internal.common.cacao.CacaoType
-import com.walletconnect.android.internal.common.cacao.CacaoVerifier
-import com.walletconnect.android.internal.common.cacao.Issuer
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
+import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
+import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
