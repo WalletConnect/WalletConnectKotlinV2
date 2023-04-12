@@ -112,6 +112,16 @@ internal fun Auth.Model.PayloadParams.toWallet(): Wallet.Model.PayloadParams =
     )
 
 @JvmSynthetic
+internal fun List<Auth.Model.PendingRequest>.toWallet(): List<Wallet.Model.PendingAuthRequest> =
+    map { request ->
+        Wallet.Model.PendingAuthRequest(
+            request.id,
+            request.pairingTopic,
+            request.payloadParams.toWallet()
+        )
+    }
+
+@JvmSynthetic
 internal fun Sign.Model.SessionProposal.toWallet(): Wallet.Model.SessionProposal =
     Wallet.Model.SessionProposal(
         pairingTopic,
@@ -171,7 +181,7 @@ internal fun Sign.Model.SessionUpdateResponse.toWallet(): Wallet.Model.SessionUp
     }
 
 @JvmSynthetic
-internal fun Auth.Event.AuthRequest.toWallet(): Wallet.Model.AuthRequest = Wallet.Model.AuthRequest(id, payloadParams.toWallet())
+internal fun Auth.Event.AuthRequest.toWallet(): Wallet.Model.AuthRequest = Wallet.Model.AuthRequest(id, pairingTopic, payloadParams.toWallet())
 
 @JvmSynthetic
 internal fun Wallet.Model.SessionProposal.toSign(): Sign.Model.SessionProposal =

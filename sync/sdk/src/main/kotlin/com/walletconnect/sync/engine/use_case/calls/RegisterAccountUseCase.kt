@@ -12,7 +12,7 @@ import com.walletconnect.sync.storage.AccountsStorageRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-internal class RegisterUseCase(private val accountsRepository: AccountsStorageRepository, private val messageSignatureVerifier: MessageSignatureVerifier) : RegisterUseCaseInterface,
+internal class RegisterAccountUseCase(private val accountsRepository: AccountsStorageRepository, private val messageSignatureVerifier: MessageSignatureVerifier) : RegisterUseCaseInterface,
     GetMessageUseCaseInterface by GetMessageUseCase {
 
     override fun register(accountId: AccountId, signature: String, signatureType: SignatureType, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {

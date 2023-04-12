@@ -16,11 +16,11 @@ import org.koin.dsl.module
 internal fun engineModule() = module {
     single { MessageSignatureVerifier(get()) }
 
-    single { CreateUseCase(get(), get()) }
-    single { DeleteUseCase(get()) }
-    single { SetUseCase(get()) }
+    single { CreateStoreUseCase(get(), get()) }
+    single { DeleteStoreValueUseCase(get()) }
+    single { SetStoreValueUseCase(get()) }
     single { GetStoresUseCase(get()) }
-    single { RegisterUseCase(get(), get()) }
+    single { RegisterAccountUseCase(get(), get()) }
 
     single { OnSetRequestUseCase(get(), get()) }
     single { OnDeleteRequestUseCase(get(), get()) }
@@ -31,10 +31,10 @@ internal fun engineModule() = module {
     single {
         SyncEngine(
             getStoresUseCase = get(),
-            registerUseCase = get(),
-            createUseCase = get(),
-            deleteUseCase = get(),
-            setUseCase = get(),
+            registerAccountUseCase = get(),
+            createStoreUseCase = get(),
+            deleteStoreValueUseCase = get(),
+            setStoreValueUseCase = get(),
             pairingHandler = get(),
             jsonRpcInteractor = get(),
             onSetRequestUseCase = get(),

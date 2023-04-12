@@ -8,7 +8,7 @@ import com.walletconnect.sync.storage.StoresStorageRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-internal class DeleteUseCase(private val storesRepository: StoresStorageRepository) : DeleteUseCaseInterface {
+internal class DeleteStoreValueUseCase(private val storesRepository: StoresStorageRepository) : DeleteUseCaseInterface {
 
     override fun delete(accountId: AccountId, store: Store, key: String, onSuccess: (Boolean) -> Unit, onFailure: (Throwable) -> Unit) {
         scope.launch {

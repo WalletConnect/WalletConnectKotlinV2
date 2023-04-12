@@ -20,10 +20,10 @@ import kotlinx.coroutines.launch
 
 internal class SyncEngine(
     private val getStoresUseCase: GetStoresUseCase,
-    private val registerUseCase: RegisterUseCase,
-    private val createUseCase: CreateUseCase,
-    private val deleteUseCase: DeleteUseCase,
-    private val setUseCase: SetUseCase,
+    private val registerAccountUseCase: RegisterAccountUseCase,
+    private val createStoreUseCase: CreateStoreUseCase,
+    private val deleteStoreValueUseCase: DeleteStoreValueUseCase,
+    private val setStoreValueUseCase: SetStoreValueUseCase,
     private val pairingHandler: PairingControllerInterface,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val onSetRequestUseCase: OnSetRequestUseCase,
@@ -31,11 +31,11 @@ internal class SyncEngine(
     private val onSetResponseUseCase: OnSetResponseUseCase,
     private val onDeleteResponseUseCase: OnDeleteResponseUseCase,
 ) : GetMessageUseCaseInterface by GetMessageUseCase,
-    CreateUseCaseInterface by createUseCase,
+    CreateUseCaseInterface by createStoreUseCase,
     GetStoresUseCaseInterface by getStoresUseCase,
-    RegisterUseCaseInterface by registerUseCase,
-    DeleteUseCaseInterface by deleteUseCase,
-    SetUseCaseInterface by setUseCase {
+    RegisterUseCaseInterface by registerAccountUseCase,
+    DeleteUseCaseInterface by deleteStoreValueUseCase,
+    SetUseCaseInterface by setStoreValueUseCase {
 
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null

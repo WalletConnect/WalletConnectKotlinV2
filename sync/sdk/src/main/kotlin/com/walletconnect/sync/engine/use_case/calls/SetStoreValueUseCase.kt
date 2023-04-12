@@ -8,7 +8,7 @@ import com.walletconnect.sync.storage.StoresStorageRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-internal class SetUseCase(private val storesRepository: StoresStorageRepository) : SetUseCaseInterface {
+internal class SetStoreValueUseCase(private val storesRepository: StoresStorageRepository) : SetUseCaseInterface {
 
     override fun set(accountId: AccountId, store: Store, key: String, value: String, onSuccess: (Boolean) -> Unit, onFailure: (Throwable) -> Unit) {
         scope.launch {
