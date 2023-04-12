@@ -24,9 +24,9 @@ interface SyncInterface {
 
     fun create(params: Sync.Params.Create, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit)
 
-    fun set(params: Sync.Params.Set, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit)
+    fun set(params: Sync.Params.Set, onSuccess: (Boolean) -> Unit, onError: (Sync.Model.Error) -> Unit)
 
-    fun delete(params: Sync.Params.Delete, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit)
+    fun delete(params: Sync.Params.Delete, onSuccess: (Boolean) -> Unit, onError: (Sync.Model.Error) -> Unit)
 
     /**
      * Caution: This function is blocking and runs on the current thread.
