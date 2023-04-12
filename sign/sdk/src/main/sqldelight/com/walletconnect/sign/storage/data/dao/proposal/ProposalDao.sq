@@ -17,7 +17,7 @@ CREATE TABLE ProposalDao (
 
 insertOrAbortSession:
 INSERT OR ABORT INTO ProposalDao(request_id, pairingTopic, name, description, url, icons, redirect, relay_protocol, relay_data, proposer_key, properties)
-VALUES (?,?,?,?,?,?,?,?,?,?, ?);
+VALUES (?,?,?,?,?,?,?,?,?,?,?);
 
 getProposalByKey:
 SELECT pd.request_id, pd.pairingTopic, pd.name, pd.description, pd.url, pd.icons, pd.redirect, pd.relay_protocol, pd.relay_data, pd.proposer_key, pd.properties
