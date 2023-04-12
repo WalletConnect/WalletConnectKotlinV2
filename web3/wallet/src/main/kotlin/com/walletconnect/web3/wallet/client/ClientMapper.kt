@@ -183,6 +183,7 @@ internal fun Wallet.Model.SessionProposal.toSign(): Sign.Model.SessionProposal =
         description,
         url,
         icons,
+        redirect,
         requiredNamespaces.toSignProposalNamespaces(),
         optionalNamespaces.toSignProposalNamespaces(),
         properties,
