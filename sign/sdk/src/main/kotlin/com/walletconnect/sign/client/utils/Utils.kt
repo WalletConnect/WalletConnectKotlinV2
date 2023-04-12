@@ -1,3 +1,4 @@
+@file:JvmName("ApprovedNamespacesUtilsKt")
 package com.walletconnect.sign.client.utils
 
 import com.walletconnect.android.internal.utils.CoreValidator
