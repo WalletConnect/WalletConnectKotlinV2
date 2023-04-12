@@ -1,0 +1,35 @@
+CREATE TABLE Stores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    accountId TEXT NOT NULL,
+    name TEXT NOT NULL,
+    symKey TEXT UNIQUE NOT NULL,
+    topic TEXT UNIQUE NOT NULL,
+    UNIQUE(name, accountId)
+);
+
+insertOrAbortStore:
+INSERT OR ABORT INTO Stores(accountId, name, symKey, topic)
+VALUES (?, ?, ?, ?);
+
+getStoresByAccountId:
+SELECT id, accountId, name, symKey, topic
+FROM Stores
+WHERE accountId = ?;
+
+getStoreIdByAccountIdAndName:
+SELECT id
+FROM Stores
+WHERE accountId = ? AND name = ?;
+
+getStoreByTopic:
+SELECT id, accountId, name, symKey, topic
+FROM Stores
+WHERE topic = ?;
+
+doesStoreNotExists:
+SELECT NOT EXISTS (
+    SELECT 1
+    FROM Stores
+    WHERE accountId = ? AND name = ?
+    LIMIT 1
+);
