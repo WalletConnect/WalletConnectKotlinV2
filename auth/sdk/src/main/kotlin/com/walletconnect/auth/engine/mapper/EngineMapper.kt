@@ -1,8 +1,8 @@
 package com.walletconnect.auth.engine.mapper
 
-import com.walletconnect.android.internal.common.cacao.Cacao
-import com.walletconnect.android.internal.common.cacao.Issuer
-import com.walletconnect.android.internal.common.cacao.toCAIP122Message
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.Issuer
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
 import com.walletconnect.auth.common.model.JsonRpcHistoryEntry
 import com.walletconnect.auth.common.model.PayloadParams
 import com.walletconnect.auth.common.model.PendingRequest

@@ -5,7 +5,7 @@ import com.walletconnect.chat.engine.domain.ChatValidator.MAX_LENGTH_CHAT_MESSAG
 import com.walletconnect.chat.engine.domain.ChatValidator.MAX_LENGTH_INVITE_MESSAGE
 import com.walletconnect.chat.engine.domain.ChatValidator.MAX_LENGTH_MEDIA_DATA
 
-class InvalidAccountIdException(override val message: String?) : WalletConnectException(message)
+class InvalidAccountIdException(override val message: String?) : WalletConnectException(message) // todo: https://github.com/WalletConnect/WalletConnectKotlinV2/issues/768
 class InviteKeyNotFound(override val message: String?) : WalletConnectException(message)
 object AccountsAlreadyHaveInviteException : WalletConnectException("Accounts already have invites")
 class InviteMessageTooLongException : WalletConnectException("Invite message max length is $MAX_LENGTH_INVITE_MESSAGE")
