@@ -27,4 +27,4 @@ internal fun PayloadParams.toCAIP122Message(iss: Issuer, chainName: String = "Et
     this.toCacaoPayload(iss).toCAIP122Message(chainName)
 
 @JvmSynthetic
-internal fun JsonRpcHistoryEntry.toPendingRequest(): PendingRequest = PendingRequest(id, params.payloadParams)
+internal fun JsonRpcHistoryEntry.toPendingRequest(): PendingRequest = PendingRequest(id, topic.value, params.payloadParams)

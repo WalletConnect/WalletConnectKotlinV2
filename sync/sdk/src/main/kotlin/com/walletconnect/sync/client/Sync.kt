@@ -3,6 +3,7 @@ package com.walletconnect.sync.client
 import androidx.annotation.Keep
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.SignatureInterface
+import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.model.AccountId
 
 object Sync {
@@ -42,7 +43,7 @@ object Sync {
 
         data class GetMessage(val accountId: AccountId) : Params()
 
-        data class Register(val accountId: AccountId, val signature: Model.Signature) : Params()
+        data class Register(val accountId: AccountId, val signature: Model.Signature, val signatureType: SignatureType) : Params()
 
         data class Create(val accountId: AccountId, val store: Type.Store) : Params()
 

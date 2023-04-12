@@ -1,3 +1,3 @@
 package com.walletconnect.sync.common.model
 
-internal interface StoreState : Map<String, String>
+internal interface StoreState : Map<StoreKey, StoreValue>

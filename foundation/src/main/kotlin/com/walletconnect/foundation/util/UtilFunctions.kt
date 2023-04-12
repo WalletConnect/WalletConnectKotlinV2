@@ -38,6 +38,15 @@ fun ByteArray.bytesToHex(): String {
     return hexString.toString()
 }
 
+
+fun ByteArray.bytesToInt(size: Int): Int {
+    require(this.size <= 4) { "Byte array size must be less than 5" }
+
+    return (0 until size).fold(0) { acc, i ->
+        acc.or(this[i].toInt().shl((size - 1 - i) * 8))
+    }
+}
+
 fun String.hexToBytes(): ByteArray {
     val len = this.length
     val data = ByteArray(len / 2)
