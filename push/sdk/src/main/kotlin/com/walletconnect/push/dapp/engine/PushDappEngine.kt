@@ -26,7 +26,6 @@ import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
 import com.walletconnect.push.dapp.data.CastRepository
 import com.walletconnect.push.dapp.di.PushDITags
-import com.walletconnect.util.generateId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.koin.core.qualifier.named
@@ -89,7 +88,7 @@ internal class PushDappEngine(
     ) {
         val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
         val requestParams = PushParams.RequestParams(selfPublicKey.keyAsHex, selfAppMetaData, account)
-        val request = PushRpc.PushRequest(id = generateId(), params = requestParams)
+        val request = PushRpc.PushRequest(params = requestParams)
         val irnParams = IrnParams(Tags.PUSH_REQUEST, Ttl(DAY_IN_SECONDS), true)
         val responseTopic = sha256(selfPublicKey.keyAsBytes)
 
@@ -113,7 +112,7 @@ internal class PushDappEngine(
         onFailure: (Throwable) -> Unit,
     ) {
         val messageParams = PushParams.MessageParams(message.title, message.body, message.icon, message.url)
-        val request = PushRpc.PushMessage(id = generateId(), params = messageParams)
+        val request = PushRpc.PushMessage(params = messageParams)
         val irnParams = IrnParams(Tags.PUSH_MESSAGE, Ttl(DAY_IN_SECONDS))
 
         scope.launch {
@@ -153,7 +152,7 @@ internal class PushDappEngine(
 
     fun delete(topic: String, onFailure: (Throwable) -> Unit) {
         val deleteParams = PushParams.DeleteParams(6000, "User Disconnected")
-        val request = PushRpc.PushDelete(id = generateId(), params = deleteParams)
+        val request = PushRpc.PushDelete(params = deleteParams)
         val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
 
         scope.launch {
