@@ -33,11 +33,11 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.skydoves.landscapist.glide.GlideImage
 import com.walletconnect.sample.wallet.ui.Web3WalletViewModel
-import com.walletconnect.sample.wallet.ui.common.findActivity
-import com.walletconnect.sample.wallet.ui.common.themedColor
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.R
-import com.walletconnect.sample.wallet.ui.common.WCTopAppBar
+import com.walletconnect.sample_common.ui.WCTopAppBar
+import com.walletconnect.sample_common.ui.findActivity
+import com.walletconnect.sample_common.ui.themedColor
 
 @Composable
 fun ConnectionsRoute(navController: NavController, connectionsViewModel: ConnectionsViewModel, web3WalletViewModel: Web3WalletViewModel) {

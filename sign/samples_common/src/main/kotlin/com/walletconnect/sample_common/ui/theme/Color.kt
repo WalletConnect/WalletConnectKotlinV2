@@ -1,4 +1,4 @@
-package com.walletconnect.sample_common.theme
+package com.walletconnect.sample_common.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

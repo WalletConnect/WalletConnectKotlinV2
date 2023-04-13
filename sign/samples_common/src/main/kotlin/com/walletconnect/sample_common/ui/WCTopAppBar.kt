@@ -1,4 +1,4 @@
-package com.walletconnect.sample.wallet.ui.common
+package com.walletconnect.sample_common.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
@@ -16,7 +16,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.walletconnect.sample.wallet.R
+import com.walletconnect.sample_common.R
 
 @Composable
 fun WCTopAppBar(
@@ -45,5 +45,4 @@ fun WCTopAppBar(
         }
         Text(text = text, style = titleStyle)
     }
-
 }

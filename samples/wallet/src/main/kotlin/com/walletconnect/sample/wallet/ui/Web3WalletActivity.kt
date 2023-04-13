@@ -30,7 +30,7 @@ import com.google.accompanist.navigation.material.ExperimentalMaterialNavigation
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
-import com.walletconnect.sample_common.theme.WCSampleAppTheme
+import com.walletconnect.sample_common.ui.theme.WCSampleAppTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
