@@ -8,13 +8,14 @@ plugins {
 android {
     namespace = "com.walletconnect.sample.wallet"
     compileSdk = COMPILE_SDK
+    // hash of all sdk versions from Versions.kt
 
     defaultConfig {
         applicationId = "com.walletconnect.sample.wallet"
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 4
+        versionName = "1.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -92,6 +93,10 @@ dependencies {
     // Zxing
     implementation("com.google.zxing:core:3.5.0")
 
+    // Unit Tests
+    jUnit5()
+    mockk()
+
     // WalletConnect
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":web3:wallet"))
@@ -102,5 +107,5 @@ dependencies {
     releaseImplementation("com.walletconnect:android-core")
     releaseImplementation("com.walletconnect:web3wallet")
     releaseImplementation("com.walletconnect:web3inbox")
-    releaseImplementation(project(":push:sdk"))
+    releaseImplementation("com.walletconnect:push")
 }

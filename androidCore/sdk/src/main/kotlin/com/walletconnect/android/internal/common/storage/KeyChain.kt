@@ -4,8 +4,6 @@ package com.walletconnect.android.internal.common.storage
 
 import android.content.SharedPreferences
 import com.walletconnect.foundation.common.model.Key
-import com.walletconnect.foundation.common.model.PublicKey
-import com.walletconnect.util.Empty
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
 

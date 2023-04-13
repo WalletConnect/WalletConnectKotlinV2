@@ -7,47 +7,44 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
 import com.walletconnect.push.common.JsonRpcMethod
+import com.walletconnect.util.generateId
 
-internal sealed class PushRpc: JsonRpcClientSync<PushParams> {
-    abstract override val id: Long
-    abstract override val method: String
-    abstract override val jsonrpc: String
-    abstract override val params: PushParams
+internal sealed class PushRpc : JsonRpcClientSync<PushParams> {
 
     @JsonClass(generateAdapter = true)
     internal data class PushRequest(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PUSH_REQUEST,
         @Json(name = "params")
         override val params: PushParams.RequestParams,
-    ): PushRpc()
+    ) : PushRpc()
 
     @JsonClass(generateAdapter = true)
     internal data class PushMessage(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PUSH_MESSAGE,
         @Json(name = "params")
         override val params: PushParams.MessageParams,
-    ): PushRpc()
+    ) : PushRpc()
 
     @JsonClass(generateAdapter = true)
     internal data class PushDelete(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_PUSH_DELETE,
         @Json(name = "params")
         override val params: PushParams.DeleteParams,
-    ): PushRpc()
+    ) : PushRpc()
 
 }
