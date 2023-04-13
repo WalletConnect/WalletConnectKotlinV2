@@ -49,10 +49,7 @@ private fun ChainSelectionScreen(
     onChainClick: (Int, Boolean) -> Unit,
     onConnectClick: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
         WCTopAppBar(text = "Chain selection")
         ChainsList(
             chains = chains,
@@ -62,7 +59,8 @@ private fun ChainSelectionScreen(
             onChainClick,
         )
         BlueButton(
-            text = "Connect", onClick = onConnectClick,
+            text = "Connect",
+            onClick = onConnectClick,
             modifier = Modifier
                 .padding(vertical = 10.dp)
                 .fillMaxWidth()
@@ -99,7 +97,9 @@ private fun ChainItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 4.dp)
-            .clickable { onChainClick(index, chain.isSelected) }
+            .clickable {
+                onChainClick(index, chain.isSelected)
+            }
             .conditionalModifier(chain.isSelected) {
                 Modifier.coloredShadow(
                     chain.color.toColor(),
@@ -117,7 +117,7 @@ private fun ChainItem(
             imageVector = ImageVector.vectorResource(id = chain.icon),
             contentDescription = "${chain.chainName} icon"
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         Text(text = chain.chainName)
     }
 }
