@@ -6,14 +6,12 @@ package com.walletconnect.sync.di
 import com.walletconnect.android.internal.common.signing.message.MessageSignatureVerifier
 import com.walletconnect.sync.engine.domain.SyncEngine
 import com.walletconnect.sync.engine.use_case.calls.*
-import com.walletconnect.sync.engine.use_case.subscriptions.SubscribeToAllStoresUpdatesUseCase
-import com.walletconnect.sync.engine.use_case.subscriptions.SubscribeToStoreUpdatesUseCase
-import com.walletconnect.sync.engine.use_case.requests.incoming.OnDeleteRequestUseCase
-import com.walletconnect.sync.engine.use_case.requests.incoming.OnSetRequestUseCase
-import com.walletconnect.sync.engine.use_case.requests.outgoing.SendDeleteRequestUseCase
-import com.walletconnect.sync.engine.use_case.requests.outgoing.SendSetRequestUseCase
+import com.walletconnect.sync.engine.use_case.requests.OnDeleteRequestUseCase
+import com.walletconnect.sync.engine.use_case.requests.OnSetRequestUseCase
 import com.walletconnect.sync.engine.use_case.responses.OnDeleteResponseUseCase
 import com.walletconnect.sync.engine.use_case.responses.OnSetResponseUseCase
+import com.walletconnect.sync.engine.use_case.subscriptions.SubscribeToAllStoresUpdatesUseCase
+import com.walletconnect.sync.engine.use_case.subscriptions.SubscribeToStoreUpdatesUseCase
 import org.koin.dsl.module
 
 @JvmSynthetic
@@ -28,9 +26,6 @@ internal fun engineModule() = module {
 
     single { OnSetRequestUseCase(get(), get()) }
     single { OnDeleteRequestUseCase(get(), get()) }
-
-    single { SendSetRequestUseCase(get(), get()) }
-    single { SendDeleteRequestUseCase(get(), get()) }
 
     single { OnSetResponseUseCase() }
     single { OnDeleteResponseUseCase() }
