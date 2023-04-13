@@ -51,7 +51,7 @@ dependencies {
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
     releaseImplementation("com.walletconnect:sign")
-    releaseImplementation(project(":push:sdk"))
+    releaseImplementation("com.walletconnect:push")
 
     implementation(platform("com.google.firebase:firebase-bom:31.0.0"))
     implementation("com.google.firebase:firebase-messaging")
