@@ -6,6 +6,7 @@ package com.walletconnect.sync.di
 import com.walletconnect.android.internal.common.signing.message.MessageSignatureVerifier
 import com.walletconnect.sync.engine.domain.SyncEngine
 import com.walletconnect.sync.engine.use_case.calls.*
+import com.walletconnect.sync.engine.use_case.come_up_with_good_name.SubscribeToStoreUpdatesUseCase
 import com.walletconnect.sync.engine.use_case.requests.OnDeleteRequestUseCase
 import com.walletconnect.sync.engine.use_case.requests.OnSetRequestUseCase
 import com.walletconnect.sync.engine.use_case.responses.OnDeleteResponseUseCase
@@ -28,6 +29,8 @@ internal fun engineModule() = module {
     single { OnSetResponseUseCase() }
     single { OnDeleteResponseUseCase() }
 
+    single { SubscribeToStoreUpdatesUseCase(get(), get(), get()) }
+
     single {
         SyncEngine(
             getStoresUseCase = get(),
@@ -41,6 +44,7 @@ internal fun engineModule() = module {
             onDeleteRequestUseCase = get(),
             onSetResponseUseCase = get(),
             onDeleteResponseUseCase = get(),
+            subscribeToStoreUpdatesUseCase = get(),
         )
     }
 }

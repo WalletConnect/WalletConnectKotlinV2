@@ -16,6 +16,8 @@ internal class StoresStorageRepository(private val stores: StoresQueries, privat
         stores.insertOrAbortStore(accountId = accountId.value, name = store.value, symKey = symmetricKey.keyAsHex, topic = topic.value)
     }
 
+    suspend fun getAllTopics(): List<Topic> = stores.getAllTopics().executeAsList().map { Topic(it) }
+
     suspend fun getStoreMap(accountId: AccountId): StoreMap = stores.getStoresByAccountId(accountId.value).executeAsList().map { it.name to getStoreValuesByStoreId(it.id) } as StoreMap
 
     suspend fun getStoreValue(accountId: AccountId, store: Store, key: String): Pair<String, String> =

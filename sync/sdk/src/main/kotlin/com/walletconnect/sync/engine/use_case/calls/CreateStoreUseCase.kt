@@ -23,6 +23,7 @@ internal class CreateStoreUseCase(private val accountsRepository: AccountsStorag
         scope.launch {
             supervisorScope {
                 validateAccountId(accountId) { error -> return@supervisorScope onFailure(error) }
+
                 val keyPath = store.getDerivationPath()
                 val entropy = runCatching { accountsRepository.getAccount(accountId).entropy }.getOrElse { error -> return@supervisorScope onFailure(error) }
                 val mnemonic = MnemonicWords(entropyToMnemonic(entropy.toBytes(), WORDLIST_ENGLISH))
