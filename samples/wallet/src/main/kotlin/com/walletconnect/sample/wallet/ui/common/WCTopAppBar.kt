@@ -1,9 +1,7 @@
 package com.walletconnect.sample.wallet.ui.common
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -16,23 +14,27 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.walletconnect.sample.wallet.BuildConfig
 import com.walletconnect.sample.wallet.R
 
 @Composable
 fun WCTopAppBar(
-    text: String,
     modifier: Modifier = Modifier,
+    titleText: String,
+    versionText: String = BuildConfig.BOM_VERSION,
     titleStyle: TextStyle = TextStyle(
         fontWeight = FontWeight.Bold,
         fontSize = 34.sp,
         color = themedColor(darkColor = 0xFFE5E7E7, lightColor = 0xFF141414)
     ),
-    onBackIconClick: (() -> Unit)? = null
+    versionStyle: TextStyle = TextStyle(
+        fontWeight = FontWeight.Light,
+        fontSize = 11.sp,
+        color = themedColor(darkColor = 0xFFE5E7E7, lightColor = 0xFF141414)
+    ),
+    onBackIconClick: (() -> Unit)? = null,
 ) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Spacer(modifier = Modifier.width(32.dp))
         onBackIconClick?.let {
             Icon(
@@ -43,7 +45,15 @@ fun WCTopAppBar(
             )
             Spacer(modifier = Modifier.width(32.dp))
         }
-        Text(text = text, style = titleStyle)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            Text(text = titleText, style = titleStyle)
+            Text(text = versionText, style = versionStyle)
+        }
     }
-
 }
