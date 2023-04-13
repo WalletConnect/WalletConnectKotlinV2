@@ -83,7 +83,7 @@ internal class SyncEngine(
             .onEach { request ->
                 when (val params = request.params) {
                     is SyncParams.SetParams -> onSetRequestUseCase(params, request, _events)
-                    is SyncParams.DeleteParams -> onDeleteRequestUseCase(params, request)
+                    is SyncParams.DeleteParams -> onDeleteRequestUseCase(params, request, _events)
                 }
             }.launchIn(scope)
 

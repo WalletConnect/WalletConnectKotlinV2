@@ -25,7 +25,7 @@ internal fun engineModule() = module {
     single { RegisterAccountUseCase(get(), get()) }
 
     single { OnSetRequestUseCase(get(), get(), get()) }
-    single { OnDeleteRequestUseCase(get(), get()) }
+    single { OnDeleteRequestUseCase(get(), get(), get()) }
 
     single { OnSetResponseUseCase() }
     single { OnDeleteResponseUseCase() }
