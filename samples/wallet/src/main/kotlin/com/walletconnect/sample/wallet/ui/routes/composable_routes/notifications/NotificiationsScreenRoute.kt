@@ -38,8 +38,9 @@ import androidx.navigation.NavHostController
 import com.skydoves.landscapist.glide.GlideImage
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.domain.model.PushNotification
-import com.walletconnect.sample.wallet.ui.common.CompletePreviews
 import com.walletconnect.sample.wallet.ui.common.WCTopAppBar
+import com.walletconnect.sample_common.CompletePreviews
+import com.walletconnect.sample_common.theme.PreviewTheme
 
 @Composable
 fun NotificationsScreenRoute(navController: NavHostController) {
@@ -184,11 +185,13 @@ private fun TrashButton(
 private fun NotificationsScreenPreview(
     @PreviewParameter(NotificationsScreenStateProvider::class) state: NotificationsState
 ) {
-    NotificationScreen(
-        state = state,
-        onNotificationItemDelete = {},
-        onBackClick = {}
-    )
+    PreviewTheme {
+        NotificationScreen(
+            state = state,
+            onNotificationItemDelete = {},
+            onBackClick = {}
+        )
+    }
 }
 
 private class NotificationsScreenStateProvider : PreviewParameterProvider<NotificationsState> {

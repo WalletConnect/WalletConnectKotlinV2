@@ -1,6 +1,6 @@
 package com.walletconnect.push.wallet.client.mapper
 
-import com.walletconnect.android.internal.common.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.common.model.EngineDO

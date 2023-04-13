@@ -11,26 +11,32 @@ import java.security.Security
 object EthAccountDelegate {
     lateinit var application: Application
     private val sharedPreferences: SharedPreferences by lazy { application.getSharedPreferences("Wallet_Sample_Shared_Prefs", Context.MODE_PRIVATE) }
-    private val newlyGeneratedKeys: Triple<String, String, String> by lazy { generateKeys() }
     private const val ACCOUNT_TAG = "self_account_tag"
     private const val PRIVATE_KEY_TAG = "self_private_key"
     private const val PUBLIC_KEY_TAG = "self_public_key"
 
+    private val isInitialized
+        get() = (sharedPreferences.getString(ACCOUNT_TAG, null) != null) && (sharedPreferences.getString(PRIVATE_KEY_TAG, null) != null) && (sharedPreferences.getString(PUBLIC_KEY_TAG, null) != null)
+
+    private fun storeAccount(): Triple<String, String, String> = generateKeys().also { (publicKey, privateKey, address) ->
+        sharedPreferences.edit { putString(ACCOUNT_TAG, "0x${address}") }
+        sharedPreferences.edit { putString(PRIVATE_KEY_TAG, privateKey) }
+        sharedPreferences.edit { putString(PUBLIC_KEY_TAG, publicKey) }
+    }
+
     val account: String
-        get() = sharedPreferences.getString(ACCOUNT_TAG, null) ?: "0x${newlyGeneratedKeys.third}".also {
-            sharedPreferences.edit { putString(ACCOUNT_TAG, it) }
-        }
+        get() = if (isInitialized) sharedPreferences.getString(ACCOUNT_TAG, null)!! else "0x${storeAccount().third}"
+
     val privateKey: String
-        get() = sharedPreferences.getString(PRIVATE_KEY_TAG, null) ?: newlyGeneratedKeys.second.also {
-            sharedPreferences.edit { putString(PRIVATE_KEY_TAG, it) }
-        }
+        get() = if (isInitialized) sharedPreferences.getString(PRIVATE_KEY_TAG, null)!! else storeAccount().second
+
     val publicKey: String
-        get() = sharedPreferences.getString(PUBLIC_KEY_TAG, null) ?: newlyGeneratedKeys.first.also {
-            sharedPreferences.edit { putString(PUBLIC_KEY_TAG, it) }
-        }
+        get() = if (isInitialized) sharedPreferences.getString(PUBLIC_KEY_TAG, null)!! else storeAccount().first
+
 }
 
-private fun generateKeys(): Triple<String, String, String> {
+context(EthAccountDelegate)
+fun generateKeys(): Triple<String, String, String> {
     Security.getProviders().forEach { provider ->
         if (provider.name == "BC") {
             Security.removeProvider(provider.name)

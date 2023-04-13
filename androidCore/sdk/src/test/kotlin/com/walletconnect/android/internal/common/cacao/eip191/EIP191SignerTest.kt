@@ -3,10 +3,12 @@ package com.walletconnect.android.internal.common.cacao.eip191
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.walletconnect.android.cacao.signature.SignatureType
-import com.walletconnect.android.internal.common.cacao.Cacao
-import com.walletconnect.android.internal.common.cacao.signature.Signature
-import com.walletconnect.android.internal.common.cacao.toCAIP122Message
-import com.walletconnect.android.internal.common.cacao.toSignature
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.signature.Signature
+import com.walletconnect.android.internal.common.signing.eip191.EIP191Signer
+import com.walletconnect.android.internal.common.signing.eip191.EIP191Verifier
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
+import com.walletconnect.android.internal.common.signing.cacao.toSignature
 import com.walletconnect.android.utils.cacao.CacaoSignerInterface
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.util.bytesToHex

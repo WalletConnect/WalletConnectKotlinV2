@@ -1,7 +1,7 @@
 package com.walletconnect.android.keyserver.model
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android.internal.common.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
 
 sealed class KeyServerResponse {
 

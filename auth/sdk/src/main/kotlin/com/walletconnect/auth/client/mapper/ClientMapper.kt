@@ -2,8 +2,8 @@
 
 package com.walletconnect.auth.client.mapper
 
-import com.walletconnect.android.internal.common.cacao.Cacao
-import com.walletconnect.android.internal.common.cacao.CacaoType
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.auth.client.Auth
@@ -25,7 +25,7 @@ internal fun ConnectionState.toClient(): Auth.Event.ConnectionStateChange =
 internal fun SDKError.toClient(): Auth.Event.Error = Auth.Event.Error(Auth.Model.Error(this.exception))
 
 @JvmSynthetic
-internal fun Events.OnAuthRequest.toClient(): Auth.Event.AuthRequest = Auth.Event.AuthRequest(id, payloadParams.toClient())
+internal fun Events.OnAuthRequest.toClient(): Auth.Event.AuthRequest = Auth.Event.AuthRequest(id, pairingTopic, payloadParams.toClient())
 
 internal fun PayloadParams.toClient(): Auth.Model.PayloadParams =
     Auth.Model.PayloadParams(
@@ -70,6 +70,7 @@ internal fun List<PendingRequest>.toClient(): List<Auth.Model.PendingRequest> =
     map { request ->
         Auth.Model.PendingRequest(
             request.id,
+            request.pairingTopic,
             request.payloadParams.toClient()
         )
     }

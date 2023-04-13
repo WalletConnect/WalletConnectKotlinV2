@@ -6,12 +6,15 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.sync.client.mapper.toClient
 import com.walletconnect.sync.client.mapper.toClientError
+import com.walletconnect.sync.client.mapper.toCommon
 import com.walletconnect.sync.common.model.Events
+import com.walletconnect.sync.di.commonModule
 import com.walletconnect.sync.di.engineModule
+import com.walletconnect.sync.di.storageModule
 import com.walletconnect.sync.engine.domain.SyncEngine
 import kotlinx.coroutines.launch
 
-class SyncProtocol : SyncInterface {
+internal class SyncProtocol : SyncInterface {
     private lateinit var syncEngine: SyncEngine
 
     companion object {
@@ -22,6 +25,8 @@ class SyncProtocol : SyncInterface {
         try {
             wcKoinApp.run {
                 modules(
+                    commonModule(),
+                    storageModule(),
                     engineModule(),
                 )
             }
@@ -33,6 +38,7 @@ class SyncProtocol : SyncInterface {
         }
     }
 
+    @Throws(IllegalStateException::class)
     override fun setSyncDelegate(delegate: SyncInterface.SyncDelegate): Unit = wrapWithEngineInitializationCheck() {
         scope.launch {
             syncEngine.events.collect { event ->
@@ -45,28 +51,34 @@ class SyncProtocol : SyncInterface {
         }
     }
 
-    override fun getMessage(params: Sync.Params.GetMessage): String? = wrapWithEngineInitializationCheck() {
-        TODO("Not yet implemented")
+    @Throws(IllegalStateException::class)
+    override fun getMessage(params: Sync.Params.GetMessage): String = wrapWithEngineInitializationCheck() {
+        syncEngine.getMessage(params.accountId)
     }
 
+    @Throws(IllegalStateException::class)
     override fun register(params: Sync.Params.Register, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
-        TODO("Not yet implemented")
+        syncEngine.register(params.accountId, params.signature.s, params.signatureType, onSuccess) { error -> onError(Sync.Model.Error(error)) }
     }
 
+    @Throws(IllegalStateException::class)
     override fun create(params: Sync.Params.Create, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
-        TODO("Not yet implemented")
+        syncEngine.create(params.accountId, params.store.toCommon(), onSuccess) { error -> onError(Sync.Model.Error(error)) }
     }
 
-    override fun set(params: Sync.Params.Set, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
-        TODO("Not yet implemented")
+    @Throws(IllegalStateException::class)
+    override fun set(params: Sync.Params.Set, onSuccess: (Boolean) -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
+        syncEngine.set(params.accountId, params.store.toCommon(), params.key, params.value, onSuccess) { error -> onError(Sync.Model.Error(error)) }
     }
 
-    override fun delete(params: Sync.Params.Delete, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
-        TODO("Not yet implemented")
+    @Throws(IllegalStateException::class)
+    override fun delete(params: Sync.Params.Delete, onSuccess: (Boolean) -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
+        syncEngine.delete(params.accountId, params.store.toCommon(), params.key, onSuccess) { error -> onError(Sync.Model.Error(error)) }
     }
 
+    @Throws(IllegalStateException::class)
     override fun getStores(params: Sync.Params.GetStores): Sync.Type.StoreMap? = wrapWithEngineInitializationCheck() {
-        TODO("Not yet implemented")
+        syncEngine.getStores(params.accountId)?.toClient()
     }
 
     @Throws(IllegalStateException::class)

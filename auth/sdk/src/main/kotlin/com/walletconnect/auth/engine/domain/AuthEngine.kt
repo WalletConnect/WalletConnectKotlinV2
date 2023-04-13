@@ -4,10 +4,10 @@ package com.walletconnect.auth.engine.domain
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.cacao.Cacao
-import com.walletconnect.android.internal.common.cacao.CacaoType
-import com.walletconnect.android.internal.common.cacao.CacaoVerifier
-import com.walletconnect.android.internal.common.cacao.Issuer
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
+import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
+import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
@@ -42,7 +42,6 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.util.generateId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
@@ -109,7 +108,7 @@ internal class AuthEngine(
         val responsePublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
         val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams, expiry)
-        val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(generateId(), params = authParams)
+        val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(params = authParams)
         val irnParamsTtl = expiry?.run {
             val defaultTtl = DAY_IN_SECONDS
             val extractedTtl = seconds - nowInSeconds
@@ -240,7 +239,7 @@ internal class AuthEngine(
         }
 
         scope.launch {
-            _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, authParams.payloadParams))
+            _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, wcRequest.topic.value, authParams.payloadParams))
         }
     }
 

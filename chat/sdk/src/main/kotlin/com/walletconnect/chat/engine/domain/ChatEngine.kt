@@ -3,7 +3,7 @@
 package com.walletconnect.chat.engine.domain
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
 import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
@@ -459,7 +459,7 @@ internal class ChatEngine(
     }
 
     internal fun leave(topic: String, onFailure: (Throwable) -> Unit) {
-        val payload = ChatRpc.ChatLeave(id = generateId(), params = ChatParams.LeaveParams())
+        val payload = ChatRpc.ChatLeave(params = ChatParams.LeaveParams())
         val irnParams = IrnParams(Tags.CHAT_LEAVE, Ttl(MONTH_IN_SECONDS), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, payload, EnvelopeType.ZERO,
@@ -480,7 +480,7 @@ internal class ChatEngine(
     }
 
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
-        val pingPayload = ChatRpc.ChatPing(id = generateId(), params = ChatParams.PingParams())
+        val pingPayload = ChatRpc.ChatPing(params = ChatParams.PingParams())
         val irnParams = IrnParams(Tags.CHAT_PING, Ttl(THIRTY_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,

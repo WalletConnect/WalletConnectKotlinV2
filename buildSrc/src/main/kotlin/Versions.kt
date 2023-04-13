@@ -5,15 +5,16 @@ const val KEY_PUBLISH_ARTIFACT_ID = "PUBLISH_ARTIFACT_ID"
 const val KEY_SDK_NAME = "SDK_NAME"
 
 //Latest versions
-const val BOM_VERSION = "1.8.0"
-const val FOUNDATION_VERSION = "1.7.0"
-const val CORE_VERSION = "1.13.0"
-const val SIGN_VERSION = "2.11.0"
+const val BOM_VERSION = "1.9.0"
+const val FOUNDATION_VERSION = "1.8.0"
+const val CORE_VERSION = "1.14.0"
+const val SIGN_VERSION = "2.12.0"
 const val SYNC_VERSION = "1.0.0-alpha01"
-const val AUTH_VERSION = "1.11.0"
-const val CHAT_VERSION = "1.0.0-beta05"
-const val WEB_3_WALLET = "1.6.0"
-const val WEB_3_INBOX = "1.0.0-alpha05"
+const val AUTH_VERSION = "1.12.0"
+const val CHAT_VERSION = "1.0.0-beta06"
+const val PUSH_VERSION = "1.0.0-alpha01"
+const val WEB_3_WALLET = "1.7.0"
+const val WEB_3_INBOX = "1.0.0-alpha06"
 
 val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23
@@ -29,6 +30,7 @@ const val sqlDelightVersion = "1.5.4"
 const val moshiVersion = "1.14.0"
 const val coroutinesVersion = "1.7.0-Beta" //TODO remove "add("META-INF/versions/9/previous-compilation-data.bin")" from build.gradle when coroutines version is updated
 const val composeCompilerVersion = "1.4.4"
+const val composeBomVersion = "2022.11.00"
 const val scarletVersion = "1.0.0"
 const val scarletPackage = "com.github.WalletConnect.Scarlet"
 const val koinVersion = "3.3.2"

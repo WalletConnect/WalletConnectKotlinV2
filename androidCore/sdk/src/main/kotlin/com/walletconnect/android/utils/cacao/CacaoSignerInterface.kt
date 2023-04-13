@@ -6,9 +6,9 @@ package com.walletconnect.android.utils.cacao
 import com.walletconnect.android.cacao.SignatureInterface
 import com.walletconnect.android.cacao.signature.ISignatureType
 import com.walletconnect.android.cacao.signature.SignatureType
-import com.walletconnect.android.internal.common.cacao.Cacao
-import com.walletconnect.android.internal.common.cacao.eip191.EIP191Signer
-import com.walletconnect.android.internal.common.cacao.signature.toCacaoSignature
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.eip191.EIP191Signer
+import com.walletconnect.android.internal.common.signing.signature.toCacaoSignature
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.createType
 

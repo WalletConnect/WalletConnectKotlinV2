@@ -29,7 +29,7 @@ class Web3WalletApplication : Application() {
         super.onCreate()
 
         EthAccountDelegate.application = this
-        Log.d(tag(this),"Account: ${EthAccountDelegate.account}")
+        Log.d(tag(this), "Account: ${EthAccountDelegate.account}")
 
         val projectId = BuildConfig.PROJECT_ID
         val relayUrl = "relay.walletconnect.com"
