@@ -28,7 +28,7 @@ const val googleServiceVersion = "4.3.14"
 
 const val sqlDelightVersion = "1.5.4"
 const val moshiVersion = "1.14.0"
-const val coroutinesVersion = "1.7.0-Beta" //TODO remove "add("META-INF/versions/9/previous-compilation-data.bin")" from build.gradle when coroutines version is updated
+const val coroutinesVersion = "1.6.4"
 const val composeCompilerVersion = "1.4.4"
 const val composeBomVersion = "2022.11.00"
 const val scarletVersion = "1.0.0"
