@@ -32,6 +32,7 @@ import androidx.constraintlayout.compose.ConstraintLayoutScope
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.skydoves.landscapist.glide.GlideImage
+import com.walletconnect.sample.wallet.BuildConfig
 import com.walletconnect.sample.wallet.ui.Web3WalletViewModel
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.R
@@ -64,7 +65,7 @@ fun ConstraintLayoutScope.Title(titleRef: ConstrainedLayoutReference) {
         top.linkTo(parent.top, margin = 0.dp)
         start.linkTo(parent.start)
     }) {
-        WCTopAppBar(titleText = "Connections")
+        WCTopAppBar(titleText = "Connections", versionText = BuildConfig.VERSION_NAME)
     }
 }
 

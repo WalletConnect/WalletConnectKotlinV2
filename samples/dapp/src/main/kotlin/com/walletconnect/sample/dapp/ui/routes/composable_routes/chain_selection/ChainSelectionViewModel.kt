@@ -2,14 +2,13 @@ package com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selectio
 
 import androidx.lifecycle.ViewModel
 import com.walletconnect.android.CoreClient
-import com.walletconnect.sample.dapp.domain.model.toChain
 import com.walletconnect.sample_common.Chains
 import kotlinx.coroutines.flow.*
 
 class ChainSelectionViewModel : ViewModel() {
 
     private val chains: List<ChainSelectionUi> =
-        Chains.values().map { it.toChain().toChainUiState() }
+        Chains.values().map { it.toChainUiState() }
 
     private val _uiState = MutableStateFlow(chains)
     val uiState = _uiState.asStateFlow()

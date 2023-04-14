@@ -1,6 +1,6 @@
 package com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selection
 
-import com.walletconnect.sample.dapp.domain.model.Chain
+import com.walletconnect.sample_common.Chains
 
 data class ChainSelectionUi(
     val chainName: String,
@@ -15,4 +15,4 @@ data class ChainSelectionUi(
     val chainId = "${chainNamespace}:${chainReference}"
 }
 
-fun Chain.toChainUiState() = ChainSelectionUi(chainName, chainNamespace, chainReference, icon, color, methods, events)
+fun Chains.toChainUiState() = ChainSelectionUi(chainName, chainNamespace, chainReference, icon, color, methods, events)

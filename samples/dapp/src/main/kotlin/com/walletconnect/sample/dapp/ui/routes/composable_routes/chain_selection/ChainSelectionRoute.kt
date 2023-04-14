@@ -22,7 +22,6 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.walletconnect.sample.dapp.domain.model.toChain
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.CompletePreviews
 import com.walletconnect.sample_common.ui.*
@@ -50,7 +49,7 @@ private fun ChainSelectionScreen(
     onConnectClick: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        WCTopAppBar(text = "Chain selection")
+        WCTopAppBar(titleText = "Chain selection")
         ChainsList(
             chains = chains,
             modifier = Modifier
@@ -139,6 +138,6 @@ private fun ChainSelectionScreenPreview(
 private class ChainSelectionStateProvider : PreviewParameterProvider<List<ChainSelectionUi>> {
     override val values: Sequence<List<ChainSelectionUi>>
         get() = sequenceOf(
-            Chains.values().map { it.toChain().toChainUiState() }
+            Chains.values().map { it.toChainUiState() }
         )
 }
