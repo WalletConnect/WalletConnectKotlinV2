@@ -32,12 +32,13 @@ import androidx.constraintlayout.compose.ConstraintLayoutScope
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.skydoves.landscapist.glide.GlideImage
+import com.walletconnect.sample.wallet.BuildConfig
 import com.walletconnect.sample.wallet.ui.Web3WalletViewModel
-import com.walletconnect.sample.wallet.ui.common.findActivity
-import com.walletconnect.sample.wallet.ui.common.themedColor
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.R
-import com.walletconnect.sample.wallet.ui.common.WCTopAppBar
+import com.walletconnect.sample_common.ui.WCTopAppBar
+import com.walletconnect.sample_common.ui.findActivity
+import com.walletconnect.sample_common.ui.themedColor
 
 @Composable
 fun ConnectionsRoute(navController: NavController, connectionsViewModel: ConnectionsViewModel, web3WalletViewModel: Web3WalletViewModel) {
@@ -64,7 +65,7 @@ fun ConstraintLayoutScope.Title(titleRef: ConstrainedLayoutReference) {
         top.linkTo(parent.top, margin = 0.dp)
         start.linkTo(parent.start)
     }) {
-        WCTopAppBar(text = "Connections")
+        WCTopAppBar(titleText = "Connections", versionText = BuildConfig.VERSION_NAME)
     }
 }
 

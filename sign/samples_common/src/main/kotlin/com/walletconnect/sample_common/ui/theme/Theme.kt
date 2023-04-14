@@ -1,4 +1,4 @@
-package com.walletconnect.sample_common.theme
+package com.walletconnect.sample_common.ui.theme
 
 import android.app.Activity
 import android.os.Build

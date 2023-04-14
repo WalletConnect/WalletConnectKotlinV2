@@ -1,6 +1,7 @@
 package com.walletconnect.sync.engine.domain
 
 import com.walletconnect.android.internal.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
@@ -8,6 +9,7 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.sync.common.json_rpc.JsonRpcMethod
 import com.walletconnect.sync.common.json_rpc.SyncParams
 import com.walletconnect.sync.engine.use_case.calls.*
+import com.walletconnect.sync.engine.use_case.come_up_with_good_name.SubscribeToStoreUpdatesUseCase
 import com.walletconnect.sync.engine.use_case.requests.OnDeleteRequestUseCase
 import com.walletconnect.sync.engine.use_case.requests.OnSetRequestUseCase
 import com.walletconnect.sync.engine.use_case.responses.OnDeleteResponseUseCase
@@ -30,6 +32,7 @@ internal class SyncEngine(
     private val onDeleteRequestUseCase: OnDeleteRequestUseCase,
     private val onSetResponseUseCase: OnSetResponseUseCase,
     private val onDeleteResponseUseCase: OnDeleteResponseUseCase,
+    private val subscribeToStoreUpdatesUseCase: SubscribeToStoreUpdatesUseCase,
 ) : GetMessageUseCaseInterface by GetMessageUseCase,
     CreateUseCaseInterface by createStoreUseCase,
     GetStoresUseCaseInterface by getStoresUseCase,
@@ -58,8 +61,7 @@ internal class SyncEngine(
             .onEach {
                 coroutineScope {
                     launch(Dispatchers.IO) {
-                        //todo
-//                        trySubscribeToStores()
+                        subscribeToStoreUpdatesUseCase(onError = { error -> scope.launch { _events.emit(SDKError(error)) } })
                     }
                 }
                 if (jsonRpcRequestsJob == null) {

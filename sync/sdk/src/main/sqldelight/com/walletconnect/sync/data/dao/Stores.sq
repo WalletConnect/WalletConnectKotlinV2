@@ -26,6 +26,10 @@ SELECT id, accountId, name, symKey, topic
 FROM Stores
 WHERE topic = ?;
 
+getAllTopics:
+SELECT topic
+FROM Stores;
+
 doesStoreNotExists:
 SELECT NOT EXISTS (
     SELECT 1
