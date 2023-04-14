@@ -37,7 +37,7 @@ To help manage compatible dependencies stay in sync, we've introduced a [BOM](ht
 dependencies {
     implementation(platform("com.walletconnect:android-bom:{BOM version}"))
     implementation("com.walletconnect:android-core")
-    implementation("com.walletconnect:sign")
+    implementation("com.walletconnect:web3wallet")
 }
 ```
 
