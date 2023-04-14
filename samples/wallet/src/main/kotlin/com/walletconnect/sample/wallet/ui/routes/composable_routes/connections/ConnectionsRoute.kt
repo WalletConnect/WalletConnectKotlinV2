@@ -64,7 +64,7 @@ fun ConstraintLayoutScope.Title(titleRef: ConstrainedLayoutReference) {
         top.linkTo(parent.top, margin = 0.dp)
         start.linkTo(parent.start)
     }) {
-        WCTopAppBar(text = "Connections")
+        WCTopAppBar(titleText = "Connections")
     }
 }
 
