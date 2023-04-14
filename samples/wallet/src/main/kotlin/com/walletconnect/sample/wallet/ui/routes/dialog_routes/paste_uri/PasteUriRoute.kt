@@ -25,7 +25,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.walletconnect.sample.wallet.R
-import com.walletconnect.sample.wallet.ui.common.themedColor
+import com.walletconnect.sample_common.ui.themedColor
 
 @Composable
 fun PasteUriRoute(onSubmit: (String) -> Unit) {

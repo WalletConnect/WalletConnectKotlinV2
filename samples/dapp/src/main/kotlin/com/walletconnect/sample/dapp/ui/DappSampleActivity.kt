@@ -10,7 +10,7 @@ import androidx.compose.material.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.walletconnect.sample.dapp.ui.routes.Route
-import com.walletconnect.sample_common.theme.WCSampleAppTheme
+import com.walletconnect.sample_common.ui.theme.WCSampleAppTheme
 
 class DappSampleActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

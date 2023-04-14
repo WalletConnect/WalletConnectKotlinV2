@@ -1,4 +1,4 @@
-package com.walletconnect.sample.wallet.ui.common
+package com.walletconnect.sample_common.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,8 +14,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.walletconnect.sample.wallet.BuildConfig
-import com.walletconnect.sample.wallet.R
+import com.walletconnect.sample_common.BuildConfig
+import com.walletconnect.sample_common.R
 
 @Composable
 fun WCTopAppBar(
@@ -34,7 +34,10 @@ fun WCTopAppBar(
     ),
     onBackIconClick: (() -> Unit)? = null,
 ) {
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Spacer(modifier = Modifier.width(32.dp))
         onBackIconClick?.let {
             Icon(
