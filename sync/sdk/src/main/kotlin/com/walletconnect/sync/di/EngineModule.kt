@@ -10,6 +10,7 @@ import com.walletconnect.sync.engine.use_case.subscriptions.SubscribeToAllStores
 import com.walletconnect.sync.engine.use_case.subscriptions.SubscribeToStoreUpdatesUseCase
 import com.walletconnect.sync.engine.use_case.requests.incoming.OnDeleteRequestUseCase
 import com.walletconnect.sync.engine.use_case.requests.incoming.OnSetRequestUseCase
+import com.walletconnect.sync.engine.use_case.requests.outgoing.SendDeleteRequestUseCase
 import com.walletconnect.sync.engine.use_case.requests.outgoing.SendSetRequestUseCase
 import com.walletconnect.sync.engine.use_case.responses.OnDeleteResponseUseCase
 import com.walletconnect.sync.engine.use_case.responses.OnSetResponseUseCase
@@ -20,7 +21,7 @@ internal fun engineModule() = module {
     single { MessageSignatureVerifier(get()) }
 
     single { CreateStoreUseCase(get(), get(), get()) }
-    single { DeleteStoreValueUseCase(get()) }
+    single { DeleteStoreValueUseCase(get(), get()) }
     single { SetStoreValueUseCase(get(), get()) }
     single { GetStoresUseCase(get()) }
     single { RegisterAccountUseCase(get(), get()) }
@@ -29,6 +30,7 @@ internal fun engineModule() = module {
     single { OnDeleteRequestUseCase(get(), get()) }
 
     single { SendSetRequestUseCase(get(), get()) }
+    single { SendDeleteRequestUseCase(get(), get()) }
 
     single { OnSetResponseUseCase() }
     single { OnDeleteResponseUseCase() }
