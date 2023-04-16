@@ -1,4 +1,4 @@
-package com.walletconnect.sync.engine.use_case.requests
+package com.walletconnect.sync.engine.use_case.requests.incoming
 
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.sync.common.json_rpc.SyncParams

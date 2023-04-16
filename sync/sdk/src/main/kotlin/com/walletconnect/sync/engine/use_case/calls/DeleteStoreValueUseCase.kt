@@ -10,6 +10,7 @@ import kotlinx.coroutines.supervisorScope
 
 internal class DeleteStoreValueUseCase(private val storesRepository: StoresStorageRepository) : DeleteUseCaseInterface {
 
+    // https://github.com/WalletConnect/WalletConnectKotlinV2/issues/800 -> update params to have StoreKey and StoreValue
     override fun delete(accountId: AccountId, store: Store, key: String, onSuccess: (Boolean) -> Unit, onFailure: (Throwable) -> Unit) {
         scope.launch {
             supervisorScope {

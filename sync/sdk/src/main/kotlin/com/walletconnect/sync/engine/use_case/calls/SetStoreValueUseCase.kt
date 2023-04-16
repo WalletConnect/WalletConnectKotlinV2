@@ -4,12 +4,14 @@ import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.sync.common.exception.validateAccountId
 import com.walletconnect.sync.common.model.Store
+import com.walletconnect.sync.engine.use_case.requests.outgoing.SendSetRequestUseCase
 import com.walletconnect.sync.storage.StoresStorageRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-internal class SetStoreValueUseCase(private val storesRepository: StoresStorageRepository) : SetUseCaseInterface {
+internal class SetStoreValueUseCase(private val storesRepository: StoresStorageRepository, private val sendSetRequestUseCase: SendSetRequestUseCase) : SetUseCaseInterface {
 
+    // https://github.com/WalletConnect/WalletConnectKotlinV2/issues/800 -> update params to have StoreKey and StoreValue
     override fun set(accountId: AccountId, store: Store, key: String, value: String, onSuccess: (Boolean) -> Unit, onFailure: (Throwable) -> Unit) {
         scope.launch {
             supervisorScope {
@@ -21,7 +23,7 @@ internal class SetStoreValueUseCase(private val storesRepository: StoresStorageR
 
                 // Return true in onSuccess when the value was upserted
                 runCatching { storesRepository.upsertStoreValue(accountId, store, key, value) }.fold(
-                    onSuccess = { onSuccess(true) },
+                    onSuccess = { sendSetRequestUseCase(key, value, accountId, store, onSuccess = { onSuccess(true) }, onError = onFailure) },
                     onFailure = { error -> onFailure(error) }
                 )
             }
