@@ -37,9 +37,9 @@ import androidx.navigation.NavHostController
 import com.skydoves.landscapist.glide.GlideImage
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.domain.model.PushNotification
-import com.walletconnect.sample.wallet.ui.common.WCTopAppBar
 import com.walletconnect.sample_common.CompletePreviews
-import com.walletconnect.sample_common.theme.PreviewTheme
+import com.walletconnect.sample_common.ui.WCTopAppBar
+import com.walletconnect.sample_common.ui.theme.PreviewTheme
 
 @Composable
 fun NotificationsScreenRoute(navController: NavHostController) {

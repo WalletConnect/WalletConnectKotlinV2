@@ -39,7 +39,6 @@ subprojects {
             extensions.configure(BaseExtension::class.java) {
                 packagingOptions {
                     with(resources.excludes) {
-                        add("META-INF/versions/9/previous-compilation-data.bin")
                         add("META-INF/INDEX.LIST")
                         add("META-INF/DEPENDENCIES")
                         add("META-INF/LICENSE.md")
