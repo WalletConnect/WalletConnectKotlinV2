@@ -4,12 +4,19 @@ package com.walletconnect.util
 
 import jakarta.ws.rs.core.UriBuilder
 import java.security.SecureRandom
+import kotlin.math.pow
 
 @get:JvmSynthetic
 val String.Companion.Empty
     get() = ""
 
 fun generateId(): Long = ("${System.currentTimeMillis()}${(100..999).random()}").toLong()
+
+fun generateClientToServerId(): Long {
+    val now = System.currentTimeMillis() * 10.0.pow(6.0)
+    return now.plus((100000..999999).random()).toLong()
+}
+
 
 fun randomBytes(size: Int): ByteArray = ByteArray(size).apply {
     SecureRandom().nextBytes(this)

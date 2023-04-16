@@ -10,6 +10,7 @@ object Auth {
     sealed class Event {
         data class AuthRequest(
             val id: Long,
+            val pairingTopic: String,
             val payloadParams: Model.PayloadParams
         ) : Event()
 
@@ -32,6 +33,7 @@ object Auth {
 
         data class PendingRequest(
             val id: Long,
+            val pairingTopic: String,
             val payloadParams: PayloadParams
         ) : Model()
 

@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.walletconnect.sample.wallet.ui.common.themedColor
+import com.walletconnect.sample_common.ui.themedColor
 import com.walletconnect.util.Empty
 
 @Composable

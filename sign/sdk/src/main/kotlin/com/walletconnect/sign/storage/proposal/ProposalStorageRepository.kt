@@ -75,8 +75,8 @@ class ProposalStorageRepository(
         proposer_key: String,
         properties: Map<String, String>?
     ): ProposalVO {
-        val requiredNamespaces: Map<String, NamespaceVO.Required> = getRequiredNamespaces(request_id)
-        val optionalNamespaces: Map<String, NamespaceVO.Optional> = getOptionalNamespaces(request_id)
+        val requiredNamespaces: Map<String, NamespaceVO.Proposal> = getRequiredNamespaces(request_id)
+        val optionalNamespaces: Map<String, NamespaceVO.Proposal> = getOptionalNamespaces(request_id)
 
         return ProposalVO(
             requestId = request_id,
@@ -95,28 +95,28 @@ class ProposalStorageRepository(
     }
 
     @Throws(SQLiteException::class)
-    private fun insertRequiredNamespace(namespaces: Map<String, NamespaceVO.Required>, proposalId: Long) {
+    private fun insertRequiredNamespace(namespaces: Map<String, NamespaceVO.Proposal>, proposalId: Long) {
         namespaces.forEach { (key, value) ->
             requiredNamespaceDaoQueries.insertOrAbortProposalNamespace(proposalId, key, value.chains, value.methods, value.events)
         }
     }
 
     @Throws(SQLiteException::class)
-    private fun insertOptionalNamespace(namespaces: Map<String, NamespaceVO.Optional>?, proposalId: Long) {
+    private fun insertOptionalNamespace(namespaces: Map<String, NamespaceVO.Proposal>?, proposalId: Long) {
         namespaces?.forEach { (key, value) ->
             optionalNamespaceDaoQueries.insertOrAbortOptionalNamespace(proposalId, key, value.chains, value.methods, value.events)
         }
     }
 
-    private fun getRequiredNamespaces(id: Long): Map<String, NamespaceVO.Required> {
+    private fun getRequiredNamespaces(id: Long): Map<String, NamespaceVO.Proposal> {
         return requiredNamespaceDaoQueries.getProposalNamespaces(id) { key, chains, methods, events ->
-            key to NamespaceVO.Required(chains, methods, events)
+            key to NamespaceVO.Proposal(chains, methods, events)
         }.executeAsList().toMap()
     }
 
-    private fun getOptionalNamespaces(id: Long): Map<String, NamespaceVO.Optional> {
+    private fun getOptionalNamespaces(id: Long): Map<String, NamespaceVO.Proposal> {
         return optionalNamespaceDaoQueries.getOptionalNamespaces(id) { key, chains, methods, events ->
-            key to NamespaceVO.Optional(chains, methods, events)
+            key to NamespaceVO.Proposal(chains, methods, events)
         }.executeAsList().toMap()
     }
 }

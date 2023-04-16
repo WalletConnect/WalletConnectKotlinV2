@@ -25,8 +25,8 @@ internal data class SessionVO(
     val peerPublicKey: PublicKey? = null,
     val peerAppMetaData: AppMetaData? = null,
     val sessionNamespaces: Map<String, NamespaceVO.Session>,
-    val requiredNamespaces: Map<String, NamespaceVO.Required>,
-    val optionalNamespaces: Map<String, NamespaceVO.Optional>?,
+    val requiredNamespaces: Map<String, NamespaceVO.Proposal>,
+    val optionalNamespaces: Map<String, NamespaceVO.Proposal>?,
     val properties: Map<String, String>? = null,
     val isAcknowledged: Boolean,
     val pairingTopic: String
@@ -70,8 +70,8 @@ internal data class SessionVO(
             settleParams: SignParams.SessionSettleParams,
             selfPublicKey: PublicKey,
             selfMetadata: AppMetaData,
-            requiredNamespaces: Map<String, NamespaceVO.Required>,
-            optionalNamespaces: Map<String, NamespaceVO.Optional>?,
+            requiredNamespaces: Map<String, NamespaceVO.Proposal>,
+            optionalNamespaces: Map<String, NamespaceVO.Proposal>?,
             properties: Map<String, String>?,
             pairingTopic: String
         ): SessionVO {
