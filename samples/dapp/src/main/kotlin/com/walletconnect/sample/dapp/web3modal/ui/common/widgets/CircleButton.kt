@@ -44,7 +44,7 @@ private fun CircleButtonWithIcon(
 
 @Composable
 fun QuestionMarkIconButton(navController: NavController) {
-    val currentPath = navController.currentBackStackEntryAsState().value?.destination?.route ?: ""
+    val currentPath = navController.currentBackStackEntryAsState().value?.destination?.route
     val tint: Color
     val background: Color
     if (currentPath == Route.Help.path) {

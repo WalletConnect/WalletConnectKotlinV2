@@ -39,13 +39,10 @@ fun Web3ModalRoot(
     colors: Web3ModalColors,
     content: @Composable () -> Unit
 ) {
-    Column {
-        Spacer(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .clickable { coroutinesScope.launch { sheetState.hide() } }
-        )
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Bottom
+    ) {
         ProvideWeb3ModalThemeComposition(colors = colors) {
             Column(
                 modifier = Modifier.background(Web3ModalTheme.colors.mainColor)

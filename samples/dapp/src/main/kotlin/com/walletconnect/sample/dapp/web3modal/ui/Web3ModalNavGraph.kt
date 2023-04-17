@@ -19,12 +19,11 @@ import com.walletconnect.sample.dapp.web3modal.ui.routes.scan_code.ScanQRCodeRou
 @Composable
 fun Web3ModalNavGraph(
     navController: NavHostController,
-    startDestination: String,
     modifier: Modifier = Modifier
 ) {
     AnimatedNavHost(
         navController = navController,
-        startDestination = startDestination,
+        startDestination = Route.ConnectYourWallet.path,
         modifier = modifier,
     ) {
         animatedComposable(Route.ConnectYourWallet.path) {
