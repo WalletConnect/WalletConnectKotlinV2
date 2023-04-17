@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.walletconnect.sample.dapp.ui.routes.Route
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.CompletePreviews
 import com.walletconnect.sample_common.ui.*
@@ -37,7 +38,8 @@ fun ChainSelectionRoute(navController: NavController) {
         chains = chainsState,
         onChainClick = viewModel::updateChainSelectState,
         onConnectClick = {
-            //todo navigate to new paring or select paring route
+            // Navigate to web3Modal for now
+            navController.navigate(Route.Web3Modal.path)
         }
     )
 }
