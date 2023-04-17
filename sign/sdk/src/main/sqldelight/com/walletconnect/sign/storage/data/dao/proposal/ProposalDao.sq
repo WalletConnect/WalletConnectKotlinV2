@@ -8,24 +8,24 @@ CREATE TABLE ProposalDao (
    description TEXT NOT NULL,
    url TEXT NOT NULL,
    icons TEXT AS List<String> NOT NULL,
-   redirect TEXT NOT NULL,
    relay_protocol TEXT NOT NULL,
    relay_data TEXT,
    proposer_key TEXT NOT NULL,
-   properties TEXT AS Map<String, String>
+   properties TEXT AS Map<String, String>,
+   redirect TEXT NOT NULL
 );
 
 insertOrAbortSession:
-INSERT OR ABORT INTO ProposalDao(request_id, pairingTopic, name, description, url, icons, redirect, relay_protocol, relay_data, proposer_key, properties)
+INSERT OR ABORT INTO ProposalDao(request_id, pairingTopic, name, description, url, icons, relay_protocol, relay_data, proposer_key, properties, redirect)
 VALUES (?,?,?,?,?,?,?,?,?,?,?);
 
 getProposalByKey:
-SELECT pd.request_id, pd.pairingTopic, pd.name, pd.description, pd.url, pd.icons, pd.redirect, pd.relay_protocol, pd.relay_data, pd.proposer_key, pd.properties
+SELECT pd.request_id, pd.pairingTopic, pd.name, pd.description, pd.url, pd.icons, pd.relay_protocol, pd.relay_data, pd.proposer_key, pd.properties, pd.redirect
 FROM ProposalDao pd
 WHERE proposer_key = ?;
 
 getListOfProposalDaos:
-SELECT pd.request_id, pd.pairingTopic, pd.name, pd.description, pd.url, pd.icons, pd.redirect, pd.relay_protocol, pd.relay_data, pd.proposer_key, pd.properties
+SELECT pd.request_id, pd.pairingTopic, pd.name, pd.description, pd.url, pd.icons, pd.relay_protocol, pd.relay_data, pd.proposer_key, pd.properties, pd.redirect
 FROM ProposalDao pd;
 
 deleteProposal:

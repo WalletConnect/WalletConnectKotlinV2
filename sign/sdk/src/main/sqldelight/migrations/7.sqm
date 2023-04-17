@@ -1,22 +1,8 @@
-import kotlin.collections.List;
-import kotlin.collections.Map;
-
 -- migrates 7db to 8db
 
--- DROP TABLES
-DROP TABLE IF EXISTS ProposalDao;
+-- DROP TABLE IF EXISTS ProposalDao;
 
 -- CREATE V8 SCHEMA
-CREATE TABLE ProposalDao (
-   request_id INTEGER PRIMARY KEY NOT NULL,
-   pairingTopic TEXT NOT NULL,
-   name TEXT NOT NULL,
-   description TEXT NOT NULL,
-   url TEXT NOT NULL,
-   icons TEXT AS List<String> NOT NULL,
-   redirect TEXT NOT NULL,
-   relay_protocol TEXT NOT NULL,
-   relay_data TEXT,
-   proposer_key TEXT NOT NULL,
-   properties TEXT AS Map<String, String>
-);
+
+-- ALTER TABLES
+ALTER TABLE ProposalDao ADD COLUMN redirect TEXT NOT NULL;
