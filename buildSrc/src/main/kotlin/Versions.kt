@@ -5,20 +5,23 @@ const val KEY_PUBLISH_ARTIFACT_ID = "PUBLISH_ARTIFACT_ID"
 const val KEY_SDK_NAME = "SDK_NAME"
 
 //Latest versions
-const val BOM_VERSION = "1.8.0"
-const val FOUNDATION_VERSION = "1.7.0"
-const val CORE_VERSION = "1.13.0"
-const val SIGN_VERSION = "2.11.0"
+const val BOM_VERSION = "1.9.1"
+const val FOUNDATION_VERSION = "1.8.0"
+const val CORE_VERSION = "1.14.1"
+const val SIGN_VERSION = "2.12.1"
 const val SYNC_VERSION = "1.0.0-alpha01"
-const val AUTH_VERSION = "1.11.0"
-const val CHAT_VERSION = "1.0.0-beta05"
-const val WEB_3_WALLET = "1.6.0"
-const val WEB_3_INBOX = "1.0.0-alpha05"
+const val AUTH_VERSION = "1.12.1"
+const val CHAT_VERSION = "1.0.0-beta07"
+const val PUSH_VERSION = "1.0.0-alpha02"
+const val WEB_3_WALLET = "1.7.1"
+const val WEB_3_INBOX = "1.0.0-alpha07"
 
 val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23
 const val TARGET_SDK: Int = 33
 const val COMPILE_SDK: Int = TARGET_SDK
+val SAMPLE_VERSION_CODE = BOM_VERSION.split(".")[1].toInt()
+const val SAMPLE_VERSION_NAME = BOM_VERSION
 const val agpVersion = "7.4.2" // when changing, remember to change version in build.gradle.kts in buildSrc module
 const val kotlinVersion = "1.8.10" // when changing, remember to change version in build.gradle.kts in buildSrc module
 const val kspVersion = "$kotlinVersion-1.0.9"
@@ -27,7 +30,7 @@ const val googleServiceVersion = "4.3.14"
 
 const val sqlDelightVersion = "1.5.4"
 const val moshiVersion = "1.14.0"
-const val coroutinesVersion = "1.7.0-Beta" //TODO remove "add("META-INF/versions/9/previous-compilation-data.bin")" from build.gradle when coroutines version is updated
+const val coroutinesVersion = "1.6.4"
 const val composeCompilerVersion = "1.4.4"
 const val composeBomVersion = "2022.11.00"
 const val scarletVersion = "1.0.0"

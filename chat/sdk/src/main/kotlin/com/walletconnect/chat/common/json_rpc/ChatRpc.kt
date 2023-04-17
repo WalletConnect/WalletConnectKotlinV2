@@ -4,17 +4,14 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
 import com.walletconnect.chat.json_rpc.JsonRpcMethod
+import com.walletconnect.util.generateId
 
 internal sealed class ChatRpc : JsonRpcClientSync<ChatParams> {
-    abstract override val id: Long
-    abstract override val method: String
-    abstract override val jsonrpc: String
-    abstract override val params: ChatParams
 
     @JsonClass(generateAdapter = true)
     internal data class ChatInvite(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
@@ -26,7 +23,7 @@ internal sealed class ChatRpc : JsonRpcClientSync<ChatParams> {
     @JsonClass(generateAdapter = true)
     internal data class ChatMessage(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
@@ -38,7 +35,7 @@ internal sealed class ChatRpc : JsonRpcClientSync<ChatParams> {
     @JsonClass(generateAdapter = true)
     internal data class ChatPing(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
@@ -50,7 +47,7 @@ internal sealed class ChatRpc : JsonRpcClientSync<ChatParams> {
     @JsonClass(generateAdapter = true)
     internal data class ChatLeave(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")

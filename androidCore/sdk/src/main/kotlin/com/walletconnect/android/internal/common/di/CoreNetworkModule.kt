@@ -35,9 +35,20 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
 
     val networkClientTimeout = timeout ?: NetworkClientTimeout.getDefaultTimeout()
 
-    factory<Uri>(named(AndroidCommonDITags.RELAY_URL)) {
+    factory(named(AndroidCommonDITags.USER_AGENT)) {
+        val listOfSdkBitsets = getAll<BitSet>().takeUnless { it.isEmpty() } ?: listOf(BitSet())
+        val sdkBitwiseFlags = combineListOfBitSetsWithOrOperator(listOfSdkBitsets).toBinaryString().removeLeadingZeros()
+        """wc-2/kotlin-${sdkVersion}x$sdkBitwiseFlags/android-${Build.VERSION.RELEASE}"""
+    }
+
+    factory(named(AndroidCommonDITags.RELAY_URL)) {
         val jwt = get<GenerateJwtStoreClientIdUseCase>().invoke(serverUrl)
-        Uri.parse("$serverUrl&auth=$jwt")!!
+        Uri.parse(serverUrl)
+            .buildUpon()
+            .appendQueryParameter("auth", jwt)
+            .appendQueryParameter("ua", get(named(AndroidCommonDITags.USER_AGENT)))
+            .build()
+            .toString()
     }
 
     single {
@@ -46,9 +57,8 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
 
     single(named(AndroidCommonDITags.INTERCEPTOR)) {
         Interceptor { chain ->
-            val sdkBitwiseFlags = combineListOfBitSetsWithOrOperator(getAll<BitSet>()).toBinaryString().removeLeadingZeros()
             val updatedRequest = chain.request().newBuilder()
-                .addHeader("User-Agent", """wc-2/kotlin-${sdkVersion}x$sdkBitwiseFlags/android-${Build.VERSION.RELEASE}""")
+                .addHeader("User-Agent", get(named(AndroidCommonDITags.USER_AGENT)))
                 .build()
 
             chain.proceed(updatedRequest)
@@ -61,7 +71,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
             .authenticator(authenticator = { _, response ->
                 response.request.run {
                     if (Uri.parse(serverUrl).host == this.url.host) {
-                        val relayUrl = get<Uri>(named(AndroidCommonDITags.RELAY_URL)).toString()
+                        val relayUrl = get<String>(named(AndroidCommonDITags.RELAY_URL))
                         this.newBuilder().url(relayUrl).build()
                     } else {
                         null
@@ -100,7 +110,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
     single(named(AndroidCommonDITags.SCARLET)) {
         Scarlet.Builder()
             .backoffStrategy(get<LinearBackoffStrategy>())
-            .webSocketFactory(get<OkHttpClient>(named(AndroidCommonDITags.OK_HTTP)).newWebSocketFactory(get<Uri>(named(AndroidCommonDITags.RELAY_URL)).toString()))
+            .webSocketFactory(get<OkHttpClient>(named(AndroidCommonDITags.OK_HTTP)).newWebSocketFactory(get<String>(named(AndroidCommonDITags.RELAY_URL))))
             .lifecycle(get(named(AndroidCommonDITags.LIFECYCLE)))
             .addMessageAdapterFactory(get<MoshiMessageAdapter.Factory>(named(AndroidCommonDITags.MSG_ADAPTER)))
             .addStreamAdapterFactory(get<FlowStreamAdapter.Factory>())

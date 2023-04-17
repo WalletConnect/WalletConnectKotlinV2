@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -38,9 +37,9 @@ import androidx.navigation.NavHostController
 import com.skydoves.landscapist.glide.GlideImage
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.domain.model.PushNotification
-import com.walletconnect.sample.wallet.ui.common.WCTopAppBar
 import com.walletconnect.sample_common.CompletePreviews
-import com.walletconnect.sample_common.theme.PreviewTheme
+import com.walletconnect.sample_common.ui.WCTopAppBar
+import com.walletconnect.sample_common.ui.theme.PreviewTheme
 
 @Composable
 fun NotificationsScreenRoute(navController: NavHostController) {
@@ -61,10 +60,10 @@ fun NotificationsScreenRoute(navController: NavHostController) {
 private fun NotificationScreen(
     state: NotificationsState,
     onNotificationItemDelete: (PushNotification) -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
 ) {
     Column {
-        WCTopAppBar(text = "Notifications", onBackIconClick = onBackClick)
+        WCTopAppBar(titleText = "Notifications", onBackIconClick = onBackClick)
         LazyColumn(modifier = Modifier.padding(vertical = 12.dp, horizontal = 24.dp)) {
             notificationsContent(state, onNotificationItemDelete)
         }
@@ -100,7 +99,7 @@ private fun EmptyState() {
 @Composable
 private fun LazyItemScope.NotificationItem(
     item: PushNotification,
-    onNotificationItemDelete: (PushNotification) -> Unit
+    onNotificationItemDelete: (PushNotification) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -161,7 +160,7 @@ private fun NotificationDetails(item: PushNotification, modifier: Modifier) {
 @Composable
 private fun TrashButton(
     item: PushNotification,
-    onNotificationItemDelete: (PushNotification) -> Unit
+    onNotificationItemDelete: (PushNotification) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -183,7 +182,7 @@ private fun TrashButton(
 @CompletePreviews
 @Composable
 private fun NotificationsScreenPreview(
-    @PreviewParameter(NotificationsScreenStateProvider::class) state: NotificationsState
+    @PreviewParameter(NotificationsScreenStateProvider::class) state: NotificationsState,
 ) {
     PreviewTheme {
         NotificationScreen(

@@ -15,9 +15,9 @@ import com.walletconnect.sample.wallet.ui.common.Buttons
 import com.walletconnect.sample.wallet.ui.common.InnerContent
 import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
-import com.walletconnect.sample.wallet.ui.common.themedColor
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.wallet.ui.common.*
+import com.walletconnect.sample_common.ui.themedColor
 
 @Composable
 fun AuthRequestRoute(navController: NavHostController, authRequestViewModel: AuthRequestViewModel = viewModel()) {

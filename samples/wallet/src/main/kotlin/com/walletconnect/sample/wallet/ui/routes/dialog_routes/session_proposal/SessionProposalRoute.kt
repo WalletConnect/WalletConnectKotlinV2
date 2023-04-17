@@ -27,7 +27,8 @@ import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample_common.CompletePreviews
-import com.walletconnect.sample_common.theme.PreviewTheme
+import com.walletconnect.sample_common.ui.theme.PreviewTheme
+import com.walletconnect.sample_common.ui.themedColor
 import com.walletconnect.web3.wallet.client.Wallet
 import kotlinx.coroutines.launch
 

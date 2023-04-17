@@ -12,7 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.walletconnect.sample.wallet.ui.common.InnerContent
-import com.walletconnect.sample.wallet.ui.common.themedColor
+import com.walletconnect.sample_common.ui.themedColor
 
 @Composable
 fun BlueLabelTexts(title: String, values: List<String>, displayEndSpacer: Boolean = false) {

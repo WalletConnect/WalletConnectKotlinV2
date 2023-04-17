@@ -270,7 +270,6 @@ class SignProtocol : SignInterface {
             onError(Sign.Model.Error(error))
         }
     }
-
     @Throws(IllegalStateException::class)
     override fun getListOfActiveSessions(): List<Sign.Model.Session> {
         checkEngineInitialization()
