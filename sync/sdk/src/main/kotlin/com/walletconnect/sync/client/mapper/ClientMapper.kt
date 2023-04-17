@@ -2,6 +2,7 @@
 
 package com.walletconnect.sync.client.mapper
 
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.signing.signature.Signature
@@ -29,6 +30,10 @@ internal fun Store.toClient(): Sync.Type.Store = Sync.Type.Store(value)
 @JvmSynthetic
 internal fun Sync.Type.Store.toCommon(): Store = Store(value)
 
+
+@JvmSynthetic
+internal fun Sync.Type.AccountId.toCommon(): AccountId = AccountId(value)
+
 @JvmSynthetic
 internal fun SyncUpdate.toClient(): Sync.Model.SyncUpdate = when (this) {
     is SyncUpdate.SyncDelete -> Sync.Model.SyncUpdate.SyncDelete(id, key)
@@ -36,4 +41,4 @@ internal fun SyncUpdate.toClient(): Sync.Model.SyncUpdate = when (this) {
 }
 
 @JvmSynthetic
-internal fun Sync.Model.Signature.toCommon(): Signature = Signature.fromString(s)
+internal fun Sync.Model.Signature.asString(): String = s

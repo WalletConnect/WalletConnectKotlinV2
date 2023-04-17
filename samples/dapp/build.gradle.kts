@@ -12,8 +12,8 @@ android {
         applicationId = "com.walletconnect.sample.dapp"
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = SAMPLE_VERSION_CODE
+        versionName = SAMPLE_VERSION_NAME
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

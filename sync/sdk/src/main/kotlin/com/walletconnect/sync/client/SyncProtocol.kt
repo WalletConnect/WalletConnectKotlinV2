@@ -4,6 +4,7 @@ import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.sync.client.mapper.asString
 import com.walletconnect.sync.client.mapper.toClient
 import com.walletconnect.sync.client.mapper.toClientError
 import com.walletconnect.sync.client.mapper.toCommon
@@ -53,32 +54,32 @@ internal class SyncProtocol : SyncInterface {
 
     @Throws(IllegalStateException::class)
     override fun getMessage(params: Sync.Params.GetMessage): String = wrapWithEngineInitializationCheck() {
-        syncEngine.getMessage(params.accountId)
+        syncEngine.getMessage(params.accountId.toCommon())
     }
 
     @Throws(IllegalStateException::class)
     override fun register(params: Sync.Params.Register, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
-        syncEngine.register(params.accountId, params.signature.s, params.signatureType, onSuccess) { error -> onError(Sync.Model.Error(error)) }
+        syncEngine.register(params.accountId.toCommon(), params.signature.asString(), params.signatureType, onSuccess) { error -> onError(Sync.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun create(params: Sync.Params.Create, onSuccess: () -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
-        syncEngine.create(params.accountId, params.store.toCommon(), onSuccess) { error -> onError(Sync.Model.Error(error)) }
+        syncEngine.create(params.accountId.toCommon(), params.store.toCommon(), onSuccess) { error -> onError(Sync.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun set(params: Sync.Params.Set, onSuccess: (Boolean) -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
-        syncEngine.set(params.accountId, params.store.toCommon(), params.key, params.value, onSuccess) { error -> onError(Sync.Model.Error(error)) }
+        syncEngine.set(params.accountId.toCommon(), params.store.toCommon(), params.key, params.value, onSuccess) { error -> onError(Sync.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun delete(params: Sync.Params.Delete, onSuccess: (Boolean) -> Unit, onError: (Sync.Model.Error) -> Unit) = protocolFunction(onError) {
-        syncEngine.delete(params.accountId, params.store.toCommon(), params.key, onSuccess) { error -> onError(Sync.Model.Error(error)) }
+        syncEngine.delete(params.accountId.toCommon(), params.store.toCommon(), params.key, onSuccess) { error -> onError(Sync.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
     override fun getStores(params: Sync.Params.GetStores): Sync.Type.StoreMap? = wrapWithEngineInitializationCheck() {
-        syncEngine.getStores(params.accountId)?.toClient()
+        syncEngine.getStores(params.accountId.toCommon())?.toClient()
     }
 
     @Throws(IllegalStateException::class)

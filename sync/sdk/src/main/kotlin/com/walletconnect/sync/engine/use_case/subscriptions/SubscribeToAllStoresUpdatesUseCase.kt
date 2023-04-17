@@ -1,17 +1,20 @@
-package com.walletconnect.sync.engine.use_case.come_up_with_good_name
+package com.walletconnect.sync.engine.use_case.subscriptions
 
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sync.storage.StoresStorageRepository
 
-internal class SubscribeToStoreUpdatesUseCase(
+internal class SubscribeToAllStoresUpdatesUseCase(
     private val storesRepository: StoresStorageRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val logger: Logger,
 ) {
     suspend operator fun invoke(onError: (Throwable) -> Unit) {
-        runCatching { storesRepository.getAllTopics() }.onSuccess { topics -> topics.trySubscribeToAllStoreTopics(onError) }
+        runCatching { storesRepository.getAllTopics() }.fold(
+            onSuccess = { topics -> topics.trySubscribeToAllStoreTopics(onError) },
+            onFailure = { error -> onError(error) }
+        )
     }
 
     private fun List<Topic>.trySubscribeToAllStoreTopics(onError: (Throwable) -> Unit) = runCatching {
