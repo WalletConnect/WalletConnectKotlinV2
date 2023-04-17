@@ -24,7 +24,7 @@ internal class DeleteStoreValueUseCase(private val storesRepository: StoresStora
         suspend fun publishDeleteRequest() {
             val storeTopic = runCatching { storesRepository.getStoreTopic(accountId, store) }.fold(onSuccess = { Topic(it) }, onFailure = { error -> return onFailure(error) })
             val deleteParams = SyncParams.DeleteParams(key)
-            val payload = SyncRpc.SyncDelete(id = generateId(), params = deleteParams)
+            val payload = SyncRpc.SyncDelete(params = deleteParams)
             val irnParams = IrnParams(Tags.SYNC_DELETE, Ttl(MONTH_IN_SECONDS))
 
             jsonRpcInteractor.publishJsonRpcRequest(storeTopic, irnParams, payload, onSuccess = { onSuccess(true) }, onFailure = onFailure)
