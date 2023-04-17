@@ -5,7 +5,6 @@ package com.walletconnect.sync.client.mapper
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
-import com.walletconnect.android.internal.common.signing.signature.Signature
 import com.walletconnect.sync.client.Sync
 import com.walletconnect.sync.common.model.*
 
@@ -16,7 +15,7 @@ internal fun SDKError.toClientError(): Sync.Model.Error = Sync.Model.Error(this.
 internal fun ConnectionState.toClient(): Sync.Model.ConnectionState = Sync.Model.ConnectionState(isAvailable)
 
 @JvmSynthetic
-internal fun Events.OnSyncUpdate.toClient(): Sync.Events.OnSyncUpdate = Sync.Events.OnSyncUpdate(store.toClient(), update.toClient())
+internal fun Events.OnSyncUpdate.toClient(): Sync.Events.OnSyncUpdate = Sync.Events.OnSyncUpdate(accountId.toClient(), store.toClient(), update.toClient())
 
 @JvmSynthetic
 internal fun StoreState.toClient(): Sync.Type.StoreState = map { it.key to it.value }.toMap() as Sync.Type.StoreState
@@ -30,6 +29,8 @@ internal fun Store.toClient(): Sync.Type.Store = Sync.Type.Store(value)
 @JvmSynthetic
 internal fun Sync.Type.Store.toCommon(): Store = Store(value)
 
+@JvmSynthetic
+internal fun AccountId.toClient(): Sync.Type.AccountId = Sync.Type.AccountId(value)
 
 @JvmSynthetic
 internal fun Sync.Type.AccountId.toCommon(): AccountId = AccountId(value)
