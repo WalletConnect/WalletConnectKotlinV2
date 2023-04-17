@@ -35,6 +35,8 @@ internal class StoresStorageRepository(private val stores: StoresQueries, privat
 
     suspend fun getStoreTopic(accountId: AccountId, store: Store): String = stores.getStoreTopicByAccountIdAndName(accountId.value, store.value).executeAsOne()
 
+    suspend fun getAccountIdAndStoreByTopic(topic: Topic): Pair<AccountId, Store> = stores.getStoreByTopic(topic.value).executeAsOne().let { AccountId(it.accountId) to Store(it.name) }
+
     private suspend fun insertStoreValue(storeId: Long, key: String, value: String) = storeValues.insertOrAbortStoreValue(storeId, key, value)
 
     private suspend fun updateStoreValue(storeId: Long, key: String, value: String) = storeValues.updateStoreValue(value, storeId, key)

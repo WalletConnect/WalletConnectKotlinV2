@@ -7,7 +7,7 @@ import com.walletconnect.android.cacao.signature.SignatureType
 
 object Sync {
     sealed class Events {
-        data class OnSyncUpdate(val store: Type.Store, val update: Model.SyncUpdate) : Events()
+        data class OnSyncUpdate(val accountId: Type.AccountId, val store: Type.Store, val update: Model.SyncUpdate) : Events()
     }
 
     sealed interface Type {

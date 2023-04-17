@@ -3,6 +3,7 @@ package com.walletconnect.sync.common.json_rpc
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
+import com.walletconnect.util.generateId
 
 internal sealed class SyncRpc : JsonRpcClientSync<SyncParams> {
     abstract override val id: Long
@@ -13,7 +14,7 @@ internal sealed class SyncRpc : JsonRpcClientSync<SyncParams> {
     @JsonClass(generateAdapter = true)
     internal data class SyncSet(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
@@ -25,7 +26,7 @@ internal sealed class SyncRpc : JsonRpcClientSync<SyncParams> {
     @JsonClass(generateAdapter = true)
     internal data class SyncDelete(
         @Json(name = "id")
-        override val id: Long,
+        override val id: Long = generateId(),
         @Json(name = "jsonrpc")
         override val jsonrpc: String = "2.0",
         @Json(name = "method")
