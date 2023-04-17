@@ -9,11 +9,11 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.sync.common.json_rpc.JsonRpcMethod
 import com.walletconnect.sync.common.json_rpc.SyncParams
 import com.walletconnect.sync.engine.use_case.calls.*
-import com.walletconnect.sync.engine.use_case.subscriptions.SubscribeToAllStoresUpdatesUseCase
 import com.walletconnect.sync.engine.use_case.requests.OnDeleteRequestUseCase
 import com.walletconnect.sync.engine.use_case.requests.OnSetRequestUseCase
 import com.walletconnect.sync.engine.use_case.responses.OnDeleteResponseUseCase
 import com.walletconnect.sync.engine.use_case.responses.OnSetResponseUseCase
+import com.walletconnect.sync.engine.use_case.subscriptions.SubscribeToAllStoresUpdatesUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -43,6 +43,7 @@ internal class SyncEngine(
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
+    private var internalUseCaseJob: Job? = null
 
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
@@ -73,6 +74,9 @@ internal class SyncEngine(
                 if (internalErrorsJob == null) {
                     internalErrorsJob = collectInternalErrors()
                 }
+                if (internalUseCaseJob == null) {
+                    internalUseCaseJob = collectUseCaseEvents()
+                }
             }
             .launchIn(scope)
     }
@@ -82,8 +86,8 @@ internal class SyncEngine(
             .filter { request -> request.params is SyncParams }
             .onEach { request ->
                 when (val params = request.params) {
-                    is SyncParams.SetParams -> onSetRequestUseCase(params, request, _events)
-                    is SyncParams.DeleteParams -> onDeleteRequestUseCase(params, request, _events)
+                    is SyncParams.SetParams -> onSetRequestUseCase(params, request)
+                    is SyncParams.DeleteParams -> onDeleteRequestUseCase(params, request)
                 }
             }.launchIn(scope)
 
@@ -100,5 +104,10 @@ internal class SyncEngine(
     private fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
             .onEach { exception -> _events.emit(exception) }
+            .launchIn(scope)
+
+    private fun collectUseCaseEvents(): Job =
+        merge(onSetRequestUseCase.events, onDeleteRequestUseCase.events)
+            .onEach { event -> _events.emit(event) }
             .launchIn(scope)
 }

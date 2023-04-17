@@ -13,13 +13,19 @@ import com.walletconnect.sync.common.model.Events
 import com.walletconnect.sync.common.model.SyncUpdate
 import com.walletconnect.sync.storage.StoresStorageRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 internal class OnDeleteRequestUseCase(
     private val storesRepository: StoresStorageRepository,
     private val logger: Logger,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
 ) {
-    suspend operator fun invoke(params: SyncParams.DeleteParams, request: WCRequest, events: MutableSharedFlow<EngineEvent>) {
+
+    private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
+    val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
+
+    suspend operator fun invoke(params: SyncParams.DeleteParams, request: WCRequest) {
         val (accountId, store) = runCatching { storesRepository.getAccountIdAndStoreByTopic(request.topic) }.getOrElse { error -> return logger.error(error) }
 
         // Return/finish when the value was already set
@@ -30,7 +36,7 @@ internal class OnDeleteRequestUseCase(
         runCatching { storesRepository.deleteStoreValue(accountId, store, params.key) }.fold(
             onFailure = { error -> logger.error(error) },
             onSuccess = {
-                events.emit(Events.OnSyncUpdate(accountId, store, SyncUpdate.SyncDelete(request.id, params.key)))
+                _events.emit(Events.OnSyncUpdate(accountId, store, SyncUpdate.SyncDelete(request.id, params.key)))
                 jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_DELETE_RESPONSE, Ttl(MONTH_IN_SECONDS)))
             },
         )
