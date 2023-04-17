@@ -43,6 +43,7 @@ import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.sample.wallet.R
+import com.walletconnect.sample_common.ui.themedColor
 
 @Composable
 fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, connectionsViewModel: ConnectionsViewModel) {

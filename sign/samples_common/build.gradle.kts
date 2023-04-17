@@ -14,6 +14,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
         buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
+        buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION ?: ""}\"")
     }
 
     buildTypes {
@@ -33,7 +34,11 @@ android {
     }
 
     buildFeatures {
+        compose = true
         viewBinding = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = composeCompilerVersion
     }
 }
 
@@ -50,6 +55,7 @@ dependencies {
     navigationComponent()
     bouncyCastle()
     web3jCrypto()
+    compose()
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

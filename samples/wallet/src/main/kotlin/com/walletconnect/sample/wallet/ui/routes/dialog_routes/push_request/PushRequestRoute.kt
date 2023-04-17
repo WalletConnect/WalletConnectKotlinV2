@@ -17,9 +17,9 @@ import androidx.navigation.NavHostController
 import com.walletconnect.sample.wallet.ui.common.Buttons
 import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
-import com.walletconnect.sample.wallet.ui.common.themedColor
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.wallet.ui.common.Content
+import com.walletconnect.sample_common.ui.themedColor
 
 @Composable
 fun PushRequestRoute(

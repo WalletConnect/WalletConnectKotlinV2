@@ -2,8 +2,8 @@
 
 package com.walletconnect.web3.wallet.utils
 
-import com.walletconnect.android.cacao.CacaoSignerInterface
 import com.walletconnect.android.cacao.signature.ISignatureType
+import com.walletconnect.android.utils.cacao.CacaoSignerInterface
 import com.walletconnect.web3.wallet.client.Wallet
 
 

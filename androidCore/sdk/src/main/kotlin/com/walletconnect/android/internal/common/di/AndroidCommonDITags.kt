@@ -13,6 +13,7 @@ enum class AndroidCommonDITags {
     CONNECTIVITY_STATE,
     ECHO_RETROFIT,
     CLIENT_ID,
+    USER_AGENT,
     RELAY_URL,
     KEYSERVER_URL,
     KEYSERVER_RETROFIT,

@@ -10,8 +10,7 @@ tasks.register("releaseAllSDKs") {
             ?.run {
                 println("Converting parameter to an supported ReleaseType value")
                 ReleaseType.valueOf(this.toUpperCase())
-            }
-            ?.let { releaseType ->
+            }?.let { releaseType ->
                 generateListOfModuleTasks(releaseType).forEach { task ->
                     println("Executing Task: $task")
                     exec {
@@ -36,6 +35,7 @@ fun compileListOfSDKs(): List<Triple<String, String?, String>> = listOf(
     Triple("sign", "sdk", "android"),
     Triple("auth", "sdk", "android"),
     Triple("chat", "sdk", "android"),
+    Triple("push", "sdk", "android"),
     Triple("web3", "wallet", "android"),
     Triple("web3", "inbox", "android"),
     Triple("androidCore", "bom", "jvm"),

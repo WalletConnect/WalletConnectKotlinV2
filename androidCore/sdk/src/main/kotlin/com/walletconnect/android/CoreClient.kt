@@ -6,6 +6,7 @@ import com.walletconnect.android.echo.EchoClient
 import com.walletconnect.android.echo.EchoInterface
 import com.walletconnect.android.internal.common.di.*
 import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -37,7 +38,8 @@ object CoreClient {
         application: Application,
         relay: RelayConnectionInterface? = null,
         keyServerUrl: String? = null,
-        onError: (Core.Model.Error) -> Unit,
+        networkClientTimeout: NetworkClientTimeout? = null,
+        onError: (Core.Model.Error) -> Unit
     ) {
         plantTimber()
         with(wcKoinApp) {
@@ -58,7 +60,7 @@ object CoreClient {
         }
 
         if (relay == null) {
-            RelayClient.initialize(relayServerUrl, connectionType) { error -> onError(Core.Model.Error(error)) }
+            RelayClient.initialize(relayServerUrl, connectionType, networkClientTimeout) { error -> onError(Core.Model.Error(error)) }
         }
 
         Verify.initialize(metaData.verifyUrl)

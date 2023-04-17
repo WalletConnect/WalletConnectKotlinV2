@@ -3,7 +3,6 @@
 package com.walletconnect.android.utils
 
 import android.net.Uri
-import android.os.Build
 import com.walletconnect.android.internal.common.exception.*
 import com.walletconnect.android.relay.ConnectionType
 import java.net.HttpURLConnection
@@ -11,15 +10,6 @@ import java.net.HttpURLConnection
 @JvmSynthetic
 internal fun String.strippedUrl() = Uri.parse(this).run {
     this@run.scheme + "://" + this@run.authority
-}
-
-@JvmSynthetic
-internal fun String.addUserAgent(sdkVersion: String): String {
-    return Uri.parse(this).buildUpon()
-        // TODO: Setup env variable for version and tag. Use env variable here instead of hard coded version
-        .appendQueryParameter("ua", """wc-2/kotlin-$sdkVersion/android-${Build.VERSION.RELEASE}""")
-        .build()
-        .toString()
 }
 
 @JvmSynthetic

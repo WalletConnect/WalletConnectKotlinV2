@@ -9,6 +9,7 @@ import org.koin.core.definition.KoinDefinition
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.ext.getFullName
+import java.util.BitSet
 import kotlin.reflect.KClass
 
 @get:JvmSynthetic
@@ -29,8 +30,32 @@ fun Expiry.isSequenceValid(): Boolean = seconds > CURRENT_TIME_IN_SECONDS
 val String.Companion.HexPrefix
     get() = "0x"
 
-fun <T : SerializableJsonRpc> Module.addSerializerEntry(value: KClass<T>): KoinDefinition<*> =
+fun <T : SerializableJsonRpc> Module.addSerializerEntry(value: KClass<T>): KoinDefinition<KClass<T>> =
     single(qualifier = named("key_${value.getFullName()}")) { value }
 
-fun Module.addDeserializerEntry(key: String, value: KClass<*>): KoinDefinition<*> =
+fun Module.addSdkBitsetForUA(bitSet: BitSet): KoinDefinition<BitSet> =
+    single(qualifier = named(bitSet.toBinaryString())) { bitSet }
+
+fun Module.addDeserializerEntry(key: String, value: KClass<*>): KoinDefinition<Pair<String, KClass<*>>> =
     single(qualifier = named("${key}_${value.getFullName()}")) { key to value }
+
+/**
+ * When converting a BitSet to a byte array, the BitSet is converted to a byte array with a dynamic size that is divisible by 8 in little-endian (right to left) order.
+ * This means there will be leading zeros in front of the binary string representation of the BitSet
+ */
+@JvmSynthetic
+internal fun BitSet.toBinaryString(): String =
+    this.toByteArray().joinToString { byte ->
+        "%8s".format(Integer.toBinaryString(byte.toInt() and 0xFF)).replace(' ', '0')
+    }.replace(", ", "")
+
+@JvmSynthetic
+internal fun String.removeLeadingZeros(): String = this.replaceFirst("^0+(?!$)".toRegex(), "")
+
+@JvmSynthetic
+internal fun combineListOfBitSetsWithOrOperator(bitSets: List<BitSet>): BitSet {
+    return bitSets.reduce { acc, bitSet ->
+        acc.or(bitSet)
+        acc
+    }
+}

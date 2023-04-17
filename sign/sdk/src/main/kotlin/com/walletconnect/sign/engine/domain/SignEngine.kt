@@ -27,6 +27,7 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.type.Sequences
@@ -147,7 +148,7 @@ internal class SignEngine(
                 optionalNamespaces ?: emptyMap(), properties,
                 selfPublicKey, selfAppMetaData
             )
-        val request = SignRpc.SessionPropose(id = generateId(), params = sessionProposal)
+        val request = SignRpc.SessionPropose(params = sessionProposal)
         proposalStorageRepository.insertProposal(sessionProposal.toVO(pairing.topic, request.id))
         val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
         jsonRpcInteractor.subscribe(pairing.topic) { error -> return@subscribe onFailure(error) }
@@ -206,7 +207,7 @@ internal class SignEngine(
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, proposal.appMetaData, AppMetaDataType.PEER)
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, sessionNamespaces)
-                val sessionSettle = SignRpc.SessionSettle(id = generateId(), params = params)
+                val sessionSettle = SignRpc.SessionSettle(params = params)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
                 jsonRpcInteractor.publishJsonRpcRequest(
@@ -265,7 +266,7 @@ internal class SignEngine(
         }
 
         val params = SignParams.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
-        val sessionUpdate = SignRpc.SessionUpdate(id = generateId(), params = params)
+        val sessionUpdate = SignRpc.SessionUpdate(params = params)
         val irnParams = IrnParams(Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
 
         try {
@@ -307,7 +308,7 @@ internal class SignEngine(
         }
 
         val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
-        val sessionPayload = SignRpc.SessionRequest(id = generateId(), params = params)
+        val sessionPayload = SignRpc.SessionRequest(params = params)
         val irnParamsTtl = request.expiry?.run {
             val defaultTtl = FIVE_MINUTES_IN_SECONDS
             val extractedTtl = seconds - nowInSeconds
@@ -390,7 +391,7 @@ internal class SignEngine(
     // TODO: Do we still want Session Ping
     internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         if (sessionStorageRepository.isSessionValid(Topic(topic))) {
-            val pingPayload = SignRpc.SessionPing(id = generateId(), params = SignParams.PingParams())
+            val pingPayload = SignRpc.SessionPing(params = SignParams.PingParams())
             val irnParams = IrnParams(Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
 
             jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
@@ -454,7 +455,7 @@ internal class SignEngine(
         }
 
         val eventParams = SignParams.EventParams(SessionEventVO(event.name, event.data), event.chainId)
-        val sessionEvent = SignRpc.SessionEvent(id = generateId(), params = eventParams)
+        val sessionEvent = SignRpc.SessionEvent(params = eventParams)
         val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionEvent,
@@ -484,7 +485,7 @@ internal class SignEngine(
 
         val newExpiration = session.expiry.seconds + WEEK_IN_SECONDS
         sessionStorageRepository.extendSession(Topic(topic), newExpiration)
-        val sessionExtend = SignRpc.SessionExtend(id = generateId(), params = SignParams.ExtendParams(newExpiration))
+        val sessionExtend = SignRpc.SessionExtend(params = SignParams.ExtendParams(newExpiration))
         val irnParams = IrnParams(Tags.SESSION_EXTEND, Ttl(DAY_IN_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionExtend,
@@ -504,7 +505,7 @@ internal class SignEngine(
         }
 
         val deleteParams = SignParams.DeleteParams(Reason.UserDisconnected.code, Reason.UserDisconnected.message)
-        val sessionDelete = SignRpc.SessionDelete(id = generateId(), params = deleteParams)
+        val sessionDelete = SignRpc.SessionDelete(params = deleteParams)
         sessionStorageRepository.deleteSession(Topic(topic))
         jsonRpcInteractor.unsubscribe(Topic(topic))
         val irnParams = IrnParams(Tags.SESSION_DELETE, Ttl(DAY_IN_SECONDS))
@@ -646,6 +647,7 @@ internal class SignEngine(
                 Uncategorized.GenericError("Cannot handle a session proposal: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 
@@ -660,8 +662,7 @@ internal class SignEngine(
             return
         }
         val peerMetadata = settleParams.controller.metadata
-        val proposal = proposalStorageRepository.getProposalByKey(selfPublicKey.keyAsHex)
-
+        val proposal = proposalStorageRepository.getProposalByKey(selfPublicKey.keyAsHex).also { proposalStorageRepository.deleteProposal(selfPublicKey.keyAsHex) }
         val (requiredNamespaces, optionalNamespaces, properties) = proposal.run { Triple(requiredNamespaces, optionalNamespaces, properties) }
         SignValidator.validateSessionNamespace(settleParams.namespaces, requiredNamespaces) { error ->
             jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
@@ -671,9 +672,6 @@ internal class SignEngine(
         scope.launch(Dispatchers.IO) {
             supervisorScope {
                 try {
-                    val proposalSession = withContext(Dispatchers.IO) {
-                        proposalStorageRepository.getProposalByKey(selfPublicKey.keyAsHex)
-                    }
                     val session = SessionVO.createAcknowledgedSession(
                         sessionTopic,
                         settleParams,
@@ -682,20 +680,19 @@ internal class SignEngine(
                         requiredNamespaces,
                         optionalNamespaces,
                         properties,
-                        proposalSession.pairingTopic.value
+                        proposal.pairingTopic.value
                     )
 
-                    proposalStorageRepository.deleteProposal(selfPublicKey.keyAsHex)
                     sessionStorageRepository.insertSession(session, request.id)
                     pairingHandler.updateMetadata(Core.Params.UpdateMetadata(proposal.pairingTopic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
                     metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
-
                     jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
                     _engineEvent.emit(session.toSessionApproved())
                 } catch (e: Exception) {
                     proposalStorageRepository.insertProposal(proposal)
                     sessionStorageRepository.deleteSession(sessionTopic)
                     jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
+                    scope.launch { _engineEvent.emit(SDKError(e)) }
                     return@supervisorScope
                 }
             }
@@ -727,6 +724,7 @@ internal class SignEngine(
                 Uncategorized.GenericError("Cannot delete a session: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
+            scope.launch { _engineEvent.emit(SDKError(e)) }
             return
         }
     }
@@ -774,6 +772,7 @@ internal class SignEngine(
                 Uncategorized.GenericError("Cannot handle a session request: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
+            scope.launch { _engineEvent.emit(SDKError(e)) }
             return
         }
     }
@@ -824,6 +823,7 @@ internal class SignEngine(
                 Uncategorized.GenericError("Cannot emit an event: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
+            scope.launch { _engineEvent.emit(SDKError(e)) }
             return
         }
     }
@@ -869,6 +869,7 @@ internal class SignEngine(
                 PeerError.Invalid.UpdateRequest("Updating Namespace Failed. Review Namespace structure. Error: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
+            scope.launch { _engineEvent.emit(SDKError(e)) }
             return
         }
     }
@@ -907,6 +908,7 @@ internal class SignEngine(
                 Uncategorized.GenericError("Cannot update a session: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
+            scope.launch { _engineEvent.emit(SDKError(e)) }
             return
         }
     }

@@ -8,18 +8,20 @@ plugins {
 android {
     namespace = "com.walletconnect.sample.wallet"
     compileSdk = COMPILE_SDK
+    // hash of all sdk versions from Versions.kt
 
     defaultConfig {
         applicationId = "com.walletconnect.sample.wallet"
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = SAMPLE_VERSION_CODE
+        versionName = SAMPLE_VERSION_NAME
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
         buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
+        buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION ?: ""}\"")
     }
 
     buildTypes {
@@ -36,12 +38,13 @@ android {
     }
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
+        freeCompilerArgs = listOf("-Xcontext-receivers")
     }
     buildFeatures {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.0-alpha02"
+        kotlinCompilerExtensionVersion = composeCompilerVersion
     }
 }
 
@@ -91,6 +94,10 @@ dependencies {
     // Zxing
     implementation("com.google.zxing:core:3.5.0")
 
+    // Unit Tests
+    jUnit5()
+    mockk()
+
     // WalletConnect
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":web3:wallet"))
@@ -101,5 +108,5 @@ dependencies {
     releaseImplementation("com.walletconnect:android-core")
     releaseImplementation("com.walletconnect:web3wallet")
     releaseImplementation("com.walletconnect:web3inbox")
-    releaseImplementation(project(":push:sdk"))
+    releaseImplementation("com.walletconnect:push")
 }

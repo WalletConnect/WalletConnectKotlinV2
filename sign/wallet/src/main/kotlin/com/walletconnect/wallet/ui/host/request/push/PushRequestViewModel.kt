@@ -44,7 +44,9 @@ class PushRequestViewModel : ViewModel() {
 
     fun approve() {
         (uiState.value as? PushRequestUI.Content)?.let { pushRequest ->
-            val approveParams = Push.Wallet.Params.Approve(pushRequest.requestId)
+            val approveParams = Push.Wallet.Params.Approve(pushRequest.requestId) {
+                Push.Model.Cacao.Signature("", "", "")
+            }
 
             PushWalletClient.approve(
                 approveParams,

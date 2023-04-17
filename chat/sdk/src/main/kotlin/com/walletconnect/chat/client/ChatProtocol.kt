@@ -30,7 +30,8 @@ internal class ChatProtocol : ChatInterface {
                 modules(
                     jsonRpcModule(),
                     storageModule(),
-                    engineModule()
+                    engineModule(),
+                    commonModule()
                 )
             }
 
@@ -138,7 +139,7 @@ internal class ChatProtocol : ChatInterface {
     override fun register(register: Chat.Params.Register, listener: Chat.Listeners.Register) = protocolFunction(listener::onError) {
         chatEngine.registerIdentity(
             register.account.toCommon(),
-            { message -> listener.onSign(message).toCommon() },
+            onSign = { message -> listener.onSign(message).toCommon() },
             { didKey -> listener.onSuccess(didKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) },
             register.private
@@ -149,7 +150,6 @@ internal class ChatProtocol : ChatInterface {
     override fun unregister(unregister: Chat.Params.Unregister, listener: Chat.Listeners.Unregister) = protocolFunction(listener::onError) {
         chatEngine.unregisterIdentity(
             unregister.account.toCommon(),
-            { message -> listener.onSign(message).toCommon() },
             { didKey -> listener.onSuccess(didKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) },
         )

@@ -28,7 +28,9 @@ import com.walletconnect.sample.wallet.ui.common.blue.BlueLabelRow
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
-import com.walletconnect.sample.wallet.ui.theme.Web3WalletTheme
+import com.walletconnect.sample_common.CompletePreviews
+import com.walletconnect.sample_common.ui.theme.PreviewTheme
+import com.walletconnect.sample_common.ui.themedColor
 
 private fun sendResponseDeepLink(context: Context, sessionRequestDeeplinkUri: Uri) {
     try {
@@ -42,7 +44,7 @@ private fun sendResponseDeepLink(context: Context, sessionRequestDeeplinkUri: Ur
 @CompletePreviews
 @Composable
 fun SessionRequestRoutePreview() {
-    Web3WalletTheme {
+    PreviewTheme {
         SessionRequestRoute(rememberNavController())
     }
 }
@@ -108,7 +110,12 @@ fun Request(sessionRequestUI: SessionRequestUI.Content) {
                         .fillMaxWidth()
                         .padding(start = 5.dp, top = 0.dp, end = 5.dp, bottom = 10.dp)
                         .clip(RoundedCornerShape(13.dp))
-                        .background(themedColor(darkColor = Color(0xFFE4E4E7).copy(alpha = .12f), lightColor = Color(0xFF505059).copy(.1f)))
+                        .background(
+                            themedColor(
+                                darkColor = Color(0xFFE4E4E7).copy(alpha = .12f),
+                                lightColor = Color(0xFF505059).copy(.1f)
+                            )
+                        )
                         .padding(start = 8.dp, top = 5.dp, end = 8.dp, bottom = 5.dp),
                     text = sessionRequestUI.param,
                     style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 13.sp, color = themedColor(darkColor = Color(0xFF9ea9a9), lightColor = Color(0xFF788686)))

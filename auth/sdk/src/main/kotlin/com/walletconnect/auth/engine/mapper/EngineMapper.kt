@@ -1,8 +1,8 @@
 package com.walletconnect.auth.engine.mapper
 
-import com.walletconnect.android.internal.common.cacao.Cacao
-import com.walletconnect.android.internal.common.cacao.Issuer
-import com.walletconnect.android.internal.common.cacao.toCAIP122Message
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.Issuer
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
 import com.walletconnect.auth.common.model.JsonRpcHistoryEntry
 import com.walletconnect.auth.common.model.PayloadParams
 import com.walletconnect.auth.common.model.PendingRequest
@@ -27,4 +27,4 @@ internal fun PayloadParams.toCAIP122Message(iss: Issuer, chainName: String = "Et
     this.toCacaoPayload(iss).toCAIP122Message(chainName)
 
 @JvmSynthetic
-internal fun JsonRpcHistoryEntry.toPendingRequest(): PendingRequest = PendingRequest(id, params.payloadParams)
+internal fun JsonRpcHistoryEntry.toPendingRequest(): PendingRequest = PendingRequest(id, topic.value, params.payloadParams)

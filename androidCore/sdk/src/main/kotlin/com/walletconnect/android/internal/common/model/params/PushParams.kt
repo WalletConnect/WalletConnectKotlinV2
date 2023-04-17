@@ -19,8 +19,8 @@ sealed class PushParams: ClientParams {
 
     @JsonClass(generateAdapter = true)
     data class RequestResponseParams(
-        @Json(name = "publicKey")
-        val publicKey: String
+        @Json(name = "subscriptionAuth")
+        val subscriptionAuth: String
     ): PushParams()
 
     @JsonClass(generateAdapter = true)

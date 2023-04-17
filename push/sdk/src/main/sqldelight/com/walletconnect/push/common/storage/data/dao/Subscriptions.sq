@@ -6,8 +6,8 @@ CREATE TABLE Subscriptions (
     pairing_topic TEXT NOT NULL,
     peer_public_key TEXT NOT NULL,
     topic TEXT UNIQUE,
-    account TEXT,
-    relay_protocol TEXT,
+    account TEXT NOT NULL,
+    relay_protocol TEXT NOT NULL,
     relay_data TEXT,
     metadata_name TEXT NOT NULL,
     metadata_description TEXT NOT NULL,
@@ -16,16 +16,12 @@ CREATE TABLE Subscriptions (
     metadata_native TEXT
 );
 
-insertSubscriptionResponse:
+insertSubscription:
 INSERT OR REPLACE INTO Subscriptions(request_id, pairing_topic, peer_public_key, topic, account, relay_protocol, relay_data, metadata_name, metadata_description, metadata_url, metadata_icons, metadata_native)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
-insertSubscriptionRequest:
-INSERT OR ABORT INTO Subscriptions(request_id, pairing_topic, peer_public_key, account, metadata_name, metadata_description, metadata_url, metadata_icons, metadata_native)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
-
 getAllSubscriptions:
-SELECT *
+SELECT request_id, pairing_topic, peer_public_key, topic, account, relay_protocol, relay_data, metadata_name, metadata_description, metadata_url, metadata_icons, metadata_native
 FROM Subscriptions;
 
 getSubscriptionByTopic:
@@ -34,7 +30,7 @@ FROM Subscriptions
 WHERE topic = ?;
 
 getSubscriptionByRequestId:
-SELECT *
+SELECT request_id, pairing_topic, peer_public_key, topic, account, relay_protocol, relay_data, metadata_name, metadata_description, metadata_url, metadata_icons, metadata_native
 FROM Subscriptions
 WHERE request_id = ?;
 
