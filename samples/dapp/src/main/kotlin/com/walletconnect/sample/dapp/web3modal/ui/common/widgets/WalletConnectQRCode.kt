@@ -51,7 +51,7 @@ private fun QRCodePreview() {
     }
 }
 
-fun createQROptions(
+private fun createQROptions(
     context: Context,
     logoColor: ComposeColor,
     primaryColor: ComposeColor,
@@ -80,11 +80,11 @@ fun createQROptions(
         }
     }
 
-val Neighbors.hasVertical: Boolean
+private val Neighbors.hasVertical: Boolean
     get() = top && bottom
 
 
-class VerticalStripesShape() : QrVectorPixelShape {
+private class VerticalStripesShape() : QrVectorPixelShape {
     override fun createPath(size: Float, neighbors: Neighbors): Path {
         val shape: QrVectorPixelShape = when {
             neighbors.hasVertical -> QrVectorPixelShape.Default

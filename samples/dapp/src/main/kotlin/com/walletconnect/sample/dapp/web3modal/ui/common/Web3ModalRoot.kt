@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterialApi::class)
+@file:OptIn(ExperimentalMaterialApi::class, ExperimentalMaterialApi::class)
 
 package com.walletconnect.sample.dapp.web3modal.ui.common
 
@@ -11,6 +11,7 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,7 +20,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.walletconnect.sample.dapp.web3modal.ui.Route
 import com.walletconnect.sample.dapp.web3modal.ui.common.widgets.CloseIconButton
 import com.walletconnect.sample.dapp.web3modal.ui.common.widgets.QuestionMarkIconButton
 import com.walletconnect.sample.dapp.web3modal.ui.theme.ProvideWeb3ModalThemeComposition
@@ -39,8 +39,13 @@ fun Web3ModalRoot(
     colors: Web3ModalColors,
     content: @Composable () -> Unit
 ) {
+
+    LaunchedEffect(key1 = Unit) {
+        sheetState.show()
+    }
+
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier,
         verticalArrangement = Arrangement.Bottom
     ) {
         ProvideWeb3ModalThemeComposition(colors = colors) {
