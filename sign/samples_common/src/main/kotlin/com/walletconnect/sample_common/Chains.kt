@@ -138,7 +138,7 @@ enum class Chains(
 
         object Eth: Info() {
             override val chain = "eip155"
-            override val defaultEvents: List<String> = listOf("chainChanged", "accountChanged")
+            override val defaultEvents: List<String> = listOf("chainChanged", "accountsChanged")
             override val defaultMethods: List<String> = listOf(
                 "eth_sendTransaction",
                 "personal_sign",
@@ -149,7 +149,7 @@ enum class Chains(
 
         object Cosmos: Info() {
             override val chain = "cosmos"
-            override val defaultEvents: List<String> = listOf("chainChanged", "accountChanged")
+            override val defaultEvents: List<String> = listOf("chainChanged", "accountsChanged")
             override val defaultMethods: List<String> = listOf(
                 "cosmos_signDirect",
                 "cosmos_signAmino"
