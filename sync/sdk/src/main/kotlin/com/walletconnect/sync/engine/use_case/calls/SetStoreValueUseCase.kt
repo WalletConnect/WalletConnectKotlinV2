@@ -24,7 +24,7 @@ internal class SetStoreValueUseCase(private val storesRepository: StoresStorageR
         suspend fun publishSetRequest() {
             val storeTopic = runCatching { storesRepository.getStoreTopic(accountId, store) }.fold(onSuccess = { Topic(it) }, onFailure = { error -> return onFailure(error) })
             val setParams = SyncParams.SetParams(key, value)
-            val payload = SyncRpc.SyncSet(id = generateId(), params = setParams)
+            val payload = SyncRpc.SyncSet(params = setParams)
             val irnParams = IrnParams(Tags.SYNC_SET, Ttl(MONTH_IN_SECONDS))
 
             jsonRpcInteractor.publishJsonRpcRequest(storeTopic, irnParams, payload, onSuccess = { onSuccess(true) }, onFailure = onFailure)

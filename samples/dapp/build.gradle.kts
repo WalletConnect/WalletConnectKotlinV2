@@ -57,6 +57,18 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.6.1")
     implementation("androidx.navigation:navigation-compose:2.5.3")
     implementation("androidx.palette:palette:1.0.0")
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+
+    // Accompanist
+    implementation("com.google.accompanist:accompanist-navigation-material:0.27.1")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.1")
+    implementation("com.google.accompanist:accompanist-pager:0.27.1")
+    implementation("com.google.accompanist:accompanist-pager-indicators:0.27.1")
+    implementation("com.google.accompanist:accompanist-drawablepainter:0.27.1")
+    implementation("com.google.accompanist:accompanist-navigation-animation:0.27.1")
+
+    // Qrcode generator
+    implementation("com.github.alexzhirkevich:custom-qr-generator:1.6.1")
 
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":sign:sdk"))
