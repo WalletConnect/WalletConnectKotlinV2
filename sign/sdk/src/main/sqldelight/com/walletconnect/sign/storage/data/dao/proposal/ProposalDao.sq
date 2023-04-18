@@ -12,7 +12,7 @@ CREATE TABLE ProposalDao (
    relay_data TEXT,
    proposer_key TEXT NOT NULL,
    properties TEXT AS Map<String, String>,
-   redirect TEXT NOT NULL
+   redirect TEXT NOT NULL DEFAULT ""
 );
 
 insertOrAbortSession:
