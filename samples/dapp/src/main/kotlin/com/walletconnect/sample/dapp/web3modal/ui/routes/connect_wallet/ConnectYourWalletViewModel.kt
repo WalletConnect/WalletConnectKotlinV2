@@ -14,7 +14,7 @@ class ConnectYourWalletViewModel(
     private val getWalletsRecommendationsUseCase: GetWalletsRecommendationsUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<ConnectYourWalletUI>(ConnectYourWalletUI.Loading)
+    private val _uiState = MutableStateFlow(ConnectYourWalletUI())
 
     val uiState: StateFlow<ConnectYourWalletUI>
         get() = _uiState.asStateFlow()
@@ -23,10 +23,10 @@ class ConnectYourWalletViewModel(
         viewModelScope.launch {
             try {
                 val wallets = getWalletsRecommendationsUseCase(listOf())
-                _uiState.value = ConnectYourWalletUI.SelectWallet(wallets)
+                _uiState.value = ConnectYourWalletUI(wallets)
             } catch (e: Exception) {
                 Timber.e(e)
-                _uiState.value = ConnectYourWalletUI.Empty
+                _uiState.value = ConnectYourWalletUI()
             }
 
         }

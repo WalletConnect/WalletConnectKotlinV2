@@ -6,7 +6,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,13 +66,10 @@ private fun ConnectYourWalletContent(
                 modifier = Modifier.clickable { onScanIconClick() })
         })
         Crossfade(targetState = uiState) { state ->
-            when (state) {
-                ConnectYourWalletUI.Empty -> EmptyState()
-                ConnectYourWalletUI.Loading -> LoadingState()
-                is ConnectYourWalletUI.SelectWallet -> SelectWalletState(
-                    uiState = state, onSelectWallet = onSelectWallet
-                )
-            }
+            SelectWalletState(
+                uiState = state,
+                onSelectWallet = onSelectWallet
+            )
         }
         Box(
             modifier = Modifier
@@ -108,18 +104,18 @@ private fun ConnectYourWalletContent(
 
 @Composable
 fun SelectWalletState(
-    uiState: ConnectYourWalletUI.SelectWallet,
+    uiState: ConnectYourWalletUI,
     onSelectWallet: () -> Unit,
 ) {
-    Row {
-
-    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(130.dp), contentAlignment = Alignment.Center
+            .height(130.dp),
+        contentAlignment = Alignment.Center
     ) {
-        AutoScrollingWalletList(uiState.wallets)
+        uiState.wallets?.let {
+            AutoScrollingWalletList(uiState.wallets)
+        }
         MainButton(
             text = "Select Wallet",
             onClick = { onSelectWallet() },
@@ -128,28 +124,6 @@ fun SelectWalletState(
                 .padding(8.dp)
         )
     }
-}
-
-@Composable
-private fun LoadingState() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp), contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator(
-            color = Web3ModalTheme.colors.mainColor, modifier = Modifier.size(32.dp)
-        )
-    }
-}
-
-@Composable
-private fun EmptyState() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp)
-    )
 }
 
 @Preview
