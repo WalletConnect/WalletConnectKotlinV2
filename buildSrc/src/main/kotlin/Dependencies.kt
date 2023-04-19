@@ -78,10 +78,7 @@ fun DependencyHandlerScope.sqlCipher() {
 
 fun DependencyHandlerScope.sqlDelightTest() {
     "testImplementation"("com.squareup.sqldelight:sqlite-driver:$sqlDelightVersion")
-    "testImplementation"("org.xerial:sqlite-jdbc:3.8.10.2") {
-        // Override the version of sqlite used by sqlite-driver to match Android API 23
-        isForce = true
-    }
+    "testImplementation"("org.xerial:sqlite-jdbc:3.8.10.2")
 }
 
 fun DependencyHandlerScope.koinJvm() {
