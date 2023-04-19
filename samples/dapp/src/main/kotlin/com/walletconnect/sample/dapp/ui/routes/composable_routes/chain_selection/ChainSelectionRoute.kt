@@ -1,5 +1,6 @@
 package com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selection
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -31,6 +33,7 @@ import com.walletconnect.sample_common.ui.theme.PreviewTheme
 
 @Composable
 fun ChainSelectionRoute(navController: NavController) {
+    val context = LocalContext.current
     val viewModel: ChainSelectionViewModel = viewModel()
     val chainsState by viewModel.uiState.collectAsState()
 
@@ -38,8 +41,13 @@ fun ChainSelectionRoute(navController: NavController) {
         chains = chainsState,
         onChainClick = viewModel::updateChainSelectState,
         onConnectClick = {
-            // Navigate to web3Modal for now
-            navController.navigateToWeb3Modal()
+            if (viewModel.isAnyChainSelected) {
+                viewModel.connectToWallet { uri ->
+                    navController.navigateToWeb3Modal(uri)
+                }
+            } else {
+                Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+            }
         }
     )
 }
