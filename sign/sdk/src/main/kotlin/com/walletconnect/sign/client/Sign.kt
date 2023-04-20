@@ -36,6 +36,7 @@ object Sign {
             val description: String,
             val url: String,
             val icons: List<URI>,
+            val redirect: String,
             val requiredNamespaces: Map<String, Namespace.Proposal>,
             val optionalNamespaces: Map<String, Namespace.Proposal>,
             val properties: Map<String, String>?,
