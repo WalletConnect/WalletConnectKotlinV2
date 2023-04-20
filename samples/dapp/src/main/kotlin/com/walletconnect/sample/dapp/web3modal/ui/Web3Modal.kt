@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 
 internal const val uriArgId = "uriArgId"
 fun NavController.navigateToWeb3Modal(uri: String) {
+    // that uri parameter maybe should be changed into chains list and move connect logic to Web3ModalViewModel
     navigate(Route.Web3Modal.path + "/${Uri.encode(uri)}")
 }
 @OptIn(ExperimentalMaterialNavigationApi::class)

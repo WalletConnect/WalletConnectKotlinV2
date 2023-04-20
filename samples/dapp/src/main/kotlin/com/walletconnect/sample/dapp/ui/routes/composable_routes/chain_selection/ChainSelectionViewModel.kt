@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.sample.dapp.domain.DappDelegate
+import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
@@ -27,6 +29,14 @@ class ChainSelectionViewModel : ViewModel() {
 
     val isAnySettledParingExist: Boolean
         get() = CoreClient.Pairing.getPairings().isNotEmpty()
+
+    val walletEvents = DappDelegate.wcEventModels.map { walletEvent: Sign.Model? ->
+        when (walletEvent) {
+            is Sign.Model.ApprovedSession -> DappSampleEvents.SessionApproved
+            is Sign.Model.RejectedSession -> DappSampleEvents.SessionRejected
+            else -> DappSampleEvents.NoAction
+        }
+    }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     fun updateChainSelectState(position: Int, selected: Boolean) {
         _uiState.update {
