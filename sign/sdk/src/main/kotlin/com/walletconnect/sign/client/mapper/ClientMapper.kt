@@ -49,6 +49,7 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): Sign.Model.Sess
         description,
         url,
         icons,
+        redirect,
         requiredNamespaces.toMapOfClientNamespacesProposal(),
         optionalNamespaces.toMapOfClientNamespacesProposal(),
         properties,
