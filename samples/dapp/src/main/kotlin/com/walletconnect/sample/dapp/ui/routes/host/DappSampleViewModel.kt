@@ -22,5 +22,4 @@ class DappSampleViewModel : ViewModel() {
                 else -> DappSampleEvents.NoAction
             }
         }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
 }
