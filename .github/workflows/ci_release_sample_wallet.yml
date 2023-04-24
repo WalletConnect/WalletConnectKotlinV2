@@ -1,4 +1,4 @@
-name: SAMPLES RELEASE
+name: Sample wallet release
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
 
       - name: Sign APK
         uses: r0adkll/sign-android-release
-        id: sign_app
+        id: sign_wallet_sample
         with:
           releaseDirectory: samples/wallet/build/outputs/apk/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}

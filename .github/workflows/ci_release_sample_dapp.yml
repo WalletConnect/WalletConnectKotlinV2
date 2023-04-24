@@ -1,4 +1,4 @@
-name: SAMPLES RELEASE
+name: Sample dapp release
 
 on:
   push:
@@ -22,8 +22,8 @@ jobs:
         run: ./gradlew :samples:dapp:assembleRelease
 
       - name: Sign APK
-        uses: r0adkll/sign-android-release
-        id: sign_app
+        uses: r0adkll/sign-android-release@v1
+        id: sign_dapp_sample
         with:
           releaseDirectory: samples/dapp/build/outputs/apk/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
