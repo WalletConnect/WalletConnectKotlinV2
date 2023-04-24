@@ -1,0 +1,39 @@
+name: SAMPLES RELEASE
+
+on:
+  push:
+    branches: ["release"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create Google Services Json File
+        env:
+          GOOGLE_SERVICES_JSON_DAPP: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: echo $GOOGLE_SERVICES_JSON_DAPP > ./samples/dapp/google-services.json
+
+      - name: Create apk
+        env:
+          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+        run: ./gradlew :samples:dapp:assembleRelease
+
+      - name: Sign APK
+        uses: r0adkll/sign-android-release
+        id: sign_app
+        with:
+          releaseDirectory: samples/dapp/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.SIGNING_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          keyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+
+      - name: Upload dapp apk to Firebase Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_DAPP_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
+          file: samples/dapp/build/outputs/apk/release/dapp-release-unsigned.apk
