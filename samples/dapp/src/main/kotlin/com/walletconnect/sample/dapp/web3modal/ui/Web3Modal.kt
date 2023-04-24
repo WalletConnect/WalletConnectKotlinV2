@@ -56,8 +56,8 @@ fun Web3Modal(
     LaunchedEffect(Unit) {
         web3ModalViewModel
             .walletEvents
-            .onEach {
-                when(it) {
+            .onEach { event ->
+                when(event) {
                     Web3ModalEvents.SessionApproved -> coroutinesScope.launch { sheetState.hide() }
                     Web3ModalEvents.SessionRejected -> Toast.makeText(context, "Session was rejected", Toast.LENGTH_SHORT).show()
                     Web3ModalEvents.NoAction -> Unit
