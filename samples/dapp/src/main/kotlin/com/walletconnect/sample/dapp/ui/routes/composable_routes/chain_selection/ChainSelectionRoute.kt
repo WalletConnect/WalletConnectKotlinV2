@@ -42,8 +42,8 @@ fun ChainSelectionRoute(navController: NavController) {
     val chainsState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.walletEvents.collect {
-            when(it) {
+        viewModel.walletEvents.collect { event ->
+            when(event) {
                 DappSampleEvents.SessionApproved -> navController.navigate(Route.Session.path)
                 else -> Unit
             }
