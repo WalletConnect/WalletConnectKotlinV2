@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:top="20dp" android:bottom="20dp"
+    <item android:top="15dp" android:bottom="15dp"
         android:drawable="@drawable/ic_wallet_connect_logo"/>
 </layer-list>

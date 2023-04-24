@@ -16,6 +16,7 @@ import com.google.accompanist.navigation.material.ExperimentalMaterialNavigation
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.walletconnect.sample.dapp.ui.routes.Route
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selection.ChainSelectionRoute
+import com.walletconnect.sample.dapp.ui.routes.composable_routes.session.SessionRoute
 import com.walletconnect.sample.dapp.web3modal.ui.web3ModalGraph
 
 @Composable
@@ -40,6 +41,9 @@ fun DappSampleNavGraph(
         ) {
             composable(Route.ChainSelection.path) {
                 ChainSelectionRoute(navController)
+            }
+            composable(Route.Session.path) {
+                SessionRoute(navController)
             }
             web3ModalGraph(sheetState)
         }
