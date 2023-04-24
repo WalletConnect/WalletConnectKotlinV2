@@ -46,11 +46,11 @@ fun SessionRoute(
     val state by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.sessionEvent.collect {
-            when (it) {
+        viewModel.sessionEvent.collect { event ->
+            when (event) {
                 is DappSampleEvents.PingSuccess -> Toast.makeText(
                     context,
-                    "Pinged Peer Successfully on Topic: ${it.topic}",
+                    "Pinged Peer Successfully on Topic: ${event.topic}",
                     Toast.LENGTH_SHORT
                 ).show()
                 is DappSampleEvents.PingError -> Toast.makeText(

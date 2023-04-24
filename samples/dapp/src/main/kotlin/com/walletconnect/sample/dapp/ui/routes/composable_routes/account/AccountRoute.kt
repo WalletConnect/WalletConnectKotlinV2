@@ -33,8 +33,8 @@ fun AccountRoute(navController: NavController) {
     LaunchedEffect(Unit) {
         viewModel.fetchAccountDetails()
 
-        viewModel.events.collect {
-            when (it) {
+        viewModel.events.collect {event ->
+            when (event) {
                 is DappSampleEvents.RequestSuccess -> { navController.openMessageDialog(it.result) }
                 is DappSampleEvents.RequestPeerError -> { navController.openMessageDialog(it.errorMsg) }
                 is DappSampleEvents.RequestError -> { navController.openMessageDialog(it.exceptionMsg) }
