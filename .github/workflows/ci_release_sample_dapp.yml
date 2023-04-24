@@ -1,17 +1,16 @@
 name: Sample dapp release
 
-on:
-  push:
-    branches: ["release"]
+#on:
+#  push:
+#    branches: ["release"]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Create Google Services Json File
+      - name: Create Dapp Google Services Json File
         env:
           GOOGLE_SERVICES_JSON_DAPP: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: echo $GOOGLE_SERVICES_JSON_DAPP > ./samples/dapp/google-services.json
@@ -21,15 +20,15 @@ jobs:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
         run: ./gradlew :samples:dapp:assembleRelease
 
-      - name: Sign APK
+      - name: Sign Dapp apk
         uses: r0adkll/sign-android-release@v1
         id: sign_dapp_sample
         with:
           releaseDirectory: samples/dapp/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.SIGNING_KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
-          keyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          signingKeyBase64: ${{ secrets.BASE64_APK_KEY }}
+          alias: ${{ secrets.APK_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.APK_KEY_PASSWORD }}
+          keyPassword: ${{ secrets.APK_KEY_PASSWORD }}
 
       - name: Upload dapp apk to Firebase Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
