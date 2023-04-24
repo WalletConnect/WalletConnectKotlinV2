@@ -4,6 +4,7 @@ package com.walletconnect.chat.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.chat.engine.domain.ChatEngine
+import com.walletconnect.chat.engine.use_case.calls.AcceptInviteUseCase
 import com.walletconnect.chat.json_rpc.GetPendingJsonRpcHistoryEntryByIdUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -11,6 +12,8 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun engineModule() = module {
     single { GetPendingJsonRpcHistoryEntryByIdUseCase(get(), get()) }
+
+    single { AcceptInviteUseCase(get(), get(), get(), get(), get(), get(), get(), get()) }
 
     single {
         ChatEngine(
@@ -28,7 +31,10 @@ internal fun engineModule() = module {
             invitesRepository = get(),
             messageRepository = get(),
             accountsRepository = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER))
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            syncInterface = get(),
+            onSyncUpdateUseCase = get(),
+            acceptInviteUseCase = get()
         )
     }
 }

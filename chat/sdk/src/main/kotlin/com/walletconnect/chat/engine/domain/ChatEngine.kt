@@ -3,7 +3,6 @@
 package com.walletconnect.chat.engine.domain
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
 import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
@@ -13,6 +12,7 @@ import com.walletconnect.android.internal.common.model.params.CoreChatParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.android.internal.utils.SELF_INVITE_PUBLIC_KEY_CONTEXT
 import com.walletconnect.android.internal.utils.SELF_PARTICIPANT_CONTEXT
@@ -22,10 +22,14 @@ import com.walletconnect.android.keyserver.domain.use_case.RegisterInviteUseCase
 import com.walletconnect.android.keyserver.domain.use_case.ResolveInviteUseCase
 import com.walletconnect.android.keyserver.domain.use_case.UnregisterInviteUseCase
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.chat.common.exceptions.*
 import com.walletconnect.chat.common.json_rpc.ChatParams
 import com.walletconnect.chat.common.json_rpc.ChatRpc
 import com.walletconnect.chat.common.model.*
+import com.walletconnect.chat.engine.sync.updates.OnSyncUpdateUseCase
+import com.walletconnect.chat.engine.use_case.calls.AcceptInviteUseCase
+import com.walletconnect.chat.engine.use_case.calls.AcceptInviteUseCaseInterface
 import com.walletconnect.chat.json_rpc.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.chat.json_rpc.JsonRpcMethod
 import com.walletconnect.chat.jwt.ChatDidJwtClaims
@@ -56,10 +60,15 @@ internal class ChatEngine(
     private val messageRepository: MessageStorageRepository,
     private val accountsRepository: AccountsStorageRepository,
     private val logger: Logger,
-) {
+    private val syncInterface: SyncInterface,
+    private val onSyncUpdateUseCase: OnSyncUpdateUseCase,
+    private val acceptInviteUseCase: AcceptInviteUseCase,
+) : AcceptInviteUseCaseInterface by acceptInviteUseCase {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
+    private var syncUpdateEventJob: Job? = null
+
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
@@ -93,6 +102,9 @@ internal class ChatEngine(
                 }
                 if (internalErrorsJob == null) {
                     internalErrorsJob = collectInternalErrors()
+                }
+                if (syncUpdateEventJob == null) {
+                    syncUpdateEventJob = collectSyncUpdateEvents()
                 }
             }
             .launchIn(scope)
@@ -335,58 +347,6 @@ internal class ChatEngine(
         onFailure(error)
     }
 
-    internal fun accept(inviteId: Long, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
-        scope.launch {
-            try {
-                val jsonRpcHistoryEntry = getPendingJsonRpcHistoryEntryByIdUseCase(inviteId)
-
-                if (jsonRpcHistoryEntry == null) {
-                    logger.error(MissingInviteRequestException.message)
-                    return@launch onFailure(MissingInviteRequestException)
-                }
-
-                val invite = invitesRepository.getReceivedInviteByInviteId(inviteId)
-                val inviterPublicKey = invite.inviterPublicKey
-                val inviteeAccountId = invite.inviteeAccount
-                val inviterAccountId = invite.inviterAccount
-
-                val inviteePublicKey = keyManagementRepository.getPublicKey(inviteeAccountId.getInviteTag())
-                val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(inviteePublicKey, inviterPublicKey)
-                val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
-                keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
-
-                val publicKey = keyManagementRepository.generateAndStoreX25519KeyPair()
-                val (identityPublicKey, identityPrivateKey) = identitiesInteractor.getIdentityKeyPair(inviteeAccountId)
-
-                val didJwt = encodeDidJwt(
-                    identityPrivateKey,
-                    EncodeInviteApprovalDidJwtPayloadUseCase(publicKey, inviterAccountId),
-                    EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
-                ).getOrElse() { error ->
-                    onFailure(error)
-                    return@launch
-                }
-
-                val acceptanceParams = CoreChatParams.AcceptanceParams(responseAuth = didJwt.value)
-                val responseParams = JsonRpcResponse.JsonRpcResult(jsonRpcHistoryEntry.id, result = acceptanceParams)
-                val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(MONTH_IN_SECONDS))
-                jsonRpcInteractor.publishJsonRpcResponse(acceptTopic, irnParams, responseParams, {}, { error -> return@publishJsonRpcResponse onFailure(error) })
-
-                val threadSymmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(publicKey, inviterPublicKey)
-                val threadTopic = keyManagementRepository.getTopicFromKey(threadSymmetricKey)
-                keyManagementRepository.setKey(threadSymmetricKey, threadTopic.value)
-
-                threadsRepository.insertThread(threadTopic.value, selfAccount = inviteeAccountId.value, peerAccount = inviterAccountId.value)
-                invitesRepository.updateStatusByInviteId(inviteId, InviteStatus.APPROVED)
-
-                jsonRpcInteractor.subscribe(threadTopic) { error -> return@subscribe onFailure(error) }
-                onSuccess(threadTopic.value)
-
-            } catch (error: Exception) {
-                onFailure(error)
-            }
-        }
-    }
 
     internal fun reject(inviteId: Long, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         scope.launch {
@@ -764,6 +724,12 @@ internal class ChatEngine(
     private fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
             .onEach { exception -> _events.emit(exception) }
+            .launchIn(scope)
+
+    private fun collectSyncUpdateEvents(): Job =
+        syncInterface.onSyncUpdateEvents
+            .onEach { logger.log(it.toString()) } // todo delete
+            .onEach { event -> onSyncUpdateUseCase(event) }
             .launchIn(scope)
 
     private fun AccountId.getInviteTag(): String = "$SELF_INVITE_PUBLIC_KEY_CONTEXT${this.value}"
