@@ -58,6 +58,7 @@ object CoreClient {
                 module { single { Echo } },
                 coreJsonRpcModule(),
                 corePairingModule(Pairing),
+                coreSyncModule(Sync),
                 keyServerModule(keyServerUrl),
             )
         }
