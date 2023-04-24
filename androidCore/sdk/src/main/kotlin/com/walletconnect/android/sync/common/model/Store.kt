@@ -5,7 +5,7 @@ package com.walletconnect.android.sync.common.model
 import com.walletconnect.util.bytesToInt
 
 @JvmInline
-internal value class Store(val value: String) {
+value class Store(val value: String) {
 
     companion object {
         const val STORE_BASE_PATH = "m/77'/0'/0"

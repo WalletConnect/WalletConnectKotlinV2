@@ -1,6 +1,4 @@
 package com.walletconnect.android.sync.client
 
 
-object SyncClient : SyncInterface by SyncProtocol.instance {
-    interface SyncDelegate : SyncInterface.SyncDelegate
-}
+object SyncClient : SyncInterface by SyncProtocol.instance

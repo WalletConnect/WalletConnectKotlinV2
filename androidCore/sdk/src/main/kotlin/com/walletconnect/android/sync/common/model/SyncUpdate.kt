@@ -2,7 +2,7 @@
 
 package com.walletconnect.android.sync.common.model
 
-internal sealed interface SyncUpdate {
+sealed interface SyncUpdate {
     val id: Long
     val key: String
 
