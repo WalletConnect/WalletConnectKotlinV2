@@ -1,18 +1,15 @@
 package com.walletconnect.android.sync.client
 
+import com.walletconnect.android.Core
+import com.walletconnect.android.sync.common.model.Events
+import com.walletconnect.android.sync.common.model.StoreMap
+import kotlinx.coroutines.flow.SharedFlow
+
 
 interface SyncInterface {
-    interface SyncDelegate {
-        fun onSyncUpdate(onSyncUpdate: Sync.Events.OnSyncUpdate)
+    fun initialize(onError: (Core.Model.Error) -> Unit)
 
-        fun onConnectionStateChange(state: Sync.Model.ConnectionState)
-
-        fun onError(error: Sync.Model.Error)
-    }
-
-    fun setSyncDelegate(delegate: SyncDelegate)
-
-    fun initialize(params: Sync.Params.Init, onError: (Sync.Model.Error) -> Unit)
+    val onSyncUpdateEvents: SharedFlow<Events.OnSyncUpdate>
 
     /**
      * Caution: This function is blocking and runs on the current thread.
@@ -20,33 +17,17 @@ interface SyncInterface {
      */
     fun getMessage(params: Sync.Params.GetMessage): String
 
-    fun register(
-        params: Sync.Params.Register,
-        onSuccess: () -> Unit,
-        onError: (Sync.Model.Error) -> Unit,
-    )
+    fun register(params: Sync.Params.Register, onSuccess: () -> Unit, onError: (Core.Model.Error) -> Unit)
 
-    fun create(
-        params: Sync.Params.Create,
-        onSuccess: () -> Unit,
-        onError: (Sync.Model.Error) -> Unit,
-    )
+    fun create(params: Sync.Params.Create, onSuccess: () -> Unit, onError: (Core.Model.Error) -> Unit)
 
-    fun set(
-        params: Sync.Params.Set,
-        onSuccess: (Boolean) -> Unit,
-        onError: (Sync.Model.Error) -> Unit,
-    )
+    fun set(params: Sync.Params.Set, onSuccess: (Boolean) -> Unit, onError: (Core.Model.Error) -> Unit)
 
-    fun delete(
-        params: Sync.Params.Delete,
-        onSuccess: (Boolean) -> Unit,
-        onError: (Sync.Model.Error) -> Unit,
-    )
+    fun delete(params: Sync.Params.Delete, onSuccess: (Boolean) -> Unit, onError: (Core.Model.Error) -> Unit)
 
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
-    fun getStores(params: Sync.Params.GetStores): Sync.Type.StoreMap?
+    fun getStores(params: Sync.Params.GetStores): StoreMap?
 }
