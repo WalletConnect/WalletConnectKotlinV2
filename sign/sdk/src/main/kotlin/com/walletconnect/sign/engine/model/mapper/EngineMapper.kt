@@ -17,6 +17,7 @@ import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.ValidationError
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
+import com.walletconnect.util.Empty
 import java.net.URI
 
 @JvmSynthetic
@@ -39,6 +40,7 @@ internal fun SignParams.SessionProposeParams.toEngineDO(topic: Topic): EngineDO.
         description = this.proposer.metadata.description,
         url = this.proposer.metadata.url,
         icons = this.proposer.metadata.icons.mapNotNull { convertToURI(it) },
+        redirect = this.proposer.metadata.redirect?.native ?: String.Empty,
         requiredNamespaces = this.requiredNamespaces.toMapOfEngineNamespacesRequired(),
         optionalNamespaces = this.optionalNamespaces?.toMapOfEngineNamespacesOptional() ?: emptyMap(),
         properties = properties,
@@ -56,6 +58,7 @@ internal fun SignParams.SessionProposeParams.toVO(topic: Topic, requestId: Long)
         description = proposer.metadata.description,
         url = proposer.metadata.url,
         icons = proposer.metadata.icons,
+        redirect = proposer.metadata.redirect?.native ?: String.Empty,
         requiredNamespaces = requiredNamespaces,
         optionalNamespaces = optionalNamespaces ?: emptyMap(),
         properties = properties,
@@ -162,6 +165,7 @@ internal fun ProposalVO.toEngineDO(): EngineDO.SessionProposal =
         description = description,
         url = url,
         icons = icons.mapNotNull { convertToURI(it) },
+        redirect = redirect,
         relayData = relayData,
         relayProtocol = relayProtocol,
         requiredNamespaces = requiredNamespaces.toMapOfEngineNamespacesRequired(),

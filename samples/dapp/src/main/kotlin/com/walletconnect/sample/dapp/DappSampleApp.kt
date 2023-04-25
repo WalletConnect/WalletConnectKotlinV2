@@ -6,11 +6,13 @@ import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.dapp.client.PushDappClient
+import com.walletconnect.sample.dapp.web3modal.di.web3ModalModule
 import com.walletconnect.sample_common.BuildConfig
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import org.koin.core.context.startKoin
 import timber.log.Timber
 
 class DappSampleApp : Application() {
@@ -44,6 +46,10 @@ class DappSampleApp : Application() {
 
         PushDappClient.initialize(Push.Dapp.Params.Init(CoreClient, null)) { error ->
             Timber.e(tag(this), error.throwable.stackTraceToString())
+        }
+
+        startKoin {
+            modules(web3ModalModule())
         }
     }
 }
