@@ -2,6 +2,8 @@ package com.walletconnect.sign.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.sign.common.model.vo.Validation
+import com.walletconnect.sign.engine.model.EngineDO
 import java.net.URI
 
 object Sign {
@@ -43,6 +45,16 @@ object Sign {
             val relayProtocol: String,
             val relayData: String?,
         ) : Model()
+
+        data class SessionContext(
+            val origin: String,
+            val validation: Validation,
+            val verifyUrl: String
+        ) : Model()
+
+        enum class Validation {
+            VALID, INVALID, UNKNOWN
+        }
 
         data class SessionRequest(
             val topic: String,

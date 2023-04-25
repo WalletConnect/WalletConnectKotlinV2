@@ -72,8 +72,8 @@ internal fun ProposalVO.toSessionProposeRequest(): WCRequest =
         method = JsonRpcMethod.WC_SESSION_PROPOSE,
         params = SignParams.SessionProposeParams(
             relays = listOf(RelayProtocolOptions(protocol = relayProtocol, data = relayData)),
-            proposer = SessionProposer(proposerPublicKey, AppMetaData(name, description, url, icons)),
-            requiredNamespaces, optionalNamespaces, properties
+            proposer = SessionProposer(proposerPublicKey, AppMetaData(name = name, description = description, url = url, icons = icons)),
+            requiredNamespaces = requiredNamespaces, optionalNamespaces = optionalNamespaces, properties = properties
         )
     )
 
@@ -179,13 +179,13 @@ private fun convertToURI(it: String) = try {
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVORequired(): Map<String, NamespaceVO.Proposal> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Proposal(namespace.chains, namespace.methods, namespace.events)
+        NamespaceVO.Proposal(chains = namespace.chains, methods = namespace.methods, events = namespace.events)
     }
 
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVOOptional(): Map<String, NamespaceVO.Proposal> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Proposal(namespace.chains, namespace.methods, namespace.events)
+        NamespaceVO.Proposal(chains = namespace.chains, methods = namespace.methods, events = namespace.events)
     }
 
 @JvmSynthetic

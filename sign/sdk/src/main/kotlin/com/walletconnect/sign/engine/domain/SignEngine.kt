@@ -31,6 +31,7 @@ import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.type.Sequences
+import com.walletconnect.sign.common.model.vo.Validation
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
@@ -614,33 +615,36 @@ internal class SignEngine(
                 }
             }
 
-            //todo: use usecase for that
+            proposalStorageRepository.insertProposal(payloadParams.toVO(request.topic, request.id))
+            pairingHandler.updateMetadata(Core.Params.UpdateMetadata(request.topic.value, payloadParams.proposer.metadata.toClient(), AppMetaDataType.PEER))
 
+            //todo: use usecase for that
             val json = serializer.serialize(SignRpc.SessionPropose(id = request.id, params = payloadParams)) ?: throw Exception("kobe; Cannot parse")
 
-            val newJson = "\"\"\"$json\"\"\""
+            println("kobe; $json")
 
-            println("kobe; $newJson")
-
-            val attestationId = sha256("""$json""".toByteArray())
+            val attestationId = sha256(json.toByteArray())
 
             CoreClient.Verify.resolve(attestationId,
-                onSuccess = {
-                    println("kobe; Success: $it")
+                onSuccess = { origin ->
+                    println("kobe; Success: $origin")
+
+                    //todo build valid and invalid
+
+                    val validation = if (payloadParams.proposer.metadata.url == origin) Validation.VALID else Validation.INVALID
+                    val context = EngineDO.SessionContext(origin, validation, "https://verify.walletconnect.com/")
+                    val sessionProposalEvent = EngineDO.SessionProposalEvent(payloadParams.toEngineDO(request.topic), context)
+                    scope.launch { _engineEvent.emit(sessionProposalEvent) }
                 },
-                onError = {
-                    println("kobe; Error: $it")
+                onError = { error ->
+                    println("kobe; Error: $error")
+                    //todo build unknown
+
+                    val context = EngineDO.SessionContext("", Validation.UNKNOWN, "https://verify.walletconnect.com/")
+                    val sessionProposalEvent = EngineDO.SessionProposalEvent(payloadParams.toEngineDO(request.topic), context)
+                    scope.launch { _engineEvent.emit(sessionProposalEvent) }
                 })
 
-            proposalStorageRepository.insertProposal(payloadParams.toVO(request.topic, request.id))
-            pairingHandler.updateMetadata(
-                Core.Params.UpdateMetadata(
-                    request.topic.value,
-                    payloadParams.proposer.metadata.toClient(),
-                    AppMetaDataType.PEER
-                )
-            )
-            scope.launch { _engineEvent.emit(payloadParams.toEngineDO(request.topic)) }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
                 request,

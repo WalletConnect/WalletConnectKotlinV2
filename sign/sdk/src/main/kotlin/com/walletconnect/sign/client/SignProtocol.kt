@@ -49,7 +49,7 @@ class SignProtocol : SignInterface {
 
         signEngine.engineEvent.onEach { event ->
             when (event) {
-                is EngineDO.SessionProposal -> delegate.onSessionProposal(event.toClientSessionProposal())
+                is EngineDO.SessionProposalEvent -> delegate.onSessionProposal(event.proposal.toClientSessionProposal(), event.context.toClientSessionContext())
                 is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
                 is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                 //Responses

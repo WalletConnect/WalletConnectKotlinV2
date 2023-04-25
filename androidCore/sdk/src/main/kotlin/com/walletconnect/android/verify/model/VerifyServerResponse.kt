@@ -4,14 +4,11 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 sealed class VerifyServerResponse<T> {
-    abstract val status: String
     abstract val error: Error?
     abstract val value: T?
 
     @JsonClass(generateAdapter = true)
     data class RegisterAttestation(
-        @Json(name = "status")
-        override val status: String,
         @Json(name = "error")
         override val error: Error?,
         @Json(name = "value")
@@ -20,13 +17,11 @@ sealed class VerifyServerResponse<T> {
 
     @JsonClass(generateAdapter = true)
     data class ResolveAttestation(
-        @Json(name = "status")
-        override val status: String,
         @Json(name = "error")
         override val error: Error?,
         @Json(name = "value")
-        override val value: String?,
-    ) : VerifyServerResponse<String>()
+        override val value: Origin?,
+    ) : VerifyServerResponse<Origin>()
 
     @JsonClass(generateAdapter = true)
     data class Error(

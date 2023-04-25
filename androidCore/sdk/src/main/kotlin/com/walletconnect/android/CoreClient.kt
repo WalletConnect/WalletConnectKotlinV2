@@ -51,7 +51,7 @@ object CoreClient {
                 coreStorageModule(),
                 echoModule(),
                 module { single { relay ?: RelayClient } },
-                module { single { with(metaData) { AppMetaData(name, description, url, icons, Redirect(redirect)) } } },
+                module { single { with(metaData) { AppMetaData(name = name, description = description, url = url, icons = icons, redirect = Redirect(redirect)) } } },
                 module { single { Echo } },
                 coreJsonRpcModule(),
                 corePairingModule(Pairing),

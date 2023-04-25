@@ -76,7 +76,7 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
         metadata_icons: List<String>,
         metadata_native: String?,
     ): EngineDO.PushSubscription {
-        val metadata = AppMetaData(metadata_name, metadata_description, metadata_url, metadata_icons, Redirect(metadata_native))
+        val metadata = AppMetaData(name = metadata_name, description = metadata_description, url = metadata_url, icons = metadata_icons, redirect = Redirect(metadata_native))
         val relayProtocolOptions = RelayProtocolOptions(relay_protocol, relay_data)
 
         return EngineDO.PushSubscription(request_id, pairingTopic, peerPublicKey, topic, AccountId(account), relayProtocolOptions, metadata)

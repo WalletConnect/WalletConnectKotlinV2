@@ -19,5 +19,5 @@ internal data class ProposalVO(
     val relayData: String?,
 ) {
     val appMetaData: AppMetaData
-        get() = AppMetaData(name, description, url, icons)
+        get() = AppMetaData(name = name, description = description, url = url, icons = icons)
 }

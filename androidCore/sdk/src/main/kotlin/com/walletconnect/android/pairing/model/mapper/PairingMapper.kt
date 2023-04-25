@@ -39,6 +39,6 @@ fun Core.Model.Pairing.toPairing(): Pairing =
     )
 
 @JvmSynthetic
-internal fun Core.Model.AppMetaData.toAppMetaData() = AppMetaData(name, description, url, icons, Redirect(redirect))
+internal fun Core.Model.AppMetaData.toAppMetaData() = AppMetaData(name = name, description = description, url =  url, icons = icons, redirect = Redirect(redirect))
 
 fun AppMetaData.toClient() = Core.Model.AppMetaData(name, description, url, icons, redirect?.native)

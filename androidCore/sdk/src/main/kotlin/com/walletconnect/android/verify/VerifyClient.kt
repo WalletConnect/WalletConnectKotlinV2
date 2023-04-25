@@ -25,21 +25,11 @@ internal object VerifyClient : VerifyInterface {
             supervisorScope {
                 try {
                     val response = verifyService.resolveAttestation(attestationId)
-
                     if (response.isSuccessful && response.body() != null) {
-                        if (response.body()!!.status == SUCCESS_STATUS) {
-                            if (response.body()!!.value != null) {
-                                onSuccess(response.body()!!.value!!)
-                            } else {
-                                onError(IllegalArgumentException(response.body()!!.error?.message))
-                            }
-                        } else {
-                            onError(IllegalArgumentException(response.body()!!.error?.message))
-                        }
+                        onSuccess(response.body()!!.origin)
                     } else {
                         onError(IllegalArgumentException(response.errorBody()?.string()))
                     }
-
                 } catch (e: Exception) {
                     onError(e)
                 }

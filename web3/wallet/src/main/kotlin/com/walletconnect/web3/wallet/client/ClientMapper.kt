@@ -137,6 +137,16 @@ internal fun Sign.Model.SessionProposal.toWallet(): Wallet.Model.SessionProposal
         relayData
     )
 
+internal fun Sign.Model.SessionContext.toWallet(): Wallet.Model.SessionContext =
+    Wallet.Model.SessionContext(origin, this.validation.toWallet(), verifyUrl)
+
+internal fun Sign.Model.Validation.toWallet(): Wallet.Model.Validation =
+    when (this) {
+        Sign.Model.Validation.VALID -> Wallet.Model.Validation.VALID
+        Sign.Model.Validation.INVALID -> Wallet.Model.Validation.INVALID
+        Sign.Model.Validation.UNKNOWN -> Wallet.Model.Validation.UNKNOWN
+    }
+
 @JvmSynthetic
 internal fun Sign.Model.SessionRequest.toWallet(): Wallet.Model.SessionRequest =
     Wallet.Model.SessionRequest(

@@ -4,6 +4,7 @@ import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.SignatureInterface
+import com.walletconnect.sign.client.Sign
 import java.net.URI
 
 object Wallet {
@@ -59,6 +60,16 @@ object Wallet {
             val relayProtocol: String,
             val relayData: String?,
         ) : Model()
+
+        data class SessionContext(
+            val origin: String,
+            val validation: Validation,
+            val verifyUrl: String
+        ) : Model()
+
+        enum class Validation {
+            VALID, INVALID, UNKNOWN
+        }
 
         data class SessionRequest(
             val topic: String,
