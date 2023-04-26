@@ -4,18 +4,20 @@ package com.walletconnect.auth.engine.domain
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.signing.cacao.Cacao
-import com.walletconnect.android.internal.common.signing.cacao.CacaoType
-import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
-import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
+import com.walletconnect.android.internal.common.exception.Uncategorized
+import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreAuthParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
+import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
+import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
@@ -23,6 +25,7 @@ import com.walletconnect.android.internal.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
+import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException
 import com.walletconnect.auth.common.exceptions.InvalidParamsException
@@ -31,6 +34,7 @@ import com.walletconnect.auth.common.exceptions.PeerError
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.json_rpc.AuthRpc
 import com.walletconnect.auth.common.model.*
+import com.walletconnect.auth.engine.mapper.toAuthContext
 import com.walletconnect.auth.engine.mapper.toCAIP122Message
 import com.walletconnect.auth.engine.mapper.toCacaoPayload
 import com.walletconnect.auth.engine.mapper.toPendingRequest
@@ -54,6 +58,8 @@ internal class AuthEngine(
     private val crypto: KeyManagementRepository,
     private val pairingHandler: PairingControllerInterface,
     private val pairingInterface: PairingInterface,
+    private val serializer: JsonRpcSerializer,
+    private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
     private val selfAppMetaData: AppMetaData,
     private val cacaoVerifier: CacaoVerifier,
     private val logger: Logger
@@ -232,14 +238,27 @@ internal class AuthEngine(
     }
 
     private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
-        if (CoreValidator.isExpiryNotWithinBounds(authParams.expiry)) {
-            val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
-            jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
-            return
-        }
+        val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
+        try {
+            if (CoreValidator.isExpiryNotWithinBounds(authParams.expiry)) {
+                jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
+                return
+            }
 
-        scope.launch {
-            _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, wcRequest.topic.value, authParams.payloadParams))
+            val json = serializer.serialize(AuthRpc.AuthRequest(id = wcRequest.id, params = authParams)) ?: throw Exception("Error serializing session proposal")
+            val url = authParams.requester.metadata.url
+            resolveAttestationIdUseCase(json, url) { verifyContext ->
+                scope.launch {
+                    _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, wcRequest.topic.value, authParams.payloadParams, verifyContext.toAuthContext()))
+                }
+            }
+        } catch (e: Exception) {
+            jsonRpcInteractor.respondWithError(
+                wcRequest,
+                Uncategorized.GenericError("Cannot handle a auth request: ${e.message}, topic: ${wcRequest.topic}"),
+                irnParams
+            )
+            scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
 

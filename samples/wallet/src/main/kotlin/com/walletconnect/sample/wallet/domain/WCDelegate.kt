@@ -28,8 +28,10 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
         Web3Wallet.setWalletDelegate(this)
     }
 
-    override fun onAuthRequest(authRequest: Wallet.Model.AuthRequest) {
+    override fun onAuthRequest(authRequest: Wallet.Model.AuthRequest, authContext: Wallet.Model.AuthContext) {
         this.authRequest = authRequest
+
+        println("kobe: Auth AuthContext: $authContext")
 
         scope.launch {
             _walletEvents.emit(authRequest)

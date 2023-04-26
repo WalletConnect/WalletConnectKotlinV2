@@ -8,6 +8,8 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.auth.client.mapper.toClient
+import com.walletconnect.auth.client.mapper.toClientAuthContext
+import com.walletconnect.auth.client.mapper.toClientAuthRequest
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Events
 import com.walletconnect.auth.di.commonModule
@@ -60,7 +62,7 @@ internal class AuthProtocol : AuthInterface {
             when (event) {
                 is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
                 is SDKError -> delegate.onError(event.toClient())
-                is Events.OnAuthRequest -> delegate.onAuthRequest(event.toClient())
+                is Events.OnAuthRequest -> delegate.onAuthRequest(event.toClientAuthRequest(), event.toClientAuthContext())
             }
         }.launchIn(scope)
     }

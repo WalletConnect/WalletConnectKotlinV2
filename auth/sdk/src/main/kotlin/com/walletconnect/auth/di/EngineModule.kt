@@ -15,5 +15,5 @@ internal fun engineModule() = module {
     single { GetPendingJsonRpcHistoryEntryByIdUseCase(get(), get()) }
     single { GetResponseByIdUseCase(get(), get()) }
     single { CacaoVerifier(get()) }
-    single { AuthEngine(get(), get(), get(), get(), get(), get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single { AuthEngine(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
 }

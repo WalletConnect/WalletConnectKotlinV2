@@ -20,7 +20,7 @@ object Web3Wallet {
         fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, sessionContext: Wallet.Model.SessionContext)
         fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, sessionContext: Wallet.Model.SessionContext)
         fun onSessionDelete(sessionDelete: Wallet.Model.SessionDelete)
-        fun onAuthRequest(authRequest: Wallet.Model.AuthRequest)
+        fun onAuthRequest(authRequest: Wallet.Model.AuthRequest, authContext: Wallet.Model.AuthContext)
 
         //Responses
         fun onSessionSettleResponse(settleSessionResponse: Wallet.Model.SettledSessionResponse)
@@ -65,8 +65,8 @@ object Web3Wallet {
         }
 
         val authWalletDelegate = object : AuthClient.ResponderDelegate {
-            override fun onAuthRequest(authRequest: Auth.Event.AuthRequest) {
-                delegate.onAuthRequest(authRequest.toWallet())
+            override fun onAuthRequest(authRequest: Auth.Event.AuthRequest, authContext: Auth.Event.AuthContext) {
+                delegate.onAuthRequest(authRequest.toWallet(), authContext.toWallet())
             }
 
             override fun onConnectionStateChange(connectionStateChange: Auth.Event.ConnectionStateChange) {

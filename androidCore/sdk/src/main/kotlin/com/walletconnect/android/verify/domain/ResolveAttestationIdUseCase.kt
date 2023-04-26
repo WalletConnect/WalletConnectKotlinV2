@@ -9,7 +9,6 @@ import com.walletconnect.android.verify.data.model.VerifyContext
 import org.koin.core.qualifier.named
 
 class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface) {
-
     val verifyUrl: String get() = wcKoinApp.koin.get(named(AndroidCommonDITags.VERIFY_URL))
 
     operator fun invoke(jsonPayload: String, metadataUrl: String, onResolve: (VerifyContext) -> Unit) {

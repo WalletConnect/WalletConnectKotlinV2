@@ -117,13 +117,6 @@ internal object PairingProtocol : PairingInterface {
         return pairingEngine.getPairings().map { pairing -> pairing.toClient() }
     }
 
-    @Throws(IllegalStateException::class)
-    override fun getPairingByTopic(topic: String): Core.Model.Pairing? {
-        checkEngineInitialization()
-
-        return pairingEngine.getPairingByTopic(topic)?.toClient()
-    }
-
     private suspend fun awaitConnection(onConnection: () -> Unit, errorLambda: (Throwable) -> Unit = {}) {
         try {
             withTimeout(5000) {

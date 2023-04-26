@@ -16,6 +16,12 @@ object Auth {
 
         data class AuthResponse(val response: Model.Response) : Event()
 
+        data class AuthContext(
+            val origin: String,
+            val validation: Model.Validation,
+            val verifyUrl: String
+        ) : Event()
+
         data class ConnectionStateChange(
             val state: Model.ConnectionState,
         ) : Event()
@@ -30,6 +36,10 @@ object Auth {
         data class Error(val throwable: Throwable) : Model()
 
         data class ConnectionState(val isAvailable: Boolean) : Model()
+
+        enum class Validation {
+            VALID, INVALID, UNKNOWN
+        }
 
         data class PendingRequest(
             val id: Long,

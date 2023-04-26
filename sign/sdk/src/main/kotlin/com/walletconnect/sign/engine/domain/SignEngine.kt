@@ -745,7 +745,7 @@ internal class SignEngine(
             }
 
             val json = serializer.serialize(SignRpc.SessionRequest(id = request.id, params = params)) ?: throw Exception("Error serializing session request")
-            val url = sessionPeerAppMetaData.url//pairingInterface.getPairingByTopic(request.topic.value)?.peerAppMetaData?.url ?: throw Exception("Error getting peer pairing url")
+            val url = sessionPeerAppMetaData.url
             resolveAttestationIdUseCase(json, url) { verifyContext ->
                 val sessionRequestEvent = EngineDO.SessionRequestEvent(params.toEngineDO(request, sessionPeerAppMetaData), verifyContext.toEngineDO())
                 scope.launch { _engineEvent.emit(sessionRequestEvent) }

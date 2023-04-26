@@ -148,6 +148,13 @@ internal fun Sign.Model.Validation.toWallet(): Wallet.Model.Validation =
         Sign.Model.Validation.UNKNOWN -> Wallet.Model.Validation.UNKNOWN
     }
 
+internal fun Auth.Model.Validation.toWallet(): Wallet.Model.Validation =
+    when (this) {
+        Auth.Model.Validation.VALID -> Wallet.Model.Validation.VALID
+        Auth.Model.Validation.INVALID -> Wallet.Model.Validation.INVALID
+        Auth.Model.Validation.UNKNOWN -> Wallet.Model.Validation.UNKNOWN
+    }
+
 @JvmSynthetic
 internal fun Sign.Model.SessionRequest.toWallet(): Wallet.Model.SessionRequest =
     Wallet.Model.SessionRequest(
@@ -184,6 +191,9 @@ internal fun Sign.Model.SessionUpdateResponse.toWallet(): Wallet.Model.SessionUp
 
 @JvmSynthetic
 internal fun Auth.Event.AuthRequest.toWallet(): Wallet.Model.AuthRequest = Wallet.Model.AuthRequest(id, pairingTopic, payloadParams.toWallet())
+
+@JvmSynthetic
+internal fun Auth.Event.AuthContext.toWallet(): Wallet.Model.AuthContext = Wallet.Model.AuthContext(origin, this.validation.toWallet(), verifyUrl)
 
 @JvmSynthetic
 internal fun Wallet.Model.SessionProposal.toSign(): Sign.Model.SessionProposal =

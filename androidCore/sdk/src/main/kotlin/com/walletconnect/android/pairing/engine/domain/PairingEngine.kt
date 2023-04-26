@@ -191,8 +191,6 @@ internal class PairingEngine(
         metadataRepository.upsertPairingPeerMetadata(Topic(topic), metadata, metaDataType)
     }
 
-    fun getPairingByTopic(topic: String): Pairing? = pairingRepository.getPairingOrNullByTopic(Topic(topic))
-
     private fun collectJsonRpcRequestsFlow(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is PairingParams }
