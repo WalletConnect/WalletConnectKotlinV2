@@ -5,6 +5,7 @@ package com.walletconnect.sign.engine.model.mapper
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
+import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.PeerError
@@ -260,3 +261,7 @@ internal fun ValidationError.toPeerError() = when (this) {
     is ValidationError.InvalidSessionProperties -> PeerError.CAIP25.InvalidSessionPropertiesObject(message)
     is ValidationError.EmptyNamespaces -> PeerError.CAIP25.EmptySessionNamespaces(message)
 }
+
+@JvmSynthetic
+internal fun VerifyContext.toEngineDO(): EngineDO.SessionContext =
+    EngineDO.SessionContext(origin, validation, verifyUrl)

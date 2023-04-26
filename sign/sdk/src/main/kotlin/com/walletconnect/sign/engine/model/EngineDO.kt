@@ -9,7 +9,7 @@ import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.Sequence
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.common.model.vo.Validation
+import com.walletconnect.android.internal.common.model.Validation
 import java.net.URI
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions as CoreRelayProtocolOptions
 
@@ -24,6 +24,11 @@ internal sealed class EngineDO {
 
     data class SessionProposalEvent(
         val proposal: SessionProposal,
+        val context: SessionContext
+    ) : EngineDO(), EngineEvent
+
+    data class SessionRequestEvent(
+        val request: SessionRequest,
         val context: SessionContext
     ) : EngineDO(), EngineEvent
 

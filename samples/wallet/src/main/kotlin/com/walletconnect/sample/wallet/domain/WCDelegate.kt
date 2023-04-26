@@ -57,15 +57,18 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
 
     override fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, sessionContext: Wallet.Model.SessionContext) {
 
-        println("kobe: SessionContext: $sessionContext")
+        println("kobe: Proposal SessionContext: $sessionContext")
 
         scope.launch {
             _walletEvents.emit(sessionProposal)
         }
     }
 
-    override fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest) {
+    override fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, sessionContext: Wallet.Model.SessionContext) {
         this.sessionRequest = sessionRequest
+
+        println("kobe: Request SessionContext: $sessionContext")
+
         scope.launch {
             _walletEvents.emit(sessionRequest)
         }

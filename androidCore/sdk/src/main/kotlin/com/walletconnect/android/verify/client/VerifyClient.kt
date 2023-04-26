@@ -1,5 +1,6 @@
-package com.walletconnect.android.verify
+package com.walletconnect.android.verify.client
 
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.di.verifyModule
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -9,8 +10,7 @@ import kotlinx.coroutines.supervisorScope
 import org.koin.core.qualifier.named
 
 internal object VerifyClient : VerifyInterface {
-    private val verifyService get() = wcKoinApp.koin.get<VerifyService>(named("VerifyService"))
-    private const val SUCCESS_STATUS = "SUCCESS"
+    private val verifyService get() = wcKoinApp.koin.get<VerifyService>(named(AndroidCommonDITags.VERIFY_SERVICE))
 
     override fun initialize(verifyUrl: String?) {
         wcKoinApp.modules(verifyModule(verifyUrl))

@@ -18,8 +18,8 @@ import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.android.utils.plantTimber
 import com.walletconnect.android.utils.projectId
-import com.walletconnect.android.verify.VerifyClient
-import com.walletconnect.android.verify.VerifyInterface
+import com.walletconnect.android.verify.client.VerifyClient
+import com.walletconnect.android.verify.client.VerifyInterface
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -53,6 +53,7 @@ object CoreClient {
                 module { single { relay ?: RelayClient } },
                 module { single { with(metaData) { AppMetaData(name = name, description = description, url = url, icons = icons, redirect = Redirect(redirect)) } } },
                 module { single { Echo } },
+                module { single { Verify } },
                 coreJsonRpcModule(),
                 corePairingModule(Pairing),
                 keyServerModule(keyServerUrl),
@@ -63,7 +64,7 @@ object CoreClient {
             RelayClient.initialize(relayServerUrl, connectionType, networkClientTimeout) { error -> onError(Core.Model.Error(error)) }
         }
 
-        Verify.initialize(metaData.verifyUrl)
+        VerifyClient.initialize(metaData.verifyUrl)
         PairingProtocol.initialize()
         PairingController.initialize()
     }

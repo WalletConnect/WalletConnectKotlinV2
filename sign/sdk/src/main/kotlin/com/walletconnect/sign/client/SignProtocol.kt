@@ -50,7 +50,7 @@ class SignProtocol : SignInterface {
         signEngine.engineEvent.onEach { event ->
             when (event) {
                 is EngineDO.SessionProposalEvent -> delegate.onSessionProposal(event.proposal.toClientSessionProposal(), event.context.toClientSessionContext())
-                is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
+                is EngineDO.SessionRequestEvent -> delegate.onSessionRequest(event.request.toClientSessionRequest(), event.context.toClientSessionContext())
                 is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                 //Responses
                 is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
@@ -270,6 +270,7 @@ class SignProtocol : SignInterface {
             onError(Sign.Model.Error(error))
         }
     }
+
     @Throws(IllegalStateException::class)
     override fun getListOfActiveSessions(): List<Sign.Model.Session> {
         checkEngineInitialization()

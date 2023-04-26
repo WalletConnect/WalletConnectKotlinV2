@@ -1,6 +1,7 @@
 package com.walletconnect.android.internal.common.di
 
 import com.walletconnect.android.verify.data.VerifyService
+import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -10,6 +11,8 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 internal fun verifyModule(verifyServerUrl: String?) = module {
     val verifyUrl: String = verifyServerUrl ?: VERIFY_SERVER_URL
 
+    single(named(AndroidCommonDITags.VERIFY_URL)) { verifyUrl }
+
     single(named(AndroidCommonDITags.VERIFY_RETROFIT)) {
         Retrofit.Builder()
             .baseUrl(verifyUrl)
@@ -18,10 +21,11 @@ internal fun verifyModule(verifyServerUrl: String?) = module {
             .build()
     }
 
-    single(named("VerifyService")) {
-        println("kobe; VerifyService")
+    single(named(AndroidCommonDITags.VERIFY_SERVICE)) {
         get<Retrofit>(named(AndroidCommonDITags.VERIFY_RETROFIT)).create(VerifyService::class.java)
     }
+
+    single { ResolveAttestationIdUseCase(get()) }
 }
 
 private const val VERIFY_SERVER_URL = "https://verify.walletconnect.com/"

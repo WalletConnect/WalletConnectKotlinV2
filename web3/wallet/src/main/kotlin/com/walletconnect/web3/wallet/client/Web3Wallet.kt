@@ -18,7 +18,7 @@ object Web3Wallet {
 
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, sessionContext: Wallet.Model.SessionContext)
-        fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest)
+        fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, sessionContext: Wallet.Model.SessionContext)
         fun onSessionDelete(sessionDelete: Wallet.Model.SessionDelete)
         fun onAuthRequest(authRequest: Wallet.Model.AuthRequest)
 
@@ -39,8 +39,8 @@ object Web3Wallet {
                 delegate.onSessionProposal(sessionProposal.toWallet(), sessionContext.toWallet())
             }
 
-            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
-                delegate.onSessionRequest(sessionRequest.toWallet())
+            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, sessionContext: Sign.Model.SessionContext) {
+                delegate.onSessionRequest(sessionRequest.toWallet(), sessionContext.toWallet())
             }
 
             override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {

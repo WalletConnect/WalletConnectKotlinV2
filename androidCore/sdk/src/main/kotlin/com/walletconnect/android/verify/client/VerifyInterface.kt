@@ -1,4 +1,4 @@
-package com.walletconnect.android.verify
+package com.walletconnect.android.verify.client
 
 interface VerifyInterface {
     fun initialize(verifyUrl: String?)

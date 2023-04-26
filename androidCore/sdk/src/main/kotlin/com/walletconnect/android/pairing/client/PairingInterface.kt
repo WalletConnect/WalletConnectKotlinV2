@@ -31,6 +31,12 @@ interface PairingInterface {
      */
     fun getPairings(): List<Core.Model.Pairing>
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getPairingByTopic(topic: String): Core.Model.Pairing?
+
     interface Delegate {
         fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing)
     }

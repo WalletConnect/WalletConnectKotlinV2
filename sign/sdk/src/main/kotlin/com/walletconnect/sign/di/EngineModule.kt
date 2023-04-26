@@ -10,8 +10,6 @@ import org.koin.dsl.module
 
 @JvmSynthetic
 internal fun engineModule() = module {
-
     single { GetPendingRequestsUseCase(get(), get()) }
-
-    single { SignEngine(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(named(AndroidCommonDITags.LOGGER)), get()) }
+    single { SignEngine(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
 }

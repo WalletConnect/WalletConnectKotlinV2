@@ -4,10 +4,8 @@ package com.walletconnect.sign.engine.domain
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.exception.*
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
@@ -23,15 +21,14 @@ import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.android.pairing.model.mapper.toPairing
+import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.type.Sequences
-import com.walletconnect.sign.common.model.vo.Validation
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
@@ -40,14 +37,13 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.payload.Session
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
+import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.*
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCase
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
-import com.walletconnect.util.generateId
-import com.walletconnect.util.hexToBytes
 import com.walletconnect.utils.Empty
 import com.walletconnect.utils.extractTimestamp
 import com.walletconnect.utils.isSequenceValid
@@ -64,10 +60,11 @@ internal class SignEngine(
     private val proposalStorageRepository: ProposalStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val pairingInterface: PairingInterface,
-    private val pairingHandler: PairingControllerInterface,
+    private val pairingController: PairingControllerInterface,
+    private val serializer: JsonRpcSerializer,
+    private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
     private val selfAppMetaData: AppMetaData,
-    private val logger: Logger,
-    private val serializer: JsonRpcSerializer
+    private val logger: Logger
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
@@ -76,7 +73,7 @@ internal class SignEngine(
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
 
     init {
-        pairingHandler.register(
+        pairingController.register(
             JsonRpcMethod.WC_SESSION_PROPOSE,
             JsonRpcMethod.WC_SESSION_SETTLE,
             JsonRpcMethod.WC_SESSION_REQUEST,
@@ -578,7 +575,7 @@ internal class SignEngine(
             }.launchIn(scope)
 
     private fun collectInternalErrors(): Job =
-        merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
+        merge(jsonRpcInteractor.internalErrors, pairingController.findWrongMethodsFlow)
             .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
 
@@ -616,35 +613,13 @@ internal class SignEngine(
             }
 
             proposalStorageRepository.insertProposal(payloadParams.toVO(request.topic, request.id))
-            pairingHandler.updateMetadata(Core.Params.UpdateMetadata(request.topic.value, payloadParams.proposer.metadata.toClient(), AppMetaDataType.PEER))
-
-            //todo: use usecase for that
-            val json = serializer.serialize(SignRpc.SessionPropose(id = request.id, params = payloadParams)) ?: throw Exception("kobe; Cannot parse")
-
-            println("kobe; $json")
-
-            val attestationId = sha256(json.toByteArray())
-
-            CoreClient.Verify.resolve(attestationId,
-                onSuccess = { origin ->
-                    println("kobe; Success: $origin")
-
-                    //todo build valid and invalid
-
-                    val validation = if (payloadParams.proposer.metadata.url == origin) Validation.VALID else Validation.INVALID
-                    val context = EngineDO.SessionContext(origin, validation, "https://verify.walletconnect.com/")
-                    val sessionProposalEvent = EngineDO.SessionProposalEvent(payloadParams.toEngineDO(request.topic), context)
-                    scope.launch { _engineEvent.emit(sessionProposalEvent) }
-                },
-                onError = { error ->
-                    println("kobe; Error: $error")
-                    //todo build unknown
-
-                    val context = EngineDO.SessionContext("", Validation.UNKNOWN, "https://verify.walletconnect.com/")
-                    val sessionProposalEvent = EngineDO.SessionProposalEvent(payloadParams.toEngineDO(request.topic), context)
-                    scope.launch { _engineEvent.emit(sessionProposalEvent) }
-                })
-
+            pairingController.updateMetadata(Core.Params.UpdateMetadata(request.topic.value, payloadParams.proposer.metadata.toClient(), AppMetaDataType.PEER))
+            val url = payloadParams.proposer.metadata.url
+            val json = serializer.serialize(SignRpc.SessionPropose(id = request.id, params = payloadParams)) ?: throw Exception("Error serializing session proposal")
+            resolveAttestationIdUseCase(json, url) { verifyContext ->
+                val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = payloadParams.toEngineDO(request.topic), context = verifyContext.toEngineDO())
+                scope.launch { _engineEvent.emit(sessionProposalEvent) }
+            }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
                 request,
@@ -688,7 +663,7 @@ internal class SignEngine(
                     )
 
                     sessionStorageRepository.insertSession(session, request.id)
-                    pairingHandler.updateMetadata(Core.Params.UpdateMetadata(proposal.pairingTopic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
+                    pairingController.updateMetadata(Core.Params.UpdateMetadata(proposal.pairingTopic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
                     metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
                     jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
                     _engineEvent.emit(session.toSessionApproved())
@@ -769,7 +744,12 @@ internal class SignEngine(
                 return
             }
 
-            scope.launch { _engineEvent.emit(params.toEngineDO(request, sessionPeerAppMetaData)) }
+            val json = serializer.serialize(SignRpc.SessionRequest(id = request.id, params = params)) ?: throw Exception("Error serializing session request")
+            val url = sessionPeerAppMetaData.url//pairingInterface.getPairingByTopic(request.topic.value)?.peerAppMetaData?.url ?: throw Exception("Error getting peer pairing url")
+            resolveAttestationIdUseCase(json, url) { verifyContext ->
+                val sessionRequestEvent = EngineDO.SessionRequestEvent(params.toEngineDO(request, sessionPeerAppMetaData), verifyContext.toEngineDO())
+                scope.launch { _engineEvent.emit(sessionRequestEvent) }
+            }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
                 request,
@@ -926,8 +906,8 @@ internal class SignEngine(
     private fun onSessionProposalResponse(wcResponse: WCResponse, params: SignParams.SessionProposeParams) {
         try {
             val pairingTopic = wcResponse.topic
-            pairingHandler.updateExpiry(Core.Params.UpdateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS)))
-            pairingHandler.activate(Core.Params.Activate(pairingTopic.value))
+            pairingController.updateExpiry(Core.Params.UpdateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS)))
+            pairingController.activate(Core.Params.Activate(pairingTopic.value))
             if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
 
             when (val response = wcResponse.response) {
@@ -1058,7 +1038,7 @@ internal class SignEngine(
                 })
             }
 
-            pairingHandler.topicExpiredFlow.onEach { topic ->
+            pairingController.topicExpiredFlow.onEach { topic ->
                 sessionStorageRepository.getAllSessionTopicsByPairingTopic(topic).onEach { sessionTopic ->
                     jsonRpcInteractor.unsubscribe(Topic(sessionTopic), onSuccess = {
                         sessionStorageRepository.deleteSession(Topic(sessionTopic))

@@ -9,7 +9,7 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.model.PendingRequest
-import com.walletconnect.sign.common.model.vo.Validation
+import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.engine.model.EngineDO
 

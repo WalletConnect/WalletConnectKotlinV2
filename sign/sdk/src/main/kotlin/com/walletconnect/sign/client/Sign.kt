@@ -2,8 +2,6 @@ package com.walletconnect.sign.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.sign.common.model.vo.Validation
-import com.walletconnect.sign.engine.model.EngineDO
 import java.net.URI
 
 object Sign {
