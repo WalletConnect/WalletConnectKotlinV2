@@ -31,8 +31,6 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     override fun onAuthRequest(authRequest: Wallet.Model.AuthRequest, authContext: Wallet.Model.AuthContext) {
         authRequestEvent = Pair(authRequest, authContext)
 
-        println("kobe: Auth AuthContext: $authContext")
-
         scope.launch {
             _walletEvents.emit(authRequest)
         }
@@ -58,9 +56,6 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, sessionContext: Wallet.Model.SessionContext) {
-
-        println("kobe: Proposal SessionContext: $sessionContext")
-
         sessionProposalEvent = Pair(sessionProposal, sessionContext)
 
         scope.launch {
@@ -69,8 +64,6 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, sessionContext: Wallet.Model.SessionContext) {
-        println("kobe: Request SessionContext: $sessionContext")
-
         sessionRequestEvent = Pair(sessionRequest, sessionContext)
 
         scope.launch {

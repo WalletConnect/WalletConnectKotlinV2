@@ -74,9 +74,6 @@ class AttestationIdGenerationTest {
 
         val sessionPropose = SignRpc.SessionPropose(id = 1681757953038968, params = params)
         val json = moshi.adapter(SignRpc.SessionPropose::class.java).toJson(sessionPropose)
-
-        println("kobe; $json")
-
         val result = sha256(json.toByteArray())
         assertEquals("ca3787a0249586efced351bbc06416bb2d879615e10ff9f916cc84d6b78bbe0b", result)
     }
@@ -108,9 +105,6 @@ class AttestationIdGenerationTest {
 
         val sessionPropose = SignRpc.SessionPropose(id = 1681824460577019, params = params)
         val json = moshi.adapter(SignRpc.SessionPropose::class.java).toJson(sessionPropose)
-
-        println("kobe; $json")
-
         val result = sha256(json.toByteArray())
         assertEquals("96499b7e772f113da72f05a0f8c847a9804b3ff4c2b2b28fea5c4c5bd7b48e98", result)
     }

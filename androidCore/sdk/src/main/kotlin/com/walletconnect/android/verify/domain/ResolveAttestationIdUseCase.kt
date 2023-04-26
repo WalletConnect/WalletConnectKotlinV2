@@ -12,18 +12,10 @@ class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface) 
     val verifyUrl: String get() = wcKoinApp.koin.get(named(AndroidCommonDITags.VERIFY_URL))
 
     operator fun invoke(jsonPayload: String, metadataUrl: String, onResolve: (VerifyContext) -> Unit) {
-        println("kobe; URL: $metadataUrl; PAYLOAD: $jsonPayload")
         val attestationId = sha256(jsonPayload.toByteArray())
 
         verifyInterface.resolve(attestationId,
-            onSuccess = { origin ->
-                println("kobe; Success: $origin")
-                val validation = if (metadataUrl == origin) Validation.VALID else Validation.INVALID
-                onResolve(VerifyContext(origin, validation, verifyUrl))
-            },
-            onError = { error ->
-                println("kobe; Error: $error")
-                onResolve(VerifyContext("", Validation.UNKNOWN, verifyUrl))
-            })
+            onSuccess = { origin -> onResolve(VerifyContext(origin, if (metadataUrl == origin) Validation.VALID else Validation.INVALID, verifyUrl)) },
+            onError = { onResolve(VerifyContext("", Validation.UNKNOWN, verifyUrl)) })
     }
 }
