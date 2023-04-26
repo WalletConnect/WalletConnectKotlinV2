@@ -49,7 +49,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":sign:samples_common"))
+    implementation(project(":samples:samples_common"))
 
     implementation(platform("com.google.firebase:firebase-bom:31.1.1"))
     implementation("com.google.firebase:firebase-crashlytics-ktx")
