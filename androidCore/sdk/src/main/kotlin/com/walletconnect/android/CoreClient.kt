@@ -6,7 +6,6 @@ import com.walletconnect.android.echo.EchoClient
 import com.walletconnect.android.echo.EchoInterface
 import com.walletconnect.android.internal.common.di.*
 import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -14,8 +13,11 @@ import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.client.PairingProtocol
 import com.walletconnect.android.pairing.handler.PairingController
 import com.walletconnect.android.relay.ConnectionType
+import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.android.relay.RelayConnectionInterface
+import com.walletconnect.android.sync.client.SyncClient
+import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.android.utils.plantTimber
 import com.walletconnect.android.utils.projectId
 import com.walletconnect.android.verify.VerifyClient
@@ -28,6 +30,7 @@ object CoreClient {
     var Relay: RelayConnectionInterface = RelayClient
     val Echo: EchoInterface = EchoClient
     val Verify: VerifyInterface = VerifyClient
+    val Sync: SyncInterface = SyncClient
 
     interface CoreDelegate : PairingInterface.Delegate
 
@@ -39,7 +42,7 @@ object CoreClient {
         relay: RelayConnectionInterface? = null,
         keyServerUrl: String? = null,
         networkClientTimeout: NetworkClientTimeout? = null,
-        onError: (Core.Model.Error) -> Unit
+        onError: (Core.Model.Error) -> Unit,
     ) {
         plantTimber()
         with(wcKoinApp) {
@@ -55,6 +58,7 @@ object CoreClient {
                 module { single { Echo } },
                 coreJsonRpcModule(),
                 corePairingModule(Pairing),
+                coreSyncModule(Sync),
                 keyServerModule(keyServerUrl),
             )
         }
@@ -64,6 +68,7 @@ object CoreClient {
         }
 
         Verify.initialize(metaData.verifyUrl)
+        Sync.initialize() { error -> onError(Core.Model.Error(error.throwable)) }
         PairingProtocol.initialize()
         PairingController.initialize()
     }
