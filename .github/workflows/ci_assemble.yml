@@ -36,7 +36,7 @@ jobs:
       - name: Assemble Debug Project
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-        run: ./gradlew assembleDebug -x :sample:legacy:wallet:assembleDebug -x :samples:wallet:assembleDebug -x :sample:legacy:assembleDebug -x :sample:legacy:requester:assembleDebug -x :sample:legacy:responder:assembleDebug -x :sample:legacy:chat_sample:assembleDebug
+        run: ./gradlew assembleDebug -x :samples:legacy:wallet:assembleDebug -x :samples:wallet:assembleDebug -x :samples:legacy:assembleDebug -x :samples:legacy:requester:assembleDebug -x :samples:legacy:responder:assembleDebug -x :samples:legacy:chat_sample:assembleDebug
 
       - name: Stop Gradle
         run: ./gradlew --stop
