@@ -25,7 +25,7 @@ import com.walletconnect.sample_common.ui.themedColor
 
 
 @Composable
-fun Peer(peerUI: PeerUI, actionText: String?) {
+fun Peer(peerUI: PeerUI, actionText: String?, peerContextUI: PeerContextUI? = null) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             val iconModifier = Modifier
@@ -64,6 +64,24 @@ fun Peer(peerUI: PeerUI, actionText: String?) {
                 )
             )
             Spacer(modifier = Modifier.height(8.dp))
+            if (peerContextUI != null) {
+                Text(
+                    color = getValidationColor(peerContextUI.validation),
+                    text = peerContextUI.validation.name, maxLines = 1,
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold, fontSize = 15.sp, color = themedColor(darkColor = Color(0xFFC9C9CF).copy(alpha = .6f), lightColor = Color(0xFF3C3C43).copy(alpha = .6f))
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
+    }
+}
+
+private fun getValidationColor(validation: Validation): Color {
+    return when (validation) {
+        Validation.VERIFIED -> Green
+        Validation.UNVERIFIED -> Red
+        Validation.UNKNOWN -> Orange
     }
 }

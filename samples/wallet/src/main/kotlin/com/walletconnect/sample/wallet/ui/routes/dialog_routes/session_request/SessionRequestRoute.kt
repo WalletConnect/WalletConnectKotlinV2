@@ -23,7 +23,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.walletconnect.sample.wallet.ui.common.*
+import com.walletconnect.sample.wallet.ui.common.Buttons
+import com.walletconnect.sample.wallet.ui.common.Content
+import com.walletconnect.sample.wallet.ui.common.InnerContent
+import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
 import com.walletconnect.sample.wallet.ui.common.blue.BlueLabelRow
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
@@ -52,13 +55,13 @@ fun SessionRequestRoutePreview() {
 
 @Composable
 fun SessionRequestRoute(navController: NavHostController, sessionRequestViewModel: SessionRequestViewModel = viewModel()) {
-    val sessionRequestUI = sessionRequestViewModel.sessionRequest ?: throw Exception("Missing session request")
+    val sessionRequestUI = sessionRequestViewModel.sessionRequest
     val context = LocalContext.current
     when (sessionRequestUI) {
         is SessionRequestUI.Content -> {
             SemiTransparentDialog {
                 Spacer(modifier = Modifier.height(24.dp))
-                Peer(peerUI = sessionRequestUI.peerUI, "sends a request")
+                Peer(peerUI = sessionRequestUI.peerUI, "sends a request", sessionRequestUI.peerContextUI)
                 Spacer(modifier = Modifier.height(16.dp))
                 Request(sessionRequestUI = sessionRequestUI)
                 Spacer(modifier = Modifier.height(16.dp))

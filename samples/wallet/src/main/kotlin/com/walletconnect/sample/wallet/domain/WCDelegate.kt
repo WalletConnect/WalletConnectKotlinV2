@@ -14,14 +14,14 @@ import kotlinx.coroutines.launch
 
 object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
     private val _coreEvents: MutableSharedFlow<Core.Model> = MutableSharedFlow()
     val coreEvents: SharedFlow<Core.Model> = _coreEvents.asSharedFlow()
 
     private val _walletEvents: MutableSharedFlow<Wallet.Model> = MutableSharedFlow()
     val walletEvents: SharedFlow<Wallet.Model> = _walletEvents.asSharedFlow()
-    var authRequest: Wallet.Model.AuthRequest? = null
-    var sessionRequest: Wallet.Model.SessionRequest? = null
+    var authRequestEvent: Pair<Wallet.Model.AuthRequest, Wallet.Model.AuthContext>? = null
+    var sessionProposalEvent: Pair<Wallet.Model.SessionProposal, Wallet.Model.SessionContext>? = null
+    var sessionRequestEvent: Pair<Wallet.Model.SessionRequest, Wallet.Model.SessionContext>? = null
 
     init {
         CoreClient.setDelegate(this)
@@ -29,7 +29,7 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onAuthRequest(authRequest: Wallet.Model.AuthRequest, authContext: Wallet.Model.AuthContext) {
-        this.authRequest = authRequest
+        authRequestEvent = Pair(authRequest, authContext)
 
         println("kobe: Auth AuthContext: $authContext")
 
@@ -61,15 +61,17 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
 
         println("kobe: Proposal SessionContext: $sessionContext")
 
+        sessionProposalEvent = Pair(sessionProposal, sessionContext)
+
         scope.launch {
             _walletEvents.emit(sessionProposal)
         }
     }
 
     override fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, sessionContext: Wallet.Model.SessionContext) {
-        this.sessionRequest = sessionRequest
-
         println("kobe: Request SessionContext: $sessionContext")
+
+        sessionRequestEvent = Pair(sessionRequest, sessionContext)
 
         scope.launch {
             _walletEvents.emit(sessionRequest)

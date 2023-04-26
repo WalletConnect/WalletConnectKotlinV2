@@ -7,15 +7,16 @@ import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
+import com.walletconnect.sample.wallet.ui.common.peer.toPeerUI
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 
 class SessionRequestViewModel : ViewModel() {
-    var sessionRequest: SessionRequestUI = generateSessionRequestUI(WCDelegate.sessionRequest)
+    var sessionRequest: SessionRequestUI = generateSessionRequestUI()
 
     private fun clearSessionRequest() {
-        WCDelegate.sessionRequest = null
+        WCDelegate.sessionProposalEvent = null
         sessionRequest = SessionRequestUI.Initial
     }
 
@@ -31,9 +32,12 @@ class SessionRequestViewModel : ViewModel() {
                 )
             )
 
-            Web3Wallet.respondSessionRequest(result) { error ->
+            Web3Wallet.respondSessionRequest(result, {
+                WCDelegate.sessionRequestEvent = null
+            }, { error ->
+                WCDelegate.sessionRequestEvent = null
                 Firebase.crashlytics.recordException(error.throwable)
-            }
+            })
 
             sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
             clearSessionRequest()
@@ -63,9 +67,12 @@ class SessionRequestViewModel : ViewModel() {
                 )
             )
 
-            Web3Wallet.respondSessionRequest(response) { error ->
+            Web3Wallet.respondSessionRequest(response, {
+                WCDelegate.sessionRequestEvent = null
+            }, { error ->
+                WCDelegate.sessionRequestEvent = null
                 Firebase.crashlytics.recordException(error.throwable)
-            }
+            })
             sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
             clearSessionRequest()
         }
@@ -79,8 +86,9 @@ class SessionRequestViewModel : ViewModel() {
             ?.let { deepLinkUri -> sendSessionRequestResponseDeepLink(deepLinkUri) }
     }
 
-    private fun generateSessionRequestUI(sessionRequest: Wallet.Model.SessionRequest?): SessionRequestUI {
-        return if (sessionRequest != null) {
+    private fun generateSessionRequestUI(): SessionRequestUI {
+        return if (WCDelegate.sessionRequestEvent != null) {
+            val (sessionRequest, context) = WCDelegate.sessionRequestEvent!!
             SessionRequestUI.Content(
                 peerUI = PeerUI(
                     peerName = sessionRequest.peerMetaData?.name ?: "",
@@ -92,7 +100,8 @@ class SessionRequestViewModel : ViewModel() {
                 requestId = sessionRequest.request.id,
                 param = sessionRequest.request.params,
                 chain = sessionRequest.chainId,
-                method = sessionRequest.request.method
+                method = sessionRequest.request.method,
+                peerContextUI = context.toPeerUI()
             )
         } else SessionRequestUI.Initial
     }
