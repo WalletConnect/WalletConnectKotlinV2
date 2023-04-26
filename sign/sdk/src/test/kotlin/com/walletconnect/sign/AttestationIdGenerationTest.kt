@@ -63,9 +63,9 @@ class AttestationIdGenerationTest {
                 proposer = SessionProposer(
                     publicKey = "c90d2a6c2e693c05525cfd38188cf1ca0d4cd9fa52abcb3898abf52e61221120",
                     metadata = AppMetaData(
-                        name = "App A (Proposer)",
                         description = "Description of Proposer App run by client A",
                         url = "https://walletconnect.com",
+                        name = "App A (Proposer)",
                         icons = listOf("https://avatars.githubusercontent.com/u/37784886")
                     )
                 ),
@@ -75,7 +75,7 @@ class AttestationIdGenerationTest {
         val sessionPropose = SignRpc.SessionPropose(id = 1681757953038968, params = params)
         val json = moshi.adapter(SignRpc.SessionPropose::class.java).toJson(sessionPropose)
         val result = sha256(json.toByteArray())
-        assertEquals("ca3787a0249586efced351bbc06416bb2d879615e10ff9f916cc84d6b78bbe0b", result)
+        assertEquals("340dc6e0547d4290ad11d8e348177810b0e73ad8f6fc62b97bcc907fe1b7b50c", result)
     }
 
     @Test
@@ -106,6 +106,6 @@ class AttestationIdGenerationTest {
         val sessionPropose = SignRpc.SessionPropose(id = 1681824460577019, params = params)
         val json = moshi.adapter(SignRpc.SessionPropose::class.java).toJson(sessionPropose)
         val result = sha256(json.toByteArray())
-        assertEquals("96499b7e772f113da72f05a0f8c847a9804b3ff4c2b2b28fea5c4c5bd7b48e98", result)
+        assertEquals("a981b39a3cd01a43c8e049e8470b011ccb29a32160c2929790690d6a1fbe0be8", result)
     }
 }
