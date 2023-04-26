@@ -6,7 +6,6 @@ import com.walletconnect.android.echo.EchoClient
 import com.walletconnect.android.echo.EchoInterface
 import com.walletconnect.android.internal.common.di.*
 import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -14,8 +13,11 @@ import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.client.PairingProtocol
 import com.walletconnect.android.pairing.handler.PairingController
 import com.walletconnect.android.relay.ConnectionType
+import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.android.relay.RelayConnectionInterface
+import com.walletconnect.android.sync.client.SyncClient
+import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.android.utils.plantTimber
 import com.walletconnect.android.utils.projectId
 import com.walletconnect.android.verify.client.VerifyClient
@@ -28,6 +30,7 @@ object CoreClient {
     var Relay: RelayConnectionInterface = RelayClient
     val Echo: EchoInterface = EchoClient
     val Verify: VerifyInterface = VerifyClient
+    val Sync: SyncInterface = SyncClient
 
     interface CoreDelegate : PairingInterface.Delegate
 
@@ -56,6 +59,7 @@ object CoreClient {
                 module { single { Verify } },
                 coreJsonRpcModule(),
                 corePairingModule(Pairing),
+                coreSyncModule(Sync),
                 keyServerModule(keyServerUrl),
             )
         }
@@ -65,6 +69,7 @@ object CoreClient {
         }
 
         VerifyClient.initialize(metaData.verifyUrl)
+        Sync.initialize() { error -> onError(Core.Model.Error(error.throwable)) }
         PairingProtocol.initialize()
         PairingController.initialize()
     }
