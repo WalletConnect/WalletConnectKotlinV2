@@ -69,7 +69,7 @@ object Push {
 
             class Init(val core: CoreClient): Params()
 
-            data class Approve(val id: Long, val onSign: (String) -> Model.Cacao.Signature): Params()
+                data class Approve(val id: Long, val onSign: (String) -> Model.Cacao.Signature?): Params()
 
             data class Reject(val id: Long, val reason: String): Params()
 

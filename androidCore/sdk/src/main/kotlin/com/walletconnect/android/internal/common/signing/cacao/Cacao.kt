@@ -68,6 +68,20 @@ data class Cacao(
 internal fun Cacao.Signature.toSignature(): Signature = Signature.fromString(s)
 
 fun Cacao.Payload.toCAIP122Message(chainName: String = "Ethereum"): String {
+    val t ="$domain wants you to sign in with your $chainName account:\n${Issuer(iss).address}\n"
+    // using variable t, create a string builder
+    val message1 = StringBuilder(t).apply {
+        appendLine()
+        if (statement != null) append("\n$statement\n")
+        append("\nURI: $aud\nVersion: $version\nChain ID: ${Issuer(iss).chainIdReference}\nNonce: $nonce\nIssued At: $iat")
+        if (exp != null) append("\nExpiration Time: $exp")
+        if (nbf != null) append("\nNot Before: $nbf")
+        if (requestId != null) append("\nRequest ID: $requestId")
+        if (!resources.isNullOrEmpty()) {
+            append("\nResources:")
+            resources!!.forEach { resource -> append("\n- $resource") }
+        }
+    }
     var message = "$domain wants you to sign in with your $chainName account:\n${Issuer(iss).address}\n"
     if (statement != null) message += "\n$statement\n"
     message += "\nURI: $aud\nVersion: $version\nChain ID: ${Issuer(iss).chainIdReference}\nNonce: $nonce\nIssued At: $iat"
