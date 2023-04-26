@@ -29,7 +29,7 @@ File(rootDir.path).listFiles { file -> file.isDirectory && file.name !in exclude
             if (module == legacySampleModule) {
                 // Parse through legacy directory and add each sample app
                 moduleDir.listFiles { dir -> dir.isDirectory && dir.name !in excludedDirs }?.forEach { sampleModuleDir ->
-                    val sampleModule = "${module}:${sampleModuleDir.parentFile.name}:${sampleModuleDir.name}"
+                    val sampleModule = "$module:${sampleModuleDir.name}"
                     include(sampleModule)
                     project(sampleModule).projectDir = sampleModuleDir
                 }
