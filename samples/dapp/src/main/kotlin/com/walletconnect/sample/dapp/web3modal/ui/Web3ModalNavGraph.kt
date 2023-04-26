@@ -13,13 +13,15 @@ import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.walletconnect.sample.dapp.web3modal.ui.routes.connect_wallet.ConnectYourWalletRoute
+import com.walletconnect.sample.dapp.web3modal.ui.routes.get_wallet.GetAWalletRoute
 import com.walletconnect.sample.dapp.web3modal.ui.routes.help.HelpRoute
 import com.walletconnect.sample.dapp.web3modal.ui.routes.scan_code.ScanQRCodeRoute
 
 @Composable
 fun Web3ModalNavGraph(
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    web3ModalViewModel: Web3ModalViewModel
 ) {
     AnimatedNavHost(
         navController = navController,
@@ -27,19 +29,31 @@ fun Web3ModalNavGraph(
         modifier = modifier,
     ) {
         animatedComposable(Route.ConnectYourWallet.path) {
-            ConnectYourWalletRoute(navController = navController)
+            ConnectYourWalletRoute(
+                navController = navController,
+                uri = web3ModalViewModel.uri
+            )
         }
         animatedComposable(Route.ScanQRCode.path) {
-            ScanQRCodeRoute(navController = navController)
+            ScanQRCodeRoute(
+                navController = navController,
+                uri = web3ModalViewModel.uri
+            )
         }
         animatedComposable(Route.Help.path) {
             HelpRoute(navController = navController)
+        }
+        animatedComposable(Route.GetAWallet.path) {
+            GetAWalletRoute(navController = navController)
         }
     }
 }
 
 
-private fun NavGraphBuilder.animatedComposable(route: String, content: @Composable (NavBackStackEntry) -> Unit) {
+private fun NavGraphBuilder.animatedComposable(
+    route: String,
+    content: @Composable (NavBackStackEntry) -> Unit
+) {
     composable(
         route = route,
         enterTransition = { fadeIn() },

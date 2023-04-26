@@ -1,10 +1,11 @@
 package com.walletconnect.sample.dapp.web3modal.ui
 
-sealed class Route(val path: String) {
+internal const val chainsNavArgId = "ChainsNavArgId"
 
-    object Web3Modal : Route("web3_modal")
+sealed class Route(val path: String) {
+    object Web3Modal : Route("web3_modal/$chainsNavArgId")
     object ConnectYourWallet : Route("connect_your_wallet")
     object ScanQRCode : Route("scan_the_code")
     object Help : Route("modal_help")
-    object Search : Route("search")
+    object GetAWallet : Route("get_a_wallet")
 }

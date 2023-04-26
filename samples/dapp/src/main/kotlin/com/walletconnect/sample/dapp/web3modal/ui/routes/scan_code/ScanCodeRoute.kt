@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -21,18 +22,17 @@ import androidx.navigation.NavController
 import com.walletconnect.sample.dapp.R
 import com.walletconnect.sample.dapp.web3modal.ui.common.widgets.WalletConnectQRCode
 import com.walletconnect.sample.dapp.web3modal.ui.common.widgets.Web3ModalTopBar
+import com.walletconnect.sample.dapp.web3modal.ui.previews.Web3ModalPreview
 import com.walletconnect.sample.dapp.web3modal.ui.theme.Web3ModalTheme
 import com.walletconnect.sample_common.ui.theme.PreviewTheme
 
 @Composable
 fun ScanQRCodeRoute(
-    navController: NavController
+    navController: NavController,
+    uri: String
 ) {
-
-
     ScanQRCodeContent(
-        //Random string to test UI
-        uri = "47442c19ea7c6a7a836fa3e53af1ddd375438daaeea9acdbf595e989a731b73249a10a7cc0e343ca627e536609",
+        uri = uri,
         onBackArrowClick = navController::popBackStack
     )
 }
@@ -67,13 +67,14 @@ private fun ScanQRCodeContent(
             primaryColor = Web3ModalTheme.colors.onBackgroundColor,
             logoColor = Web3ModalTheme.colors.mainColor
         )
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
 @Preview
 @Composable
 private fun ScanQRCodePreview() {
-    PreviewTheme {
+    Web3ModalPreview {
         ScanQRCodeContent("47442c19ea7c6a7a836fa3e53af1ddd375438daaeea9acdbf595e989a731b73249a10a7cc0e343ca627e536609",{})
     }
 }

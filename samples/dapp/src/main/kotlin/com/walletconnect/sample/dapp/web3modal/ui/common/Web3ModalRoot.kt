@@ -72,10 +72,8 @@ fun Web3ModalRoot(
                             Web3ModalTheme.colors.background,
                             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
                         )
-                        .padding(horizontal = 20.dp, vertical = 8.dp)
                 ) {
                     content()
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }

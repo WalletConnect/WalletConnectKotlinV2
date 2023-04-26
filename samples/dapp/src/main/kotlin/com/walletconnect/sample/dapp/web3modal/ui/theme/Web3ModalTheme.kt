@@ -13,6 +13,8 @@ data class Web3ModalColors(
     val background: Color,
     val textColor: Color,
     val secondaryTextColor: Color,
+    val secondaryBackgroundColor: Color,
+    val dividerColor: Color
 )
 
 @Composable
@@ -29,7 +31,9 @@ val lightWeb3ModalColors = Web3ModalColors(
     onBackgroundColor = Color.Black,
     background = Color.White,
     textColor = Color.Black,
-    secondaryTextColor = Color(0xFF798686)
+    secondaryTextColor = Color(0xFF798686),
+    secondaryBackgroundColor = Color(0xFFF1F3F3),
+    dividerColor = Color(0xFFE4E7E7)
 )
 
 val darkWeb3ModalColors = Web3ModalColors(
@@ -38,8 +42,9 @@ val darkWeb3ModalColors = Web3ModalColors(
     background = Color.Black,
     onBackgroundColor = Color.White,
     textColor = Color.White,
-    secondaryTextColor = Color(0xFF949E9E)
-
+    secondaryTextColor = Color(0xFF949E9E),
+    secondaryBackgroundColor = Color(0xFF272A2A),
+    dividerColor = Color(0xFF3B4040)
 )
 
 object Web3ModalTheme {

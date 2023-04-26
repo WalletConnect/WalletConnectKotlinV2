@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.walletconnect.sample.dapp.R
+import com.walletconnect.sample.dapp.web3modal.ui.Route
 import com.walletconnect.sample.dapp.web3modal.ui.common.widgets.RoundedMainButton
 import com.walletconnect.sample.dapp.web3modal.ui.common.widgets.Web3ModalTopBar
 import com.walletconnect.sample.dapp.web3modal.ui.theme.Web3ModalTheme
@@ -26,14 +27,18 @@ import com.walletconnect.sample_common.ui.theme.PreviewTheme
 fun HelpRoute(
     navController: NavController
 ) {
-    HelpContent { navController.popBackStack() }
+    HelpContent(
+        onBackPressed = navController::popBackStack,
+        onGetWalletClick = { navController.navigate(Route.GetAWallet.path) }
+    )
 }
 
 @Composable
 private fun HelpContent(
-    onBackPressed: () -> Unit
+    onBackPressed: () -> Unit,
+    onGetWalletClick: () -> Unit,
 ) {
-    Column {
+    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
         Web3ModalTopBar(
             title = "What is wallet?",
             onBackPressed = onBackPressed
@@ -57,24 +62,25 @@ private fun HelpContent(
                 assets = listOf(R.drawable.browser, R.drawable.noun, R.drawable.dao)
             )
             Spacer(modifier = Modifier.height(12.dp))
-            HelpButtonRow()
+            HelpButtonRow(onGetWalletClick)
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
 
 @Composable
-fun HelpButtonRow() {
+fun HelpButtonRow(
+    onGetWalletClick: () -> Unit,
+) {
     val uriHandler = LocalUriHandler.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
     ) {
         RoundedMainButton(
             text = "Get a Wallet",
-            onClick = {
-                // Navigate to get a wallet screen
-            },
-            modifier = Modifier.weight(1f),
+            onClick = onGetWalletClick,
             startIcon = {
                 Image(
                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_wallet),
@@ -90,7 +96,6 @@ fun HelpButtonRow() {
             onClick = {
                 uriHandler.openUri("https://ethereum.org/en/wallets/")
             },
-            modifier = Modifier.weight(1f),
             endIcon = {
                 Image(
                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_external_link),
@@ -151,6 +156,6 @@ private fun HelpSection(
 @Preview
 private fun HelpContentPreview() {
     PreviewTheme {
-        HelpContent {}
+        HelpContent({}, {})
     }
 }
