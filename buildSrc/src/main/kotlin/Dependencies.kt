@@ -158,7 +158,7 @@ fun DependencyHandlerScope.kethereum() {
     "api"("com.github.komputing.kethereum:bip39_wordlist_en:$kethereumVersion")
     "api"("com.github.komputing.kethereum:bip32:$kethereumVersion")
     "api"("com.github.komputing.kethereum:model:$kethereumVersion")
-    "api"("com.github.komputing.kethereum:crypto_impl_bouncycastle:$kethereumVersion")
+    "api"("com.github.komputing.kethereum:crypto_impl_spongycastle:$kethereumVersion")
 }
 
 fun DependencyHandlerScope.fcm() {
