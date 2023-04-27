@@ -10,6 +10,7 @@ import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import com.walletconnect.web3.modal.domain.configuration.Config
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -46,6 +47,46 @@ class ChainSelectionViewModel : ViewModel() {
         }
     }
 
+    fun getModalConfiguration(): Config.Connect {
+        val namespaces: Map<String, Sign.Model.Namespace.Proposal> =
+            uiState.value
+                .filter { it.isSelected && it.chainId != Chains.POLYGON_MATIC.chainId && it.chainId != Chains.ETHEREUM_KOVAN.chainId }
+                .groupBy { it.chainNamespace }
+                .map { (key: String, selectedChains: List<ChainSelectionUi>) ->
+                    key to Sign.Model.Namespace.Proposal(
+                        chains = selectedChains.map { it.chainId }, //OR uncomment if chainId is an index
+                        methods = selectedChains.flatMap { it.methods }.distinct(),
+                        events = selectedChains.flatMap { it.events }.distinct()
+                    )
+                }.toMap()
+
+
+        val tmp = uiState.value
+            .filter { it.isSelected && it.chainId == Chains.ETHEREUM_KOVAN.chainId }
+            .groupBy { it.chainId }
+            .map { (key: String, selectedChains: List<ChainSelectionUi>) ->
+                key to Sign.Model.Namespace.Proposal(
+                    methods = selectedChains.flatMap { it.methods }.distinct(),
+                    events = selectedChains.flatMap { it.events }.distinct()
+                )
+            }.toMap()
+
+        val optionalNamespaces: Map<String, Sign.Model.Namespace.Proposal> =
+            uiState.value
+                .filter { it.isSelected && it.chainId == Chains.POLYGON_MATIC.chainId }
+                .groupBy { it.chainId }
+                .map { (key: String, selectedChains: List<ChainSelectionUi>) ->
+                    key to Sign.Model.Namespace.Proposal(
+                        methods = selectedChains.flatMap { it.methods }.distinct(),
+                        events = selectedChains.flatMap { it.events }.distinct()
+                    )
+                }.toMap()
+
+        return Config.Connect(
+            namespaces = namespaces.toMutableMap().plus(tmp),
+            optionalNamespaces = optionalNamespaces,
+        )
+    }
     fun connectToWallet(pairingTopicPosition: Int = -1, onProposedSequence: (String) -> Unit = {}) {
         val pairing: Core.Model.Pairing = if (pairingTopicPosition > -1) {
             CoreClient.Pairing.getPairings()[pairingTopicPosition]

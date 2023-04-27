@@ -17,7 +17,7 @@ import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.walletconnect.sample.dapp.ui.routes.Route
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selection.ChainSelectionRoute
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.session.SessionRoute
-import com.walletconnect.sample.dapp.web3modal.ui.web3ModalGraph
+import com.walletconnect.web3.modal.ui.web3ModalGraph
 
 @Composable
 fun DappSampleNavGraph(

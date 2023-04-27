@@ -6,13 +6,13 @@ import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.dapp.client.PushDappClient
-import com.walletconnect.sample.dapp.web3modal.di.web3ModalModule
 import com.walletconnect.sample_common.BuildConfig
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
-import org.koin.core.context.startKoin
+import com.walletconnect.web3.modal.client.Modal
+import com.walletconnect.web3.modal.client.Web3Modal
 import timber.log.Timber
 
 class DappSampleApp : Application() {
@@ -48,8 +48,8 @@ class DappSampleApp : Application() {
             Timber.e(tag(this), error.throwable.stackTraceToString())
         }
 
-        startKoin {
-            modules(web3ModalModule())
+        Web3Modal.initialize(Modal.Params.Init(CoreClient)) {error ->
+            Timber.e(tag(this), error.throwable.stackTraceToString())
         }
     }
 }

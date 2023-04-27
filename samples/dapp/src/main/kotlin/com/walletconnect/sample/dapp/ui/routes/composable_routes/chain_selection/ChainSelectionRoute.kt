@@ -27,13 +27,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.routes.Route
-import com.walletconnect.sample.dapp.web3modal.ui.navigateToWeb3Modal
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.CompletePreviews
 import com.walletconnect.sample_common.ui.*
 import com.walletconnect.sample_common.ui.commons.BlueButton
 import com.walletconnect.sample_common.ui.theme.PreviewTheme
-import kotlinx.coroutines.flow.collect
+import com.walletconnect.web3.modal.domain.configuration.Config
+import com.walletconnect.web3.modal.ui.navigateToWeb3Modal
 
 @Composable
 fun ChainSelectionRoute(navController: NavController) {
@@ -56,7 +56,7 @@ fun ChainSelectionRoute(navController: NavController) {
         onConnectClick = {
             if (viewModel.isAnyChainSelected) {
                 viewModel.connectToWallet { uri ->
-                    navController.navigateToWeb3Modal(uri)
+                    navController.navigateToWeb3Modal(Config.Connect(uri = uri))
                 }
             } else {
                 Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()

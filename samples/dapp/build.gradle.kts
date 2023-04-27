@@ -67,7 +67,7 @@ dependencies {
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.1")
     implementation("com.google.accompanist:accompanist-pager:0.27.1")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.27.1")
-    implementation("com.google.accompanist:accompanist-drawablepainter:0.27.1")
+    implementation("com.google.accompanist:accompanist-drawablepainter:0.30.0")
     implementation("com.google.accompanist:accompanist-navigation-animation:0.27.1")
 
     // Qrcode generator
@@ -76,6 +76,7 @@ dependencies {
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":sign:sdk"))
     debugImplementation(project(":push:sdk"))
+    debugImplementation(project(":web3:modal"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
