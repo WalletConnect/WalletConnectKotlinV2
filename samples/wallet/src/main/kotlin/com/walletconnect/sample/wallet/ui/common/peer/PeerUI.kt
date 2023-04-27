@@ -29,10 +29,7 @@ val Orange = Color(0xFFFF9F33)
 val Red = Color(0xFFC70039)
 val Green = Color(0xFF60E353)
 
-fun Wallet.Model.SessionContext.toPeerUI(): PeerContextUI =
-    PeerContextUI(origin, validation.toUI(), verifyUrl)
-
-fun Wallet.Model.AuthContext.toPeerUI(): PeerContextUI =
+fun Wallet.Model.VerifyContext.toPeerUI(): PeerContextUI =
     PeerContextUI(origin, validation.toUI(), verifyUrl)
 
 fun Wallet.Model.Validation.toUI(): Validation =

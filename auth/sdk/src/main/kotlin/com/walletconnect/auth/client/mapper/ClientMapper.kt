@@ -29,7 +29,7 @@ internal fun SDKError.toClient(): Auth.Event.Error = Auth.Event.Error(Auth.Model
 internal fun Events.OnAuthRequest.toClientAuthRequest(): Auth.Event.AuthRequest = Auth.Event.AuthRequest(id, pairingTopic, payloadParams.toClient())
 
 @JvmSynthetic
-internal fun Events.OnAuthRequest.toClientAuthContext(): Auth.Event.AuthContext = Auth.Event.AuthContext(authContext.origin, authContext.validation.toClientValidation(), authContext.verifyUrl)
+internal fun Events.OnAuthRequest.toClientAuthContext(): Auth.Event.VerifyContext = Auth.Event.VerifyContext(id, authContext.origin, authContext.validation.toClientValidation(), authContext.verifyUrl)
 
 @JvmSynthetic
 internal fun Validation.toClientValidation(): Auth.Model.Validation =

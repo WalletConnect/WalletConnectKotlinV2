@@ -6,10 +6,10 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.Sequence
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.android.internal.common.model.Validation
 import java.net.URI
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions as CoreRelayProtocolOptions
 
@@ -24,12 +24,12 @@ internal sealed class EngineDO {
 
     data class SessionProposalEvent(
         val proposal: SessionProposal,
-        val context: SessionContext
+        val context: VerifyContext
     ) : EngineDO(), EngineEvent
 
     data class SessionRequestEvent(
         val request: SessionRequest,
-        val context: SessionContext
+        val context: VerifyContext
     ) : EngineDO(), EngineEvent
 
     data class SessionProposal(
@@ -47,7 +47,8 @@ internal sealed class EngineDO {
         val relayData: String?,
     ) : EngineDO(), EngineEvent
 
-    data class SessionContext(
+    data class VerifyContext(
+        val id: Long,
         val origin: String,
         val validation: Validation,
         val verifyUrl: String

@@ -16,7 +16,8 @@ object Auth {
 
         data class AuthResponse(val response: Model.Response) : Event()
 
-        data class AuthContext(
+        data class VerifyContext(
+            val id: Long,
             val origin: String,
             val validation: Model.Validation,
             val verifyUrl: String

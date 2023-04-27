@@ -2,8 +2,8 @@ package com.walletconnect.sign.client
 
 interface SignInterface {
     interface WalletDelegate {
-        fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, sessionContext: Sign.Model.SessionContext)
-        fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, sessionContext: Sign.Model.SessionContext)
+        fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext)
+        fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext)
         fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
 
         //Responses

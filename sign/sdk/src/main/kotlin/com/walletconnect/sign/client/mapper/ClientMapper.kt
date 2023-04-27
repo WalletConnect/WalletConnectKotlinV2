@@ -6,10 +6,10 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.model.PendingRequest
-import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.engine.model.EngineDO
 
@@ -60,10 +60,8 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): Sign.Model.Sess
     )
 
 @JvmSynthetic
-internal fun EngineDO.SessionContext.toClientSessionContext(): Sign.Model.SessionContext =
-    Sign.Model.SessionContext(
-        origin, this.validation.toClientValidation(), verifyUrl
-    )
+internal fun EngineDO.VerifyContext.toClient(): Sign.Model.VerifyContext =
+    Sign.Model.VerifyContext(id, origin, this.validation.toClientValidation(), verifyUrl)
 
 internal fun Validation.toClientValidation(): Sign.Model.Validation =
     when (this) {

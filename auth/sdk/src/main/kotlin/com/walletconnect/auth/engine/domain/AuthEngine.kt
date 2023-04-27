@@ -247,7 +247,7 @@ internal class AuthEngine(
 
             val json = serializer.serialize(AuthRpc.AuthRequest(id = wcRequest.id, params = authParams)) ?: throw Exception("Error serializing session proposal")
             val url = authParams.requester.metadata.url
-            resolveAttestationIdUseCase(json, url) { verifyContext ->
+            resolveAttestationIdUseCase(wcRequest.id, json, url) { verifyContext ->
                 scope.launch {
                     _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, wcRequest.topic.value, authParams.payloadParams, verifyContext.toAuthContext()))
                 }

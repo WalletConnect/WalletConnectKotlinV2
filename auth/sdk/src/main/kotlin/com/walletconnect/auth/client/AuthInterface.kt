@@ -12,7 +12,7 @@ interface AuthInterface {
     }
 
     interface ResponderDelegate : AuthDelegate {
-        fun onAuthRequest(authRequest: Auth.Event.AuthRequest, authContext: Auth.Event.AuthContext)
+        fun onAuthRequest(authRequest: Auth.Event.AuthRequest, verifyContext: Auth.Event.VerifyContext)
     }
 
     fun setRequesterDelegate(delegate: RequesterDelegate)

@@ -17,10 +17,10 @@ object Web3Wallet {
     private lateinit var coreClient: CoreClient
 
     interface WalletDelegate {
-        fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, sessionContext: Wallet.Model.SessionContext)
-        fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, sessionContext: Wallet.Model.SessionContext)
+        fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, verifyContext: Wallet.Model.VerifyContext)
+        fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, verifyContext: Wallet.Model.VerifyContext)
         fun onSessionDelete(sessionDelete: Wallet.Model.SessionDelete)
-        fun onAuthRequest(authRequest: Wallet.Model.AuthRequest, authContext: Wallet.Model.AuthContext)
+        fun onAuthRequest(authRequest: Wallet.Model.AuthRequest, verifyContext: Wallet.Model.VerifyContext)
 
         //Responses
         fun onSessionSettleResponse(settleSessionResponse: Wallet.Model.SettledSessionResponse)
@@ -35,12 +35,12 @@ object Web3Wallet {
     fun setWalletDelegate(delegate: WalletDelegate) {
 
         val signWalletDelegate = object : SignClient.WalletDelegate {
-            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, sessionContext: Sign.Model.SessionContext) {
-                delegate.onSessionProposal(sessionProposal.toWallet(), sessionContext.toWallet())
+            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
+                delegate.onSessionProposal(sessionProposal.toWallet(), verifyContext.toWallet())
             }
 
-            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, sessionContext: Sign.Model.SessionContext) {
-                delegate.onSessionRequest(sessionRequest.toWallet(), sessionContext.toWallet())
+            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {
+                delegate.onSessionRequest(sessionRequest.toWallet(), verifyContext.toWallet())
             }
 
             override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
@@ -65,8 +65,8 @@ object Web3Wallet {
         }
 
         val authWalletDelegate = object : AuthClient.ResponderDelegate {
-            override fun onAuthRequest(authRequest: Auth.Event.AuthRequest, authContext: Auth.Event.AuthContext) {
-                delegate.onAuthRequest(authRequest.toWallet(), authContext.toWallet())
+            override fun onAuthRequest(authRequest: Auth.Event.AuthRequest, verifyContext: Auth.Event.VerifyContext) {
+                delegate.onAuthRequest(authRequest.toWallet(), verifyContext.toWallet())
             }
 
             override fun onConnectionStateChange(connectionStateChange: Auth.Event.ConnectionStateChange) {
@@ -76,7 +76,6 @@ object Web3Wallet {
             override fun onError(error: Auth.Event.Error) {
                 delegate.onError(Wallet.Model.Error(error.error.throwable))
             }
-
         }
 
         SignClient.setWalletDelegate(signWalletDelegate)

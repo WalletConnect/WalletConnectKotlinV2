@@ -263,5 +263,5 @@ internal fun ValidationError.toPeerError() = when (this) {
 }
 
 @JvmSynthetic
-internal fun VerifyContext.toEngineDO(): EngineDO.SessionContext =
-    EngineDO.SessionContext(origin, validation, verifyUrl)
+internal fun VerifyContext.toEngineDO(): EngineDO.VerifyContext =
+    EngineDO.VerifyContext(id, origin, validation, verifyUrl)

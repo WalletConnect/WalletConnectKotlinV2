@@ -11,11 +11,11 @@ import org.koin.core.qualifier.named
 class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface) {
     val verifyUrl: String get() = wcKoinApp.koin.get(named(AndroidCommonDITags.VERIFY_URL))
 
-    operator fun invoke(jsonPayload: String, metadataUrl: String, onResolve: (VerifyContext) -> Unit) {
+    operator fun invoke(id: Long, jsonPayload: String, metadataUrl: String, onResolve: (VerifyContext) -> Unit) {
         val attestationId = sha256(jsonPayload.toByteArray())
 
         verifyInterface.resolve(attestationId,
-            onSuccess = { origin -> onResolve(VerifyContext(origin, if (metadataUrl == origin) Validation.VALID else Validation.INVALID, verifyUrl)) },
-            onError = { onResolve(VerifyContext("", Validation.UNKNOWN, verifyUrl)) })
+            onSuccess = { origin -> onResolve(VerifyContext(id, origin, if (metadataUrl == origin) Validation.VALID else Validation.INVALID, verifyUrl)) },
+            onError = { onResolve(VerifyContext(id, "", Validation.UNKNOWN, verifyUrl)) })
     }
 }

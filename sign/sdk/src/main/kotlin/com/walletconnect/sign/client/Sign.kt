@@ -45,7 +45,8 @@ object Sign {
             val relayData: String?,
         ) : Model()
 
-        data class SessionContext(
+        data class VerifyContext(
+            val id: Long,
             val origin: String,
             val validation: Validation,
             val verifyUrl: String

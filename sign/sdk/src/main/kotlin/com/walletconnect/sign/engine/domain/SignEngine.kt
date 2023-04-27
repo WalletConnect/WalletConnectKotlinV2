@@ -616,7 +616,7 @@ internal class SignEngine(
             pairingController.updateMetadata(Core.Params.UpdateMetadata(request.topic.value, payloadParams.proposer.metadata.toClient(), AppMetaDataType.PEER))
             val url = payloadParams.proposer.metadata.url
             val json = serializer.serialize(SignRpc.SessionPropose(id = request.id, params = payloadParams)) ?: throw Exception("Error serializing session proposal")
-            resolveAttestationIdUseCase(json, url) { verifyContext ->
+            resolveAttestationIdUseCase(request.id, json, url) { verifyContext ->
                 val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = payloadParams.toEngineDO(request.topic), context = verifyContext.toEngineDO())
                 scope.launch { _engineEvent.emit(sessionProposalEvent) }
             }
@@ -746,7 +746,7 @@ internal class SignEngine(
 
             val json = serializer.serialize(SignRpc.SessionRequest(id = request.id, params = params)) ?: throw Exception("Error serializing session request")
             val url = sessionPeerAppMetaData.url
-            resolveAttestationIdUseCase(json, url) { verifyContext ->
+            resolveAttestationIdUseCase(request.id, json, url) { verifyContext ->
                 val sessionRequestEvent = EngineDO.SessionRequestEvent(params.toEngineDO(request, sessionPeerAppMetaData), verifyContext.toEngineDO())
                 scope.launch { _engineEvent.emit(sessionRequestEvent) }
             }
