@@ -6,8 +6,6 @@ import com.walletconnect.sign.client.SignClient
 import com.walletconnect.web3.modal.di.web3ModalModule
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 
-
-
 object Web3Modal {
     private var isClientInitialized = false
 

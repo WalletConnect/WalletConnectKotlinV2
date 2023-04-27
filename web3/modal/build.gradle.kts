@@ -66,10 +66,6 @@ dependencies {
     //coil
     implementation ("io.coil-kt:coil-compose:2.3.0")
 
-
-//    implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.1")
-//    implementation("com.google.accompanist:accompanist-pager:0.27.1")
-//    implementation("com.google.accompanist:accompanist-pager-indicators:0.27.1")
 // accompanist
     implementation("com.google.accompanist:accompanist-navigation-material:0.30.0")
     implementation("com.google.accompanist:accompanist-drawablepainter:0.30.0")

@@ -15,12 +15,7 @@ internal object Web3ModalDelegate : SignInterface.DappDelegate {
     private val _wcEventModels: MutableSharedFlow<Sign.Model?> = MutableSharedFlow()
     val wcEventModels: SharedFlow<Sign.Model?> =  _wcEventModels.asSharedFlow()
 
-    var selectedSessionTopic: String? = null
-        private set
-
     override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
-        selectedSessionTopic = approvedSession.topic
-
         scope.launch {
             _wcEventModels.emit(approvedSession)
         }
@@ -45,8 +40,6 @@ internal object Web3ModalDelegate : SignInterface.DappDelegate {
     }
 
     override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
-        selectedSessionTopic = null
-
         scope.launch {
             _wcEventModels.emit(deletedSession)
         }
@@ -71,5 +64,4 @@ internal object Web3ModalDelegate : SignInterface.DappDelegate {
     override fun onError(error: Sign.Model.Error) {
 
     }
-
 }

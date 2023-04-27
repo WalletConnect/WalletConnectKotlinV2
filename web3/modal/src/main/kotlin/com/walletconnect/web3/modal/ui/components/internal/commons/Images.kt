@@ -10,7 +10,7 @@ import androidx.compose.ui.res.vectorResource
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
-internal fun MainColorImage(
+internal fun ImageWithMainTint(
     @DrawableRes icon: Int,
     modifier: Modifier = Modifier,
     contentDescription: String? = null,

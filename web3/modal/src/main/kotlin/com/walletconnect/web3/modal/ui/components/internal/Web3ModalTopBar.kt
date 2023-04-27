@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 import com.walletconnect.web3.modal.ui.previews.ComponentPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.R
-import com.walletconnect.web3.modal.ui.components.internal.commons.MainColorImage
+import com.walletconnect.web3.modal.ui.components.internal.commons.ImageWithMainTint
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 
 @Composable
@@ -65,7 +65,7 @@ private fun PreviewWeb3TopBar() {
         Web3ModalTopBar(
             title = "Connect your wallet",
             endIcon = {
-                MainColorImage(icon = R.drawable.ic_scan)
+                ImageWithMainTint(icon = R.drawable.ic_scan)
             },
             onBackPressed = null
         )
@@ -73,7 +73,7 @@ private fun PreviewWeb3TopBar() {
         Web3ModalTopBar(
             title = "Scan the code",
             endIcon = {
-                MainColorImage(icon = R.drawable.ic_copy)
+                ImageWithMainTint(icon = R.drawable.ic_copy)
             },
             onBackPressed = {})
     }
