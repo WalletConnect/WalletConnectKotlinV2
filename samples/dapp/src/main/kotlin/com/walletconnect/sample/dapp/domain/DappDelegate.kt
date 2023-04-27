@@ -76,9 +76,15 @@ object DappDelegate : SignClient.DappDelegate {
 
     override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
         Timber.d(tag(this), "onConnectionStateChange($state)")
+        scope.launch {
+            _wcEventModels.emit(state)
+        }
     }
 
     override fun onError(error: Sign.Model.Error) {
         Timber.d(tag(this), error.throwable.stackTraceToString())
+        scope.launch {
+            _wcEventModels.emit(error)
+        }
     }
 }

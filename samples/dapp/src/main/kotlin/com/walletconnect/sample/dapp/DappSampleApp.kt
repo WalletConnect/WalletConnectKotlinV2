@@ -1,6 +1,8 @@
 package com.walletconnect.sample.dapp
 
 import android.app.Application
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
@@ -35,13 +37,13 @@ class DappSampleApp : Application() {
             application = this,
             metaData = appMetaData,
         ) {
-            Timber.e(tag(this), it.throwable.stackTraceToString())
+            Firebase.crashlytics.recordException(it.throwable)
         }
 
         val initParams = Sign.Params.Init(core = CoreClient)
 
         SignClient.initialize(initParams) { error ->
-            Timber.e(tag(this), error.throwable.stackTraceToString())
+            Firebase.crashlytics.recordException(error.throwable)
         }
 
         PushDappClient.initialize(Push.Dapp.Params.Init(CoreClient, null)) { error ->
