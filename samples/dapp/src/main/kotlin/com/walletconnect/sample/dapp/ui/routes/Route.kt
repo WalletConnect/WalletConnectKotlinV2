@@ -5,4 +5,7 @@ sealed class Route(val path: String) {
     object ParingSelection : Route("paring_selection")
     object ParingGeneration : Route("paring_generation")
     object Session : Route("session")
+    object Account : Route("account")
+
+    object MessageDialog : Route("message_dialog")
 }

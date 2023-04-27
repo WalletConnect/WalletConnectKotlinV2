@@ -1,7 +1,10 @@
 plugins {
     id("com.android.application")
+    id("kotlin-parcelize")
     kotlin("android")
     kotlin("kapt")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -20,6 +23,7 @@ android {
             useSupportLibrary = true
         }
         buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
+        buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION ?: ""}\"")
     }
 
     buildTypes {
@@ -61,6 +65,12 @@ dependencies {
 
     implementation ("io.insert-koin:koin-androidx-compose:3.4.3")
     implementation ("io.coil-kt:coil-compose:2.3.0")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:31.1.1"))
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-messaging")
 
     // Accompanist
     implementation("com.google.accompanist:accompanist-navigation-material:0.27.1")

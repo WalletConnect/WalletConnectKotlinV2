@@ -27,6 +27,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.routes.Route
+import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionResult
+import com.walletconnect.sample.dapp.ui.routes.bottom_routes.pairingSelectionResultKey
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.CompletePreviews
 import com.walletconnect.sample_common.ui.*
@@ -34,12 +36,32 @@ import com.walletconnect.sample_common.ui.commons.BlueButton
 import com.walletconnect.sample_common.ui.theme.PreviewTheme
 import com.walletconnect.web3.modal.domain.configuration.Config
 import com.walletconnect.web3.modal.ui.navigateToWeb3Modal
+import timber.log.Timber
 
 @Composable
 fun ChainSelectionRoute(navController: NavController) {
     val context = LocalContext.current
     val viewModel: ChainSelectionViewModel = viewModel()
     val chainsState by viewModel.uiState.collectAsState()
+    val selectionResult = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow<PairingSelectionResult>(
+            pairingSelectionResultKey,
+            PairingSelectionResult.None
+        )
+        ?.collectAsState()?.value ?: PairingSelectionResult.None
+
+    LaunchedEffect(selectionResult) {
+        when (selectionResult) {
+            PairingSelectionResult.NewPairing -> {
+                viewModel.connectToWallet { uri ->
+                    navController.navigateToWeb3Modal(uri)
+                }
+            }
+            is PairingSelectionResult.SelectedPairing -> viewModel.connectToWallet(selectionResult.position)
+            PairingSelectionResult.None -> Unit
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.walletEvents.collect { event ->
@@ -55,8 +77,12 @@ fun ChainSelectionRoute(navController: NavController) {
         onChainClick = viewModel::updateChainSelectState,
         onConnectClick = {
             if (viewModel.isAnyChainSelected) {
-                viewModel.connectToWallet { uri ->
-                    navController.navigateToWeb3Modal(Config.Connect(uri = uri))
+                if (viewModel.isAnySettledParingExist) {
+                    navController.navigate(Route.ParingSelection.path)
+                } else {
+                    viewModel.connectToWallet { uri ->
+                        navController.navigateToWeb3Modal(Config.Connect(uri = uri))
+                    }
                 }
             } else {
                 Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()

@@ -69,6 +69,7 @@ dependencies {
     timber()
     moshiKsp()
     web3jCrypto()
+    kethereum()
     retrofit()
 
     jUnit5()
