@@ -58,6 +58,22 @@ class PushWalletProtocol : PushWalletInterface {
         }.launchIn(scope)
     }
 
+    override fun subscribe(params: Push.Wallet.Params.Subscribe, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        scope.launch {
+            supervisorScope {
+                try {
+                    pushWalletEngine.subscribe(params.dappUrl, onSuccess) {
+                        onError(Push.Model.Error(it))
+                    }
+                } catch (e: Exception) {
+                    onError(Push.Model.Error(e))
+                }
+            }
+        }
+    }
+
     override fun approve(params: Push.Wallet.Params.Approve, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 

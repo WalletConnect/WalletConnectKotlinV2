@@ -37,6 +37,7 @@ import com.walletconnect.push.wallet.data.MessageRepository
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import java.net.URL
 import kotlin.reflect.full.safeCast
 
 internal class PushWalletEngine(
@@ -87,6 +88,10 @@ internal class PushWalletEngine(
                 }
             }
             .launchIn(scope)
+    }
+
+    suspend fun subscribe(dappURL: URL, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+
     }
 
     suspend fun approve(requestId: Long, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onError: (Throwable) -> Unit) = supervisorScope {

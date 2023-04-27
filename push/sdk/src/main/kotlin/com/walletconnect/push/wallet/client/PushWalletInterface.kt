@@ -21,6 +21,8 @@ interface PushWalletInterface {
 
     fun reject(params: Push.Wallet.Params.Reject, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit)
 
+    fun subscribe(params: Push.Wallet.Params.Subscribe, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit)
+
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation

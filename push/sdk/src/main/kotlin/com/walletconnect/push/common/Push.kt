@@ -4,6 +4,7 @@ import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.SignatureInterface
+import java.net.URL
 
 object Push {
 
@@ -72,6 +73,8 @@ object Push {
             data class Approve(val id: Long, val onSign: (String) -> Model.Cacao.Signature): Params()
 
             data class Reject(val id: Long, val reason: String): Params()
+
+            data class Subscribe(val dappUrl: URL): Params()
 
             data class MessageHistory(val topic: String): Params()
 
