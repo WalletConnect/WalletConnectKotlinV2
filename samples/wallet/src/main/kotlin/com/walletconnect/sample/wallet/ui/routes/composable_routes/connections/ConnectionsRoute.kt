@@ -33,9 +33,9 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.skydoves.landscapist.glide.GlideImage
 import com.walletconnect.sample.wallet.BuildConfig
+import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.Web3WalletViewModel
 import com.walletconnect.sample.wallet.ui.routes.Route
-import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample_common.ui.WCTopAppBar
 import com.walletconnect.sample_common.ui.findActivity
 import com.walletconnect.sample_common.ui.themedColor

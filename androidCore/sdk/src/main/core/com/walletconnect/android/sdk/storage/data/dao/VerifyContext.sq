@@ -1,0 +1,25 @@
+import com.walletconnect.android.internal.common.model.Validation;
+
+CREATE TABLE VerifyContext (
+    id INTEGER PRIMARY KEY NOT NULL,
+    origin TEXT NOT NULL,
+    validation TEXT AS Validation NOT NULL,
+    verify_url TEXT NOT NULL
+);
+
+insertOrAbortVerifyContext:
+INSERT OR ABORT INTO VerifyContext(id, origin, validation, verify_url)
+VALUES (?, ?, ?, ?);
+
+getVerifyContextById:
+SELECT id, origin, validation, verify_url
+FROM VerifyContext
+WHERE id = ?;
+
+geListOfVerifyContexts:
+SELECT id, origin, validation, verify_url
+FROM VerifyContext;
+
+deleteVerifyContext:
+DELETE FROM VerifyContext
+WHERE id = ?;

@@ -16,6 +16,7 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.*
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
@@ -63,6 +64,7 @@ internal class SignEngine(
     private val pairingController: PairingControllerInterface,
     private val serializer: JsonRpcSerializer,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
+    private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val selfAppMetaData: AppMetaData,
     private val logger: Logger
 ) {
@@ -173,6 +175,7 @@ internal class SignEngine(
     internal fun reject(proposerPublicKey: String, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit = {}) {
         val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
         proposalStorageRepository.deleteProposal(proposerPublicKey)
+        verifyContextStorageRepository.delete(proposal.requestId)
 
         jsonRpcInteractor.respondWithError(
             proposal.toSessionProposeRequest(),
@@ -223,6 +226,7 @@ internal class SignEngine(
 
         val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
         proposalStorageRepository.deleteProposal(proposerPublicKey)
+        verifyContextStorageRepository.delete(proposal.requestId)
         val request = proposal.toSessionProposeRequest()
 
         SignValidator.validateSessionNamespace(sessionNamespaces.toMapOfNamespacesVOSession(), proposal.requiredNamespaces) { error ->
@@ -354,7 +358,6 @@ internal class SignEngine(
         if (!sessionStorageRepository.isSessionValid(topicWrapper)) {
             return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
         }
-
         sessionStorageRepository.getSessionExpiryByTopic(topicWrapper)?.let { expiry ->
             if (CoreValidator.isExpiryNotWithinBounds(expiry)) {
                 scope.launch {
@@ -377,10 +380,12 @@ internal class SignEngine(
             response = jsonRpcResponse,
             onSuccess = {
                 logger.log("Session payload sent successfully")
+                verifyContextStorageRepository.delete(jsonRpcResponse.id)
                 onSuccess()
             },
             onFailure = { error ->
                 logger.error("Sending session payload response error: $error")
+                verifyContextStorageRepository.delete(jsonRpcResponse.id)
                 onFailure(error)
             }
         )
@@ -546,6 +551,10 @@ internal class SignEngine(
             val peerMetaData = metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)
             pendingRequest.toSessionRequest(peerMetaData)
         }
+
+    internal fun getVerifyContext(id: Long): EngineDO.VerifyContext? = verifyContextStorageRepository.get(id)?.toEngineDO()
+
+    internal fun getListOfVerifyContexts(): List<EngineDO.VerifyContext> = verifyContextStorageRepository.getAll().map { verifyContext -> verifyContext.toEngineDO() }
 
     private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit = {}) {
         jsonRpcInteractor.peerResponse

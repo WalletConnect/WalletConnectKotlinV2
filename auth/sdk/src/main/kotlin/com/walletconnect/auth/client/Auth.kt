@@ -48,6 +48,13 @@ object Auth {
             val payloadParams: PayloadParams
         ) : Model()
 
+        data class VerifyContext(
+            val id: Long,
+            val origin: String,
+            val validation: Validation,
+            val verifyUrl: String
+        ) : Event()
+
         data class PayloadParams(
             val type: String,
             val chainId: String,

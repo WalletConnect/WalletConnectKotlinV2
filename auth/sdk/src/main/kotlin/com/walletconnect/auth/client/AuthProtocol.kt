@@ -111,6 +111,18 @@ internal class AuthProtocol : AuthInterface {
     }
 
     @Throws(IllegalStateException::class)
+    override fun getVerifyContext(id: Long): Auth.Model.VerifyContext? {
+        checkEngineInitialization()
+        return authEngine.getVerifyContext(id)?.toClient()
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getListOfVerifyContexts(): List<Auth.Model.VerifyContext> {
+        checkEngineInitialization()
+        return authEngine.getListOfVerifyContext().map { verifyContext -> verifyContext.toClient() }
+    }
+
+    @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {
         check(::authEngine.isInitialized) {
             "AuthClient needs to be initialized first using the initialize function"

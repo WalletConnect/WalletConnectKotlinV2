@@ -259,6 +259,24 @@ object Web3Wallet {
         return AuthClient.getPendingRequest().toWallet()
     }
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    @Throws(IllegalStateException::class)
+    fun getVerifyContext(id: Long): Wallet.Model.VerifyContext? {
+        return SignClient.getVerifyContext(id)?.toWallet() ?: AuthClient.getVerifyContext(id)?.toWallet()
+    }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    @Throws(IllegalStateException::class)
+    fun getListOfVerifyContexts(): List<Wallet.Model.VerifyContext> {
+        return SignClient.getListOfVerifyContexts().map { verifyContext -> verifyContext.toWallet() }.plus(AuthClient.getListOfVerifyContexts().map { verifyContext -> verifyContext.toWallet() })
+    }
+
     private fun validateInitializationCount(clientInitCounter: Int, onSuccess: () -> Unit, onError: (Wallet.Model.Error) -> Unit) {
         scope.launch {
             try {

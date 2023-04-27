@@ -329,6 +329,18 @@ class SignProtocol : SignInterface {
         return signEngine.getSessionProposals().map(EngineDO.SessionProposal::toClientSessionProposal)
     }
 
+    @Throws(IllegalStateException::class)
+    override fun getVerifyContext(id: Long): Sign.Model.VerifyContext? {
+        checkEngineInitialization()
+        return signEngine.getVerifyContext(id)?.toClient()
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getListOfVerifyContexts(): List<Sign.Model.VerifyContext> {
+        checkEngineInitialization()
+        return signEngine.getListOfVerifyContexts().map { verifyContext -> verifyContext.toClient() }
+    }
+
     // TODO: Uncomment once reinit scope logic is added
 //    fun shutdown() {
 //        scope.cancel()

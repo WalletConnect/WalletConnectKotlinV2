@@ -130,4 +130,16 @@ interface SignInterface {
      * It is advised that this function be called from background operation
      */
     fun getSessionProposals(): List<Sign.Model.SessionProposal>
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getVerifyContext(id: Long): Sign.Model.VerifyContext?
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getListOfVerifyContexts(): List<Sign.Model.VerifyContext>
 }

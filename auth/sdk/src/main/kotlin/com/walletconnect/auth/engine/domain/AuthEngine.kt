@@ -18,6 +18,7 @@ import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
+import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
@@ -25,6 +26,7 @@ import com.walletconnect.android.internal.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
+import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException
@@ -34,7 +36,6 @@ import com.walletconnect.auth.common.exceptions.PeerError
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.json_rpc.AuthRpc
 import com.walletconnect.auth.common.model.*
-import com.walletconnect.auth.engine.mapper.toAuthContext
 import com.walletconnect.auth.engine.mapper.toCAIP122Message
 import com.walletconnect.auth.engine.mapper.toCacaoPayload
 import com.walletconnect.auth.engine.mapper.toPendingRequest
@@ -60,6 +61,7 @@ internal class AuthEngine(
     private val pairingInterface: PairingInterface,
     private val serializer: JsonRpcSerializer,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
+    private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val selfAppMetaData: AppMetaData,
     private val cacaoVerifier: CacaoVerifier,
     private val logger: Logger
@@ -213,10 +215,12 @@ internal class AuthEngine(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
             onSuccess = {
                 logger.log("Success Responded on topic: $responseTopic")
+                verifyContextStorageRepository.delete(respond.id)
                 onSuccess()
             },
             onFailure = { error ->
                 logger.error("Error Responded on topic: $responseTopic")
+                verifyContextStorageRepository.delete(respond.id)
                 onFailure(error)
             }
         )
@@ -237,6 +241,9 @@ internal class AuthEngine(
             .map { jsonRpcHistoryEntry -> jsonRpcHistoryEntry.toPendingRequest() }
     }
 
+    internal fun getVerifyContext(id: Long): VerifyContext? = verifyContextStorageRepository.get(id)
+    internal fun getListOfVerifyContext(): List<VerifyContext> = verifyContextStorageRepository.getAll()
+
     private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
         val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
         try {
@@ -249,7 +256,7 @@ internal class AuthEngine(
             val url = authParams.requester.metadata.url
             resolveAttestationIdUseCase(wcRequest.id, json, url) { verifyContext ->
                 scope.launch {
-                    _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, wcRequest.topic.value, authParams.payloadParams, verifyContext.toAuthContext()))
+                    _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, wcRequest.topic.value, authParams.payloadParams, verifyContext))
                 }
             }
         } catch (e: Exception) {

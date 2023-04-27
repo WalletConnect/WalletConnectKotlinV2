@@ -194,6 +194,8 @@ internal fun Auth.Event.AuthRequest.toWallet(): Wallet.Model.AuthRequest = Walle
 
 @JvmSynthetic
 internal fun Auth.Event.VerifyContext.toWallet(): Wallet.Model.VerifyContext = Wallet.Model.VerifyContext(id, origin, this.validation.toWallet(), verifyUrl)
+@JvmSynthetic
+internal fun Auth.Model.VerifyContext.toWallet(): Wallet.Model.VerifyContext = Wallet.Model.VerifyContext(id, origin, this.validation.toWallet(), verifyUrl)
 
 @JvmSynthetic
 internal fun Wallet.Model.SessionProposal.toSign(): Sign.Model.SessionProposal =
