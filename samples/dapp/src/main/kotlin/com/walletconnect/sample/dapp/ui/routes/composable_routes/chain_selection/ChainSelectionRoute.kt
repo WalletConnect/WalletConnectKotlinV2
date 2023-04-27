@@ -55,7 +55,7 @@ fun ChainSelectionRoute(navController: NavController) {
         when (selectionResult) {
             PairingSelectionResult.NewPairing -> {
                 viewModel.connectToWallet { uri ->
-                    navController.navigateToWeb3Modal(uri)
+                    navController.navigateToWeb3Modal(Config.Connect(uri = uri))
                 }
             }
             is PairingSelectionResult.SelectedPairing -> viewModel.connectToWallet(selectionResult.position)
