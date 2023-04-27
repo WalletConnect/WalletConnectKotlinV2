@@ -80,8 +80,8 @@ fun Peer(peerUI: PeerUI, actionText: String?, peerContextUI: PeerContextUI? = nu
 
 private fun getValidationColor(validation: Validation): Color {
     return when (validation) {
-        Validation.VERIFIED -> Green
-        Validation.UNVERIFIED -> Red
+        Validation.VALID -> Green
+        Validation.INVALID -> Red
         Validation.UNKNOWN -> Orange
     }
 }

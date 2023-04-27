@@ -22,7 +22,7 @@ data class PeerContextUI(
 )
 
 enum class Validation {
-    VERIFIED, UNVERIFIED, UNKNOWN
+    VALID, INVALID, UNKNOWN
 }
 
 val Orange = Color(0xFFFF9F33)
@@ -34,7 +34,7 @@ fun Wallet.Model.VerifyContext.toPeerUI(): PeerContextUI =
 
 fun Wallet.Model.Validation.toUI(): Validation =
     when (this) {
-        Wallet.Model.Validation.VALID -> Validation.VERIFIED
-        Wallet.Model.Validation.INVALID -> Validation.UNVERIFIED
+        Wallet.Model.Validation.VALID -> Validation.VALID
+        Wallet.Model.Validation.INVALID -> Validation.INVALID
         Wallet.Model.Validation.UNKNOWN -> Validation.UNKNOWN
     }
