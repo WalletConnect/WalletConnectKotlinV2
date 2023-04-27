@@ -46,7 +46,8 @@ internal fun EngineDO.PushRecord.toClientModel(): Push.Model.MessageRecord {
 
 
 @JvmSynthetic
-internal fun ((String) -> Push.Model.Cacao.Signature).toCommon(): (String) -> Cacao.Signature? = {
-    val publicCacaoSignature: Push.Model.Cacao.Signature = this(it)
-    Cacao.Signature(publicCacaoSignature.t, publicCacaoSignature.s, publicCacaoSignature.m)
+internal fun ((String) -> Push.Model.Cacao.Signature?).toCommon(): (String) -> Cacao.Signature? = { message ->
+    this(message)?.let { publicCacaoSignature: Push.Model.Cacao.Signature ->
+       Cacao.Signature(publicCacaoSignature.t, publicCacaoSignature.s, publicCacaoSignature.m)
+   }
 }
