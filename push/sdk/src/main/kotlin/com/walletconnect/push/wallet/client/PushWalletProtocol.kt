@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.supervisorScope
 
 class PushWalletProtocol : PushWalletInterface {
     private lateinit var pushWalletEngine: PushWalletEngine
@@ -60,30 +61,34 @@ class PushWalletProtocol : PushWalletInterface {
     override fun approve(params: Push.Wallet.Params.Approve, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        try {
-            scope.launch {
-                pushWalletEngine.approve(
-                    params.id,
-                    params.onSign.toCommon(),
-                    onSuccess
-                ) {
-                    onError(Push.Model.Error(it))
+        scope.launch {
+            supervisorScope {
+                try {
+                    pushWalletEngine.approve(
+                        params.id,
+                        params.onSign.toCommon(),
+                        onSuccess
+                    ) {
+                        onError(Push.Model.Error(it))
+                    }
+                } catch (e: Exception) {
+                    onError(Push.Model.Error(e))
                 }
             }
-        } catch (e: Exception) {
-            onError(Push.Model.Error(e))
         }
     }
 
     override fun reject(params: Push.Wallet.Params.Reject, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        try {
-            scope.launch {
-                pushWalletEngine.reject(params.id, params.reason, onSuccess) { onError(Push.Model.Error(it)) }
+        scope.launch {
+            supervisorScope {
+                try {
+                    pushWalletEngine.reject(params.id, params.reason, onSuccess) { onError(Push.Model.Error(it)) }
+                } catch (e: Exception) {
+                    onError(Push.Model.Error(e))
+                }
             }
-        } catch (e: Exception) {
-            onError(Push.Model.Error(e))
         }
     }
 
@@ -107,22 +112,28 @@ class PushWalletProtocol : PushWalletInterface {
     override fun deleteSubscription(params: Push.Wallet.Params.DeleteSubscription, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        try {
-            scope.launch {
-                pushWalletEngine.deleteSubscription(params.topic) { error -> onError(Push.Model.Error(error)) }
+        scope.launch {
+            supervisorScope {
+                try {
+                    pushWalletEngine.deleteSubscription(params.topic) { error -> onError(Push.Model.Error(error)) }
+                } catch (e: Exception) {
+                    onError(Push.Model.Error(e))
+                }
             }
-        } catch (e: Exception) {
-            onError(Push.Model.Error(e))
         }
     }
 
     override fun deletePushMessage(params: Push.Wallet.Params.DeleteMessage, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        try {
-            pushWalletEngine.deleteMessage(params.id, onSuccess) { error -> onError(Push.Model.Error(error))}
-        } catch (e: Exception) {
-            onError(Push.Model.Error(e))
+        scope.launch {
+            supervisorScope {
+                try {
+                    pushWalletEngine.deleteMessage(params.id, onSuccess) { error -> onError(Push.Model.Error(error)) }
+                } catch (e: Exception) {
+                    onError(Push.Model.Error(e))
+                }
+            }
         }
     }
 
