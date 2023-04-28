@@ -35,9 +35,9 @@ fun AccountRoute(navController: NavController) {
 
         viewModel.events.collect {event ->
             when (event) {
-                is DappSampleEvents.RequestSuccess -> { navController.openMessageDialog(it.result) }
-                is DappSampleEvents.RequestPeerError -> { navController.openMessageDialog(it.errorMsg) }
-                is DappSampleEvents.RequestError -> { navController.openMessageDialog(it.exceptionMsg) }
+                is DappSampleEvents.RequestSuccess -> { navController.openMessageDialog(event.result) }
+                is DappSampleEvents.RequestPeerError -> { navController.openMessageDialog(event.errorMsg) }
+                is DappSampleEvents.RequestError -> { navController.openMessageDialog(event.exceptionMsg) }
                 is DappSampleEvents.Disconnect -> navController.popBackStack(Route.ChainSelection.path, false)
                 else -> Unit
             }
