@@ -27,6 +27,7 @@ enum class Chains(
     val chainNamespace: String,
     val chainReference: String,
     @DrawableRes val icon: Int,
+    val color: String,
     val methods: List<String>,
     val events: List<String>,
     val order: Int,
@@ -38,6 +39,7 @@ enum class Chains(
         chainNamespace = Info.Eth.chain,
         chainReference = "1",
         icon = R.drawable.ic_ethereum,
+        color = "#617de8",
         methods = Info.Eth.defaultMethods,
         events = Info.Eth.defaultEvents,
         order = 1
@@ -48,6 +50,7 @@ enum class Chains(
         chainNamespace = Info.Eth.chain,
         chainReference = "137",
         icon = R.drawable.ic_polygon,
+        color = "#8145e4",
         methods = Info.Eth.defaultMethods,
         events = Info.Eth.defaultEvents,
         order = 2
@@ -58,6 +61,7 @@ enum class Chains(
         chainNamespace = Info.Eth.chain,
         chainReference = "42",
         icon = R.drawable.ic_ethereum,
+        color = "#617de8",
         methods = Info.Eth.defaultMethods,
         events = Info.Eth.defaultEvents,
         order = 3
@@ -68,6 +72,7 @@ enum class Chains(
         chainNamespace = Info.Eth.chain,
         chainReference = "69",
         icon = R.drawable.ic_optimism,
+        color = "#e70000",
         methods = Info.Eth.defaultMethods,
         events = Info.Eth.defaultEvents,
         order = 4
@@ -78,6 +83,7 @@ enum class Chains(
         chainNamespace = Info.Eth.chain,
         chainReference = "80001",
         icon = R.drawable.ic_polygon,
+        color = "#8145e4",
         methods = Info.Eth.defaultMethods,
         events = Info.Eth.defaultEvents,
         order = 5
@@ -88,6 +94,7 @@ enum class Chains(
         chainNamespace = Info.Eth.chain,
         chainReference = "421611",
         icon = R.drawable.ic_arbitrum,
+        color = "#95bbda",
         methods = Info.Eth.defaultMethods,
         events = Info.Eth.defaultEvents,
         order = 6
@@ -98,6 +105,7 @@ enum class Chains(
         chainNamespace = Info.Eth.chain,
         chainReference = "44787",
         icon = R.drawable.ic_celo,
+        color = "#f9cb5b",
         methods = Info.Eth.defaultMethods,
         events = Info.Eth.defaultEvents,
         order = 7
@@ -107,6 +115,7 @@ enum class Chains(
         chainNamespace = Info.Cosmos.chain,
         chainReference = "cosmoshub-4",
         icon = R.drawable.ic_cosmos,
+        color = "#B2B2B2",
         methods = Info.Cosmos.defaultMethods,
         events = Info.Cosmos.defaultEvents,
         order = 7
@@ -116,6 +125,7 @@ enum class Chains(
         chainNamespace = Info.Eth.chain,
         chainReference = "56",
         icon = R.drawable.bnb,
+        color = "#F3BA2F",
         methods = Info.Cosmos.defaultMethods,
         events = Info.Cosmos.defaultEvents,
         order = 8
@@ -128,7 +138,7 @@ enum class Chains(
 
         object Eth: Info() {
             override val chain = "eip155"
-            override val defaultEvents: List<String> = listOf("chainChanged", "accountChanged")
+            override val defaultEvents: List<String> = listOf("chainChanged", "accountsChanged")
             override val defaultMethods: List<String> = listOf(
                 "eth_sendTransaction",
                 "personal_sign",
@@ -139,7 +149,7 @@ enum class Chains(
 
         object Cosmos: Info() {
             override val chain = "cosmos"
-            override val defaultEvents: List<String> = listOf("chainChanged", "accountChanged")
+            override val defaultEvents: List<String> = listOf("chainChanged", "accountsChanged")
             override val defaultMethods: List<String> = listOf(
                 "cosmos_signDirect",
                 "cosmos_signAmino"

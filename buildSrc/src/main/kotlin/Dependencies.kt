@@ -78,10 +78,7 @@ fun DependencyHandlerScope.sqlCipher() {
 
 fun DependencyHandlerScope.sqlDelightTest() {
     "testImplementation"("com.squareup.sqldelight:sqlite-driver:$sqlDelightVersion")
-    "testImplementation"("org.xerial:sqlite-jdbc:3.8.10.2") {
-        // Override the version of sqlite used by sqlite-driver to match Android API 23
-        isForce = true
-    }
+    "testImplementation"("org.xerial:sqlite-jdbc:3.8.10.2")
 }
 
 fun DependencyHandlerScope.koinJvm() {
@@ -156,8 +153,12 @@ fun DependencyHandlerScope.web3jCrypto() {
     "api"("org.web3j:crypto:$web3jVersion")
 }
 
-fun DependencyHandlerScope.kethereumBip32() {
-    "api"("com.github.komputing:kethereum:$kethereumVersion")
+fun DependencyHandlerScope.kethereum() {
+    "api"("com.github.komputing.kethereum:bip39:$kethereumVersion")
+    "api"("com.github.komputing.kethereum:bip39_wordlist_en:$kethereumVersion")
+    "api"("com.github.komputing.kethereum:bip32:$kethereumVersion")
+    "api"("com.github.komputing.kethereum:model:$kethereumVersion")
+    "api"("com.github.komputing.kethereum:crypto_impl_spongycastle:$kethereumVersion")
 }
 
 fun DependencyHandlerScope.fcm() {

@@ -84,7 +84,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:137:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:3:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
 
         val approved = generateApprovedNamespaces(proposal, supported)
         val expected = mapOf(
@@ -111,7 +111,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:2:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
 
         val approved = generateApprovedNamespaces(proposal, supported)
         val expected = mapOf(
@@ -138,7 +138,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:2:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
 
         val approved = generateApprovedNamespaces(proposal, supported)
         val expected = mapOf(
@@ -168,7 +168,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:2:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:3:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
 
         val approved = generateApprovedNamespaces(proposal, supported)
         val expected = mapOf(
@@ -207,7 +207,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = accounts
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
 
         val approved = generateApprovedNamespaces(proposal, supported)
         val expected = mapOf(
@@ -244,7 +244,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = accounts
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
 
         val approved = generateApprovedNamespaces(proposal, supported)
         val expected = mapOf(
@@ -282,7 +282,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = accounts
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
 
         val approved = generateApprovedNamespaces(proposal, supported)
         val expected = mapOf(
@@ -322,7 +322,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = accounts
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
 
         val approved = generateApprovedNamespaces(proposal, supported)
         val expected = mapOf(
@@ -362,7 +362,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = accounts
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
 
         val approved = generateApprovedNamespaces(proposal, supported)
         val expected = mapOf(
@@ -403,7 +403,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = accounts
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
 
         val approved = generateApprovedNamespaces(proposal, supported)
         val expected = mapOf(
@@ -459,7 +459,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = cosmosAccounts
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
 
         val approved = generateApprovedNamespaces(proposal, supported)
         val expected = mapOf(
@@ -510,7 +510,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = eipAccounts
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
         val exception = assertThrows<Exception> { generateApprovedNamespaces(proposal, supported) }
         assertEquals("All required namespaces must be approved", "${exception.message}")
     }
@@ -542,7 +542,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = eipAccounts
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
         val exception = assertThrows<Exception> { generateApprovedNamespaces(proposal, supported) }
         assertEquals("All required namespaces must be approved", "${exception.message}")
     }
@@ -571,7 +571,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = eipAccounts
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
         val exception = assertThrows<Exception> { generateApprovedNamespaces(proposal, supported) }
         assertEquals("All required namespaces must be approved: not all methods are approved", "${exception.message}")
     }
@@ -600,7 +600,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = eipAccounts
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
         val exception = assertThrows<Exception> { generateApprovedNamespaces(proposal, supported) }
         assertEquals("All required namespaces must be approved: not all methods are approved", "${exception.message}")
     }
@@ -629,7 +629,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = eipAccounts
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
         val exception = assertThrows<Exception> { generateApprovedNamespaces(proposal, supported) }
         assertEquals("Accounts must be defined in matching namespace", "${exception.message}")
     }
@@ -661,7 +661,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = eipAccounts
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
         val exception = assertThrows<Exception> { generateApprovedNamespaces(proposal, supported) }
         assertEquals("Accounts must be defined in matching namespace", "${exception.message}")
     }
@@ -693,7 +693,7 @@ class GenerateApprovedNamespacesUtilsTest {
                 accounts = eipAccounts
             )
         )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
         val exception = assertThrows<Exception> { generateApprovedNamespaces(proposal, supported) }
         assertEquals("Accounts must be CAIP-10 compliant", "${exception.message}")
     }
