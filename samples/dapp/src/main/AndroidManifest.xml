@@ -7,6 +7,7 @@
         android:icon="@drawable/ic_walletconnect_circle_blue"
         android:roundIcon="@drawable/ic_walletconnect_circle_blue"
         android:supportsRtl="true"
+        android:name=".DappSampleApp"
         android:theme="@style/Theme.WalletConnect">
         <activity
             android:name="com.walletconnect.sample.dapp.ui.DappSampleActivity"

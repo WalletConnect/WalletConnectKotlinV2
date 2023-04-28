@@ -1,5 +1,6 @@
 package com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selection
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -10,36 +11,81 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.walletconnect.sample.dapp.ui.DappSampleEvents
+import com.walletconnect.sample.dapp.ui.routes.Route
+import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionResult
+import com.walletconnect.sample.dapp.ui.routes.bottom_routes.pairingSelectionResultKey
 import com.walletconnect.sample.dapp.web3modal.ui.navigateToWeb3Modal
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.CompletePreviews
 import com.walletconnect.sample_common.ui.*
 import com.walletconnect.sample_common.ui.commons.BlueButton
 import com.walletconnect.sample_common.ui.theme.PreviewTheme
+import timber.log.Timber
 
 @Composable
 fun ChainSelectionRoute(navController: NavController) {
+    val context = LocalContext.current
     val viewModel: ChainSelectionViewModel = viewModel()
     val chainsState by viewModel.uiState.collectAsState()
+    val selectionResult = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow<PairingSelectionResult>(
+            pairingSelectionResultKey,
+            PairingSelectionResult.None
+        )
+        ?.collectAsState()?.value ?: PairingSelectionResult.None
+
+    LaunchedEffect(selectionResult) {
+        when (selectionResult) {
+            PairingSelectionResult.NewPairing -> {
+                viewModel.connectToWallet { uri ->
+                    navController.navigateToWeb3Modal(uri)
+                }
+            }
+            is PairingSelectionResult.SelectedPairing -> viewModel.connectToWallet(selectionResult.position)
+            PairingSelectionResult.None -> Unit
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.walletEvents.collect { event ->
+            when(event) {
+                DappSampleEvents.SessionApproved -> navController.navigate(Route.Session.path)
+                else -> Unit
+            }
+        }
+    }
 
     ChainSelectionScreen(
         chains = chainsState,
         onChainClick = viewModel::updateChainSelectState,
         onConnectClick = {
-            // Navigate to web3Modal for now
-            navController.navigateToWeb3Modal()
+            if (viewModel.isAnyChainSelected) {
+                if (viewModel.isAnySettledParingExist) {
+                    navController.navigate(Route.ParingSelection.path)
+                } else {
+                    viewModel.connectToWallet { uri ->
+                        navController.navigateToWeb3Modal(uri)
+                    }
+                }
+            } else {
+                Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+            }
         }
     )
 }

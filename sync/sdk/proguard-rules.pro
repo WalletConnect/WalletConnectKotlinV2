@@ -1,1 +1,0 @@
--keepnames public class com.walletconnect.sync.** { *; }

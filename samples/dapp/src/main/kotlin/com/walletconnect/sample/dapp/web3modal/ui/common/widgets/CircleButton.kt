@@ -47,12 +47,15 @@ fun QuestionMarkIconButton(navController: NavController) {
     val currentPath = navController.currentBackStackEntryAsState().value?.destination?.route
     val tint: Color
     val background: Color
+    val onClick: () -> Unit
     if (currentPath == Route.Help.path) {
         tint = Web3ModalTheme.colors.background
         background = Web3ModalTheme.colors.onBackgroundColor
+        onClick = { navController.popBackStack() }
     } else {
         tint = Web3ModalTheme.colors.onBackgroundColor
         background = Web3ModalTheme.colors.background
+        onClick = { navController.navigate(Route.Help.path) }
     }
     CircleButtonWithIcon(
         icon = {
@@ -63,7 +66,7 @@ fun QuestionMarkIconButton(navController: NavController) {
             )
         },
         backgroundColor = background,
-        onClick = { navController.navigate(Route.Help.path) }
+        onClick = onClick
     )
 }
 
