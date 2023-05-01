@@ -21,11 +21,10 @@ internal const val WEB3MODAL_MOSHI = "web3modal_moshi"
 internal fun web3ModalModule() = module {
 
     single(named(WEB3MODAL_MOSHI)) {
-        Moshi.Builder()
+        get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))
             .add(configAdapter())
             .add(EncodedStringAdapter())
             .add(ExplorerMapToListAdapter())
-            .add(KotlinJsonAdapterFactory())
             .build()
     }
 

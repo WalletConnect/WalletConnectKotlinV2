@@ -9,6 +9,7 @@ internal class ExplorerRepository(
     private val explorerApi: ExplorerService,
 ) {
     private val projectId by lazy { wcKoinApp.koin.get<ProjectId>() }
+
     suspend fun getWalletsList(
         page: Int = 1,
         entries: Int,

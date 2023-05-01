@@ -1,7 +1,8 @@
 plugins {
     id("com.android.library")
-    id("org.jetbrains.kotlin.android")
-    id("kotlin-parcelize")
+    kotlin("android")
+    id("com.google.devtools.ksp") version kspVersion
+    id("publish-module-android")
 }
 
 project.apply {
@@ -35,8 +36,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = jvmVersion
+        targetCompatibility = jvmVersion
     }
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
@@ -77,9 +78,11 @@ dependencies {
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
     releaseImplementation("com.walletconnect:sign")
+    releaseImplementation("com.walletconnect:auth")
 
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":sign:sdk"))
+    debugImplementation(project(":auth:sdk"))
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

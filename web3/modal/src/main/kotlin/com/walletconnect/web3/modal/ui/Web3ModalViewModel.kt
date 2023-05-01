@@ -4,18 +4,18 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.CoreClient
-import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.client.SignClient
+import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.configuration.CONFIGURATION
 import com.walletconnect.web3.modal.domain.configuration.Config
 import com.walletconnect.web3.modal.domain.configuration.Web3ModalConfigSerializer
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
+import com.walletconnect.web3.modal.client.Web3Modal as Client
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class Web3ModalViewModel(
-   savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val configuration = savedStateHandle.get<String>(CONFIGURATION)?.let { config ->
@@ -35,8 +35,8 @@ class Web3ModalViewModel(
     private fun subscribeToWalletEvents() {
         Web3ModalDelegate.wcEventModels.map { event ->
             when (event) {
-                is Sign.Model.ApprovedSession -> Web3ModalEvents.SessionApproved
-                is Sign.Model.RejectedSession -> Web3ModalEvents.SessionRejected
+                is Modal.Model.ApprovedSession -> Web3ModalEvents.SessionApproved
+                is Modal.Model.RejectedSession -> Web3ModalEvents.SessionRejected
                 else -> Web3ModalEvents.NoAction
             }
         }.onEach { event ->
@@ -47,7 +47,7 @@ class Web3ModalViewModel(
     init {
         subscribeToWalletEvents()
         viewModelScope.launch {
-            when(configuration) {
+            when (configuration) {
                 is Config.Connect -> connectWallet(configuration)
                 else -> throw IllegalStateException("Invalid web3modal configuration")
             }
@@ -62,13 +62,13 @@ class Web3ModalViewModel(
                 throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
             }!!
 
-            val connectParams = Sign.Params.Connect(
+            val connectParams = Modal.Params.Connect(
                 namespaces = configuration.namespaces,
                 optionalNamespaces = configuration.optionalNamespaces,
                 pairing = pairing
             )
 
-            SignClient.connect(
+            Client.connect(
                 connect = connectParams,
                 onSuccess = {
                     _modalState.value = Web3ModalState.ConnectState(pairing.uri)
