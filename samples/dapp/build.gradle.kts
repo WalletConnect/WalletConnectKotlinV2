@@ -5,6 +5,7 @@ plugins {
     kotlin("kapt")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
+    id("com.google.firebase.appdistribution")
 }
 
 android {
@@ -32,6 +33,10 @@ android {
             isMinifyEnabled = true
             signingConfig = signingConfigs.getByName("debug")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            firebaseAppDistribution {
+                artifactType = "APK"
+                groups = "javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
+            }
         }
     }
 
