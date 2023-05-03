@@ -7,14 +7,14 @@ const val KEY_SDK_NAME = "SDK_NAME"
 //Latest versions
 const val BOM_VERSION = "1.9.2"
 const val FOUNDATION_VERSION = "1.8.0"
-const val CORE_VERSION = "1.14.1"
+const val CORE_VERSION = "1.14.2"
 const val SIGN_VERSION = "2.12.2"
 const val SYNC_VERSION = "1.0.0-alpha01"
-const val AUTH_VERSION = "1.12.1"
-const val CHAT_VERSION = "1.0.0-beta07"
-const val PUSH_VERSION = "1.0.0-alpha02"
+const val AUTH_VERSION = "1.12.2"
+const val CHAT_VERSION = "1.0.0-beta08"
+const val PUSH_VERSION = "1.0.0-alpha03"
 const val WEB_3_WALLET = "1.7.2"
-const val WEB_3_INBOX = "1.0.0-alpha07"
+const val WEB_3_INBOX = "1.0.0-alpha08"
 
 val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23
