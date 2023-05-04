@@ -20,6 +20,7 @@ internal fun walletEngineModule() = module {
             messageRepository = get(),
             identitiesInteractor = get(),
             serializer = get(),
+            explorerRepository = get(),
             logger = get()
         )
     }

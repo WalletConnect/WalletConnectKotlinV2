@@ -12,4 +12,7 @@ internal object JsonRpcMethod {
 
     @get:JvmSynthetic
     const val WC_PUSH_DELETE: String = "wc_pushDelete"
+
+    @get:JvmSynthetic
+    const val WC_PUSH_SUBSCRIBE: String = "wc_pushSubscribe"
 }

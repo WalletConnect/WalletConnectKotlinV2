@@ -48,5 +48,10 @@ sealed class EngineDO : EngineEvent {
         val rejectionReason: String,
     ) : EngineDO()
 
+    data class PushSubscribeError(
+        val requestId: Long,
+        val rejectionReason: String,
+    ) : EngineDO()
+
     data class PushDelete(val topic: String) : EngineDO()
 }

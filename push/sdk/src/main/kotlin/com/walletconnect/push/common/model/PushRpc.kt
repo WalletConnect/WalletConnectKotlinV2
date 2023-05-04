@@ -8,6 +8,7 @@ import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
 import com.walletconnect.push.common.JsonRpcMethod
 import com.walletconnect.util.generateId
+import org.bouncycastle.asn1.x500.style.RFC4519Style.name
 
 internal sealed class PushRpc : JsonRpcClientSync<PushParams> {
 
@@ -47,4 +48,15 @@ internal sealed class PushRpc : JsonRpcClientSync<PushParams> {
         override val params: PushParams.DeleteParams,
     ) : PushRpc()
 
+    @JsonClass(generateAdapter = true)
+    internal data class PushSubscribe(
+        @Json(name = "id")
+        override val id: Long = generateId(),
+        @Json(name = "jsonrpc")
+        override val jsonrpc: String = "2.0",
+        @Json(name = "method")
+        override val method: String = JsonRpcMethod.WC_PUSH_SUBSCRIBE,
+        @Json(name = "params")
+        override val params: PushParams.SubscribeParams,
+    ): PushRpc()
 }

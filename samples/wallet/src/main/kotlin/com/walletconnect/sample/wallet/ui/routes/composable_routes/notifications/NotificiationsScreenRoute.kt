@@ -13,7 +13,9 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
 import androidx.compose.material.Icon
+import androidx.compose.material.Snackbar
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,9 +24,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.google.android.material.snackbar.Snackbar
 import com.skydoves.landscapist.glide.GlideImage
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.domain.model.PushNotification
@@ -62,9 +69,40 @@ private fun NotificationScreen(
     onNotificationItemDelete: (PushNotification) -> Unit,
     onBackClick: () -> Unit,
 ) {
+    val localView = LocalView.current
+
     Column {
         WCTopAppBar(titleText = "Notifications", onBackIconClick = onBackClick)
         LazyColumn(modifier = Modifier.padding(vertical = 12.dp, horizontal = 24.dp)) {
+            item {
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .drawWithContent(onDraw = {
+                            drawRect(
+                                brush = Brush.linearGradient(
+                                    0.0f to Color(
+                                        alpha = 255, red = 51, green = 150, blue = 255
+                                    ),
+                                    Float.POSITIVE_INFINITY to Color(
+                                        alpha = 255, red = 12, green = 124, blue = 242
+                                    ),
+                                    start = Offset.Zero,
+                                    end = Offset.Infinite
+                                )
+                            )
+                            drawContent()
+                        }),
+                    onClick = { Snackbar.make(localView, "Test", Snackbar.LENGTH_SHORT).show() },
+                    contentPadding = PaddingValues(2.dp)
+                ) {
+                    Row {
+                        Icon(imageVector = ImageVector.vectorResource(id = R.drawable.ic_plus), null)
+                        Text(text = "Add App")
+                    }
+                }
+            }
             notificationsContent(state, onNotificationItemDelete)
         }
     }

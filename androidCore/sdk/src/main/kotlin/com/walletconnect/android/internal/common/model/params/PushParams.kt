@@ -42,4 +42,10 @@ sealed class PushParams: ClientParams {
         @Json(name = "message")
         val message: String
     ): PushParams()
+
+    @JsonClass(generateAdapter = true)
+    data class SubscribeParams(
+        @Json(name = "subscriptionAuth")
+        val subscriptionAuth: String
+    ): PushParams()
 }

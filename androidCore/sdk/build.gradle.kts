@@ -45,6 +45,10 @@ android {
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
     }
+
+    sourceSets {
+        getByName("test").resources.srcDirs("src/test/resources")
+    }
 }
 
 sqldelight {

@@ -16,6 +16,7 @@ import com.walletconnect.push.wallet.client.mapper.toCommon
 import com.walletconnect.push.wallet.di.messageModule
 import com.walletconnect.push.wallet.di.walletEngineModule
 import com.walletconnect.push.wallet.engine.PushWalletEngine
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -64,7 +65,7 @@ class PushWalletProtocol : PushWalletInterface {
         scope.launch {
             supervisorScope {
                 try {
-                    pushWalletEngine.subscribe(params.dappUrl, onSuccess) {
+                    pushWalletEngine.subscribeToDapp(params.dappUrl, params.account, params.onSign.toCommon(), onSuccess) {
                         onError(Push.Model.Error(it))
                     }
                 } catch (e: Exception) {
@@ -158,7 +159,7 @@ class PushWalletProtocol : PushWalletInterface {
             onSuccess = { pushMessage ->
                 onSuccess(pushMessage.toClientModel())
             },
-            onError = { error ->
+            onFailure = { error ->
                 onError(Push.Model.Error(error))
             })
     }
