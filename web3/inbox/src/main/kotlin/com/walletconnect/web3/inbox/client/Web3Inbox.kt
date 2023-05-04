@@ -6,10 +6,13 @@ import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatClient
+import com.walletconnect.push.common.Push
+import com.walletconnect.push.wallet.client.PushWalletClient
 import com.walletconnect.web3.inbox.chat.ChatEventHandler
 import com.walletconnect.web3.inbox.di.commonModule
 import com.walletconnect.web3.inbox.di.jsonRpcModule
 import com.walletconnect.web3.inbox.di.proxyModule
+import com.walletconnect.web3.inbox.push.PushEventHandler
 import com.walletconnect.web3.inbox.ui.Web3InboxState
 import com.walletconnect.web3.inbox.ui.Web3InboxView
 import com.walletconnect.web3.inbox.ui.rememberWebViewState
@@ -23,15 +26,17 @@ object Web3Inbox {
     @Throws(IllegalStateException::class)
     fun initialize(init: Inbox.Params.Init, onError: (Inbox.Model.Error) -> Unit) {
         ChatClient.initialize(Chat.Params.Init(init.core)) { error -> onError(Inbox.Model.Error(error.throwable)) }
+        PushWalletClient.initialize(Push.Wallet.Params.Init(init.core)) { error -> onError(Inbox.Model.Error(error.throwable)) }
 
         runCatching {
             account = LateInitAccountId(AccountId(init.account.value))
             wcKoinApp.modules(
                 jsonRpcModule(),
-                proxyModule(ChatClient, init.onSign, ::onPageFinished),
+                proxyModule(ChatClient, PushWalletClient, init.onSign, ::onPageFinished),
                 commonModule()
             )
             ChatClient.setChatDelegate(wcKoinApp.koin.get<ChatEventHandler>())
+            PushWalletClient.setDelegate(wcKoinApp.koin.get<PushEventHandler>())
             isClientInitialized = true
         }.onFailure { e -> onError(Inbox.Model.Error(e)) }
     }

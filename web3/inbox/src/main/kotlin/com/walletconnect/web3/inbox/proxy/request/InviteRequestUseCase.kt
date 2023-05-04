@@ -9,9 +9,9 @@ import com.walletconnect.web3.inbox.proxy.ProxyInteractor
 internal class InviteRequestUseCase(
     private val chatClient: ChatInterface,
     proxyInteractor: ProxyInteractor,
-) : RequestUseCase<Web3InboxParams.Request.InviteParams>(proxyInteractor) {
+) : RequestUseCase<Web3InboxParams.Request.Chat.InviteParams>(proxyInteractor) {
 
-    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.InviteParams) {
+    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.InviteParams) {
         chatClient.invite(
             Chat.Params.Invite(
                 inviterAccount = Chat.Type.AccountId(params.inviterAccount),

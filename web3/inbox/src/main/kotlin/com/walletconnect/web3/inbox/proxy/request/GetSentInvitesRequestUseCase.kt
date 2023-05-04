@@ -9,17 +9,17 @@ import com.walletconnect.web3.inbox.proxy.ProxyInteractor
 internal class GetSentInvitesRequestUseCase(
     private val chatClient: ChatInterface,
     proxyInteractor: ProxyInteractor,
-) : RequestUseCase<Web3InboxParams.Request.GetSentInvitesParams>(proxyInteractor) {
+) : RequestUseCase<Web3InboxParams.Request.Chat.GetSentInvitesParams>(proxyInteractor) {
 
-    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.GetSentInvitesParams) {
+    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.GetSentInvitesParams) {
         val invites = chatClient.getSentInvites(Chat.Params.GetSentInvites(Chat.Type.AccountId(params.account)))
         respondWithResult(rpc, invites.toResult())
     }
 
-    private fun Map<Long, Chat.Model.Invite.Sent>.toResult(): List<Web3InboxParams.Response.GetSentInvitesResult> = map { it.value.toResult() }
+    private fun Map<Long, Chat.Model.Invite.Sent>.toResult(): List<Web3InboxParams.Response.Chat.GetSentInvitesResult> = map { it.value.toResult() }
 
-    private fun Chat.Model.Invite.Sent.toResult(): Web3InboxParams.Response.GetSentInvitesResult =
-        Web3InboxParams.Response.GetSentInvitesResult(id, inviterAccount.value, inviteeAccount.value, message.value, inviterPublicKey, status.toResult())
+    private fun Chat.Model.Invite.Sent.toResult(): Web3InboxParams.Response.Chat.GetSentInvitesResult =
+        Web3InboxParams.Response.Chat.GetSentInvitesResult(id, inviterAccount.value, inviteeAccount.value, message.value, inviterPublicKey, status.toResult())
 
     private fun Chat.Type.InviteStatus.toResult(): String = name.lowercase()
 }

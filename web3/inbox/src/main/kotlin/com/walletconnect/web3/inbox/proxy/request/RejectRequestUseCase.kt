@@ -9,9 +9,9 @@ import com.walletconnect.web3.inbox.proxy.ProxyInteractor
 internal class RejectRequestUseCase(
     private val chatClient: ChatInterface,
     proxyInteractor: ProxyInteractor,
-) : RequestUseCase<Web3InboxParams.Request.RejectParams>(proxyInteractor) {
+) : RequestUseCase<Web3InboxParams.Request.Chat.RejectParams>(proxyInteractor) {
 
-    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.RejectParams) {
+    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.RejectParams) {
         chatClient.reject(
             Chat.Params.Reject(params.id),
             onSuccess = { respondWithVoid(rpc) },

@@ -4,10 +4,10 @@ package com.walletconnect.web3.inbox.proxy
 
 import android.webkit.JavascriptInterface
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.web3.inbox.json_rpc.Web3InboxParams
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxSerializer
 import com.walletconnect.web3.inbox.proxy.request.*
+import com.walletconnect.web3.inbox.push.GetActiveSubscriptionsRequestUseCase
 
 
 internal class ProxyRequestHandler(
@@ -22,24 +22,28 @@ internal class ProxyRequestHandler(
     private val resolveRequestUseCase: ResolveRequestUseCase,
     private val messageRequestUseCase: MessageRequestUseCase,
     private val inviteRequestUseCase: InviteRequestUseCase,
+    private val getActiveSubscriptionsRequestUseCase: GetActiveSubscriptionsRequestUseCase,
 ) {
 
     @JavascriptInterface
     fun postMessage(rpc: String) {
-        logger.log("postMessage: $rpc")
-        val rpc = Web3InboxSerializer.deserializeRpc(rpc) ?: return logger.error("Unable to deserialize: $rpc")
+        logger.log("Incoming request from W3I: $rpc")
+        val imporvedRPC = if (rpc.contains("getActiveSubscriptions")) rpc.removeSuffix("}") + ",\"params\":{\"account\":\"eip155:1:0xe8e976e38b38fe629597ef6f683f63b6782f3625\"}}" else rpc
+        val rpc = Web3InboxSerializer.deserializeRpc(imporvedRPC) ?: return logger.error("Unable to deserialize: $imporvedRPC")
         if (rpc !is Web3InboxRPC.Request) return logger.error("Not a request: $rpc")
-        when (val params = rpc.params) {
-            is Web3InboxParams.Request.RegisterParams -> registerRequestUseCase(rpc, params)
-            is Web3InboxParams.Request.GetReceivedInvitesParams -> getReceivedInvitesRequestUseCase(rpc, params)
-            is Web3InboxParams.Request.GetSentInvitesParams -> getSentInvitesRequestUseCase(rpc, params)
-            is Web3InboxParams.Request.GetThreadsParams -> getThreadsRequestUseCase(rpc, params)
-            is Web3InboxParams.Request.AcceptParams -> acceptRequestUseCase(rpc, params)
-            is Web3InboxParams.Request.RejectParams -> rejectRequestUseCase(rpc, params)
-            is Web3InboxParams.Request.ResolveParams -> resolveRequestUseCase(rpc, params)
-            is Web3InboxParams.Request.GetMessagesParams -> getMessagesRequestUseCase(rpc, params)
-            is Web3InboxParams.Request.MessageParams -> messageRequestUseCase(rpc, params)
-            is Web3InboxParams.Request.InviteParams -> inviteRequestUseCase(rpc, params)
+        when (rpc) {
+            is Web3InboxRPC.Request.Chat.Register -> registerRequestUseCase(rpc, rpc.params)
+            is Web3InboxRPC.Request.Chat.GetReceivedInvites -> getReceivedInvitesRequestUseCase(rpc, rpc.params)
+            is Web3InboxRPC.Request.Chat.GetSentInvites -> getSentInvitesRequestUseCase(rpc, rpc.params)
+            is Web3InboxRPC.Request.Chat.GetThreads -> getThreadsRequestUseCase(rpc, rpc.params)
+            is Web3InboxRPC.Request.Chat.Accept -> acceptRequestUseCase(rpc, rpc.params)
+            is Web3InboxRPC.Request.Chat.Reject -> rejectRequestUseCase(rpc, rpc.params)
+            is Web3InboxRPC.Request.Chat.Resolve -> resolveRequestUseCase(rpc, rpc.params)
+            is Web3InboxRPC.Request.Chat.GetMessages -> getMessagesRequestUseCase(rpc, rpc.params)
+            is Web3InboxRPC.Request.Chat.Message -> messageRequestUseCase(rpc, rpc.params)
+            is Web3InboxRPC.Request.Chat.Invite -> inviteRequestUseCase(rpc, rpc.params)
+
+            is Web3InboxRPC.Request.Push.GetActiveSubscriptions -> getActiveSubscriptionsRequestUseCase(rpc, rpc.params)
         }
     }
 }

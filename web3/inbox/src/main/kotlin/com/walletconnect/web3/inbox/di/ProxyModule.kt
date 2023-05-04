@@ -3,19 +3,24 @@
 package com.walletconnect.web3.inbox.di
 
 import com.walletconnect.chat.client.ChatInterface
+import com.walletconnect.push.wallet.client.PushWalletInterface
 import com.walletconnect.web3.inbox.chat.ChatEventHandler
 import com.walletconnect.web3.inbox.chat.event.*
 import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.proxy.ProxyInteractor
 import com.walletconnect.web3.inbox.proxy.ProxyRequestHandler
 import com.walletconnect.web3.inbox.proxy.request.*
+import com.walletconnect.web3.inbox.push.GetActiveSubscriptionsRequestUseCase
+import com.walletconnect.web3.inbox.push.PushEventHandler
 import com.walletconnect.web3.inbox.webview.WebViewPresenter
 import com.walletconnect.web3.inbox.webview.WebViewWeakReference
 import org.koin.dsl.module
 
+//todo split or refactor proxy and events usecases. split into chat and push as well
 @JvmSynthetic
 internal fun proxyModule(
     chatClient: ChatInterface,
+    pushWalletClient: PushWalletInterface,
     onSign: (message: String) -> Inbox.Model.Cacao.Signature,
     onPageFinished: () -> Unit,
 ) = module {
@@ -31,7 +36,7 @@ internal fun proxyModule(
     single { ResolveRequestUseCase(chatClient, get()) }
     single { MessageRequestUseCase(chatClient, get()) }
     single { InviteRequestUseCase(chatClient, get()) }
-    single { ProxyRequestHandler(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    single { ProxyRequestHandler(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     single { WebViewPresenter(get(), get(), get(), onPageFinished) }
 
     single { OnInviteChatEventUseCase(get()) }
@@ -41,4 +46,7 @@ internal fun proxyModule(
     single { OnLeftChatEventUseCase(get()) }
 
     single { ChatEventHandler(get(), get(), get(), get(), get(), get()) }
+
+    single { PushEventHandler(get()) }
+    single { GetActiveSubscriptionsRequestUseCase(pushWalletClient, get()) }
 }

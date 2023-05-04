@@ -9,19 +9,19 @@ import com.walletconnect.web3.inbox.proxy.ProxyInteractor
 internal class GetMessagesRequestUseCase(
     private val chatClient: ChatInterface,
     proxyInteractor: ProxyInteractor,
-) : RequestUseCase<Web3InboxParams.Request.GetMessagesParams>(proxyInteractor) {
+) : RequestUseCase<Web3InboxParams.Request.Chat.GetMessagesParams>(proxyInteractor) {
 
-    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.GetMessagesParams) {
+    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.GetMessagesParams) {
         val messages: List<Chat.Model.Message> = chatClient.getMessages(Chat.Params.GetMessages(params.topic))
         respondWithResult(rpc, messages.toResult())
     }
 
-    private fun List<Chat.Model.Message>.toResult(): List<Web3InboxParams.Response.GetMessagesResult> = map { it.toResult() }
+    private fun List<Chat.Model.Message>.toResult(): List<Web3InboxParams.Response.Chat.GetMessagesResult> = map { it.toResult() }
 
-    private fun Chat.Model.Message.toResult(): Web3InboxParams.Response.GetMessagesResult =
-        Web3InboxParams.Response.GetMessagesResult(topic, message.value, authorAccount.value, timestamp, media?.toResult())
+    private fun Chat.Model.Message.toResult(): Web3InboxParams.Response.Chat.GetMessagesResult =
+        Web3InboxParams.Response.Chat.GetMessagesResult(topic, message.value, authorAccount.value, timestamp, media?.toResult())
 
-    private fun Chat.Model.Media.toResult() = Web3InboxParams.Response.GetMessagesResult.MediaResult(type, data.value)
+    private fun Chat.Model.Media.toResult() = Web3InboxParams.Response.Chat.GetMessagesResult.MediaResult(type, data.value)
 
 }
 

@@ -9,9 +9,9 @@ import com.walletconnect.web3.inbox.proxy.ProxyInteractor
 internal class ResolveRequestUseCase(
     private val chatClient: ChatInterface,
     proxyInteractor: ProxyInteractor,
-) : RequestUseCase<Web3InboxParams.Request.ResolveParams>(proxyInteractor) {
+) : RequestUseCase<Web3InboxParams.Request.Chat.ResolveParams>(proxyInteractor) {
 
-    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.ResolveParams) {
+    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.ResolveParams) {
         chatClient.resolve(Chat.Params.Resolve(Chat.Type.AccountId(params.account)), object : Chat.Listeners.Resolve {
             override fun onError(error: Chat.Model.Error) = respondWithError(rpc, error)
             override fun onSuccess(publicKey: String) = respondWithResult(rpc, publicKey)

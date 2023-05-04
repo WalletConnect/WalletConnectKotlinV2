@@ -6,106 +6,140 @@ import com.walletconnect.android.internal.common.model.type.ClientParams
 internal sealed interface Web3InboxParams : ClientParams {
 
     sealed interface Request : Web3InboxParams {
-        @JsonClass(generateAdapter = true)
-        data class RegisterParams(
-            val account: String,
-            val private: Boolean?,
-        ) : Request
 
-        @JsonClass(generateAdapter = true)
-        data class ResolveParams(
-            val account: String,
-        ) : Request
+        // note: If this is an object it breaks serialization
+        class Empty : Request {
+            override fun equals(other: Any?): Boolean {
+                return this === other
+            }
 
-        @JsonClass(generateAdapter = true)
-        data class AcceptParams(
-            val id: Long,
-        ) : Request
+            override fun hashCode(): Int {
+                return System.identityHashCode(this)
+            }
+        }
 
-        @JsonClass(generateAdapter = true)
-        data class RejectParams(
-            val id: Long,
-        ) : Request
+        sealed interface Chat : Request {
+            @JsonClass(generateAdapter = true)
+            data class RegisterParams(
+                val account: String,
+                val private: Boolean?,
+            ) : Chat
 
-        @JsonClass(generateAdapter = true)
-        data class InviteParams(
-            val inviteeAccount: String,
-            val inviterAccount: String,
-            val inviteePublicKey: String,
-            val message: String,
-        ) : Request
+            @JsonClass(generateAdapter = true)
+            data class ResolveParams(
+                val account: String,
+            ) : Chat
 
-        @JsonClass(generateAdapter = true)
-        data class GetReceivedInvitesParams(
-            val account: String,
-        ) : Request
+            @JsonClass(generateAdapter = true)
+            data class AcceptParams(
+                val id: Long,
+            ) : Chat
 
-        @JsonClass(generateAdapter = true)
-        data class GetSentInvitesParams(
-            val account: String,
-        ) : Request
+            @JsonClass(generateAdapter = true)
+            data class RejectParams(
+                val id: Long,
+            ) : Chat
 
-        @JsonClass(generateAdapter = true)
-        data class GetThreadsParams(
-            val account: String,
-        ) : Request
+            @JsonClass(generateAdapter = true)
+            data class InviteParams(
+                val inviteeAccount: String,
+                val inviterAccount: String,
+                val inviteePublicKey: String,
+                val message: String,
+            ) : Chat
 
-        @JsonClass(generateAdapter = true)
-        data class GetMessagesParams(
-            val topic: String,
-        ) : Request
+            @JsonClass(generateAdapter = true)
+            data class GetReceivedInvitesParams(
+                val account: String,
+            ) : Chat
 
-        @JsonClass(generateAdapter = true)
-        data class MessageParams(
-            val topic: String,
-            val authorAccount: String,
-            val message: String,
-            val timestamp: Long,
-        ) : Request
+            @JsonClass(generateAdapter = true)
+            data class GetSentInvitesParams(
+                val account: String,
+            ) : Chat
+
+            @JsonClass(generateAdapter = true)
+            data class GetThreadsParams(
+                val account: String,
+            ) : Chat
+
+            @JsonClass(generateAdapter = true)
+            data class GetMessagesParams(
+                val topic: String,
+            ) : Chat
+
+            @JsonClass(generateAdapter = true)
+            data class MessageParams(
+                val topic: String,
+                val authorAccount: String,
+                val message: String,
+                val timestamp: Long,
+            ) : Chat
+        }
     }
 
     sealed interface Response : Web3InboxParams {
-        @JsonClass(generateAdapter = true)
-        data class GetReceivedInvitesResult(
-            val id: Long,
-            val inviterAccount: String,
-            val inviteeAccount: String,
-            val message: String,
-            val inviterPublicKey: String,
-            val status: String,
-        ) : Response
 
-        @JsonClass(generateAdapter = true)
-        data class GetSentInvitesResult(
-            val id: Long,
-            val inviterAccount: String,
-            val inviteeAccount: String,
-            val message: String,
-            val inviterPublicKey: String,
-            val status: String,
-        ) : Response
-
-        @JsonClass(generateAdapter = true)
-        data class GetThreadsResult(
-            val topic: String,
-            val selfAccount: String,
-            val peerAccount: String,
-        ) : Response
-
-        @JsonClass(generateAdapter = true)
-        data class GetMessagesResult(
-            val topic: String,
-            val message: String,
-            val authorAccount: String,
-            val timestamp: Long,
-            val media: MediaResult?,
-        ) : Response {
+        sealed interface Chat : Response {
+            @JsonClass(generateAdapter = true)
+            data class GetReceivedInvitesResult(
+                val id: Long,
+                val inviterAccount: String,
+                val inviteeAccount: String,
+                val message: String,
+                val inviterPublicKey: String,
+                val status: String,
+            ) : Chat
 
             @JsonClass(generateAdapter = true)
-            data class MediaResult(
-                val type: String,
-                val data: String,
-            )
+            data class GetSentInvitesResult(
+                val id: Long,
+                val inviterAccount: String,
+                val inviteeAccount: String,
+                val message: String,
+                val inviterPublicKey: String,
+                val status: String,
+            ) : Chat
+
+            @JsonClass(generateAdapter = true)
+            data class GetThreadsResult(
+                val topic: String,
+                val selfAccount: String,
+                val peerAccount: String,
+            ) : Chat
+
+            @JsonClass(generateAdapter = true)
+            data class GetMessagesResult(
+                val topic: String,
+                val message: String,
+                val authorAccount: String,
+                val timestamp: Long,
+                val media: MediaResult?,
+            ) : Chat {
+
+                @JsonClass(generateAdapter = true)
+                data class MediaResult(
+                    val type: String,
+                    val data: String,
+                )
+            }
+        }
+
+        sealed interface Push : Response {
+            @JsonClass(generateAdapter = true)
+            data class GetActiveSubscriptionsResult(
+                val requestId: Long,
+                val topic: String,
+                val account: String,
+                val relay: Relay,
+                val metadata: AppMetaData,
+            ) : Response {
+                @JsonClass(generateAdapter = true)
+                data class Relay(val protocol: String, val data: String?)
+
+                @JsonClass(generateAdapter = true)
+                data class AppMetaData(val name: String, val description: String, val url: String, val icons: List<String>, val redirect: String?, val verifyUrl: String? = null)
+            }
         }
     }
 
@@ -141,7 +175,7 @@ internal sealed interface Web3InboxParams : ClientParams {
             data class InviteAcceptedParams(
                 val topic: String,
                 val invite: InviteParams,
-                ) : Chat {
+            ) : Chat {
                 @JsonClass(generateAdapter = true)
                 data class InviteParams(
                     val id: Long,

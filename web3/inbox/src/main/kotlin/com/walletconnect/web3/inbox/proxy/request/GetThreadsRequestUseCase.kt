@@ -9,17 +9,17 @@ import com.walletconnect.web3.inbox.proxy.ProxyInteractor
 internal class GetThreadsRequestUseCase(
     private val chatClient: ChatInterface,
     proxyInteractor: ProxyInteractor,
-) : RequestUseCase<Web3InboxParams.Request.GetThreadsParams>(proxyInteractor) {
+) : RequestUseCase<Web3InboxParams.Request.Chat.GetThreadsParams>(proxyInteractor) {
 
-    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.GetThreadsParams) {
+    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.GetThreadsParams) {
         val threads: Map<String, Chat.Model.Thread> = chatClient.getThreads(Chat.Params.GetThreads(Chat.Type.AccountId(params.account)))
         respondWithResult(rpc, threads.toResult())
     }
 
-    private fun Map<String, Chat.Model.Thread>.toResult(): List<Web3InboxParams.Response.GetThreadsResult> = map { it.value.toResult() }
+    private fun Map<String, Chat.Model.Thread>.toResult(): List<Web3InboxParams.Response.Chat.GetThreadsResult> = map { it.value.toResult() }
 
-    private fun Chat.Model.Thread.toResult(): Web3InboxParams.Response.GetThreadsResult =
-        Web3InboxParams.Response.GetThreadsResult(topic, selfAccount.value, peerAccount.value)
+    private fun Chat.Model.Thread.toResult(): Web3InboxParams.Response.Chat.GetThreadsResult =
+        Web3InboxParams.Response.Chat.GetThreadsResult(topic, selfAccount.value, peerAccount.value)
 
 }
 
