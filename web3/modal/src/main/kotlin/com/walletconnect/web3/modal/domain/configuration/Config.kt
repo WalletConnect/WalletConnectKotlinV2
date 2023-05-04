@@ -5,7 +5,7 @@ import com.walletconnect.web3.modal.client.Modal
 
 internal const val CONFIGURATION = "modal_config"
 
-@JsonClass(generateAdapter = true, generator = "sealed:config")
+@JsonClass(generateAdapter = true)
 sealed class Config {
 
     @JsonClass(generateAdapter = true)

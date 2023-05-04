@@ -24,7 +24,7 @@ import com.walletconnect.web3.modal.ui.components.internal.Web3ModalRoot
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.navigation.Web3ModalNavGraph
 import com.walletconnect.web3.modal.ui.theme.Web3ModalColors
-import com.walletconnect.web3.modal.ui.theme.provideWeb3Colors
+import com.walletconnect.web3.modal.ui.theme.provideWeb3ModalColors
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -44,7 +44,7 @@ fun NavGraphBuilder.web3ModalGraph(sheetState: ModalBottomSheetState) {
 @Composable
 internal fun Web3Modal(
     sheetState: ModalBottomSheetState,
-    colors: Web3ModalColors = provideWeb3Colors()
+    colors: Web3ModalColors = provideWeb3ModalColors()
 ) {
     val web3ModalViewModel: Web3ModalViewModel = viewModel()
     val navController = rememberAnimatedNavController()

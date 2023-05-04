@@ -24,7 +24,7 @@ import com.walletconnect.web3.modal.ui.previews.ComponentPreview
 import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
 import com.walletconnect.web3.modal.ui.theme.Web3ModalColors
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
-import com.walletconnect.web3.modal.ui.theme.provideWeb3Colors
+import com.walletconnect.web3.modal.ui.theme.provideWeb3ModalColors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -90,7 +90,7 @@ private fun PreviewWeb3ModalRoot() {
             sheetState = sheetState,
             coroutineScope = scope,
             navController = navController,
-            colors = provideWeb3Colors()
+            colors = provideWeb3ModalColors()
         ) {
             Box(modifier = Modifier.size(500.dp))
         }

@@ -16,7 +16,7 @@ data class Web3ModalColors(
 )
 
 @Composable
-fun provideWeb3Colors(
+fun provideWeb3ModalColors(
     lightColors: Web3ModalColors = defaultLightWeb3ModalColors,
     darkColors: Web3ModalColors = defaultDarkWeb3ModalColors
 ): Web3ModalColors = if (isSystemInDarkTheme()) {

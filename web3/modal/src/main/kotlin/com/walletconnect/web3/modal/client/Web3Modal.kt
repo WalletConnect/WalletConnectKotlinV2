@@ -1,16 +1,12 @@
 package com.walletconnect.web3.modal.client
 
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.auth.client.Auth
-import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.web3.modal.di.web3ModalModule
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 
 object Web3Modal {
-    private var isClientInitialized = false
-
     interface ModalDelegate {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Modal.Model.RejectedSession)
@@ -31,15 +27,15 @@ object Web3Modal {
     // add exclude/recommended wallets
     fun initialize(
         init: Modal.Params.Init,
+        onSuccess: () -> Unit,
         onError: (Modal.Model.Error) -> Unit
     ) {
         SignClient.initialize(
             init = Sign.Params.Init(init.core),
-            onError = { error -> onError(Modal.Model.Error(error.throwable)) }
-        )
-        AuthClient.initialize(
-            params = Auth.Params.Init(init.core),
-            onError = { error -> onError(Modal.Model.Error(error.throwable)) }
+            onError = { error ->
+                onError(Modal.Model.Error(error.throwable))
+                return@initialize
+            }
         )
 
         runCatching {
@@ -47,8 +43,8 @@ object Web3Modal {
                 web3ModalModule()
             )
             setDelegate(Web3ModalDelegate)
-            isClientInitialized = true
         }.onFailure { error -> onError(Modal.Model.Error(error)) }
+        onSuccess()
     }
 
     @Throws(IllegalStateException::class)
@@ -93,7 +89,7 @@ object Web3Modal {
         SignClient.setDappDelegate(signDelegate)
     }
 
-    internal fun connect(
+    fun connect(
         connect: Modal.Params.Connect,
         onSuccess: () -> Unit,
         onError: (Sign.Model.Error) -> Unit
