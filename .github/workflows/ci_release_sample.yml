@@ -1,17 +1,15 @@
-name: Sample releases
+name: Sample Releases
 
 on: workflow_dispatch
 
 jobs:
   sample_releases:
-    runs-on: ubuntu-latest
     strategy:
-      matrix:
-        conf: [
-          { name: wallet, command: ":samples:wallet:assembleRelease appDistributionUploadRelease", },
-          { name: dapp, command: "samples:dapp:assembleRelease appDistributionUploadRelease" }
-        ]
-  build:
+    matrix:
+      conf: [
+        { name: wallet, command: ":samples:wallet:assembleRelease appDistributionUploadRelease", },
+        { name: dapp, command: "samples:dapp:assembleRelease appDistributionUploadRelease" }
+      ]
     name: ${{ matrix.conf.name }}
     runs-on: ubuntu-latest
     steps:
