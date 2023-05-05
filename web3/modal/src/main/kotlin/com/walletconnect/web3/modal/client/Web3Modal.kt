@@ -27,7 +27,7 @@ object Web3Modal {
     // add exclude/recommended wallets
     fun initialize(
         init: Modal.Params.Init,
-        onSuccess: () -> Unit,
+        onSuccess: () -> Unit = {},
         onError: (Modal.Model.Error) -> Unit
     ) {
         SignClient.initialize(
@@ -48,7 +48,7 @@ object Web3Modal {
     }
 
     @Throws(IllegalStateException::class)
-    fun setDelegate(delegate: ModalDelegate) {
+    internal fun setDelegate(delegate: ModalDelegate) {
         val signDelegate = object : SignClient.DappDelegate {
             override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
                 delegate.onSessionApproved(approvedSession.toModal())
