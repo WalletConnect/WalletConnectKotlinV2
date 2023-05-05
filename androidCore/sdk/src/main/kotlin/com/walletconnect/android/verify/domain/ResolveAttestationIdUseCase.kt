@@ -3,10 +3,13 @@ package com.walletconnect.android.verify.domain
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.model.Validation
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.verify.client.VerifyInterface
 import com.walletconnect.android.verify.data.model.VerifyContext
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import org.koin.core.qualifier.named
 
 class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface, private val repository: VerifyContextStorageRepository) {
@@ -25,7 +28,11 @@ class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface, 
     }
 
     private fun insertContext(context: VerifyContext, onResolve: (VerifyContext) -> Unit) {
-        repository.insertOrAbort(context)
-        onResolve(context)
+        scope.launch {
+            supervisorScope {
+                repository.insertOrAbort(context)
+                onResolve(context)
+            }
+        }
     }
 }

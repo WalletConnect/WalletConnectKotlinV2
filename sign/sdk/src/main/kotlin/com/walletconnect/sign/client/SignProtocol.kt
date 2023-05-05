@@ -17,6 +17,7 @@ import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.runBlocking
 
 class SignProtocol : SignInterface {
     private lateinit var signEngine: SignEngine
@@ -332,13 +333,17 @@ class SignProtocol : SignInterface {
     @Throws(IllegalStateException::class)
     override fun getVerifyContext(id: Long): Sign.Model.VerifyContext? {
         checkEngineInitialization()
-        return signEngine.getVerifyContext(id)?.toClient()
+        return runBlocking {
+            signEngine.getVerifyContext(id)?.toClient()
+        }
     }
 
     @Throws(IllegalStateException::class)
     override fun getListOfVerifyContexts(): List<Sign.Model.VerifyContext> {
         checkEngineInitialization()
-        return signEngine.getListOfVerifyContexts().map { verifyContext -> verifyContext.toClient() }
+        return runBlocking {
+            signEngine.getListOfVerifyContexts().map { verifyContext -> verifyContext.toClient() }
+        }
     }
 
     // TODO: Uncomment once reinit scope logic is added

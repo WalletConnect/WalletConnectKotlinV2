@@ -175,7 +175,11 @@ internal class SignEngine(
     internal fun reject(proposerPublicKey: String, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit = {}) {
         val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
         proposalStorageRepository.deleteProposal(proposerPublicKey)
-        verifyContextStorageRepository.delete(proposal.requestId)
+        scope.launch {
+            supervisorScope {
+                verifyContextStorageRepository.delete(proposal.requestId)
+            }
+        }
 
         jsonRpcInteractor.respondWithError(
             proposal.toSessionProposeRequest(),
@@ -226,7 +230,11 @@ internal class SignEngine(
 
         val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
         proposalStorageRepository.deleteProposal(proposerPublicKey)
-        verifyContextStorageRepository.delete(proposal.requestId)
+        scope.launch {
+            supervisorScope {
+                verifyContextStorageRepository.delete(proposal.requestId)
+            }
+        }
         val request = proposal.toSessionProposeRequest()
 
         SignValidator.validateSessionNamespace(sessionNamespaces.toMapOfNamespacesVOSession(), proposal.requiredNamespaces) { error ->
@@ -380,12 +388,20 @@ internal class SignEngine(
             response = jsonRpcResponse,
             onSuccess = {
                 logger.log("Session payload sent successfully")
-                verifyContextStorageRepository.delete(jsonRpcResponse.id)
+                scope.launch {
+                    supervisorScope {
+                        verifyContextStorageRepository.delete(jsonRpcResponse.id)
+                    }
+                }
                 onSuccess()
             },
             onFailure = { error ->
                 logger.error("Sending session payload response error: $error")
-                verifyContextStorageRepository.delete(jsonRpcResponse.id)
+                scope.launch {
+                    supervisorScope {
+                        verifyContextStorageRepository.delete(jsonRpcResponse.id)
+                    }
+                }
                 onFailure(error)
             }
         )
@@ -552,9 +568,9 @@ internal class SignEngine(
             pendingRequest.toSessionRequest(peerMetaData)
         }
 
-    internal fun getVerifyContext(id: Long): EngineDO.VerifyContext? = verifyContextStorageRepository.get(id)?.toEngineDO()
+    internal suspend fun getVerifyContext(id: Long): EngineDO.VerifyContext? = verifyContextStorageRepository.get(id)?.toEngineDO()
 
-    internal fun getListOfVerifyContexts(): List<EngineDO.VerifyContext> = verifyContextStorageRepository.getAll().map { verifyContext -> verifyContext.toEngineDO() }
+    internal suspend fun getListOfVerifyContexts(): List<EngineDO.VerifyContext> = verifyContextStorageRepository.getAll().map { verifyContext -> verifyContext.toEngineDO() }
 
     private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit = {}) {
         jsonRpcInteractor.peerResponse

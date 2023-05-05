@@ -215,12 +215,20 @@ internal class AuthEngine(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
             onSuccess = {
                 logger.log("Success Responded on topic: $responseTopic")
-                verifyContextStorageRepository.delete(respond.id)
+                scope.launch {
+                    supervisorScope {
+                        verifyContextStorageRepository.delete(respond.id)
+                    }
+                }
                 onSuccess()
             },
             onFailure = { error ->
                 logger.error("Error Responded on topic: $responseTopic")
-                verifyContextStorageRepository.delete(respond.id)
+                scope.launch {
+                    supervisorScope {
+                        verifyContextStorageRepository.delete(respond.id)
+                    }
+                }
                 onFailure(error)
             }
         )
@@ -241,8 +249,8 @@ internal class AuthEngine(
             .map { jsonRpcHistoryEntry -> jsonRpcHistoryEntry.toPendingRequest() }
     }
 
-    internal fun getVerifyContext(id: Long): VerifyContext? = verifyContextStorageRepository.get(id)
-    internal fun getListOfVerifyContext(): List<VerifyContext> = verifyContextStorageRepository.getAll()
+    internal suspend fun getVerifyContext(id: Long): VerifyContext? = verifyContextStorageRepository.get(id)
+    internal suspend fun getListOfVerifyContext(): List<VerifyContext> = verifyContextStorageRepository.getAll()
 
     private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
         val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))

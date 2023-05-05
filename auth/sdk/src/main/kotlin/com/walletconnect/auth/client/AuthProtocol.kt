@@ -18,6 +18,7 @@ import com.walletconnect.auth.di.jsonRpcModule
 import com.walletconnect.auth.engine.domain.AuthEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.runBlocking
 
 internal class AuthProtocol : AuthInterface {
     private lateinit var authEngine: AuthEngine
@@ -113,13 +114,13 @@ internal class AuthProtocol : AuthInterface {
     @Throws(IllegalStateException::class)
     override fun getVerifyContext(id: Long): Auth.Model.VerifyContext? {
         checkEngineInitialization()
-        return authEngine.getVerifyContext(id)?.toClient()
+        return runBlocking { authEngine.getVerifyContext(id)?.toClient() }
     }
 
     @Throws(IllegalStateException::class)
     override fun getListOfVerifyContexts(): List<Auth.Model.VerifyContext> {
         checkEngineInitialization()
-        return authEngine.getListOfVerifyContext().map { verifyContext -> verifyContext.toClient() }
+        return runBlocking { authEngine.getListOfVerifyContext().map { verifyContext -> verifyContext.toClient() } }
     }
 
     @Throws(IllegalStateException::class)
