@@ -1,7 +1,6 @@
 name: SDKs Unit Tests
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - develop
