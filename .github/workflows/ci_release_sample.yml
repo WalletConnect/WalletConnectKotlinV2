@@ -1,10 +1,10 @@
-name: Sample Releases
+name: Release Samples
 
 on:
   workflow_dispatch:
 
 jobs:
-  sample_releases:
+  release_samples:
     strategy:
       matrix:
         conf: [
