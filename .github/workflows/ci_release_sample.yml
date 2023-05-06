@@ -7,7 +7,7 @@ jobs:
   release_samples:
     strategy:
       matrix:
-       conf: [
+        conf: [
           { name: wallet, command: ":samples:wallet:assembleRelease appDistributionUploadRelease" },
           { name: dapp, command: "samples:dapp:assembleRelease appDistributionUploadRelease" }
         ]
@@ -25,7 +25,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-            
+
       - name: Create Google Services Json File
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
