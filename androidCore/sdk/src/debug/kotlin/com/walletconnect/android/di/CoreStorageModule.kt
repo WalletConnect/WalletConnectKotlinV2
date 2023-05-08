@@ -13,7 +13,6 @@ import org.koin.dsl.module
 fun coreStorageModule() = module {
 
     includes(baseStorageModule())
-    includes(syncStorageModule())
 
     single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)) {
         AndroidSqliteDriver(
