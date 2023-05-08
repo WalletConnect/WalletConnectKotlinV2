@@ -32,6 +32,9 @@ jobs:
         run: echo $GOOGLE_SERVICES_JSON > ./samples/${{ matrix.conf.name}}/google-services.json
 
       - name: Release sample
+        env:
+          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: ./gradlew ${{ matrix.conf.command }}
 
       - name: Stop Gradle
