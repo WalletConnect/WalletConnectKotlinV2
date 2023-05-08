@@ -68,10 +68,10 @@ object CoreClient {
             RelayClient.initialize(relayServerUrl, connectionType, networkClientTimeout) { error -> onError(Core.Model.Error(error)) }
         }
 
-        VerifyClient.initialize(metaData.verifyUrl)
-        Sync.initialize() { error -> onError(Core.Model.Error(error.throwable)) }
+        Verify.initialize(metaData.verifyUrl)
         PairingProtocol.initialize()
         PairingController.initialize()
+        Sync.initialize() { error -> onError(Core.Model.Error(error.throwable)) }
     }
 
     fun setDelegate(delegate: CoreDelegate) {

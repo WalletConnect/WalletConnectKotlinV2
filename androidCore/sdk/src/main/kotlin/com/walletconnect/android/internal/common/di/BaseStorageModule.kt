@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.storage.*
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.android.sdk.storage.data.dao.MetaData
 import com.walletconnect.android.sdk.storage.data.dao.VerifyContext
+import com.walletconnect.android.sync.di.syncStorageModule
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
@@ -87,4 +88,6 @@ fun baseStorageModule() = module {
     single { IdentitiesStorageRepository(get()) }
 
     single { VerifyContextStorageRepository(get()) }
+
+    includes(syncStorageModule())
 }
