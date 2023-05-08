@@ -3,6 +3,7 @@ plugins {
     kotlin("android")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
+    id("com.google.firebase.appdistribution")
 }
 
 android {
@@ -30,6 +31,10 @@ android {
             isDebuggable = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("debug")
+            firebaseAppDistribution {
+                artifactType = "APK"
+                groups = "javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
+            }
         }
     }
     compileOptions {

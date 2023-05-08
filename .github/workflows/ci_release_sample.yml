@@ -1,0 +1,41 @@
+name: Release Samples
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release_samples:
+    strategy:
+      matrix:
+        conf: [
+          { name: wallet, command: ":samples:wallet:assembleRelease :samples:wallet:appDistributionUploadRelease" },
+          { name: dapp, command: ":samples:dapp:assembleRelease :samples:dapp:appDistributionUploadRelease" }
+        ]
+    name: ${{ matrix.conf.name }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cache Gradle
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Create Google Services Json File
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: echo $GOOGLE_SERVICES_JSON > ./samples/${{ matrix.conf.name}}/google-services.json
+
+      - name: Release sample
+        env:
+          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: ./gradlew ${{ matrix.conf.command }}
+
+      - name: Stop Gradle
+        run: ./gradlew --stop
