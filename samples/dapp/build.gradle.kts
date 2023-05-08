@@ -89,4 +89,5 @@ dependencies {
     releaseImplementation("com.walletconnect:android-core")
     releaseImplementation("com.walletconnect:sign")
     releaseImplementation("com.walletconnect:push")
+    releaseImplementation(project(":web3:modal"))
 }
