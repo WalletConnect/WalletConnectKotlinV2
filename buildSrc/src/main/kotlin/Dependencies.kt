@@ -177,7 +177,3 @@ fun DependencyHandlerScope.compose() {
     "debugApi"("androidx.compose.ui:ui-tooling")
     "debugApi"("androidx.compose.ui:ui-test-manifest")
 }
-
-//fun DependencyHandlerScope.relinker() {
-//
-//}
