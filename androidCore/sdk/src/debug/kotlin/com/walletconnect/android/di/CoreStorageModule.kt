@@ -5,7 +5,6 @@ import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.android.internal.common.di.DBUtils
 import com.walletconnect.android.internal.common.di.baseStorageModule
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
-import com.walletconnect.android.sync.di.syncStorageModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
