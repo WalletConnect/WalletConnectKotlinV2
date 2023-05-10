@@ -14,6 +14,7 @@ const val CHAT_VERSION = "1.0.0-beta09"
 const val PUSH_VERSION = "1.0.0-alpha04"
 const val WEB_3_WALLET = "1.7.3"
 const val WEB_3_INBOX = "1.0.0-alpha09"
+const val WEB_3_MODAL = "1.0.0-alpha01"
 
 val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23

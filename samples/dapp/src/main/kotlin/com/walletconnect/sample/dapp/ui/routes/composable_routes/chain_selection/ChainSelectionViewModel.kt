@@ -45,7 +45,6 @@ class ChainSelectionViewModel : ViewModel() {
             }
         }
     }
-
     fun connectToWallet(pairingTopicPosition: Int = -1, onProposedSequence: (String) -> Unit = {}) {
         val pairing: Core.Model.Pairing = if (pairingTopicPosition > -1) {
             CoreClient.Pairing.getPairings()[pairingTopicPosition]
