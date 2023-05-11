@@ -6,12 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetState
-import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -25,20 +20,14 @@ import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
 import com.walletconnect.web3.modal.ui.theme.Web3ModalColors
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.ui.theme.provideWeb3ModalColors
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 @Composable
 internal fun Web3ModalRoot(
-    sheetState: ModalBottomSheetState,
-    coroutineScope: CoroutineScope,
     navController: NavController,
     colors: Web3ModalColors,
+    closeModal: () -> Unit,
     content: @Composable () -> Unit
 ) {
-//    LaunchedEffect(Unit) {
-//        sheetState.show()
-//    }
 
     Column(
         verticalArrangement = Arrangement.Bottom
@@ -56,9 +45,7 @@ internal fun Web3ModalRoot(
                     WalletConnectLogo(modifier = Modifier.weight(1f))
                     QuestionMarkIconButton(navController)
                     Spacer(modifier = Modifier.width(16.dp))
-                    CloseIconButton {
-                        coroutineScope.launch { sheetState.hide() }
-                    }
+                    CloseIconButton { closeModal() }
                 }
                 Column(
                     modifier = Modifier
@@ -78,19 +65,13 @@ internal fun Web3ModalRoot(
 @Composable
 @Preview
 private fun PreviewWeb3ModalRoot() {
-    val sheetState = rememberModalBottomSheetState(
-        initialValue = ModalBottomSheetValue.Hidden,
-        skipHalfExpanded = true
-    )
     val navController = rememberNavController()
-    val scope = rememberCoroutineScope()
 
     ComponentPreview {
         Web3ModalRoot(
-            sheetState = sheetState,
-            coroutineScope = scope,
             navController = navController,
-            colors = provideWeb3ModalColors()
+            colors = provideWeb3ModalColors(),
+            closeModal = {},
         ) {
             Box(modifier = Modifier.size(500.dp))
         }
