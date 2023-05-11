@@ -2,9 +2,7 @@ package com.walletconnect.web3.modal.network.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.sample.dapp.web3modal.network.model.ExplorerWalletResponse
 import com.walletconnect.web3.modal.data.explorer.MapToList
-
 
 @JsonClass(generateAdapter = true)
 internal data class ExplorerResponse(

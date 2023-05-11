@@ -36,9 +36,9 @@ internal fun Web3ModalRoot(
     colors: Web3ModalColors,
     content: @Composable () -> Unit
 ) {
-    LaunchedEffect(Unit) {
-        sheetState.show()
-    }
+//    LaunchedEffect(Unit) {
+//        sheetState.show()
+//    }
 
     Column(
         verticalArrangement = Arrangement.Bottom

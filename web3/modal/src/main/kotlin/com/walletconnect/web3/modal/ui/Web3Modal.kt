@@ -69,16 +69,18 @@ internal fun Web3Modal(
             .collect()
     }
 
-    Web3ModalRoot(
-        sheetState = sheetState,
-        coroutineScope = coroutinesScope,
-        navController = navController,
-        colors = colors
-    ) {
-        Web3ModalNavGraph(
+    web3ModalState?.let { state ->
+        Web3ModalRoot(
+            sheetState = sheetState,
+            coroutineScope = coroutinesScope,
             navController = navController,
-            web3ModalState = web3ModalState,
-        )
+            colors = colors
+        ) {
+            Web3ModalNavGraph(
+                navController = navController,
+                web3ModalState = state,
+            )
+        }
     }
 }
 

@@ -5,6 +5,7 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.web3.modal.network.ExplorerService
 import com.walletconnect.web3.modal.network.model.ExplorerResponse
 
+private const val PLATFORM_ANDROID = "android"
 internal class ExplorerRepository(
     private val explorerApi: ExplorerService,
 ) {
@@ -19,7 +20,8 @@ internal class ExplorerRepository(
             projectId = projectId.value,
             page = page,
             entries = entries,
-            chains = chains.joinToString(",")
+            chains = chains.joinToString(","),
+            platforms = PLATFORM_ANDROID
         ).body()
     }
 }
