@@ -1,8 +1,6 @@
 package com.walletconnect.android.internal.utils
 
 import com.walletconnect.android.internal.common.model.Expiry
-import java.util.*
-import java.util.concurrent.TimeUnit
 
 object CoreValidator {
 
@@ -34,12 +32,10 @@ object CoreValidator {
     }
 
     @JvmSynthetic
-    fun isExpiryNotWithinBounds(userExpiry: Expiry?, now: Long = TimeUnit.SECONDS.convert(Date().time, TimeUnit.MILLISECONDS)): Boolean =
+    fun isExpiryWithinBounds(userExpiry: Expiry?): Boolean =
         userExpiry?.seconds?.run {
-            val remainder = this - now
-
-            remainder < 0 || !(FIVE_MINUTES_IN_SECONDS..WEEK_IN_SECONDS).contains(remainder)
-        } ?: false
+            (FIVE_MINUTES_IN_SECONDS..WEEK_IN_SECONDS).contains(this)
+        } ?: true
 
     private const val NAMESPACE_REGEX: String = "^[-a-z0-9]{3,8}$"
     private const val REFERENCE_REGEX: String = "^[-a-zA-Z0-9]{1,32}$"

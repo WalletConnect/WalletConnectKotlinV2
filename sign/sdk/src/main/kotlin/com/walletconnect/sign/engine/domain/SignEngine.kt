@@ -6,16 +6,36 @@ import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.*
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
-import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.exception.GenericException
+import com.walletconnect.android.internal.common.exception.Invalid
+import com.walletconnect.android.internal.common.exception.InvalidExpiryException
+import com.walletconnect.android.internal.common.exception.Reason
+import com.walletconnect.android.internal.common.exception.Uncategorized
+import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.AppMetaDataType
+import com.walletconnect.android.internal.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.IrnParams
+import com.walletconnect.android.internal.common.model.Pairing
+import com.walletconnect.android.internal.common.model.RelayProtocolOptions
+import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.model.WCRequest
+import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.utils.*
+import com.walletconnect.android.internal.utils.ACTIVE_SESSION
+import com.walletconnect.android.internal.utils.CoreValidator
+import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.THIRTY_SECONDS
+import com.walletconnect.android.internal.utils.WEEK_IN_SECONDS
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
@@ -24,8 +44,20 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.sign.common.validator.SignValidator
-import com.walletconnect.sign.common.exceptions.*
+import com.walletconnect.sign.common.exceptions.InvalidEventException
+import com.walletconnect.sign.common.exceptions.InvalidNamespaceException
+import com.walletconnect.sign.common.exceptions.InvalidPropertiesException
+import com.walletconnect.sign.common.exceptions.InvalidRequestException
+import com.walletconnect.sign.common.exceptions.NO_SEQUENCE_FOR_TOPIC_MESSAGE
+import com.walletconnect.sign.common.exceptions.NotSettledSessionException
+import com.walletconnect.sign.common.exceptions.PeerError
+import com.walletconnect.sign.common.exceptions.SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE
+import com.walletconnect.sign.common.exceptions.UNAUTHORIZED_EMIT_MESSAGE
+import com.walletconnect.sign.common.exceptions.UNAUTHORIZED_EXTEND_MESSAGE
+import com.walletconnect.sign.common.exceptions.UNAUTHORIZED_UPDATE_MESSAGE
+import com.walletconnect.sign.common.exceptions.UnauthorizedEventException
+import com.walletconnect.sign.common.exceptions.UnauthorizedMethodException
+import com.walletconnect.sign.common.exceptions.UnauthorizedPeerException
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.type.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
@@ -36,19 +68,45 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.payload.Session
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
+import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
-import com.walletconnect.sign.engine.model.mapper.*
+import com.walletconnect.sign.engine.model.mapper.toEngineDO
+import com.walletconnect.sign.engine.model.mapper.toEngineDOEvent
+import com.walletconnect.sign.engine.model.mapper.toEngineDOSessionExtend
+import com.walletconnect.sign.engine.model.mapper.toMapOfEngineNamespacesSession
+import com.walletconnect.sign.engine.model.mapper.toMapOfNamespacesVOSession
+import com.walletconnect.sign.engine.model.mapper.toNamespacesVOOptional
+import com.walletconnect.sign.engine.model.mapper.toNamespacesVORequired
+import com.walletconnect.sign.engine.model.mapper.toPeerError
+import com.walletconnect.sign.engine.model.mapper.toSessionApproveParams
+import com.walletconnect.sign.engine.model.mapper.toSessionApproved
+import com.walletconnect.sign.engine.model.mapper.toSessionProposeParams
+import com.walletconnect.sign.engine.model.mapper.toSessionProposeRequest
+import com.walletconnect.sign.engine.model.mapper.toSessionRequest
+import com.walletconnect.sign.engine.model.mapper.toSessionSettleParams
+import com.walletconnect.sign.engine.model.mapper.toVO
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCase
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
-import com.walletconnect.util.generateId
 import com.walletconnect.utils.Empty
 import com.walletconnect.utils.extractTimestamp
 import com.walletconnect.utils.isSequenceValid
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import java.util.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withTimeout
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 internal class SignEngine(
@@ -288,7 +346,7 @@ internal class SignEngine(
         }
 
         val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.MILLISECONDS)
-        if (CoreValidator.isExpiryNotWithinBounds(request.expiry, nowInSeconds)) {
+        if (!CoreValidator.isExpiryWithinBounds(request.expiry)) {
             return onFailure(InvalidExpiryException())
         }
 
@@ -353,7 +411,7 @@ internal class SignEngine(
         }
 
         sessionStorageRepository.getSessionExpiryByTopic(topicWrapper)?.let { expiry ->
-            if (CoreValidator.isExpiryNotWithinBounds(expiry)) {
+            if (!CoreValidator.isExpiryWithinBounds(expiry)) {
                 scope.launch {
                     supervisorScope {
                         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
@@ -711,7 +769,7 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         try {
-            if (CoreValidator.isExpiryNotWithinBounds(params.request.expiry)) {
+            if (!CoreValidator.isExpiryWithinBounds(params.request.expiry)) {
                 jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
                 return
             }
