@@ -64,6 +64,7 @@ dependencies {
     scarletAndroid()
     sqlDelightAndroid()
     sqlCipher()
+    reLinker()
     security()
     koinAndroid()
     timber()

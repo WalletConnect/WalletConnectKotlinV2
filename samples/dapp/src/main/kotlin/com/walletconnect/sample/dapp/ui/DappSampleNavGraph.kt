@@ -23,7 +23,7 @@ import com.walletconnect.sample.dapp.ui.routes.composable_routes.account.Account
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selection.ChainSelectionRoute
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.session.SessionRoute
 import com.walletconnect.sample.dapp.ui.routes.dialog_routes.MessageDialogRoute
-import com.walletconnect.sample.dapp.web3modal.ui.web3ModalGraph
+import com.walletconnect.web3.modal.ui.web3ModalGraph
 
 @Composable
 fun DappSampleNavGraph(
@@ -71,7 +71,6 @@ fun DappSampleNavGraph(
         }
     }
 }
-
 
 const val accountArg= "accountArg"
 const val messageArg = "messageArg"

@@ -9,6 +9,7 @@ import android.security.keystore.KeyProperties
 import android.util.Base64
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.getkeepsafe.relinker.ReLinker
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
 import com.walletconnect.android.internal.common.di.*
@@ -16,6 +17,7 @@ import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.randomBytes
 import net.sqlcipher.database.SupportFactory
+import net.sqlcipher.database.SQLiteDatabaseHook
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
@@ -146,6 +148,30 @@ private fun signingModule() = module {
     }
 }
 
+fun getSupportFactory(
+    context: Context,
+    passphrase: ByteArray,
+    hook: SQLiteDatabaseHook?,
+    clearPassphrase: Boolean
+): SupportFactory {
+    loadSqlCipherLibrary(context)
+    return SupportFactory(passphrase, hook, clearPassphrase)
+}
+
+private fun loadSqlCipherLibrary(context: Context) {
+    val libraryName = "sqlcipher"
+    try {
+        System.loadLibrary(libraryName)
+    } catch (e: UnsatisfiedLinkError) {
+        ReLinker.loadLibrary(context, libraryName, object : ReLinker.LoadListener {
+            override fun success() {}
+            override fun failure(t: Throwable?) {
+                throw e
+            }
+        })
+    }
+}
+
 fun coreStorageModule() = module {
 
     includes(baseStorageModule(), signingModule())
@@ -155,7 +181,7 @@ fun coreStorageModule() = module {
             schema = AndroidCoreDatabase.Schema,
             context = androidContext(),
             name = DBUtils.ANDROID_CORE_DB_NAME,
-            factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false) //todo: create a separate DB_PASSHPHRASE
+            factory = getSupportFactory(androidContext(), get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false) //todo: create a separate DB_PASSHPHRASE
         )
     }
 }
@@ -168,7 +194,7 @@ fun sdkBaseStorageModule(databaseSchema: SqlDriver.Schema, databaseName: String)
             schema = databaseSchema,
             context = androidContext(),
             name = databaseName,
-            factory = SupportFactory(get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false)
+            factory = getSupportFactory(androidContext(), get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false)
         )
     }
 }
