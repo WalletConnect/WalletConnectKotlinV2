@@ -169,7 +169,7 @@ internal class AuthEngine(
 
                 scope.launch {
                     try {
-                        withTimeout(requestTtlInSeconds) {
+                        withTimeout(requestTtlInSeconds * 1000) {
                             jsonRpcInteractor.peerResponse
                                 .filter { response -> response.response.id == authRequest.id }
                                 .collect { cancel() }
