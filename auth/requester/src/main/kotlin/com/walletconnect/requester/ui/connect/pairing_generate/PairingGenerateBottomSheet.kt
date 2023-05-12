@@ -59,9 +59,6 @@ class PairingGenerateBottomSheet : BottomSheetDialogFragment() {
 
             btnDeepLink.setOnClickListener {
                 try {
-
-                    println("kobe: Requester deep link: ${deeplinkPairingUri.toUri()}")
-
                     requireActivity().startActivity(Intent(Intent.ACTION_VIEW, deeplinkPairingUri.toUri()))
                 } catch (exception: ActivityNotFoundException) {
                     // There is no app to handle deep link

@@ -136,8 +136,6 @@ internal class AuthEngine(
         val responsePublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
 
-        println("kobe; Request expiry: $expiry")
-
         val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams, expiry)
         val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(params = authParams)
         val irnParamsTtl = expiry?.run {
@@ -264,9 +262,6 @@ internal class AuthEngine(
 
     private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
         if (!CoreValidator.isExpiryWithinBounds(authParams.expiry)) {
-
-            println("kobe: Auth Expiry: ${authParams.expiry}")
-
             val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
             jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
             return

@@ -55,9 +55,6 @@ fun ConnectionsRoute(navController: NavController, connectionsViewModel: Connect
     val activity = context.findActivity()
 
     activity?.intent.takeIf { intent -> intent?.action == Intent.ACTION_VIEW && !intent.dataString.isNullOrBlank() }?.let { intent ->
-
-        println("kobe: web3wallet pair: ${intent.dataString.toString()}")
-
         web3WalletViewModel.pair(intent.dataString.toString())
         intent.data = null
     }

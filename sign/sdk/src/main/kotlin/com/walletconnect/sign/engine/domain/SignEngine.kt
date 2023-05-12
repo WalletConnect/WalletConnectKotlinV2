@@ -144,9 +144,6 @@ internal class SignEngine(
     }
 
     fun setup() {
-
-        println("kobe: setup")
-
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
@@ -162,7 +159,6 @@ internal class SignEngine(
                 }
 
                 if (jsonRpcResponsesJob == null) {
-                    println("kobe: responses")
                     jsonRpcResponsesJob = collectJsonRpcResponses()
                 }
 
@@ -416,7 +412,6 @@ internal class SignEngine(
         }
 
         getPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcResponse.id)?.params?.request?.expiry?.let { expiry ->
-            println("kobe: Expiry respond: $expiry")
             if (!CoreValidator.isExpiryWithinBounds(expiry)) {
                 scope.launch {
                     supervisorScope {
@@ -645,11 +640,7 @@ internal class SignEngine(
             .filter { request -> request.params is SignParams }
             .onEach { response ->
                 when (val params = response.params) {
-                    is SignParams.SessionProposeParams -> {
-                        println("kobe: DUPA")
-                        onSessionProposalResponse(response, params)
-                    }
-
+                    is SignParams.SessionProposeParams -> onSessionProposalResponse(response, params)
                     is SignParams.SessionSettleParams -> onSessionSettleResponse(response)
                     is SignParams.UpdateNamespacesParams -> onSessionUpdateResponse(response)
                     is SignParams.SessionRequestParams -> onSessionRequestResponse(response, params)
@@ -707,8 +698,6 @@ internal class SignEngine(
             return
         }
 
-        println("kobe: on session settle")
-
         val peerMetadata = settleParams.controller.metadata
         val proposal = proposalStorageRepository.getProposalByKey(selfPublicKey.keyAsHex).also { proposalStorageRepository.deleteProposal(selfPublicKey.keyAsHex) }
         val (requiredNamespaces, optionalNamespaces, properties) = proposal.run { Triple(requiredNamespaces, optionalNamespaces, properties) }
@@ -731,18 +720,14 @@ internal class SignEngine(
                         proposal.pairingTopic.value
                     )
 
-                    println("kobe: Inserting a session")
                     sessionStorageRepository.insertSession(session, request.id)
-                    println("kobe: Updating meta data")
                     pairingHandler.updateMetadata(Core.Params.UpdateMetadata(proposal.pairingTopic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
                     metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
                     jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
-                    println("kobe: Emiting")
                     _engineEvent.emit(session.toSessionApproved())
                 } catch (e: Exception) {
                     proposalStorageRepository.insertProposal(proposal)
                     sessionStorageRepository.deleteSession(sessionTopic)
-                    println("kobe: ERROR: $e")
                     jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
                     scope.launch { _engineEvent.emit(SDKError(e)) }
                     return@supervisorScope
@@ -973,7 +958,6 @@ internal class SignEngine(
     // listened by DappDelegate
     private fun onSessionProposalResponse(wcResponse: WCResponse, params: SignParams.SessionProposeParams) {
         try {
-            println("kobe: Session Approve")
             val pairingTopic = wcResponse.topic
             pairingHandler.updateExpiry(Core.Params.UpdateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS)))
             pairingHandler.activate(Core.Params.Activate(pairingTopic.value))

@@ -9,11 +9,3 @@ internal data class PendingRequest<T>(
     val chainId: String?,
     val params: T
 )
-
-//internal data class PendingSessionRequest(
-//    val id: Long,
-//    val topic: Topic,
-//    val method: String,
-//    val chainId: String?,
-//    val params: SignParams.SessionRequestParams
-//)
