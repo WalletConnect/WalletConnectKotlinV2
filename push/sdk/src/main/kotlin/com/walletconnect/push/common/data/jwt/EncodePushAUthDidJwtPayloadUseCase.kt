@@ -9,7 +9,8 @@ import com.walletconnect.foundation.util.jwt.encodeDidPkh
 
 class EncodePushAuthDidJwtPayloadUseCase(
     private val audience: String,
-    private val accountId: AccountId
+    private val accountId: AccountId,
+    private val scope: String
 ) : EncodeDidJwtPayloadUseCase<PushSubscriptionJwtClaim> {
 
     override fun invoke(params: EncodeDidJwtPayloadUseCase.Params): PushSubscriptionJwtClaim = with(params) {
@@ -19,7 +20,8 @@ class EncodePushAuthDidJwtPayloadUseCase(
             issuer = issuer,
             keyserverUrl = keyserverUrl,
             audience = audience,
-            subject = encodeDidPkh(accountId.value)
+            subject = encodeDidPkh(accountId.value),
+            scope = scope
         )
     }
 }

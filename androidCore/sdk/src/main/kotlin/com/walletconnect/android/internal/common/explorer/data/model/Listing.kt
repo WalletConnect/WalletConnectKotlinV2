@@ -1,10 +1,12 @@
 package com.walletconnect.android.internal.common.explorer.data.model
 
+import android.net.Uri
+
 data class Listing(
     val id: String,
     val name: String,
     val description: String?,
-    val homepage: String,
+    val homepage: Uri,
     val chains: List<String>,
     val versions: List<String>,
     val sdks: List<String>,

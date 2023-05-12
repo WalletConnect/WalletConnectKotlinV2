@@ -16,7 +16,6 @@ import com.walletconnect.push.wallet.client.mapper.toCommon
 import com.walletconnect.push.wallet.di.messageModule
 import com.walletconnect.push.wallet.di.walletEngineModule
 import com.walletconnect.push.wallet.engine.PushWalletEngine
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -54,6 +53,7 @@ class PushWalletProtocol : PushWalletInterface {
             when (event) {
                 is EngineDO.PushRequest -> delegate.onPushRequest(event.toClient())
                 is EngineDO.PushRecord -> delegate.onPushMessage(event.toClient())
+                is EngineDO.PushSubscription -> delegate.onPushSubscription(Push.Wallet.Event.Subscription(event.toClient()))
                 is SDKError -> delegate.onError(event.toClient())
             }
         }.launchIn(scope)
@@ -102,6 +102,20 @@ class PushWalletProtocol : PushWalletInterface {
             supervisorScope {
                 try {
                     pushWalletEngine.reject(params.id, params.reason, onSuccess) { onError(Push.Model.Error(it)) }
+                } catch (e: Exception) {
+                    onError(Push.Model.Error(e))
+                }
+            }
+        }
+    }
+
+    override fun update(params: Push.Wallet.Params.Update, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        scope.launch {
+            supervisorScope {
+                try {
+                    pushWalletEngine.update(params.topic, params.scope, onSuccess) { onError(Push.Model.Error(it)) }
                 } catch (e: Exception) {
                     onError(Push.Model.Error(e))
                 }

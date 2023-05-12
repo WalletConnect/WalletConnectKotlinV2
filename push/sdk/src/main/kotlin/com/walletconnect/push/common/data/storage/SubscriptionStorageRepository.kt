@@ -4,6 +4,7 @@ import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.storage.data.dao.SubscriptionsQueries
 import kotlinx.coroutines.Dispatchers
@@ -13,8 +14,8 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
 
     suspend fun insertSubscription(
         requestId: Long,
-        pairingTopic: String,
-        peerPublicKeyAsHex: String,
+        responseTopic: String,
+        peerPublicKeyAsHex: String? = null,
         subscriptionTopic: String? = null,
         account: String,
         relayProtocol: String?,
@@ -23,11 +24,14 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
         description: String,
         url: String,
         icons: List<String>,
-        native: String?
+        native: String?,
+        didJwt: String,
+        mapOfScope: Map<String, Pair<String, Boolean>>,
+        expiry: Long
     ) = withContext(Dispatchers.IO) {
         subscriptionQueries.insertSubscription(
             request_id = requestId,
-            pairing_topic = pairingTopic,
+            pairing_topic = responseTopic,
             peer_public_key = peerPublicKeyAsHex,
             topic = subscriptionTopic,
             account = account,
@@ -41,9 +45,18 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
         )
     }
 
-    suspend fun updateSubscriptionToResponded(requestId: Long, topic: String, metadata: AppMetaData) = withContext(Dispatchers.IO) {
+    suspend fun updateSubscriptionToResponded(responseTopic: String, topic: String, dappPublicKey: String, newExpiry: Long) = withContext(Dispatchers.IO) {
         val (relay, data) = RelayProtocolOptions().run { protocol to data }
         subscriptionQueries.updateSubscriptionToResponded(topic, relay, data, metadata.name, metadata.description, metadata.url, metadata.icons, metadata.redirect?.native, requestId)
+    }
+
+    suspend fun updateSubscriptionToRespondedByApproval(responseTopic: String, topic: String, newExpiry: Long) = withContext(Dispatchers.IO) {
+        val (relay, data) = RelayProtocolOptions().run { protocol to data }
+        subscriptionQueries.updateSubscriptionToResponded(topic, relay, data, metadata.name, metadata.description, metadata.url, metadata.icons, metadata.redirect?.native, requestId)
+    }
+
+    suspend fun updateSubscriptionScopeAndJwt(subscriptionTopic: String, updateScope: Map<String, Pair<String, Boolean>>, updateJwt: String, newExpiry: Long) = withContext(Dispatchers.IO) {
+        subscriptionQueries.updateSubscriptionScopeAndJwt(scope, didJwt, requestId)
     }
 
     suspend fun getAllSubscriptions(): List<EngineDO.PushSubscription> = withContext(Dispatchers.IO) {
@@ -79,6 +92,6 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
         val metadata = AppMetaData(metadata_name, metadata_description, metadata_url, metadata_icons, Redirect(metadata_native))
         val relayProtocolOptions = RelayProtocolOptions(relay_protocol, relay_data)
 
-        return EngineDO.PushSubscription(request_id, pairingTopic, peerPublicKey, topic, AccountId(account), relayProtocolOptions, metadata)
+        return EngineDO.PushSubscription(request_id, pairingTopic, peerPublicKey, topic, AccountId(account), relayProtocolOptions, metadata, "")
     }
 }

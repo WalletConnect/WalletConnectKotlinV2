@@ -1,4 +1,4 @@
-package com.walletconnect.push.wallet.data.wellknown
+package com.walletconnect.push.wallet.data.wellknown.did
 
 
 import com.squareup.moshi.Json

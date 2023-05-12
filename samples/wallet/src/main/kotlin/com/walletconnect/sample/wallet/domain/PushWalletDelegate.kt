@@ -31,6 +31,10 @@ object PushWalletDelegate: PushWalletClient.Delegate {
         scope.launch { _wcPushEventModels.emit(pushDelete) }
     }
 
+    override fun onPushSubscription(pushSubscribe: Push.Wallet.Event.Subscription) {
+        scope.launch { _wcPushEventModels.emit(pushSubscribe) }
+    }
+
     override fun onError(error: Push.Model.Error) {
     }
 }

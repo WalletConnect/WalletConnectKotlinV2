@@ -60,6 +60,9 @@ class Web3WalletViewModel : ViewModel() {
             is Push.Wallet.Event.Delete -> {
                 NoAction
             }
+            is Push.Wallet.Event.Subscription -> {
+                Log.e("Talha", "PushEvent.Subscription: ${pushEvent.subscription}")
+            }
             else -> NoAction
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())

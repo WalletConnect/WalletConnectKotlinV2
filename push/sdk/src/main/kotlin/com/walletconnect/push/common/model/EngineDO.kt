@@ -2,6 +2,7 @@ package com.walletconnect.push.common.model
 
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 
@@ -31,12 +32,14 @@ sealed class EngineDO : EngineEvent {
 
     data class PushSubscription(
         val requestId: Long,
-        val pairingTopic: String,
+        val responseTopic: String,
         val peerPublicKeyAsHex: String,
-        val topic: String?,
+        val subscriptionTopic: String?,
         val account: AccountId,
         val relay: RelayProtocolOptions,
         val metadata: AppMetaData,
+        val scope: Map<String, Pair<String, Boolean>>,
+        val expiry: Expiry
     ) : EngineDO()
 
     data class PushRequestResponse(
@@ -49,6 +52,11 @@ sealed class EngineDO : EngineEvent {
     ) : EngineDO()
 
     data class PushSubscribeError(
+        val requestId: Long,
+        val rejectionReason: String,
+    ) : EngineDO()
+
+    data class PushUpdateError(
         val requestId: Long,
         val rejectionReason: String,
     ) : EngineDO()

@@ -78,5 +78,6 @@ dependencies {
 
     jUnit5()
     jUnit5Android()
+    robolectric()
     mockk()
 }

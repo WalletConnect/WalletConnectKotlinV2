@@ -33,6 +33,8 @@ sealed class PushParams: ClientParams {
         val icon: String?,
         @Json(name = "url")
         val url: String?,
+        @Json(name = "type")
+        val type: String,
     ): PushParams()
 
     @JsonClass(generateAdapter = true)
@@ -45,6 +47,12 @@ sealed class PushParams: ClientParams {
 
     @JsonClass(generateAdapter = true)
     data class SubscribeParams(
+        @Json(name = "subscriptionAuth")
+        val subscriptionAuth: String
+    ): PushParams()
+
+    @JsonClass(generateAdapter = true)
+    data class UpdateParams(
         @Json(name = "subscriptionAuth")
         val subscriptionAuth: String
     ): PushParams()

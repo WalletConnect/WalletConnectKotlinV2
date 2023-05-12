@@ -111,7 +111,7 @@ internal class PushDappEngine(
         message: EngineDO.PushMessage,
         onFailure: (Throwable) -> Unit,
     ) {
-        val messageParams = PushParams.MessageParams(message.title, message.body, message.icon, message.url)
+        val messageParams = PushParams.MessageParams(message.title, message.body, message.icon, message.url, "")
         val request = PushRpc.PushMessage(params = messageParams)
         val irnParams = IrnParams(Tags.PUSH_MESSAGE, Ttl(DAY_IN_SECONDS))
 
@@ -177,8 +177,8 @@ internal class PushDappEngine(
 
     suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription> =
         subscriptionStorageRepository.getAllSubscriptions()
-            .filter { subscription -> !subscription.topic.isNullOrBlank() }
-            .associateBy { subscription -> subscription.topic!! }
+            .filter { subscription -> !subscription.subscriptionTopic.isNullOrBlank() }
+            .associateBy { subscription -> subscription.subscriptionTopic!! }
 
     private fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
@@ -229,16 +229,17 @@ internal class PushDappEngine(
                         pushTopic.value,
                         AccountId(params.account),
                         RelayProtocolOptions(),
-                        params.metaData
+                        params.metaData,
+                        ""
                     )
 
                     withContext(Dispatchers.IO) {
                         with(respondedSubscription) {
                             subscriptionStorageRepository.insertSubscription(
                                 requestId,
-                                pairingTopic,
+                                responseTopic,
                                 peerPublicKeyAsHex,
-                                topic,
+                                subscriptionTopic,
                                 account.value,
                                 relay.protocol,
                                 relay.data,

@@ -2,6 +2,7 @@
 
 package com.walletconnect.util
 
+import io.ipfs.multibase.Base16
 import jakarta.ws.rs.core.UriBuilder
 import java.security.SecureRandom
 import kotlin.math.pow
@@ -22,22 +23,25 @@ fun randomBytes(size: Int): ByteArray = ByteArray(size).apply {
     SecureRandom().nextBytes(this)
 }
 
-fun ByteArray.bytesToHex(): String {
-    val hexString = StringBuilder(2 * this.size)
+fun ByteArray.bytesToHex(): String = Base16.encode(this)
 
-    this.indices.forEach { i ->
-        val hex = Integer.toHexString(0xff and this[i].toInt())
+fun String.hexToBytes(): ByteArray = Base16.decode(this.lowercase())
 
-        if (hex.length == 1) {
-            hexString.append('0')
-        }
-
-        hexString.append(hex)
-    }
-
-    return hexString.toString()
-}
-
+//fun ByteArray.bytesToHex(): String {
+//    val hexString = StringBuilder(2 * this.size)
+//
+//    this.indices.forEach { i ->
+//        val hex = Integer.toHexString(0xff and this[i].toInt())
+//
+//        if (hex.length == 1) {
+//            hexString.append('0')
+//        }
+//
+//        hexString.append(hex)
+//    }
+//
+//    return hexString.toString()
+//}
 
 fun ByteArray.bytesToInt(size: Int): Int {
     require(this.size <= 4) { "Byte array size must be less than 5" }
@@ -47,19 +51,18 @@ fun ByteArray.bytesToInt(size: Int): Int {
     }
 }
 
-fun String.hexToBytes(): ByteArray {
-    val len = this.length
-    val data = ByteArray(len / 2)
-    var i = 0
-
-    while (i < len) {
-        data[i / 2] = ((Character.digit(this[i], 16) shl 4)
-                + Character.digit(this[i + 1], 16)).toByte()
-        i += 2
-    }
-
-    return data
-}
+//fun String.hexToBytes(): ByteArray {
+//    val len = this.length
+//    val data = ByteArray(len / 2)
+//    var i = 0
+//
+//    while (i < len) {
+//        data[i / 2] = ((Character.digit(this[i], 16) shl 4) + Character.digit(this[i + 1], 16)).toByte()
+//        i += 2
+//    }
+//
+//    return data
+//}
 
 @JvmSynthetic
 internal fun String.addUserAgent(sdkVersion: String): String {
