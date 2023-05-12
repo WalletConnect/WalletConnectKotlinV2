@@ -81,13 +81,11 @@ dependencies {
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.1")
 
     debugImplementation(project(":androidCore:sdk"))
-    debugImplementation(project(":sign:sdk"))
     debugImplementation(project(":push:sdk"))
     debugImplementation(project(":web3:modal"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
-    releaseImplementation("com.walletconnect:sign")
     releaseImplementation("com.walletconnect:push")
     releaseImplementation(project(":web3:modal"))
 }
