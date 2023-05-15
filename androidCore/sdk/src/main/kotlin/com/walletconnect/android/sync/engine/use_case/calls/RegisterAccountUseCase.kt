@@ -12,13 +12,16 @@ import com.walletconnect.android.sync.storage.AccountsStorageRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-internal class RegisterAccountUseCase(private val accountsRepository: AccountsStorageRepository, private val messageSignatureVerifier: MessageSignatureVerifier) : RegisterUseCaseInterface,
-    GetMessageUseCaseInterface by GetMessageUseCase {
+internal class RegisterAccountUseCase(private val accountsRepository: AccountsStorageRepository, private val messageSignatureVerifier: MessageSignatureVerifier) :
+    RegisterUseCaseInterface, GetMessageUseCaseInterface by GetMessageUseCase {
 
     override fun register(accountId: AccountId, signature: String, signatureType: SignatureType, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         scope.launch {
             supervisorScope {
                 validateAccountId(accountId) { error -> return@supervisorScope onFailure(error) }
+
+                // When account exists then return call onSuccess() and finish use case invocation
+                if (!accountsRepository.doesAccountNotExists(accountId)) return@supervisorScope onSuccess()
 
                 val message = getMessage(accountId)
 
@@ -26,7 +29,7 @@ internal class RegisterAccountUseCase(private val accountsRepository: AccountsSt
                     .onFailure { return@supervisorScope onFailure(InvalidSignatureException()) }
                     .onSuccess { isValid -> if (!isValid) return@supervisorScope onFailure(InvalidSignatureException()) }
 
-                runCatching { accountsRepository.createAccount(Account(accountId, message.toEntropy())) }.fold(
+                runCatching { accountsRepository.createAccount(Account(accountId, signature.toEntropy())) }.fold(
                     onSuccess = { onSuccess() },
                     onFailure = { error -> onFailure(error) }
                 )

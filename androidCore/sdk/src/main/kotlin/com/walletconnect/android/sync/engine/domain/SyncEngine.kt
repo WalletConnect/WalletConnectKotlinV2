@@ -14,6 +14,7 @@ import com.walletconnect.android.sync.engine.use_case.requests.OnSetRequestUseCa
 import com.walletconnect.android.sync.engine.use_case.responses.OnDeleteResponseUseCase
 import com.walletconnect.android.sync.engine.use_case.responses.OnSetResponseUseCase
 import com.walletconnect.android.sync.engine.use_case.subscriptions.SubscribeToAllStoresUpdatesUseCase
+import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -33,6 +34,7 @@ internal class SyncEngine(
     private val onSetResponseUseCase: OnSetResponseUseCase,
     private val onDeleteResponseUseCase: OnDeleteResponseUseCase,
     private val subscribeToAllStoresUpdatesUseCase: SubscribeToAllStoresUpdatesUseCase,
+    private val logger: Logger
 ) : GetMessageUseCaseInterface by GetMessageUseCase,
     CreateUseCaseInterface by createStoreUseCase,
     GetStoresUseCaseInterface by getStoresUseCase,
@@ -108,6 +110,7 @@ internal class SyncEngine(
 
     private fun collectUseCaseEvents(): Job =
         merge(onSetRequestUseCase.events, onDeleteRequestUseCase.events)
+            .onEach { event -> logger.log(event.toString()) }
             .onEach { event -> _events.emit(event) }
             .launchIn(scope)
 }

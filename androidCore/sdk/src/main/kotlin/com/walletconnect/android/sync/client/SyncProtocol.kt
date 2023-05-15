@@ -7,6 +7,7 @@ import com.walletconnect.android.sync.common.model.Events
 import com.walletconnect.android.sync.common.model.StoreMap
 import com.walletconnect.android.sync.di.commonModule
 import com.walletconnect.android.sync.di.engineModule
+import com.walletconnect.android.sync.di.jsonRpcModule
 import com.walletconnect.android.sync.di.syncStorageModule
 import com.walletconnect.android.sync.engine.domain.SyncEngine
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -28,6 +29,7 @@ internal class SyncProtocol : SyncInterface {
         try {
             wcKoinApp.run {
                 modules(
+                    jsonRpcModule(),
                     commonModule(),
                     syncStorageModule(),
                     engineModule(),
@@ -83,7 +85,7 @@ internal class SyncProtocol : SyncInterface {
     @Throws(IllegalStateException::class)
     private fun <R> wrapWithEngineInitializationCheck(block: () -> R): R {
         check(::syncEngine.isInitialized) {
-            "ChatClient needs to be initialized first using the initialize function"
+            "SyncClient needs to be initialized first using the initialize function"
         }
         return block()
     }

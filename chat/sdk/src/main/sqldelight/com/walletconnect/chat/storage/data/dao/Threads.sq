@@ -2,7 +2,8 @@ CREATE TABLE Threads (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     topic TEXT UNIQUE NOT NULL,
     selfAccount TEXT NOT NULL,
-    peerAccount TEXT NOT NULL
+    peerAccount TEXT NOT NULL,
+    UNIQUE(selfAccount, peerAccount)
 );
 
 insertOrAbortThread:

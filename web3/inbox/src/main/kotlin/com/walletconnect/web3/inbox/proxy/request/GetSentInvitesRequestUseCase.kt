@@ -19,7 +19,7 @@ internal class GetSentInvitesRequestUseCase(
     private fun Map<Long, Chat.Model.Invite.Sent>.toResult(): List<Web3InboxParams.Response.GetSentInvitesResult> = map { it.value.toResult() }
 
     private fun Chat.Model.Invite.Sent.toResult(): Web3InboxParams.Response.GetSentInvitesResult =
-        Web3InboxParams.Response.GetSentInvitesResult(id, inviterAccount.value, inviteeAccount.value, message.value, inviterPublicKey, inviteePublicKey, status.toResult())
+        Web3InboxParams.Response.GetSentInvitesResult(id, inviterAccount.value, inviteeAccount.value, message.value, inviterPublicKey, status.toResult())
 
     private fun Chat.Type.InviteStatus.toResult(): String = name.lowercase()
 }

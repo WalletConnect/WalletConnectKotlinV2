@@ -13,7 +13,6 @@ import com.walletconnect.chat.client.mapper.toCommon
 import com.walletconnect.chat.common.model.Events
 import com.walletconnect.chat.di.*
 import com.walletconnect.chat.engine.domain.ChatEngine
-import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.launch
 
 internal class ChatProtocol : ChatInterface {
@@ -30,6 +29,7 @@ internal class ChatProtocol : ChatInterface {
                 modules(
                     jsonRpcModule(),
                     storageModule(),
+                    syncInChatModule(),
                     engineModule(),
                     commonModule()
                 )
@@ -109,13 +109,6 @@ internal class ChatProtocol : ChatInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun setContact(setContact: Chat.Params.SetContact, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
-        chatEngine.setContact(setContact.account.toCommon(), PublicKey(setContact.publicKey)) { error ->
-            onError(Chat.Model.Error(error))
-        }
-    }
-
-    @Throws(IllegalStateException::class)
     override fun getReceivedInvites(getReceivedInvites: Chat.Params.GetReceivedInvites): Map<Long, Chat.Model.Invite.Received> = wrapWithEngineInitializationCheck() {
         chatEngine.getReceivedInvites(getReceivedInvites.account.value).mapValues { (_, invite) -> invite.toClient() }
     }
@@ -127,17 +120,17 @@ internal class ChatProtocol : ChatInterface {
 
     @Throws(IllegalStateException::class)
     override fun getThreads(getThreads: Chat.Params.GetThreads): Map<String, Chat.Model.Thread> = wrapWithEngineInitializationCheck() {
-        chatEngine.getThreadsByAccount(getThreads.account.value).mapValues { (_, thread) -> thread.toClient() }
+        chatEngine.getThreads(getThreads.account.value).mapValues { (_, thread) -> thread.toClient() }
     }
 
     @Throws(IllegalStateException::class)
     override fun getMessages(getMessages: Chat.Params.GetMessages): List<Chat.Model.Message> = wrapWithEngineInitializationCheck() {
-        chatEngine.getMessagesByTopic(getMessages.topic).map { message -> message.toClient() }
+        chatEngine.getMessages(getMessages.topic).map { message -> message.toClient() }
     }
 
     @Throws(IllegalStateException::class)
     override fun register(register: Chat.Params.Register, listener: Chat.Listeners.Register) = protocolFunction(listener::onError) {
-        chatEngine.registerIdentity(
+        chatEngine.register(
             register.account.toCommon(),
             onSign = { message -> listener.onSign(message).toCommon() },
             { didKey -> listener.onSuccess(didKey) },
@@ -148,7 +141,7 @@ internal class ChatProtocol : ChatInterface {
 
     @Throws(IllegalStateException::class)
     override fun unregister(unregister: Chat.Params.Unregister, listener: Chat.Listeners.Unregister) = protocolFunction(listener::onError) {
-        chatEngine.unregisterIdentity(
+        chatEngine.unregister(
             unregister.account.toCommon(),
             { didKey -> listener.onSuccess(didKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) },

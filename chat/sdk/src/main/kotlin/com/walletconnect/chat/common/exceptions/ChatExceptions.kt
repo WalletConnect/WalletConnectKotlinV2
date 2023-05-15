@@ -13,3 +13,6 @@ class ChatMessageTooLongException : WalletConnectException("Chat message max len
 class MediaDataTooLongException : WalletConnectException("Media data max length is $MAX_LENGTH_MEDIA_DATA")
 object MissingInviteRequestException : WalletConnectException("Missing Invite Request")
 class InvalidActClaims(act: String) : WalletConnectException("Invalid act claim. Must be equal to $act")
+object InviteWasAlreadyRespondedTo : WalletConnectException("This invite request has already been responded to")
+object InviteResponseWasAlreadyReceived : WalletConnectException("This invite response has already been received")
+object ChatSyncStoresInitializationTimeoutException : WalletConnectException("Required Chat Stores initialization timeout")
