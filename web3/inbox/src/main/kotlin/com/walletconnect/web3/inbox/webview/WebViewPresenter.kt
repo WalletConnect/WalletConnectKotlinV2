@@ -51,8 +51,7 @@ internal class WebViewPresenter(
     )
 
     internal companion object {
-//        const val WEB3INBOX_URL = "https://web3inbox-dev-hidden.vercel.app"
-        const val WEB3INBOX_URL = "https://web3inbox-dev-hidden-git-refactor-add-aut-f79715-walletconnect1.vercel.app/"
+        const val WEB3INBOX_URL = "https://web3inbox-dev-hidden.vercel.app"
         const val WEB3INBOX_PROVIDER_TYPE_KEY = "chatProvider"
         const val WEB3INBOX_AUTH_PROVIDER_TYPE_KEY = "authProvider"
         const val WEB3INBOX_PROVIDER_TYPE_VALUE = "android"
