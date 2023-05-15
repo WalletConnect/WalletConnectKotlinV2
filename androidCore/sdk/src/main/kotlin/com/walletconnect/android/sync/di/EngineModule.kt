@@ -18,7 +18,7 @@ import org.koin.dsl.module
 internal fun engineModule() = module {
     single { MessageSignatureVerifier(get()) }
 
-    single { CreateStoreUseCase(get(), get(), get()) }
+    single { CreateStoreUseCase(get(), get(), get(), get()) }
     single { DeleteStoreValueUseCase(get(), get()) }
     single { SetStoreValueUseCase(get(), get()) }
     single { GetStoresUseCase(get()) }
@@ -27,8 +27,8 @@ internal fun engineModule() = module {
     single { OnSetRequestUseCase(get(), get(), get()) }
     single { OnDeleteRequestUseCase(get(), get(), get()) }
 
-    single { OnSetResponseUseCase() }
-    single { OnDeleteResponseUseCase() }
+    single { OnSetResponseUseCase(get()) }
+    single { OnDeleteResponseUseCase(get()) }
 
     single { SubscribeToStoreUpdatesUseCase(get(), get()) }
     single { SubscribeToAllStoresUpdatesUseCase(get(), get(), get()) }
@@ -47,6 +47,7 @@ internal fun engineModule() = module {
             onSetResponseUseCase = get(),
             onDeleteResponseUseCase = get(),
             subscribeToAllStoresUpdatesUseCase = get(),
+            logger = get()
         )
     }
 }

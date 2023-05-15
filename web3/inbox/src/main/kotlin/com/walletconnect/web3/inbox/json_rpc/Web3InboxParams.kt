@@ -72,7 +72,6 @@ internal sealed interface Web3InboxParams : ClientParams {
             val inviteeAccount: String,
             val message: String,
             val inviterPublicKey: String,
-            val inviteePublicKey: String,
             val status: String,
         ) : Response
 
@@ -83,7 +82,6 @@ internal sealed interface Web3InboxParams : ClientParams {
             val inviteeAccount: String,
             val message: String,
             val inviterPublicKey: String,
-            val inviteePublicKey: String,
             val status: String,
         ) : Response
 
@@ -120,7 +118,6 @@ internal sealed interface Web3InboxParams : ClientParams {
                 val inviteeAccount: String,
                 val message: String,
                 val inviterPublicKey: String,
-                val inviteePublicKey: String,
                 val status: String,
             ) : Chat
 
@@ -152,7 +149,6 @@ internal sealed interface Web3InboxParams : ClientParams {
                     val inviteeAccount: String,
                     val message: String,
                     val inviterPublicKey: String,
-                    val inviteePublicKey: String,
                     val status: String,
                 )
             }
@@ -168,7 +164,6 @@ internal sealed interface Web3InboxParams : ClientParams {
                     val inviteeAccount: String,
                     val message: String,
                     val inviterPublicKey: String,
-                    val inviteePublicKey: String,
                     val status: String,
                 )
             }

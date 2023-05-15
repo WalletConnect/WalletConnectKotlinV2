@@ -16,7 +16,7 @@ internal class OnInviteAcceptedChatEventUseCase(
         Web3InboxParams.Call.Chat.InviteAcceptedParams(topic, invite.toParams())
 
     private fun Chat.Model.Invite.Sent.toParams() =
-        Web3InboxParams.Call.Chat.InviteAcceptedParams.InviteParams(id, inviterAccount.value, inviteeAccount.value, message.value, inviterPublicKey, inviteePublicKey, status.toParams())
+        Web3InboxParams.Call.Chat.InviteAcceptedParams.InviteParams(id, inviterAccount.value, inviteeAccount.value, message.value, inviterPublicKey, status.toParams())
 
     private fun Chat.Type.InviteStatus.toParams(): String = name.lowercase()
 

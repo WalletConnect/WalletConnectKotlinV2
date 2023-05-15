@@ -45,7 +45,7 @@ internal class StoresStorageRepository(private val stores: StoresQueries, privat
 
     private suspend fun getStoreValuesByStoreId(storeId: Long): StoreState = storeValues.getStoreValuesByStoreId(storeId).executeAsList().map { it.key to it.value_ } as StoreState
 
-    private suspend fun doesStoreNotExists(accountId: AccountId, store: Store) = stores.doesStoreNotExists(accountId.value, store.value).executeAsOne()
+    suspend fun doesStoreNotExists(accountId: AccountId, store: Store) = stores.doesStoreNotExists(accountId.value, store.value).executeAsOne()
 
     private suspend fun doesStoreValueNotExists(storeId: Long, key: String) = storeValues.doesStoreValueNotExists(storeId, key).executeAsOne()
 
