@@ -61,6 +61,7 @@ fun ChainSelectionRoute(navController: NavController) {
             is PairingSelectionResult.SelectedPairing -> viewModel.connectToWallet(selectionResult.position)
             PairingSelectionResult.None -> Unit
         }
+        navController.currentBackStackEntry?.savedStateHandle?.remove<PairingSelectionResult>(pairingSelectionResultKey)
     }
 
     LaunchedEffect(Unit) {
