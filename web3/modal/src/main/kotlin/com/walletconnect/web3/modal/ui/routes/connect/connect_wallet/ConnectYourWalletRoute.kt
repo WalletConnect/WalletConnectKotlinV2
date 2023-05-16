@@ -21,7 +21,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
@@ -33,6 +32,7 @@ import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.previews.ConnectYourWalletStateProvider
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
+import com.walletconnect.web3.modal.utils.toDeeplinkUri
 
 @Composable
 internal fun ConnectYourWalletRoute(
@@ -48,7 +48,7 @@ internal fun ConnectYourWalletRoute(
     }
 
     ConnectYourWalletContent(uiState = uiState,
-        onSelectWallet = { context.startActivity(Intent(Intent.ACTION_VIEW, uri.toUri())) },
+        onSelectWallet = { context.startActivity(Intent(Intent.ACTION_VIEW, uri.toDeeplinkUri())) },
         onScanIconClick = { navController.navigate(Route.ScanQRCode.path) },
         onGetAWalletClick = { navController.navigate(Route.GetAWallet.path) })
 }
