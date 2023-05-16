@@ -61,6 +61,7 @@ fun ChainSelectionRoute(navController: NavController) {
             is PairingSelectionResult.SelectedPairing -> viewModel.connectToWallet(selectionResult.position)
             PairingSelectionResult.None -> Unit
         }
+        navController.currentBackStackEntry?.savedStateHandle?.remove<PairingSelectionResult>(pairingSelectionResultKey)
     }
 
     LaunchedEffect(Unit) {
@@ -78,7 +79,9 @@ fun ChainSelectionRoute(navController: NavController) {
         onConnectClick = {
             if (viewModel.isAnyChainSelected) {
                 if (viewModel.isAnySettledParingExist) {
-                    navController.navigate(Route.ParingSelection.path)
+                    navController.navigate(Route.ParingSelection.path) {
+                        popUpTo(Route.ChainSelection.path)
+                    }
                 } else {
                     viewModel.connectToWallet { uri ->
                         navController.navigateToWeb3Modal(Config.Connect(uri = uri))

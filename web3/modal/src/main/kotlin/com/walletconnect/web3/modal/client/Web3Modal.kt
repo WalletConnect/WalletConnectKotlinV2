@@ -48,7 +48,7 @@ object Web3Modal {
     }
 
     @Throws(IllegalStateException::class)
-    internal fun setDelegate(delegate: ModalDelegate) {
+    fun setDelegate(delegate: ModalDelegate) {
         val signDelegate = object : SignClient.DappDelegate {
             override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
                 delegate.onSessionApproved(approvedSession.toModal())
@@ -92,12 +92,45 @@ object Web3Modal {
     fun connect(
         connect: Modal.Params.Connect,
         onSuccess: () -> Unit,
-        onError: (Sign.Model.Error) -> Unit
+        onError: (Modal.Model.Error) -> Unit
     ) {
         SignClient.connect(
             connect.toSign(),
             onSuccess,
-            onError
+            { onError(it.toModal()) }
         )
     }
+
+    fun request(request: Modal.Params.Request, onSuccess: (Modal.Model.SentRequest) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {
+        SignClient.request(
+            request.toSign(),
+            { onSuccess(it.toModal()) },
+            { onError(it.toModal()) }
+        )
+    }
+
+    fun ping(ping: Modal.Params.Ping, sessionPing: Modal.Listeners.SessionPing? = null) {
+        SignClient.ping(ping.toSign(), sessionPing?.toSign())
+    }
+
+    fun disconnect(disconnect: Modal.Params.Disconnect, onSuccess: (Modal.Params.Disconnect) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {
+        SignClient.disconnect(
+            disconnect.toSign(),
+            { onSuccess(it.toModal()) },
+            { onError(it.toModal()) }
+        )
+    }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getListOfActiveSessions() = SignClient.getListOfActiveSessions().map { it.toModal() }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getActiveSessionByTopic(topic: String) = SignClient.getActiveSessionByTopic(topic)?.toModal()
+
 }
