@@ -30,14 +30,13 @@ object Web3Modal {
         onSuccess: () -> Unit = {},
         onError: (Modal.Model.Error) -> Unit
     ) {
-//COMMENTED OUT BECAUSE BREAKS SENDING REQUESTS BETWEEN PEERS SINCE SIGN IS INITIALIZED TWICE
-//        SignClient.initialize(
-//            init = Sign.Params.Init(init.core),
-//            onError = { error ->
-//                onError(Modal.Model.Error(error.throwable))
-//                return@initialize
-//            }
-//        )
+        SignClient.initialize(
+            init = Sign.Params.Init(init.core),
+            onError = { error ->
+                onError(Modal.Model.Error(error.throwable))
+                return@initialize
+            }
+        )
 
         runCatching {
             wcKoinApp.modules(
