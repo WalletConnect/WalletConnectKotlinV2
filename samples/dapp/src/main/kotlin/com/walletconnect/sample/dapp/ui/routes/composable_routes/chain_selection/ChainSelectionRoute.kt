@@ -78,7 +78,9 @@ fun ChainSelectionRoute(navController: NavController) {
         onConnectClick = {
             if (viewModel.isAnyChainSelected) {
                 if (viewModel.isAnySettledParingExist) {
-                    navController.navigate(Route.ParingSelection.path)
+                    navController.navigate(Route.ParingSelection.path) {
+                        popUpTo(Route.ChainSelection.path)
+                    }
                 } else {
                     viewModel.connectToWallet { uri ->
                         navController.navigateToWeb3Modal(Config.Connect(uri = uri))
