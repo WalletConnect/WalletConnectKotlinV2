@@ -4,6 +4,7 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.utils.CoreValidator
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class CoreValidatorTest {
@@ -40,8 +41,12 @@ class CoreValidatorTest {
 
     @Test
     fun `is expiry in bounds test`(){
-        val result = CoreValidator.isExpiryWithinBounds(Expiry(300))
-
-        assertTrue(result)
+        assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(300)))
+        assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(1500)))
+        assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(30000)))
+        assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(604800)))
+        assertFalse(CoreValidator.isExpiryWithinBounds(Expiry(605000)))
+        assertFalse(CoreValidator.isExpiryWithinBounds(Expiry(1)))
+        assertFalse(CoreValidator.isExpiryWithinBounds(Expiry(299)))
     }
 }

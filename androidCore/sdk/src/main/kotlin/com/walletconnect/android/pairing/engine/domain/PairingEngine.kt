@@ -54,6 +54,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
+import java.util.concurrent.TimeUnit
 
 //Split into PairingProtocolEngine and PairingControllerEngine
 internal class PairingEngine(
@@ -270,7 +271,7 @@ internal class PairingEngine(
     ) {
         scope.launch {
             try {
-                withTimeout(THIRTY_SECONDS * 1000) {
+                withTimeout(TimeUnit.SECONDS.toMillis(THIRTY_SECONDS)) {
                     jsonRpcInteractor.peerResponse
                         .filter { response -> response.response.id == pingPayload.id }
                         .collect { response ->

@@ -385,7 +385,7 @@ internal class SignEngine(
                 onSuccess(sessionPayload.id)
                 scope.launch {
                     try {
-                        withTimeout(requestTtlInSeconds * 1000) {
+                        withTimeout(TimeUnit.SECONDS.toMillis(requestTtlInSeconds)) {
                             collectResponse(sessionPayload.id) { cancel() }
                         }
                     } catch (e: TimeoutCancellationException) {
