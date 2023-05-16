@@ -32,7 +32,7 @@ internal data class Mobile(
 @JsonClass(generateAdapter = true)
 internal data class App(
     @Json(name = "android")
-    val android: String?
+    val android: String
 )
 
 @JsonClass(generateAdapter = true)
