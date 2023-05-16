@@ -70,7 +70,7 @@ fun DappSampleNavGraph(
                     message = checkNotNull(it.arguments?.getString(messageArg))
                 )
             }
-            web3ModalGraph(sheetState)
+            web3ModalGraph(navController, sheetState)
         }
     }
 }
