@@ -30,7 +30,6 @@ object Web3Modal {
         onSuccess: () -> Unit = {},
         onError: (Modal.Model.Error) -> Unit
     ) {
-
         SignClient.initialize(
             init = Sign.Params.Init(init.core),
             onError = { error ->
