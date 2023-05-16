@@ -30,14 +30,14 @@ object Web3Modal {
         onSuccess: () -> Unit = {},
         onError: (Modal.Model.Error) -> Unit
     ) {
-//COMMENTED OUT BECAUSE BREAKS SENDING REQUESTS BETWEEN PEERS SINCE SIGN IS INITIALIZED TWICE
-//        SignClient.initialize(
-//            init = Sign.Params.Init(init.core),
-//            onError = { error ->
-//                onError(Modal.Model.Error(error.throwable))
-//                return@initialize
-//            }
-//        )
+
+        SignClient.initialize(
+            init = Sign.Params.Init(init.core),
+            onError = { error ->
+                onError(Modal.Model.Error(error.throwable))
+                return@initialize
+            }
+        )
 
         runCatching {
             wcKoinApp.modules(
@@ -102,7 +102,11 @@ object Web3Modal {
         )
     }
 
-    fun request(request: Modal.Params.Request, onSuccess: (Modal.Model.SentRequest) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {
+    fun request(
+        request: Modal.Params.Request,
+        onSuccess: (Modal.Model.SentRequest) -> Unit = {},
+        onError: (Modal.Model.Error) -> Unit
+    ) {
         SignClient.request(
             request.toSign(),
             { onSuccess(it.toModal()) },
@@ -114,7 +118,11 @@ object Web3Modal {
         SignClient.ping(ping.toSign(), sessionPing?.toSign())
     }
 
-    fun disconnect(disconnect: Modal.Params.Disconnect, onSuccess: (Modal.Params.Disconnect) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {
+    fun disconnect(
+        disconnect: Modal.Params.Disconnect,
+        onSuccess: (Modal.Params.Disconnect) -> Unit = {},
+        onError: (Modal.Model.Error) -> Unit
+    ) {
         SignClient.disconnect(
             disconnect.toSign(),
             { onSuccess(it.toModal()) },
@@ -132,6 +140,7 @@ object Web3Modal {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
-    fun getActiveSessionByTopic(topic: String) = SignClient.getActiveSessionByTopic(topic)?.toModal()
+    fun getActiveSessionByTopic(topic: String) =
+        SignClient.getActiveSessionByTopic(topic)?.toModal()
 
 }
