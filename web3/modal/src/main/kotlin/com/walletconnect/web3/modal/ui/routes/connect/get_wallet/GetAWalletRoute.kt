@@ -37,7 +37,7 @@ internal fun GetAWalletRoute(
     wallets: List<Wallet>,
 ) {
     GetAWalletContent(
-        wallets = wallets.filter { wallet -> !wallet.playStoreLink.isNullOrBlank() },
+        wallets = wallets,
         onBackPressed = navController::popBackStack,
     )
 }
@@ -56,7 +56,7 @@ private fun GetAWalletContent(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
         ) {
-            itemsIndexed(wallets) { _, wallet ->
+            itemsIndexed(wallets.take(6)) { _, wallet ->
                 WalletListItem(wallet = wallet)
             }
             item {
@@ -131,7 +131,7 @@ private fun WalletListItem(wallet: Wallet) {
             )
             RoundedMainButton(
                 text = "Get",
-                onClick = { uriHandler.openUri(wallet.playStoreLink!!) },
+                onClick = { uriHandler.openUri(wallet.playStoreLink) },
                 endIcon = {
                     Image(
                         imageVector = ImageVector.vectorResource(id = R.drawable.ic_forward_chevron),

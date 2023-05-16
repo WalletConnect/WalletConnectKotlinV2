@@ -2,7 +2,7 @@ package com.walletconnect.web3.modal.domain.model
 
 import com.walletconnect.web3.modal.network.model.ExplorerWalletResponse
 
-private const val GET_WALLET_IMAGE_URL = "https://explorer-api.walletconnect.com/w3m/v1/getWalletImage"
+private const val GET_WALLET_IMAGE_URL = "https://explorer-api.walletconnect.com/w3m/v1/getWalletImage/"
 
 internal data class Wallet(
     val id: String,
@@ -13,7 +13,7 @@ internal data class Wallet(
     val playStoreLink: String,
 ) {
     val imageUrl: String
-        get() = "GET_WALLET_IMAGE_URL/$imageId"
+        get() = "$GET_WALLET_IMAGE_URL$imageId"
 }
 
 internal fun ExplorerWalletResponse.toWallet() = Wallet(
