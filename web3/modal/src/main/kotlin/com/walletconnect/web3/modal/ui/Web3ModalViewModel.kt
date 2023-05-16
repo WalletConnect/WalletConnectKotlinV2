@@ -57,7 +57,7 @@ internal class Web3ModalViewModel(
 
     private suspend fun Config.Connect.connectionState() {
         try {
-            val wallets = getWalletsRecommendationsUseCase(listOf())
+            val wallets = getWalletsRecommendationsUseCase(chains ?: listOf())
             _modalState.value = Web3ModalState.ConnectState(uri, wallets)
         } catch (e: Exception) {
             Timber.e(e)
