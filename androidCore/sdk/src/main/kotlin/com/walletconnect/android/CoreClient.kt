@@ -69,9 +69,9 @@ object CoreClient {
         }
 
         Verify.initialize(metaData.verifyUrl)
-        Sync.initialize() { error -> onError(Core.Model.Error(error.throwable)) }
         PairingProtocol.initialize()
         PairingController.initialize()
+        Sync.initialize() { error -> onError(Core.Model.Error(error.throwable)) }
     }
 
     fun setDelegate(delegate: CoreDelegate) {

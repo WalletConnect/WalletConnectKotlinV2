@@ -4,18 +4,29 @@ package com.walletconnect.auth.engine.domain
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.signing.cacao.Cacao
-import com.walletconnect.android.internal.common.signing.cacao.CacaoType
-import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
-import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
-import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.AppMetaDataType
+import com.walletconnect.android.internal.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.EnvelopeType
+import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.IrnParams
+import com.walletconnect.android.internal.common.model.Participants
+import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.model.WCRequest
+import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.CoreAuthParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
+import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
+import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
@@ -30,7 +41,12 @@ import com.walletconnect.auth.common.exceptions.MissingAuthRequestException
 import com.walletconnect.auth.common.exceptions.PeerError
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.json_rpc.AuthRpc
-import com.walletconnect.auth.common.model.*
+import com.walletconnect.auth.common.model.AuthResponse
+import com.walletconnect.auth.common.model.Events
+import com.walletconnect.auth.common.model.PayloadParams
+import com.walletconnect.auth.common.model.PendingRequest
+import com.walletconnect.auth.common.model.Requester
+import com.walletconnect.auth.common.model.Respond
 import com.walletconnect.auth.engine.mapper.toCAIP122Message
 import com.walletconnect.auth.engine.mapper.toCacaoPayload
 import com.walletconnect.auth.engine.mapper.toPendingRequest
@@ -42,9 +58,21 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import java.util.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withTimeout
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 internal class AuthEngine(
@@ -100,13 +128,14 @@ internal class AuthEngine(
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.MILLISECONDS)
-        if (CoreValidator.isExpiryNotWithinBounds(expiry, nowInSeconds)) {
+        val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
+        if (!CoreValidator.isExpiryWithinBounds(expiry ?: Expiry(300))) {
             return onFailure(InvalidExpiryException())
         }
 
         val responsePublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
+
         val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams, expiry)
         val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(params = authParams)
         val irnParamsTtl = expiry?.run {
@@ -138,7 +167,7 @@ internal class AuthEngine(
 
                 scope.launch {
                     try {
-                        withTimeout(requestTtlInSeconds) {
+                        withTimeout(TimeUnit.SECONDS.toMillis(requestTtlInSeconds)) {
                             jsonRpcInteractor.peerResponse
                                 .filter { response -> response.response.id == authRequest.id }
                                 .collect { cancel() }
@@ -187,7 +216,7 @@ internal class AuthEngine(
         val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
 
         authParams.expiry?.let { expiry ->
-            if (CoreValidator.isExpiryNotWithinBounds(expiry)) {
+            if (!CoreValidator.isExpiryWithinBounds(expiry)) {
                 scope.launch {
                     supervisorScope {
                         val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
@@ -232,7 +261,7 @@ internal class AuthEngine(
     }
 
     private fun onAuthRequest(wcRequest: WCRequest, authParams: AuthParams.RequestParams) {
-        if (CoreValidator.isExpiryNotWithinBounds(authParams.expiry)) {
+        if (!CoreValidator.isExpiryWithinBounds(authParams.expiry)) {
             val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
             jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
             return

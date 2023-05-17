@@ -76,6 +76,10 @@ fun DependencyHandlerScope.sqlCipher() {
     "api"("net.zetetic:android-database-sqlcipher:$sqlCipherVersion")
 }
 
+fun DependencyHandlerScope.reLinker() {
+    "implementation"("com.getkeepsafe.relinker:relinker:$relinkerVersion")
+}
+
 fun DependencyHandlerScope.sqlDelightTest() {
     "testImplementation"("com.squareup.sqldelight:sqlite-driver:$sqlDelightVersion")
     "testImplementation"("org.xerial:sqlite-jdbc:3.8.10.2")

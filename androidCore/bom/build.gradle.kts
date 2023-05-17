@@ -19,5 +19,6 @@ dependencies {
         api(project(":push:sdk"))
         api(project(":web3:wallet"))
         api(project(":web3:inbox"))
+        api(project(":web3:modal"))
     }
 }
