@@ -10,9 +10,8 @@ import com.walletconnect.push.common.di.pushJsonRpcModule
 import com.walletconnect.push.common.di.pushStorageModule
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.toClient
-import com.walletconnect.push.wallet.client.mapper.toClient
-import com.walletconnect.push.wallet.client.mapper.toClientModel
-import com.walletconnect.push.wallet.client.mapper.toCommon
+import com.walletconnect.push.common.model.toCommonClient
+import com.walletconnect.push.common.model.toWalletClient
 import com.walletconnect.push.wallet.di.messageModule
 import com.walletconnect.push.wallet.di.walletEngineModule
 import com.walletconnect.push.wallet.engine.PushWalletEngine
@@ -51,9 +50,13 @@ class PushWalletProtocol : PushWalletInterface {
 
         pushWalletEngine.engineEvent.onEach { event ->
             when (event) {
-                is EngineDO.PushRequest -> delegate.onPushRequest(event.toClient())
-                is EngineDO.PushRecord -> delegate.onPushMessage(event.toClient())
-                is EngineDO.PushSubscription -> delegate.onPushSubscription(Push.Wallet.Event.Subscription(event.toClient()))
+                is EngineDO.PushRequest -> delegate.onPushRequest(event.toWalletClient())
+                is EngineDO.PushRecord -> delegate.onPushMessage(Push.Wallet.Event.Message(event.toWalletClient()))
+                is EngineDO.PushDelete -> delegate.onPushDelete(event.toWalletClient())
+                is EngineDO.PushSubscription -> delegate.onPushSubscription(event.toWalletClient())
+                is EngineDO.PushSubscribeError -> delegate.onPushSubscription(event.toWalletClient())
+                is EngineDO.PushUpdate -> delegate.onPushUpdate(event.toWalletClient())
+                is EngineDO.PushUpdateError -> delegate.onPushUpdate(event.toWalletClient())
                 is SDKError -> delegate.onError(event.toClient())
             }
         }.launchIn(scope)
@@ -65,7 +68,7 @@ class PushWalletProtocol : PushWalletInterface {
         scope.launch {
             supervisorScope {
                 try {
-                    pushWalletEngine.subscribeToDapp(params.dappUrl, params.account, params.onSign.toCommon(), onSuccess) {
+                    pushWalletEngine.subscribeToDapp(params.dappUrl, params.account, params.onSign.toWalletClient(), onSuccess) {
                         onError(Push.Model.Error(it))
                     }
                 } catch (e: Exception) {
@@ -83,7 +86,7 @@ class PushWalletProtocol : PushWalletInterface {
                 try {
                     pushWalletEngine.approve(
                         params.id,
-                        params.onSign.toCommon(),
+                        params.onSign.toWalletClient(),
                         onSuccess
                     ) {
                         onError(Push.Model.Error(it))
@@ -128,7 +131,7 @@ class PushWalletProtocol : PushWalletInterface {
 
         return runBlocking {
             pushWalletEngine.getListOfActiveSubscriptions().mapValues { (_, subscription) ->
-                subscription.toClient()
+                subscription.toCommonClient()
             }
         }
     }
@@ -137,7 +140,7 @@ class PushWalletProtocol : PushWalletInterface {
         checkEngineInitialization()
 
         return pushWalletEngine.getListOfMessages(params.topic)
-            .mapValues { (_, messageRecord) -> messageRecord.toClientModel() }
+            .mapValues { (_, messageRecord) -> messageRecord.toWalletClient() }
     }
 
     override fun deleteSubscription(params: Push.Wallet.Params.DeleteSubscription, onError: (Push.Model.Error) -> Unit) {
@@ -171,7 +174,7 @@ class PushWalletProtocol : PushWalletInterface {
     override fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (Push.Model.Message) -> Unit, onError: (Push.Model.Error) -> Unit) {
         pushWalletEngine.decryptMessage(params.topic, params.encryptedMessage,
             onSuccess = { pushMessage ->
-                onSuccess(pushMessage.toClientModel())
+                onSuccess(pushMessage.toWalletClient())
             },
             onFailure = { error ->
                 onError(Push.Model.Error(error))

@@ -20,6 +20,7 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeX25519DidKey
 import com.walletconnect.push.common.JsonRpcMethod
+import com.walletconnect.push.common.calcExpiry
 import com.walletconnect.push.common.data.jwt.PushSubscriptionJwtClaim
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
@@ -117,7 +118,7 @@ internal class PushDappEngine(
 
         scope.launch {
             supervisorScope {
-                subscriptionStorageRepository.getAccountByTopic(pushTopic)?.let { caip10Account ->
+                subscriptionStorageRepository.getAccountByTopic(pushTopic).let { caip10Account ->
                     val account = if (caip10Account.contains(Regex(".:.:."))) {
                         caip10Account.split(":").last()
                     } else {
@@ -177,8 +178,8 @@ internal class PushDappEngine(
 
     suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription> =
         subscriptionStorageRepository.getAllSubscriptions()
-            .filter { subscription -> !subscription.subscriptionTopic.isNullOrBlank() }
-            .associateBy { subscription -> subscription.subscriptionTopic!! }
+            .filter { subscription -> !subscription.subscriptionTopic?.value.isNullOrBlank() }
+            .associateBy { subscription -> subscription.subscriptionTopic!!.value }
 
     private fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
@@ -222,24 +223,29 @@ internal class PushDappEngine(
                     }
                     val walletPublicKey = decodeX25519DidKey(pushSubscriptionJwtClaim.issuer)
                     val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, walletPublicKey)
+                    val expiry = Expiry(calcExpiry())
                     val respondedSubscription = EngineDO.PushSubscription(
-                        wcResponse.response.id,
-                        wcResponse.topic.value,
-                        walletPublicKey.keyAsHex,
-                        pushTopic.value,
-                        AccountId(params.account),
-                        RelayProtocolOptions(),
-                        params.metaData,
-                        ""
+                        requestId = wcResponse.response.id,
+                        keyAgreementTopic = Topic(""),
+                        responseTopic = wcResponse.topic,
+                        peerPublicKey = PublicKey(walletPublicKey.keyAsHex),
+                        subscriptionTopic = pushTopic,
+                        account = AccountId(params.account),
+                        relay = RelayProtocolOptions(),
+                        metadata = params.metaData,
+                        didJwt = "",
+                        scope = emptyMap(),
+                        expiry = expiry
                     )
 
                     withContext(Dispatchers.IO) {
                         with(respondedSubscription) {
                             subscriptionStorageRepository.insertSubscription(
                                 requestId,
-                                responseTopic,
-                                peerPublicKeyAsHex,
-                                subscriptionTopic,
+                                keyAgreementTopic.value,
+                                responseTopic.value,
+                                peerPublicKey?.keyAsHex,
+                                subscriptionTopic?.value,
                                 account.value,
                                 relay.protocol,
                                 relay.data,
@@ -247,7 +253,10 @@ internal class PushDappEngine(
                                 metadata.description,
                                 metadata.url,
                                 metadata.icons,
-                                metadata.redirect?.native
+                                metadata.redirect?.native,
+                                "",
+                                emptyMap(),
+                                expiry.seconds
                             )
                         }
 

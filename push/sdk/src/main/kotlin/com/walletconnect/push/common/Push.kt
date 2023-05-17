@@ -67,11 +67,23 @@ object Push {
 
             data class Request(val id: Long, val metadata: Core.Model.AppMetaData): Event()
 
-            data class Message(val id: String, val topic: String, val publishedAt: Long, val message: Model.Message): Event()
+            data class Message(val message: Model.MessageRecord): Event()
 
             data class Delete(val topic: String): Event()
 
-            data class Subscription(val subscription: Model.Subscription): Event()
+            sealed class Subscription: Event() {
+
+                data class Result(val subscription: Model.Subscription): Subscription()
+
+                data class Error(val id: Long, val reason: String): Subscription()
+            }
+
+            sealed class Update: Event() {
+
+                data class Result(val subscription: Model.Subscription): Update()
+
+                data class Error(val id: Long, val reason: String): Update()
+            }
         }
 
         sealed class Params {

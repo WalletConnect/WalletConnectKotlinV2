@@ -12,6 +12,8 @@ interface PushWalletInterface {
 
         fun onPushSubscription(pushSubscribe: Push.Wallet.Event.Subscription)
 
+        fun onPushUpdate(pushUpdate: Push.Wallet.Event.Update)
+
         fun onError(error: Push.Model.Error)
     }
 

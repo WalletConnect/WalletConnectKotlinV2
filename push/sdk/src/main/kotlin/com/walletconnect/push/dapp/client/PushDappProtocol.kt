@@ -10,8 +10,8 @@ import com.walletconnect.push.common.di.pushJsonRpcModule
 import com.walletconnect.push.common.di.pushStorageModule
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.toClient
-import com.walletconnect.push.dapp.client.mapper.toClient
-import com.walletconnect.push.dapp.client.mapper.toEngineDO
+import com.walletconnect.push.common.model.toDappClient
+import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.dapp.di.castModule
 import com.walletconnect.push.dapp.di.dappEngineModule
 import com.walletconnect.push.dapp.engine.PushDappEngine
@@ -49,9 +49,9 @@ internal class PushDappProtocol : PushDappInterface {
         pushDappEngine.engineEvent
             .onEach { event ->
                 when(event) {
-                    is EngineDO.PushRequestResponse -> delegate.onPushResponse(event.toClient())
-                    is EngineDO.PushRequestRejected -> delegate.onPushRejected(event.toClient())
-                    is EngineDO.PushDelete -> delegate.onDelete(event.toClient())
+                    is EngineDO.PushRequestResponse -> delegate.onPushResponse(event.toDappClient())
+                    is EngineDO.PushRequestRejected -> delegate.onPushRejected(event.toDappClient())
+                    is EngineDO.PushDelete -> delegate.onDelete(event.toDappClient())
                     is SDKError -> delegate.onError(event.toClient())
                 }
             }.launchIn(scope)
@@ -85,7 +85,7 @@ internal class PushDappProtocol : PushDappInterface {
 
         return runBlocking {
             pushDappEngine.getListOfActiveSubscriptions().mapValues { (_, subscription) ->
-                subscription.toClient()
+                subscription.toDappClient()
             }
         }
     }

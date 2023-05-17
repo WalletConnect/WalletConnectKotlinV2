@@ -14,6 +14,7 @@ import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
+import org.bouncycastle.asn1.x500.style.RFC4519Style.title
 
 class Web3WalletViewModel : ViewModel() {
     val walletEvents = WCDelegate.walletEvents.map { wcEvent ->
@@ -55,15 +56,20 @@ class Web3WalletViewModel : ViewModel() {
                 PushRequest(requestId, peerName, peerDesc, icon, redirect)
             }
             is Push.Wallet.Event.Message -> {
-                PushMessage(pushEvent.message.title, pushEvent.message.body, pushEvent.message.icon, pushEvent.message.url)
+                PushMessage(pushEvent.message.message.title, pushEvent.message.message.body, pushEvent.message.message.icon, pushEvent.message.message.url)
             }
             is Push.Wallet.Event.Delete -> {
                 NoAction
             }
-            is Push.Wallet.Event.Subscription -> {
-                Log.e("Talha", "PushEvent.Subscription: ${pushEvent.subscription}")
+            is Push.Wallet.Event.Subscription.Result -> {
+                Log.e("Talha", "PushEvent.Subscription.Result: ${pushEvent.subscription}")
             }
-            else -> NoAction
+            is Push.Wallet.Event.Subscription.Error -> {
+                Log.e("Talha", "PushEvent.Subscription.Error: ${pushEvent.reason}")
+            }
+            else -> {
+                NoAction
+            }
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 

@@ -14,7 +14,7 @@ data class Listing(
     val imageId: String,
     val imageUrl: ImageUrl,
     val app: App,
-    val injected: String?,
+    val injected: List<Injected>?,
     val mobile: Mobile,
     val desktop: Desktop,
     val supportedStandards: List<SupportedStandard>,

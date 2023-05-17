@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.explorer.data.model.Colors
 import com.walletconnect.android.internal.common.explorer.data.model.DappListings
 import com.walletconnect.android.internal.common.explorer.data.model.Desktop
 import com.walletconnect.android.internal.common.explorer.data.model.ImageUrl
+import com.walletconnect.android.internal.common.explorer.data.model.Injected
 import com.walletconnect.android.internal.common.explorer.data.model.Listing
 import com.walletconnect.android.internal.common.explorer.data.model.Metadata
 import com.walletconnect.android.internal.common.explorer.data.model.Mobile
@@ -16,6 +17,7 @@ import com.walletconnect.android.internal.common.explorer.data.network.model.Col
 import com.walletconnect.android.internal.common.explorer.data.network.model.DappListingsDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.DesktopDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.ImageUrlDTO
+import com.walletconnect.android.internal.common.explorer.data.network.model.InjectedDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.ListingDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.MetadataDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.MobileDTO
@@ -56,7 +58,7 @@ class ExplorerRepository(private val explorerService: ExplorerService) {
         imageId = imageId,
         imageUrl = imageUrl.toImageUrl(),
         app = app.toApp(),
-        injected = injected,
+        injected = injected?.map { it.toInjected() },
         mobile = mobile.toMobile(),
         desktop = desktop.toDesktop(),
         supportedStandards = supportedStandards.map { it.toSupportedStandard() },
@@ -82,6 +84,11 @@ class ExplorerRepository(private val explorerService: ExplorerService) {
         safari = safari,
         edge = edge,
         opera = opera
+    )
+
+    private fun InjectedDTO.toInjected(): Injected = Injected(
+        namespace = namespace,
+        injectedId = injectedId
     )
 
     private fun MobileDTO.toMobile(): Mobile = Mobile(

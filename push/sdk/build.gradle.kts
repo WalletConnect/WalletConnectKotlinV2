@@ -55,7 +55,7 @@ android {
 sqldelight {
     database("PushDatabase") {
         packageName = "com.walletconnect.push"
-        schemaOutputDirectory = file("src/debug/sqldelight/databases")
+        schemaOutputDirectory = file("src/main/sqldelight/databases")
         verifyMigrations = true
     }
 }

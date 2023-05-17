@@ -28,7 +28,7 @@ data class ListingDTO(
     @Json(name = "app")
     val app: AppDTO,
     @Json(name = "injected")
-    val injected: String?,
+    val injected: List<InjectedDTO>?,
     @Json(name = "mobile")
     val mobile: MobileDTO,
     @Json(name = "desktop")

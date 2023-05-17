@@ -21,9 +21,20 @@ concurrency:
 
 jobs:
   db_migration_verification:
+    strategy:
+      matrix:
+        conf: [
+          { name: Android-Core SDK, command: ":androidCore:sdk:verifyDebugAndroidCoreDatabaseMigration" },
+          { name: Sign SDK, command: ":sign:sdk:verifyDebugSignDatabaseMigration" },
+          { name: Auth SDK, command: ":auth:sdk:verifyDebugAuthDatabaseMigration" },
+          { name: Chat SDK, command: ":chat:sdk:verifyDebugChatDatabaseMigration" },
+          { name: Push SDK, command: ":push:sdk:verifyDebugChatDatabaseMigration" },
+        ]
+    name: ${{ matrix.conf.name }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Cache Gradle
         uses: actions/cache@v3
         with:
@@ -34,25 +45,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Core DB Migration Verification
+      - name: Sdk Migration Verification
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-        run: ./gradlew :androidCore:sdk:verifyDebugAndroidCoreDatabaseMigration
-
-      - name: Sign DB Migration Verification
-        env:
-          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-        run: ./gradlew :sign:sdk:verifyDebugSignDatabaseMigration
-
-      - name: Auth DB Migration Verification
-        env:
-          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-        run: ./gradlew :auth:sdk:verifyDebugAuthDatabaseMigration
-
-      - name: Chat DB Migration Verification
-        env:
-          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-        run: ./gradlew :chat:sdk:verifyDebugChatDatabaseMigration
+        run: ./gradlew ${{ matrix.conf.command }}
 
       - name: Stop Gradle
         run: ./gradlew --stop

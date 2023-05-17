@@ -120,7 +120,7 @@ private fun NotificationScreen(
                         PushWalletClient.subscribe(
                             params = subscribeParams,
                             onSuccess = {
-                                Log.e("Talha", "Success")
+                                Log.e("Talha", "Subscribe Success")
                             },
                             onError = {
                                 Log.e("Talha", it.throwable.stackTraceToString())
