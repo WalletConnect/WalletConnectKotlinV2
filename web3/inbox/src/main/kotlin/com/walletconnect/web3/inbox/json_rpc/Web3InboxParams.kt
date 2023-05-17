@@ -207,5 +207,24 @@ internal sealed interface Web3InboxParams : ClientParams {
                 val topic: String,
             ) : Chat
         }
+
+        sealed interface Push : Call {
+
+            @JsonClass(generateAdapter = true)
+            data class RequestParams(
+                val id: Long,
+                val metadata: AppMetaData,
+            ) : Push {
+                @JsonClass(generateAdapter = true)
+                data class AppMetaData(
+                    val name: String,
+                    val description: String,
+                    val url: String,
+                    val icons: List<String>,
+                    val redirect: String?,
+                    val verifyUrl: String? = null,
+                )
+            }
+        }
     }
 }

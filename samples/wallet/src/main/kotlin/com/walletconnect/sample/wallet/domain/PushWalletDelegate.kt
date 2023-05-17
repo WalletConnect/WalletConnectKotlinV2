@@ -1,5 +1,6 @@
 package com.walletconnect.sample.wallet.domain
 
+import android.util.Log
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.wallet.client.PushWalletClient
 import kotlinx.coroutines.CoroutineScope
@@ -17,11 +18,14 @@ object PushWalletDelegate: PushWalletClient.Delegate {
 
     init {
         PushWalletClient.setDelegate(this)
+        Log.d("W3W PW", "Delegate registered")
     }
 
     @Deprecated("OnPushRequest will be removed in a future version. Use onPushProposal")
     override fun onPushRequest(pushRequest: Push.Wallet.Event.Request) {
-        scope.launch { _wcPushEventModels.emit(pushRequest) }
+        Log.d("W3W PW", "onPushRequest()")
+
+//        scope.launch { _wcPushEventModels.emit(pushRequest) }
     }
 
     override fun onPushProposal(pushProposal: Push.Wallet.Event.Proposal) {
@@ -29,11 +33,15 @@ object PushWalletDelegate: PushWalletClient.Delegate {
     }
 
     override fun onPushMessage(pushMessage: Push.Wallet.Event.Message) {
-        scope.launch { _wcPushEventModels.emit(pushMessage) }
+        Log.d("W3W PW", "onPushMessage()")
+
+//        scope.launch { _wcPushEventModels.emit(pushMessage) }
     }
 
     override fun onPushDelete(pushDelete: Push.Wallet.Event.Delete) {
-        scope.launch { _wcPushEventModels.emit(pushDelete) }
+        Log.d("W3W PW", "onPushDelete()")
+
+//        scope.launch { _wcPushEventModels.emit(pushDelete) }
     }
 
     override fun onPushSubscription(pushSubscribe: Push.Wallet.Event.Subscription) {
@@ -45,5 +53,7 @@ object PushWalletDelegate: PushWalletClient.Delegate {
     }
 
     override fun onError(error: Push.Model.Error) {
+        Log.d("W3W PW", "onError($error)")
+
     }
 }

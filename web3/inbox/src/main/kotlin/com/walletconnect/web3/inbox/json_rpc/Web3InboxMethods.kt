@@ -54,5 +54,25 @@ internal object Web3InboxMethods {
             @get:JvmSynthetic
             const val LEAVE: String = "chat_leave"
         }
+
+        object Push {
+            @get:JvmSynthetic
+            const val REQUEST: String = "push_request"
+
+            @get:JvmSynthetic
+            const val RESPONSE: String = "push_response"
+
+            @get:JvmSynthetic
+            const val MESSAGE: String = "push_message"
+
+            @get:JvmSynthetic
+            const val SUBSCRIPTION: String = "push_subscription"
+
+            @get:JvmSynthetic
+            const val UPDATE: String = "push_update"
+
+            @get:JvmSynthetic
+            const val DELETE: String = "push_delete"
+        }
     }
 }

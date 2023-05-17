@@ -29,6 +29,9 @@ internal fun jsonRpcModule() = module {
     addSerializerEntry(Web3InboxRPC.Call.Chat.InviteRejected::class)
     addSerializerEntry(Web3InboxRPC.Call.Chat.Leave::class)
 
+    addSerializerEntry(Web3InboxRPC.Call.Push.Request::class)
+
+
     addDeserializerEntry(Web3InboxMethods.Request.REGISTER, Web3InboxRPC.Request.Chat.Register::class)
     addDeserializerEntry(Web3InboxMethods.Request.GET_RECEIVED_INVITES, Web3InboxRPC.Request.Chat.GetReceivedInvites::class)
     addDeserializerEntry(Web3InboxMethods.Request.GET_SENT_INVITES, Web3InboxRPC.Request.Chat.GetSentInvites::class)
@@ -47,4 +50,7 @@ internal fun jsonRpcModule() = module {
     addDeserializerEntry(Web3InboxMethods.Call.Chat.INVITE_ACCEPTED, Web3InboxRPC.Call.Chat.InviteAccepted::class)
     addDeserializerEntry(Web3InboxMethods.Call.Chat.INVITE_REJECTED, Web3InboxRPC.Call.Chat.InviteRejected::class)
     addDeserializerEntry(Web3InboxMethods.Call.Chat.LEAVE, Web3InboxRPC.Call.Chat.Leave::class)
+
+    addDeserializerEntry(Web3InboxMethods.Call.Push.REQUEST, Web3InboxRPC.Call.Push.Request::class)
+
 }
