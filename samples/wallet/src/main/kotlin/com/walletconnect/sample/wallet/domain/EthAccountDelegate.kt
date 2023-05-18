@@ -43,13 +43,10 @@ fun generateKeys(): Triple<String, String, String> {
         }
     }
     Security.addProvider(BouncyCastleProvider())
-//    val keypair = Keys.createEcKeyPair()
-//    val publicKey = keypair.publicKey.toByteArray().bytesToHex()
-//    val privateKey = keypair.privateKey.toByteArray().bytesToHex()
-    val privateKey = "beefbc9be64c31ef4dbd48eb9d2744e711a1c036422edd7a07a2b91d5609431f"
-    val publicKey = "adc647a80f379b75b9c9c25e5e0ee4872e94a269005f1bfc8c53d37b30a4b6bdc06ec7cd8c5e76737bf46f731a2a13ff8c3f176776411bcf38d3b0425667800a"
-//    return Triple(publicKey, privateKey, Keys.toChecksumAddress(Keys.getAddress(keypair)))
-    return Triple(publicKey, privateKey, Keys.toChecksumAddress(Keys.getAddress(publicKey)))
+    val keypair = Keys.createEcKeyPair()
+    val publicKey = keypair.publicKey.toByteArray().bytesToHex()
+    val privateKey = keypair.privateKey.toByteArray().bytesToHex()
+    return Triple(publicKey, privateKey, Keys.toChecksumAddress(Keys.getAddress(keypair)))
 }
 
 context(EthAccountDelegate)

@@ -5,7 +5,6 @@ import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.foundation.util.Logger
 import java.util.concurrent.TimeUnit
-import kotlin.time.Duration
 
 internal class OnMessageResponseUseCase(
     private val logger: Logger,
