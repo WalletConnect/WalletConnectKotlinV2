@@ -1,4 +1,4 @@
-package com.walletconnect.sample.dapp.web3modal.network.model
+package com.walletconnect.web3.modal.network.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -15,14 +15,6 @@ internal data class ExplorerWalletResponse(
     val homePage: String,
     @Json(name = "image_id")
     val imageId: String,
-    @Json(name = "chains")
-    val chains: List<String>,
-    @Json(name = "image_url")
-    val images: WalletIcons,
-    @Json(name = "sdks")
-    val sdks: List<String>,
-    @Json(name = "versions")
-    val versions: List<String>,
     @Json(name = "mobile")
     val mobile: Mobile,
     @Json(name = "app")
@@ -40,7 +32,7 @@ internal data class Mobile(
 @JsonClass(generateAdapter = true)
 internal data class App(
     @Json(name = "android")
-    val android: String?
+    val android: String
 )
 
 @JsonClass(generateAdapter = true)
