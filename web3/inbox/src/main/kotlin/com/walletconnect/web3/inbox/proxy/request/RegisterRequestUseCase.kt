@@ -6,11 +6,11 @@ import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.client.toChat
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxParams
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
-import com.walletconnect.web3.inbox.proxy.ProxyInteractor
+import com.walletconnect.web3.inbox.proxy.ChatProxyInteractor
 
 internal class RegisterRequestUseCase(
     private val chatClient: ChatInterface,
-    proxyInteractor: ProxyInteractor,
+    proxyInteractor: ChatProxyInteractor,
     private val onSign: (message: String) -> Inbox.Model.Cacao.Signature,
 ) : RequestUseCase<Web3InboxParams.Request.Chat.RegisterParams>(proxyInteractor) {
 

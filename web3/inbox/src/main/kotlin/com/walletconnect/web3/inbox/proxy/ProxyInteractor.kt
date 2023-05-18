@@ -9,16 +9,19 @@ import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxSerializer
 import com.walletconnect.web3.inbox.webview.WebViewWeakReference
 
-internal class ProxyInteractor(
+internal abstract class ProxyInteractor(
     private val logger: Logger,
-    private val webViewWeakReference: WebViewWeakReference
+    private val webViewWeakReference: WebViewWeakReference,
 ) {
+
+    abstract fun rpcToWeb3InboxCall(rpc: String): String
+
     @Throws(WebViewIsNullException::class)
     fun <T : JsonRpcResponse> respond(rpc: T) {
         Handler(Looper.getMainLooper()).post {
             val rpcAsString = Web3InboxSerializer.serializeRpc(rpc) ?: return@post logger.error("Unable to serialize: $rpc")
             logger.log("Responding: $rpcAsString")
-            val script = rpcAsString.asWeb3InboxCall()
+            val script = rpcToWeb3InboxCall(rpcAsString)
             webViewWeakReference.webView.evaluateJavascript(script, null)
         }
     }
@@ -28,10 +31,16 @@ internal class ProxyInteractor(
         Handler(Looper.getMainLooper()).post {
             val rpcAsString = Web3InboxSerializer.serializeRpc(rpc) ?: return@post logger.error("Unable to serialize: $rpc")
             logger.log("Calling: $rpcAsString")
-            val script = rpcAsString.asWeb3InboxCall()
+            val script = rpcToWeb3InboxCall(rpcAsString)
             webViewWeakReference.webView.evaluateJavascript(script, null)
         }
     }
+}
 
-    private fun String.asWeb3InboxCall(): String = "window.web3inbox.chat.postMessage($this)"
+internal class ChatProxyInteractor(logger: Logger, webViewWeakReference: WebViewWeakReference) : ProxyInteractor(logger, webViewWeakReference) {
+    override fun rpcToWeb3InboxCall(rpc: String): String = "window.web3inbox.chat.postMessage($rpc)"
+}
+
+internal class PushProxyInteractor(logger: Logger, webViewWeakReference: WebViewWeakReference) : ProxyInteractor(logger, webViewWeakReference) {
+    override fun rpcToWeb3InboxCall(rpc: String): String = "window.web3inbox.push.postMessage($rpc)"
 }

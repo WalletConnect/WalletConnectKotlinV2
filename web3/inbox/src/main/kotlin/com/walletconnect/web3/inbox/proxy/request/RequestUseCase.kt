@@ -6,6 +6,7 @@ import com.walletconnect.web3.inbox.json_rpc.Web3InboxParams
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 import com.walletconnect.web3.inbox.proxy.ProxyInteractor
 
+//todo note this is used in push as well.
 internal abstract class RequestUseCase<T : Web3InboxParams.Request>(val proxyInteractor: ProxyInteractor) {
     abstract operator fun invoke(rpc: Web3InboxRPC, params: T)
 

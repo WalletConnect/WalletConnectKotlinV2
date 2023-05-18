@@ -4,10 +4,10 @@ import com.walletconnect.android.Core
 import com.walletconnect.push.common.Push
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxParams
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
-import com.walletconnect.web3.inbox.proxy.ProxyInteractor
+import com.walletconnect.web3.inbox.proxy.PushProxyInteractor
 
 internal class OnRequestPushEventUseCase(
-    proxyInteractor: ProxyInteractor,
+    proxyInteractor: PushProxyInteractor,
 ) : PushEventUseCase<Push.Wallet.Event.Request>(proxyInteractor) {
 
     override fun invoke(model: Push.Wallet.Event.Request) =

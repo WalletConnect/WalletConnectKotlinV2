@@ -7,8 +7,9 @@ import com.walletconnect.push.wallet.client.PushWalletInterface
 import com.walletconnect.web3.inbox.chat.ChatEventHandler
 import com.walletconnect.web3.inbox.chat.event.*
 import com.walletconnect.web3.inbox.client.Inbox
-import com.walletconnect.web3.inbox.proxy.ProxyInteractor
+import com.walletconnect.web3.inbox.proxy.ChatProxyInteractor
 import com.walletconnect.web3.inbox.proxy.ProxyRequestHandler
+import com.walletconnect.web3.inbox.proxy.PushProxyInteractor
 import com.walletconnect.web3.inbox.proxy.request.*
 import com.walletconnect.web3.inbox.push.GetActiveSubscriptionsRequestUseCase
 import com.walletconnect.web3.inbox.push.PushEventHandler
@@ -26,7 +27,9 @@ internal fun proxyModule(
     onPageFinished: () -> Unit,
 ) = module {
     single { WebViewWeakReference() }
-    single { ProxyInteractor(get(), get()) }
+    single { ChatProxyInteractor(get(), get()) }
+    single { PushProxyInteractor(get(), get()) }
+
     single { RegisterRequestUseCase(chatClient, get(), onSign) }
     single { GetReceivedInvitesRequestUseCase(chatClient, get()) }
     single { GetSentInvitesRequestUseCase(chatClient, get()) }
