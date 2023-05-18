@@ -3,7 +3,6 @@ package com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal
 import androidx.lifecycle.ViewModel
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
-import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.sample.wallet.ui.common.peer.toPeerUI
 import com.walletconnect.web3.wallet.client.Wallet
@@ -15,7 +14,7 @@ import kotlin.coroutines.suspendCoroutine
 class SessionProposalViewModel : ViewModel() {
     val sessionProposal: SessionProposalUI? = generateSessionProposalUI()
 
-    suspend fun approve() {
+    suspend fun approve(onRedirect: (String) -> Unit = {}) {
         return suspendCoroutine { continuation ->
             if (Web3Wallet.getSessionProposals().isNotEmpty()) {
                 val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().last())
@@ -26,17 +25,19 @@ class SessionProposalViewModel : ViewModel() {
                     onError = { error ->
                         continuation.resumeWithException(error.throwable)
                         Firebase.crashlytics.recordException(error.throwable)
+                        onRedirect(sessionProposal.redirect)
                         WCDelegate.sessionProposalEvent = null
                     },
                     onSuccess = {
                         continuation.resume(Unit)
+                        onRedirect(sessionProposal.redirect)
                         WCDelegate.sessionProposalEvent = null
                     })
             }
         }
     }
 
-    fun reject() {
+    fun reject(onRedirect: (String) -> Unit = {}) {
         Web3Wallet.getSessionProposals().last().let { sessionProposal ->
             val rejectionReason = "Reject Session"
             val reject = Wallet.Params.SessionReject(
@@ -50,6 +51,8 @@ class SessionProposalViewModel : ViewModel() {
                 Firebase.crashlytics.recordException(error.throwable)
                 WCDelegate.sessionProposalEvent = null
             })
+            }
+            onRedirect(sessionProposal.redirect)
         }
     }
 

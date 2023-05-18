@@ -11,8 +11,6 @@ import com.walletconnect.push.dapp.client.PushDappClient
 import com.walletconnect.sample_common.BuildConfig
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample_common.tag
-import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.client.SignClient
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import timber.log.Timber
@@ -28,7 +26,7 @@ class DappSampleApp : Application() {
             description = "Kotlin Dapp Implementation",
             url = "kotlin.dapp.walletconnect.com",
             icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media"),
-            redirect = "kotlin-dapp-wc:/request"
+            redirect = "kotlin-dapp-wc://request"
         )
 
         CoreClient.initialize(
@@ -38,12 +36,6 @@ class DappSampleApp : Application() {
             metaData = appMetaData,
         ) {
             Firebase.crashlytics.recordException(it.throwable)
-        }
-
-        val initParams = Sign.Params.Init(core = CoreClient)
-
-        SignClient.initialize(initParams) { error ->
-            Firebase.crashlytics.recordException(error.throwable)
         }
 
         PushDappClient.initialize(Push.Dapp.Params.Init(CoreClient, null)) { error ->
