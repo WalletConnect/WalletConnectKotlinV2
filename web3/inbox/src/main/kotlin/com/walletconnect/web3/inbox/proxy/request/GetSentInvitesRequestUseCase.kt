@@ -9,7 +9,7 @@ import com.walletconnect.web3.inbox.proxy.ChatProxyInteractor
 internal class GetSentInvitesRequestUseCase(
     private val chatClient: ChatInterface,
     proxyInteractor: ChatProxyInteractor,
-) : RequestUseCase<Web3InboxParams.Request.Chat.GetSentInvitesParams>(proxyInteractor) {
+) : ChatRequestUseCase<Web3InboxParams.Request.Chat.GetSentInvitesParams>(proxyInteractor) {
 
     override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.GetSentInvitesParams) {
         val invites = chatClient.getSentInvites(Chat.Params.GetSentInvites(Chat.Type.AccountId(params.account)))

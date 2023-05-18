@@ -1,18 +1,17 @@
-package com.walletconnect.web3.inbox.push
+package com.walletconnect.web3.inbox.push.proxy
 
 import com.walletconnect.android.Core
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.wallet.client.PushWalletInterface
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxParams
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
-import com.walletconnect.web3.inbox.proxy.ProxyInteractor
 import com.walletconnect.web3.inbox.proxy.PushProxyInteractor
-import com.walletconnect.web3.inbox.proxy.request.RequestUseCase
+import com.walletconnect.web3.inbox.proxy.request.ChatRequestUseCase
 
 internal class GetActiveSubscriptionsRequestUseCase(
     private val pushWalletClient: PushWalletInterface,
     proxyInteractor: PushProxyInteractor,
-) : RequestUseCase<Web3InboxParams.Request.Empty>(proxyInteractor) {
+) : PushRequestUseCase<Web3InboxParams.Request.Empty>(proxyInteractor) {
 
     override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Empty) =
         respondWithResult(rpc, pushWalletClient.getActiveSubscriptions().toResult())

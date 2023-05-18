@@ -9,7 +9,7 @@ import com.walletconnect.web3.inbox.proxy.ChatProxyInteractor
 internal class ResolveRequestUseCase(
     private val chatClient: ChatInterface,
     proxyInteractor: ChatProxyInteractor,
-) : RequestUseCase<Web3InboxParams.Request.Chat.ResolveParams>(proxyInteractor) {
+) : ChatRequestUseCase<Web3InboxParams.Request.Chat.ResolveParams>(proxyInteractor) {
 
     override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.ResolveParams) {
         chatClient.resolve(Chat.Params.Resolve(Chat.Type.AccountId(params.account)), object : Chat.Listeners.Resolve {

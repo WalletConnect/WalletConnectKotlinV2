@@ -7,9 +7,11 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxSerializer
 import com.walletconnect.web3.inbox.proxy.request.*
-import com.walletconnect.web3.inbox.push.GetActiveSubscriptionsRequestUseCase
+import com.walletconnect.web3.inbox.push.proxy.ApproveRequestUseCase
+import com.walletconnect.web3.inbox.push.proxy.GetActiveSubscriptionsRequestUseCase
 
 
+// TODO: split into push and chat
 internal class ProxyRequestHandler(
     private val logger: Logger,
     private val registerRequestUseCase: RegisterRequestUseCase,
@@ -23,6 +25,7 @@ internal class ProxyRequestHandler(
     private val messageRequestUseCase: MessageRequestUseCase,
     private val inviteRequestUseCase: InviteRequestUseCase,
     private val getActiveSubscriptionsRequestUseCase: GetActiveSubscriptionsRequestUseCase,
+    private val approveRequestUseCase: ApproveRequestUseCase,
 ) {
 
     @JavascriptInterface
@@ -44,6 +47,7 @@ internal class ProxyRequestHandler(
             is Web3InboxRPC.Request.Chat.Invite -> inviteRequestUseCase(rpc, rpc.params)
 
             is Web3InboxRPC.Request.Push.GetActiveSubscriptions -> getActiveSubscriptionsRequestUseCase(rpc, rpc.params)
+            is Web3InboxRPC.Request.Push.Approve -> approveRequestUseCase(rpc, rpc.params)
         }
     }
 }

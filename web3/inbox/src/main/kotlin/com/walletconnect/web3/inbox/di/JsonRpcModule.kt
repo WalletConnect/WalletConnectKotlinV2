@@ -8,6 +8,8 @@ import com.walletconnect.web3.inbox.json_rpc.Web3InboxMethods
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 import org.koin.dsl.module
 
+
+//todo split into multiple files
 @JvmSynthetic
 internal fun jsonRpcModule() = module {
     addSerializerEntry(Web3InboxRPC.Request.Chat.Register::class)
@@ -22,6 +24,7 @@ internal fun jsonRpcModule() = module {
     addSerializerEntry(Web3InboxRPC.Request.Chat.Invite::class)
 
     addSerializerEntry(Web3InboxRPC.Request.Push.GetActiveSubscriptions::class)
+    addSerializerEntry(Web3InboxRPC.Request.Push.Approve::class)
 
     addSerializerEntry(Web3InboxRPC.Call.Chat.Invite::class)
     addSerializerEntry(Web3InboxRPC.Call.Chat.Message::class)
@@ -30,7 +33,6 @@ internal fun jsonRpcModule() = module {
     addSerializerEntry(Web3InboxRPC.Call.Chat.Leave::class)
 
     addSerializerEntry(Web3InboxRPC.Call.Push.Request::class)
-
 
     addDeserializerEntry(Web3InboxMethods.Request.REGISTER, Web3InboxRPC.Request.Chat.Register::class)
     addDeserializerEntry(Web3InboxMethods.Request.GET_RECEIVED_INVITES, Web3InboxRPC.Request.Chat.GetReceivedInvites::class)
@@ -43,7 +45,8 @@ internal fun jsonRpcModule() = module {
     addDeserializerEntry(Web3InboxMethods.Request.MESSAGE, Web3InboxRPC.Request.Chat.Message::class)
     addDeserializerEntry(Web3InboxMethods.Request.INVITE, Web3InboxRPC.Request.Chat.Invite::class)
 
-    addDeserializerEntry(Web3InboxMethods.Request.GET_ACTIVE_SUBSCRIPTIONS, Web3InboxRPC.Request.Push.GetActiveSubscriptions::class)
+    addDeserializerEntry(Web3InboxMethods.Request.Push.GET_ACTIVE_SUBSCRIPTIONS, Web3InboxRPC.Request.Push.GetActiveSubscriptions::class)
+    addDeserializerEntry(Web3InboxMethods.Request.Push.APPROVE, Web3InboxRPC.Request.Push.Approve::class)
 
     addDeserializerEntry(Web3InboxMethods.Call.Chat.INVITE, Web3InboxRPC.Call.Chat.Invite::class)
     addDeserializerEntry(Web3InboxMethods.Call.Chat.MESSAGE, Web3InboxRPC.Call.Chat.Message::class)

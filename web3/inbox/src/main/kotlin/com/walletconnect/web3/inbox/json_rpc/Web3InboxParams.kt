@@ -76,6 +76,13 @@ internal sealed interface Web3InboxParams : ClientParams {
                 val timestamp: Long,
             ) : Chat
         }
+
+        sealed interface Push : Request {
+            @JsonClass(generateAdapter = true)
+            data class ApproveParams(
+                val id: Long,
+            ) : Chat
+        }
     }
 
     sealed interface Response : Web3InboxParams {

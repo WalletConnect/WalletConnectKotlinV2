@@ -11,9 +11,10 @@ import com.walletconnect.web3.inbox.proxy.ChatProxyInteractor
 import com.walletconnect.web3.inbox.proxy.ProxyRequestHandler
 import com.walletconnect.web3.inbox.proxy.PushProxyInteractor
 import com.walletconnect.web3.inbox.proxy.request.*
-import com.walletconnect.web3.inbox.push.GetActiveSubscriptionsRequestUseCase
+import com.walletconnect.web3.inbox.push.proxy.GetActiveSubscriptionsRequestUseCase
 import com.walletconnect.web3.inbox.push.PushEventHandler
 import com.walletconnect.web3.inbox.push.event.OnRequestPushEventUseCase
+import com.walletconnect.web3.inbox.push.proxy.ApproveRequestUseCase
 import com.walletconnect.web3.inbox.webview.WebViewPresenter
 import com.walletconnect.web3.inbox.webview.WebViewWeakReference
 import org.koin.dsl.module
@@ -40,8 +41,6 @@ internal fun proxyModule(
     single { ResolveRequestUseCase(chatClient, get()) }
     single { MessageRequestUseCase(chatClient, get()) }
     single { InviteRequestUseCase(chatClient, get()) }
-    single { ProxyRequestHandler(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-    single { WebViewPresenter(get(), get(), get(), onPageFinished) }
 
     single { OnInviteChatEventUseCase(get()) }
     single { OnMessageChatEventUseCase(get()) }
@@ -52,9 +51,12 @@ internal fun proxyModule(
     single { ChatEventHandler(get(), get(), get(), get(), get(), get()) }
 
     single { GetActiveSubscriptionsRequestUseCase(pushWalletClient, get()) }
+    single { ApproveRequestUseCase(pushWalletClient, get(), onSign) }
 
     single { OnRequestPushEventUseCase(get()) }
 
     single { PushEventHandler(get(), get()) }
 
+    single { ProxyRequestHandler(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    single { WebViewPresenter(get(), get(), get(), onPageFinished) }
 }

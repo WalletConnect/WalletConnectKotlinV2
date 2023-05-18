@@ -144,8 +144,20 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
-                override val method: String = Web3InboxMethods.Request.GET_ACTIVE_SUBSCRIPTIONS,
+                override val method: String = Web3InboxMethods.Request.Push.GET_ACTIVE_SUBSCRIPTIONS,
                 override val params: Web3InboxParams.Request.Empty,
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class Approve(
+                @Json(name = "id")
+                override val id: Long,
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "method")
+                override val method: String = Web3InboxMethods.Request.Push.APPROVE,
+                @Json(name = "params")
+                override val params: Web3InboxParams.Request.Push.ApproveParams,
             ) : Push
         }
     }

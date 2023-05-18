@@ -2,7 +2,9 @@ package com.walletconnect.web3.inbox.json_rpc
 
 internal object Web3InboxMethods {
     object Request {
-        //todo push and chat
+        object Chat {
+            // TODO: add chat methods here
+        }
         @get:JvmSynthetic
         const val REGISTER: String = "register"
 
@@ -33,8 +35,13 @@ internal object Web3InboxMethods {
         @get:JvmSynthetic
         const val INVITE: String = "invite"
 
-        @get:JvmSynthetic
-        const val GET_ACTIVE_SUBSCRIPTIONS: String = "getActiveSubscriptions"
+        object Push {
+            @get:JvmSynthetic
+            const val GET_ACTIVE_SUBSCRIPTIONS: String = "getActiveSubscriptions"
+
+            @get:JvmSynthetic
+            const val APPROVE: String = "approve"
+        }
     }
 
     object Call {

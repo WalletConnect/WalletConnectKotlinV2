@@ -63,7 +63,10 @@ class Web3WalletApplication : Application() {
         }
 
         Web3Inbox.initialize(Inbox.Params.Init(core = CoreClient, account = Inbox.Type.AccountId(with(EthAccountDelegate) { account.toEthAddress() }),
-            onSign = { message -> CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191) }
+            onSign = { message ->
+                Log.d(tag(this), message)
+                CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191)
+            }
         )) { error ->
             Firebase.crashlytics.recordException(error.throwable)
             Log.e(tag(this), error.throwable.stackTraceToString())

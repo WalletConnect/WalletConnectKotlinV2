@@ -6,8 +6,6 @@ import com.google.firebase.messaging.RemoteMessage
 
 
 //todo this will need to be implemented by sdk consumers, add to docs
-
-
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 abstract class Web3InboxFirebaseMessagingService : FirebaseMessagingService() {
     sealed interface Web3InboxMessage {

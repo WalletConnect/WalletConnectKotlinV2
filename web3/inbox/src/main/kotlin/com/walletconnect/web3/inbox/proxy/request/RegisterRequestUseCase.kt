@@ -12,7 +12,7 @@ internal class RegisterRequestUseCase(
     private val chatClient: ChatInterface,
     proxyInteractor: ChatProxyInteractor,
     private val onSign: (message: String) -> Inbox.Model.Cacao.Signature,
-) : RequestUseCase<Web3InboxParams.Request.Chat.RegisterParams>(proxyInteractor) {
+) : ChatRequestUseCase<Web3InboxParams.Request.Chat.RegisterParams>(proxyInteractor) {
 
     override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.RegisterParams) {
         chatClient.register(Chat.Params.Register(account = Chat.Type.AccountId(params.account)), object : Chat.Listeners.Register {
