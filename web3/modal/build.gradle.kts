@@ -70,7 +70,7 @@ dependencies {
     implementation ("io.coil-kt:coil-compose:2.3.0")
 
     // accompanist
-    accoompanist()
+    accompanist()
 
     // Qrcode generator
     implementation("com.github.alexzhirkevich:custom-qr-generator:1.6.1")

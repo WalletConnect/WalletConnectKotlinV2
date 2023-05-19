@@ -178,7 +178,7 @@ fun DependencyHandlerScope.compose() {
     "debugApi"("androidx.compose.ui:ui-test-manifest")
 }
 
-fun DependencyHandlerScope.accoompanist() {
+fun DependencyHandlerScope.accompanist() {
     "api"("com.google.accompanist:accompanist-navigation-material:$accompanistVersion")
     "api"("com.google.accompanist:accompanist-drawablepainter:$accompanistVersion")
     "api"("com.google.accompanist:accompanist-navigation-animation:$accompanistVersion")

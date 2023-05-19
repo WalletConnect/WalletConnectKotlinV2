@@ -76,10 +76,6 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-messaging")
 
-    // Accompanist
-    implementation("com.google.accompanist:accompanist-navigation-material:0.27.1")
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.1")
-
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":push:sdk"))
     debugImplementation(project(":web3:modal"))
