@@ -11,10 +11,11 @@ import com.walletconnect.web3.inbox.proxy.ChatProxyInteractor
 import com.walletconnect.web3.inbox.proxy.ProxyRequestHandler
 import com.walletconnect.web3.inbox.proxy.PushProxyInteractor
 import com.walletconnect.web3.inbox.proxy.request.*
-import com.walletconnect.web3.inbox.push.proxy.GetActiveSubscriptionsRequestUseCase
 import com.walletconnect.web3.inbox.push.PushEventHandler
+import com.walletconnect.web3.inbox.push.event.OnDeletePushEventUseCase
+import com.walletconnect.web3.inbox.push.event.OnMessagePushEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnRequestPushEventUseCase
-import com.walletconnect.web3.inbox.push.proxy.ApproveRequestUseCase
+import com.walletconnect.web3.inbox.push.proxy.*
 import com.walletconnect.web3.inbox.webview.WebViewPresenter
 import com.walletconnect.web3.inbox.webview.WebViewWeakReference
 import org.koin.dsl.module
@@ -36,8 +37,8 @@ internal fun proxyModule(
     single { GetSentInvitesRequestUseCase(chatClient, get()) }
     single { GetThreadsRequestUseCase(chatClient, get()) }
     single { GetMessagesRequestUseCase(chatClient, get()) }
-    single { AcceptRequestUseCase(chatClient, get()) }
-    single { RejectRequestUseCase(chatClient, get()) }
+    single { AcceptInviteRequestUseCase(chatClient, get()) }
+    single { RejectInviteRequestUseCase(chatClient, get()) }
     single { ResolveRequestUseCase(chatClient, get()) }
     single { MessageRequestUseCase(chatClient, get()) }
     single { InviteRequestUseCase(chatClient, get()) }
@@ -52,11 +53,20 @@ internal fun proxyModule(
 
     single { GetActiveSubscriptionsRequestUseCase(pushWalletClient, get()) }
     single { ApproveRequestUseCase(pushWalletClient, get(), onSign) }
+    single { RejectRequestUseCase(pushWalletClient, get()) }
+    single { SubscribeRequestUseCase(pushWalletClient, get()) }
+    single { UpdateRequestUseCase(pushWalletClient, get()) }
+    single { DeleteSubscriptionRequestUseCase(pushWalletClient, get()) }
+    single { GetMessageHistoryRequestUseCase(pushWalletClient, get()) }
+    single { DeletePushMessageRequestUseCase(pushWalletClient, get()) }
 
     single { OnRequestPushEventUseCase(get()) }
+    single { OnMessagePushEventUseCase(get()) }
+    single { OnDeletePushEventUseCase(get()) }
+    //todo add OnSubscriptionPushEventUseCase and OnUpdatePushEventUseCase once merged https://github.com/WalletConnect/WalletConnectKotlinV2/pull/875
 
-    single { PushEventHandler(get(), get()) }
+    single { PushEventHandler(get(), get(), get(), get()) }
 
-    single { ProxyRequestHandler(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    single { ProxyRequestHandler(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     single { WebViewPresenter(get(), get(), get(), onPageFinished) }
 }

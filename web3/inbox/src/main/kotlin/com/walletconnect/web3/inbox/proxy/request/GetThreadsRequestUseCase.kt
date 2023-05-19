@@ -11,10 +11,11 @@ internal class GetThreadsRequestUseCase(
     proxyInteractor: ChatProxyInteractor,
 ) : ChatRequestUseCase<Web3InboxParams.Request.Chat.GetThreadsParams>(proxyInteractor) {
 
-    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.GetThreadsParams) {
-        val threads: Map<String, Chat.Model.Thread> = chatClient.getThreads(Chat.Params.GetThreads(Chat.Type.AccountId(params.account)))
-        respondWithResult(rpc, threads.toResult())
-    }
+    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.GetThreadsParams) =
+        runCatching { chatClient.getThreads(Chat.Params.GetThreads(Chat.Type.AccountId(params.account))) }.fold(
+            onSuccess = { result -> respondWithResult(rpc, result.toResult()) },
+            onFailure = { error -> respondWithError(rpc, Chat.Model.Error(error)) }
+        )
 
     private fun Map<String, Chat.Model.Thread>.toResult(): List<Web3InboxParams.Response.Chat.GetThreadsResult> = map { it.value.toResult() }
 

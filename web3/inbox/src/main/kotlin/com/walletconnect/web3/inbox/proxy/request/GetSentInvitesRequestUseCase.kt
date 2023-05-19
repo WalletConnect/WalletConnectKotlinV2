@@ -11,10 +11,12 @@ internal class GetSentInvitesRequestUseCase(
     proxyInteractor: ChatProxyInteractor,
 ) : ChatRequestUseCase<Web3InboxParams.Request.Chat.GetSentInvitesParams>(proxyInteractor) {
 
-    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.GetSentInvitesParams) {
-        val invites = chatClient.getSentInvites(Chat.Params.GetSentInvites(Chat.Type.AccountId(params.account)))
-        respondWithResult(rpc, invites.toResult())
-    }
+    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.GetSentInvitesParams) =
+        runCatching { chatClient.getSentInvites(Chat.Params.GetSentInvites(Chat.Type.AccountId(params.account))) }.fold(
+            onSuccess = { result -> respondWithResult(rpc, result.toResult()) },
+            onFailure = { error -> respondWithError(rpc, Chat.Model.Error(error)) }
+        )
+
 
     private fun Map<Long, Chat.Model.Invite.Sent>.toResult(): List<Web3InboxParams.Response.Chat.GetSentInvitesResult> = map { it.value.toResult() }
 

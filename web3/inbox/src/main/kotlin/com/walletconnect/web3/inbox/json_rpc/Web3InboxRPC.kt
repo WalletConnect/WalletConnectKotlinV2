@@ -159,6 +159,78 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "params")
                 override val params: Web3InboxParams.Request.Push.ApproveParams,
             ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class Reject(
+                @Json(name = "id")
+                override val id: Long,
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "method")
+                override val method: String = Web3InboxMethods.Request.Push.REJECT,
+                @Json(name = "params")
+                override val params: Web3InboxParams.Request.Push.RejectParams,
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class Subscribe(
+                @Json(name = "id")
+                override val id: Long,
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "method")
+                override val method: String = Web3InboxMethods.Request.Push.SUBSCRIBE,
+                @Json(name = "params")
+                override val params: Web3InboxParams.Request.Push.SubscribeParams,
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class Update(
+                @Json(name = "id")
+                override val id: Long,
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "method")
+                override val method: String = Web3InboxMethods.Request.Push.UPDATE,
+                @Json(name = "params")
+                override val params: Web3InboxParams.Request.Push.UpdateParams,
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class DeleteSubscription(
+                @Json(name = "id")
+                override val id: Long,
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "method")
+                override val method: String = Web3InboxMethods.Request.Push.DELETE_SUBSCRIPTION,
+                @Json(name = "params")
+                override val params: Web3InboxParams.Request.Push.DeleteSubscriptionParams,
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class GetMessageHistory(
+                @Json(name = "id")
+                override val id: Long,
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "method")
+                override val method: String = Web3InboxMethods.Request.Push.GET_MESSAGE_HISTORY,
+                @Json(name = "params")
+                override val params: Web3InboxParams.Request.Push.GetMessageHistoryParams,
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class DeletePushMessage(
+                @Json(name = "id")
+                override val id: Long,
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "method")
+                override val method: String = Web3InboxMethods.Request.Push.DELETE_PUSH_MESSAGE,
+                @Json(name = "params")
+                override val params: Web3InboxParams.Request.Push.DeletePushMessageParams,
+            ) : Push
         }
     }
 
@@ -245,6 +317,54 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 override val method: String = Web3InboxMethods.Call.Push.REQUEST,
                 @Json(name = "params")
                 override val params: Web3InboxParams.Call.Push.RequestParams,
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class Message(
+                @Json(name = "id")
+                override val id: Long = generateId(),
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "method")
+                override val method: String = Web3InboxMethods.Call.Push.MESSAGE,
+                @Json(name = "params")
+                override val params: Web3InboxParams.Call.Push.MessageParams,
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class Subscription(
+                @Json(name = "id")
+                override val id: Long = generateId(),
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "method")
+                override val method: String = Web3InboxMethods.Call.Push.SUBSCRIPTION,
+                @Json(name = "params")
+                override val params: Web3InboxParams.Call.Push.SubscriptionParams,
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class Update(
+                @Json(name = "id")
+                override val id: Long = generateId(),
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "method")
+                override val method: String = Web3InboxMethods.Call.Push.UPDATE,
+                @Json(name = "params")
+                override val params: Web3InboxParams.Call.Push.UpdateParams,
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class Delete(
+                @Json(name = "id")
+                override val id: Long = generateId(),
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "method")
+                override val method: String = Web3InboxMethods.Call.Push.DELETE,
+                @Json(name = "params")
+                override val params: Web3InboxParams.Call.Push.DeleteParams,
             ) : Push
         }
     }

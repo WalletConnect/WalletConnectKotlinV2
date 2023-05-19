@@ -5,6 +5,7 @@ internal object Web3InboxMethods {
         object Chat {
             // TODO: add chat methods here
         }
+
         @get:JvmSynthetic
         const val REGISTER: String = "register"
 
@@ -41,6 +42,24 @@ internal object Web3InboxMethods {
 
             @get:JvmSynthetic
             const val APPROVE: String = "approve"
+
+            @get:JvmSynthetic
+            const val REJECT: String = "reject"
+
+            @get:JvmSynthetic
+            const val SUBSCRIBE: String = "subscribe"
+
+            @get:JvmSynthetic
+            const val UPDATE: String = "update"
+
+            @get:JvmSynthetic
+            const val DELETE_SUBSCRIPTION: String = "deleteSubscription"
+
+            @get:JvmSynthetic
+            const val GET_MESSAGE_HISTORY: String = "getMessageHistory"
+
+            @get:JvmSynthetic
+            const val DELETE_PUSH_MESSAGE: String = "deletePushMessage"
         }
     }
 
@@ -65,9 +84,6 @@ internal object Web3InboxMethods {
         object Push {
             @get:JvmSynthetic
             const val REQUEST: String = "push_request"
-
-            @get:JvmSynthetic
-            const val RESPONSE: String = "push_response"
 
             @get:JvmSynthetic
             const val MESSAGE: String = "push_message"

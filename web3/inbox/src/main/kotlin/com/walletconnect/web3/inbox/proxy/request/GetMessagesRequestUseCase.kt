@@ -11,10 +11,12 @@ internal class GetMessagesRequestUseCase(
     proxyInteractor: ChatProxyInteractor,
 ) : ChatRequestUseCase<Web3InboxParams.Request.Chat.GetMessagesParams>(proxyInteractor) {
 
-    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.GetMessagesParams) {
-        val messages: List<Chat.Model.Message> = chatClient.getMessages(Chat.Params.GetMessages(params.topic))
-        respondWithResult(rpc, messages.toResult())
-    }
+    override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.GetMessagesParams) =
+        runCatching { chatClient.getMessages(Chat.Params.GetMessages(params.topic)) }.fold(
+            onSuccess = { result -> respondWithResult(rpc, result) },
+            onFailure = { error -> respondWithError(rpc, Chat.Model.Error(error)) }
+        )
+
 
     private fun List<Chat.Model.Message>.toResult(): List<Web3InboxParams.Response.Chat.GetMessagesResult> = map { it.toResult() }
 

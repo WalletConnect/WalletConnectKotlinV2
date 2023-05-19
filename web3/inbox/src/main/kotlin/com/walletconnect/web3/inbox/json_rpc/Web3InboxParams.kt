@@ -2,6 +2,7 @@ package com.walletconnect.web3.inbox.json_rpc
 
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.type.ClientParams
+import com.walletconnect.push.common.Push
 
 internal sealed interface Web3InboxParams : ClientParams {
 
@@ -81,7 +82,43 @@ internal sealed interface Web3InboxParams : ClientParams {
             @JsonClass(generateAdapter = true)
             data class ApproveParams(
                 val id: Long,
-            ) : Chat
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class RejectParams(
+                val id: Long,
+                val reason: String,
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class SubscribeParams(
+                val metadata: AppMetaData,
+                val account: String,
+            ) : Push {
+                @JsonClass(generateAdapter = true)
+                data class AppMetaData(val name: String, val description: String, val url: String, val icons: List<String>, val redirect: String?, val verifyUrl: String? = null)
+            }
+
+            @JsonClass(generateAdapter = true)
+            data class UpdateParams(
+                val topic: String,
+                val scope: List<String>,
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class DeleteSubscriptionParams(
+                val topic: String,
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class GetMessageHistoryParams(
+                val topic: String,
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class DeletePushMessageParams(
+                val id: Long,
+            ) : Push
         }
     }
 
@@ -231,6 +268,42 @@ internal sealed interface Web3InboxParams : ClientParams {
                     val redirect: String?,
                     val verifyUrl: String? = null,
                 )
+            }
+
+            @JsonClass(generateAdapter = true)
+            data class SubscriptionParams(
+                val id: Long,
+            ) : Push {
+                //todo First merge https://github.com/WalletConnect/WalletConnectKotlinV2/pull/875
+            }
+
+            @JsonClass(generateAdapter = true)
+            data class MessageParams(
+                val id: String,
+                val topic: String,
+                val publishedAt: Long,
+                val message: Message,
+            ) : Push {
+                data class Message(
+                    val title: String,
+                    val body: String,
+                    val icon: String?,
+                    val url: String?,
+                )
+            }
+
+            @JsonClass(generateAdapter = true)
+            data class UpdateParams(
+                val id: Long,
+            ) : Push {
+                //todo First merge https://github.com/WalletConnect/WalletConnectKotlinV2/pull/875
+            }
+
+            @JsonClass(generateAdapter = true)
+            data class DeleteParams(
+                val topic: String,
+            ) : Push {
+
             }
         }
     }
