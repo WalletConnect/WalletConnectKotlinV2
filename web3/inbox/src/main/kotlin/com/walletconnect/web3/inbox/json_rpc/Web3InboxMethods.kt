@@ -64,6 +64,10 @@ internal object Web3InboxMethods {
     }
 
     object Call {
+
+        @get:JvmSynthetic
+        const val SYNC_UPDATE: String = "sync_update"
+
         object Chat {
             @get:JvmSynthetic
             const val INVITE: String = "chat_invite"

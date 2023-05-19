@@ -240,8 +240,20 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
     sealed interface Call : Web3InboxRPC {
         override val params: Web3InboxParams.Call
 
+        @JsonClass(generateAdapter = true)
+        data class SyncUpdate(
+            @Json(name = "id")
+            override val id: Long = generateId(),
+            @Json(name = "jsonrpc")
+            override val jsonrpc: String = "2.0",
+            @Json(name = "method")
+            override val method: String = Web3InboxMethods.Call.SYNC_UPDATE,
+            @Json(name = "params")
+            override val params: Web3InboxParams.Call.SyncUpdateParams,
+        ) : Push, Chat
+
         sealed interface Chat : Call {
-            override val params: Web3InboxParams.Call.Chat
+            override val params: Web3InboxParams.Call
 
             @JsonClass(generateAdapter = true)
             data class Invite(
@@ -305,7 +317,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
         }
 
         sealed interface Push : Call {
-            override val params: Web3InboxParams.Call.Push
+            override val params: Web3InboxParams.Call
 
             @JsonClass(generateAdapter = true)
             data class Request(

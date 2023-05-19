@@ -15,6 +15,7 @@ import com.walletconnect.web3.inbox.push.PushEventHandler
 import com.walletconnect.web3.inbox.push.event.OnDeletePushEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnMessagePushEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnRequestPushEventUseCase
+import com.walletconnect.web3.inbox.push.event.OnSyncUpdatePushEventUseCase
 import com.walletconnect.web3.inbox.push.proxy.*
 import com.walletconnect.web3.inbox.webview.WebViewPresenter
 import com.walletconnect.web3.inbox.webview.WebViewWeakReference
@@ -48,6 +49,7 @@ internal fun proxyModule(
     single { OnInviteAcceptedChatEventUseCase(get()) }
     single { OnInviteRejectedChatEventUseCase(get()) }
     single { OnLeftChatEventUseCase(get()) }
+    single { OnSyncUpdateChatEventUseCase(get()) }
 
     single { ChatEventHandler(get(), get(), get(), get(), get(), get()) }
 
@@ -63,6 +65,7 @@ internal fun proxyModule(
     single { OnRequestPushEventUseCase(get()) }
     single { OnMessagePushEventUseCase(get()) }
     single { OnDeletePushEventUseCase(get()) }
+    single { OnSyncUpdatePushEventUseCase(get()) }
     //todo add OnSubscriptionPushEventUseCase and OnUpdatePushEventUseCase once merged https://github.com/WalletConnect/WalletConnectKotlinV2/pull/875
 
     single { PushEventHandler(get(), get(), get(), get()) }

@@ -4,11 +4,12 @@ import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatClient
 import com.walletconnect.chat.client.ChatInterface
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.web3.inbox.chat.event.OnInviteChatEventUseCase
+import com.walletconnect.web3.inbox.chat.event.*
 import com.walletconnect.web3.inbox.chat.event.OnInviteAcceptedChatEventUseCase
+import com.walletconnect.web3.inbox.chat.event.OnInviteChatEventUseCase
+import com.walletconnect.web3.inbox.chat.event.OnInviteRejectedChatEventUseCase
 import com.walletconnect.web3.inbox.chat.event.OnLeftChatEventUseCase
 import com.walletconnect.web3.inbox.chat.event.OnMessageChatEventUseCase
-import com.walletconnect.web3.inbox.chat.event.OnInviteRejectedChatEventUseCase
 
 
 internal class ChatEventHandler(

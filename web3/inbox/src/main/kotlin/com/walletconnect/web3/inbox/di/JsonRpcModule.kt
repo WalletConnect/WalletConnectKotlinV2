@@ -43,7 +43,7 @@ internal fun jsonRpcModule() = module {
     addSerializerEntry(Web3InboxRPC.Call.Chat.InviteRejected::class)
     addSerializerEntry(Web3InboxRPC.Call.Chat.Leave::class)
     // chat serializer events 👆
-
+    addSerializerEntry(Web3InboxRPC.Call.SyncUpdate::class)
     // push serializer events 👇
     addSerializerEntry(Web3InboxRPC.Call.Push.Request::class)
     addSerializerEntry(Web3InboxRPC.Call.Push.Message::class)
@@ -83,7 +83,7 @@ internal fun jsonRpcModule() = module {
     addDeserializerEntry(Web3InboxMethods.Call.Chat.INVITE_REJECTED, Web3InboxRPC.Call.Chat.InviteRejected::class)
     addDeserializerEntry(Web3InboxMethods.Call.Chat.LEAVE, Web3InboxRPC.Call.Chat.Leave::class)
     // chat deserializer events 👆
-
+    addDeserializerEntry(Web3InboxMethods.Call.SYNC_UPDATE, Web3InboxRPC.Call.SyncUpdate::class)
     // push deserializer events 👇
     addDeserializerEntry(Web3InboxMethods.Call.Push.REQUEST, Web3InboxRPC.Call.Push.Request::class)
     addDeserializerEntry(Web3InboxMethods.Call.Push.MESSAGE, Web3InboxRPC.Call.Push.Message::class)
