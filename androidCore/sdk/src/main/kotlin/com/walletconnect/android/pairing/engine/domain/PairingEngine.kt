@@ -86,8 +86,8 @@ internal class PairingEngine(
 
         return inactivePairing.runCatching {
             pairingRepository.insertPairing(this)
-            metadataRepository.upsertPairingPeerMetadata(pairingTopic, selfMetaData, AppMetaDataType.SELF)
-            jsonRpcInteractor.subscribe(pairingTopic) { error -> return@subscribe onFailure(error) }
+            metadataRepository.upsertPairingPeerMetadata(this.topic, selfMetaData, AppMetaDataType.SELF)
+            jsonRpcInteractor.subscribe(this.topic) { error -> return@subscribe onFailure(error) }
 
             this.toClient()
         }.onFailure { throwable ->
