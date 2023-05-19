@@ -38,30 +38,11 @@ internal fun Web3ModalNavGraph(
                 navController,
                 Web3ModalState.SessionState
             )
-            Web3ModalState.Loading -> loadingState()
         }
 
     }
 }
 
-private fun NavGraphBuilder.loadingState() {
-    animatedComposable(Route.Loading.path) {
-        Box(
-            modifier = Modifier
-                .fillMaxHeight(0.5f)
-                .fillMaxWidth()
-                .background(Web3ModalTheme.colors.background)
-                .padding(100.dp)
-        ) {
-            CircularProgressIndicator(
-                color = Web3ModalTheme.colors.main,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(48.dp)
-            )
-        }
-    }
-}
 
 internal fun NavGraphBuilder.animatedComposable(
     route: String,

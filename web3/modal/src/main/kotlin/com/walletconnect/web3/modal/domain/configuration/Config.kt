@@ -10,9 +10,8 @@ sealed class Config {
 
     @JsonClass(generateAdapter = true)
     data class Connect(
-        val namespaces: Map<String, Modal.Model.Namespace.Proposal>? = null,
-        val optionalNamespaces: Map<String, Modal.Model.Namespace.Proposal>? = null,
         @EncodedString
-        val uri: String? = null
+        val uri: String,
+        val chains: List<String>? = null,
     ): Config()
 }
