@@ -1,0 +1,38 @@
+import com.walletconnect.chat.common.model.InviteStatus;
+import com.walletconnect.chat.common.model.InviteType;
+
+-- migration from 1.db to 2.db
+
+DROP TABLE IF EXISTS Invites;
+
+CREATE TABLE Invites (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    inviteId INTEGER UNIQUE NOT NULL,
+    message TEXT NOT NULL,
+    inviterAccount TEXT NOT NULL,
+    inviteeAccount TEXT NOT NULL,
+    status TEXT AS InviteStatus NOT NULL, -- PENDING, REJECTED OR APPROVED
+    type TEXT AS InviteType NOT NULL, -- SENT OR RECEIVED
+    inviterPublicKey TEXT NOT NULL,
+    acceptTopic TEXT NOT NULL,
+    symmetricKey TEXT NOT NULL,
+    inviterPrivateKey TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+    UNIQUE(inviterAccount, inviteeAccount)
+);
+
+CREATE TABLE Threads_temp (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    topic TEXT UNIQUE NOT NULL,
+    selfAccount TEXT NOT NULL,
+    peerAccount TEXT NOT NULL,
+    UNIQUE(selfAccount, peerAccount)
+);
+
+INSERT INTO Threads_temp
+SELECT id, topic, selfAccount, peerAccount
+FROM Threads;
+
+DROP TABLE Threads;
+
+ALTER TABLE Threads_temp RENAME TO Threads;
