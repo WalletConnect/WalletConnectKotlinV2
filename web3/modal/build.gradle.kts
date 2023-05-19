@@ -69,10 +69,8 @@ dependencies {
     //coil
     implementation ("io.coil-kt:coil-compose:2.3.0")
 
-// accompanist
-    implementation("com.google.accompanist:accompanist-navigation-material:0.30.0")
-    implementation("com.google.accompanist:accompanist-drawablepainter:0.30.0")
-    implementation("com.google.accompanist:accompanist-navigation-animation:0.30.0")
+    // accompanist
+    accoompanist()
 
     // Qrcode generator
     implementation("com.github.alexzhirkevich:custom-qr-generator:1.6.1")
