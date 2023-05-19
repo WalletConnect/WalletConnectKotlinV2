@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.web3.modal.client.Modal
-import com.walletconnect.web3.modal.domain.configuration.CONFIGURATION
+import com.walletconnect.web3.modal.domain.configuration.CONFIG_ARG
 import com.walletconnect.web3.modal.domain.configuration.Config
 import com.walletconnect.web3.modal.domain.configuration.Web3ModalConfigSerializer
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
@@ -20,7 +20,7 @@ internal class Web3ModalViewModel(
 
     private val getWalletsRecommendationsUseCase: GetWalletsUseCase = wcKoinApp.koin.get()
 
-    private val configuration = savedStateHandle.get<String>(CONFIGURATION)?.let { config ->
+    private val configuration = savedStateHandle.get<String>(CONFIG_ARG)?.let { config ->
         Web3ModalConfigSerializer.deserialize(config)
     }
 
