@@ -16,3 +16,4 @@ class InvalidActClaims(act: String) : WalletConnectException("Invalid act claim.
 object InviteWasAlreadyRespondedTo : WalletConnectException("This invite request has already been responded to")
 object InviteResponseWasAlreadyReceived : WalletConnectException("This invite response has already been received")
 object ChatSyncStoresInitializationTimeoutException : WalletConnectException("Required Chat Stores initialization timeout")
+object ReceivedInviteNotStored : WalletConnectException("Received Invite not stored")
