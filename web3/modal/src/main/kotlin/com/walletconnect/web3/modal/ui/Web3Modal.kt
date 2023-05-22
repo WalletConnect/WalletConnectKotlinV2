@@ -4,7 +4,6 @@
 )
 
 package com.walletconnect.web3.modal.ui
-
 import android.os.Bundle
 import androidx.annotation.IdRes
 import androidx.compose.material.ExperimentalMaterialApi
@@ -12,6 +11,7 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.runtime.*
 import androidx.navigation.*
+import androidx.navigation.fragment.dialog
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.bottomSheet
 import com.walletconnect.web3.modal.domain.configuration.CONFIG_ARG
@@ -19,6 +19,14 @@ import com.walletconnect.web3.modal.domain.configuration.Config
 import com.walletconnect.web3.modal.domain.configuration.asArg
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalComponent
 import com.walletconnect.web3.modal.ui.navigation.Route
+
+fun NavGraphBuilder.web3Modal() {
+    dialog<Web3ModalSheet>("${Route.Web3Modal.path}/$CONFIG_ARG"){
+        argument(CONFIG_ARG) {
+            type = NavType.StringType
+        }
+    }
+}
 
 fun NavController.navigateToWeb3modal(
     @IdRes id: Int,
@@ -29,7 +37,6 @@ fun NavController.navigateToWeb3modal(
     }
     navigate(id, bundle)
 }
-
 fun NavController.navigateToWeb3Modal(config: Config) {
     navigate(Route.Web3Modal.path + "/${config.asArg()}")
 }
