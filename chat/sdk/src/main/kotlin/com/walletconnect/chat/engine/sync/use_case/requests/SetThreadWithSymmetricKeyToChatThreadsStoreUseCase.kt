@@ -13,7 +13,7 @@ import com.walletconnect.foundation.util.Logger
 
 internal class SetThreadWithSymmetricKeyToChatThreadsStoreUseCase(
     private val logger: Logger,
-    private val syncInterface: SyncInterface,
+    private val syncClient: SyncInterface,
     _moshi: Moshi.Builder,
 ) {
 
@@ -25,7 +25,7 @@ internal class SetThreadWithSymmetricKeyToChatThreadsStoreUseCase(
         val payload = moshi.adapter(SyncedThread::class.java).toJson(syncedThread)
         logger.log("SyncedThread: $payload")
 
-        syncInterface.set(
+        syncClient.set(
             Sync.Params.Set(thread.selfAccount, Store(ChatSyncStores.CHAT_THREADS.value), thread.topic.value, payload),
             onSuccess = { didUpdate ->
                 logger.log("Did update on ${ChatSyncStores.CHAT_THREADS.value} happen: $didUpdate")

@@ -14,7 +14,7 @@ import com.walletconnect.foundation.util.Logger
 
 internal class SetInviteKeyToChatInviteKeyStoreUseCase(
     private val logger: Logger,
-    private val syncInterface: SyncInterface,
+    private val syncClient: SyncInterface,
     _moshi: Moshi.Builder,
 ) {
     private val moshi = _moshi.build()
@@ -25,7 +25,7 @@ internal class SetInviteKeyToChatInviteKeyStoreUseCase(
         logger.log("SyncedInviteKeys: $payload")
 
 
-        syncInterface.set(
+        syncClient.set(
             Sync.Params.Set(account, Store(ChatSyncStores.CHAT_INVITE_KEYS.value), account.value, payload),
             onSuccess = { didUpdate ->
                 logger.log("Did update on ${ChatSyncStores.CHAT_INVITE_KEYS.value} happen: $didUpdate")

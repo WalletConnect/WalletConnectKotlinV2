@@ -9,10 +9,10 @@ import com.walletconnect.foundation.util.Logger
 
 internal class DeleteInviteKeyFromChatInviteKeyStoreUseCase(
     private val logger: Logger,
-    private val syncInterface: SyncInterface,
+    private val syncClient: SyncInterface,
 ) {
     operator fun invoke(account: AccountId) {
-        syncInterface.delete(
+        syncClient.delete(
             Sync.Params.Delete(account, Store(ChatSyncStores.CHAT_INVITE_KEYS.value), account.value),
             onSuccess = { logger.log("Did update on ${ChatSyncStores.CHAT_INVITE_KEYS.value} happen: $it") },
             onError = { logger.error(it.throwable) }

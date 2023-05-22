@@ -13,7 +13,7 @@ import com.walletconnect.foundation.util.Logger
 
 internal class SetReceivedInviteStatusToChatSentInvitesStoreUseCase(
     private val logger: Logger,
-    private val syncInterface: SyncInterface,
+    private val syncClient: SyncInterface,
     _moshi: Moshi.Builder,
 ) {
     private val moshi = _moshi.build()
@@ -30,7 +30,7 @@ internal class SetReceivedInviteStatusToChatSentInvitesStoreUseCase(
         val payload = moshi.adapter(SyncedReceivedInviteStatus::class.java).toJson(syncedReceivedInviteStatus)
         logger.log("SyncedReceivedInviteStatus: $payload")
 
-        syncInterface.set(
+        syncClient.set(
             Sync.Params.Set(receivedInvite.inviteeAccount, Store(ChatSyncStores.CHAT_RECEIVED_INVITE_STATUSES.value), receivedInvite.id.toString(), payload),
             onSuccess = { didUpdate ->
                 logger.log("Did update on ${ChatSyncStores.CHAT_RECEIVED_INVITE_STATUSES.value} happen: $didUpdate")
