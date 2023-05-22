@@ -21,7 +21,7 @@ import com.walletconnect.web3.modal.ui.components.internal.Web3ModalComponent
 import com.walletconnect.web3.modal.ui.navigation.Route
 
 fun NavGraphBuilder.web3Modal() {
-    dialog<Web3ModalBottomSheet>("${Route.Web3Modal.path}/{$CONFIG_ARG}") {
+    dialog<Web3ModalSheet>("${Route.Web3Modal.path}/{$CONFIG_ARG}") {
         argument(CONFIG_ARG) {
             type = NavType.StringType
         }
