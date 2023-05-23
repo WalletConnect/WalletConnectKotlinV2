@@ -350,6 +350,7 @@ internal class JsonRpcInteractor(
 
     private suspend fun handleJsonRpcResponsesWithoutStoredRequest(jsonRpcResult: JsonRpcResponse.JsonRpcResult, topic: Topic) {
         // todo: HANDLE DUPLICATES! maybe store results to check for duplicates????? https://github.com/WalletConnect/WalletConnectKotlinV2/issues/871
+        //  Currently it's engine/usecase responsibility to handle duplicate responses
         if (jsonRpcResult.result is CoreChatParams.AcceptanceParams) _peerResponse.emit(WCResponse(topic, String.Empty, jsonRpcResult, jsonRpcResult.result))
     }
 
