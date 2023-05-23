@@ -1,0 +1,16 @@
+-- migration from 1.db to 2.db
+
+-- Adds timestamp to StoreValues table.
+-- Since it was in early development stages no need to handle previous values.
+-- Just drop the table and create a new one.
+
+DROP TABLE IF EXISTS StoreValues;
+
+CREATE TABLE StoreValues (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    storeId INTEGER NOT NULL,
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+    UNIQUE(storeId, key)
+);
