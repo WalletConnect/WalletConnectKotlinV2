@@ -12,7 +12,7 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun syncInChatModule() = module {
     single { OnChatSentInviteUpdateEventUseCase(get(), get(), get(), get(), get(named(AndroidCommonDITags.MOSHI))) }
-    single { OnChatReceivedInviteStatusUpdateEventUseCase(get(), get(), get(named(AndroidCommonDITags.MOSHI))) }
+    single { OnChatReceivedInviteRejectedStatusUpdateEventUseCase(get(), get(), get(named(AndroidCommonDITags.MOSHI))) }
     single { OnInviteKeysUpdateEventUseCase(get(), get(), get(), get(), get(named(AndroidCommonDITags.MOSHI))) }
     single { OnThreadsUpdateEventUseCase(get(), get(), get(), get(), get(), get(named(AndroidCommonDITags.MOSHI))) }
     single { OnSyncUpdateEventUseCase(get(), get(), get(), get()) }

@@ -10,7 +10,7 @@ import com.walletconnect.chat.engine.sync.model.toCommon
 import com.walletconnect.chat.storage.InvitesStorageRepository
 import com.walletconnect.foundation.util.Logger
 
-internal class OnChatReceivedInviteStatusUpdateEventUseCase(
+internal class OnChatReceivedInviteRejectedStatusUpdateEventUseCase(
     private val logger: Logger,
     private val invitesRepository: InvitesStorageRepository,
     _moshi: Moshi.Builder,
