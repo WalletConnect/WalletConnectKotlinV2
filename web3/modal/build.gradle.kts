@@ -63,14 +63,14 @@ dependencies {
 
     //compose
     compose()
+    //override compose material to fix crash at modalsheet
+    implementation("androidx.compose.material:material:1.5.0-alpha04")
 
     //coil
     implementation ("io.coil-kt:coil-compose:2.3.0")
 
-// accompanist
-    implementation("com.google.accompanist:accompanist-navigation-material:0.30.0")
-    implementation("com.google.accompanist:accompanist-drawablepainter:0.30.0")
-    implementation("com.google.accompanist:accompanist-navigation-animation:0.30.0")
+    // accompanist
+    accompanist()
 
     // Qrcode generator
     implementation("com.github.alexzhirkevich:custom-qr-generator:1.6.1")
