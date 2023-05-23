@@ -13,6 +13,7 @@ import com.walletconnect.android.sync.common.model.Store
 import com.walletconnect.android.sync.storage.StoresStorageRepository
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.util.generateId
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 

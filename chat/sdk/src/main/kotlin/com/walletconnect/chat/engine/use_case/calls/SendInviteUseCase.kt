@@ -25,6 +25,7 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeX25519DidKey
 import com.walletconnect.util.generateId
+import com.walletconnect.utils.extractTimestamp
 import kotlinx.coroutines.*
 
 
@@ -87,7 +88,7 @@ internal class SendInviteUseCase(
                         inviteId, invite.inviterAccount, invite.inviteeAccount, invite.message, inviterPublicKey,
                         InviteStatus.PENDING, acceptTopic, symmetricKey, inviterPrivateKey,
                         //todo: use publishedAt from relay https://github.com/WalletConnect/WalletConnectKotlinV2/issues/872
-                        timestamp = inviteId
+                        timestamp = inviteId.extractTimestamp()
                     )
                     scope.launch { invitesRepository.insertInvite(sentInvite) }
                     setSentInviteToChatSentInvitesStoreUseCase(sentInvite, onSuccess = {}, onError = onError)

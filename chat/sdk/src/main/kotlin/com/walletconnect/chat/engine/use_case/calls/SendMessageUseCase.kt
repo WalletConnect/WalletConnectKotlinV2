@@ -22,6 +22,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.generateId
+import com.walletconnect.utils.extractTimestamp
 import kotlinx.coroutines.launch
 
 
@@ -44,7 +45,8 @@ internal class SendMessageUseCase(
 
             val thread = threadsRepository.getThreadByTopic(topic)
             val (authorAccountId, recipientAccountId) = thread.selfAccount to thread.peerAccount
-            val messageTimestampInMs = System.currentTimeMillis()
+            val messageId = generateId()
+            val messageTimestampInMs = messageId.extractTimestamp()
             val (identityPublicKey, identityPrivateKey) = identitiesInteractor.getIdentityKeyPair(authorAccountId)
 
             val didJwt = encodeDidJwt(
@@ -55,7 +57,6 @@ internal class SendMessageUseCase(
                 .getOrElse() { error -> return@launch onError(error) }
 
             val messageParams = ChatParams.MessageParams(messageAuth = didJwt.value)
-            val messageId = generateId()
             val payload = ChatRpc.ChatMessage(id = messageId, params = messageParams)
             val irnParams = IrnParams(Tags.CHAT_MESSAGE, Ttl(MONTH_IN_SECONDS), true)
 

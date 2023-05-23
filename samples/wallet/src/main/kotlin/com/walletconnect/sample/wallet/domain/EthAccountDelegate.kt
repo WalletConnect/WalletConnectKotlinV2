@@ -43,10 +43,20 @@ fun generateKeys(): Triple<String, String, String> {
         }
     }
     Security.addProvider(BouncyCastleProvider())
-    val keypair = Keys.createEcKeyPair()
-    val publicKey = keypair.publicKey.toByteArray().bytesToHex()
-    val privateKey = keypair.privateKey.toByteArray().bytesToHex()
-    return Triple(publicKey, privateKey, Keys.toChecksumAddress(Keys.getAddress(keypair)))
+//    val keypair = Keys.createEcKeyPair()
+//    val publicKey = keypair.publicKey.toByteArray().bytesToHex()
+//    val privateKey = keypair.privateKey.toByteArray().bytesToHex()
+    // Swift
+    val privateKey = "4dc0055d1831f7df8d855fc8cd9118f4a85ddc05395104c4cb0831a6752621a8"
+    val publicKey = "62eb0b60b90e6ab0fbaaa897256dc60ff18f5354b3508796ac7be965eda6105a5537e74478da099e4e39f6ae56e58cb3916bd014a1a94997515976bb522f3a04"
+
+//    val privateKey = "de15cb11963e9bde0a5cce06a5ee2bda1cf3a67be6fbcd7a4fc8c0e4c4db0298"
+//    val publicKey = "7285ef9629c835310ffe6f76f282b03833cffb9a930e7a73efa09bd42d9c412ec0fa797197e296282fc7f4db387d28261f77d86c8fd36b72efd811555d928ff0"
+    // JS
+
+//    return Triple(publicKey, privateKey, Keys.toChecksumAddress(Keys.getAddress(keypair)))
+    return Triple(publicKey, privateKey, Keys.toChecksumAddress(Keys.getAddress(publicKey)))
+
 }
 
 context(EthAccountDelegate)

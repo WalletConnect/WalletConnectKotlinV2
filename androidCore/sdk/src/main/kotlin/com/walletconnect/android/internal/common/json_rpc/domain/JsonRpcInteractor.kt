@@ -24,11 +24,7 @@ import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.utils.Empty
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 internal class JsonRpcInteractor(
@@ -84,7 +80,7 @@ internal class JsonRpcInteractor(
 
             relay.publish(topic.value, encryptedRequest, params.toRelay()) { result ->
                 result.fold(
-                    onSuccess = { onSuccess() },
+                    onSuccess = { onSuccess().also { logger.log("Published: ${payload.id}") } },
                     onFailure = { error -> onFailure(error) }
                 )
             }
@@ -112,7 +108,7 @@ internal class JsonRpcInteractor(
         relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
             result.fold(
                 onSuccess = {
-                    jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
+                    jsonRpcHistory.updateRequestWithResponse(response.id, responseJson).also { logger.log("Responded: ${response.id}") }
                     onSuccess()
                 },
                 onFailure = { error -> onFailure(error) }
@@ -135,7 +131,7 @@ internal class JsonRpcInteractor(
                 logger.error("Cannot send the response, error: $error")
                 onFailure(error)
             }
-        )
+        ).also { logger.log("Responded: ${request.id}") }
     }
 
     override fun respondWithParams(
@@ -168,7 +164,7 @@ internal class JsonRpcInteractor(
 
         try {
             publishJsonRpcResponse(request.topic, irnParams, result, envelopeType = envelopeType, participants = participants,
-                onFailure = { error -> handleError("Cannot send the responseWithSuccess, error: ${error.stackTraceToString()}") })
+                onFailure = { error -> handleError("Cannot send the responseWithSuccess, error: ${error.stackTraceToString()}") }).also { logger.log("Responded: ${request.id}") }
         } catch (e: Exception) {
             handleError("publishFailure; ${e.stackTraceToString()}")
         }
@@ -193,7 +189,7 @@ internal class JsonRpcInteractor(
                 onFailure = { failure ->
                     onFailure(failure)
                     handleError("Cannot send respondWithError: ${failure.stackTraceToString()}")
-                })
+                }).also { logger.log("Responded: ${request.id}") }
         } catch (e: Exception) {
             handleError("publishFailure; ${e.stackTraceToString()}")
         }
@@ -218,7 +214,7 @@ internal class JsonRpcInteractor(
                 onFailure = { failure ->
                     onFailure(failure)
                     handleError("Cannot send respondWithError: ${failure.stackTraceToString()}")
-                })
+                }).also { logger.log("Responded: ${requestId}") }
         } catch (e: Exception) {
             handleError("publishFailure; ${e.stackTraceToString()}")
         }

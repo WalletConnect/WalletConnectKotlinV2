@@ -17,7 +17,7 @@ internal fun syncInChatModule() = module {
     single { OnThreadsUpdateEventUseCase(get(), get(), get(), get(), get(), get(named(AndroidCommonDITags.MOSHI))) }
     single { OnSyncUpdateEventUseCase(get(), get(), get(), get()) }
     single { SetSentInviteToChatSentInvitesStoreUseCase(get(), get(), get(named(AndroidCommonDITags.MOSHI))) }
-    single { SetReceivedInviteStatusToChatSentInvitesStoreUseCase(get(), get(), get(named(AndroidCommonDITags.MOSHI))) }
+    single { SetReceivedInviteRejectedStatusToChatSentInvitesStoreUseCase(get(), get(), get(named(AndroidCommonDITags.MOSHI))) }
     single { SetThreadWithSymmetricKeyToChatThreadsStoreUseCase(get(), get(), get(named(AndroidCommonDITags.MOSHI))) }
     single { SetInviteKeyToChatInviteKeyStoreUseCase(get(), get(), get(named(AndroidCommonDITags.MOSHI))) }
     single { DeleteInviteKeyFromChatInviteKeyStoreUseCase(get(), get()) }

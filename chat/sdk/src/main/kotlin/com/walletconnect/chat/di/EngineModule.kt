@@ -41,6 +41,7 @@ internal fun engineModule() = module {
             invitesRepository = get(),
             keyManagementRepository = get(),
             jsonRpcInteractor = get(),
+            setReceivedInviteRejectedStatusToChatSentInvitesStoreUseCase = get(),
         )
     }
 
@@ -121,12 +122,7 @@ internal fun engineModule() = module {
     single { SendPingUseCase(logger = get(), jsonRpcInteractor = get()) }
     single { OnMessageResponseUseCase(logger = get()) }
     single { OnLeaveResponseUseCase(logger = get()) }
-    single {
-        OnInviteRequestUseCase(
-            logger = get(), identitiesInteractor = get(), accountsRepository = get(), invitesRepository = get(), keyManagementRepository = get(),
-            setReceivedInviteStatusToChatSentInvitesStoreUseCase = get()
-        )
-    }
+    single { OnInviteRequestUseCase(logger = get(), identitiesInteractor = get(), accountsRepository = get(), invitesRepository = get(), keyManagementRepository = get()) }
     single { OnMessageRequestUseCase(logger = get(), identitiesInteractor = get(), messageRepository = get(), keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)), jsonRpcInteractor = get()) }
     single { OnLeaveRequestUseCase(messageRepository = get(), jsonRpcInteractor = get(), threadsRepository = get()) }
     single {

@@ -20,7 +20,7 @@ internal class SetInviteKeyToChatInviteKeyStoreUseCase(
     private val moshi = _moshi.build()
 
     operator fun invoke(account: AccountId, invitePublicKey: PublicKey, invitePrivateKey: PrivateKey, onSuccess: (Boolean) -> Unit, onError: (Throwable) -> Unit) {
-        val syncedInviteKeys = (invitePublicKey to invitePrivateKey).toSync()
+        val syncedInviteKeys = (invitePublicKey to invitePrivateKey).toSync(account)
         val payload = moshi.adapter(SyncedInviteKeys::class.java).toJson(syncedInviteKeys)
         logger.log("SyncedInviteKeys: $payload")
 

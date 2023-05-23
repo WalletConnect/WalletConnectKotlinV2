@@ -20,16 +20,16 @@ internal class StoresStorageRepository(private val stores: StoresQueries, privat
 
     suspend fun getStoreMap(accountId: AccountId): StoreMap = stores.getStoresByAccountId(accountId.value).executeAsList().map { it.name to getStoreValuesByStoreId(it.id) } as StoreMap
 
-    suspend fun getStoreValue(accountId: AccountId, store: Store, key: String): Pair<String, String> =
+    suspend fun getStoreValue(accountId: AccountId, store: Store, key: String): Triple<String, String, Long> =
         storeValues.getStoreValueByStoreIdAndKey(getStoreId(accountId, store), key, ::dbToStoreValue).executeAsOne()
 
     suspend fun deleteStoreValue(accountId: AccountId, store: Store, key: String) = storeValues.deleteStoreValue(getStoreId(accountId, store), key)
 
-    suspend fun upsertStoreValue(accountId: AccountId, store: Store, key: String, value: String) = getStoreId(accountId, store).let { storeId ->
+    suspend fun upsertStoreValue(accountId: AccountId, store: Store, key: String, value: String, timestamp: Long) = getStoreId(accountId, store).let { storeId ->
         if (doesStoreValueNotExists(storeId, key)) {
-            insertStoreValue(storeId, key, value)
+            insertStoreValue(storeId, key, value, timestamp)
         } else {
-            updateStoreValue(storeId, key, value)
+            updateStoreValue(storeId, key, value, timestamp)
         }
     }
 
@@ -37,9 +37,9 @@ internal class StoresStorageRepository(private val stores: StoresQueries, privat
 
     suspend fun getAccountIdAndStoreByTopic(topic: Topic): Pair<AccountId, Store> = stores.getStoreByTopic(topic.value).executeAsOne().let { AccountId(it.accountId) to Store(it.name) }
 
-    private suspend fun insertStoreValue(storeId: Long, key: String, value: String) = storeValues.insertOrAbortStoreValue(storeId, key, value)
+    private suspend fun insertStoreValue(storeId: Long, key: String, value: String, timestamp: Long) = storeValues.insertOrAbortStoreValue(storeId, key, value, timestamp)
 
-    private suspend fun updateStoreValue(storeId: Long, key: String, value: String) = storeValues.updateStoreValue(value, storeId, key)
+    private suspend fun updateStoreValue(storeId: Long, key: String, value: String, timestamp: Long) = storeValues.updateStoreValue(value, timestamp, storeId, key)
 
     private suspend fun getStoreId(accountId: AccountId, store: Store): Long = stores.getStoreIdByAccountIdAndName(accountId.value, store.value).executeAsOne()
 
@@ -49,5 +49,5 @@ internal class StoresStorageRepository(private val stores: StoresQueries, privat
 
     private suspend fun doesStoreValueNotExists(storeId: Long, key: String) = storeValues.doesStoreValueNotExists(storeId, key).executeAsOne()
 
-    private fun dbToStoreValue(key: String, value: String): Pair<String, String> = key to value
+    private fun dbToStoreValue(key: String, value: String, timestamp: Long): Triple<String, String, Long> = Triple(key, value, timestamp)
 }

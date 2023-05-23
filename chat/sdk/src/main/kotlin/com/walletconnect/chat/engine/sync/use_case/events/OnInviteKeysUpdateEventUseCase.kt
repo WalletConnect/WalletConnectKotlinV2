@@ -41,6 +41,7 @@ internal class OnInviteKeysUpdateEventUseCase(
                     keyManagementRepository.setKey(invitePublicKey, inviteTopic.getParticipantTag())
                     accountsRepository.setAccountPublicInviteKey(accountId, invitePublicKey, inviteTopic)
                     jsonRpcInteractor.subscribe(inviteTopic)
+                    logger.log("InviteKeysSync $accountId, $inviteTopic, $invitePublicKey, $invitePrivateKey")
                 }
             }
             is SyncUpdate.SyncDelete -> {

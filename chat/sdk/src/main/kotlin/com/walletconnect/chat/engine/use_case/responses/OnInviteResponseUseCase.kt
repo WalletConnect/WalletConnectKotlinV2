@@ -39,7 +39,7 @@ internal class OnInviteResponseUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val setSentInviteToChatSentInvitesStoreUseCase: SetSentInviteToChatSentInvitesStoreUseCase,
     private val setThreadWithSymmetricKeyToChatThreadsStoreUseCase: SetThreadWithSymmetricKeyToChatThreadsStoreUseCase,
-) {
+    ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
@@ -54,8 +54,9 @@ internal class OnInviteResponseUseCase(
         logger.log("Chat invite was rejected")
         scope.launch {
             invitesRepository.updateStatusByInviteId(wcResponse.response.id, InviteStatus.REJECTED)
-            val inviteSent = invitesRepository.getSentInviteByInviteId(wcResponse.response.id)
-            _events.emit(Events.OnInviteRejected(inviteSent))
+            val sentInvite = invitesRepository.getSentInviteByInviteId(wcResponse.response.id)
+            setSentInviteToChatSentInvitesStoreUseCase(sentInvite.copy(status = InviteStatus.REJECTED), onSuccess = {}, onError = { error -> scope.launch { _events.emit(SDKError(error)) } })
+            _events.emit(Events.OnInviteRejected(sentInvite))
         }
     }
 

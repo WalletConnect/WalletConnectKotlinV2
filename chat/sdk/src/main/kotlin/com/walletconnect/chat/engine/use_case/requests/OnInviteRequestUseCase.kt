@@ -2,7 +2,6 @@ package com.walletconnect.chat.engine.use_case.requests
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
-import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.scope
@@ -14,12 +13,12 @@ import com.walletconnect.chat.common.model.Events
 import com.walletconnect.chat.common.model.Invite
 import com.walletconnect.chat.common.model.InviteMessage
 import com.walletconnect.chat.common.model.InviteStatus
-import com.walletconnect.chat.engine.sync.use_case.requests.SetReceivedInviteStatusToChatSentInvitesStoreUseCase
 import com.walletconnect.chat.jwt.ChatDidJwtClaims
 import com.walletconnect.chat.storage.AccountsStorageRepository
 import com.walletconnect.chat.storage.InvitesStorageRepository
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeX25519DidKey
+import com.walletconnect.utils.extractTimestamp
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -31,7 +30,6 @@ internal class OnInviteRequestUseCase(
     private val accountsRepository: AccountsStorageRepository,
     private val invitesRepository: InvitesStorageRepository,
     private val keyManagementRepository: KeyManagementRepository,
-    private val setReceivedInviteStatusToChatSentInvitesStoreUseCase: SetReceivedInviteStatusToChatSentInvitesStoreUseCase,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
@@ -66,10 +64,9 @@ internal class OnInviteRequestUseCase(
                     wcRequest.id, inviterAccountId, inviteeAccount.accountId, InviteMessage(claims.subject),
                     inviterPublicKey, InviteStatus.PENDING, acceptTopic, symmetricKey, inviterPrivateKey = null,
                     //todo: use publishedAt from relay https://github.com/WalletConnect/WalletConnectKotlinV2/issues/872
-                    timestamp = wcRequest.id
+                    timestamp = wcRequest.id.extractTimestamp()
                 )
 
-                setReceivedInviteStatusToChatSentInvitesStoreUseCase(invite, onSuccess = {}, onError = { error -> scope.launch { _events.emit(SDKError(error)) } })
                 invitesRepository.insertInvite(invite)
                 _events.emit(Events.OnInvite(invite))
             }, onFailure = { error -> logger.error(error) })
