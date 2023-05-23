@@ -74,10 +74,7 @@ dependencies {
     implementation("com.github.skydoves:landscapist-glide:2.1.0")
 
     // Accompanist
-    implementation("com.google.accompanist:accompanist-navigation-material:$accompanistVersion")
-    implementation("com.google.accompanist:accompanist-systemuicontroller:$accompanistVersion")
-    implementation("com.google.accompanist:accompanist-pager:$accompanistVersion")
-    implementation("com.google.accompanist:accompanist-pager-indicators:$accompanistVersion")
+    accompanist()
 
     // Compose
     compose()
