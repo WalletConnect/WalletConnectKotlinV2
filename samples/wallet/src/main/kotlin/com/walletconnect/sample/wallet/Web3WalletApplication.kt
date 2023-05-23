@@ -64,7 +64,7 @@ class Web3WalletApplication : Application() {
             onSign = { message -> CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191) }
         )) { error ->
             Log.e(tag(this), error.throwable.stackTraceToString())
-//            Firebase.crashlytics.recordException(error.throwable)
+            Firebase.crashlytics.recordException(error.throwable)
         }
 
         // For testing purposes only
