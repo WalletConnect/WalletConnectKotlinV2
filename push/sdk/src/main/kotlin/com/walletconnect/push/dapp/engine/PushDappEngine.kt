@@ -233,7 +233,7 @@ internal class PushDappEngine(
                         account = AccountId(params.account),
                         relay = RelayProtocolOptions(),
                         metadata = params.metaData,
-                        didJwt = "",
+                        didJwt = pushRequestResponse.subscriptionAuth,
                         scope = emptyMap(),
                         expiry = expiry
                     )
