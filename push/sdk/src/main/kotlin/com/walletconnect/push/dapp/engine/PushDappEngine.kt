@@ -112,7 +112,7 @@ internal class PushDappEngine(
         message: EngineDO.PushMessage,
         onFailure: (Throwable) -> Unit,
     ) {
-        val messageParams = PushParams.MessageParams(message.title, message.body, message.icon, message.url, "")
+        val messageParams = PushParams.MessageParams(message.title, message.body, message.icon, message.url, message.type)
         val request = PushRpc.PushMessage(params = messageParams)
         val irnParams = IrnParams(Tags.PUSH_MESSAGE, Ttl(DAY_IN_SECONDS))
 
