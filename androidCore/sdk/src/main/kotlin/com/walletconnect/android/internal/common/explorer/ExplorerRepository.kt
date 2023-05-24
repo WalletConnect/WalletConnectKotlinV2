@@ -25,8 +25,7 @@ import com.walletconnect.android.internal.common.explorer.data.network.model.Sup
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.wcKoinApp
 
-class ExplorerRepository(private val explorerService: ExplorerService) {
-    private val projectId by lazy { wcKoinApp.koin.get<ProjectId>() }
+class ExplorerRepository(private val explorerService: ExplorerService, private val projectId: ProjectId) {
 
     suspend fun getAllDapps(): DappListings {
         return with(explorerService.getAllDapps(projectId.value)) {

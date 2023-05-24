@@ -24,5 +24,5 @@ internal fun explorerModule() = module {
 
     single { get<Retrofit>(named(AndroidCommonDITags.EXPLORER_RETROFIT)).create(ExplorerService::class.java) }
 
-    single { ExplorerRepository(get()) }
+    single { ExplorerRepository(explorerService = get(), projectId = get()) }
 }
