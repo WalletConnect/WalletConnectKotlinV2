@@ -22,9 +22,35 @@ fun randomBytes(size: Int): ByteArray = ByteArray(size).apply {
     SecureRandom().nextBytes(this)
 }
 
-fun ByteArray.bytesToHex(): String = Base16.encode(this)
+fun ByteArray.bytesToHex(): String {
+    val hexString = StringBuilder(2 * this.size)
 
-fun String.hexToBytes(): ByteArray = Base16.decode(this.lowercase())
+    this.indices.forEach { i ->
+        val hex = Integer.toHexString(0xff and this[i].toInt())
+
+        if (hex.length == 1) {
+            hexString.append('0')
+        }
+
+        hexString.append(hex)
+    }
+
+    return hexString.toString()
+}
+
+fun String.hexToBytes(): ByteArray {
+    val len = this.length
+    val data = ByteArray(len / 2)
+    var i = 0
+
+    while (i < len) {
+        data[i / 2] = ((Character.digit(this[i], 16) shl 4)
+                + Character.digit(this[i + 1], 16)).toByte()
+        i += 2
+    }
+
+    return data
+}
 
 fun ByteArray.bytesToInt(size: Int): Int {
     require(this.size <= 4) { "Byte array size must be less than 5" }
