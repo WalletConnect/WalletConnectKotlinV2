@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.push.common
 
 import com.walletconnect.android.internal.common.model.Expiry
