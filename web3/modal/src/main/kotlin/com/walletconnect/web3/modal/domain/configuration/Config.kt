@@ -1,9 +1,8 @@
 package com.walletconnect.web3.modal.domain.configuration
 
 import com.squareup.moshi.*
-import com.walletconnect.web3.modal.client.Modal
 
-internal const val CONFIGURATION = "modal_config"
+internal const val CONFIG_ARG = "modal_config_arg"
 
 @JsonClass(generateAdapter = true)
 sealed class Config {
@@ -15,3 +14,5 @@ sealed class Config {
         val chains: List<String>? = null,
     ): Config()
 }
+
+internal fun Config.asArg() = Web3ModalConfigSerializer.serialize(this)
