@@ -118,7 +118,7 @@ internal class PushDappEngine(
 
         scope.launch {
             supervisorScope {
-                subscriptionStorageRepository.getAccountByTopic(pushTopic).let { caip10Account ->
+                subscriptionStorageRepository.getAccountByTopic(pushTopic)?.let { caip10Account ->
                     val account = if (caip10Account.contains(Regex(".:.:."))) {
                         caip10Account.split(":").last()
                     } else {
@@ -136,7 +136,7 @@ internal class PushDappEngine(
                         },
                         onFailure
                     )
-                }
+                } ?: onFailure(IllegalStateException("No account found for topic: $pushTopic"))
             }
         }
 

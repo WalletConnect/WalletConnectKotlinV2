@@ -73,8 +73,8 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
         subscriptionQueries.deleteByTopic(topic)
     }
 
-    suspend fun getAccountByTopic(topic: String): String = withContext(Dispatchers.IO) {
-        subscriptionQueries.getSubscriptionByTopic(topic).executeAsOne().account
+    suspend fun getAccountByTopic(topic: String): String? = withContext(Dispatchers.IO) {
+        subscriptionQueries.getSubscriptionByTopic(topic).executeAsOneOrNull()?.account
     }
 
     suspend fun getSubscriptionsByRequestId(requestId: Long): EngineDO.PushSubscription = withContext(Dispatchers.IO) {
