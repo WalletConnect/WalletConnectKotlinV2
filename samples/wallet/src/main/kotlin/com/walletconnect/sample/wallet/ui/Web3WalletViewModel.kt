@@ -9,6 +9,7 @@ import com.walletconnect.push.common.Push
 import com.walletconnect.sample.wallet.domain.ISSUER
 import com.walletconnect.sample.wallet.domain.PushWalletDelegate
 import com.walletconnect.sample.wallet.domain.WCDelegate
+import com.walletconnect.sample_common.tag
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.flow.SharingStarted
@@ -62,10 +63,10 @@ class Web3WalletViewModel : ViewModel() {
                 NoAction
             }
             is Push.Wallet.Event.Subscription.Result -> {
-                Log.e("Talha", "PushEvent.Subscription.Result: ${pushEvent.subscription}")
+                Log.e(tag(this), "PushEvent.Subscription.Result: ${pushEvent.subscription}")
             }
             is Push.Wallet.Event.Subscription.Error -> {
-                Log.e("Talha", "PushEvent.Subscription.Error: ${pushEvent.reason}")
+                Log.e(tag(this), "PushEvent.Subscription.Error: ${pushEvent.reason}")
             }
             else -> {
                 NoAction
