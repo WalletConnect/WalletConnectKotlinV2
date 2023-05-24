@@ -3,21 +3,17 @@
 package com.walletconnect.push.wallet.engine
 
 import android.content.res.Resources.NotFoundException
-import android.net.Uri
-import android.util.Base64
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.exception.Uncategorized
-import com.walletconnect.android.internal.common.explorer.ExplorerRepository
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
 import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.AccountId
-import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.DidJwt
 import com.walletconnect.android.internal.common.model.EnvelopeType
@@ -53,12 +49,10 @@ import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.wallet.data.MessagesRepository
-import com.walletconnect.push.wallet.data.wellknown.config.PushConfigDTO
-import com.walletconnect.push.wallet.data.wellknown.config.TypeDTO
-import com.walletconnect.push.wallet.data.wellknown.did.DidJsonDTO
+import com.walletconnect.push.wallet.engine.domain.ApproveUseCase
+import com.walletconnect.push.wallet.engine.domain.ApproveUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.SubscribeToDappUseCase
 import com.walletconnect.push.wallet.engine.domain.SubscribeToDappUseCaseInterface
-import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -71,11 +65,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
-import org.koin.core.KoinApplication.Companion.init
-import java.net.URL
 import kotlin.reflect.full.safeCast
 
 internal class PushWalletEngine(
@@ -87,10 +78,11 @@ internal class PushWalletEngine(
     private val messagesRepository: MessagesRepository,
     private val identitiesInteractor: IdentitiesInteractor,
     private val serializer: JsonRpcSerializer,
-    private val explorerRepository: ExplorerRepository,
     private val logger: Logger,
-    private val subscriptToDappUseCase: SubscribeToDappUseCase
-): SubscribeToDappUseCaseInterface by subscriptToDappUseCase {
+    private val subscriptToDappUseCase: SubscribeToDappUseCase,
+    private val approveUseCase: ApproveUseCase,
+) : SubscribeToDappUseCaseInterface by subscriptToDappUseCase,
+    ApproveUseCaseInterface by approveUseCase {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -128,38 +120,6 @@ internal class PushWalletEngine(
                 }
             }
             .launchIn(scope)
-    }
-
-    suspend fun approve(requestId: Long, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId)
-        val dappPublicKey = respondedSubscription.peerPublicKey ?: return@supervisorScope onFailure(IllegalArgumentException("Invalid dapp public key"))
-        val responseTopic = sha256(dappPublicKey.keyAsBytes)
-
-        val didJwt = registerIdentityAndReturnDidJwt(respondedSubscription.account, respondedSubscription.metadata.url, emptyList(), onSign, onFailure).getOrElse { error ->
-            return@supervisorScope onFailure(error)
-        }
-        val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
-        val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappPublicKey)
-        val approvalParams = PushParams.RequestResponseParams(didJwt.value)
-        val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
-
-        subscriptionStorageRepository.updateSubscriptionToRespondedByApproval(responseTopic, pushTopic.value, calcExpiry())
-
-        jsonRpcInteractor.subscribe(pushTopic) { error ->
-            return@subscribe onFailure(error)
-        }
-        jsonRpcInteractor.respondWithParams(
-            respondedSubscription.requestId,
-            Topic(responseTopic),
-            approvalParams,
-            irnParams,
-            envelopeType = EnvelopeType.ONE,
-            participants = Participants(selfPublicKey, dappPublicKey)
-        ) { error ->
-            return@respondWithParams onFailure(error)
-        }
-
-        onSuccess()
     }
 
     suspend fun reject(requestId: Long, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
