@@ -1,32 +1,18 @@
+import kotlin.String;
+import kotlin.Boolean;
+import kotlin.Pair;
 import kotlin.collections.List;
+import kotlin.collections.Map;
 
 -- This file is for the migration from version 1 to version 2 of the schema
 
--- CREATE TABLE IF NOT EXISTS Subscriptions (
--- id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
--- request_id INTEGER UNIQUE NOT NULL,
--- response_topic TEXT NOT NULL,
--- dapp_public_key TEXT DEFAULT NULL,
--- topic TEXT UNIQUE,
--- account TEXT NOT NULL,
--- relay_protocol TEXT NOT NULL,
--- relay_data TEXT,
--- metadata_name TEXT NOT NULL,
--- metadata_description TEXT NOT NULL,
--- metadata_url TEXT NOT NULL,
--- metadata_icons TEXT AS List<String> NOT NULL,
--- metadata_native TEXT,
--- did_jwt TEXT NOT NULL,
--- map_of_scope TEXT NOT NULL,
--- expiry INTEGER NOT NULL
--- );
-
 DROP TABLE IF EXISTS Subscription;
+DROP TABLE IF EXISTS Subscriptions;
 
-CREATE TABLE Subscriptions (
+CREATE TABLE IF NOT EXISTS Subscriptions (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    key_agreement_topic TEXT NOT NULL,
     request_id INTEGER UNIQUE NOT NULL,
+    key_agreement_topic TEXT NOT NULL,
     response_topic TEXT NOT NULL,
     dapp_public_key TEXT DEFAULT NULL,
     topic TEXT,
@@ -39,18 +25,9 @@ CREATE TABLE Subscriptions (
     metadata_icons TEXT AS List<String> NOT NULL,
     metadata_native TEXT,
     did_jwt TEXT NOT NULL,
-    map_of_scope TEXT NOT NULL,
+    map_of_scope TEXT AS Map<String, Pair<String, Boolean>> NOT NULL,
     expiry INTEGER NOT NULL
 );
-
--- INSERT INTO Subscriptions_temp (request_id, response_topic, dapp_public_key, topic, account, relay_protocol, relay_data, metadata_name, metadata_description, metadata_url, metadata_icons, metadata_native, did_jwt, map_of_scope, expiry)
--- SELECT request_id, pairing_topic, peer_public_key, topic, account, relay_protocol, relay_data, metadata_name, metadata_description, metadata_url, metadata_icons, metadata_native, "", "", 0
--- FROM Subscriptions;
-
--- DROP TABLE Subscriptions;
-
--- ALTER TABLE Subscriptions_temp RENAME TO Subscriptions;
-
 
 -- delete unused table
 DROP TABLE IF EXISTS Subscribe;
@@ -58,7 +35,7 @@ DROP TABLE IF EXISTS Subscribe;
 -- Migration from old Message table to new Message table
 DROP TABLE IF EXISTS Message;
 
-CREATE TABLE Message (
+CREATE TABLE IF NOT EXISTS Messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     request_id INTEGER UNIQUE NOT NULL,
     topic TEXT NOT NULL,
