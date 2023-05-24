@@ -241,22 +241,22 @@ internal class PushDappEngine(
                     withContext(Dispatchers.IO) {
                         with(respondedSubscription) {
                             subscriptionStorageRepository.insertSubscription(
-                                requestId,
-                                keyAgreementTopic.value,
-                                responseTopic.value,
-                                peerPublicKey?.keyAsHex,
-                                subscriptionTopic?.value,
-                                account.value,
-                                relay.protocol,
-                                relay.data,
-                                metadata.name,
-                                metadata.description,
-                                metadata.url,
-                                metadata.icons,
-                                metadata.redirect?.native,
-                                "",
-                                emptyMap(),
-                                expiry.seconds
+                                requestId = requestId,
+                                keyAgreementTopic = keyAgreementTopic.value,
+                                responseTopic = responseTopic.value,
+                                peerPublicKeyAsHex = peerPublicKey?.keyAsHex,
+                                subscriptionTopic = subscriptionTopic?.value,
+                                account = account.value,
+                                relayProtocol = relay.protocol,
+                                relayData = relay.data,
+                                name = metadata.name,
+                                description = metadata.description,
+                                url = metadata.url,
+                                icons = metadata.icons,
+                                native = metadata.redirect?.native,
+                                didJwt = pushRequestResponse.subscriptionAuth,
+                                mapOfScope = emptyMap(),
+                                expiry = expiry.seconds
                             )
                         }
 
